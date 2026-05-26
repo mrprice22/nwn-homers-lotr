@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>A Minotaur Battle Master</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,29 +47,37 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>minotaurbattlema</dd>
 <dt>Tag</dt><dd>AMinotaurBattleMaster</dd>
-<dt>Race</dt><dd>Monstrous</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-13">Monstrous</a></dd>
 <dt>Appearance</dt><dd>Minotaur, Chieftain</dd>
 <dt>Class(es)</dt><dd>Monstrous 13</dd>
 <dt>HP</dt><dd>265</dd>
 <dt>CR</dt><dd>18.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/kallristwestshor.html">Kallrist, East shore</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr>
+<tr><td><a href="../areas/kallristdarkrim.html">Kallrist, Land bridge</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr>
+<tr><td><a href="../areas/kallristnorthsho.html">Kallrist, North shore</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr>
+<tr><td><a href="../areas/kallristouterban.html">Kallrist, Outer banks</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>34</td><th>Dex</th><td>16</td><th>Con</th><td>18</td><th>Int</th><td>12</td><th>Wis</th><td>12</td><th>Cha</th><td>13</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Monstrous</td><td>13</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>265</td><th>AC</th><td>18 <small class="muted">(10 base + +3 Dex + +5 natural (NaturalAC))</small></td><th>BAB</th><td>+9</td></tr><tr><th>Fort</th><td>+4</td><th>Ref</th><td>+3</td><th>Will</th><td>+1</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/waxbt002.html">Axe of the Battle Master</a></td><td>Battleaxe</td><td>Melee</td><td>+21/+16</td><td>1d8+12 (13–20)</td><td>20/x3</td></tr>
-<tr><td>Creature weapon (R)</td><td>nw_it_crewpsp005</td><td></td><td>Melee</td><td>+21/+16</td><td>—</td><td></td></tr>
-<tr><td>Creature weapon (L)</td><td>nw_it_crewpsp005</td><td></td><td>Melee</td><td>+21/+16</td><td>—</td><td></td></tr>
-<tr><td>Creature weapon (bite)</td><td>nw_it_crewps005</td><td></td><td>Melee</td><td>+21/+16</td><td>—</td><td></td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>265</td><th>AC</th><td>28 <small class="muted">(10 base + +3 Dex + +5 natural (NaturalAC) + +8 armor + +2 armor enchant)</small></td><th>BAB</th><td>+9</td></tr><tr><th>Fort</th><td>+4</td><th>Ref</th><td>+3</td><th>Will</th><td>+1</td></tr></table>
+<p class="muted">AC extras: +2 AC Bonus</p>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Regen: Vampiric</th><td>+5 HP/hit</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/waxbt002.html">Axe of the Battle Master</a></td><td>Battleaxe</td><td>Melee</td><td>+24/+19</td><td>1d8+12 (13–20) + Regeneration: Vampiric +5</td><td>20/x3</td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/nw_it_crewpsp005.html">Claw1d6</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+21/+16</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/nw_it_crewpsp005.html">Claw1d6</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+21/+16</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/nw_it_crewps005.html">Bite1d6</a></td><td>Creature Slash Weapon</td><td>Melee</td><td>+21/+16</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td>nw_maarcl068</td></tr>
-<tr><td>Right hand</td><td><a href="../items/waxbt002.html">Axe of the Battle Master</a></td></tr>
-<tr><td>Creature weapon (R)</td><td>nw_it_crewpsp005</td></tr>
-<tr><td>Creature weapon (L)</td><td>nw_it_crewpsp005</td></tr>
-<tr><td>Creature weapon (bite)</td><td>nw_it_crewps005</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/nw_maarcl068.html">Full Plate +2</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/waxbt002.html">Axe of the Battle Master</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/nw_it_crewpsp005.html">Claw1d6</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/nw_it_crewpsp005.html">Claw1d6</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/nw_it_crewps005.html">Bite1d6</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(28)</small></h2><ul class="featlist"><li>Alertness</li><li>Ambidexterity</li><li>Armor Proficiency (heavy)</li><li>Barbarian Fast Movement</li><li>Cleave</li><li>Damage Reduction 1</li><li>Deflect Arrows</li><li>Dual-Wield</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Improved Critical (battleaxe)</li><li>Improved Parry</li><li>Improved Two-Weapon Fighting</li><li>Mobility</li><li>Opportunist</li><li>Skill Focus (Discipline)</li><li>Skill Focus (Parry)</li><li>Sneak Attack (+2d6)</li><li>Toughness</li><li>Two-Weapon Fighting</li><li>Uncanny Dodge I</li><li>Weapon Focus (battleaxe)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (battleaxe)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>10</td></tr>
 <tr><td>Parry</td><td>10</td></tr></tbody></table>
@@ -67,11 +97,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(4 areas)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/kallristwestshor.html">Kallrist, East shore</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr>
-<tr><td><a href="../areas/kallristdarkrim.html">Kallrist, Land bridge</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr>
-<tr><td><a href="../areas/kallristnorthsho.html">Kallrist, North shore</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr>
-<tr><td><a href="../areas/kallristouterban.html">Kallrist, Outer banks</a></td><td>minotaurs</td><td><code>minotaurs</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

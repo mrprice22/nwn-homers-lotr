@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script zep_cr_qrestore</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>zep_cr_qrestore</code></h1><pre class="nss-source"><code>// OnOpen for ZEP_CR_QUARANTINE chest.
+// After a reboot the chest is empty — restore from the last-close snapshot.
+// Also pulls in any items quarantined since the last open.
+// Items are cleared of crafting flags (Plot/Cursed/Stolen/TEMPITEM) so they
+// can be picked up and given back to players.
+void main() {
+    object oChest  = OBJECT_SELF;
+    object oOpener = GetLastOpenedBy();
+
+    // --- Restore reboot snapshot if chest is currently empty ---
+    if (!GetIsObjectValid(GetFirstItemInInventory(oChest))) {
+        int nSnap = GetCampaignInt(&quot;craftdb&quot;, &quot;chest_count&quot;);
+        int i;
+        for (i = 0; i &lt; nSnap; i++) {
+            object oItem = RetrieveCampaignObject(&quot;craftdb&quot;, &quot;chest_&quot;+IntToString(i), GetLocation(oChest), oChest);
+            if (GetIsObjectValid(oItem)) {
+                SetPlotFlag(oItem, FALSE);
+                SetItemCursedFlag(oItem, FALSE);
+                SetStolenFlag(oItem, FALSE);
+                DeleteLocalInt(oItem, &quot;ZEP_CR_TEMPITEM&quot;);
+            }
+            DeleteCampaignVariable(&quot;craftdb&quot;, &quot;chest_&quot;+IntToString(i));
+        }
+        SetCampaignInt(&quot;craftdb&quot;, &quot;chest_count&quot;, 0);
+        if (nSnap &gt; 0)
+            SendMessageToPC(oOpener, &quot;[Quarantine] Restored &quot; + IntToString(nSnap) + &quot; item(s) from reboot snapshot.&quot;);
+    }
+
+    // --- Pull in newly quarantined items ---
+    int nQuar = GetCampaignInt(&quot;craftdb&quot;, &quot;quarantine_count&quot;);
+    if (nQuar == 0) {
+        SendMessageToPC(oOpener, &quot;[Quarantine] No new quarantined items.&quot;);
+        return;
+    }
+    int n, nRestored = 0;
+    for (n = 0; n &lt; nQuar; n++) {
+        string sKey  = &quot;quarantine_&quot; + IntToString(n);
+        string sInfo = GetCampaignString(&quot;craftdb&quot;, sKey + &quot;_info&quot;);
+        object oItem = RetrieveCampaignObject(&quot;craftdb&quot;, sKey, GetLocation(oChest), oChest);
+        if (GetIsObjectValid(oItem)) {
+            SetPlotFlag(oItem, FALSE);
+            SetItemCursedFlag(oItem, FALSE);
+            SetStolenFlag(oItem, FALSE);
+            DeleteLocalInt(oItem, &quot;ZEP_CR_TEMPITEM&quot;);
+            nRestored++;
+            if (sInfo != &quot;&quot;)
+                SendMessageToPC(oOpener, &quot;[Quarantine] &quot; + sInfo);
+        }
+        DeleteCampaignVariable(&quot;craftdb&quot;, sKey);
+        DeleteCampaignVariable(&quot;craftdb&quot;, sKey + &quot;_info&quot;);
+    }
+    SetCampaignInt(&quot;craftdb&quot;, &quot;quarantine_count&quot;, 0);
+    SendMessageToPC(oOpener, &quot;[Quarantine] Added &quot; + IntToString(nRestored) + &quot;/&quot; + IntToString(nQuar) + &quot; newly quarantined item(s).&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

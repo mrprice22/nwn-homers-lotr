@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation _subr_dm_conv</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -42,8 +64,9 @@
 <tr><td><code>_dm_subrace_lis3</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>_dm_subrace_lis5</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>_dm_subrace_wan3</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM8686&gt;</code></td><td><a href="../scripts/_dm_subrace_lis3.html">_dm_subrace_lis3</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> — &lt;StartCheck&gt;Subrace Wand:&lt;/Start&gt; What would you like to do...?</li>
+<li><a href="#e0">entry #0</a> — Subrace Wand: What would you like to do...?</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -80,7 +103,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>_dm_subrace_lis3</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
-<div class="dlg-text">Setting the player&#x27;s subrace to: &lt;CUSTOM8686&gt; . . . </div>
+<div class="dlg-text">Setting the player&#x27;s subrace to: <span class="custom-token" title="SetCustomToken(8686, ...) called in: _dm_subrace_lis3">&lt;CUSTOM8686&gt;<sup class="token-setters">[<a href="../scripts/_dm_subrace_lis3.html">_dm_subrace_lis3</a>]</sup></span> . . . </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>_dm_subrace_lis5</code></span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
@@ -88,7 +111,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #6</span> <small class="muted">(if <code>_dm_subrace_lis3</code>)</small> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
-<div class="dlg-text">Player&#x27;s subrace was set to: &lt;CUSTOM8686&gt;.</div>
+<div class="dlg-text">Player&#x27;s subrace was set to: <span class="custom-token" title="SetCustomToken(8686, ...) called in: _dm_subrace_lis3">&lt;CUSTOM8686&gt;<sup class="token-setters">[<a href="../scripts/_dm_subrace_lis3.html">_dm_subrace_lis3</a>]</sup></span>.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>_dm_subrace_lis4</code></span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
@@ -177,8 +200,8 @@
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>_dm_subrace_lis4</code></span></div><div class="dlg-text">This will remove the player from any of their current subrace. . . and set a new subrace. Setting a subrace through this way will NOT check any requirements for the subrace (IE: Race, Class, Alignments, etc).
 
 &lt;StartCheck&gt;Please speak the name of the subrace you want to set the player. . . &lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“I have spoken . . . [CONTINUE].”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“End.”</span></li></ul></div>
-<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Setting the player&#x27;s subrace to: &lt;CUSTOM8686&gt; . . . </div><ul class="dlg-links"><li><a href="#r13">→ reply #13</a></li></ul></div>
-<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Player&#x27;s subrace was set to: &lt;CUSTOM8686&gt;.</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Done.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Setting the player&#x27;s subrace to: <span class="custom-token" title="SetCustomToken(8686, ...) called in: _dm_subrace_lis3">&lt;CUSTOM8686&gt;<sup class="token-setters">[<a href="../scripts/_dm_subrace_lis3.html">_dm_subrace_lis3</a>]</sup></span> . . . </div><ul class="dlg-links"><li><a href="#r13">→ reply #13</a></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Player&#x27;s subrace was set to: <span class="custom-token" title="SetCustomToken(8686, ...) called in: _dm_subrace_lis3">&lt;CUSTOM8686&gt;<sup class="token-setters">[<a href="../scripts/_dm_subrace_lis3.html">_dm_subrace_lis3</a>]</sup></span>.</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Done.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Nothing.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Work with the chosen player. . . </div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“What would you like to do?”</span></li></ul></div>
@@ -192,11 +215,11 @@
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>_dm_subrace_wan2</code></span></div><div class="dlg-text">Show player&#x27;s subrace information.</div></div>
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Set a new subrace. . . </div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“This will remove the player from any of their current subrace. . . and set a new…”</span></li></ul></div>
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">End.</div></div>
-<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">I have spoken . . . [CONTINUE].</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Setting the player&#x27;s subrace to: &lt;CUSTOM8686&gt; . . .”</span> <small class="muted">(if <code>_dm_subrace_lis3</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>_dm_subrace_lis5</code></span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Player&#x27;s subrace was set to: &lt;CUSTOM8686&gt;.”</span> <small class="muted">(if <code>_dm_subrace_lis3</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">I have spoken . . . [CONTINUE].</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Setting the player&#x27;s subrace to:  . . .”</span> <small class="muted">(if <code>_dm_subrace_lis3</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>_dm_subrace_lis5</code></span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Player&#x27;s subrace was set to: .”</span> <small class="muted">(if <code>_dm_subrace_lis3</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>_dm_subrace_lis4</code></span></div><div class="dlg-text">Done.</div></div>
 <div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>_dm_subrace_wan3</code></span></div><div class="dlg-text">Show all subraces in the module.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

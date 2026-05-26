@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation npc_banker_2</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -56,6 +78,7 @@
 <tr><td><code>bank_100gp_set</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>bank_10gp_set</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>bank_1gp_set</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM101&gt;</code></td><td><a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a> — Hello Can I help you</li>
 </ul>
@@ -72,7 +95,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
-<div class="dlg-text">Your Current Balance is &lt;CUSTOM101&gt;</div>
+<div class="dlg-text">Your Current Balance is <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #22</span> <a class="dlg-anchor" href="#r22" title="jump to flat reply #22">¶</a></summary>
@@ -91,62 +114,62 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>bankbalance</code></span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
-<div class="dlg-text">Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.</div>
+<div class="dlg-text">Alright.  How much would you like to withdraw? You have <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gp.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>bank_1gp_set</code></span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
 <div class="dlg-text">1gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>bank_10gp_set</code></span> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
 <div class="dlg-text">10gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>bank_100gp_set</code></span> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
 <div class="dlg-text">100gp</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>bank_1k_set</code></span> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
 <div class="dlg-text">1,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>bank_10k_set</code></span> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
 <div class="dlg-text">10,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>bank_100k_set</code></span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
 <div class="dlg-text">100,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>bank_1mil_set</code></span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
 <div class="dlg-text">1,000,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>bank_all_set</code></span> <small class="muted">(if <code>bank_all_chk</code>)</small> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
 <div class="dlg-text">Withdraw all of my gold.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -166,62 +189,62 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)</div>
+<div class="dlg-text">Alright.  How much would you like to deposit? (<span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span>gp In your account)</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>gold1gpdep</code></span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
 <div class="dlg-text">1gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>gold10gpdep</code></span> <small class="muted">(if <code>bank_10gp_chk</code>)</small> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
 <div class="dlg-text">10gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>gold100gpdep</code></span> <small class="muted">(if <code>bank_100gp_chk</code>)</small> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
 <div class="dlg-text">100gp</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>gold1000gpdep</code></span> <small class="muted">(if <code>bank_1k_chk</code>)</small> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
 <div class="dlg-text">1,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>gold10kgpdep</code></span> <small class="muted">(if <code>bank_10k_chk</code>)</small> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
 <div class="dlg-text">10,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>gold100kgpdep</code></span> <small class="muted">(if <code>bank_100k_chk</code>)</small> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
 <div class="dlg-text">100,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>gold1milgpdep</code></span> <small class="muted">(if <code>bank_1mil_chk</code>)</small> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">1,000,000gp.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>goldallgpdep</code></span> <small class="muted">(if <code>bank_all_chk</code>)</small> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
 <div class="dlg-text">Deposit all of my gold.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -244,34 +267,34 @@
 </div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>bankbalance</code></span></div><div class="dlg-text">Hello Can I help you</div><ul class="dlg-links"><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“Yes I need to get my Current Balance”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“I Wish to withdraw some money”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I&#x27;d like to make a deposit.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I&#x27;m done. Thank you.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“1gp.”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“10gp.”</span> <small class="muted">(if <code>bank_10gp_chk</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“100gp”</span> <small class="muted">(if <code>bank_100gp_chk</code>)</small></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“1,000gp.”</span> <small class="muted">(if <code>bank_1k_chk</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“10,000gp.”</span> <small class="muted">(if <code>bank_10k_chk</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“100,000gp.”</span> <small class="muted">(if <code>bank_100k_chk</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“1,000,000gp.”</span> <small class="muted">(if <code>bank_1mil_chk</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Deposit all of my gold.”</span> <small class="muted">(if <code>bank_all_chk</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“That&#x27;s all for now.”</span></li></ul></div>
-<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>bankbalance</code></span></div><div class="dlg-text">Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.</div><ul class="dlg-links"><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“1gp.”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“10gp.”</span></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“100gp”</span></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“1,000gp.”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“10,000gp.”</span></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“100,000gp.”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“1,000,000gp.”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Withdraw all of my gold.”</span> <small class="muted">(if <code>bank_all_chk</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“That&#x27;s all for now.”</span></li></ul></div>
-<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Your Current Balance is &lt;CUSTOM101&gt;</div><ul class="dlg-links"><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“Ok Thanks”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Alright.  How much would you like to deposit? (<span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span>gp In your account)</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“1gp.”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“10gp.”</span> <small class="muted">(if <code>bank_10gp_chk</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“100gp”</span> <small class="muted">(if <code>bank_100gp_chk</code>)</small></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“1,000gp.”</span> <small class="muted">(if <code>bank_1k_chk</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“10,000gp.”</span> <small class="muted">(if <code>bank_10k_chk</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“100,000gp.”</span> <small class="muted">(if <code>bank_100k_chk</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“1,000,000gp.”</span> <small class="muted">(if <code>bank_1mil_chk</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Deposit all of my gold.”</span> <small class="muted">(if <code>bank_all_chk</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“That&#x27;s all for now.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>bankbalance</code></span></div><div class="dlg-text">Alright.  How much would you like to withdraw? You have <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gp.</div><ul class="dlg-links"><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“1gp.”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“10gp.”</span></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“100gp”</span></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“1,000gp.”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“10,000gp.”</span></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“100,000gp.”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“1,000,000gp.”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Withdraw all of my gold.”</span> <small class="muted">(if <code>bank_all_chk</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“That&#x27;s all for now.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Your Current Balance is <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“Ok Thanks”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">I&#x27;m done. Thank you.</div></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>bank_flag_1_1</code></span></div><div class="dlg-text">I&#x27;d like to make a deposit.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>bank_flag_1_1</code></span></div><div class="dlg-text">I&#x27;d like to make a deposit.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">That&#x27;s all for now.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Hello Can I help you”</span></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>goldallgpdep</code></span></div><div class="dlg-text">Deposit all of my gold.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>gold1milgpdep</code></span></div><div class="dlg-text">1,000,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>gold100kgpdep</code></span></div><div class="dlg-text">100,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>gold10kgpdep</code></span></div><div class="dlg-text">10,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>gold1000gpdep</code></span></div><div class="dlg-text">1,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>gold100gpdep</code></span></div><div class="dlg-text">100gp</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>gold10gpdep</code></span></div><div class="dlg-text">10gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>gold1gpdep</code></span></div><div class="dlg-text">1gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (&lt;CUSTOM101&gt;gp In your account)”</span></li></ul></div>
-<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">I Wish to withdraw some money</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>goldallgpdep</code></span></div><div class="dlg-text">Deposit all of my gold.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>gold1milgpdep</code></span></div><div class="dlg-text">1,000,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>gold100kgpdep</code></span></div><div class="dlg-text">100,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>gold10kgpdep</code></span></div><div class="dlg-text">10,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>gold1000gpdep</code></span></div><div class="dlg-text">1,000gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>gold100gpdep</code></span></div><div class="dlg-text">100gp</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>gold10gpdep</code></span></div><div class="dlg-text">10gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>gold1gpdep</code></span></div><div class="dlg-text">1gp.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to deposit? (gp In your account)”</span></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">I Wish to withdraw some money</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">That&#x27;s all for now.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Hello Can I help you”</span></li></ul></div>
-<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>bank_all_set</code></span></div><div class="dlg-text">Withdraw all of my gold.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>bank_1mil_set</code></span></div><div class="dlg-text">1,000,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>bank_100k_set</code></span></div><div class="dlg-text">100,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>bank_10k_set</code></span></div><div class="dlg-text">10,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>bank_1k_set</code></span></div><div class="dlg-text">1,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>bank_100gp_set</code></span></div><div class="dlg-text">100gp</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>bank_10gp_set</code></span></div><div class="dlg-text">10gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>bank_1gp_set</code></span></div><div class="dlg-text">1gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have &lt;CUSTOM101&gt; gp.”</span></li></ul></div>
-<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">Yes I need to get my Current Balance</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Your Current Balance is &lt;CUSTOM101&gt;”</span></li></ul></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>bank_all_set</code></span></div><div class="dlg-text">Withdraw all of my gold.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>bank_1mil_set</code></span></div><div class="dlg-text">1,000,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>bank_100k_set</code></span></div><div class="dlg-text">100,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>bank_10k_set</code></span></div><div class="dlg-text">10,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>bank_1k_set</code></span></div><div class="dlg-text">1,000gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>bank_100gp_set</code></span></div><div class="dlg-text">100gp</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>bank_10gp_set</code></span></div><div class="dlg-text">10gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>bank_1gp_set</code></span></div><div class="dlg-text">1gp.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Alright.  How much would you like to withdraw? You have  gp.”</span></li></ul></div>
+<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">Yes I need to get my Current Balance</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Your Current Balance is”</span></li></ul></div>
 <div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">Ok Thanks</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Hello Can I help you”</span></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

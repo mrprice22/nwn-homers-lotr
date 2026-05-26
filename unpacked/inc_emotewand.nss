@@ -67,7 +67,7 @@ void Appear_Dissappear(object oPC)
     {
         // Greater-invisibility variant: doesn't break when the PC attacks.
         effect eInvis = EffectInvisibility(INVISIBILITY_TYPE_DARKNESS);
-        eInvis = EffectLinkEffects(eInvis, EffectConcealment(50, MISS_CHANCE_TYPE_VS_ALL));
+        eInvis = EffectLinkEffects(eInvis, EffectConcealment(50));
         eInvis = EffectLinkEffects(eInvis, EffectSanctuary(100));
         eInvis = ExtraordinaryEffect(eInvis);
         ApplyEffectToObject(DURATION_TYPE_PERMANENT, eInvis, oPC);

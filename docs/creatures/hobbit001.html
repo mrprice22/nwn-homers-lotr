@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Hobbit</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,29 +47,35 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>hobbit001</dd>
 <dt>Tag</dt><dd>Hobbit</dd>
-<dt>Race</dt><dd>Halfling</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-3">Halfling</a></dd>
 <dt>Appearance</dt><dd>Halfling</dd>
 <dt>Class(es)</dt><dd>Rogue 10/Monk 20/Shadowdancer 10</dd>
-<dt>HP</dt><dd>1580</dd>
+<dt>HP</dt><dd>1,580</dd>
 <dt>CR</dt><dd>251.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Commoner</a> <small class="muted">(id 2)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/shirehobbiton001.html">Hobbiton</a></td><td>4</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>75</td><th>Dex</th><td>46</td><th>Con</th><td>14</td><th>Int</th><td>14</td><th>Wis</th><td>8</td><th>Cha</th><td>12</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Rogue</td><td>10</td></tr><tr><td>Monk</td><td>20</td></tr><tr><td>Shadowdancer</td><td>10</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>1580</td><th>AC</th><td>33 <small class="muted">(10 base + +18 Dex + +5 armor enchant)</small></td><th>BAB</th><td>+29</td></tr><tr><th>Fort</th><td>+7</td><th>Ref</th><td>+18</td><th>Will</th><td>+12</td></tr></table>
+<table class="data"><tr><th>HP</th><td>1,580</td><th>AC</th><td>33 <small class="muted">(10 base + +18 Dex + +5 armor enchant)</small></td><th>BAB</th><td>+29</td></tr><tr><th>Fort</th><td>+7</td><th>Ref</th><td>+18</td><th>Will</th><td>+12</td></tr><tr><th>Spell Resistance</th><td>30 <small class="muted">(max of: Diamond Soul (30), items (30))</small></td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +5 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/chosenfist002.html">hobbit </a></td><td>Creature Pierce Weapon</td><td>Melee</td><td>+81/+76/+71/+66</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/chosenfist002.html">hobbit </a></td><td>Creature Pierce Weapon</td><td>Melee</td><td>+81/+76/+71/+66</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Skill: Hide</th><td>+10</td></tr>
+<tr><th>Skill: Move Silently</th><td>+10</td></tr>
+<tr><th>Regen: Vampiric</th><td>+10 HP/hit</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/chosenfist002.html">hobbit </a></td><td>Creature Pierce Weapon</td><td>Melee</td><td>+101/+96/+91/+86</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/chosenfist002.html">hobbit </a></td><td>Creature Pierce Weapon</td><td>Melee</td><td>+101/+96/+91/+86</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/clo32244.html">Hobbit&#x27;s Outfit</a></td></tr>
-<tr><td>Creature weapon (R)</td><td><a href="../items/chosenfist002.html">hobbit </a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/chosenfist002.html">hobbit </a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/clo32244.html">Hobbit&#x27;s Outfit</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/chosenfist002.html">hobbit </a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/chosenfist002.html">hobbit </a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(2)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/it_mneck021.html">Amulet of Wisdom +10</a></td><td>it_mneck021</td></tr>
-<tr><td><a href="../items/item088.html">Glove of the Hobbits </a></td><td>item088</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/it_mneck021.html">Amulet of Wisdom +10</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/item088.html">Glove of the Hobbits </a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(82)</small></h2><ul class="featlist"><li>Armor Proficiency (light)</li><li>Circle Kick</li><li>Cleave</li><li>Darkvision</li><li>Death Attack (+10d6)</li><li>Defensive Roll</li><li>Deflect Arrows</li><li>Devastating Critical (unarmed strike)</li><li>Diamond Soul</li><li>Dirty Fighting</li><li>Dodge</li><li>Empty Body</li><li>Epic Character</li><li>Epic Damage Reduction I</li><li>Epic Reflexes</li><li>Epic Weapon Focus (unarmed strike)</li><li>Epic Weapon Master</li><li>Epic Weapon Specialization (unarmed strike)</li><li>Evasion</li><li>Favored Enemy: Aberrations</li><li>Favored Enemy: Animals</li><li>Favored Enemy: Beasts</li><li>Favored Enemy: Constructs</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elementals</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Fey</li><li>Favored Enemy: Giants</li><li>Favored Enemy: Gnomes</li><li>Favored Enemy: Goblinoids</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Favored Enemy: <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> Beasts</li><li>Favored Enemy: Monstrous Humanoids</li><li>Favored Enemy: Orcs</li><li>Favored Enemy: Outsiders</li><li>Favored Enemy: Reptilian Humanoids</li><li>Favored Enemy: Shapechangers</li><li>Favored Enemy: Undead</li><li>Favored Enemy: Vermin</li><li>Fearless</li><li>Flurry of Blows</li><li>Good Aim</li><li>Great Dexterity X</li><li>Hardiness vs. Enchantments</li><li>Hardiness vs. Illusions</li><li>Improved Critical (unarmed strike)</li><li>Improved Initiative</li><li>Improved Knockdown</li><li>Improved Sneak Attack X</li><li>Improved Stunning Fist X</li><li>Improved Unarmed Strike</li><li>Increased Multiplier</li><li>Lightning Reflexes</li><li>Low-light Vision</li><li>Lucky</li><li>Mobility</li><li>Opportunist</li><li>Overwhelming Critical (unarmed strike)</li><li>Self-Concealment I</li><li>Shadow Daze</li><li>Shadow Evade</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Move Silently)</li><li>Skill Focus (Use Magic Device)</li><li>Small Stature</li><li>Sneak Attack (+8d6)</li><li>Spring Attack</li><li>Stealthy</li><li>Strong Soul</li><li>Superior Initiative</li><li>Superior Weapon Focus</li><li>Two-Weapon Fighting</li><li>Uncanny Dodge IV</li><li>Venom Immunity</li><li>Weapon Finesse</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (rogue)</li><li>Wholeness of Body</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Disable Trap</td><td>16</td></tr>
 <tr><td>Discipline</td><td>99</td></tr>
@@ -85,11 +113,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(4)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/shirehobbiton001-001.html">Hobbit</a></td><td><a href="../areas/shirehobbiton001.html">Hobbiton</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/shirehobbiton001-002.html">Hobbit</a></td><td><a href="../areas/shirehobbiton001.html">Hobbiton</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/shirehobbiton001-003.html">Hobbit</a></td><td><a href="../areas/shirehobbiton001.html">Hobbiton</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/shirehobbiton001-004.html">Hobbit</a></td><td><a href="../areas/shirehobbiton001.html">Hobbiton</a></td><td>Commoner</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

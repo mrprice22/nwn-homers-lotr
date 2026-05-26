@@ -22,5 +22,7 @@ void main()
 pc_export_onmoduleload();
 //----------------------------------------------------------------------------
 
+// Spawn Meaningwave NPCs at their designated waypoints
+ExecuteScript("mw_spawn", GetModule());
 
 }   //end of main

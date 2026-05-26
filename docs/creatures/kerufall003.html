@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Kerufall</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,39 +47,70 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>kerufall003</dd>
 <dt>Tag</dt><dd>ms_keru1</dd>
-<dt>Race</dt><dd>Dragon</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-11">Dragon</a></dd>
 <dt>Appearance</dt><dd>Dragon, Gold</dd>
 <dt>Class(es)</dt><dd>Dragon 60/Fighter 40</dd>
-<dt>HP</dt><dd>10074</dd>
+<dt>HP</dt><dd>10,074</dd>
 <dt>CR</dt><dd>418.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/kerufallslair.html">Kerufall&#x27;s Lair</a></td><td>kerufall</td><td><code>kerufall</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>90</td><th>Dex</th><td>34</td><th>Con</th><td>15</td><th>Int</th><td>30</td><th>Wis</th><td>15</td><th>Cha</th><td>19</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Dragon</td><td>60</td></tr><tr><td>Fighter</td><td>40</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>10074</td><th>AC</th><td>42 <small class="muted">(10 base + +12 Dex + +10 natural (NaturalAC) + +10 armor enchant)</small></td><th>BAB</th><td>+85</td></tr><tr><th>Fort</th><td>+6</td><th>Ref</th><td>+12</td><th>Will</th><td>+2</td></tr></table>
+<table class="data"><tr><th>HP</th><td>10,074</td><th>AC</th><td>53 <small class="muted">(10 base + +12 Dex + +10 natural (NaturalAC) + +10 armor enchant + +7 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+85</td></tr><tr><th>Fort</th><td>+6</td><th>Ref</th><td>+12</td><th>Will</th><td>+2</td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+145/+140/+135/+130</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+145/+140/+135/+130</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+145/+140/+135/+130</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+7</td></tr>
+<tr><th>Charisma Bonus</th><td>+10</td></tr>
+<tr><th>Strength Bonus</th><td>+12</td></tr>
+<tr><th>Skill: Hide</th><td>+10</td></tr>
+<tr><th>Skill: Listen</th><td>+10</td></tr>
+<tr><th>Skill: Lore</th><td>+10</td></tr>
+<tr><th>Skill: Move Silently</th><td>+10</td></tr>
+<tr><th>Skill: Perform</th><td>+10</td></tr>
+<tr><th>Skill: Search</th><td>+10</td></tr>
+<tr><th>Skill: Spot</th><td>+50</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (20%), Positive (50%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+155/+150/+145/+140</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+155/+150/+145/+140</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+155/+150/+145/+140</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth012.html">Golden Scale of the Dragon</a></td></tr>
-<tr><td>Boots</td><td><a href="../items/bootsoftheharper.html">Boots of the Harper Scout</a></td></tr>
-<tr><td>Belt</td><td><a href="../items/beltofthedragon.html">Belt of the Dragon</a></td></tr>
-<tr><td>Creature weapon (R)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth012.html">Golden Scale of the Dragon</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/bootsoftheharper.html">Boots of the Harper Scout</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/beltofthedragon.html">Belt of the Dragon</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/kerufallsfistsof.html">Kerufalls Fists of Fury</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(7)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/item034.html">Dragon&#x27;s Tear</a></td><td>item034</td></tr>
-<tr><td><a href="../items/item035.html">Dragon&#x27;s Gaze</a></td><td>item035</td></tr>
-<tr><td><a href="../items/dawnstar002.html">Dawn Star</a></td><td>dawnstar002</td></tr>
-<tr><td><a href="../items/item038.html">Isthel&#x27;s Basher</a></td><td>item038</td></tr>
-<tr><td><a href="../items/item031.html">Cat O&#x27; Nine Tails</a></td><td>item031</td></tr>
-<tr><td><a href="../items/it_mpotion013.html">[TLK#13433]</a></td><td>it_mpotion013</td></tr>
-<tr><td><a href="../items/it_mpotion013.html">[TLK#13433]</a></td><td>it_mpotion013</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/item034.html">Dragon&#x27;s Tear</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item035.html">Dragon&#x27;s Gaze</a></td><td><a href="../items/index.html#helmet">Helmets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dawnstar002.html">Dawn Star</a></td><td><a href="../items/index.html#weapon-3">Bastard Sword</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item038.html">Isthel&#x27;s Basher</a></td><td><a href="../items/index.html#weapon-5">Warhammer</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item031.html">Cat O&#x27; Nine Tails</a></td><td><a href="../items/index.html#weapon-35">Heavy Flail</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_mpotion013.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/it_mpotion013.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(121)</small></h2><ul class="featlist"><li>Ambidexterity</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Called Shot</li><li>Cleave</li><li>Combat Casting</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Darkvision</li><li>Deflect Arrows</li><li>Dodge</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> I</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> II</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> III</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> I</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> II</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> III</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> I</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> II</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> III</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> I</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> II</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> III</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> I</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> II</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> III</li><li>Epic Barbarian Damage Reduction</li><li>Epic Prowess</li><li>Epic Weapon Focus (bastard sword)</li><li>Epic Weapon Focus (battleaxe)</li><li>Epic Weapon Focus (club)</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Focus (dagger)</li><li>Epic Weapon Focus (dart)</li><li>Epic Weapon Specialization (creature weapon)</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Gnomes</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Fearless</li><li>Good Aim</li><li>Great Cleave</li><li>Great Fortitude</li><li>Improved Critical (longbow)</li><li>Improved Critical (longsword)</li><li>Improved Ki Strike +4</li><li>Improved Ki Strike +5</li><li>Improved Knockdown</li><li>Improved Power Attack</li><li>Improved Two-Weapon Fighting</li><li>Mobility</li><li>Monster Uncanny Reflex</li><li>Overwhelming Critical (creature weapon)</li><li>Overwhelming Critical (quarterstaff)</li><li>Overwhelming Critical (rapier)</li><li>Overwhelming Critical (scimitar)</li><li>Overwhelming Critical (scythe)</li><li>Overwhelming Critical (shortbow)</li><li>Overwhelming Critical (shortsword)</li><li>Overwhelming Critical (shuriken)</li><li>Overwhelming Critical (sickle)</li><li>Overwhelming Critical (sling)</li><li>Overwhelming Critical (spear)</li><li>Overwhelming Critical (throwing axe)</li><li>Overwhelming Critical (two-bladed sword)</li><li>Overwhelming Critical (unarmed strike)</li><li>Overwhelming Critical (warhammer)</li><li>Overwhelming Critical (whip)</li><li>Point Blank Shot</li><li>Power Attack</li><li>Sap</li><li>Shield Proficiency</li><li>Skill Focus (Concentration)</li><li>Spell Focus (Evocation)</li><li>Spell Penetration</li><li>Spring Attack</li><li>Stealthy</li><li>Still Mind</li><li>Stonecunning</li><li>Stunning Fist</li><li>Superior Initiative</li><li>Turn Undead</li><li>Two-Weapon Fighting</li><li>Weapon Finesse</li><li>Weapon Focus (bastard sword)</li><li>Weapon Focus (battleaxe)</li><li>Weapon Focus (club)</li><li>Weapon Focus (dagger)</li><li>Weapon Focus (dart)</li><li>Weapon Focus (dire mace)</li><li>Weapon Focus (double axe)</li><li>Weapon Focus (dwarven waraxe)</li><li>Weapon Focus (greataxe)</li><li>Weapon Focus (greatsword)</li><li>Weapon Focus (longbow)</li><li>Weapon Focus (longsword)</li><li>Weapon Focus (morningstar)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (druid)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (rogue)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (bastard sword)</li><li>Weapon Specialization (battleaxe)</li><li>Weapon Specialization (club)</li><li>Weapon Specialization (dagger)</li><li>Weapon Specialization (dart)</li><li>Weapon Specialization (dire mace)</li><li>Weapon Specialization (double axe)</li><li>Weapon Specialization (longbow)</li><li>Weapon Specialization (longsword)</li><li>Whirlwind Attack</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>40</td></tr>
 <tr><td>Discipline</td><td>76</td></tr>
@@ -89,8 +142,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(1 area)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/kerufallslair.html">Kerufall&#x27;s Lair</a></td><td>kerufall</td><td><code>kerufall</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

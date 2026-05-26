@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Snake Bite</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -26,23 +48,27 @@
 <dt>ResRef</dt><dd>crewpvbt001</dd>
 <dt>Tag</dt><dd>NW_CRsnakebite</dd>
 <dt>Base item</dt><dd>Creature Pierce Weapon <small class="muted">(row 70)</small></dd>
-<dt>Cost</dt><dd>1596124</dd>
+<dt>Type</dt><dd><a href="inaccessible/index.html#weapon-70">Creature Pierce Weapon</a></dd>
+<dt>GP Value</dt><dd>1,596,124</dd>
 <dt>Stack size</dt><dd>1</dd>
-<dt>Cursed</dt><dd>0</dd>
-<dt>Plot</dt><dd>0</dd>
+<dt title="No creature carrying this item has it flagged as droppable. It will not appear in any loot bag.">Drops on death</dt><dd>No<small class="muted"> — not flagged droppable</small></dd>
 </dl>
+<p class="warn-creature"><strong>Note: this is a Creature-only item.</strong> Items with creature base types cannot be equipped or used by player characters — they are intended for use by NPCs and monsters only.</p>
+<p class="warn-no-drop"><strong>Note: this item does not drop on death.</strong> It is carried by creatures, but none of them have it flagged as droppable (Dropable=1 on the item instance). It will not appear in any loot bag.</p>
 <h2>Properties</h2>
-<table class="data"><thead><tr><th>Property</th><th>Subtype</th><th>Value</th><th>Param</th><th>Chance %</th></tr></thead><tbody><tr><td>Use Limitation: Racial Type</td><td>Dwarf</td><td>12</td><td></td><td></td></tr>
-<tr><td>Damage Bonus</td><td><span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span></td><td>9</td><td></td><td></td></tr>
-<tr><td>Regeneration</td><td></td><td>+0</td><td></td><td></td></tr>
-<tr><td>Wizard Specialization</td><td>Abjuration</td><td>6</td><td></td><td></td></tr>
-<tr><td>Weight Increase</td><td>6</td><td>5 lb</td><td>8/37</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Property</th><th>Subtype</th><th>Value</th><th>Param</th><th>Chance %</th></tr></thead><tbody><tr><td><a href="properties/attack-bonus.html">Attack Bonus</a></td><td></td><td><a href="properties/attack-bonus.html#12">+12</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-damage-bonus">Damage Bonus</a></td><td><a href="properties/damage-bonus-acid.html"><span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span></a></td><td><a href="properties/damage-bonus-acid.html#9">9</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/keen.html">Keen</a></td><td></td><td></td><td></td><td></td></tr>
+<tr><td><a href="properties/monster-damage.html">Monster Damage</a></td><td></td><td><a href="properties/monster-damage.html#1d12">1d12</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-on-monster-hit">On Monster Hit</a></td><td><a href="properties/on-monster-hit-doom.html">Doom</a></td><td></td><td>8/37</td><td></td></tr></tbody></table>
 <details><summary>Raw values</summary><table class="data"><thead><tr><th>PropertyName</th><th>Subtype</th><th>CostTable</th><th>CostValue</th><th>Param1/Val</th><th>Chance</th></tr></thead><tbody><tr><td>56</td><td>0</td><td>2</td><td>12</td><td>255/0</td><td>100</td></tr>
 <tr><td>16</td><td>6</td><td>4</td><td>15</td><td>255/0</td><td>100</td></tr>
 <tr><td>43</td><td>0</td><td>0</td><td>0</td><td>255/0</td><td>100</td></tr>
 <tr><td>77</td><td>0</td><td>19</td><td>6</td><td>255/0</td><td>100</td></tr>
 <tr><td>72</td><td>6</td><td>0</td><td>0</td><td>8/37</td><td>100</td></tr></tbody></table></details>
+<h2>Where to find</h2>
+<h3>Carried by</h3><table class="data"><thead><tr><th>Creature</th><th>Area</th><th title="Whether this item appears in the loot bag when the creature is killed (Dropable=1 on the item instance)">Drops on death</th><th title="Whether this item can be stolen via Pickpocket (Pickpocketable=1 on the item instance)">Pickpocketable</th></tr></thead><tbody><tr><td><a href="../creatures/gwathsnake003.html">Gwathdor Snake</a></td><td><a href="../areas/gwathdoroutskirt.html">Gwathdor:  Outskirts</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

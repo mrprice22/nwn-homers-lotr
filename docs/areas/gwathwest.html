@@ -4,77 +4,84 @@
   <meta charset="utf-8">
   <title>Gwathdor:  West Deeps</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Gwathdor:  West Deeps</h1>
-<dl class="meta"><dt>ResRef</dt><dd>gwathwest</dd><dt>Tag</dt><dd>GwathdorWestDeeps</dd><dt>Tileset</dt><dd>tid01</dd><dt>Size</dt><dd>16×8 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>d_purge</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>gwathwest</dd><dt>Tag</dt><dd>GwathdorWestDeeps</dd><dt>Tileset</dt><dd>tid01</dd><dt>Size</dt><dd>16×8 tiles</dd><dt>OnExit</dt><dd>d_purge</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>7 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="edoras.html">Edoras</a> <em class="muted">[Weclome ! Where do you wish to go?]</em></li><li><a href="edoras.html">Edoras</a> &rarr; <a href="pathtohelmsdeep.html">Path To Helm&#x27;s Deep</a> <em class="muted">[step on the &#8220;edoras2helm&#8221; trigger]</em></li><li><a href="pathtohelmsdeep.html">Path To Helm&#x27;s Deep</a> &rarr; <a href="hiddenport.html">Hidden Port</a> <em class="muted">[step on the &#8220;path2hiddenport&#8221; trigger]</em></li><li><a href="hiddenport.html">Hidden Port</a> &rarr; <a href="gwathdoroutskirt.html">Gwathdor:  Outskirts</a> <em class="muted">[Greetings friend, I am Laxus, the captian of this boat. Tell…]</em></li><li><a href="gwathdoroutskirt.html">Gwathdor:  Outskirts</a> &rarr; <a href="gwathdorcave.html">Gwathdor:  Cave</a> <em class="muted">[use the &#8220;GwathDoorEntrance&#8221; door]</em></li><li><a href="gwathdorcave.html">Gwathdor:  Cave</a> &rarr; <a href="gwathdordeeps.html">Gwathdor:  East Deeps</a> <em class="muted">[step on the &#8220;AreaTransition&#8221; trigger]</em></li><li><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a> &rarr; <a href="gwathwest.html">Gwathdor:  West Deeps</a> <em class="muted">[step on the &#8220;AreaTransition&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
-<table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4a</code></td></tr>
-<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4b</code></td></tr>
-<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4c</code></td></tr>
-<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4d</code></td></tr>
-<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4e</code></td></tr>
-<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathtomb.html">Gwathdor:  Tomb</a></td><td><code>GwathTW7</code></td></tr>
-<tr><td>door</td><td>GLD1</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD1tw</code></td></tr>
-<tr><td>door</td><td>GLD1out</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD1twout</code></td></tr>
-<tr><td>door</td><td>GLD2</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD2tw</code></td></tr>
-<tr><td>door</td><td>GLD2out</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD2twout</code></td></tr>
-<tr><td>door</td><td>CryptExit</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>ghjk1</code></td></tr>
-<tr><td>door</td><td>CryptExit</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>ghjk2</code></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th><th>Requires Key</th></tr></thead><tbody><tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4a</code></td><td></td></tr>
+<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4b</code></td><td></td></tr>
+<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4c</code></td><td></td></tr>
+<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4d</code></td><td></td></tr>
+<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td><code>GwathTW4e</code></td><td></td></tr>
+<tr><td>trigger</td><td>AreaTransition</td><td><a href="gwathtomb.html">Gwathdor:  Tomb</a></td><td><code>GwathTW7</code></td><td></td></tr>
+<tr><td>door</td><td>GLD1</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD1tw</code></td><td></td></tr>
+<tr><td>door</td><td>GLD1out</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD1twout</code></td><td></td></tr>
+<tr><td>door</td><td>GLD2</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD2tw</code></td><td><code>GLDkey2</code></td></tr>
+<tr><td>door</td><td>GLD2out</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>GLD2twout</code></td><td></td></tr>
+<tr><td>door</td><td>CryptExit</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>ghjk1</code></td><td></td></tr>
+<tr><td>door</td><td>CryptExit</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td><code>ghjk2</code></td><td></td></tr></tbody></table>
 <h2>Incoming transitions</h2>
-<table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td></tr>
-<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td></tr>
-<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td></tr>
-<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td></tr>
-<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td></tr>
-<tr><td>trigger</td><td><a href="gwathtomb.html">Gwathdor:  Tomb</a></td><td>AreaTransition</td></tr>
-<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD1</td></tr>
-<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD1out</td></tr>
-<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD2</td></tr>
-<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD2out</td></tr>
-<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>CryptExit</td></tr>
-<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>CryptExit</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th><th>Requires Key</th></tr></thead><tbody><tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td><td></td></tr>
+<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td><td></td></tr>
+<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td><td></td></tr>
+<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td><td></td></tr>
+<tr><td>trigger</td><td><a href="gwathdordeeps.html">Gwathdor:  East Deeps</a></td><td>AreaTransition</td><td></td></tr>
+<tr><td>trigger</td><td><a href="gwathtomb.html">Gwathdor:  Tomb</a></td><td>AreaTransition</td><td></td></tr>
+<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD1</td><td></td></tr>
+<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD1out</td><td></td></tr>
+<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD2</td><td><code>GLDkey2</code></td></tr>
+<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>GLD2out</td><td></td></tr>
+<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>CryptExit</td><td></td></tr>
+<tr><td>door</td><td><a href="gwathwest.html">Gwathdor:  West Deeps</a></td><td>CryptExit</td><td></td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>Gwathdor 3 tri + wat</td><td>gwathdortride001</td><td>Gwathdor3tridentswatchers</td><td>3</td><td>4</td><td><a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 tri + wat</td><td>gwathdortride001</td><td>Gwathdor3tridentswatchers</td><td>3</td><td>4</td><td><a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 1 trident</td><td>gwathdortride002</td><td>Gwathdor1trident</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 1 shortsword</td><td>gwathdorshort001</td><td>Gwathdor1shortsword</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small></td></tr>
-<tr><td>Gwathdor 1 watcher</td><td>gwathdorwatch001</td><td>Gwathdor1watcher</td><td>1</td><td>4</td><td><a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small></td></tr>
-<tr><td>Gwathdor 1 trident</td><td>gwathdortride002</td><td>Gwathdor1trident</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 1 shortsword</td><td>gwathdorshort001</td><td>Gwathdor1shortsword</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small></td></tr>
-<tr><td>Gwathdor 1 watcher</td><td>gwathdorwatch001</td><td>Gwathdor1watcher</td><td>1</td><td>4</td><td><a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small></td></tr>
-<tr><td>Gwathdor 2 tridents</td><td>gwathdortridents</td><td>Gwathdor2tridents</td><td>2</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 shortswords</td><td>gwathdorshortswo</td><td>Gwathdor3shortswords</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small></td></tr>
-<tr><td>Gwathdor 3 Wizards</td><td>gwathdor3wizards</td><td>Gwathdor3Wizards</td><td>3</td><td>4</td><td><a href="../creatures/gwathsorcerer.html">Gwathdor Wizard</a><small> CR 78.0</small></td></tr>
-<tr><td>Gwathdor 3 Wizards</td><td>gwathdor3wizards</td><td>Gwathdor3Wizards</td><td>3</td><td>4</td><td><a href="../creatures/gwathsorcerer.html">Gwathdor Wizard</a><small> CR 78.0</small></td></tr>
-<tr><td>Gwathdor 3 Wizards</td><td>gwathdor3wizards</td><td>Gwathdor3Wizards</td><td>3</td><td>4</td><td><a href="../creatures/gwathsorcerer.html">Gwathdor Wizard</a><small> CR 78.0</small></td></tr>
-<tr><td>Gwathdor 1 trident</td><td>gwathdortride002</td><td>Gwathdor1trident</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 Wizards</td><td>gwathdor3wizards</td><td>Gwathdor3Wizards</td><td>3</td><td>4</td><td><a href="../creatures/gwathsorcerer.html">Gwathdor Wizard</a><small> CR 78.0</small></td></tr>
-<tr><td>Gwathdor 3 mix</td><td>gwathdormix</td><td>Gwathdor3mix</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small>, <a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 Wizards</td><td>gwathdor3wizards</td><td>Gwathdor3Wizards</td><td>3</td><td>4</td><td><a href="../creatures/gwathsorcerer.html">Gwathdor Wizard</a><small> CR 78.0</small></td></tr>
-<tr><td>Gwathdor 1 trident</td><td>gwathdortride002</td><td>Gwathdor1trident</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 1 shortsword</td><td>gwathdorshort001</td><td>Gwathdor1shortsword</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small></td></tr>
-<tr><td>Gwathdor 3 mix</td><td>gwathdormix</td><td>Gwathdor3mix</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small>, <a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 mix</td><td>gwathdormix</td><td>Gwathdor3mix</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small>, <a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 1 trident</td><td>gwathdortride002</td><td>Gwathdor1trident</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 mix</td><td>gwathdormix</td><td>Gwathdor3mix</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small>, <a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 mix</td><td>gwathdormix</td><td>Gwathdor3mix</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small>, <a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr>
-<tr><td>Gwathdor 3 mix</td><td>gwathdormix</td><td>Gwathdor3mix</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small>, <a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>Gwathdor 3 tri + wat</td><td>gwathdortride001</td><td>Gwathdor3tridentswatchers, Gwathdor3tridentswatchers</td><td>3</td><td>4</td><td><a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td><td>2</td></tr>
+<tr><td>Gwathdor 1 trident</td><td>gwathdortride002</td><td>Gwathdor1trident, Gwathdor1trident, Gwathdor1trident, Gwathdor1trident, Gwathdor1trident</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td><td>5</td></tr>
+<tr><td>Gwathdor 1 shortsword</td><td>gwathdorshort001</td><td>Gwathdor1shortsword, Gwathdor1shortsword, Gwathdor1shortsword</td><td>1</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small></td><td>3</td></tr>
+<tr><td>Gwathdor 1 watcher</td><td>gwathdorwatch001</td><td>Gwathdor1watcher, Gwathdor1watcher</td><td>1</td><td>4</td><td><a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small></td><td>2</td></tr>
+<tr><td>Gwathdor 2 tridents</td><td>gwathdortridents</td><td>Gwathdor2tridents</td><td>2</td><td>4</td><td><a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td><td>1</td></tr>
+<tr><td>Gwathdor 3 shortswords</td><td>gwathdorshortswo</td><td>Gwathdor3shortswords</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small></td><td>1</td></tr>
+<tr><td>Gwathdor 3 Wizards</td><td>gwathdor3wizards</td><td>Gwathdor3Wizards, Gwathdor3Wizards, Gwathdor3Wizards, Gwathdor3Wizards, Gwathdor3Wizards</td><td>3</td><td>4</td><td><a href="../creatures/gwathsorcerer.html">Gwathdor Wizard</a><small> CR 78.0</small></td><td>5</td></tr>
+<tr><td>Gwathdor 3 mix</td><td>gwathdormix</td><td>Gwathdor3mix, Gwathdor3mix, Gwathdor3mix, Gwathdor3mix, Gwathdor3mix, Gwathdor3mix</td><td>3</td><td>4</td><td><a href="../creatures/gwathdorguardian.html">Gwathdor Shortsword Guardian</a><small> CR 119.0</small>, <a href="../creatures/gwathdornguard.html">Gwathdor Dark Watcher</a><small> CR 238.0</small>, <a href="../creatures/gwathdorguard001.html">Gwathdor Trident Guardian</a><small> CR 262.0</small></td><td>6</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>GwathTW5a</code></td><td>gwathtw5</td></tr>
 <tr><td><code>GwathTW5b</code></td><td>gwathtw5</td></tr>
@@ -89,6 +96,6 @@
 <tr><td><code>ghjk2</code></td><td>ghjk2</td></tr>
 <tr><td><code>GwathTW6</code></td><td>gwathtw6</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Bettie</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,25 +47,47 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>bettie</dd>
 <dt>Tag</dt><dd>Bettie</dd>
-<dt>Race</dt><dd>Undead</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-24">Undead</a></dd>
 <dt>Appearance</dt><dd>Cat, White*</dd>
 <dt>Class(es)</dt><dd>Monk 60/Animal 60</dd>
-<dt>HP</dt><dd>9786</dd>
+<dt>HP</dt><dd>9,786</dd>
 <dt>CR</dt><dd>512.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Neutral</a> <small class="muted">(id 7)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>90</td><th>Dex</th><td>100</td><th>Con</th><td>100</td><th>Int</th><td>100</td><th>Wis</th><td>100</td><th>Cha</th><td>100</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Monk</td><td>60</td></tr><tr><td>Animal</td><td>60</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>9786</td><th>AC</th><td>55 <small class="muted">(10 base + +45 Dex)</small></td><th>BAB</th><td>+90</td></tr><tr><th>Fort</th><td>+104</td><th>Ref</th><td>+45</td><th>Will</th><td>+45</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+130/+125/+120/+115</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+130/+125/+120/+115</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>9,786</td><th>AC</th><td>104 <small class="muted">(10 base + +45 Dex + +4 dodge (haste) + +45 Wis (monk))</small></td><th>BAB</th><td>+90</td></tr><tr><th>Fort</th><td>+104</td><th>Ref</th><td>+45</td><th>Will</th><td>+45</td></tr><tr><th>Spell Resistance</th><td>70</td><td></td><td></td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Strength Bonus</th><td>+12</td></tr>
+<tr><th>Skill: Spot</th><td>+50</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (20%), Positive (50%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+150/+145/+140/+135</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+150/+145/+140/+135</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp010.html">Bettie&#x27;s Claw</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(95)</small></h2><ul class="featlist"><li>Ambidexterity</li><li>Armor Skin</li><li>Barbarian Fast Movement</li><li>Barbarian Rage (4x per day)</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Battle Training vs. Giants</li><li>Battle Training vs. Goblins</li><li>Battle Training vs. Orcs</li><li>Battle Training vs. Reptilians</li><li>Blind-Fight</li><li>Blinding Speed</li><li>Bone Skin</li><li>Brew Potion</li><li>Bull&#x27;s Strength</li><li>Bullheaded</li><li>Called Shot</li><li>Cat&#x27;s Grace</li><li>Circle Kick</li><li>Cleave</li><li>Courteous Magocracy</li><li>Crippling Strike</li><li>Curse Song</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Defensive Roll</li><li>Defensive Stance</li><li>Devastating Critical (creature)</li><li>Diamond Body</li><li>Diamond Soul</li><li>Dirty Fighting</li><li>Dwarven Defender Damage Reduction</li><li>Epic Monk</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Master</li><li>Epic Weapon Specialization (creature weapon)</li><li>Expertise</li><li>Favored Enemy: Aberrations</li><li>Favored Enemy: Animals</li><li>Favored Enemy: Beasts</li><li>Favored Enemy: Constructs</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elementals</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Fey</li><li>Favored Enemy: Giants</li><li>Favored Enemy: Gnomes</li><li>Favored Enemy: Goblinoids</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Favored Enemy: <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> Beasts</li><li>Favored Enemy: Monstrous Humanoids</li><li>Favored Enemy: Orcs</li><li>Favored Enemy: Outsiders</li><li>Favored Enemy: Reptilian Humanoids</li><li>Favored Enemy: Shapechangers</li><li>Favored Enemy: Undead</li><li>Favored Enemy: Vermin</li><li>Fearless</li><li>Flurry of Blows</li><li>Great Cleave</li><li>Greater Rage</li><li>Greater Rage (5x per day)</li><li>Immunity to <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span></li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Critical (creature)</li><li>Improved Evasion</li><li>Improved Expertise</li><li>Improved Initiative</li><li>Improved Knockdown</li><li>Increased Multiplier</li><li>Mobility</li><li>Monk AC Bonus</li><li>Monk Speed</li><li>Opportunist</li><li>Overwhelming Critical (creature weapon)</li><li>Purity of Body</li><li>Quivering Palm</li><li>Slippery Mind</li><li>Stealthy</li><li>Still Mind</li><li>Stunning Fist</li><li>Toughness</li><li>Uncanny Dodge V</li><li>Weapon Finesse</li><li>Weapon Focus (creature)</li><li>Weapon Proficiency (creature)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Animal Empathy</td><td>99</td></tr>
 <tr><td>Concentration</td><td>99</td></tr>
@@ -76,6 +120,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

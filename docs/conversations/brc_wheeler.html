@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation brc_wheeler</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -34,6 +56,8 @@
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>nwa_pay500</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>brc_wheel</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>brc_wheelpay</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM90001&gt;</code></td><td><a href="../scripts/brc_wheel.html">brc_wheel</a></td></tr>
+<tr><td><code>&lt;CUSTOM90002&gt;</code></td><td><a href="../scripts/brc_wheel.html">brc_wheel</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a> — Hello!  Care to try your Fortune on the Wheel?</li>
 </ul>
@@ -66,7 +90,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>brc_wheelpay</code></span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM90001&gt; &lt;CUSTOM90002&gt;
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(90001, ...) called in: brc_wheel">&lt;CUSTOM90001&gt;<sup class="token-setters">[<a href="../scripts/brc_wheel.html">brc_wheel</a>]</sup></span> <span class="custom-token" title="SetCustomToken(90002, ...) called in: brc_wheel">&lt;CUSTOM90002&gt;<sup class="token-setters">[<a href="../scripts/brc_wheel.html">brc_wheel</a>]</sup></span>
 Care to spin again?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
@@ -151,7 +175,7 @@ Magic (a bit of a blessing, instead of a curse)</div>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Hello!  Care to try your Fortune on the Wheel?</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Yes, let&#x27;s play!”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“No, thank you.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">It costs 500 gold pieces to spin the wheel.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“&lt;StartAction&gt;::pay 500 gold::&lt;/Start&gt;”</span> <small class="muted">(if <code>nwa_pay500</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“What can I win?”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“500 gold?  I... seem to have left it in my other tunic.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">It costs 500 gold pieces to spin the wheel.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“::pay 500 gold::”</span> <small class="muted">(if <code>nwa_pay500</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“What can I win?”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“500 gold?  I... seem to have left it in my other tunic.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Come back when you have some money.</div></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">There are 13 spots.  
 You can win 50, 100, 200, 500, 1000, 5000, or the big Jackpot of 10,000 gold pieces!
@@ -163,8 +187,8 @@ Mystery Prize (goodies)
 Potion 
 Magic (a bit of a blessing, instead of a curse)</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Sounds good, I&#x27;ll give the ol&#x27; Wheel a spin.”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I don&#x27;t think I like this game.”</span></li></ul></div>
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Well, try to enjoy our other games, then.</div></div>
-<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>brc_wheel</code></span></div><div class="dlg-text">Round and round it goes, where it stops, nobody knows!</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“&lt;StartAction&gt;::the wheel spins and spins and slowly comes to rest...::&lt;/Start&gt;&lt;S…”</span></li></ul></div>
-<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>brc_wheelpay</code></span></div><div class="dlg-text">&lt;CUSTOM90001&gt; &lt;CUSTOM90002&gt;
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>brc_wheel</code></span></div><div class="dlg-text">Round and round it goes, where it stops, nobody knows!</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“::the wheel spins and spins and slowly comes to rest...::(click to continue)”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>brc_wheelpay</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(90001, ...) called in: brc_wheel">&lt;CUSTOM90001&gt;<sup class="token-setters">[<a href="../scripts/brc_wheel.html">brc_wheel</a>]</sup></span> <span class="custom-token" title="SetCustomToken(90002, ...) called in: brc_wheel">&lt;CUSTOM90002&gt;<sup class="token-setters">[<a href="../scripts/brc_wheel.html">brc_wheel</a>]</sup></span>
 Care to spin again?</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Yeah, baby, yeah!”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“No, I&#x27;m done.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">No, thank you.</div><ul class="dlg-links"><li><a href="#e4">→ child</a> <span class="dlg-link-preview">“Well, try to enjoy our other games, then.”</span></li></ul></div>
@@ -174,10 +198,10 @@ Care to spin again?</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I don&#x27;t think I like this game.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Well, try to enjoy our other games, then.”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Sounds good, I&#x27;ll give the ol&#x27; Wheel a spin.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“It costs 500 gold pieces to spin the wheel.”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">&lt;StartAction&gt;::pay 500 gold::&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Round and round it goes, where it stops, nobody knows!”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">&lt;StartAction&gt;::the wheel spins and spins and slowly comes to rest...::&lt;/Start&gt;&lt;StartHighlight&gt;(click to continue)&lt;/Start&gt;  </div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“&lt;CUSTOM90001&gt; &lt;CUSTOM90002&gt;”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">&lt;StartAction&gt;::the wheel spins and spins and slowly comes to rest...::&lt;/Start&gt;&lt;StartHighlight&gt;(click to continue)&lt;/Start&gt;  </div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Care to spin again?”</span></li></ul></div>
 <div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">No, I&#x27;m done.</div></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Yeah, baby, yeah!</div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“Round and round it goes, where it stops, nobody knows!”</span></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -1,37 +1,29 @@
 void main()
 {
-//make a roll
-int Chooser;
-object oPC = GetPCSpeaker();
-Chooser = d3(1);
+    object oPC = GetPCSpeaker();
 
-if (Chooser == 1)
- {
- SetLocalInt (oPC, "gdreward", 1);
- }
-if (Chooser == 2)
- {
- SetLocalInt (oPC, "gdreward", 2);
- }
-if (Chooser == 3)
- {
- SetLocalInt (oPC, "gdreward", 3);
- }
+    // Anti-exploit: verify the ring is still in inventory before granting a reward.
+    // Dropping the ring before clicking this reply would otherwise yield the reward
+    // without consuming the item.
+    int bFoundRing = FALSE;
+    object CI = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(CI))
+    {
+        if (GetTag(CI) == "StolenRing")
+        {
+            DestroyObject(CI);
+            bFoundRing = TRUE;
+        }
+        CI = GetNextItemInInventory(oPC);
+    }
 
+    if (!bFoundRing)
+    {
+        FloatingTextStringOnCreature(
+            "You must have the stolen ring in your possession.", oPC, FALSE);
+        return;
+    }
 
-object CI;
-string SCI;
-
-CI = GetFirstItemInInventory(oPC);
-while (GetIsObjectValid(CI))
-{
-SCI = GetTag(CI);
- if (SCI == "StolenRing")
- {
- DestroyObject(CI);
- }
-CI = GetNextItemInInventory(oPC);
-}
-
-
+    int Chooser = d3(1);
+    SetLocalInt(oPC, "gdreward", Chooser);
 }

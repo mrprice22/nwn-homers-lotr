@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Urukai Squad Leader</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,37 +47,48 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>urukai002</dd>
 <dt>Tag</dt><dd>Urukaisl</dd>
-<dt>Race</dt><dd>Half-Orc</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-5">Half-Orc</a></dd>
 <dt>Appearance</dt><dd>Half-orc</dd>
 <dt>Class(es)</dt><dd>Fighter 13</dd>
 <dt>HP</dt><dd>188</dd>
 <dt>CR</dt><dd>13.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Evil</a> <small class="muted">(id 5)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/angmar.html">Angmar</a></td><td>urukaiangmar</td><td><code>urukaiangmar</code></td></tr>
+<tr><td><a href="../areas/ettenmoors.html">Ettenmoors</a></td><td>ettenmoors</td><td><code>ettenmoors</code></td></tr>
+<tr><td><a href="../areas/theangmarmountai.html">The Angmar Mountain Range</a></td><td>urukaiangmar</td><td><code>urukaiangmar</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>27</td><th>Dex</th><td>13</td><th>Con</th><td>22</td><th>Int</th><td>8</td><th>Wis</th><td>12</td><th>Cha</th><td>8</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>13</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>188</td><th>AC</th><td>20 <small class="muted">(10 base + +1 Dex + +5 natural (NaturalAC) + +4 armor enchant)</small></td><th>BAB</th><td>+13</td></tr><tr><th>Fort</th><td>+6</td><th>Ref</th><td>+1</td><th>Will</th><td>+1</td></tr></table>
+<table class="data"><tr><th>HP</th><td>188</td><th>AC</th><td>33 <small class="muted">(10 base + +1 Dex + +5 natural (NaturalAC) + +8 armor + +4 armor enchant + +3 shield + +2 dodge (items))</small></td><th>BAB</th><td>+13</td></tr><tr><th>Fort</th><td>+9</td><th>Ref</th><td>+1</td><th>Will</th><td>+4</td></tr></table>
 <p class="muted">AC extras: +4 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/flameofudun001.html">Urukai Squad Leader Sword</a></td><td>Longsword</td><td>Melee</td><td>+21/+16/+11</td><td>1d8+8 (9–16) + Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 1</td><td>19-20/x2</td></tr>
-<tr><td>Left hand</td><td><a href="../items/shieldoftheuruka.html">Shield of the UrukHai</a></td><td>Tower Shield</td><td>Melee</td><td>+21/+16/+11</td><td>—</td><td></td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+2</td></tr>
+<tr><th>Save vs. Fortitude</th><td>+3</td></tr>
+<tr><th>Save vs. Will</th><td>+3</td></tr>
+<tr><th>Strength Bonus</th><td>+2</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>15/-</td></tr>
+<tr><th>Regen: Vampiric</th><td>+1 HP/hit</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/flameofudun001.html">Urukai Squad Leader Sword</a></td><td>Longsword</td><td>Melee</td><td>+25/+20/+15</td><td>1d8+8 (9–16) + Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 1, Regeneration: Vampiric +1</td><td>19-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/battleplateof003.html">UrukHai Squad Leader Plate</a></td></tr>
-<tr><td>Boots</td><td>nw_it_mboots012</td></tr>
-<tr><td>Arms</td><td>nw_it_mbracer013</td></tr>
-<tr><td>Right hand</td><td><a href="../items/flameofudun001.html">Urukai Squad Leader Sword</a></td></tr>
-<tr><td>Left hand</td><td><a href="../items/shieldoftheuruka.html">Shield of the UrukHai</a></td></tr>
-<tr><td>Left ring</td><td>nw_it_mring026</td></tr>
-<tr><td>Right ring</td><td>nw_it_mring008</td></tr>
-<tr><td>Bolts</td><td>nw_wambo001</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/battleplateof003.html">UrukHai Squad Leader Plate</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/nw_it_mboots012.html">Boots of Reflexes +3</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/nw_it_mbracer013.html">Gauntlets of Ogre Power</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/flameofudun001.html">Urukai Squad Leader Sword</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left hand</td><td><a href="../items/shieldoftheuruka.html">Shield of the UrukHai</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/nw_it_mring026.html">Ring of Fortitude +3</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/nw_it_mring008.html">Ring of Protection +2</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Bolts</td><td><a href="../items/nw_wambo001.html">Bolt</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(5)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_it_mpotion015</td><td>nw_it_mpotion015</td></tr>
-<tr><td>nw_it_mpotion003</td><td>nw_it_mpotion003</td></tr>
-<tr><td>nw_wbwmxh009</td><td>nw_wbwmxh009</td></tr>
-<tr><td>nw_wammbo007</td><td>nw_wammbo007</td></tr>
-<tr><td>nw_wambo001</td><td>nw_wambo001</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/nw_it_mpotion015.html">Potion of Bull&#x27;s Strength</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion003.html">Potion of Cure Critical Wounds</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_wbwmxh009.html">Heavy Crossbow +3</a></td><td><a href="../items/index.html#weapon-6">Heavy Crossbow</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_wammbo007.html">Poison Bolt</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_wambo001.html">Bolt</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(19)</small></h2><ul class="featlist"><li>Alertness</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Aura of Courage</li><li>Called Shot</li><li>Cleave</li><li>Darkvision</li><li>Great Fortitude</li><li>Point Blank Shot</li><li>Power Attack</li><li>Shield Proficiency</li><li>Weapon Focus (double axe)</li><li>Weapon Focus (heavy crossbow)</li><li>Weapon Focus (longsword)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (longsword)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>19</td></tr>
 <tr><td>Listen</td><td>12</td></tr>
@@ -77,10 +110,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(3 areas)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/angmar.html">Angmar</a></td><td>urukaiangmar</td><td><code>urukaiangmar</code></td></tr>
-<tr><td><a href="../areas/ettenmoors.html">Ettenmoors</a></td><td>ettenmoors</td><td><code>ettenmoors</code></td></tr>
-<tr><td><a href="../areas/theangmarmountai.html">The Angmar Mountain Range</a></td><td>urukaiangmar</td><td><code>urukaiangmar</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

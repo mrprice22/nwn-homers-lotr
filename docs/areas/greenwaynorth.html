@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Old North Road</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Old North Road</h1>
-<dl class="meta"><dt>ResRef</dt><dd>greenwaynorth</dd><dt>Tag</dt><dd>GreenwayNorth</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>9×14 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>greenwaynorth</dd><dt>Tag</dt><dd>GreenwayNorth</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>9×14 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="bree.html">Bree</a> <em class="muted">[use the &#8220;x2_doorhard2&#8221; door]</em></li><li><a href="bree.html">Bree</a> &rarr; <a href="greenwaynorth.html">Old North Road</a> <em class="muted">[step on the &#8220;bree2ngreen&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>ngreen2bree</td><td><a href="bree.html">Bree</a></td><td><code>WP_bree2ngreen</code></td></tr>
 <tr><td>trigger</td><td>grnwayn2chetwood</td><td><a href="chetwood001.html">Chetwood</a></td><td><code>WP_chetwood2grnwayn</code></td></tr>
@@ -35,12 +59,9 @@
 <tr><td>trigger</td><td><a href="oldbackroad.html">Old Road</a></td><td>OldBackRoad2North</td></tr>
 <tr><td>trigger</td><td><a href="ruinsofannuminas.html">Ruins of Annuminas</a></td><td>annum2ngreen</td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>Worgs</td><td>worgs</td><td>Worgs</td><td>4</td><td>0</td><td>nw_worg<small> CR 3.0</small></td></tr>
-<tr><td>Worgs</td><td>worgs</td><td>Worgs</td><td>4</td><td>0</td><td>nw_worg<small> CR 3.0</small></td></tr>
-<tr><td>Worgs</td><td>worgs</td><td>Worgs</td><td>4</td><td>0</td><td>nw_worg<small> CR 3.0</small></td></tr>
-<tr><td>Worgs</td><td>worgs</td><td>Worgs</td><td>4</td><td>0</td><td>nw_worg<small> CR 3.0</small></td></tr>
-<tr><td>Goblin Group</td><td>nw_goblingrp</td><td>NW_GOBLINGRP</td><td>4</td><td>0</td><td>nw_goblina<small> CR 0.25</small>, nw_goblinb<small> CR 0.25</small>, nw_gobchiefb<small> CR 3.0</small>, nw_gobwiza<small> CR 3.0</small>, nw_gobwizb<small> CR 3.0</small>, nw_gobchiefa<small> CR 4.0</small></td></tr>
-<tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>1</td><td><a href="../creatures/cavebat.html">Cave Bat</a><small> CR 0.3333</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>Worgs</td><td>worgs</td><td>Worgs, Worgs, Worgs, Worgs</td><td>4</td><td>0</td><td>nw_worg<small> CR 3.0</small></td><td>4</td></tr>
+<tr><td>Goblin Group</td><td>nw_goblingrp</td><td>NW_GOBLINGRP</td><td>4</td><td>0</td><td>nw_goblina<small> CR 0.25</small>, nw_goblinb<small> CR 0.25</small>, nw_gobchiefb<small> CR 3.0</small>, nw_gobwiza<small> CR 3.0</small>, nw_gobwizb<small> CR 3.0</small>, nw_gobchiefa<small> CR 4.0</small></td><td>1</td></tr>
+<tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>1</td><td><a href="../creatures/cavebat.html">Cave Bat</a><small> CR 0.3333</small></td><td>1</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_ngreen2bree</code></td><td></td></tr>
 <tr><td><code>WP_grnwayn2chetwood</code></td><td></td></tr>
@@ -48,6 +69,6 @@
 <tr><td><code>WP_ngreen2shortcut</code></td><td>nw_waypoint001</td></tr>
 <tr><td><code>WP_oldnorth2ruin</code></td><td>nw_waypoint001</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

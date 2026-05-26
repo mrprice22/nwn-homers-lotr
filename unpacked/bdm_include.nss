@@ -229,7 +229,7 @@ int CheckClass(string sClass, object oPC)
 int nClass = StringToInt(sClass);
 int nPlayerClass;
 int nNth;
-for (nNth = 1; nNth <= 3; nNth++)
+for (nNth = 1; nNth <= 4; nNth++)
     {
     nPlayerClass = GetClassByPosition(nNth, oPC);
     switch (nClass)

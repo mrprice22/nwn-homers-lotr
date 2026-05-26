@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Great East Road</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Great East Road</h1>
-<dl class="meta"><dt>ResRef</dt><dd>greateastroadc</dd><dt>Tag</dt><dd>GreatEastRoadC</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>25×10 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>cleanup</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>greateastroadc</dd><dt>Tag</dt><dd>GreatEastRoadC</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>25×10 tiles</dd><dt>OnExit</dt><dd>cleanup</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>4 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="bree.html">Bree</a> <em class="muted">[use the &#8220;x2_doorhard2&#8221; door]</em></li><li><a href="bree.html">Bree</a> &rarr; <a href="greateastroada.html">Great East Road</a> <em class="muted">[step on the &#8220;bree2eastr&#8221; trigger]</em></li><li><a href="greateastroada.html">Great East Road</a> &rarr; <a href="greateastroadb.html">Great East Road</a> <em class="muted">[step on the &#8220;eastroadatoc&#8221; trigger]</em></li><li><a href="greateastroadb.html">Great East Road</a> &rarr; <a href="greateastroadc.html">Great East Road</a> <em class="muted">[step on the &#8220;eastb2eastc&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>eastc2lastinn</td><td><a href="thelandinntown.html">The Last Inn: Town</a></td><td><code>WP_lastinn2eastc</code></td></tr>
 <tr><td>trigger</td><td>eastroadctoa</td><td><a href="greateastroadb.html">Great East Road</a></td><td><code>WP_eastb2eastc</code></td></tr></tbody></table>
@@ -30,15 +54,13 @@
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>trigger</td><td><a href="greateastroadb.html">Great East Road</a></td><td>eastb2eastc</td></tr>
 <tr><td>trigger</td><td><a href="thelandinntown.html">The Last Inn: Town</a></td><td>lastinn2eastc</td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>[TLK#14503]</td><td>nw_mixmercweak</td><td>NW_MixMercWeak</td><td>6</td><td>2</td><td>nw_dwarfmerc001<small> CR 0.5</small>, nw_halfmerc001<small> CR 1.0</small>, nw_dwarfmerc002<small> CR 2.0</small>, nw_elfmerc001<small> CR 2.0</small>, nw_humanmerc001<small> CR 2.0</small>, nw_halfmerc002<small> CR 3.0</small>, nw_humanmerc002<small> CR 3.0</small>, nw_dwarfmerc003<small> CR 4.0</small>, nw_elfmerc002<small> CR 4.0</small></td></tr>
-<tr><td>[TLK#14503]</td><td>nw_mixmercweak</td><td>NW_MixMercWeak</td><td>6</td><td>2</td><td>nw_dwarfmerc001<small> CR 0.5</small>, nw_halfmerc001<small> CR 1.0</small>, nw_dwarfmerc002<small> CR 2.0</small>, nw_elfmerc001<small> CR 2.0</small>, nw_humanmerc001<small> CR 2.0</small>, nw_halfmerc002<small> CR 3.0</small>, nw_humanmerc002<small> CR 3.0</small>, nw_dwarfmerc003<small> CR 4.0</small>, nw_elfmerc002<small> CR 4.0</small></td></tr>
-<tr><td>[TLK#14503]</td><td>nw_mixmercweak</td><td>NW_MixMercWeak</td><td>6</td><td>2</td><td>nw_dwarfmerc001<small> CR 0.5</small>, nw_halfmerc001<small> CR 1.0</small>, nw_dwarfmerc002<small> CR 2.0</small>, nw_elfmerc001<small> CR 2.0</small>, nw_humanmerc001<small> CR 2.0</small>, nw_halfmerc002<small> CR 3.0</small>, nw_humanmerc002<small> CR 3.0</small>, nw_dwarfmerc003<small> CR 4.0</small>, nw_elfmerc002<small> CR 4.0</small></td></tr>
-<tr><td>[TLK#14500]</td><td>nw_mixmercall</td><td>NW_MixMercAll</td><td>6</td><td>2</td><td>nw_dwarfmerc001<small> CR 0.5</small>, nw_halfmerc001<small> CR 1.0</small>, nw_dwarfmerc002<small> CR 2.0</small>, nw_elfmerc001<small> CR 2.0</small>, nw_humanmerc001<small> CR 2.0</small>, nw_halfmerc002<small> CR 3.0</small>, nw_humanmerc002<small> CR 3.0</small>, nw_dwarfmerc003<small> CR 4.0</small>, nw_elfmerc002<small> CR 4.0</small>, nw_halfmerc003<small> CR 5.0</small>, nw_elfmerc003<small> CR 6.0</small>, nw_humanmerc003<small> CR 6.0</small>, nw_dwarfmerc004<small> CR 7.0</small>, nw_halfmerc004<small> CR 7.0</small>, nw_dwarfmerc005<small> CR 9.0</small>, nw_elfmerc004<small> CR 9.0</small>, nw_humanmerc004<small> CR 9.0</small>, nw_halfmerc005<small> CR 10.0</small>, nw_elfmerc005<small> CR 11.0</small>, nw_humanmerc005<small> CR 12.0</small>, nw_dwarfmerc006<small> CR 13.0</small>, nw_halfmerc006<small> CR 13.0</small>, nw_elfmerc006<small> CR 14.0</small>, nw_humanmerc006<small> CR 15.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>Mixed Mercenaries, Weak Group</td><td>nw_mixmercweak</td><td>NW_MixMercWeak, NW_MixMercWeak, NW_MixMercWeak</td><td>6</td><td>2</td><td>nw_dwarfmerc001<small> CR 0.5</small>, nw_halfmerc001<small> CR 1.0</small>, nw_dwarfmerc002<small> CR 2.0</small>, nw_elfmerc001<small> CR 2.0</small>, nw_humanmerc001<small> CR 2.0</small>, nw_halfmerc002<small> CR 3.0</small>, nw_humanmerc002<small> CR 3.0</small>, nw_dwarfmerc003<small> CR 4.0</small>, nw_elfmerc002<small> CR 4.0</small></td><td>3</td></tr>
+<tr><td>Mixed Mercenaries, All Group</td><td>nw_mixmercall</td><td>NW_MixMercAll</td><td>6</td><td>2</td><td>nw_dwarfmerc001<small> CR 0.5</small>, nw_halfmerc001<small> CR 1.0</small>, nw_dwarfmerc002<small> CR 2.0</small>, nw_elfmerc001<small> CR 2.0</small>, nw_humanmerc001<small> CR 2.0</small>, nw_halfmerc002<small> CR 3.0</small>, nw_humanmerc002<small> CR 3.0</small>, nw_dwarfmerc003<small> CR 4.0</small>, nw_elfmerc002<small> CR 4.0</small>, nw_halfmerc003<small> CR 5.0</small>, nw_elfmerc003<small> CR 6.0</small>, nw_humanmerc003<small> CR 6.0</small>, nw_dwarfmerc004<small> CR 7.0</small>, nw_halfmerc004<small> CR 7.0</small>, nw_dwarfmerc005<small> CR 9.0</small>, nw_elfmerc004<small> CR 9.0</small>, nw_humanmerc004<small> CR 9.0</small>, nw_halfmerc005<small> CR 10.0</small>, nw_elfmerc005<small> CR 11.0</small>, nw_humanmerc005<small> CR 12.0</small>, nw_dwarfmerc006<small> CR 13.0</small>, nw_halfmerc006<small> CR 13.0</small>, nw_elfmerc006<small> CR 14.0</small>, <a href="../creatures/nw_humanmerc006.html">Nathard Kelten</a><small> CR 15.0</small></td><td>1</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_eastc2lastinn</code></td><td></td></tr>
 <tr><td><code>eastroadctoeasta</code></td><td>eastroadctoeasta</td></tr>
 <tr><td><code>WP_eastroadctoa</code></td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

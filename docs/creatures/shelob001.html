@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Shelob</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,35 +47,43 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>shelob001</dd>
 <dt>Tag</dt><dd>ms_shel1</dd>
-<dt>Race</dt><dd>Vermin</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-25">Vermin</a></dd>
 <dt>Appearance</dt><dd>SpiderFiend-Phisarazu*</dd>
 <dt>Class(es)</dt><dd>Monstrous 30/Fighter 30</dd>
-<dt>HP</dt><dd>2222</dd>
+<dt>HP</dt><dd>2,222</dd>
 <dt>CR</dt><dd>220.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/shelobslair.html">Shelob&#x27;s Lair</a></td><td>shelob</td><td><code>shelob</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>35</td><th>Dex</th><td>25</td><th>Con</th><td>35</td><th>Int</th><td>35</td><th>Wis</th><td>35</td><th>Cha</th><td>35</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Monstrous</td><td>30</td></tr><tr><td>Fighter</td><td>30</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>2222</td><th>AC</th><td>21 <small class="muted">(10 base + +7 Dex + +4 natural (NaturalAC))</small></td><th>BAB</th><td>+52</td></tr><tr><th>Fort</th><td>+12</td><th>Ref</th><td>+7</td><th>Will</th><td>+12</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/clawofthemega002.html">Claw of the Mega SPider</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+64/+59/+54/+49</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/clawofthemega003.html">Claw of the Mega SPider</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+70/+65/+60/+55</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/megaspiderbit002.html">Mega Spider Bite</a></td><td>Creature Pierce Weapon</td><td>Melee</td><td>+65/+60/+55/+50</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>2,222</td><th>AC</th><td>30 <small class="muted">(10 base + +7 Dex + +4 natural (NaturalAC) + +5 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+52</td></tr><tr><th>Fort</th><td>+12</td><th>Ref</th><td>+7</td><th>Will</th><td>+12</td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+5</td></tr>
+<tr><th>Strength Bonus</th><td>+4</td></tr>
+<tr><th>Regeneration</th><td>+4 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/clawofthemega002.html">Claw of the Mega SPider</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+69/+64/+59/+54</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/clawofthemega003.html">Claw of the Mega SPider</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+69/+64/+59/+54</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/megaspiderbit002.html">Mega Spider Bite</a></td><td>Creature Pierce Weapon</td><td>Melee</td><td>+69/+64/+59/+54</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Boots</td><td><a href="../items/bootsofquicke003.html">Boots of Shelob</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/022.html">Bracers of the Dwarven Protector</a></td></tr>
-<tr><td>Left ring</td><td><a href="../items/it_mring036.html">Ring of Regeneration +4</a></td></tr>
-<tr><td>Creature weapon (R)</td><td><a href="../items/clawofthemega002.html">Claw of the Mega SPider</a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/clawofthemega003.html">Claw of the Mega SPider</a></td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/megaspiderbit002.html">Mega Spider Bite</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Boots</td><td><a href="../items/bootsofquicke003.html">Boots of Shelob</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/022.html">Bracers of the Dwarven Protector</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/it_mring036.html">Ring of Regeneration +4</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/clawofthemega002.html">Claw of the Mega SPider</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/clawofthemega003.html">Claw of the Mega SPider</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/megaspiderbit002.html">Mega Spider Bite</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(5)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/legofshelob002.html">Leg of Shelob</a></td><td>legofshelob002</td></tr>
-<tr><td><a href="../items/poisontippedf002.html">Poison Tipped Fang</a></td><td>poisontippedf002</td></tr>
-<tr><td><a href="../items/daggerofvenom002.html">Dagger of Venom</a></td><td>daggerofvenom002</td></tr>
-<tr><td><a href="../items/utriculatingh002.html">Utriculating Hair Belt</a></td><td>utriculatingh002</td></tr>
-<tr><td><a href="../items/carapiceofshe002.html">Carapice of Shelob</a></td><td>carapiceofshe002</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/legofshelob002.html">Leg of Shelob</a></td><td><a href="../items/index.html#weapon-50">Quarterstaff</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/poisontippedf002.html">Poison Tipped Fang</a></td><td><a href="../items/index.html#weapon-22">Dagger</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/daggerofvenom002.html">Dagger of Venom</a></td><td><a href="../items/index.html#weapon-22">Dagger</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/utriculatingh002.html">Utriculating Hair Belt</a></td><td><a href="../items/index.html#belt">Belts</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/carapiceofshe002.html">Carapice of Shelob</a></td><td><a href="../items/index.html#armor-heavy">Heavy Armor</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(44)</small></h2><ul class="featlist"><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Barbarian Fast Movement</li><li>Barbarian Rage (1x per day)</li><li>Barbarian Rage (2x per day)</li><li>Barbarian Rage (3x per day)</li><li>Barbarian Rage (4x per day)</li><li>Cleave</li><li>Combat Casting</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Darkvision</li><li>Dodge</li><li>Epic Prowess</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Specialization (creature weapon)</li><li>Great Cleave</li><li>Great Fortitude</li><li>Greater Rage</li><li>Greater Rage (4x per day)</li><li>Greater Rage (5x per day)</li><li>Immunity to Paralysis</li><li>Improved Critical (greataxe)</li><li>Improved Power Attack</li><li>Overwhelming Critical (creature weapon)</li><li>Poison Save VI+</li><li>Power Attack</li><li>Shield Proficiency</li><li>Spell Focus (Evocation)</li><li>Spell Penetration</li><li>Summon Familiar</li><li>Uncanny Dodge I</li><li>Uncanny Dodge II</li><li>Uncanny Dodge III</li><li>Uncanny Dodge IV</li><li>Uncanny Dodge V</li><li>Uncanny Dodge VI+</li><li>Weapon Finesse</li><li>Weapon Focus (mace)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>23</td></tr>
 <tr><td>Discipline</td><td>20</td></tr>
@@ -79,8 +109,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(1 area)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/shelobslair.html">Shelob&#x27;s Lair</a></td><td>shelob</td><td><code>shelob</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

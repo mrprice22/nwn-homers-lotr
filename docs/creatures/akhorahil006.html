@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Morgrond Captian of Dol Guldur</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,33 +47,68 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>akhorahil006</dd>
 <dt>Tag</dt><dd>MorgrondCaptian</dd>
-<dt>Race</dt><dd>Half-Elf</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-4">Half-Elf</a></dd>
 <dt>Appearance</dt><dd>Shade, Hooded*</dd>
 <dt>Class(es)</dt><dd>Fighter 10/Blackguard 20/Weapon Master 20</dd>
-<dt>HP</dt><dd>5000</dd>
+<dt>HP</dt><dd>5,000</dd>
 <dt>CR</dt><dd>433.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Evil</a> <small class="muted">(id 5)</small></dd>
 <dt>Conversation</dt><dd><code>morgrond_conv</code></dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/dolguldurcity.html">Dol Guldur City</a></td><td>1</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>40</td><th>Dex</th><td>25</td><th>Con</th><td>50</td><th>Int</th><td>18</td><th>Wis</th><td>38</td><th>Cha</th><td>50</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>10</td></tr><tr><td>Blackguard</td><td>20</td></tr><tr><td>Weapon Master</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>5000</td><th>AC</th><td>42 <small class="muted">(10 base + +7 Dex + +15 natural (NaturalAC) + +10 armor enchant)</small></td><th>BAB</th><td>+50</td></tr><tr><th>Fort</th><td>+20</td><th>Ref</th><td>+20</td><th>Will</th><td>+25</td></tr></table>
+<table class="data"><tr><th>HP</th><td>5,000</td><th>AC</th><td>65 <small class="muted">(10 base + +7 Dex + +15 natural (NaturalAC) + +8 armor + +10 armor enchant + +11 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+50</td></tr><tr><th>Fort</th><td>+20</td><th>Ref</th><td>+20</td><th>Will</th><td>+25</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/137.html">Greater Blade of the Dol Guldur Captain</a></td><td>Mercurial Greatsword*</td><td>Melee</td><td>+79/+74/+69/+64</td><td>—</td><td></td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+11</td></tr>
+<tr><th>Save vs. Death</th><td>+9</td></tr>
+<tr><th>Save vs. Mind Affecting</th><td>+5</td></tr>
+<tr><th>Save vs. Poison</th><td>+5</td></tr>
+<tr><th>Save vs. Universal</th><td>+2</td></tr>
+<tr><th>Charisma Bonus</th><td>+6</td></tr>
+<tr><th>Constitution Bonus</th><td>+4</td></tr>
+<tr><th>Strength Bonus</th><td>+4</td></tr>
+<tr><th>Wisdom Bonus</th><td>+4</td></tr>
+<tr><th>Skill: Concentration</th><td>+10</td></tr>
+<tr><th>Skill: Discipline</th><td>+10</td></tr>
+<tr><th>Skill: Open Lock</th><td>+9</td></tr>
+<tr><th>Skill: Taunt</th><td>+10</td></tr>
+<tr><th>Skill: Tumble</th><td>+9</td></tr>
+<tr><th>Skill: Use Magic Device</th><td>+9</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>20/-</td></tr>
+<tr><th>Damage Immunity</th><td>Bludgeoning (25%), Piercing (25%), Slashing (25%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Disease, Fear, Knockdown, Level/Ability Drain, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+4 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr>
+<tr><th>Darkvision</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/137.html">Greater Blade of the Dol Guldur Captain</a></td><td>Mercurial Greatsword*</td><td>Melee</td><td>+87/+82/+77/+72</td><td>—</td><td></td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/133.html">Dark Crown of Morgrond</a></td></tr>
-<tr><td>Chest</td><td><a href="../items/134.html">Tainted Steel of Morgrond</a></td></tr>
-<tr><td>Boots</td><td><a href="../items/135.html">Boots of Morgrond</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/136.html">Bracers of Morgrond</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/137.html">Greater Blade of the Dol Guldur Captain</a></td></tr>
-<tr><td>Cloak</td><td><a href="../items/138.html">Cloak of Dol Guldur</a></td></tr>
-<tr><td>Right ring</td><td><a href="../items/139.html">Ring of the Black Rider</a></td></tr>
-<tr><td>Neck</td><td><a href="../items/140.html">Amulet of Morgornd</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear006.html">DolGur Buff Gear **</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/133.html">Dark Crown of Morgrond</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Chest</td><td><a href="../items/134.html">Tainted Steel of Morgrond</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/135.html">Boots of Morgrond</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/136.html">Bracers of Morgrond</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/137.html">Greater Blade of the Dol Guldur Captain</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Cloak</td><td><a href="../items/138.html">Cloak of Dol Guldur</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/139.html">Ring of the Black Rider</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Neck</td><td><a href="../items/140.html">Amulet of Morgornd</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear006.html">DolGur Buff Gear **</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(1)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(70)</small></h2><ul class="featlist"><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Called Shot</li><li>Cleave</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Dark Blessing</li><li>Death Attack (+10d6)</li><li>Defensive Stance</li><li>Deflect Arrows</li><li>Disarm</li><li>Dodge</li><li>Epic Blackguard</li><li>Epic Character</li><li>Epic Prowess</li><li>Epic Superior Weapon Focus</li><li>Epic Weapon Focus (greatsword)</li><li>Epic Weapon Master</li><li>Epic Weapon Specialization (greatsword)</li><li>Expertise</li><li>Extra Smiting</li><li>Extra Turning</li><li>Great Cleave</li><li>Great Smiting IV</li><li>Improved Critical (greatsword)</li><li>Improved Disarm</li><li>Improved Knockdown</li><li>Improved Parry</li><li>Improved Power Attack</li><li>Improved Two-Weapon Fighting</li><li>Improved Unarmed Strike</li><li>Improved Whirlwind Attack</li><li>Increased Multiplier</li><li>Inflict Critical Wounds</li><li>Inflict Serious Wounds</li><li>Ki Critical</li><li>Ki Damage</li><li>Knockdown</li><li>Mighty Rage</li><li>Mobility</li><li>Overwhelming Critical (greatsword)</li><li>Perfect Health</li><li>Power Attack</li><li>Quick To Master</li><li>Rapid Shot</li><li>Sap</li><li>Self-Concealment I</li><li>Self-Concealment II</li><li>Self-Concealment III</li><li>Shield Proficiency</li><li>Smite Good</li><li>Spring Attack</li><li>Stunning Fist</li><li>Summon Greater Undead</li><li>Summon Undead</li><li>Superior Initiative</li><li>Superior Weapon Focus</li><li>Toughness</li><li>Two-Weapon Fighting</li><li>Weapon Focus (greatsword)</li><li>Weapon of Choice (greatsword)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (greatsword)</li><li>Whirlwind Attack</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>1</td></tr>
 <tr><td>Discipline</td><td>71</td></tr>
@@ -82,8 +139,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(1)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/dolguldurcity-001.html">Morgrond Captian of Dol Guldur</a></td><td><a href="../areas/dolguldurcity.html">Dol Guldur City</a></td><td>Evil</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

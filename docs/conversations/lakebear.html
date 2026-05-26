@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation lakebear</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -41,7 +63,7 @@
 <h2>Starting entries</h2><ul>
 <li><a href="#e5">entry #5</a> <small class="muted">(if <code>bearkillcheck</code>)</small> — Hail warrior!  Have you had a chance to kill that wretched bear, Big Momma?</li>
 <li><a href="#e4">entry #4</a> <small class="muted">(if <code>bearcheck2</code>)</small> — Thank you for your help.  I am sure you have other things to do.</li>
-<li><a href="#e0">entry #0</a> — Hail &lt;lad/lass&gt;!  I am Chela of the Thennen Clan.</li>
+<li><a href="#e0">entry #0</a> — Hail !  I am Chela of the Thennen Clan.</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -128,7 +150,7 @@
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Hail &lt;lad/lass&gt;!  I am Chela of the Thennen Clan.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I am &lt;FullName&gt;.  What are you doing here?”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Hail &lt;lad/lass&gt;!  I am Chela of the Thennen Clan.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I am .  What are you doing here?”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">I am in need of your help if you are so willing.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Well, I would not feel right to ignore someone that needs help.  What is it that…”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Ahem, uh well you know I was just passing by.  Maybe someone else could help you…”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">My hunting party and I have tracked down the bear that has been terrorizing the town.  Unfortunately, my friend Kiana and I are the only ones to survive.  She is heading to town to get some me some help since I am badly wounded.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Is there anything I can do to help you ease your pain?”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Yes, please go kill that wretched bear!  She has killed many of my loved ones and I would like to see her dead.  If you are strong and courageous, I shall reward you if you bring back a piece of Big Momma as a sign of her death.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I will do what I can.”</span></li></ul></div>
@@ -145,6 +167,6 @@
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>bearkill2</code></span></div><div class="dlg-text">Thank you and I hope your friend gets here soon to help you back to town.</div></div>
 <div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Uh, no not yet, but I am working at it.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

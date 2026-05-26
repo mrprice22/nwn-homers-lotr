@@ -37,23 +37,17 @@ int GetIsFeatLimitedUses(int nFeat);
 
 int GetControlClass(object oPC)
 {
-int nL1 = GetLevelByPosition(1, oPC);
-int nL2 = GetLevelByPosition(2, oPC);
-int nL3 = GetLevelByPosition(3, oPC);
-//class 1 highest
-if ((nL1 > nL2) && (nL1 > nL3)) return GetClassByPosition(1, oPC);
-//class 2 highest
-else if ((nL2 > nL1) && (nL2 > nL3)) return GetClassByPosition(2, oPC);
-//class 3 highest
-else if ((nL3 > nL1) && (nL3 > nL2)) return GetClassByPosition(3, oPC);
-//class 1 and 2 tied for highest
-else if (nL1 == nL2) return GetClassByPosition(1, oPC);
-//class 1 and 3 tied for highest
-else if (nL1 == nL3) return GetClassByPosition(1, oPC);
-//class 2 and 3 tied for highest
-else if (nL2 == nL3) return GetClassByPosition(2, oPC);
-//return -1 on error
-else return -1;
+int nBestClass = GetClassByPosition(1, oPC);
+int nBestLevel = GetLevelByPosition(1, oPC);
+int i;
+for (i = 2; i <= 4; i++)
+{
+    int nClassType = GetClassByPosition(i, oPC);
+    if (nClassType == CLASS_TYPE_INVALID) break;
+    int nLevel = GetLevelByPosition(i, oPC);
+    if (nLevel > nBestLevel) { nBestLevel = nLevel; nBestClass = nClassType; }
+}
+return nBestClass;
 }
 
 int GetCostOfSkill(int nClass, int nSkill)

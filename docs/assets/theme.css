@@ -1,0 +1,104 @@
+/* Homer's LotR — dark NWN-inspired wiki theme.
+ * Drop favicon.png and header.png into this folder;
+ * nwn-wiki will pick them up automatically on the next regeneration.
+ */
+
+/* ── Colour palette ───────────────────────────────────────────────────── */
+:root {
+  --fg:          #ccc0a0;   /* warm parchment */
+  --bg:          #0e0c0a;   /* near-black */
+  --muted:       #6a6050;
+  --accent:      #c8a045;   /* NWN gold */
+  --accent-soft: #7a5820;
+  --border:      #2a261c;
+  --card:        #161410;
+  --hostile:     #cc4a38;
+  --friendly:    #4a9858;
+  --link:        #c8a045;
+  --link-hover:  #e8c060;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+header.site-header {
+  background: #080706;
+  border-bottom: 3px solid var(--accent);
+}
+
+/* Full-width banner: image scales to span the entire header width */
+header.site-header .brand img.site-header-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────── */
+th {
+  background: rgba(200, 160, 69, 0.10);
+}
+tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Inline code / tags ───────────────────────────────────────────────── */
+.tag {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Dialog nodes ─────────────────────────────────────────────────────── */
+.dlg-node.reply,
+.dlg-tree-node.reply {
+  background: #100e0a;
+}
+
+/* ── Badges ───────────────────────────────────────────────────────────── */
+.badge.global   { background: #1e1230; color: #c090f0; }
+.badge.teleport { background: #1e1a00; color: #d0a020; }
+
+/* ── Area map (SVG) ───────────────────────────────────────────────────── */
+/* Higher-specificity selectors beat the SVG's own embedded <style> block. */
+.map-wrap {
+  background: var(--card);
+  border-color: var(--border);
+}
+.map-wrap svg {
+  background: #0e0c0a !important;   /* overrides the SVG's own background:#fff */
+}
+.map-wrap svg .area-node rect {
+  fill: #1a1710;
+  stroke: var(--accent);
+  stroke-width: 2.4;
+}
+.map-wrap svg .area-node:hover rect {
+  fill: #2c2618;
+}
+.map-wrap svg .area-node text,
+.map-wrap svg .area-label {
+  fill: var(--fg);
+}
+.map-wrap svg .external-node rect {
+  fill: #1a1710;
+  stroke: #4a4030;
+  stroke-dasharray: 3, 3;
+}
+.map-wrap svg .convo-node polygon {
+  fill: #150e20;
+  stroke: #9b4dca;
+  stroke-width: 2.4;
+}
+.map-wrap svg .convo-node:hover polygon {
+  fill: #221430;
+}
+.map-wrap svg .convo-node text,
+.map-wrap svg .convo-label {
+  fill: #c090f0;
+}
+
+/* ── Map toolbar ──────────────────────────────────────────────────────── */
+.map-toolbar button {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--fg);
+}
+.map-toolbar button:hover {
+  background: var(--accent-soft);
+}

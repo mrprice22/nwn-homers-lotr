@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation zdlg_converse</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -58,124 +80,138 @@
 <tr><td><code>zdlg_do_03</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>zdlg_do_02</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>zdlg_do_01</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM4200&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM4201&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4202&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4203&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4204&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4205&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4206&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4207&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4208&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4209&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4210&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4211&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4212&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr>
+<tr><td><code>&lt;CUSTOM4213&gt;</code></td><td><a href="../scripts/zdlg_check_init.html">zdlg_check_init</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small> — &lt;CUSTOM4200&gt;</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>zdlg_check_init</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4200&gt;</div>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(4200, ...) — no setter found in static analysis">&lt;CUSTOM4200&gt;</span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>zdlg_do_01</code></span> <small class="muted">(if <code>zdlg_check_01</code>)</small> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4201&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4201, ...) called in: zdlg_check_init">&lt;CUSTOM4201&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>zdlg_do_02</code></span> <small class="muted">(if <code>zdlg_check_02</code>)</small> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4202&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4202, ...) called in: zdlg_check_init">&lt;CUSTOM4202&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>zdlg_do_03</code></span> <small class="muted">(if <code>zdlg_check_03</code>)</small> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4203&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4203, ...) called in: zdlg_check_init">&lt;CUSTOM4203&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>zdlg_do_04</code></span> <small class="muted">(if <code>zdlg_check_04</code>)</small> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4204&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4204, ...) called in: zdlg_check_init">&lt;CUSTOM4204&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>zdlg_do_05</code></span> <small class="muted">(if <code>zdlg_check_05</code>)</small> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4205&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4205, ...) called in: zdlg_check_init">&lt;CUSTOM4205&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>zdlg_do_06</code></span> <small class="muted">(if <code>zdlg_check_06</code>)</small> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4206&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4206, ...) called in: zdlg_check_init">&lt;CUSTOM4206&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>zdlg_do_07</code></span> <small class="muted">(if <code>zdlg_check_07</code>)</small> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4207&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4207, ...) called in: zdlg_check_init">&lt;CUSTOM4207&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>zdlg_do_08</code></span> <small class="muted">(if <code>zdlg_check_08</code>)</small> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4208&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4208, ...) called in: zdlg_check_init">&lt;CUSTOM4208&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>zdlg_do_09</code></span> <small class="muted">(if <code>zdlg_check_09</code>)</small> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4209&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4209, ...) called in: zdlg_check_init">&lt;CUSTOM4209&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>zdlg_do_10</code></span> <small class="muted">(if <code>zdlg_check_10</code>)</small> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4210&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4210, ...) called in: zdlg_check_init">&lt;CUSTOM4210&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>zdlg_do_11</code></span> <small class="muted">(if <code>zdlg_check_11</code>)</small> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4211&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4211, ...) called in: zdlg_check_init">&lt;CUSTOM4211&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>zdlg_do_12</code></span> <small class="muted">(if <code>zdlg_check_12</code>)</small> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4212&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4212, ...) called in: zdlg_check_init">&lt;CUSTOM4212&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>zdlg_do_13</code></span> <small class="muted">(if <code>zdlg_check_13</code>)</small> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM4213&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(4213, ...) called in: zdlg_check_init">&lt;CUSTOM4213&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div>
 </details>
 </div>
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">&lt;CUSTOM4200&gt;</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“&lt;CUSTOM4201&gt;”</span> <small class="muted">(if <code>zdlg_check_01</code>)</small></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“&lt;CUSTOM4202&gt;”</span> <small class="muted">(if <code>zdlg_check_02</code>)</small></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“&lt;CUSTOM4203&gt;”</span> <small class="muted">(if <code>zdlg_check_03</code>)</small></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“&lt;CUSTOM4204&gt;”</span> <small class="muted">(if <code>zdlg_check_04</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“&lt;CUSTOM4205&gt;”</span> <small class="muted">(if <code>zdlg_check_05</code>)</small></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“&lt;CUSTOM4206&gt;”</span> <small class="muted">(if <code>zdlg_check_06</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“&lt;CUSTOM4207&gt;”</span> <small class="muted">(if <code>zdlg_check_07</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“&lt;CUSTOM4208&gt;”</span> <small class="muted">(if <code>zdlg_check_08</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“&lt;CUSTOM4209&gt;”</span> <small class="muted">(if <code>zdlg_check_09</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“&lt;CUSTOM4210&gt;”</span> <small class="muted">(if <code>zdlg_check_10</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“&lt;CUSTOM4211&gt;”</span> <small class="muted">(if <code>zdlg_check_11</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“&lt;CUSTOM4212&gt;”</span> <small class="muted">(if <code>zdlg_check_12</code>)</small></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“&lt;CUSTOM4213&gt;”</span> <small class="muted">(if <code>zdlg_check_13</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(4200, ...) — no setter found in static analysis">&lt;CUSTOM4200&gt;</span></div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <small class="muted">(if <code>zdlg_check_01</code>)</small></li><li><a href="#r11">→ reply #11</a> <small class="muted">(if <code>zdlg_check_02</code>)</small></li><li><a href="#r10">→ reply #10</a> <small class="muted">(if <code>zdlg_check_03</code>)</small></li><li><a href="#r9">→ reply #9</a> <small class="muted">(if <code>zdlg_check_04</code>)</small></li><li><a href="#r8">→ reply #8</a> <small class="muted">(if <code>zdlg_check_05</code>)</small></li><li><a href="#r7">→ reply #7</a> <small class="muted">(if <code>zdlg_check_06</code>)</small></li><li><a href="#r6">→ reply #6</a> <small class="muted">(if <code>zdlg_check_07</code>)</small></li><li><a href="#r5">→ reply #5</a> <small class="muted">(if <code>zdlg_check_08</code>)</small></li><li><a href="#r4">→ reply #4</a> <small class="muted">(if <code>zdlg_check_09</code>)</small></li><li><a href="#r3">→ reply #3</a> <small class="muted">(if <code>zdlg_check_10</code>)</small></li><li><a href="#r2">→ reply #2</a> <small class="muted">(if <code>zdlg_check_11</code>)</small></li><li><a href="#r1">→ reply #1</a> <small class="muted">(if <code>zdlg_check_12</code>)</small></li><li><a href="#r0">→ reply #0</a> <small class="muted">(if <code>zdlg_check_13</code>)</small></li></ul></div>
 <h2>PC replies — flat index</h2>
-<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>zdlg_do_13</code></span></div><div class="dlg-text">&lt;CUSTOM4213&gt;</div></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>zdlg_do_12</code></span></div><div class="dlg-text">&lt;CUSTOM4212&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>zdlg_do_11</code></span></div><div class="dlg-text">&lt;CUSTOM4211&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>zdlg_do_10</code></span></div><div class="dlg-text">&lt;CUSTOM4210&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>zdlg_do_09</code></span></div><div class="dlg-text">&lt;CUSTOM4209&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>zdlg_do_08</code></span></div><div class="dlg-text">&lt;CUSTOM4208&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>zdlg_do_07</code></span></div><div class="dlg-text">&lt;CUSTOM4207&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>zdlg_do_06</code></span></div><div class="dlg-text">&lt;CUSTOM4206&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>zdlg_do_05</code></span></div><div class="dlg-text">&lt;CUSTOM4205&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>zdlg_do_04</code></span></div><div class="dlg-text">&lt;CUSTOM4204&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>zdlg_do_03</code></span></div><div class="dlg-text">&lt;CUSTOM4203&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>zdlg_do_02</code></span></div><div class="dlg-text">&lt;CUSTOM4202&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>zdlg_do_01</code></span></div><div class="dlg-text">&lt;CUSTOM4201&gt;</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“&lt;CUSTOM4200&gt;”</span> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>zdlg_do_13</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4213, ...) called in: zdlg_check_init">&lt;CUSTOM4213&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>zdlg_do_12</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4212, ...) called in: zdlg_check_init">&lt;CUSTOM4212&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>zdlg_do_11</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4211, ...) called in: zdlg_check_init">&lt;CUSTOM4211&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>zdlg_do_10</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4210, ...) called in: zdlg_check_init">&lt;CUSTOM4210&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>zdlg_do_09</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4209, ...) called in: zdlg_check_init">&lt;CUSTOM4209&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>zdlg_do_08</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4208, ...) called in: zdlg_check_init">&lt;CUSTOM4208&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>zdlg_do_07</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4207, ...) called in: zdlg_check_init">&lt;CUSTOM4207&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>zdlg_do_06</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4206, ...) called in: zdlg_check_init">&lt;CUSTOM4206&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>zdlg_do_05</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4205, ...) called in: zdlg_check_init">&lt;CUSTOM4205&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>zdlg_do_04</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4204, ...) called in: zdlg_check_init">&lt;CUSTOM4204&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>zdlg_do_03</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4203, ...) called in: zdlg_check_init">&lt;CUSTOM4203&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>zdlg_do_02</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4202, ...) called in: zdlg_check_init">&lt;CUSTOM4202&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>zdlg_do_01</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(4201, ...) called in: zdlg_check_init">&lt;CUSTOM4201&gt;<sup class="token-setters">[<a href="../scripts/zdlg_check_init.html">zdlg_check_init</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e0">→ child</a> <small class="muted">(if <code>zdlg_check_init</code>)</small></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

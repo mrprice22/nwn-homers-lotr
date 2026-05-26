@@ -7,10 +7,18 @@
 //:://////////////////////////////////////////////
 void main()
 {
+    object oPC = GetPCSpeaker();
 
-	// Remove items from the player's inventory
-	object oItemToTake;
-	oItemToTake = GetItemPossessedBy(GetPCSpeaker(), "Troyspin");
-	if(GetIsObjectValid(oItemToTake) != 0)
-		DestroyObject(oItemToTake);
+    // Anti-exploit: only mark delivery successful if the item is actually present.
+    // at_071 checks kashan_gave_item before granting the reward.
+    object oItemToTake = GetItemPossessedBy(oPC, "Troyspin");
+    if (!GetIsObjectValid(oItemToTake))
+    {
+        FloatingTextStringOnCreature(
+            "You must have the item in your possession.", oPC, FALSE);
+        return;
+    }
+
+    DestroyObject(oItemToTake);
+    SetLocalInt(oPC, "kashan_gave_item", 1);
 }

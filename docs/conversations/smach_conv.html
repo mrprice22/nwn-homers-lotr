@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation smach_conv</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -35,36 +57,38 @@
 <tr><td><code>smach_at003</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>smach_at002</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>smach_at001</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM100&gt;</code></td><td><a href="../scripts/isitemonanvil.html">isitemonanvil</a>, <a href="../scripts/smach_sc001.html">smach_sc001</a></td></tr>
+<tr><td><code>&lt;CUSTOM101&gt;</code></td><td><a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> <small class="muted">(if <code>smach_sc001</code>)</small> — Current bet is &lt;CUSTOM100&gt; gold pieces.</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>smach_sc001</code>)</small> — Current bet is  gold pieces.</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>smach_sc001</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">Current bet is &lt;CUSTOM100&gt; gold pieces.
+<div class="dlg-text">Current bet is <span class="custom-token" title="SetCustomToken(100, ...) called in: isitemonanvil, smach_sc001">&lt;CUSTOM100&gt;<sup class="token-setters">[<a href="../scripts/isitemonanvil.html">isitemonanvil</a>, <a href="../scripts/smach_sc001.html">smach_sc001</a>]</sup></span> gold pieces.
 What would you like to do?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>smach_at001</code></span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
 <div class="dlg-text">Increase bet</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>smach_at002</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">Decrease bet</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>smach_at003</code></span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
 <div class="dlg-text">Pull handle</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -73,13 +97,13 @@ What would you like to do?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">&lt;CUSTOM101&gt;</div>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
 <div class="dlg-text">[go back]</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></div>
 </div>
 </details>
 </div>
@@ -94,17 +118,17 @@ What would you like to do?</div>
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Current bet is &lt;CUSTOM100&gt; gold pieces.
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Current bet is <span class="custom-token" title="SetCustomToken(100, ...) called in: isitemonanvil, smach_sc001">&lt;CUSTOM100&gt;<sup class="token-setters">[<a href="../scripts/isitemonanvil.html">isitemonanvil</a>, <a href="../scripts/smach_sc001.html">smach_sc001</a>]</sup></span> gold pieces.
 What would you like to do?</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Increase bet”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Decrease bet”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Pull handle”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“See Pay Table”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Leave it alone”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">&lt;CUSTOM101&gt;</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“[go back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“[go back]”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Leave it alone</div></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">See Pay Table</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“&lt;CUSTOM101&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">[go back]</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>smach_at003</code></span></div><div class="dlg-text">Pull handle</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>smach_at002</code></span></div><div class="dlg-text">Decrease bet</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>smach_at001</code></span></div><div class="dlg-text">Increase bet</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is &lt;CUSTOM100&gt; gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">See Pay Table</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">[go back]</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>smach_at003</code></span></div><div class="dlg-text">Pull handle</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>smach_at002</code></span></div><div class="dlg-text">Decrease bet</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>smach_at001</code></span></div><div class="dlg-text">Increase bet</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Current bet is  gold pieces.”</span> <small class="muted">(if <code>smach_sc001</code>)</small></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

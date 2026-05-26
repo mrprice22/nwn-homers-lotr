@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Script nw_o2_coninclude</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -68,7 +90,7 @@
     int RANGE_5_MAX = 16;
 
     int RANGE_6_MIN = 17;
-    int RANGE_6_MAX = 100;
+    int RANGE_6_MAX = 9999;
 
     // * NUMBER OF ITEMS APPEARING
     int NUMBER_LOW_ONE   = 100; int NUMBER_MED_ONE    = 60; int NUMBER_HIGH_ONE   = 40;  int NUMBER_BOSS_ONE = 100;
@@ -1130,10 +1152,10 @@ int GetNumberOfItems(int nTreasureType)
             switch ( nRandom )
             {
                 // Potion options have changed. FB.
-                case 1: case 2: case 3: case 4: case 5: case 6: case 7: sPotion = &quot;potionclw&quot;; break;
-                case 8: case 9: case 10: case 11: case 12: sPotion = &quot;potioncmw&quot;;  break;
-                case 13: case 14: sPotion = &quot;potioncsw&quot;;  break;
-                case 15: case 16: case 17: case 18: sPotion = &quot;potionctw&quot;; break;
+                case 1: case 2: case 3: case 4: case 5: case 6: case 7: sPotion = &quot;nw_it_mpotion001&quot;; break;
+                case 8: case 9: case 10: case 11: case 12: sPotion = &quot;nw_it_mpotion002&quot;;  break;
+                case 13: case 14: sPotion = &quot;nw_it_mpotion003&quot;;  break;
+                case 15: case 16: case 17: case 18: sPotion = &quot;nw_it_mpotion001&quot;; break;
             }
           }
           else
@@ -1141,7 +1163,7 @@ int GetNumberOfItems(int nTreasureType)
             if ( d2() == 1 )
               sPotion = &quot;nw_it_mpotion009&quot;;
             else
-              sPotion = &quot;potionctw&quot;;
+              sPotion = &quot;nw_it_mpotion001&quot;;
           }
         }
         else if (GetRange(2, nHD))
@@ -1151,10 +1173,10 @@ int GetNumberOfItems(int nTreasureType)
             int nRandom = Random( 20 ) + 1;
             switch ( nRandom )
             {
-              case 1: case 2: case 3: case 4: case 5: case 6: sPotion = &quot;potionclw&quot;; break;
-              case 7: case 8: case 9: case 10: case 11: case 12: sPotion = &quot;potioncmw&quot;;  break;
-              case 13: case 14: case 15: case 16: case 17: sPotion = &quot;potioncsw&quot;;  break;
-              case 18: case 19: case 20: sPotion = &quot;potionccw&quot;;  break;
+              case 1: case 2: case 3: case 4: case 5: case 6: sPotion = &quot;nw_it_mpotion001&quot;; break;
+              case 7: case 8: case 9: case 10: case 11: case 12: sPotion = &quot;nw_it_mpotion002&quot;;  break;
+              case 13: case 14: case 15: case 16: case 17: sPotion = &quot;nw_it_mpotion003&quot;;  break;
+              case 18: case 19: case 20: sPotion = &quot;nw_it_mpotion004&quot;;  break;
             }
           }
           else
@@ -1177,7 +1199,7 @@ int GetNumberOfItems(int nTreasureType)
               case 13: sPotion = &quot;nw_it_mpotion019&quot;;  break;
               case 14: sPotion = &quot;nw_it_mpotion004&quot;;  break;
               case 15: sPotion = &quot;nw_it_mpotion006&quot;;  break;
-              case 16: sPotion = &quot;potionctw&quot;; break;
+              case 16: sPotion = &quot;nw_it_mpotion001&quot;; break;
             }
           }
         }
@@ -1185,7 +1207,7 @@ int GetNumberOfItems(int nTreasureType)
         {
           if ( d8() &gt; 1 )
           {
-            sPotion = &quot;potionccw&quot;;
+            sPotion = &quot;nw_it_mpotion004&quot;;
           }
           else
           {
@@ -1214,7 +1236,7 @@ int GetNumberOfItems(int nTreasureType)
         {
           if ( d8() &gt; 1 )
           {
-            sPotion = &quot;potionccw&quot;;
+            sPotion = &quot;nw_it_mpotion004&quot;;
           }
           else
           {
@@ -1243,7 +1265,7 @@ int GetNumberOfItems(int nTreasureType)
         {
           if ( d6() &gt; 1 )
           {
-            sPotion = &quot;potionccw&quot;;
+            sPotion = &quot;nw_it_mpotion004&quot;;
           }
           else
           {
@@ -4611,19 +4633,17 @@ int nDetermineClassToUse(object oCharacter)
     int nState1 = FloatToInt((IntToFloat(GetLevelByClass(nClass1, oCharacter)) / fTotal) * 100);
     dbSpeak(&quot;Level 1 Class Level = &quot; + IntToString(GetLevelByClass(nClass1,oCharacter)));
 
-    PrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; +  GetTag(oCharacter) + &quot;Class 1 &quot; + IntToString(nState1));
     dbSpeak(&quot;State 1 &quot; + IntToString(nState1));
     int nClass2 = GetClassByPosition(2, oCharacter);
     int nState2 = FloatToInt((IntToFloat(GetLevelByClass(nClass2, oCharacter)) / fTotal) * 100) + nState1;
-    PrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; + GetTag(oCharacter) + &quot;Class 2 &quot; + IntToString(nState2));
 
     int nClass3 = GetClassByPosition(3, oCharacter);
     int nState3 = FloatToInt((IntToFloat(GetLevelByClass(nClass3, oCharacter)) / fTotal) * 100) + nState2;
-    PrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; + GetTag(oCharacter) + &quot;Class 3 &quot; + IntToString(nState3));
+
+    int nClass4 = GetClassByPosition(4, oCharacter);
+    int nState4 = FloatToInt((IntToFloat(GetLevelByClass(nClass4, oCharacter)) / fTotal) * 100) + nState3;
 
     int nUseClass = d100();
-    PrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; + &quot;D100 Roll &quot; +IntToString(nUseClass));
-
 
     dbSpeak(&quot;Before comparison : &quot; + IntToString(nClass1));
     if(nUseClass &lt;= nState1)
@@ -4634,9 +4654,13 @@ int nDetermineClassToUse(object oCharacter)
     {
         nClass = nClass2;
     }
-    else
+    else if(nUseClass &gt; nState2 &amp;&amp; nUseClass &lt;= nState3)
     {
         nClass = nClass3;
+    }
+    else
+    {
+        nClass = (nClass4 != CLASS_TYPE_INVALID) ? nClass4 : nClass1;
     }
     dbSpeak(&quot;Class from determineClass &quot; + IntToString(nClass));
     return nClass;
@@ -4646,6 +4670,6 @@ int nDetermineClassToUse(object oCharacter)
 
 </code></pre>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

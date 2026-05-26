@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script mw_aurel_er</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>mw_aurel_er</code></h1><pre class="nss-source"><code>//:: mw_aurel_er -- OnEndCombatRound for Aurelius (Paladin 60).
+//::
+//:: MW_STYLE 0 (Guardian, default):
+//::   Keep the master alive -- cast Heal when master HP drops below 50%.
+//::   Otherwise defer to standard AI.
+//::
+//:: MW_STYLE 1 (Offensive):
+//::   Self-heal if own HP is critical; then find and attack any enemy that
+//::   is targeting the master -- pull aggro so the master can breathe.
+//::   Stays close to the master by attacking his attackers, not random foes.
+
+const int SPELL_CCW     = 31;   // Cure Critical Wounds -- Paladin L4
+const int SPELL_CSW     = 35;   // Cure Serious Wounds  -- Paladin L3
+const int SPELL_CMW     = 34;   // Cure Moderate Wounds -- Paladin L2
+
+void main()
+{
+    int nStyle = GetLocalInt(OBJECT_SELF, &quot;MW_STYLE&quot;);
+    object oPC = GetMaster();
+
+    if (nStyle == 0) // Guardian: prioritize keeping master alive
+    {
+        if (GetIsObjectValid(oPC))
+        {
+            int nPCHP    = GetCurrentHitPoints(oPC);
+            int nPCMaxHP = GetMaxHitPoints(oPC);
+            if (nPCHP &lt; FloatToInt(IntToFloat(nPCMaxHP) * 0.50f))
+            {
+                if (GetHasSpell(SPELL_CCW, OBJECT_SELF))
+                    ActionCastSpellAtObject(SPELL_CCW, oPC);
+                else if (GetHasSpell(SPELL_CSW, OBJECT_SELF))
+                    ActionCastSpellAtObject(SPELL_CSW, oPC);
+                else if (GetHasSpell(SPELL_CMW, OBJECT_SELF))
+                    ActionCastSpellAtObject(SPELL_CMW, oPC);
+                return;
+            }
+        }
+        ExecuteScript(&quot;x2_def_endcombat&quot;, OBJECT_SELF);
+        return;
+    }
+
+    // Style 1 (Offensive): self-heal if critical, then pull aggro
+    int nSelfHP    = GetCurrentHitPoints(OBJECT_SELF);
+    int nSelfMaxHP = GetMaxHitPoints(OBJECT_SELF);
+    if (nSelfHP &lt; FloatToInt(IntToFloat(nSelfMaxHP) * 0.50f))
+    {
+        if (GetHasSpell(SPELL_CCW, OBJECT_SELF))
+        {
+            ActionCastSpellAtObject(SPELL_CCW, OBJECT_SELF);
+            return;
+        }
+        else if (GetHasSpell(SPELL_CSW, OBJECT_SELF))
+        {
+            ActionCastSpellAtObject(SPELL_CSW, OBJECT_SELF);
+            return;
+        }
+    }
+
+    // Find an enemy that is attacking the master and go for them.
+    if (GetIsObjectValid(oPC))
+    {
+        object oEnemy = GetNearestCreature(CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, OBJECT_SELF, 1, CREATURE_TYPE_IS_ALIVE, TRUE);
+        int n = 1;
+        while (GetIsObjectValid(oEnemy))
+        {
+            if (GetAttackTarget(oEnemy) == oPC)
+            {
+                ClearAllActions();
+                ActionAttack(oEnemy);
+                return;
+            }
+            n++;
+            oEnemy = GetNearestCreature(CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, OBJECT_SELF, n, CREATURE_TYPE_IS_ALIVE, TRUE);
+        }
+    }
+
+    // No enemy is targeting master -- attack nearest
+    ExecuteScript(&quot;x2_def_endcombat&quot;, OBJECT_SELF);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

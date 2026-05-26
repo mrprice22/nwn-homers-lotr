@@ -1,0 +1,147 @@
+TODO — Homer's LOTR module
+==========================
+
+[BUG] Dol Guldur ramp door transition loop (dolguldurcity)
+-----------------------------------------------------------
+Reported by player: "The door transition in Dol Guldur is facing the wrong way,
+so you end up on the ramp in the middle, where you can't progress forward."
+
+Confirmed. Both doors `Dol62Dol7` and `Dol72Dol6` exist in the same area
+(dolguldurcity.git.json, "Dol Guldur City"). They sit ~10 units apart on a ramp
+(Y:45.08 and Y:54.92, Z:-0.34) and link to each other, creating a loop:
+
+  Dol62Dol7  (bearing π/2, east)   LinkedTo: Dol72Dol6  → same area
+  Dol72Dol6  (bearing -π/2, west)  LinkedTo: Dol62Dol7  → same area
+
+Going through either door just bounces you to the other door 10 units away.
+No forward progress is possible.
+
+Root cause: the names suggest a two-area transition — Dol62Dol7 = "Dol 6 → Dol 7",
+Dol72Dol6 = "Dol 7 → Dol 6". Dol62Dol7 belongs in dolguldurcity ("Dol 6") and
+Dol72Dol6 should be in a separate "Dol 7" area that either no longer exists or
+was never created.
+
+Fix options:
+  A) If "Dol 7" was a separate area that was removed: delete Dol72Dol6 from
+     dolguldurcity.git.json and either remove Dol62Dol7 or re-link it to the
+     correct destination area.
+  B) If the ramp is meant to be a plain walkable passage (no area transition):
+     delete both doors and let the player walk through freely.
+
+
+[INVESTIGATED — NOT CONFIRMED] Hobbiton hobbits respawn naked / drop Dol Guldur Bow-Man Armor
+----------------------------------------------------------------------------------------------
+Reported by player: "Hobbits in Hobbiton respawns naked when killed, and drops
+Dol Guldur Bow-Man Armor, instead of their Hobbit garment."
+
+Investigated 2026-05-21. Bug NOT present in current source.
+
+All 4 hobbit instances in shirehobbiton001.git.json have Slot 2 (armor) defined
+as an inline item (EquippedRes='' is the module-wide pattern — all 578 equipped
+item slots across the module use inline definitions). The inline item's properties
+exactly match clo32244 (Hobbit's Outfit): same cost (520297), same 5-entry
+PropertiesList, same ArmorPart values, same name. No sign of 037 (Dol Guldur
+Bow-Man Armor, cost 617051, 10 properties) anywhere in the hobbit chain.
+
+The hobbit001.utc.json blueprint also correctly uses clo32244 in Slot 2. No
+death/spawn scripts on the creature or area that could swap the armor.
+
+Likely fixed at some point (blueprint corrected, toolset re-baked GIT instances).
+No action needed unless the bug resurfaces in-game.
+
+
+[BUG] Gondorian Scribe missing — can't complete Ruins of Annuminas quest
+-------------------------------------------------------------------------
+Reported by player: "Gondorian scribe seems absent, so can't finish the ruins
+quest north of Bree."
+
+Confirmed. The Gondorian Scribe is the expedition leader at the Ruins of
+Annuminas (ruinsofannuminas.git.json). She drives the quest to kill Azagoth and
+seal the Well of Souls portal.
+
+What exists:
+  - gondorscribe.dlg.json — full dialog tree for the scribe
+  - at_007.nss — gives player "annuminaskey" when directed to the portal
+  - at_008.nss — takes "azagothshead", awards 1000 XP on quest completion
+  - Azagoth encounter and golems are correctly placed in the area
+
+What is MISSING:
+  - No UTC blueprint uses gondorscribe as its conversation
+  - ruinsofannuminas.git.json has zero creature instances (no NPC at all)
+
+Fix: Create a UTC blueprint for the expedition leader (female human or elf,
+civilian appearance) with Conversation=gondorscribe, then place her in
+ruinsofannuminas.git.json at a sensible location (e.g. near the entrance,
+Y low, away from the golem encounter spawns).
+
+
+[BUG] Rivendell weapon shop missing — Ranger NPC opens a non-existent store
+----------------------------------------------------------------------------
+Reported by player: "Rivendell shop broken, on entrance teleport map, the one
+in the library is fine, the fighter to the south has the dialog for the shop,
+but then the store's missing."
+
+Confirmed. In rivendell.git.json (main Rivendell area):
+  - NPC "Rangerofthe" (tag=Rangerofthe, tmpl=rangerofthe002) at X=90.3 Y=30.0
+    (south end of area) has conversation "rivweap"
+  - rivweap dialog fires at_020.nss when player says they're interested
+  - at_020.nss: opens store tagged "NW_STOREWEAP003" via GetNearestObjectByTag
+  - rivendell.git.json only has ONE store: NW_STOREMAGIC003 (no weapon store)
+  - at_020 falls through to ActionSpeakStringByStrRef(53090) — "no store found"
+
+The weapon store NW_STOREWEAP003 exists in thesmithyofriven.git.json (Rivendell
+Smithy area), where a second NPC (Elrebrier) also uses rivweap. The Smithy
+version works fine. Only the main Rivendell entrance is broken.
+
+Fix: Place a NW_STOREWEAP003 store instance in rivendell.git.json near the
+Rangerofthe NPC (around X=90 Y=30), or re-link the Rangerofthe's conversation
+to one that opens NW_STOREMAGIC003 instead.
+
+
+[BUG] Item Forge never charges gold — constant mismatch in payment scripts
+---------------------------------------------------------------------------
+Reported by player: "Item forge doesn't actually take the money for adding
+magic to items."
+
+Confirmed. Two-script mismatch:
+
+calcmodvalue2.nss sets:
+  iDiff = 8   when player must PAY  (comment says "iValue is amount to pay")
+  iDiff = -8  when player gets REFUND
+
+modifyitem.nss checks:
+  if (iDiff == 1) TakeGoldFromCreature(...)   ← never true (8 ≠ 1)
+  else if (iDiff == -1) GiveGoldToCreature(...)  ← never true (-8 ≠ -1)
+
+Neither branch ever fires. Modifications are applied for free and refunds are
+never paid out.
+
+Fix: Change modifyitem.nss lines 10 and 12 to check iDiff == 8 and iDiff == -8
+respectively. Or change calcmodvalue2.nss to set iDiff = 1 / -1.
+The simpler and less risky change is modifyitem.nss (one file, two int literals):
+  if (iDiff == 8) TakeGoldFromCreature(iValue, oPC, TRUE);
+  else if (iDiff == -8) GiveGoldToCreature(oPC, iValue);
+
+
+[INVESTIGATED — NOT CONFIRMED] Crafting errors / too many instructions
+-----------------------------------------------------------------------
+Reported by player: "Crafting errors, too many instructions, very bug'd."
+
+Partially investigated 2026-05-21.
+
+Ronus (crafting book NPC, ronus001.utc.json, conv=ronus_craft_book) is NOT
+placed in any game-accessible area. The "Ronus" in Lake Town Tipsy Slant Tavern
+is a different NPC (tag=ADrunkDwarf). The crafting book system is entirely
+inaccessible because the NPC gatekeeper is absent.
+
+The "too many instructions" (TMI) error is a runtime NWScript issue that cannot
+be confirmed from static analysis alone. The module uses x2_inc_craft.nss (the
+standard NWN crafting include, 1530 lines with inventory iteration loops) and
+several subsystems (hgll_dlg_leveler.nss, omw_ppis_start.nss) that already
+include explicit TMI workarounds, suggesting TMI has been encountered before.
+
+Fix / follow-up:
+  A) Place ronus001 in a logical location (e.g. a crafting hall or inn) to make
+     the crafting book system accessible.
+  B) The standard-crafting TMI needs live testing to reproduce; if reproduced,
+     the fix is typically breaking up the inventory loop with DelayCommand().

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation b_miller_convo1</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,7 +52,7 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/bree-017.html">Han the Bree Miller</a> <small class="muted">(blueprint <code>bree001</code>)</small> — in <a href="../areas/bree.html">Bree</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/bree001.html">Han the Bree Miller</a> — in <a href="../areas/bree.html">Bree</a></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>sc_031</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -41,7 +63,7 @@
 <tr><td><code>checkmiller</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>sc_043</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e5">entry #5</a> <small class="muted">(if <code>checkmiller</code>)</small> — Hello again, &lt;FirstName&gt;. Any word on my Son and the shipment fo Ale?</li>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>checkmiller</code>)</small> — Hello again, . Any word on my Son and the shipment fo Ale?</li>
 <li><a href="#e4">entry #4</a> <small class="muted">(if <code>sc_043</code>)</small> — Thank you again for finding my boy, and the shipment. I don&#x27;t know how the missu…</li>
 <li><a href="#e0">entry #0</a> — Hey there. I&#x27;ve seen you around town, perhaps you could help me.</li>
 </ul>
@@ -183,7 +205,7 @@
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">What do you require Miller?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“I recently sent out a big&#x27;old shipment of Ale to Tharbad. Its been several month…”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Go on.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“I know my boy and there ain&#x27;t no way heed desert his dear old pappy. If you coul…”</span></li></ul></div>
 <div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Sounds like a fools errand to me. No thanks</div></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I will find the Ale and your son. Take heart I shall return with word soon.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Thank you much &lt;FirstName&gt;. I will be building my second shipement while I wait.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I will find the Ale and your son. Take heart I shall return with word soon.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Thank you much . I will be building my second shipement while I wait. Good Luck…”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>millerson</code></span></div><div class="dlg-text">Good Bye for now.</div></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Yes, I have terrible news for you Miller. You shipment has been befouled by goblins. And I fear your son has died at their hands. Here is the letter you sent along with your son as proof I found them.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“My poor son! *Sobs* Ahh my son!”</span></li></ul></div>
 <div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Pull yourself together man you got no backbone.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Hmph. *Looks at your Sternly*”</span></li></ul></div>
@@ -193,6 +215,6 @@
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>at_003</code></span></div><div class="dlg-text">Thank you for your generosity. Have faith good Miller. Fare Well.</div></div>
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">No not yet. I will keep searching.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

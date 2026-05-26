@@ -78,7 +78,7 @@ void PersState_Snapshot(object oPC)
     }
 
     int nClass, nLevel, i;
-    for (nClass = 0; nClass <= 2; nClass++)
+    for (nClass = 0; nClass <= 3; nClass++)
     {
         int nClassType = GetClassByPosition(nClass + 1, oPC);
         if (nClassType == CLASS_TYPE_INVALID) continue;
@@ -115,7 +115,7 @@ void PersState_Restore(object oPC)
     if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
 
     int nClass, nLevel, i;
-    for (nClass = 0; nClass <= 2; nClass++)
+    for (nClass = 0; nClass <= 3; nClass++)
     {
         int nClassType = GetClassByPosition(nClass + 1, oPC);
         if (nClassType == CLASS_TYPE_INVALID) continue;

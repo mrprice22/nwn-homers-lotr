@@ -105,6 +105,7 @@ void scanPlayer(object oPC)
     int iClass1 = GetClassByPosition(1, oPC);
     int iClass2 = GetClassByPosition(2, oPC);
     int iClass3 = GetClassByPosition(3, oPC);
+    int iClass4 = GetClassByPosition(4, oPC);
 
     // Basic name checking.
 /*    if (invalidNameCheck(sName) == TRUE)

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation goodtele</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,12 +52,12 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/guardianoflig002.html">Guardian of Light</a> <code>guardianoflig002</code> — in <a href="../areas/castlehomelessgr.html">Castle Homeless (Ground Floor)</a>, <a href="../areas/dmhq.html">0 Mount Homer (DMHQ) 0</a>, <a href="../areas/houseofdispai001.html"><span style="color:#ff7d7d">House of Homer</span></a>, <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/guardianoflight.html">Guardian of Light</a> <code>guardianoflight</code></li>
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/castlehomelessgr-003.html">Guardian of Light</a> <small class="muted">(blueprint <a href="../creatures/guardianoflig002.html">Guardian of Light</a>)</small> — in <a href="../areas/castlehomelessgr.html">Castle Homeless (Ground Floor)</a></li>
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/dmhq-001.html">Guardian of Light</a> <small class="muted">(blueprint <a href="../creatures/guardianoflig002.html">Guardian of Light</a>)</small> — in <a href="../areas/dmhq.html">0 Mount Homer (DMHQ) 0</a></li>
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/houseofdispai001-002.html">Guardian of Light</a> <small class="muted">(blueprint <a href="../creatures/guardianoflig002.html">Guardian of Light</a>)</small> — in <a href="../areas/houseofdispai001.html"><span style="color:#ff7d7d">House of Homer</span></a></li>
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/thewelloferu-000.html">Guardian of Light</a> <small class="muted">(blueprint <a href="../creatures/guardianoflig002.html">Guardian of Light</a>)</small> — in <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/guardianoflig002.html">Guardian of Light</a> <code>guardianoflig002</code> — in <a href="../areas/castlehomelessgr.html">Castle Homeless (Ground Floor)</a>, <a href="../areas/dmhq.html">0 Mount Homer (DMHQ) 0</a>, <a href="../areas/houseofdispai001.html"><span style="color:#ff7d7d">House of Homer</span></a>, <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/guardianoflight.html">Guardian of Light</a> <code>guardianoflight</code></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/guardianoflig002.html">Guardian of Light</a> — in <a href="../areas/castlehomelessgr.html">Castle Homeless (Ground Floor)</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/guardianoflig002.html">Guardian of Light</a> — in <a href="../areas/dmhq.html">0 Mount Homer (DMHQ) 0</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/guardianoflig002.html">Guardian of Light</a> — in <a href="../areas/houseofdispai001.html"><span style="color:#ff7d7d">House of Homer</span></a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/guardianoflig002.html">Guardian of Light</a> — in <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
 </ul>
 <h2>Teleport destinations</h2>
 <table class="data"><thead><tr><th>Waypoint / object tag</th><th>Destination area</th><th>Via script</th><th>From node</th></tr></thead><tbody><tr><td><code>GladWP2</code></td><td><a href="../areas/area015.html">Arena - Gladiator</a></td><td><code>_homerglad</code></td><td><a href="#r1">reply #1</a></td></tr>
@@ -66,7 +88,7 @@
 <tr><td><code>fornostjump</code></td><td>action</td><td>✓</td><td>teleports to: <code>fornostenter</code></td></tr>
 <tr><td><code>breetele</code></td><td>action</td><td>✓</td><td>teleports to: <code>breeenter</code> (<a href="../areas/bree.html">Bree</a>)</td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> — Weclome &lt;FullName&gt;! Where do you wish to go?</li>
+<li><a href="#e0">entry #0</a> — Weclome ! Where do you wish to go?</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -152,6 +174,6 @@
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>fornostjump</code></span></div><div class="dlg-text">Fornost.</div></div>
 <div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>breetele</code></span></div><div class="dlg-text">Bree.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

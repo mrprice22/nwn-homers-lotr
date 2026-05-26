@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Chamber of Records Wlkwy</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Chamber of Records Wlkwy</h1>
-<dl class="meta"><dt>ResRef</dt><dd>chamberofrecords</dd><dt>Tag</dt><dd>ChamberofRecordsWlkwy</dd><dt>Tileset</dt><dd>City Interior <small class="muted">(tic01)</small></dd><dt>Size</dt><dd>9×16 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>cleanup</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>chamberofrecords</dd><dt>Tag</dt><dd>ChamberofRecordsWlkwy</dd><dt>Tileset</dt><dd>City Interior <small class="muted">(tic01)</small></dd><dt>Size</dt><dd>9×16 tiles</dd><dt>OnExit</dt><dd>cleanup</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>5 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="lothlorien.html">Lothlorien: Main</a> <em class="muted">[Weclome ! Where do you wish to go?]</em></li><li><a href="lothlorien.html">Lothlorien: Main</a> &rarr; <a href="lothloriennorth.html">Lothlorien: North</a> <em class="muted">[step on the &#8220;Lorien2LorienNorth&#8221; trigger]</em></li><li><a href="lothloriennorth.html">Lothlorien: North</a> &rarr; <a href="silverlodestream.html">Sîr Ninglor</a> <em class="muted">[step on the &#8220;lorien2silver&#8221; trigger]</em></li><li><a href="silverlodestream.html">Sîr Ninglor</a> &rarr; <a href="durinsbridge.html">Durin&#x27;s Bridge</a> <em class="muted">[step on the &#8220;silver2moria&#8221; trigger]</em></li><li><a href="durinsbridge.html">Durin&#x27;s Bridge</a> &rarr; <a href="chamberofrecords.html">Chamber of Records Wlkwy</a> <em class="muted">[use the &#8220;durin2chr&#8221; door]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>chr2durin</td><td><a href="durinsbridge.html">Durin&#x27;s Bridge</a></td><td><code>durin2chr</code></td></tr>
 <tr><td>door</td><td>chr2balin</td><td><a href="balinstomb.html">Balin&#x27;s Tomb</a></td><td><code>balin2chr</code></td></tr></tbody></table>
@@ -30,11 +54,8 @@
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>door</td><td><a href="balinstomb.html">Balin&#x27;s Tomb</a></td><td>balin2chr</td></tr>
 <tr><td>door</td><td><a href="durinsbridge.html">Durin&#x27;s Bridge</a></td><td>durin2chr</td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>Moria Light</td><td>morialight</td><td>MoriaLight</td><td>4</td><td>2</td><td><a href="../creatures/orca001.html">Moria Orc Grunt</a><small> CR 4.0</small>, <a href="../creatures/orcwiza001.html">Moria Orc Shaman</a><small> CR 5.0</small>, <a href="../creatures/orcchiefb001.html">Moria Orc Clan Smasher</a><small> CR 6.0</small>, <a href="../creatures/orcchiefa001.html">Moria Orc Clan Terror</a><small> CR 6.0</small>, <a href="../creatures/orcwizb001.html">Moria Orc Shaman</a><small> CR 7.0</small>, <a href="../creatures/ogre003.html">A Cave Troll</a><small> CR 8.0</small>, <a href="../creatures/ogremage003.html">Trollog Channeler</a><small> CR 8.0</small>, <a href="../creatures/ogremage002.html">Trollog High Fanatic</a><small> CR 9.0</small>, <a href="../creatures/orcboss001.html">Moria Orc Clan Bleeder</a><small> CR 12.0</small></td></tr>
-<tr><td>Moria Light</td><td>morialight</td><td>MoriaLight</td><td>4</td><td>2</td><td><a href="../creatures/orca001.html">Moria Orc Grunt</a><small> CR 4.0</small>, <a href="../creatures/orcwiza001.html">Moria Orc Shaman</a><small> CR 5.0</small>, <a href="../creatures/orcchiefb001.html">Moria Orc Clan Smasher</a><small> CR 6.0</small>, <a href="../creatures/orcchiefa001.html">Moria Orc Clan Terror</a><small> CR 6.0</small>, <a href="../creatures/orcwizb001.html">Moria Orc Shaman</a><small> CR 7.0</small>, <a href="../creatures/ogre003.html">A Cave Troll</a><small> CR 8.0</small>, <a href="../creatures/ogremage003.html">Trollog Channeler</a><small> CR 8.0</small>, <a href="../creatures/ogremage002.html">Trollog High Fanatic</a><small> CR 9.0</small>, <a href="../creatures/orcboss001.html">Moria Orc Clan Bleeder</a><small> CR 12.0</small></td></tr>
-<tr><td>Moria Light</td><td>morialight</td><td>MoriaLight</td><td>4</td><td>2</td><td><a href="../creatures/orca001.html">Moria Orc Grunt</a><small> CR 4.0</small>, <a href="../creatures/orcwiza001.html">Moria Orc Shaman</a><small> CR 5.0</small>, <a href="../creatures/orcchiefb001.html">Moria Orc Clan Smasher</a><small> CR 6.0</small>, <a href="../creatures/orcchiefa001.html">Moria Orc Clan Terror</a><small> CR 6.0</small>, <a href="../creatures/orcwizb001.html">Moria Orc Shaman</a><small> CR 7.0</small>, <a href="../creatures/ogre003.html">A Cave Troll</a><small> CR 8.0</small>, <a href="../creatures/ogremage003.html">Trollog Channeler</a><small> CR 8.0</small>, <a href="../creatures/ogremage002.html">Trollog High Fanatic</a><small> CR 9.0</small>, <a href="../creatures/orcboss001.html">Moria Orc Clan Bleeder</a><small> CR 12.0</small></td></tr>
-<tr><td>Moria Light</td><td>morialight</td><td>MoriaLight</td><td>4</td><td>2</td><td><a href="../creatures/orca001.html">Moria Orc Grunt</a><small> CR 4.0</small>, <a href="../creatures/orcwiza001.html">Moria Orc Shaman</a><small> CR 5.0</small>, <a href="../creatures/orcchiefb001.html">Moria Orc Clan Smasher</a><small> CR 6.0</small>, <a href="../creatures/orcchiefa001.html">Moria Orc Clan Terror</a><small> CR 6.0</small>, <a href="../creatures/orcwizb001.html">Moria Orc Shaman</a><small> CR 7.0</small>, <a href="../creatures/ogre003.html">A Cave Troll</a><small> CR 8.0</small>, <a href="../creatures/ogremage003.html">Trollog Channeler</a><small> CR 8.0</small>, <a href="../creatures/ogremage002.html">Trollog High Fanatic</a><small> CR 9.0</small>, <a href="../creatures/orcboss001.html">Moria Orc Clan Bleeder</a><small> CR 12.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>Moria Light</td><td>morialight</td><td>MoriaLight, MoriaLight, MoriaLight, MoriaLight</td><td>4</td><td>2</td><td><a href="../creatures/orca001.html">Moria Orc Grunt</a><small> CR 4.0</small>, <a href="../creatures/orcwiza001.html">Moria Orc Shaman</a><small> CR 5.0</small>, <a href="../creatures/orcchiefb001.html">Moria Orc Clan Smasher</a><small> CR 6.0</small>, <a href="../creatures/orcchiefa001.html">Moria Orc Clan Terror</a><small> CR 6.0</small>, <a href="../creatures/orcwizb001.html">Moria Orc Shaman</a><small> CR 7.0</small>, <a href="../creatures/ogre003.html">A Cave Troll</a><small> CR 8.0</small>, <a href="../creatures/ogremage003.html">Trollog Channeler</a><small> CR 8.0</small>, <a href="../creatures/ogremage002.html">Trollog High Fanatic</a><small> CR 9.0</small>, <a href="../creatures/orcboss001.html">Moria Orc Clan Bleeder</a><small> CR 12.0</small></td><td>4</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,24 +4,56 @@
   <meta charset="utf-8">
   <title>Script dmfi_dmw_inc</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Script: <code>dmfi_dmw_inc</code></h1><pre class="nss-source"><code>int DMW_START_CUSTOM_TOKEN = 8000;
+
+// CEP custom item-properties; not in stock nwscript.nss. See
+// dmw_func_inc for the same workaround. Engine resolves the int against
+// itempropdef.2da at runtime.
+const int ITEM_PROPERTY_BOOMERANG                     = 84;
+const int ITEM_PROPERTY_DANCING                       = 85;
+const int ITEM_PROPERTY_DOUBLE_STACK                  = 86;
+const int ITEM_PROPERTY_ENHANCED_CONTAINER_BONUS_SLOTS = 87;
+const int ITEM_PROPERTY_VORPAL                        = 88;
+const int ITEM_PROPERTY_WOUNDING                      = 89;
 
 //Retrieve targetting information
 object oMySpeaker = GetLastSpeaker();
@@ -418,13 +450,15 @@ string dmwand_ClassLevel(object oEntity)
    string sClassOne;
    string sClassTwo;
    string sClassThree;
+   string sClassFour;
    int nLevelOne;
    int nLevelTwo;
    int nLevelThree;
+   int nLevelFour;
    int iIndex;
 
-   // Loop through all three classes and pull out info
-   for(iIndex == 1;iIndex &lt; 4;iIndex++)
+   // Loop through all four classes and pull out info
+   for(iIndex = 1;iIndex &lt; 5;iIndex++)
    {
       switch (GetClassByPosition(iIndex,oEntity))
       {
@@ -465,14 +499,15 @@ string dmwand_ClassLevel(object oEntity)
          case 1: sClassOne =   sClass;  break;
          case 2: sClassTwo =   sClass;  break;
          case 3: sClassThree = sClass;  break;
+         case 4: sClassFour =  sClass;  break;
       }
    };
 
-   // Now get all three class levels.  Wil be 0 if does class pos
-   //does not exists
+   // Now get all four class levels.  Will be 0 if class pos does not exist
    nLevelOne =   GetLevelByPosition(1,oEntity);
    nLevelTwo =   GetLevelByPosition(2,oEntity);
    nLevelThree = GetLevelByPosition(3,oEntity);
+   nLevelFour =  GetLevelByPosition(4,oEntity);
 
    //Start building return string
    sReturnString = sClassOne + &quot;(&quot; + IntToString(nLevelOne) + &quot;)&quot; ;
@@ -487,6 +522,12 @@ string dmwand_ClassLevel(object oEntity)
    if(nLevelThree &gt; 0)
    {
       sReturnString =sReturnString + &quot;/&quot; + sClassThree + &quot;(&quot; + IntToString(nLevelThree) + &quot;)&quot;;
+   }
+
+   //If fourth class exists append to return string
+   if(nLevelFour &gt; 0)
+   {
+      sReturnString =sReturnString + &quot;/&quot; + sClassFour + &quot;(&quot; + IntToString(nLevelFour) + &quot;)&quot;;
    }
 
    return sReturnString;
@@ -973,7 +1014,9 @@ string dmwand_Race(object oEntity)
       case RACIAL_TYPE_HUMANOID_MONSTROUS:   return &quot;Monstrous&quot;; break;
       case RACIAL_TYPE_HUMANOID_ORC:   return &quot;Orc&quot;; break;
       case RACIAL_TYPE_HUMANOID_REPTILIAN:   return &quot;Reptillian&quot;; break;
-      case RACIAL_TYPE_INVALID:   return &quot;Unknown&quot;; break;
+      // RACIAL_TYPE_INVALID would duplicate RACIAL_TYPE_ALL&#x27;s case value (both
+      // resolve to 28 in nwscript.nss); the trailing &quot;Unknown&quot; return below
+      // covers that path.
       case RACIAL_TYPE_MAGICAL_BEAST:   return &quot;Magical Beast&quot;; break;
       case RACIAL_TYPE_OUTSIDER:   return &quot;Outsider&quot;; break;
       case RACIAL_TYPE_SHAPECHANGER:   return &quot;Shapechanger&quot;; break;
@@ -2965,6 +3008,6 @@ void dmwand_DoDialogChoice(int nChoice)
 }
 </code></pre>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

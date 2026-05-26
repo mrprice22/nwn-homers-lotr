@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation kpb_wand</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -37,6 +59,7 @@
 <tr><td><code>kpb_setint_3</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>kpb_setint_2</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>kpb_setint_1</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM30&gt;</code></td><td><a href="../scripts/kpb_globals.html">kpb_globals</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a> <small class="muted">(if <code>kpb_globals</code>)</small> — Good day!  I am the Global Economy Stone.  Which values would you like to manipu…</li>
 </ul>
@@ -53,7 +76,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to do?</div>
+<div class="dlg-text">The current rate is <span class="custom-token" title="SetCustomToken(30, ...) called in: kpb_globals">&lt;CUSTOM30&gt;<sup class="token-setters">[<a href="../scripts/kpb_globals.html">kpb_globals</a>]</sup></span>% for deposits and loans.  What would you like to do?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>kpb_setint_1</code></span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
@@ -141,7 +164,7 @@
 <summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
 <div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></div>
 </div>
 </details>
 </div>
@@ -156,7 +179,7 @@
 <summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
 <div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></div>
 </div>
 </details>
 </div>
@@ -194,7 +217,7 @@
 <summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
 <div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></div>
 </div>
 </details>
 </div>
@@ -209,7 +232,7 @@
 <summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">I see.  I would like to deal with the rates.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></div>
 </div>
 </details>
 </div>
@@ -233,7 +256,7 @@
 </div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Good day!  I am the Global Economy Stone.  Which values would you like to manipulate?</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I would like to deal with the global interest rate on deposits and loans.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I do not care to make any changes.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to do?</div><ul class="dlg-links"><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“I would like to change the rate to 1%.”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“I would like to change the rate to 2%.”</span></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“I would like to change the rate to 3%.”</span></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“I would like to change the rate to 4%.”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“I would like to change the rate to 5%.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Tell me about the interest rate.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“I would not like to make any changes.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">The current rate is <span class="custom-token" title="SetCustomToken(30, ...) called in: kpb_globals">&lt;CUSTOM30&gt;<sup class="token-setters">[<a href="../scripts/kpb_globals.html">kpb_globals</a>]</sup></span>% for deposits and loans.  What would you like to do?</div><ul class="dlg-links"><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“I would like to change the rate to 1%.”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“I would like to change the rate to 2%.”</span></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“I would like to change the rate to 3%.”</span></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“I would like to change the rate to 4%.”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“I would like to change the rate to 5%.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Tell me about the interest rate.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“I would not like to make any changes.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Interest rates can be the driving force or the bane of the economy.  The higher the rates, the more money people make on their deposit.  The lower the rates, the less they make.</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Why would I want to raise the rates?”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Why would I want to lower the rates?”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Where is the balance found?”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I see.  I would like to deal with the rates.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">The balance is important.  If many people are poor, lowering the rates will stimulate the economy.  If many rich, raising the rates will cause wealth to be distributed better, decreasing the interest on large deposits.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Continue...”</span></li></ul></div>
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Keep the rates at a reasonable amount to both stimulate in hard times and to keep wealth distributed in good times.</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“I see.  I&#x27;d like to deal with the rates.”</span></li></ul></div>
@@ -243,20 +266,20 @@
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">People make more money, but the economy inflates.  The value of gold decreases.  So, people have more money to spend, but their wealth loses value.</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“I see.  What about lowering the rates?”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“I see.  I&#x27;d like to deal with the rates.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">I do not care to make any changes.</div></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I would like to deal with the global interest rate on deposits and loans.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I would like to deal with the global interest rate on deposits and loans.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">I would not like to make any changes.</div></div>
 <div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Tell me about the interest rate.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Interest rates can be the driving force or the bane of the economy.  The higher…”</span></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I see.  I would like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I see.  I would like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Where is the balance found?</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“The balance is important.  If many people are poor, lowering the rates will stim…”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Continue...</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Keep the rates at a reasonable amount to both stimulate in hard times and to kee…”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></li></ul></div>
 <div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Why would I want to lower the rates?</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Lowering the rates has both positive and negative effects on the economy.  The l…”</span></li></ul></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Continue...</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“With lower rates, it takes more money deposited to make good interest.  People s…”</span></li></ul></div>
-<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></li></ul></div>
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">What about raising the rates?</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Raising the rates has both positive and negative effects on the economy.  The hi…”</span></li></ul></div>
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Why would I want to raise the rates?</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Raising the rates has both positive and negative effects on the economy.  The hi…”</span></li></ul></div>
 <div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">Continue...</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“People make more money, but the economy inflates.  The value of gold decreases.…”</span></li></ul></div>
-<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is &lt;CUSTOM30&gt;% for deposits and loans.  What would you like to…”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">I see.  I&#x27;d like to deal with the rates.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“The current rate is % for deposits and loans.  What would you like to do?”</span></li></ul></div>
 <div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">I see.  What about lowering the rates?</div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“Lowering the rates has both positive and negative effects on the economy.  The l…”</span></li></ul></div>
 <div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>kpb_setint_5</code></span></div><div class="dlg-text">I would like to change the rate to 5%.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Good day!  I am the Global Economy Stone.  Which values would you like to manipu…”</span> <small class="muted">(if <code>kpb_globals</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>kpb_setint_4</code></span></div><div class="dlg-text">I would like to change the rate to 4%.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Good day!  I am the Global Economy Stone.  Which values would you like to manipu…”</span> <small class="muted">(if <code>kpb_globals</code>)</small></li></ul></div>
@@ -264,6 +287,6 @@
 <div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>kpb_setint_2</code></span></div><div class="dlg-text">I would like to change the rate to 2%.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Good day!  I am the Global Economy Stone.  Which values would you like to manipu…”</span> <small class="muted">(if <code>kpb_globals</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>kpb_setint_1</code></span></div><div class="dlg-text">I would like to change the rate to 1%.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Good day!  I am the Global Economy Stone.  Which values would you like to manipu…”</span> <small class="muted">(if <code>kpb_globals</code>)</small></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

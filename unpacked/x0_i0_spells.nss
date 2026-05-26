@@ -1794,7 +1794,7 @@ int GZGetHighestSpellcastingClassLevel(object oCreature)
         int i;
         int nClass;
         int nLevel;
-        for (i =1; i<= 3; i++)
+        for (i =1; i<= 4; i++)
         {
             // This is kind of hacky as high level pally's and ranger's will
             // dispell at their full class level...

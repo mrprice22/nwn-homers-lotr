@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Bywater</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Bywater</h1>
-<dl class="meta"><dt>ResRef</dt><dd>bywater</dd><dt>Tag</dt><dd>Bywater</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>11×14 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>cleanup</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>bywater</dd><dt>Tag</dt><dd>Bywater</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>11×14 tiles</dd><dt>OnExit</dt><dd>cleanup</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>9 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="bree.html">Bree</a> <em class="muted">[use the &#8220;x2_doorhard2&#8221; door]</em></li><li><a href="bree.html">Bree</a> &rarr; <a href="area012.html">Old Forest:  Withywindle Path</a> <em class="muted">[step on the &#8220;bree2brandy&#8221; trigger]</em></li><li><a href="area012.html">Old Forest:  Withywindle Path</a> &rarr; <a href="alterwald.html">Old Forest</a> <em class="muted">[step on the &#8220;withy2tom&#8221; trigger]</em></li><li><a href="alterwald.html">Old Forest</a> &rarr; <a href="oldforest001.html">Old Forest</a> <em class="muted">[step on the &#8220;tom2oldforest&#8221; trigger]</em></li><li><a href="oldforest001.html">Old Forest</a> &rarr; <a href="buckland.html">Buckland</a> <em class="muted">[step on the &#8220;oldforest2buckland&#8221; trigger]</em></li><li><a href="buckland.html">Buckland</a> &rarr; <a href="brandywinebridge.html">Brandywine Bridge</a> <em class="muted">[step on the &#8220;buckland2brandy&#8221; trigger]</em></li><li><a href="brandywinebridge.html">Brandywine Bridge</a> &rarr; <a href="whitfurrows.html">Whitfurrows</a> <em class="muted">[step on the &#8220;brandy2whit&#8221; trigger]</em></li><li><a href="whitfurrows.html">Whitfurrows</a> &rarr; <a href="frogmorton001.html">Frogmorton</a> <em class="muted">[step on the &#8220;whit2frog&#8221; trigger]</em></li><li><a href="frogmorton001.html">Frogmorton</a> &rarr; <a href="bywater.html">Bywater</a> <em class="muted">[step on the &#8220;frog2bywater&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>bywater2frog</td><td><a href="frogmorton001.html">Frogmorton</a></td><td><code>frog2bywater</code></td></tr>
 <tr><td>trigger</td><td>bywater2hob</td><td><a href="shirehobbiton001.html">Hobbiton</a></td><td><code>hobfrombywater</code></td></tr></tbody></table>
@@ -30,25 +54,25 @@
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>trigger</td><td><a href="frogmorton001.html">Frogmorton</a></td><td>frog2bywater</td></tr>
 <tr><td>trigger</td><td><a href="shirehobbiton001.html">Hobbiton</a></td><td>hob2bywater</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/bywater-000.html">Maggot Farmer</a></td><td><a href="../creatures/maggotfarmer.html">Maggot Farmer</a></td><td>maggotfarmer</td><td>Half-Elf</td><td>Fighter 10/Bard 10/Arcane Archer 60</td><td>4756</td><td>436.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-001.html">[TLK#12634]</a></td><td><code>nw_malekid01</code></td><td>nw_malekid01</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-002.html">[TLK#12670]</a></td><td><code>nw_oldman</code></td><td>nw_oldman</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-003.html">[TLK#16808862]</a></td><td><code>zep_cow2</code></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-004.html">[TLK#16808830]</a></td><td><code>zep_cowholsbr</code></td><td>zep_cowholsbr</td><td>Animal</td><td>Animal 1</td><td>24</td><td>2.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-005.html">[TLK#16808862]</a></td><td><code>zep_cow2</code></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-006.html">[TLK#16808862]</a></td><td><code>zep_cow2</code></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-007.html">[TLK#16808862]</a></td><td><code>zep_cow2</code></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-008.html">[TLK#16808830]</a></td><td><code>zep_cowholsbr</code></td><td>zep_cowholsbr</td><td>Animal</td><td>Animal 1</td><td>24</td><td>2.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-009.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-010.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-011.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-012.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-013.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-014.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-015.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-016.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-017.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/bywater-018.html">[TLK#12416]</a></td><td><code>nw_chicken</code></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/maggotfarmer.html">Maggot Farmer</a></td><td>maggotfarmer</td><td>Half-Elf</td><td>Fighter 10/Bard 10/Arcane Archer 60</td><td>4756</td><td>436.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_malekid01.html">Boy</a></td><td>nw_malekid01</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_oldman.html">Old Man</a></td><td>nw_oldman</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/zep_cow2.html">Cow</a></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/zep_cowholsbr.html">Brown Holstein Cow</a></td><td>zep_cowholsbr</td><td>Animal</td><td>Animal 1</td><td>24</td><td>2.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/zep_cow2.html">Cow</a></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/zep_cow2.html">Cow</a></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/zep_cow2.html">Cow</a></td><td>zep_cow2</td><td>Animal</td><td>Animal 1</td><td>5</td><td>0.1667</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/zep_cowholsbr.html">Brown Holstein Cow</a></td><td>zep_cowholsbr</td><td>Animal</td><td>Animal 1</td><td>24</td><td>2.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/nw_chicken.html">Chicken</a></td><td>nw_chicken</td><td>Animal</td><td>Animal 1</td><td>4</td><td>0.25</td><td>Commoner</td><td></td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_bywater2frog</code></td><td></td></tr>
 <tr><td><code>WP_MaggotFarmer_01</code></td><td></td></tr>
@@ -62,6 +86,6 @@
 <tr><td><code>WP_NW_OLDMAN_08</code></td><td></td></tr>
 <tr><td><code>bywaterfromhob</code></td><td>nw_waypoint001</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Emyn Moutain Giant</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,23 +47,46 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>emynmoutaingiant</dd>
 <dt>Tag</dt><dd>EmynMoutainGiant</dd>
-<dt>Race</dt><dd>Giant</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-18">Giant</a></dd>
 <dt>Appearance</dt><dd>Ettin</dd>
 <dt>Class(es)</dt><dd>Giant 30</dd>
 <dt>HP</dt><dd>830</dd>
 <dt>CR</dt><dd>47.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/emynmuil.html">Emyn Muil</a></td><td>emynmuilspawn</td><td><code>emynmuilspawn</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>32</td><th>Dex</th><td>32</td><th>Con</th><td>32</td><th>Int</th><td>32</td><th>Wis</th><td>32</td><th>Cha</th><td>32</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Giant</td><td>30</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>830</td><th>AC</th><td>56 <small class="muted">(10 base + +11 Dex + +35 natural (NaturalAC))</small></td><th>BAB</th><td>+22</td></tr><tr><th>Fort</th><td>+11</td><th>Ref</th><td>+11</td><th>Will</th><td>+11</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td>x2_wplmss004</td><td></td><td>Melee</td><td>+33/+28/+23/+18</td><td>—</td><td></td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>830</td><th>AC</th><td>60 <small class="muted">(10 base + +11 Dex + +35 natural (NaturalAC) + +4 dodge (haste))</small></td><th>BAB</th><td>+22</td></tr><tr><th>Fort</th><td>+11</td><th>Ref</th><td>+11</td><th>Will</th><td>+11</td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Strength Bonus</th><td>+12</td></tr>
+<tr><th>Skill: Spot</th><td>+50</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (20%), Positive (50%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/x2_wplmss004.html">Spear +7</a></td><td>Spear</td><td>Melee</td><td>+40/+35/+30/+25</td><td>1d8+11 (12–19)</td><td>20/x3</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Right hand</td><td>x2_wplmss004</td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/x2_wplmss004.html">Spear +7</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(1)</small></h2><ul class="featlist"><li>Weapon Proficiency (simple)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>65</td></tr>
 <tr><td>Parry</td><td>2</td></tr></tbody></table>
@@ -59,8 +104,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(1 area)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/emynmuil.html">Emyn Muil</a></td><td>emynmuilspawn</td><td><code>emynmuilspawn</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

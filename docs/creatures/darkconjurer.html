@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Dark Conjurer</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,25 +47,51 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>darkconjurer</dd>
 <dt>Tag</dt><dd>DarkConjurer</dd>
-<dt>Race</dt><dd>Human</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-6">Human</a></dd>
 <dt>Appearance</dt><dd>Mindflayer, 3e*</dd>
 <dt>Class(es)</dt><dd>Barbarian 16/Wizard 35</dd>
-<dt>HP</dt><dd>1875</dd>
+<dt>HP</dt><dd>1,875</dd>
 <dt>CR</dt><dd>67.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/dolguldur001.html">Dol Guldur</a></td><td>darkconjurer</td><td><code>darkconjurer</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>100</td><th>Dex</th><td>52</td><th>Con</th><td>60</td><th>Int</th><td>82</td><th>Wis</th><td>10</td><th>Cha</th><td>10</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Barbarian</td><td>16</td></tr><tr><td>Wizard</td><td>35</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>1875</td><th>AC</th><td>65 <small class="muted">(10 base + +21 Dex + +27 natural (NaturalAC) + +7 armor enchant)</small></td><th>BAB</th><td>+33</td></tr><tr><th>Fort</th><td>+25</td><th>Ref</th><td>+21</td><th>Will</th><td>+0</td></tr></table>
+<table class="data"><tr><th>HP</th><td>1,875</td><th>AC</th><td>77 <small class="muted">(10 base + +21 Dex + +27 natural (NaturalAC) + +7 armor enchant + +8 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+33</td></tr><tr><th>Fort</th><td>+25</td><th>Ref</th><td>+21</td><th>Will</th><td>+0</td></tr></table>
 <p class="muted">AC extras: +7 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/deadwizardstaff.html">Dead Wizard Staff</a></td><td>Magic Staff</td><td>Melee</td><td>+78/+73/+68/+63</td><td>1d6+45 (46–51) + On Hit Properties onhit #0 2</td><td>20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+8</td></tr>
+<tr><th>Save vs. Universal</th><td>+2</td></tr>
+<tr><th>Charisma Bonus</th><td>+6</td></tr>
+<tr><th>Intelligence Bonus</th><td>+10</td></tr>
+<tr><th>Skill: Concentration</th><td>+8</td></tr>
+<tr><th>Skill: Discipline</th><td>+4</td></tr>
+<tr><th>Skill: Spellcraft</th><td>+6</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>6</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>7</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>25/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (20%)</td></tr>
+<tr><th>Misc Immunity</th><td>Death Magic, Fear, Knockdown</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/deadwizardstaff.html">Dead Wizard Staff</a></td><td>Magic Staff</td><td>Melee</td><td>+78/+73/+68/+63</td><td>1d6+45 (46–51)</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/item106.html">Conjurer&#x27;s Robe</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/deadwizardstaff.html">Dead Wizard Staff</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/crittablenpcskin.html">Crittable NPC skin2</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/item106.html">Conjurer&#x27;s Robe</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/deadwizardstaff.html">Dead Wizard Staff</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/crittablenpcskin.html">Crittable NPC skin2</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(27)</small></h2><ul class="featlist"><li>Ambidexterity</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Barbarian Fast Movement</li><li>Damage Reduction 4</li><li>Empower Spell</li><li>Epic Spell Focus (Abjuration)</li><li>Epic Spell Focus (Conjuration)</li><li>Epic Spell Focus (Divination)</li><li>Epic Spell Focus (Enchantment)</li><li>Epic Spell Focus (Evocation)</li><li>Epic Spell Focus (Illusion)</li><li>Epic Spell Focus (Necromancy)</li><li>Epic Spell Focus (Transmutation)</li><li>Epic Spell Penetration</li><li>Epic Spell: Epic Warding</li><li>Epic Spell: Greater Ruin</li><li>Greater Spell Penetration</li><li>Improved Combat Casting</li><li>Monster Uncanny Reflex</li><li>Quick To Master</li><li>Shield Proficiency</li><li>Spell Penetration</li><li>Two-Weapon Fighting</li><li>Uncanny Dodge VI+</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>99</td></tr>
 <tr><td>Discipline</td><td>75</td></tr>
@@ -80,8 +128,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(1 area)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/dolguldur001.html">Dol Guldur</a></td><td>darkconjurer</td><td><code>darkconjurer</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

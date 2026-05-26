@@ -4,36 +4,60 @@
   <meta charset="utf-8">
   <title>Kallrist Crypt</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Kallrist Crypt</h1>
-<dl class="meta"><dt>ResRef</dt><dd>centralchamber</dd><dt>Tag</dt><dd>CentralChamber</dd><dt>Tileset</dt><dd>Castle Interior 1 <small class="muted">(tdc01)</small></dd><dt>Size</dt><dd>9×10 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd></dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>centralchamber</dd><dt>Tag</dt><dd>CentralChamber</dd><dt>Tileset</dt><dd>Castle Interior 1 <small class="muted">(tdc01)</small></dd><dt>Size</dt><dd>9×10 tiles</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>6 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="tharbadbridge.html">Tharbad Bridge</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li><li><a href="tharbadbridge.html">Tharbad Bridge</a> &rarr; <a href="kallristsouthsho.html">Kallrist, South shore</a> <em class="muted">[Hey there , good ta see ya again. You want a lift to Kallris…]</em></li><li><a href="kallristsouthsho.html">Kallrist, South shore</a> &rarr; <a href="kallristinner.html">Kallrist, Inner</a> <em class="muted">[use the &#8220;DD_South_to_Inner&#8221; door]</em></li><li><a href="kallristinner.html">Kallrist, Inner</a> &rarr; <a href="kallristeastshor.html">Kallrist, West shore</a> <em class="muted">[use the &#8220;DD_Inner_to_West&#8221; door]</em></li><li><a href="kallristeastshor.html">Kallrist, West shore</a> &rarr; <a href="kallristcryptupp.html">Kallrist Crypt</a> <em class="muted">[use the &#8220;DD_West_to_crypt&#8221; door]</em></li><li><a href="kallristcryptupp.html">Kallrist Crypt</a> &rarr; <a href="centralchamber.html">Kallrist Crypt</a> <em class="muted">[use the &#8220;kallupper2riddledoor&#8221; door]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>kallcryptriddle2forge</td><td><a href="kallristcryptlow.html">Kallrist Crypt</a></td><td><code>kallcryptforge</code></td></tr>
 <tr><td>door</td><td>kallcryptdoors</td><td><a href="kallristcryptupp.html">Kallrist Crypt</a></td><td><code>kallupper2riddledoor</code></td></tr></tbody></table>
 <h2>Incoming transitions</h2>
-<table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>door</td><td><a href="kallristcryptlow.html">Kallrist Crypt</a></td><td>kallcryptforge</td></tr>
-<tr><td>door</td><td><a href="kallristcryptupp.html">Kallrist Crypt</a></td><td>kallupper2riddledoor</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th><th>Requires Key</th></tr></thead><tbody><tr><td>door</td><td><a href="kallristcryptlow.html">Kallrist Crypt</a></td><td>kallcryptforge</td><td></td></tr>
+<tr><td>door</td><td><a href="kallristcryptupp.html">Kallrist Crypt</a></td><td>kallupper2riddledoor</td><td><code>kalcryptkey001</code></td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/centralchamber-000.html">Riddle Keeper</a></td><td><code>cr_riddlekeep001</code></td><td>cr_riddlekeep001</td><td>Construct</td><td>Fighter 1</td><td>12</td><td>26.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/centralchamber-001.html">Riddle Keeper</a></td><td><code>cr_riddlekeep001</code></td><td>cr_riddlekeep001</td><td>Construct</td><td>Fighter 1</td><td>12</td><td>26.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/centralchamber-002.html">Riddle Keeper</a></td><td><code>cr_riddlekeep001</code></td><td>cr_riddlekeep001</td><td>Construct</td><td>Fighter 1</td><td>12</td><td>26.0</td><td>Commoner</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/cr_riddlekeep001.html">Riddle Keeper</a></td><td>cr_riddlekeep001</td><td>Construct</td><td>Fighter 1</td><td>12</td><td>26.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/cr_riddlekeep001.html">Riddle Keeper</a></td><td>cr_riddlekeep001</td><td>Construct</td><td>Fighter 1</td><td>12</td><td>26.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/cr_riddlekeep001.html">Riddle Keeper</a></td><td>cr_riddlekeep001</td><td>Construct</td><td>Fighter 1</td><td>12</td><td>26.0</td><td>Commoner</td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

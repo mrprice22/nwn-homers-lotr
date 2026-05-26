@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Carn Dum: Numerok&#x27;s Den</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Carn Dum: Numerok&#x27;s Den</h1>
-<dl class="meta"><dt>ResRef</dt><dd>area078</dd><dt>Tag</dt><dd>CarnDumNumeroksDen</dd><dt>Tileset</dt><dd>tid01</dd><dt>Size</dt><dd>9×8 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd></dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>area078</dd><dt>Tag</dt><dd>CarnDumNumeroksDen</dd><dt>Tileset</dt><dd>tid01</dd><dt>Size</dt><dd>9×8 tiles</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="carndumcity.html">Carn Dum: City</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li><li><a href="carndumcity.html">Carn Dum: City</a> &rarr; <a href="area078.html">Carn Dum: Numerok&#x27;s Den</a> <em class="muted">[use the &#8220;Carndum2Numerock&#8221; door]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>Numerock2Carndum</td><td><a href="carndumcity.html">Carn Dum: City</a></td><td><code>Carndum2Numerock</code></td></tr>
 <tr><td>door</td><td>bangdingb</td><td><a href="area078.html">Carn Dum: Numerok&#x27;s Den</a></td><td><code>bangding2</code></td></tr>
@@ -36,15 +60,15 @@
 <tr><td>door</td><td><a href="area078.html">Carn Dum: Numerok&#x27;s Den</a></td><td>bangding2</td></tr>
 <tr><td>door</td><td><a href="carndumcity.html">Carn Dum: City</a></td><td>Carndum2Numerock</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/area078-000.html">Ranger of the North</a></td><td><a href="../creatures/rangerofthe.html">Ranger of the North</a></td><td>rangerofthe</td><td>Human</td><td>Ranger 13</td><td>155</td><td>18.0</td><td>Good</td><td></td></tr>
-<tr><td><a href="../creatures/instances/area078-001.html">Dead Boy</a></td><td><code>malekid002</code></td><td>malekid002</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/area078-002.html">Dead Girl</a></td><td><code>femalekid002</code></td><td>femalekid002</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/area078-003.html">Brena</a></td><td><code>brena</code></td><td>brena</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/area078-004.html">Numarok The Black Hand</a></td><td><a href="../creatures/cultmember002.html">Numarok The Black Hand</a></td><td>cultmember002</td><td>Human</td><td>Sorcerer 30/Monk 18</td><td>1768</td><td>130.0</td><td>Commoner</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/rangerofthe__v2.html">Ranger of the North</a></td><td>rangerofthe</td><td>Human</td><td>Ranger 13</td><td>155</td><td>18.0</td><td>Good</td><td></td></tr>
+<tr><td><a href="../creatures/malekid002.html">Dead Boy</a></td><td>malekid002</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/femalekid002.html">Dead Girl</a></td><td>femalekid002</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/brena.html">Brena</a></td><td>brena</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/cultmember002.html">Numarok The Black Hand</a></td><td>cultmember002</td><td>Human</td><td>Sorcerer 30/Monk 18</td><td>1768</td><td>130.0</td><td>Commoner</td><td></td></tr></tbody></table>
 <h2>Containers <small class="muted">(2)</small></h2>
-<table class="data"><thead><tr><th>Container</th><th>Items</th><th>Tag</th><th>ResRef</th><th>X, Y, Z</th><th>Locked</th><th>Open DC</th></tr></thead><tbody><tr><td><a href="../containers/area078-010.html">[TLK#5348]</a></td><td>7</td><td><code>Chest1</code></td><td>plc_chest1</td><td>11.8, 28.5, 0.0</td><td>yes</td><td>69</td></tr>
-<tr><td><a href="../containers/area078-011.html">[TLK#5348]</a></td><td>5</td><td><code>Chest1</code></td><td>plc_chest1</td><td>11.9, 31.2, 0.0</td><td>yes</td><td>69</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Container</th><th>Items</th><th>Tag</th><th>ResRef</th><th>X, Y, Z</th><th>Locked</th><th>Open DC</th></tr></thead><tbody><tr><td><a href="../containers/area078-010.html">Chest</a></td><td>7</td><td><code>Chest1</code></td><td>plc_chest1</td><td>11.8, 28.5, 0.0</td><td>yes</td><td>69</td></tr>
+<tr><td><a href="../containers/area078-011.html">Chest</a></td><td>5</td><td><code>Chest1</code></td><td>plc_chest1</td><td>11.9, 31.2, 0.0</td><td>yes</td><td>69</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

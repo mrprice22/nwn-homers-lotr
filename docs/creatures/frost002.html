@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Flame</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,38 +47,56 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>frost002</dd>
 <dt>Tag</dt><dd>Flame</dd>
-<dt>Race</dt><dd>Dragon</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-11">Dragon</a></dd>
 <dt>Appearance</dt><dd>Dragon, Copper</dd>
 <dt>Class(es)</dt><dd>Fighter 60/Dragon 20</dd>
-<dt>HP</dt><dd>8600</dd>
+<dt>HP</dt><dd>8,600</dd>
 <dt>CR</dt><dd>200.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>95</td><th>Dex</th><td>70</td><th>Con</th><td>50</td><th>Int</th><td>50</td><th>Wis</th><td>70</td><th>Cha</th><td>30</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>60</td></tr><tr><td>Dragon</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>8600</td><th>AC</th><td>40 <small class="muted">(10 base + +30 Dex)</small></td><th>BAB</th><td>+75</td></tr><tr><th>Fort</th><td>+31</td><th>Ref</th><td>+31</td><th>Will</th><td>+31</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<p><strong>Spell resistance:</strong> granted by feats: Improved Spell Resistance X</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+143/+138/+133/+128</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+143/+138/+133/+128</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+143/+138/+133/+128</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>8,600</td><th>AC</th><td>51 <small class="muted">(10 base + +30 Dex + +7 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+75</td></tr><tr><th>Fort</th><td>+31</td><th>Ref</th><td>+31</td><th>Will</th><td>+31</td></tr><tr><th>Spell Resistance</th><td>30 <small class="muted">(max of: feats (30), Diamond Soul (10))</small></td><td></td><td></td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+7</td></tr>
+<tr><th>Skill: Listen</th><td>+10</td></tr>
+<tr><th>Skill: Search</th><td>+10</td></tr>
+<tr><th>Skill: Spot</th><td>+10</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>6</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>6</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Bludgeoning (15%), Fire (20%), Piercing (25%), Positive (15%), Slashing (25%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Knockdown, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Regen: Vampiric</th><td>+5 HP/hit</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+157/+152/+147/+142</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+157/+152/+147/+142</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+157/+152/+147/+142</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/armhe011.html">Circlet of Flame</a></td></tr>
-<tr><td>Boots</td><td><a href="../items/it_mboots002.html">[TLK#40082]</a></td></tr>
-<tr><td>Cloak</td><td><a href="../items/maarcl041.html">Blackflame</a></td></tr>
-<tr><td>Left ring</td><td><a href="../items/ringofantiven002.html">Ring of Anti-Venom</a></td></tr>
-<tr><td>Belt</td><td>nw_it_mbelt012</td></tr>
-<tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear005.html">RivendellBuff</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/armhe011.html">Circlet of Flame</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/it_mboots002.html">Boots of the Shifting Sands</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Cloak</td><td><a href="../items/maarcl041.html">Blackflame</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/ringofantiven002.html">Ring of Anti-Venom</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/nw_it_mbelt012.html">Greater Swordsman’s Belt</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/it_crewpsp047.html">Flame Claw</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear005.html">RivendellBuff</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(4)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/item098.html">Flame&#x27;s Bane</a></td><td>item098</td></tr>
-<tr><td><a href="../items/flamestike.html">Flame Stike</a></td><td>flamestike</td></tr>
-<tr><td><a href="../items/flamestike.html">Flame Stike</a></td><td>flamestike</td></tr>
-<tr><td><a href="../items/impaler.html">Impaler</a></td><td>impaler</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/item098.html">Flame&#x27;s Bane</a></td><td><a href="../items/index.html#weapon-32">Dire Mace</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/flamestike.html">Flame Stike</a></td><td><a href="../items/index.html#weapon-59">Shuriken</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/flamestike.html">Flame Stike</a></td><td><a href="../items/index.html#weapon-59">Shuriken</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/impaler.html">Impaler</a></td><td><a href="../items/index.html#weapon-316">Falchion 2*</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(214)</small></h2><ul class="featlist"><li>Air Domain Powers</li><li>Alertness</li><li>Ambidexterity</li><li>Animal Companion</li><li>Animal Domain Powers</li><li>Animate Dead</li><li>Arcane Defense (Abjuration)</li><li>Arcane Defense (Conjuration)</li><li>Arcane Defense (Divination)</li><li>Arcane Defense (Enchantment)</li><li>Arcane Defense (Evocation)</li><li>Arcane Defense (Illusion)</li><li>Arcane Defense (Necromancy)</li><li>Arcane Defense (Transmutation)</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Arrow of Death</li><li>Artist</li><li>Aura of Courage</li><li>Bane of Enemies</li><li>Barbarian Fast Movement</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bardic Knowledge</li><li>Battle Training vs. Giants</li><li>Battle Training vs. Goblins</li><li>Battle Training vs. Orcs</li><li>Battle Training vs. Reptilians</li><li>Blind-Fight</li><li>Blinding Speed</li><li>Blooded</li><li>Bone Skin</li><li>Brew Potion</li><li>Bull&#x27;s Strength</li><li>Bullheaded</li><li>Called Shot</li><li>Cat&#x27;s Grace</li><li>Circle Kick</li><li>Cleave</li><li>Combat Casting</li><li>Construct Shape</li><li>Contagion</li><li>Courteous Magocracy</li><li>Craft Harper Item</li><li>Craft Wand</li><li>Create Undead</li><li>Crippling Strike</li><li>Curse Song</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Dark Blessing</li><li>Darkness</li><li>Darkvision</li><li>Death Attack (+10d6)</li><li>Death Attack (+11d6)</li><li>Death Attack (+12d6)</li><li>Death Attack (+13d6)</li><li>Death Attack (+14d6)</li><li>Death Attack (+15d6)</li><li>Death Attack (+16d6)</li><li>Death Attack (+17d6)</li><li>Death Attack (+18d6)</li><li>Death Attack (+19d6)</li><li>Death Attack (+1d6)</li><li>Death Attack (+20d6)</li><li>Death Attack (+7d6)</li><li>Death Attack (+8d6)</li><li>Death Attack (+9d6)</li><li>Death Domain Powers</li><li>Deathless Master Touch</li><li>Deathless Mastery</li><li>Deathless Vigor</li><li>Defensive Awareness (1)</li><li>Defensive Awareness (2)</li><li>Defensive Awareness (3)</li><li>Defensive Roll</li><li>Defensive Stance</li><li>Deflect Arrows</li><li>Deneir&#x27;s Eye</li><li>Destruction Domain Powers</li><li>Devastating Critical (creature)</li><li>Devastating Critical (quarterstaff)</li><li>Diamond Body</li><li>Diamond Soul</li><li>Dirty Fighting</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Grace</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Health</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Might</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Shield</li><li>Dodge</li><li>Draconic Armor</li><li>Dragon Abilities</li><li>Empty Body</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> X</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> X</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> X</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> IX</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> X</li><li>Epic Spell: Epic Mage Armor</li><li>Epic Spell: Epic Warding</li><li>Epic Spell: Greater Ruin</li><li>Epic Spell: Hellball</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Specialization (creature weapon)</li><li>Epic Will</li><li>Evasion</li><li>Evil Domain Powers</li><li>Extend Spell</li><li>Extra Music</li><li>Favored Enemy: Aberrations</li><li>Favored Enemy: Animals</li><li>Favored Enemy: Beasts</li><li>Favored Enemy: Constructs</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elementals</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Fey</li><li>Favored Enemy: Giants</li><li>Favored Enemy: Gnomes</li><li><span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> Domain Powers</li><li>Flurry of Blows</li><li>Ghostly Visage</li><li>Good Aim</li><li>Great Cleave</li><li>Great Wisdom I</li><li>Great Wisdom II</li><li>Great Wisdom III</li><li>Great Wisdom IV</li><li>Great Wisdom IX</li><li>Great Wisdom V</li><li>Great Wisdom VI</li><li>Great Wisdom VII</li><li>Great Wisdom VIII</li><li>Great Wisdom X</li><li>Greater Rage</li><li>Greater Spell Focus (Abjuration)</li><li>Greater Spell Focus (Conjuration)</li><li>Greater Spell Focus (Divination)</li><li>Greater Spell Focus (Enchantment)</li><li>Greater Spell Focus (Evocation)</li><li>Greater Spell Focus (Illusion)</li><li>Greater Spell Focus (Necromancy)</li><li>Greater Spell Focus (Transmutation)</li><li>Greater Spell Penetration</li><li>Immunity to <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span></li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Spell Resistance X</li><li>Improved Stunning Fist X</li><li>Luck of Heroes</li><li>Lucky</li><li>Magic Domain Powers</li><li>Maximize Spell</li><li>Mighty Rage</li><li>Mobility</li><li>Monk AC Bonus</li><li>Monk Speed</li><li>Monster Uncanny Reflex</li><li>Overwhelming Critical (creature weapon)</li><li>Remove Disease</li><li>Resist <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> Energy</li><li>Resist <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> Energy</li><li>Resist Disease</li><li>Resist <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> Energy</li><li>Resist <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> Energy</li><li>Resist Nature&#x27;s Lure</li><li>Sap</li><li>Shield Proficiency</li><li>Strong Soul</li><li>Stunning Fist</li><li>Summon Familiar</li><li>Summon Fiend</li><li>Summon Greater Undead</li><li>Summon Shadow</li><li>Summon Undead</li><li>Sun Domain Powers</li><li>Superior Initiative</li><li>Terrifying Rage</li><li>Thug</li><li>Thundering Rage</li><li>Weapon Proficiency (creature)</li><li>Whirlwind Attack</li><li>Wholeness of Body</li><li>Wild Shape</li><li>Wild Shape</li><li>Wild Shape (2x day)</li><li>Wild Shape (3x day)</li><li>Wild Shape (4x day)</li><li>Wild Shape (5x day)</li><li>Woodland Stride</li><li>Zen Archery</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Animal Empathy</td><td>43</td></tr>
 <tr><td>Concentration</td><td>43</td></tr>
@@ -116,6 +156,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,45 +4,69 @@
   <meta charset="utf-8">
   <title>Barad-Dûr: Keep</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Barad-Dûr: Keep</h1>
-<dl class="meta"><dt>ResRef</dt><dd>baraddurkeep</dd><dt>Tag</dt><dd>KeepofBaradDr</dd><dt>Tileset</dt><dd>City Interior <small class="muted">(tic01)</small></dd><dt>Size</dt><dd>8×8 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>aa_area_exit</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>baraddurkeep</dd><dt>Tag</dt><dd>KeepofBaradDr</dd><dt>Tileset</dt><dd>City Interior <small class="muted">(tic01)</small></dd><dt>Size</dt><dd>8×8 tiles</dd><dt>OnExit</dt><dd>aa_area_exit</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="baraddur.html">Barad-Dûr: City</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li><li><a href="baraddur.html">Barad-Dûr: City</a> &rarr; <a href="baraddurkeep.html">Barad-Dûr: Keep</a> <em class="muted">[use the &#8220;BaradKeepOutsideDoor&#8221; door]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>BaradKeepInsideDoor</td><td><a href="baraddur.html">Barad-Dûr: City</a></td><td><code>BaradKeepOutsideDoor</code></td></tr></tbody></table>
 <h2>Incoming transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>door</td><td><a href="baraddur.html">Barad-Dûr: City</a></td><td>BaradKeepOutsideDoor</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/baraddurkeep-000.html">[TLK#12503]</a></td><td><code>nw_drowrogue020</code></td><td>nw_drowrogue020</td><td>Elf</td><td>Rogue 20</td><td>52</td><td>67.0</td><td>Merchant</td><td><a href="../conversations/store049.html">store049</a></td></tr>
-<tr><td><a href="../creatures/instances/baraddurkeep-001.html">Fist of Sauron</a></td><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/baraddurkeep-002.html">Fist of Sauron</a></td><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/baraddurkeep-003.html">Fist of Sauron</a></td><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/baraddurkeep-004.html">Fist of Sauron</a></td><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/baraddurkeep-005.html">Fist of Sauron</a></td><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/baraddurkeep-006.html">Fist of Sauron</a></td><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/baraddurkeep-007.html">Gothmog Lord of Barad-Dur</a></td><td><a href="../creatures/thehighmageofbar.html">Gothmog Lord of Barad-Dur</a></td><td>thehighmageofbar</td><td>Half-Orc</td><td>Fighter 40/Champion of Torm 40/Weapon Master 20</td><td>7900</td><td>604.0</td><td>Commoner</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/nw_drowrogue020.html">Drow Assassin</a></td><td>nw_drowrogue020</td><td>Elf</td><td>Rogue 20</td><td>52</td><td>67.0</td><td>Merchant</td><td><a href="../conversations/store049.html">store049</a></td></tr>
+<tr><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/creature008.html">Fist of Sauron</a></td><td>creature008</td><td>Half-Orc</td><td>Barbarian 30/Weapon Master 30</td><td>2960</td><td>289.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/thehighmageofbar.html">Gothmog Lord of Barad-Dur</a></td><td>thehighmageofbar</td><td>Half-Orc</td><td>Fighter 40/Champion of Torm 40/Weapon Master 20</td><td>7900</td><td>604.0</td><td>Commoner</td><td></td></tr></tbody></table>
 <h2>Stores</h2>
-<table class="data"><thead><tr><th>Store</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_storespec003</td><td>nw_storespec003</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>Items</th><th>Opened By</th><th title="Price store charges you to buy items (% of base)">Sells At</th><th title="Price store pays you for items (% of base)">Buys At</th><th title="Maximum the store will pay for any single item">Max Buy</th><th title="Highest base item value in stock (before markup)">Max GP</th><th title="Average base item value in stock (before markup)">Avg GP</th></tr></thead><tbody><tr><td><a href="../stores/baraddurkeep_nw_storespec003.html">NW_STORESPEC003</a></td><td>183</td><td>NPC <a href="../creatures/nw_drowrogue020.html">Drow Assassin</a> (via <a href="../conversations/store049.html">conversation</a>)</td><td>150%</td><td>5%</td><td>10,000 gp</td><td>58,575</td><td>7,094</td></tr></tbody></table>
 <h2>Conversations triggered here</h2>
-<table class="data"><thead><tr><th>Conversation</th><th>ResRef</th><th>Triggered via</th><th>Teleports to</th></tr></thead><tbody><tr><td><a href="../conversations/store049.html">Welcome Servant of the Dark... Looking for items under the t…</a></td><td><code>store049</code></td><td>NPC <a href="../creatures/instances/baraddurkeep-000.html">[TLK#12503]</a></td><td>—</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Conversation</th><th>ResRef</th><th>Triggered via</th><th>Teleports to</th></tr></thead><tbody><tr><td><a href="../conversations/store049.html">Welcome Servant of the Dark... Looking for items under the t…</a></td><td><code>store049</code></td><td>NPC <a href="../creatures/nw_drowrogue020.html">Drow Assassin</a></td><td>—</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_LordofBaradDur_01</code></td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation p000c000ct_plotg</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,7 +52,7 @@
 <dt>OnAbort</dt><dd><code></code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/nw_innkeeper023.html">[TLK#2421]</a> <code>nw_innkeeper023</code></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/nw_innkeeper023.html">Plot Giver</a> <code>nw_innkeeper023</code></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>p000q001_action</code></td><td>action</td><td>✓</td><td></td></tr>
@@ -43,11 +65,11 @@
 <tr><td><code>p000q001_show</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e6">entry #6</a> <small class="muted">(if <code>p000c000plotless</code>)</small> — Hello, stranger.</li>
-<li><a href="#e5">entry #5</a> <small class="muted">(if <code>p000q005_show</code>)</small> — [TLK#3730]</li>
-<li><a href="#e3">entry #3</a> <small class="muted">(if <code>p000q004_show</code>)</small> — [TLK#8620]</li>
-<li><a href="#e2">entry #2</a> <small class="muted">(if <code>p000q002_show</code>)</small> — [TLK#8641]</li>
-<li><a href="#e0">entry #0</a> <small class="muted">(if <code>p000q001_show</code>)</small> — [TLK#3723]</li>
-<li><a href="#e7">entry #7</a> — [TLK#3623]</li>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>p000q005_show</code>)</small> — Thank you for your help.</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>p000q004_show</code>)</small> — Did you kill the [Villain]?</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>p000q002_show</code>)</small> — Return to me after you have killed the [Villain]. Good luck!</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>p000q001_show</code>)</small> — Would you kill a [Villain] for me?</li>
+<li><a href="#e7">entry #7</a> — The fact that you are reading this is probably a bug in how this plot was design…</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -58,72 +80,72 @@
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>p000q005_show</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
-<div class="dlg-text">[TLK#3730]</div>
+<div class="dlg-text">Thank you for your help.</div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>p000q004_show</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
-<div class="dlg-text">[TLK#8620]</div>
+<div class="dlg-text">Did you kill the [Villain]?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #2</span> <small class="muted">(if <code>p000q004_show_y</code>)</small> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
-<div class="dlg-text">[TLK#7824]</div>
+<div class="dlg-text">Yes</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>p000q004_action</code></span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
-<div class="dlg-text">[TLK#3728]</div>
+<div class="dlg-text">Thank you! You have made this area a bit safer. Please accept this reward.</div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
-<div class="dlg-text">[TLK#7825]</div>
+<div class="dlg-text">No</div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>p000q002_show</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
-<div class="dlg-text">[TLK#8641]</div>
+<div class="dlg-text">Return to me after you have killed the [Villain]. Good luck!</div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>p000q001_show</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">[TLK#3723]</div>
+<div class="dlg-text">Would you kill a [Villain] for me?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
-<div class="dlg-text">[TLK#7824]</div>
+<div class="dlg-text">Yes</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <span class="dlg-action">→ <code>p000q001_action</code></span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">[TLK#8635]</div>
+<div class="dlg-text">Thank you. Kill the [Villain] and return to me for your reward.</div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
-<div class="dlg-text">[TLK#7825]</div>
+<div class="dlg-text">No</div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
-<div class="dlg-text">[TLK#3623]</div>
+<div class="dlg-text">The fact that you are reading this is probably a bug in how this plot was designed. Please tell the module creator who you were talking to and what you did before seeing this message.</div>
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">[TLK#3723]</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“[TLK#7824]”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“[TLK#7825]”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span> <span class="dlg-action">→ <code>p000q001_action</code></span></div><div class="dlg-text">[TLK#8635]</div></div>
-<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">[TLK#8641]</div></div>
-<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">[TLK#8620]</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“[TLK#7824]”</span> <small class="muted">(if <code>p000q004_show_y</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“[TLK#7825]”</span></li></ul></div>
-<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>p000q004_action</code></span></div><div class="dlg-text">[TLK#3728]</div></div>
-<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">[TLK#3730]</div></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Would you kill a [Villain] for me?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Yes”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“No”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span> <span class="dlg-action">→ <code>p000q001_action</code></span></div><div class="dlg-text">Thank you. Kill the [Villain] and return to me for your reward.</div></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Return to me after you have killed the [Villain]. Good luck!</div></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Did you kill the [Villain]?</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Yes”</span> <small class="muted">(if <code>p000q004_show_y</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“No”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>p000q004_action</code></span></div><div class="dlg-text">Thank you! You have made this area a bit safer. Please accept this reward.</div></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Thank you for your help.</div></div>
 <div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Hello, stranger.</div></div>
-<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">[TLK#3623]</div></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">The fact that you are reading this is probably a bug in how this plot was designed. Please tell the module creator who you were talking to and what you did before seeing this message.</div></div>
 <h2>PC replies — flat index</h2>
-<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">[TLK#7824]</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“[TLK#8635]”</span></li></ul></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">[TLK#7825]</div></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">[TLK#7824]</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“[TLK#3728]”</span></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">[TLK#7825]</div></div>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Yes</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Thank you. Kill the [Villain] and return to me for your reward.”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">No</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Yes</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Thank you! You have made this area a bit safer. Please accept this reward.”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">No</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

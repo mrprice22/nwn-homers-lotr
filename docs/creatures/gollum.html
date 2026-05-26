@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Gollum</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,45 +47,58 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>gollum</dd>
 <dt>Tag</dt><dd>Gollum</dd>
-<dt>Race</dt><dd>Goblinoid</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-12">Goblinoid</a></dd>
 <dt>Appearance</dt><dd>Goblin, Cave Shaman*</dd>
 <dt>Class(es)</dt><dd>Humanoid 60/Assassin 40</dd>
-<dt>HP</dt><dd>8270</dd>
+<dt>HP</dt><dd>8,270</dd>
 <dt>CR</dt><dd>1029.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/area007.html">Gollum&#x27;s Chambers</a></td><td>1</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>90</td><th>Dex</th><td>30</td><th>Con</th><td>30</td><th>Int</th><td>30</td><th>Wis</th><td>30</td><th>Cha</th><td>20</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Humanoid</td><td>60</td></tr><tr><td>Assassin</td><td>40</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>8270</td><th>AC</th><td>52 <small class="muted">(10 base + +10 Dex + +32 natural (NaturalAC))</small></td><th>BAB</th><td>+75</td></tr><tr><th>Fort</th><td>+10</td><th>Ref</th><td>+10</td><th>Will</th><td>+10</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+173/+168/+163/+158</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+173/+168/+163/+158</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>8,270</td><th>AC</th><td>76 <small class="muted">(10 base + +10 Dex + +32 natural (NaturalAC) + +20 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+75</td></tr><tr><th>Fort</th><td>+10</td><th>Ref</th><td>+10</td><th>Will</th><td>+10</td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>10</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (75%), Bludgeoning (75%), Cold (25%), Electrical (25%), Fire (25%), Piercing (75%), Slashing (75%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Fear, Knockdown, Mind-Affecting Spells, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+193/+188/+183/+178</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+193/+188/+183/+178</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/skinofgullom.html">Skin of gullom</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/gollumsfist.html">Gollums fist</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/skinofgullom.html">Skin of gullom</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(19)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/item039.html">Gollum&#x27;s Cloak</a></td><td>item039</td></tr>
-<tr><td><a href="../items/item075.html">Gullom&#x27;s Gloves </a></td><td>item075</td></tr>
-<tr><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td><td>greaterringof002</td></tr>
-<tr><td><a href="../items/it_mring006.html">[TLK#48926]</a></td><td>it_mring006</td></tr>
-<tr><td><a href="../items/theonering.html">The One Ring</a></td><td>theonering</td></tr>
-<tr><td>x2_it_mbelt008</td><td>x2_it_mbelt008</td></tr>
-<tr><td>nw_it_mbelt014</td><td>nw_it_mbelt014</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td>nw_it_gold001</td><td>nw_it_gold001</td></tr>
-<tr><td>nw_it_gold001</td><td>nw_it_gold001</td></tr>
-<tr><td>nw_it_gold001</td><td>nw_it_gold001</td></tr>
-<tr><td>nw_it_gold001</td><td>nw_it_gold001</td></tr>
-<tr><td><a href="../items/beltofdivinemigh.html">Belt of Divine Might</a></td><td>beltofdivinemigh</td></tr>
-<tr><td>x2_it_picks002</td><td>x2_it_picks002</td></tr>
-<tr><td><a href="../items/item062.html">Gollum&#x27;s Hard Leather Skin</a></td><td>item062</td></tr>
-<tr><td><a href="../items/greaterringoffir.html">Greater Ring of Fire Resistance</a></td><td>greaterringoffir</td></tr>
-<tr><td><a href="../items/greaterringofaci.html">Greater Ring of Acid Resistance</a></td><td>greaterringofaci</td></tr>
-<tr><td><a href="../items/greaterscarab002.html">Greater Scarab Protector</a></td><td>greaterscarab002</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/item039.html">Gollum&#x27;s Cloak</a></td><td><a href="../items/index.html#cloak">Cloaks</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item075.html">Gullom&#x27;s Gloves </a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_mring006.html">Ring of Force Shield</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/theonering.html">The One Ring</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/x2_it_mbelt008.html">Belt of Agility +10</a></td><td><a href="../items/index.html#belt">Belts</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mbelt014.html">Greater Archer’s Belt</a></td><td><a href="../items/index.html#belt">Belts</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_gold001.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_gold001.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_gold001.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_gold001.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/beltofdivinemigh.html">Belt of Divine Might</a></td><td><a href="../items/index.html#belt">Belts</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/x2_it_picks002.html">Thieves&#x27; Tools +12</a></td><td><a href="../items/index.html#tool-kit">Tools &amp; Kits</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item062.html">Gollum&#x27;s Hard Leather Skin</a></td><td><a href="../items/index.html#armor-cloth">Cloth &amp; Robes</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterringoffir.html">Greater Ring of Fire Resistance</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterringofaci.html">Greater Ring of Acid Resistance</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterscarab002.html">Greater Scarab Protector</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(80)</small></h2><ul class="featlist"><li>Alertness</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Blindsight, 60 foot radius</li><li>Cleave</li><li>Curse Song</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Darkvision</li><li>Death Attack (+10d6)</li><li>Death Attack (+11d6)</li><li>Death Attack (+12d6)</li><li>Death Attack (+13d6)</li><li>Death Attack (+14d6)</li><li>Death Attack (+15d6)</li><li>Death Attack (+16d6)</li><li>Death Attack (+17d6)</li><li>Death Attack (+18d6)</li><li>Death Attack (+19d6)</li><li>Death Attack (+1d6)</li><li>Death Attack (+20d6)</li><li>Death Attack (+2d6)</li><li>Death Attack (+3d6)</li><li>Death Attack (+4d6)</li><li>Death Attack (+5d6)</li><li>Death Attack (+6d6)</li><li>Death Attack (+7d6)</li><li>Death Attack (+8d6)</li><li>Death Attack (+9d6)</li><li>Defensive Awareness (1)</li><li>Defensive Roll</li><li>Diamond Body</li><li>Dirty Fighting</li><li>Epic Assassin</li><li>Epic Prowess</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Specialization (creature weapon)</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Gnomes</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Fearless</li><li>Flurry of Blows</li><li>Improved Critical (creature)</li><li>Improved Evasion</li><li>Improved Power Attack</li><li>Improved Sneak Attack X</li><li>Mobility</li><li>Opportunist</li><li>Overwhelming Critical (creature weapon)</li><li>Resist <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> Energy</li><li>Resist <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> Energy</li><li>Resist Disease</li><li>Resist <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> Energy</li><li>Resist <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> Energy</li><li>Self-Concealment I</li><li>Self-Concealment II</li><li>Self-Concealment III</li><li>Self-Concealment IV</li><li>Self-Concealment V</li><li>Slippery Mind</li><li>Small Stature</li><li>Spring Attack</li><li>Stealthy</li><li>Still Mind</li><li>Superior Initiative</li><li>Superior Weapon Focus</li><li>Weapon Focus (creature)</li><li>Weapon Proficiency (creature)</li><li>Weapon Specialization (creature)</li><li>Wholeness of Body</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>60</td></tr>
 <tr><td>Hide</td><td>60</td></tr>
@@ -105,8 +140,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(1)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/area007-000.html">Gollum</a></td><td><a href="../areas/area007.html">Gollum&#x27;s Chambers</a></td><td>Hostile</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

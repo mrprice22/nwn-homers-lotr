@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Basilisk</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,32 +47,50 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>basilisk</dd>
 <dt>Tag</dt><dd>Basilisk</dd>
-<dt>Race</dt><dd>Magical Beast</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-19">Magical Beast</a></dd>
 <dt>Appearance</dt><dd>Basilisk</dd>
 <dt>Class(es)</dt><dd>Fighter 15/Wizard 15/Monk 35</dd>
-<dt>HP</dt><dd>6325</dd>
+<dt>HP</dt><dd>6,325</dd>
 <dt>CR</dt><dd>374.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>35</td><th>Dex</th><td>50</td><th>Con</th><td>50</td><th>Int</th><td>30</td><th>Wis</th><td>30</td><th>Cha</th><td>30</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>15</td></tr><tr><td>Wizard</td><td>15</td></tr><tr><td>Monk</td><td>35</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>6325</td><th>AC</th><td>65 <small class="muted">(10 base + +20 Dex + +25 natural (NaturalAC) + +10 armor enchant)</small></td><th>BAB</th><td>+48</td></tr><tr><th>Fort</th><td>+22</td><th>Ref</th><td>+21</td><th>Will</th><td>+17</td></tr></table>
+<table class="data"><tr><th>HP</th><td>6,325</td><th>AC</th><td>75 <small class="muted">(10 base + +20 Dex + +25 natural (NaturalAC) + +10 armor enchant + +10 Wis (monk))</small></td><th>BAB</th><td>+48</td></tr><tr><th>Fort</th><td>+22</td><th>Ref</th><td>+21</td><th>Will</th><td>+17</td></tr><tr><th>Spell Resistance</th><td>45 <small class="muted">(max of: feats (18), Diamond Soul (45), items (22))</small></td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<p><strong>Spell resistance:</strong> granted by feats: Improved Spell Resistance I, Improved Spell Resistance II, Improved Spell Resistance III, Improved Spell Resistance IV</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/adultbasilis007.html">Adult Basilisk Bite</a></td><td>Creature Slash Weapon</td><td>Melee</td><td>+64/+59/+54/+49</td><td>—</td><td>20/x2</td></tr>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Save vs. Universal</th><td>+5</td></tr>
+<tr><th>Skill: Concentration</th><td>+50</td></tr>
+<tr><th>Skill: Discipline</th><td>+50</td></tr>
+<tr><th>Skill: Listen</th><td>+50</td></tr>
+<tr><th>Skill: Perform</th><td>+10</td></tr>
+<tr><th>Skill: Search</th><td>+50</td></tr>
+<tr><th>Skill: Spot</th><td>+50</td></tr>
+<tr><th>Skill: Tumble</th><td>+50</td></tr>
+<tr><th>Skill: Use Magic Device</th><td>+10</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>6</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>25/-</td></tr>
+<tr><th>Damage Immunity</th><td>Bludgeoning (25%), Divine (25%), Magical (25%), Negative (25%), Piercing (25%), Positive (25%), Slashing (25%)</td></tr>
+<tr><th>Misc Immunity</th><td>Mind-Affecting Spells, Paralysis, Sneak Attack</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/adultbasilis007.html">Adult Basilisk Bite</a></td><td>Creature Slash Weapon</td><td>Melee</td><td>+60/+55/+50/+45</td><td>—</td><td>20/x2</td></tr>
 <tr><td>Creature weapon (L)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+60/+55/+50/+45</td><td>—</td><td>20/x2</td></tr>
 <tr><td>Creature weapon (bite)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td>Creature Slash Piercing Weapon</td><td>Melee</td><td>+60/+55/+50/+45</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/basiliskskin.html">Basilisk Skin</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/basiliskclaw006.html">Basilisk Claw</a></td></tr>
-<tr><td>Belt</td><td><a href="../items/girdleofmig002.html">Girdle of Might</a></td></tr>
-<tr><td>Creature weapon (R)</td><td><a href="../items/adultbasilis007.html">Adult Basilisk Bite</a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/adultbasilis004.html">Adult Basilisk Properties</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/basiliskskin.html">Basilisk Skin</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/basiliskclaw006.html">Basilisk Claw</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/girdleofmig002.html">Girdle of Might</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/adultbasilis007.html">Adult Basilisk Bite</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/adultbasilis004.html">Adult Basilisk Properties</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(89)</small></h2><ul class="featlist"><li>Alertness</li><li>Ambidexterity</li><li>Armor Skin</li><li>Battle Training vs. Giants</li><li>Battle Training vs. Goblins</li><li>Battle Training vs. Orcs</li><li>Battle Training vs. Reptilians</li><li>Blind-Fight</li><li>Brew Potion</li><li>Called Shot</li><li>Cleave</li><li>Combat Casting</li><li>Craft Wand</li><li>Deflect Arrows</li><li>Diamond Body</li><li>Diamond Soul</li><li>Dodge</li><li>Empower Spell</li><li>Empty Body</li><li>Epic Damage Reduction II</li><li>Epic Fortitude</li><li>Epic Monk</li><li>Epic Prowess</li><li>Epic Reflexes</li><li>Epic Toughness I</li><li>Epic Toughness II</li><li>Epic Toughness III</li><li>Epic Toughness IV</li><li>Epic Toughness V</li><li>Epic Weapon Focus (unarmed strike)</li><li>Epic Weapon Specialization (unarmed strike)</li><li>Epic Will</li><li>Evasion</li><li>Extend Spell</li><li>Flurry of Blows</li><li>Great Cleave</li><li>Great Fortitude</li><li>Hardiness vs. Enchantments</li><li>Hardiness vs. Illusions</li><li>Hardiness vs. Poisons</li><li>Hardiness vs. Spells</li><li>Improved Critical (longsword)</li><li>Improved Critical (unarmed strike)</li><li>Improved Evasion</li><li>Improved Knockdown</li><li>Improved Spell Resistance I</li><li>Improved Spell Resistance II</li><li>Improved Spell Resistance III</li><li>Improved Spell Resistance IV</li><li>Improved Stunning Fist I</li><li>Improved Stunning Fist II</li><li>Improved Stunning Fist III</li><li>Improved Stunning Fist IV</li><li>Improved Stunning Fist IX</li><li>Improved Stunning Fist V</li><li>Improved Stunning Fist VI</li><li>Improved Stunning Fist VII</li><li>Improved Stunning Fist VIII</li><li>Improved Stunning Fist X</li><li>Improved Two-Weapon Fighting</li><li>Improved Unarmed Strike</li><li>Ki Strike +3</li><li>Knockdown</li><li>Lightning Reflexes</li><li>Mobility</li><li>Monk AC Bonus</li><li>Monk Speed</li><li>Overwhelming Critical (unarmed strike)</li><li>Perfect Self</li><li>Power Attack</li><li>Purity of Body</li><li>Quivering Palm</li><li>Self-Concealment III</li><li>Shield Proficiency</li><li>Spring Attack</li><li>Still Mind</li><li>Stunning Fist</li><li>Summon Familiar</li><li>Toughness</li><li>Venom Immunity</li><li>Weapon Finesse</li><li>Weapon Focus (unarmed strike)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (simple)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (unarmed strike)</li><li>Wholeness of Body</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>60</td></tr>
 <tr><td>Discipline</td><td>60</td></tr>
@@ -93,6 +133,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

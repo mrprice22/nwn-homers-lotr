@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Weathertop Queen</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,32 +47,45 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>weathertopque003</dd>
 <dt>Tag</dt><dd>WeathertopQueen</dd>
-<dt>Race</dt><dd>Undead</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-24">Undead</a></dd>
 <dt>Appearance</dt><dd>Elf</dd>
 <dt>Class(es)</dt><dd>Wizard 60/Fighter 40</dd>
-<dt>HP</dt><dd>4000</dd>
+<dt>HP</dt><dd>4,000</dd>
 <dt>CR</dt><dd>594.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>90</td><th>Dex</th><td>35</td><th>Con</th><td>22</td><th>Int</th><td>100</td><th>Wis</th><td>25</td><th>Cha</th><td>50</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Wizard</td><td>60</td></tr><tr><td>Fighter</td><td>40</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>4000</td><th>AC</th><td>32 <small class="muted">(10 base + +12 Dex + +10 armor enchant)</small></td><th>BAB</th><td>+70</td></tr><tr><th>Fort</th><td>+6</td><th>Ref</th><td>+12</td><th>Will</th><td>+7</td></tr></table>
+<table class="data"><tr><th>HP</th><td>4,000</td><th>AC</th><td>42 <small class="muted">(10 base + +12 Dex + +10 armor enchant + +10 dodge (items))</small></td><th>BAB</th><td>+70</td></tr><tr><th>Fort</th><td>+6</td><th>Ref</th><td>+12</td><th>Will</th><td>+7</td></tr><tr><th>Spell Resistance</th><td>30 <small class="muted">(max of: feats (30), items (20))</small></td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<p><strong>Spell resistance:</strong> granted by feats: Improved Spell Resistance I, Improved Spell Resistance II, Improved Spell Resistance III, Improved Spell Resistance IV, Improved Spell Resistance IX, Improved Spell Resistance V, Improved Spell Resistance VI, Improved Spell Resistance VII, Improved Spell Resistance VIII, Improved Spell Resistance X</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/boneshard.html">Boneshard</a></td><td>Dagger</td><td>Melee</td><td>+110/+105/+100/+95</td><td>1d4+40 (41–44) + Damage Bonus <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> 8, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 8, Damage Bonus Piercing 8</td><td>19-20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+10</td></tr>
+<tr><th>Save vs. Negative Energy</th><td>+5</td></tr>
+<tr><th>Intelligence Bonus</th><td>+6</td></tr>
+<tr><th>Skill: Discipline</th><td>+50</td></tr>
+<tr><th>Skill: Pick Pocket</th><td>+50</td></tr>
+<tr><th>Skill: Spellcraft</th><td>+20</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>8</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (75%), Bludgeoning (20%), Cold (50%), Fire (50%), Negative (50%), Piercing (20%), Slashing (20%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison, Sneak Attack</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/boneshard.html">Boneshard</a></td><td>Dagger</td><td>Melee</td><td>+119/+114/+109/+104</td><td>1d4+40 (41–44) + Damage Bonus <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> 8, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 8, Damage Bonus Piercing 8</td><td>19-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/item047.html">The Queen&#x27;s Depair</a></td></tr>
-<tr><td>Boots</td><td><a href="../items/item074.html">&quot;wanker boots&quot;</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/wiltedtouch.html">Wilted Touch</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/boneshard.html">Boneshard</a></td></tr>
-<tr><td>Belt</td><td><a href="../items/stashofcorrup002.html">Stash of Corruption</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/034.html">Weathertop Undead Properties</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/item047.html">The Queen&#x27;s Depair</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/item074.html">&quot;wanker boots&quot;</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/wiltedtouch.html">Wilted Touch</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/boneshard.html">Boneshard</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/stashofcorrup002.html">Stash of Corruption</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/034.html">Weathertop Undead Properties</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(2)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/wiltedstaff.html">Wilted Staff</a></td><td>wiltedstaff</td></tr>
-<tr><td><a href="../items/item110.html">Queen&#x27;s Slippers</a></td><td>item110</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/wiltedstaff.html">Wilted Staff</a></td><td><a href="../items/index.html#weapon-45">Magic Staff</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item110.html">Queen&#x27;s Slippers</a></td><td><a href="../items/index.html#boots">Boots</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(65)</small></h2><ul class="featlist"><li>Armor Proficiency (medium)</li><li>Automatic Quicken Spell I</li><li>Automatic Quicken Spell II</li><li>Automatic Quicken Spell III</li><li>Automatic Silent Spell I</li><li>Automatic Silent Spell II</li><li>Automatic Silent Spell III</li><li>Automatic Still Spell I</li><li>Automatic Still Spell II</li><li>Automatic Still Spell III</li><li>Combat Casting</li><li>Devastating Critical (dagger)</li><li>Empower Spell</li><li>Epic Prowess</li><li>Epic Spell Focus (Abjuration)</li><li>Epic Spell Focus (Conjuration)</li><li>Epic Spell Focus (Divination)</li><li>Epic Spell Focus (Enchantment)</li><li>Epic Spell Focus (Evocation)</li><li>Epic Spell Focus (Illusion)</li><li>Epic Spell Focus (Necromancy)</li><li>Epic Spell Focus (Transmutation)</li><li>Epic Spell Penetration</li><li>Epic Spell: Dragon Knight</li><li>Epic Spell: Epic Mage Armor</li><li>Epic Spell: Epic Warding</li><li>Epic Spell: Greater Ruin</li><li>Epic Spell: Hellball</li><li>Epic Spell: Mummy Dust</li><li>Epic Weapon Focus (dagger)</li><li>Epic Weapon Specialization (dagger)</li><li>Extend Spell</li><li>Great Cleave</li><li>Improved Combat Casting</li><li>Improved Critical (dagger)</li><li>Improved Power Attack</li><li>Improved Spell Resistance I</li><li>Improved Spell Resistance II</li><li>Improved Spell Resistance III</li><li>Improved Spell Resistance IV</li><li>Improved Spell Resistance IX</li><li>Improved Spell Resistance V</li><li>Improved Spell Resistance VI</li><li>Improved Spell Resistance VII</li><li>Improved Spell Resistance VIII</li><li>Improved Spell Resistance X</li><li>Maximize Spell</li><li>Overwhelming Critical (dagger)</li><li>Power Attack</li><li>Quicken Spell</li><li>Silent Spell</li><li>Spell Focus (Abjuration)</li><li>Spell Focus (Conjuration)</li><li>Spell Focus (Divination)</li><li>Spell Focus (Enchantment)</li><li>Spell Focus (Evocation)</li><li>Spell Focus (Illusion)</li><li>Spell Focus (Necromancy)</li><li>Spell Focus (Transmutation)</li><li>Still Spell</li><li>Superior Initiative</li><li>Weapon Finesse</li><li>Weapon Focus (dagger)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (dagger)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>63</td></tr>
 <tr><td>Parry</td><td>63</td></tr>
@@ -126,6 +161,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

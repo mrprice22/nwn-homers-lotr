@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Mirkwood Forest Walker</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,32 +47,57 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>mirkwoodforestwa</dd>
 <dt>Tag</dt><dd>MirkwoodForestWalker</dd>
-<dt>Race</dt><dd>Elf</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-1">Elf</a></dd>
 <dt>Appearance</dt><dd>Elf</dd>
 <dt>Class(es)</dt><dd>Ranger 25/Fighter 20</dd>
-<dt>HP</dt><dd>1455</dd>
+<dt>HP</dt><dd>1,455</dd>
 <dt>CR</dt><dd>107.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Defender</a> <small class="muted">(id 4)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/woodoflegolas.html">Mirkwood: Forest of Greenleaves</a></td><td>mirkwoodwalkers</td><td><code>mirkwoodwalkers</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>45</td><th>Dex</th><td>60</td><th>Con</th><td>30</td><th>Int</th><td>30</td><th>Wis</th><td>30</td><th>Cha</th><td>30</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Ranger</td><td>25</td></tr><tr><td>Fighter</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>1455</td><th>AC</th><td>62 <small class="muted">(10 base + +25 Dex + +20 natural (NaturalAC) + +7 armor enchant)</small></td><th>BAB</th><td>+45</td></tr><tr><th>Fort</th><td>+37</td><th>Ref</th><td>+45</td><th>Will</th><td>+30</td></tr></table>
+<table class="data"><tr><th>HP</th><td>1,455</td><th>AC</th><td>71 <small class="muted">(10 base + +25 Dex + +20 natural (NaturalAC) + +7 armor enchant + +5 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+45</td></tr><tr><th>Fort</th><td>+37</td><th>Ref</th><td>+45</td><th>Will</th><td>+30</td></tr><tr><th>Spell Resistance</th><td>32</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +7 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/woodlandwasp.html">Woodland Wasp</a></td><td>Longbow</td><td>Ranged (200)</td><td>+70/+65/+60/+55</td><td>1d8 (1–8)</td><td>20/x3</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+5</td></tr>
+<tr><th>Dexterity Bonus</th><td>+4</td></tr>
+<tr><th>Skill: Discipline</th><td>+8</td></tr>
+<tr><th>Skill: Hide</th><td>+10</td></tr>
+<tr><th>Skill: Listen</th><td>+50</td></tr>
+<tr><th>Skill: Move Silently</th><td>+10</td></tr>
+<tr><th>Skill: Spot</th><td>+50</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>15/-</td></tr>
+<tr><th>Misc Immunity</th><td>Disease, Fear, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/woodlandwasp.html">Woodland Wasp</a></td><td>Longbow</td><td>Ranged (200)</td><td>+79/+74/+69/+64</td><td>1d8 (1–8) + Massive Criticals 9</td><td>20/x3</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/hideofthefore.html">Hide of the Forest Spirit</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/woodlandwasp.html">Woodland Wasp</a></td></tr>
-<tr><td>Cloak</td><td><a href="../items/mirkwoodsshadow.html">Mirkwood&#x27;s Shadow</a></td></tr>
-<tr><td>Arrows</td><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/celebornsgarb.html">Crittable guard skin</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/hideofthefore.html">Hide of the Forest Spirit</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/woodlandwasp.html">Woodland Wasp</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Cloak</td><td><a href="../items/mirkwoodsshadow.html">Mirkwood&#x27;s Shadow</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Arrows</td><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/celebornsgarb.html">Crittable guard skin</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(4)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/rapierofmirkwood.html">Rapier of Mirkwood</a></td><td>rapierofmirkwood</td></tr>
-<tr><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td><td>wingsofmirkwood</td></tr>
-<tr><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td><td>wingsofmirkwood</td></tr>
-<tr><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td><td>wingsofmirkwood</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/rapierofmirkwood.html">Rapier of Mirkwood</a></td><td><a href="../items/index.html#weapon-51">Rapier</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wingsofmirkwood.html">Wings of Mirkwood</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(37)</small></h2><ul class="featlist"><li>Alertness</li><li>Ambidexterity</li><li>Animal Companion</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Called Shot</li><li>Cleave</li><li>Dodge</li><li>Favored Enemy: Aberrations</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Giants</li><li>Favored Enemy: Goblinoids</li><li>Great Fortitude</li><li>Hardiness vs. Enchantments</li><li>Immunity To Sleep</li><li>Improved Critical (longbow)</li><li>Improved Critical (longsword)</li><li>Improved Two-Weapon Fighting</li><li>Keen Sense</li><li>Low-light Vision</li><li>Point Blank Shot</li><li>Power Attack</li><li>Shield Proficiency</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Search)</li><li>Skill Affinity (Spot)</li><li>Trackless Step</li><li>Two-Weapon Fighting</li><li>Weapon Finesse</li><li>Weapon Focus (longbow)</li><li>Weapon Focus (longsword)</li><li>Weapon Proficiency (Elf)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (longsword)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Animal Empathy</td><td>23</td></tr>
 <tr><td>Discipline</td><td>65</td></tr>
@@ -77,8 +124,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(1 area)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/woodoflegolas.html">Mirkwood: Forest of Greenleaves</a></td><td>mirkwoodwalkers</td><td><code>mirkwoodwalkers</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script code_redeem</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>code_redeem</code></h1><pre class="nss-source"><code>// code_redeem.nss
+// Module OnPlayerChat handler. Players type &quot;Code:&lt;name&gt;&quot; to redeem a code.
+// One redemption per CD key per code. Codes can have an expiration date.
+//
+// To add a new code:
+//   1. Add a case to GetCodeExpiration() with its YYYY-MM-DD expiration.
+//   2. Add a matching case to ApplyCodeBenefit() that grants the reward.
+// Codes are matched case-insensitively.
+
+const string CODE_DB     = &quot;coderedeem&quot;;
+const string CODE_PREFIX = &quot;code:&quot;;
+
+// Returns the expiration date &quot;YYYY-MM-DD&quot; for sCodeLower, or &quot;&quot; if unknown.
+string GetCodeExpiration(string sCodeLower)
+{
+    if (sCodeLower == &quot;freelegendary&quot;) return &quot;2026-07-01&quot;;
+    if (sCodeLower == &quot;defect20260516&quot;) return &quot;2026-05-25&quot;;
+    return &quot;&quot;;
+}
+
+// Apply the reward for sCodeLower to oPC. Return TRUE on success.
+int ApplyCodeBenefit(string sCodeLower, object oPC)
+{
+    if (sCodeLower == &quot;freelegendary&quot;)
+    {
+        SetXP(oPC, 17498600);
+        return TRUE;
+    }
+    if (sCodeLower == &quot;defect20260516&quot;)
+    {
+        GiveXPToCreature(oPC, 25000);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+void EnsureSchema()
+{
+    sqlquery q = SqlPrepareQueryCampaign(CODE_DB,
+        &quot;CREATE TABLE IF NOT EXISTS redemptions (&quot; +
+        &quot; code TEXT NOT NULL,&quot; +
+        &quot; cdkey TEXT NOT NULL,&quot; +
+        &quot; redeemed_at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)),&quot; +
+        &quot; PRIMARY KEY (code, cdkey))&quot;);
+    SqlStep(q);
+}
+
+int IsCodeExpired(string sExpDate)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CODE_DB,
+        &quot;SELECT date(&#x27;now&#x27;) &gt; @exp&quot;);
+    SqlBindString(q, &quot;@exp&quot;, sExpDate);
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return FALSE;
+}
+
+int HasRedeemed(string sCode, string sCDKey)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CODE_DB,
+        &quot;SELECT 1 FROM redemptions WHERE code = @code AND cdkey = @cdkey&quot;);
+    SqlBindString(q, &quot;@code&quot;, sCode);
+    SqlBindString(q, &quot;@cdkey&quot;, sCDKey);
+    return SqlStep(q);
+}
+
+void RecordRedemption(string sCode, string sCDKey)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CODE_DB,
+        &quot;INSERT INTO redemptions (code, cdkey) VALUES (@code, @cdkey)&quot;);
+    SqlBindString(q, &quot;@code&quot;, sCode);
+    SqlBindString(q, &quot;@cdkey&quot;, sCDKey);
+    SqlStep(q);
+}
+
+string TrimSpaces(string s)
+{
+    while (GetStringLength(s) &gt; 0 &amp;&amp; GetSubString(s, 0, 1) == &quot; &quot;)
+        s = GetSubString(s, 1, GetStringLength(s) - 1);
+    while (GetStringLength(s) &gt; 0 &amp;&amp;
+           GetSubString(s, GetStringLength(s) - 1, 1) == &quot; &quot;)
+        s = GetSubString(s, 0, GetStringLength(s) - 1);
+    return s;
+}
+
+void main()
+{
+    object oPC = GetPCChatSpeaker();
+    if (!GetIsPC(oPC) &amp;&amp; !GetIsDM(oPC)) return;
+
+    string sMsg = GetPCChatMessage();
+    int iPrefixLen = GetStringLength(CODE_PREFIX);
+    if (GetStringLength(sMsg) &lt; iPrefixLen) return;
+    if (GetStringLowerCase(GetSubString(sMsg, 0, iPrefixLen)) != CODE_PREFIX)
+        return;
+
+    // Don&#x27;t broadcast the code to the rest of the server.
+    SetPCChatMessage(&quot;&quot;);
+
+    string sCode = TrimSpaces(GetStringLowerCase(
+        GetSubString(sMsg, iPrefixLen, GetStringLength(sMsg) - iPrefixLen)));
+    if (sCode == &quot;&quot;) return;
+
+    EnsureSchema();
+
+    string sExp = GetCodeExpiration(sCode);
+    if (sExp == &quot;&quot;)
+    {
+        SendMessageToPC(oPC, &quot;Unknown redemption code.&quot;);
+        return;
+    }
+
+    if (IsCodeExpired(sExp))
+    {
+        SendMessageToPC(oPC, &quot;That code has expired (was valid until &quot; +
+                             sExp + &quot;).&quot;);
+        return;
+    }
+
+    string sCDKey = GetPCPublicCDKey(oPC);
+    if (HasRedeemed(sCode, sCDKey))
+    {
+        SendMessageToPC(oPC, &quot;You have already redeemed that code.&quot;);
+        return;
+    }
+
+    if (!ApplyCodeBenefit(sCode, oPC))
+    {
+        SendMessageToPC(oPC, &quot;Code redemption failed: no benefit configured.&quot;);
+        return;
+    }
+
+    RecordRedemption(sCode, sCDKey);
+    SendMessageToPC(oPC, &quot;Code redeemed successfully!&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

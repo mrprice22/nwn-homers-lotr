@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MeaningWave: A Guide to the Guides</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <main>
+  <style>
+    .mw-layout {
+      display: flex;
+      gap: 2.5em;
+      align-items: flex-start;
+    }
+    .mw-toc-pane {
+      flex: 0 0 220px;
+      position: sticky;
+      top: 1.5em;
+      max-height: calc(100vh - 3em);
+      overflow-y: auto;
+    }
+    .mw-content {
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+
+    .toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1em 1.2em;
+    }
+    .toc h2 {
+      font-size: 1em;
+      margin: 0 0 0.5em;
+      border: none;
+      padding: 0;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.8em;
+      margin: 1em 0 1.5em;
+    }
+    .legend-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75em 1em;
+    }
+    .legend-card .lc-name { font-size: 1.05em; color: var(--accent); margin: 0 0 0.15em; }
+    .legend-card .lc-arch { font-size: 0.88em; color: var(--muted); font-style: italic; margin: 0 0 0.35em; }
+    .legend-card .lc-meta { font-size: 0.88em; }
+    .legend-card .lc-meta span { display: inline-block; margin-right: 1em; }
+    .legend-card a.lc-link { font-size: 0.82em; color: var(--link); }
+
+    blockquote {
+      background: rgba(107,58,28,0.05);
+      border-left: 4px solid var(--accent-soft);
+      margin: 1em 0;
+      padding: 0.6em 1.1em;
+      border-radius: 0 4px 4px 0;
+    }
+    blockquote p { margin: 0.3em 0; }
+
+    .hop-path { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 0.6em 1em 0.6em 1.5em; margin: 0.6em 0 1em; }
+    .hop-path li { margin: 0.25em 0; }
+
+    .reward-box {
+      background: rgba(200,165,119,0.12);
+      border: 1px solid var(--accent-soft);
+      border-radius: 4px;
+      padding: 0.7em 1.1em;
+      margin: 1em 0;
+    }
+
+    h2, h3 { scroll-margin-top: 1.5em; }
+
+    .mw-fannotice {
+      background: rgba(30, 30, 60, 0.07);
+      border: 1px solid var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      padding: 0.8em 1.2em;
+      margin: 1.2em 0 1.6em;
+      font-size: 0.93em;
+    }
+    .mw-fannotice p { margin: 0.35em 0; }
+    .mw-fannotice .mw-official-link {
+      font-size: 1.05em;
+      font-weight: 600;
+    }
+
+    .yt-links { margin: 0.3em 0 0; padding-left: 1.4em; }
+    .yt-links li { margin: 0.25em 0; font-size: 0.9em; }
+    .yt-type { color: var(--muted); font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.03em; margin-left: 0.4em; }
+  </style>
+  <div class="mw-layout">
+  <aside class="mw-toc-pane">
+    <nav class="toc" aria-label="Page contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#roster">The Roster</a></li>
+        <li><a href="#peterson">Jordan Peterson — Sage of Order</a></li>
+        <li><a href="#watts">Alan Watts — Mystic of the Tao</a></li>
+        <li><a href="#campbell">Joseph Campbell — The Mythkeeper</a></li>
+        <li><a href="#mckenna">Terence McKenna — Bard of the Mushroom</a></li>
+        <li><a href="#jocko">Jocko Willink — The Iron Captain</a></li>
+        <li><a href="#jung">Carl Jung — The Shadow-Walker</a></li>
+        <li><a href="#aurelius">Marcus Aurelius — The Philosopher King</a></li>
+        <li><a href="#hall">The Hall of Legends</a></li>
+        <li><a href="#tactics">Combat Styles</a></li>
+      </ol>
+    </nav>
+  </aside>
+  <div class="mw-content">
+
+<h1>MeaningWave: A Guide to the Guides</h1>
+
+<div class="mw-fannotice">
+  <p><em>"Even here, in the Third Age, we hear the signal. The Wave does not respect the boundaries between worlds."</em></p>
+  <p><strong>This is a fan page</strong> — not affiliated with or endorsed by Akira the Don or Meaningwave. It is a player's guide to the Meaningwave content woven into <strong>Homer's LOTR</strong>, a Neverwinter Nights module, where the Wave Lord's signal has somehow bled through the Veil into Middle-earth. Seven philosopher-legends, summoned by Akira's mixtape, now walk the roads of Arda and wait to be found.</p>
+  <p>To hear the real music, support Akira, and explore the full catalogue of philosopher-music from the source:</p>
+  <p class="mw-official-link">&#9654; <a href="https://www.meaningwave.com/" target="_blank" rel="noopener">meaningwave.com</a> — official home of the Wave Lord, Akira the Don</p>
+</div>
+
+<p>Seven legends have been pulled across worlds into Middle-earth by Akira the Don's mixtape.
+Find them, prove yourself worthy, and they will walk with you in dream and in deed.</p>
+
+<p>This guide lists where each legend stands, the shortest route from the Well of Eru to find
+them, and how each is unlocked. Once you have unlocked at least one, the
+<strong>Wayshrine of the Wave</strong> in the Well of Eru opens the door to the Hall of Legends —
+Akira's hub.</p>
+
+<blockquote>
+  <p><strong>How unlocking works.</strong> Each guide poses a five-question quiz. Answer at least
+  four correctly and the guide will recognise you. Once unlocked they appear in the
+  rest-time / emote-wand menu under <em>"[Summon a Legend.]"</em> — pick them to bring them
+  along as a henchman for the journey.</p>
+  <p><strong>Tip.</strong> Resting (or activating the emote wand item) opens the legacy emote menu.
+  A new option, "[Summon a Legend.]", appears at the bottom once you have at least one guide.
+  Only the legends you have unlocked appear in the submenu.</p>
+</blockquote>
+
+<h2 id="roster">The Roster</h2>
+
+<table>
+  <thead>
+    <tr><th>#</th><th>Name</th><th>Archetype</th><th>Region</th><th>Hops from Well of Eru</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Jordan Peterson</strong></td><td>Sage of Order</td><td><a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></td><td>2</td></tr>
+    <tr><td>2</td><td><strong>Alan Watts</strong></td><td>Mystic of the Tao</td><td><a href="../areas/oldforest001.html">Old Forest</a></td><td>4</td></tr>
+    <tr><td>3</td><td><strong>Joseph Campbell</strong></td><td>The Mythkeeper</td><td><a href="../areas/balinstomb.html">Balin's Tomb (Moria)</a></td><td>6</td></tr>
+    <tr><td>4</td><td><strong>Terence McKenna</strong></td><td>Bard of the Mushroom</td><td><a href="../areas/northernforestso.html">Northern Forests of Ithilien</a></td><td>4</td></tr>
+    <tr><td>5</td><td><strong>Jocko Willink</strong></td><td>The Iron Captain</td><td><a href="../areas/helmsdeep001.html">Helm's Deep</a></td><td>1</td></tr>
+    <tr><td>6</td><td><strong>Carl Jung</strong></td><td>The Shadow-Walker</td><td><a href="../areas/cryptsofthelosts.html">Esgaroth Crypts</a></td><td>2</td></tr>
+    <tr><td>7</td><td><strong>Marcus Aurelius</strong></td><td>The Philosopher King</td><td><a href="../areas/gwaththrone.html">Gwathdor: Throne of the Lord</a></td><td>9</td></tr>
+    <tr><td>&#9733;</td><td><strong>Akira the Don</strong> <em class="muted">(hub, not summonable)</em></td><td>Curator</td><td><a href="../areas/hallofleg.html">Hall of Legends</a></td><td>1 (Wayshrine, after first unlock)</td></tr>
+  </tbody>
+</table>
+
+<p class="muted"><em>These are the Wave 1 legends. More philosopher-guides are being pulled through the signal — keep watch for future arrivals.</em></p>
+
+<hr>
+
+<h2 id="peterson">1. Jordan Peterson — Sage of Order</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a> — opposite side of the chamber from Elrond.</dd>
+  <dt>Build</dt>
+  <dd><strong>Wizard 60.</strong> Pure arcane devastation. Peterson leads with Epic Warding to protect himself, then unleashes Hellball, Ruin, and Dragon Knight on priority targets. Intelligence-primary; his spell penetration and memorized loadout (Wail of the Banshee, Meteor Swarm, Horrid Wilting) make him the party's nuclear option.</dd>
+  <dt>Quiz themes</dt>
+  <dd>Responsibility, hierarchy, meaning, slaying the dragon you would rather ignore, and setting your house in order. Pass 4 of 5.</dd>
+  <dt>Further reading</dt>
+  <dd>
+    <a href="https://en.wikipedia.org/wiki/Jordan_Peterson">Jordan Peterson — Wikipedia</a> ·
+    <em>12 Rules for Life: An Antidote to Chaos</em> (2018) is the primary quiz source — it covers responsibility (Rule 6), hierarchy (Rule 1), meaning, and confronting the dragon you would rather avoid ·
+    <em>Maps of Meaning: The Architecture of Belief</em> (1999) for deeper background ·
+    His free lecture series <em>Personality and Its Transformations</em> is available on YouTube
+  </dd>
+  <dt>On Meaningwave</dt>
+  <dd>
+    <ul class="yt-links">
+      <li><a href="https://www.youtube.com/watch?v=oH0Xs3Y8US8" target="_blank" rel="noopener">42 Rules For Life</a> <span class="yt-type">single · music video</span> — distills the 12 Rules into verse; closest to the quiz material</li>
+      <li><a href="https://www.youtube.com/watch?v=rGxhJXxXxNY" target="_blank" rel="noopener">You Can Say No</a> <span class="yt-type">single · music video</span> — responsibility and the right to refuse</li>
+      <li><a href="https://www.youtube.com/watch?v=DeTmMPtdtX0" target="_blank" rel="noopener">Deadwood</a> <span class="yt-type">single · JBPWAVE</span> — hierarchy and the cost of letting things rot</li>
+      <li><a href="https://www.youtube.com/watch?v=pZ8EY-MHjSU" target="_blank" rel="noopener">Be A Plumber</a> <span class="yt-type">single</span> — practical wisdom; do the meaningful thing in front of you</li>
+      <li><a href="https://www.youtube.com/playlist?list=PLQUliLxVLcV5x32Yisxz7FBLhZDg_OhNg" target="_blank" rel="noopener">JBPWAVE — Full Playlist</a> <span class="yt-type">playlist</span> — all Peterson tracks by Akira the Don</li>
+    </ul>
+  </dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(2 hops)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → <a href="../areas/rivendell.html">Rivendell</a></strong>: talk to the <strong>Guardian of Light</strong> and choose Rivendell.</li>
+  <li><strong>Rivendell → <a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></strong>: use the <code>rivendell2upper</code> door.</li>
+</ol>
+
+<hr>
+
+<h2 id="watts">2. Alan Watts — Mystic of the Tao</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/oldforest001.html">Old Forest</a> (the deeper inner area, not the Withywindle approach).</dd>
+  <dt>Build</dt>
+  <dd><strong>Cleric 30 / Monk 30.</strong> An Episcopal priest who became a Zen teacher — his divine magic and monastic disciplines combine into a formidable healer and melee fighter. Wisdom is his primary stat, fuelling both his Cleric spells and the Monk's Wisdom-to-AC bonus.</dd>
+  <dt>Quiz themes</dt>
+  <dd>Ego, flow, the universe at play, and how to let go. Pass 4 of 5.</dd>
+  <dt>Further reading</dt>
+  <dd>
+    <a href="https://en.wikipedia.org/wiki/Alan_Watts">Alan Watts — Wikipedia</a> ·
+    <em>The Book: On the Taboo Against Knowing Who You Are</em> (1966) — best starting point for ego and self-dissolution ·
+    <em>The Way of Zen</em> (1957) for flow and the Tao ·
+    <em>The Wisdom of Insecurity</em> (1951) — the quiz's letting-go themes ·
+    Recordings and transcripts at <a href="https://alanwatts.org">alanwatts.org</a>
+  </dd>
+  <dt>On Meaningwave</dt>
+  <dd>
+    <ul class="yt-links">
+      <li><a href="https://www.youtube.com/watch?v=HONn4QGri6g" target="_blank" rel="noopener">This Is Why I Love The Ocean</a> <span class="yt-type">full album</span> — deep cuts on ego, flow, and belonging; good intro to the Watts catalogue</li>
+      <li><a href="https://www.youtube.com/watch?v=4IhFCmd9yuo" target="_blank" rel="noopener">Wattswave II — How To Be A Better Person</a> <span class="yt-type">full album · lofi hip-hop</span> — covers the letting-go and self-dissolution themes directly relevant to the quiz</li>
+      <li><a href="https://www.youtube.com/watch?v=d6VTQZNULlA" target="_blank" rel="noopener">It Takes Two (What's The Difference Remix)</a> <span class="yt-type">single · Alan Watts × Dr. Dre</span> — a playful collision of worlds, much like finding Watts in the Old Forest</li>
+      <li><a href="https://www.youtube.com/playlist?list=PLQUliLxVLcV5GM_mNNY5-yoXYzsNNY3bt" target="_blank" rel="noopener">Wattswave — Full Playlist</a> <span class="yt-type">playlist</span> — all Alan Watts lofi mixes by Akira the Don</li>
+    </ul>
+  </dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(4 hops)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → Bree</strong>: use the door (the main Bree gate).</li>
+  <li><strong>Bree → Old Forest: Withywindle Path</strong>: step on the <code>bree2brandy</code> trigger.</li>
+  <li><strong>Withywindle Path → Old Forest (Tom Bombadil's house)</strong>: <code>withy2tom</code> trigger.</li>
+  <li><strong>Tom's → <a href="../areas/oldforest001.html">Old Forest (inner)</a></strong>: <code>tom2oldforest</code> trigger.</li>
+</ol>
+
+<hr>
+
+<h2 id="campbell">3. Joseph Campbell — The Mythkeeper</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/balinstomb.html">Balin's Tomb</a>, Moria.</dd>
+  <dt>Build</dt>
+  <dd><strong>Bard 60.</strong> Myth woven into music and magic. Campbell sustains Inspirational Song and Curse Song to buff the party and debuff enemies, heals the wounded when needed, and controls the battlefield with Dominate Person and Dirge. Charisma-primary; his bardic performance scales with Epic Skill Focus in Perform.</dd>
+  <dt>Quiz themes</dt>
+  <dd>The monomyth — Call to Adventure, threshold guardians, descent and rebirth, bliss, and the returned boon. Pass 4 of 5.</dd>
+  <dt>Further reading</dt>
+  <dd>
+    <a href="https://en.wikipedia.org/wiki/Joseph_Campbell">Joseph Campbell — Wikipedia</a> ·
+    <em>The Hero with a Thousand Faces</em> (1949) is the direct quiz source — all five themes (Call, threshold guardian, descent and rebirth, following your bliss, the returned boon) are laid out in Part I ·
+    The PBS documentary <em>The Power of Myth</em> (1988, with Bill Moyers) covers the same ground accessibly and is available on streaming services ·
+    <a href="https://www.jcf.org">Joseph Campbell Foundation (jcf.org)</a>
+  </dd>
+  <dt>On Meaningwave</dt>
+  <dd>
+    <ul class="yt-links">
+      <li><a href="https://www.youtube.com/watch?v=ZL2mdM9SN-I" target="_blank" rel="noopener">Kill the Dragon Save the World</a> <span class="yt-type">single · music video</span> — the hero's task in three words; most direct overlap with the quiz</li>
+      <li><a href="https://www.youtube.com/watch?v=jjbwZvI2wXs" target="_blank" rel="noopener">Songs of Mythology</a> <span class="yt-type">full visual album</span> — Call, threshold, descent, bliss, the boon: all five quiz themes covered</li>
+      <li><a href="https://www.youtube.com/watch?v=trmxwwA2Plo" target="_blank" rel="noopener">MYTHOS</a> <span class="yt-type">full album</span> — deeper cuts on the monomyth; pick up after <em>Songs of Mythology</em></li>
+    </ul>
+  </dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(6 hops)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → Lothlorien: Main</strong>: Guardian of Light, choose Lothlorien.</li>
+  <li><strong>Lothlorien Main → Lothlorien North</strong>: <code>Lorien2LorienNorth</code> trigger.</li>
+  <li><strong>Lothlorien North → Sîr Ninglor</strong>: <code>lorien2silver</code> trigger.</li>
+  <li><strong>Sîr Ninglor → Durin's Bridge</strong>: <code>silver2moria</code> trigger.</li>
+  <li><strong>Durin's Bridge → Chamber of Records Walkway</strong>: <code>durin2chr</code> door.</li>
+  <li><strong>Chamber of Records → <a href="../areas/balinstomb.html">Balin's Tomb</a></strong>: <code>chr2balin</code> door.</li>
+</ol>
+<p class="muted">Long trek. The dwarven crypts will likely fight back.</p>
+
+<hr>
+
+<h2 id="mckenna">4. Terence McKenna — Bard of the Mushroom</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/northernforestso.html">Northern Forests of Ithilien</a>.</dd>
+  <dt>Build</dt>
+  <dd><strong>Druid 60.</strong> The deep wild in humanoid form. McKenna calls Storm of Vengeance and Elemental Swarm for raw elemental force, uses Creeping Doom and Entangle to control the field, and keeps the party standing with Heal and Cure Critical Wounds. Wisdom-primary; nature's cycles made manifest.</dd>
+  <dt>Quiz themes</dt>
+  <dd>Culture as operating system, the felt presence of immediate experience, the timewave, the Other, and language as organism. Pass 4 of 5.</dd>
+  <dt>Further reading</dt>
+  <dd>
+    <a href="https://en.wikipedia.org/wiki/Terence_McKenna">Terence McKenna — Wikipedia</a> ·
+    <em>Food of the Gods</em> (1992) — covers culture as operating system and the role of psychedelics in human history ·
+    <em>The Archaic Revival</em> (1991) — essay collection including language-as-organism and the Other ·
+    His lectures are the best source for the felt-presence and timewave themes; many are freely available on YouTube and at the <a href="https://psychedelicsalon.com">Psychedelic Salon podcast</a> ·
+    Search "McKenna timewave zero" and "McKenna the Other" for the most relevant talks
+  </dd>
+  <dt>On Meaningwave</dt>
+  <dd>
+    <ul class="yt-links">
+      <li><a href="https://www.youtube.com/watch?v=rA2YbO4s03o" target="_blank" rel="noopener">TIMEWAVE</a> <span class="yt-type">full album</span> — the culture-as-OS, timewave, and the Other themes all appear here; start here for quiz prep</li>
+      <li><a href="https://www.youtube.com/watch?v=qKnTDBTbS80" target="_blank" rel="noopener">The Archaic Revival</a> <span class="yt-type">single</span> — language as organism and the return to archaic consciousness</li>
+      <li><a href="https://www.youtube.com/watch?v=ALcGQf8tfMw" target="_blank" rel="noopener">Catalysts (Reclaim Your Mind)</a> <span class="yt-type">single · music video</span> — the felt presence of immediate experience</li>
+      <li><a href="https://www.youtube.com/watch?v=ZKh5Tv7azyQ" target="_blank" rel="noopener">Don't Worry</a> <span class="yt-type">single · music video</span> — timewave zero and the nature of anxiety about the unknown</li>
+    </ul>
+  </dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(4 hops)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → Morannon (The Black Gate)</strong>: talk to the <strong>Guardian of Darkness</strong> and choose Morannon.</li>
+  <li><strong>Morannon → Dagorlad</strong>: <code>blackgate2dagorlad</code> trigger.</li>
+  <li><strong>Dagorlad → Dead Marshes</strong>: <code>Dagorlad2DeadMarshes</code> trigger.</li>
+  <li><strong>Dead Marshes → <a href="../areas/northernforestso.html">Northern Forests of Ithilien</a></strong>: <code>deadmarshes2ithnorth</code> trigger.</li>
+</ol>
+<p class="muted">The detour through Mordor's edge is no joke; come well levelled.</p>
+
+<hr>
+
+<h2 id="jocko">5. Jocko Willink — The Iron Captain</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/helmsdeep001.html">Helm's Deep</a>.</dd>
+  <dt>Build</dt>
+  <dd><strong>Fighter 30 / Monk 30.</strong> Discipline embodied. Jocko combines the Fighter's Weapon Specialization and bonus feats with the Monk's Stunning Fist, unarmed progression, Abundant Step, and Perfect Self (DR 20/+5 epic). Strength-primary; Monk adds Wisdom to AC. Every combat round, he hits first and hits hard.</dd>
+  <dt>Quiz themes</dt>
+  <dd>Discipline, extreme ownership, "Good.", waking up, and doing what you do not feel like doing. Pass 4 of 5.</dd>
+  <dt>Further reading</dt>
+  <dd>
+    <a href="https://en.wikipedia.org/wiki/Jocko_Willink">Jocko Willink — Wikipedia</a> ·
+    <em>Extreme Ownership: How U.S. Navy SEALs Lead and Win</em> (with Leif Babin, 2015) is the primary quiz source — the "Extreme Ownership" principle, discipline, and taking responsibility for all outcomes ·
+    The "Good." philosophy originated in a podcast story; search "Jocko Good" on YouTube for the clip ·
+    <a href="https://jockopodcast.com">Jocko Podcast</a> — discipline, early rising, and doing what you don't feel like doing are recurring themes
+  </dd>
+  <dt>On Meaningwave</dt>
+  <dd>
+    <ul class="yt-links">
+      <li><a href="https://www.youtube.com/watch?v=CGh3KDkonQE" target="_blank" rel="noopener">GOOD.</a> <span class="yt-type">single · music video</span> — the quiz asks about this directly; start here</li>
+      <li><a href="https://www.youtube.com/watch?v=0pp2LF0T4yE" target="_blank" rel="noopener">Default Aggressive</a> <span class="yt-type">single</span> — discipline and the posture of constant readiness</li>
+      <li><a href="https://www.youtube.com/watch?v=nVBfAjhSiTg" target="_blank" rel="noopener">Get Some</a> <span class="yt-type">full album</span> — extreme ownership, early mornings, doing the work</li>
+      <li><a href="https://www.youtube.com/watch?v=dih3QWoNT2k" target="_blank" rel="noopener">Warpath</a> <span class="yt-type">full album</span> — discipline as a way of life; cover to cover</li>
+      <li><a href="https://www.youtube.com/playlist?list=PLQUliLxVLcV46lbKliNhk2p-Y0fvsiMxd" target="_blank" rel="noopener">Jocko Willink — Full Playlist</a> <span class="yt-type">playlist</span> — all Jocko tracks by Akira the Don</li>
+    </ul>
+  </dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(1 hop)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → <a href="../areas/helmsdeep001.html">Helm's Deep</a></strong>: Guardian of Light, choose Helm's Deep.</li>
+</ol>
+<p class="muted">The shortest journey of the seven. Get after it.</p>
+
+<hr>
+
+<h2 id="jung">6. Carl Jung — The Shadow-Walker</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/cryptsofthelosts.html">Esgaroth Crypts</a>.</dd>
+  <dt>Build</dt>
+  <dd><strong>Fighter 20 / Rogue 20 / Shadowdancer 20.</strong> The concept of "The Shadow" finds its natural form in the Shadowdancer prestige class. Jung fights from the darkness — Hide in Plain Sight, sneak attacks, and shadow evade make him a lethal flanker. Dexterity-primary with Epic Concealment and Epic Dodge.</dd>
+  <dt>Quiz themes</dt>
+  <dd>The shadow, individuation, the collective unconscious, and the persona. Pass 4 of 5.</dd>
+  <dt>Further reading</dt>
+  <dd>
+    <a href="https://en.wikipedia.org/wiki/Carl_Jung">Carl Jung — Wikipedia</a> ·
+    <em>Man and His Symbols</em> (1964) — the most accessible entry point; Jung wrote the opening chapter himself and it covers shadow, persona, individuation, and the collective unconscious in plain language ·
+    <em>Modern Man in Search of a Soul</em> (1933) — shorter and very readable ·
+    Wikipedia articles on the <a href="https://en.wikipedia.org/wiki/Shadow_(psychology)">Shadow</a>, <a href="https://en.wikipedia.org/wiki/Individuation">Individuation</a>, and <a href="https://en.wikipedia.org/wiki/Collective_unconscious">Collective unconscious</a> are solid direct quiz prep
+  </dd>
+  <dt>On Meaningwave</dt>
+  <dd>
+    <p class="muted" style="margin:0.2em 0 0.5em; font-size:0.88em;">Akira the Don uses Alan Watts as the vocal source for Jung's ideas — the tracks are branded as WATTSWAVE but the content is drawn from Jung's 1928 address <em>Psychotherapists or the Clergy</em>.</p>
+    <ul class="yt-links">
+      <li><a href="https://www.youtube.com/watch?v=ymJolgqx4sE" target="_blank" rel="noopener">The Wolf E.P.</a> <span class="yt-type">full EP · Watts × Jung · WATTSWAVE</span> — shadow, individuation, and the persona; three tracks with visuals, all quiz-adjacent</li>
+      <li><a href="https://www.youtube.com/watch?v=SaiBuCtCrt0" target="_blank" rel="noopener">The Wolf</a> <span class="yt-type">single · music video</span> — the shadow as the beast within; the quiz's shadow theme distilled</li>
+      <li><a href="https://www.youtube.com/watch?v=-5R3G0KiR4o" target="_blank" rel="noopener">Accepted Too</a> <span class="yt-type">single · music video</span> — integrating what has been rejected</li>
+      <li><a href="https://www.youtube.com/watch?v=jI2oKB4dLWM" target="_blank" rel="noopener">Anything</a> <span class="yt-type">single · music video</span> — individuation and the cost of becoming whole</li>
+    </ul>
+  </dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(2 hops)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → Esgaroth (Lake Town)</strong>: Guardian of Darkness, choose Esgaroth.</li>
+  <li><strong>Esgaroth → <a href="../areas/cryptsofthelosts.html">Esgaroth Crypts</a></strong>: <code>laketowncryptsenter</code> door.</li>
+</ol>
+
+<hr>
+
+<h2 id="aurelius">7. Marcus Aurelius — The Philosopher King</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/gwaththrone.html">Gwathdor: Throne of the Lord</a>.</dd>
+  <dt>Build</dt>
+  <dd><strong>Paladin 60.</strong> The Philosopher King in heavy armor. Aurelius heals the master and himself with Cure Critical and Cure Serious Wounds, uses Divine Grace to shore up party saves, and punishes evil with Smite. Guardian mode keeps the master alive at any cost; Offensive mode pulls aggro by targeting the enemies attacking you.</dd>
+  <dt>Quiz themes</dt>
+  <dd>What is in your power, the obstacle as the way, <em>memento mori</em>, the soul dyed by its thoughts, and how to begin each day. Pass 4 of 5.</dd>
+  <dt>Further reading</dt>
+  <dd>
+    <a href="https://en.wikipedia.org/wiki/Marcus_Aurelius">Marcus Aurelius — Wikipedia</a> ·
+    <a href="https://en.wikipedia.org/wiki/Meditations"><em>Meditations</em> — Wikipedia</a> — the sole quiz source; it is in the public domain and freely available online (search "Meditations Marcus Aurelius Project Gutenberg") ·
+    The Gregory Hays translation (Modern Library, 2002) is widely considered the most readable modern edition ·
+    Ryan Holiday's <em>The Obstacle Is the Way</em> (2014) is a modern guide built directly on Aurelius's core ideas
+  </dd>
+  <dt>On Meaningwave</dt>
+  <dd>
+    <ul class="yt-links">
+      <li><a href="https://www.youtube.com/watch?v=jk1Sr1kfIL4" target="_blank" rel="noopener">Meditations Vol. 1</a> <span class="yt-type">full visual album · STOICWAVE</span> — drawn directly from the <em>Meditations</em>; the single best prep for the quiz</li>
+      <li><a href="https://www.youtube.com/watch?v=x88YaIji18E" target="_blank" rel="noopener">Grateful to the Gods</a> <span class="yt-type">single · music video</span> — <em>memento mori</em> and gratitude; themes that appear in the quiz</li>
+      <li><a href="https://www.youtube.com/playlist?list=PLQUliLxVLcV53qaa3NUYt9NoMVgDqEGiS" target="_blank" rel="noopener">Marcus Aurelius — Full Playlist</a> <span class="yt-type">playlist</span> — all Aurelius tracks by Akira the Don</li>
+    </ul>
+  </dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(9 hops)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → Edoras</strong>: Guardian of Light, choose Edoras.</li>
+  <li><strong>Edoras → Path To Helm's Deep</strong>: <code>edoras2helm</code> trigger.</li>
+  <li><strong>Path → Hidden Port</strong>: <code>path2hiddenport</code> trigger.</li>
+  <li><strong>Hidden Port → <a href="../areas/gwathdoroutskirt.html">Gwathdor: Outskirts</a></strong>: talk to <strong>Laxus the Ship Captain</strong>.</li>
+  <li><strong>Outskirts → <a href="../areas/gwathdorcave.html">Gwathdor: Cave</a></strong>: <code>GwathDoorEntrance</code> door.</li>
+  <li><strong>Cave → East Deeps</strong> (trigger).</li>
+  <li><strong>East Deeps → West Deeps</strong> (trigger).</li>
+  <li><strong>West Deeps → <a href="../areas/gwathtomb.html">Tomb</a></strong> (trigger).</li>
+  <li><strong>Tomb → <a href="../areas/gwaththrone.html">Throne of the Lord</a></strong> (trigger).</li>
+</ol>
+<p class="muted">The longest of the seven. Stoic discipline indeed.</p>
+
+<hr>
+
+<h2 id="hall">The Hall of Legends</h2>
+<dl class="kv">
+  <dt>Location</dt>
+  <dd><a href="../areas/hallofleg.html">The Hall of Legends</a> — a hub area reached only via the Wayshrine.</dd>
+  <dt>Unlock</dt>
+  <dd>Unlock any one of the seven legends first.</dd>
+</dl>
+<h3>Path from Well of Eru <span class="muted">(1 hop)</span></h3>
+<ol class="hop-path">
+  <li><strong>Well of Eru → <a href="../areas/hallofleg.html">The Hall of Legends</a></strong>: touch the <strong>Wayshrine of the Wave</strong>, the black obelisk in the Well of Eru.</li>
+</ol>
+<p>Inside the Hall, <strong>Akira the Don</strong> stands at the centre, surrounded by seven pedestals.
+Each pedestal that still holds a stone statue is a legend you have yet to unlock; pedestals
+whose statue you have already earned now show the live figure, who will greet you with a
+short post-unlock benediction.</p>
+<div class="reward-box">
+  <strong>Final reward — Akira's Mixtape.</strong> When all seven legends are yours, return to
+  the Hall and ask Akira for the mixtape. He will press into your hand a black slab called
+  <strong>Akira's Mixtape</strong> — a ring that grants +2 to all six ability scores and
+  closes the Path of Meaning quest. <strong>The ring can optionally be consumed to permanently
+  grant +1 to all ability scores.</strong>
+</div>
+
+<hr>
+
+<h2 id="tactics">Combat Styles</h2>
+
+<p>Once a guide is walking with you as a henchman, you can tell them how to fight.
+Talk to them and choose <strong>"Let's talk tactics."</strong> — the option only appears
+while they are summoned. Each guide remembers their style until you change it or they
+are dismissed.</p>
+
+<table>
+  <thead>
+    <tr><th>Guide</th><th>Style 0 (default)</th><th>Style 1</th><th>Style 2</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Jordan Peterson</strong> (Wizard)</td>
+      <td><strong>Calculated</strong> — applies Epic Warding on himself first, then unleashes offensive spells</td>
+      <td><strong>Aggressive</strong> — leads immediately with Hellball, Ruin, or Dragon Knight; no waiting</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Alan Watts</strong> (Cleric/Monk)</td>
+      <td><strong>Enlightened</strong> — heals party members below half health, buffs himself with Divine Power, then fights normally</td>
+      <td><strong>Guardian</strong> — pure support; heals anyone below 70% health and keeps the party buffed; will not attack</td>
+      <td><strong>Zen Strike</strong> — buffs himself with Divine Power then closes to melee, using Quivering Palm on the strongest foe</td>
+    </tr>
+    <tr>
+      <td><strong>Joseph Campbell</strong> (Bard)</td>
+      <td><strong>Balanced</strong> — heals at &lt;25% HP, otherwise follows the standard AI (CC, song, light offense)</td>
+      <td><strong>Combat</strong> — casts offensive spells and control effects; only heals in emergencies (&lt;15%)</td>
+      <td><strong>Healer</strong> — heals anyone below 50% HP and casts Haste on the master when the party is stable</td>
+    </tr>
+    <tr>
+      <td><strong>Terence McKenna</strong> (Druid)</td>
+      <td><strong>Balanced</strong> — as Campbell above</td>
+      <td><strong>Combat</strong> — Storm of Vengeance, offensive nature magic, emergency heals only</td>
+      <td><strong>Healer</strong> — as Campbell above</td>
+    </tr>
+    <tr>
+      <td><strong>Jocko Willink</strong> (Fighter/Monk)</td>
+      <td><strong>Get After It</strong> — opens every round with a Stunning Fist on the nearest enemy, then presses the attack normally</td>
+      <td><strong>Extreme Ownership</strong> — locates whoever is targeting you and attacks them directly, pulling their focus so you can fight freely</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Carl Jung</strong> (Shadowdancer)</td>
+      <td><strong>Shadow</strong> — hides mid-combat (Hide in Plain Sight) and attacks enemies that are targeting you, maximising sneak attack damage</td>
+      <td><strong>Warrior</strong> — open combat; no stealth, straightforward aggression</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Marcus Aurelius</strong> (Paladin)</td>
+      <td><strong>Guardian</strong> — heals you when your HP drops below half; otherwise follows the standard combat AI</td>
+      <td><strong>Offensive</strong> — self-heals only when critical; actively hunts down enemies that are attacking you to pull their focus away</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="muted"><em>Tip: Set Peterson to Aggressive going into a boss fight — he will open with an epic nuke. Swap Watts to Guardian if you are taking heavy damage and need a dedicated healer. Jung in Shadow mode is most effective when you are tanking: his sneak attacks land consistently against foes already focused on you. Jocko in Extreme Ownership keeps heat off you in a crowd — put him on it and let him handle the pile-on.</em></p>
+
+  </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+</body>
+</html>

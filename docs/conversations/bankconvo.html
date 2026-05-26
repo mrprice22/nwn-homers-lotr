@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation bankconvo</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,10 +52,11 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/bankteller.html">Bank Teller</a> <code>bankteller</code></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/bankteller.html">Bank Teller</a> <code>bankteller</code></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>bank_getgold</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM4958&gt;</code></td><td><a href="../scripts/bank_getgold.html">bank_getgold</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a> — Hello, welcome to the bank!</li>
 </ul>
@@ -50,7 +73,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
-<div class="dlg-text">&lt;Sir/Madam&gt;, you&#x27;ve got &lt;CUSTOM4958&gt; gold.</div>
+<div class="dlg-text">&lt;Sir/Madam&gt;, you&#x27;ve got <span class="custom-token" title="SetCustomToken(4958, ...) called in: bank_getgold">&lt;CUSTOM4958&gt;<sup class="token-setters">[<a href="../scripts/bank_getgold.html">bank_getgold</a>]</sup></span> gold.</div>
 </details>
 </div>
 </details>
@@ -74,12 +97,12 @@
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Hello, welcome to the bank!</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“I&#x27;d like to see my balance.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I&#x27;d like to make some transactions.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Goodbye.”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Say &quot;I want to deposit ___ gold&quot; to deposit gold and &quot;I want to withdraw _____ gold&quot; to withdraw gold.  If you want to deposit 50 gold, for example, simply say &quot;I want to deposit 50 gold.&quot;</div></div>
-<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">&lt;Sir/Madam&gt;, you&#x27;ve got &lt;CUSTOM4958&gt; gold.</div></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">&lt;Sir/Madam&gt;, you&#x27;ve got <span class="custom-token" title="SetCustomToken(4958, ...) called in: bank_getgold">&lt;CUSTOM4958&gt;<sup class="token-setters">[<a href="../scripts/bank_getgold.html">bank_getgold</a>]</sup></span> gold.</div></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Goodbye.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I&#x27;d like to make some transactions.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Say &quot;I want to deposit ___ gold&quot; to deposit gold and &quot;I want to withdraw _____ g…”</span></li></ul></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>bank_getgold</code></span></div><div class="dlg-text">I&#x27;d like to see my balance.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“&lt;Sir/Madam&gt;, you&#x27;ve got &lt;CUSTOM4958&gt; gold.”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>bank_getgold</code></span></div><div class="dlg-text">I&#x27;d like to see my balance.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“, you&#x27;ve got  gold.”</span></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

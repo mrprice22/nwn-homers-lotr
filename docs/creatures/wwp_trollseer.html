@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Summoned Troll Seer</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,30 +47,32 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>wwp_trollseer</dd>
 <dt>Tag</dt><dd>TrollSeer</dd>
-<dt>Race</dt><dd>Giant</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-18">Giant</a></dd>
 <dt>Appearance</dt><dd>Troll, Shaman</dd>
 <dt>Class(es)</dt><dd>Wizard 15/Giant 5</dd>
-<dt>HP</dt><dd>1200</dd>
+<dt>HP</dt><dd>1,200</dd>
 <dt>CR</dt><dd>89.0</dd>
-<dt>Faction</dt><dd><a href="../factions.html">65535</a></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Faction</dt><dd><a href="../factions.html">(None)</a></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>70</td><th>Dex</th><td>70</td><th>Con</th><td>10</td><th>Int</th><td>19</td><th>Wis</th><td>12</td><th>Cha</th><td>13</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Wizard</td><td>15</td></tr><tr><td>Giant</td><td>5</td></tr></tbody></table>
 <p class="desc">Troll Seers are a unique sight to many adventures. As these creatures are normally considerd very dumb. And they are. Troll Seers gain their awesome magical powers only by spritual means and not through study or meditation. The regenerate much slower then the normal Troll because of their spiritual essence.</p>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>1200</td><th>AC</th><td>80 <small class="muted">(10 base + +30 Dex + +40 natural (NaturalAC))</small></td><th>BAB</th><td>+10</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+30</td><th>Will</th><td>+1</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td>nw_wswdg001</td><td></td><td>Melee</td><td>+40/+35</td><td>—</td><td></td></tr>
-<tr><td>Creature weapon (R)</td><td>nw_it_crewpb005</td><td></td><td>Melee</td><td>+40/+35</td><td>—</td><td></td></tr>
-<tr><td>Creature weapon (L)</td><td>nw_it_crewps005</td><td></td><td>Melee</td><td>+40/+35</td><td>—</td><td></td></tr>
-<tr><td>Creature weapon (bite)</td><td>nw_it_crewpp005</td><td></td><td>Melee</td><td>+40/+35</td><td>—</td><td></td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>1,200</td><th>AC</th><td>80 <small class="muted">(10 base + +30 Dex + +40 natural (NaturalAC))</small></td><th>BAB</th><td>+10</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+30</td><th>Will</th><td>+1</td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/nw_wswdg001.html">Dagger</a></td><td>Dagger</td><td>Melee</td><td>+40/+35</td><td>1d4+30 (31–34)</td><td>19-20/x2</td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/nw_it_crewpb005.html">Slam1d6</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+40/+35</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/nw_it_crewps005.html">Bite1d6</a></td><td>Creature Slash Weapon</td><td>Melee</td><td>+40/+35</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/nw_it_crewpp005.html">Gore1d6</a></td><td>Creature Pierce Weapon</td><td>Melee</td><td>+40/+35</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td>nw_cloth005</td></tr>
-<tr><td>Right hand</td><td>nw_wswdg001</td></tr>
-<tr><td>Creature weapon (R)</td><td>nw_it_crewpb005</td></tr>
-<tr><td>Creature weapon (L)</td><td>nw_it_crewps005</td></tr>
-<tr><td>Creature weapon (bite)</td><td>nw_it_crewpp005</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/nw_cloth005.html">Wizard&#x27;s Robe</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/nw_wswdg001.html">Dagger</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/nw_it_crewpb005.html">Slam1d6</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/nw_it_crewps005.html">Bite1d6</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/nw_it_crewpp005.html">Gore1d6</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(13)</small></h2><ul class="featlist"><li>Alertness</li><li>Combat Casting</li><li>Darkvision</li><li>Dodge</li><li>Iron Will</li><li>Lightning Reflexes</li><li>Spell Focus (Evocation)</li><li>Spell Penetration</li><li>Summon Familiar</li><li>Weapon Focus (dagger)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (simple)</li><li>Weapon Proficiency (wizard)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>75</td></tr>
 <tr><td>Listen</td><td>9</td></tr>
@@ -83,6 +107,6 @@
 <tr><td>ScriptUserDefine</td><td>nw_ch_acd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_ch_ace</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

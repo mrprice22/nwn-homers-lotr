@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation mw_watts_m</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>mw_watts_m</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>10</dd>
+<dt>PC replies</dt><dd>20</dd>
+<dt>NumWords</dt><dd>200</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/mw_watts_w.html">Alan Watts</a> <code>mw_watts_w</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>mw_wat_unl</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_wat_reset</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_wat_inc</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_wat_pass</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_chk_watts</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e9">entry #9</a> <small class="muted">(if <code>mw_chk_watts</code>)</small> — Ha. The river does not need to remember flowing, . You have already understood w…</li>
+<li><a href="#e0">entry #0</a> — Welcome, dear friend. You are the universe playing hide-and-seek with itself. Sh…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <small class="muted">(if <code>mw_chk_watts</code>)</small> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">Ha. The river does not need to remember flowing, &lt;FullName&gt;. You have already understood what most spend a lifetime avoiding. Come back to laugh with me — but there is nothing left to prove.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #19</span> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
+<div class="dlg-text">Of course. Thank you.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">Welcome, dear friend. You are the universe playing hide-and-seek with itself. Shall we play a small game of questions, or will you wander on?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>mw_wat_reset</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Ask. I will answer.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">Who is doing the experiencing?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">I am, separate from the world.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">What is the universe?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">A machine.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">Why try, then?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">To win.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">What is the self?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
+<div class="dlg-text">A noun.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">How do you let go?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
+<div class="dlg-text">By gripping harder until you cannot.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>mw_wat_unl</code></span> <small class="muted">(if <code>mw_wat_pass</code>)</small> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">Hahaha. You see it now. When you next dream, I will be there to laugh with you.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #17</span> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
+<div class="dlg-text">Thank you.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">Oh dear, you are still pretending to be a separate thing. Wander a while; the joke will land when it lands.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #18</span> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
+<div class="dlg-text">I will return.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
+<div class="dlg-text">By falling on purpose, with grace.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Hahaha. You see it now. When you next dream, I will be there to laugh with you.”</span> <small class="muted">(if <code>mw_wat_pass</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“Oh dear, you are still pretending to be a separate thing. Wander a while; the jo…”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #16</span> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
+<div class="dlg-text">By renouncing the body.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Hahaha. You see it now. When you next dream, I will be there to laugh with you.”</span> <small class="muted">(if <code>mw_wat_pass</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“Oh dear, you are still pretending to be a separate thing. Wander a while; the jo…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
+<div class="dlg-text">A verb — selving.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“How do you let go?”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
+<div class="dlg-text">An illusion to be destroyed.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“How do you let go?”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text">Because the trying is the play; the goal is incidental.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“What is the self?”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text">Because failure shames the gods.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“What is the self?”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">A test of moral fibre.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Why try, then?”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">A game played in hide-and-seek by what we are.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Why try, then?”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">There is no separate I; the experiencing is the experience itself.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“What is the universe?”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">The mind sealed inside the skull.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“What is the universe?”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">Not today.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">Then walk on.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome, dear friend. You are the universe playing hide-and-seek with itself. Shall we play a small game of questions, or will you wander on?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Ask. I will answer.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Not today.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Who is doing the experiencing?</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“I am, separate from the world.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“There is no separate I; the experiencing is the experience itself.”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“The mind sealed inside the skull.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">What is the universe?</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“A machine.”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“A test of moral fibre.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“A game played in hide-and-seek by what we are.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Why try, then?</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“To win.”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Because the trying is the play; the goal is incidental.”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Because failure shames the gods.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">What is the self?</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“A noun.”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“A verb — selving.”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“An illusion to be destroyed.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">How do you let go?</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“By gripping harder until you cannot.”</span></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“By falling on purpose, with grace.”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“By renouncing the body.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>mw_wat_unl</code></span></div><div class="dlg-text">Hahaha. You see it now. When you next dream, I will be there to laugh with you.</div><ul class="dlg-links"><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“Thank you.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">Oh dear, you are still pretending to be a separate thing. Wander a while; the joke will land when it lands.</div><ul class="dlg-links"><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“I will return.”</span></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Then walk on.</div></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">Ha. The river does not need to remember flowing, &lt;FullName&gt;. You have already understood what most spend a lifetime avoiding. Come back to laugh with me — but there is nothing left to prove.</div><ul class="dlg-links"><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“Of course. Thank you.”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>mw_wat_reset</code></span></div><div class="dlg-text">Ask. I will answer.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Who is doing the experiencing?”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Not today.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Then walk on.”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">I am, separate from the world.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“What is the universe?”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span></div><div class="dlg-text">There is no separate I; the experiencing is the experience itself.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“What is the universe?”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">The mind sealed inside the skull.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“What is the universe?”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">A machine.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Why try, then?”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">A test of moral fibre.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Why try, then?”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span></div><div class="dlg-text">A game played in hide-and-seek by what we are.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Why try, then?”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">To win.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“What is the self?”</span></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span></div><div class="dlg-text">Because the trying is the play; the goal is incidental.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“What is the self?”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Because failure shames the gods.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“What is the self?”</span></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">A noun.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“How do you let go?”</span></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span></div><div class="dlg-text">A verb — selving.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“How do you let go?”</span></li></ul></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">An illusion to be destroyed.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“How do you let go?”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">By gripping harder until you cannot.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Hahaha. You see it now. When you next dream, I will be there to laugh with you.”</span> <small class="muted">(if <code>mw_wat_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Oh dear, you are still pretending to be a separate thing. Wander a while; the jo…”</span></li></ul></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>mw_wat_inc</code></span></div><div class="dlg-text">By falling on purpose, with grace.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Hahaha. You see it now. When you next dream, I will be there to laugh with you.”</span> <small class="muted">(if <code>mw_wat_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Oh dear, you are still pretending to be a separate thing. Wander a while; the jo…”</span></li></ul></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">By renouncing the body.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Hahaha. You see it now. When you next dream, I will be there to laugh with you.”</span> <small class="muted">(if <code>mw_wat_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Oh dear, you are still pretending to be a separate thing. Wander a while; the jo…”</span></li></ul></div>
+<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">Thank you.</div></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">I will return.</div></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">Of course. Thank you.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

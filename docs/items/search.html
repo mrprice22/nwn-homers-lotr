@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Search Items</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Search Items</h1><p>All conditions must be satisfied simultaneously. Leave fields blank to skip.</p><form id="sf" class="item-search-form"><div class="search-row"><label for="fb">Base item</label><select id="fb"><option value="">— all —</option></select><label for="fo">Sort by</label><select id="fo"><option value="cost">Cost</option><option value="value">Property Value</option><option value="name">Name</option></select><select id="fd"><option value="desc">Descending</option><option value="asc">Ascending</option></select><label class="checkbox-label" title="Include items carried by NPCs that have no Dropable=1 flag — they exist in the module but cannot be looted"><input type="checkbox" id="fnd"> Include non-droppable items</label><label class="checkbox-label"><input type="checkbox" id="fpp"> Pickpocketable only</label><button type="submit">Search</button></div><div class="prop-rows"><div class="prop-row"><label>Property 1</label><select id="fp1" class="prop-sel"><option value="">— any —</option></select><select id="fs1" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv1" type="number" min="0" placeholder="min value"></div><div class="prop-row"><label>Property 2</label><select id="fp2" class="prop-sel"><option value="">— any —</option></select><select id="fs2" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv2" type="number" min="0" placeholder="min value"></div><div class="prop-row"><label>Property 3</label><select id="fp3" class="prop-sel"><option value="">— any —</option></select><select id="fs3" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv3" type="number" min="0" placeholder="min value"></div><div class="prop-row"><label>Property 4</label><select id="fp4" class="prop-sel"><option value="">— any —</option></select><select id="fs4" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv4" type="number" min="0" placeholder="min value"></div></div></form><div id="sr"><p class="muted">Use the filters above and click Search.</p></div><script>(function(){
+var N=4,data=[],form=document.getElementById('sf'),results=document.getElementById('sr');
+var propSels=[],subSels=[],minVals=[];
+for(var i=1;i<=N;i++){
+  propSels.push(document.getElementById('fp'+i));
+  subSels.push(document.getElementById('fs'+i));
+  minVals.push(document.getElementById('fv'+i));
+}
+
+fetch('search-index.json').then(function(r){return r.json();}).then(function(d){
+  data=d; populateFilters();
+});
+
+var _FIXED_VALS={
+  'Heavy Armor':1,'Medium Armor':1,'Light Armor':1,'Cloth & Robes':1,
+  'Small Shields':1,'Large Shields':1,'Tower Shields':1,
+  'Helmets':1,'Amulets':1,'Belts':1,'Boots':1,'Bracers & Gauntlets':1,'Rings':1,'Cloaks':1,
+  'Ammunition':1,
+  'Wands':1,'Potions':1,'Scrolls':1,'Grenades':1,
+  'Books':1,'Magic Rods':1,'Magic Staves':1,'Gems':1,'Dyes':1,'Poisons & Venoms':1,
+  'Miscellaneous':1,'Creature Items':1
+};
+
+function _addOpts(grp,opts,bisSet){
+  var added=0;
+  opts.forEach(function(o){
+    if(bisSet[o.v]){grp.appendChild(new Option(o.l,o.v));added++;}
+  });
+  return added;
+}
+
+function populateFilters(){
+  var bisSet={},props={},subs={};
+  data.forEach(function(it){
+    bisSet[it.base_item]=1;
+    it.properties.forEach(function(p){
+      props[p.prop]=1;
+      if(p.subtype){if(!subs[p.prop])subs[p.prop]={};subs[p.prop][p.subtype]=1;}
+    });
+  });
+  window._subs=subs;
+  var biSel=document.getElementById('fb');
+
+  var GROUPS=[
+    {label:'Armor',opts:[
+      {l:'Heavy Armor',v:'Heavy Armor'},
+      {l:'Medium Armor',v:'Medium Armor'},
+      {l:'Light Armor',v:'Light Armor'},
+      {l:'Cloth & Robes',v:'Cloth & Robes'},
+      {l:'Small Shields',v:'Small Shields'},
+      {l:'Large Shields',v:'Large Shields'},
+      {l:'Tower Shields',v:'Tower Shields'}
+    ]},
+    {label:'Weapons',dyn:true,extra:[{l:'Ammunition',v:'Ammunition'}]},
+    {label:'Gear',opts:[
+      {l:'Amulets',v:'Amulets'},
+      {l:'Belts',v:'Belts'},
+      {l:'Boots',v:'Boots'},
+      {l:'Bracers & Gauntlets',v:'Bracers & Gauntlets'},
+      {l:'Rings',v:'Rings'},
+      {l:'Cloaks',v:'Cloaks'},
+      {l:'Helmets',v:'Helmets'}
+    ]},
+    {label:'Misc.',opts:[
+      {l:'Wands',v:'Wands'},
+      {l:'Potions',v:'Potions'},
+      {l:'Scrolls',v:'Scrolls'},
+      {l:'Grenades',v:'Grenades'},
+      {l:'Books',v:'Books'},
+      {l:'Magic Rods',v:'Magic Rods'},
+      {l:'Magic Staves',v:'Magic Staves'},
+      {l:'Gems',v:'Gems'},
+      {l:'Dyes',v:'Dyes'},
+      {l:'Poisons & Venoms',v:'Poisons & Venoms'},
+      {l:'Miscellaneous',v:'Miscellaneous'},
+      {l:'Creature Items',v:'Creature Items'}
+    ]}
+  ];
+
+  var dynWeps=Object.keys(bisSet).filter(function(b){return !_FIXED_VALS[b];}).sort();
+
+  GROUPS.forEach(function(g){
+    var grp=document.createElement('optgroup');
+    grp.label=g.label;
+    var added=0;
+    if(g.dyn){
+      dynWeps.forEach(function(v){grp.appendChild(new Option(v,v));added++;});
+      (g.extra||[]).forEach(function(o){if(bisSet[o.v]){grp.appendChild(new Option(o.l,o.v));added++;}});
+    } else {
+      added=_addOpts(grp,g.opts,bisSet);
+    }
+    if(added>0)biSel.appendChild(grp);
+  });
+
+  var propOpts=Object.keys(props).sort();
+  propSels.forEach(function(sel){
+    propOpts.forEach(function(p){sel.appendChild(new Option(p,p));});
+  });
+}
+
+propSels.forEach(function(sel,idx){
+  sel.addEventListener('change',function(){
+    var chosen=sel.value,sub=(window._subs||{})[chosen]||{};
+    subSels[idx].innerHTML='<option value="">— any —</option>';
+    Object.keys(sub).sort().forEach(function(s){subSels[idx].appendChild(new Option(s,s));});
+    subSels[idx].disabled=!chosen||!Object.keys(sub).length;
+  });
+});
+
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  var bi=document.getElementById('fb').value;
+  var sortBy=document.getElementById('fo').value;
+  var asc=document.getElementById('fd').value==='asc';
+  var inclNonDrop=document.getElementById('fnd').checked;
+  var ppOnly=document.getElementById('fpp').checked;
+  var conds=[];
+  for(var i=0;i<N;i++){
+    var prop=propSels[i].value,sub=subSels[i].value;
+    var minv=parseInt(minVals[i].value,10)||0;
+    if(prop||sub||minv>0)conds.push({prop:prop,sub:sub,minv:minv});
+  }
+  var out=[];
+  data.forEach(function(it){
+    if(!it.accessible&&!inclNonDrop)return;
+    if(ppOnly&&!it.pickpocketable)return;
+    if(bi){
+      if(it.base_item!==bi)return;
+    }
+    var matched=[];
+    var ok=!conds.length||conds.every(function(c){
+      var mp=it.properties.filter(function(p){
+        if(c.prop&&p.prop!==c.prop)return false;
+        if(c.sub&&p.subtype!==c.sub)return false;
+        if(c.minv>0&&p.value_num<c.minv)return false;
+        return true;
+      });
+      if(!mp.length)return false;
+      matched.push(mp[0]);
+      return true;
+    });
+    if(!ok)return;
+    if(!matched.length&&it.properties.length)matched=[it.properties[0]];
+    out.push({it:it,matched:matched});
+  });
+  out.sort(function(a,b){
+    var v;
+    if(sortBy==='cost')v=a.it.cost-b.it.cost;
+    else if(sortBy==='value')v=(a.matched[0]?a.matched[0].value_num:0)-(b.matched[0]?b.matched[0].value_num:0);
+    else v=a.it.name.localeCompare(b.it.name);
+    return asc?v:-v;
+  });
+  render(out,!!conds.length,inclNonDrop);
+});
+
+function render(rows,showProps,showAccess){
+  if(!rows.length){results.innerHTML='<p class="muted">No items match.</p>';return;}
+  var cols='<th>Name</th>'
+    +(showAccess?'<th>Reachable</th>':'')
+    +'<th>Base Item</th>'
+    +(showProps?'<th>Matched Properties</th>':'')
+    +'<th>GP Value</th>';
+  var html='<p><strong>'+rows.length+'</strong> result'+(rows.length!==1?'s':'')+'</p>'
+    +'<table class="data"><thead><tr>'+cols+'</tr></thead><tbody>';
+  rows.forEach(function(r){
+    var props=r.matched.map(function(p){
+      var pIdxHref='properties/index.html#'+p.prop_idx_anchor;
+      var propLink='<a href="'+esc(pIdxHref)+'">'+esc(p.prop)+'</a>';
+      var detail='';
+      if(p.subtype||p.cost){
+        var dHref=p.detail_href?'properties/'+p.detail_href:'properties/'+p.detail_slug+'.html'+(p.cost_anchor?'#'+p.cost_anchor:'');
+        if(p.subtype&&p.cost){
+          detail=': <a href="'+esc(dHref)+'">'+esc(p.subtype)+' \u2014 '+esc(p.cost)+'</a>';
+        }else if(p.subtype){
+          detail=': <a href="'+esc(dHref)+'">'+esc(p.subtype)+'</a>';
+        }else{
+          detail=' \u2014 <a href="'+esc(dHref)+'">'+esc(p.cost)+'</a>';
+        }
+      }
+      if(p.param){
+        var cCls='nwn-light-color nwn-light-'+p.param.toLowerCase();
+        detail+=' \u2014 <span class="'+cCls+'">'+esc(p.param)+'</span>';
+      }
+      return '<span>'+propLink+detail+'</span>';
+    }).join('<br>');
+    var idxBase=r.it.accessible?'index.html':'inaccessible/index.html';
+    var biHref=idxBase+'#'+esc(r.it.base_item_anchor||'');
+    var biCell=r.it.base_item_anchor
+      ?'<a href="'+biHref+'">'+esc(r.it.base_item)+'</a>'
+      :esc(r.it.base_item);
+    var dropBadge=(!showAccess&&!r.it.accessible)?' <span class="badge-no-drop" title="Carried by NPCs but not flagged as droppable \u2014 cannot be looted">no drop</span>':'';
+    var accessCell=showAccess?(r.it.accessible?'<td>Yes</td>':'<td><span class="muted">No</span></td>'):'';
+    html+='<tr><td><a href="'+esc(r.it.url)+'">'+esc(r.it.name)+'</a>'+dropBadge+'</td>'
+         +accessCell
+         +'<td>'+biCell+'</td>'
+         +(showProps?'<td>'+props+'</td>':'')
+         +'<td>'+(r.it.cost?r.it.cost.toLocaleString()+' gp':'\u2014')+'</td></tr>';
+  });
+  results.innerHTML=html+'</tbody></table>';
+}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+})();</script>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

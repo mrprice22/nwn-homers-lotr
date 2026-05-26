@@ -4,27 +4,49 @@
   <meta charset="utf-8">
   <title>Conversation x0_skill_ctrap</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Conversation: <code>x0_skill_ctrap</code></h1>
 <dl class="meta">
 <dt>NPC lines</dt><dd>15</dd>
-<dt>PC replies</dt><dd>74</dd>
+<dt>PC replies</dt><dd>80</dd>
 <dt>NumWords</dt><dd>335</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code>zep_cr_stop_abrt</code></dd>
@@ -36,7 +58,13 @@
 <tr><td><code>zep_cr_canca_n</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_cr_cancw</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_cr_cancs</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_cancl</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_cr_cancw_n</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_canch_n</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_cancs_n</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_cancl_n</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_cancm</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_cancm_n</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_always_false</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_cr_changed</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_cr_stop_make</code></td><td>action</td><td>✓</td><td></td></tr>
@@ -81,9 +109,19 @@
 <tr><td><code>zep_cr_dotorso</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_cr_doneck</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>zep_cr_attempt</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_start_cl</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>zep_cr_start_cm</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>x2_im_polymorphd</code></td><td>active</td><td>?</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM20000&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM20003&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM20004&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM20005&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM20006&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM20007&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM20008&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM20009&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e14">entry #14</a> <small class="muted">(if <code>x2_im_polymorphd</code>)</small> — [TLK#86916]</li>
+<li><a href="#e14">entry #14</a> <small class="muted">(if <code>x2_im_polymorphd</code>)</small> — You can not use your craft skills at this time.</li>
 <li><a href="#e0">entry #0</a> — Craft Skills Menu.</li>
 </ul>
 <h2>Conversation flow</h2>
@@ -91,7 +129,7 @@
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #14</span> <small class="muted">(if <code>x2_im_polymorphd</code>)</small> <a class="dlg-anchor" href="#e14" title="jump to flat entry #14">¶</a></summary>
-<div class="dlg-text">[TLK#86916]</div>
+<div class="dlg-text">You can not use your craft skills at this time.</div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
@@ -101,7 +139,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #32</span> <span class="dlg-action">→ <code>zep_cr_start_ca</code></span> <small class="muted">(if <code>zep_cr_canca</code>)</small> <a class="dlg-anchor" href="#r32" title="jump to flat reply #32">¶</a></summary>
-<div class="dlg-text">[TLK#86938]</div>
+<div class="dlg-text">&lt;StartAction&gt;Craft Armor:&lt;/Start&gt; Change armor appearance</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
@@ -111,31 +149,31 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #68</span> <span class="dlg-action">→ <code>zep_cr_doneck</code></span> <a class="dlg-anchor" href="#r68" title="jump to flat reply #68">¶</a></summary>
-<div class="dlg-text">[TLK#86966]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Neck&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #13</span> <a class="dlg-anchor" href="#e13" title="jump to flat entry #13">¶</a></summary>
-<div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+<div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
 DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #73</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span> <a class="dlg-anchor" href="#r73" title="jump to flat reply #73">¶</a></summary>
-<div class="dlg-text">[TLK#86969]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #72</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span> <a class="dlg-anchor" href="#r72" title="jump to flat reply #72">¶</a></summary>
-<div class="dlg-text">[TLK#86968]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #71</span> <small class="muted">(if <code>zep_not_robe</code>)</small> <a class="dlg-anchor" href="#r71" title="jump to flat reply #71">¶</a></summary>
-<div class="dlg-text">[TLK#86967]</div>
+<div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></div>
 </div>
@@ -160,78 +198,78 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #67</span> <span class="dlg-action">→ <code>zep_cr_dotorso</code></span> <a class="dlg-anchor" href="#r67" title="jump to flat reply #67">¶</a></summary>
-<div class="dlg-text">[TLK#86955]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Torso&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #57</span> <a class="dlg-anchor" href="#r57" title="jump to flat reply #57">¶</a></summary>
-<div class="dlg-text">[TLK#86956]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Arms&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #12</span> <a class="dlg-anchor" href="#e12" title="jump to flat entry #12">¶</a></summary>
-<div class="dlg-text">[TLK#86914]</div>
+<div class="dlg-text">Which part</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #66</span> <span class="dlg-action">→ <code>zep_cr_doshold_l</code></span> <a class="dlg-anchor" href="#r66" title="jump to flat reply #66">¶</a></summary>
-<div class="dlg-text">[TLK#86965]</div>
+<div class="dlg-text">Left Shoulder</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #65</span> <span class="dlg-action">→ <code>zep_cr_doshold_r</code></span> <a class="dlg-anchor" href="#r65" title="jump to flat reply #65">¶</a></summary>
-<div class="dlg-text">[TLK#86964]</div>
+<div class="dlg-text">Right Shoulder</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #64</span> <span class="dlg-action">→ <code>zep_cr_dobicep_l</code></span> <a class="dlg-anchor" href="#r64" title="jump to flat reply #64">¶</a></summary>
-<div class="dlg-text">[TLK#86963]</div>
+<div class="dlg-text">Left Biceps</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #63</span> <span class="dlg-action">→ <code>zep_cr_dobicep_r</code></span> <a class="dlg-anchor" href="#r63" title="jump to flat reply #63">¶</a></summary>
-<div class="dlg-text">[TLK#86962]</div>
+<div class="dlg-text">Right Biceps</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #62</span> <span class="dlg-action">→ <code>zep_cr_doloarm_l</code></span> <a class="dlg-anchor" href="#r62" title="jump to flat reply #62">¶</a></summary>
-<div class="dlg-text">[TLK#86961]</div>
+<div class="dlg-text">Left ForeArm</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #61</span> <span class="dlg-action">→ <code>zep_cr_doloarm_r</code></span> <a class="dlg-anchor" href="#r61" title="jump to flat reply #61">¶</a></summary>
-<div class="dlg-text">[TLK#86960]</div>
+<div class="dlg-text">Right ForeArm</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #60</span> <span class="dlg-action">→ <code>zep_cr_dohand_l</code></span> <a class="dlg-anchor" href="#r60" title="jump to flat reply #60">¶</a></summary>
-<div class="dlg-text">[TLK#86959]</div>
+<div class="dlg-text">Left Glove</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #59</span> <span class="dlg-action">→ <code>zep_cr_dohand_r</code></span> <a class="dlg-anchor" href="#r59" title="jump to flat reply #59">¶</a></summary>
-<div class="dlg-text">[TLK#86958]</div>
+<div class="dlg-text">Right Glove</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #58</span> <a class="dlg-anchor" href="#r58" title="jump to flat reply #58">¶</a></summary>
-<div class="dlg-text">[TLK#86957]</div>
+<div class="dlg-text">Back</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></div>
 </div>
@@ -242,71 +280,71 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #56</span> <span class="dlg-action">→ <code>zep_cr_dobelt</code></span> <a class="dlg-anchor" href="#r56" title="jump to flat reply #56">¶</a></summary>
-<div class="dlg-text">[TLK#86954]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Belt&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #55</span> <span class="dlg-action">→ <code>zep_cr_dopelvis</code></span> <a class="dlg-anchor" href="#r55" title="jump to flat reply #55">¶</a></summary>
-<div class="dlg-text">[TLK#86953]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Pelvis&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #47</span> <a class="dlg-anchor" href="#r47" title="jump to flat reply #47">¶</a></summary>
-<div class="dlg-text">[TLK#86945]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Legs&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #11</span> <a class="dlg-anchor" href="#e11" title="jump to flat entry #11">¶</a></summary>
-<div class="dlg-text">[TLK#86913]</div>
+<div class="dlg-text">Select part to modify</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #54</span> <span class="dlg-action">→ <code>zep_cr_dothigh_l</code></span> <a class="dlg-anchor" href="#r54" title="jump to flat reply #54">¶</a></summary>
-<div class="dlg-text">[TLK#86952]</div>
+<div class="dlg-text">Left Thigh</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #53</span> <span class="dlg-action">→ <code>zep_cr_dothigh_r</code></span> <a class="dlg-anchor" href="#r53" title="jump to flat reply #53">¶</a></summary>
-<div class="dlg-text">[TLK#86951]</div>
+<div class="dlg-text">Right Thigh</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #52</span> <span class="dlg-action">→ <code>zep_cr_doshin_l</code></span> <a class="dlg-anchor" href="#r52" title="jump to flat reply #52">¶</a></summary>
-<div class="dlg-text">[TLK#86950]</div>
+<div class="dlg-text">Left Shin</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #51</span> <span class="dlg-action">→ <code>zep_cr_doshin_r</code></span> <a class="dlg-anchor" href="#r51" title="jump to flat reply #51">¶</a></summary>
-<div class="dlg-text">[TLK#86949]</div>
+<div class="dlg-text">Right Shin</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>zep_cr_dofoot_l</code></span> <a class="dlg-anchor" href="#r50" title="jump to flat reply #50">¶</a></summary>
-<div class="dlg-text">[TLK#86948]</div>
+<div class="dlg-text">Left Foot</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #49</span> <span class="dlg-action">→ <code>zep_cr_dofoot_r</code></span> <a class="dlg-anchor" href="#r49" title="jump to flat reply #49">¶</a></summary>
-<div class="dlg-text">[TLK#86947]</div>
+<div class="dlg-text">Right Foot</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #48</span> <a class="dlg-anchor" href="#r48" title="jump to flat reply #48">¶</a></summary>
-<div class="dlg-text">[TLK#86946]</div>
+<div class="dlg-text">Back</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></div>
 </div>
@@ -319,7 +357,7 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <summary><span class="dlg-id">reply #46</span> <span class="dlg-action">→ <code>zep_cr_dorobe</code></span> <small class="muted">(if <code>zep_always_false</code>)</small> <a class="dlg-anchor" href="#r46" title="jump to flat reply #46">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change Robe&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -336,20 +374,20 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #10</span> <a class="dlg-anchor" href="#e10" title="jump to flat entry #10">¶</a></summary>
-<div class="dlg-text">Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;</div>
+<div class="dlg-text">Current color: &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20003, ...) — no setter found in static analysis">&lt;CUSTOM20003&gt;</span>&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #45</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span> <a class="dlg-anchor" href="#r45" title="jump to flat reply #45">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #44</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span> <a class="dlg-anchor" href="#r44" title="jump to flat reply #44">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -367,35 +405,35 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <summary><span class="dlg-id">reply #41</span> <span class="dlg-action">→ <code>zep_cr_doccloth2</code></span> <a class="dlg-anchor" href="#r41" title="jump to flat reply #41">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #40</span> <span class="dlg-action">→ <code>zep_cr_docleath1</code></span> <a class="dlg-anchor" href="#r40" title="jump to flat reply #40">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #39</span> <span class="dlg-action">→ <code>zep_cr_docleath2</code></span> <a class="dlg-anchor" href="#r39" title="jump to flat reply #39">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #38</span> <span class="dlg-action">→ <code>zep_cr_docmetal1</code></span> <a class="dlg-anchor" href="#r38" title="jump to flat reply #38">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #37</span> <span class="dlg-action">→ <code>zep_cr_docmetal2</code></span> <a class="dlg-anchor" href="#r37" title="jump to flat reply #37">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -411,7 +449,7 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #34</span> <small class="muted">(if <code>zep_cr_changed</code>)</small> <a class="dlg-anchor" href="#r34" title="jump to flat reply #34">¶</a></summary>
-<div class="dlg-text">[TLK#86941]</div>
+<div class="dlg-text">&lt;StartCheck&gt;Make the changes&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e8">entry #8</a> <span class="dlg-link-preview">“You have successfully crafted the designed item.”</span></div>
 </div>
@@ -430,22 +468,22 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
-<div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+<div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
 DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #31</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span> <a class="dlg-anchor" href="#r31" title="jump to flat reply #31">¶</a></summary>
-<div class="dlg-text">[TLK#86969]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #30</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span> <a class="dlg-anchor" href="#r30" title="jump to flat reply #30">¶</a></summary>
-<div class="dlg-text">[TLK#86968]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -462,20 +500,20 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
-<div class="dlg-text">Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;</div>
+<div class="dlg-text">Current color: &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20003, ...) — no setter found in static analysis">&lt;CUSTOM20003&gt;</span>&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #29</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span> <a class="dlg-anchor" href="#r29" title="jump to flat reply #29">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #28</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span> <a class="dlg-anchor" href="#r28" title="jump to flat reply #28">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -493,68 +531,68 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <summary><span class="dlg-id">reply #25</span> <span class="dlg-action">→ <code>zep_cr_doccloth2</code></span> <a class="dlg-anchor" href="#r25" title="jump to flat reply #25">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #24</span> <span class="dlg-action">→ <code>zep_cr_docleath1</code></span> <a class="dlg-anchor" href="#r24" title="jump to flat reply #24">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #23</span> <span class="dlg-action">→ <code>zep_cr_docleath2</code></span> <a class="dlg-anchor" href="#r23" title="jump to flat reply #23">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #22</span> <span class="dlg-action">→ <code>zep_cr_docmetal1</code></span> <a class="dlg-anchor" href="#r22" title="jump to flat reply #22">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #21</span> <span class="dlg-action">→ <code>zep_cr_docmetal2</code></span> <a class="dlg-anchor" href="#r21" title="jump to flat reply #21">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Current color:”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #20</span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r34">reply #34</a> <span class="dlg-link-preview">“[TLK#86941]”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r33">reply #33</a> <span class="dlg-link-preview">“&lt;StartCheck&gt;Abort&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r34">reply #34</a> <span class="dlg-link-preview">“Make the changes”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r33">reply #33</a> <span class="dlg-link-preview">“Abort”</span></div>
 </div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>zep_cr_dorobe</code></span> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
+<summary><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>zep_cr_dorobe</code></span> <small class="muted">(if <code>zep_cr_canca</code>)</small> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Craft Robe:&lt;/Start&gt; Change robe appearance.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #16</span> <small class="muted">(if <code>zep_cr_canca_n</code>)</small> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
-<div class="dlg-text">&lt;StartAction&gt;Craft Armor:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  &lt;CUSTOM20004&gt;</div>
+<div class="dlg-text">&lt;StartAction&gt;Craft Armor:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20004, ...) — no setter found in static analysis">&lt;CUSTOM20004&gt;</span></div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>zep_cr_start_cw</code></span> <small class="muted">(if <code>zep_cr_cancw</code>)</small> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
-<div class="dlg-text">[TLK#86918]</div>
+<div class="dlg-text">&lt;StartAction&gt;Craft Weapon:&lt;/Start&gt; Change weapon appearance.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
@@ -564,45 +602,45 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>zep_cr_dowtop</code></span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
-<div class="dlg-text">[TLK#86927]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Top&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
-<div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+<div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
 DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
-<div class="dlg-text">[TLK#86969]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
-<div class="dlg-text">[TLK#86968]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
-<div class="dlg-text">[TLK#86967]</div>
+<div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Select weapon part to modify. Complex changes are more difficult and expensive.”</span></div>
 </div>
@@ -613,20 +651,20 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>zep_cr_dowmiddle</code></span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
-<div class="dlg-text">[TLK#86926]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Middle&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>zep_cr_dowbottom</code></span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
-<div class="dlg-text">[TLK#86925]</div>
+<div class="dlg-text">&lt;StartAction&gt;Change Bottom&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r34">reply #34</a> <span class="dlg-link-preview">“[TLK#86941]”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r33">reply #33</a> <span class="dlg-link-preview">“&lt;StartCheck&gt;Abort&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r34">reply #34</a> <span class="dlg-link-preview">“Make the changes”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r33">reply #33</a> <span class="dlg-link-preview">“Abort”</span></div>
 </div>
 </details>
 </div>
@@ -637,51 +675,77 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+<div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
 DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
-<div class="dlg-text">[TLK#86969]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
-<div class="dlg-text">[TLK#86968]</div>
+<div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span> <small class="muted">(if <code>zep_always_false</code>)</small> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span> <small class="muted">(if <code>zep_always_false</code>)</small> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r34">reply #34</a> <span class="dlg-link-preview">“[TLK#86941]”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r33">reply #33</a> <span class="dlg-link-preview">“&lt;StartCheck&gt;Abort&lt;/Start&gt;”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r34">reply #34</a> <span class="dlg-link-preview">“Make the changes”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r33">reply #33</a> <span class="dlg-link-preview">“Abort”</span></div>
 </div>
 </details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #74</span> <span class="dlg-action">→ <code>zep_cr_start_cl</code></span> <small class="muted">(if <code>zep_cr_cancl</code>)</small> <a class="dlg-anchor" href="#r74" title="jump to flat reply #74">¶</a></summary>
+<div class="dlg-text">&lt;StartAction&gt;Craft Cloak:&lt;/Start&gt; Change cloak appearance or hide it.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <small class="muted">(if <code>zep_cr_cancw_n</code>)</small> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
-<div class="dlg-text">&lt;StartAction&gt;Craft Weapon:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  &lt;CUSTOM20005&gt;</div>
+<div class="dlg-text">&lt;StartAction&gt;Craft Weapon:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20005, ...) — no setter found in static analysis">&lt;CUSTOM20005&gt;</span></div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>x0_skctrap_start</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
-<div class="dlg-text">&lt;StartAction&gt;Special&lt;/Start&gt;</div>
+<summary><span class="dlg-id">reply #75</span> <small class="muted">(if <code>zep_cr_canch_n</code>)</small> <a class="dlg-anchor" href="#r75" title="jump to flat reply #75">¶</a></summary>
+<div class="dlg-text">&lt;StartAction&gt;Craft Helmet:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20006, ...) — no setter found in static analysis">&lt;CUSTOM20006&gt;</span></div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #76</span> <small class="muted">(if <code>zep_cr_cancs_n</code>)</small> <a class="dlg-anchor" href="#r76" title="jump to flat reply #76">¶</a></summary>
+<div class="dlg-text">&lt;StartAction&gt;Craft Shield:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20007, ...) — no setter found in static analysis">&lt;CUSTOM20007&gt;</span></div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #77</span> <small class="muted">(if <code>zep_cr_cancl_n</code>)</small> <a class="dlg-anchor" href="#r77" title="jump to flat reply #77">¶</a></summary>
+<div class="dlg-text">&lt;StartAction&gt;Craft Cloak:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20008, ...) — no setter found in static analysis">&lt;CUSTOM20008&gt;</span></div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #78</span> <span class="dlg-action">→ <code>zep_cr_start_cm</code></span> <small class="muted">(if <code>zep_cr_cancm</code>)</small> <a class="dlg-anchor" href="#r78" title="jump to flat reply #78">¶</a></summary>
+<div class="dlg-text">&lt;StartAction&gt;Craft Misc:&lt;/Start&gt; Change held item appearance.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #79</span> <small class="muted">(if <code>zep_cr_cancm_n</code>)</small> <a class="dlg-anchor" href="#r79" title="jump to flat reply #79">¶</a></summary>
+<div class="dlg-text">&lt;StartAction&gt;Craft Misc:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20009, ...) — no setter found in static analysis">&lt;CUSTOM20009&gt;</span></div>
 </details>
 </div>
 </details>
@@ -689,109 +753,115 @@ DC: &lt;StartAction&gt;0&lt;/Start&gt;</div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Craft Skills Menu.
 
-</div><ul class="dlg-links"><li><a href="#r32">→ reply #32</a> <span class="dlg-link-preview">“[TLK#86938]”</span> <small class="muted">(if <code>zep_cr_canca</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Craft Helmet:&lt;/Start&gt; Change helmet appearance”</span> <small class="muted">(if <code>zep_cr_canch</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Craft Robe:&lt;/Start&gt; Change robe appearance.”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Craft Armor:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  &lt;CUSTOM200…”</span> <small class="muted">(if <code>zep_cr_canca_n</code>)</small></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“[TLK#86918]”</span> <small class="muted">(if <code>zep_cr_cancw</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Craft Shield:&lt;/Start&gt; Change shield appearance.”</span> <small class="muted">(if <code>zep_cr_cancs</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Craft Weapon:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  &lt;CUSTOM20…”</span> <small class="muted">(if <code>zep_cr_cancw_n</code>)</small></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Special&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+</div><ul class="dlg-links"><li><a href="#r32">→ reply #32</a> <span class="dlg-link-preview">“Craft Armor: Change armor appearance”</span> <small class="muted">(if <code>zep_cr_canca</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“Craft Helmet: Change helmet appearance”</span> <small class="muted">(if <code>zep_cr_canch</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“Craft Robe: Change robe appearance.”</span> <small class="muted">(if <code>zep_cr_canca</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“Craft Armor: Not Possible -”</span> <small class="muted">(if <code>zep_cr_canca_n</code>)</small></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Craft Weapon: Change weapon appearance.”</span> <small class="muted">(if <code>zep_cr_cancw</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Craft Shield: Change shield appearance.”</span> <small class="muted">(if <code>zep_cr_cancs</code>)</small></li><li><a href="#r74">→ reply #74</a> <span class="dlg-link-preview">“Craft Cloak: Change cloak appearance or hide it.”</span> <small class="muted">(if <code>zep_cr_cancl</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Craft Weapon: Not Possible -”</span> <small class="muted">(if <code>zep_cr_cancw_n</code>)</small></li><li><a href="#r75">→ reply #75</a> <span class="dlg-link-preview">“Craft Helmet: Not Possible -”</span> <small class="muted">(if <code>zep_cr_canch_n</code>)</small></li><li><a href="#r76">→ reply #76</a> <span class="dlg-link-preview">“Craft Shield: Not Possible -”</span> <small class="muted">(if <code>zep_cr_cancs_n</code>)</small></li><li><a href="#r77">→ reply #77</a> <span class="dlg-link-preview">“Craft Cloak: Not Possible -”</span> <small class="muted">(if <code>zep_cr_cancl_n</code>)</small></li><li><a href="#r78">→ reply #78</a> <span class="dlg-link-preview">“Craft Misc: Change held item appearance.”</span> <small class="muted">(if <code>zep_cr_cancm</code>)</small></li><li><a href="#r79">→ reply #79</a> <span class="dlg-link-preview">“Craft Misc: Not Possible -”</span> <small class="muted">(if <code>zep_cr_cancm_n</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
-DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“[TLK#86969]”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“[TLK#86968]”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show next color&lt;/Start&gt;”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show previous color&lt;/Start&gt;”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r34">→ child</a> <span class="dlg-link-preview">“[TLK#86941]”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ child</a> <span class="dlg-link-preview">“&lt;StartCheck&gt;Abort&lt;/Start&gt;”</span></li></ul></div>
+DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Show next style”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Show previous style”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Show next color”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Show previous color”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r34">→ child</a> <span class="dlg-link-preview">“Make the changes”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ child</a> <span class="dlg-link-preview">“Abort”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Select weapon part to modify. Complex changes are more difficult and expensive.
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
-DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“[TLK#86927]”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“[TLK#86926]”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“[TLK#86925]”</span></li><li><a href="#r34">→ child</a> <span class="dlg-link-preview">“[TLK#86941]”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ child</a> <span class="dlg-link-preview">“&lt;StartCheck&gt;Abort&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Change Top”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Change Middle”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Change Bottom”</span></li><li><a href="#r34">→ child</a> <span class="dlg-link-preview">“Make the changes”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ child</a> <span class="dlg-link-preview">“Abort”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
-DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“[TLK#86969]”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“[TLK#86968]”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show next color&lt;/Start&gt;”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show previous color&lt;/Start&gt;”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“[TLK#86967]”</span></li></ul></div>
-<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Show next style”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Show previous style”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Show next color”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Show previous color”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Back”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
-DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“[TLK#86969]”</span></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“[TLK#86968]”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Colouring&lt;/Start&gt;”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r34">→ child</a> <span class="dlg-link-preview">“[TLK#86941]”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ child</a> <span class="dlg-link-preview">“&lt;StartCheck&gt;Abort&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Select material to change colors on. You need to possess the proper dye to apply it.</div><ul class="dlg-links"><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change primairy cloth color&lt;/Start&gt;”</span></li><li><a href="#r25">→ reply #25</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;”</span></li><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;”</span></li><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;”</span></li><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;”</span></li><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;”</span></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Back&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r29">→ reply #29</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show next color&lt;/Start&gt;”</span></li><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show previous color&lt;/Start&gt;”</span></li><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Back&lt;/Start&gt;”</span></li></ul></div>
+DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“Show next style”</span></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“Show previous style”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“Colouring”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r34">→ child</a> <span class="dlg-link-preview">“Make the changes”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ child</a> <span class="dlg-link-preview">“Abort”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Select material to change colors on. You need to possess the proper dye to apply it.</div><ul class="dlg-links"><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“Change primairy cloth color”</span></li><li><a href="#r25">→ reply #25</a> <span class="dlg-link-preview">“Change secondary cloth color”</span></li><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“Change primairy leather color”</span></li><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“Change secondairy leather color”</span></li><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“Change primairy metal color”</span></li><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“Change secondary metal color”</span></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“Back”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Current color: &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20003, ...) — no setter found in static analysis">&lt;CUSTOM20003&gt;</span>&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r29">→ reply #29</a> <span class="dlg-link-preview">“Show next color”</span></li><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“Show previous color”</span></li><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“Back”</span></li></ul></div>
 <div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">Select armor part to modify. Complex changes are more difficult and expensive.
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
-DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r68">→ reply #68</a> <span class="dlg-link-preview">“[TLK#86966]”</span></li><li><a href="#r67">→ reply #67</a> <span class="dlg-link-preview">“[TLK#86955]”</span></li><li><a href="#r57">→ reply #57</a> <span class="dlg-link-preview">“[TLK#86956]”</span></li><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“[TLK#86954]”</span></li><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“[TLK#86953]”</span></li><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“[TLK#86945]”</span></li><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change Robe&lt;/Start&gt;”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r35">→ reply #35</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Colouring&lt;/Start&gt;”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r34">→ reply #34</a> <span class="dlg-link-preview">“[TLK#86941]”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ reply #33</a> <span class="dlg-link-preview">“&lt;StartCheck&gt;Abort&lt;/Start&gt;”</span></li></ul></div>
+DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r68">→ reply #68</a> <span class="dlg-link-preview">“Change Neck”</span></li><li><a href="#r67">→ reply #67</a> <span class="dlg-link-preview">“Change Torso”</span></li><li><a href="#r57">→ reply #57</a> <span class="dlg-link-preview">“Change Arms”</span></li><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“Change Belt”</span></li><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“Change Pelvis”</span></li><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“Change Legs”</span></li><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“Change Robe”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r35">→ reply #35</a> <span class="dlg-link-preview">“Colouring”</span> <small class="muted">(if <code>zep_always_false</code>)</small></li><li><a href="#r34">→ reply #34</a> <span class="dlg-link-preview">“Make the changes”</span> <small class="muted">(if <code>zep_cr_changed</code>)</small></li><li><a href="#r33">→ reply #33</a> <span class="dlg-link-preview">“Abort”</span></li></ul></div>
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span> <span class="dlg-action">→ <code>zep_cr_stop_make</code></span></div><div class="dlg-text">You have successfully crafted the designed item.</div></div>
-<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">Select material to change colors on. You need to possess the proper dye to apply it.</div><ul class="dlg-links"><li><a href="#r42">→ reply #42</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change primairy cloth color&lt;/Start&gt;”</span></li><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;”</span></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;”</span></li><li><a href="#r39">→ reply #39</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;”</span></li><li><a href="#r38">→ reply #38</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;”</span></li><li><a href="#r37">→ reply #37</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;”</span></li><li><a href="#r36">→ reply #36</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Back&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show next color&lt;/Start&gt;”</span></li><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Show previous color&lt;/Start&gt;”</span></li><li><a href="#r43">→ reply #43</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Back&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">[TLK#86913]</div><ul class="dlg-links"><li><a href="#r54">→ reply #54</a> <span class="dlg-link-preview">“[TLK#86952]”</span></li><li><a href="#r53">→ reply #53</a> <span class="dlg-link-preview">“[TLK#86951]”</span></li><li><a href="#r52">→ reply #52</a> <span class="dlg-link-preview">“[TLK#86950]”</span></li><li><a href="#r51">→ reply #51</a> <span class="dlg-link-preview">“[TLK#86949]”</span></li><li><a href="#r50">→ reply #50</a> <span class="dlg-link-preview">“[TLK#86948]”</span></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“[TLK#86947]”</span></li><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“[TLK#86946]”</span></li></ul></div>
-<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">[TLK#86914]</div><ul class="dlg-links"><li><a href="#r66">→ reply #66</a> <span class="dlg-link-preview">“[TLK#86965]”</span></li><li><a href="#r65">→ reply #65</a> <span class="dlg-link-preview">“[TLK#86964]”</span></li><li><a href="#r64">→ reply #64</a> <span class="dlg-link-preview">“[TLK#86963]”</span></li><li><a href="#r63">→ reply #63</a> <span class="dlg-link-preview">“[TLK#86962]”</span></li><li><a href="#r62">→ reply #62</a> <span class="dlg-link-preview">“[TLK#86961]”</span></li><li><a href="#r61">→ reply #61</a> <span class="dlg-link-preview">“[TLK#86960]”</span></li><li><a href="#r60">→ reply #60</a> <span class="dlg-link-preview">“[TLK#86959]”</span></li><li><a href="#r59">→ reply #59</a> <span class="dlg-link-preview">“[TLK#86958]”</span></li><li><a href="#r58">→ reply #58</a> <span class="dlg-link-preview">“[TLK#86957]”</span></li></ul></div>
-<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">Select material to change colors on. You need to possess the proper dye to apply it.</div><ul class="dlg-links"><li><a href="#r42">→ reply #42</a> <span class="dlg-link-preview">“Change primairy cloth color”</span></li><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“Change secondary cloth color”</span></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“Change primairy leather color”</span></li><li><a href="#r39">→ reply #39</a> <span class="dlg-link-preview">“Change secondairy leather color”</span></li><li><a href="#r38">→ reply #38</a> <span class="dlg-link-preview">“Change primairy metal color”</span></li><li><a href="#r37">→ reply #37</a> <span class="dlg-link-preview">“Change secondary metal color”</span></li><li><a href="#r36">→ reply #36</a> <span class="dlg-link-preview">“Back”</span></li></ul></div>
+<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">Current color: &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20003, ...) — no setter found in static analysis">&lt;CUSTOM20003&gt;</span>&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“Show next color”</span></li><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“Show previous color”</span></li><li><a href="#r43">→ reply #43</a> <span class="dlg-link-preview">“Back”</span></li></ul></div>
+<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">Select part to modify</div><ul class="dlg-links"><li><a href="#r54">→ reply #54</a> <span class="dlg-link-preview">“Left Thigh”</span></li><li><a href="#r53">→ reply #53</a> <span class="dlg-link-preview">“Right Thigh”</span></li><li><a href="#r52">→ reply #52</a> <span class="dlg-link-preview">“Left Shin”</span></li><li><a href="#r51">→ reply #51</a> <span class="dlg-link-preview">“Right Shin”</span></li><li><a href="#r50">→ reply #50</a> <span class="dlg-link-preview">“Left Foot”</span></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“Right Foot”</span></li><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“Back”</span></li></ul></div>
+<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">Which part</div><ul class="dlg-links"><li><a href="#r66">→ reply #66</a> <span class="dlg-link-preview">“Left Shoulder”</span></li><li><a href="#r65">→ reply #65</a> <span class="dlg-link-preview">“Right Shoulder”</span></li><li><a href="#r64">→ reply #64</a> <span class="dlg-link-preview">“Left Biceps”</span></li><li><a href="#r63">→ reply #63</a> <span class="dlg-link-preview">“Right Biceps”</span></li><li><a href="#r62">→ reply #62</a> <span class="dlg-link-preview">“Left ForeArm”</span></li><li><a href="#r61">→ reply #61</a> <span class="dlg-link-preview">“Right ForeArm”</span></li><li><a href="#r60">→ reply #60</a> <span class="dlg-link-preview">“Left Glove”</span></li><li><a href="#r59">→ reply #59</a> <span class="dlg-link-preview">“Right Glove”</span></li><li><a href="#r58">→ reply #58</a> <span class="dlg-link-preview">“Back”</span></li></ul></div>
+<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">Currently adjusting &lt;StartAction&gt;<span class="custom-token custom-token-unknown" title="SetCustomToken(20000, ...) — no setter found in static analysis">&lt;CUSTOM20000&gt;</span>&lt;/Start&gt;
 Current Cost: &lt;StartAction&gt;0&lt;/Start&gt; GP
-DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r73">→ reply #73</a> <span class="dlg-link-preview">“[TLK#86969]”</span></li><li><a href="#r72">→ reply #72</a> <span class="dlg-link-preview">“[TLK#86968]”</span></li><li><a href="#r71">→ reply #71</a> <span class="dlg-link-preview">“[TLK#86967]”</span> <small class="muted">(if <code>zep_not_robe</code>)</small></li><li><a href="#r70">→ reply #70</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Make Changes&lt;/Start&gt;”</span> <small class="muted">(if <code>zep_is_robe</code>)</small></li><li><a href="#r69">→ reply #69</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Abort&lt;/Start&gt;”</span> <small class="muted">(if <code>zep_is_robe</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">[TLK#86916]</div></div>
+DC: &lt;StartAction&gt;0&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#r73">→ reply #73</a> <span class="dlg-link-preview">“Show next style”</span></li><li><a href="#r72">→ reply #72</a> <span class="dlg-link-preview">“Show previous style”</span></li><li><a href="#r71">→ reply #71</a> <span class="dlg-link-preview">“Back”</span> <small class="muted">(if <code>zep_not_robe</code>)</small></li><li><a href="#r70">→ reply #70</a> <span class="dlg-link-preview">“Make Changes”</span> <small class="muted">(if <code>zep_is_robe</code>)</small></li><li><a href="#r69">→ reply #69</a> <span class="dlg-link-preview">“Abort”</span> <small class="muted">(if <code>zep_is_robe</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">You can not use your craft skills at this time.</div></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>x0_skctrap_start</code></span></div><div class="dlg-text">&lt;StartAction&gt;Special&lt;/Start&gt;</div></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Weapon:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  &lt;CUSTOM20005&gt;</div></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>zep_cr_start_cs</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Shield:&lt;/Start&gt; Change shield appearance.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">[TLK#86968]</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">[TLK#86969]</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>zep_cr_start_cw</code></span></div><div class="dlg-text">[TLK#86918]</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Select weapon part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>zep_cr_dowbottom</code></span></div><div class="dlg-text">[TLK#86925]</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>zep_cr_dowmiddle</code></span></div><div class="dlg-text">[TLK#86926]</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>zep_cr_dowtop</code></span></div><div class="dlg-text">[TLK#86927]</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">[TLK#86967]</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Select weapon part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
-<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">[TLK#86968]</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">[TLK#86969]</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Armor:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  &lt;CUSTOM20004&gt;</div></div>
-<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>zep_cr_dorobe</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Robe:&lt;/Start&gt; Change robe appearance.</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>zep_cr_start_ch</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Helmet:&lt;/Start&gt; Change helmet appearance</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Weapon:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20005, ...) — no setter found in static analysis">&lt;CUSTOM20005&gt;</span></div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>zep_cr_start_cs</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Shield:&lt;/Start&gt; Change shield appearance.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>zep_cr_start_cw</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Weapon:&lt;/Start&gt; Change weapon appearance.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Select weapon part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>zep_cr_dowbottom</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Bottom&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>zep_cr_dowmiddle</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Middle&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>zep_cr_dowtop</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Top&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Select weapon part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Armor:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20004, ...) — no setter found in static analysis">&lt;CUSTOM20004&gt;</span></div></div>
+<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>zep_cr_dorobe</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Robe:&lt;/Start&gt; Change robe appearance.</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>zep_cr_start_ch</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Helmet:&lt;/Start&gt; Change helmet appearance</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
 <div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">&lt;StartAction&gt;Colouring&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Select material to change colors on. You need to possess the proper dye to apply…”</span></li></ul></div>
-<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e4">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span> <span class="dlg-action">→ <code>zep_cr_docmetal2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span> <span class="dlg-action">→ <code>zep_cr_docmetal1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span> <span class="dlg-action">→ <code>zep_cr_docleath2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r24"><div class="dlg-head"><span class="dlg-id">reply #24</span> <span class="dlg-action">→ <code>zep_cr_docleath1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r25"><div class="dlg-head"><span class="dlg-id">reply #25</span> <span class="dlg-action">→ <code>zep_cr_doccloth2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r26"><div class="dlg-head"><span class="dlg-id">reply #26</span> <span class="dlg-action">→ <code>zep_cr_doccloth1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
+<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e4">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span> <span class="dlg-action">→ <code>zep_cr_docmetal2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span> <span class="dlg-action">→ <code>zep_cr_docmetal1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span> <span class="dlg-action">→ <code>zep_cr_docleath2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r24"><div class="dlg-head"><span class="dlg-id">reply #24</span> <span class="dlg-action">→ <code>zep_cr_docleath1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r25"><div class="dlg-head"><span class="dlg-id">reply #25</span> <span class="dlg-action">→ <code>zep_cr_doccloth2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r26"><div class="dlg-head"><span class="dlg-id">reply #26</span> <span class="dlg-action">→ <code>zep_cr_doccloth1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
 <div class="dlg-node reply" id="r27"><div class="dlg-head"><span class="dlg-id">reply #27</span></div><div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“Select material to change colors on. You need to possess the proper dye to apply…”</span></li></ul></div>
-<div class="dlg-node reply" id="r28"><div class="dlg-head"><span class="dlg-id">reply #28</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r29"><div class="dlg-head"><span class="dlg-id">reply #29</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r30"><div class="dlg-head"><span class="dlg-id">reply #30</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">[TLK#86968]</div><ul class="dlg-links"><li><a href="#e4">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r31"><div class="dlg-head"><span class="dlg-id">reply #31</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">[TLK#86969]</div><ul class="dlg-links"><li><a href="#e4">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r32"><div class="dlg-head"><span class="dlg-id">reply #32</span> <span class="dlg-action">→ <code>zep_cr_start_ca</code></span></div><div class="dlg-text">[TLK#86938]</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
+<div class="dlg-node reply" id="r28"><div class="dlg-head"><span class="dlg-id">reply #28</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r29"><div class="dlg-head"><span class="dlg-id">reply #29</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r30"><div class="dlg-head"><span class="dlg-id">reply #30</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e4">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r31"><div class="dlg-head"><span class="dlg-id">reply #31</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e4">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r32"><div class="dlg-head"><span class="dlg-id">reply #32</span> <span class="dlg-action">→ <code>zep_cr_start_ca</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Armor:&lt;/Start&gt; Change armor appearance</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
 <div class="dlg-node reply" id="r33"><div class="dlg-head"><span class="dlg-id">reply #33</span> <span class="dlg-action">→ <code>zep_cr_stop_abrt</code></span></div><div class="dlg-text">&lt;StartCheck&gt;Abort&lt;/Start&gt;</div></div>
-<div class="dlg-node reply" id="r34"><div class="dlg-head"><span class="dlg-id">reply #34</span></div><div class="dlg-text">[TLK#86941]</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“You have successfully crafted the designed item.”</span></li></ul></div>
+<div class="dlg-node reply" id="r34"><div class="dlg-head"><span class="dlg-id">reply #34</span></div><div class="dlg-text">&lt;StartCheck&gt;Make the changes&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“You have successfully crafted the designed item.”</span></li></ul></div>
 <div class="dlg-node reply" id="r35"><div class="dlg-head"><span class="dlg-id">reply #35</span></div><div class="dlg-text">&lt;StartAction&gt;Colouring&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“Select material to change colors on. You need to possess the proper dye to apply…”</span></li></ul></div>
 <div class="dlg-node reply" id="r36"><div class="dlg-head"><span class="dlg-id">reply #36</span></div><div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
-<div class="dlg-node reply" id="r37"><div class="dlg-head"><span class="dlg-id">reply #37</span> <span class="dlg-action">→ <code>zep_cr_docmetal2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r38"><div class="dlg-head"><span class="dlg-id">reply #38</span> <span class="dlg-action">→ <code>zep_cr_docmetal1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r39"><div class="dlg-head"><span class="dlg-id">reply #39</span> <span class="dlg-action">→ <code>zep_cr_docleath2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r40"><div class="dlg-head"><span class="dlg-id">reply #40</span> <span class="dlg-action">→ <code>zep_cr_docleath1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r41"><div class="dlg-head"><span class="dlg-id">reply #41</span> <span class="dlg-action">→ <code>zep_cr_doccloth2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r42"><div class="dlg-head"><span class="dlg-id">reply #42</span> <span class="dlg-action">→ <code>zep_cr_doccloth1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
+<div class="dlg-node reply" id="r37"><div class="dlg-head"><span class="dlg-id">reply #37</span> <span class="dlg-action">→ <code>zep_cr_docmetal2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r38"><div class="dlg-head"><span class="dlg-id">reply #38</span> <span class="dlg-action">→ <code>zep_cr_docmetal1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy metal color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r39"><div class="dlg-head"><span class="dlg-id">reply #39</span> <span class="dlg-action">→ <code>zep_cr_docleath2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r40"><div class="dlg-head"><span class="dlg-id">reply #40</span> <span class="dlg-action">→ <code>zep_cr_docleath1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy leather color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r41"><div class="dlg-head"><span class="dlg-id">reply #41</span> <span class="dlg-action">→ <code>zep_cr_doccloth2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change secondary cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r42"><div class="dlg-head"><span class="dlg-id">reply #42</span> <span class="dlg-action">→ <code>zep_cr_doccloth1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change primairy cloth color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
 <div class="dlg-node reply" id="r43"><div class="dlg-head"><span class="dlg-id">reply #43</span></div><div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“Select material to change colors on. You need to possess the proper dye to apply…”</span></li></ul></div>
-<div class="dlg-node reply" id="r44"><div class="dlg-head"><span class="dlg-id">reply #44</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r45"><div class="dlg-head"><span class="dlg-id">reply #45</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color: &lt;StartAction&gt;&lt;CUSTOM20003&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r46"><div class="dlg-head"><span class="dlg-id">reply #46</span> <span class="dlg-action">→ <code>zep_cr_dorobe</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Robe&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r47"><div class="dlg-head"><span class="dlg-id">reply #47</span></div><div class="dlg-text">[TLK#86945]</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“[TLK#86913]”</span></li></ul></div>
-<div class="dlg-node reply" id="r48"><div class="dlg-head"><span class="dlg-id">reply #48</span></div><div class="dlg-text">[TLK#86946]</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
-<div class="dlg-node reply" id="r49"><div class="dlg-head"><span class="dlg-id">reply #49</span> <span class="dlg-action">→ <code>zep_cr_dofoot_r</code></span></div><div class="dlg-text">[TLK#86947]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r50"><div class="dlg-head"><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>zep_cr_dofoot_l</code></span></div><div class="dlg-text">[TLK#86948]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r51"><div class="dlg-head"><span class="dlg-id">reply #51</span> <span class="dlg-action">→ <code>zep_cr_doshin_r</code></span></div><div class="dlg-text">[TLK#86949]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r52"><div class="dlg-head"><span class="dlg-id">reply #52</span> <span class="dlg-action">→ <code>zep_cr_doshin_l</code></span></div><div class="dlg-text">[TLK#86950]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r53"><div class="dlg-head"><span class="dlg-id">reply #53</span> <span class="dlg-action">→ <code>zep_cr_dothigh_r</code></span></div><div class="dlg-text">[TLK#86951]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r54"><div class="dlg-head"><span class="dlg-id">reply #54</span> <span class="dlg-action">→ <code>zep_cr_dothigh_l</code></span></div><div class="dlg-text">[TLK#86952]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r55"><div class="dlg-head"><span class="dlg-id">reply #55</span> <span class="dlg-action">→ <code>zep_cr_dopelvis</code></span></div><div class="dlg-text">[TLK#86953]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r56"><div class="dlg-head"><span class="dlg-id">reply #56</span> <span class="dlg-action">→ <code>zep_cr_dobelt</code></span></div><div class="dlg-text">[TLK#86954]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r57"><div class="dlg-head"><span class="dlg-id">reply #57</span></div><div class="dlg-text">[TLK#86956]</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“[TLK#86914]”</span></li></ul></div>
-<div class="dlg-node reply" id="r58"><div class="dlg-head"><span class="dlg-id">reply #58</span></div><div class="dlg-text">[TLK#86957]</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
-<div class="dlg-node reply" id="r59"><div class="dlg-head"><span class="dlg-id">reply #59</span> <span class="dlg-action">→ <code>zep_cr_dohand_r</code></span></div><div class="dlg-text">[TLK#86958]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r60"><div class="dlg-head"><span class="dlg-id">reply #60</span> <span class="dlg-action">→ <code>zep_cr_dohand_l</code></span></div><div class="dlg-text">[TLK#86959]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r61"><div class="dlg-head"><span class="dlg-id">reply #61</span> <span class="dlg-action">→ <code>zep_cr_doloarm_r</code></span></div><div class="dlg-text">[TLK#86960]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r62"><div class="dlg-head"><span class="dlg-id">reply #62</span> <span class="dlg-action">→ <code>zep_cr_doloarm_l</code></span></div><div class="dlg-text">[TLK#86961]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r63"><div class="dlg-head"><span class="dlg-id">reply #63</span> <span class="dlg-action">→ <code>zep_cr_dobicep_r</code></span></div><div class="dlg-text">[TLK#86962]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r64"><div class="dlg-head"><span class="dlg-id">reply #64</span> <span class="dlg-action">→ <code>zep_cr_dobicep_l</code></span></div><div class="dlg-text">[TLK#86963]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r65"><div class="dlg-head"><span class="dlg-id">reply #65</span> <span class="dlg-action">→ <code>zep_cr_doshold_r</code></span></div><div class="dlg-text">[TLK#86964]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r66"><div class="dlg-head"><span class="dlg-id">reply #66</span> <span class="dlg-action">→ <code>zep_cr_doshold_l</code></span></div><div class="dlg-text">[TLK#86965]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r67"><div class="dlg-head"><span class="dlg-id">reply #67</span> <span class="dlg-action">→ <code>zep_cr_dotorso</code></span></div><div class="dlg-text">[TLK#86955]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r68"><div class="dlg-head"><span class="dlg-id">reply #68</span> <span class="dlg-action">→ <code>zep_cr_doneck</code></span></div><div class="dlg-text">[TLK#86966]</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
+<div class="dlg-node reply" id="r44"><div class="dlg-head"><span class="dlg-id">reply #44</span> <span class="dlg-action">→ <code>zep_cr_prevcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r45"><div class="dlg-head"><span class="dlg-id">reply #45</span> <span class="dlg-action">→ <code>zep_cr_nextcolor</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next color&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“Current color:”</span></li></ul></div>
+<div class="dlg-node reply" id="r46"><div class="dlg-head"><span class="dlg-id">reply #46</span> <span class="dlg-action">→ <code>zep_cr_dorobe</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Robe&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r47"><div class="dlg-head"><span class="dlg-id">reply #47</span></div><div class="dlg-text">&lt;StartAction&gt;Change Legs&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Select part to modify”</span></li></ul></div>
+<div class="dlg-node reply" id="r48"><div class="dlg-head"><span class="dlg-id">reply #48</span></div><div class="dlg-text">Back</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
+<div class="dlg-node reply" id="r49"><div class="dlg-head"><span class="dlg-id">reply #49</span> <span class="dlg-action">→ <code>zep_cr_dofoot_r</code></span></div><div class="dlg-text">Right Foot</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r50"><div class="dlg-head"><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>zep_cr_dofoot_l</code></span></div><div class="dlg-text">Left Foot</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r51"><div class="dlg-head"><span class="dlg-id">reply #51</span> <span class="dlg-action">→ <code>zep_cr_doshin_r</code></span></div><div class="dlg-text">Right Shin</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r52"><div class="dlg-head"><span class="dlg-id">reply #52</span> <span class="dlg-action">→ <code>zep_cr_doshin_l</code></span></div><div class="dlg-text">Left Shin</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r53"><div class="dlg-head"><span class="dlg-id">reply #53</span> <span class="dlg-action">→ <code>zep_cr_dothigh_r</code></span></div><div class="dlg-text">Right Thigh</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r54"><div class="dlg-head"><span class="dlg-id">reply #54</span> <span class="dlg-action">→ <code>zep_cr_dothigh_l</code></span></div><div class="dlg-text">Left Thigh</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r55"><div class="dlg-head"><span class="dlg-id">reply #55</span> <span class="dlg-action">→ <code>zep_cr_dopelvis</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Pelvis&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r56"><div class="dlg-head"><span class="dlg-id">reply #56</span> <span class="dlg-action">→ <code>zep_cr_dobelt</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Belt&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r57"><div class="dlg-head"><span class="dlg-id">reply #57</span></div><div class="dlg-text">&lt;StartAction&gt;Change Arms&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“Which part”</span></li></ul></div>
+<div class="dlg-node reply" id="r58"><div class="dlg-head"><span class="dlg-id">reply #58</span></div><div class="dlg-text">Back</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
+<div class="dlg-node reply" id="r59"><div class="dlg-head"><span class="dlg-id">reply #59</span> <span class="dlg-action">→ <code>zep_cr_dohand_r</code></span></div><div class="dlg-text">Right Glove</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r60"><div class="dlg-head"><span class="dlg-id">reply #60</span> <span class="dlg-action">→ <code>zep_cr_dohand_l</code></span></div><div class="dlg-text">Left Glove</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r61"><div class="dlg-head"><span class="dlg-id">reply #61</span> <span class="dlg-action">→ <code>zep_cr_doloarm_r</code></span></div><div class="dlg-text">Right ForeArm</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r62"><div class="dlg-head"><span class="dlg-id">reply #62</span> <span class="dlg-action">→ <code>zep_cr_doloarm_l</code></span></div><div class="dlg-text">Left ForeArm</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r63"><div class="dlg-head"><span class="dlg-id">reply #63</span> <span class="dlg-action">→ <code>zep_cr_dobicep_r</code></span></div><div class="dlg-text">Right Biceps</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r64"><div class="dlg-head"><span class="dlg-id">reply #64</span> <span class="dlg-action">→ <code>zep_cr_dobicep_l</code></span></div><div class="dlg-text">Left Biceps</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r65"><div class="dlg-head"><span class="dlg-id">reply #65</span> <span class="dlg-action">→ <code>zep_cr_doshold_r</code></span></div><div class="dlg-text">Right Shoulder</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r66"><div class="dlg-head"><span class="dlg-id">reply #66</span> <span class="dlg-action">→ <code>zep_cr_doshold_l</code></span></div><div class="dlg-text">Left Shoulder</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r67"><div class="dlg-head"><span class="dlg-id">reply #67</span> <span class="dlg-action">→ <code>zep_cr_dotorso</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Torso&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r68"><div class="dlg-head"><span class="dlg-id">reply #68</span> <span class="dlg-action">→ <code>zep_cr_doneck</code></span></div><div class="dlg-text">&lt;StartAction&gt;Change Neck&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
 <div class="dlg-node reply" id="r69"><div class="dlg-head"><span class="dlg-id">reply #69</span> <span class="dlg-action">→ <code>zep_cr_stop_abrt</code></span></div><div class="dlg-text">&lt;StartAction&gt;Abort&lt;/Start&gt;</div></div>
 <div class="dlg-node reply" id="r70"><div class="dlg-head"><span class="dlg-id">reply #70</span> <span class="dlg-action">→ <code>zep_cr_attempt</code></span></div><div class="dlg-text">&lt;StartAction&gt;Make Changes&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e8">→ child</a> <span class="dlg-link-preview">“You have successfully crafted the designed item.”</span></li></ul></div>
-<div class="dlg-node reply" id="r71"><div class="dlg-head"><span class="dlg-id">reply #71</span></div><div class="dlg-text">[TLK#86967]</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
-<div class="dlg-node reply" id="r72"><div class="dlg-head"><span class="dlg-id">reply #72</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">[TLK#86968]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
-<div class="dlg-node reply" id="r73"><div class="dlg-head"><span class="dlg-id">reply #73</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">[TLK#86969]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting &lt;StartAction&gt;&lt;CUSTOM20000&gt;&lt;/Start&gt;”</span></li></ul></div>
+<div class="dlg-node reply" id="r71"><div class="dlg-head"><span class="dlg-id">reply #71</span></div><div class="dlg-text">&lt;StartAction&gt;Back&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“Select armor part to modify. Complex changes are more difficult and expensive.”</span></li></ul></div>
+<div class="dlg-node reply" id="r72"><div class="dlg-head"><span class="dlg-id">reply #72</span> <span class="dlg-action">→ <code>zep_cr_prevpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show previous style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r73"><div class="dlg-head"><span class="dlg-id">reply #73</span> <span class="dlg-action">→ <code>zep_cr_nextpart</code></span></div><div class="dlg-text">&lt;StartAction&gt;Show next style&lt;/Start&gt;</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r74"><div class="dlg-head"><span class="dlg-id">reply #74</span> <span class="dlg-action">→ <code>zep_cr_start_cl</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Cloak:&lt;/Start&gt; Change cloak appearance or hide it.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r75"><div class="dlg-head"><span class="dlg-id">reply #75</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Helmet:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20006, ...) — no setter found in static analysis">&lt;CUSTOM20006&gt;</span></div></div>
+<div class="dlg-node reply" id="r76"><div class="dlg-head"><span class="dlg-id">reply #76</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Shield:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20007, ...) — no setter found in static analysis">&lt;CUSTOM20007&gt;</span></div></div>
+<div class="dlg-node reply" id="r77"><div class="dlg-head"><span class="dlg-id">reply #77</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Cloak:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20008, ...) — no setter found in static analysis">&lt;CUSTOM20008&gt;</span></div></div>
+<div class="dlg-node reply" id="r78"><div class="dlg-head"><span class="dlg-id">reply #78</span> <span class="dlg-action">→ <code>zep_cr_start_cm</code></span></div><div class="dlg-text">&lt;StartAction&gt;Craft Misc:&lt;/Start&gt; Change held item appearance.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Currently adjusting”</span></li></ul></div>
+<div class="dlg-node reply" id="r79"><div class="dlg-head"><span class="dlg-id">reply #79</span></div><div class="dlg-text">&lt;StartAction&gt;Craft Misc:&lt;/Start&gt; &lt;StartCheck&gt;Not Possible&lt;/Start&gt; -  <span class="custom-token custom-token-unknown" title="SetCustomToken(20009, ...) — no setter found in static analysis">&lt;CUSTOM20009&gt;</span></div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

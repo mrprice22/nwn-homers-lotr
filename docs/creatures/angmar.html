@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Angmar</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,39 +47,50 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>angmar</dd>
 <dt>Tag</dt><dd>ms_Angmar</dd>
-<dt>Race</dt><dd>Elf</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-1">Elf</a></dd>
 <dt>Appearance</dt><dd>Succubus, 2nd Ed.*</dd>
 <dt>Class(es)</dt><dd>Fighter 60/Weapon Master 10/Arcane Archer 60</dd>
-<dt>HP</dt><dd>8189</dd>
+<dt>HP</dt><dd>8,189</dd>
 <dt>CR</dt><dd>637.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/area009.html">Angmar&#x27;s Lair</a></td><td>1</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>90</td><th>Dex</th><td>70</td><th>Con</th><td>19</td><th>Int</th><td>50</td><th>Wis</th><td>50</td><th>Cha</th><td>36</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>60</td></tr><tr><td>Weapon Master</td><td>10</td></tr><tr><td>Arcane Archer</td><td>60</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>8189</td><th>AC</th><td>59 <small class="muted">(10 base + +30 Dex + +19 natural (NaturalAC))</small></td><th>BAB</th><td>+130</td></tr><tr><th>Fort</th><td>+4</td><th>Ref</th><td>+30</td><th>Will</th><td>+20</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/rapierofangmar.html">Rapier of Angmar</a></td><td>Rapier</td><td>Melee</td><td>+183/+178/+173/+168</td><td>1d6+40 (41–46) + Damage Bonus <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> 9, Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 9, Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 8, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 9, Damage Bonus Piercing 7</td><td>18-20/x2</td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>8,189</td><th>AC</th><td>73 <small class="muted">(10 base + +30 Dex + +19 natural (NaturalAC) + +10 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+130</td></tr><tr><th>Fort</th><td>+4</td><th>Ref</th><td>+30</td><th>Will</th><td>+20</td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+10</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (25%), Bludgeoning (75%), Cold (50%), Electrical (25%), Fire (25%), Magical (20%), Negative (20%), Piercing (50%), Slashing (25%), Sonic (25%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Regeneration</th><td>+7 HP/round</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr>
+<tr><th>Darkvision</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/rapierofangmar.html">Rapier of Angmar</a></td><td>Rapier</td><td>Melee</td><td>+196/+191/+186/+181</td><td>1d6+40 (41–46) + Damage Bonus <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> 9, Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 9, Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 8, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 9, Damage Bonus Piercing 7, Massive Criticals 23</td><td>18-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/rapierofangmar.html">Rapier of Angmar</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/_angmarskin.html">_angmar skin</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/rapierofangmar.html">Rapier of Angmar</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/_angmarskin.html">_angmar skin</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(15)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/rubyofpower.html">Ruby of Power</a></td><td>rubyofpower</td></tr>
-<tr><td><a href="../items/item080.html">Angmar&#x27;s Sure Shot</a></td><td>item080</td></tr>
-<tr><td><a href="../items/wammar050.html">Angmar&#x27;s Piercing Arrow</a></td><td>wammar050</td></tr>
-<tr><td><a href="../items/wammar050.html">Angmar&#x27;s Piercing Arrow</a></td><td>wammar050</td></tr>
-<tr><td><a href="../items/wammar050.html">Angmar&#x27;s Piercing Arrow</a></td><td>wammar050</td></tr>
-<tr><td><a href="../items/test.html">Dark Touch</a></td><td>test</td></tr>
-<tr><td><a href="../items/item077.html">The Evocator&#x27;s Belt</a></td><td>item077</td></tr>
-<tr><td><a href="../items/nazgularcherboot.html">Nazgul Archer Boots</a></td><td>nazgularcherboot</td></tr>
-<tr><td><a href="../items/it_gold002.html">[TLK#535]</a></td><td>it_gold002</td></tr>
-<tr><td><a href="../items/it_gold002.html">[TLK#535]</a></td><td>it_gold002</td></tr>
-<tr><td><a href="../items/it_gold002.html">[TLK#535]</a></td><td>it_gold002</td></tr>
-<tr><td><a href="../items/it_gold002.html">[TLK#535]</a></td><td>it_gold002</td></tr>
-<tr><td><a href="../items/it_gold002.html">[TLK#535]</a></td><td>it_gold002</td></tr>
-<tr><td><a href="../items/gemofpower.html">Gem of Power</a></td><td>gemofpower</td></tr>
-<tr><td><a href="../items/gemofprotection.html">Gem of Protection</a></td><td>gemofprotection</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/rubyofpower.html">Ruby of Power</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item080.html">Angmar&#x27;s Sure Shot</a></td><td><a href="../items/index.html#weapon-8">Longbow</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wammar050.html">Angmar&#x27;s Piercing Arrow</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wammar050.html">Angmar&#x27;s Piercing Arrow</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wammar050.html">Angmar&#x27;s Piercing Arrow</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/test.html">Dark Touch</a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item077.html">The Evocator&#x27;s Belt</a></td><td><a href="../items/index.html#belt">Belts</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nazgularcherboot.html">Nazgul Archer Boots</a></td><td><a href="../items/index.html#boots">Boots</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_gold002.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_gold002.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_gold002.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_gold002.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_gold002.html">Gold Piece</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/gemofpower.html">Gem of Power</a></td><td><a href="../items/index.html#gem">Gems</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/gemofprotection.html">Gem of Protection</a></td><td><a href="../items/index.html#gem">Gems</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(111)</small></h2><ul class="featlist"><li>Alertness</li><li>Arcane Defense (Abjuration)</li><li>Arcane Defense (Conjuration)</li><li>Arcane Defense (Divination)</li><li>Arcane Defense (Enchantment)</li><li>Arcane Defense (Evocation)</li><li>Arcane Defense (Illusion)</li><li>Arcane Defense (Necromancy)</li><li>Arcane Defense (Transmutation)</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Automatic Quicken Spell III</li><li>Automatic Silent Spell III</li><li>Blind-Fight</li><li>Bone Skin</li><li>Bull&#x27;s Strength</li><li>Called Shot</li><li>Cleave</li><li>Combat Casting</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Dark Blessing</li><li>Darkness</li><li>Darkvision</li><li>Devastating Critical (greatsword)</li><li>Devastating Critical (longbow)</li><li>Devastating Critical (longsword)</li><li>Devastating Critical (rapier)</li><li>Disarm</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Grace</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Might</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Wrath</li><li>Dodge</li><li>Epic Fighter</li><li>Epic Prowess</li><li>Epic Spell: Dragon Knight</li><li>Epic Spell: Epic Mage Armor</li><li>Epic Spell: Epic Warding</li><li>Epic Spell: Greater Ruin</li><li>Epic Spell: Hellball</li><li>Epic Spell: Mummy Dust</li><li>Epic Superior Weapon Focus</li><li>Epic Toughness I</li><li>Epic Toughness II</li><li>Epic Toughness IV</li><li>Epic Weapon Focus (greatsword)</li><li>Epic Weapon Focus (longbow)</li><li>Epic Weapon Focus (rapier)</li><li>Epic Weapon Specialization (greatsword)</li><li>Epic Weapon Specialization (longbow)</li><li>Epic Weapon Specialization (rapier)</li><li>Evasion</li><li>Fearless</li><li>Great Cleave</li><li>Hardiness vs. Enchantments</li><li>Hide in Plain Sight</li><li>Imbue Arrow</li><li>Immunity to <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span></li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Combat Casting</li><li>Improved Critical (greatsword)</li><li>Improved Critical (longbow)</li><li>Improved Critical (longsword)</li><li>Improved Critical (rapier)</li><li>Improved Expertise</li><li>Improved Initiative</li><li>Improved Invisibility</li><li>Improved Knockdown</li><li>Keen Sense</li><li>Knockdown</li><li>Lightning Reflexes</li><li>Low-light Vision</li><li>Maximize Spell</li><li>Mobility</li><li>Overwhelming Critical (greatsword)</li><li>Overwhelming Critical (longbow)</li><li>Overwhelming Critical (longsword)</li><li>Overwhelming Critical (rapier)</li><li>Point Blank Shot</li><li>Power Attack</li><li>Rapid Shot</li><li>Shield Proficiency</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Search)</li><li>Skill Affinity (Spot)</li><li>Smite Good</li><li>Spring Attack</li><li>Still Spell</li><li>Summon Familiar</li><li>Superior Initiative</li><li>Superior Weapon Focus</li><li>Two-Weapon Fighting</li><li>Uncanny Dodge I</li><li>Uncanny Dodge II</li><li>Uncanny Dodge III</li><li>Weapon Finesse</li><li>Weapon Focus (greatsword)</li><li>Weapon Focus (longbow)</li><li>Weapon Focus (longsword)</li><li>Weapon Focus (rapier)</li><li>Weapon of Choice (rapier)</li><li>Weapon Proficiency (Elf)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (greatsword)</li><li>Weapon Specialization (longbow)</li><li>Weapon Specialization (longsword)</li><li>Weapon Specialization (rapier)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>99</td></tr>
 <tr><td>Discipline</td><td>99</td></tr>
@@ -105,8 +138,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(1)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/area009-000.html">Angmar</a></td><td><a href="../areas/area009.html">Angmar&#x27;s Lair</a></td><td>Hostile</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

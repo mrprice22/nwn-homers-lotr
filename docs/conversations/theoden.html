@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation theoden</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,8 +52,8 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/theoden002.html">Theoden King of Rohan</a> <code>theoden002</code> — in <a href="../areas/theodenshall.html">Theoden&#x27;s Hall</a></li>
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/theodenshall-000.html">Theoden King of Rohan</a> <small class="muted">(blueprint <a href="../creatures/theoden002.html">Theoden King of Rohan</a>)</small> — in <a href="../areas/theodenshall.html">Theoden&#x27;s Hall</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/theoden002.html">Theoden King of Rohan</a> <code>theoden002</code> — in <a href="../areas/theodenshall.html">Theoden&#x27;s Hall</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/theoden002.html">Theoden King of Rohan</a> — in <a href="../areas/theodenshall.html">Theoden&#x27;s Hall</a></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>sc_021</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -45,7 +67,7 @@
 <tr><td><code>sc_023</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e10">entry #10</a> <small class="muted">(if <code>sc_020</code>)</small> — Have your returned triumphant?</li>
-<li><a href="#e9">entry #9</a> <small class="muted">(if <code>sc_023</code>)</small> — Ah Greetings &lt;FullName&gt;, the Golden Halls of Edoras brighten with your presence.</li>
+<li><a href="#e9">entry #9</a> <small class="muted">(if <code>sc_023</code>)</small> — Ah Greetings , the Golden Halls of Edoras brighten with your presence.</li>
 <li><a href="#e0">entry #0</a> — Hail young one. You come upon Rohan in troubles times. Ah but now I am so old an…</li>
 </ul>
 <h2>Conversation flow</h2>
@@ -268,7 +290,7 @@
 <div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>at_035</code></span></div><div class="dlg-text">I will Lord Theoden, rest assured your advisor will have a safe road soon.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Good, Seek these Orcs out in the Isangard outer rim. They make a home in the hil…”</span></li></ul></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">I shall, thank you.</div></div>
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">That is suicide! I must object to being sent to my death. I am sorry great king but you are better off saving your numbers here.</div></div>
-<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>at_036</code></span></div><div class="dlg-text">Yes King Theoden, the blockade is no more. Here is the proof of the matter, the scythe of the beast.</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Hurrah! Three cheers for &lt;FullName&gt;. Thy deed is great! And for reward I can off…”</span></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>at_036</code></span></div><div class="dlg-text">Yes King Theoden, the blockade is no more. Here is the proof of the matter, the scythe of the beast.</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Hurrah! Three cheers for . Thy deed is great! And for reward I can offer you thr…”</span></li></ul></div>
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">The Shield.</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“So be it. I have opened the Edoras coffers and provided you with some coin for t…”</span></li></ul></div>
 <div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">I thank you Theoden your gifts are most generous. Fare well.</div></div>
 <div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">The Helm.</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“So be it. I have opened the Edoras coffers and provided you with some coin for t…”</span></li></ul></div>
@@ -277,6 +299,6 @@
 <div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">I thank you Theoden your gifts are most generous. Fare well.</div></div>
 <div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">Not yet good King, the blockade still stands however I will be victorious soon.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Gate Axeman</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,30 +47,38 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>elitegatedefende</dd>
 <dt>Tag</dt><dd>GateAxeman</dd>
-<dt>Race</dt><dd>Orc</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-14">Orc</a></dd>
 <dt>Appearance</dt><dd>Orc, Faerun*</dd>
 <dt>Class(es)</dt><dd>Barbarian 30/Ooze 30</dd>
-<dt>HP</dt><dd>2680</dd>
+<dt>HP</dt><dd>2,680</dd>
 <dt>CR</dt><dd>151.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Commoner</a> <small class="muted">(id 2)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>70</td><th>Dex</th><td>35</td><th>Con</th><td>35</td><th>Int</th><td>35</td><th>Wis</th><td>35</td><th>Cha</th><td>35</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Barbarian</td><td>30</td></tr><tr><td>Ooze</td><td>30</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>2680</td><th>AC</th><td>50 <small class="muted">(10 base + +12 Dex + +18 natural (NaturalAC) + +10 armor enchant)</small></td><th>BAB</th><td>+60</td></tr><tr><th>Fort</th><td>+18</td><th>Ref</th><td>+18</td><th>Will</th><td>+18</td></tr></table>
+<table class="data"><tr><th>HP</th><td>2,680</td><th>AC</th><td>59 <small class="muted">(10 base + +12 Dex + +18 natural (NaturalAC) + +4 armor + +10 armor enchant + +5 dodge (items))</small></td><th>BAB</th><td>+60</td></tr><tr><th>Fort</th><td>+24</td><th>Ref</th><td>+18</td><th>Will</th><td>+18</td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/eliteorcgreataxe.html">Elite Orc Greataxe</a></td><td>Greataxe</td><td>Melee</td><td>+100/+95/+90/+85</td><td>1d12+30 (31–42) + Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 7</td><td>20/x3</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+5</td></tr>
+<tr><th>Save vs. Fortitude</th><td>+6</td></tr>
+<tr><th>Save vs. Universal</th><td>+3</td></tr>
+<tr><th>Constitution Bonus</th><td>+5</td></tr>
+<tr><th>Misc Immunity</th><td>Fear</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/eliteorcgreataxe.html">Elite Orc Greataxe</a></td><td>Greataxe</td><td>Melee</td><td>+110/+105/+100/+95</td><td>1d12+30 (31–42) + Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 7, On Hit Properties Slay Alignment Group: Good DC 14</td><td>20/x3</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/eliteorcplate.html">Elite Orc Chain</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/eliteorcgreataxe.html">Elite Orc Greataxe</a></td></tr>
-<tr><td>Left ring</td><td>x2_it_mring025</td></tr>
-<tr><td>Right ring</td><td>nw_it_mring033</td></tr>
-<tr><td>Neck</td><td>nw_it_mneck015</td></tr>
-<tr><td>Creature hide</td><td>nw_it_creitem052</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/eliteorcplate.html">Elite Orc Chain</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/eliteorcgreataxe.html">Elite Orc Greataxe</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/x2_it_mring025.html">Ring of Fortitude +6</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/nw_it_mring033.html">Ring of Resistance +3</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Neck</td><td><a href="../items/nw_it_mneck015.html">Amulet of Natural Armor +5</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td>nw_it_creitem052</td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(1)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/it_mpotion013.html">[TLK#13433]</a></td><td>it_mpotion013</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/it_mpotion013.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(39)</small></h2><ul class="featlist"><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Barbarian Fast Movement</li><li>Barbarian Rage (1x per day)</li><li>Barbarian Rage (2x per day)</li><li>Barbarian Rage (3x per day)</li><li>Barbarian Rage (4x per day)</li><li>Cleave</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Disarm</li><li>Dodge</li><li>Evasion</li><li>Favored Enemy: Elves</li><li>Fearless</li><li>Great Cleave</li><li>Greater Rage</li><li>Greater Rage (4x per day)</li><li>Greater Rage (5x per day)</li><li>Improved Critical (greataxe)</li><li>Improved Disarm</li><li>Improved Knockdown</li><li>Improved Power Attack</li><li>Knockdown</li><li>Power Attack</li><li>Shield Proficiency</li><li>Toughness</li><li>Uncanny Dodge I</li><li>Uncanny Dodge II</li><li>Uncanny Dodge III</li><li>Uncanny Dodge IV</li><li>Uncanny Dodge V</li><li>Uncanny Dodge VI+</li><li>Weapon Focus (greataxe)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>23</td></tr>
 <tr><td>Listen</td><td>23</td></tr>
@@ -69,6 +99,6 @@
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

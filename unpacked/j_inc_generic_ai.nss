@@ -602,6 +602,7 @@ int DetermineClassToUse()
     int nState1 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(1))) / fTotal) * 100);
     int nState2 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(2))) / fTotal) * 100) + nState1;
     int nState3 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(3))) / fTotal) * 100) + nState2;
+    int nState4 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(4))) / fTotal) * 100) + nState3;
 
     int nUseClass = d100();
 
@@ -613,9 +614,14 @@ int DetermineClassToUse()
     {
         nClass = GetClassByPosition(2);
     }
-    else
+    else if(nUseClass > nState2 && nUseClass <= nState3)
     {
         nClass = GetClassByPosition(3);
+    }
+    else
+    {
+        nClass = GetClassByPosition(4);
+        if(nClass == CLASS_TYPE_INVALID) nClass = GetClassByPosition(1);
     }
     return nClass;
 }

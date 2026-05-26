@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Isengard (Innerrim)</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Isengard (Innerrim)</h1>
-<dl class="meta"><dt>ResRef</dt><dd>isengardinnerrim</dd><dt>Tag</dt><dd>IsengardInnerRim</dd><dt>Tileset</dt><dd>City Exterior 1 <small class="muted">(tcn01)</small></dd><dt>Size</dt><dd>15×15 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>isengardinnerrim</dd><dt>Tag</dt><dd>IsengardInnerRim</dd><dt>Tileset</dt><dd>City Exterior 1 <small class="muted">(tcn01)</small></dd><dt>Size</dt><dd>15×15 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>1 hop</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="isengardinnerrim.html">Isengard (Innerrim)</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>isengin2isenout</td><td><a href="isengardouterrim.html">Isengard (Outerrim)</a></td><td><code>WP_isenout2isenin</code></td></tr>
 <tr><td>door</td><td>isen2orth</td><td><a href="toweroforthanc.html">Tower of Orthanc</a></td><td><code>orth2isen</code></td></tr>
@@ -32,17 +56,17 @@
 <tr><td>door</td><td><a href="isengardmagicroo.html">Isengard (Magic Room)</a></td><td>vault2isen</td></tr>
 <tr><td>door</td><td><a href="toweroforthanc.html">Tower of Orthanc</a></td><td>orth2isen</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/isengardinnerrim-000.html">Dunland Shaman</a></td><td><a href="../creatures/uthgard006.html">Dunland Shaman</a></td><td>uthgard006</td><td>Human</td><td>Barbarian 15/Druid 35</td><td>1200</td><td>80.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-001.html">White Hand Enervator</a></td><td><a href="../creatures/urukai015.html">White Hand Enervator</a></td><td>urukai015</td><td>Half-Orc</td><td>Cleric 30</td><td>650</td><td>47.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-002.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-003.html">Dunlending Shock Trooper</a></td><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-004.html">Dunlending Shock Trooper</a></td><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-005.html">Dunlending Shock Trooper</a></td><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-006.html">Dunlending Shock Trooper</a></td><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-007.html">Dunlending Shock Trooper</a></td><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-008.html">Uruk Hai First Born</a></td><td><a href="../creatures/urukhaifirstborn.html">Uruk Hai First Born</a></td><td>urukhaifirstborn</td><td>Half-Orc</td><td>Fighter 20/Blackguard 10</td><td>1390</td><td>115.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-009.html">Kainna the War Dancer</a></td><td><a href="../creatures/kainnatheward001.html">Kainna the War Dancer</a></td><td>kainnatheward001</td><td>Human</td><td>Barbarian 40/Shadowdancer 10/Monk 10</td><td>1960</td><td>239.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardinnerrim-010.html">Rail the White Hand Blaster</a></td><td><a href="../creatures/railthewhiteh001.html">Rail the White Hand Blaster</a></td><td>railthewhiteh001</td><td>Orc</td><td>Sorcerer 30/Barbarian 10</td><td>2640</td><td>146.0</td><td>Commoner</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/uthgard006.html">Dunland Shaman</a></td><td>uthgard006</td><td>Human</td><td>Barbarian 15/Druid 35</td><td>1200</td><td>80.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/urukai015.html">White Hand Enervator</a></td><td>urukai015</td><td>Half-Orc</td><td>Cleric 30</td><td>650</td><td>47.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/uthgard008.html">Dunlending Shock Trooper</a></td><td>uthgard008</td><td>Human</td><td>Barbarian 30/Monk 20</td><td>1250</td><td>207.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/urukhaifirstborn.html">Uruk Hai First Born</a></td><td>urukhaifirstborn</td><td>Half-Orc</td><td>Fighter 20/Blackguard 10</td><td>1390</td><td>115.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/kainnatheward001.html">Kainna the War Dancer</a></td><td>kainnatheward001</td><td>Human</td><td>Barbarian 40/Shadowdancer 10/Monk 10</td><td>1960</td><td>239.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/railthewhiteh001.html">Rail the White Hand Blaster</a></td><td>railthewhiteh001</td><td>Orc</td><td>Sorcerer 30/Barbarian 10</td><td>2640</td><td>146.0</td><td>Commoner</td><td></td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>isenenter</code></td><td>nw_waypoint001</td></tr>
 <tr><td><code>WP_ms_isen24_01</code></td><td></td></tr>
@@ -58,6 +82,6 @@
 <tr><td><code>WP_ms_isen24_11</code></td><td></td></tr>
 <tr><td><code>WP_ms_isen24_12</code></td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

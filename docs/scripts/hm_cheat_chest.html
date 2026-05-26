@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script hm_cheat_chest</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>hm_cheat_chest</code></h1><pre class="nss-source"><code>void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    string sKey = GetPCPublicCDKey(oPC);
+    int bAuth =   (sKey == &quot;FT6RKMX4&quot;)   // Homer
+               || (sKey == &quot;QR69DAFR&quot;)   // Homeless
+               || (sKey == &quot;FTM47TW9&quot;)   // Cassy
+               || (sKey == &quot;QG6QKQV3&quot;);  // Popoe
+
+    if (!bAuth)
+    {
+        SendMessageToPC(oPC, &quot;This chest is not for you.&quot;);
+        return;
+    }
+
+    if (GetItemPossessedBy(oPC, &quot;mw_mixtape&quot;)        == OBJECT_INVALID) CreateItemOnObject(&quot;mw_mixtape&quot;,       oPC);
+    if (GetItemPossessedBy(oPC, &quot;superdeluxe&quot;)        == OBJECT_INVALID) CreateItemOnObject(&quot;superdeluxering&quot;,  oPC);
+    if (GetItemPossessedBy(oPC, &quot;X0_CLOTH004&quot;)        == OBJECT_INVALID) CreateItemOnObject(&quot;cloth005&quot;,         oPC);
+    if (GetItemPossessedBy(oPC, &quot;DenethorsPlate&quot;)     == OBJECT_INVALID) CreateItemOnObject(&quot;denethorsplat001&quot;, oPC);
+    if (GetItemPossessedBy(oPC, &quot;Theuntouchable&quot;)     == OBJECT_INVALID) CreateItemOnObject(&quot;theuntouchable&quot;,   oPC);
+    if (GetItemPossessedBy(oPC, &quot;EvilDeathShield&quot;)    == OBJECT_INVALID) CreateItemOnObject(&quot;evildeathshield&quot;,  oPC);
+    if (GetItemPossessedBy(oPC, &quot;BossRing&quot;)           == OBJECT_INVALID) CreateItemOnObject(&quot;bossring001&quot;,      oPC);
+    if (GetItemPossessedBy(oPC, &quot;SuperKama&quot;)          == OBJECT_INVALID) CreateItemOnObject(&quot;item082&quot;,          oPC);
+    if (GetItemPossessedBy(oPC, &quot;HomersTouch&quot;)        == OBJECT_INVALID) CreateItemOnObject(&quot;item068&quot;,          oPC);
+    if (GetItemPossessedBy(oPC, &quot;X0_IT_MNECK001dds&quot;)  == OBJECT_INVALID) CreateItemOnObject(&quot;it_mneck002&quot;,      oPC);
+    if (GetItemPossessedBy(oPC, &quot;StaffofHomer&quot;)       == OBJECT_INVALID) CreateItemOnObject(&quot;staffofhomer&quot;,     oPC);
+    if (GetItemPossessedBy(oPC, &quot;SommanusAxe&quot;)        == OBJECT_INVALID) CreateItemOnObject(&quot;sommanusaxe&quot;,      oPC);
+    if (GetItemPossessedBy(oPC, &quot;ZOMGWTFBBQHAX&quot;)      == OBJECT_INVALID) CreateItemOnObject(&quot;zomgwtfbbqhax&quot;,    oPC);
+    if (GetItemPossessedBy(oPC, &quot;homerclaw&quot;)          == OBJECT_INVALID) CreateItemOnObject(&quot;it_crewpsp024&quot;,    oPC);
+    if (GetItemPossessedBy(oPC, &quot;Maghicaepic&quot;)        == OBJECT_INVALID) CreateItemOnObject(&quot;jubmaghica001&quot;,    oPC);
+    if (GetItemPossessedBy(oPC, &quot;SmashsSword&quot;)        == OBJECT_INVALID) CreateItemOnObject(&quot;item061&quot;,          oPC);
+    if (GetItemPossessedBy(oPC, &quot;x0_misc_fists&quot;)     == OBJECT_INVALID) CreateItemOnObject(&quot;x0_misc_fists&quot;,    oPC);
+
+    SendMessageToPC(oPC, &quot;Your items have been placed in your inventory.&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

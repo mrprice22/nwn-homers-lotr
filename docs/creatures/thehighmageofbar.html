@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Gothmog Lord of Barad-Dur</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,37 +47,60 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>thehighmageofbar</dd>
 <dt>Tag</dt><dd>LordofBaradDur</dd>
-<dt>Race</dt><dd>Half-Orc</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-5">Half-Orc</a></dd>
 <dt>Appearance</dt><dd>Half-orc</dd>
 <dt>Class(es)</dt><dd>Fighter 40/Champion of Torm 40/Weapon Master 20</dd>
-<dt>HP</dt><dd>7900</dd>
+<dt>HP</dt><dd>7,900</dd>
 <dt>CR</dt><dd>604.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Commoner</a> <small class="muted">(id 2)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/baraddurkeep.html">Barad-Dûr: Keep</a></td><td>1</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>88</td><th>Dex</th><td>70</td><th>Con</th><td>10</td><th>Int</th><td>31</td><th>Wis</th><td>9</td><th>Cha</th><td>50</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>40</td></tr><tr><td>Champion of Torm</td><td>40</td></tr><tr><td>Weapon Master</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>7900</td><th>AC</th><td>50 <small class="muted">(10 base + +30 Dex + +10 armor enchant)</small></td><th>BAB</th><td>+100</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+30</td><th>Will</th><td>-1</td></tr></table>
+<table class="data"><tr><th>HP</th><td>7,900</td><th>AC</th><td>55 <small class="muted">(10 base + +30 Dex + +1 armor + +10 armor enchant + +4 dodge (haste))</small></td><th>BAB</th><td>+100</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+30</td><th>Will</th><td>-1</td></tr><tr><th>Spell Resistance</th><td>32</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/jubmaghica.html">Gothmog&#x27;s Meat Cleaver</a></td><td>Scythe</td><td>Melee</td><td>+154/+149/+144/+139</td><td>2d4+39 (41–47) + Damage Bonus <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> 7, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 3, Damage Bonus Piercing 7, Damage Bonus Slashing 7</td><td>20/x4</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Skill: Intimidate</th><td>+15</td></tr>
+<tr><th>Skill: Listen</th><td>+50</td></tr>
+<tr><th>Skill: Spot</th><td>+50</td></tr>
+<tr><th>Skill: Taunt</th><td>+15</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>20/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (25%), Bludgeoning (25%), Divine (25%), Negative (25%), Piercing (75%), Slashing (75%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Fear, Knockdown, Mind-Affecting Spells, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Regeneration</th><td>+20 HP/round</td></tr>
+<tr><th>Regen: Vampiric</th><td>+2 HP/hit</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/jubmaghica.html">Gothmog&#x27;s Meat Cleaver</a></td><td>Scythe</td><td>Melee</td><td>+163/+158/+153/+148</td><td>2d4+39 (41–47) + Damage Bonus <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> 7, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 3, Damage Bonus Piercing 7, Damage Bonus Slashing 7, Massive Criticals 9, On Hit Properties Silence DC 20</td><td>20/x4</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/item072.html">Gothmog&#x27;s Mage Mail </a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/jubmaghica.html">Gothmog&#x27;s Meat Cleaver</a></td></tr>
-<tr><td>Left ring</td><td><a href="../items/044.html">Arrow of the Orc Defender</a></td></tr>
-<tr><td>Right ring</td><td><a href="../items/bossring.html">Boss Ring UNDROPABLE</a></td></tr>
-<tr><td>Bolts</td><td>nw_wambo001</td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear007.html">Skin of Gothmog</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/item072.html">Gothmog&#x27;s Mage Mail </a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/jubmaghica.html">Gothmog&#x27;s Meat Cleaver</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/044.html">Arrow of the Orc Defender</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/bossring.html">Boss Ring UNDROPABLE</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Bolts</td><td><a href="../items/nw_wambo001.html">Bolt</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear007.html">Skin of Gothmog</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(8)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td><a href="../items/it_mpotion028.html">[TLK#13433]</a></td><td>it_mpotion028</td></tr>
-<tr><td><a href="../items/blindluck.html">Blind Luck</a></td><td>blindluck</td></tr>
-<tr><td><a href="../items/amuletofmetaphsp.html">Amulet of Metaphspell Influence</a></td><td>amuletofmetaphsp</td></tr>
-<tr><td><a href="../items/greaterringofpow.html">Greater Ring of Power</a></td><td>greaterringofpow</td></tr>
-<tr><td><a href="../items/gripofgothmog.html">Grip of Gothmog </a></td><td>gripofgothmog</td></tr>
-<tr><td><a href="../items/tearhuanch.html">Tearhuanch</a></td><td>tearhuanch</td></tr>
-<tr><td><a href="../items/greaterscarab003.html">Greater Scarab Protector</a></td><td>greaterscarab003</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_mpotion028.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/blindluck.html">Blind Luck</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/amuletofmetaphsp.html">Amulet of Metaphspell Influence</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterringofpow.html">Greater Ring of Power</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/gripofgothmog.html">Grip of Gothmog </a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/tearhuanch.html">Tearhuanch</a></td><td><a href="../items/index.html#boots">Boots</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterscarab003.html">Greater Scarab Protector</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(99)</small></h2><ul class="featlist"><li>Arcane Defense (Evocation)</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Aura of Courage</li><li>Automatic Quicken Spell III</li><li>Automatic Silent Spell III</li><li>Automatic Still Spell I</li><li>Automatic Still Spell II</li><li>Automatic Still Spell III</li><li>Brew Potion</li><li>Craft Wand</li><li>Darkvision</li><li>Death Attack (+10d6)</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Grace</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Health</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Might</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Shield</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Wrath</li><li>Epic Fighter</li><li>Epic Paladin</li><li>Epic Prowess</li><li>Epic Spell: Epic Mage Armor</li><li>Epic Spell: Epic Warding</li><li>Epic Toughness I</li><li>Epic Toughness II</li><li>Epic Toughness IV</li><li>Epic Toughness V</li><li>Epic Toughness VI</li><li>Epic Weapon Focus (scythe)</li><li>Epic Weapon Specialization (scythe)</li><li>Extra Turning</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Gnomes</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Great Charisma I</li><li>Great Charisma II</li><li>Great Charisma III</li><li>Great Charisma IV</li><li>Great Charisma IX</li><li>Great Charisma V</li><li>Great Charisma VI</li><li>Great Charisma VII</li><li>Great Charisma VIII</li><li>Great Charisma X</li><li>Great Cleave</li><li>Greater Rage (5x per day)</li><li>Greater Spell Focus (Abjuration)</li><li>Greater Spell Focus (Conjuration)</li><li>Greater Spell Focus (Divination)</li><li>Greater Spell Focus (Enchantment)</li><li>Greater Spell Focus (Evocation)</li><li>Greater Spell Focus (Illusion)</li><li>Greater Spell Focus (Necromancy)</li><li>Greater Spell Focus (Transmutation)</li><li>Greater Spell Penetration</li><li>Hardiness vs. Enchantments</li><li>Hardiness vs. Illusions</li><li>Immunity to <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span></li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Combat Casting</li><li>Improved Critical (scythe)</li><li>Improved Evasion</li><li>Keen Sense</li><li>Knockdown</li><li>Lay on Hands</li><li>Luck of Heroes</li><li>Maximize Spell</li><li>Overwhelming Critical (scythe)</li><li>Remove Disease</li><li>Shield Proficiency</li><li>Silent Spell</li><li>Smite Evil</li><li>Spell Focus (Abjuration)</li><li>Spell Focus (Conjuration)</li><li>Spell Focus (Divination)</li><li>Spell Focus (Enchantment)</li><li>Spell Focus (Evocation)</li><li>Spring Attack</li><li>Summon Familiar</li><li>Superior Initiative</li><li>Superior Weapon Focus</li><li>Terrifying Rage</li><li>Turn Undead</li><li>Two-Weapon Fighting</li><li>Weapon Focus (scythe)</li><li>Weapon of Choice (scythe)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (rogue)</li><li>Weapon Proficiency (simple)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (scythe)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>99</td></tr>
 <tr><td>Discipline</td><td>99</td></tr>
@@ -99,8 +144,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(1)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/baraddurkeep-007.html">Gothmog Lord of Barad-Dur</a></td><td><a href="../areas/baraddurkeep.html">Barad-Dûr: Keep</a></td><td>Commoner</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

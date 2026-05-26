@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Mindalf</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Mindalf</h1>
-<dl class="meta"><dt>ResRef</dt><dd>nindalf</dd><dt>Tag</dt><dd>Nindalf</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>22×14 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>cleanup</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>nindalf</dd><dt>Tag</dt><dd>Nindalf</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>22×14 tiles</dd><dt>OnExit</dt><dd>cleanup</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>4 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="blackgatge.html">Morannon - The Black Gate</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li><li><a href="blackgatge.html">Morannon - The Black Gate</a> &rarr; <a href="dagorlad.html">Dagorlad</a> <em class="muted">[step on the &#8220;blackgate2dagorlad&#8221; trigger]</em></li><li><a href="dagorlad.html">Dagorlad</a> &rarr; <a href="deadmarshes.html">Dead Marshes</a> <em class="muted">[step on the &#8220;Dagorlad2DeadMarshes&#8221; trigger]</em></li><li><a href="deadmarshes.html">Dead Marshes</a> &rarr; <a href="nindalf.html">Mindalf</a> <em class="muted">[step on the &#8220;ddead2nindalf&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>nindalf2wold</td><td><em>(unresolved waypoint <code>WP_wold2nindalf</code>)</em></td><td><code>WP_wold2nindalf</code></td></tr>
 <tr><td>trigger</td><td>nindalf2deadmarshes</td><td><a href="deadmarshes.html">Dead Marshes</a></td><td><code>WP_ddead2nindalf</code></td></tr>
@@ -30,13 +54,11 @@
 <h2>Incoming transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>trigger</td><td><a href="deadmarshes.html">Dead Marshes</a></td><td>ddead2nindalf</td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>woldanimals2</td><td>woldanimals006</td><td>woldanimals2</td><td>3</td><td>3</td><td>nw_worg<small> CR 3.0</small>, <a href="../creatures/worg001.html">A Greater Worg</a><small> CR 6.0</small>, nw_bearkodiak<small> CR 6.0</small>, <a href="../creatures/cat001.html">A Ravenous Leopard</a><small> CR 7.0</small>, nw_wolfdireboss<small> CR 11.0</small>, <a href="../creatures/cragcat001.html">A Crag Cat</a><small> CR 12.0</small>, <a href="../creatures/boardire001.html">Dire Boar</a><small> CR 13.0</small>, <a href="../creatures/blinkdog001.html">A Spotted Wild Dog</a><small> CR 14.0</small>, nw_beardireboss<small> CR 15.0</small>, <a href="../creatures/fenhound001.html">A Rabid Hound</a><small> CR 17.0</small>, <a href="../creatures/werecat001.html">Werecat</a><small> CR 19.0</small>, <a href="../creatures/wolfdireboss001.html">Dire Wolf</a><small> CR 20.0</small>, <a href="../creatures/beardireboss001.html">Old Dire Bear</a><small> CR 26.0</small>, <a href="../creatures/malarpanther.html">Malar Panther</a><small> CR 30.0</small>, <a href="../creatures/krenshar.html">Krenshar</a><small> CR 41.0</small></td></tr>
-<tr><td>woldanimals2</td><td>woldanimals006</td><td>woldanimals2</td><td>3</td><td>3</td><td>nw_worg<small> CR 3.0</small>, <a href="../creatures/worg001.html">A Greater Worg</a><small> CR 6.0</small>, nw_bearkodiak<small> CR 6.0</small>, <a href="../creatures/cat001.html">A Ravenous Leopard</a><small> CR 7.0</small>, nw_wolfdireboss<small> CR 11.0</small>, <a href="../creatures/cragcat001.html">A Crag Cat</a><small> CR 12.0</small>, <a href="../creatures/boardire001.html">Dire Boar</a><small> CR 13.0</small>, <a href="../creatures/blinkdog001.html">A Spotted Wild Dog</a><small> CR 14.0</small>, nw_beardireboss<small> CR 15.0</small>, <a href="../creatures/fenhound001.html">A Rabid Hound</a><small> CR 17.0</small>, <a href="../creatures/werecat001.html">Werecat</a><small> CR 19.0</small>, <a href="../creatures/wolfdireboss001.html">Dire Wolf</a><small> CR 20.0</small>, <a href="../creatures/beardireboss001.html">Old Dire Bear</a><small> CR 26.0</small>, <a href="../creatures/malarpanther.html">Malar Panther</a><small> CR 30.0</small>, <a href="../creatures/krenshar.html">Krenshar</a><small> CR 41.0</small></td></tr>
-<tr><td>woldanimals2</td><td>woldanimals006</td><td>woldanimals2</td><td>3</td><td>3</td><td>nw_worg<small> CR 3.0</small>, <a href="../creatures/worg001.html">A Greater Worg</a><small> CR 6.0</small>, nw_bearkodiak<small> CR 6.0</small>, <a href="../creatures/cat001.html">A Ravenous Leopard</a><small> CR 7.0</small>, nw_wolfdireboss<small> CR 11.0</small>, <a href="../creatures/cragcat001.html">A Crag Cat</a><small> CR 12.0</small>, <a href="../creatures/boardire001.html">Dire Boar</a><small> CR 13.0</small>, <a href="../creatures/blinkdog001.html">A Spotted Wild Dog</a><small> CR 14.0</small>, nw_beardireboss<small> CR 15.0</small>, <a href="../creatures/fenhound001.html">A Rabid Hound</a><small> CR 17.0</small>, <a href="../creatures/werecat001.html">Werecat</a><small> CR 19.0</small>, <a href="../creatures/wolfdireboss001.html">Dire Wolf</a><small> CR 20.0</small>, <a href="../creatures/beardireboss001.html">Old Dire Bear</a><small> CR 26.0</small>, <a href="../creatures/malarpanther.html">Malar Panther</a><small> CR 30.0</small>, <a href="../creatures/krenshar.html">Krenshar</a><small> CR 41.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>woldanimals2</td><td>woldanimals006</td><td>woldanimals2, woldanimals2, woldanimals2</td><td>3</td><td>3</td><td>nw_worg<small> CR 3.0</small>, <a href="../creatures/worg001.html">A Greater Worg</a><small> CR 6.0</small>, nw_bearkodiak<small> CR 6.0</small>, <a href="../creatures/cat001.html">A Ravenous Leopard</a><small> CR 7.0</small>, nw_wolfdireboss<small> CR 11.0</small>, <a href="../creatures/cragcat001.html">A Crag Cat</a><small> CR 12.0</small>, <a href="../creatures/boardire001.html">Dire Boar</a><small> CR 13.0</small>, <a href="../creatures/blinkdog001.html">A Spotted Wild Dog</a><small> CR 14.0</small>, nw_beardireboss<small> CR 15.0</small>, <a href="../creatures/fenhound001.html">A Rabid Hound</a><small> CR 17.0</small>, <a href="../creatures/werecat001.html">Werecat</a><small> CR 19.0</small>, <a href="../creatures/wolfdireboss001.html">Dire Wolf</a><small> CR 20.0</small>, <a href="../creatures/beardireboss001.html">Old Dire Bear</a><small> CR 26.0</small>, <a href="../creatures/malarpanther.html">Malar Panther</a><small> CR 30.0</small>, <a href="../creatures/krenshar.html">Krenshar</a><small> CR 41.0</small></td><td>3</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_nindalf2deadmarshes</code></td><td></td></tr>
 <tr><td><code>WP_nindalf2wold</code></td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

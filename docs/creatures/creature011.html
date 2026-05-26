@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Iidda the Wraith Warrior</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,40 +47,59 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>creature011</dd>
 <dt>Tag</dt><dd>MazgulsTrainer</dd>
-<dt>Race</dt><dd>Halfling</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-3">Halfling</a></dd>
 <dt>Appearance</dt><dd>Halfling</dd>
 <dt>Class(es)</dt><dd>Monk 60/Fighter 20</dd>
-<dt>HP</dt><dd>9000</dd>
+<dt>HP</dt><dd>9,000</dd>
 <dt>CR</dt><dd>603.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Evil</a> <small class="muted">(id 5)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>90</td><th>Dex</th><td>30</td><th>Con</th><td>60</td><th>Int</th><td>20</td><th>Wis</th><td>30</td><th>Cha</th><td>30</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Monk</td><td>60</td></tr><tr><td>Fighter</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>9000</td><th>AC</th><td>30 <small class="muted">(10 base + +10 Dex + +10 armor enchant)</small></td><th>BAB</th><td>+65</td></tr><tr><th>Fort</th><td>+25</td><th>Ref</th><td>+10</td><th>Will</th><td>+10</td></tr></table>
+<table class="data"><tr><th>HP</th><td>9,000</td><th>AC</th><td>40 <small class="muted">(10 base + +10 Dex + +10 armor enchant + +10 Wis (monk))</small></td><th>BAB</th><td>+65</td></tr><tr><th>Fort</th><td>+25</td><th>Ref</th><td>+30</td><th>Will</th><td>+10</td></tr><tr><th>Spell Resistance</th><td>30 <small class="muted">(max of: feats (30), items (10))</small></td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<p><strong>Spell resistance:</strong> granted by feats: Improved Spell Resistance I, Improved Spell Resistance II, Improved Spell Resistance III, Improved Spell Resistance IV, Improved Spell Resistance IX, Improved Spell Resistance V, Improved Spell Resistance VI, Improved Spell Resistance VII, Improved Spell Resistance VIII, Improved Spell Resistance X</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+120/+115/+110/+105</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+120/+115/+110/+105</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Save vs. Reflex</th><td>+20</td></tr>
+<tr><th>Skill: Intimidate</th><td>+15</td></tr>
+<tr><th>Skill: Search</th><td>+15</td></tr>
+<tr><th>Skill: Spot</th><td>+15</td></tr>
+<tr><th>Skill: Taunt</th><td>+15</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>6</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>25/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (50%), Bludgeoning (25%), Piercing (75%), Slashing (50%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Level/Ability Drain, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Regeneration</th><td>+5 HP/round</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr>
+<tr><th>Darkvision</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+140/+135/+130/+125</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td><td>Creature Bludgeon Weapon</td><td>Melee</td><td>+140/+135/+130/+125</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/cus_shiftertu002.html">Trainer&#x27;s Garb</a></td></tr>
-<tr><td>Creature weapon (R)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear010.html">sKIN OF wRAITH</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/cus_shiftertu002.html">Trainer&#x27;s Garb</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/wraithsfist.html">Wraiths Warriors Fist</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear010.html">sKIN OF wRAITH</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(11)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/item052.html">Dark Ring</a></td><td>item052</td></tr>
-<tr><td><a href="../items/it_mpotion029.html">[TLK#13433]</a></td><td>it_mpotion029</td></tr>
-<tr><td><a href="../items/it_mboots006.html">[TLK#90840]</a></td><td>it_mboots006</td></tr>
-<tr><td><a href="../items/item069.html">Wraith Warrior&#x27;s Touch</a></td><td>item069</td></tr>
-<tr><td>x2_it_mneck010</td><td>x2_it_mneck010</td></tr>
-<tr><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td><td>greaterringof002</td></tr>
-<tr><td>x2_it_mbelt005</td><td>x2_it_mbelt005</td></tr>
-<tr><td><a href="../items/item116.html">Thurindil&#x27;s Corruption</a></td><td>item116</td></tr>
-<tr><td><a href="../items/wthmsh004.html">Somango</a></td><td>wthmsh004</td></tr>
-<tr><td><a href="../items/wthmsh004.html">Somango</a></td><td>wthmsh004</td></tr>
-<tr><td><a href="../items/wthmsh004.html">Somango</a></td><td>wthmsh004</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/item052.html">Dark Ring</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_mpotion029.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/it_mboots006.html">Boots of Reflexes +10</a></td><td><a href="../items/index.html#boots">Boots</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item069.html">Wraith Warrior&#x27;s Touch</a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/x2_it_mneck010.html">Periapt of Wisdom +10</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/x2_it_mbelt005.html">Belt of Agility +7</a></td><td><a href="../items/index.html#belt">Belts</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item116.html">Thurindil&#x27;s Corruption</a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wthmsh004.html">Somango</a></td><td><a href="../items/index.html#weapon-59">Shuriken</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wthmsh004.html">Somango</a></td><td><a href="../items/index.html#weapon-59">Shuriken</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wthmsh004.html">Somango</a></td><td><a href="../items/index.html#weapon-59">Shuriken</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(118)</small></h2><ul class="featlist"><li>Alertness</li><li>Armor Skin</li><li>Battle Training vs. Orcs</li><li>Blind-Fight</li><li>Called Shot</li><li>Cat&#x27;s Grace</li><li>Cleave</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Death Attack (+10d6)</li><li>Death Attack (+1d6)</li><li>Death Attack (+20d6)</li><li>Death Attack (+2d6)</li><li>Death Attack (+3d6)</li><li>Death Attack (+4d6)</li><li>Death Attack (+5d6)</li><li>Death Attack (+6d6)</li><li>Death Attack (+7d6)</li><li>Death Attack (+8d6)</li><li>Death Attack (+9d6)</li><li>Defensive Awareness (1)</li><li>Defensive Roll</li><li>Deflect Arrows</li><li>Dirty Fighting</li><li>Dodge</li><li>Empty Body</li><li>Epic Assassin</li><li>Epic Damage Reduction I</li><li>Epic Damage Reduction III</li><li>Epic Monk</li><li>Epic Prowess</li><li>Epic Reflexes</li><li>Epic Toughness I</li><li>Epic Toughness II</li><li>Epic Toughness III</li><li>Epic Toughness IV</li><li>Epic Toughness VI</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Specialization (creature weapon)</li><li>Evasion</li><li>Favored Enemy: Constructs</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elementals</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Fey</li><li>Favored Enemy: Giants</li><li>Favored Enemy: Gnomes</li><li>Favored Enemy: Goblinoids</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Favored Enemy: <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> Beasts</li><li>Favored Enemy: Monstrous Humanoids</li><li>Favored Enemy: Orcs</li><li>Favored Enemy: Outsiders</li><li>Favored Enemy: Reptilian Humanoids</li><li>Favored Enemy: Shapechangers</li><li>Favored Enemy: Undead</li><li>Favored Enemy: Vermin</li><li>Fearless</li><li>Flurry of Blows</li><li>Good Aim</li><li>Great Cleave</li><li>Hardiness vs. Spells</li><li>Hide in Plain Sight</li><li>Immunity to <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span></li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Critical (creature)</li><li>Improved Critical (unarmed strike)</li><li>Improved Evasion</li><li>Improved Initiative</li><li>Improved Invisibility</li><li>Improved Ki Strike +4</li><li>Improved Ki Strike +5</li><li>Improved Knockdown</li><li>Improved Spell Resistance I</li><li>Improved Spell Resistance II</li><li>Improved Spell Resistance III</li><li>Improved Spell Resistance IV</li><li>Improved Spell Resistance IX</li><li>Improved Spell Resistance V</li><li>Improved Spell Resistance VI</li><li>Improved Spell Resistance VII</li><li>Improved Spell Resistance VIII</li><li>Improved Spell Resistance X</li><li>Improved Unarmed Strike</li><li>Keen Sense</li><li>Ki Critical</li><li>Ki Damage</li><li>Ki Strike +3</li><li>Knockdown</li><li>Lightning Reflexes</li><li>Lucky</li><li>Mobility</li><li>Monk AC Bonus</li><li>Monk Speed</li><li>Opportunist</li><li>Overwhelming Critical (creature weapon)</li><li>Perfect Self</li><li>Power Attack</li><li>Purity of Body</li><li>Quivering Palm</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Move Silently)</li><li>Slippery Mind</li><li>Small Stature</li><li>Spring Attack</li><li>Still Mind</li><li>Toughness</li><li>Two-Weapon Fighting</li><li>Weapon Focus (unarmed strike)</li><li>Weapon Proficiency (creature)</li><li>Weapon Specialization (creature)</li><li>Weapon Specialization (unarmed strike)</li><li>Wholeness of Body</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>55</td></tr>
 <tr><td>Discipline</td><td>55</td></tr>
@@ -89,6 +130,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -46,6 +46,11 @@ void main()
       AssignCommand(oActivator, ActionStartConversation(oActivator, "devinering", TRUE));
       return;
    }
+   if(GetTag(oItem)=="mw_mixtape")
+   {
+      AssignCommand(oActivator, ActionStartConversation(oActivator, "mw_mixtape_use", TRUE, FALSE));
+      return;
+   }
     //object oItem=GetItemActivated();
     object oUser=GetItemActivator();
     object oOther=GetItemActivatedTarget();

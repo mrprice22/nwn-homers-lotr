@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script pers_state_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>pers_state_inc</code></h1><pre class="nss-source"><code>// pers_state_inc — fix the relog-heals-and-rests exploit.
+//
+// Snapshots the PC&#x27;s current HP, remaining spell slots (per multiclass
+// + spell level) and remaining uses on a fixed list of daily-use feats
+// (including epic spells, which are feats in NWN). Restores the
+// snapshot on next client-enter, undoing the engine&#x27;s automatic
+// &quot;rested&quot; reset.
+//
+// Persistence rides on NWNX_Object_*Int with bPersist=TRUE — the same
+// pattern the HGLL leveler uses (see commit 08cb4571).
+//
+// Death is still handled by the existing deathamulet path
+// (ondeath020.nss + the deathamulet check in hgll_cliententer.nss).
+// PersState_Restore deliberately skips HP restoration when the saved
+// HP is &lt;= 0 so the deathamulet path is the sole arbiter of death.
+
+#include &quot;nwnx_creature&quot;   // still used for GetFeatRemainingUses / Set
+#include &quot;nwnx_object&quot;     // SetInt persistence + SetCurrentHitPoints
+#include &quot;nwnx_player&quot;     // UpdateCharacterSheet
+
+const string PERS_HP            = &quot;pers_hp&quot;;
+const string PERS_HP_VALID      = &quot;pers_hp_valid&quot;;
+const string PERS_MSP_PREFIX    = &quot;pers_msp_&quot;;     // + &quot;&lt;class&gt;_&lt;level&gt;_&lt;idx&gt;&quot;
+                                                   // 0 = not snapshotted,
+                                                   // 1 = snapshotted not-ready,
+                                                   // 2 = snapshotted ready
+const string PERS_FEAT_PREFIX   = &quot;pers_feat_&quot;;    // + &quot;&lt;featId&gt;&quot;
+
+// Daily-use feats to track. Edit this single array to add more
+// (PRC-style epic spells, custom HGLL high-level feats, etc.).
+const int PERS_FEAT_COUNT = 14;
+int PersState_FeatId(int i)
+{
+    switch (i)
+    {
+        case  0: return FEAT_STUNNING_FIST;
+        case  1: return FEAT_SMITE_EVIL;
+        case  2: return FEAT_SMITE_GOOD;
+        case  3: return 411;   // FEAT_BARDIC_MUSIC (not in stock nwscript)
+        case  4: return FEAT_WILD_SHAPE;
+        case  5: return FEAT_TURN_UNDEAD;
+        case  6: return FEAT_KI_DAMAGE;
+        case  7: return FEAT_QUIVERING_PALM;
+        // Epic spells — feat IDs verified in j_inc_constants.nss.
+        case  8: return 874;   // FEAT_EPIC_SPELL_MUMMY_DUST
+        case  9: return 875;   // FEAT_EPIC_SPELL_DRAGON_KNIGHT
+        case 10: return 876;   // FEAT_EPIC_SPELL_HELLBALL
+        case 11: return 877;   // FEAT_EPIC_SPELL_EPIC_MAGE_ARMOR
+        case 12: return 878;   // FEAT_EPIC_SPELL_RUIN
+        case 13: return 990;   // FEAT_EPIC_SPELL_EPIC_WARDING
+    }
+    return -1;
+}
+
+// Polymorphed Shifters: pc_export_inc skips them to avoid stat
+// corruption. We do the same for HP capture (their morphed HP would
+// stomp the real value).
+int PersState_IsShifterMorphed(object oPC)
+{
+    if (GetLevelByClass(CLASS_TYPE_SHIFTER, oPC) &lt;= 0) return FALSE;
+    effect ef = GetFirstEffect(oPC);
+    while (GetEffectType(ef) != EFFECT_TYPE_INVALIDEFFECT)
+    {
+        if (GetEffectType(ef) == EFFECT_TYPE_POLYMORPH) return TRUE;
+        ef = GetNextEffect(oPC);
+    }
+    return FALSE;
+}
+
+void PersState_Snapshot(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    if (!PersState_IsShifterMorphed(oPC))
+    {
+        NWNX_Object_SetInt(oPC, PERS_HP, GetCurrentHitPoints(oPC), TRUE);
+        NWNX_Object_SetInt(oPC, PERS_HP_VALID, 1, TRUE);
+    }
+
+    int nClass, nLevel, i;
+    for (nClass = 0; nClass &lt;= 3; nClass++)
+    {
+        int nClassType = GetClassByPosition(nClass + 1, oPC);
+        if (nClassType == CLASS_TYPE_INVALID) continue;
+        for (nLevel = 0; nLevel &lt;= 9; nLevel++)
+        {
+            // Prepared casters: snapshot the per-slot Ready flag using
+            // stock APIs. NWNX_Creature_GetRemainingSpellSlots in this
+            // build returns 0 unconditionally, so we can&#x27;t rely on it.
+            int nCount = GetMemorizedSpellCountByLevel(oPC, nClassType, nLevel);
+            for (i = 0; i &lt; nCount; i++)
+            {
+                int bReady = GetMemorizedSpellReady(oPC, nClassType, nLevel, i);
+                NWNX_Object_SetInt(oPC,
+                    PERS_MSP_PREFIX + IntToString(nClassType) + &quot;_&quot;
+                        + IntToString(nLevel) + &quot;_&quot; + IntToString(i),
+                    bReady ? 2 : 1, TRUE);
+            }
+        }
+    }
+
+    for (i = 0; i &lt; PERS_FEAT_COUNT; i++)
+    {
+        int nFeat = PersState_FeatId(i);
+        if (nFeat &lt; 0 || !GetHasFeat(nFeat, oPC)) continue;
+        int nUses = NWNX_Creature_GetFeatRemainingUses(oPC, nFeat);
+        NWNX_Object_SetInt(oPC,
+            PERS_FEAT_PREFIX + IntToString(nFeat),
+            nUses, TRUE);
+    }
+}
+
+void PersState_Restore(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    int nClass, nLevel, i;
+    for (nClass = 0; nClass &lt;= 3; nClass++)
+    {
+        int nClassType = GetClassByPosition(nClass + 1, oPC);
+        if (nClassType == CLASS_TYPE_INVALID) continue;
+        for (nLevel = 0; nLevel &lt;= 9; nLevel++)
+        {
+            int nCount = GetMemorizedSpellCountByLevel(oPC, nClassType, nLevel);
+            for (i = 0; i &lt; nCount; i++)
+            {
+                int nState = NWNX_Object_GetInt(oPC,
+                    PERS_MSP_PREFIX + IntToString(nClassType) + &quot;_&quot;
+                        + IntToString(nLevel) + &quot;_&quot; + IntToString(i));
+                if (nState == 0) continue; // never snapshotted
+                int bSavedReady = (nState == 2);
+                // Engine restores all prepared slots to ready on enter;
+                // only flip back to not-ready those the snapshot says
+                // were spent. Don&#x27;t go the other way (snap back to
+                // ready) — we only ever take spells away, never give.
+                if (!bSavedReady &amp;&amp; GetMemorizedSpellReady(oPC, nClassType, nLevel, i))
+                    SetMemorizedSpellReady(oPC, nClassType, nLevel, i, FALSE);
+            }
+        }
+    }
+
+    for (i = 0; i &lt; PERS_FEAT_COUNT; i++)
+    {
+        int nFeat = PersState_FeatId(i);
+        if (nFeat &lt; 0 || !GetHasFeat(nFeat, oPC)) continue;
+        int nUses = NWNX_Object_GetInt(oPC, PERS_FEAT_PREFIX + IntToString(nFeat));
+        // GetInt returns 0 for unset keys, which would zero out fresh
+        // PCs that never logged out. Use the total-uses ceiling as a
+        // proxy for &quot;was this snapshotted?&quot;: only restore if the saved
+        // value is strictly less than current (engine just gave them
+        // full uses on enter — if our saved value is the same or
+        // higher there&#x27;s nothing to take away).
+        int nCur = NWNX_Creature_GetFeatRemainingUses(oPC, nFeat);
+        if (nUses &lt; nCur) NWNX_Creature_SetFeatRemainingUses(oPC, nFeat, nUses);
+    }
+
+    // HP last. Skip when the snapshot was never taken or the saved
+    // value is &lt;= 0 (death — let the deathamulet handle it).
+    // Direct NWNX HP set bypasses DR/resistance and is exact regardless
+    // of where the engine&#x27;s post-login heal has landed by now.
+    if (NWNX_Object_GetInt(oPC, PERS_HP_VALID) == 1)
+    {
+        int nSaved = NWNX_Object_GetInt(oPC, PERS_HP);
+        if (nSaved &gt; 0 &amp;&amp; nSaved &lt; GetCurrentHitPoints(oPC))
+            NWNX_Object_SetCurrentHitPoints(oPC, nSaved);
+    }
+
+    // Force the client&#x27;s character sheet / spellbook UI to redraw so
+    // restored spell-slot and feat-use counts are visible immediately.
+    NWNX_Player_UpdateCharacterSheet(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

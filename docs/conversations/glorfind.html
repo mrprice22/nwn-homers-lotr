@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation glorfind</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,8 +52,8 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/glorfindel002.html">Glorfindel</a> <code>glorfindel002</code> — in <a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></li>
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/thevalleyofriven-002.html">Glorfindel</a> <small class="muted">(blueprint <a href="../creatures/glorfindel002.html">Glorfindel</a>)</small> — in <a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/glorfindel002.html">Glorfindel</a> <code>glorfindel002</code> — in <a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/glorfindel002.html">Glorfindel</a> — in <a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>sc_004</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -42,8 +64,8 @@
 <tr><td><code>sc_006</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e9">entry #9</a> <small class="muted">(if <code>sc_005</code>)</small> — Have you found all the Ingredients for the Curative potion?</li>
-<li><a href="#e8">entry #8</a> <small class="muted">(if <code>sc_006</code>)</small> — I am glad to see you again &lt;FirstName&gt;. A light shines upon our meeting.</li>
-<li><a href="#e0">entry #0</a> — Greetings &lt;FullName&gt;, It is a fine &lt;quarterday&gt; for a walk about the woods is it…</li>
+<li><a href="#e8">entry #8</a> <small class="muted">(if <code>sc_006</code>)</small> — I am glad to see you again . A light shines upon our meeting.</li>
+<li><a href="#e0">entry #0</a> — Greetings , It is a fine  for a walk about the woods is it not?</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -197,7 +219,7 @@
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">You know me?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“The Rangers of the North have sent word to me of your deeds in this land. But co…”</span></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I would be honored but who are you?</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“My name is Glorfindel, Captain of the Guard of Rivendell. I require your assista…”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Go on. What of this task?</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“I seek components, for a curative my Lord Elrond has bid me collect. I however c…”</span></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Well that explains why you do not go yourself. I would be honored to collect the ingredients on your behalf.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Excellent &lt;FirstName&gt;, I knew I could count on you!”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Well that explains why you do not go yourself. I would be honored to collect the ingredients on your behalf.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Excellent , I knew I could count on you!”</span></li></ul></div>
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Where and what are these ingredients?</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“The first is the Athelas plant that you may find along the riverbank of the Mist…”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">And...</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“The second is more treacherous. You must collect the headstone to the Statue of…”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">And the last?</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“The last is the most dangerous of all. Within Carrok of the Misty Mountains lies…”</span></li></ul></div>
@@ -208,6 +230,6 @@
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>at_012</code></span></div><div class="dlg-text">Thanks Glrofindel was a long haul, but worth the valuable potion.</div></div>
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Nope still looking thanks.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

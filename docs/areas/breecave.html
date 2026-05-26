@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Bree Cave</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Bree Cave</h1>
-<dl class="meta"><dt>ResRef</dt><dd>breecave</dd><dt>Tag</dt><dd>BreeCave</dd><dt>Tileset</dt><dd>Mines and Caverns <small class="muted">(tdm01)</small></dd><dt>Size</dt><dd>16×16 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>aa_area_exit</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>breecave</dd><dt>Tag</dt><dd>BreeCave</dd><dt>Tileset</dt><dd>Mines and Caverns <small class="muted">(tdm01)</small></dd><dt>Size</dt><dd>16×16 tiles</dd><dt>OnExit</dt><dd>aa_area_exit</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="bree.html">Bree</a> <em class="muted">[use the &#8220;x2_doorhard2&#8221; door]</em></li><li><a href="bree.html">Bree</a> &rarr; <a href="breecave.html">Bree Cave</a> <em class="muted">[use the &#8220;CaveBree12&#8221; door]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>breecave2bree</td><td><a href="bree.html">Bree</a></td><td><code>CaveBree12</code></td></tr>
 <tr><td>door</td><td>Breecave2Shelob</td><td><a href="shelobslair.html">Shelob&#x27;s Lair</a></td><td><code>MineExit</code></td></tr></tbody></table>
@@ -30,31 +54,17 @@
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>door</td><td><a href="bree.html">Bree</a></td><td>CaveBree12</td></tr>
 <tr><td>door</td><td><a href="shelobslair.html">Shelob&#x27;s Lair</a></td><td>MineExit</td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>1</td><td><a href="../creatures/cavebat.html">Cave Bat</a><small> CR 0.3333</small></td></tr>
-<tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>1</td><td><a href="../creatures/cavebat.html">Cave Bat</a><small> CR 0.3333</small></td></tr>
-<tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>1</td><td><a href="../creatures/cavebat.html">Cave Bat</a><small> CR 0.3333</small></td></tr>
-<tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>1</td><td><a href="../creatures/cavebat.html">Cave Bat</a><small> CR 0.3333</small></td></tr>
-<tr><td>Rats</td><td>rats001</td><td>Rats</td><td>4</td><td>0</td><td>nw_rat001<small> CR 0.125</small></td></tr>
-<tr><td>Rats</td><td>rats001</td><td>Rats</td><td>4</td><td>0</td><td>nw_rat001<small> CR 0.125</small></td></tr>
-<tr><td>FireBeetles</td><td>firebeetles001</td><td>FireBeetles</td><td>4</td><td>0</td><td>nw_btlfire<small> CR 0.25</small></td></tr>
-<tr><td>FireBeetles</td><td>firebeetles001</td><td>FireBeetles</td><td>4</td><td>0</td><td>nw_btlfire<small> CR 0.25</small></td></tr>
-<tr><td>Stirges</td><td>stirges</td><td>Stirges</td><td>4</td><td>0</td><td>nw_stirge<small> CR 0.3333</small></td></tr>
-<tr><td>Stirges</td><td>stirges</td><td>Stirges</td><td>4</td><td>0</td><td>nw_stirge<small> CR 0.3333</small></td></tr>
-<tr><td>Rats</td><td>rats001</td><td>Rats</td><td>4</td><td>0</td><td>nw_rat001<small> CR 0.125</small></td></tr>
-<tr><td>FireBeetles</td><td>firebeetles001</td><td>FireBeetles</td><td>4</td><td>0</td><td>nw_btlfire<small> CR 0.25</small></td></tr>
-<tr><td>WereRats</td><td>wererats</td><td>WereRats</td><td>4</td><td>0</td><td><a href="../creatures/wererat001.html">Wererat</a><small> CR 0.5</small></td></tr>
-<tr><td>WereRats</td><td>wererats</td><td>WereRats</td><td>4</td><td>0</td><td><a href="../creatures/wererat001.html">Wererat</a><small> CR 0.5</small></td></tr>
-<tr><td>Rats</td><td>rats001</td><td>Rats</td><td>4</td><td>0</td><td>nw_rat001<small> CR 0.125</small></td></tr>
-<tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>0</td><td>nw_bat<small> CR 0.3333</small></td></tr>
-<tr><td>Bats</td><td>bats</td><td>Bats</td><td>4</td><td>0</td><td>nw_bat<small> CR 0.3333</small></td></tr>
-<tr><td>Stirges</td><td>stirges</td><td>Stirges</td><td>4</td><td>0</td><td>nw_stirge<small> CR 0.3333</small></td></tr>
-<tr><td>FireBeetles</td><td>firebeetles001</td><td>FireBeetles</td><td>4</td><td>0</td><td>nw_btlfire<small> CR 0.25</small></td></tr>
-<tr><td>GiantSpider</td><td>giantspider001</td><td>GiantSpider</td><td>1</td><td>0</td><td>nw_spidgiant<small> CR 3.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>Bats</td><td>bats</td><td>Bats, Bats, Bats, Bats, Bats, Bats</td><td>4</td><td>1</td><td><a href="../creatures/cavebat.html">Cave Bat</a><small> CR 0.3333</small></td><td>6</td></tr>
+<tr><td>Rats</td><td>rats001</td><td>Rats, Rats, Rats, Rats</td><td>4</td><td>0</td><td>nw_rat001<small> CR 0.125</small></td><td>4</td></tr>
+<tr><td>FireBeetles</td><td>firebeetles001</td><td>FireBeetles, FireBeetles, FireBeetles, FireBeetles</td><td>4</td><td>0</td><td>nw_btlfire<small> CR 0.25</small></td><td>4</td></tr>
+<tr><td>Stirges</td><td>stirges</td><td>Stirges, Stirges, Stirges</td><td>4</td><td>0</td><td>nw_stirge<small> CR 0.3333</small></td><td>3</td></tr>
+<tr><td>WereRats</td><td>wererats</td><td>WereRats, WereRats</td><td>4</td><td>0</td><td><a href="../creatures/wererat001.html">Wererat</a><small> CR 0.5</small></td><td>2</td></tr>
+<tr><td>GiantSpider</td><td>giantspider001</td><td>GiantSpider</td><td>1</td><td>0</td><td>nw_spidgiant<small> CR 3.0</small></td><td>1</td></tr></tbody></table>
 <h2>Containers <small class="muted">(3)</small></h2>
 <table class="data"><thead><tr><th>Container</th><th>Items</th><th>Tag</th><th>ResRef</th><th>X, Y, Z</th><th>Locked</th><th>Open DC</th></tr></thead><tbody><tr><td><a href="../containers/breecave-015.html">Corpse</a></td><td>1</td><td><code>pac_refilling</code></td><td>plc_corpse2</td><td>58.3, 91.3, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/breecave-019.html">[TLK#14682]</a></td><td>1</td><td><code>PLC_PileStones</code></td><td>plc_pilestones</td><td>15.5, 6.4, 0.0</td><td>no</td><td>0</td></tr>
-<tr><td><a href="../containers/breecave-020.html">[TLK#14682]</a></td><td>1</td><td><code>PLC_PileStones</code></td><td>plc_pilestones</td><td>27.5, 14.4, 0.0</td><td>no</td><td>0</td></tr></tbody></table>
+<tr><td><a href="../containers/breecave-019.html">Pile of Stones</a></td><td>1</td><td><code>PLC_PileStones</code></td><td>plc_pilestones</td><td>15.5, 6.4, 0.0</td><td>no</td><td>0</td></tr>
+<tr><td><a href="../containers/breecave-020.html">Pile of Stones</a></td><td>1</td><td><code>PLC_PileStones</code></td><td>plc_pilestones</td><td>27.5, 14.4, 0.0</td><td>no</td><td>0</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

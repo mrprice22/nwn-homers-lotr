@@ -48,7 +48,7 @@ env_args=()
 while IFS='=' read -r k _; do
   case "$k" in
     NWN_IMAGE|NWN_CONTAINER_NAME|NWN_RUN_DIR|NWN_HOME_DIR) continue ;;
-    NWN_*|NWNX_*) env_args+=(-e "$k=${!k}") ;;
+    TZ|NWN_*|NWNX_*) env_args+=(-e "$k=${!k}") ;;
   esac
 done < <(cat "${env_files[@]}" | grep -E '^[A-Z_][A-Z0-9_]*=')
 
@@ -86,7 +86,22 @@ else
 fi
 echo
 
-exec podman run --rm --name "$NWN_CONTAINER_NAME" \
+# Start the activity-page monitor alongside the server.  When the last player
+# leaves, it refreshes docs/activity.html and pushes the change to git so the
+# public wiki stays current without a full rebuild.
+(
+  cd "$PROJECT_ROOT"
+  export PATH="$HOME/.nimble/bin:/var/home/james/GIT/nwn_manager/bin:$PATH"
+  nwn-manager serve \
+    --log-dir "$NWN_RUN_DIR" \
+    --poll-interval 5 \
+    --auto-publish
+) &
+_SERVE_PID=$!
+trap 'kill "$_SERVE_PID" 2>/dev/null || true; wait "$_SERVE_PID" 2>/dev/null || true' EXIT INT TERM
+echo "[serve] activity monitor started (PID $_SERVE_PID)"
+
+podman run --rm --name "$NWN_CONTAINER_NAME" \
   --userns=keep-id --user "$(id -u):$(id -g)" \
   --network=host \
   "${hairpin_args[@]}" \

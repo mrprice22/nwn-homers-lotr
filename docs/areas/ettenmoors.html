@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Ettenmoors</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Ettenmoors</h1>
-<dl class="meta"><dt>ResRef</dt><dd>ettenmoors</dd><dt>Tag</dt><dd>Ettenmoors</dd><dt>Tileset</dt><dd>Frozen Wastes <small class="muted">(ttf01)</small></dd><dt>Size</dt><dd>16×16 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>ettenmoors</dd><dt>Tag</dt><dd>Ettenmoors</dd><dt>Tileset</dt><dd>Frozen Wastes <small class="muted">(ttf01)</small></dd><dt>Size</dt><dd>16×16 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>4 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="carndumcity.html">Carn Dum: City</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li><li><a href="carndumcity.html">Carn Dum: City</a> &rarr; <a href="carndum.html">Carn Dum</a> <em class="muted">[use the &#8220;carncity2carngate&#8221; door]</em></li><li><a href="carndum.html">Carn Dum</a> &rarr; <a href="theangmarmountai.html">The Angmar Mountain Range</a> <em class="muted">[step on the &#8220;carn2angmar&#8221; trigger]</em></li><li><a href="theangmarmountai.html">The Angmar Mountain Range</a> &rarr; <a href="ettenmoors.html">Ettenmoors</a> <em class="muted">[step on the &#8220;angmar2troll&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>etten2angmar</td><td><a href="theangmarmountai.html">The Angmar Mountain Range</a></td><td><code>WP_angmar2troll</code></td></tr>
 <tr><td>trigger</td><td>etten2trolls</td><td><a href="thetrollshalls.html">The Trollshaws</a></td><td><code>WP_trolls2ettenmoors</code></td></tr>
@@ -32,26 +56,23 @@
 <tr><td>trigger</td><td><a href="thenorthdowns001.html">The North Downs</a></td><td>northdowns2etten</td></tr>
 <tr><td>trigger</td><td><a href="thetrollshalls.html">The Trollshaws</a></td><td>trolls2ettenmoors</td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>ettenmoors</td><td>ettenmoors</td><td>ettenmoors</td><td>4</td><td>4</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small>, <a href="../creatures/urukai003.html">Urukai Captain</a><small> CR 20.0</small>, <a href="../creatures/ogreboss001.html">Ologai Troll</a><small> CR 23.0</small>, <a href="../creatures/ogreboss002.html">Ologai Battle Troll</a><small> CR 50.0</small>, <a href="../creatures/urukai014.html">Uruk Hai Slayer</a><small> CR 81.0</small>, <a href="../creatures/urukai012.html">Uruk Hai Slayer</a><small> CR 91.0</small>, <a href="../creatures/urukaibowman.html">Uruk Hai Bowman</a><small> CR 92.0</small>, <a href="../creatures/urukhaifirstborn.html">Uruk Hai First Born</a><small> CR 115.0</small></td></tr>
-<tr><td>ettenmoors</td><td>ettenmoors</td><td>ettenmoors</td><td>4</td><td>4</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small>, <a href="../creatures/urukai003.html">Urukai Captain</a><small> CR 20.0</small>, <a href="../creatures/ogreboss001.html">Ologai Troll</a><small> CR 23.0</small>, <a href="../creatures/ogreboss002.html">Ologai Battle Troll</a><small> CR 50.0</small>, <a href="../creatures/urukai014.html">Uruk Hai Slayer</a><small> CR 81.0</small>, <a href="../creatures/urukai012.html">Uruk Hai Slayer</a><small> CR 91.0</small>, <a href="../creatures/urukaibowman.html">Uruk Hai Bowman</a><small> CR 92.0</small>, <a href="../creatures/urukhaifirstborn.html">Uruk Hai First Born</a><small> CR 115.0</small></td></tr>
-<tr><td>ettenmoors</td><td>ettenmoors</td><td>ettenmoors</td><td>4</td><td>4</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small>, <a href="../creatures/urukai003.html">Urukai Captain</a><small> CR 20.0</small>, <a href="../creatures/ogreboss001.html">Ologai Troll</a><small> CR 23.0</small>, <a href="../creatures/ogreboss002.html">Ologai Battle Troll</a><small> CR 50.0</small>, <a href="../creatures/urukai014.html">Uruk Hai Slayer</a><small> CR 81.0</small>, <a href="../creatures/urukai012.html">Uruk Hai Slayer</a><small> CR 91.0</small>, <a href="../creatures/urukaibowman.html">Uruk Hai Bowman</a><small> CR 92.0</small>, <a href="../creatures/urukhaifirstborn.html">Uruk Hai First Born</a><small> CR 115.0</small></td></tr>
-<tr><td>ettenmoors</td><td>ettenmoors</td><td>ettenmoors</td><td>4</td><td>4</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small>, <a href="../creatures/urukai003.html">Urukai Captain</a><small> CR 20.0</small>, <a href="../creatures/ogreboss001.html">Ologai Troll</a><small> CR 23.0</small>, <a href="../creatures/ogreboss002.html">Ologai Battle Troll</a><small> CR 50.0</small>, <a href="../creatures/urukai014.html">Uruk Hai Slayer</a><small> CR 81.0</small>, <a href="../creatures/urukai012.html">Uruk Hai Slayer</a><small> CR 91.0</small>, <a href="../creatures/urukaibowman.html">Uruk Hai Bowman</a><small> CR 92.0</small>, <a href="../creatures/urukhaifirstborn.html">Uruk Hai First Born</a><small> CR 115.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>ettenmoors</td><td>ettenmoors</td><td>ettenmoors, ettenmoors, ettenmoors, ettenmoors</td><td>4</td><td>4</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small>, <a href="../creatures/urukai003.html">Urukai Captain</a><small> CR 20.0</small>, <a href="../creatures/ogreboss001.html">Ologai Troll</a><small> CR 23.0</small>, <a href="../creatures/ogreboss002.html">Ologai Battle Troll</a><small> CR 50.0</small>, <a href="../creatures/urukai014.html">Uruk Hai Slayer</a><small> CR 81.0</small>, <a href="../creatures/urukai012.html">Uruk Hai Slayer</a><small> CR 91.0</small>, <a href="../creatures/urukaibowman.html">Uruk Hai Bowman</a><small> CR 92.0</small>, <a href="../creatures/urukhaifirstborn.html">Uruk Hai First Born</a><small> CR 115.0</small></td><td>4</td></tr></tbody></table>
 <h2>Containers <small class="muted">(10)</small></h2>
-<table class="data"><thead><tr><th>Container</th><th>Items</th><th>Tag</th><th>ResRef</th><th>X, Y, Z</th><th>Locked</th><th>Open DC</th></tr></thead><tbody><tr><td><a href="../containers/ettenmoors-000.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>18.1, 108.1, 0.1</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-001.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>6.3, 119.5, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-002.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>8.0, 65.5, 0.2</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-003.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>21.7, 72.9, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-004.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>29.8, 112.5, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-005.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>4.0, 80.6, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-006.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>10.0, 108.5, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-007.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>23.1, 96.7, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-008.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>17.4, 84.6, 0.0</td><td>no</td><td>18</td></tr>
-<tr><td><a href="../containers/ettenmoors-009.html">[TLK#78634]</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>6.9, 97.3, 20.8</td><td>no</td><td>18</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Container</th><th>Items</th><th>Tag</th><th>ResRef</th><th>X, Y, Z</th><th>Locked</th><th>Open DC</th></tr></thead><tbody><tr><td><a href="../containers/ettenmoors-000.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>18.1, 108.1, 0.1</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-001.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>6.3, 119.5, 0.0</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-002.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>8.0, 65.5, 0.2</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-003.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>21.7, 72.9, 0.0</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-004.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>29.8, 112.5, 0.0</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-005.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>4.0, 80.6, 0.0</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-006.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>10.0, 108.5, 0.0</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-007.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>23.1, 96.7, 0.0</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-008.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>17.4, 84.6, 0.0</td><td>no</td><td>18</td></tr>
+<tr><td><a href="../containers/ettenmoors-009.html">Snowy Pine Tree</a></td><td>2</td><td><code>x0_treepine2</code></td><td>x0_treepine2</td><td>6.9, 97.3, 20.8</td><td>no</td><td>18</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_etten2angmar</code></td><td></td></tr>
 <tr><td><code>WP_etten2trolls</code></td><td></td></tr>
 <tr><td><code>WP_etten2northdowns</code></td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

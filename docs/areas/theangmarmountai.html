@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>The Angmar Mountain Range</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>The Angmar Mountain Range</h1>
-<dl class="meta"><dt>ResRef</dt><dd>theangmarmountai</dd><dt>Tag</dt><dd>TheAngmarMountainRange</dd><dt>Tileset</dt><dd>Frozen Wastes <small class="muted">(ttf01)</small></dd><dt>Size</dt><dd>20×15 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>aa_area_exit</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>theangmarmountai</dd><dt>Tag</dt><dd>TheAngmarMountainRange</dd><dt>Tileset</dt><dd>Frozen Wastes <small class="muted">(ttf01)</small></dd><dt>Size</dt><dd>20×15 tiles</dd><dt>OnExit</dt><dd>aa_area_exit</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>3 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="carndumcity.html">Carn Dum: City</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li><li><a href="carndumcity.html">Carn Dum: City</a> &rarr; <a href="carndum.html">Carn Dum</a> <em class="muted">[use the &#8220;carncity2carngate&#8221; door]</em></li><li><a href="carndum.html">Carn Dum</a> &rarr; <a href="theangmarmountai.html">The Angmar Mountain Range</a> <em class="muted">[step on the &#8220;carn2angmar&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>angmar2troll</td><td><a href="ettenmoors.html">Ettenmoors</a></td><td><code>WP_etten2angmar</code></td></tr>
 <tr><td>trigger</td><td>angmar2angmard</td><td><a href="angmar.html">Angmar</a></td><td><code>WP_angmard2angmar</code></td></tr>
@@ -36,12 +60,8 @@
 <tr><td>door</td><td><a href="angmardungeon.html">Angmar Dungeon</a></td><td>Angm2</td></tr>
 <tr><td>door</td><td><a href="angmardungeon.html">Angmar Dungeon</a></td><td>Angm1</td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>urukaiangmar</td><td>urukaiangmar</td><td>urukaiangmar</td><td>4</td><td>3</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small></td></tr>
-<tr><td>urukaiangmar</td><td>urukaiangmar</td><td>urukaiangmar</td><td>5</td><td>3</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small>, <a href="../creatures/urukai003.html">Urukai Captain</a><small> CR 20.0</small>, <a href="../creatures/ogreboss001.html">Ologai Troll</a><small> CR 23.0</small></td></tr>
-<tr><td>urukaiangmar</td><td>urukaiangmar</td><td>urukaiangmar</td><td>4</td><td>3</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small>, <a href="../creatures/urukai003.html">Urukai Captain</a><small> CR 20.0</small>, <a href="../creatures/ogreboss001.html">Ologai Troll</a><small> CR 23.0</small></td></tr>
-<tr><td>urukaiangmar</td><td>urukaiangmar</td><td>urukaiangmar</td><td>1</td><td>3</td><td><a href="../creatures/azog.html">Azog the WarLord</a><small> CR 14.0</small></td></tr>
-<tr><td>carndumoutside</td><td>carndumoutside</td><td>carndumoutside</td><td>4</td><td>4</td><td><a href="../creatures/numenoreanmiliti.html">Black Numenorean Militia</a><small> CR 35.0</small>, <a href="../creatures/carndumraider.html">Black Numenorean Raider</a><small> CR 16.0</small>, <a href="../creatures/drowfight021.html">Drider Militia</a><small> CR 650.0</small>, <a href="../creatures/drowrogue021.html">Black Numenorean Shadow Master</a><small> CR 52.0</small>, <a href="../creatures/blacknumenoreana.html">Black Numenorean Archer</a><small> CR 80.0</small>, <a href="../creatures/drowmage002.html">Black Numenorean Mage</a><small> CR 50.0</small>, <a href="../creatures/numenoreanpatrol.html">Black Numenorean Assassin</a><small> CR 331.0</small></td></tr>
-<tr><td>carndumoutside</td><td>carndumoutside</td><td>carndumoutside</td><td>4</td><td>4</td><td><a href="../creatures/numenoreanmiliti.html">Black Numenorean Militia</a><small> CR 35.0</small>, <a href="../creatures/carndumraider.html">Black Numenorean Raider</a><small> CR 16.0</small>, <a href="../creatures/drowfight021.html">Drider Militia</a><small> CR 650.0</small>, <a href="../creatures/drowrogue021.html">Black Numenorean Shadow Master</a><small> CR 52.0</small>, <a href="../creatures/blacknumenoreana.html">Black Numenorean Archer</a><small> CR 80.0</small>, <a href="../creatures/drowmage002.html">Black Numenorean Mage</a><small> CR 50.0</small>, <a href="../creatures/numenoreanpatrol.html">Black Numenorean Assassin</a><small> CR 331.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>urukaiangmar</td><td>urukaiangmar</td><td>urukaiangmar, urukaiangmar, urukaiangmar, urukaiangmar</td><td>4</td><td>3</td><td><a href="../creatures/urukai009.html">An Urukai Soldier</a><small> CR 6.0</small>, <a href="../creatures/urukai001.html">Urukai Trooper</a><small> CR 11.0</small>, <a href="../creatures/urukai002.html">Urukai Squad Leader</a><small> CR 13.0</small>, <a href="../creatures/urukai004.html">Urukai Squad Healer</a><small> CR 15.0</small></td><td>4</td></tr>
+<tr><td>carndumoutside</td><td>carndumoutside</td><td>carndumoutside, carndumoutside</td><td>4</td><td>4</td><td><a href="../creatures/numenoreanmiliti.html">Black Numenorean Militia</a><small> CR 35.0</small>, <a href="../creatures/carndumraider.html">Black Numenorean Raider</a><small> CR 16.0</small>, <a href="../creatures/drowfight021.html">Drider Militia</a><small> CR 650.0</small>, <a href="../creatures/drowrogue021.html">Black Numenorean Shadow Master</a><small> CR 52.0</small>, <a href="../creatures/blacknumenoreana.html">Black Numenorean Archer</a><small> CR 80.0</small>, <a href="../creatures/drowmage002.html">Black Numenorean Mage</a><small> CR 50.0</small>, <a href="../creatures/numenoreanpatrol.html">Black Numenorean Assassin</a><small> CR 331.0</small></td><td>2</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_angmar2troll</code></td><td></td></tr>
 <tr><td><code>WP_angmar2angmard</code></td><td></td></tr>
@@ -49,6 +69,6 @@
 <tr><td><code>witchleave</code></td><td>nw_waypoint001</td></tr>
 <tr><td><code>WP_angmar2troll</code></td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

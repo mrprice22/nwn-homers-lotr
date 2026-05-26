@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>&quot;lesser wanker boots&quot;</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -26,25 +48,36 @@
 <dt>ResRef</dt><dd>item079</dd>
 <dt>Tag</dt><dd>lesserwankerboots</dd>
 <dt>Base item</dt><dd>Boots <small class="muted">(row 26)</small></dd>
-<dt>Cost</dt><dd>324451</dd>
+<dt>Type</dt><dd><a href="inaccessible/index.html#boots">Boots</a></dd>
+<dt>GP Value</dt><dd>324,451</dd>
 <dt>Stack size</dt><dd>1</dd>
-<dt>Cursed</dt><dd>0</dd>
-<dt>Plot</dt><dd>0</dd>
+<dt title="No creature carrying this item has it flagged as droppable. It will not appear in any loot bag.">Drops on death</dt><dd>No<small class="muted"> — not flagged droppable</small></dd>
 </dl>
+<p class="warn-no-drop"><strong>Note: this item does not drop on death.</strong> It is carried by creatures, but none of them have it flagged as droppable (Dropable=1 on the item instance). It will not appear in any loot bag.</p>
 <h2>Properties</h2>
-<table class="data"><thead><tr><th>Property</th><th>Subtype</th><th>Value</th><th>Param</th><th>Chance %</th></tr></thead><tbody><tr><td>Damage Vulnerability</td><td><span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span></td><td>10</td><td></td><td></td></tr>
-<tr><td>Damage Vulnerability</td><td><span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span></td><td>10%</td><td></td><td></td></tr>
-<tr><td>Damage Vulnerability</td><td><span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span></td><td>15%</td><td></td><td></td></tr>
-<tr><td>Damage Vulnerability</td><td><span class="nwn-dmg nwn-dmg-positive" style="color:#ffffff">Positive</span></td><td>15%</td><td></td><td></td></tr>
-<tr><td>Bonus Hit Points</td><td></td><td>0</td><td></td><td></td></tr>
-<tr><td>Saving Throw Bonus</td><td>Universal</td><td>+0</td><td></td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Property</th><th>Subtype</th><th>Value</th><th>Param</th><th>Chance %</th></tr></thead><tbody><tr><td><a href="properties/index.html#pn-damage-resistance">Damage Resistance</a></td><td><a href="properties/damage-resistance-acid.html"><span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span></a></td><td><a href="properties/damage-resistance-acid.html#10">10</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-damage-resistance">Damage Resistance</a></td><td><a href="properties/damage-resistance-magical.html"><span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span></a></td><td><a href="properties/damage-resistance-magical.html#10">10/-</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-damage-resistance">Damage Resistance</a></td><td><a href="properties/damage-resistance-negative.html"><span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span></a></td><td><a href="properties/damage-resistance-negative.html#15">15/-</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-damage-resistance">Damage Resistance</a></td><td><a href="properties/damage-resistance-positive.html"><span class="nwn-dmg nwn-dmg-positive" style="color:#ffffff">Positive</span></a></td><td><a href="properties/damage-resistance-positive.html#15">15/-</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/freedom-of-movement.html">Freedom of Movement</a></td><td></td><td></td><td></td><td></td></tr>
+<tr><td><a href="properties/haste.html">Haste</a></td><td></td><td></td><td></td><td></td></tr></tbody></table>
 <details><summary>Raw values</summary><table class="data"><thead><tr><th>PropertyName</th><th>Subtype</th><th>CostTable</th><th>CostValue</th><th>Param1/Val</th><th>Chance</th></tr></thead><tbody><tr><td>23</td><td>6</td><td>7</td><td>10</td><td>255/0</td><td>100</td></tr>
 <tr><td>23</td><td>5</td><td>7</td><td>1</td><td>255/0</td><td>100</td></tr>
 <tr><td>23</td><td>11</td><td>7</td><td>2</td><td>255/0</td><td>100</td></tr>
 <tr><td>23</td><td>12</td><td>7</td><td>2</td><td>255/0</td><td>100</td></tr>
 <tr><td>75</td><td>0</td><td>0</td><td>0</td><td>255/0</td><td>100</td></tr>
 <tr><td>35</td><td>0</td><td>0</td><td>0</td><td>255/0</td><td>100</td></tr></tbody></table></details>
+<h2>Where to find</h2>
+<h3>Carried by</h3><table class="data"><thead><tr><th>Creature</th><th>Area</th><th title="Whether this item appears in the loot bag when the creature is killed (Dropable=1 on the item instance)">Drops on death</th><th title="Whether this item can be stolen via Pickpocket (Pickpocketable=1 on the item instance)">Pickpocketable</th></tr></thead><tbody><tr><td><a href="../creatures/numenoreanpat001.html">Greater Black Numenorean Assassin</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/drowfight021.html">Drider Militia</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/drowmage003.html">Drider Mage</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/drowmage003.html">Drider Mage</a></td><td><a href="../areas/area009.html">Angmar&#x27;s Lair</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/drowfight021.html">Drider Militia</a></td><td><a href="../areas/area009.html">Angmar&#x27;s Lair</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/gimli__v2.html">Gimli</a></td><td><a href="../areas/halloftruth.html">The Halls of Truth</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/highpriestofmora.html">High Priest of Morannon</a></td><td><a href="../areas/thetempleofmoran.html">The Temple of Morannon</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/drowfight021.html">Drider Militia</a></td><td><a href="../areas/greateastroadd.html">Great East Road</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr>
+<tr><td><a href="../creatures/drowfight021.html">Drider Militia</a></td><td><a href="../areas/theangmarmountai.html">The Angmar Mountain Range</a></td><td><span class="muted">No</span></td><td><span class="muted">No</span></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

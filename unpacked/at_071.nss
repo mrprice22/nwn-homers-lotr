@@ -9,13 +9,18 @@
 
 void main()
 {
-	// Give the speaker some gold
-	RewardPartyGP(200, GetPCSpeaker());
+    object oPC = GetPCSpeaker();
 
-	// Give the speaker some XP
-	RewardPartyXP(250, GetPCSpeaker());
+    // at_kashan04 sets this flag only if it successfully took the Troyspin item.
+    if (!GetLocalInt(oPC, "kashan_gave_item"))
+    {
+        FloatingTextStringOnCreature(
+            "You must bring proof of what happened to complete this.", oPC, FALSE);
+        return;
+    }
+    DeleteLocalInt(oPC, "kashan_gave_item");
 
-	// Give the speaker the items
-	CreateItemOnObject("ringofwoe", GetPCSpeaker(), 1);
-
+    RewardPartyGP(200, oPC);
+    RewardPartyXP(250, oPC);
+    CreateItemOnObject("ringofwoe", oPC, 1);
 }

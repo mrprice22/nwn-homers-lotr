@@ -9,16 +9,18 @@
 
 void main()
 {
-    // Give the speaker some gold
-    RewardPartyGP(10000, GetPCSpeaker());
+    object oPC = GetPCSpeaker();
 
-    // Give the speaker some XP
-    RewardPartyXP(2000, GetPCSpeaker());
+    // Anti-exploit: player can drop the proof item mid-conversation to keep it.
+    object oItemToTake = GetItemPossessedBy(oPC, "NW_WPLMSC004");
+    if (!GetIsObjectValid(oItemToTake))
+    {
+        FloatingTextStringOnCreature(
+            "You must have the proof in your possession.", oPC, FALSE);
+        return;
+    }
 
-
-    // Remove items from the player's inventory
-    object oItemToTake;
-    oItemToTake = GetItemPossessedBy(GetPCSpeaker(), "NW_WPLMSC004");
-    if(GetIsObjectValid(oItemToTake) != 0)
-        DestroyObject(oItemToTake);
+    DestroyObject(oItemToTake);
+    RewardPartyGP(10000, oPC);
+    RewardPartyXP(2000, oPC);
 }

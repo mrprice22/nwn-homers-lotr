@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Gondorian Wizard</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,26 +47,49 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>gondorianwizard</dd>
 <dt>Tag</dt><dd>GondorianWizard</dd>
-<dt>Race</dt><dd>Human</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-6">Human</a></dd>
 <dt>Appearance</dt><dd>Human</dd>
 <dt>Class(es)</dt><dd>Wizard 40</dd>
-<dt>HP</dt><dd>2080</dd>
+<dt>HP</dt><dd>2,080</dd>
 <dt>CR</dt><dd>200.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Good</a> <small class="muted">(id 6)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/minastirith.html">Minas Tirith: City</a></td><td>4</td></tr>
+<tr><td><a href="../areas/minastirithgates.html">Minas Tirith: Gates</a></td><td>1</td></tr>
+<tr><td><a href="../areas/area005.html">Minas Tirith: Keep</a></td><td>1</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>10</td><th>Dex</th><td>30</td><th>Con</th><td>14</td><th>Int</th><td>60</td><th>Wis</th><td>12</td><th>Cha</th><td>10</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Wizard</td><td>40</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>2080</td><th>AC</th><td>36 <small class="muted">(10 base + +10 Dex + +10 natural (NaturalAC) + +6 armor enchant)</small></td><th>BAB</th><td>+20</td></tr><tr><th>Fort</th><td>+19</td><th>Ref</th><td>+14</td><th>Will</th><td>+8</td></tr></table>
+<table class="data"><tr><th>HP</th><td>2,080</td><th>AC</th><td>36 <small class="muted">(10 base + +10 Dex + +10 natural (NaturalAC) + +6 armor enchant)</small></td><th>BAB</th><td>+20</td></tr><tr><th>Fort</th><td>+24</td><th>Ref</th><td>+14</td><th>Will</th><td>+8</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +6 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/gondorianstaff.html">Gondorian Staff</a></td><td>Magic Staff</td><td>Melee</td><td>+21/+16/+11/+6</td><td>1d6 (1–6) + On Hit Properties onhit #11 5</td><td>20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Save vs. Fortitude</th><td>+5</td></tr>
+<tr><th>Save vs. Mind Affecting</th><td>+5</td></tr>
+<tr><th>Constitution Bonus</th><td>+4</td></tr>
+<tr><th>Skill: Concentration</th><td>+10</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>6</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>20/-</td></tr>
+<tr><th>Misc Immunity</th><td>Disease, Fear, Level/Ability Drain, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Regeneration</th><td>+6 HP/round</td></tr>
+<tr><th>Darkvision</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/gondorianstaff.html">Gondorian Staff</a></td><td>Magic Staff</td><td>Melee</td><td>+20/+15/+10/+5</td><td>1d6 (1–6)</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/gondorianrobes.html">Gondorian Robes</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/magefist.html">Magefist</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/gondorianstaff.html">Gondorian Staff</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/celebornsgarb002.html">Skin of Gondor</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/gondorianrobes.html">Gondorian Robes</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/magefist.html">Magefist</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/gondorianstaff.html">Gondorian Staff</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/celebornsgarb002.html">Skin of Gondor</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(31)</small></h2><ul class="featlist"><li>Arcane Defense (Transmutation)</li><li>Automatic Quicken Spell II</li><li>Automatic Silent Spell III</li><li>Automatic Still Spell III</li><li>Brew Potion</li><li>Combat Casting</li><li>Craft Wand</li><li>Damage Reduction 2</li><li>Empower Spell</li><li>Epic Spell Penetration</li><li>Epic Spell: Dragon Knight</li><li>Epic Spell: Epic Mage Armor</li><li>Epic Spell: Epic Warding</li><li>Epic Spell: Greater Ruin</li><li>Epic Spell: Hellball</li><li>Epic Spell: Mummy Dust</li><li>Epic Wizard</li><li>Extend Spell</li><li>Great Intelligence I</li><li>Great Intelligence II</li><li>Greater Spell Penetration</li><li>Improved Combat Casting</li><li>Maximize Spell</li><li>Quick To Master</li><li>Quicken Spell</li><li>Scribe Scroll</li><li>Silent Spell</li><li>Spell Penetration</li><li>Still Spell</li><li>Summon Familiar</li><li>Weapon Proficiency (wizard)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>43</td></tr>
 <tr><td>Heal</td><td>43</td></tr>
@@ -75,15 +120,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(8)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/minastirith-017.html">Gondorian Wizard</a></td><td><a href="../areas/minastirith.html">Minas Tirith: City</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/minastirith-018.html">Gondorian Wizard</a></td><td><a href="../areas/minastirith.html">Minas Tirith: City</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/minastirith-023.html">Gondorian Wizard</a></td><td><a href="../areas/minastirith.html">Minas Tirith: City</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/minastirith-024.html">Gondorian Wizard</a></td><td><a href="../areas/minastirith.html">Minas Tirith: City</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/minastirithgates-019.html">Gondorian Wizard</a></td><td><a href="../areas/minastirithgates.html">Minas Tirith: Gates</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/area005-001.html">Gondorian Wizard</a></td><td><a href="../areas/area005.html">Minas Tirith: Keep</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/area011-000.html">Gondorian Wizard</a></td><td><a href="../areas/area011.html">Tower of the High Wizard: Ground Floor</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/area011-001.html">Gondorian Wizard</a></td><td><a href="../areas/area011.html">Tower of the High Wizard: Ground Floor</a></td><td>Good</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

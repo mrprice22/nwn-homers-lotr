@@ -594,9 +594,6 @@ void DetermineCombatRound(object oIntruder = OBJECT_INVALID, int nAI_Difficulty 
 
 
 
-    MyPrintString("************** DETERMINE COMBAT ROUND START *************");
-    MyPrintString("**************  " + GetTag(OBJECT_SELF) + "  ************");
-
     // May 2003
     // Abort out of here, if petrified
     if (GetHasEffect(EFFECT_TYPE_PETRIFY, OBJECT_SELF) == TRUE)
@@ -686,7 +683,6 @@ void DetermineCombatRound(object oIntruder = OBJECT_INVALID, int nAI_Difficulty 
     int nDiff = GetCombatDifficulty();
     SetLocalInt(OBJECT_SELF, "NW_L_COMBATDIFF", nDiff);
 
-    MyPrintString("COMBAT: " + IntToString(nDiff));
 
     //***************TARGETTING****************************************
     // * If no special target has been passed into the function
@@ -1654,16 +1650,12 @@ int DetermineClassToUse()
     float fTotal = IntToFloat(nTotal);
 
     int nState1 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(1))) / fTotal) * 100);
-    MyPrintString(GetTag(OBJECT_SELF) + "Class: " + IntToString(GetClassByPosition(1)) + " %" + IntToString(nState1));
-
     int nState2 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(2))) / fTotal) * 100) + nState1;
-    MyPrintString(GetTag(OBJECT_SELF) + "Class: " + IntToString(GetClassByPosition(2)) + " %" + IntToString(nState2));
-
     int nState3 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(3))) / fTotal) * 100) + nState2;
-    MyPrintString(GetTag(OBJECT_SELF) + "Class: " + IntToString(GetClassByPosition(3)) + " %" + IntToString(nState3));
+    int nState4 = FloatToInt((IntToFloat(GetLevelByClass(GetClassByPosition(4))) / fTotal) * 100) + nState3;
 
     int nUseClass = d100();
-    MyPrintString("D100 Roll " + IntToString(nUseClass));
+    MyPrintString(GetName(OBJECT_SELF) + " D100: " + IntToString(nUseClass));
 
     if(nUseClass <= nState1)
     {
@@ -1673,12 +1665,15 @@ int DetermineClassToUse()
     {
         nClass = GetClassByPosition(2);
     }
-    else
+    else if(nUseClass > nState2 && nUseClass <= nState3)
     {
         nClass = GetClassByPosition(3);
     }
-    MyPrintString(GetName(OBJECT_SELF) + " Return Class = " + IntToString(nClass));
-
+    else
+    {
+        nClass = GetClassByPosition(4);
+        if(nClass == CLASS_TYPE_INVALID) nClass = GetClassByPosition(1);
+    }
     return nClass;
 }
 

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script mw_hall_enter</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>mw_hall_enter</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>respawn</code> (<a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a>)</dd></dl><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: mw_hall_enter -- Hall of Legends OnEnter handler.
+//::
+//:: When a PC enters, for each guide the PC has unlocked: if the live
+//:: NPC isn&#x27;t yet spawned, destroy the placeholder statue and spawn the
+//:: world-form creature at the statue&#x27;s location. The swap is permanent
+//:: server-side (next PC sees the live guide) -- acceptable for a public
+//:: hub area.
+//::
+//:: Failsafe: if another PC is already present (missed gate, reconnect after
+//:: logout, future entrance without occupancy check), the entrant is ejected
+//:: to the Well of Eru without disturbing the room state.
+//:://////////////////////////////////////////////
+#include &quot;mw_unlock_inc&quot;
+
+void TrySwap(string sGuide, object oHallArea)
+{
+    string sLiveTag = &quot;mw_&quot; + sGuide + &quot;_w&quot;;
+    object oExisting = GetObjectByTag(sLiveTag);
+    // Only skip if the guide is already present in THIS area (GetObjectByTag
+    // searches module-wide, so the world-spawn in e.g. Rivendell would
+    // otherwise prevent the Hall placement).
+    if (GetIsObjectValid(oExisting) &amp;&amp; GetArea(oExisting) == oHallArea) return;
+
+    string sStatueTag = &quot;mw_stat_&quot; + sGuide;
+    object oStatue = GetObjectByTag(sStatueTag);
+    if (!GetIsObjectValid(oStatue)) return;
+
+    float fFacing = GetFacing(oStatue);
+    location lLoc = GetLocation(oStatue);
+    DestroyObject(oStatue);
+    object oNPC = CreateObject(OBJECT_TYPE_CREATURE, sLiveTag, lLoc);
+    AssignCommand(oNPC, SetFacing(fFacing));
+}
+
+void main()
+{
+    object oEntering = GetEnteringObject();
+    if (!GetIsPC(oEntering)) return;
+
+    object oHallArea = OBJECT_SELF;
+
+    // Failsafe: eject any PC who slips in while another is already here.
+    object oOther = GetFirstPC();
+    while (GetIsObjectValid(oOther))
+    {
+        if (oOther != oEntering &amp;&amp; GetArea(oOther) == oHallArea)
+        {
+            SendMessageToPC(oEntering,
+                &quot;The Hall of Legends is already occupied by another seeker. &quot;
+                + &quot;You have been returned to the Well of Eru.&quot;);
+            object oWP = GetWaypointByTag(&quot;respawn&quot;);
+            if (GetIsObjectValid(oWP))
+            {
+                AssignCommand(oEntering, ClearAllActions());
+                AssignCommand(oEntering, ActionJumpToLocation(GetLocation(oWP)));
+            }
+            return;
+        }
+        oOther = GetNextPC();
+    }
+
+    SetLocalInt(GetModule(), &quot;MW_HALL_OCCUPIED&quot;, 1);
+
+    int i;
+    for (i = 0; i &lt; MW_ROSTER_SIZE; i++)
+    {
+        string sGuide = MW_GuideAt(i);
+        if (MW_IsUnlocked(oEntering, sGuide))
+            TrySwap(sGuide, oHallArea);
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Dunland Ravager</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,30 +47,35 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>uthgard004</dd>
 <dt>Tag</dt><dd>DunlandWarrior</dd>
-<dt>Race</dt><dd>Human</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-6">Human</a></dd>
 <dt>Appearance</dt><dd>Uthgard Tiger Tribe</dd>
 <dt>Class(es)</dt><dd>Barbarian 1/Monk 7</dd>
 <dt>HP</dt><dd>66</dd>
 <dt>CR</dt><dd>8.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/dunland.html">Dunland</a></td><td>dunlendings</td><td><code>dunlendings</code></td></tr>
+<tr><td><a href="../areas/dunlandwarparty.html">Dunland War Party</a></td><td>dunlendings</td><td><code>dunlendings</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>14</td><th>Dex</th><td>18</td><th>Con</th><td>13</td><th>Int</th><td>10</td><th>Wis</th><td>18</td><th>Cha</th><td>10</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Barbarian</td><td>1</td></tr><tr><td>Monk</td><td>7</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>66</td><th>AC</th><td>18 <small class="muted">(10 base + +4 Dex + +4 natural (NaturalAC))</small></td><th>BAB</th><td>+6</td></tr><tr><th>Fort</th><td>+1</td><th>Ref</th><td>+4</td><th>Will</th><td>+4</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td>nw_wspmku008</td><td></td><td>Melee</td><td>+8/+3</td><td>—</td><td></td></tr>
-<tr><td>Left hand</td><td>nw_wspmku008</td><td></td><td>Melee</td><td>+8/+3</td><td>—</td><td></td></tr></tbody></table>
+<table class="data"><tr><th>HP</th><td>66</td><th>AC</th><td>25 <small class="muted">(10 base + +4 Dex + +4 natural (NaturalAC) + +3 armor enchant + +4 Wis (monk))</small></td><th>BAB</th><td>+6</td></tr><tr><th>Fort</th><td>+1</td><th>Ref</th><td>+4</td><th>Will</th><td>+4</td></tr></table>
+<p class="muted">AC extras: +3 AC Bonus</p>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/nw_wspmku008.html">Kukri +2</a></td><td>Kukri</td><td>Melee</td><td>+10/+5</td><td>1d4+2 (3–6)</td><td>18-20/x2</td></tr>
+<tr><td>Left hand</td><td><a href="../items/nw_wspmku008.html">Kukri +2</a></td><td>Kukri</td><td>Melee</td><td>+10/+5</td><td>1d4+2 (3–6)</td><td>18-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td>nw_mcloth020</td></tr>
-<tr><td>Right hand</td><td>nw_wspmku008</td></tr>
-<tr><td>Left hand</td><td>nw_wspmku008</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/nw_mcloth020.html">Robes of the Shining Hand +3</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/nw_wspmku008.html">Kukri +2</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Left hand</td><td><a href="../items/nw_wspmku008.html">Kukri +2</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(4)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_wthax001</td><td>nw_wthax001</td></tr>
-<tr><td>nw_it_mpotion004</td><td>nw_it_mpotion004</td></tr>
-<tr><td>nw_it_mpotion003</td><td>nw_it_mpotion003</td></tr>
-<tr><td>nw_it_mpotion014</td><td>nw_it_mpotion014</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/nw_wthax001.html">Throwing Axe</a></td><td><a href="../items/index.html#weapon-63">Throwing Axe</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion004.html">Potion of Speed</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion003.html">Potion of Cure Critical Wounds</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion014.html">Potion of Cat&#x27;s Grace</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(14)</small></h2><ul class="featlist"><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Barbarian Fast Movement</li><li>Dual-Wield</li><li>Quick To Master</li><li>Shield Proficiency</li><li>Toughness</li><li>Weapon Focus (greataxe)</li><li>Weapon Focus (kukri)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (kukri)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>8</td></tr>
 <tr><td>Listen</td><td>4</td></tr>
@@ -69,9 +96,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(2 areas)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/dunland.html">Dunland</a></td><td>dunlendings</td><td><code>dunlendings</code></td></tr>
-<tr><td><a href="../areas/dunlandwarparty.html">Dunland War Party</a></td><td>dunlendings</td><td><code>dunlendings</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

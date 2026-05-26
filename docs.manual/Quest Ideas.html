@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Quest Ideas &amp; Draft Concepts — Homer's LOTR</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <main>
+  <style>
+    .mw-layout {
+      display: flex;
+      gap: 2.5em;
+      align-items: flex-start;
+    }
+    .mw-toc-pane {
+      flex: 0 0 220px;
+      position: sticky;
+      top: 1.5em;
+      max-height: calc(100vh - 3em);
+      overflow-y: auto;
+    }
+    .mw-content {
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+
+    .qb { display: inline-block; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.75em; padding: 0.1em 0.5em; border-radius: 3px; vertical-align: middle; margin-right: 0.4em; }
+    .qb-daily    { background: #d4edda; color: #155724; }
+    .qb-weekly   { background: #cce5ff; color: #004085; }
+    .qb-oneoff   { background: #fff3cd; color: #856404; }
+    .qb-seasonal { background: #f3e8ff; color: #5a2b78; }
+
+    .toc { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 1em 1.2em; }
+    .toc h2 { font-size: 0.9em; margin: 0 0 0.5em; border: none; padding: 0; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc ol ol { margin-top: 0.2em; font-size: 0.93em; color: var(--muted); }
+    .toc a { color: var(--link); }
+
+    .quest-legend { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 0.5em 1em; margin: 0 0 1.5em; font-size: 0.88em; }
+    .quest-legend span { margin-right: 1.2em; }
+
+    .quest-card { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent-soft); border-radius: 0 4px 4px 0; padding: 0.75em 1em; margin: 0.7em 0; }
+    .quest-card-head { display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; margin-bottom: 0.3em; }
+    .quest-card-head strong { font-size: 1.05em; color: var(--accent); }
+    .quest-card-head .lvl { font-size: 0.85em; color: var(--muted); margin-left: auto; white-space: nowrap; }
+    .quest-desc { margin: 0.2em 0 0.4em; }
+    .quest-reward { font-size: 0.9em; color: var(--muted); }
+    .quest-reward strong { color: var(--fg); }
+
+    .class-section { scroll-margin-top: 1.5em; }
+    .class-cap { background: rgba(107,58,28,0.06); border: 1px solid var(--accent-soft); border-radius: 4px; padding: 0.5em 0.9em; margin: 0.5em 0 1.2em; font-size: 0.93em; }
+
+    h2, h3 { scroll-margin-top: 1.5em; }
+    h3.faction { margin-top: 1.4em; color: var(--accent); border-bottom: 1px dashed var(--border); padding-bottom: 0.15em; }
+
+    .callout { background: rgba(200,165,119,0.1); border: 1px solid var(--accent-soft); border-radius: 4px; padding: 0.5em 0.9em; margin: 0.8em 0; font-size: 0.9em; }
+  </style>
+  <div class="mw-layout">
+  <aside class="mw-toc-pane">
+    <nav class="toc" aria-label="Contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#faction">Faction Quests: Good vs Evil</a>
+          <ol>
+            <li><a href="#good-faction">Good Factions</a></li>
+            <li><a href="#evil-faction">Evil Factions</a></li>
+          </ol>
+        </li>
+        <li><a href="#class">Class Questlines (Levels 1–60)</a>
+          <ol>
+            <li><a href="#fighter">Fighter — The Unbroken Shield</a></li>
+            <li><a href="#wizard">Wizard — The Colour of Power</a></li>
+            <li><a href="#rogue">Rogue — The Long Shadow</a></li>
+            <li><a href="#druid">Druid — The Breathing of the World</a></li>
+            <li><a href="#ranger">Ranger — The Uncrowned Path</a></li>
+            <li><a href="#cleric">Cleric — Flame of Anor</a></li>
+            <li><a href="#paladin">Paladin — Oath-Sworn to the West</a></li>
+            <li><a href="#bard">Bard — Tales That Live Forever</a></li>
+            <li><a href="#monk">Monk — The Empty Hand of the West</a></li>
+            <li><a href="#sorcerer">Sorcerer — Blood of the Elder Days</a></li>
+          </ol>
+        </li>
+        <li><a href="#location">Location-Specific Quests</a>
+          <ol>
+            <li><a href="#loc-misty">The Misty Mountains</a></li>
+            <li><a href="#loc-fangorn">Fangorn Forest</a></li>
+            <li><a href="#loc-mirkwood">Mirkwood</a></li>
+            <li><a href="#loc-moria">Moria (Khazad-dûm)</a></li>
+            <li><a href="#loc-havens">The Grey Havens</a></li>
+            <li><a href="#loc-mordor">Mount Doom / Mordor</a></li>
+          </ol>
+        </li>
+        <li><a href="#wildcard">Wildcard Quests</a></li>
+        <li><a href="#new">New Quests (Module-Grounded)</a></li>
+        <li><a href="#prestige">Prestige-Class Quests</a></li>
+      </ol>
+    </nav>
+  </aside>
+  <div class="mw-content">
+
+<h1>Middle-earth Quest Ideas <span style="font-size:0.55em; color:var(--muted); font-weight:normal; vertical-align:middle;">(Draft — Not Implemented)</span></h1>
+
+<div class="callout" style="border-color:#a04040; background:rgba(160,64,64,0.09); margin-bottom:1.2em;">
+  <strong>None of these quests exist in the module yet.</strong> This is a design document — a collection of ideas and proposals for future content, not a guide to quests currently playable on the server. Everything here is a pitch, not a promise.
+</div>
+
+<p>Draft quest proposals for <em>Homer's Legendary LotR</em> spanning all level ranges, factions,
+classes, and locations. If implemented, these would range from quick daily tasks to multi-chapter
+class questlines rewarding unique capstone items at level 60.</p>
+
+<div class="quest-legend">
+  <strong>Quest types:</strong>
+  <span><span class="qb qb-daily">Daily</span> resets each in-game day</span>
+  <span><span class="qb qb-weekly">Weekly</span> resets each in-game week</span>
+  <span><span class="qb qb-oneoff">One-Off</span> permanent completion</span>
+  <span><span class="qb qb-seasonal">Seasonal</span> server-wide event</span>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="faction">Faction Quests: Good vs Evil</h2>
+<p>Players align with a faction early on. Many quests are mirrored — same conflict, opposite objectives.
+Good factions represent the Free Peoples; Evil factions serve Sauron, Saruman, the Nazgûl Court,
+Goblin-town, and the Haradrim.</p>
+
+<h3 class="faction" id="good-faction">Good Factions — Free Peoples</h3>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>The Palantír Watch</strong><span class="lvl">Lvl 20+</span></div>
+  <p class="quest-desc">Agents of Sauron are attempting to corrupt or locate one of the remaining seeing-stones. Escort a blindfolded lore-keeper to the stone's vault and reinforce its warding seals before the enemy agents arrive.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Seal of the Faithful</em> (stacking faction rep token), XP</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>Riders of the Mark</strong><span class="lvl">Lvl 30+</span></div>
+  <p class="quest-desc">A Rohirric patrol has gone silent near Helm's Deep. Investigate, rescue survivors, and hold the gate against a Dunlending/Uruk-hai raid until reinforcements arrive.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Éored Battle-Harness</em> (heavy armor), Rohan rep</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>The White Council's Errand</strong><span class="lvl">Lvl 40+</span></div>
+  <p class="quest-desc">Gandalf dispatches you to retrieve a fragment of a pre-Númenórean map from the ruins of Ost-in-Edhil. Saruman's agents are already there. <strong>Branching:</strong> share the map with Saruman's emissary and you gain short-term Isengard rep but lose White Council standing permanently.</p>
+  <p class="quest-reward"><strong>Reward:</strong> White Council standing, XP</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Dead Marshes Lantern</strong><span class="lvl">Lvl 35</span></div>
+  <p class="quest-desc">A hobbit courier has wandered into the Dead Marshes and become entranced by the wight-lights. Rescue them without yourself becoming entranced — Will saves fire every thirty seconds.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Elven Waystone</em> (free teleport token ×3)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Eagles of the Eyrie</strong><span class="lvl">Lvl 50+</span></div>
+  <p class="quest-desc">Gwaihir asks for help clearing a nest of Nazgûl-corrupted wargs from the Eyrie approaches. Completing this unlocks the <strong>Eagle Courier</strong> fast-travel network for good-aligned players.</p>
+  <p class="quest-reward"><strong>Reward:</strong> Eagle Courier fast-travel network unlocked</p>
+</div>
+
+<h3 class="faction" id="evil-faction">Evil Factions — Servants of Shadow</h3>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Sowing Discord in Bree</strong><span class="lvl">Lvl 15+</span></div>
+  <p class="quest-desc">Infiltrate the Prancing Pony, plant forged letters implicating Ranger spies among the locals, and leave before the Sheriff investigates. Stealth and Bluff checks throughout.</p>
+  <p class="quest-reward"><strong>Reward:</strong> Morgul silver (evil currency), <em>Ranger-Bane Cloak</em></p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>The Sacking of Pelargir</strong><span class="lvl">Lvl 35+</span></div>
+  <p class="quest-desc">Lead a Corsair raid on a Gondorian harbour-city. Burn three supply warehouses, sink two warships, and capture the harbormaster for interrogation — while a Good-faction group may be defending simultaneously.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Corsair Admiral's Cutlass</em>, massive Evil rep</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>Unmaking the Wards</strong><span class="lvl">Lvl 40+</span></div>
+  <p class="quest-desc">Sauron's Eye has detected ancient Elvish wards in Lothlórien's outer forest weakening. Sneak in past heavy magical-detection traps, destroy three ward-stones, and extract before Haldir's patrols execute you on sight.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Shadow-Thread Armor</em> (+AC, Hide bonus), Mordor rep</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Nine Are Abroad</strong><span class="lvl">Lvl 45</span></div>
+  <p class="quest-desc">A Nazgûl's black horse has been slain and the wraith is momentarily weakened. Sauron orders you to recover the horse's enchanted iron shoes before the next sunrise — time-limited.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Morgul-Blade Fragment</em> (unique crafting component)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Saruman's Voice</strong><span class="lvl">Lvl 25</span></div>
+  <p class="quest-desc">Pose as a Gondorian merchant and use a scripted persuasion tree (Bluff / Persuade checks) to convince the Steward's aide to divert a mithril shipment to Isengard instead of Erebor. Pure social quest — no combat. Failure brings the guards down on you.</p>
+  <p class="quest-reward"><strong>Reward:</strong> Isengard rep, <em>Ring of Silver Tongue</em> (+5 Persuade/Bluff)</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="class">Class Questlines — Levels 1 to 60</h2>
+<p>Each questline spans 8–10 quest nodes across the full level range, culminating in a unique
+<strong>class-specific capstone item</strong> restricted to the appropriate class.</p>
+
+<div class="class-section" id="fighter">
+<h3>&#9876; Fighter — <em>The Unbroken Shield</em></h3>
+<p>A warrior's journey from conscript to legend, mirroring the lineage of Gondor's soldiers.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>First Blood at Bree</em></td><td>Defend the Prancing Pony from a Brigand raid</td></tr>
+  <tr><td>8</td><td><em>The Pelennor Drills</em></td><td>Train under a Gondorian captain; pass three timed combat trials</td></tr>
+  <tr><td>15</td><td><em>Iron Hills Mercenary</em></td><td>Escort a Dwarf arms caravan through orc ambushes; keep payment or donate to Erebor</td></tr>
+  <tr><td>22</td><td><em>The Last of the Dúnedain</em></td><td>Assist a dying Ranger captain; inherit his broken sword</td></tr>
+  <tr><td>30</td><td><em>Reforging at Rivendell</em></td><td>Bring the broken sword to Elvish smiths; gather three rare ores</td></tr>
+  <tr><td>38</td><td><em>Siege of Osgiliath</em></td><td>Hold a crumbling bridge against a Morgul assault for 10 minutes (wave defence)</td></tr>
+  <tr><td>46</td><td><em>The Black Gate Challenge</em></td><td>Deliver Aragorn's challenge as his champion; survive three elite Uruk lieutenants</td></tr>
+  <tr><td>55</td><td><em>Armies of the Dead</em></td><td>Lead the Dead Men of Dunharrow to relieve a besieged port</td></tr>
+  <tr><td>60</td><td><em>Shield of the West</em></td><td>Final duel against the Mouth of Sauron in single combat before the Gate</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Aeglos Reborn</em> — spear, Keen, STR bonus, On-Hit Slow, unique glowing appearance</div>
+</div>
+
+<div class="class-section" id="wizard">
+<h3>&#129497; Wizard — <em>The Colour of Power</em></h3>
+<p>An apprentice mage uncovering Istari secrets, eventually choosing a colour allegiance.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>Cantrips in the Shire</em></td><td>Help Old Took's birthday party — minor illusions and light spells; comedic tone</td></tr>
+  <tr><td>8</td><td><em>The Ents Remember</em></td><td>Decode an ancient Quenya inscription in Fangorn for Treebeard</td></tr>
+  <tr><td>15</td><td><em>Tower of Orthanc — Archives</em></td><td>Infiltrate Isengard's lower library while Saruman sleeps; read three forbidden tomes</td></tr>
+  <tr><td>22</td><td><em>Mirkwood Corruption</em></td><td>Trace magical blight to a Necromancer-lieutenant; destroy the corrupting phylactery</td></tr>
+  <tr><td>30</td><td><em>A Wizard's Trial</em></td><td>Gandalf sets three paradox-puzzles requiring creative spell use to solve</td></tr>
+  <tr><td>38</td><td><em>Dol Guldur Assault</em></td><td>Storm the dark fortress with a small party; reach the inner sanctum</td></tr>
+  <tr><td>46</td><td><em>Choosing the Colour</em></td><td><strong>Branching:</strong> side with Gandalf (White), Saruman (Many Colours), or Radagast (Brown) — each unlocks a different permanent passive</td></tr>
+  <tr><td>55</td><td><em>Unraveling Sauron's Weave</em></td><td>Disrupt the magical resonance binding the Nazgûl to their rings</td></tr>
+  <tr><td>60</td><td><em>The Word That Breaks Walls</em></td><td>Learn and speak one of the seven Words of Making; destroy the Morannon gate</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Staff of the Ordered Mind</em> — quarterstaff, INT bonus, enhanced caster level, 3×/day Maximized Fireball (variant based on chosen colour)</div>
+</div>
+
+<div class="class-section" id="rogue">
+<h3>&#128273; Rogue — <em>The Long Shadow</em></h3>
+<p>A thief and spy threading through the politics of both sides, always for personal gain.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>Picking Pockets in the Prancing Pony</em></td><td>Lift a Black Rider's message pouch without being detected</td></tr>
+  <tr><td>8</td><td><em>The Smuggler's Road</em></td><td>Move contraband through a Gondorian checkpoint using disguise and timing</td></tr>
+  <tr><td>15</td><td><em>Gollum's Trail</em></td><td>Track Gollum through cave systems using footprint clues; capture or follow</td></tr>
+  <tr><td>22</td><td><em>Spidersilk Heist</em></td><td>Steal a bolt of Shelob's silk from a Mordor alchemist's vault in Minas Morgul's markets</td></tr>
+  <tr><td>30</td><td><em>The Mouth Speaks Lies</em></td><td>Impersonate a Gondorian envoy at Sauron's parley; extract intelligence without blowing cover</td></tr>
+  <tr><td>38</td><td><em>Stealing the Palantír of Orthanc</em></td><td>Full stealth mission inside Orthanc; every guard patrol is lethal, no combat permitted</td></tr>
+  <tr><td>46</td><td><em>The Watcher's Blind Spot</em></td><td>Map Sauron's Eye patrol patterns in Mordor to open a window for a Resistance operation</td></tr>
+  <tr><td>55</td><td><em>Gollum's Bargain</em></td><td>Gollum offers a way into Barad-dûr's treasury — trust him or betray him</td></tr>
+  <tr><td>60</td><td><em>The Final Cut</em></td><td>Rob Sauron's own vault during the chaos of the War's climax</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Shadowmere Blades</em> — dual short swords, DEX bonus, Sneak Attack bonus dice, 1×/day Improved Invisibility (10 min)</div>
+</div>
+
+<div class="class-section" id="druid">
+<h3>&#127807; Druid — <em>The Breathing of the World</em></h3>
+<p>Awakening the land itself against Sauron's industrialization and Saruman's deforestation.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>The Old Forest Wakes</em></td><td>Calm an angry Old Man Willow and speak with Tom Bombadil</td></tr>
+  <tr><td>8</td><td><em>Roots and Poison</em></td><td>Purge Saruman's chemical runoff from a tributary of the Entwash</td></tr>
+  <tr><td>15</td><td><em>Voice of Treebeard</em></td><td>Serve as translator when Treebeard meets an emissary; nature/lore checks</td></tr>
+  <tr><td>22</td><td><em>The Brown Wizard's Garden</em></td><td>Aid Radagast in healing corrupted animals near Dol Guldur's outskirts</td></tr>
+  <tr><td>30</td><td><em>Entmoot Observer</em></td><td>Survive three nights alone in Fangorn; fend off Orc scouts without fire</td></tr>
+  <tr><td>38</td><td><em>Huorns to War</em></td><td>Guide a column of Huorns to Helm's Deep, keeping them from turning on allies</td></tr>
+  <tr><td>46</td><td><em>Ungrown Gondor</em></td><td>Replant the White Tree seedling lineage before Denethor's forces root it out</td></tr>
+  <tr><td>55</td><td><em>Scouring the Shire</em></td><td>Return home to find the Shire industrialized by Saruman's Men; lead a restoration</td></tr>
+  <tr><td>60</td><td><em>The Last Green Word</em></td><td>Speak the oldest Ent-word — a syllable of creation — into the cracks of Mount Doom</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Heartwood Staff</em> — staff, WIS bonus, Animal Companion stat boost, 3×/day Creeping Doom, terrain-specific passive regeneration</div>
+</div>
+
+<div class="class-section" id="ranger">
+<h3>&#127987; Ranger — <em>The Uncrowned Path</em></h3>
+<p>Walks in Aragorn's footsteps, mastering the wild lands and eventually claiming a destiny.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>Strider's Watch</em></td><td>First patrol out of Bree; track a Nazgûl's passage and survive</td></tr>
+  <tr><td>8</td><td><em>Weathertop Ruins</em></td><td>Clear Amon Sûl of Orc squatters and discover a Dúnedain cache</td></tr>
+  <tr><td>15</td><td><em>Mirkwood Passage</em></td><td>Guide a merchant caravan through Mirkwood using only natural signs</td></tr>
+  <tr><td>22</td><td><em>The Angle of the Dúnedain</em></td><td>Find the hidden Ranger camp; earn acceptance by completing three trials</td></tr>
+  <tr><td>30</td><td><em>Ithilien Ambush</em></td><td>Command Faramir's Rangers in a coordinated ambush on a Haradrim supply column</td></tr>
+  <tr><td>38</td><td><em>The Paths of the Dead — Scouting</em></td><td>Advance-scout the Paths alone; resist fear effects, map the route for the army</td></tr>
+  <tr><td>46</td><td><em>Wild Lands of Rhûn</em></td><td>Track a Sauron emissary through the wild East; capture or kill before he recruits more Easterlings</td></tr>
+  <tr><td>55</td><td><em>Reuniting the North</em></td><td>Rally scattered Northern Dúnedain clans to ride south; requires visiting five locations</td></tr>
+  <tr><td>60</td><td><em>The King's Standard</em></td><td>Plant Aragorn's standard on the walls of the Pelennor; hold it against three champion waves</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Anduril's Echo</em> — longsword, STR/DEX split bonus, bonus damage vs Evil, On-Crit Fear, glows with script-runes</div>
+</div>
+
+<div class="class-section" id="cleric">
+<h3>&#128336; Cleric — <em>Flame of Anor</em></h3>
+<p>A servant of the divine light (Valar-flavoured) combating the spiritual corruption of Morgoth's legacy.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>Light in the Barrow</em></td><td>Exorcise a Barrow-wight from a fresh burial mound near the Shire</td></tr>
+  <tr><td>8</td><td><em>The Houses of Healing</em></td><td>Triage wounded soldiers in Minas Tirith using healing spells under time pressure</td></tr>
+  <tr><td>15</td><td><em>Shadows in Moria</em></td><td>Consecrate Balin's Tomb and put the dead Dwarves to rest</td></tr>
+  <tr><td>22</td><td><em>The Nazgûl's Taint</em></td><td>Purify a village where a Ringwraith passed; cleanse 5 NPCs of Black Shadow disease</td></tr>
+  <tr><td>30</td><td><em>Earendil's Light</em></td><td>Recover a phial of starlight from Rivendell's vaults; deliver it to a besieged lighthouse</td></tr>
+  <tr><td>38</td><td><em>Sauron Was a Maia</em></td><td>Channel Valar-granted power to temporarily weaken a Nazgûl in combat</td></tr>
+  <tr><td>46</td><td><em>The Unlight of Ungoliant</em></td><td>Travel to Nan Dungortheb; oppose a spawn of Ungoliant threatening to devour a Silmaril-shard</td></tr>
+  <tr><td>55</td><td><em>Lighting the Beacons</em></td><td>Magically reinforce all seven Beacon-fires of Gondor against Mordor-shadow dampening</td></tr>
+  <tr><td>60</td><td><em>Voice of the Valar</em></td><td>Channel the full light of the Two Trees' memory into the Black Gate's shadow-wall</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Narya's Warmth (replica)</em> — mace, WIS bonus, Turn Undead +6 levels, 3×/day Mass Heal burst, aura: nearby allies +2 saves</div>
+</div>
+
+<div class="class-section" id="paladin">
+<h3>&#128737; Paladin — <em>Oath-Sworn to the West</em></h3>
+<p>A knight of Gondor who embodies the last honour of Númenór against total darkness.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>The Oath of the Citadel</em></td><td>Take formal knightly vows before the White Tree; symbolic intro quest</td></tr>
+  <tr><td>8</td><td><em>Ride to the Aid of Rohan</em></td><td>Escort a dying Rohirric messenger back to Edoras with critical intelligence</td></tr>
+  <tr><td>15</td><td><em>Oathbreakers' Curse</em></td><td>Investigate a Gondorian knight who broke his word; help him find redemption or condemn him</td></tr>
+  <tr><td>22</td><td><em>The Fallen Steward</em></td><td>Denethor's paranoia is spreading; resist his unjust orders while keeping honour intact</td></tr>
+  <tr><td>30</td><td><em>Charge of the Rohirrim</em></td><td>Lead a charge through Mordor's flank; protect civilians during the breakthrough</td></tr>
+  <tr><td>38</td><td><em>Eowyn's Example</em></td><td>Partner with Éowyn against the Witch-king's lieutenants; she teaches you her strike</td></tr>
+  <tr><td>46</td><td><em>No Living Man</em></td><td>Face an avatar of the Witch-king in single combat; Lay on Hands is the only in-combat healing</td></tr>
+  <tr><td>55</td><td><em>The Last Alliance</em></td><td>Forge a new Last Alliance by personally convincing three faction leaders to commit troops</td></tr>
+  <tr><td>60</td><td><em>Until the World Is Healed</em></td><td>Stand at the vanguard of the final assault; Aura of Courage buffs the entire server zone</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Fornost's Promise</em> — bastard sword, CHA bonus, Divine Shield extra uses, Smite Evil bonus damage, On-Kill temporary HP stacks (max 30)</div>
+</div>
+
+<div class="class-section" id="bard">
+<h3>&#127897; Bard — <em>Tales That Live Forever</em></h3>
+<p>A loremaster whose music literally shapes reality, echoing the Ainulindalë.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>A Song for Bilbo</em></td><td>Perform at Bilbo's 111th birthday; impress 5 of 7 hobbits to pass</td></tr>
+  <tr><td>8</td><td><em>The Lay of Lúthien</em></td><td>Learn a fragment of Lúthien's song from an Elvish elder; perform it to calm a maddened Ent</td></tr>
+  <tr><td>15</td><td><em>Music in Moria</em></td><td>Play to distract Orc sentries while allies move through; timed dialogue mechanic</td></tr>
+  <tr><td>22</td><td><em>Sorrow of the Elves</em></td><td>Witness Galadriel's lament; transcribe it accurately to unlock a bardic power</td></tr>
+  <tr><td>30</td><td><em>The Word-Hoard of Rohan</em></td><td>Recover lost Rohirric saga-scrolls from a Dunlending war-chief's hall</td></tr>
+  <tr><td>38</td><td><em>Ainulindalë Echo</em></td><td>Harmonize with an ancient stone in Eregion that still resonates with the Music of Creation</td></tr>
+  <tr><td>46</td><td><em>Counter-Song</em></td><td>Use bardic music to disrupt Sauron's will-suppression field over a slave camp in Mordor</td></tr>
+  <tr><td>55</td><td><em>Last Song of Númenór</em></td><td>Recover and perform the last recorded song of Númenór; triggers a server-wide morale buff</td></tr>
+  <tr><td>60</td><td><em>The Song That Unmakes</em></td><td>Weave all learned musical fragments into a performance that cracks Barad-dûr's foundation</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Maglor's Lament</em> — instrument/staff, CHA bonus, Bardic Music doubled radius and duration, unique song <em>Echo of Eru</em> (1×/day mass +4 all stats)</div>
+</div>
+
+<div class="class-section" id="monk">
+<h3>&#129485; Monk — <em>The Empty Hand of the West</em></h3>
+<p>A wandering ascetic whose martial discipline echoes the traditions of the Men of the Mountains.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>Feet on Stone</em></td><td>Traverse the Misty Mountains pass without equipment in a blizzard; endurance checks</td></tr>
+  <tr><td>8</td><td><em>Training with the Dúnedain</em></td><td>Learn unarmed combat discipline from a Ranger hermit near Weathertop</td></tr>
+  <tr><td>15</td><td><em>The Troll-Hoard</em></td><td>Clear a troll lair with no weapons (trolls eat gear); pure unarmed combat</td></tr>
+  <tr><td>22</td><td><em>Stillness in Lothlórien</em></td><td>Meditate for an in-game hour while Elves test your will; resist random distraction attacks</td></tr>
+  <tr><td>30</td><td><em>The Spider's Web</em></td><td>Navigate Shelob's lair using only your body and senses — all gear suppressed in the zone</td></tr>
+  <tr><td>38</td><td><em>Wrestling the Balrog's Shadow</em></td><td>A lesser shadow-spawn of Durin's Bane: your fists are the only weapons that can harm it</td></tr>
+  <tr><td>46</td><td><em>Iron Fists in Mordor</em></td><td>Endure the crushing despair of Mordor's will-sapping field through pure constitution</td></tr>
+  <tr><td>55</td><td><em>The Empty Throne</em></td><td>Stand vigil alone at the throne of Minas Tirith for one hour against waves of spectral challengers</td></tr>
+  <tr><td>60</td><td><em>The Hand That Needs No Ring</em></td><td>Destroy a lesser Ring-replica through sheer force of will and body</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Hands of Manwë</em> — unarmed gloves, STR/CON split bonus, Stunning Fist DC boost, On-Crit Paralysis, immunity to Fear and Despair</div>
+</div>
+
+<div class="class-section" id="sorcerer">
+<h3>&#128302; Sorcerer — <em>Blood of the Elder Days</em></h3>
+<p>A descendant of Númenórean mage-kings whose power is inherited, not learned — and increasingly dangerous.</p>
+<table><thead><tr><th>Level</th><th>Quest</th><th>Summary</th></tr></thead><tbody>
+  <tr><td>1</td><td><em>The Spark Unasked</em></td><td>A spell fires without casting in a crisis; investigate the bloodline</td></tr>
+  <tr><td>8</td><td><em>Forlong's Genealogy</em></td><td>Trace your character's lineage through Gondorian records; Lore checks</td></tr>
+  <tr><td>15</td><td><em>Wild Magic in Rhudaur</em></td><td>Ruined Númenórean towers amplify your power unpredictably; random surge effects</td></tr>
+  <tr><td>22</td><td><em>The Temptation of Annatar</em></td><td>Sauron-as-gift-giver offers to focus your power; resist (Will save chain) or briefly gain power at cost</td></tr>
+  <tr><td>30</td><td><em>Mage-Blood Duel</em></td><td>A rival sorcerer with corrupted Númenórean blood challenges you; winner claims the loser's power-memory</td></tr>
+  <tr><td>38</td><td><em>The Lost Palantír Vision</em></td><td>Accidentally link with a Palantír; survive a mental assault from Sauron while extracting intelligence</td></tr>
+  <tr><td>46</td><td><em>Sunder the Binding</em></td><td>Your blood resonates with the One Ring's frequency — use this to shatter one of the Nine's rings of power</td></tr>
+  <tr><td>55</td><td><em>Dragon-Fire Memory</em></td><td>Commune with Smaug's dying fire-spirit to absorb a fragment of primordial flame into your spells</td></tr>
+  <tr><td>60</td><td><em>The Inheritance Unleashed</em></td><td>Cast without limit for 5 minutes to destroy the Black Gate's magical cornerstone</td></tr>
+</tbody></table>
+<div class="class-cap"><strong>Capstone reward:</strong> <em>Sceptre of Annúminas</em> — rod, CHA bonus, enhanced Spell Penetration, bonus spell slots, 1×/day auto-maximized Delayed Blast Fireball</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="location">Location-Specific Quests</h2>
+
+<div id="loc-misty"><h3>&#9968; The Misty Mountains</h3>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Goblin-Town Throne</strong><span class="lvl">Lvl 18</span></div>
+  <p class="quest-desc">Infiltrate Goblin-Town, assassinate the Great Goblin's successor, and plant a false succession document to trigger a civil war — weakening Orc raids on the pass for seven real-world days as a server-wide buff.</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Pass the Pass</strong><span class="lvl">Lvl 10+</span></div>
+  <p class="quest-desc">Escort a merchant caravan through the High Pass before nightfall. Stone-giants appear at higher difficulty tiers. Reward scales with selected difficulty.</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>Mithril Seam</strong><span class="lvl">Lvl 28+</span></div>
+  <p class="quest-desc">A new mithril vein has been located in the deep mines. Race to claim it before the Balrog's lingering heat-wraiths seal the passage. First player or group earns a mithril ingot crafting component.</p>
+</div>
+</div>
+
+<div id="loc-fangorn"><h3>&#127794; Fangorn Forest</h3>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Thirteenth Ent</strong><span class="lvl">Lvl 32</span></div>
+  <p class="quest-desc">An Ent who was present at the first Entmoot has gone completely tree-still. Discover why — he has witnessed something terrible. Restore him through nature lore, bardic music, or druidic magic.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Ent-draught Flask</em> (permanent +1 STR/CON, one-time use)</p>
+</div>
+<div class="callout"><strong>Server-state tug-of-war:</strong> The two daily quests below are linked — Evil players advance the Isengard war machine; Good players roll it back. The result determines whether the Helm's Deep event spawns at Normal or Hard difficulty.</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Lumber Runners</strong><span class="lvl">Lvl 15+ — Evil aligned</span></div>
+  <p class="quest-desc">Smuggle harvested Fangorn timber past Ent patrols to an Isengard factor. Each success slightly advances the Isengard war machine.</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Ent-Watch</strong><span class="lvl">Lvl 15+ — Good aligned</span></div>
+  <p class="quest-desc">Counter the Lumber Runners — detect and stop them. Each success rolls back the Isengard machine variable.</p>
+</div>
+</div>
+
+<div id="loc-mirkwood"><h3>&#128375; Mirkwood</h3>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>The Halls of Thranduil — Jailbreak</strong><span class="lvl">Lvl 22+</span></div>
+  <p class="quest-desc"><strong>Good path:</strong> A Dwarven merchant has been unjustly imprisoned — negotiate or sneak him out. <strong>Evil path:</strong> A Nazgûl spy is imprisoned — break them out through violence. Same dungeon layout, opposite objectives, opposite rewards.</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Smaug's Lingering Curse</strong><span class="lvl">Lvl 40</span></div>
+  <p class="quest-desc">Smaug is dead, but his dying curse still festers in Laketown's water supply. Trace it to a corrupted Dragon-shrine in Mirkwood's south.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Scale of the Last Drake</em> — crafting component for Dragon-Touched armor</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Spider Silk Harvest</strong><span class="lvl">Lvl 12+</span></div>
+  <p class="quest-desc">Kill Mirkwood spiders and harvest silk. Three uses: crafting, selling to Good factions (rope), or Evil factions (alchemical ingredient). Pricing is dynamic based on server-wide supply.</p>
+</div>
+</div>
+
+<div id="loc-moria"><h3>&#9935; Moria (Khazad-dûm)</h3>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Twenty-First Hall</strong><span class="lvl">Lvl 36</span></div>
+  <p class="quest-desc">Full dungeon crawl to the Chamber of Mazarbul. Recover Balin's book, then survive the ambush that follows its disturbance. Party of 4 recommended.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Balin's Seal</em> (key to a Dwarven crafting master)</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>Durin's Bane Remnant</strong><span class="lvl">Lvl 50+</span></div>
+  <p class="quest-desc">The Balrog is dead, but a fragment of its fire-essence has coalesced in the lowest deeps. Extinguish it before it reforms. If not completed in the weekly window, fire-wraiths begin appearing in Moria's upper levels for all players.</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Claim the Deeps</strong><span class="lvl">Lvl 20+</span></div>
+  <p class="quest-desc">Faction control quest. Good players fortify a room with Dwarven runes; Evil players attempt to desecrate it. Controlling faction gains crafting table access until next reset.</p>
+</div>
+</div>
+
+<div id="loc-havens"><h3>&#127754; The Grey Havens</h3>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Last Ship's Cargo</strong><span class="lvl">Lvl 55</span></div>
+  <p class="quest-desc">Círdan asks you to load a final ship before a great Elf-lord departs — but agents of Sauron are sabotaging the cargo. Protect the loading.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Shipwright's Blessing</em> (movement speed, water resistance)</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Harbour Watch</strong><span class="lvl">Lvl 18+</span></div>
+  <p class="quest-desc">Guard the Haven's docks from Corsair scouts at night. Difficulty scales dynamically with how many Evil players have recently completed Corsair quests.</p>
+</div>
+</div>
+
+<div id="loc-mordor"><h3>&#127755; Mount Doom / Mordor</h3>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Cracks of Doom</strong><span class="lvl">Lvl 58–60 — up to 6 players</span></div>
+  <p class="quest-desc">The ultimate group quest. Cross the Plateau of Gorgoroth, survive Shelob's Pass, climb the mountain under constant Nazgûl aerial assault, and reach the Chamber of Fire. The final objective varies by server campaign state: destroy an artifact, ignite a forge, or close a Shadow-Gate.</p>
+</div>
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>Mordor Forage</strong><span class="lvl">Lvl 40+ — Evil only</span></div>
+  <p class="quest-desc">Scavenge rare volcanic minerals near active lava flows while Balrog-kin patrol the area. High-risk, high-reward — yields unique crafting components unavailable elsewhere.</p>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="wildcard">Wildcard Quests</h2>
+<p>Unexpected, weird, fun, or mechanically creative quests that don't fit neat categories.</p>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Sméagol's Side</strong><span class="lvl">Lvl 20</span></div>
+  <p class="quest-desc">Play as Gollum's conscience — the quest is presented entirely from his perspective with split-personality dialogue choices. Each choice swings an internal Good/Evil meter. The end state determines whether Gollum later aids or betrays a server-wide event. No combat. Pure narrative.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Riddle-Ring</em> (+5 to all mental skills, permanent -2 CHA curse)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Watcher in the Water</strong><span class="lvl">Lvl 30</span></div>
+  <p class="quest-desc">Fish near the Gate of Moria. Hook something. It fights back. It keeps fighting back. An escalating combat encounter that begins with a lake trout and ends with the Watcher's juvenile spawn — a full boss fight.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Angler's Pride</em> (Luck bonus item, cosmetic fishing rod)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Hobbit Post</strong><span class="lvl">All levels</span></div>
+  <p class="quest-desc">Deliver a letter from the Shire to any of five possible recipients scattered across Middle-earth. Recipients and locations rotate daily. No combat required — but enemies may intercept. Speed bonuses for fast delivery. A beloved low-pressure quest with surprisingly rich NPC dialogue.</p>
+  <p class="quest-reward"><strong>Reward:</strong> Modest gold + occasional rare "misdelivered parcel" loot</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>The Riddle Game</strong><span class="lvl">Lvl 1+</span></div>
+  <p class="quest-desc">Find Gollum in a hidden cave. Play the Riddle Game — a full trivia/puzzle minigame of 7 riddles drawn from Tolkien's lore. Win 5 of 7 to claim a random rare item. Lose and fight your way out.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Gollum's Token</em> (trade-in for a random rare item)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Concerning Hobbits — The Genealogy Conspiracy</strong><span class="lvl">Lvl 5</span></div>
+  <p class="quest-desc">The Hobbiton records office has been ransacked. Three parties want to claim a disputed inheritance. Investigate and adjudicate entirely through conversation skill checks. The "correct" answer changes each server season.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Bag End Deed</em> (cosmetic player housing access)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Bombadil's Errand</strong><span class="lvl">Lvl 1 — level-immune</span></div>
+  <p class="quest-desc">Tom Bombadil asks you to return a lost feather to a specific bird in the Old Forest. The Old Forest is rearranging itself. The bird moves. Time dilates oddly. Tom's magic makes all your abilities irrelevant — problem-solving only. Slightly haunting.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Yellow Feather</em> (cosmetic, grants immunity to Fear)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>Ents Don't Hasty</strong><span class="lvl">Lvl 25+</span></div>
+  <p class="quest-desc">An Ent wants to tell you something important. It takes the entire weekly window — seven days of periodic check-ins — to finish his story. Each day reveals one sentence. At the end: a piece of ancient knowledge that grants a unique passive for the following week.</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Istari's Bet</strong><span class="lvl">Lvl 45</span></div>
+  <p class="quest-desc">Gandalf and Radagast have made a wager about whether a mortal can cross the Brown Lands and Emyn Muil solo, without magical aid, in under one in-game day. You are the wager. No teleports, no summons, no magical items. Navigation and endurance only.</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Ungoliant's Hunger</strong><span class="lvl">Lvl 52</span></div>
+  <p class="quest-desc">A rift in Nan Dungortheb releases a fragment of Ungoliant's unlight — a sphere of total darkness that devours light and life. You have torches. They won't help. Drive the unlight back using reflected moonlight channeled through mirrors salvaged from a ruined tower. Pure puzzle with a lethal timer.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Phial of Counter-Darkness</em> (3×/day Daylight as instant action)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-seasonal">Seasonal</span><strong>The Long Winter</strong><span class="lvl">Lvl 1–60 — server-wide</span></div>
+  <p class="quest-desc">Once per server season (3-month real cycle), a Great Winter descends on the north. All outdoor zones in Eriador gain a cold-damage aura. A 30-day server-wide quest chain activates: gather food, forge hearths, and ultimately hunt the Winter's source — a corrupted Valar-fragment imprisoned in an iceberg in the Bay of Forochel. All players contribute to total progress.</p>
+  <p class="quest-reward"><strong>Reward:</strong> Server-wide +10% XP bonus for the following season + unique seasonal cosmetic items</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="new">Proposed Quests — Module-Grounded Ideas</h2>
+<p>These ten quest proposals were designed against the actual areas, NPCs, and resources already present in the module — all required areas exist, making these the most buildable pitches on the page. None are implemented yet.</p>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>Ferny's Return</strong><span class="lvl">Lvl 3</span></div>
+  <p class="quest-desc">Prequel to the existing <em>Ferny's Ring</em> journal quest. Bill Ferny has been spotted skulking around his old house — but he's not the one doing the skulking. Investigate, expose the impostor (one of Saruman's ruffians), and decide whether to leave Bill's stash intact or rob it. Completion unlocks a discount branch in the Ferny's Ring dialogue.</p>
+  <p class="quest-reward"><strong>Reward:</strong> 200 gp, <em>Pickpocket Glove</em> (Pickpocket +2)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Miller's Other Son</strong><span class="lvl">Lvl 8</span></div>
+  <p class="quest-desc">Sequel to <em>Bree Millers Son</em> (already in the journal). The miller is grieving — but a wandering peddler claims he saw the <em>other</em> son alive in Tharbad's ruins, working as a thrall for a cult. True or scam? Persuade / fight / let-be paths available.</p>
+  <p class="quest-reward"><strong>Reward:</strong> 800 gp, +1 CHA tome or <em>Peddler's Pack</em> (5-slot bag)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Twentieth Plot of Mazarbul</strong><span class="lvl">Lvl 18</span></div>
+  <p class="quest-desc">Inside the Chamber of Records, a hidden codicil to Balin's book names twenty Dwarven crypts that must be re-sealed before the wraiths of failed expeditions return. You've cleared nineteen as part of the existing <em>Elrond's Request</em> thread — find and re-seal the forgotten twentieth.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Seal of the Twentieth</em> (Damage Reduction 5/-, Negative Energy Resist 10/-)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>The Carn Dûm Ledger</strong><span class="lvl">Lvl 28+</span></div>
+  <p class="quest-desc">Spies in Bree report that Angmar's revived clerks are recording a master ledger of every soul promised to the Witch-King. Steal a page from Carn Dûm — every weekly theft weakens the Witch-King for the following weekly tick.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Frostbitten Page</em> (ammo-stack), 3000 gp</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>Beorn's Garden</strong><span class="lvl">Lvl 12+</span></div>
+  <p class="quest-desc">Beorn's bee-meadow has been raided by a roving troupe of wargs. Clear them and harvest honey for the household; Beorn pays in food, herbs, and one rare item from his ever-rotating stash.</p>
+  <p class="quest-reward"><strong>Reward:</strong> Randomized from Beorn's stash — honey, herbs, occasional <em>Bear's Belt</em></p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Watcher of Tharbad Bridge</strong><span class="lvl">Lvl 20</span></div>
+  <p class="quest-desc">A creature has nested under the broken span of Tharbad. Travellers disappear at twilight. Investigate, lure it out, and either slay it or pact with it to spare future merchants — your choice locks the bridge's behaviour for everyone on the server.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Bridgekeeper's Gaff</em> (+1 weapon) or <em>Shadow-Glass Eye</em> (Spot +5)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Grey Lord's Errand at Annúminas</strong><span class="lvl">Lvl 38</span></div>
+  <p class="quest-desc">Aragorn sends you to the ruins of Annúminas to retrieve the Sceptre, but three spectral kings of Cardolan dispute his claim. Win their trials (combat / lore / vow) to recover the relic.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Sceptre of Annúminas (lesser)</em> (Spell Penetration +4, +1 CHA)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-oneoff">One-Off</span><strong>The Empty Throne of Dol Guldur</strong><span class="lvl">Lvl 42</span></div>
+  <p class="quest-desc">The Necromancer is gone but his throne still stains the air. Re-consecrate it (good) or claim it (evil). A branching alignment quest spanning the full Dol Guldur complex, ending in a boss fight against a corrupted shadow priest.</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Cleansed Stone</em> (Save vs. Negative +2) or <em>Pact-Iron</em> (Save vs. Mind-Affecting +2)</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-weekly">Weekly</span><strong>Faramir's Watch</strong><span class="lvl">Lvl 32+</span></div>
+  <p class="quest-desc">Henneth Annûn needs hands. Each weekly tour involves an Ithilien ambush and one of three rotating side-objectives: intelligence (interrogate a captive), supply (escort a caravan), or stealth (extract without being spotted by a Nazgûl flyover).</p>
+  <p class="quest-reward"><strong>Reward:</strong> <em>Ithilien Cloak</em> (Hide +3, Move Silently +3) on first completion; 2000 gp + Ranger ammunition thereafter</p>
+</div>
+
+<div class="quest-card">
+  <div class="quest-card-head"><span class="qb qb-daily">Daily</span><strong>The Last Drop at Frogmorton Inn</strong><span class="lvl">Lvl 1+ — low-stakes flavour</span></div>
+  <p class="quest-desc">Five Shire-folk are arguing in the common room about who actually brewed the best ale at last year's harvest. Settle the argument entirely through conversation — Persuade, Lore, and Bluff options available. The "correct" answer rotates by month. Reward is comically small but the dialogue tree is rich and seasonal.</p>
+  <p class="quest-reward"><strong>Reward:</strong> 25 gp, <em>Frogmorton Pint</em> (heals 4 hp, temporary tipsy effect)</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="prestige">Prestige-Class Quests</h2>
+<p>Each quest is gated by possession of the relevant prestige class (at least 1 level). A single
+<strong>Prestige Trainer</strong> hub NPC near the Well of Eru hosts all giver dialogues.</p>
+
+<table>
+  <thead><tr><th>Prestige Class</th><th>Quest</th><th>Lvl</th><th>Summary</th><th>Reward</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Arcane Archer</strong></td><td><em>The Galadhrim's Marker</em></td><td>12+</td><td>Track a missing Galadhrim hunter via three planted mallorn-leaf arrows in Mirkwood; defend his recovered bow from a spider ambush</td><td><em>Mallorn Bow</em> (Enh +3, Mighty +3, Massive Crit 1d6 vs Evil)</td></tr>
+    <tr><td><strong>Assassin</strong></td><td><em>The Quiet Heir of Carn Dûm</em></td><td>13+</td><td>Track a rival assassin through Carn Dûm; forced duel with no witnesses permitted</td><td><em>Kukri of the Quiet Heir</em> (Enh +3, bonus piercing damage)</td></tr>
+    <tr><td><strong>Blackguard</strong></td><td><em>The Black Captain's Mark</em></td><td>14+</td><td>Pass three trials for the Witch-King — slaughter, profanation, duel with the previous mark-bearer. Permanent alignment shift to Evil.</td><td><em>Mark of the Black Captain</em> (STR bonus, On-Hit Doom, shadow-area regen)</td></tr>
+    <tr><td><strong>Divine Champion</strong></td><td><em>The Vow Renewed</em></td><td>14+</td><td>Take vows before the White Tree; hunt down a fallen knight and spare or smite him</td><td><em>Renewed Vow</em> (bastard sword, Enh +3, 1d6 vs Evil, On-Hit Daze)</td></tr>
+    <tr><td><strong>Dwarven Defender</strong></td><td><em>The Last Hold of Khazad</em></td><td>14+ (Dwarf)</td><td>Stand beside the last survivor of Balin's expedition; hold a sealed gate-hall against three escalating waves ending with a Cave-Troll captain</td><td><em>Khazad-aim Plate</em> (Enh +3, DR 5/-, AC vs Goblinoid +2)</td></tr>
+    <tr><td><strong>Harper Scout</strong></td><td><em>The Cipher in the Inn</em></td><td>6+</td><td>Decipher a coded message at the Prancing Pony; deliver pieces to three contacts across Middle-earth</td><td><em>Harper Pin</em> (Listen +3, Spot +3, Lore +3)</td></tr>
+    <tr><td><strong>Pale Master</strong></td><td><em>The Twenty-First Tomb</em></td><td>11+</td><td>Recover a binding rite tome from beneath Esgaroth's crypts; perform the ritual with three reagent items</td><td><em>Tome of the Twenty-First</em> (Save vs. Negative +2, Bonus Spell Slot Lvl 4)</td></tr>
+    <tr><td><strong>Knight of Westernesse</strong></td><td><em>The Banner of the West</em></td><td>6+</td><td>Lead three Gondorian guardsmen across the Pelennor to plant a banner; each guardsman who survives adds +1 to a permanent command bonus</td><td><em>Banner of the West</em> (tower shield, Enh +3, Aura: Save vs. Fear)</td></tr>
+    <tr><td><strong>Red Dragon Disciple</strong></td><td><em>Smaug's Scale</em></td><td>12+</td><td>Recover a scale of Smaug from the ruins of Dale; resist the whisper (Will save chain) to awaken your draconic power</td><td><em>Scale of the Last Drake</em> (Fire Resist 10/-, 1d6 fire vs Cold creatures)</td></tr>
+    <tr><td><strong>Shadowdancer</strong></td><td><em>Through Shelob's Web Without a Lantern</em></td><td>11+</td><td>Cross Shelob's Lair in absolute darkness — every torch lit fails the quest. Shelob herself patrols.</td><td><em>Cloak of Lightless Step</em> (Hide +5, Move Silently +5, Tumble +3)</td></tr>
+    <tr><td><strong>Shifter</strong></td><td><em>The Skin-Changer's Bargain</em></td><td>16+</td><td>An aged skin-changer at Beorn's offers to teach you the "true bear shape" — only if you complete a Mirkwood hunt while remaining in wolf-form the entire time</td><td><em>Skinchanger's Talisman</em> (Bonus Druid Spell Slot, DR while polymorphed)</td></tr>
+    <tr><td><strong>Weapon Master</strong></td><td><em>The Duel of Three Hundred</em></td><td>13+</td><td>Answer a challenge in the arena — three exhibition fights of escalating difficulty, each using a different exotic weapon supplied by the arena</td><td><em>Glory of the Three Hundred</em> (scimitar, Enh +4, Keen, Massive Crit 1d6)</td></tr>
+  </tbody>
+</table>
+
+  </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+</body>
+</html>

@@ -1,0 +1,564 @@
+{
+  "$schema": "TestingBurndown \u2014 manual test items for the MeaningWave Phase 1 work. Each item is a change the user needs to verify. Flip `status` to `passed` or `failed` after manual testing. New entries are appended at the bottom.",
+  "lastUpdated": "2026-05-11 coord-audit-with-place-helper",
+  "phase": "1 \u2014 Roster, Hall, unlocks (no audio)",
+  "items": [
+    {
+      "id": "MW-030",
+      "title": "Test penguin spawns in Well of Eru (creature placement smoke test)",
+      "files": [
+        "unpacked/thewelloferu.git.json",
+        "unpacked/thewelloferu.gic.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Enter the module (spawn lands in Well of Eru at ~25,5).",
+        "Walk ~10m east to (35, 8) — should see 'Test Penguin' (a TrashFairy clone with a debug name).",
+        "If visible: the .git/.gic placement pipeline is healthy; any remaining MW NPC invisibility is per-creature, not pipeline-wide.",
+        "If invisible: there's still a structural issue with creature instances — don't proceed to other unlock tests until resolved."
+      ],
+      "expectedResult": "A creature labelled 'Test Penguin' appears at (35, 8).",
+      "notes": "Added 2026-05-11 as a fast iteration probe. Cloned from working TrashFairy instance (same TemplateResRef, only Tag/FirstName/position changed). If this works but the other mw_* creatures still don't, the issue is in their blueprints (.utc.json), not the placement."
+    },
+    {
+      "id": "MW-001",
+      "title": "Module repacks cleanly with new scripts",
+      "files": [
+        "unpacked/mw_unlock_inc.nss",
+        "unpacked/mw_on_rest.nss",
+        "unpacked/mw_emote_open.nss",
+        "unpacked/mw_chk_*.nss (7 files)",
+        "unpacked/mw_sum_*.nss (7 files)",
+        "unpacked/mw_pet_reset.nss",
+        "unpacked/mw_pet_inc.nss",
+        "unpacked/mw_pet_pass.nss",
+        "unpacked/mw_pet_unl.nss",
+        "unpacked/mw_hench_hb.nss",
+        "unpacked/mw_hall_enter.nss",
+        "unpacked/mw_wayshrn_us.nss"
+      ],
+      "status": "pass",
+      "type": "compile",
+      "steps": [
+        "Run `nwn-manager repack`.",
+        "Verify no compile errors for any mw_* script."
+      ],
+      "expectedResult": "Module packs to dist/ without errors.",
+      "notes": "Include compile only fails when a consumer script compiles \u2014 if you see an error in mw_pet_unl.nss or mw_on_rest.nss complaining about MW_Unlock / MW_UnlockCount, the mw_unlock_inc.nss include itself has the bug."
+    },
+    {
+      "id": "MW-002",
+      "title": "Rest opens emotewand cleanly (no MW menu when no unlocks)",
+      "files": [
+        "unpacked/module.ifo.json",
+        "unpacked/mw_on_rest.nss"
+      ],
+      "status": "pass",
+      "type": "in-game",
+      "steps": [
+        "Start a fresh PC with no unlocks.",
+        "Rest. Verify the legacy emotewand conversation opens exactly as before \u2014 no MeaningWave-flavoured menu replaces it."
+      ],
+      "expectedResult": "Resting opens the legacy emotewand conversation. No regression versus pre-change.",
+      "notes": "Mod_OnPlrRest is restored to its original 'on_mod_rest'. MeaningWave options live inside emotewand and are conditionally hidden when MW_UnlockCount == 0."
+    },
+    {
+      "id": "MW-003",
+      "title": "[OBSOLETE] mw_rest_menu dialogue (replaced by emotewand submenu)",
+      "files": [
+        "unpacked/rivendellupperha.git.json",
+        "unpacked/rivendellupperha.gic.json",
+        "unpacked/mw_peterson_w.utc.json"
+      ],
+      "status": "obsolete",
+      "type": "in-game",
+      "steps": [
+        "Travel to Rivendell Upper Halls.",
+        "Walk to coordinates roughly (30, 80) \u2014 opposite side of the area from Elrond.",
+        "Verify a male human named 'Jordan Peterson' is standing there, hostile-immune (Plot=1).",
+        "Click to converse \u2014 should open the meet-dialogue prompt 'Stand up straight, with your shoulders back\u2026'"
+      ],
+      "expectedResult": "Peterson is reachable and his dialogue starts.",
+      "notes": "Replaced by the emotewand integration. See MW-028 for the new test."
+    },
+    {
+      "id": "MW-004",
+      "title": "Peterson quiz: pass path unlocks the guide",
+      "files": [
+        "unpacked/mw_peterson_m.dlg.json",
+        "unpacked/mw_pet_reset.nss",
+        "unpacked/mw_pet_inc.nss",
+        "unpacked/mw_pet_pass.nss",
+        "unpacked/mw_pet_unl.nss",
+        "unpacked/mw_unlock_inc.nss"
+      ],
+      "status": "needs-retest",
+      "type": "in-game",
+      "steps": [
+        "Talk to Peterson, pick 'Test me.'",
+        "Answer correctly on at least 4 of 5: Q1='nothing makes you stronger\u2026', Q2='The path to meaning, freely chosen.', Q3='Hierarchies of competence\u2026', Q4='The one in my own cellar\u2026', Q5='True \u2014 but the order is never finished.'",
+        "Verify Peterson's pass message appears.",
+        "Verify floating text 'You have gained the wisdom of Jordan Peterson\u2026' appears.",
+        "Verify 500 XP awarded.",
+        "Open journal \u2014 `MW: Jordan Peterson` should show stage 2 (complete), `The Path of Meaning` should show stage 2."
+      ],
+      "expectedResult": "Pass branch fires, MW_Unlock runs, journal updates, XP and VFX awarded.",
+      "notes": "If unlock floating text appears but journal doesn't update, check that the journal tags exactly match: 'MW Jordan Peterson' and 'MW Path of Meaning' (case-sensitive). 2026-05-11: Peterson relocated from (30,80) to (24,95). After that still invisible — real root cause: instance had `__struct_id: 6` (copied from .utc blueprint) instead of the canonical `4` for Creature List entries. Engine silently skips wrong-struct-id instances. Now fixed; the same struct_id bug existed on all 8 mw_* creatures and all 8 mw_* placeables (wayshrine + 7 statues), now all corrected."
+    },
+    {
+      "id": "MW-005",
+      "title": "Peterson quiz: fail path lets you retry",
+      "files": [
+        "unpacked/mw_peterson_m.dlg.json",
+        "unpacked/mw_pet_pass.nss"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Talk to Peterson, pick 'Test me.', answer wrong on 2+ of the 5 questions.",
+        "Verify the fail entry plays ('You stumble\u2026').",
+        "Talk to Peterson again \u2014 quiz should reset and let you retry."
+      ],
+      "expectedResult": "Failing the quiz doesn't lock you out. Retry works because mw_pet_reset is called on 'Test me.' reply.",
+      "notes": "If the score persists across retries, mw_pet_reset isn't firing \u2014 verify it's set as the Reply Script on the accept reply, not on the Entry."
+    },
+    {
+      "id": "MW-006",
+      "title": "[OBSOLETE] rest menu listing (replaced by emotewand submenu)",
+      "files": [
+        "unpacked/mw_rest_menu.dlg.json",
+        "unpacked/mw_chk_peterson.nss",
+        "unpacked/mw_on_rest.nss"
+      ],
+      "status": "obsolete",
+      "type": "in-game",
+      "steps": [
+        "After MW-004 (Peterson unlocked), rest anywhere safe.",
+        "Verify the menu 'A familiar music whispers\u2026' appears with: 'Jordan Peterson \u2014 Sage of Order.', '(No guide \u2014 just rest.)', '(Open the emote wand instead.)'.",
+        "Locked guides (Watts, Campbell, etc.) should NOT appear as options."
+      ],
+      "expectedResult": "Only the unlocked guide is offered; fallbacks present.",
+      "notes": "See MW-028."
+    },
+    {
+      "id": "MW-007",
+      "title": "Selecting Peterson from rest menu summons him as a henchman",
+      "files": [
+        "unpacked/mw_sum_peterson.nss",
+        "unpacked/mw_unlock_inc.nss",
+        "unpacked/mw_peterson.utc.json",
+        "unpacked/mw_hench_hb.nss"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "From the rest menu (MW-006), pick 'Jordan Peterson \u2014 Sage of Order.'.",
+        "Verify a creature spawns at the PC's location, joins the party as a henchman, and follows the PC.",
+        "Walk to a new area \u2014 Peterson should appear in that area near the PC (mw_hench_hb heartbeat-follow).",
+        "Talk to Peterson \u2014 should open the henchman chat with 'What is it? Speak plainly.', 3 reply options."
+      ],
+      "expectedResult": "Peterson is a working henchman.",
+      "notes": "If 'blueprint mw_peterson missing' floating text appears, the .utc.json wasn't packed (check nasher's source list)."
+    },
+    {
+      "id": "MW-008",
+      "title": "Summoning a second guide dismisses the first",
+      "files": [
+        "unpacked/mw_unlock_inc.nss"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Unlock Peterson via the quiz (MW-004).",
+        "Unlock at least one other guide (e.g. Watts in Old Forest at (60,60) \u2014 same quiz pattern).",
+        "Rest, summon Peterson. Then rest again, summon Watts.",
+        "Verify Peterson EffectDisappears and Watts spawns. Only one mw_* guide should be active."
+      ],
+      "expectedResult": "Only one MeaningWave guide is active at a time.",
+      "notes": "MW_DismissActiveGuide iterates henchmen and dismisses any with tag prefix 'mw_'."
+    },
+    {
+      "id": "MW-009",
+      "title": "Henchman dismissal from chat",
+      "files": [
+        "unpacked/mw_peterson_h.dlg.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "With Peterson summoned, talk to him, pick 'Walk apart from me for now, Jordan.'",
+        "Verify Peterson disappears (calls hench_kill action script)."
+      ],
+      "expectedResult": "Standard henchman-dismiss behaviour works."
+    },
+    {
+      "id": "MW-010",
+      "title": "Wayshrine of the Wave in the Well of Eru",
+      "files": [
+        "unpacked/mw_wayshrn.utp.json",
+        "unpacked/mw_wayshrn_us.nss",
+        "unpacked/thewelloferu.git.json",
+        "unpacked/thewelloferu.gic.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Travel to thewelloferu (module entry point).",
+        "Find the Wayshrine of the Wave near (10, 10).",
+        "Click it with a PC who has no unlocks \u2014 should show floating text 'The obelisk hums, but the music is too distant.'",
+        "Click it with a PC who has unlocked Peterson \u2014 should teleport to Hall of Legends."
+      ],
+      "expectedResult": "Wayshrine gates entry on having \u22651 unlock.",
+      "notes": "If the Wayshrine doesn't appear, the placement in thewelloferu.git.json didn't take. If clicking does nothing, the 'Useable' byte may have been overridden \u2014 re-check the placed instance. 2026-05-11: Wayshrine relocated from (10,10) to (20,12), and the instance struct was rebuilt. Real root cause: I had wrapped it with `__struct_id: 44` and creature-style position fields (`XPosition/YPosition/ZPosition/XOrientation/YOrientation`). The canonical placeable instance shape is `__struct_id: 9` with `X/Y/Z/Bearing`. Same fix applied to all 7 mw_stat_* statues in the Hall."
+    },
+    {
+      "id": "MW-011",
+      "title": "Hall of Legends loads and swaps statues for live NPCs",
+      "files": [
+        "unpacked/hallofleg.are.json",
+        "unpacked/hallofleg.git.json",
+        "unpacked/hallofleg.gic.json",
+        "unpacked/mw_hall_enter.nss",
+        "unpacked/module.ifo.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Teleport via the Wayshrine to the Hall.",
+        "Verify the area loads (small 2x2 wizard-tower interior, re-skinned).",
+        "Verify Akira the Don is present near the centre (8, 8).",
+        "Verify 7 statues are arranged in a ring around him \u2014 except the Peterson pedestal, which should now show the live Peterson world NPC instead of a statue (because the entering PC has Peterson unlocked).",
+        "Walk to where 'Peterson' stands in the Hall \u2014 should be able to talk to him."
+      ],
+      "expectedResult": "Statue\u2192live-NPC swap fires for unlocked guides on Hall entry. Other 6 pedestals still hold statues.",
+      "notes": "The cloned wizard-tower tileset will not visually look like a 'Hall of Legends'. This is intentional Phase-1 scaffolding \u2014 the area needs toolset re-skinning to feel right. See MW-014."
+    },
+    {
+      "id": "MW-012",
+      "title": "Peterson's Hall NPC has its own conversation slot",
+      "files": [
+        "unpacked/mw_peterson_w.utc.json"
+      ],
+      "status": "open-issue",
+      "type": "design-followup",
+      "steps": [
+        "Currently both the Rivendell world-instance and the Hall instance of Peterson share the same dialogue (mw_peterson_m \u2014 the unlock quiz). After unlock, talking to Hall-Peterson re-presents the quiz, which is jarring.",
+        "Author mw_peterson_l.dlg.json (Hall-specific dialogue) and either: (a) override Conversation on the in-Hall instance to mw_peterson_l, or (b) have mw_peterson_m branch on MW_IsUnlocked to show post-unlock lore."
+      ],
+      "expectedResult": "Hall-Peterson speaks lore/loyalty content, not the quiz.",
+      "notes": "Ships in task 6/7 \u2014 flagged here so user knows the current behaviour."
+    },
+    {
+      "id": "MW-013",
+      "title": "Akira the Don is reachable but currently has no dialogue",
+      "files": [
+        "unpacked/mw_akira.utc.json"
+      ],
+      "status": "open-issue",
+      "type": "design-followup",
+      "steps": [
+        "Akira's UTC sets Conversation = 'mw_akira', but mw_akira.dlg.json hasn't been created yet (ships in task 6).",
+        "Clicking Akira in-game will fail to open a dialogue."
+      ],
+      "expectedResult": "Once mw_akira.dlg.json ships, clicking Akira opens his curator dialogue.",
+      "notes": "Phase-1 cosmetic gap; Akira's full lore + finale gating ships in task 6."
+    },
+    {
+      "id": "MW-014",
+      "title": "Hall of Legends visual polish",
+      "files": [
+        "unpacked/hallofleg.are.json",
+        "unpacked/hallofleg.git.json"
+      ],
+      "status": "open-issue",
+      "type": "design-followup",
+      "steps": [
+        "The Hall is currently a 2x2 tile clone of the wizard tower (tin01 tileset). It functions but looks like a wizard's chamber, not a grand hall.",
+        "In the NWN:EE toolset: open the module, re-tile or re-skin the area, add proper lighting, paint pedestals, add ambient effects.",
+        "Round-trip back to JSON via nwn_gff."
+      ],
+      "expectedResult": "Hall feels like a hall.",
+      "notes": "Optional polish; gameplay is unaffected."
+    },
+    {
+      "id": "MW-015",
+      "title": "Watts in Old Forest \u2014 quiz unlock",
+      "files": [
+        "unpacked/mw_watts_w.utc.json",
+        "unpacked/mw_watts_m.dlg.json",
+        "unpacked/mw_wat_*.nss",
+        "unpacked/oldforest001.git.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Travel to Old Forest. Find Alan Watts at (80, 48) (relocated 2026-05-11 — original (60,60) was next to a ZEP_WATER placeable, likely in a stream; new spot is 4.2m from a GreaterGiantSpider encounter, so it's combat-adjacent but reachable).",
+        "Engage. Pick 'Ask. I will answer.'",
+        "Correct answers: 'There is no separate I\u2026', 'A game played in hide-and-seek\u2026', 'Because the trying is the play\u2026', 'A verb \u2014 selving.', 'By falling on purpose, with grace.'",
+        "Pass branch should unlock Watts; journal 'MW: Alan Watts' completes; 'Path of Meaning' ticks up."
+      ],
+      "expectedResult": "Watts unlocks and becomes summonable.",
+      "notes": "Same quiz/dialogue mechanics as Peterson \u2014 if Watts fails but Peterson worked, look at mw_wat_pass.nss for typo."
+    },
+    {
+      "id": "MW-016",
+      "title": "Campbell in Balin's Tomb \u2014 quiz unlock",
+      "files": [
+        "unpacked/mw_campbell_w.utc.json",
+        "unpacked/mw_campbell_m.dlg.json",
+        "unpacked/balinstomb.git.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Travel to Balin's Tomb. Find Joseph Campbell at (12, 12).",
+        "Correct answers: 'The Call to Adventure.', 'To test whether you are worthy of crossing.', 'To die to what they were\u2026', 'Following the deepest urge in you\u2026', 'A boon for the village.'"
+      ],
+      "expectedResult": "Campbell unlocks.",
+      "notes": "Plan called for a fetch-quest unlock for Campbell; Phase-1 simplification uses the shared quiz pattern. Quest-style unlock is captured in MW-021."
+    },
+    {
+      "id": "MW-017",
+      "title": "McKenna in Northern Forests of Ithilien \u2014 quiz unlock",
+      "files": [
+        "unpacked/mw_mckenna_w.utc.json",
+        "unpacked/mw_mckenna_m.dlg.json",
+        "unpacked/northernforestso.git.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Travel to Northern Forests of Ithilien. Find Terence McKenna at (94, 70) (relocated 2026-05-11 from (90,90) — original had no placeables or encounters within 20m, likely unreachable. New spot is 5.9m from a mordorithilien encounter spawn).",
+        "Correct answers: 'Your operating system.', 'To remember the felt presence\u2026', 'A fractal of novelty intensifying.', '\u2026is closer to you than your own breath.', 'An organism that wants to be eaten\u2026'"
+      ],
+      "expectedResult": "McKenna unlocks."
+    },
+    {
+      "id": "MW-018",
+      "title": "Jocko in Helm's Deep \u2014 quiz unlock",
+      "files": [
+        "unpacked/mw_jocko_w.utc.json",
+        "unpacked/mw_jocko_m.dlg.json",
+        "unpacked/helmsdeep001.git.json"
+      ],
+      "status": "needs-retest",
+      "type": "in-game",
+      "steps": [
+        "Travel to Helm's Deep. Find Jocko Willink at (12, 92) (relocated from (80,30) which was unreachable).",
+        "Correct answers: 'Freedom.', 'Mine. Extreme ownership.', 'Good. We will adapt and continue.', 'Up. Now.', 'Do it anyway\u2026'"
+      ],
+      "expectedResult": "Jocko unlocks. GOOD.",
+      "notes": "Plan called for a combat trial. Phase-1 uses the shared quiz pattern; quest-style unlock captured in MW-022. 2026-05-11: Jocko relocated from (80,30) to (12,92), and `__struct_id` corrected from 22 to 4 (same instance-shape bug as Peterson — see MW-004)."
+    },
+    {
+      "id": "MW-019",
+      "title": "Jung in Esgaroth Crypts \u2014 quiz unlock",
+      "files": [
+        "unpacked/mw_jung_w.utc.json",
+        "unpacked/mw_jung_m.dlg.json",
+        "unpacked/cryptsofthelosts.git.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Travel to Esgaroth Crypts. Find Carl Jung at (25, 25).",
+        "Correct answers: 'The disowned parts\u2026', 'By integrating the shadow.', 'Becoming the totality\u2026', 'The collective inheritance\u2026', '\u2026the mask you wear; useful, but not you.'"
+      ],
+      "expectedResult": "Jung unlocks.",
+      "notes": "Plan called for a shadow-doppelganger combat. Quest-style unlock captured in MW-023."
+    },
+    {
+      "id": "MW-020",
+      "title": "Aurelius at Gwathdor Throne \u2014 quiz unlock",
+      "files": [
+        "unpacked/mw_aurelius_w.utc.json",
+        "unpacked/mw_aurelius_m.dlg.json",
+        "unpacked/gwaththrone.git.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Travel to Gwathdor: Throne of the Lord. Find Marcus Aurelius at (50, 60) (relocated 2026-05-11 from (40,20) — original was 31m from any creature, no placeables within 20m. New spot is 5.5m from GwathdorLord, inside the throne-cluster of NPCs).",
+        "Correct answers: 'Your judgements, intentions, and reactions\u2026', '\u2026the way.', 'Remember that you will die.', 'The colour of its thoughts.', 'You will meet the ungrateful\u2026'"
+      ],
+      "expectedResult": "Aurelius unlocks."
+    },
+    {
+      "id": "MW-021",
+      "title": "Quest-style unlocks (Campbell, McKenna, Jocko, Jung)",
+      "files": [],
+      "status": "open-issue",
+      "type": "design-followup",
+      "steps": [
+        "Plan called for Campbell = mini hero's-journey quest, McKenna = mushroom-vision encounter, Jocko = combat trial, Jung = shadow-fight.",
+        "Phase 1 uses the shared 5-question quiz pattern for all 7 to keep the system uniform.",
+        "Replacing these later: leave the unlock plumbing (`MW_Unlock(oPC, '<g>')`) and swap the meet dialogue / add triggers + scripts that call `MW_Unlock` on quest completion."
+      ],
+      "expectedResult": "Optional polish \u2014 gameplay works without it.",
+      "notes": "All 7 unlocks currently funnel through MW_Unlock, so the unlock pathway is uniform. Replacing the quiz with a quest is a per-guide swap that doesn't touch the rest/Hall/summon system."
+    },
+    {
+      "id": "MW-022",
+      "title": "Resref sanity: nasher picks up all 73 new files",
+      "files": [
+        "unpacked/mw_*"
+      ],
+      "status": "needs-test",
+      "type": "compile",
+      "steps": [
+        "After `nwn-manager repack`, verify dist/<name>.mod was built.",
+        "Count new mw_* files in the .mod via toolset if doubtful \u2014 15 UTC + 1 UTP + 15 DLG + 48 NSS = 79 mw-prefixed assets.",
+        "If any of the mw_* files were skipped, check nasher.cfg's source glob to ensure `unpacked/mw_*` is included."
+      ],
+      "expectedResult": "All mw_* assets are in the packed module."
+    },
+    {
+      "id": "MW-023",
+      "title": "Akira's curator dialogue works (no finale yet)",
+      "files": [
+        "unpacked/mw_akira.dlg.json",
+        "unpacked/mw_akira.utc.json"
+      ],
+      "status": "needs-retest",
+      "type": "in-game",
+      "steps": [
+        "Reach the Hall of Legends with at least 1 unlock (via Wayshrine; relocated to (20,12) near module entry).",
+        "Click Akira the Don near the centre.",
+        "Verify the greeting plays and 3 reply options appear: 'Show me my progress.', 'Tell me about the Hall.', 'Farewell, Don.'",
+        "The 'Give me the mixtape.' reply should NOT appear with <7 unlocks; the 'Thank you for the mixtape.' reply should NOT appear (no finale yet)."
+      ],
+      "expectedResult": "Akira responds; gated replies are hidden."
+    },
+    {
+      "id": "MW-024",
+      "title": "Finale: receive the Mixtape when all 7 are unlocked",
+      "files": [
+        "unpacked/mw_akira.dlg.json",
+        "unpacked/mw_finale.nss",
+        "unpacked/mw_finale_chk.nss",
+        "unpacked/mw_finale_done.nss",
+        "unpacked/mw_mixtape.uti.json",
+        "unpacked/module.jrl.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Unlock all 7 guides (do all the quizzes, or DM-set the campaign ints).",
+        "Verify the 'Path of Meaning' journal advances to stage 8 ('All seven legends are mine. Akira awaits\u2026').",
+        "Travel to Hall, talk to Akira.",
+        "Verify 'I have gathered all seven. Give me the mixtape.' reply appears.",
+        "Pick it. Verify: VFX plays, +5000 XP, mw_mixtape item appears in inventory, journal advances to stage 9 (End=1).",
+        "Equip the Mixtape (amulet slot). Verify +2 to all 6 ability scores.",
+        "Talk to Akira again. Verify the finale reply is gone; the 'Thank you for the mixtape.' reply now appears."
+      ],
+      "expectedResult": "Finale fires once, mixtape granted, meta-quest closed.",
+      "notes": "If 'Give me the mixtape' shows up before unlocking 7 guides, mw_finale_chk isn't gating properly."
+    },
+    {
+      "id": "MW-025",
+      "title": "Hall NPCs use the Hall dialogue, not the unlock quiz",
+      "files": [
+        "unpacked/mw_hall_enter.nss",
+        "unpacked/mw_*_l.dlg.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Unlock at least one guide.",
+        "Travel to Hall (Wayshrine).",
+        "Click the live guide NPC (e.g. Peterson) on the pedestal.",
+        "Verify the Hall greeting plays ('Welcome, friend. Stand up straight\u2026' for Peterson), not the quiz intro."
+      ],
+      "expectedResult": "Hall guides give a short post-unlock greeting; quiz intro only appears in the world location (Rivendell etc.).",
+      "notes": "2026-05-11: Will currently FAIL — mw_hall_enter.nss originally called SetDialogResRef() to swap the spawned NPC's dialogue, but that function doesn't exist in NWScript. Line removed to unblock compile. Hall NPCs now inherit the _w blueprint's Conversation (the meet/quiz). Proper fix: ship per-guide _h blueprints with Conversation=mw_<guide>_l, then spawn those in mw_hall_enter.nss instead of the _w blueprint. Same root cause as MW-012."
+    },
+    {
+      "id": "MW-026",
+      "title": "Loyalty quest scaffolds exist as journal categories",
+      "files": [
+        "unpacked/module.jrl.json"
+      ],
+      "status": "open-issue",
+      "type": "design-followup",
+      "steps": [
+        "After repack, open journal \u2014 7 'MW Loyalty: <name>' categories should be present but have no entries until they're triggered.",
+        "Real content (quest steps, completion scripts, stat-bump payoff) is not yet implemented."
+      ],
+      "expectedResult": "Categories exist; entries empty until Phase-2/polish ships them.",
+      "notes": "Plan called for full loyalty quests with stat-bump payoff on completion. Phase 1 ships the scaffolding; the actual gameplay content is captured here as a deferred item."
+    },
+    {
+      "id": "MW-027",
+      "title": "Phase 2 \u2014 music HAK workflow (deferred)",
+      "files": [],
+      "status": "open-issue",
+      "type": "design-followup",
+      "steps": [
+        "Phase 2 work: create homerwave.hak with custom ambientmusic.2da + 9 .bmu files.",
+        "Add 'homerwave' to module.ifo.json Mod_HakList.",
+        "Set hallofleg's MusicDay/MusicNight to new track row IDs.",
+        "Optionally swap music per guide area + on summon."
+      ],
+      "expectedResult": "Custom music plays in the Hall and per-guide areas.",
+      "notes": "All Phase-1 code paths are music-agnostic; the HAK is purely additive."
+    },
+    {
+      "id": "MW-028",
+      "title": "emotewand submenu: 'Summon a Legend' appears only when \u22651 guide is unlocked",
+      "files": [
+        "unpacked/emotewand.dlg.json",
+        "unpacked/mw_any_unl.nss",
+        "unpacked/mw_chk_*.nss (7)",
+        "unpacked/mw_sum_*.nss (7)"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Start a fresh PC. Rest (or use the emote wand item directly).",
+        "Verify the existing 7 top-level options are unchanged: Admin Options, Teleports, Force Rest, Role Dice, Summons Options, Options of the Homeless, Exit.",
+        "Verify the new '[Summon a Legend.]' option is HIDDEN (no guides unlocked yet).",
+        "Unlock at least one guide (e.g. talk to Peterson in Rivendell Upper Halls and pass the quiz, or DM-console SetCampaignInt('meaningwave','u_peterson',1,oPC)).",
+        "Rest (or activate the wand) again.",
+        "Verify '[Summon a Legend.]' now APPEARS at the bottom of the option list.",
+        "Pick it. Submenu shows: only Peterson visible (other 6 guides hidden), plus '(Back.)'.",
+        "Pick Peterson. Verify he spawns as henchman and the conversation ends.",
+        "Re-open emote wand: pick Summon a Legend \u2192 Back. Should return to top-level options."
+      ],
+      "expectedResult": "Top-level 'Summon a Legend' visible iff MW_UnlockCount >= 1. Submenu only shows unlocked guides. Picking summons; back returns.",
+      "notes": "Files removed in the integration: mw_on_rest.nss, mw_rest_menu.dlg.json, mw_emote_open.nss. The rest hook is reverted to the original on_mod_rest."
+    },
+    {
+      "id": "MW-029",
+      "title": "emotewand integration leaves existing options intact",
+      "files": [
+        "unpacked/emotewand.dlg.json"
+      ],
+      "status": "needs-test",
+      "type": "in-game",
+      "steps": [
+        "Open emote wand.",
+        "Try each of the 7 original options (Teleports submenu, Force Rest, Role Dice, etc.) \u2014 verify each still works as before.",
+        "Test as a DM-flag holder that admin/summon submenus still appear correctly."
+      ],
+      "expectedResult": "No regression in any pre-existing emotewand path.",
+      "notes": "We only added a new reply to entry 0 and a new submenu entry; no existing replies/entries were modified."
+    }
+  ],
+  "summary": {
+    "totalItems": 29,
+    "needsTest": 21,
+    "openIssues": 6,
+    "obsolete": 2,
+    "blocked": 0
+  },
+  "assetCounts": {
+    "creatures": 15,
+    "items": 1,
+    "placeables": 1,
+    "dialogues": 23,
+    "scripts": 51,
+    "newJournalCategories": 15,
+    "newAreas": 1
+  }
+}

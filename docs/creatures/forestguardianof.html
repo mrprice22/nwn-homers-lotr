@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Forest Guardian of Rivendell</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,31 +47,51 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>forestguardianof</dd>
 <dt>Tag</dt><dd>ForestGuardianofRivendell</dd>
-<dt>Race</dt><dd>Elf</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-1">Elf</a></dd>
 <dt>Appearance</dt><dd>Elf</dd>
 <dt>Class(es)</dt><dd>Barbarian 20/Weapon Master 30</dd>
-<dt>HP</dt><dd>1700</dd>
+<dt>HP</dt><dd>1,700</dd>
 <dt>CR</dt><dd>215.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Good</a> <small class="muted">(id 6)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/rivendell.html">Rivendell</a></td><td>6</td></tr>
+<tr><td><a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></td><td>1</td></tr>
+<tr><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>6</td></tr></tbody></table>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>rivendell spawn</td><td><code>rivendellspawn</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>40</td><th>Dex</th><td>40</td><th>Con</th><td>40</td><th>Int</th><td>40</td><th>Wis</th><td>40</td><th>Cha</th><td>40</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Barbarian</td><td>20</td></tr><tr><td>Weapon Master</td><td>30</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>1700</td><th>AC</th><td>57 <small class="muted">(10 base + +15 Dex + +24 natural (NaturalAC) + +8 armor enchant)</small></td><th>BAB</th><td>+50</td></tr><tr><th>Fort</th><td>+18</td><th>Ref</th><td>+15</td><th>Will</th><td>+15</td></tr></table>
+<table class="data"><tr><th>HP</th><td>1,700</td><th>AC</th><td>59 <small class="muted">(10 base + +15 Dex + +24 natural (NaturalAC) + +2 armor + +8 armor enchant)</small></td><th>BAB</th><td>+50</td></tr><tr><th>Fort</th><td>+18</td><th>Ref</th><td>+15</td><th>Will</th><td>+15</td></tr><tr><th>Spell Resistance</th><td>20</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +8 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/elvenrapier.html">Elven Rapier</a></td><td>Rapier</td><td>Melee</td><td>+65/+60/+55/+50</td><td>1d6+15 (16–21) + Damage Bonus <span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> 2, Damage Bonus Piercing 5</td><td>18-20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Dexterity Bonus</th><td>+10</td></tr>
+<tr><th>Skill: Listen</th><td>+10</td></tr>
+<tr><th>Skill: Spot</th><td>+40</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>30/-</td></tr>
+<tr><th>Misc Immunity</th><td>Disease, Fear, Knockdown, Level/Ability Drain, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+5 HP/round</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>Darkvision</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/elvenrapier.html">Elven Rapier</a></td><td>Rapier</td><td>Melee</td><td>+74/+69/+64/+59</td><td>1d6+15 (16–21) + Damage Bonus <span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> 2, Damage Bonus Piercing 5, Massive Criticals 5</td><td>18-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/maarcl029.html">Rivendell Leather</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/gauntletsofdexte.html">Gauntlets of Dexterity +6</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/elvenrapier.html">Elven Rapier</a></td></tr>
-<tr><td>Belt</td><td>x2_it_mbelt008</td></tr>
-<tr><td>Creature hide</td><td><a href="../items/celebornsgarb004.html">Rivendell</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/maarcl029.html">Rivendell Leather</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/gauntletsofdexte.html">Gauntlets of Dexterity +6</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/elvenrapier.html">Elven Rapier</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/x2_it_mbelt008.html">Belt of Agility +10</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/celebornsgarb004.html">Rivendell</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(3)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/branchofrivendel.html">Branch of Rivendell</a></td><td>branchofrivendel</td></tr>
-<tr><td><a href="../items/eyesoftheforest.html">Eyes of The Forest</a></td><td>eyesoftheforest</td></tr>
-<tr><td>nw_it_mbelt021</td><td>nw_it_mbelt021</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/branchofrivendel.html">Branch of Rivendell</a></td><td><a href="../items/index.html#weapon-50">Quarterstaff</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/eyesoftheforest.html">Eyes of The Forest</a></td><td><a href="../items/index.html#helmet">Helmets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mbelt021.html">Belt of Agility +4</a></td><td><a href="../items/index.html#belt">Belts</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(62)</small></h2><ul class="featlist"><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Barbarian Fast Movement</li><li>Barbarian Rage (1x per day)</li><li>Barbarian Rage (2x per day)</li><li>Barbarian Rage (3x per day)</li><li>Barbarian Rage (4x per day)</li><li>Called Shot</li><li>Cleave</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Dodge</li><li>Epic Prowess</li><li>Epic Weapon Focus (rapier)</li><li>Epic Weapon Specialization (rapier)</li><li>Ghostly Visage</li><li>Great Cleave</li><li>Great Fortitude</li><li>Greater Rage</li><li>Greater Rage (4x per day)</li><li>Greater Rage (5x per day)</li><li>Hardiness vs. Enchantments</li><li>Immunity To Sleep</li><li>Improved Critical (greataxe)</li><li>Improved Critical (longbow)</li><li>Improved Critical (longsword)</li><li>Improved Critical (rapier)</li><li>Improved Power Attack</li><li>Keen Sense</li><li>Low-light Vision</li><li>Mobility</li><li>Overwhelming Critical (rapier)</li><li>Point Blank Shot</li><li>Power Attack</li><li>Shield Proficiency</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Search)</li><li>Skill Affinity (Spot)</li><li>Two-Weapon Fighting</li><li>Uncanny Dodge I</li><li>Uncanny Dodge II</li><li>Uncanny Dodge III</li><li>Uncanny Dodge IV</li><li>Uncanny Dodge V</li><li>Uncanny Dodge VI+</li><li>Weapon Focus (greataxe)</li><li>Weapon Focus (longbow)</li><li>Weapon Focus (longsword)</li><li>Weapon Focus (rapier)</li><li>Weapon Proficiency (Elf)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (rogue)</li><li>Weapon Proficiency (simple)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (longbow)</li><li>Weapon Specialization (longsword)</li><li>Weapon Specialization (rapier)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>70</td></tr>
 <tr><td>Listen</td><td>33</td></tr>
@@ -69,21 +111,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Instances <small class="muted">(13)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/rivendell-004.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/rivendell.html">Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/rivendell-005.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/rivendell.html">Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/rivendell-006.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/rivendell.html">Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/rivendell-007.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/rivendell.html">Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/rivendell-008.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/rivendell.html">Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/rivendell-009.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/rivendell.html">Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/rivendellupperha-002.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/thevalleyofriven-010.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/thevalleyofriven-011.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/thevalleyofriven-012.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/thevalleyofriven-013.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/thevalleyofriven-014.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>Good</td><td>—</td></tr>
-<tr><td><a href="instances/thevalleyofriven-015.html">Forest Guardian of Rivendell</a></td><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>Good</td><td>—</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(1 area)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/thevalleyofriven.html">The Valley of Rivendell</a></td><td>rivendell spawn</td><td><code>rivendellspawn</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

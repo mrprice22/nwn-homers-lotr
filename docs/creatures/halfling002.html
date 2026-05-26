@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>POPOE (DM)</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,36 +47,67 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>halfling002</dd>
 <dt>Tag</dt><dd>NW_HALFLING001</dd>
-<dt>Race</dt><dd>Halfling</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-3">Halfling</a></dd>
 <dt>Appearance</dt><dd>Halfling</dd>
 <dt>Class(es)</dt><dd>Monk 60/Assassin 60/Barbarian 60</dd>
-<dt>HP</dt><dd>18100</dd>
+<dt>HP</dt><dd>18,100</dd>
 <dt>CR</dt><dd>9289.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Commoner</a> <small class="muted">(id 2)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>87</td><th>Dex</th><td>100</td><th>Con</th><td>100</td><th>Int</th><td>100</td><th>Wis</th><td>100</td><th>Cha</th><td>100</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Monk</td><td>60</td></tr><tr><td>Assassin</td><td>60</td></tr><tr><td>Barbarian</td><td>60</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>18100</td><th>AC</th><td>205 <small class="muted">(10 base + +45 Dex + +130 natural (NaturalAC) + +20 armor enchant)</small></td><th>BAB</th><td>+150</td></tr><tr><th>Fort</th><td>+95</td><th>Ref</th><td>+95</td><th>Will</th><td>+95</td></tr></table>
+<table class="data"><tr><th>HP</th><td>18,100</td><th>AC</th><td>269 <small class="muted">(10 base + +45 Dex + +130 natural (NaturalAC) + +20 armor enchant + +15 dodge (items) + +4 dodge (haste) + +45 Wis (monk))</small></td><th>BAB</th><td>+150</td></tr><tr><th>Fort</th><td>+95</td><th>Ref</th><td>+95</td><th>Will</th><td>+95</td></tr><tr><th>Spell Resistance</th><td>70 <small class="muted">(max of: feats (30), Diamond Soul (70), items (32))</small></td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +20 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<p><strong>Spell resistance:</strong> granted by feats: Improved Spell Resistance I, Improved Spell Resistance II, Improved Spell Resistance III, Improved Spell Resistance IV, Improved Spell Resistance IX, Improved Spell Resistance V, Improved Spell Resistance VI, Improved Spell Resistance VII, Improved Spell Resistance VIII, Improved Spell Resistance X</p>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+15</td></tr>
+<tr><th>Save vs. Universal</th><td>+20</td></tr>
+<tr><th>Charisma Bonus</th><td>+12</td></tr>
+<tr><th>Constitution Bonus</th><td>+12</td></tr>
+<tr><th>Dexterity Bonus</th><td>+12</td></tr>
+<tr><th>Intelligence Bonus</th><td>+12</td></tr>
+<tr><th>Strength Bonus</th><td>+12</td></tr>
+<tr><th>Wisdom Bonus</th><td>+12</td></tr>
+<tr><th>Skill: Discipline</th><td>+50</td></tr>
+<tr><th>Skill: Hide</th><td>+50</td></tr>
+<tr><th>Skill: Lore</th><td>+50</td></tr>
+<tr><th>Skill: Open Lock</th><td>+50</td></tr>
+<tr><th>Skill: Pick Pocket</th><td>+50</td></tr>
+<tr><th>Skill: Tumble</th><td>+50</td></tr>
+<tr><th>Skill: Use Magic Device</th><td>+50</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>10</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>10</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>10</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>10</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>10</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>10</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>10</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>10</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>10</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>10</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Knockdown, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
 <h3>Weapons</h3><p>Unarmed: +188/+183/+178/+173 · 1d6 +38</p>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/cloth005.html">Homer&#x27;s Robe</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/supernuts.html">super nuts</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/cloth005.html">Homer&#x27;s Robe</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/supernuts.html">super nuts</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(10)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/dmfi_server.html">DMFI Admin Server Wand</a></td><td>dmfi_server</td></tr>
-<tr><td><a href="../items/dmfi_dmw.html">DMFI DM Wand</a></td><td>dmfi_dmw</td></tr>
-<tr><td><a href="../items/dmfi_en_ditto.html">DMFI Encounter Ditto Widget</a></td><td>dmfi_en_ditto</td></tr>
-<tr><td><a href="../items/dmfi_encounte.html">DMFI Encounter Wand</a></td><td>dmfi_encounte</td></tr>
-<tr><td><a href="../items/dmfi_encounter.html">DMFI Encounter Wand</a></td><td>dmfi_encounter</td></tr>
-<tr><td><a href="../items/dmfi_fx.html">DMFI FX Wand</a></td><td>dmfi_fx</td></tr>
-<tr><td><a href="../items/dmfi_target.html">DMFI Target / Appearance Data Widget</a></td><td>dmfi_target</td></tr>
-<tr><td><a href="../items/dmfi_faction.html">DMFI NPC Control Wand</a></td><td>dmfi_faction</td></tr>
-<tr><td><a href="../items/item064.html">Homer&#x27;s Hand</a></td><td>item064</td></tr>
-<tr><td><a href="../items/item068.html">Homer&#x27;s Touch</a></td><td>item068</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/dmfi_server.html">DMFI Admin Server Wand</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dmfi_dmw.html">DMFI DM Wand</a></td><td><a href="../items/index.html#magic-rod">Magic Rods</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dmfi_en_ditto.html">DMFI Encounter Ditto Widget</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dmfi_encounte.html">DMFI Encounter Wand</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dmfi_encounter.html">DMFI Encounter Wand</a></td><td><a href="../items/index.html#magic-rod">Magic Rods</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dmfi_fx.html">DMFI FX Wand</a></td><td><a href="../items/index.html#magic-rod">Magic Rods</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dmfi_target.html">DMFI Target / Appearance Data Widget</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/dmfi_faction.html">DMFI NPC Control Wand</a></td><td><a href="../items/index.html#magic-rod">Magic Rods</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item064.html">Homer&#x27;s Hand</a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/item068.html">Homer&#x27;s Touch</a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(359)</small></h2><ul class="featlist"><li>Air Domain Powers</li><li>Alertness</li><li>Animal Companion</li><li>Animal Domain Powers</li><li>Arcane Defense (Abjuration)</li><li>Arcane Defense (Conjuration)</li><li>Arcane Defense (Divination)</li><li>Arcane Defense (Evocation)</li><li>Arcane Defense (Necromancy)</li><li>Armor Proficiency (light)</li><li>Armor Skin</li><li>Arrow of Death</li><li>Artist</li><li>Aura of Courage</li><li>Automatic Quicken Spell I</li><li>Automatic Quicken Spell II</li><li>Automatic Quicken Spell III</li><li>Automatic Silent Spell I</li><li>Automatic Silent Spell II</li><li>Automatic Silent Spell III</li><li>Automatic Still Spell I</li><li>Automatic Still Spell II</li><li>Automatic Still Spell III</li><li>Bane of Enemies</li><li>Barbarian Fast Movement</li><li>Barbarian Rage (1x per day)</li><li>Barbarian Rage (2x per day)</li><li>Barbarian Rage (3x per day)</li><li>Barbarian Rage (4x per day)</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bard Song</li><li>Bardic Knowledge</li><li>Battle Training vs. Giants</li><li>Battle Training vs. Goblins</li><li>Battle Training vs. Orcs</li><li>Battle Training vs. Reptilians</li><li>Blind-Fight</li><li>Blinding Speed</li><li>Blooded</li><li>Bone Skin</li><li>Brew Potion</li><li>Bull&#x27;s Strength</li><li>Bullheaded</li><li>Called Shot</li><li>Circle Kick</li><li>Cleave</li><li>Combat Casting</li><li>Construct Shape</li><li>Contagion</li><li>Courteous Magocracy</li><li>Craft Harper Item</li><li>Craft Wand</li><li>Create Undead</li><li>Crippling Strike</li><li>Curse Song</li><li>Damage Reduction 1</li><li>Damage Reduction 2</li><li>Damage Reduction 3</li><li>Damage Reduction 4</li><li>Dark Blessing</li><li>Darkness</li><li>Darkvision</li><li>Death Attack (+10d6)</li><li>Death Attack (+11d6)</li><li>Death Attack (+12d6)</li><li>Death Attack (+13d6)</li><li>Death Attack (+14d6)</li><li>Death Attack (+15d6)</li><li>Death Attack (+16d6)</li><li>Death Attack (+17d6)</li><li>Death Attack (+18d6)</li><li>Death Attack (+19d6)</li><li>Death Attack (+1d6)</li><li>Death Attack (+20d6)</li><li>Death Attack (+2d6)</li><li>Death Attack (+3d6)</li><li>Death Attack (+4d6)</li><li>Death Attack (+5d6)</li><li>Death Attack (+6d6)</li><li>Death Attack (+7d6)</li><li>Death Attack (+8d6)</li><li>Death Attack (+9d6)</li><li>Death Domain Powers</li><li>Deathless Master Touch</li><li>Deathless Mastery</li><li>Deathless Vigor</li><li>Defensive Awareness (1)</li><li>Defensive Awareness (2)</li><li>Defensive Awareness (3)</li><li>Defensive Roll</li><li>Defensive Stance</li><li>Deflect Arrows</li><li>Deneir&#x27;s Eye</li><li>Destruction Domain Powers</li><li>Devastating Critical (bastard sword)</li><li>Devastating Critical (battleaxe)</li><li>Devastating Critical (club)</li><li>Devastating Critical (creature)</li><li>Devastating Critical (dagger)</li><li>Devastating Critical (dart)</li><li>Devastating Critical (dire mace)</li><li>Devastating Critical (double axe)</li><li>Devastating Critical (dwarven waraxe)</li><li>Devastating Critical (greataxe)</li><li>Devastating Critical (greatsword)</li><li>Devastating Critical (halberd)</li><li>Devastating Critical (handaxe)</li><li>Devastating Critical (heavy crossbow)</li><li>Devastating Critical (heavy flail)</li><li>Devastating Critical (kama)</li><li>Devastating Critical (katana)</li><li>Devastating Critical (kukri)</li><li>Devastating Critical (light crossbow)</li><li>Devastating Critical (light flail)</li><li>Devastating Critical (light hammer)</li><li>Devastating Critical (longbow)</li><li>Devastating Critical (longsword)</li><li>Devastating Critical (mace)</li><li>Devastating Critical (morningstar)</li><li>Devastating Critical (quarterstaff)</li><li>Devastating Critical (rapier)</li><li>Devastating Critical (scimitar)</li><li>Devastating Critical (scythe)</li><li>Devastating Critical (shortbow)</li><li>Devastating Critical (shuriken)</li><li>Devastating Critical (sickle)</li><li>Devastating Critical (sling)</li><li>Devastating Critical (spear)</li><li>Devastating Critical (throwing axe)</li><li>Devastating Critical (two-bladed sword)</li><li>Devastating Critical (unarmed strike)</li><li>Diamond Body</li><li>Diamond Soul</li><li>Disarm</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Grace</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Health</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Might</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Shield</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Wrath</li><li>Dodge</li><li>Draconic Armor</li><li>Dragon Abilities</li><li>Dragon Breath</li><li>Dragon Shape</li><li>Dual-Wield</li><li>Dwarven Defender Damage Reduction</li><li>Eagle&#x27;s Splendor</li><li>Earth Domain Powers</li><li>Elemental Shape</li><li>Elemental Shape (2x day)</li><li>Elemental Shape (3x day)</li><li>Empower Spell</li><li>Empty Body</li><li>Enchant Arrow I</li><li>Enchant Arrow II</li><li>Enchant Arrow III</li><li>Enchant Arrow IV</li><li>Enchant Arrow IX</li><li>Enchant Arrow V</li><li>Enchant Arrow VI</li><li>Enchant Arrow VII</li><li>Enchant Arrow VIII</li><li>Enchant Arrow X</li><li>Enchant Arrow XI</li><li>Enchant Arrow XII</li><li>Enchant Arrow XIII</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> IX</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> V</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> VI</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> X</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> IX</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> X</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> X</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> X</li><li>Energy Resistance, <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> X</li><li>Epic Assassin</li><li>Epic Barbarian</li><li>Epic Bard</li><li>Epic Blackguard</li><li>Epic Character</li><li>Epic Cleric</li><li>Epic Monk</li><li>Epic Skill Focus (Spellcraft)</li><li>Epic Skill Focus (Spot)</li><li>Epic Skill Focus (Tumble)</li><li>Epic Skill Focus (Use Magic Device)</li><li>Epic Spell: Dragon Knight</li><li>Epic Spell: Epic Mage Armor</li><li>Epic Spell: Epic Warding</li><li>Epic Spell: Greater Ruin</li><li>Epic Spell: Hellball</li><li>Epic Spell: Mummy Dust</li><li>Epic Superior Weapon Focus</li><li>Epic Weapon Focus (unarmed strike)</li><li>Epic Weapon Specialization (unarmed strike)</li><li>Evil Domain Powers</li><li>Expertise</li><li>Extra Music</li><li>Extra Stunning Attacks</li><li>Favored Enemy: Aberrations</li><li>Favored Enemy: Animals</li><li>Favored Enemy: Beasts</li><li>Favored Enemy: Constructs</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elementals</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Fey</li><li>Favored Enemy: Giants</li><li>Favored Enemy: Gnomes</li><li>Favored Enemy: Goblinoids</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Favored Enemy: <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> Beasts</li><li>Favored Enemy: Monstrous Humanoids</li><li>Favored Enemy: Orcs</li><li>Favored Enemy: Outsiders</li><li>Favored Enemy: Reptilian Humanoids</li><li>Favored Enemy: Shapechangers</li><li>Favored Enemy: Undead</li><li>Favored Enemy: Vermin</li><li>Fearless</li><li><span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> Domain Powers</li><li>Flurry of Blows</li><li>Ghostly Visage</li><li>Good Aim</li><li>Good Domain Powers</li><li>Great Charisma I</li><li>Hardiness vs. Enchantments</li><li>Hardiness vs. Illusions</li><li>Hardiness vs. Poisons</li><li>Hardiness vs. Spells</li><li>Healing Domain Powers</li><li>Hide in Plain Sight</li><li>Immunity to <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span></li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Critical (unarmed strike)</li><li>Improved Elemental Shape</li><li>Improved Evasion</li><li>Improved Initiative</li><li>Improved Ki Strike +4</li><li>Improved Ki Strike +5</li><li>Improved Knockdown</li><li>Improved Power Attack</li><li>Improved Sneak Attack X</li><li>Improved Spell Resistance I</li><li>Improved Spell Resistance II</li><li>Improved Spell Resistance III</li><li>Improved Spell Resistance IV</li><li>Improved Spell Resistance IX</li><li>Improved Spell Resistance V</li><li>Improved Spell Resistance VI</li><li>Improved Spell Resistance VII</li><li>Improved Spell Resistance VIII</li><li>Improved Spell Resistance X</li><li>Improved Stunning Fist I</li><li>Improved Stunning Fist II</li><li>Improved Stunning Fist III</li><li>Improved Stunning Fist IV</li><li>Improved Stunning Fist IX</li><li>Improved Stunning Fist V</li><li>Improved Stunning Fist VI</li><li>Improved Stunning Fist VII</li><li>Improved Stunning Fist VIII</li><li>Improved Stunning Fist X</li><li>Improved Two-Weapon Fighting</li><li>Improved Unarmed Strike</li><li>Infinite Humanoid Shape</li><li>Invisibility</li><li>Invisibility</li><li>Keen Sense</li><li>Lasting Inspiration</li><li>Lightning Reflexes</li><li>Lliira&#x27;s Heart</li><li>Low-light Vision</li><li>Lucky</li><li>Magic Domain Powers</li><li>Mighty Rage</li><li>Mobility</li><li>Monk AC Bonus</li><li>Monk Speed</li><li>Monster Uncanny Reflex</li><li>Nature Sense</li><li>Opportunist</li><li>Outsider Shape</li><li>Overwhelming Critical (unarmed strike)</li><li>Perfect Health</li><li>Perfect Self</li><li>Plant Domain Powers</li><li>Point Blank Shot</li><li>Power Attack</li><li>Quick To Master</li><li>Rapid Reload</li><li>Remove Disease</li><li>Resist <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> Energy</li><li>Resist <span class="nwn-dmg nwn-dmg-cold" style="color:#99ffff">Cold</span> Energy</li><li>Resist Disease</li><li>Resist <span class="nwn-dmg nwn-dmg-electrical" style="color:#0166ff">Electrical</span> Energy</li><li>Resist <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> Energy</li><li>Resist Nature&#x27;s Lure</li><li>Resist Poison</li><li>Resist <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> Energy</li><li>Sap</li><li>Self-Concealment I</li><li>Self-Concealment II</li><li>Self-Concealment III</li><li>Self-Concealment IV</li><li>Self-Concealment V</li><li>Shadow Daze</li><li>Shadow Evade</li><li>Shield Proficiency</li><li>Silver Palm</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Lore)</li><li>Skill Affinity (Move Silently)</li><li>Slippery Mind</li><li>Small Stature</li><li>Sneak Attack (+19d6)</li><li>Sneak Attack (+1d6)</li><li>Sneak Attack (+20d6)</li><li>Spring Attack</li><li>Stealthy</li><li>Superior Weapon Focus</li><li>Terrifying Rage</li><li>Thundering Rage</li><li>Two-Weapon Fighting</li><li>Uncanny Dodge I</li><li>Uncanny Dodge II</li><li>Uncanny Dodge III</li><li>Uncanny Dodge IV</li><li>Uncanny Dodge V</li><li>Uncanny Dodge VI+</li><li>Venom Immunity</li><li>Weapon Finesse</li><li>Weapon Focus (unarmed strike)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (rogue)</li><li>Weapon Specialization (unarmed strike)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>99</td></tr>
 <tr><td>Disable Trap</td><td>99</td></tr>
@@ -195,6 +248,6 @@
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation elrondconv</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,8 +52,8 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/elrond001.html">Elrond</a> <code>elrond001</code> — in <a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></li>
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/rivendellupperha-000.html">Elrond</a> <small class="muted">(blueprint <a href="../creatures/elrond001.html">Elrond</a>)</small> — in <a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/elrond001.html">Elrond</a> <code>elrond001</code> — in <a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/elrond001__v2.html">Elrond</a> — in <a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>sc_015</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -44,10 +66,10 @@
 <tr><td><code>sc_016</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>sc_014</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e7">entry #7</a> <small class="muted">(if <code>sc_013</code>)</small> — Greetings again &lt;FullName&gt;. Say perhaps we should talk, you and I.</li>
-<li><a href="#e6">entry #6</a> <small class="muted">(if <code>sc_016</code>)</small> — We rejoice to see you again Master &lt;FirstName&gt;. Have a pleasant stay in Rivendel…</li>
+<li><a href="#e7">entry #7</a> <small class="muted">(if <code>sc_013</code>)</small> — Greetings again . Say perhaps we should talk, you and I.</li>
+<li><a href="#e6">entry #6</a> <small class="muted">(if <code>sc_016</code>)</small> — We rejoice to see you again Master . Have a pleasant stay in Rivendell.</li>
 <li><a href="#e2">entry #2</a> <small class="muted">(if <code>sc_014</code>)</small> — Have you accomplished the tasks you have agreed to undertake?</li>
-<li><a href="#e0">entry #0</a> — Welcome to Rivendell, &lt;FirstName&gt; the &lt;Class&gt;. You are known for your deeds thou…</li>
+<li><a href="#e0">entry #0</a> — Welcome to Rivendell,  the . You are known for your deeds though out this land. …</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -251,6 +273,6 @@
 <div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">I shall venture to complete these tasks. Thank you Elrond for your trust and faith in me.</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“Once you have completed these tasks. I shall furnish you with a writ of allegian…”</span></li></ul></div>
 <div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>at_023</code></span></div><div class="dlg-text">Thank you lord Elrond you generosity is much appreciated.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

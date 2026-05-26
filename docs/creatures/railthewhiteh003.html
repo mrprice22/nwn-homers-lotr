@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Fail the White Hand Blaster</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,37 +47,45 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>railthewhiteh003</dd>
 <dt>Tag</dt><dd>ms_isenm1</dd>
-<dt>Race</dt><dd>Orc</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-14">Orc</a></dd>
 <dt>Appearance</dt><dd>Elite Orc, Captain*</dd>
 <dt>Class(es)</dt><dd>Sorcerer 35/Arcane Archer 5</dd>
-<dt>HP</dt><dd>1520</dd>
+<dt>HP</dt><dd>1,520</dd>
 <dt>CR</dt><dd>96.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Evil</a> <small class="muted">(id 5)</small></dd>
 <dt>Conversation</dt><dd><a href="../conversations/saurmerch.html">saurmerch</a></dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/isengardmagicroo.html">Isengard (Magic Room)</a></td><td>1</td></tr></tbody></table>
+<h2>Stores</h2><table class="data"><thead><tr><th>Name</th><th>Items</th><th>Area</th><th title="Price store charges you to buy items (% of base)">Sells At</th><th title="Price store pays you for items (% of base)">Buys At</th><th title="Maximum the store will pay for any single item">Max Buy</th><th title="Highest base item value in stock (before markup)">Max GP</th><th title="Average base item value in stock (before markup)">Avg GP</th></tr></thead><tbody><tr><td><a href="../stores/isengardmagicroo_saaurmanmagic.html">saaurmanmagic</a></td><td>138</td><td><a href="../areas/isengardmagicroo.html">Isengard (Magic Room)</a></td><td>150%</td><td>5%</td><td>20,000 gp</td><td>5,253,126</td><td>166,034</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>20</td><th>Dex</th><td>35</td><th>Con</th><td>35</td><th>Int</th><td>25</td><th>Wis</th><td>20</td><th>Cha</th><td>40</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Sorcerer</td><td>35</td></tr><tr><td>Arcane Archer</td><td>5</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>1520</td><th>AC</th><td>45 <small class="muted">(10 base + +12 Dex + +18 natural (NaturalAC) + +5 armor enchant)</small></td><th>BAB</th><td>+22</td></tr><tr><th>Fort</th><td>+22</td><th>Ref</th><td>+22</td><th>Will</th><td>+15</td></tr></table>
+<table class="data"><tr><th>HP</th><td>1,520</td><th>AC</th><td>50 <small class="muted">(10 base + +12 Dex + +18 natural (NaturalAC) + +5 armor enchant + +5 dodge (items))</small></td><th>BAB</th><td>+22</td></tr><tr><th>Fort</th><td>+22</td><th>Ref</th><td>+22</td><th>Will</th><td>+15</td></tr></table>
 <p class="muted">AC extras: +5 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+5</td></tr>
+<tr><th>Save vs. Cold</th><td>+2</td></tr>
+<tr><th>Charisma Bonus</th><td>+7</td></tr>
+<tr><th>Skill: Concentration</th><td>+3</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
 <h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/staffoftheorcsha.html">Staff of the Orc Shaman</a></td><td>Magic Staff</td><td>Melee</td><td>+39/+34/+29/+24</td><td>1d6+5 (6–11) + Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 30</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth005.html">Robe of the White Hand</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/staffoftheorcsha.html">Staff of the Orc Shaman</a></td></tr>
-<tr><td>Cloak</td><td>nw_maarcl091</td></tr>
-<tr><td>Left ring</td><td><a href="../items/003.html">Ring of the Sorcerer</a></td></tr>
-<tr><td>Right ring</td><td><a href="../items/004.html">Ring of Water Elemental command</a></td></tr>
-<tr><td>Neck</td><td><a href="../items/amuletofadaption.html">Amulet of Adaption</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth005.html">Robe of the White Hand</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/staffoftheorcsha.html">Staff of the Orc Shaman</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Cloak</td><td><a href="../items/nw_maarcl091.html">Cloak of Protection +5</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/003.html">Ring of the Sorcerer</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/004.html">Ring of Water Elemental command</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Neck</td><td><a href="../items/amuletofadaption.html">Amulet of Adaption</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(8)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_it_mpotion014</td><td>nw_it_mpotion014</td></tr>
-<tr><td>nw_it_mpotion007</td><td>nw_it_mpotion007</td></tr>
-<tr><td>nw_it_mpotion017</td><td>nw_it_mpotion017</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td>nw_it_mpotion008</td><td>nw_it_mpotion008</td></tr>
-<tr><td>nw_it_mpotion004</td><td>nw_it_mpotion004</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/nw_it_mpotion014.html">Potion of Cat&#x27;s Grace</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion007.html">Potion of Clarity</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion017.html">Potion of Fox&#x27;s Cunning</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion008.html">Potion of Invisibility</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion004.html">Potion of Speed</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(15)</small></h2><ul class="featlist"><li>Alertness</li><li>Combat Casting</li><li>Great Fortitude</li><li>Shield Proficiency</li><li>Slippery Mind</li><li>Sneak Attack (+2d6)</li><li>Spell Focus (Evocation)</li><li>Spell Penetration</li><li>Summon Familiar</li><li>Toughness</li><li>Uncanny Dodge IV</li><li>Weapon Finesse</li><li>Weapon Focus (mace)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (simple)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>23</td></tr>
 <tr><td>Lore</td><td>1</td></tr>
@@ -90,8 +120,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Instances <small class="muted">(1)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/isengardmagicroo-000.html">Fail the White Hand Blaster</a></td><td><a href="../areas/isengardmagicroo.html">Isengard (Magic Room)</a></td><td>Neutral</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

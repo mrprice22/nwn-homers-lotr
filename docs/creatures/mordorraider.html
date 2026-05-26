@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Mordor Raider</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,24 +47,41 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>mordorraider</dd>
 <dt>Tag</dt><dd>MordorRaider</dd>
-<dt>Race</dt><dd>Orc</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-14">Orc</a></dd>
 <dt>Appearance</dt><dd>Hobgoblin</dd>
 <dt>Class(es)</dt><dd>Humanoid 20/Fighter 20</dd>
-<dt>HP</dt><dd>1180</dd>
+<dt>HP</dt><dd>1,180</dd>
 <dt>CR</dt><dd>214.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/northernfores001.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr>
+<tr><td><a href="../areas/northernfores004.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr>
+<tr><td><a href="../areas/northernfores005.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr>
+<tr><td><a href="../areas/northernforestso.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>35</td><th>Dex</th><td>35</td><th>Con</th><td>35</td><th>Int</th><td>35</td><th>Wis</th><td>35</td><th>Cha</th><td>35</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Humanoid</td><td>20</td></tr><tr><td>Fighter</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>1180</td><th>AC</th><td>55 <small class="muted">(10 base + +12 Dex + +23 natural (NaturalAC) + +10 armor enchant)</small></td><th>BAB</th><td>+35</td></tr><tr><th>Fort</th><td>+12</td><th>Ref</th><td>+12</td><th>Will</th><td>+12</td></tr></table>
+<table class="data"><tr><th>HP</th><td>1,180</td><th>AC</th><td>62 <small class="muted">(10 base + +12 Dex + +23 natural (NaturalAC) + +4 armor + +10 armor enchant + +3 dodge (items))</small></td><th>BAB</th><td>+35</td></tr><tr><th>Fort</th><td>+12</td><th>Ref</th><td>+12</td><th>Will</th><td>+12</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +3 AC Bonus, +7 AC Bonus vs. Alignment Group</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/brokenbranch.html">Broken Branch</a></td><td>Club</td><td>Melee</td><td>+50/+45/+40/+35</td><td>1d6+23 (24–29) + Damage Bonus vs. Alignment Group Good 5</td><td>20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+3</td></tr>
+<tr><th>Save vs. Divine</th><td>+7</td></tr>
+<tr><th>Save vs. Mind Affecting</th><td>+5</td></tr>
+<tr><th>Strength Bonus</th><td>+5</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>10/-</td></tr>
+<tr><th>Regeneration</th><td>+3 HP/round</td></tr>
+<tr><th>Regen: Vampiric</th><td>+3 HP/hit</td></tr>
+<tr><th>Darkvision</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/brokenbranch.html">Broken Branch</a></td><td>Club</td><td>Melee</td><td>+53/+48/+43/+38</td><td>1d6+23 (24–29) + Damage Bonus vs. Alignment Group Good 5, Massive Criticals 1, Regeneration: Vampiric +3</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/banditleather.html">Bandit Leather</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/brokenbranch.html">Broken Branch</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/banditleather.html">Bandit Leather</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/brokenbranch.html">Broken Branch</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(306)</small></h2><ul class="featlist"><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Cleave</li><li>Devastating Critical (bastard sword)</li><li>Devastating Critical (battleaxe)</li><li>Devastating Critical (club)</li><li>Devastating Critical (creature)</li><li>Devastating Critical (dagger)</li><li>Devastating Critical (dart)</li><li>Devastating Critical (dire mace)</li><li>Devastating Critical (double axe)</li><li>Devastating Critical (dwarven waraxe)</li><li>Devastating Critical (greataxe)</li><li>Devastating Critical (greatsword)</li><li>Devastating Critical (halberd)</li><li>Devastating Critical (handaxe)</li><li>Devastating Critical (heavy crossbow)</li><li>Devastating Critical (heavy flail)</li><li>Devastating Critical (kama)</li><li>Devastating Critical (katana)</li><li>Devastating Critical (kukri)</li><li>Devastating Critical (light crossbow)</li><li>Devastating Critical (light flail)</li><li>Devastating Critical (light hammer)</li><li>Devastating Critical (longbow)</li><li>Devastating Critical (longsword)</li><li>Devastating Critical (mace)</li><li>Devastating Critical (morningstar)</li><li>Devastating Critical (quarterstaff)</li><li>Devastating Critical (rapier)</li><li>Devastating Critical (scimitar)</li><li>Devastating Critical (scythe)</li><li>Devastating Critical (shortbow)</li><li>Devastating Critical (shortsword)</li><li>Devastating Critical (shuriken)</li><li>Devastating Critical (sickle)</li><li>Devastating Critical (sling)</li><li>Devastating Critical (spear)</li><li>Devastating Critical (throwing axe)</li><li>Devastating Critical (two-bladed sword)</li><li>Devastating Critical (unarmed strike)</li><li>Devastating Critical (warhammer)</li><li>Devastating Critical (whip)</li><li>Epic Prowess</li><li>Epic Toughness I</li><li>Epic Toughness III</li><li>Epic Toughness IV</li><li>Epic Toughness V</li><li>Epic Toughness VI</li><li>Epic Weapon Focus (bastard sword)</li><li>Epic Weapon Focus (battleaxe)</li><li>Epic Weapon Focus (club)</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Focus (dagger)</li><li>Epic Weapon Focus (dart)</li><li>Epic Weapon Focus (dire mace)</li><li>Epic Weapon Focus (double axe)</li><li>Epic Weapon Focus (dwarven waraxe)</li><li>Epic Weapon Focus (greataxe)</li><li>Epic Weapon Focus (greatsword)</li><li>Epic Weapon Focus (halberd)</li><li>Epic Weapon Focus (handaxe)</li><li>Epic Weapon Focus (heavy crossbow)</li><li>Epic Weapon Focus (heavy flail)</li><li>Epic Weapon Focus (kama)</li><li>Epic Weapon Focus (katana)</li><li>Epic Weapon Focus (kukri)</li><li>Epic Weapon Focus (light crossbow)</li><li>Epic Weapon Focus (light flail)</li><li>Epic Weapon Focus (light hammer)</li><li>Epic Weapon Focus (longbow)</li><li>Epic Weapon Focus (longsword)</li><li>Epic Weapon Focus (mace)</li><li>Epic Weapon Focus (morningstar)</li><li>Epic Weapon Focus (quarterstaff)</li><li>Epic Weapon Focus (rapier)</li><li>Epic Weapon Focus (scimitar)</li><li>Epic Weapon Focus (scythe)</li><li>Epic Weapon Focus (shortbow)</li><li>Epic Weapon Focus (shortsword)</li><li>Epic Weapon Focus (shuriken)</li><li>Epic Weapon Focus (sickle)</li><li>Epic Weapon Focus (sling)</li><li>Epic Weapon Focus (spear)</li><li>Epic Weapon Focus (throwing axe)</li><li>Epic Weapon Focus (two-bladed sword)</li><li>Epic Weapon Focus (unarmed strike)</li><li>Epic Weapon Focus (warhammer)</li><li>Epic Weapon Focus (whip)</li><li>Epic Weapon Specialization (bastard sword)</li><li>Epic Weapon Specialization (battleaxe)</li><li>Epic Weapon Specialization (club)</li><li>Epic Weapon Specialization (creature weapon)</li><li>Epic Weapon Specialization (dagger)</li><li>Epic Weapon Specialization (dart)</li><li>Epic Weapon Specialization (dire mace)</li><li>Epic Weapon Specialization (double axe)</li><li>Epic Weapon Specialization (dwarven waraxe)</li><li>Epic Weapon Specialization (greataxe)</li><li>Epic Weapon Specialization (greatsword)</li><li>Epic Weapon Specialization (halberd)</li><li>Epic Weapon Specialization (handaxe)</li><li>Epic Weapon Specialization (heavy crossbow)</li><li>Epic Weapon Specialization (heavy flail)</li><li>Epic Weapon Specialization (kama)</li><li>Epic Weapon Specialization (katana)</li><li>Epic Weapon Specialization (kukri)</li><li>Epic Weapon Specialization (light crossbow)</li><li>Epic Weapon Specialization (light flail)</li><li>Epic Weapon Specialization (light hammer)</li><li>Epic Weapon Specialization (longbow)</li><li>Epic Weapon Specialization (longsword)</li><li>Epic Weapon Specialization (mace)</li><li>Epic Weapon Specialization (morningstar)</li><li>Epic Weapon Specialization (quarterstaff)</li><li>Epic Weapon Specialization (rapier)</li><li>Epic Weapon Specialization (scimitar)</li><li>Epic Weapon Specialization (scythe)</li><li>Epic Weapon Specialization (shortbow)</li><li>Epic Weapon Specialization (shortsword)</li><li>Epic Weapon Specialization (shuriken)</li><li>Epic Weapon Specialization (sickle)</li><li>Epic Weapon Specialization (sling)</li><li>Epic Weapon Specialization (spear)</li><li>Epic Weapon Specialization (throwing axe)</li><li>Epic Weapon Specialization (two-bladed sword)</li><li>Epic Weapon Specialization (unarmed strike)</li><li>Epic Weapon Specialization (warhammer)</li><li>Epic Weapon Specialization (whip)</li><li>Great Cleave</li><li>Improved Critical (bastard sword)</li><li>Improved Critical (battleaxe)</li><li>Improved Critical (club)</li><li>Improved Critical (dagger)</li><li>Improved Critical (dart)</li><li>Improved Critical (dire mace)</li><li>Improved Critical (double axe)</li><li>Improved Critical (dwarven waraxe)</li><li>Improved Critical (greataxe)</li><li>Improved Critical (greatsword)</li><li>Improved Critical (halberd)</li><li>Improved Critical (handaxe)</li><li>Improved Critical (heavy crossbow)</li><li>Improved Critical (heavy flail)</li><li>Improved Critical (kama)</li><li>Improved Critical (katana)</li><li>Improved Critical (kukri)</li><li>Improved Critical (light crossbow)</li><li>Improved Critical (light flail)</li><li>Improved Critical (light hammer)</li><li>Improved Critical (longbow)</li><li>Improved Critical (longsword)</li><li>Improved Critical (mace)</li><li>Improved Critical (morningstar)</li><li>Improved Critical (quarterstaff)</li><li>Improved Critical (rapier)</li><li>Improved Critical (scimitar)</li><li>Improved Critical (scythe)</li><li>Improved Critical (short sword)</li><li>Improved Critical (shortbow)</li><li>Improved Critical (shuriken)</li><li>Improved Critical (sickle)</li><li>Improved Critical (sling)</li><li>Improved Critical (spear)</li><li>Improved Critical (throwing axe)</li><li>Improved Critical (two-bladed sword)</li><li>Improved Critical (unarmed strike)</li><li>Improved Critical (warhammer)</li><li>Improved Critical (whip)</li><li>Improved Ki Strike +4</li><li>Improved Ki Strike +5</li><li>Improved Parry</li><li>Improved Two-Weapon Fighting</li><li>Improved Unarmed Strike</li><li>Overwhelming Critical (bastard sword)</li><li>Overwhelming Critical (battleaxe)</li><li>Overwhelming Critical (club)</li><li>Overwhelming Critical (creature weapon)</li><li>Overwhelming Critical (dagger)</li><li>Overwhelming Critical (dart)</li><li>Overwhelming Critical (dire mace)</li><li>Overwhelming Critical (double axe)</li><li>Overwhelming Critical (dwarven waraxe)</li><li>Overwhelming Critical (greataxe)</li><li>Overwhelming Critical (greatsword)</li><li>Overwhelming Critical (halberd)</li><li>Overwhelming Critical (handaxe)</li><li>Overwhelming Critical (heavy crossbow)</li><li>Overwhelming Critical (heavy flail)</li><li>Overwhelming Critical (kama)</li><li>Overwhelming Critical (katana)</li><li>Overwhelming Critical (kukri)</li><li>Overwhelming Critical (light crossbow)</li><li>Overwhelming Critical (light flail)</li><li>Overwhelming Critical (light hammer)</li><li>Overwhelming Critical (longbow)</li><li>Overwhelming Critical (longsword)</li><li>Overwhelming Critical (mace)</li><li>Overwhelming Critical (morningstar)</li><li>Overwhelming Critical (quarterstaff)</li><li>Overwhelming Critical (rapier)</li><li>Overwhelming Critical (scimitar)</li><li>Overwhelming Critical (scythe)</li><li>Overwhelming Critical (shortbow)</li><li>Overwhelming Critical (shortsword)</li><li>Overwhelming Critical (shuriken)</li><li>Overwhelming Critical (sickle)</li><li>Overwhelming Critical (sling)</li><li>Overwhelming Critical (spear)</li><li>Overwhelming Critical (throwing axe)</li><li>Overwhelming Critical (two-bladed sword)</li><li>Overwhelming Critical (unarmed strike)</li><li>Overwhelming Critical (warhammer)</li><li>Overwhelming Critical (whip)</li><li>Point Blank Shot</li><li>Shield Proficiency</li><li>Small Stature</li><li>Two-Weapon Fighting</li><li>Weapon Finesse</li><li>Weapon Focus (bastard sword)</li><li>Weapon Focus (battleaxe)</li><li>Weapon Focus (club)</li><li>Weapon Focus (dagger)</li><li>Weapon Focus (dart)</li><li>Weapon Focus (dire mace)</li><li>Weapon Focus (double axe)</li><li>Weapon Focus (dwarven waraxe)</li><li>Weapon Focus (greataxe)</li><li>Weapon Focus (greatsword)</li><li>Weapon Focus (halberd)</li><li>Weapon Focus (handaxe)</li><li>Weapon Focus (heavy crossbow)</li><li>Weapon Focus (heavy flail)</li><li>Weapon Focus (kama)</li><li>Weapon Focus (katana)</li><li>Weapon Focus (kukri)</li><li>Weapon Focus (light crossbow)</li><li>Weapon Focus (light flail)</li><li>Weapon Focus (light hammer)</li><li>Weapon Focus (longbow)</li><li>Weapon Focus (longsword)</li><li>Weapon Focus (mace)</li><li>Weapon Focus (morningstar)</li><li>Weapon Focus (quarterstaff)</li><li>Weapon Focus (rapier)</li><li>Weapon Focus (scimitar)</li><li>Weapon Focus (scythe)</li><li>Weapon Focus (short sword)</li><li>Weapon Focus (shortbow)</li><li>Weapon Focus (shuriken)</li><li>Weapon Focus (sickle)</li><li>Weapon Focus (sling)</li><li>Weapon Focus (spear)</li><li>Weapon Focus (throwing axe)</li><li>Weapon Focus (two-bladed sword)</li><li>Weapon Focus (unarmed strike)</li><li>Weapon Focus (warhammer)</li><li>Weapon Focus (whip)</li><li>Weapon Proficiency (druid)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (rogue)</li><li>Weapon Proficiency (simple)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (bastard sword)</li><li>Weapon Specialization (battleaxe)</li><li>Weapon Specialization (club)</li><li>Weapon Specialization (dagger)</li><li>Weapon Specialization (dart)</li><li>Weapon Specialization (dire mace)</li><li>Weapon Specialization (double axe)</li><li>Weapon Specialization (dwarven waraxe)</li><li>Weapon Specialization (greataxe)</li><li>Weapon Specialization (greatsword)</li><li>Weapon Specialization (halberd)</li><li>Weapon Specialization (handaxe)</li><li>Weapon Specialization (heavy crossbow)</li><li>Weapon Specialization (heavy flail)</li><li>Weapon Specialization (kama)</li><li>Weapon Specialization (katana)</li><li>Weapon Specialization (kukri)</li><li>Weapon Specialization (light crossbow)</li><li>Weapon Specialization (light flail)</li><li>Weapon Specialization (light hammer)</li><li>Weapon Specialization (longbow)</li><li>Weapon Specialization (longsword)</li><li>Weapon Specialization (mace)</li><li>Weapon Specialization (morningstar)</li><li>Weapon Specialization (quarterstaff)</li><li>Weapon Specialization (rapier)</li><li>Weapon Specialization (scimitar)</li><li>Weapon Specialization (scythe)</li><li>Weapon Specialization (short sword)</li><li>Weapon Specialization (shortbow)</li><li>Weapon Specialization (shuriken)</li><li>Weapon Specialization (sickle)</li><li>Weapon Specialization (sling)</li><li>Weapon Specialization (spear)</li><li>Weapon Specialization (throwing axe)</li><li>Weapon Specialization (two-bladed sword)</li><li>Weapon Specialization (unarmed strike)</li><li>Weapon Specialization (warhammer)</li><li>Weapon Specialization (whip)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>20</td></tr>
 <tr><td>Parry</td><td>23</td></tr></tbody></table>
@@ -60,11 +99,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(4 areas)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/northernfores001.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr>
-<tr><td><a href="../areas/northernfores004.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr>
-<tr><td><a href="../areas/northernfores005.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr>
-<tr><td><a href="../areas/northernforestso.html">Northern Forests of Ithilien</a></td><td>mordorithilien</td><td><code>mordorithilien</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Weathertop King</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,38 +47,64 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>weathertopkin002</dd>
 <dt>Tag</dt><dd>WeathertopKing</dd>
-<dt>Race</dt><dd>Undead</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-24">Undead</a></dd>
 <dt>Appearance</dt><dd>Vampire, Male</dd>
 <dt>Class(es)</dt><dd>Undead 60/Blackguard 60/Fighter 60</dd>
-<dt>HP</dt><dd>9200</dd>
+<dt>HP</dt><dd>9,200</dd>
 <dt>CR</dt><dd>443.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>100</td><th>Dex</th><td>15</td><th>Con</th><td>100</td><th>Int</th><td>15</td><th>Wis</th><td>100</td><th>Cha</th><td>100</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Undead</td><td>60</td></tr><tr><td>Blackguard</td><td>60</td></tr><tr><td>Fighter</td><td>60</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>9200</td><th>AC</th><td>79 <small class="muted">(10 base + +2 Dex + +60 natural (NaturalAC) + +7 armor enchant)</small></td><th>BAB</th><td>+165</td></tr><tr><th>Fort</th><td>+45</td><th>Ref</th><td>+2</td><th>Will</th><td>+45</td></tr></table>
+<table class="data"><tr><th>HP</th><td>9,200</td><th>AC</th><td>96 <small class="muted">(10 base + +2 Dex + +60 natural (NaturalAC) + +7 armor enchant + +13 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+165</td></tr><tr><th>Fort</th><td>+45</td><th>Ref</th><td>+2</td><th>Will</th><td>+45</td></tr></table>
 <p class="muted">AC extras: +7 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/ls_bladeofros002.html">Blade of Roses +6</a></td><td>Longsword</td><td>Melee</td><td>+221/+216/+211/+206</td><td>1d8+45 (46–53)</td><td>19-20/x2</td></tr>
-<tr><td>Left hand</td><td><a href="../items/thebladeofthe002.html">the blade of the dead</a></td><td>Scimitar</td><td>Melee</td><td>+224/+219/+214/+209</td><td>1d6+45 (46–51) + Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 10, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 10</td><td>18-20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+13</td></tr>
+<tr><th>Save vs. Fire</th><td>+8</td></tr>
+<tr><th>Charisma Bonus</th><td>+2</td></tr>
+<tr><th>Strength Bonus</th><td>+8</td></tr>
+<tr><th>Skill: Discipline</th><td>+30</td></tr>
+<tr><th>Skill: Hide</th><td>+10</td></tr>
+<tr><th>Skill: Move Silently</th><td>+5</td></tr>
+<tr><th>Skill: Spot</th><td>+10</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>10/-</td></tr>
+<tr><th>Damage Immunity</th><td>Magical (25%), Negative (25%), Piercing (25%), Slashing (25%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Regeneration</th><td>+7 HP/round</td></tr>
+<tr><th>Regen: Vampiric</th><td>+6 HP/hit</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/ls_bladeofros002.html">Blade of Roses +6</a></td><td>Longsword</td><td>Melee</td><td>+222/+217/+212/+207</td><td>1d8+45 (46–53) + On Hit Properties Confusion DC 24, On Hit Cast Spell Tasha&#x27;s Hideous Laughter Caster Level 9</td><td>19-20/x2</td></tr>
+<tr><td>Left hand</td><td><a href="../items/thebladeofthe002.html">the blade of the dead</a></td><td>Scimitar</td><td>Melee</td><td>+226/+221/+216/+211</td><td>1d6+45 (46–51) + Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 10, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 10, Massive Criticals 7, On Hit Properties Disease DC 22, On Hit Properties Disease DC 22, On Hit Cast Spell Planar Rift Properties (Black Blade of Disaster) Caster Level 19, Regeneration: Vampiric +6</td><td>18-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/crownofweathe002.html">Crown of Weathertop</a></td></tr>
-<tr><td>Chest</td><td><a href="../items/mdrowar031.html">Soulkeepers Robes</a></td></tr>
-<tr><td>Boots</td><td><a href="../items/bootsofquicke002.html">Boots of Quickening</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/it_mglove024.html">[TLK#90886]</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/ls_bladeofros002.html">Blade of Roses +6</a></td></tr>
-<tr><td>Left hand</td><td><a href="../items/thebladeofthe002.html">the blade of the dead</a></td></tr>
-<tr><td>Cloak</td><td><a href="../items/cloakofkings002.html">Cloak of Queens</a></td></tr>
-<tr><td>Left ring</td><td><a href="../items/it_mring041.html">Ring of Regeneration +7</a></td></tr>
-<tr><td>Right ring</td><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td></tr>
-<tr><td>Neck</td><td><a href="../items/greaterscarab002.html">Greater Scarab Protector</a></td></tr>
-<tr><td>Belt</td><td><a href="../items/nightsmoke002.html">Nightsmoke</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/it_creitem010.html">[TLK#13205]</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/crownofweathe002.html">Crown of Weathertop</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Chest</td><td><a href="../items/mdrowar031.html">Soulkeepers Robes</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/bootsofquicke002.html">Boots of Quickening</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/it_mglove024.html">Epic Gloves of Discipline</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/ls_bladeofros002.html">Blade of Roses +6</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left hand</td><td><a href="../items/thebladeofthe002.html">the blade of the dead</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Cloak</td><td><a href="../items/cloakofkings002.html">Cloak of Queens</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/it_mring041.html">Ring of Regeneration +7</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Neck</td><td><a href="../items/greaterscarab002.html">Greater Scarab Protector</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/nightsmoke002.html">Nightsmoke</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/it_creitem010.html">Undead Properties</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(2)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/ringofantiven002.html">Ring of Anti-Venom</a></td><td>ringofantiven002</td></tr>
-<tr><td><a href="../items/flagoforcus002.html">Flag of Orcus</a></td><td>flagoforcus002</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/ringofantiven002.html">Ring of Anti-Venom</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/flagoforcus002.html">Flag of Orcus</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(169)</small></h2><ul class="featlist"><li>Ambidexterity</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Cleave</li><li>Contagion</li><li>Create Undead</li><li>Defensive Stance</li><li>Deflect Arrows</li><li>Disarm</li><li>Dodge</li><li>Dwarven Defender Damage Reduction</li><li>Eagle&#x27;s Splendor</li><li>Epic Damage Reduction I</li><li>Epic Fortitude</li><li>Epic Prowess</li><li>Epic Toughness I</li><li>Epic Toughness II</li><li>Epic Toughness III</li><li>Epic Toughness IV</li><li>Epic Toughness IX</li><li>Epic Toughness V</li><li>Epic Toughness VI</li><li>Epic Toughness VII</li><li>Epic Toughness VIII</li><li>Epic Toughness X</li><li>Epic Weapon Focus (bastard sword)</li><li>Epic Weapon Focus (battleaxe)</li><li>Epic Weapon Focus (club)</li><li>Epic Weapon Focus (creature weapon)</li><li>Epic Weapon Focus (dagger)</li><li>Epic Weapon Focus (dart)</li><li>Epic Weapon Focus (dire mace)</li><li>Epic Weapon Focus (double axe)</li><li>Epic Weapon Focus (dwarven waraxe)</li><li>Epic Weapon Focus (greataxe)</li><li>Epic Weapon Focus (greatsword)</li><li>Epic Weapon Focus (halberd)</li><li>Epic Weapon Focus (handaxe)</li><li>Epic Weapon Focus (heavy crossbow)</li><li>Epic Weapon Focus (heavy flail)</li><li>Epic Weapon Focus (kama)</li><li>Epic Weapon Focus (katana)</li><li>Epic Weapon Focus (kukri)</li><li>Epic Weapon Focus (light crossbow)</li><li>Epic Weapon Focus (light flail)</li><li>Epic Weapon Focus (light hammer)</li><li>Epic Weapon Focus (longbow)</li><li>Epic Weapon Focus (longsword)</li><li>Epic Weapon Focus (mace)</li><li>Epic Weapon Focus (morningstar)</li><li>Epic Weapon Focus (quarterstaff)</li><li>Epic Weapon Focus (rapier)</li><li>Epic Weapon Focus (scimitar)</li><li>Epic Weapon Focus (scythe)</li><li>Epic Weapon Focus (shortbow)</li><li>Epic Weapon Focus (shortsword)</li><li>Epic Weapon Focus (shuriken)</li><li>Epic Weapon Focus (sickle)</li><li>Epic Weapon Focus (sling)</li><li>Epic Weapon Focus (spear)</li><li>Epic Weapon Focus (throwing axe)</li><li>Epic Weapon Focus (two-bladed sword)</li><li>Epic Weapon Focus (unarmed strike)</li><li>Epic Weapon Focus (warhammer)</li><li>Epic Weapon Focus (whip)</li><li>Epic Weapon Specialization (bastard sword)</li><li>Epic Weapon Specialization (battleaxe)</li><li>Epic Weapon Specialization (club)</li><li>Epic Weapon Specialization (creature weapon)</li><li>Epic Weapon Specialization (dagger)</li><li>Epic Weapon Specialization (dart)</li><li>Epic Weapon Specialization (dire mace)</li><li>Epic Weapon Specialization (double axe)</li><li>Epic Weapon Specialization (dwarven waraxe)</li><li>Epic Weapon Specialization (greataxe)</li><li>Epic Weapon Specialization (greatsword)</li><li>Epic Weapon Specialization (halberd)</li><li>Epic Weapon Specialization (handaxe)</li><li>Epic Weapon Specialization (heavy crossbow)</li><li>Epic Weapon Specialization (heavy flail)</li><li>Epic Weapon Specialization (kama)</li><li>Epic Weapon Specialization (katana)</li><li>Epic Weapon Specialization (kukri)</li><li>Epic Weapon Specialization (light crossbow)</li><li>Epic Weapon Specialization (light flail)</li><li>Epic Weapon Specialization (light hammer)</li><li>Epic Weapon Specialization (longbow)</li><li>Epic Weapon Specialization (longsword)</li><li>Epic Weapon Specialization (mace)</li><li>Epic Weapon Specialization (morningstar)</li><li>Epic Weapon Specialization (quarterstaff)</li><li>Epic Weapon Specialization (rapier)</li><li>Epic Weapon Specialization (scimitar)</li><li>Epic Weapon Specialization (scythe)</li><li>Epic Weapon Specialization (shortbow)</li><li>Epic Weapon Specialization (shortsword)</li><li>Epic Weapon Specialization (shuriken)</li><li>Epic Weapon Specialization (sickle)</li><li>Epic Weapon Specialization (sling)</li><li>Epic Weapon Specialization (spear)</li><li>Epic Weapon Specialization (throwing axe)</li><li>Epic Weapon Specialization (two-bladed sword)</li><li>Epic Weapon Specialization (unarmed strike)</li><li>Epic Weapon Specialization (warhammer)</li><li>Epic Weapon Specialization (whip)</li><li>Ghostly Visage</li><li>Great Cleave</li><li>Great Fortitude</li><li>Improved Critical (bastard sword)</li><li>Improved Critical (battleaxe)</li><li>Improved Critical (club)</li><li>Improved Critical (dagger)</li><li>Improved Critical (dart)</li><li>Improved Critical (dire mace)</li><li>Improved Critical (handaxe)</li><li>Improved Critical (heavy crossbow)</li><li>Improved Critical (kukri)</li><li>Improved Critical (light crossbow)</li><li>Improved Critical (light flail)</li><li>Improved Critical (light hammer)</li><li>Improved Critical (longbow)</li><li>Improved Critical (longsword)</li><li>Improved Critical (mace)</li><li>Improved Critical (morningstar)</li><li>Improved Critical (quarterstaff)</li><li>Improved Critical (rapier)</li><li>Improved Critical (scimitar)</li><li>Improved Critical (scythe)</li><li>Improved Critical (short sword)</li><li>Improved Critical (shortbow)</li><li>Improved Critical (sickle)</li><li>Improved Critical (sling)</li><li>Improved Critical (spear)</li><li>Improved Critical (throwing axe)</li><li>Improved Critical (two-bladed sword)</li><li>Improved Critical (unarmed strike)</li><li>Improved Critical (warhammer)</li><li>Improved Critical (whip)</li><li>Improved Disarm</li><li>Improved Invisibility</li><li>Improved Knockdown</li><li>Improved Power Attack</li><li>Improved Two-Weapon Fighting</li><li>Improved Unarmed Strike</li><li>Inflict Critical Wounds</li><li>Inflict Serious Wounds</li><li>Overwhelming Critical (bastard sword)</li><li>Overwhelming Critical (battleaxe)</li><li>Overwhelming Critical (club)</li><li>Overwhelming Critical (longsword)</li><li>Overwhelming Critical (scimitar)</li><li>Perfect Health</li><li>Summon Fiend</li><li>Superior Initiative</li><li>Two-Weapon Fighting</li><li>Weapon Finesse</li><li>Weapon Focus (bastard sword)</li><li>Weapon Focus (longsword)</li><li>Weapon Focus (scimitar)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (rogue)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (bastard sword)</li><li>Weapon Specialization (longsword)</li><li>Weapon Specialization (scimitar)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>99</td></tr>
 <tr><td>Listen</td><td>99</td></tr>
@@ -84,6 +132,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

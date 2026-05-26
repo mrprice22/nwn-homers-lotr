@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation kpb_banker</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,8 +52,8 @@
 <dt>OnAbort</dt><dd><code></code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/banker.html">Banker</a> <code>banker</code> — in <a href="../areas/breebank.html">Bank of Bree </a></li>
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/banker002.html">Banker</a> <code>banker002</code></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/banker.html">Banker</a> <code>banker</code> — in <a href="../areas/breebank.html">Bank of Bree </a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/banker002.html">Banker</a> <code>banker002</code></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>kpb_globals</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -46,8 +68,10 @@
 <tr><td><code>kpb_deposit10000</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>kpb_deposit1000</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>kpb_deposit100</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM25&gt;</code></td><td><a href="../scripts/kpb_int_balance.html">kpb_int_balance</a></td></tr>
+<tr><td><code>&lt;CUSTOM30&gt;</code></td><td><a href="../scripts/kpb_globals.html">kpb_globals</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> — Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?</li>
+<li><a href="#e0">entry #0</a> — Welcome to the bank.  How may I assist you, ?</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -93,7 +117,7 @@
 <summary><span class="dlg-id">reply #47</span> <a class="dlg-anchor" href="#r47" title="jump to flat reply #47">¶</a></summary>
 <div class="dlg-text">I wish to deposit nothing.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -102,7 +126,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #17</span> <a class="dlg-anchor" href="#e17" title="jump to flat entry #17">¶</a></summary>
-<div class="dlg-text">The current interest rate on deposits is &lt;CUSTOM30&gt;%.  This is assessed if you have money in the bank for at least one week.</div>
+<div class="dlg-text">The current interest rate on deposits is <span class="custom-token" title="SetCustomToken(30, ...) called in: kpb_globals">&lt;CUSTOM30&gt;<sup class="token-setters">[<a href="../scripts/kpb_globals.html">kpb_globals</a>]</sup></span>%.  This is assessed if you have money in the bank for at least one week.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #46</span> <a class="dlg-anchor" href="#r46" title="jump to flat reply #46">¶</a></summary>
@@ -139,7 +163,7 @@
 <summary><span class="dlg-id">reply #41</span> <span class="dlg-action">→ <code>kpb_withdraw100</code></span> <a class="dlg-anchor" href="#r41" title="jump to flat reply #41">¶</a></summary>
 <div class="dlg-text">100,000 gold</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -160,14 +184,14 @@
 <summary><span class="dlg-id">reply #38</span> <span class="dlg-action">→ <code>kpb_withdraw_all</code></span> <a class="dlg-anchor" href="#r38" title="jump to flat reply #38">¶</a></summary>
 <div class="dlg-text">I wish to withdraw all the gold in my account.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #37</span> <a class="dlg-anchor" href="#r37" title="jump to flat reply #37">¶</a></summary>
 <div class="dlg-text">I wish to withdraw nothing.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -182,7 +206,7 @@
 <summary><span class="dlg-id">reply #34</span> <span class="dlg-action">→ <code>kpb_showbalance</code></span> <a class="dlg-anchor" href="#r34" title="jump to flat reply #34">¶</a></summary>
 <div class="dlg-text">I would like to know my balance, please.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -199,13 +223,13 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #14</span> <small class="muted">(if <code>kpb_int_balance</code>)</small> <a class="dlg-anchor" href="#e14" title="jump to flat entry #14">¶</a></summary>
-<div class="dlg-text">Your account has &lt;CUSTOM25&gt; gold pieces.  We can assess your interest if you wish.</div>
+<div class="dlg-text">Your account has <span class="custom-token" title="SetCustomToken(25, ...) called in: kpb_int_balance">&lt;CUSTOM25&gt;<sup class="token-setters">[<a href="../scripts/kpb_int_balance.html">kpb_int_balance</a>]</sup></span> gold pieces.  We can assess your interest if you wish.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #33</span> <span class="dlg-action">→ <code>kpb_assessint</code></span> <a class="dlg-anchor" href="#r33" title="jump to flat reply #33">¶</a></summary>
 <div class="dlg-text">Yes, I&#x27;d like you to assess my interest at this time.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 </div>
@@ -216,7 +240,7 @@
 <summary><span class="dlg-id">reply #31</span> <a class="dlg-anchor" href="#r31" title="jump to flat reply #31">¶</a></summary>
 <div class="dlg-text">I would like to speak of other things.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -271,7 +295,7 @@
 <summary><span class="dlg-id">reply #28</span> <a class="dlg-anchor" href="#r28" title="jump to flat reply #28">¶</a></summary>
 <div class="dlg-text">I&#x27;d like to bank a bit, then.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -314,7 +338,7 @@
 <summary><span class="dlg-id">reply #22</span> <a class="dlg-anchor" href="#r22" title="jump to flat reply #22">¶</a></summary>
 <div class="dlg-text">I see.  I wish to bank a bit, then.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -360,7 +384,7 @@
 <summary><span class="dlg-id">reply #16</span> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
 <div class="dlg-text">Thank you.  I wish to do some banking.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -390,7 +414,7 @@
 <summary><span class="dlg-id">reply #12</span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
 <div class="dlg-text">Thank you.  I wish to do some banking.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -420,7 +444,7 @@
 <summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
 <div class="dlg-text">Thank you.  I wish to do some banking.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -450,7 +474,7 @@
 <summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">Thank you.  I wish to do some banking.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -487,64 +511,64 @@
 <div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">You must go under the advanced banking options in order to assess interest on your account.  You must do this at least once every five weeks, for that&#x27;s as long as we keep records.</div><ul class="dlg-links"><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“Continue...”</span></li></ul></div>
 <div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">You can keep your money here forever, but the records for interest are only kept for that amount of time.</div><ul class="dlg-links"><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“I&#x27;d like to bank a bit, then.”</span></li><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“Actually, I do not wish to make any transactions.”</span></li></ul></div>
 <div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">Our banks are the finest in Middle Earth! What would you like to deal with?</div><ul class="dlg-links"><li><a href="#r32">→ reply #32</a> <span class="dlg-link-preview">“I wish you to assess the interest on my account, please.”</span></li><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“I would like to speak of other things.”</span></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“Actually, I do not wish to make any transactions.”</span></li></ul></div>
-<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">Your account has &lt;CUSTOM25&gt; gold pieces.  We can assess your interest if you wish.</div><ul class="dlg-links"><li><a href="#r33">→ reply #33</a> <span class="dlg-link-preview">“Yes, I&#x27;d like you to assess my interest at this time.”</span></li></ul></div>
+<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">Your account has <span class="custom-token" title="SetCustomToken(25, ...) called in: kpb_int_balance">&lt;CUSTOM25&gt;<sup class="token-setters">[<a href="../scripts/kpb_int_balance.html">kpb_int_balance</a>]</sup></span> gold pieces.  We can assess your interest if you wish.</div><ul class="dlg-links"><li><a href="#r33">→ reply #33</a> <span class="dlg-link-preview">“Yes, I&#x27;d like you to assess my interest at this time.”</span></li></ul></div>
 <div class="dlg-node entry" id="e15"><div class="dlg-head"><span class="dlg-id">entry #15</span></div><div class="dlg-text">How much gold do you wish to withdraw?</div><ul class="dlg-links"><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“100,000 gold”</span></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“500,000 gold”</span></li><li><a href="#r39">→ reply #39</a> <span class="dlg-link-preview">“1 millllllion gold”</span></li><li><a href="#r38">→ reply #38</a> <span class="dlg-link-preview">“I wish to withdraw all the gold in my account.”</span></li><li><a href="#r37">→ reply #37</a> <span class="dlg-link-preview">“I wish to withdraw nothing.”</span></li><li><a href="#r36">→ reply #36</a> <span class="dlg-link-preview">“Actually, I do not wish to make any transactions.”</span></li></ul></div>
 <div class="dlg-node entry" id="e16"><div class="dlg-head"><span class="dlg-id">entry #16</span></div><div class="dlg-text">How much gold do you wish to deposit?</div><ul class="dlg-links"><li><a href="#r51">→ reply #51</a> <span class="dlg-link-preview">“100,000 gold”</span></li><li><a href="#r50">→ reply #50</a> <span class="dlg-link-preview">“500,000 gold”</span></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“1 milllllllllllion gold”</span></li><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“I wish to deposit all of my gold.”</span></li><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“I wish to deposit nothing.”</span></li><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“What is the current interest rate on deposits?”</span> <small class="muted">(if <code>kpb_globals</code>)</small></li><li><a href="#r43">→ reply #43</a> <span class="dlg-link-preview">“Actually, I do not wish to make any transactions.”</span></li></ul></div>
-<div class="dlg-node entry" id="e17"><div class="dlg-head"><span class="dlg-id">entry #17</span></div><div class="dlg-text">The current interest rate on deposits is &lt;CUSTOM30&gt;%.  This is assessed if you have money in the bank for at least one week.</div><ul class="dlg-links"><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“I see.  I&#x27;d like to bank a bit, then.”</span></li><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“Actually, I do not wish to make any transactions.”</span></li></ul></div>
+<div class="dlg-node entry" id="e17"><div class="dlg-head"><span class="dlg-id">entry #17</span></div><div class="dlg-text">The current interest rate on deposits is <span class="custom-token" title="SetCustomToken(30, ...) called in: kpb_globals">&lt;CUSTOM30&gt;<sup class="token-setters">[<a href="../scripts/kpb_globals.html">kpb_globals</a>]</sup></span>%.  This is assessed if you have money in the bank for at least one week.</div><ul class="dlg-links"><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“I see.  I&#x27;d like to bank a bit, then.”</span></li><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“Actually, I do not wish to make any transactions.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Actually, I do not wish to make any transactions.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I would like to learn of spoken commands.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“There are five spoken commands you may simply say.  Deposit, Withdraw, Deposit A…”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Tell me of &#x27;Balance&#x27;</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Simply say &quot;balance&quot; when you want to know what your current balance is.  I will…”</span></li></ul></div>
 <div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Thank you.  Farewell.</div></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Very well.  I wish to learn more about spoken commands.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“There are five spoken commands you may simply say.  Deposit, Withdraw, Deposit A…”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Tell me of &#x27;Withdraw All&#x27;.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Simply say, &quot;withdraw all&quot;, and all of your gold will be withdrawn from your acc…”</span></li></ul></div>
 <div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Thank you.  Farewell.</div></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Very well.  I wish to learn more about spoken commands.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“There are five spoken commands you may simply say.  Deposit, Withdraw, Deposit A…”</span></li></ul></div>
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Tell me of &#x27;Deposit All&#x27;.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Simply say, &quot;deposit all&quot;, and all of your gold will be deposited to your accoun…”</span></li></ul></div>
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">Thank you.  Farewell.</div></div>
-<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">Very well.  I wish to learn more about spoken commands.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“There are five spoken commands you may simply say.  Deposit, Withdraw, Deposit A…”</span></li></ul></div>
 <div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">Tell me of &#x27;Withdraw&#x27;.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Simply say, &quot;withdraw 100 gold&quot;, and 100 gold will be withdrawn from your accoun…”</span></li></ul></div>
 <div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">Thank you.  Farewell.</div></div>
-<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">Thank you.  I wish to do some banking.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">Very well.  I wish to learn more about spoken commands.</div><ul class="dlg-links"><li><a href="#e1">→ child</a> <span class="dlg-link-preview">“There are five spoken commands you may simply say.  Deposit, Withdraw, Deposit A…”</span></li></ul></div>
 <div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">I would like to learn about the banking system.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“What would you like to learn about in particular?”</span></li></ul></div>
 <div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">I would like to know more of withdrawals.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You may withdraw money that you have deposited at any time.  In order to make a…”</span></li></ul></div>
 <div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">Continue....</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“You may also check your balance by asking me about it if you come by the bank.”</span></li></ul></div>
 <div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">Actually, I do not wish to make any transactions.</div></div>
-<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">I see.  I wish to bank a bit, then.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">I see.  I wish to bank a bit, then.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span></div><div class="dlg-text">I would like to know more of deposits.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“We can hold gold for you if you want a safe place to keep it.  In addition, the…”</span></li></ul></div>
 <div class="dlg-node reply" id="r24"><div class="dlg-head"><span class="dlg-id">reply #24</span></div><div class="dlg-text">Continue...</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“Since we make loans to others, we pay interest for depositers.  The bank keeps a…”</span></li></ul></div>
 <div class="dlg-node reply" id="r25"><div class="dlg-head"><span class="dlg-id">reply #25</span></div><div class="dlg-text">Continue...</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“You must go under the advanced banking options in order to assess interest on yo…”</span></li></ul></div>
 <div class="dlg-node reply" id="r26"><div class="dlg-head"><span class="dlg-id">reply #26</span></div><div class="dlg-text">Continue...</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“You can keep your money here forever, but the records for interest are only kept…”</span></li></ul></div>
 <div class="dlg-node reply" id="r27"><div class="dlg-head"><span class="dlg-id">reply #27</span></div><div class="dlg-text">Actually, I do not wish to make any transactions.</div></div>
-<div class="dlg-node reply" id="r28"><div class="dlg-head"><span class="dlg-id">reply #28</span></div><div class="dlg-text">I&#x27;d like to bank a bit, then.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r28"><div class="dlg-head"><span class="dlg-id">reply #28</span></div><div class="dlg-text">I&#x27;d like to bank a bit, then.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r29"><div class="dlg-head"><span class="dlg-id">reply #29</span></div><div class="dlg-text">I would like to review advanced banking options, please.</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“Our banks are the finest in Middle Earth! What would you like to deal with?”</span></li></ul></div>
 <div class="dlg-node reply" id="r30"><div class="dlg-head"><span class="dlg-id">reply #30</span></div><div class="dlg-text">Actually, I do not wish to make any transactions.</div></div>
-<div class="dlg-node reply" id="r31"><div class="dlg-head"><span class="dlg-id">reply #31</span></div><div class="dlg-text">I would like to speak of other things.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
-<div class="dlg-node reply" id="r32"><div class="dlg-head"><span class="dlg-id">reply #32</span></div><div class="dlg-text">I wish you to assess the interest on my account, please.</div><ul class="dlg-links"><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“Your account has &lt;CUSTOM25&gt; gold pieces.  We can assess your interest if you wis…”</span> <small class="muted">(if <code>kpb_int_balance</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r33"><div class="dlg-head"><span class="dlg-id">reply #33</span> <span class="dlg-action">→ <code>kpb_assessint</code></span></div><div class="dlg-text">Yes, I&#x27;d like you to assess my interest at this time.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
-<div class="dlg-node reply" id="r34"><div class="dlg-head"><span class="dlg-id">reply #34</span> <span class="dlg-action">→ <code>kpb_showbalance</code></span></div><div class="dlg-text">I would like to know my balance, please.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r31"><div class="dlg-head"><span class="dlg-id">reply #31</span></div><div class="dlg-text">I would like to speak of other things.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
+<div class="dlg-node reply" id="r32"><div class="dlg-head"><span class="dlg-id">reply #32</span></div><div class="dlg-text">I wish you to assess the interest on my account, please.</div><ul class="dlg-links"><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“Your account has  gold pieces.  We can assess your interest if you wish.”</span> <small class="muted">(if <code>kpb_int_balance</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r33"><div class="dlg-head"><span class="dlg-id">reply #33</span> <span class="dlg-action">→ <code>kpb_assessint</code></span></div><div class="dlg-text">Yes, I&#x27;d like you to assess my interest at this time.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
+<div class="dlg-node reply" id="r34"><div class="dlg-head"><span class="dlg-id">reply #34</span> <span class="dlg-action">→ <code>kpb_showbalance</code></span></div><div class="dlg-text">I would like to know my balance, please.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r35"><div class="dlg-head"><span class="dlg-id">reply #35</span></div><div class="dlg-text">I would like to withdraw gold.</div><ul class="dlg-links"><li><a href="#e15">→ entry #15</a> <span class="dlg-link-preview">“How much gold do you wish to withdraw?”</span></li></ul></div>
 <div class="dlg-node reply" id="r36"><div class="dlg-head"><span class="dlg-id">reply #36</span></div><div class="dlg-text">Actually, I do not wish to make any transactions.</div></div>
-<div class="dlg-node reply" id="r37"><div class="dlg-head"><span class="dlg-id">reply #37</span></div><div class="dlg-text">I wish to withdraw nothing.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
-<div class="dlg-node reply" id="r38"><div class="dlg-head"><span class="dlg-id">reply #38</span> <span class="dlg-action">→ <code>kpb_withdraw_all</code></span></div><div class="dlg-text">I wish to withdraw all the gold in my account.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r37"><div class="dlg-head"><span class="dlg-id">reply #37</span></div><div class="dlg-text">I wish to withdraw nothing.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
+<div class="dlg-node reply" id="r38"><div class="dlg-head"><span class="dlg-id">reply #38</span> <span class="dlg-action">→ <code>kpb_withdraw_all</code></span></div><div class="dlg-text">I wish to withdraw all the gold in my account.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r39"><div class="dlg-head"><span class="dlg-id">reply #39</span> <span class="dlg-action">→ <code>kpb_wthdraw10000</code></span></div><div class="dlg-text">1 millllllion gold</div><ul class="dlg-links"><li><a href="#e15">→ child</a> <span class="dlg-link-preview">“How much gold do you wish to withdraw?”</span></li></ul></div>
 <div class="dlg-node reply" id="r40"><div class="dlg-head"><span class="dlg-id">reply #40</span> <span class="dlg-action">→ <code>kpb_withdraw1000</code></span></div><div class="dlg-text">500,000 gold</div><ul class="dlg-links"><li><a href="#e15">→ child</a> <span class="dlg-link-preview">“How much gold do you wish to withdraw?”</span></li></ul></div>
-<div class="dlg-node reply" id="r41"><div class="dlg-head"><span class="dlg-id">reply #41</span> <span class="dlg-action">→ <code>kpb_withdraw100</code></span></div><div class="dlg-text">100,000 gold</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r41"><div class="dlg-head"><span class="dlg-id">reply #41</span> <span class="dlg-action">→ <code>kpb_withdraw100</code></span></div><div class="dlg-text">100,000 gold</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r42"><div class="dlg-head"><span class="dlg-id">reply #42</span></div><div class="dlg-text">I would like to deposit gold.</div><ul class="dlg-links"><li><a href="#e16">→ entry #16</a> <span class="dlg-link-preview">“How much gold do you wish to deposit?”</span></li></ul></div>
 <div class="dlg-node reply" id="r43"><div class="dlg-head"><span class="dlg-id">reply #43</span></div><div class="dlg-text">Actually, I do not wish to make any transactions.</div></div>
-<div class="dlg-node reply" id="r44"><div class="dlg-head"><span class="dlg-id">reply #44</span></div><div class="dlg-text">What is the current interest rate on deposits?</div><ul class="dlg-links"><li><a href="#e17">→ entry #17</a> <span class="dlg-link-preview">“The current interest rate on deposits is &lt;CUSTOM30&gt;%.  This is assessed if you h…”</span></li></ul></div>
+<div class="dlg-node reply" id="r44"><div class="dlg-head"><span class="dlg-id">reply #44</span></div><div class="dlg-text">What is the current interest rate on deposits?</div><ul class="dlg-links"><li><a href="#e17">→ entry #17</a> <span class="dlg-link-preview">“The current interest rate on deposits is %.  This is assessed if you have money…”</span></li></ul></div>
 <div class="dlg-node reply" id="r45"><div class="dlg-head"><span class="dlg-id">reply #45</span></div><div class="dlg-text">Actually, I do not wish to make any transactions.</div></div>
 <div class="dlg-node reply" id="r46"><div class="dlg-head"><span class="dlg-id">reply #46</span></div><div class="dlg-text">I see.  I&#x27;d like to bank a bit, then.</div><ul class="dlg-links"><li><a href="#e16">→ child</a> <span class="dlg-link-preview">“How much gold do you wish to deposit?”</span></li></ul></div>
-<div class="dlg-node reply" id="r47"><div class="dlg-head"><span class="dlg-id">reply #47</span></div><div class="dlg-text">I wish to deposit nothing.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, &lt;lad/lass&gt;?”</span></li></ul></div>
+<div class="dlg-node reply" id="r47"><div class="dlg-head"><span class="dlg-id">reply #47</span></div><div class="dlg-text">I wish to deposit nothing.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Welcome to the bank.  How may I assist you, ?”</span></li></ul></div>
 <div class="dlg-node reply" id="r48"><div class="dlg-head"><span class="dlg-id">reply #48</span> <span class="dlg-action">→ <code>kpb_deposit_all</code></span></div><div class="dlg-text">I wish to deposit all of my gold.</div></div>
 <div class="dlg-node reply" id="r49"><div class="dlg-head"><span class="dlg-id">reply #49</span> <span class="dlg-action">→ <code>kpb_deposit10000</code></span></div><div class="dlg-text">1 milllllllllllion gold</div><ul class="dlg-links"><li><a href="#e16">→ child</a> <span class="dlg-link-preview">“How much gold do you wish to deposit?”</span></li></ul></div>
 <div class="dlg-node reply" id="r50"><div class="dlg-head"><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>kpb_deposit1000</code></span></div><div class="dlg-text">500,000 gold</div><ul class="dlg-links"><li><a href="#e16">→ child</a> <span class="dlg-link-preview">“How much gold do you wish to deposit?”</span></li></ul></div>
 <div class="dlg-node reply" id="r51"><div class="dlg-head"><span class="dlg-id">reply #51</span> <span class="dlg-action">→ <code>kpb_deposit100</code></span></div><div class="dlg-text">100,000 gold</div><ul class="dlg-links"><li><a href="#e16">→ child</a> <span class="dlg-link-preview">“How much gold do you wish to deposit?”</span></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

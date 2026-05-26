@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Drider Mage</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,37 +47,51 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>drowmage003</dd>
 <dt>Tag</dt><dd>GreaterBlackNumenoreanMage</dd>
-<dt>Race</dt><dd>Elf</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-1">Elf</a></dd>
 <dt>Appearance</dt><dd>Drider, Female c*</dd>
 <dt>Class(es)</dt><dd>Fighter 60</dd>
 <dt>HP</dt><dd>880</dd>
 <dt>CR</dt><dd>361.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td>6</td></tr>
+<tr><td><a href="../areas/area009.html">Angmar&#x27;s Lair</a></td><td>2</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>25</td><th>Dex</th><td>48</td><th>Con</th><td>37</td><th>Int</th><td>100</td><th>Wis</th><td>60</td><th>Cha</th><td>100</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>60</td></tr></tbody></table>
 <p class="desc">The drow are an evil subrace of elves, living deep underground in the dangerous Underdark.</p>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>880</td><th>AC</th><td>61 <small class="muted">(10 base + +19 Dex + +25 natural (NaturalAC) + +7 armor enchant)</small></td><th>BAB</th><td>+60</td></tr><tr><th>Fort</th><td>+13</td><th>Ref</th><td>+19</td><th>Will</th><td>+25</td></tr></table>
+<table class="data"><tr><th>HP</th><td>880</td><th>AC</th><td>71 <small class="muted">(10 base + +19 Dex + +25 natural (NaturalAC) + +6 armor + +7 armor enchant + +4 dodge (haste))</small></td><th>BAB</th><td>+60</td></tr><tr><th>Fort</th><td>+13</td><th>Ref</th><td>+19</td><th>Will</th><td>+25</td></tr><tr><th>Spell Resistance</th><td>30 <small class="muted">(max of: feats (16), items (30))</small></td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +7 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<p><strong>Spell resistance:</strong> granted by feats: Improved Spell Resistance I, Improved Spell Resistance II, Improved Spell Resistance III</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/spidersilk.html">Spider Silk</a></td><td>Light Crossbow</td><td>Ranged (100)</td><td>+79/+74/+69/+64</td><td>1d8 (1–8)</td><td>19-20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Dexterity Bonus</th><td>+5</td></tr>
+<tr><th>Skill: Concentration</th><td>+50</td></tr>
+<tr><th>Skill: Spellcraft</th><td>+50</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Bludgeoning (25%), Piercing (25%), Slashing (25%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Fear, Knockdown, Mind-Affecting Spells, Paralysis</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/spidersilk.html">Spider Silk</a></td><td>Light Crossbow</td><td>Ranged (100)</td><td>+87/+82/+77/+72</td><td>1d8 (1–8) + Massive Criticals 5</td><td>19-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth026.html">Drider Plate of the Archmagi</a></td></tr>
-<tr><td>Boots</td><td><a href="../items/item079.html">&quot;lesser wanker boots&quot;</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/spidersilk.html">Spider Silk</a></td></tr>
-<tr><td>Bolts</td><td><a href="../items/boltofdrider001.html">Bolt of Dark Dispel {EPIC}</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/it_creitem014.html">Drow Level 40 Properties</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth026.html">Drider Plate of the Archmagi</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/item079.html">&quot;lesser wanker boots&quot;</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/spidersilk.html">Spider Silk</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Bolts</td><td><a href="../items/boltofdrider001.html">Bolt of Dark Dispel {EPIC}</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/it_creitem014.html">Drow Level 40 Properties</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(7)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_it_mpotion008</td><td>nw_it_mpotion008</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td><a href="../items/wmgst009.html">Drider Staff of Power</a></td><td>wmgst009</td></tr>
-<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td>boltofdrider</td></tr>
-<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td>boltofdrider</td></tr>
-<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td>boltofdrider</td></tr>
-<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td>boltofdrider</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/nw_it_mpotion008.html">Potion of Invisibility</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wmgst009.html">Drider Staff of Power</a></td><td><a href="../items/index.html#weapon-45">Magic Staff</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/boltofdrider.html">Bolt of Dark Dispel</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(90)</small></h2><ul class="featlist"><li>Alertness</li><li>Arcane Defense (Abjuration)</li><li>Arcane Defense (Conjuration)</li><li>Arcane Defense (Divination)</li><li>Arcane Defense (Enchantment)</li><li>Arcane Defense (Evocation)</li><li>Arcane Defense (Illusion)</li><li>Arcane Defense (Necromancy)</li><li>Arcane Defense (Transmutation)</li><li>Armor Proficiency (heavy)</li><li>Blind-Fight</li><li>Called Shot</li><li>Cleave</li><li>Combat Casting</li><li>Damage Reduction 3</li><li>Darkvision</li><li>Defensive Awareness (2)</li><li>Deflect Arrows</li><li>Dodge</li><li>Empower Spell</li><li>Epic Fortitude</li><li>Epic Prowess</li><li>Epic Reflexes</li><li>Epic Spell Focus (Abjuration)</li><li>Epic Spell Focus (Conjuration)</li><li>Epic Spell Focus (Divination)</li><li>Epic Spell Focus (Enchantment)</li><li>Epic Spell Focus (Evocation)</li><li>Epic Spell Focus (Illusion)</li><li>Epic Spell Focus (Necromancy)</li><li>Epic Spell Focus (Transmutation)</li><li>Epic Spell Penetration</li><li>Epic Spell: Epic Mage Armor</li><li>Epic Spell: Greater Ruin</li><li>Epic Weapon Focus (light crossbow)</li><li>Epic Weapon Specialization (light crossbow)</li><li>Epic Wizard</li><li>Extend Spell</li><li>Great Cleave</li><li>Greater Spell Focus (Abjuration)</li><li>Greater Spell Focus (Conjuration)</li><li>Greater Spell Focus (Divination)</li><li>Greater Spell Focus (Enchantment)</li><li>Greater Spell Focus (Evocation)</li><li>Greater Spell Focus (Illusion)</li><li>Greater Spell Focus (Necromancy)</li><li>Greater Spell Focus (Transmutation)</li><li>Greater Spell Penetration</li><li>Hardiness vs. Enchantments</li><li>Hardiness vs. Illusions</li><li>Hardiness vs. Poisons</li><li>Hardiness vs. Spells</li><li>Immunity To Sleep</li><li>Improved Combat Casting</li><li>Improved Critical (light crossbow)</li><li>Improved Evasion</li><li>Improved Spell Resistance I</li><li>Improved Spell Resistance II</li><li>Improved Spell Resistance III</li><li>Keen Sense</li><li>Lightning Reflexes</li><li>Maximize Spell</li><li>Mobility</li><li>Overwhelming Critical (light crossbow)</li><li>Point Blank Shot</li><li>Power Attack</li><li>Shield Proficiency</li><li>Silent Spell</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Search)</li><li>Skill Affinity (Spot)</li><li>Slippery Mind</li><li>Spell Focus (Abjuration)</li><li>Spell Focus (Conjuration)</li><li>Spell Focus (Divination)</li><li>Spell Focus (Enchantment)</li><li>Spell Focus (Evocation)</li><li>Spell Focus (Illusion)</li><li>Spell Focus (Necromancy)</li><li>Spell Focus (Transmutation)</li><li>Spell Penetration</li><li>Still Spell</li><li>Summon Familiar</li><li>Superior Initiative</li><li>Toughness</li><li>Weapon Focus (light crossbow)</li><li>Weapon Proficiency (Elf)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (light crossbow)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>99</td></tr>
 <tr><td>Listen</td><td>43</td></tr>
@@ -85,15 +121,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(8)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/angmardungeon-008.html">Drider Mage</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td>Hostile</td><td>—</td></tr>
-<tr><td><a href="instances/angmardungeon-012.html">Drider Mage</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td>Hostile</td><td>—</td></tr>
-<tr><td><a href="instances/angmardungeon-013.html">Drider Mage</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td>Hostile</td><td>—</td></tr>
-<tr><td><a href="instances/angmardungeon-018.html">Drider Mage</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td>Hostile</td><td>—</td></tr>
-<tr><td><a href="instances/angmardungeon-019.html">Drider Mage</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td>Hostile</td><td>—</td></tr>
-<tr><td><a href="instances/angmardungeon-025.html">Drider Mage</a></td><td><a href="../areas/angmardungeon.html">Angmar Dungeon</a></td><td>Hostile</td><td>—</td></tr>
-<tr><td><a href="instances/area009-001.html">Drider Mage</a></td><td><a href="../areas/area009.html">Angmar&#x27;s Lair</a></td><td>Hostile</td><td>—</td></tr>
-<tr><td><a href="instances/area009-002.html">Drider Mage</a></td><td><a href="../areas/area009.html">Angmar&#x27;s Lair</a></td><td>Hostile</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

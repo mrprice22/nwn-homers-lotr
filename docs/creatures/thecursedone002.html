@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Heir of Haldor</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,36 +47,68 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>thecursedone002</dd>
 <dt>Tag</dt><dd>TheCursedOne</dd>
-<dt>Race</dt><dd>Undead</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-24">Undead</a></dd>
 <dt>Appearance</dt><dd>Vecna*</dd>
 <dt>Class(es)</dt><dd>Weapon Master 45/Fighter 25</dd>
-<dt>HP</dt><dd>9996</dd>
+<dt>HP</dt><dd>9,996</dd>
 <dt>CR</dt><dd>1066.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/forgottenking.html">Dimholt: The Forgotten King</a></td><td>1</td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>86</td><th>Dex</th><td>12</td><th>Con</th><td>66</td><th>Int</th><td>10</td><th>Wis</th><td>30</td><th>Cha</th><td>11</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Weapon Master</td><td>45</td></tr><tr><td>Fighter</td><td>25</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>9996</td><th>AC</th><td>41 <small class="muted">(10 base + +1 Dex + +20 natural (NaturalAC) + +10 armor enchant)</small></td><th>BAB</th><td>+70</td></tr><tr><th>Fort</th><td>+28</td><th>Ref</th><td>+11</td><th>Will</th><td>+20</td></tr></table>
+<table class="data"><tr><th>HP</th><td>9,996</td><th>AC</th><td>73 <small class="muted">(10 base + +1 Dex + +20 natural (NaturalAC) + +8 armor + +10 armor enchant + +20 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+70</td></tr><tr><th>Fort</th><td>+36</td><th>Ref</th><td>+21</td><th>Will</th><td>+28</td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/avenger002.html">Avenger</a></td><td>Greatsword</td><td>Melee</td><td>+126/+121/+116/+111</td><td>2d6+38 (40–50) + Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 9, Damage Bonus <span class="nwn-dmg nwn-dmg-positive" style="color:#ffffff">Positive</span> 9, Damage Bonus Slashing 9</td><td>19-20/x2</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20 (capped from +25)</td></tr>
+<tr><th>Save vs. Death</th><td>+5</td></tr>
+<tr><th>Save vs. Fear</th><td>+6</td></tr>
+<tr><th>Save vs. Fortitude</th><td>+8</td></tr>
+<tr><th>Save vs. Mind Affecting</th><td>+7</td></tr>
+<tr><th>Save vs. Reflex</th><td>+10</td></tr>
+<tr><th>Save vs. Will</th><td>+8</td></tr>
+<tr><th>Charisma Bonus</th><td>+6</td></tr>
+<tr><th>Constitution Bonus</th><td>+6</td></tr>
+<tr><th>Intelligence Bonus</th><td>+6</td></tr>
+<tr><th>Strength Bonus</th><td>+10</td></tr>
+<tr><th>Wisdom Bonus</th><td>+10</td></tr>
+<tr><th>Skill: Concentration</th><td>+7</td></tr>
+<tr><th>Skill: Discipline</th><td>+7</td></tr>
+<tr><th>Skill: Listen</th><td>+7</td></tr>
+<tr><th>Skill: Open Lock</th><td>+8</td></tr>
+<tr><th>Skill: Spot</th><td>+7</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>7</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>25/-</td></tr>
+<tr><th>Damage Immunity</th><td>Piercing (20%), Slashing (20%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr>
+<tr><th>Darkvision</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/avenger002.html">Avenger</a></td><td>Greatsword</td><td>Melee</td><td>+138/+133/+128/+123</td><td>2d6+38 (40–50) + Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 9, Damage Bonus <span class="nwn-dmg nwn-dmg-positive" style="color:#ffffff">Positive</span> 9, Damage Bonus Slashing 9, Massive Criticals 9, On Hit Properties Greater Dispelling DC 20</td><td>19-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/cursedoneshel002.html">Cursed Ones Helm</a></td></tr>
-<tr><td>Chest</td><td><a href="../items/cursedplate002.html">Cursed Plate</a></td></tr>
-<tr><td>Boots</td><td><a href="../items/carapaceofcha002.html">Greater Carapace of Chaos</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/avenger002.html">Avenger</a></td></tr>
-<tr><td>Right ring</td><td><a href="../items/gdmages.html">GD Mages</a></td></tr>
-<tr><td>Neck</td><td><a href="../items/amuletofdirep002.html">Amulet of Dire Protection</a></td></tr>
-<tr><td>Belt</td><td><a href="../items/wrapofthecurs002.html">Wrap of the Cursed One</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/it_creitemunh003.html">Dunharrow Undead Properties</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Head</td><td><a href="../items/cursedoneshel002.html">Cursed Ones Helm</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Chest</td><td><a href="../items/cursedplate002.html">Cursed Plate</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Boots</td><td><a href="../items/carapaceofcha002.html">Greater Carapace of Chaos</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/avenger002.html">Avenger</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/gdmages.html">GD Mages</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Neck</td><td><a href="../items/amuletofdirep002.html">Amulet of Dire Protection</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/wrapofthecurs002.html">Wrap of the Cursed One</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/it_creitemunh003.html">Dunharrow Undead Properties</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(5)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/cursedguantle002.html">Cursed Guantlets</a></td><td>cursedguantle002</td></tr>
-<tr><td><a href="../items/prophetsrune.html">Prophets Rune</a></td><td>prophetsrune</td></tr>
-<tr><td><a href="../items/roguegem006.html">Rogue&#x27;s Gem</a></td><td>roguegem006</td></tr>
-<tr><td><a href="../items/roguegem005.html">Rogue&#x27;s Gem</a></td><td>roguegem005</td></tr>
-<tr><td><a href="../items/it_gem012.html">Faceted Garnet</a></td><td>it_gem012</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/cursedguantle002.html">Cursed Guantlets</a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/prophetsrune.html">Prophets Rune</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/roguegem006.html">Rogue&#x27;s Gem</a></td><td><a href="../items/index.html#gem">Gems</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/roguegem005.html">Rogue&#x27;s Gem</a></td><td><a href="../items/index.html#gem">Gems</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/it_gem012.html">Faceted Garnet</a></td><td><a href="../items/index.html#gem">Gems</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(24)</small></h2><ul class="featlist"><li>Ambidexterity</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Armor Skin</li><li>Blind-Fight</li><li>Epic Prowess</li><li>Epic Toughness II</li><li>Epic Toughness III</li><li>Epic Toughness V</li><li>Epic Weapon Focus (greatsword)</li><li>Epic Weapon Specialization (greatsword)</li><li>Improved Critical (greatsword)</li><li>Improved Two-Weapon Fighting</li><li>Overwhelming Critical (greatsword)</li><li>Self-Concealment I</li><li>Self-Concealment II</li><li>Shield Proficiency</li><li>Two-Weapon Fighting</li><li>Weapon Focus (greatsword)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (greatsword)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>40</td></tr>
 <tr><td>Discipline</td><td>80</td></tr>
@@ -80,8 +134,7 @@
 <tr><td>ScriptSpellAt</td><td>x2_def_spellcast</td></tr>
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
-<h2>Instances <small class="muted">(1)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/forgottenking-003.html">Heir of Haldor</a></td><td><a href="../areas/forgottenking.html">Dimholt: The Forgotten King</a></td><td>Hostile</td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

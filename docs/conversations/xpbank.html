@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation xpbank</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,7 +52,7 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">blueprint</span> NPC <a href="../creatures/creature006.html">Experience Banker</a> <code>creature006</code></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/creature006.html">Experience Banker</a> <code>creature006</code></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>xp_sc_50k</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -41,6 +63,8 @@
 <tr><td><code>xp_deposit_100k</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>xp_deposit_10k</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>xp_deposit_all</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM698&gt;</code></td><td><a href="../scripts/xp_settokens.html">xp_settokens</a></td></tr>
+<tr><td><code>&lt;CUSTOM699&gt;</code></td><td><a href="../scripts/xp_settokens.html">xp_settokens</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a> — Sup?</li>
 </ul>
@@ -57,7 +81,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">You currently have &lt;StartAction&gt; &lt;CUSTOM699&gt; &lt;/Start&gt; XP available for withdrawl.  I store only &lt;StartAction&gt;&lt;CUSTOM698&gt;%&lt;/Start&gt; of the total XP you deposit.  You may then transfer it to any of your characters.</div>
+<div class="dlg-text">You currently have &lt;StartAction&gt; <span class="custom-token" title="SetCustomToken(699, ...) called in: xp_settokens">&lt;CUSTOM699&gt;<sup class="token-setters">[<a href="../scripts/xp_settokens.html">xp_settokens</a>]</sup></span> &lt;/Start&gt; XP available for withdrawl.  I store only &lt;StartAction&gt;<span class="custom-token" title="SetCustomToken(698, ...) called in: xp_settokens">&lt;CUSTOM698&gt;<sup class="token-setters">[<a href="../scripts/xp_settokens.html">xp_settokens</a>]</sup></span>%&lt;/Start&gt; of the total XP you deposit.  You may then transfer it to any of your characters.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
@@ -133,11 +157,11 @@
 </div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Sup?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I would like to use the XP bank, and understand that I am only &#x27;keeping&#x27; a perce…”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">You currently have &lt;StartAction&gt; &lt;CUSTOM699&gt; &lt;/Start&gt; XP available for withdrawl.  I store only &lt;StartAction&gt;&lt;CUSTOM698&gt;%&lt;/Start&gt; of the total XP you deposit.  You may then transfer it to any of your characters.</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“I would like to deposit Experience.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I would like to withdraw Experience.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">You currently have &lt;StartAction&gt; <span class="custom-token" title="SetCustomToken(699, ...) called in: xp_settokens">&lt;CUSTOM699&gt;<sup class="token-setters">[<a href="../scripts/xp_settokens.html">xp_settokens</a>]</sup></span> &lt;/Start&gt; XP available for withdrawl.  I store only &lt;StartAction&gt;<span class="custom-token" title="SetCustomToken(698, ...) called in: xp_settokens">&lt;CUSTOM698&gt;<sup class="token-setters">[<a href="../scripts/xp_settokens.html">xp_settokens</a>]</sup></span>%&lt;/Start&gt; of the total XP you deposit.  You may then transfer it to any of your characters.</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“I would like to deposit Experience.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I would like to withdraw Experience.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">How Much XP would you like to withdraw?</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“50,000 Experience Points.”</span> <small class="muted">(if <code>xp_sc_50k</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“10,000 Experience Points.”</span> <small class="muted">(if <code>xp_sc_10k</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“None, nevermind.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">How much XP would you like to deposit?</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“All the XP I have !”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“10,000 Experience Points”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“100,000 Experience Points.”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“None, I changed my mind.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
-<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>xp_settokens</code></span></div><div class="dlg-text">I would like to use the XP bank, and understand that I am only &#x27;keeping&#x27; a percentage of the XP that I deposit, so that I may give it to another character who uses my CD-Key.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“You currently have &lt;StartAction&gt; &lt;CUSTOM699&gt; &lt;/Start&gt; XP available for withdrawl…”</span></li></ul></div>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>xp_settokens</code></span></div><div class="dlg-text">I would like to use the XP bank, and understand that I am only &#x27;keeping&#x27; a percentage of the XP that I deposit, so that I may give it to another character who uses my CD-Key.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“You currently have    XP available for withdrawl.  I store only % of the total X…”</span></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I would like to withdraw Experience.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“How Much XP would you like to withdraw?”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">None, nevermind.</div></div>
 <div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>xp_withdraw_10k</code></span></div><div class="dlg-text">10,000 Experience Points.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Sup?”</span></li></ul></div>
@@ -148,6 +172,6 @@
 <div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>xp_deposit_10k</code></span></div><div class="dlg-text">10,000 Experience Points</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Sup?”</span></li><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“Sup?”</span></li></ul></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>xp_deposit_all</code></span></div><div class="dlg-text">All the XP I have !</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

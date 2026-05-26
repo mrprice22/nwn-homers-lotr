@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation m2q2aliz</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -40,32 +62,32 @@
 <tr><td><code>nw_d2_j_surr01</code></td><td>active</td><td>?</td><td></td></tr>
 <tr><td><code>nw_d1_j_surr03</code></td><td>active</td><td>?</td><td></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> <small class="muted">(if <code>nw_d2_j_surr02</code>)</small> — [TLK#33285]</li>
-<li><a href="#e1">entry #1</a> <small class="muted">(if <code>nw_d2_j_surr01</code>)</small> — [TLK#33286]</li>
-<li><a href="#e2">entry #2</a> <small class="muted">(if <code>nw_d1_j_surr03</code>)</small> — [TLK#33287]</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>nw_d2_j_surr02</code>)</small> — Essa sythider cansticyle, vassa! Vassa! Vassa!</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>nw_d2_j_surr01</code>)</small> — Fregan paeca, fregan paeca. Sussenda messa!</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>nw_d1_j_surr03</code>)</small> — Syssin weras goola sisni?</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span> <small class="muted">(if <code>nw_d2_j_surr02</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">[TLK#33285]</div>
+<div class="dlg-text">Essa sythider cansticyle, vassa! Vassa! Vassa!</div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>nw_d2_j_surr01</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">[TLK#33286]</div>
+<div class="dlg-text">Fregan paeca, fregan paeca. Sussenda messa!</div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>nw_d1_j_surr01</code></span> <small class="muted">(if <code>nw_d1_j_surr03</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
-<div class="dlg-text">[TLK#33287]</div>
+<div class="dlg-text">Syssin weras goola sisni?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #0</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
-<div class="dlg-text">[TLK#33238]</div>
+<div class="dlg-text">I don&#x27;t understand what you are saying.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
-<div class="dlg-text">[TLK#33288]</div>
+<div class="dlg-text">Posna! Eck canessa tallak!</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
@@ -73,79 +95,79 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
-<div class="dlg-text">[TLK#33289]</div>
+<div class="dlg-text">There! That brood spell should enable us to converse. Can you understand me, mammal?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #2</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
-<div class="dlg-text">[TLK#33239]</div>
+<div class="dlg-text">Yes, I can understand you.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
-<div class="dlg-text">[TLK#33290]</div>
+<div class="dlg-text">Why are you in here? How does a soft, weak mammal like yourself dare to enter this room?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #7</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
-<div class="dlg-text">[TLK#33244]</div>
+<div class="dlg-text">I don&#x27;t know what you are talking about. We &quot;mammals&quot; rule the world.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
-<div class="dlg-text">[TLK#33291]</div>
+<div class="dlg-text">Such a thing cannot be. How could your slave race have risen so high?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #11</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
-<div class="dlg-text">[TLK#33248]</div>
+<div class="dlg-text">Slaves? We are nobody&#x27;s slaves.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
-<div class="dlg-text">[TLK#33293]</div>
+<div class="dlg-text">We might no longer be in power, or so you say, but then surely the draconic race must rule the surface as they used to rule the skies?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #15</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
-<div class="dlg-text">[TLK#33252]</div>
+<div class="dlg-text">They don&#x27;t really rule much of anything. Are you concerned about dragons?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #17</span> <a class="dlg-anchor" href="#e17" title="jump to flat entry #17">¶</a></summary>
-<div class="dlg-text">[TLK#33302]</div>
+<div class="dlg-text">So the winged masters have been weakened? Excellent. Do you mean to tell me that you mammals aren&#x27;t ruled by a greater race?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #24</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r24" title="jump to flat reply #24">¶</a></summary>
-<div class="dlg-text">[TLK#33261]</div>
+<div class="dlg-text">I can tell you that I am getting rather tired of being called a mammal. Call me &lt;FirstName&gt;.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #12</span> <a class="dlg-anchor" href="#e12" title="jump to flat entry #12">¶</a></summary>
-<div class="dlg-text">[TLK#33297]</div>
+<div class="dlg-text">My, a sense of identity. You are much like the Sentiegans. It didn&#x27;t take long for their resistance to be broken. It should be amusing to see what becomes of your civilized manners when our race dominates yours again.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #36</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r36" title="jump to flat reply #36">¶</a></summary>
-<div class="dlg-text">[TLK#33271]</div>
+<div class="dlg-text">What makes you think your race will dominate ours?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #21</span> <a class="dlg-anchor" href="#e21" title="jump to flat entry #21">¶</a></summary>
-<div class="dlg-text">[TLK#33306]</div>
+<div class="dlg-text">You haven&#x27;t even the slightest idea of what you face. You will learn, in time. Is your mind completely worn out from the effort of communicating, or do you have other questions?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #44</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r44" title="jump to flat reply #44">¶</a></summary>
-<div class="dlg-text">[TLK#33275]</div>
+<div class="dlg-text">I have more questions.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
-<div class="dlg-text">[TLK#33294]</div>
+<div class="dlg-text">All right, mammal. I suppose I should humor your request, since I did surrender. What questions would you ask of me? </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #19</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
-<div class="dlg-text">[TLK#33256]</div>
+<div class="dlg-text">What are you?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #13</span> <a class="dlg-anchor" href="#e13" title="jump to flat entry #13">¶</a></summary>
-<div class="dlg-text">[TLK#33298]</div>
+<div class="dlg-text">I am a member of a race that is highly superior to yours. We are masters of flesh, mind and spirit.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #29</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r29" title="jump to flat reply #29">¶</a></summary>
-<div class="dlg-text">[TLK#33266]</div>
+<div class="dlg-text">That doesn&#x27;t answer my question.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #18</span> <a class="dlg-anchor" href="#e18" title="jump to flat entry #18">¶</a></summary>
-<div class="dlg-text">[TLK#33303]</div>
+<div class="dlg-text">It would, if your race had true intelligence, but I will speak so that one such as you can understand. We are the master race, created perfect in form and mind, and meant to rule the lesser races. </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #54</span> <a class="dlg-anchor" href="#r54" title="jump to flat reply #54">¶</a></summary>
@@ -153,30 +175,30 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #30</span> <a class="dlg-anchor" href="#e30" title="jump to flat entry #30">¶</a></summary>
-<div class="dlg-text">[TLK#33315]</div>
+<div class="dlg-text">We possess incredible magics, the likes of which your puny mages can only dream of. Our warriors are fearless and nearly unstoppable.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #55</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r55" title="jump to flat reply #55">¶</a></summary>
-<div class="dlg-text">[TLK#33283]</div>
+<div class="dlg-text">If you are so powerful, then how was I able to defeat you?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #31</span> <a class="dlg-anchor" href="#e31" title="jump to flat entry #31">¶</a></summary>
-<div class="dlg-text">[TLK#33316]</div>
+<div class="dlg-text">I have not been awake long. Perhaps I have simply not recovered my full strength. Be assured, when my queen decides that it is time, we shall come forth and show you what real power is.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #51</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r51" title="jump to flat reply #51">¶</a></summary>
-<div class="dlg-text">[TLK#33281]</div>
+<div class="dlg-text">I would ask you more questions.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #17</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
-<div class="dlg-text">[TLK#33254]</div>
+<div class="dlg-text">I&#x27;m not talking to you anymore. Get out of my sight.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #10</span> <a class="dlg-anchor" href="#e10" title="jump to flat entry #10">¶</a></summary>
-<div class="dlg-text">[TLK#33295]</div>
+<div class="dlg-text">As if I would turn tail and flee from a mammal like you. You have given me enough time to recover. </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #42</span> <a class="dlg-anchor" href="#r42" title="jump to flat reply #42">¶</a></summary>
@@ -184,7 +206,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #24</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span> <a class="dlg-anchor" href="#e24" title="jump to flat entry #24">¶</a></summary>
-<div class="dlg-text">[TLK#33309]</div>
+<div class="dlg-text">Now you die!</div>
 </details>
 </div>
 </details>
@@ -194,11 +216,11 @@
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #30</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r30" title="jump to flat reply #30">¶</a></summary>
-<div class="dlg-text">[TLK#33267]</div>
+<div class="dlg-text">I don&#x27;t trust you. I think I had better kill you.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #14</span> <a class="dlg-anchor" href="#e14" title="jump to flat entry #14">¶</a></summary>
-<div class="dlg-text">[TLK#33299]</div>
+<div class="dlg-text">You have given me enough time to recover.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #43</span> <a class="dlg-anchor" href="#r43" title="jump to flat reply #43">¶</a></summary>
@@ -206,7 +228,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #25</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span> <a class="dlg-anchor" href="#e25" title="jump to flat entry #25">¶</a></summary>
-<div class="dlg-text">[TLK#33310]</div>
+<div class="dlg-text">Now it is you who shall die!</div>
 </details>
 </div>
 </details>
@@ -216,105 +238,105 @@
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #52</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r52" title="jump to flat reply #52">¶</a></summary>
-<div class="dlg-text">[TLK#33282]</div>
+<div class="dlg-text">Me want ask more question.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #23</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r23" title="jump to flat reply #23">¶</a></summary>
-<div class="dlg-text">[TLK#33260]</div>
+<div class="dlg-text">You bothering me. Go away quick.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“[TLK#33295]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e10">entry #10</a> <span class="dlg-link-preview">“As if I would turn tail and flee from a mammal like you. You have given me enoug…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #32</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r32" title="jump to flat reply #32">¶</a></summary>
-<div class="dlg-text">[TLK#33269]</div>
+<div class="dlg-text">Me no trust you. Me kill you now.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e14">entry #14</a> <span class="dlg-link-preview">“[TLK#33299]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e14">entry #14</a> <span class="dlg-link-preview">“You have given me enough time to recover.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #48</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r48" title="jump to flat reply #48">¶</a></summary>
-<div class="dlg-text">[TLK#33279]</div>
+<div class="dlg-text">Who is this queen you speak of?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #26</span> <a class="dlg-anchor" href="#e26" title="jump to flat entry #26">¶</a></summary>
-<div class="dlg-text">[TLK#33311]</div>
+<div class="dlg-text">She is the Tykalatian Matriarch. She is power beyond understanding. Cunning beyond belief. You will fall to her, as all have fallen before. That is all I will tell you.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r36">reply #36</a> <span class="dlg-link-preview">“[TLK#33271]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r51">reply #51</a> <span class="dlg-link-preview">“[TLK#33281]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r52">reply #52</a> <span class="dlg-link-preview">“[TLK#33282]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r36">reply #36</a> <span class="dlg-link-preview">“What makes you think your race will dominate ours?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r51">reply #51</a> <span class="dlg-link-preview">“I would ask you more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r52">reply #52</a> <span class="dlg-link-preview">“Me want ask more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #37</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r37" title="jump to flat reply #37">¶</a></summary>
-<div class="dlg-text">[TLK#33272]</div>
+<div class="dlg-text">Me just beat you. What make you think you take us over?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e21">entry #21</a> <span class="dlg-link-preview">“[TLK#33306]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e21">entry #21</a> <span class="dlg-link-preview">“You haven&#x27;t even the slightest idea of what you face. You will learn, in time. I…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #49</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r49" title="jump to flat reply #49">¶</a></summary>
-<div class="dlg-text">[TLK#33280]</div>
+<div class="dlg-text">Who be you queen?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e26">entry #26</a> <span class="dlg-link-preview">“[TLK#33311]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e26">entry #26</a> <span class="dlg-link-preview">“She is the Tykalatian Matriarch. She is power beyond understanding. Cunning beyo…”</span></div>
 </div>
 </details>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r51">reply #51</a> <span class="dlg-link-preview">“[TLK#33281]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r51">reply #51</a> <span class="dlg-link-preview">“I would ask you more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #56</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r56" title="jump to flat reply #56">¶</a></summary>
-<div class="dlg-text">[TLK#33284]</div>
+<div class="dlg-text">If you so tough, why me beat you so easy?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e31">entry #31</a> <span class="dlg-link-preview">“[TLK#33316]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e31">entry #31</a> <span class="dlg-link-preview">“I have not been awake long. Perhaps I have simply not recovered my full strength…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r52">reply #52</a> <span class="dlg-link-preview">“[TLK#33282]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-</div>
-</details>
-</div>
-</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r52">reply #52</a> <span class="dlg-link-preview">“Me want ask more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #31</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r31" title="jump to flat reply #31">¶</a></summary>
-<div class="dlg-text">[TLK#33268]</div>
+<div class="dlg-text">That not good answer! No make any sense.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e18">entry #18</a> <span class="dlg-link-preview">“[TLK#33303]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e18">entry #18</a> <span class="dlg-link-preview">“It would, if your race had true intelligence, but I will speak so that one such…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #20</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
-<div class="dlg-text">[TLK#33257]</div>
+<div class="dlg-text">Who are you?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #19</span> <a class="dlg-anchor" href="#e19" title="jump to flat entry #19">¶</a></summary>
-<div class="dlg-text">[TLK#33304]</div>
+<div class="dlg-text">My name is Synsilliusarian, though I doubt your fleshy tongue could possibly pronounce such a noble name. I am a mage of the Calantian Order. </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #35</span> <a class="dlg-anchor" href="#r35" title="jump to flat reply #35">¶</a></summary>
@@ -322,28 +344,28 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #20</span> <a class="dlg-anchor" href="#e20" title="jump to flat entry #20">¶</a></summary>
-<div class="dlg-text">[TLK#33305]</div>
+<div class="dlg-text">Though it will mean nothing to you now, once we have dominated your race again you will learn how great of an honor it is to have spoken with me.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r36">reply #36</a> <span class="dlg-link-preview">“[TLK#33271]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r36">reply #36</a> <span class="dlg-link-preview">“What makes you think your race will dominate ours?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #46</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r46" title="jump to flat reply #46">¶</a></summary>
-<div class="dlg-text">[TLK#33277]</div>
+<div class="dlg-text">I have more questions.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #47</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r47" title="jump to flat reply #47">¶</a></summary>
-<div class="dlg-text">[TLK#33278]</div>
+<div class="dlg-text">Me have another question.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r37">reply #37</a> <span class="dlg-link-preview">“[TLK#33272]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r37">reply #37</a> <span class="dlg-link-preview">“Me just beat you. What make you think you take us over?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
@@ -354,11 +376,11 @@
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #25</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r25" title="jump to flat reply #25">¶</a></summary>
-<div class="dlg-text">[TLK#33262]</div>
+<div class="dlg-text">What are you doing here?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #27</span> <a class="dlg-anchor" href="#e27" title="jump to flat entry #27">¶</a></summary>
-<div class="dlg-text">[TLK#33312]</div>
+<div class="dlg-text">I remember being in a dark, peaceful sleep. I thought it would never end, but my companions and I awoke when we heard a call from our Queen. May her all-knowing, all-powerful wisdom guide us to our glorious destiny. </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #50</span> <a class="dlg-anchor" href="#r50" title="jump to flat reply #50">¶</a></summary>
@@ -366,7 +388,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #28</span> <a class="dlg-anchor" href="#e28" title="jump to flat entry #28">¶</a></summary>
-<div class="dlg-text">[TLK#33313]</div>
+<div class="dlg-text">Her words whispered in my mind, communicating visions of conquest and power. The entire world would bow before us, begging for mercy and receiving none. </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #53</span> <a class="dlg-anchor" href="#r53" title="jump to flat reply #53">¶</a></summary>
@@ -374,16 +396,16 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #29</span> <a class="dlg-anchor" href="#e29" title="jump to flat entry #29">¶</a></summary>
-<div class="dlg-text">[TLK#33314]</div>
+<div class="dlg-text">Since awakening we have not heard from her again, but when she speaks we will go forth and conquer. </div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r48">reply #48</a> <span class="dlg-link-preview">“[TLK#33279]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r51">reply #51</a> <span class="dlg-link-preview">“[TLK#33281]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r49">reply #49</a> <span class="dlg-link-preview">“[TLK#33280]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r52">reply #52</a> <span class="dlg-link-preview">“[TLK#33282]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r48">reply #48</a> <span class="dlg-link-preview">“Who is this queen you speak of?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r51">reply #51</a> <span class="dlg-link-preview">“I would ask you more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r49">reply #49</a> <span class="dlg-link-preview">“Who be you queen?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r52">reply #52</a> <span class="dlg-link-preview">“Me want ask more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
@@ -398,25 +420,25 @@
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #26</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r26" title="jump to flat reply #26">¶</a></summary>
-<div class="dlg-text">[TLK#33263]</div>
+<div class="dlg-text">What you be?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“[TLK#33298]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“I am a member of a race that is highly superior to yours. We are masters of fles…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #27</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r27" title="jump to flat reply #27">¶</a></summary>
-<div class="dlg-text">[TLK#33264]</div>
+<div class="dlg-text">Who you be?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“[TLK#33304]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e19">entry #19</a> <span class="dlg-link-preview">“My name is Synsilliusarian, though I doubt your fleshy tongue could possibly pro…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #28</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r28" title="jump to flat reply #28">¶</a></summary>
-<div class="dlg-text">[TLK#33265]</div>
+<div class="dlg-text">What you do here?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #15</span> <a class="dlg-anchor" href="#e15" title="jump to flat entry #15">¶</a></summary>
-<div class="dlg-text">[TLK#33300]</div>
+<div class="dlg-text">I remember being in a dark, peaceful sleep. I thought it would never end, but my companions and I awoke when we heard a call from our Queen. May her all-knowing, all-powerful wisdom guide us to our glorious destiny. </div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #34</span> <a class="dlg-anchor" href="#r34" title="jump to flat reply #34">¶</a></summary>
@@ -424,34 +446,30 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #16</span> <a class="dlg-anchor" href="#e16" title="jump to flat entry #16">¶</a></summary>
-<div class="dlg-text">[TLK#33301]</div>
+<div class="dlg-text">Someday soon your race will once again fall under our domination.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r48">reply #48</a> <span class="dlg-link-preview">“[TLK#33279]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r36">reply #36</a> <span class="dlg-link-preview">“[TLK#33271]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r48">reply #48</a> <span class="dlg-link-preview">“Who is this queen you speak of?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r36">reply #36</a> <span class="dlg-link-preview">“What makes you think your race will dominate ours?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #40</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r40" title="jump to flat reply #40">¶</a></summary>
-<div class="dlg-text">[TLK#33273]</div>
+<div class="dlg-text">You will answer my questions now!</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r49">reply #49</a> <span class="dlg-link-preview">“[TLK#33280]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r37">reply #37</a> <span class="dlg-link-preview">“[TLK#33272]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r49">reply #49</a> <span class="dlg-link-preview">“Who be you queen?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r37">reply #37</a> <span class="dlg-link-preview">“Me just beat you. What make you think you take us over?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #41</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r41" title="jump to flat reply #41">¶</a></summary>
-<div class="dlg-text">[TLK#33274]</div>
+<div class="dlg-text">You answer me questions now, or else!</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-</div>
-</details>
-</div>
-</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
@@ -460,181 +478,185 @@
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #45</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r45" title="jump to flat reply #45">¶</a></summary>
-<div class="dlg-text">[TLK#33276]</div>
+<div class="dlg-text">Me have more question.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r40">reply #40</a> <span class="dlg-link-preview">“[TLK#33273]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r37">reply #37</a> <span class="dlg-link-preview">“[TLK#33272]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r41">reply #41</a> <span class="dlg-link-preview">“[TLK#33274]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r40">reply #40</a> <span class="dlg-link-preview">“You will answer my questions now!”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r37">reply #37</a> <span class="dlg-link-preview">“Me just beat you. What make you think you take us over?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r41">reply #41</a> <span class="dlg-link-preview">“You answer me questions now, or else!”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #16</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
-<div class="dlg-text">[TLK#33253]</div>
+<div class="dlg-text">If you don&#x27;t answer my questions right now, I&#x27;m going to slit your slimy throat!</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #22</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r22" title="jump to flat reply #22">¶</a></summary>
-<div class="dlg-text">[TLK#33259]</div>
+<div class="dlg-text">You answer me questions now, or me cut heads off.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #18</span> <small class="muted">(if <code>nw_d2_wis_intn</code>)</small> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
-<div class="dlg-text">[TLK#33255]</div>
+<div class="dlg-text">&lt;StartCheck&gt;[Insight]&lt;/Start&gt; Dragons? Does your race fear the power of the dragons?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #11</span> <a class="dlg-anchor" href="#e11" title="jump to flat entry #11">¶</a></summary>
-<div class="dlg-text">[TLK#33296]</div>
+<div class="dlg-text">Hm. You mammals have become more intelligent than we had suspected. Interesting.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r24">reply #24</a> <span class="dlg-link-preview">“[TLK#33261]”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r24">reply #24</a> <span class="dlg-link-preview">“I can tell you that I am getting rather tired of being called a mammal. Call me…”</span></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #33</span> <a class="dlg-anchor" href="#r33" title="jump to flat reply #33">¶</a></summary>
-<div class="dlg-text">[TLK#33270]</div>
+<div class="dlg-text">You say we. Who are you refering to?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e15">entry #15</a> <span class="dlg-link-preview">“[TLK#33300]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e15">entry #15</a> <span class="dlg-link-preview">“I remember being in a dark, peaceful sleep. I thought it would never end, but my…”</span></div>
 </div>
 </details>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r16">reply #16</a> <span class="dlg-link-preview">“[TLK#33253]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r16">reply #16</a> <span class="dlg-link-preview">“If you don&#x27;t answer my questions right now, I&#x27;m going to slit your slimy throat!”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #21</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r21" title="jump to flat reply #21">¶</a></summary>
-<div class="dlg-text">[TLK#33258]</div>
+<div class="dlg-text">Not rule, but do fly. You worry &#x27;bout dragons?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e17">entry #17</a> <span class="dlg-link-preview">“[TLK#33302]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e17">entry #17</a> <span class="dlg-link-preview">“So the winged masters have been weakened? Excellent. Do you mean to tell me that…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r22">reply #22</a> <span class="dlg-link-preview">“[TLK#33259]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r22">reply #22</a> <span class="dlg-link-preview">“You answer me questions now, or me cut heads off.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #8</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
-<div class="dlg-text">[TLK#33245]</div>
+<div class="dlg-text">You talk as if you just won the battle. Why aren&#x27;t you afraid of me?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
-<div class="dlg-text">[TLK#33292]</div>
+<div class="dlg-text">I... I am unused to being in a subordinate position. It is hard for me to get used to. How is it that a slave race could become this powerful?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r11">reply #11</a> <span class="dlg-link-preview">“[TLK#33248]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r11">reply #11</a> <span class="dlg-link-preview">“Slaves? We are nobody&#x27;s slaves.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #12</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
-<div class="dlg-text">[TLK#33249]</div>
+<div class="dlg-text">I&#x27;m not answering any of your questions until you answer mine.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r30">reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #13</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
-<div class="dlg-text">[TLK#33250]</div>
+<div class="dlg-text">Slaves? Me no be slave to anyone.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e8">entry #8</a> <span class="dlg-link-preview">“[TLK#33293]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e8">entry #8</a> <span class="dlg-link-preview">“We might no longer be in power, or so you say, but then surely the draconic race…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #14</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
-<div class="dlg-text">[TLK#33251]</div>
+<div class="dlg-text">Me not answer questions &#x27;til you answer mine.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e9">entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r23">reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r32">reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r12">reply #12</a> <span class="dlg-link-preview">“[TLK#33249]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r13">reply #13</a> <span class="dlg-link-preview">“[TLK#33250]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r12">reply #12</a> <span class="dlg-link-preview">“I&#x27;m not answering any of your questions until you answer mine.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r13">reply #13</a> <span class="dlg-link-preview">“Slaves? Me no be slave to anyone.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #10</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
-<div class="dlg-text">[TLK#33247]</div>
+<div class="dlg-text">Me just beat you. Why you no afraid of me?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #22</span> <a class="dlg-anchor" href="#e22" title="jump to flat entry #22">¶</a></summary>
-<div class="dlg-text">[TLK#33307]</div>
+<div class="dlg-text">(Sigh) That such a small, barbaric mind could defeat us. This is a sad day.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #38</span> <a class="dlg-anchor" href="#r38" title="jump to flat reply #38">¶</a></summary>
 <div class="dlg-text"><em>(no text)</em></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“[TLK#33292]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“I... I am unused to being in a subordinate position. It is hard for me to get us…”</span></div>
 </div>
 </details>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r14">reply #14</a> <span class="dlg-link-preview">“[TLK#33251]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r14">reply #14</a> <span class="dlg-link-preview">“Me not answer questions &#x27;til you answer mine.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r8">reply #8</a> <span class="dlg-link-preview">“[TLK#33245]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r8">reply #8</a> <span class="dlg-link-preview">“You talk as if you just won the battle. Why aren&#x27;t you afraid of me?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #9</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
-<div class="dlg-text">[TLK#33246]</div>
+<div class="dlg-text">What you mean? We rule world.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“[TLK#33291]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Such a thing cannot be. How could your slave race have risen so high?”</span></div>
 </div>
 </details>
-<div class="dlg-tree-ref reply-ref">↩ <a href="#r10">reply #10</a> <span class="dlg-link-preview">“[TLK#33247]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r10">reply #10</a> <span class="dlg-link-preview">“Me just beat you. Why you no afraid of me?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></div>
 </div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #3</span> <small class="muted">(if <code>nw_d2_intn</code>)</small> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
-<div class="dlg-text">[TLK#33240]</div>
+<div class="dlg-text">That doesn&#x27;t sound like the proper tone of voice for one who was beaten, but I understand what you say.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #23</span> <a class="dlg-anchor" href="#e23" title="jump to flat entry #23">¶</a></summary>
-<div class="dlg-text">[TLK#33308]</div>
+<div class="dlg-text">This is very hard to understand. Things have obviously changed greatly.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #39</span> <a class="dlg-anchor" href="#r39" title="jump to flat reply #39">¶</a></summary>
 <div class="dlg-text"><em>(no text)</em></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“[TLK#33290]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“Why are you in here? How does a soft, weak mammal like yourself dare to enter th…”</span></div>
 </div>
 </details>
 </div>
@@ -643,16 +665,16 @@
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
-<div class="dlg-text">[TLK#33241]</div>
+<div class="dlg-text">Me know what you say. What you be?</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“[TLK#33290]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“Why are you in here? How does a soft, weak mammal like yourself dare to enter th…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #5</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
-<div class="dlg-text">[TLK#33242]</div>
+<div class="dlg-text">Me not like way you talk. You watch mouth or me take you head.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e23">entry #23</a> <span class="dlg-link-preview">“[TLK#33308]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e23">entry #23</a> <span class="dlg-link-preview">“This is very hard to understand. Things have obviously changed greatly.”</span></div>
 </div>
 </details>
 </div>
@@ -665,106 +687,106 @@
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #6</span> <small class="muted">(if <code>nw_d2_intl</code>)</small> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
-<div class="dlg-text">[TLK#33243]</div>
+<div class="dlg-text">Me not know what you say.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“[TLK#33288]”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Posna! Eck canessa tallak!”</span></div>
 </div>
 </details>
 </div>
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span></div><div class="dlg-text">[TLK#33285]</div></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">[TLK#33286]</div></div>
-<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>nw_d1_j_surr01</code></span></div><div class="dlg-text">[TLK#33287]</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“[TLK#33238]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“[TLK#33243]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">[TLK#33288]</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a></li></ul></div>
-<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">[TLK#33289]</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“[TLK#33239]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“[TLK#33240]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“[TLK#33241]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“[TLK#33242]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">[TLK#33290]</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“[TLK#33244]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“[TLK#33245]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“[TLK#33246]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“[TLK#33247]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">[TLK#33291]</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“[TLK#33248]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r8">→ child</a> <span class="dlg-link-preview">“[TLK#33245]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“[TLK#33249]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“[TLK#33250]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r10">→ child</a> <span class="dlg-link-preview">“[TLK#33247]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“[TLK#33251]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">[TLK#33292]</div><ul class="dlg-links"><li><a href="#r11">→ child</a> <span class="dlg-link-preview">“[TLK#33248]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r12">→ child</a> <span class="dlg-link-preview">“[TLK#33249]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r13">→ child</a> <span class="dlg-link-preview">“[TLK#33250]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r14">→ child</a> <span class="dlg-link-preview">“[TLK#33251]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">[TLK#33293]</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“[TLK#33252]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“[TLK#33255]”</span> <small class="muted">(if <code>nw_d2_wis_intn</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“[TLK#33253]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“[TLK#33258]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“[TLK#33259]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">[TLK#33294]</div><ul class="dlg-links"><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“[TLK#33256]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“[TLK#33257]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r25">→ reply #25</a> <span class="dlg-link-preview">“[TLK#33262]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“[TLK#33263]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“[TLK#33264]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“[TLK#33265]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">[TLK#33295]</div><ul class="dlg-links"><li><a href="#r42">→ reply #42</a></li></ul></div>
-<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">[TLK#33296]</div><ul class="dlg-links"><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“[TLK#33261]”</span></li><li><a href="#r33">→ reply #33</a> <span class="dlg-link-preview">“[TLK#33270]”</span></li></ul></div>
-<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">[TLK#33297]</div><ul class="dlg-links"><li><a href="#r36">→ child</a> <span class="dlg-link-preview">“[TLK#33271]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“[TLK#33273]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r37">→ child</a> <span class="dlg-link-preview">“[TLK#33272]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“[TLK#33274]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">[TLK#33298]</div><ul class="dlg-links"><li><a href="#r29">→ reply #29</a> <span class="dlg-link-preview">“[TLK#33266]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“[TLK#33268]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ reply #32</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">[TLK#33299]</div><ul class="dlg-links"><li><a href="#r43">→ reply #43</a></li></ul></div>
-<div class="dlg-node entry" id="e15"><div class="dlg-head"><span class="dlg-id">entry #15</span></div><div class="dlg-text">[TLK#33300]</div><ul class="dlg-links"><li><a href="#r34">→ reply #34</a></li></ul></div>
-<div class="dlg-node entry" id="e16"><div class="dlg-head"><span class="dlg-id">entry #16</span></div><div class="dlg-text">[TLK#33301]</div><ul class="dlg-links"><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“[TLK#33279]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r36">→ child</a> <span class="dlg-link-preview">“[TLK#33271]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r40">→ child</a> <span class="dlg-link-preview">“[TLK#33273]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“[TLK#33280]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r37">→ child</a> <span class="dlg-link-preview">“[TLK#33272]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r41">→ child</a> <span class="dlg-link-preview">“[TLK#33274]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e17"><div class="dlg-head"><span class="dlg-id">entry #17</span></div><div class="dlg-text">[TLK#33302]</div><ul class="dlg-links"><li><a href="#r24">→ child</a> <span class="dlg-link-preview">“[TLK#33261]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r16">→ child</a> <span class="dlg-link-preview">“[TLK#33253]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r22">→ child</a> <span class="dlg-link-preview">“[TLK#33259]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e18"><div class="dlg-head"><span class="dlg-id">entry #18</span></div><div class="dlg-text">[TLK#33303]</div><ul class="dlg-links"><li><a href="#r54">→ reply #54</a></li></ul></div>
-<div class="dlg-node entry" id="e19"><div class="dlg-head"><span class="dlg-id">entry #19</span></div><div class="dlg-text">[TLK#33304]</div><ul class="dlg-links"><li><a href="#r35">→ reply #35</a></li></ul></div>
-<div class="dlg-node entry" id="e20"><div class="dlg-head"><span class="dlg-id">entry #20</span></div><div class="dlg-text">[TLK#33305]</div><ul class="dlg-links"><li><a href="#r36">→ reply #36</a> <span class="dlg-link-preview">“[TLK#33271]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“[TLK#33277]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“[TLK#33278]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r37">→ reply #37</a> <span class="dlg-link-preview">“[TLK#33272]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e21"><div class="dlg-head"><span class="dlg-id">entry #21</span></div><div class="dlg-text">[TLK#33306]</div><ul class="dlg-links"><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“[TLK#33275]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“[TLK#33276]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e22"><div class="dlg-head"><span class="dlg-id">entry #22</span></div><div class="dlg-text">[TLK#33307]</div><ul class="dlg-links"><li><a href="#r38">→ reply #38</a></li></ul></div>
-<div class="dlg-node entry" id="e23"><div class="dlg-head"><span class="dlg-id">entry #23</span></div><div class="dlg-text">[TLK#33308]</div><ul class="dlg-links"><li><a href="#r39">→ reply #39</a></li></ul></div>
-<div class="dlg-node entry" id="e24"><div class="dlg-head"><span class="dlg-id">entry #24</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span></div><div class="dlg-text">[TLK#33309]</div></div>
-<div class="dlg-node entry" id="e25"><div class="dlg-head"><span class="dlg-id">entry #25</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span></div><div class="dlg-text">[TLK#33310]</div></div>
-<div class="dlg-node entry" id="e26"><div class="dlg-head"><span class="dlg-id">entry #26</span></div><div class="dlg-text">[TLK#33311]</div><ul class="dlg-links"><li><a href="#r36">→ child</a> <span class="dlg-link-preview">“[TLK#33271]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r51">→ reply #51</a> <span class="dlg-link-preview">“[TLK#33281]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r52">→ reply #52</a> <span class="dlg-link-preview">“[TLK#33282]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r37">→ child</a> <span class="dlg-link-preview">“[TLK#33272]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e27"><div class="dlg-head"><span class="dlg-id">entry #27</span></div><div class="dlg-text">[TLK#33312]</div><ul class="dlg-links"><li><a href="#r50">→ reply #50</a></li></ul></div>
-<div class="dlg-node entry" id="e28"><div class="dlg-head"><span class="dlg-id">entry #28</span></div><div class="dlg-text">[TLK#33313]</div><ul class="dlg-links"><li><a href="#r53">→ reply #53</a></li></ul></div>
-<div class="dlg-node entry" id="e29"><div class="dlg-head"><span class="dlg-id">entry #29</span></div><div class="dlg-text">[TLK#33314]</div><ul class="dlg-links"><li><a href="#r48">→ child</a> <span class="dlg-link-preview">“[TLK#33279]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r51">→ child</a> <span class="dlg-link-preview">“[TLK#33281]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r49">→ child</a> <span class="dlg-link-preview">“[TLK#33280]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r52">→ child</a> <span class="dlg-link-preview">“[TLK#33282]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e30"><div class="dlg-head"><span class="dlg-id">entry #30</span></div><div class="dlg-text">[TLK#33315]</div><ul class="dlg-links"><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“[TLK#33283]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r51">→ child</a> <span class="dlg-link-preview">“[TLK#33281]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“[TLK#33284]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r52">→ child</a> <span class="dlg-link-preview">“[TLK#33282]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
-<div class="dlg-node entry" id="e31"><div class="dlg-head"><span class="dlg-id">entry #31</span></div><div class="dlg-text">[TLK#33316]</div><ul class="dlg-links"><li><a href="#r51">→ child</a> <span class="dlg-link-preview">“[TLK#33281]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“[TLK#33254]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“[TLK#33267]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r52">→ child</a> <span class="dlg-link-preview">“[TLK#33282]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“[TLK#33260]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“[TLK#33269]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r48">→ child</a> <span class="dlg-link-preview">“[TLK#33279]”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r49">→ child</a> <span class="dlg-link-preview">“[TLK#33280]”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span></div><div class="dlg-text">Essa sythider cansticyle, vassa! Vassa! Vassa!</div></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Fregan paeca, fregan paeca. Sussenda messa!</div></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>nw_d1_j_surr01</code></span></div><div class="dlg-text">Syssin weras goola sisni?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I don&#x27;t understand what you are saying.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Me not know what you say.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Posna! Eck canessa tallak!</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">There! That brood spell should enable us to converse. Can you understand me, mammal?</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Yes, I can understand you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“That doesn&#x27;t sound like the proper tone of voice for one who was beaten, but I u…”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Me know what you say. What you be?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Me not like way you talk. You watch mouth or me take you head.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Why are you in here? How does a soft, weak mammal like yourself dare to enter this room?</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“I don&#x27;t know what you are talking about. We &quot;mammals&quot; rule the world.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“You talk as if you just won the battle. Why aren&#x27;t you afraid of me?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“What you mean? We rule world.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Me just beat you. Why you no afraid of me?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Such a thing cannot be. How could your slave race have risen so high?</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Slaves? We are nobody&#x27;s slaves.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r8">→ child</a> <span class="dlg-link-preview">“You talk as if you just won the battle. Why aren&#x27;t you afraid of me?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“I&#x27;m not answering any of your questions until you answer mine.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Slaves? Me no be slave to anyone.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r10">→ child</a> <span class="dlg-link-preview">“Me just beat you. Why you no afraid of me?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Me not answer questions &#x27;til you answer mine.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">I... I am unused to being in a subordinate position. It is hard for me to get used to. How is it that a slave race could become this powerful?</div><ul class="dlg-links"><li><a href="#r11">→ child</a> <span class="dlg-link-preview">“Slaves? We are nobody&#x27;s slaves.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r12">→ child</a> <span class="dlg-link-preview">“I&#x27;m not answering any of your questions until you answer mine.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r13">→ child</a> <span class="dlg-link-preview">“Slaves? Me no be slave to anyone.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r14">→ child</a> <span class="dlg-link-preview">“Me not answer questions &#x27;til you answer mine.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">We might no longer be in power, or so you say, but then surely the draconic race must rule the surface as they used to rule the skies?</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“They don&#x27;t really rule much of anything. Are you concerned about dragons?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“[Insight] Dragons? Does your race fear the power of the dragons?”</span> <small class="muted">(if <code>nw_d2_wis_intn</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“If you don&#x27;t answer my questions right now, I&#x27;m going to slit your slimy throat!”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“Not rule, but do fly. You worry &#x27;bout dragons?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“You answer me questions now, or me cut heads off.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">All right, mammal. I suppose I should humor your request, since I did surrender. What questions would you ask of me? </div><ul class="dlg-links"><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“What are you?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“Who are you?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r25">→ reply #25</a> <span class="dlg-link-preview">“What are you doing here?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“What you be?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“Who you be?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“What you do here?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">As if I would turn tail and flee from a mammal like you. You have given me enough time to recover. </div><ul class="dlg-links"><li><a href="#r42">→ reply #42</a></li></ul></div>
+<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">Hm. You mammals have become more intelligent than we had suspected. Interesting.</div><ul class="dlg-links"><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“I can tell you that I am getting rather tired of being called a mammal. Call me…”</span></li><li><a href="#r33">→ reply #33</a> <span class="dlg-link-preview">“You say we. Who are you refering to?”</span></li></ul></div>
+<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">My, a sense of identity. You are much like the Sentiegans. It didn&#x27;t take long for their resistance to be broken. It should be amusing to see what becomes of your civilized manners when our race dominates yours again.</div><ul class="dlg-links"><li><a href="#r36">→ child</a> <span class="dlg-link-preview">“What makes you think your race will dominate ours?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“You will answer my questions now!”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r37">→ child</a> <span class="dlg-link-preview">“Me just beat you. What make you think you take us over?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“You answer me questions now, or else!”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">I am a member of a race that is highly superior to yours. We are masters of flesh, mind and spirit.</div><ul class="dlg-links"><li><a href="#r29">→ reply #29</a> <span class="dlg-link-preview">“That doesn&#x27;t answer my question.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“That not good answer! No make any sense.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ reply #32</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">You have given me enough time to recover.</div><ul class="dlg-links"><li><a href="#r43">→ reply #43</a></li></ul></div>
+<div class="dlg-node entry" id="e15"><div class="dlg-head"><span class="dlg-id">entry #15</span></div><div class="dlg-text">I remember being in a dark, peaceful sleep. I thought it would never end, but my companions and I awoke when we heard a call from our Queen. May her all-knowing, all-powerful wisdom guide us to our glorious destiny. </div><ul class="dlg-links"><li><a href="#r34">→ reply #34</a></li></ul></div>
+<div class="dlg-node entry" id="e16"><div class="dlg-head"><span class="dlg-id">entry #16</span></div><div class="dlg-text">Someday soon your race will once again fall under our domination.</div><ul class="dlg-links"><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“Who is this queen you speak of?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r36">→ child</a> <span class="dlg-link-preview">“What makes you think your race will dominate ours?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r40">→ child</a> <span class="dlg-link-preview">“You will answer my questions now!”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“Who be you queen?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r37">→ child</a> <span class="dlg-link-preview">“Me just beat you. What make you think you take us over?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r41">→ child</a> <span class="dlg-link-preview">“You answer me questions now, or else!”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e17"><div class="dlg-head"><span class="dlg-id">entry #17</span></div><div class="dlg-text">So the winged masters have been weakened? Excellent. Do you mean to tell me that you mammals aren&#x27;t ruled by a greater race?</div><ul class="dlg-links"><li><a href="#r24">→ child</a> <span class="dlg-link-preview">“I can tell you that I am getting rather tired of being called a mammal. Call me…”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r16">→ child</a> <span class="dlg-link-preview">“If you don&#x27;t answer my questions right now, I&#x27;m going to slit your slimy throat!”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r22">→ child</a> <span class="dlg-link-preview">“You answer me questions now, or me cut heads off.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e18"><div class="dlg-head"><span class="dlg-id">entry #18</span></div><div class="dlg-text">It would, if your race had true intelligence, but I will speak so that one such as you can understand. We are the master race, created perfect in form and mind, and meant to rule the lesser races. </div><ul class="dlg-links"><li><a href="#r54">→ reply #54</a></li></ul></div>
+<div class="dlg-node entry" id="e19"><div class="dlg-head"><span class="dlg-id">entry #19</span></div><div class="dlg-text">My name is Synsilliusarian, though I doubt your fleshy tongue could possibly pronounce such a noble name. I am a mage of the Calantian Order. </div><ul class="dlg-links"><li><a href="#r35">→ reply #35</a></li></ul></div>
+<div class="dlg-node entry" id="e20"><div class="dlg-head"><span class="dlg-id">entry #20</span></div><div class="dlg-text">Though it will mean nothing to you now, once we have dominated your race again you will learn how great of an honor it is to have spoken with me.</div><ul class="dlg-links"><li><a href="#r36">→ reply #36</a> <span class="dlg-link-preview">“What makes you think your race will dominate ours?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“I have more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“Me have another question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r37">→ reply #37</a> <span class="dlg-link-preview">“Me just beat you. What make you think you take us over?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e21"><div class="dlg-head"><span class="dlg-id">entry #21</span></div><div class="dlg-text">You haven&#x27;t even the slightest idea of what you face. You will learn, in time. Is your mind completely worn out from the effort of communicating, or do you have other questions?</div><ul class="dlg-links"><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“I have more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“Me have more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e22"><div class="dlg-head"><span class="dlg-id">entry #22</span></div><div class="dlg-text">(Sigh) That such a small, barbaric mind could defeat us. This is a sad day.</div><ul class="dlg-links"><li><a href="#r38">→ reply #38</a></li></ul></div>
+<div class="dlg-node entry" id="e23"><div class="dlg-head"><span class="dlg-id">entry #23</span></div><div class="dlg-text">This is very hard to understand. Things have obviously changed greatly.</div><ul class="dlg-links"><li><a href="#r39">→ reply #39</a></li></ul></div>
+<div class="dlg-node entry" id="e24"><div class="dlg-head"><span class="dlg-id">entry #24</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span></div><div class="dlg-text">Now you die!</div></div>
+<div class="dlg-node entry" id="e25"><div class="dlg-head"><span class="dlg-id">entry #25</span> <span class="dlg-action">→ <code>nw_d1_attonend02</code></span></div><div class="dlg-text">Now it is you who shall die!</div></div>
+<div class="dlg-node entry" id="e26"><div class="dlg-head"><span class="dlg-id">entry #26</span></div><div class="dlg-text">She is the Tykalatian Matriarch. She is power beyond understanding. Cunning beyond belief. You will fall to her, as all have fallen before. That is all I will tell you.</div><ul class="dlg-links"><li><a href="#r36">→ child</a> <span class="dlg-link-preview">“What makes you think your race will dominate ours?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r51">→ reply #51</a> <span class="dlg-link-preview">“I would ask you more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r52">→ reply #52</a> <span class="dlg-link-preview">“Me want ask more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r37">→ child</a> <span class="dlg-link-preview">“Me just beat you. What make you think you take us over?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e27"><div class="dlg-head"><span class="dlg-id">entry #27</span></div><div class="dlg-text">I remember being in a dark, peaceful sleep. I thought it would never end, but my companions and I awoke when we heard a call from our Queen. May her all-knowing, all-powerful wisdom guide us to our glorious destiny. </div><ul class="dlg-links"><li><a href="#r50">→ reply #50</a></li></ul></div>
+<div class="dlg-node entry" id="e28"><div class="dlg-head"><span class="dlg-id">entry #28</span></div><div class="dlg-text">Her words whispered in my mind, communicating visions of conquest and power. The entire world would bow before us, begging for mercy and receiving none. </div><ul class="dlg-links"><li><a href="#r53">→ reply #53</a></li></ul></div>
+<div class="dlg-node entry" id="e29"><div class="dlg-head"><span class="dlg-id">entry #29</span></div><div class="dlg-text">Since awakening we have not heard from her again, but when she speaks we will go forth and conquer. </div><ul class="dlg-links"><li><a href="#r48">→ child</a> <span class="dlg-link-preview">“Who is this queen you speak of?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r51">→ child</a> <span class="dlg-link-preview">“I would ask you more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r49">→ child</a> <span class="dlg-link-preview">“Who be you queen?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r52">→ child</a> <span class="dlg-link-preview">“Me want ask more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e30"><div class="dlg-head"><span class="dlg-id">entry #30</span></div><div class="dlg-text">We possess incredible magics, the likes of which your puny mages can only dream of. Our warriors are fearless and nearly unstoppable.</div><ul class="dlg-links"><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“If you are so powerful, then how was I able to defeat you?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r51">→ child</a> <span class="dlg-link-preview">“I would ask you more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“If you so tough, why me beat you so easy?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r52">→ child</a> <span class="dlg-link-preview">“Me want ask more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e31"><div class="dlg-head"><span class="dlg-id">entry #31</span></div><div class="dlg-text">I have not been awake long. Perhaps I have simply not recovered my full strength. Be assured, when my queen decides that it is time, we shall come forth and show you what real power is.</div><ul class="dlg-links"><li><a href="#r51">→ child</a> <span class="dlg-link-preview">“I would ask you more questions.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I&#x27;m not talking to you anymore. Get out of my sight.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r30">→ child</a> <span class="dlg-link-preview">“I don&#x27;t trust you. I think I had better kill you.”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r52">→ child</a> <span class="dlg-link-preview">“Me want ask more question.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r23">→ child</a> <span class="dlg-link-preview">“You bothering me. Go away quick.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r32">→ child</a> <span class="dlg-link-preview">“Me no trust you. Me kill you now.”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li><li><a href="#r48">→ child</a> <span class="dlg-link-preview">“Who is this queen you speak of?”</span> <small class="muted">(if <code>nw_d2_intn</code>)</small></li><li><a href="#r49">→ child</a> <span class="dlg-link-preview">“Who be you queen?”</span> <small class="muted">(if <code>nw_d2_intl</code>)</small></li></ul></div>
 <h2>PC replies — flat index</h2>
-<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">[TLK#33238]</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“[TLK#33288]”</span></li></ul></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“[TLK#33289]”</span></li></ul></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">[TLK#33239]</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“[TLK#33290]”</span></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">[TLK#33240]</div><ul class="dlg-links"><li><a href="#e23">→ entry #23</a> <span class="dlg-link-preview">“[TLK#33308]”</span></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">[TLK#33241]</div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“[TLK#33290]”</span></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">[TLK#33242]</div><ul class="dlg-links"><li><a href="#e23">→ child</a> <span class="dlg-link-preview">“[TLK#33308]”</span></li></ul></div>
-<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">[TLK#33243]</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“[TLK#33288]”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">[TLK#33244]</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“[TLK#33291]”</span></li></ul></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">[TLK#33245]</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“[TLK#33292]”</span></li></ul></div>
-<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">[TLK#33246]</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“[TLK#33291]”</span></li></ul></div>
-<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">[TLK#33247]</div><ul class="dlg-links"><li><a href="#e22">→ entry #22</a> <span class="dlg-link-preview">“[TLK#33307]”</span></li></ul></div>
-<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">[TLK#33248]</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“[TLK#33293]”</span></li></ul></div>
-<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">[TLK#33249]</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">[TLK#33250]</div><ul class="dlg-links"><li><a href="#e8">→ child</a> <span class="dlg-link-preview">“[TLK#33293]”</span></li></ul></div>
-<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">[TLK#33251]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">[TLK#33252]</div><ul class="dlg-links"><li><a href="#e17">→ entry #17</a> <span class="dlg-link-preview">“[TLK#33302]”</span></li></ul></div>
-<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">[TLK#33253]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">[TLK#33254]</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“[TLK#33295]”</span></li></ul></div>
-<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">[TLK#33255]</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“[TLK#33296]”</span></li></ul></div>
-<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">[TLK#33256]</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“[TLK#33298]”</span></li></ul></div>
-<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">[TLK#33257]</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“[TLK#33304]”</span></li></ul></div>
-<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">[TLK#33258]</div><ul class="dlg-links"><li><a href="#e17">→ child</a> <span class="dlg-link-preview">“[TLK#33302]”</span></li></ul></div>
-<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">[TLK#33259]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span></div><div class="dlg-text">[TLK#33260]</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“[TLK#33295]”</span></li></ul></div>
-<div class="dlg-node reply" id="r24"><div class="dlg-head"><span class="dlg-id">reply #24</span></div><div class="dlg-text">[TLK#33261]</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“[TLK#33297]”</span></li></ul></div>
-<div class="dlg-node reply" id="r25"><div class="dlg-head"><span class="dlg-id">reply #25</span></div><div class="dlg-text">[TLK#33262]</div><ul class="dlg-links"><li><a href="#e27">→ entry #27</a> <span class="dlg-link-preview">“[TLK#33312]”</span></li></ul></div>
-<div class="dlg-node reply" id="r26"><div class="dlg-head"><span class="dlg-id">reply #26</span></div><div class="dlg-text">[TLK#33263]</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“[TLK#33298]”</span></li></ul></div>
-<div class="dlg-node reply" id="r27"><div class="dlg-head"><span class="dlg-id">reply #27</span></div><div class="dlg-text">[TLK#33264]</div><ul class="dlg-links"><li><a href="#e19">→ child</a> <span class="dlg-link-preview">“[TLK#33304]”</span></li></ul></div>
-<div class="dlg-node reply" id="r28"><div class="dlg-head"><span class="dlg-id">reply #28</span></div><div class="dlg-text">[TLK#33265]</div><ul class="dlg-links"><li><a href="#e15">→ child</a> <span class="dlg-link-preview">“[TLK#33300]”</span></li></ul></div>
-<div class="dlg-node reply" id="r29"><div class="dlg-head"><span class="dlg-id">reply #29</span></div><div class="dlg-text">[TLK#33266]</div><ul class="dlg-links"><li><a href="#e18">→ entry #18</a> <span class="dlg-link-preview">“[TLK#33303]”</span></li></ul></div>
-<div class="dlg-node reply" id="r30"><div class="dlg-head"><span class="dlg-id">reply #30</span></div><div class="dlg-text">[TLK#33267]</div><ul class="dlg-links"><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“[TLK#33299]”</span></li></ul></div>
-<div class="dlg-node reply" id="r31"><div class="dlg-head"><span class="dlg-id">reply #31</span></div><div class="dlg-text">[TLK#33268]</div><ul class="dlg-links"><li><a href="#e18">→ child</a> <span class="dlg-link-preview">“[TLK#33303]”</span></li></ul></div>
-<div class="dlg-node reply" id="r32"><div class="dlg-head"><span class="dlg-id">reply #32</span></div><div class="dlg-text">[TLK#33269]</div><ul class="dlg-links"><li><a href="#e14">→ child</a> <span class="dlg-link-preview">“[TLK#33299]”</span></li></ul></div>
-<div class="dlg-node reply" id="r33"><div class="dlg-head"><span class="dlg-id">reply #33</span></div><div class="dlg-text">[TLK#33270]</div><ul class="dlg-links"><li><a href="#e15">→ entry #15</a> <span class="dlg-link-preview">“[TLK#33300]”</span></li></ul></div>
-<div class="dlg-node reply" id="r34"><div class="dlg-head"><span class="dlg-id">reply #34</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e16">→ entry #16</a> <span class="dlg-link-preview">“[TLK#33301]”</span></li></ul></div>
-<div class="dlg-node reply" id="r35"><div class="dlg-head"><span class="dlg-id">reply #35</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e20">→ entry #20</a> <span class="dlg-link-preview">“[TLK#33305]”</span></li></ul></div>
-<div class="dlg-node reply" id="r36"><div class="dlg-head"><span class="dlg-id">reply #36</span></div><div class="dlg-text">[TLK#33271]</div><ul class="dlg-links"><li><a href="#e21">→ entry #21</a> <span class="dlg-link-preview">“[TLK#33306]”</span></li></ul></div>
-<div class="dlg-node reply" id="r37"><div class="dlg-head"><span class="dlg-id">reply #37</span></div><div class="dlg-text">[TLK#33272]</div><ul class="dlg-links"><li><a href="#e21">→ child</a> <span class="dlg-link-preview">“[TLK#33306]”</span></li></ul></div>
-<div class="dlg-node reply" id="r38"><div class="dlg-head"><span class="dlg-id">reply #38</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“[TLK#33292]”</span></li></ul></div>
-<div class="dlg-node reply" id="r39"><div class="dlg-head"><span class="dlg-id">reply #39</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“[TLK#33290]”</span></li></ul></div>
-<div class="dlg-node reply" id="r40"><div class="dlg-head"><span class="dlg-id">reply #40</span></div><div class="dlg-text">[TLK#33273]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r41"><div class="dlg-head"><span class="dlg-id">reply #41</span></div><div class="dlg-text">[TLK#33274]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r42"><div class="dlg-head"><span class="dlg-id">reply #42</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e24">→ entry #24</a> <span class="dlg-link-preview">“[TLK#33309]”</span></li></ul></div>
-<div class="dlg-node reply" id="r43"><div class="dlg-head"><span class="dlg-id">reply #43</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e25">→ entry #25</a> <span class="dlg-link-preview">“[TLK#33310]”</span></li></ul></div>
-<div class="dlg-node reply" id="r44"><div class="dlg-head"><span class="dlg-id">reply #44</span></div><div class="dlg-text">[TLK#33275]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r45"><div class="dlg-head"><span class="dlg-id">reply #45</span></div><div class="dlg-text">[TLK#33276]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r46"><div class="dlg-head"><span class="dlg-id">reply #46</span></div><div class="dlg-text">[TLK#33277]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r47"><div class="dlg-head"><span class="dlg-id">reply #47</span></div><div class="dlg-text">[TLK#33278]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r48"><div class="dlg-head"><span class="dlg-id">reply #48</span></div><div class="dlg-text">[TLK#33279]</div><ul class="dlg-links"><li><a href="#e26">→ entry #26</a> <span class="dlg-link-preview">“[TLK#33311]”</span></li></ul></div>
-<div class="dlg-node reply" id="r49"><div class="dlg-head"><span class="dlg-id">reply #49</span></div><div class="dlg-text">[TLK#33280]</div><ul class="dlg-links"><li><a href="#e26">→ child</a> <span class="dlg-link-preview">“[TLK#33311]”</span></li></ul></div>
-<div class="dlg-node reply" id="r50"><div class="dlg-head"><span class="dlg-id">reply #50</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e28">→ entry #28</a> <span class="dlg-link-preview">“[TLK#33313]”</span></li></ul></div>
-<div class="dlg-node reply" id="r51"><div class="dlg-head"><span class="dlg-id">reply #51</span></div><div class="dlg-text">[TLK#33281]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r52"><div class="dlg-head"><span class="dlg-id">reply #52</span></div><div class="dlg-text">[TLK#33282]</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“[TLK#33294]”</span></li></ul></div>
-<div class="dlg-node reply" id="r53"><div class="dlg-head"><span class="dlg-id">reply #53</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e29">→ entry #29</a> <span class="dlg-link-preview">“[TLK#33314]”</span></li></ul></div>
-<div class="dlg-node reply" id="r54"><div class="dlg-head"><span class="dlg-id">reply #54</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e30">→ entry #30</a> <span class="dlg-link-preview">“[TLK#33315]”</span></li></ul></div>
-<div class="dlg-node reply" id="r55"><div class="dlg-head"><span class="dlg-id">reply #55</span></div><div class="dlg-text">[TLK#33283]</div><ul class="dlg-links"><li><a href="#e31">→ entry #31</a> <span class="dlg-link-preview">“[TLK#33316]”</span></li></ul></div>
-<div class="dlg-node reply" id="r56"><div class="dlg-head"><span class="dlg-id">reply #56</span></div><div class="dlg-text">[TLK#33284]</div><ul class="dlg-links"><li><a href="#e31">→ child</a> <span class="dlg-link-preview">“[TLK#33316]”</span></li></ul></div>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">I don&#x27;t understand what you are saying.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Posna! Eck canessa tallak!”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“There! That brood spell should enable us to converse. Can you understand me, mam…”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Yes, I can understand you.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Why are you in here? How does a soft, weak mammal like yourself dare to enter th…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">That doesn&#x27;t sound like the proper tone of voice for one who was beaten, but I understand what you say.</div><ul class="dlg-links"><li><a href="#e23">→ entry #23</a> <span class="dlg-link-preview">“This is very hard to understand. Things have obviously changed greatly.”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Me know what you say. What you be?</div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“Why are you in here? How does a soft, weak mammal like yourself dare to enter th…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Me not like way you talk. You watch mouth or me take you head.</div><ul class="dlg-links"><li><a href="#e23">→ child</a> <span class="dlg-link-preview">“This is very hard to understand. Things have obviously changed greatly.”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Me not know what you say.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Posna! Eck canessa tallak!”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">I don&#x27;t know what you are talking about. We &quot;mammals&quot; rule the world.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Such a thing cannot be. How could your slave race have risen so high?”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">You talk as if you just won the battle. Why aren&#x27;t you afraid of me?</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“I... I am unused to being in a subordinate position. It is hard for me to get us…”</span></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">What you mean? We rule world.</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Such a thing cannot be. How could your slave race have risen so high?”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Me just beat you. Why you no afraid of me?</div><ul class="dlg-links"><li><a href="#e22">→ entry #22</a> <span class="dlg-link-preview">“(Sigh) That such a small, barbaric mind could defeat us. This is a sad day.”</span></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">Slaves? We are nobody&#x27;s slaves.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“We might no longer be in power, or so you say, but then surely the draconic race…”</span></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">I&#x27;m not answering any of your questions until you answer mine.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">Slaves? Me no be slave to anyone.</div><ul class="dlg-links"><li><a href="#e8">→ child</a> <span class="dlg-link-preview">“We might no longer be in power, or so you say, but then surely the draconic race…”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">Me not answer questions &#x27;til you answer mine.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">They don&#x27;t really rule much of anything. Are you concerned about dragons?</div><ul class="dlg-links"><li><a href="#e17">→ entry #17</a> <span class="dlg-link-preview">“So the winged masters have been weakened? Excellent. Do you mean to tell me that…”</span></li></ul></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">If you don&#x27;t answer my questions right now, I&#x27;m going to slit your slimy throat!</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">I&#x27;m not talking to you anymore. Get out of my sight.</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“As if I would turn tail and flee from a mammal like you. You have given me enoug…”</span></li></ul></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">&lt;StartCheck&gt;[Insight]&lt;/Start&gt; Dragons? Does your race fear the power of the dragons?</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Hm. You mammals have become more intelligent than we had suspected. Interesting.”</span></li></ul></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">What are you?</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“I am a member of a race that is highly superior to yours. We are masters of fles…”</span></li></ul></div>
+<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">Who are you?</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“My name is Synsilliusarian, though I doubt your fleshy tongue could possibly pro…”</span></li></ul></div>
+<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">Not rule, but do fly. You worry &#x27;bout dragons?</div><ul class="dlg-links"><li><a href="#e17">→ child</a> <span class="dlg-link-preview">“So the winged masters have been weakened? Excellent. Do you mean to tell me that…”</span></li></ul></div>
+<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">You answer me questions now, or me cut heads off.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span></div><div class="dlg-text">You bothering me. Go away quick.</div><ul class="dlg-links"><li><a href="#e10">→ child</a> <span class="dlg-link-preview">“As if I would turn tail and flee from a mammal like you. You have given me enoug…”</span></li></ul></div>
+<div class="dlg-node reply" id="r24"><div class="dlg-head"><span class="dlg-id">reply #24</span></div><div class="dlg-text">I can tell you that I am getting rather tired of being called a mammal. Call me &lt;FirstName&gt;.</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“My, a sense of identity. You are much like the Sentiegans. It didn&#x27;t take long f…”</span></li></ul></div>
+<div class="dlg-node reply" id="r25"><div class="dlg-head"><span class="dlg-id">reply #25</span></div><div class="dlg-text">What are you doing here?</div><ul class="dlg-links"><li><a href="#e27">→ entry #27</a> <span class="dlg-link-preview">“I remember being in a dark, peaceful sleep. I thought it would never end, but my…”</span></li></ul></div>
+<div class="dlg-node reply" id="r26"><div class="dlg-head"><span class="dlg-id">reply #26</span></div><div class="dlg-text">What you be?</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“I am a member of a race that is highly superior to yours. We are masters of fles…”</span></li></ul></div>
+<div class="dlg-node reply" id="r27"><div class="dlg-head"><span class="dlg-id">reply #27</span></div><div class="dlg-text">Who you be?</div><ul class="dlg-links"><li><a href="#e19">→ child</a> <span class="dlg-link-preview">“My name is Synsilliusarian, though I doubt your fleshy tongue could possibly pro…”</span></li></ul></div>
+<div class="dlg-node reply" id="r28"><div class="dlg-head"><span class="dlg-id">reply #28</span></div><div class="dlg-text">What you do here?</div><ul class="dlg-links"><li><a href="#e15">→ child</a> <span class="dlg-link-preview">“I remember being in a dark, peaceful sleep. I thought it would never end, but my…”</span></li></ul></div>
+<div class="dlg-node reply" id="r29"><div class="dlg-head"><span class="dlg-id">reply #29</span></div><div class="dlg-text">That doesn&#x27;t answer my question.</div><ul class="dlg-links"><li><a href="#e18">→ entry #18</a> <span class="dlg-link-preview">“It would, if your race had true intelligence, but I will speak so that one such…”</span></li></ul></div>
+<div class="dlg-node reply" id="r30"><div class="dlg-head"><span class="dlg-id">reply #30</span></div><div class="dlg-text">I don&#x27;t trust you. I think I had better kill you.</div><ul class="dlg-links"><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“You have given me enough time to recover.”</span></li></ul></div>
+<div class="dlg-node reply" id="r31"><div class="dlg-head"><span class="dlg-id">reply #31</span></div><div class="dlg-text">That not good answer! No make any sense.</div><ul class="dlg-links"><li><a href="#e18">→ child</a> <span class="dlg-link-preview">“It would, if your race had true intelligence, but I will speak so that one such…”</span></li></ul></div>
+<div class="dlg-node reply" id="r32"><div class="dlg-head"><span class="dlg-id">reply #32</span></div><div class="dlg-text">Me no trust you. Me kill you now.</div><ul class="dlg-links"><li><a href="#e14">→ child</a> <span class="dlg-link-preview">“You have given me enough time to recover.”</span></li></ul></div>
+<div class="dlg-node reply" id="r33"><div class="dlg-head"><span class="dlg-id">reply #33</span></div><div class="dlg-text">You say we. Who are you refering to?</div><ul class="dlg-links"><li><a href="#e15">→ entry #15</a> <span class="dlg-link-preview">“I remember being in a dark, peaceful sleep. I thought it would never end, but my…”</span></li></ul></div>
+<div class="dlg-node reply" id="r34"><div class="dlg-head"><span class="dlg-id">reply #34</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e16">→ entry #16</a> <span class="dlg-link-preview">“Someday soon your race will once again fall under our domination.”</span></li></ul></div>
+<div class="dlg-node reply" id="r35"><div class="dlg-head"><span class="dlg-id">reply #35</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e20">→ entry #20</a> <span class="dlg-link-preview">“Though it will mean nothing to you now, once we have dominated your race again y…”</span></li></ul></div>
+<div class="dlg-node reply" id="r36"><div class="dlg-head"><span class="dlg-id">reply #36</span></div><div class="dlg-text">What makes you think your race will dominate ours?</div><ul class="dlg-links"><li><a href="#e21">→ entry #21</a> <span class="dlg-link-preview">“You haven&#x27;t even the slightest idea of what you face. You will learn, in time. I…”</span></li></ul></div>
+<div class="dlg-node reply" id="r37"><div class="dlg-head"><span class="dlg-id">reply #37</span></div><div class="dlg-text">Me just beat you. What make you think you take us over?</div><ul class="dlg-links"><li><a href="#e21">→ child</a> <span class="dlg-link-preview">“You haven&#x27;t even the slightest idea of what you face. You will learn, in time. I…”</span></li></ul></div>
+<div class="dlg-node reply" id="r38"><div class="dlg-head"><span class="dlg-id">reply #38</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“I... I am unused to being in a subordinate position. It is hard for me to get us…”</span></li></ul></div>
+<div class="dlg-node reply" id="r39"><div class="dlg-head"><span class="dlg-id">reply #39</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“Why are you in here? How does a soft, weak mammal like yourself dare to enter th…”</span></li></ul></div>
+<div class="dlg-node reply" id="r40"><div class="dlg-head"><span class="dlg-id">reply #40</span></div><div class="dlg-text">You will answer my questions now!</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r41"><div class="dlg-head"><span class="dlg-id">reply #41</span></div><div class="dlg-text">You answer me questions now, or else!</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r42"><div class="dlg-head"><span class="dlg-id">reply #42</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e24">→ entry #24</a> <span class="dlg-link-preview">“Now you die!”</span></li></ul></div>
+<div class="dlg-node reply" id="r43"><div class="dlg-head"><span class="dlg-id">reply #43</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e25">→ entry #25</a> <span class="dlg-link-preview">“Now it is you who shall die!”</span></li></ul></div>
+<div class="dlg-node reply" id="r44"><div class="dlg-head"><span class="dlg-id">reply #44</span></div><div class="dlg-text">I have more questions.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r45"><div class="dlg-head"><span class="dlg-id">reply #45</span></div><div class="dlg-text">Me have more question.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r46"><div class="dlg-head"><span class="dlg-id">reply #46</span></div><div class="dlg-text">I have more questions.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r47"><div class="dlg-head"><span class="dlg-id">reply #47</span></div><div class="dlg-text">Me have another question.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r48"><div class="dlg-head"><span class="dlg-id">reply #48</span></div><div class="dlg-text">Who is this queen you speak of?</div><ul class="dlg-links"><li><a href="#e26">→ entry #26</a> <span class="dlg-link-preview">“She is the Tykalatian Matriarch. She is power beyond understanding. Cunning beyo…”</span></li></ul></div>
+<div class="dlg-node reply" id="r49"><div class="dlg-head"><span class="dlg-id">reply #49</span></div><div class="dlg-text">Who be you queen?</div><ul class="dlg-links"><li><a href="#e26">→ child</a> <span class="dlg-link-preview">“She is the Tykalatian Matriarch. She is power beyond understanding. Cunning beyo…”</span></li></ul></div>
+<div class="dlg-node reply" id="r50"><div class="dlg-head"><span class="dlg-id">reply #50</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e28">→ entry #28</a> <span class="dlg-link-preview">“Her words whispered in my mind, communicating visions of conquest and power. The…”</span></li></ul></div>
+<div class="dlg-node reply" id="r51"><div class="dlg-head"><span class="dlg-id">reply #51</span></div><div class="dlg-text">I would ask you more questions.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r52"><div class="dlg-head"><span class="dlg-id">reply #52</span></div><div class="dlg-text">Me want ask more question.</div><ul class="dlg-links"><li><a href="#e9">→ child</a> <span class="dlg-link-preview">“All right, mammal. I suppose I should humor your request, since I did surrender.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r53"><div class="dlg-head"><span class="dlg-id">reply #53</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e29">→ entry #29</a> <span class="dlg-link-preview">“Since awakening we have not heard from her again, but when she speaks we will go…”</span></li></ul></div>
+<div class="dlg-node reply" id="r54"><div class="dlg-head"><span class="dlg-id">reply #54</span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e30">→ entry #30</a> <span class="dlg-link-preview">“We possess incredible magics, the likes of which your puny mages can only dream…”</span></li></ul></div>
+<div class="dlg-node reply" id="r55"><div class="dlg-head"><span class="dlg-id">reply #55</span></div><div class="dlg-text">If you are so powerful, then how was I able to defeat you?</div><ul class="dlg-links"><li><a href="#e31">→ entry #31</a> <span class="dlg-link-preview">“I have not been awake long. Perhaps I have simply not recovered my full strength…”</span></li></ul></div>
+<div class="dlg-node reply" id="r56"><div class="dlg-head"><span class="dlg-id">reply #56</span></div><div class="dlg-text">If you so tough, why me beat you so easy?</div><ul class="dlg-links"><li><a href="#e31">→ child</a> <span class="dlg-link-preview">“I have not been awake long. Perhaps I have simply not recovered my full strength…”</span></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

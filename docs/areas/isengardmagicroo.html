@@ -4,42 +4,66 @@
   <meta charset="utf-8">
   <title>Isengard (Magic Room)</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Isengard (Magic Room)</h1>
-<dl class="meta"><dt>ResRef</dt><dd>isengardmagicroo</dd><dt>Tag</dt><dd>IsengardMagicRoom</dd><dt>Tileset</dt><dd>Crypt <small class="muted">(tin01)</small></dd><dt>Size</dt><dd>8×8 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>isengardmagicroo</dd><dt>Tag</dt><dd>IsengardMagicRoom</dd><dt>Tileset</dt><dd>Crypt <small class="muted">(tin01)</small></dd><dt>Size</dt><dd>8×8 tiles</dd><dt>OnEnter</dt><dd>d_cleartrash</dd><dt>OnExit</dt><dd>d_purge</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="isengardinnerrim.html">Isengard (Innerrim)</a> <em class="muted">[Welcome ! Tell me where you wish to be sent.]</em></li><li><a href="isengardinnerrim.html">Isengard (Innerrim)</a> &rarr; <a href="isengardmagicroo.html">Isengard (Magic Room)</a> <em class="muted">[use the &#8220;inner2vault&#8221; door]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>vault2isen</td><td><a href="isengardinnerrim.html">Isengard (Innerrim)</a></td><td><code>inner2vault</code></td></tr></tbody></table>
 <h2>Incoming transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>door</td><td><a href="isengardinnerrim.html">Isengard (Innerrim)</a></td><td>inner2vault</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/isengardmagicroo-000.html">Fail the White Hand Blaster</a></td><td><a href="../creatures/railthewhiteh003.html">Fail the White Hand Blaster</a></td><td>railthewhiteh003</td><td>Orc</td><td>Sorcerer 35/Arcane Archer 5</td><td>1520</td><td>96.0</td><td>Neutral</td><td><a href="../conversations/saurmerch.html">saurmerch</a></td></tr>
-<tr><td><a href="../creatures/instances/isengardmagicroo-001.html">Dunland Shaman</a></td><td><a href="../creatures/uthgard006.html">Dunland Shaman</a></td><td>uthgard006</td><td>Human</td><td>Barbarian 15/Druid 35</td><td>1200</td><td>80.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardmagicroo-002.html">Dunland Shaman</a></td><td><a href="../creatures/uthgard006.html">Dunland Shaman</a></td><td>uthgard006</td><td>Human</td><td>Barbarian 15/Druid 35</td><td>1200</td><td>80.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardmagicroo-003.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardmagicroo-004.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardmagicroo-005.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
-<tr><td><a href="../creatures/instances/isengardmagicroo-006.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/railthewhiteh003.html">Fail the White Hand Blaster</a></td><td>railthewhiteh003</td><td>Orc</td><td>Sorcerer 35/Arcane Archer 5</td><td>1520</td><td>96.0</td><td>Neutral</td><td><a href="../conversations/saurmerch.html">saurmerch</a></td></tr>
+<tr><td><a href="../creatures/uthgard006.html">Dunland Shaman</a></td><td>uthgard006</td><td>Human</td><td>Barbarian 15/Druid 35</td><td>1200</td><td>80.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/uthgard006.html">Dunland Shaman</a></td><td>uthgard006</td><td>Human</td><td>Barbarian 15/Druid 35</td><td>1200</td><td>80.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr>
+<tr><td><a href="../creatures/urukai008.html">Uruk Hai White Hand&#x27;s Chosen</a></td><td>urukai008</td><td>Half-Orc</td><td>Fighter 35</td><td>615</td><td>116.0</td><td>Commoner</td><td></td></tr></tbody></table>
 <h2>Stores</h2>
-<table class="data"><thead><tr><th>Store</th><th>ResRef</th></tr></thead><tbody><tr><td>saaurmanmagic</td><td>saaurmanmagic</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>Items</th><th>Opened By</th><th title="Price store charges you to buy items (% of base)">Sells At</th><th title="Price store pays you for items (% of base)">Buys At</th><th title="Maximum the store will pay for any single item">Max Buy</th><th title="Highest base item value in stock (before markup)">Max GP</th><th title="Average base item value in stock (before markup)">Avg GP</th></tr></thead><tbody><tr><td><a href="../stores/isengardmagicroo_saaurmanmagic.html">saaurmanmagic</a></td><td>138</td><td>NPC <a href="../creatures/railthewhiteh003.html">Fail the White Hand Blaster</a> (via <a href="../conversations/saurmerch.html">conversation</a>)</td><td>150%</td><td>5%</td><td>20,000 gp</td><td>5,253,126</td><td>166,034</td></tr></tbody></table>
 <h2>Conversations triggered here</h2>
-<table class="data"><thead><tr><th>Conversation</th><th>ResRef</th><th>Triggered via</th><th>Teleports to</th></tr></thead><tbody><tr><td><a href="../conversations/saurmerch.html">I am the keeper of Saruman&#x27;s Vault. You wish to look?</a></td><td><code>saurmerch</code></td><td>NPC blueprint <code>railthewhiteh003</code>; NPC <a href="../creatures/instances/isengardmagicroo-000.html">Fail the White Hand Blaster</a></td><td>—</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Conversation</th><th>ResRef</th><th>Triggered via</th><th>Teleports to</th></tr></thead><tbody><tr><td><a href="../conversations/saurmerch.html">I am the keeper of Saruman&#x27;s Vault. You wish to look?</a></td><td><code>saurmerch</code></td><td>NPC blueprint <code>railthewhiteh003</code>; NPC <a href="../creatures/railthewhiteh003.html">Fail the White Hand Blaster</a></td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

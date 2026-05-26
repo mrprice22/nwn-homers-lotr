@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Forest Guard</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -26,19 +48,20 @@
 <dt>ResRef</dt><dd>forestguard</dd>
 <dt>Tag</dt><dd>ForestGuard</dd>
 <dt>Base item</dt><dd>Tower Shield <small class="muted">(row 57)</small></dd>
-<dt>Cost</dt><dd>389077</dd>
+<dt>Type</dt><dd><a href="index.html#shield-tower">Tower Shields</a></dd>
+<dt>Base AC</dt><dd>3</dd>
+<dt>GP Value</dt><dd>389,077</dd>
 <dt>Stack size</dt><dd>1</dd>
-<dt>Cursed</dt><dd>0</dd>
-<dt>Plot</dt><dd>0</dd>
+<dt title="At least one creature carrying this item has it flagged as droppable (Dropable=1).">Drops on death</dt><dd>Yes</dd>
 </dl>
 <h2>Properties</h2>
-<table class="data"><thead><tr><th>Property</th><th>Subtype</th><th>Value</th><th>Param</th><th>Chance %</th></tr></thead><tbody><tr><td>AC Bonus</td><td>65535</td><td>+5</td><td></td><td></td></tr>
-<tr><td>AC Bonus vs. Racial Group</td><td>Half-Orc</td><td>+6</td><td></td><td></td></tr>
-<tr><td>AC Bonus vs. Racial Group</td><td>Orc</td><td>+6</td><td></td><td></td></tr>
-<tr><td>Damage Vulnerability</td><td><span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span></td><td>20%</td><td></td><td></td></tr>
-<tr><td>Damage Vulnerability</td><td>Piercing</td><td>20%</td><td></td><td></td></tr>
-<tr><td>Damage Vulnerability</td><td>Slashing</td><td>20%</td><td></td><td></td></tr>
-<tr><td>Skill Bonus</td><td>skills #0</td><td>+3</td><td>9/4</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Property</th><th>Subtype</th><th>Value</th><th>Param</th><th>Chance %</th></tr></thead><tbody><tr><td><a href="properties/ac-bonus.html">AC Bonus</a></td><td></td><td><a href="properties/ac-bonus.html#5">+5</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-ac-bonus-vs-racial-group">AC Bonus vs. Racial Group</a></td><td><a href="properties/ac-bonus-vs-racial-group-half-orc.html">Half-Orc</a></td><td><a href="properties/ac-bonus-vs-racial-group-half-orc.html#6">+6</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-ac-bonus-vs-racial-group">AC Bonus vs. Racial Group</a></td><td><a href="properties/ac-bonus-vs-racial-group-orc.html">Orc</a></td><td><a href="properties/ac-bonus-vs-racial-group-orc.html#6">+6</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-damage-resistance">Damage Resistance</a></td><td><a href="properties/damage-resistance-acid.html"><span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span></a></td><td><a href="properties/damage-resistance-acid.html#20">20/-</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-damage-resistance">Damage Resistance</a></td><td><a href="properties/damage-resistance-piercing.html">Piercing</a></td><td><a href="properties/damage-resistance-piercing.html#20">20/-</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/index.html#pn-damage-resistance">Damage Resistance</a></td><td><a href="properties/damage-resistance-slashing.html">Slashing</a></td><td><a href="properties/damage-resistance-slashing.html#20">20/-</a></td><td></td><td></td></tr>
+<tr><td><a href="properties/light.html">Light</a></td><td></td><td><a href="properties/light.html#normal">Normal</a></td><td><span class="nwn-light-color nwn-light-green">Green</span></td><td></td></tr></tbody></table>
 <details><summary>Raw values</summary><table class="data"><thead><tr><th>PropertyName</th><th>Subtype</th><th>CostTable</th><th>CostValue</th><th>Param1/Val</th><th>Chance</th></tr></thead><tbody><tr><td>1</td><td>65535</td><td>2</td><td>5</td><td>255/0</td><td>100</td></tr>
 <tr><td>4</td><td>5</td><td>2</td><td>6</td><td>255/0</td><td>100</td></tr>
 <tr><td>4</td><td>14</td><td>2</td><td>6</td><td>255/0</td><td>100</td></tr>
@@ -46,7 +69,9 @@
 <tr><td>23</td><td>1</td><td>7</td><td>3</td><td>255/0</td><td>100</td></tr>
 <tr><td>23</td><td>2</td><td>7</td><td>3</td><td>255/0</td><td>100</td></tr>
 <tr><td>44</td><td>0</td><td>18</td><td>3</td><td>9/4</td><td>100</td></tr></tbody></table></details>
+<h2>Where to find</h2>
+<h3>Carried by</h3><table class="data"><thead><tr><th>Creature</th><th>Area</th><th title="Whether this item appears in the loot bag when the creature is killed (Dropable=1 on the item instance)">Drops on death</th><th title="Whether this item can be stolen via Pickpocket (Pickpocketable=1 on the item instance)">Pickpocketable</th></tr></thead><tbody><tr><td><a href="../creatures/galadhelitewa001.html">Galadhrim Shield Guardian</a></td><td><a href="../areas/lothlorien.html">Lothlorien: Main</a></td><td>Yes</td><td><span class="muted">No</span></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

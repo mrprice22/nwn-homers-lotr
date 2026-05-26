@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Apprentice of Radagast</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,28 +47,43 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>apprenticeofrada</dd>
 <dt>Tag</dt><dd>ApprenticeofRadagast</dd>
-<dt>Race</dt><dd>Half-Elf</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-4">Half-Elf</a></dd>
 <dt>Appearance</dt><dd>Half-elf</dd>
 <dt>Class(es)</dt><dd>Druid 45/Monk 15</dd>
-<dt>HP</dt><dd>3000</dd>
+<dt>HP</dt><dd>3,000</dd>
 <dt>CR</dt><dd>268.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Evil</a> <small class="muted">(id 5)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>60</td><th>Dex</th><td>30</td><th>Con</th><td>13</td><th>Int</th><td>40</td><th>Wis</th><td>100</td><th>Cha</th><td>10</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Druid</td><td>45</td></tr><tr><td>Monk</td><td>15</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>3000</td><th>AC</th><td>30 <small class="muted">(10 base + +10 Dex + +10 armor enchant)</small></td><th>BAB</th><td>+44</td></tr><tr><th>Fort</th><td>+1</td><th>Ref</th><td>+10</td><th>Will</th><td>+45</td></tr></table>
+<table class="data"><tr><th>HP</th><td>3,000</td><th>AC</th><td>75 <small class="muted">(10 base + +10 Dex + +10 armor enchant + +45 Wis (monk))</small></td><th>BAB</th><td>+44</td></tr><tr><th>Fort</th><td>+11</td><th>Ref</th><td>+10</td><th>Will</th><td>+45</td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Save vs. Fortitude</th><td>+10</td></tr>
+<tr><th>Dexterity Bonus</th><td>+5</td></tr>
+<tr><th>Strength Bonus</th><td>+5</td></tr>
+<tr><th>Skill: Concentration</th><td>+20</td></tr>
+<tr><th>Skill: Lore</th><td>+20</td></tr>
+<tr><th>Skill: Spellcraft</th><td>+20</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>15/-</td></tr>
+<tr><th>Misc Immunity</th><td>Death Magic</td></tr>
+<tr><th>Regeneration</th><td>+3 HP/round</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
 <h3>Weapons</h3><p>Unarmed: +69/+64/+59/+54 · 1d6 +25</p>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/lesserrobe3or004.html">Arch-Robe of the Brown Wizard</a></td></tr>
-<tr><td>Arms</td><td><a href="../items/handsoftheappren.html">Hands of the Apprentice {EPIC}</a></td></tr>
-<tr><td>Belt</td><td><a href="../items/bladebuckle001.html">Greater BladeBuckle</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/lesserrobe3or004.html">Arch-Robe of the Brown Wizard</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Arms</td><td><a href="../items/handsoftheappren.html">Hands of the Apprentice {EPIC}</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Belt</td><td><a href="../items/bladebuckle001.html">Greater BladeBuckle</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(2)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/maarcl032.html">[TLK#66545]</a></td><td>maarcl032</td></tr>
-<tr><td><a href="../items/handsoftheapp001.html">Hands of the Apprentice </a></td><td>handsoftheapp001</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/maarcl032.html">Cloak of the Bat</a></td><td><a href="../items/index.html#cloak">Cloaks</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/handsoftheapp001.html">Hands of the Apprentice </a></td><td><a href="../items/index.html#bracers-gauntlets">Bracers &amp; Gauntlets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(103)</small></h2><ul class="featlist"><li>Animal Companion</li><li>Arcane Defense (Abjuration)</li><li>Arcane Defense (Conjuration)</li><li>Arcane Defense (Divination)</li><li>Arcane Defense (Enchantment)</li><li>Arcane Defense (Evocation)</li><li>Arcane Defense (Illusion)</li><li>Arcane Defense (Necromancy)</li><li>Arcane Defense (Transmutation)</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Automatic Quicken Spell III</li><li>Automatic Silent Spell III</li><li>Automatic Still Spell III</li><li>Blind-Fight</li><li>Cleave</li><li>Damage Reduction 2</li><li><span class="nwn-dmg nwn-dmg-divine" style="color:#ffff01">Divine</span> Grace</li><li>Dodge</li><li>Dual-Wield</li><li>Empty Body</li><li>Epic Damage Reduction II</li><li>Epic Druid</li><li>Epic Prowess</li><li>Epic Spell Focus (Abjuration)</li><li>Epic Spell Focus (Conjuration)</li><li>Epic Spell Focus (Divination)</li><li>Epic Spell Focus (Enchantment)</li><li>Epic Spell Focus (Evocation)</li><li>Epic Spell Focus (Illusion)</li><li>Epic Spell Focus (Necromancy)</li><li>Epic Spell Focus (Transmutation)</li><li>Epic Spell Penetration</li><li>Epic Weapon Focus (kama)</li><li>Epic Weapon Focus (unarmed strike)</li><li>Epic Weapon Specialization (kama)</li><li>Epic Weapon Specialization (unarmed strike)</li><li>Evasion</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Half-Orcs</li><li>Favored Enemy: Halflings</li><li>Favored Enemy: Humans</li><li>Fearless</li><li>Flurry of Blows</li><li>Great Cleave</li><li>Great Wisdom X</li><li>Greater Spell Focus (Abjuration)</li><li>Greater Spell Focus (Conjuration)</li><li>Greater Spell Focus (Divination)</li><li>Greater Spell Focus (Enchantment)</li><li>Greater Spell Focus (Evocation)</li><li>Greater Spell Focus (Illusion)</li><li>Greater Spell Focus (Necromancy)</li><li>Greater Spell Focus (Transmutation)</li><li>Greater Spell Penetration</li><li>Hardiness vs. Enchantments</li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Critical (kama)</li><li>Improved Critical (unarmed strike)</li><li>Improved Elemental Shape</li><li>Improved Evasion</li><li>Improved Two-Weapon Fighting</li><li>Low-light Vision</li><li>Mobility</li><li>Monk Speed</li><li>Monster Uncanny Reflex</li><li>Nature Sense</li><li>Opportunist</li><li>Overwhelming Critical (kama)</li><li>Overwhelming Critical (unarmed strike)</li><li>Partial Skill Affinity (Listen)</li><li>Partial Skill Affinity (Search)</li><li>Partial Skill Affinity (Spot)</li><li>Quicken Spell</li><li>Resist Nature&#x27;s Lure</li><li>Resist Poison</li><li>Sacred Defense</li><li>Shield Proficiency</li><li>Skill Focus (Animal Empathy)</li><li>Spell Focus (Abjuration)</li><li>Spell Focus (Conjuration)</li><li>Spell Focus (Divination)</li><li>Spell Focus (Enchantment)</li><li>Spell Focus (Evocation)</li><li>Spell Focus (Illusion)</li><li>Spell Focus (Necromancy)</li><li>Spell Focus (Transmutation)</li><li>Spell Penetration</li><li>Spring Attack</li><li>Trackless Step</li><li>Venom Immunity</li><li>Weapon Finesse</li><li>Weapon Focus (kama)</li><li>Weapon Focus (unarmed strike)</li><li>Weapon Proficiency (druid)</li><li>Weapon Proficiency (monk)</li><li>Weapon Specialization (kama)</li><li>Wholeness of Body</li><li>Wild Shape</li><li>Woodland Stride</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Animal Empathy</td><td>66</td></tr>
 <tr><td>Concentration</td><td>44</td></tr>
@@ -80,6 +117,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

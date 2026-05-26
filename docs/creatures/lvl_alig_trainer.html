@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Alignment Adjuster</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,7 +47,7 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>lvl_alig_trainer</dd>
 <dt>Tag</dt><dd>lvl_alig_trainer</dd>
-<dt>Race</dt><dd>Construct</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-10">Construct</a></dd>
 <dt>Appearance</dt><dd>Elf</dd>
 <dt>Class(es)</dt><dd>Construct 15</dd>
 <dt>HP</dt><dd>82</dd>
@@ -33,16 +55,18 @@
 <dt>Faction</dt><dd><a href="../factions.html">Commoner</a> <small class="muted">(id 2)</small></dd>
 <dt>Conversation</dt><dd><a href="../conversations/tr_trainer.html">tr_trainer</a></dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>22</td><th>Dex</th><td>10</td><th>Con</th><td>10</td><th>Int</th><td>10</td><th>Wis</th><td>10</td><th>Cha</th><td>3</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Construct</td><td>15</td></tr></tbody></table>
 <p class="desc">Level/Alignment trainer created by Cylvia</p>
 <h2>Combat</h2>
 <table class="data"><tr><th>HP</th><td>82</td><th>AC</th><td>25 <small class="muted">(10 base + +0 Dex + +15 natural (NaturalAC))</small></td><th>BAB</th><td>+11</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+0</td><th>Will</th><td>+0</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td>x2_it_wpmwhip7</td><td></td><td>Melee</td><td>+17/+12/+7</td><td>—</td><td></td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/x2_it_wpmwhip7.html">Whip +7</a></td><td>Whip</td><td>Melee</td><td>+24/+19/+14</td><td>1d2+6 (7–8)</td><td>20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/cloth025.html">[TLK#12925]</a></td></tr>
-<tr><td>Right hand</td><td>x2_it_wpmwhip7</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/cloth025.html">Commoner&#x27;s Tunic</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/x2_it_wpmwhip7.html">Whip +7</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(3)</small></h2><ul class="featlist"><li>Darkvision</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (exotic)</li></ul>
 <h2>Spells</h2>
 <h3>Special abilities</h3><table class="data"><thead><tr><th>Spell/ability</th><th>Caster level</th><th>Uses</th></tr></thead><tbody><tr><td>Fireball</td><td>6</td><td>2/day</td></tr>
@@ -63,6 +87,6 @@
 <tr><td>ScriptUserDefine</td><td></td></tr>
 <tr><td>ScriptOnBlocked</td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

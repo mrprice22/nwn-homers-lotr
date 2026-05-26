@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation df_conv_gh_poker</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -125,7 +147,7 @@
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>gh_poker_call_1</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">&lt;StartAction&gt;Call&lt;/Start&gt;. Do not increase bet at this time.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Choose which cards to discard. Say, &lt;StartAction&gt;discard card #&lt;/Start&gt;, where #…”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Choose which cards to discard. Say, discard card #, where # is the appropriate c…”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -148,24 +170,24 @@
 </div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Would you like to play a game of Poker?</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Yes, please.”</span> <small class="muted">(if <code>gh_poker_gold</code>)</small></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“No.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span> <span class="dlg-action">→ <code>gh_poker_start</code></span></div><div class="dlg-text">There&#x27;s your cards. Make a decision.</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Raise&lt;/Start&gt;. Increase bet by 500 gold.”</span> <small class="muted">(if <code>gh_poker_gold</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Call&lt;/Start&gt;. Do not increase bet at this time.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Fold&lt;/Start&gt;.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span> <span class="dlg-action">→ <code>gh_poker_start</code></span></div><div class="dlg-text">There&#x27;s your cards. Make a decision.</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Raise. Increase bet by 500 gold.”</span> <small class="muted">(if <code>gh_poker_gold</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Call. Do not increase bet at this time.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Fold.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Would you like to play again?</div><ul class="dlg-links"><li><a href="#r1">→ child</a> <span class="dlg-link-preview">“Yes, please.”</span> <small class="muted">(if <code>gh_poker_gold</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“No thanks.”</span></li></ul></div>
-<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Choose which cards to discard. Say, &lt;StartAction&gt;discard card #&lt;/Start&gt;, where # is the appropriate card position (1,2,3,4,5). You can discard up to 3 cards, 4 if your final card is an Ace. To &quot;undiscard&quot; a card, just use &lt;StartAction&gt;undiscard card #&lt;/Start&gt;, where # is the appropriate card position. Cards marked as discards will be in &lt;StartAction&gt;[&lt;/Start&gt;brackets&lt;StartAction&gt;]&lt;/Start&gt;.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Done&lt;/Start&gt;. Be sure to finish all your discarding.”</span></li></ul></div>
-<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Final bets?</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Raise&lt;/Start&gt;. Increase bet by 500 gold.”</span> <small class="muted">(if <code>gh_poker_gold</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Call&lt;/Start&gt;. Do not increase bet at this time.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“&lt;StartAction&gt;Fold&lt;/Start&gt;.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Choose which cards to discard. Say, &lt;StartAction&gt;discard card #&lt;/Start&gt;, where # is the appropriate card position (1,2,3,4,5). You can discard up to 3 cards, 4 if your final card is an Ace. To &quot;undiscard&quot; a card, just use &lt;StartAction&gt;undiscard card #&lt;/Start&gt;, where # is the appropriate card position. Cards marked as discards will be in &lt;StartAction&gt;[&lt;/Start&gt;brackets&lt;StartAction&gt;]&lt;/Start&gt;.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Done. Be sure to finish all your discarding.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Final bets?</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Raise. Increase bet by 500 gold.”</span> <small class="muted">(if <code>gh_poker_gold</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Call. Do not increase bet at this time.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Fold.”</span></li></ul></div>
 <div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>gh_poker_end</code></span></div><div class="dlg-text">Good game, shall we play again?</div><ul class="dlg-links"><li><a href="#r1">→ child</a> <span class="dlg-link-preview">“Yes, please.”</span> <small class="muted">(if <code>gh_poker_gold</code>)</small></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“No.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">No.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Yes, please.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“There&#x27;s your cards. Make a decision.”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">&lt;StartAction&gt;Fold&lt;/Start&gt;.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Would you like to play again?”</span></li></ul></div>
 <div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">No thanks.</div></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>gh_poker_call_1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Call&lt;/Start&gt;. Do not increase bet at this time.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Choose which cards to discard. Say, &lt;StartAction&gt;discard card #&lt;/Start&gt;, where #…”</span></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>gh_poker_raise_1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Raise&lt;/Start&gt;. Increase bet by 500 gold.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Choose which cards to discard. Say, &lt;StartAction&gt;discard card #&lt;/Start&gt;, where #…”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>gh_poker_call_1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Call&lt;/Start&gt;. Do not increase bet at this time.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Choose which cards to discard. Say, discard card #, where # is the appropriate c…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>gh_poker_raise_1</code></span></div><div class="dlg-text">&lt;StartAction&gt;Raise&lt;/Start&gt;. Increase bet by 500 gold.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Choose which cards to discard. Say, discard card #, where # is the appropriate c…”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>gh_poker_aft_dis</code></span></div><div class="dlg-text">&lt;StartAction&gt;Done&lt;/Start&gt;. Be sure to finish all your discarding.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Final bets?”</span></li></ul></div>
 <div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">&lt;StartAction&gt;Fold&lt;/Start&gt;.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Would you like to play again?”</span></li></ul></div>
 <div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">&lt;StartAction&gt;Call&lt;/Start&gt;. Do not increase bet at this time.</div><ul class="dlg-links"><li><a href="#e5">→ child</a> <span class="dlg-link-preview">“Good game, shall we play again?”</span></li></ul></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>gh_poker_raise_2</code></span></div><div class="dlg-text">&lt;StartAction&gt;Raise&lt;/Start&gt;. Increase bet by 500 gold.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Good game, shall we play again?”</span></li></ul></div>
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">No.</div></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

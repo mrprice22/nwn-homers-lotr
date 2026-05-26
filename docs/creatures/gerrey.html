@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Gerrey Halliams</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,7 +47,7 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>gerrey</dd>
 <dt>Tag</dt><dd>Gerrey</dd>
-<dt>Race</dt><dd>Human</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-6">Human</a></dd>
 <dt>Appearance</dt><dd>Human, Male 03</dd>
 <dt>Class(es)</dt><dd>Fighter 10/Barbarian 5</dd>
 <dt>HP</dt><dd>137</dd>
@@ -33,17 +55,19 @@
 <dt>Faction</dt><dd><a href="../factions.html">Hostile</a> <small class="muted">(id 1)</small></dd>
 <dt>Conversation</dt><dd><a href="../conversations/gloisonscoat.html">gloisonscoat</a></dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>19</td><th>Dex</th><td>13</td><th>Con</th><td>16</td><th>Int</th><td>10</td><th>Wis</th><td>10</td><th>Cha</th><td>9</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>10</td></tr><tr><td>Barbarian</td><td>5</td></tr></tbody></table>
 <h2>Combat</h2>
 <table class="data"><tr><th>HP</th><td>137</td><th>AC</th><td>23 <small class="muted">(10 base + +1 Dex + +12 natural (NaturalAC))</small></td><th>BAB</th><td>+15</td></tr><tr><th>Fort</th><td>+12</td><th>Ref</th><td>+15</td><th>Will</th><td>+16</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td>nw_wswmss011</td><td></td><td>Melee</td><td>+19/+14/+9</td><td>—</td><td></td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/nw_wswmss011.html">Short Sword +3</a></td><td>Short Sword</td><td>Melee</td><td>+22/+17/+12</td><td>1d6+4 (5–10)</td><td>19-20/x2</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td>x2_mdrowar003</td></tr>
-<tr><td>Right hand</td><td>nw_wswmss011</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td>x2_mdrowar003</td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/nw_wswmss011.html">Short Sword +3</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(1)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/item029.html">Gloison&#x27;s Coat of Arms</a></td><td>item029</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/item029.html">Gloison&#x27;s Coat of Arms</a></td><td><a href="../items/index.html#misc">Miscellaneous</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(22)</small></h2><ul class="featlist"><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Barbarian Fast Movement</li><li>Barbarian Rage (2x per day)</li><li>Called Shot</li><li>Cleave</li><li>Dodge</li><li>Great Cleave</li><li>Improved Critical (longsword)</li><li>Knockdown</li><li>Mobility</li><li>Power Attack</li><li>Quick To Master</li><li>Shield Proficiency</li><li>Spring Attack</li><li>Two-Weapon Fighting</li><li>Uncanny Dodge II</li><li>Weapon Focus (longsword)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (simple)</li><li>Weapon Specialization (longsword)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Concentration</td><td>1</td></tr>
 <tr><td>Discipline</td><td>16</td></tr>
@@ -71,6 +95,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

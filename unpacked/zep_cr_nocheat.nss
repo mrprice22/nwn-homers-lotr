@@ -10,5 +10,11 @@
 void main()
 {
   object oPC = GetEnteringObject();
+  if (!GetIsObjectValid(oPC)) return;
+  // Skip purification while a crafting session is active — TEMPITEM is
+  // legitimately set on the item being worked on, and the session's own
+  // cleanup (Abort / Make Changes) will clear it.  Purifying mid-session
+  // quarantines the player's item out from under them.
+  if (GetLocalInt(oPC, "ZEP_CR_STARTED")) return;
   ZEP_PurifyAllItems(oPC,TRUE,TRUE);
 }

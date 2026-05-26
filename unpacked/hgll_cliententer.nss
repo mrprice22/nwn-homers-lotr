@@ -24,6 +24,37 @@ void HgllPostEnter(object oPC)
         oItem = GetNextItemInInventory(oPC);
     }
 
+    // Bleeding-out login resolution: HP was saved as 0 to -9 (dying state).
+    // Roll Con save DC 12 — pass returns player at 2 HP, fail kills them.
+    if (NWNX_Object_GetInt(oPC, PERS_HP_VALID) == 1)
+    {
+        int nSaved = NWNX_Object_GetInt(oPC, PERS_HP);
+        if (nSaved >= -9 && nSaved <= 0)
+        {
+            int nConMod = GetAbilityModifier(ABILITY_CONSTITUTION, oPC);
+            int nRoll   = d20(1);
+            int nTotal  = nRoll + nConMod;
+            string sMsg = "You logged out while bleeding out (HP: "
+                + IntToString(nSaved) + "). Constitution survival check DC 12 — "
+                + "rolled " + IntToString(nRoll)
+                + " + CON " + IntToString(nConMod)
+                + " = " + IntToString(nTotal) + ". ";
+            if (nTotal >= 12)
+            {
+                SendMessageToPC(oPC, sMsg + "You cling to life! (2 HP)");
+                PersState_Restore(oPC);
+                NWNX_Object_SetCurrentHitPoints(oPC, 2);
+                NWNX_Player_UpdateCharacterSheet(oPC);
+            }
+            else
+            {
+                SendMessageToPC(oPC, sMsg + "You succumb to your wounds.");
+                ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(FALSE, FALSE), oPC);
+            }
+            return;
+        }
+    }
+
     PersState_Restore(oPC);
 }
 

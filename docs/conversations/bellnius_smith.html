@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Conversation bellnius_smith</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -30,7 +52,7 @@
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">instance</span> NPC <a href="../creatures/instances/area057-000.html">Belinus the Smith</a> <small class="muted">(blueprint <code>goignar003</code>)</small> — in <a href="../areas/area057.html">Moria: Forge of Wonders</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/goignar003.html">Belinus the Smith</a> — in <a href="../areas/area057.html">Moria: Forge of Wonders</a></li>
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>removeallitems</code></td><td>action</td><td>✓</td><td></td></tr>
@@ -104,8 +126,10 @@
 <tr><td><code>isamttopay</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>isamtrefund</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>modifyitem</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM100&gt;</code></td><td><a href="../scripts/isitemonanvil.html">isitemonanvil</a>, <a href="../scripts/smach_sc001.html">smach_sc001</a></td></tr>
+<tr><td><code>&lt;CUSTOM101&gt;</code></td><td><a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> — Greetings my &lt;lord/lady&gt;. What can I do for you?</li>
+<li><a href="#e0">entry #0</a> — Greetings my . What can I do for you?</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
@@ -120,7 +144,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>isitemonanvil</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
-<div class="dlg-text">Are you sure you want to modify the &lt;CUSTOM100&gt;?</div>
+<div class="dlg-text">Are you sure you want to modify the <span class="custom-token" title="SetCustomToken(100, ...) called in: isitemonanvil, smach_sc001">&lt;CUSTOM100&gt;<sup class="token-setters">[<a href="../scripts/isitemonanvil.html">isitemonanvil</a>, <a href="../scripts/smach_sc001.html">smach_sc001</a>]</sup></span>?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
@@ -152,7 +176,7 @@
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #15</span> <small class="muted">(if <code>cannotafford</code>)</small> <a class="dlg-anchor" href="#e15" title="jump to flat entry #15">¶</a></summary>
-<div class="dlg-text">This modification will cost you &lt;CUSTOM101&gt; gold.</div>
+<div class="dlg-text">This modification will cost you <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gold.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #68</span> <a class="dlg-anchor" href="#r68" title="jump to flat reply #68">¶</a></summary>
@@ -175,7 +199,7 @@
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #14</span> <small class="muted">(if <code>isamttopay</code>)</small> <a class="dlg-anchor" href="#e14" title="jump to flat entry #14">¶</a></summary>
-<div class="dlg-text">This modification will cost you &lt;CUSTOM101&gt; gold.</div>
+<div class="dlg-text">This modification will cost you <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gold.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #67</span> <span class="dlg-action">→ <code>modifyitem</code></span> <a class="dlg-anchor" href="#r67" title="jump to flat reply #67">¶</a></summary>
@@ -195,7 +219,7 @@
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #13</span> <small class="muted">(if <code>isamtrefund</code>)</small> <a class="dlg-anchor" href="#e13" title="jump to flat entry #13">¶</a></summary>
-<div class="dlg-text">This modification will give you a refund of &lt;CUSTOM101&gt; gold.</div>
+<div class="dlg-text">This modification will give you a refund of <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gold.</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref reply-ref">↩ <a href="#r67">reply #67</a> <span class="dlg-link-preview">“Please go ahead.”</span></div>
 <div class="dlg-tree-ref reply-ref">↩ <a href="#r66">reply #66</a> <span class="dlg-link-preview">“I&#x27;ve changed my mind.”</span></div>
@@ -682,7 +706,7 @@
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>removeallitems</code></span></div><div class="dlg-text">Greetings my &lt;lord/lady&gt;. What can I do for you?</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Modify the item on the anvil.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Goodbye.”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Please place exactly one item on the anvil, then speak to me again.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a></li></ul></div>
-<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Are you sure you want to modify the &lt;CUSTOM100&gt;?</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Yes.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“No.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Are you sure you want to modify the <span class="custom-token" title="SetCustomToken(100, ...) called in: isitemonanvil, smach_sc001">&lt;CUSTOM100&gt;<sup class="token-setters">[<a href="../scripts/isitemonanvil.html">isitemonanvil</a>, <a href="../scripts/smach_sc001.html">smach_sc001</a>]</sup></span>?</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Yes.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“No.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Is there anything else?</div><ul class="dlg-links"><li><a href="#r1">→ child</a> <span class="dlg-link-preview">“Modify the item on the anvil.”</span></li><li><a href="#r0">→ child</a> <span class="dlg-link-preview">“Goodbye.”</span></li></ul></div>
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">What type of modification would you like?</div><ul class="dlg-links"><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“Armour Bonus.”</span></li><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“Damage Bonus.”</span> <small class="muted">(if <code>ismeleeweapon</code>)</small></li><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“Darkvision.”</span></li><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“Haste.”</span></li><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“Improved Magic Resistance.”</span></li><li><a href="#r43">→ reply #43</a> <span class="dlg-link-preview">“Keen.”</span> <small class="muted">(if <code>ismeleeweapon</code>)</small></li><li><a href="#r42">→ reply #42</a> <span class="dlg-link-preview">“Light.”</span></li><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“Massive Criticals”</span> <small class="muted">(if <code>isweapon</code>)</small></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“Mighty.”</span> <small class="muted">(if <code>israngedweapon</code>)</small></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“Skill Bonus.”</span></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“Attack Bonus.”</span> <small class="muted">(if <code>isweapon</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“Vampiric Regeneration.”</span> <small class="muted">(if <code>ismeleeweapon</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“Freedom of Movement.”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Unlimited Ammo.”</span> <small class="muted">(if <code>israngedweapon</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Remove all magical properties from the item.”</span></li></ul></div>
 <div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Select the ammo type.</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Basic.”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“+1”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“+2”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“+3”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“+4”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“+5”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“1d6 Cold.”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“1d6 Fire.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“1d6 Light.”</span></li></ul></div>
@@ -693,12 +717,12 @@
 <div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">Now, please select the bonus amount.</div><ul class="dlg-links"><li><a href="#r64">→ reply #64</a> <span class="dlg-link-preview">“+1”</span></li><li><a href="#r63">→ reply #63</a> <span class="dlg-link-preview">“+2”</span></li><li><a href="#r62">→ reply #62</a> <span class="dlg-link-preview">“+3”</span></li><li><a href="#r61">→ reply #61</a> <span class="dlg-link-preview">“+4”</span></li><li><a href="#r60">→ reply #60</a> <span class="dlg-link-preview">“+5”</span></li><li><a href="#r59">→ reply #59</a> <span class="dlg-link-preview">“+6”</span></li><li><a href="#r58">→ reply #58</a> <span class="dlg-link-preview">“+7”</span></li><li><a href="#r57">→ reply #57</a> <span class="dlg-link-preview">“+8”</span></li><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“Remove the existing bonus.”</span></li></ul></div>
 <div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span> <span class="dlg-action">→ <code>calcmodvalue1</code></span></div><div class="dlg-text">Please wait while I calculate the cost of this modification.</div><ul class="dlg-links"><li><a href="#r65">→ reply #65</a></li></ul></div>
 <div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">There is no charge for this modification.</div><ul class="dlg-links"><li><a href="#r67">→ child</a> <span class="dlg-link-preview">“Please go ahead.”</span></li><li><a href="#r66">→ child</a> <span class="dlg-link-preview">“I&#x27;ve changed my mind.”</span></li></ul></div>
-<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">This modification will give you a refund of &lt;CUSTOM101&gt; gold.</div><ul class="dlg-links"><li><a href="#r67">→ reply #67</a> <span class="dlg-link-preview">“Please go ahead.”</span></li><li><a href="#r66">→ reply #66</a> <span class="dlg-link-preview">“I&#x27;ve changed my mind.”</span></li></ul></div>
-<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">This modification will cost you &lt;CUSTOM101&gt; gold.</div><ul class="dlg-links"><li><a href="#r67">→ child</a> <span class="dlg-link-preview">“Please go ahead.”</span></li><li><a href="#r66">→ child</a> <span class="dlg-link-preview">“I&#x27;ve changed my mind.”</span></li></ul></div>
-<div class="dlg-node entry" id="e15"><div class="dlg-head"><span class="dlg-id">entry #15</span></div><div class="dlg-text">This modification will cost you &lt;CUSTOM101&gt; gold.</div><ul class="dlg-links"><li><a href="#r68">→ reply #68</a> <span class="dlg-link-preview">“Sorry, I don&#x27;t seem to have enough gold.”</span></li></ul></div>
+<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">This modification will give you a refund of <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gold.</div><ul class="dlg-links"><li><a href="#r67">→ reply #67</a> <span class="dlg-link-preview">“Please go ahead.”</span></li><li><a href="#r66">→ reply #66</a> <span class="dlg-link-preview">“I&#x27;ve changed my mind.”</span></li></ul></div>
+<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">This modification will cost you <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gold.</div><ul class="dlg-links"><li><a href="#r67">→ child</a> <span class="dlg-link-preview">“Please go ahead.”</span></li><li><a href="#r66">→ child</a> <span class="dlg-link-preview">“I&#x27;ve changed my mind.”</span></li></ul></div>
+<div class="dlg-node entry" id="e15"><div class="dlg-head"><span class="dlg-id">entry #15</span></div><div class="dlg-text">This modification will cost you <span class="custom-token" title="SetCustomToken(101, ...) called in: bankbalance, calcmodvalue2, smach_configure">&lt;CUSTOM101&gt;<sup class="token-setters">[<a href="../scripts/bankbalance.html">bankbalance</a>, <a href="../scripts/calcmodvalue2.html">calcmodvalue2</a>, <a href="../scripts/smach_configure.html">smach_configure</a>]</sup></span> gold.</div><ul class="dlg-links"><li><a href="#r68">→ reply #68</a> <span class="dlg-link-preview">“Sorry, I don&#x27;t seem to have enough gold.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Goodbye.</div></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Modify the item on the anvil.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Are you sure you want to modify the &lt;CUSTOM100&gt;?”</span> <small class="muted">(if <code>isitemonanvil</code>)</small></li><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Please place exactly one item on the anvil, then speak to me again.”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Modify the item on the anvil.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Are you sure you want to modify the ?”</span> <small class="muted">(if <code>isitemonanvil</code>)</small></li><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Please place exactly one item on the anvil, then speak to me again.”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text"><em>(no text)</em></div></div>
 <div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">No.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Is there anything else?”</span></li></ul></div>
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Yes.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“What type of modification would you like?”</span></li></ul></div>
@@ -762,11 +786,11 @@
 <div class="dlg-node reply" id="r62"><div class="dlg-head"><span class="dlg-id">reply #62</span> <span class="dlg-action">→ <code>setplus3</code></span></div><div class="dlg-text">+3</div><ul class="dlg-links"><li><a href="#e11">→ child</a> <span class="dlg-link-preview">“Please wait while I calculate the cost of this modification.”</span></li></ul></div>
 <div class="dlg-node reply" id="r63"><div class="dlg-head"><span class="dlg-id">reply #63</span> <span class="dlg-action">→ <code>setplus2</code></span></div><div class="dlg-text">+2</div><ul class="dlg-links"><li><a href="#e11">→ child</a> <span class="dlg-link-preview">“Please wait while I calculate the cost of this modification.”</span></li></ul></div>
 <div class="dlg-node reply" id="r64"><div class="dlg-head"><span class="dlg-id">reply #64</span> <span class="dlg-action">→ <code>setplus1</code></span></div><div class="dlg-text">+1</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Please wait while I calculate the cost of this modification.”</span></li></ul></div>
-<div class="dlg-node reply" id="r65"><div class="dlg-head"><span class="dlg-id">reply #65</span> <span class="dlg-action">→ <code>calcmodvalue2</code></span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e15">→ entry #15</a> <span class="dlg-link-preview">“This modification will cost you &lt;CUSTOM101&gt; gold.”</span> <small class="muted">(if <code>cannotafford</code>)</small></li><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“This modification will cost you &lt;CUSTOM101&gt; gold.”</span> <small class="muted">(if <code>isamttopay</code>)</small></li><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“This modification will give you a refund of &lt;CUSTOM101&gt; gold.”</span> <small class="muted">(if <code>isamtrefund</code>)</small></li><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“There is no charge for this modification.”</span></li></ul></div>
+<div class="dlg-node reply" id="r65"><div class="dlg-head"><span class="dlg-id">reply #65</span> <span class="dlg-action">→ <code>calcmodvalue2</code></span></div><div class="dlg-text"><em>(no text)</em></div><ul class="dlg-links"><li><a href="#e15">→ entry #15</a> <span class="dlg-link-preview">“This modification will cost you  gold.”</span> <small class="muted">(if <code>cannotafford</code>)</small></li><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“This modification will cost you  gold.”</span> <small class="muted">(if <code>isamttopay</code>)</small></li><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“This modification will give you a refund of  gold.”</span> <small class="muted">(if <code>isamtrefund</code>)</small></li><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“There is no charge for this modification.”</span></li></ul></div>
 <div class="dlg-node reply" id="r66"><div class="dlg-head"><span class="dlg-id">reply #66</span></div><div class="dlg-text">I&#x27;ve changed my mind.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Is there anything else?”</span></li></ul></div>
 <div class="dlg-node reply" id="r67"><div class="dlg-head"><span class="dlg-id">reply #67</span> <span class="dlg-action">→ <code>modifyitem</code></span></div><div class="dlg-text">Please go ahead.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Is there anything else?”</span></li></ul></div>
 <div class="dlg-node reply" id="r68"><div class="dlg-head"><span class="dlg-id">reply #68</span></div><div class="dlg-text">Sorry, I don&#x27;t seem to have enough gold.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Is there anything else?”</span></li></ul></div>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

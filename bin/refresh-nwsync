@@ -10,6 +10,15 @@
 
 set -euo pipefail
 
+SILENT=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --silent) SILENT=1 ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 ENV_FILE="$PROJECT_ROOT/server.env"
 LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
@@ -36,6 +45,10 @@ if [[ ! -f $MOD_FILE ]]; then
   exit 1
 fi
 
+if [[ -d $NWNSYNC_REPO ]]; then
+  echo "[nwsync] wiping old repo: $NWNSYNC_REPO"
+  rm -rf "$NWNSYNC_REPO"
+fi
 mkdir -p "$NWNSYNC_REPO"
 
 echo "[nwsync] repo:    $NWNSYNC_REPO"
@@ -49,14 +62,38 @@ echo
 # to discover its dependency list and pulls them from --path dirs.
 manifest_name="${NWN_SERVERNAME:-Homers LOTR VEL v3}"
 
-"$NWN_NWSYNC_WRITE" \
-  --name "$manifest_name" \
-  --description "Homers LotR VEL v3 — CEP 2 content pack" \
-  --path "$NWN_HOME_DIR/hak" \
-  --path "$NWN_HOME_DIR/tlk" \
-  -f \
-  "$NWNSYNC_REPO" \
+nwsync_args=(
+  --name "$manifest_name"
+  --description "Homers LotR VEL v3 — CEP 2 content pack"
+  --path "$NWN_HOME_DIR/hak"
+  --path "$NWN_HOME_DIR/tlk"
+  -f
+  "$NWNSYNC_REPO"
   "$MOD_FILE"
+)
+if [[ $SILENT -eq 1 ]]; then
+  _nwsync_tmp=$(mktemp)
+  trap 'rm -f "$_nwsync_tmp"' EXIT
+  "$NWN_NWSYNC_WRITE" "${nwsync_args[@]}" >"$_nwsync_tmp" 2>&1 &
+  _nwsync_pid=$!
+  _spin='|/-\'
+  _si=0
+  _nwsync_start=$(date +%s)
+  while kill -0 "$_nwsync_pid" 2>/dev/null; do
+    _elapsed=$(( $(date +%s) - _nwsync_start ))
+    _ch="${_spin:$_si:1}"; _si=$(( (_si + 1) % 4 ))
+    printf "\r[nwsync] %s writing manifest...  (%ds)          " "$_ch" "$_elapsed"
+    sleep 0.3
+  done
+  if ! wait "$_nwsync_pid"; then
+    printf "\n"
+    cat "$_nwsync_tmp" >&2
+    exit 1
+  fi
+  printf "\r[nwsync] manifest written  (%ds)          \n" "$(( $(date +%s) - _nwsync_start ))"
+else
+  "$NWN_NWSYNC_WRITE" "${nwsync_args[@]}"
+fi
 
 echo
 if [[ -f "$NWNSYNC_REPO/latest" ]]; then
@@ -67,5 +104,17 @@ if [[ -f "$NWNSYNC_REPO/latest" ]]; then
     echo "[nwsync] clients will fetch from: ${url}/manifests/$hash"
   else
     echo "[nwsync] (set NWNSYNC_PUBLIC_URL in server.env.local to advertise to clients)"
+  fi
+fi
+
+# The rm -rf above broke any live nginx bind mount (old inode). Restart the
+# container so it gets a fresh mount pointing at the new directory.
+NWNSYNC_CONTAINER="${NWNSYNC_CONTAINER:-nwnsync-nginx}"
+if podman container exists "$NWNSYNC_CONTAINER" 2>/dev/null; then
+  state=$(podman inspect -f '{{.State.Status}}' "$NWNSYNC_CONTAINER" 2>/dev/null || echo missing)
+  if [[ $state == running ]]; then
+    echo "[nwsync] restarting $NWNSYNC_CONTAINER to pick up new repo directory..."
+    podman stop -t 4 "$NWNSYNC_CONTAINER" >/dev/null 2>&1 || true
+    "$PROJECT_ROOT/bin/serve-nwsync"
   fi
 fi

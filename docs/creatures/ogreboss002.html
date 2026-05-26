@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Ologai Battle Troll</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,29 +47,38 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>ogreboss002</dd>
 <dt>Tag</dt><dd>ms_gund28</dd>
-<dt>Race</dt><dd>Giant</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-18">Giant</a></dd>
 <dt>Appearance</dt><dd>Ogre, Chieftain B</dd>
 <dt>Class(es)</dt><dd>Giant 20/Barbarian 17</dd>
 <dt>HP</dt><dd>755</dd>
 <dt>CR</dt><dd>50.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Commoner</a> <small class="muted">(id 2)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/mountgundabadlev.html">Mount Gundabad</a></td><td>6</td></tr>
+<tr><td><a href="../areas/mountgundabad001.html">Mount Gundabad Level 2</a></td><td>5</td></tr></tbody></table>
+<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/ettenmoors.html">Ettenmoors</a></td><td>ettenmoors</td><td><code>ettenmoors</code></td></tr></tbody></table>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>40</td><th>Dex</th><td>14</td><th>Con</th><td>40</td><th>Int</th><td>6</td><th>Wis</th><td>10</td><th>Cha</th><td>7</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Giant</td><td>20</td></tr><tr><td>Barbarian</td><td>17</td></tr></tbody></table>
 <p class="desc">Ogres are ugly, greedy creatures who live by raiding and scavenging. They associate freely with Giants and Trolls, banding together to prey on the weak.</p>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>755</td><th>AC</th><td>21 <small class="muted">(10 base + +2 Dex + +9 natural (NaturalAC))</small></td><th>BAB</th><td>+32</td></tr><tr><th>Fort</th><td>+31</td><th>Ref</th><td>+9</td><th>Will</th><td>+9</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<table class="data"><tr><th>HP</th><td>755</td><th>AC</th><td>30 <small class="muted">(10 base + +2 Dex + +9 natural (NaturalAC) + +5 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+32</td></tr><tr><th>Fort</th><td>+31</td><th>Ref</th><td>+9</td><th>Will</th><td>+9</td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+5</td></tr>
+<tr><th>Wisdom Bonus</th><td>+6</td></tr>
+<tr><th>Misc Immunity</th><td>Knockdown</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
 <h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/wdbmax006.html">Greater Axe of the Ologai Troll</a></td><td>Double Axe</td><td>Melee</td><td>+52/+47/+42/+37</td><td>1d8+15 (16–23) + Damage Bonus <span class="nwn-dmg nwn-dmg-acid" style="color:#01ff01">Acid</span> 2, Damage Bonus <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> 2d10</td><td>20/x3</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/wdbmax006.html">Greater Axe of the Ologai Troll</a></td></tr>
-<tr><td>Left ring</td><td>nw_it_mring020</td></tr>
-<tr><td>Neck</td><td><a href="../items/amuletofdivinefa.html">Amulet of Blind Faith</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/wdbmax006.html">Greater Axe of the Ologai Troll</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Left ring</td><td><a href="../items/nw_it_mring020.html">Ring of Protection +5</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Neck</td><td><a href="../items/amuletofdivinefa.html">Amulet of Blind Faith</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(3)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_it_mpotion009</td><td>nw_it_mpotion009</td></tr>
-<tr><td>nw_it_mpotion003</td><td>nw_it_mpotion003</td></tr>
-<tr><td>nw_it_mpotion015</td><td>nw_it_mpotion015</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/nw_it_mpotion009.html">Potion of Bless</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion003.html">Potion of Cure Critical Wounds</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion015.html">Potion of Bull&#x27;s Strength</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(28)</small></h2><ul class="featlist"><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Aura of Courage</li><li>Barbarian Fast Movement</li><li>Barbarian Rage (4x per day)</li><li>Cleave</li><li>Crippling Strike</li><li>Damage Reduction 2</li><li>Darkvision</li><li>Disarm</li><li>Dodge</li><li>Favored Enemy: Dwarves</li><li>Favored Enemy: Elves</li><li>Favored Enemy: Half-Elves</li><li>Favored Enemy: Humans</li><li>Fearless</li><li>Flurry of Blows</li><li>Great Fortitude</li><li>Greater Rage</li><li>Improved Critical (double axe)</li><li>Iron Will</li><li>Power Attack</li><li>Shield Proficiency</li><li>Uncanny Dodge I</li><li>Weapon Focus (double axe)</li><li>Weapon Proficiency (creature)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (simple)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Discipline</td><td>11</td></tr>
 <tr><td>Listen</td><td>4</td></tr>
@@ -67,19 +98,7 @@
 <tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
 <tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
 <tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
-<h2>Instances <small class="muted">(11)</small></h2><table class="data"><thead><tr><th>Name</th><th>Area</th><th>Faction</th><th>Notes</th></tr></thead><tbody><tr><td><a href="instances/mountgundabadlev-001.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabadlev.html">Mount Gundabad</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabadlev-007.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabadlev.html">Mount Gundabad</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabadlev-008.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabadlev.html">Mount Gundabad</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabadlev-015.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabadlev.html">Mount Gundabad</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabadlev-016.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabadlev.html">Mount Gundabad</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabadlev-017.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabadlev.html">Mount Gundabad</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabad001-006.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabad001.html">Mount Gundabad Level 2</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabad001-007.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabad001.html">Mount Gundabad Level 2</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabad001-008.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabad001.html">Mount Gundabad Level 2</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabad001-009.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabad001.html">Mount Gundabad Level 2</a></td><td>Commoner</td><td>—</td></tr>
-<tr><td><a href="instances/mountgundabad001-010.html">Ologai Battle Troll</a></td><td><a href="../areas/mountgundabad001.html">Mount Gundabad Level 2</a></td><td>Commoner</td><td>—</td></tr></tbody></table>
-<h2>Encounter spawns <small class="muted">(1 area)</small></h2><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/ettenmoors.html">Ettenmoors</a></td><td>ettenmoors</td><td><code>ettenmoors</code></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

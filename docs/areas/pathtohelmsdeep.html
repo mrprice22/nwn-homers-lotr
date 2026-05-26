@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Path To Helm&#x27;s Deep</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Path To Helm&#x27;s Deep</h1>
-<dl class="meta"><dt>ResRef</dt><dd>pathtohelmsdeep</dd><dt>Tag</dt><dd>PathtoHelmsDeep</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>14×11 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>cleanup</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>pathtohelmsdeep</dd><dt>Tag</dt><dd>PathtoHelmsDeep</dd><dt>Tileset</dt><dd>Rural Winter <small class="muted">(ttr01)</small></dd><dt>Size</dt><dd>14×11 tiles</dd><dt>OnExit</dt><dd>cleanup</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="edoras.html">Edoras</a> <em class="muted">[Weclome ! Where do you wish to go?]</em></li><li><a href="edoras.html">Edoras</a> &rarr; <a href="pathtohelmsdeep.html">Path To Helm&#x27;s Deep</a> <em class="muted">[step on the &#8220;edoras2helm&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>pthd2hd</td><td><a href="helmsdeep001.html">Helm&#x27;s Deep</a></td><td><code>WP_HelmsDeepFortressTOEnt</code></td></tr>
 <tr><td>trigger</td><td>pathhelms2greatnorth</td><td><a href="greatnorthroad.html">Great North Road</a></td><td><code>WP_greatnorth2path</code></td></tr>
@@ -36,19 +60,19 @@
 <tr><td>trigger</td><td><a href="hiddenport.html">Hidden Port</a></td><td>hiddenporthelms</td></tr>
 <tr><td>door</td><td><a href="area013.html">Helm&#x27;s Deep: Cave</a></td><td>thchoosen</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/pathtohelmsdeep-000.html">Elite Rohirrim Warrior</a></td><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-001.html">Elite Rohirrim Warrior</a></td><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-002.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-003.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-004.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-005.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-006.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-007.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-008.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-009.html">Elite Rohirrim Warrior</a></td><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-010.html">Elite Rohirrim Warrior</a></td><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-011.html">Rohirrim Archer</a></td><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
-<tr><td><a href="../creatures/instances/pathtohelmsdeep-012.html">Rohirrim Mage</a></td><td><a href="../creatures/rohirrimbowme002.html">Rohirrim Mage</a></td><td>rohirrimbowme002</td><td>Human</td><td>Wizard 30/Bard 15/Harper Scout 5</td><td>1129</td><td>268.0</td><td>Evil</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/eliterohirrim001.html">Elite Rohirrim Warrior</a></td><td>eliterohirrim001</td><td>Human</td><td>Fighter 50</td><td>5150</td><td>344.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme001.html">Rohirrim Archer</a></td><td>rohirrimbowme001</td><td>Human</td><td>Fighter 30/Ranger 15</td><td>1000</td><td>222.0</td><td>Evil</td><td></td></tr>
+<tr><td><a href="../creatures/rohirrimbowme002.html">Rohirrim Mage</a></td><td>rohirrimbowme002</td><td>Human</td><td>Wizard 30/Bard 15/Harper Scout 5</td><td>1129</td><td>268.0</td><td>Evil</td><td></td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_pthd2hd</code></td><td></td></tr>
 <tr><td><code>WP_pthd2hd</code></td><td></td></tr>
@@ -72,6 +96,6 @@
 <tr><td><code>Pathbow008</code></td><td>waypoint010</td></tr>
 <tr><td><code>tohiddenport</code></td><td>nw_waypoint001</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

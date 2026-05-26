@@ -4,204 +4,80 @@
   <meta charset="utf-8">
   <title>Script hench_demon_hb</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Script: <code>hench_demon_hb</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
-//:: Associate: Heartbeat
-//:: NW_CH_AC1.nss
-//:: Copyright (c) 2001 Bioware Corp.
+//:: Demon henchman heartbeat — persistent-follow wrapper around the
+//:: standard nw_ch_ac1 (HotU associate heartbeat). Adds two behaviors
+//:: on top of stock henchman AI:
+//::   1. If the master is gone, the demon vanishes.
+//::   2. If the master is in a different area, jump to follow.
 //:://////////////////////////////////////////////
-/*
-    Move towards master or wait for him
-*/
+//::
+//:: Was previously a copy-paste of X0_INC_HENAI&#x27;s logic plus the two
+//:: extra behaviors above; that script no longer compiled because the
+//:: engine-base x0_inc_henai pulls in identifiers (GetIsFollower,
+//:: FireHenchman, the CLEAR_X0_INC_HENAI_* constants, etc.) that
+//:: nwn_script_comp does not see in the resman. Delegating to
+//:: nw_ch_ac1 via ExecuteScript keeps the runtime behavior intact
+//:: while letting this file compile cleanly.
 //:://////////////////////////////////////////////
-//:: Created By: Preston Watamaniuk
-//:: Created On: Nov 21, 2001
-//:: Updated On: Jul 25, 2003 - Georg Zoeller
-//:://////////////////////////////////////////////
-#include &quot;X0_INC_HENAI&quot;
-#include &quot;X2_INC_SUMMSCALE&quot;
-
-#include &quot;X2_INC_SPELLHOOK&quot;
 void main()
-{   //SpawnScriptDebugger();
-
-    // GZ: Fallback for timing issue sometimes preventing epic summoned creatures from leveling up to their master&#x27;s level.
-    // There is a timing issue with the GetMaster() function not returning the fof a creature
-    // immediately after spawn. Some code which might appear to make no sense has been added
-    // to the nw_ch_ac1 and x2_inc_summon files to work around this
-    // This code is only run at the first hearbeat
-    int nLevel =SSMGetSummonFailedLevelUp(OBJECT_SELF);
-    if (nLevel != 0)
-    {
-        int nRet;
-        if (nLevel == -1) // special shadowlord treatment
-        {
-          SSMScaleEpicShadowLord(OBJECT_SELF);
-        }
-        else if  (nLevel == -2)
-        {
-          SSMScaleEpicFiendishServant(OBJECT_SELF);
-        }
-        else
-        {
-            nRet = SSMLevelUpCreature(OBJECT_SELF, nLevel, CLASS_TYPE_INVALID);
-            if (nRet == FALSE)
-            {
-                WriteTimestampedLogEntry(&quot;WARNING - nw_ch_ac1:: could not level up &quot; + GetTag(OBJECT_SELF) + &quot;!&quot;);
-            }
-        }
-
-        // regardless if the actual levelup worked, we give up here, because we do not
-        // want to run through this script more than once.
-        SSMSetSummonLevelUpOK(OBJECT_SELF);
-    }
-
-    // Check if concentration is required to maintain this creature
-    X2DoBreakConcentrationCheck();
+{
+    ExecuteScript(&quot;nw_ch_ac1&quot;, OBJECT_SELF);
 
     object oMaster = GetMaster();
-    if(!GetAssociateState(NW_ASC_IS_BUSY))
+    if (!GetIsObjectValid(oMaster))
     {
-
-        //Seek out and disable undisabled traps
-        object oTrap = GetNearestTrapToObject();
-        if (bkAttemptToDisarmTrap(oTrap) == TRUE) return ; // succesful trap found and disarmed
-
-        if(GetIsObjectValid(oMaster) &amp;&amp;
-            GetCurrentAction(OBJECT_SELF) != ACTION_FOLLOW &amp;&amp;
-            GetCurrentAction(OBJECT_SELF) != ACTION_DISABLETRAP &amp;&amp;
-            GetCurrentAction(OBJECT_SELF) != ACTION_OPENLOCK &amp;&amp;
-            GetCurrentAction(OBJECT_SELF) != ACTION_REST &amp;&amp;
-            GetCurrentAction(OBJECT_SELF) != ACTION_ATTACKOBJECT)
-        {
-            if(
-               !GetIsObjectValid(GetAttackTarget()) &amp;&amp;
-               !GetIsObjectValid(GetAttemptedSpellTarget()) &amp;&amp;
-               !GetIsObjectValid(GetAttemptedAttackTarget()) &amp;&amp;
-               !GetIsObjectValid(GetNearestCreature(CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, OBJECT_SELF, 1, CREATURE_TYPE_PERCEPTION, PERCEPTION_SEEN))
-              )
-            {
-                if (GetIsObjectValid(oMaster) == TRUE)
-                {
-                    if(GetDistanceToObject(oMaster) &gt; 6.0)
-                    {
-                        if(GetAssociateState(NW_ASC_HAVE_MASTER))
-                        {
-                            if(!GetIsFighting(OBJECT_SELF))
-                            {
-                                if(!GetAssociateState(NW_ASC_MODE_STAND_GROUND))
-                                {
-                                    if(GetDistanceToObject(GetMaster()) &gt; GetFollowDistance())
-                                    {
-                                        ClearActions(CLEAR_NW_CH_AC1_49);
-                                        if(GetAssociateState(NW_ASC_AGGRESSIVE_STEALTH) || GetAssociateState(NW_ASC_AGGRESSIVE_SEARCH))
-                                        {
-                                             if(GetAssociateState(NW_ASC_AGGRESSIVE_STEALTH))
-                                             {
-                                                //ActionUseSkill(SKILL_HIDE, OBJECT_SELF);
-                                                //ActionUseSkill(SKILL_MOVE_SILENTLY,OBJECT_SELF);
-                                             }
-                                             if(GetAssociateState(NW_ASC_AGGRESSIVE_SEARCH))
-                                             {
-                                                ActionUseSkill(SKILL_SEARCH, OBJECT_SELF);
-                                             }
-                                             //MyPrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; + &quot;Assigning Force Follow Command with Search and/or Stealth&quot;);
-                                             ActionForceFollowObject(oMaster, GetFollowDistance());
-                                        }
-                                        else
-                                        {
-                                             //MyPrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; + &quot;Assigning Force Follow Normal&quot;);
-                                             ActionForceFollowObject(oMaster, GetFollowDistance());
-                                             //ActionForceMoveToObject(GetMaster(), TRUE, GetFollowDistance(), 5.0);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else if(!GetAssociateState(NW_ASC_MODE_STAND_GROUND))
-                {
-                    if(GetIsObjectValid(oMaster))
-                    {
-                        if(GetCurrentAction(oMaster) != ACTION_REST)
-                        {
-                            ClearActions(CLEAR_NW_CH_AC1_81);
-                            if(GetAssociateState(NW_ASC_AGGRESSIVE_STEALTH) || GetAssociateState(NW_ASC_AGGRESSIVE_SEARCH))
-                            {
-                                 if(GetAssociateState(NW_ASC_AGGRESSIVE_STEALTH))
-                                 {
-                                    //ActionUseSkill(SKILL_HIDE, OBJECT_SELF);
-                                    //ActionUseSkill(SKILL_MOVE_SILENTLY,OBJECT_SELF);
-                                 }
-                                 if(GetAssociateState(NW_ASC_AGGRESSIVE_SEARCH))
-                                 {
-                                    ActionUseSkill(SKILL_SEARCH, OBJECT_SELF);
-                                 }
-                                 //MyPrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; + &quot;Assigning Force Follow Command with Search and/or Stealth&quot;);
-                                 ActionForceFollowObject(oMaster, GetFollowDistance());
-                            }
-                            else
-                            {
-                                 //MyPrintString(&quot;GENERIC SCRIPT DEBUG STRING ********** &quot; + &quot;Assigning Force Follow Normal&quot;);
-                                 ActionForceFollowObject(oMaster, GetFollowDistance());
-                            }
-                        }
-                    }
-                }
-            }
-            else if(!GetIsObjectValid(GetAttackTarget()) &amp;&amp;
-               !GetIsObjectValid(GetAttemptedSpellTarget()) &amp;&amp;
-               !GetIsObjectValid(GetAttemptedAttackTarget()) &amp;&amp;
-               !GetAssociateState(NW_ASC_MODE_STAND_GROUND))
-            {
-                //DetermineCombatRound();
-            }
-
-        }
-        // * if I am dominated, ask for some help
-        if (GetHasEffect(EFFECT_TYPE_DOMINATED, OBJECT_SELF) == TRUE &amp;&amp; GetIsEncounterCreature(OBJECT_SELF) == FALSE)
-        {
-            SendForHelp();
-        }
-
-        if(GetSpawnInCondition(NW_FLAG_HEARTBEAT_EVENT))
-        {
-            SignalEvent(OBJECT_SELF, EventUserDefined(1001));
-        }
+        ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), OBJECT_SELF);
+        return;
     }
-if(!GetIsObjectValid(oMaster))
-{
-ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(),OBJECT_SELF);
-}
-
-if (GetArea(OBJECT_SELF) != GetArea(oMaster))
-{
-location lTarget = GetLocation(oMaster);
-AssignCommand(OBJECT_SELF, ClearAllActions());
-DelayCommand(0.1, AssignCommand(OBJECT_SELF, ActionJumpToLocation(lTarget)));
-}
-
-
+    if (GetArea(OBJECT_SELF) != GetArea(oMaster))
+    {
+        location lTarget = GetLocation(oMaster);
+        AssignCommand(OBJECT_SELF, ClearAllActions());
+        DelayCommand(0.1, AssignCommand(OBJECT_SELF, ActionJumpToLocation(lTarget)));
+    }
 }
 </code></pre>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

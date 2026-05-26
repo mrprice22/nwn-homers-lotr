@@ -4,20 +4,42 @@
   <meta charset="utf-8">
   <title>Legolas</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
@@ -25,40 +47,64 @@
 <dl class="meta">
 <dt>ResRef</dt><dd>legolas</dd>
 <dt>Tag</dt><dd>Legolas</dd>
-<dt>Race</dt><dd>Elf</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-1">Elf</a></dd>
 <dt>Appearance</dt><dd>Elf</dd>
 <dt>Class(es)</dt><dd>Fighter 60/Arcane Archer 40</dd>
-<dt>HP</dt><dd>6940</dd>
+<dt>HP</dt><dd>6,940</dd>
 <dt>CR</dt><dd>599.0</dd>
 <dt>Faction</dt><dd><a href="../factions.html">Good</a> <small class="muted">(id 6)</small></dd>
-<dt>Conversation</dt><dd></dd>
+<dt>Conversation</dt><dd>—</dd>
 </dl>
+<h2>Where to find</h2><p>Not placed in any area.</p>
 <h2>Abilities</h2>
 <table class="data"><tr><th>Str</th><td>40</td><th>Dex</th><td>90</td><th>Con</th><td>44</td><th>Int</th><td>50</td><th>Wis</th><td>30</td><th>Cha</th><td>60</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>60</td></tr><tr><td>Arcane Archer</td><td>40</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>6940</td><th>AC</th><td>60 <small class="muted">(10 base + +40 Dex + +10 armor enchant)</small></td><th>BAB</th><td>+100</td></tr><tr><th>Fort</th><td>+17</td><th>Ref</th><td>+40</td><th>Will</th><td>+10</td></tr></table>
+<table class="data"><tr><th>HP</th><td>6,940</td><th>AC</th><td>67 <small class="muted">(10 base + +40 Dex + +3 armor + +10 armor enchant + +4 dodge (haste))</small></td><th>BAB</th><td>+100</td></tr><tr><th>Fort</th><td>+17</td><th>Ref</th><td>+40</td><th>Will</th><td>+10</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
-<p class="muted">Saves shown = stored bonus + ability mod; class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/028.html">Legolas&#x27;s Longbow </a></td><td>Longbow</td><td>Ranged (200)</td><td>+140/+135/+130/+125</td><td>1d8 (1–8)</td><td>20/x3</td></tr></tbody></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Dexterity Bonus</th><td>+10</td></tr>
+<tr><th>Strength Bonus</th><td>+12</td></tr>
+<tr><th>Skill: Spot</th><td>+50</td></tr>
+<tr><th>Damage Resistance: Acid</th><td>10</td></tr>
+<tr><th>Damage Resistance: Bludgeoning</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Cold</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Divine</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Electrical</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Fire</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Magical</th><td>15/-</td></tr>
+<tr><th>Damage Resistance: Negative</th><td>30/-</td></tr>
+<tr><th>Damage Resistance: Piercing</th><td>25/-</td></tr>
+<tr><th>Damage Resistance: Positive</th><td>10/-</td></tr>
+<tr><th>Damage Resistance: Slashing</th><td>20/-</td></tr>
+<tr><th>Damage Resistance: Sonic</th><td>15/-</td></tr>
+<tr><th>Damage Immunity</th><td>Acid (20%), Positive (50%)</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Fear, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison</td></tr>
+<tr><th>Regeneration</th><td>+10 HP/round</td></tr>
+<tr><th>Regen: Vampiric</th><td>+2 HP/hit</td></tr>
+<tr><th>Haste</th><td>Yes (+4 dodge AC, stacks; factored into main AC)</td></tr>
+<tr><th>Freedom of Movement</th><td>Yes</td></tr>
+<tr><th>True Seeing</th><td>Yes</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/028.html">Legolas&#x27;s Longbow </a></td><td>Longbow</td><td>Ranged (200)</td><td>+154/+149/+144/+139</td><td>1d8 (1–8) + Massive Criticals 9</td><td>20/x3</td></tr></tbody></table>
 <h2>Equipment</h2>
-<table class="data"><thead><tr><th>Slot</th><th>Item</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth007.html">Legolas&#x27;s Chain</a></td></tr>
-<tr><td>Right hand</td><td><a href="../items/028.html">Legolas&#x27;s Longbow </a></td></tr>
-<tr><td>Right ring</td><td><a href="../items/044.html">Arrow of the Orc Defender</a></td></tr>
-<tr><td>Arrows</td><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td></tr>
-<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/mcloth007.html">Legolas&#x27;s Chain</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right hand</td><td><a href="../items/028.html">Legolas&#x27;s Longbow </a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Right ring</td><td><a href="../items/044.html">Arrow of the Orc Defender</a></td><td><span style="color:#888">No</span></td></tr>
+<tr><td>Arrows</td><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td>Creature hide</td><td><a href="../items/npcbuffgear.html">NPC Buff Gear</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Inventory <small class="muted">(12)</small></h2>
-<table class="data"><thead><tr><th>Item</th><th>ResRef</th></tr></thead><tbody><tr><td><a href="../items/wswmdg004.html">Legolas&#x27;s Courtesan Blade</a></td><td>wswmdg004</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td>nw_it_mpotion012</td><td>nw_it_mpotion012</td></tr>
-<tr><td><a href="../items/theeyeofmadusa.html">The Eye of Madusa</a></td><td>theeyeofmadusa</td></tr>
-<tr><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td><td>greaterringof002</td></tr>
-<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td>wammar038</td></tr>
-<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td>wammar038</td></tr>
-<tr><td><a href="../items/theevenstar.html">The Evenstar</a></td><td>theevenstar</td></tr>
-<tr><td><a href="../items/maarcl037.html">[TLK#66551]</a></td><td>maarcl037</td></tr>
-<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td>wammar038</td></tr>
-<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td>wammar038</td></tr>
-<tr><td><a href="../items/greenleaf.html">Green Leaf</a></td><td>greenleaf</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Item</th><th>Item Type</th><th>Lootable</th><th>Pickpocketable</th></tr></thead><tbody><tr><td><a href="../items/wswmdg004.html">Legolas&#x27;s Courtesan Blade</a></td><td><a href="../items/index.html#weapon-22">Dagger</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/nw_it_mpotion012.html">Potion of Heal</a></td><td><a href="../items/index.html#potion">Potions</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
+<tr><td><a href="../items/theeyeofmadusa.html">The Eye of Madusa</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greaterringof002.html">Greater Ring of Power</a></td><td><a href="../items/index.html#ring">Rings</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/theevenstar.html">The Evenstar</a></td><td><a href="../items/index.html#amulet">Amulets</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/maarcl037.html">Greater Mantle of Spell Resistance</a></td><td><a href="../items/index.html#cloak">Cloaks</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/wammar038.html">Legolas&#x27;s Piercing Arrow</a></td><td><a href="../items/index.html#ammo">Ammunition</a></td><td><span style="color:#888">No</span></td><td><span style="color:#888">No</span></td></tr>
+<tr><td><a href="../items/greenleaf.html">Green Leaf</a></td><td><a href="../items/index.html#boots">Boots</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td><td><span style="color:#888">No</span></td></tr></tbody></table>
 <h2>Feats <small class="muted">(76)</small></h2><ul class="featlist"><li>Alertness</li><li>Animal Companion</li><li>Armor Proficiency (heavy)</li><li>Armor Proficiency (light)</li><li>Armor Proficiency (medium)</li><li>Blinding Speed</li><li>Brew Potion</li><li>Curse Song</li><li>Dual-Wield</li><li>Enchant Arrow I</li><li>Enchant Arrow II</li><li>Enchant Arrow III</li><li>Enchant Arrow IV</li><li>Enchant Arrow IX</li><li>Enchant Arrow V</li><li>Enchant Arrow VI</li><li>Enchant Arrow VII</li><li>Enchant Arrow VIII</li><li>Enchant Arrow X</li><li>Epic Prowess</li><li>Epic Ranger</li><li>Epic Skill Focus (Animal Empathy)</li><li>Epic Skill Focus (Perform)</li><li>Epic Superior Weapon Focus</li><li>Epic Toughness I</li><li>Epic Toughness II</li><li>Epic Toughness III</li><li>Epic Toughness IV</li><li>Epic Toughness IX</li><li>Epic Toughness VI</li><li>Epic Toughness VII</li><li>Epic Weapon Focus (dagger)</li><li>Epic Weapon Focus (longbow)</li><li>Epic Weapon Specialization (dagger)</li><li>Epic Weapon Specialization (longbow)</li><li>Favored Enemy: Beasts</li><li>Favored Enemy: Dragons</li><li>Favored Enemy: Giants</li><li>Favored Enemy: Goblinoids</li><li>Favored Enemy: Orcs</li><li>Great Cleave</li><li>Hail of Arrows</li><li>Hardiness vs. Enchantments</li><li>Imbue Arrow</li><li>Immunity to <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span></li><li>Immunity to Paralysis</li><li>Immunity To Sleep</li><li>Improved Critical (longbow)</li><li>Improved Two-Weapon Fighting</li><li>Keen Sense</li><li>Low-light Vision</li><li>Overwhelming Critical (dagger)</li><li>Overwhelming Critical (longbow)</li><li>Seeker Arrow I</li><li>Seeker Arrow II</li><li>Shield Proficiency</li><li>Skill Affinity (Listen)</li><li>Skill Affinity (Search)</li><li>Skill Affinity (Spot)</li><li>Skill Focus (Animal Empathy)</li><li>Skill Focus (Search)</li><li>Skill Focus (Spot)</li><li>Trackless Step</li><li>Weapon Focus (dagger)</li><li>Weapon Focus (longbow)</li><li>Weapon of Choice (dagger)</li><li>Weapon Proficiency (druid)</li><li>Weapon Proficiency (Elf)</li><li>Weapon Proficiency (exotic)</li><li>Weapon Proficiency (martial)</li><li>Weapon Proficiency (monk)</li><li>Weapon Proficiency (rogue)</li><li>Weapon Proficiency (simple)</li><li>Weapon Proficiency (wizard)</li><li>Weapon Specialization (dagger)</li><li>Weapon Specialization (longbow)</li></ul>
 <h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Animal Empathy</td><td>61</td></tr>
 <tr><td>Concentration</td><td>60</td></tr>
@@ -91,6 +137,6 @@
 <tr><td>ScriptUserDefine</td><td>x2_def_userdef</td></tr>
 <tr><td>ScriptOnBlocked</td><td>x2_def_onblocked</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

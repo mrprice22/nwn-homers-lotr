@@ -4,37 +4,61 @@
   <meta charset="utf-8">
   <title>Mad Eye Moody&#x27;s Store</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Mad Eye Moody&#x27;s Store</h1>
-<dl class="meta"><dt>ResRef</dt><dd>madeyemoodysstor</dd><dt>Tag</dt><dd>MadEyeMoodysStore</dd><dt>Tileset</dt><dd>Crypt <small class="muted">(tin01)</small></dd><dt>Size</dt><dd>2×2 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>cleanup</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>madeyemoodysstor</dd><dt>Tag</dt><dd>MadEyeMoodysStore</dd><dt>Tileset</dt><dd>Crypt <small class="muted">(tin01)</small></dd><dt>Size</dt><dd>2×2 tiles</dd><dt>OnExit</dt><dd>cleanup</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>6 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="bree.html">Bree</a> <em class="muted">[use the &#8220;x2_doorhard2&#8221; door]</em></li><li><a href="bree.html">Bree</a> &rarr; <a href="greateastroada.html">Great East Road</a> <em class="muted">[step on the &#8220;bree2eastr&#8221; trigger]</em></li><li><a href="greateastroada.html">Great East Road</a> &rarr; <a href="greateastroadb.html">Great East Road</a> <em class="muted">[step on the &#8220;eastroadatoc&#8221; trigger]</em></li><li><a href="greateastroadb.html">Great East Road</a> &rarr; <a href="greateastroadc.html">Great East Road</a> <em class="muted">[step on the &#8220;eastb2eastc&#8221; trigger]</em></li><li><a href="greateastroadc.html">Great East Road</a> &rarr; <a href="thelandinntown.html">The Last Inn: Town</a> <em class="muted">[step on the &#8220;eastc2lastinn&#8221; trigger]</em></li><li><a href="thelandinntown.html">The Last Inn: Town</a> &rarr; <a href="madeyemoodysstor.html">Mad Eye Moody&#x27;s Store</a> <em class="muted">[use the &#8220;town2moody&#8221; door]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>moody2lasttown</td><td><a href="thelandinntown.html">The Last Inn: Town</a></td><td><code>town2moody</code></td></tr></tbody></table>
 <h2>Incoming transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>door</td><td><a href="thelandinntown.html">The Last Inn: Town</a></td><td>town2moody</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/madeyemoodysstor-000.html">Mad Eye Moody</a></td><td><code>nw_oldman</code></td><td>nw_oldman</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Merchant</td><td><a href="../conversations/moody.html">moody</a></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/nw_oldman.html">Mad Eye Moody</a></td><td>nw_oldman</td><td>Human</td><td>Commoner 1</td><td>2</td><td>0.25</td><td>Merchant</td><td><a href="../conversations/moody.html">moody</a></td></tr></tbody></table>
 <h2>Stores</h2>
-<table class="data"><thead><tr><th>Store</th><th>ResRef</th></tr></thead><tbody><tr><td>nw_storespec002</td><td>nw_storespec002</td></tr>
-<tr><td>nw_storgenral001</td><td>nw_storgenral001</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>Items</th><th>Opened By</th><th title="Price store charges you to buy items (% of base)">Sells At</th><th title="Price store pays you for items (% of base)">Buys At</th><th title="Maximum the store will pay for any single item">Max Buy</th><th title="Highest base item value in stock (before markup)">Max GP</th><th title="Average base item value in stock (before markup)">Avg GP</th></tr></thead><tbody><tr><td><a href="../stores/madeyemoodysstor_nw_storespec002.html">NW_STORESPEC002</a></td><td>77</td><td>NPC <a href="../creatures/nw_oldman.html">Old Man</a> (via <a href="../conversations/moody.html">conversation</a>)</td><td>150%</td><td>5%</td><td>5,000 gp</td><td>35,032</td><td>2,028</td></tr>
+<tr><td><a href="../stores/madeyemoodysstor_nw_storgenral001.html">NW_STORGENRAL001</a></td><td>17</td><td>NPC <a href="../creatures/nw_oldman.html">Old Man</a> (via <a href="../conversations/moody.html">conversation</a>)</td><td>150%</td><td>5%</td><td>5,000 gp</td><td>1,577</td><td>460</td></tr></tbody></table>
 <h2>Conversations triggered here</h2>
-<table class="data"><thead><tr><th>Conversation</th><th>ResRef</th><th>Triggered via</th><th>Teleports to</th></tr></thead><tbody><tr><td><a href="../conversations/moody.html">HAAAAAH! I knew I would get a customer one of these days!</a></td><td><code>moody</code></td><td>NPC <a href="../creatures/instances/madeyemoodysstor-000.html">Mad Eye Moody</a></td><td>—</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Conversation</th><th>ResRef</th><th>Triggered via</th><th>Teleports to</th></tr></thead><tbody><tr><td><a href="../conversations/moody.html">HAAAAAH! I knew I would get a customer one of these days!</a></td><td><code>moody</code></td><td>NPC <a href="../creatures/nw_oldman.html">Old Man</a></td><td>—</td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

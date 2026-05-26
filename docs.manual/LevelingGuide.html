@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Leveling Guide — Homer's LOTR</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <main>
+  <style>
+    .mw-layout {
+      display: flex;
+      gap: 2.5em;
+      align-items: flex-start;
+    }
+    .mw-toc-pane {
+      flex: 0 0 220px;
+      position: sticky;
+      top: 1.5em;
+      max-height: calc(100vh - 3em);
+      overflow-y: auto;
+    }
+    .mw-content {
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+
+    .toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1em 1.2em;
+    }
+    .toc h2 {
+      font-size: 1em;
+      margin: 0 0 0.5em;
+      border: none;
+      padding: 0;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+
+    .tier-header {
+      background: rgba(107,58,28,0.08);
+      border-left: 4px solid var(--accent);
+      padding: 0.5em 1em;
+      margin: 2em 0 0.8em;
+      border-radius: 0 4px 4px 0;
+    }
+    .tier-header h2 { margin: 0; border: none; padding: 0; }
+    .tier-header .tier-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+
+    .loot-box {
+      background: rgba(200,165,119,0.10);
+      border: 1px solid var(--accent-soft);
+      border-radius: 4px;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+    }
+    .loot-box strong { display: block; margin-bottom: 0.3em; color: var(--accent); }
+
+    .tip-box {
+      background: rgba(30,30,60,0.07);
+      border-left: 4px solid var(--accent-soft);
+      border-radius: 0 4px 4px 0;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+      font-size: 0.93em;
+    }
+    .tip-box p { margin: 0.3em 0; }
+
+    .area-list { list-style: none; padding: 0; margin: 0.4em 0 0.8em; }
+    .area-list li { margin: 0.25em 0; }
+    .area-list li::before { content: "▶ "; color: var(--accent-soft); font-size: 0.8em; }
+
+    .enemy-table td, .enemy-table th { font-size: 0.9em; }
+
+    h2, h3 { scroll-margin-top: 1.5em; }
+
+    .cr-badge {
+      display: inline-block;
+      background: rgba(107,58,28,0.15);
+      border: 1px solid var(--accent-soft);
+      border-radius: 3px;
+      padding: 0 0.35em;
+      font-size: 0.82em;
+      color: var(--muted);
+      margin-left: 0.3em;
+    }
+
+    .warning-box {
+      background: rgba(200, 60, 60, 0.08);
+      border-left: 4px solid #c03030;
+      border-radius: 0 4px 4px 0;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+      font-size: 0.93em;
+    }
+    .warning-box p { margin: 0.3em 0; }
+  </style>
+  <div class="mw-layout">
+  <aside class="mw-toc-pane">
+    <nav class="toc" aria-label="Page contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#tier1">Levels 1–10: Bree and the Shire Wilds</a></li>
+        <li><a href="#tier2">Levels 11–20: Barrow Downs and the Trollshaws</a></li>
+        <li><a href="#tier3">Levels 21–30: Misty Mountains and Goblin-town</a></li>
+        <li><a href="#tier4">Levels 31–40: Moria and the Iron Hills of Angmar</a></li>
+        <li><a href="#tier5">Levels 41–50: Rohan and the Fields of Gondor</a></li>
+        <li><a href="#tier6">Levels 51–60: Mirkwood, Mordor's Edge, and Beyond</a></li>
+      </ol>
+    </nav>
+  </aside>
+  <div class="mw-content">
+
+<h1>Leveling Guide — Homer's LOTR</h1>
+
+<p>This guide traces a path through Middle-earth from fresh adventurer to seasoned hero, organised
+into six ten-level tiers. Each tier lists the areas best suited to your current power, the enemies
+you will face, and the notable gear you might find along the way — whether looted from fallen
+enemies, pulled from a dusty chest, or bought from a local merchant.</p>
+
+<div class="tip-box">
+  <p><strong>Starting point.</strong> All adventurers begin in the
+  <a href="../areas/thewelloferu.html">Well of Eru</a>. The <strong>Guardian of Light</strong>
+  and <strong>Guardian of Darkness</strong> are your teleport hubs throughout the journey — return
+  to them when you are ready to move on to a new region. The <strong>Well-Mart</strong> nearby
+  sells basic potions and scrolls at any level.</p>
+  <p><strong>Resting.</strong> You can rest anywhere that is not in active combat. Heal up before
+  taking on a new zone.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="tier1">
+  <h2>Levels 1–10: Bree and the Shire Wilds</h2>
+  <p class="tier-sub">Your first steps east of the Well. Low-CR encounters, a clutch of early quests, and the merchants of Bree to spend your first gold pieces.</p>
+</div>
+
+<h3>Recommended Areas</h3>
+<ul class="area-list">
+  <li><a href="../areas/bree.html">Bree</a> — hub town, stores, two quest-givers</li>
+  <li><a href="../areas/breecave.html">Bree Cave</a> — rats and lesser undead; short loop</li>
+  <li><a href="../areas/breecaverns.html">Bree Caverns</a> — deeper than the Cave; dark corridors</li>
+  <li><a href="../areas/breecrypt.html">Bree Crypt</a> — undead beneath the city streets</li>
+  <li><a href="../areas/chetwood001.html">Chetwood</a> — goblins, bugbears; good XP density in early levels</li>
+  <li><a href="../areas/midgewaterswamp.html">Midgewater Swamp</a> — swamp creatures, marsh predators</li>
+  <li><a href="../areas/greateastroada.html">Great East Road</a> — road bandits and dire wolves</li>
+  <li><a href="../areas/oldbackroad.html">Old Back Road</a> — light travel encounters</li>
+</ul>
+
+<h3>Enemies</h3>
+<table class="data enemy-table">
+  <thead><tr><th>Enemy</th><th>CR</th><th>Found in</th></tr></thead>
+  <tbody>
+    <tr><td>Rat / Dire Rat</td><td class="cr-badge">CR ⅛–½</td><td><a href="../areas/breecave.html">Bree Cave</a>, <a href="../areas/breecaverns.html">Bree Caverns</a></td></tr>
+    <tr><td>Zombie, Skeleton</td><td class="cr-badge">CR ½–1</td><td><a href="../areas/breecrypt.html">Bree Crypt</a>, <a href="../areas/bree.html">Bree</a> (encounter)</td></tr>
+    <tr><td>Goblin, Goblin Wizard</td><td class="cr-badge">CR ¼–3</td><td><a href="../areas/chetwood001.html">Chetwood</a></td></tr>
+    <tr><td>Ghoul</td><td class="cr-badge">CR 2</td><td><a href="../areas/breecrypt.html">Bree Crypt</a></td></tr>
+    <tr><td>Bugbear, Bugbear Chief</td><td class="cr-badge">CR 2–5</td><td><a href="../areas/chetwood001.html">Chetwood</a></td></tr>
+    <tr><td>Goblin Chief / Shaman</td><td class="cr-badge">CR 3–4</td><td><a href="../areas/chetwood001.html">Chetwood</a></td></tr>
+    <tr><td>Zombie Warrior / Zombie Tyrant</td><td class="cr-badge">CR 3–4</td><td><a href="../areas/breecrypt.html">Bree Crypt</a>, <a href="../areas/bree.html">Bree</a></td></tr>
+    <tr><td>Worg</td><td class="cr-badge">CR 3</td><td><a href="../areas/midgewaterswamp.html">Midgewater Swamp</a></td></tr>
+    <tr><td>Swamp / Marsh predators</td><td class="cr-badge">CR 1–7</td><td><a href="../areas/midgewaterswamp.html">Midgewater Swamp</a></td></tr>
+  </tbody>
+</table>
+
+<h3>Notable Gear</h3>
+<div class="loot-box">
+  <strong>Containers &amp; Enemy Drops</strong>
+  <ul>
+    <li><strong><a href="../items/ringofsharkey.html">Ring of Sharkey</a></strong> — found on a Corpse in <a href="../areas/breecave.html">Bree Cave</a>. Connects to the Bill Ferny quest chain.</li>
+    <li>Basic <strong>+1 and +2 weapons</strong> drop from named goblins and crypt undead. Crypt boss chests sometimes yield a serviceable off-hand or shield.</li>
+    <li>Pile of Stones in Bree Cave occasionally yields minor gems or small gold.</li>
+  </ul>
+</div>
+<div class="loot-box">
+  <strong>Stores</strong>
+  <ul>
+    <li><strong><a href="../stores/wellshop.html">Well-Mart</a></strong> (Well of Eru, also in Bree) — Potions of Heal, Greater Restoration, Raise Dead scrolls. Always worth restocking here before pushing into a new zone.</li>
+    <li><strong>Tagget's Smith Shop</strong> (<a href="../areas/taggetssmithshop.html">Tagget's</a>, Bree) — standard weapons and armour up to full plate; good source of adamantite base weapons.</li>
+    <li>The general store in <a href="../areas/theprancingpo001.html">The Prancing Pony</a> carries healer's kits and basic gear.</li>
+  </ul>
+</div>
+
+<h3>Quests to Pick Up</h3>
+<ul>
+  <li><strong>Bill Ferny's Ring</strong> — talk to <strong>Bill Ferny</strong> in <a href="../areas/bree.html">Bree</a>. Head into <a href="../areas/breecave.html">Bree Cave</a> to recover the ring. The follow-up reveals the Sharkey conspiracy.</li>
+  <li><strong>The Miller's Son</strong> — talk to <strong>Han the Bree Miller</strong> in Bree. Investigate along the South Greenway; good early XP.</li>
+  <li><strong>Hanee the Loon</strong> — the old woman in Bree hints at the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> to the north. File that away for level 30+.</li>
+</ul>
+
+<div class="tip-box">
+  <p><strong>Tip:</strong> Don't overlook the <a href="../areas/breecaverns.html">Bree Caverns</a> — they are separate from Bree Cave and run a bit deeper. Clear both before heading to Chetwood. By the time Chetwood's bugbear chiefs feel routine, you are ready to head toward the Barrow Downs.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="tier2">
+  <h2>Levels 11–20: Barrow Downs and the Trollshaws</h2>
+  <p class="tier-sub">Ancient evil stirs in the burial mounds west of Bree. The Trollshaws hide worse — stone trolls, ogres, and the first Uruk scouts. Elrond in Rivendell has work for those bold enough to reach him.</p>
+</div>
+
+<h3>Recommended Areas</h3>
+<ul class="area-list">
+  <li><a href="../areas/thebarrowdowns.html">The Barrow Downs</a> — dense undead encounters; scales well into mid-teens</li>
+  <li><a href="../areas/thenorthdowns001.html">North Downs</a> — lighter combat; good for transitioning out of Bree</li>
+  <li><a href="../areas/cardolan.html">Cardolan</a> — CR 3–10 undead and bandits; multiple sub-areas</li>
+  <li><a href="../areas/thetrollshalls.html">The Troll Halls</a> — trolls, ogres, hill giants; Elrond quest target</li>
+  <li><a href="../areas/weatherhills.html">Weatherhills</a> — road to Rivendell; patrolled by Rangers</li>
+  <li><a href="../areas/rivendell.html">Rivendell</a> — quest hub; gateway to the broader world</li>
+  <li><a href="../areas/goblingatelesser.html">Goblin Gate (lesser passages)</a> — Goblin Gate Peons and Soldiers; good XP at 14+</li>
+  <li><a href="../areas/mistymountainsa.html">Misty Mountains (lower slopes)</a> — mountain creatures and early orc scouts</li>
+</ul>
+
+<h3>Enemies</h3>
+<table class="data enemy-table">
+  <thead><tr><th>Enemy</th><th>CR</th><th>Found in</th></tr></thead>
+  <tbody>
+    <tr><td>Skeleton, Zombie (various)</td><td class="cr-badge">CR ½–4</td><td><a href="../areas/thebarrowdowns.html">Barrow Downs</a></td></tr>
+    <tr><td>Wight, Barrow Wight</td><td class="cr-badge">CR 4–6</td><td><a href="../areas/thebarrowdowns.html">Barrow Downs</a></td></tr>
+    <tr><td>Spectre, Zombie Boss</td><td class="cr-badge">CR 6–8</td><td><a href="../areas/thebarrowdowns.html">Barrow Downs</a></td></tr>
+    <tr><td>Greater Servant of Sauron</td><td class="cr-badge">CR 13</td><td><a href="../areas/thebarrowdowns.html">Barrow Downs</a> (rare spawn)</td></tr>
+    <tr><td>Troll, Troll Chief, Troll Wizard</td><td class="cr-badge">CR 5–7</td><td><a href="../areas/thetrollshalls.html">Troll Halls</a></td></tr>
+    <tr><td>Ogre, Ogre Mage, Ettin</td><td class="cr-badge">CR 3–8</td><td><a href="../areas/thetrollshalls.html">Troll Halls</a></td></tr>
+    <tr><td>Hill Giant, Mountain Giant</td><td class="cr-badge">CR 10</td><td><a href="../areas/thetrollshalls.html">Troll Halls</a></td></tr>
+    <tr><td>Goblin Gate Peon / Soldier</td><td class="cr-badge">CR 2–5</td><td><a href="../areas/goblingatelesser.html">Goblin Gate (lesser)</a></td></tr>
+    <tr><td>Goblin Gate Ritualist / Warrior</td><td class="cr-badge">CR 5–12</td><td><a href="../areas/goblingatelesser.html">Goblin Gate (lesser)</a>, <a href="../areas/goblintownmainha.html">Goblin-town</a></td></tr>
+    <tr><td>Worg</td><td class="cr-badge">CR 3</td><td><a href="../areas/goblingatelesser.html">Goblin Gate</a></td></tr>
+    <tr><td>Misty Mountains creatures</td><td class="cr-badge">CR 2–17</td><td><a href="../areas/mistymountainsa.html">Misty Mountains A</a></td></tr>
+  </tbody>
+</table>
+
+<h3>Notable Gear</h3>
+<div class="loot-box">
+  <strong>Containers &amp; Enemy Drops</strong>
+  <ul>
+    <li><strong><a href="../items/stonefromarath.html">Stone from Arathorn</a></strong> — inside the <em>Statue of Arathorn</em> container in <a href="../areas/thebarrowdowns.html">The Barrow Downs</a>. A plot-significant quest item.</li>
+    <li>Named undead in the Barrow Downs occasionally yield <strong>+2 to +3 swords and staves</strong>. Look out for the Zombie Boss — it is the hardest creature in the area and drops accordingly.</li>
+    <li>Troll and giant kills in the <a href="../areas/thetrollshalls.html">Troll Halls</a> can yield <strong>Dwarven Ringmail</strong> variants and <strong>Gondorian Light Armor</strong> pieces.</li>
+    <li>Goblin Gate Warrior loot includes serviceable <strong>short swords, battle axes,</strong> and the occasional magic helm.</li>
+    <li>Look for a <strong>Crown of Weathertop</strong> from named undead or chests in the upper Barrow Downs — a useful helmet for the transition into the Trollshaws.</li>
+  </ul>
+</div>
+<div class="loot-box">
+  <strong>Stores</strong>
+  <ul>
+    <li><a href="../areas/theprancingpo001.html">The Prancing Pony</a> (Bree) — upgraded healer's kits and minor magic consumables.</li>
+    <li><strong>Rivendell smithy</strong> (<a href="../areas/thesmithyofriven.html">The Smithy of Rivendell</a>) — elven-crafted weapons and armour begin to appear here; worth a visit once Elrond's quest sends you to Rivendell.</li>
+  </ul>
+</div>
+
+<h3>Quests to Pick Up</h3>
+<ul>
+  <li><strong>Elrond's Tasks</strong> — speak to <strong>Elrond</strong> in <a href="../areas/rivendell.html">Rivendell</a>. He asks you to break the Uruk-hai siege of the Troll Halls and retrieve the <em>Helm of Azog the Warlord</em>, then investigate Balin's expedition in Moria. These quests bridge you into Tier 3.</li>
+  <li><strong>Lazug the Wicked</strong> — a named goblin boss (<span class="cr-badge">CR 7</span>) lurks in the <a href="../areas/goblingatelesser.html">Goblin Gate lesser passages</a>; defeating him is a rite of passage and a reliable source of a named drop.</li>
+</ul>
+
+<div class="tip-box">
+  <p><strong>Tip:</strong> The Barrow Downs are a long, open area — work your way from the outer ring inward. The <em>Greater Servant of Sauron</em> (CR 13) can appear before you are ready; if you find yourself being drained to nothing, retreat to the outer barrows and keep clearing those encounter pools first. Positive-damage items (or a cleric companion) greatly ease the undead-heavy mid section.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="tier3">
+  <h2>Levels 21–30: Misty Mountains and Goblin-town</h2>
+  <p class="tier-sub">The high passes are crawling with mountain orcs, stone giants, and Goblin-town's chieftain hierarchy. The Gates of Moria loom at the far end — enter if you dare.</p>
+</div>
+
+<h3>Recommended Areas</h3>
+<ul class="area-list">
+  <li><a href="../areas/mistymountainsa.html">Misty Mountains (lower slopes)</a> — mountain brigands and rock-hard predators</li>
+  <li><a href="../areas/mistymountainsb.html">Misty Mountains (upper)</a> — CR 3–17 encounters; good grinding for mid-20s</li>
+  <li><a href="../areas/goblintownmainha.html">Goblin-town Main Hall</a> — dense goblin packs, named bosses at the top</li>
+  <li><a href="../areas/goblingatelesser.html">Goblin Gate (lesser)</a> — revisit for the harder Warrior spawns now</li>
+  <li><a href="../areas/thegatesofmoria.html">Gates of Moria</a> — first Moria contact; CR 4–12 outer guardians</li>
+  <li><a href="../areas/thedimrillstair.html">Dimrill Stair</a> — connects the Misty Mountains to Moria's threshold</li>
+  <li><a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a> — entry-level Moria; beware the Trollog Devastator (CR 21)</li>
+  <li><a href="../areas/carrok.html">Carrok</a> / <a href="../areas/carrokgreater.html">Carrok Greater</a> — wildlife in the CR 11–19 range; useful if you need to pace your XP</li>
+  <li><a href="../areas/dunland.html">Dunland</a> — Dunlending warriors; CR 3–9 for the lighter end of the zone</li>
+</ul>
+
+<h3>Enemies</h3>
+<table class="data enemy-table">
+  <thead><tr><th>Enemy</th><th>CR</th><th>Found in</th></tr></thead>
+  <tbody>
+    <tr><td>Mountain orcs and shamans</td><td class="cr-badge">CR 5–10</td><td><a href="../areas/mistymountainsb.html">Misty Mountains B</a></td></tr>
+    <tr><td>Stone giants, hill giants</td><td class="cr-badge">CR 10–17</td><td><a href="../areas/mistymountainsb.html">Misty Mountains B</a></td></tr>
+    <tr><td>Goblin Gate Peon / Soldier</td><td class="cr-badge">CR 2–5</td><td><a href="../areas/goblintownmainha.html">Goblin-town</a></td></tr>
+    <tr><td>Goblin Gate Warrior / Ritualist</td><td class="cr-badge">CR 5–12</td><td><a href="../areas/goblintownmainha.html">Goblin-town</a></td></tr>
+    <tr><td>Moria Orc Clan Terror / Shaman</td><td class="cr-badge">CR 6–7</td><td><a href="../areas/thegatesofmoria.html">Gates of Moria</a>, <a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a></td></tr>
+    <tr><td>Trollog Channeler / High Fanatic</td><td class="cr-badge">CR 8–9</td><td><a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a></td></tr>
+    <tr><td>Hobgoblin of Moria / Shaman</td><td class="cr-badge">CR 11–12</td><td><a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a></td></tr>
+    <tr><td>Trollog Devastator</td><td class="cr-badge">CR 21</td><td><a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a> (boss)</td></tr>
+    <tr><td>Carrok predators</td><td class="cr-badge">CR 11–19</td><td><a href="../areas/carrok.html">Carrok</a>, <a href="../areas/carrokgreater.html">Carrok Greater</a></td></tr>
+  </tbody>
+</table>
+
+<h3>Notable Gear</h3>
+<div class="loot-box">
+  <strong>Containers &amp; Enemy Drops</strong>
+  <ul>
+    <li><strong>Dwarven Platemail</strong> and <strong>Dwarven Ringmail +1/+2</strong> start to appear as drops from Moria Orc clan leaders and dungeon containers inside <a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a>.</li>
+    <li>Named Goblin-town bosses at the top of <a href="../areas/goblintownmainha.html">Goblin-town Main Hall</a> carry <strong>+3 to +5 weapons</strong> and occasionally unique helms.</li>
+    <li>Trollog Devastators sometimes drop <strong>Adamantite weapons</strong> — a significant upgrade over standard steel.</li>
+    <li>Goblin-town's war-chest containers hold minor rings and amulets; worth every locked chest you can find.</li>
+  </ul>
+</div>
+<div class="loot-box">
+  <strong>Stores</strong>
+  <ul>
+    <li><a href="../stores/wellshop.html">Well-Mart</a> (always available from <a href="../areas/thewelloferu.html">Well of Eru</a>) — stock up on Potions of Heal; Moria hits hard.</li>
+    <li><strong>Rivendell Smithy</strong> (<a href="../areas/thesmithyofriven.html">Smithy of Rivendell</a>) — elven armour and weapons in the +3–+5 range; the best store-bought gear at this level.</li>
+  </ul>
+</div>
+
+<h3>Quests to Pick Up</h3>
+<ul>
+  <li><strong>Elrond's Moria Task</strong> (continued from Tier 2) — push into <a href="../areas/dwarrowdelfeast.html">Dwarrowdelf</a> and onward to <a href="../areas/balinstomb.html">Balin's Tomb</a> to find sign of the dwarven expedition. High risk, high reward.</li>
+  <li><strong>Gloisin's Heirloom</strong> — a dwarf in <a href="../areas/area006.html">Esgaroth (Lake Town)</a> asks you to recover an heirloom from <a href="../areas/theruinsofdale.html">the Ruins of Dale</a>. A good side trip and solid XP.</li>
+</ul>
+
+<div class="tip-box">
+  <p><strong>Tip:</strong> The <em>Trollog Devastator</em> (CR 21) can appear in <a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a> before you are ready for it. It has enormous HP and hits like a warhammer to the face. If it spawns early, retreat and clear the smaller Hobgoblin packs first. You will know you are ready when you can handle two Hobgoblin Shamans at once without burning all your healing.</p>
+  <p><strong>Moria navigation note:</strong> Moria is multi-level. <a href="../areas/dwarrowdelfeast.html">Dwarrowdelf East</a> →
+  <a href="../areas/morialevel1cente.html">Moria Level 1 Center</a> → <a href="../areas/durinsbridge.html">Durin's Bridge</a>
+  — that sequence is your path through Tier 3 into Tier 4.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="tier4">
+  <h2>Levels 31–40: Moria Depths and the Iron Hills of Angmar</h2>
+  <p class="tier-sub">The deeps of Moria, the haunted Ettenmoors, and Angmar's iron passes — three separate regions that all demand the same currency: discipline, fire-resist potions, and a healthy respect for Uruk-hai captains.</p>
+</div>
+
+<h3>Recommended Areas</h3>
+<ul class="area-list">
+  <li><a href="../areas/morialevel1cente.html">Moria Level 1 Center</a> — the heart of the goblin-realm; densely packed encounters</li>
+  <li><a href="../areas/durinsbridge.html">Durin's Bridge</a> — gateway to the deeper halls; Moria veterans here</li>
+  <li><a href="../areas/balinstomb.html">Balin's Tomb</a> — Elrond quest endpoint; legendary Moria boss</li>
+  <li><a href="../areas/angmar.html">Angmar</a> — Uruk-hai encounter pool begins here; CR 6–53</li>
+  <li><a href="../areas/theangmarmountai.html">Angmar Mountain</a> — harder Uruk-hai and the Azog encounter</li>
+  <li><a href="../areas/ettenmoors.html">Ettenmoors</a> — mirrored encounter pools to Angmar; additional boss spawns</li>
+  <li><a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> — ancient dungeon; CR 12–37 across its halls</li>
+  <li><a href="../areas/kallristcryptupp.html">Kallrist Crypt (Upper)</a> — layered crypt zone; CR 6–28</li>
+  <li><a href="../areas/enchantedcave001.html">Enchanted Cave</a> — magical creature pocket dungeon; CR 4–16</li>
+</ul>
+
+<h3>Enemies</h3>
+<table class="data enemy-table">
+  <thead><tr><th>Enemy</th><th>CR</th><th>Found in</th></tr></thead>
+  <tbody>
+    <tr><td>Moria Orc Clan Terror / Shaman</td><td class="cr-badge">CR 6–7</td><td><a href="../areas/morialevel1cente.html">Moria Level 1 Center</a></td></tr>
+    <tr><td>Hobgoblin of Moria / Shaman</td><td class="cr-badge">CR 11–12</td><td><a href="../areas/morialevel1cente.html">Moria Level 1 Center</a>, <a href="../areas/durinsbridge.html">Durin's Bridge</a></td></tr>
+    <tr><td>Trollog Devastator</td><td class="cr-badge">CR 21</td><td><a href="../areas/morialevel1cente.html">Moria Level 1 Center</a></td></tr>
+    <tr><td>Urukai Soldier</td><td class="cr-badge">CR 6</td><td><a href="../areas/angmar.html">Angmar</a>, <a href="../areas/ettenmoors.html">Ettenmoors</a></td></tr>
+    <tr><td>Urukai Trooper</td><td class="cr-badge">CR 11</td><td><a href="../areas/angmar.html">Angmar</a>, <a href="../areas/ettenmoors.html">Ettenmoors</a></td></tr>
+    <tr><td>Urukai Squad Leader / Healer</td><td class="cr-badge">CR 13–15</td><td><a href="../areas/angmar.html">Angmar</a>, <a href="../areas/theangmarmountai.html">Angmar Mountain</a></td></tr>
+    <tr><td>Urukai Captain</td><td class="cr-badge">CR 20</td><td><a href="../areas/angmar.html">Angmar</a>, <a href="../areas/theangmarmountai.html">Angmar Mountain</a></td></tr>
+    <tr><td>Ologai Troll</td><td class="cr-badge">CR 23</td><td><a href="../areas/angmar.html">Angmar</a>, <a href="../areas/ettenmoors.html">Ettenmoors</a></td></tr>
+    <tr><td>Azog the Warlord</td><td class="cr-badge">CR 14</td><td><a href="../areas/theangmarmountai.html">Angmar Mountain</a> (boss)</td></tr>
+    <tr><td>Tirg the General</td><td class="cr-badge">CR 53</td><td><a href="../areas/angmar.html">Angmar</a> (rare boss — well above tier, see tip)</td></tr>
+  </tbody>
+</table>
+
+<h3>Notable Gear</h3>
+<div class="loot-box">
+  <strong>Containers &amp; Enemy Drops</strong>
+  <ul>
+    <li><strong><a href="../items/item113.html">Angmar Ring {EPIC}</a></strong> — dropped by high-tier Angmar bosses; one of the best rings available before the endgame.</li>
+    <li><strong>Helm of Azog</strong> — looted from <em>Azog the Warlord</em> in <a href="../areas/theangmarmountai.html">Angmar Mountain</a> as part of Elrond's quest; strong helm for the tier.</li>
+    <li>Uruk-hai Captains drop <strong>Urukai armour pieces</strong>, including bracers and helms. The Uruk Squad Healer carries scrolls worth keeping.</li>
+    <li>Dwarrowdelf and Moria Level 1 container chests occasionally yield <strong>Mithril Chainmail</strong> — rare but present in the loot tables. Open every chest.</li>
+    <li><strong>Bracers of the Dwarven Protector</strong> — can be found in the deeper Moria halls and are excellent defensive gear for fighters and rangers.</li>
+  </ul>
+</div>
+<div class="loot-box">
+  <strong>Stores</strong>
+  <ul>
+    <li><strong>Well-Mart</strong> — still your best source for Potions of Heal and Restoration scrolls. Fire Resistance potions are useful in Moria's deeper areas.</li>
+    <li>The <a href="../areas/theprancingpo002.html">Prancing Pony upper floor</a> sometimes has a visiting merchant carrying +4/+5 weapons.</li>
+  </ul>
+</div>
+
+<h3>Quests to Pick Up</h3>
+<ul>
+  <li><strong>Azagoth and the Well of Souls</strong> — a quest found in the <a href="../areas/theangmarmountai.html">Angmar</a> region sends you against Azagoth; this is a major challenge for this tier's upper end.</li>
+  <li><strong>Path of Meaning</strong> — if you have not yet started the <a href="../manual/MeaningWave.html">MeaningWave quest line</a>, now is an excellent time. <strong>Jocko Willink</strong> is in <a href="../areas/helmsdeep001.html">Helm's Deep</a> (just one hop from Well of Eru) and is accessible far earlier; <strong>Jordan Peterson</strong> waits in <a href="../areas/rivendellupperha.html">Rivendell Upper Halls</a> nearby.</li>
+</ul>
+
+<div class="warning-box">
+  <p><strong>Stay away from:</strong> The <em>Tirg the General</em> encounter (CR 53) in Angmar and the <em>Black Numenorean</em> encounter pool in the Angmar Mountain outer area (CR 16–650). These are the "boss wing" of Angmar — they will kill you at level 40 without endgame gear. Save them for Tier 6.</p>
+</div>
+
+<div class="tip-box">
+  <p><strong>Tip:</strong> Ettenmoors and Angmar share the same encounter pool. Ettenmoors is geographically separate and tends to be slightly less crowded, which can make it easier to pull single groups rather than chaining into three squads at once. Alternate between both to keep encounter timers refreshing.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="tier5">
+  <h2>Levels 41–50: Rohan and the Fields of Gondor</h2>
+  <p class="tier-sub">The Riddermark is at war — Wold predators stalk the grasslands and Riddermark soldiers clash with Uruk-hai in every valley. Gondor's west borders are equally contested. Pick your battles; the tier spans a wide CR window.</p>
+</div>
+
+<h3>Recommended Areas</h3>
+<ul class="area-list">
+  <li><a href="../areas/thewold.html">The Wold</a> — sprawling wildlife encounters from CR 3 to CR 41; excellent XP density</li>
+  <li><a href="../areas/woldsouth.html">Wold South</a> — identical encounter pool to The Wold; double your grinding ground</li>
+  <li><a href="../areas/dunland.html">Dunland</a> — Dunlending warriors and the rare CR 80 Dunland boss (stay cautious)</li>
+  <li><a href="../areas/gapofrohaneast.html">Gap of Rohan (East)</a> — Riddermark soldiers and reinforcements; CR 13–55</li>
+  <li><a href="../areas/gondorwesta.html">Gondor West A</a> / <a href="../areas/gondorwestb.html">Gondor West B</a> — war-front encounters; Rohirrim vs. Mordor troops</li>
+  <li><a href="../areas/thepelennorfield.html">The Pelennor Fields</a> — iconic battleground; same encounter pool as Gondor West</li>
+  <li><a href="../areas/cryptsofthelosts.html">Crypts of the Lost Souls</a> (Esgaroth) — wide CR range (½–42); useful mid-tier dungeon</li>
+  <li><a href="../areas/enchantedcave002.html">Enchanted Cave 2</a> — tighter dungeon; CR 8–32</li>
+  <li><a href="../areas/emynarnen.html">Emyn Arnen</a> (outer sections) — CR 12–20 encounters; bridging zone into Mordor's approach</li>
+</ul>
+
+<h3>Enemies</h3>
+<table class="data enemy-table">
+  <thead><tr><th>Enemy</th><th>CR</th><th>Found in</th></tr></thead>
+  <tbody>
+    <tr><td>Worg, Greater Worg, Dire Wolf</td><td class="cr-badge">CR 3–20</td><td><a href="../areas/thewold.html">The Wold</a></td></tr>
+    <tr><td>Kodiak Bear, Dire Bear</td><td class="cr-badge">CR 6–26</td><td><a href="../areas/thewold.html">The Wold</a></td></tr>
+    <tr><td>Dire Boar, Crag Cat</td><td class="cr-badge">CR 12–13</td><td><a href="../areas/thewold.html">The Wold</a>, <a href="../areas/gapofrohaneast.html">Gap of Rohan</a></td></tr>
+    <tr><td>Old Dire Bear, Malar Panther, Krenshar</td><td class="cr-badge">CR 26–41</td><td><a href="../areas/thewold.html">The Wold</a> (rare)</td></tr>
+    <tr><td>Riddermark Swordsman / Bowman</td><td class="cr-badge">CR 21–32</td><td><a href="../areas/gapofrohaneast.html">Gap of Rohan</a>, <a href="../areas/thepelennorfield.html">Pelennor</a></td></tr>
+    <tr><td>Riddermark Guardian</td><td class="cr-badge">CR 36</td><td><a href="../areas/gapofrohaneast.html">Gap of Rohan</a></td></tr>
+    <tr><td>Rohirrim Soldier Reinforcement</td><td class="cr-badge">CR 18</td><td><a href="../areas/gondorwesta.html">Gondor West A</a></td></tr>
+    <tr><td>Rohirrim Soldier</td><td class="cr-badge">CR 42</td><td><a href="../areas/gondorwesta.html">Gondor West A</a></td></tr>
+    <tr><td>Ridermark Guardian Reinforcement</td><td class="cr-badge">CR 24</td><td><a href="../areas/thepelennorfield.html">Pelennor</a></td></tr>
+    <tr><td>Ridermark Guardian</td><td class="cr-badge">CR 55</td><td><a href="../areas/thepelennorfield.html">Pelennor</a> (late-tier; approach carefully)</td></tr>
+  </tbody>
+</table>
+
+<h3>Notable Gear</h3>
+<div class="loot-box">
+  <strong>Containers &amp; Enemy Drops</strong>
+  <ul>
+    <li><strong>Armor of the Riddermark</strong> — can drop from Riddermark Guardians and elite Rohirrim Soldiers; one of the best mid-tier full plate sets.</li>
+    <li><strong>Gondorian Longsword</strong> and <strong>Greater Gondorian Helm</strong> — drop from Gondor West / Pelennor war-front enemies. The greater versions are a significant upgrade over standard steel.</li>
+    <li><strong>Gondorian Helm</strong> and <strong>Gondorian Light Armor</strong> — lighter variant set; good for ranger/rogue builds who want protection without heavy armour penalties.</li>
+    <li><strong>Battle Drape of the Haradrim</strong> — a powerful cloak that starts appearing as loot in Gondor West encounters; keep an eye on enemy corpses.</li>
+    <li>Crypts of the Lost Souls has a wide loot range. Deeper levels (CR 20–42) can yield <strong>Nazgul Armor of Corruption</strong> and various <strong>Nazgul amulets</strong> — excellent if you can survive.</li>
+  </ul>
+</div>
+<div class="loot-box">
+  <strong>Stores</strong>
+  <ul>
+    <li><a href="../stores/gondormerc.html">Gondor Mercantile</a> — opens up in the Minas Tirith region; sells Gondorian armour and weapons appropriate for this tier.</li>
+    <li><a href="../stores/gondortemple.html">Gondor Temple Store</a> — divine scrolls and healing potions; useful if your party lacks a cleric.</li>
+    <li><a href="../stores/houseofhealarmor.html">House of Healing (Armour)</a> — the best defensive gear shop in the Gondor cluster.</li>
+  </ul>
+</div>
+
+<h3>Quests to Pick Up</h3>
+<ul>
+  <li><strong>MeaningWave</strong> (continued) — if you have not found <strong>Alan Watts</strong> in the <a href="../areas/oldforest001.html">Old Forest</a> yet, now is the time. Also push toward <strong>Terence McKenna</strong> in the <a href="../areas/northernforestso.html">Northern Forests of Ithilien</a> — but be warned, Ithilien is tier 6 territory.</li>
+  <li><strong>Tharbad Refugees</strong> — feed the hungry at <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> for the Temple of Ilúvatar. A short, rewarding errand.</li>
+</ul>
+
+<div class="tip-box">
+  <p><strong>Tip:</strong> The Wold encounter pool is very wide — a CR 3 Worg can spawn in the same area as a CR 41 Krenshar. The system spawns encounters dynamically, so always check what you are engaging before rushing in. The big predators become your primary XP targets from level 45 onward.</p>
+  <p><strong>The Pelennor trap:</strong> The Ridermark Guardian (CR 55) is at the top end of Gondor West / Pelennor. At level 45 you can handle the Reinforcement variants; save the full Guardians for level 48+.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="tier6">
+  <h2>Levels 51–60: Mirkwood, Mordor's Edge, and the Shadow</h2>
+  <p class="tier-sub">You have crossed Rohan and seen the walls of Minas Tirith. Now the path leads east into Mirkwood's spider-haunted dark, south past Dol Guldur's towers, and — for those chasing the highest peaks of power — into the shadow of Mount Doom itself.</p>
+</div>
+
+<h3>Recommended Areas</h3>
+<ul class="area-list">
+  <li><a href="../areas/mirkwoodeast.html">Mirkwood (East)</a> — entry-level Mirkwood; CR 3–45 with boss-tier spiders at the deep end</li>
+  <li><a href="../areas/mirkwoodcentral.html">Mirkwood (Central)</a> — similar range; denser high-CR spawns</li>
+  <li><a href="../areas/mirkwoodnorth.html">Mirkwood (North)</a> — harder; CR 29–45+; approach at 55+</li>
+  <li><a href="../areas/cryptsofthelosts.html">Crypts of the Lost Souls</a> (deep) — revisit; CR 42 boss tier now accessible</li>
+  <li><a href="../areas/emynarnen.html">Emyn Arnen</a> — CR 12–256; clear methodically, pull high-CR spawns carefully</li>
+  <li><a href="../areas/emynmuil.html">Emyn Muil</a> — CR 47–68; brutal mountain terrain; late tier 6</li>
+  <li><a href="../areas/thecirithungolpa.html">Cirith Ungol Pass</a> — CR 50–200; endgame territory; see warning below</li>
+  <li><a href="../areas/mountdoom.html">Mount Doom</a> — CR 40; volcanic elemental encounters; extreme challenge</li>
+  <li><a href="../areas/dolguldur.html">Dol Guldur</a> — CR 75; the fortress of the Necromancer; endgame boss content</li>
+  <li><a href="../areas/gwathdorcave.html">Gwathdor: Cave</a> and deeps — path to Marcus Aurelius; punishing but rewarding</li>
+</ul>
+
+<h3>Enemies</h3>
+<table class="data enemy-table">
+  <thead><tr><th>Enemy</th><th>CR</th><th>Found in</th></tr></thead>
+  <tbody>
+    <tr><td>Mirkwood Spiders (various)</td><td class="cr-badge">CR 26–45</td><td><a href="../areas/mirkwoodeast.html">Mirkwood East</a>, <a href="../areas/mirkwoodcentral.html">Central</a></td></tr>
+    <tr><td>Mirkwood Elven forces</td><td class="cr-badge">CR 37–45</td><td><a href="../areas/mirkwoodcentral.html">Mirkwood Central</a>, <a href="../areas/mirkwoodnorth.html">North</a></td></tr>
+    <tr><td>Esgaroth Crypt horrors (deep)</td><td class="cr-badge">CR 20–42</td><td><a href="../areas/cryptsofthelosts.html">Crypts of the Lost Souls</a></td></tr>
+    <tr><td>Emyn Arnen guardians</td><td class="cr-badge">CR 16–20</td><td><a href="../areas/emynarnen.html">Emyn Arnen</a></td></tr>
+    <tr><td>Emyn Muil cliff-dwellers</td><td class="cr-badge">CR 47–68</td><td><a href="../areas/emynmuil.html">Emyn Muil</a></td></tr>
+    <tr><td>Cirith Ungol horrors</td><td class="cr-badge">CR 50–171</td><td><a href="../areas/thecirithungolpa.html">Cirith Ungol Pass</a></td></tr>
+    <tr><td>Mount Doom elementals</td><td class="cr-badge">CR 40</td><td><a href="../areas/mountdoom.html">Mount Doom</a></td></tr>
+    <tr><td>Dol Guldur forces</td><td class="cr-badge">CR 75</td><td><a href="../areas/dolguldur.html">Dol Guldur</a></td></tr>
+    <tr><td>Dead Marshes wraiths</td><td class="cr-badge">CR 154–179</td><td><a href="../areas/deadmarshes.html">Dead Marshes</a> — endgame only</td></tr>
+  </tbody>
+</table>
+
+<h3>Notable Gear</h3>
+<div class="loot-box">
+  <strong>Containers &amp; Enemy Drops</strong>
+  <ul>
+    <li><strong><a href="../items/helmofthewitchki.html">Helm of the Witch King</a></strong> — drops from high-tier undead and Nazgul bosses in the <a href="../areas/cryptsofthelosts.html">Crypts of the Lost Souls</a> and Cirith Ungol; one of the best helmets in the module.</li>
+    <li><strong><a href="../items/nazgularmorof001.html">Nazgul Armor of Corruption</a></strong> — heavy armor looted from Nazgul-class enemies deep in the Esgaroth Crypts and Angmar end-zones.</li>
+    <li><strong><a href="../items/flameofudun.html">Flame of Udun</a></strong> — a Balrog-grade longsword. Drops from the Balrog of Moria, <a href="../areas/thebalrogofmoria.html">the Balrog encounter</a>; considered among the finest weapons a warrior can wield.</li>
+    <li><strong><a href="../items/item060.html">Glamdring</a></strong> — bastard sword of considerable power; found in a chest in the <a href="../areas/thebalrogofmoria.html">Balrog</a> encounter area or looted from the encounter itself.</li>
+    <li><strong><a href="../items/sting.html">Sting</a></strong> — a Hobbit-forged short sword with +14 Enhancement and multi-element bonus damage. Dropped from a high-tier enemy or container in the Goblin-related loot chain.</li>
+    <li><strong>Boots of the Rivendell Ranger</strong> and <strong>Boots of the Mirkwood Elf</strong> — elite ranger boots dropped by named Elven enemies in Mirkwood's deeper areas.</li>
+    <li><strong>Cloak of Lothlorien</strong> — looted from Lothlorien Guardian Elves in the contested Lorien border areas; excellent defensive cloak.</li>
+    <li><strong><a href="../items/carapiceofshe002.html">Carapace of Shelob</a></strong> — dropped by <a href="../areas/shelobslair.html">Shelob</a>; a powerful and bizarre armour made of spider shell. Suitable only for the determined (or the bizarre).</li>
+  </ul>
+</div>
+<div class="loot-box">
+  <strong>Stores</strong>
+  <ul>
+    <li><a href="../stores/darkstar.html">Dark Star Guild House</a> — a guild store with endgame consumables and enchanted gear.</li>
+    <li><a href="../stores/cirithmerch.html">Cirith Merchant</a> — specialised vendor near the Cirith Ungol area; carries high-tier ranged ammunition and resist potions.</li>
+    <li><a href="../stores/wellshop.html">Well-Mart</a> — still the best source for Resurrection and Greater Restoration scrolls; stock up before every Cirith or Dol Guldur run.</li>
+  </ul>
+</div>
+
+<h3>Quests to Pick Up</h3>
+<ul>
+  <li><strong>Path of Meaning (final legs)</strong> — <strong>Joseph Campbell</strong> waits at <a href="../areas/balinstomb.html">Balin's Tomb</a> (already cleared in Tier 3); <strong>Terence McKenna</strong> is in the <a href="../areas/northernforestso.html">Northern Forests of Ithilien</a> (CR 190 environment — bring a full party or a powerful summon); <strong>Marcus Aurelius</strong> sits at the end of the <a href="../areas/gwaththrone.html">Gwathdor: Throne</a> chain (9 hops). See the <a href="../manual/MeaningWave.html">MeaningWave guide</a> for full routes.</li>
+  <li><strong>Thrandûil's Hall</strong> — the Elven-king of Mirkwood (<a href="../areas/thranduilshall.html">Thrandûil's Hall</a>) has tasks involving the spider infestation; reach him through <a href="../areas/mirkwoodeast.html">Mirkwood East</a>.</li>
+  <li><strong>Lonely Mountain</strong> — <a href="../areas/lonelymountainma.html">Lonely Mountain Main Hall</a> is accessible from the Guardian of Light; the interior is designed for endgame characters. The reward chain involves Smaug's hoard.</li>
+</ul>
+
+<div class="warning-box">
+  <p><strong>Do not enter without preparation:</strong> <a href="../areas/shelobslair.html">Shelob's Lair</a> (CR 168–220), <a href="../areas/deadmarshes.html">Dead Marshes</a> (CR 154–179), and <a href="../areas/northernforestso.html">Northern Forests of Ithilien</a> (CR 190–214) are the hardest contested zones in the module. They are balanced around max-level, fully geared characters. The <em>Black Numenorean</em> encounter pool (including <strong>Drider Militia CR 650</strong> and <strong>Black Numenorean Assassin CR 331</strong>) in the Angmar outlying areas falls into the same category.</p>
+</div>
+
+<div class="tip-box">
+  <p><strong>Mirkwood pacing:</strong> <a href="../areas/mirkwoodeast.html">Mirkwood East</a> and <a href="../areas/mirkwoodcentral.html">Mirkwood Central</a> share similar encounter pools in the CR 3–45 range, but the boss-tier spiders (CR 45+) cluster at the far north end. Grind the mid-zone encounters until the CR 37 Mirkwood Elven guards feel routine, then push north.</p>
+  <p><strong>Fire immunity:</strong> Before heading into <a href="../areas/mountdoom.html">Mount Doom</a> or the deeper Balrog areas, equip yourself with fire resistance/immunity items. A single Elemental of CR 40 with fire damage can burn through even seasoned adventurers without protection.</p>
+</div>
+
+<hr>
+
+<h2>General Tips for All Levels</h2>
+
+<dl class="kv">
+  <dt>CR gap rule</dt>
+  <dd>You gain the best XP fighting enemies within roughly ±5 CR of your level. Enemies much weaker than you yield diminishing returns; enemies much stronger will kill you before you learn anything.</dd>
+
+  <dt>The Legendary Levelling Area</dt>
+  <dd>The <a href="../areas/legendarylevelli.html">Legendary Levelling Area</a> is accessible via a trigger in the <a href="../areas/thewelloferu.html">Well of Eru</a>. It provides a controlled levelling environment if the open-world pacing feels too uneven.</dd>
+
+  <dt>Resist potions</dt>
+  <dd>Moria requires fire and cold resist at minimum. Angmar benefits from negative-energy resistance. The Mordor approach needs fire immunity. The <a href="../stores/wellshop.html">Well-Mart</a> carries Greater Restoration scrolls to undo ability drain from wights and other energy-drainers.</dd>
+
+  <dt>Containers are not optional</dt>
+  <dd>Many of the module's best items are in placed containers — barrels, crates, chests, and corpses — not on enemy corpses. Check every container in every area you clear. Some are locked; bring a rogue or Knock scrolls.</dd>
+
+  <dt>Area transitions</dt>
+  <dd>The <a href="../areas/thewelloferu.html">Well of Eru</a> teleport system is available to you at all times. If you are overmatched, retreat and regroup rather than dying and losing your gear. The Guardians of Light and Darkness will send you anywhere on the hub list instantly.</dd>
+</dl>
+
+  </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+</body>
+</html>

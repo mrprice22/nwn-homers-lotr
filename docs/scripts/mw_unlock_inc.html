@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script mw_unlock_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>mw_unlock_inc</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: mw_unlock_inc -- MeaningWave guide roster, persistence, and summoning.
+//::
+//:: Per-PC unlock flags live in the &quot;meaningwave&quot; campaign DB (scoped per
+//:: player by passing oPC to GetCampaignInt/SetCampaignInt). Roster is
+//:: 7 named figures plus Akira the Don as Hall curator.
+//::
+//:: Meta-quest stages on &quot;MW Path of Meaning&quot;:
+//::   1 = intro whisper (added on first module entry)
+//::   2..8 = stage advances as guides 1..7 are unlocked
+//::   9 = finale (added by Akira&#x27;s dialogue when mixtape is granted)
+//:://////////////////////////////////////////////
+
+const string MW_DB         = &quot;meaningwave&quot;;
+const string MW_META_QUEST = &quot;MW Path of Meaning&quot;;
+const int    MW_ROSTER_SIZE = 7;
+
+string MW_GuideAt(int i)
+{
+    switch (i)
+    {
+        case 0: return &quot;peterson&quot;;
+        case 1: return &quot;watts&quot;;
+        case 2: return &quot;campbell&quot;;
+        case 3: return &quot;mckenna&quot;;
+        case 4: return &quot;jocko&quot;;
+        case 5: return &quot;jung&quot;;
+        case 6: return &quot;aurelius&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string MW_GuideDisplayName(string sGuide)
+{
+    if (sGuide == &quot;peterson&quot;)  return &quot;Jordan Peterson&quot;;
+    if (sGuide == &quot;watts&quot;)     return &quot;Alan Watts&quot;;
+    if (sGuide == &quot;campbell&quot;)  return &quot;Joseph Campbell&quot;;
+    if (sGuide == &quot;mckenna&quot;)   return &quot;Terence McKenna&quot;;
+    if (sGuide == &quot;jocko&quot;)     return &quot;Jocko Willink&quot;;
+    if (sGuide == &quot;jung&quot;)      return &quot;Carl Jung&quot;;
+    if (sGuide == &quot;aurelius&quot;)  return &quot;Marcus Aurelius&quot;;
+    return sGuide;
+}
+
+string MW_GuideQuestTag(string sGuide)
+{
+    return &quot;MW &quot; + MW_GuideDisplayName(sGuide);
+}
+
+int MW_IsUnlocked(object oPC, string sGuide)
+{
+    return GetCampaignInt(MW_DB, &quot;u_&quot; + sGuide, oPC);
+}
+
+int MW_UnlockCount(object oPC)
+{
+    int n = 0;
+    int i;
+    for (i = 0; i &lt; MW_ROSTER_SIZE; i++)
+        if (MW_IsUnlocked(oPC, MW_GuideAt(i))) n++;
+    return n;
+}
+
+void MW_Unlock(object oPC, string sGuide)
+{
+    if (MW_IsUnlocked(oPC, sGuide)) return;
+    SetCampaignInt(MW_DB, &quot;u_&quot; + sGuide, 1, oPC);
+
+    int nCount = MW_UnlockCount(oPC);
+
+    if (nCount == 1)
+        AddJournalQuestEntry(MW_META_QUEST, 1, oPC, TRUE, FALSE);
+    AddJournalQuestEntry(MW_META_QUEST, nCount + 1, oPC, TRUE, FALSE);
+    AddJournalQuestEntry(MW_GuideQuestTag(sGuide), 2, oPC, TRUE, FALSE);
+
+    FloatingTextStringOnCreature(
+        &quot;You have gained the wisdom of &quot; + MW_GuideDisplayName(sGuide) +
+        &quot;. Rest to summon them as a guide.&quot;,
+        oPC, FALSE);
+
+    GiveXPToCreature(oPC, 500);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_HEALING_X), oPC);
+}
+
+void MW_DismissActiveGuide(object oPC)
+{
+    int i;
+    for (i = 1; i &lt;= 5; i++)
+    {
+        object oH = GetHenchman(oPC, i);
+        if (!GetIsObjectValid(oH)) break;
+        if (GetStringLeft(GetTag(oH), 3) == &quot;mw_&quot;)
+        {
+            RemoveHenchman(oPC, oH);
+            AssignCommand(oH, ClearAllActions());
+            ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                EffectDisappear(), oH);
+        }
+    }
+    DeleteLocalString(oPC, &quot;mw_current&quot;);
+}
+
+void MW_SummonGuide(object oPC, string sGuide)
+{
+    if (!MW_IsUnlocked(oPC, sGuide))
+    {
+        FloatingTextStringOnCreature(
+            MW_GuideDisplayName(sGuide) + &quot; is not yet known to you.&quot;,
+            oPC, FALSE);
+        return;
+    }
+    MW_DismissActiveGuide(oPC);
+
+    location lLoc = GetLocation(oPC);
+    object oGuide = CreateObject(OBJECT_TYPE_CREATURE,
+        &quot;mw_&quot; + sGuide, lLoc);
+    if (!GetIsObjectValid(oGuide))
+    {
+        FloatingTextStringOnCreature(
+            &quot;Failed to summon &quot; + MW_GuideDisplayName(sGuide) +
+            &quot; (blueprint mw_&quot; + sGuide + &quot; missing).&quot;,
+            oPC, FALSE);
+        return;
+    }
+    AddHenchman(oPC, oGuide);
+    SetLocalString(oPC, &quot;mw_current&quot;, sGuide);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_FNF_SUMMON_MONSTER_3), oGuide);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
+</body>
+</html>

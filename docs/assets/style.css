@@ -36,11 +36,18 @@ header.site, header.site-header {
   color: #fff;
   padding: 0.75em 1.5em;
   border-bottom: 4px solid var(--accent-soft);
+  text-align: center;
 }
 header.site a, header.site-header a { color: #fff; }
 header.site-header .brand {
   font-size: 1.3em;
   margin-right: 1.5em;
+}
+header.site-header .brand img.site-header-img {
+  height: 40px;
+  width: auto;
+  vertical-align: middle;
+  display: inline-block;
 }
 header.site h1 {
   margin: 0;
@@ -366,10 +373,201 @@ svg .convo-node text {
 }
 .featlist li { break-inside: avoid; }
 
+/* Fallback-transition warnings */
+.warn-fallback {
+  color: #b54708;
+  font-size: 0.85em;
+  margin-left: 0.5em;
+  cursor: help;
+}
+.warn-fallback-note {
+  background: #fff8ed;
+  border-left: 3px solid #f0a830;
+  color: #7a4a00;
+  padding: 0.5em 0.75em;
+  margin: 0.5em 0 1em;
+  font-size: 0.9em;
+}
+.warn-cursed {
+  background: #fff0f0;
+  border-left: 4px solid #c0392b;
+  color: #7a1a0a;
+  padding: 0.6em 0.9em;
+  margin: 0.5em 0 1em;
+  font-size: 0.95em;
+}
+.warn-creature {
+  background: #fffbf0;
+  border-left: 4px solid #b07820;
+  color: #6b4800;
+  padding: 0.6em 0.9em;
+  margin: 0.5em 0 1em;
+  font-size: 0.95em;
+}
+.warn-no-drop {
+  background: #f0f4ff;
+  border-left: 4px solid #5070c0;
+  color: #1a2a60;
+  padding: 0.6em 0.9em;
+  margin: 0.5em 0 1em;
+  font-size: 0.95em;
+}
+.note-pickpocket {
+  background: #f0fff4;
+  border-left: 4px solid #2e8b57;
+  color: #1a4d2e;
+  padding: 0.6em 0.9em;
+  margin: 0.5em 0 1em;
+  font-size: 0.95em;
+}
+.reason-missing     { color: #888; font-size: 0.9em; }
+.reason-undroppable { color: #b07820; font-size: 0.9em; font-style: italic; }
+.badge-no-drop {
+  background: #dde3f5;
+  color: #3a4a80;
+  border-radius: 3px;
+  font-size: 0.75em;
+  padding: 0.1em 0.4em;
+  margin-left: 0.4em;
+  vertical-align: middle;
+  cursor: help;
+}
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
 .dlg-node:target {
   outline: 2px solid var(--accent-soft);
   outline-offset: 2px;
 }
+
+/* Documents nav dropdown */
+.nav-dropdown {
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+}
+.nav-dropdown-label {
+  margin-right: 1.2em;
+  color: #fff;
+  cursor: default;
+  white-space: nowrap;
+}
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--accent);
+  border: 1px solid var(--accent-soft);
+  min-width: 11em;
+  z-index: 100;
+  padding: 0.25em 0;
+}
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a {
+  display: block;
+  padding: 0.35em 0.85em;
+  color: #fff;
+  white-space: nowrap;
+  margin-right: 0;
+}
+.nav-dropdown-menu a:hover {
+  background: rgba(255,255,255,0.18);
+  text-decoration: none;
+}
+
+/* Submenu (folder entries inside the Documents dropdown) */
+.nav-submenu {
+  position: relative;
+}
+.nav-submenu-label {
+  display: block;
+  padding: 0.35em 0.85em;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+  font-size: 0.88em;
+  letter-spacing: 0.03em;
+  cursor: default;
+}
+.nav-submenu-label::after { content: " \25b8"; }
+.nav-submenu-menu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: var(--accent);
+  border: 1px solid var(--accent-soft);
+  min-width: 11em;
+  z-index: 102;
+  padding: 0.25em 0;
+}
+.nav-submenu:hover .nav-submenu-menu { display: block; }
+.nav-submenu-menu a {
+  display: block;
+  padding: 0.35em 0.85em;
+  color: #fff;
+  white-space: nowrap;
+  margin-right: 0;
+}
+.nav-submenu-menu a:hover {
+  background: rgba(255,255,255,0.18);
+  text-decoration: none;
+}
+
+/* Items index two-pane layout */
+.items-layout {
+  display: flex;
+  gap: 1.5em;
+  align-items: flex-start;
+}
+.items-toc {
+  width: 210px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 1em;
+  max-height: calc(100vh - 3em);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6em 0.75em;
+  font-size: 0.9em;
+}
+.items-toc a {
+  display: block;
+  padding: 0.2em 0.25em;
+  border-radius: 3px;
+  line-height: 1.35;
+}
+.items-toc a:hover {
+  background: rgba(107, 58, 28, 0.07);
+  text-decoration: none;
+}
+.items-toc a.toc-current {
+  font-weight: 600;
+  background: rgba(107, 58, 28, 0.1);
+}
+.items-toc .muted { font-size: 0.85em; }
+.items-toc .toc-group-heading {
+  font-weight: 600;
+  margin-top: 0.75em;
+  padding: 0 0.25em 0.15em;
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.items-toc .toc-group-heading:first-child { margin-top: 0; }
+.items-toc--wide { width: 280px; }
+.items-content { flex: 1; min-width: 0; }
+/* Keep anchored rows from hiding under the sticky site header */
+tr[id] { scroll-margin-top: 4em; }
 
 /* NWN canonical damage / effect text colours.
  * Source: https://nwn.wiki/spaces/NWN1/pages/38177018/Colour+Tokens
@@ -387,4 +585,119 @@ svg .convo-node text {
   text-shadow:
     -1px 0 0 #444,  1px 0 0 #444,
      0 -1px 0 #444, 0  1px 0 #444;
+}
+
+/* Item search form */
+.item-search-form {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1em 1.25em;
+  margin-bottom: 1.5em;
+}
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em 1em;
+  margin-bottom: 0.75em;
+}
+.search-row:last-child { margin-bottom: 0; }
+.search-row label {
+  font-size: 0.9em;
+  font-weight: 600;
+  min-width: 6.5em;
+  color: var(--muted);
+}
+.search-row select,
+.search-row input[type="number"] {
+  font: inherit;
+  font-size: 0.9em;
+  padding: 0.3em 0.5em;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  min-width: 10em;
+}
+
+/* Multi-property filter rows */
+.prop-rows { margin-bottom: 0.75em; }
+.prop-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 0.4em;
+  flex-wrap: wrap;
+}
+.prop-row > label {
+  font-size: 0.85em;
+  font-weight: 600;
+  width: 6.5em;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.prop-row select,
+.prop-row input[type="number"] {
+  font: inherit;
+  font-size: 0.9em;
+  padding: 0.3em 0.5em;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+}
+.prop-row .prop-sel { flex: 2; min-width: 9em; }
+.prop-row .subtype-sel { flex: 1.5; min-width: 7em; }
+.prop-row input[type="number"] { width: 5.5em; }
+.search-row button {
+  font: inherit;
+  padding: 0.35em 1.2em;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: auto;
+}
+.search-row button:hover { opacity: 0.85; }
+
+/* Custom token annotations in dialog text */
+.custom-token {
+  background: #f0f4ff;
+  border: 1px solid #c8d0e8;
+  border-radius: 3px;
+  padding: 0 2px;
+  font-family: monospace;
+  cursor: help;
+}
+.custom-token-unknown {
+  background: #fff8f0;
+  border-color: #e8d0c8;
+  opacity: 0.8;
+}
+.token-setters {
+  font-size: 0.75em;
+  margin-left: 2px;
+  font-family: sans-serif;
+}
+
+/* Light item-property colour styles (NWN iprp_lightcolor table).
+ * Applied to the colour name wherever Light properties appear: property detail
+ * page tables, individual item pages, and search result rows.
+ * To override in a module theme, redefine any of these in wiki-theme/theme.css. */
+.nwn-light-blue   { color: #2255cc; font-weight: 600; }
+.nwn-light-yellow { color: #997700; font-weight: 600; }
+.nwn-light-purple { color: #882299; font-weight: 600; }
+.nwn-light-red    { color: #bb2222; font-weight: 600; }
+.nwn-light-green  { color: #228833; font-weight: 600; }
+.nwn-light-orange { color: #cc5500; font-weight: 600; }
+/* White light is invisible on the wiki's light background; a pill gives it presence. */
+.nwn-light-white  {
+  color: #555;
+  font-weight: 600;
+  background: #f0f0ec;
+  border: 1px solid #ccc;
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
 }

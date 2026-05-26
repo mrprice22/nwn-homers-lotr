@@ -4,25 +4,49 @@
   <meta charset="utf-8">
   <title>Lothlorien: North</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html">Module Wiki</a>
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
     <nav>
       <a href="../index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
-      <a href="../creatures/index.html">Creature Blueprints</a>
-      <a href="../creatures/instances/index.html">Creature Instances</a>
-      <a href="../items/index.html">Items</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
       <a href="../stores/index.html">Stores</a>
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../journal.html">Journal</a>
+      <a href="../activity.html">Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/LevelingGuide.html">Leveling Guide — Homer&#x27;s LOTR</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas &amp;amp; Draft Concepts — Homer&#x27;s LOTR</a>
+<a href="../manual/QuestGuide.html">Quest Guide — Homer&#x27;s LOTR</a></div></div>
     </nav>
   </header>
   <main>
 <h1>Lothlorien: North</h1>
-<dl class="meta"><dt>ResRef</dt><dd>lothloriennorth</dd><dt>Tag</dt><dd>LothlorienNorth</dd><dt>Tileset</dt><dd>Frozen Wastes <small class="muted">(ttf01)</small></dd><dt>Size</dt><dd>10×13 tiles</dd><dt>OnEnter</dt><dd></dd><dt>OnExit</dt><dd>aa_area_exit</dd><dt>OnHeartbeat</dt><dd></dd><dt>OnUserDefined</dt><dd></dd></dl>
+<dl class="meta"><dt>ResRef</dt><dd>lothloriennorth</dd><dt>Tag</dt><dd>LothlorienNorth</dd><dt>Tileset</dt><dd>Frozen Wastes <small class="muted">(ttf01)</small></dd><dt>Size</dt><dd>10×13 tiles</dd><dt>OnExit</dt><dd>aa_area_exit</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="lothlorien.html">Lothlorien: Main</a> <em class="muted">[Weclome ! Where do you wish to go?]</em></li><li><a href="lothlorien.html">Lothlorien: Main</a> &rarr; <a href="lothloriennorth.html">Lothlorien: North</a> <em class="muted">[step on the &#8220;Lorien2LorienNorth&#8221; trigger]</em></li></ol>
 <h2>Outgoing transitions</h2>
 <table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>trigger</td><td>lorien2silver</td><td><a href="silverlodestream.html">Sîr Ninglor</a></td><td><code>silver2lornorth</code></td></tr>
 <tr><td>trigger</td><td>lornorth2lorcent</td><td><a href="lothlorien.html">Lothlorien: Main</a></td><td><code>WP_Lorien2LorienNorth</code></td></tr></tbody></table>
@@ -30,16 +54,13 @@
 <table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th></tr></thead><tbody><tr><td>trigger</td><td><a href="lothlorien.html">Lothlorien: Main</a></td><td>Lorien2LorienNorth</td></tr>
 <tr><td>door</td><td><a href="silverlodestream.html">Sîr Ninglor</a></td><td>silver2lornorth</td></tr></tbody></table>
 <h2>NPCs</h2>
-<table class="data"><thead><tr><th>Name</th><th>Blueprint</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/instances/lothloriennorth-000.html">A Lothlorien Warder</a></td><td><a href="../creatures/alothlorienwarde.html">A Lothlorien Warder</a></td><td>alothlorienwarde</td><td>Elf</td><td>Druid 25/Shifter 10</td><td>815</td><td>45.0</td><td>Good</td><td></td></tr>
-<tr><td><a href="../creatures/instances/lothloriennorth-001.html">Greater Elven Watcher</a></td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr>
-<tr><td><a href="../creatures/instances/lothloriennorth-002.html">Greater Elven Watcher</a></td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr>
-<tr><td><a href="../creatures/instances/lothloriennorth-003.html">Greater Elven Watcher</a></td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr>
-<tr><td><a href="../creatures/instances/lothloriennorth-004.html">Greater Elven Watcher</a></td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/alothlorienwarde.html">A Lothlorien Warder</a></td><td>alothlorienwarde</td><td>Elf</td><td>Druid 25/Shifter 10</td><td>815</td><td>45.0</td><td>Good</td><td></td></tr>
+<tr><td><a href="../creatures/greaterelvenw001__v2.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr>
+<tr><td><a href="../creatures/greaterelvenw001__v2.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr>
+<tr><td><a href="../creatures/greaterelvenw001__v2.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr>
+<tr><td><a href="../creatures/greaterelvenw001__v2.html">Greater Elven Watcher</a></td><td>greaterelvenw001</td><td>Elf</td><td>Ranger 25/Sorcerer 15</td><td>1300</td><td>130.0</td><td>Good</td><td></td></tr></tbody></table>
 <h2>Encounters</h2>
-<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th></tr></thead><tbody><tr><td>Lothward/watch</td><td>blueprint</td><td>Lothwardwatch</td><td>5</td><td>1</td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a><small> CR 102.0</small>, <a href="../creatures/alothlorienwa003.html">A Lothlorien Warder</a><small> CR 59.0</small></td></tr>
-<tr><td>Lothward/watch</td><td>blueprint</td><td>Lothwardwatch</td><td>5</td><td>1</td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a><small> CR 102.0</small>, <a href="../creatures/alothlorienwa003.html">A Lothlorien Warder</a><small> CR 59.0</small></td></tr>
-<tr><td>Lothward/watch</td><td>blueprint</td><td>Lothwardwatch</td><td>5</td><td>1</td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a><small> CR 102.0</small>, <a href="../creatures/alothlorienwa003.html">A Lothlorien Warder</a><small> CR 59.0</small></td></tr>
-<tr><td>Lothward/watch</td><td>blueprint</td><td>Lothwardwatch</td><td>5</td><td>1</td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a><small> CR 102.0</small>, <a href="../creatures/alothlorienwa003.html">A Lothlorien Warder</a><small> CR 59.0</small></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Tag</th><th>Max</th><th>Diff</th><th>Spawn pool</th><th>Count</th></tr></thead><tbody><tr><td>Lothward/watch</td><td>blueprint</td><td>Lothwardwatch, Lothwardwatch, Lothwardwatch, Lothwardwatch</td><td>5</td><td>1</td><td><a href="../creatures/greaterelvenw001.html">Greater Elven Watcher</a><small> CR 102.0</small>, <a href="../creatures/alothlorienwa003.html">A Lothlorien Warder</a><small> CR 59.0</small></td><td>4</td></tr></tbody></table>
 <h2>Waypoints</h2>
 <table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>WP_lorien2silver</code></td><td></td></tr>
 <tr><td><code>WP_lornorth2lorcent</code></td><td></td></tr>
@@ -50,6 +71,6 @@
 <tr><td><code>lorien7</code></td><td>waypoint001</td></tr>
 <tr><td><code>WP_lornorth2lorcent</code></td><td></td></tr></tbody></table>
   </main>
-  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a></footer>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; last updated May 25, 2026 20:47</footer>
 </body>
 </html>

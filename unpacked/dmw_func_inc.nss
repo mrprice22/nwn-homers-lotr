@@ -92,13 +92,15 @@ string dmwand_ClassLevel(object oEntity)
    string sClassOne;
    string sClassTwo;
    string sClassThree;
+   string sClassFour;
    int nLevelOne;
    int nLevelTwo;
    int nLevelThree;
+   int nLevelFour;
    int iIndex;
 
-   // Loop through all three classes and pull out info
-   for(iIndex == 1;iIndex < 4;iIndex++)
+   // Loop through all four classes and pull out info
+   for(iIndex = 1;iIndex < 5;iIndex++)
    {
       switch (GetClassByPosition(iIndex,oEntity))
       {
@@ -139,14 +141,15 @@ string dmwand_ClassLevel(object oEntity)
          case 1: sClassOne =   sClass;  break;
          case 2: sClassTwo =   sClass;  break;
          case 3: sClassThree = sClass;  break;
+         case 4: sClassFour =  sClass;  break;
       }
    };
 
-   // Now get all three class levels.  Wil be 0 if does class pos
-   //does not exists
+   // Now get all four class levels.  Will be 0 if class pos does not exist
    nLevelOne =   GetLevelByPosition(1,oEntity);
    nLevelTwo =   GetLevelByPosition(2,oEntity);
    nLevelThree = GetLevelByPosition(3,oEntity);
+   nLevelFour =  GetLevelByPosition(4,oEntity);
 
    //Start building return string
    sReturnString = sClassOne + "(" + IntToString(nLevelOne) + ")" ;
@@ -161,6 +164,12 @@ string dmwand_ClassLevel(object oEntity)
    if(nLevelThree > 0)
    {
       sReturnString =sReturnString + "/" + sClassThree + "(" + IntToString(nLevelThree) + ")";
+   }
+
+   //If fourth class exists append to return string
+   if(nLevelFour > 0)
+   {
+      sReturnString =sReturnString + "/" + sClassFour + "(" + IntToString(nLevelFour) + ")";
    }
 
    return sReturnString;
