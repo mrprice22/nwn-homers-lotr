@@ -117,6 +117,9 @@ void ReplenishLimitedUseFeats(object oPC);
 int GetIsFeatAvailable(int nFeat, object oPC);
 // This function returns the name of the designated ability score.
 string GetNameOfAbility(int nStat);
+// This function returns the display name of the specified class constant, used to
+// tell the player which "control class" their available skills are based on.
+string GetNameOfClass(int nClass);
 // This function returns TRUE if the specified feat is a class feat and the character has
 // enough levels in the class to take it. Otherwise it returns FALSE.
 int GetIsClassFeat(int nFeat, int nClass, object oPC);
@@ -988,6 +991,8 @@ else
             break;
         default: return -3;
         }
+    // NOTE: the +nArmorShield add-back no longer feeds skill availability.
+    // GetIsSkillAvailable now reads true ranks via GetSkillRank(...,TRUE).
     return (nBase-nSubtract-nModifier+nArmorShield);
     }
 }
@@ -1184,37 +1189,13 @@ int nPointsAvailable = GetLocalInt(oPC, "PointsAvailable");
 int nClass = GetControlClass(oPC);
 int nLevel = CheckLegendaryLevel(oPC);
 int nSkillMax;
-int nSkillTotal;
-switch (nSkill)
-    {
-    case 0: nSkillTotal = GetLocalInt(oPC, "BASE_ANIMAL"); break;
-    case 1: nSkillTotal = GetLocalInt(oPC, "BASE_CONCEN"); break;
-    case 2: nSkillTotal = GetLocalInt(oPC, "BASE_DISABL"); break;
-    case 3: nSkillTotal = GetLocalInt(oPC, "BASE_DISCIP"); break;
-    case 4: nSkillTotal = GetLocalInt(oPC, "BASE_HEAL"); break;
-    case 5: nSkillTotal = GetLocalInt(oPC, "BASE_HIDE"); break;
-    case 6: nSkillTotal = GetLocalInt(oPC, "BASE_LISTEN"); break;
-    case 7: nSkillTotal = GetLocalInt(oPC, "BASE_LORE"); break;
-    case 8: nSkillTotal = GetLocalInt(oPC, "BASE_MOVE_S"); break;
-    case 9: nSkillTotal = GetLocalInt(oPC, "BASE_OPEN_L"); break;
-    case 10: nSkillTotal = GetLocalInt(oPC, "BASE_PARRY"); break;
-    case 11: nSkillTotal = GetLocalInt(oPC, "BASE_PERFOR"); break;
-    case 12: nSkillTotal = GetLocalInt(oPC, "BASE_PERSUA"); break;
-    case 13: nSkillTotal = GetLocalInt(oPC, "BASE_PICK_P"); break;
-    case 14: nSkillTotal = GetLocalInt(oPC, "BASE_SEARCH"); break;
-    case 15: nSkillTotal = GetLocalInt(oPC, "BASE_SET_TR"); break;
-    case 16: nSkillTotal = GetLocalInt(oPC, "BASE_SPELLC"); break;
-    case 17: nSkillTotal = GetLocalInt(oPC, "BASE_SPOT"); break;
-    case 18: nSkillTotal = GetLocalInt(oPC, "BASE_TAUNT"); break;
-    case 19: nSkillTotal = GetLocalInt(oPC, "BASE_USE_MA"); break;
-    case 20: nSkillTotal = GetLocalInt(oPC, "BASE_APPRAI"); break;
-    case 21: nSkillTotal = GetLocalInt(oPC, "BASE_TUMBLE"); break;
-    case 22: nSkillTotal = GetLocalInt(oPC, "BASE_CRAFT_T"); break;
-    case 23: nSkillTotal = GetLocalInt(oPC, "BASE_BLUFF"); break;
-    case 24: nSkillTotal = GetLocalInt(oPC, "BASE_INTIMI"); break;
-    case 25: nSkillTotal = GetLocalInt(oPC, "BASE_CRAFT_A"); break;
-    case 26: nSkillTotal = GetLocalInt(oPC, "BASE_CRAFT_W"); break;
-    }
+// True invested ranks straight from the engine: ignores ability mods, feats and
+// (critically) armor/shield check penalties, and updates live as points are added
+// via HGLL_AddSkillPoint. Replaces the old BASE_* local-int markers, whose value
+// for the armor-check skills (Hide/Move Silently/Parry/Pick Pocket/Set Trap/Tumble)
+// was inflated by the GetBaseSkill armor add-back and pushed them over the cap.
+// The menu index (nSkill) is identical to the engine SKILL_* constant.
+int nSkillTotal = GetSkillRank(nSkill, oPC, TRUE);
 int nSkillCost = GetCostOfSkill(nClass, nSkill);//returns -1 if not available
 if (nSkillCost == 2)//cross-class
     {
@@ -1388,6 +1369,17 @@ switch (nStat)
     case ABILITY_CHARISMA: sReturn = "Charisma"; break;
     }
 return sReturn;
+}
+
+string GetNameOfClass(int nClass)
+{
+// classes.2da "Name" column holds a StrRef; resolve it through the TLK so CEP /
+// custom class names come out correct. Falls back to "Unknown" for invalid rows.
+string sStrRef = Get2DAString("classes", "Name", nClass);
+if (sStrRef == "") return "Unknown";
+string sName = GetStringByStrRef(StringToInt(sStrRef));
+if (sName == "") return "Unknown";
+return sName;
 }
 
 int GetIsClassFeat(int nFeat, int nClass, object oPC)

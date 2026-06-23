@@ -132,7 +132,10 @@ void PageInit()
         // Then just give the first prompt.
         SetDlgPrompt("Please select a skill to add a point to." +
                      " You have " + IntToString(GetLocalInt(oPC, "PointsAvailable")) +
-                     " points remaining to spend.");
+                     " points remaining to spend.\n" +
+                     "(Your available skills are based on your highest-level class: " +
+                     GetNameOfClass(GetControlClass(oPC)) + ". " +
+                     "Skills restricted to other classes you hold are not shown.)");
         SetDlgResponseList( FIRST_PAGE, oPC );
         }
     else if( page == "skillresponse" )
