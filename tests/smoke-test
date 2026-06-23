@@ -30,4 +30,12 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: creature respawn-override divergence…"
+if python3 "$HERE/check_divergent_creatures.py"; then
+  echo "ok: creature respawn-override divergence"
+else
+  echo "fail: creature respawn-override divergence"
+  rc=1
+fi
+
 exit $rc
