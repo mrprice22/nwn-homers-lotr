@@ -48,24 +48,13 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bank_fam_close</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>bank_fam_close</code></h1><pre class="nss-source"><code>#include &quot;bank_box_inc&quot;
+
+void main()
 {
-object oPC = GetPCSpeaker();
-string sCDKey = GetPCPublicCDKey(oPC);
-object oBox;
-int iCounter = 1;
-while(iCounter &lt;= 5)
-   {
-   string sBoxTag = &quot;az_familybox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter);
-   if(GetItemPossessedBy(oPC, sBoxTag) != OBJECT_INVALID)
-      {
-      oBox = GetObjectByTag(sBoxTag);
-      StoreCampaignObject(&quot;bankdb&quot;, &quot;fam_box_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter), oBox);
-      DestroyObject(oBox);
-      }
-   iCounter = iCounter + 1;
-   }
-ExportSingleCharacter(oPC);
+    object oPC = GetPCSpeaker();
+    CommitFamilyBoxes(oPC, &quot;dialog&quot;);
+    ExportSingleCharacter(oPC);
 }
 </code></pre>
   </main>

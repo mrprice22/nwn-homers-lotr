@@ -167,6 +167,9 @@ void ReplenishLimitedUseFeats(object oPC);
 int GetIsFeatAvailable(int nFeat, object oPC);
 // This function returns the name of the designated ability score.
 string GetNameOfAbility(int nStat);
+// This function returns the display name of the specified class constant, used to
+// tell the player which &quot;control class&quot; their available skills are based on.
+string GetNameOfClass(int nClass);
 // This function returns TRUE if the specified feat is a class feat and the character has
 // enough levels in the class to take it. Otherwise it returns FALSE.
 int GetIsClassFeat(int nFeat, int nClass, object oPC);
@@ -1038,6 +1041,8 @@ else
             break;
         default: return -3;
         }
+    // NOTE: the +nArmorShield add-back no longer feeds skill availability.
+    // GetIsSkillAvailable now reads true ranks via GetSkillRank(...,TRUE).
     return (nBase-nSubtract-nModifier+nArmorShield);
     }
 }
@@ -1234,37 +1239,13 @@ int nPointsAvailable = GetLocalInt(oPC, &quot;PointsAvailable&quot;);
 int nClass = GetControlClass(oPC);
 int nLevel = CheckLegendaryLevel(oPC);
 int nSkillMax;
-int nSkillTotal;
-switch (nSkill)
-    {
-    case 0: nSkillTotal = GetLocalInt(oPC, &quot;BASE_ANIMAL&quot;); break;
-    case 1: nSkillTotal = GetLocalInt(oPC, &quot;BASE_CONCEN&quot;); break;
-    case 2: nSkillTotal = GetLocalInt(oPC, &quot;BASE_DISABL&quot;); break;
-    case 3: nSkillTotal = GetLocalInt(oPC, &quot;BASE_DISCIP&quot;); break;
-    case 4: nSkillTotal = GetLocalInt(oPC, &quot;BASE_HEAL&quot;); break;
-    case 5: nSkillTotal = GetLocalInt(oPC, &quot;BASE_HIDE&quot;); break;
-    case 6: nSkillTotal = GetLocalInt(oPC, &quot;BASE_LISTEN&quot;); break;
-    case 7: nSkillTotal = GetLocalInt(oPC, &quot;BASE_LORE&quot;); break;
-    case 8: nSkillTotal = GetLocalInt(oPC, &quot;BASE_MOVE_S&quot;); break;
-    case 9: nSkillTotal = GetLocalInt(oPC, &quot;BASE_OPEN_L&quot;); break;
-    case 10: nSkillTotal = GetLocalInt(oPC, &quot;BASE_PARRY&quot;); break;
-    case 11: nSkillTotal = GetLocalInt(oPC, &quot;BASE_PERFOR&quot;); break;
-    case 12: nSkillTotal = GetLocalInt(oPC, &quot;BASE_PERSUA&quot;); break;
-    case 13: nSkillTotal = GetLocalInt(oPC, &quot;BASE_PICK_P&quot;); break;
-    case 14: nSkillTotal = GetLocalInt(oPC, &quot;BASE_SEARCH&quot;); break;
-    case 15: nSkillTotal = GetLocalInt(oPC, &quot;BASE_SET_TR&quot;); break;
-    case 16: nSkillTotal = GetLocalInt(oPC, &quot;BASE_SPELLC&quot;); break;
-    case 17: nSkillTotal = GetLocalInt(oPC, &quot;BASE_SPOT&quot;); break;
-    case 18: nSkillTotal = GetLocalInt(oPC, &quot;BASE_TAUNT&quot;); break;
-    case 19: nSkillTotal = GetLocalInt(oPC, &quot;BASE_USE_MA&quot;); break;
-    case 20: nSkillTotal = GetLocalInt(oPC, &quot;BASE_APPRAI&quot;); break;
-    case 21: nSkillTotal = GetLocalInt(oPC, &quot;BASE_TUMBLE&quot;); break;
-    case 22: nSkillTotal = GetLocalInt(oPC, &quot;BASE_CRAFT_T&quot;); break;
-    case 23: nSkillTotal = GetLocalInt(oPC, &quot;BASE_BLUFF&quot;); break;
-    case 24: nSkillTotal = GetLocalInt(oPC, &quot;BASE_INTIMI&quot;); break;
-    case 25: nSkillTotal = GetLocalInt(oPC, &quot;BASE_CRAFT_A&quot;); break;
-    case 26: nSkillTotal = GetLocalInt(oPC, &quot;BASE_CRAFT_W&quot;); break;
-    }
+// True invested ranks straight from the engine: ignores ability mods, feats and
+// (critically) armor/shield check penalties, and updates live as points are added
+// via HGLL_AddSkillPoint. Replaces the old BASE_* local-int markers, whose value
+// for the armor-check skills (Hide/Move Silently/Parry/Pick Pocket/Set Trap/Tumble)
+// was inflated by the GetBaseSkill armor add-back and pushed them over the cap.
+// The menu index (nSkill) is identical to the engine SKILL_* constant.
+int nSkillTotal = GetSkillRank(nSkill, oPC, TRUE);
 int nSkillCost = GetCostOfSkill(nClass, nSkill);//returns -1 if not available
 if (nSkillCost == 2)//cross-class
     {
@@ -1438,6 +1419,17 @@ switch (nStat)
     case ABILITY_CHARISMA: sReturn = &quot;Charisma&quot;; break;
     }
 return sReturn;
+}
+
+string GetNameOfClass(int nClass)
+{
+// classes.2da &quot;Name&quot; column holds a StrRef; resolve it through the TLK so CEP /
+// custom class names come out correct. Falls back to &quot;Unknown&quot; for invalid rows.
+string sStrRef = Get2DAString(&quot;classes&quot;, &quot;Name&quot;, nClass);
+if (sStrRef == &quot;&quot;) return &quot;Unknown&quot;;
+string sName = GetStringByStrRef(StringToInt(sStrRef));
+if (sName == &quot;&quot;) return &quot;Unknown&quot;;
+return sName;
 }
 
 int GetIsClassFeat(int nFeat, int nClass, object oPC)

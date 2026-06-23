@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script bank_box_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>bank_box_inc</code></h1><pre class="nss-source"><code>// bank_box_inc.nss — Bank of Bree storage commit helpers + audit log
+//
+// Both Bank of Bree storage types spawn a live placeable container into the
+// player&#x27;s inventory while the vault dialog is open, and only serialize it back
+// to the &quot;bankdb&quot; campaign DB (StoreCampaignObject) when the player finishes the
+// conversation. If the player leaves the bank area or logs out before that
+// commit fires, anything added that session is lost.
+//
+// These helpers centralise the commit loops so every exit path (the close
+// dialog, the area OnExit, and the module OnClientLeave) re-stores boxes the
+// same way:
+//   CommitFamilyBoxes  -&gt; az_familybox_&lt;CDKey&gt;_N  -&gt; &quot;fam_box_&lt;CDKey&gt;_N&quot; (global key)
+//   CommitStrongBoxes  -&gt; az_strongbox_&lt;CDKey&gt;_N  -&gt; &quot;bank_box_N&quot;        (owner = oPC)
+//
+// Each successful store is recorded in the bankaudit table (same bankdb file) so
+// future loss reports can be investigated — the previous DB had no timestamps or
+// transaction log, so past losses could not be confirmed.
+
+const string BANK_DB = &quot;bankdb&quot;;
+
+// ------------------------------------------------------------
+// Audit log
+
+void Bank_InitAudit()
+{
+    sqlquery q = SqlPrepareQueryCampaign(BANK_DB,
+        &quot;CREATE TABLE IF NOT EXISTS bankaudit (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;ts TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)),&quot; +
+        &quot;cdkey TEXT,&quot; +
+        &quot;char_name TEXT,&quot; +
+        &quot;box_type TEXT,&quot; +       // &quot;family&quot; | &quot;strong&quot;
+        &quot;box_num INTEGER,&quot; +
+        &quot;item_count INTEGER,&quot; +
+        &quot;source TEXT)&quot;);         // &quot;dialog&quot; | &quot;area_exit&quot; | &quot;client_leave&quot;
+    SqlStep(q);
+}
+
+void Bank_LogCommit(string sCDKey, string sCharName, string sBoxType,
+                    int nBoxNum, int nItems, string sSource)
+{
+    sqlquery q = SqlPrepareQueryCampaign(BANK_DB,
+        &quot;INSERT INTO bankaudit(cdkey,char_name,box_type,box_num,item_count,source)&quot; +
+        &quot; VALUES(@k,@n,@t,@b,@i,@s)&quot;);
+    SqlBindString(q, &quot;@k&quot;, sCDKey);
+    SqlBindString(q, &quot;@n&quot;, sCharName);
+    SqlBindString(q, &quot;@t&quot;, sBoxType);
+    SqlBindInt   (q, &quot;@b&quot;, nBoxNum);
+    SqlBindInt   (q, &quot;@i&quot;, nItems);
+    SqlBindString(q, &quot;@s&quot;, sSource);
+    SqlStep(q);
+}
+
+// Count of items currently inside a container object.
+int Bank_CountItems(object oBox)
+{
+    int nCount = 0;
+    object oItem = GetFirstItemInInventory(oBox);
+    while (GetIsObjectValid(oItem))
+    {
+        nCount++;
+        oItem = GetNextItemInInventory(oBox);
+    }
+    return nCount;
+}
+
+// ------------------------------------------------------------
+// Commit loops
+//
+// sSource identifies the calling path for the audit log (&quot;dialog&quot;, &quot;area_exit&quot;,
+// &quot;client_leave&quot;). Both helpers are safe to call when the player has no boxes in
+// inventory — they simply do nothing.
+
+void CommitFamilyBoxes(object oPC, string sSource)
+{
+    Bank_InitAudit();
+    string sCDKey = GetPCPublicCDKey(oPC);
+    string sName  = GetName(oPC);
+    int iCounter;
+    for (iCounter = 1; iCounter &lt;= 5; iCounter++)
+    {
+        string sBoxTag = &quot;az_familybox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter);
+        object oBox = GetItemPossessedBy(oPC, sBoxTag);
+        if (GetIsObjectValid(oBox))
+        {
+            int nItems = Bank_CountItems(oBox);
+            StoreCampaignObject(BANK_DB, &quot;fam_box_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter), oBox);
+            Bank_LogCommit(sCDKey, sName, &quot;family&quot;, iCounter, nItems, sSource);
+            DestroyObject(oBox);
+        }
+    }
+}
+
+void CommitStrongBoxes(object oPC, string sSource)
+{
+    Bank_InitAudit();
+    string sCDKey = GetPCPublicCDKey(oPC);
+    string sName  = GetName(oPC);
+    int iCounter;
+    for (iCounter = 1; iCounter &lt;= 5; iCounter++)
+    {
+        string sBoxTag = &quot;az_strongbox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter);
+        object oBox = GetItemPossessedBy(oPC, sBoxTag);
+        if (GetIsObjectValid(oBox))
+        {
+            int nItems = Bank_CountItems(oBox);
+            StoreCampaignObject(BANK_DB, &quot;bank_box_&quot; + IntToString(iCounter), oBox, oPC);
+            Bank_LogCommit(sCDKey, sName, &quot;strong&quot;, iCounter, nItems, sSource);
+            DestroyObject(oBox);
+        }
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
