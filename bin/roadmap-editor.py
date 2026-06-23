@@ -52,7 +52,7 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 # Field order each idea is serialized in. Only `id/title/group/status` are
 # required; the rest are emitted only when present.
 FIELD_ORDER = ["id", "title", "group", "status", "type", "player", "date",
-               "commit", "notes", "dupe_of"]
+               "commit", "notes", "notes_h", "dupe_of"]
 # Fields always rendered as YAML double-quoted scalars.
 QUOTED_FIELDS = {"title", "notes", "date"}
 # Players that aren't real people but are valid credits.
@@ -136,7 +136,11 @@ def split_head_and_prefixes(text: str):
 
 
 def dquote(s: str) -> str:
-    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    # notes now holds rich-text HTML that may span multiple lines; escape
+    # newlines/tabs too so it stays a valid single-line double-quoted scalar.
+    s = (s.replace("\\", "\\\\").replace('"', '\\"')
+          .replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t"))
+    return '"' + s + '"'
 
 
 def emit_scalar(field: str, value) -> str:
@@ -437,6 +441,12 @@ class Handler(BaseHTTPRequestHandler):
                         g["order"] = int(g["order"])
                     except (TypeError, ValueError):
                         pass
+        for it in ideas:
+            if str(it.get("notes_h", "")).strip() != "":
+                try:
+                    it["notes_h"] = int(float(it["notes_h"]))
+                except (TypeError, ValueError):
+                    it.pop("notes_h", None)
         errors, warnings = validate_document(ideas, groups, players)
         if errors:
             return self._json({"ok": False, "errors": errors, "warnings": warnings})
@@ -524,6 +534,27 @@ PAGE = r"""<!doctype html>
            color:var(--ink); border:1px solid var(--line); border-radius:6px;
            font:inherit; }
   textarea { min-height:64px; resize:vertical; }
+  /* Rich-text notes widget */
+  .tabs { display:flex; gap:4px; margin:10px 0 0; }
+  .tab { padding:5px 12px; font-size:12px; background:var(--panel); color:var(--mut);
+         border:1px solid var(--line); border-bottom:none; border-radius:6px 6px 0 0;
+         cursor:pointer; width:auto; }
+  .tab.active { color:var(--ink); background:#2d323b; border-color:var(--accent); }
+  .rt-wrap { border:1px solid var(--line); border-radius:0 6px 6px 6px; padding:8px;
+             background:var(--panel); }
+  .rt-tools { display:flex; flex-wrap:wrap; gap:4px; align-items:center;
+              margin-bottom:7px; }
+  .rt-tools button { padding:3px 9px; font-size:13px; line-height:1; width:auto;
+                     min-width:30px; }
+  .rt-tools .sep { width:1px; align-self:stretch; background:var(--line); margin:0 3px; }
+  .rt-tools input[type=color] { width:30px; height:26px; padding:1px; cursor:pointer; }
+  #f_notes_rich { min-height:128px; height:128px; overflow:auto; resize:vertical;
+                  padding:7px 9px; background:var(--bg); color:var(--ink);
+                  border:1px solid var(--line); border-radius:6px; outline:none; }
+  #f_notes_rich:focus { border-color:var(--accent); }
+  #f_notes_rich ul, #f_notes_rich ol { margin:0.3em 0; padding-left:1.5em; }
+  #f_notes_rich a { color:var(--accent); }
+  #f_notes_html { min-height:128px; height:128px; font-family:monospace; font-size:12px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
   button { padding:8px 13px; border:1px solid var(--line); border-radius:6px;
            background:var(--panel); color:var(--ink); cursor:pointer; font:inherit; }
@@ -748,7 +779,27 @@ function select(i){
     <label>id (stable key; lowercase-hyphen)</label>
     <input id="f_id" value="${esc(it.id||'')}">
     <label>Notes (extra detail, optional)</label>
-    <textarea id="f_notes">${esc(it.notes||'')}</textarea>
+    <div class="tabs">
+      <button type="button" class="tab active" id="tab_rich" data-tab="rich">Rich text</button>
+      <button type="button" class="tab" id="tab_html" data-tab="html">HTML</button>
+    </div>
+    <div class="rt-wrap">
+      <div class="rt-tools" id="rt_tools">
+        <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+        <span class="sep"></span>
+        <button type="button" data-cmd="insertUnorderedList" title="Bullet list">&bull; List</button>
+        <button type="button" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+        <span class="sep"></span>
+        <input type="color" id="rt_color" value="#6ea8fe" title="Font color">
+        <span class="sep"></span>
+        <button type="button" id="rt_link" title="Link to another idea">&#128279; Idea</button>
+        <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
+      </div>
+      <div id="f_notes_rich" contenteditable="true"></div>
+      <textarea id="f_notes_html" style="display:none"></textarea>
+    </div>
     <div class="bar">
       <button class="primary" id="save">Save</button>
       <button id="regen">Save &amp; regenerate HTML</button>
@@ -763,6 +814,7 @@ function select(i){
     </div>
     <div id="merit"></div>`;
   bindPlayerHint();
+  initNotes(it);
   renderMerit(it.player||'');
   $('#f_player').addEventListener('input', e=>renderMerit(e.target.value.trim()));
   $('#save').onclick = ()=>commit('/api/save');
@@ -807,6 +859,111 @@ function renderMerit(name){
   </div>`;
 }
 
+// ---- rich-text notes widget ---------------------------------------------
+const NOTES_DEFAULT_H = 128;       // px; double the old textarea min-height
+let notesTab = 'rich';             // which view is active for the current idea
+let savedRange = null;             // selection saved before opening the link picker
+
+function notesVisibleEl(){
+  return notesTab==='html' ? $('#f_notes_html') : $('#f_notes_rich');
+}
+
+// Treat an editor that holds no real text and no block/inline content as empty,
+// so blank notes don't serialize a stray "<br>" into roadmap.yaml.
+function normalizeNotes(html){
+  const tmp=document.createElement('div'); tmp.innerHTML=html||'';
+  if (tmp.textContent.trim()==='' && !/<(ul|ol|li|img|a|hr|table)/i.test(html||''))
+    return '';
+  return (html||'').trim();
+}
+
+function initNotes(it){
+  const rich=$('#f_notes_rich'), html=$('#f_notes_html');
+  notesTab='rich';
+  rich.innerHTML = it.notes || '';
+  html.value = it.notes || '';
+  const h = (it.notes_h && it.notes_h>0) ? it.notes_h : NOTES_DEFAULT_H;
+  rich.style.height = h+'px'; html.style.height = h+'px';
+  rich.style.display=''; html.style.display='none';
+  $('#tab_rich').classList.add('active'); $('#tab_html').classList.remove('active');
+
+  $('#tab_rich').onclick=()=>switchNotes('rich');
+  $('#tab_html').onclick=()=>switchNotes('html');
+  $('#rt_tools').querySelectorAll('button[data-cmd]').forEach(b=>{
+    b.onmousedown=e=>e.preventDefault();            // keep the editor's selection
+    b.onclick=()=>{ rich.focus(); document.execCommand(b.dataset.cmd, false, null); };
+  });
+  const col=$('#rt_color');
+  col.onmousedown=()=>{ saveRange(); };
+  col.oninput=()=>{ rich.focus(); restoreRange();
+    document.execCommand('foreColor', false, col.value); };
+  const lb=$('#rt_link');
+  lb.onmousedown=e=>{ e.preventDefault(); saveRange(); };
+  lb.onclick=openIdeaLink;
+}
+
+function switchNotes(to){
+  const rich=$('#f_notes_rich'), html=$('#f_notes_html');
+  if (to===notesTab) return;
+  const curH = notesVisibleEl().offsetHeight;
+  if (to==='html'){ html.value = rich.innerHTML; }
+  else { rich.innerHTML = html.value; }
+  notesTab=to;
+  rich.style.display = to==='rich'?'':'none';
+  html.style.display = to==='html'?'':'none';
+  notesVisibleEl().style.height = curH+'px';        // carry the height across views
+  $('#tab_rich').classList.toggle('active', to==='rich');
+  $('#tab_html').classList.toggle('active', to==='html');
+}
+
+function saveRange(){
+  const s=window.getSelection();
+  savedRange = (s && s.rangeCount) ? s.getRangeAt(0).cloneRange() : null;
+}
+function restoreRange(){
+  if(!savedRange) return;
+  const s=window.getSelection(); s.removeAllRanges(); s.addRange(savedRange);
+}
+
+function openIdeaLink(){
+  const ids = DATA.vocab.ids.filter(id=>id!==(DATA.ideas[sel]||{}).id);
+  const rows = ids.map(id=>{
+    const t = (DATA.ideas.find(i=>i.id===id)||{}).title || '';
+    return `<div class="mrow" style="cursor:pointer" data-id="${esc(id)}">
+      <span class="gid" title="${esc(id)}">${esc(id)}</span>
+      <span style="flex:1;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t)}</span>
+    </div>`;}).join('');
+  modalHTML(`<h2>Link to another idea</h2>
+    <p class="small">Pick an idea — a link is inserted that jumps to it on the
+      published page. Selected text becomes the link label (otherwise the idea title).</p>
+    <input id="ilink_f" placeholder="filter ideas…" style="margin-bottom:8px">
+    <div class="mlist" id="ilink_rows" style="max-height:48vh;overflow:auto">${rows}</div>
+    <div class="bar"><span class="spacer"></span><button id="ilink_close">Cancel</button></div>`);
+  const apply=id=>{
+    const t=(DATA.ideas.find(i=>i.id===id)||{}).title || id;
+    const sel0 = savedRange && savedRange.toString();
+    const label = (sel0 && sel0.trim()) ? sel0 : t;
+    const link = `<a href="#idea-${id}">${esc(label)}</a>`;
+    closeModal();
+    if (notesTab==='html'){
+      const ta=$('#f_notes_html');
+      const a=ta.selectionStart, b=ta.selectionEnd;
+      ta.value = ta.value.slice(0,a) + link + ta.value.slice(b);
+      ta.focus(); ta.selectionStart=ta.selectionEnd=a+link.length;
+    } else {
+      $('#f_notes_rich').focus(); restoreRange();
+      document.execCommand('insertHTML', false, link);
+    }
+  };
+  $('#ilink_close').onclick=closeModal;
+  const filt=$('#ilink_f');
+  filt.oninput=()=>{ const q=filt.value.toLowerCase();
+    document.querySelectorAll('#ilink_rows .mrow').forEach(r=>{
+      r.style.display = r.textContent.toLowerCase().includes(q)?'':'none'; }); };
+  document.querySelectorAll('#ilink_rows .mrow').forEach(r=>
+    r.onclick=()=>apply(r.dataset.id));
+}
+
 function bindPlayerHint(){
   const inp = $('#f_player'); const hint = $('#player_hint');
   const known = new Set(DATA.vocab.players);
@@ -819,6 +976,11 @@ function bindPlayerHint(){
 }
 
 function readForm(){
+  // Canonical notes = the active view's content; keep the views in sync first.
+  const rich=$('#f_notes_rich'), html=$('#f_notes_html');
+  const raw = notesTab==='html' ? html.value : rich.innerHTML;
+  const notes = normalizeNotes(raw);
+  const notes_h = Math.round(notesVisibleEl().offsetHeight);
   return {
     id: $('#f_id').value.trim(),
     title: $('#f_title').value.trim(),
@@ -828,13 +990,14 @@ function readForm(){
     player: $('#f_player').value.trim(),
     date: $('#f_date').value.trim(),
     commit: $('#f_commit').value.trim(),
-    notes: $('#f_notes').value.trim(),
+    notes: notes,
+    notes_h: (notes && notes_h && notes_h!==NOTES_DEFAULT_H) ? notes_h : '',
     dupe_of: $('#f_dupe').value,
   };
 }
 
 function pruneEmpty(o){
-  const r={}; for (const k of ['id','title','group','status','type','player','date','commit','notes','dupe_of'])
+  const r={}; for (const k of ['id','title','group','status','type','player','date','commit','notes','notes_h','dupe_of'])
     if (o[k]!=='' && o[k]!=null) r[k]=o[k];
   return r;
 }

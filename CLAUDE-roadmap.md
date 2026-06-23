@@ -45,7 +45,8 @@ Each entry under `ideas:` is one backlog item:
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
 | `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. |
 | `commit` | no | git ref used to derive `date` for shipped items. |
-| `notes` | no | Extra detail beyond the title. |
+| `notes` | no | Extra detail beyond the title. May contain **rich-text HTML** (bold/italic/lists/font color, and cross-idea links `<a href="#idea-<id>">`) — authored via the editor's Rich text / HTML tabs, rendered as-is on the public page. |
+| `notes_h` | no | Editor-only: remembered pixel height of that idea's Notes box. Written by the GUI when you resize; ignored by `gen-roadmap.py`. |
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
 
 **Statuses** (workflow order): `awarded` (shipped, merit awarded) · `implemented`
@@ -90,6 +91,12 @@ What it does:
   change order. The `id` is the immutable stable key ideas reference, so a title rename
   needs no cascade — every idea shows the new title automatically. A group in use can't be
   dropped (a referencing idea would fail validation).
+- **Rich-text Notes.** The Notes field has a **Rich text** tab (toolbar:
+  bold/italic/underline, bullet & numbered lists, font color, and a "link to idea"
+  picker that inserts `<a href="#idea-<id>">`) and an **HTML** source tab, ServiceNow-
+  style. Notes are stored as HTML and render live on the public page (each idea gets an
+  `id="idea-<id>"` anchor so the links jump in-page). The box defaults to double height
+  and remembers a per-idea height in `notes_h` when you resize it.
 - **Manage players** (button): add a name (even before they have an idea) or rename one —
   a rename **cascades** to every idea credited to that name. `community` is reserved.
 - **Validates before writing** using `gen-roadmap.py`'s own `validate()` plus structural

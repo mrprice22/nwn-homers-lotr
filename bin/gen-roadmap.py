@@ -217,10 +217,12 @@ def idea_row(idea: dict, shipped: bool) -> str:
     credit = credit_html(idea, shipped)
     if credit:
         bits.append(credit)
-    notes = (f'<p class="rm-notes">{amp(idea["notes"])}</p>'
+    # notes is trusted author HTML (rich text from the editor); render as a block
+    # so it may contain <ul>/<ol>. amp() escapes lone & without touching tags.
+    notes = (f'<div class="rm-notes">{amp(idea["notes"])}</div>'
              if idea.get("notes") else "")
     return (
-        '<li class="rm-item">'
+        f'<li class="rm-item" id="idea-{idea["id"]}">'
         f'<div class="rm-title">{amp(idea["title"])}</div>'
         f'<div class="rm-meta">{"".join(bits)}</div>'
         f'{notes}'
@@ -305,6 +307,8 @@ STYLE = """  <style>
     .rm-meta { margin-top: 0.35em; display: flex; flex-wrap: wrap;
       align-items: center; gap: 0.5em; font-size: 0.85em; }
     .rm-notes { margin: 0.4em 0 0; font-size: 0.88em; color: var(--muted); }
+    .rm-notes ul, .rm-notes ol { margin: 0.3em 0; padding-left: 1.4em; }
+    .rm-notes a { color: var(--link); }
     .rm-date { color: var(--muted); }
     .rm-credit { color: var(--muted); font-style: italic; }
 
@@ -364,7 +368,6 @@ def build_html(data: dict) -> str:
       <h2>Contents</h2>
       <ol>
         <li><a href="#about">About this page</a></li>
-        <li><a href="#earn-spend">Earning &amp; Spending Merit</a></li>
         <li><a href="#next">Roadmap &mdash; In Progress &amp; Up Next</a>
           <ol style="margin:0.2em 0 0 0;">
 {toc_next}
@@ -380,30 +383,9 @@ def build_html(data: dict) -> str:
 
 <div class="asof-banner">
   <span class="asof-tag">As of {asof}</span>
-  <span class="asof-note">This roadmap is a living document and changes often &mdash; costs, priorities and plans are all subject to change.</span>
 </div>
 
 <p id="about">{meta.get("intro", "")}</p>
-
-<div class="tip-box">
-  <p>Almost every entry below is tagged with the player who suggested it. Shipped
-  items earned that player <strong>Merit</strong> points; in-progress items are
-  what's being worked on or queued next. New here? See the
-  <a href="../manual/Customizations.html">Customizations</a> page for how the
-  rules differ from stock NWN.</p>
-</div>
-
-<hr>
-
-<div class="section-header" id="earn-spend">
-  <h2>Earning &amp; Spending Merit</h2>
-  <p class="section-sub">Report a bug that gets fixed, or suggest a feature that ships, and you earn Merit.</p>
-</div>
-
-<p>For the full breakdown of what Merit buys &mdash; the Merit Redemption Shop and Player Housing
-price tables &mdash; see the
-<a href="../manual/Customizations.html#merit">Merit Reward System</a> section of the
-Customizations page.</p>
 
 <hr>
 
