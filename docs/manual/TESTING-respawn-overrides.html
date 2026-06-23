@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Respawn-override validation — tester checklist</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-respawn-overrides.html">Respawn-override validation — tester checklist</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Respawn-override validation — tester checklist</h1>
+<p>We fixed a bug where many named/special NPCs <strong>reverted to a generic version after they died and respawned</strong> (≈15 min). For example, Carn Dum City's <em>Numanan Numerocks Second Hand</em> used to come back as <em>Numarok The Black Hand</em>, and some hostile bosses came back <strong>friendly</strong>. Each such NPC now has its own blueprint so it respawns exactly as placed.</p>
+<h2>How to test each NPC</h2>
+<ol>
+<li>Go to the area and find the NPC. Note its <strong>name</strong>, whether it's <strong>hostile/friendly</strong>, and any visible <strong>gear</strong>.</li>
+<li>Kill it.</li>
+<li>Wait for it to respawn (about <strong>15 minutes</strong> real time — a DM can shorten this for a test session).</li>
+<li>Confirm the respawn is <strong>identical</strong>: same name, same hostility/faction, same equipment. If it comes back with a different (generic) name, wrong hostility, or missing gear, note the NPC + area and report it.</li>
+</ol>
+<h2>Headline cases (check these first)</h2>
+<ul>
+<li><strong>Numanan Numerocks Second Hand</strong> — Carn Dum: City. Used to respawn as a different name.</li>
+<li><strong>Archer Of Mordor</strong> — Morannon - The Black Gate. Hostile NPC that must <strong>not</strong> respawn friendly.</li>
+</ul>
+<h2>Full checklist by area</h2>
+<p>115 named NPCs across 58 areas. Tick each once its respawn matches. (123 total placements were fixed; 8 generic/unnamed ones are omitted here — nothing to eyeball.)</p>
+<h3>"Well of Eru"</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Well-Mart | stats/gear |</p>
+<h3>Bank of Bree</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Banker | stats/gear |</p>
+<h3>Brandywine Inn</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Part Willey | stats/gear |<br>| ☐ | Perry Blimeaf | stats/gear |</p>
+<h3>Brandywine Inn : Second Floor</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Hobbit, Commoner | name, <strong>faction/hostility</strong> |<br>| ☐ | Human, Commoner | name |</p>
+<h3>Bree</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Boy | name / identity |<br>| ☐ | Bree Merchant | name |<br>| ☐ | Crazy Maggie | name / identity |<br>| ☐ | Girl | name / identity |<br>| ☐ | Hanee The Loon | name / identity |<br>| ☐ | Ranger of the North | <strong>faction/hostility</strong> |</p>
+<h3>Carn Dum</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Black Numenorean Archer | <strong>faction/hostility</strong> |<br>| ☐ | Black Numenorean Militia | <strong>faction/hostility</strong> |<br>| ☐ | Elor Desh | <strong>faction/hostility</strong> |</p>
+<h3>Carn Dum: City</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Black Numenorean Mage | <strong>faction/hostility</strong> |<br>| ☐ | Black Numenorean Militia | <strong>faction/hostility</strong> |<br>| ☐ | Norfin Thielve'len | <strong>faction/hostility</strong> |<br>| ☐ | Numanan Numerocks Second Hand | name, <strong>faction/hostility</strong> |</p>
+<h3>Carn Dum: Numerok's Den</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Dead Boy | name / identity |<br>| ☐ | Dead Girl | name / identity |<br>| ☐ | Numarok The Black Hand | <strong>faction/hostility</strong> |<br>| ☐ | Ranger of the North | <strong>faction/hostility</strong> |</p>
+<h3>Carn Dum: Smithy</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Black Numenorean Militia | <strong>faction/hostility</strong> |<br>| ☐ | Earaldur Rashess | <strong>faction/hostility</strong> |<br>| ☐ | Unelolas Ellent | <strong>faction/hostility</strong> |</p>
+<h3>Carn Dum: Temple</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Black Numenorean Militia | <strong>faction/hostility</strong> |<br>| ☐ | Black Numenorean Priestess | stats/gear |<br>| ☐ | Elvaleng Ma'fer | <strong>faction/hostility</strong> |<br>| ☐ | Febrith Thient | <strong>faction/hostility</strong> |<br>| ☐ | Morfiril Cendel | <strong>faction/hostility</strong> |</p>
+<h3>Carn Dum: Throne</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Black Numenorean Militia | <strong>faction/hostility</strong> |<br>| ☐ | Khamûl The Ringwraith | <strong>faction/hostility</strong> |<br>| ☐ | Wraith | <strong>faction/hostility</strong> |</p>
+<h3>Castle Homeless (Ground Floor)</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Penguin Merchant | name / identity |</p>
+<h3>Dol Guldur City</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Morgrond Captian of Dol Guldur | stats/gear |</p>
+<h3>Dol Guldur:  Tower Of Black Magic Depths</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | The Rancid Skinner Green Mortal of Khamul | <strong>faction/hostility</strong> |</p>
+<h3>Esgaroth (Lake Town)</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | White Raxxoon | name / identity |</p>
+<h3>Green Dragon Inn</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Green Dragon Inn Keeper | name / identity |</p>
+<h3>Gwathdor:  Outskirts</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Laxus The Ship Captain | name / identity |</p>
+<h3>Helm's Deep</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Éothain Captian of Helm's Deep | stats/gear |</p>
+<h3>Helm's Deep: Keep</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Eowyn's Personal Guard | name |</p>
+<h3>Hidden Port</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Laxus The Ship Captain | name / identity |</p>
+<h3>House of Homer</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Ping Pong | stats/gear |<br>| ☐ | [SERVER] | stats/gear |</p>
+<h3>House of Nazgûl</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Nazgûl Watcher | name, <strong>faction/hostility</strong> |</p>
+<h3>Kallrist Crypt</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Fell Beast | stats/gear |</p>
+<h3>Kallrist, South shore</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Andrick Webber | name / identity |</p>
+<h3>Lake Town: The Tips Slant Tavern</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | A Drunk Dwarf | name / identity |<br>| ☐ | A Lake Town Commoner | name / identity |<br>| ☐ | Crabs the Stinky Cook | name / identity |<br>| ☐ | Plump Pumpernickle | name / identity |<br>| ☐ | Ronus Holdorn | name / identity |</p>
+<h3>Last Inn</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Bar Maiden | name / identity |<br>| ☐ | Bartender | name / identity |</p>
+<h3>Lonely Mountain: Main Hall</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | A Dwarf Ajudicator | name |</p>
+<h3>Lothlorien: Flets</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Greater Elven Watcher | stats/gear |</p>
+<h3>Lothlorien: North</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Greater Elven Watcher | stats/gear |</p>
+<h3>Mad Eye Moody's Store</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Mad Eye Moody | name / identity |</p>
+<h3>Minas Tirith: Temple</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | High Priest of Gondor | stats/gear |</p>
+<h3>Minas Tirith: Watchman Defender's Head Quarters</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Gondorian Bowman | stats/gear |<br>| ☐ | Gondorian Guardsman | stats/gear |</p>
+<h3>Mirkwood: Dol Guldur</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Dol Guldur Gate Keeper | stats/gear |<br>| ☐ | Shadow Lord of Dol Guldur | stats/gear |</p>
+<h3>Mirkwood: Thranduil's Hall</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Nature's Defender | <strong>faction/hostility</strong> |<br>| ☐ | Thranduil, King of Eryn Lasgalen | <strong>faction/hostility</strong> |</p>
+<h3>Morannon - The Black Gate</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Archer Of Mordor | <strong>faction/hostility</strong> |<br>| ☐ | Gate Axeman | <strong>faction/hostility</strong> |<br>| ☐ | Gate Giant | <strong>faction/hostility</strong> |<br>| ☐ | Gate Shaman - Mordor Black Gate | <strong>faction/hostility</strong> |<br>| ☐ | Orc Sorcerer | <strong>faction/hostility</strong> |<br>| ☐ | Temple Mistress | <strong>faction/hostility</strong> |<br>| ☐ | Thragg, Gate Commander | <strong>faction/hostility</strong> |</p>
+<h3>Mount Doom: Halls of Sauron</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Sauron's Personal Gaurds | name |</p>
+<h3>Mount Gundabad</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Black Numenorean Militia | stats/gear |<br>| ☐ | Black Numenorean Priestess | <strong>faction/hostility</strong> |<br>| ☐ | Black Numenorean Shadow Master | <strong>faction/hostility</strong> |</p>
+<h3>Mount Gundabad Level 2</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Black Numenorean Militia | stats/gear |<br>| ☐ | Black Numenorean Priestess | <strong>faction/hostility</strong> |<br>| ☐ | Black Numenorean Shadow Master | <strong>faction/hostility</strong> |</p>
+<h3>Orc Armory</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Deekin the General | stats/gear |</p>
+<h3>Ranger Waystation</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Goriolad Wende'lyn | stats/gear |</p>
+<h3>Rhosgobel:  Tower</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Radagast the Brown | stats/gear |</p>
+<h3>Rivendell Upper Halls</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Elrond | stats/gear |</p>
+<h3>Taggets Smith Shop</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Old Tagget | name / identity |<br>| ☐ | Tagget's Lacky | name / identity |</p>
+<h3>Temple of Marr</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | A Dwarf Ajudicator | name |</p>
+<h3>Tharbad (East)</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Dona Blake | name / identity |</p>
+<h3>Tharbad (West)</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Betta Arner | name / identity |<br>| ☐ | Keeper of The Peace | stats/gear |<br>| ☐ | Tonan Sensen | name / identity |</p>
+<h3>Tharbad Bridge</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | A Hungry Refugee | name / identity |<br>| ☐ | Andrick Webber | name / identity |</p>
+<h3>The Halls of Truth</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | A Dwarf Ajudicator | name |<br>| ☐ | Dellinth the Advocet | stats/gear |<br>| ☐ | Gimli | stats/gear |</p>
+<h3>The House of Healing</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Card Mennard | <strong>faction/hostility</strong> |<br>| ☐ | Kashan Brino | stats/gear |<br>| ☐ | Zachal Aylomen | stats/gear |</p>
+<h3>The Prancing Pony Ground Floor</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Bar Maiden | name / identity |<br>| ☐ | Barliman Butterbur | name / identity |<br>| ☐ | Bartender | name / identity |</p>
+<h3>The Secret Pass of Mordor</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Mordor Orc Scout Soldier | name |</p>
+<h3>The Smithy of Rivendell</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Elrebrier Yanicen | name / identity |<br>| ☐ | Thrulith Xilow | name / identity |</p>
+<h3>Tower of Alatar</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Alatar the Blue | stats/gear |</p>
+<h3>Tower of Orthanc</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Dunland Shaman | stats/gear |<br>| ☐ | Uruk Hai White Hand's Chosen | stats/gear |</p>
+<h3>Tower of the High Wizard: Ground Floor</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Epic Gondorian Guardsman | stats/gear |<br>| ☐ | Gondorian Wizard | stats/gear |</p>
+<h3>Tower of the High Wizard: The High Wizard's Chamber</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | High Wizard of Gondor | stats/gear |</p>
+<h3>Tower of the High Wizard: The Library</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Epic Gondorian Guardsman | stats/gear |</p>
+<h3>Whitfurrow Inn</h3>
+<p>| ✓ | NPC | Must match on respawn |<br>|---|-----|-----------------------|<br>| ☐ | Rigrin Took | stats/gear |</p>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
