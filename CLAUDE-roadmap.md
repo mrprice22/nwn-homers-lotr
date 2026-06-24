@@ -87,9 +87,12 @@ and add a row per other submitter with `dupe_of: <canonical-id>` and their `play
 when two same-group titles look similar but aren't linked with `dupe_of`.
 
 **Established submitter names** (avoid typos — a misspelling silently splits a player's
-credit): `Methonash`, `Piskan`, `Tukwut`, `McGondy`, `dc0960`, `Fugdish`,
-`FLYING HITCHER`, `Yazkir`, plus the `community` sentinel. The GUI sources its player
-picker from the names already in the file.
+credit). The authoritative list is the `players:` block in `roadmap.yaml` (the GUI sources
+its player picker from it); match those strings exactly. As of 2026-06-24:
+`dc0960 (Dungeon_Crawler)`, `FLYING HITCHER`, `Fugdish (Try_this)`, `McGondy`,
+`-Methonash-`, `Piskan (Alec Cain)`, `Tukwut`, `Yazkir`, `Llikanthus`,
+`HomelessSon (Server Admin)`, plus the `community` sentinel. If you add a new submitter,
+add them to the `players:` block too.
 
 ## GUI editor — `bin/roadmap-editor.py`
 
