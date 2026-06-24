@@ -52,7 +52,7 @@
 <h1>Conversation: <code>neutraltele</code></h1>
 <dl class="meta">
 <dt>NPC lines</dt><dd>2</dd>
-<dt>PC replies</dt><dd>5</dd>
+<dt>PC replies</dt><dd>4</dd>
 <dt>NumWords</dt><dd>23</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
@@ -60,13 +60,11 @@
 <h2>Triggered by</h2><p class="muted">No caller found in static analysis. May be invoked from runtime-only code paths (string-built resrefs, etc.).</p>
 <h2>Teleport destinations</h2>
 <table class="data"><thead><tr><th>Waypoint / object tag</th><th>Destination area</th><th>Via script</th><th>From node</th></tr></thead><tbody><tr><td><code>dunharrowenter</code></td><td><a href="../areas/dunharrow.html">Dimholt: Dunharrow</a></td><td><code>dunharrowjump</code></td><td><a href="#r0">reply #0</a></td></tr>
-<tr><td><code>fornostenter</code></td><td><em class="muted">unresolved</em></td><td><code>fornostjump</code></td><td><a href="#r1">reply #1</a></td></tr>
-<tr><td><code>laketwonenter</code></td><td><a href="../areas/area006.html">Esgaroth (Lake Town)</a></td><td><code>laketele</code></td><td><a href="#r2">reply #2</a></td></tr>
-<tr><td><code>tharenter</code></td><td><a href="../areas/tharbadbridge.html">Tharbad Bridge</a></td><td><code>thrtele</code></td><td><a href="#r3">reply #3</a></td></tr>
-<tr><td><code>breeenter</code></td><td><a href="../areas/bree.html">Bree</a></td><td><code>breetele</code></td><td><a href="#r4">reply #4</a></td></tr></tbody></table>
+<tr><td><code>laketwonenter</code></td><td><a href="../areas/area006.html">Esgaroth (Lake Town)</a></td><td><code>laketele</code></td><td><a href="#r1">reply #1</a></td></tr>
+<tr><td><code>tharenter</code></td><td><a href="../areas/tharbadbridge.html">Tharbad Bridge</a></td><td><code>thrtele</code></td><td><a href="#r2">reply #2</a></td></tr>
+<tr><td><code>breeenter</code></td><td><a href="../areas/bree.html">Bree</a></td><td><code>breetele</code></td><td><a href="#r3">reply #3</a></td></tr></tbody></table>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>dunharrowjump</code></td><td>action</td><td>✓</td><td>teleports to: <code>dunharrowenter</code> (<a href="../areas/dunharrow.html">Dimholt: Dunharrow</a>)</td></tr>
-<tr><td><code>fornostjump</code></td><td>action</td><td>✓</td><td>teleports to: <code>fornostenter</code></td></tr>
 <tr><td><code>laketele</code></td><td>action</td><td>✓</td><td>teleports to: <code>laketwonenter</code> (<a href="../areas/area006.html">Esgaroth (Lake Town)</a>)</td></tr>
 <tr><td><code>thrtele</code></td><td>action</td><td>✓</td><td>teleports to: <code>tharenter</code> (<a href="../areas/tharbadbridge.html">Tharbad Bridge</a>)</td></tr>
 <tr><td><code>breetele</code></td><td>action</td><td>✓</td><td>teleports to: <code>breeenter</code> (<a href="../areas/bree.html">Bree</a>)</td></tr>
@@ -87,20 +85,16 @@
 <div class="dlg-text">Welcome &lt;FullName&gt;! Where do you wish to go?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>breetele</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>breetele</code></span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
 <div class="dlg-text">Bree.</div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>thrtele</code></span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>thrtele</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
 <div class="dlg-text">Tharbad.</div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>laketele</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<summary><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>laketele</code></span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
 <div class="dlg-text">Lake Town.</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>fornostjump</code></span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
-<div class="dlg-text">Fornost.</div>
 </details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>dunharrowjump</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
@@ -110,14 +104,13 @@
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome &lt;FullName&gt;! Where do you wish to go?</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Bree.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Tharbad.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Lake Town.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Fornost.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Dunharrow.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome &lt;FullName&gt;! Where do you wish to go?</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Bree.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Tharbad.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Lake Town.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Dunharrow.”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Be gone fool you have no place before me!</div></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>dunharrowjump</code></span></div><div class="dlg-text">Dunharrow.</div></div>
-<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>fornostjump</code></span></div><div class="dlg-text">Fornost.</div></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>laketele</code></span></div><div class="dlg-text">Lake Town.</div></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>thrtele</code></span></div><div class="dlg-text">Tharbad.</div></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>breetele</code></span></div><div class="dlg-text">Bree.</div></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>laketele</code></span></div><div class="dlg-text">Lake Town.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>thrtele</code></span></div><div class="dlg-text">Tharbad.</div></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>breetele</code></span></div><div class="dlg-text">Bree.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>
