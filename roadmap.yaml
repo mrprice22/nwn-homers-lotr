@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-06-23 16:03 CDT"
+  as_of: "2026-06-23 19:14 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -102,6 +102,14 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: Character-Rebirths
+    title: "Character Rebirths"
+    group: progression
+    status: planned
+    type: Enhancement
+    player: Llikanthus
+    date: "2026-06-23"
+    notes: "<div><span>\nWhen a level 40+ character (or 50+) chooses to use rebirth the following happen:&nbsp;</span></div><ol><li><span>They return to level 1 with the character created originally&nbsp;</span></li><li><span>no xp is banked and the character cannot withdraw xp&nbsp;</span></li><li><span>The character can choose 2 ability scores to add +1&nbsp;</span></li><li><span>The character can choose from a list of \"ascended\" custom feats that may change several aspects of his build and game play&nbsp;</span></li><li><span>The character can get as many rebirths as they like with the threshold for each to be a higher level, perhaps some item prerequisites and of course the bonuses are accumulative</span></li></ol><div><span>the possibilities are endless!</span></div>"
   - id: breebank-storage-loss-logout
     title: "Items lost when logging out without talking to banker"
     group: banking
@@ -208,7 +216,7 @@ ideas:
     type: Defect
     player: Yazkir
     date: "2026-06-23"
-    notes: "<div>\"That spawn point is wacky, sometimes I see Numarok the black hand, and other times this guy. And Numarok the Black Hand has his own room to the left of the building, opposite way of the temple\"</div><div><br></div><div>FIX1: the wiki generator deduped creatures by combat identity only, so one blueprint (cultmember002) placed under different FirstName overrides collapsed to a single page. nwn-wiki now folds the placement's display name into the canonical-creature key, giving each renamed placement its own page (general fix — covered ~17 reused blueprints, e.g. Old Tagget, Sarah the Librarian).</div><div><br></div><div>Fix2: found 47 total creatures with duplicate name tags that have collisions with instances vs blueprint: give them all unique blueprints</div><div><br></div><div>Fix3 (root cause of the 'sometimes Numarok' part): the respawn system (se_respawn_inc via nw_c2_default7 OnDeath) re-creates a dead creature from its BLUEPRINT, keeping only the tag — so every placement-level override (name, faction/hostility, abilities, classes, feats, special abilities, equipment, natural AC, race, conversation) was lost on the first death. bin/split-divergent-creatures.py gives each diverging placement its own baked blueprint (123 new blueprints, ~245 placements across 60 areas) so respawn reproduces exactly what was placed; tags untouched so no quest/script lookups change. Added tests/check_divergent_creatures.py to the build smoke-test so it can't regress, plus TESTING-respawn-overrides.md for player validation.</div>"
+    notes: "<div>\"That spawn point is wacky, sometimes I see Numarok the black hand, and other times this guy. And Numarok the Black Hand has his own room to the left of the building, opposite way of the temple\"</div><div><br></div><div>FIX1: the wiki generator deduped creatures by combat identity only, so one blueprint (cultmember002) placed under different FirstName overrides collapsed to a single page. nwn-wiki now folds the placement's display name into the canonical-creature key, giving each renamed placement its own page (general fix — covered ~17 reused blueprints, e.g. Old Tagget, Sarah the Librarian).</div><div><br></div><div>Fix2:&nbsp;(root cause of the 'sometimes Numarok' part): the respawn system (se_respawn_inc via nw_c2_default7 OnDeath) re-creates a dead creature from its BLUEPRINT, keeping only the tag — so every placement-level override (name, faction/hostility, abilities, classes, feats, special abilities, equipment, natural AC, race, conversation) was lost on the first death. bin/split-divergent-creatures.py gives each diverging placement its own baked blueprint (123 new blueprints, ~245 placements across 60 areas) so respawn reproduces exactly what was placed; tags untouched so no quest/script lookups change. Added tests/check_divergent_creatures.py to the build smoke-test so it can't regress, plus TESTING-respawn-overrides.md for player validation.</div>"
   - id: forge-warden-script-overflow-isssue
     title: "Forge-Warden can get script overflow and leave you stuck in pit prison"
     group: forge
@@ -745,11 +753,12 @@ ideas:
 
   # ---- Bosses & difficulty (queued / planned) ------------------------------
   - id: balrog-not-healing
-    title: "Balrog (and possibly other bosses) not healing itself"
+    title: "Balrog not healing itself"
     group: bosses
-    status: confirmed
+    status: unlikely
     type: Defect
     player: community
+    notes: "<div>This is working as intended:&nbsp;<a href=\"https://homerslotr.com/creatures/azagoth001\">The Balrog</a> currently has no heal potions or spells, should we add some?</div>"
   - id: sauron-minion-faction
     title: "Sauron's Chosen Minion fights his own faction (faction looks wrong)"
     group: bosses
