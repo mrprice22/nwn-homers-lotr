@@ -800,6 +800,7 @@ function select(i){
         <input type="color" id="rt_color" value="#6ea8fe" title="Font color">
         <span class="sep"></span>
         <button type="button" id="rt_link" title="Link to another idea">&#128279; Idea</button>
+        <button type="button" id="rt_extlink" title="Insert web link">&#128279; URL</button>
         <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
       </div>
       <div id="f_notes_rich" contenteditable="true"></div>
@@ -905,6 +906,9 @@ function initNotes(it){
   const lb=$('#rt_link');
   lb.onmousedown=e=>{ e.preventDefault(); saveRange(); };
   lb.onclick=openIdeaLink;
+  const xb=$('#rt_extlink');
+  xb.onmousedown=e=>{ e.preventDefault(); saveRange(); };
+  xb.onclick=openExtLink;
 
   // Strip pasted chrome (e.g. Discord's whole message DOM) to the same whitelist
   // the Python sanitizer enforces, so it never enters the editor in the first
@@ -1016,6 +1020,48 @@ function openIdeaLink(){
     r.onclick=()=>apply(r.dataset.id));
 }
 
+// Insert raw HTML at the saved caret in whichever notes tab is active.
+function insertIntoNotes(html){
+  if (notesTab==='html'){
+    const ta=$('#f_notes_html');
+    const a=ta.selectionStart, b=ta.selectionEnd;
+    ta.value = ta.value.slice(0,a) + html + ta.value.slice(b);
+    ta.focus(); ta.selectionStart=ta.selectionEnd=a+html.length;
+  } else {
+    $('#f_notes_rich').focus(); restoreRange();
+    document.execCommand('insertHTML', false, html);
+  }
+}
+
+function openExtLink(){
+  const selText = (savedRange && savedRange.toString().trim()) || '';
+  modalHTML(`<h2>Insert web link</h2>
+    <p class="small">Adds an external link that opens in a new tab. Leave the text
+      blank to use the selected text, or the URL itself.</p>
+    <label class="small">URL</label>
+    <input id="xlink_url" placeholder="https://example.com" style="margin-bottom:8px">
+    <label class="small">Link text</label>
+    <input id="xlink_txt" placeholder="${esc(selText) || 'link text'}" style="margin-bottom:8px">
+    <div class="bar"><span class="spacer"></span>
+      <button id="xlink_close">Cancel</button>
+      <button id="xlink_ok" class="primary">Insert</button></div>`);
+  const apply=()=>{
+    let url=$('#xlink_url').value.trim();
+    if (!url) return;
+    // Normalize so the notes sanitizer (http/https/mailto/# only) accepts it.
+    if (!url.startsWith('#') && !/^(https?:|mailto:)/i.test(url)) url='https://'+url;
+    const label = $('#xlink_txt').value.trim() || selText || url;
+    const link = `<a href="${esc(url).replace(/"/g,'&quot;')}" target="_blank" rel="noopener">${esc(label)}</a>`;
+    closeModal();
+    insertIntoNotes(link);
+  };
+  $('#xlink_close').onclick=closeModal;
+  $('#xlink_ok').onclick=apply;
+  const u=$('#xlink_url');
+  u.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); apply(); } };
+  u.focus();
+}
+
 function bindPlayerHint(){
   const inp = $('#f_player'); const hint = $('#player_hint');
   const known = new Set(DATA.vocab.players);
@@ -1062,10 +1108,14 @@ async function commit(endpoint){
   // if the edit moved or dropped the current item out of the view.
   let nextId=null, curPos=-1;
   if (sel>=0){
-    DATA.ideas[sel] = pruneEmpty(readForm());
+    // Capture the next row from the list *as currently displayed*, BEFORE the
+    // edit is applied — otherwise an edit that changes a sort key (status,
+    // group, title…) re-sorts the current item and "next" is taken relative to
+    // its new position, making the selection jump somewhere unexpected.
     const vis = visibleRows();
     curPos = vis.findIndex(r=>r.idx===sel);
     if (curPos>=0 && curPos+1<vis.length) nextId = vis[curPos+1].it.id;
+    DATA.ideas[sel] = pruneEmpty(readForm());
   }
   const r = await fetch(endpoint, {method:'POST',
     headers:{'Content-Type':'application/json'},
