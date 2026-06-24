@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-06-24 14:57 CDT"
+  as_of: "2026-06-24 16:15 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -126,7 +126,7 @@ ideas:
     type: Defect
     player: Yazkir
     date: "2026-06-24"
-    notes: "<div><span>Knock scrolls and items are not working currently. I don't have a wizard leveled atm, so can't test a direct spell cast.</span></div><div><ul><li><span>E.g. The chests in Numerok's Den and the door to get into the chest room.</span></li></ul></div><div><ul><li><span>E.g at the Endless Stair door to Moria.&nbsp;</span></li></ul><span>Looks like the spell isn't fully triggering.</span></div>"
+    notes: "<div><span>Knock scrolls and items are not working currently. I don't have a wizard leveled atm, so can't test a direct spell cast.</span></div><div><ul><li><span>E.g. The chests in Numerok's Den and the door to get into the chest room.</span></li></ul></div><div><ul><li><span>E.g at the Endless Stair door to Moria. </span></li></ul><span>Looks like the spell isn't fully triggering.</span></div>"
   - id: Morannon-Spell-Failure
     title: "Is Morannon meant to have arcane spell failure?"
     group: quests-areas
@@ -150,7 +150,7 @@ ideas:
     player: Yazkir
     date: "2026-06-24"
     commit: f1e0b114d7d
-    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) --&nbsp;Bruno Mars is the character</span></div><div><br></div><div><strong>R</strong>oot cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer — the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6&nbsp;→&nbsp;flat&nbsp;+6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat −6/−8/−10). Tiers 1–5 were always correct and are unchanged; only the damage column was affected.</div>"
+    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per </span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) -- Bruno Mars is the character</span></div><div><br></div><div><strong>R</strong>oot cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer — the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6 → flat +6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat −6/−8/−10). Tiers 1–5 were always correct and are unchanged; only the damage column was affected.</div>"
   - id: Character-Rebirths
     title: "Character Rebirths"
     group: progression
@@ -158,7 +158,7 @@ ideas:
     type: Enhancement
     player: Llikanthus
     date: "2026-06-23"
-    notes: "<div><span>\nWhen a level 40+ character (or 50+) chooses to use rebirth the following happen:&nbsp;</span></div><ol><li><span>They return to level 1 with the character created originally&nbsp;</span></li><li><span>no xp is banked and the character cannot withdraw xp&nbsp;</span></li><li><span>The character can choose 2 ability scores to add +1&nbsp;</span></li><li><span>The character can choose from a list of \"ascended\" custom feats that may change several aspects of his build and game play&nbsp;</span></li><li><span>The character can get as many rebirths as they like with the threshold for each to be a higher level, perhaps some item prerequisites and of course the bonuses are accumulative</span></li></ol><div><span>the possibilities are endless!</span></div>"
+    notes: "<div><span>\nWhen a level 40+ character (or 50+) chooses to use rebirth the following happen: </span></div><ol><li><span>They return to level 1 with the character created originally </span></li><li><span>no xp is banked and the character cannot withdraw xp </span></li><li><span>The character can choose 2 ability scores to add +1 </span></li><li><span>The character can choose from a list of \"ascended\" custom feats that may change several aspects of his build and game play </span></li><li><span>The character can get as many rebirths as they like with the threshold for each to be a higher level, perhaps some item prerequisites and of course the bonuses are accumulative</span></li></ol><div><span>the possibilities are endless!</span></div>"
   - id: breebank-storage-loss-logout
     title: "Items lost when logging out without talking to banker"
     group: banking
@@ -173,7 +173,7 @@ ideas:
     status: soon
     type: Defect
     player: Yazkir
-    notes: "Looks like broken/removed area transition:&nbsp;<span>the waypoints still exist and the dungeon still exists in the module itself.</span>"
+    notes: "Looks like broken/removed area transition: <span>the waypoints still exist and the dungeon still exists in the module itself.</span>"
   - id: server-seasons-character-wipe
     title: "Server-wide 'seasons' where achievements get archived and characters get wiped with partial XP bank"
     group: progression
@@ -266,7 +266,7 @@ ideas:
     type: Defect
     player: Yazkir
     date: "2026-06-23"
-    notes: "<div>\"That spawn point is wacky, sometimes I see Numarok the black hand, and other times this guy. And Numarok the Black Hand has his own room to the left of the building, opposite way of the temple\"</div><div><br></div><div>FIX1: the wiki generator deduped creatures by combat identity only, so one blueprint (cultmember002) placed under different FirstName overrides collapsed to a single page. nwn-wiki now folds the placement's display name into the canonical-creature key, giving each renamed placement its own page (general fix — covered ~17 reused blueprints, e.g. Old Tagget, Sarah the Librarian).</div><div><br></div><div>Fix2:&nbsp;(root cause of the 'sometimes Numarok' part): the respawn system (se_respawn_inc via nw_c2_default7 OnDeath) re-creates a dead creature from its BLUEPRINT, keeping only the tag — so every placement-level override (name, faction/hostility, abilities, classes, feats, special abilities, equipment, natural AC, race, conversation) was lost on the first death. bin/split-divergent-creatures.py gives each diverging placement its own baked blueprint (123 new blueprints, ~245 placements across 60 areas) so respawn reproduces exactly what was placed; tags untouched so no quest/script lookups change. Added tests/check_divergent_creatures.py to the build smoke-test so it can't regress, plus TESTING-respawn-overrides.md for player validation.</div>"
+    notes: "<div>\"That spawn point is wacky, sometimes I see Numarok the black hand, and other times this guy. And Numarok the Black Hand has his own room to the left of the building, opposite way of the temple\"</div><div><br></div><div>FIX1: the wiki generator deduped creatures by combat identity only, so one blueprint (cultmember002) placed under different FirstName overrides collapsed to a single page. nwn-wiki now folds the placement's display name into the canonical-creature key, giving each renamed placement its own page (general fix — covered ~17 reused blueprints, e.g. Old Tagget, Sarah the Librarian).</div><div><br></div><div>Fix2: (root cause of the 'sometimes Numarok' part): the respawn system (se_respawn_inc via nw_c2_default7 OnDeath) re-creates a dead creature from its BLUEPRINT, keeping only the tag — so every placement-level override (name, faction/hostility, abilities, classes, feats, special abilities, equipment, natural AC, race, conversation) was lost on the first death. bin/split-divergent-creatures.py gives each diverging placement its own baked blueprint (123 new blueprints, ~245 placements across 60 areas) so respawn reproduces exactly what was placed; tags untouched so no quest/script lookups change. Added tests/check_divergent_creatures.py to the build smoke-test so it can't regress, plus TESTING-respawn-overrides.md for player validation.</div>"
   - id: forge-warden-script-overflow-isssue
     title: "Forge-Warden can get script overflow and leave you stuck in pit prison"
     group: forge
@@ -688,7 +688,7 @@ ideas:
     type: Defect
     player: "Piskan (Alec Cain)"
     date: "2026-06-23"
-    notes: "<ul><li>Found and fixed HGLL bug that caused <font color=\"#f66151\">armor check penalty</font> <i>for currently equipped armor</i> to be factored into skill ranks during legendary level ups</li><li><font color=\"#26a269\">Added note in level up conversation</font> that calls out what the system sees as the player's dominant class (highest level class), <b>which is what&nbsp;determines the skills that are available</b> for selection during level up (it is expected that having a minor class with tumble, <b>does not</b> let you take tumble during legendary levels)</li></ul>"
+    notes: "<ul><li>Found and fixed HGLL bug that caused <font color=\"#f66151\">armor check penalty</font> <i>for currently equipped armor</i> to be factored into skill ranks during legendary level ups</li><li><font color=\"#26a269\">Added note in level up conversation</font> that calls out what the system sees as the player's dominant class (highest level class), <b>which is what determines the skills that are available</b> for selection during level up (it is expected that having a minor class with tumble, <b>does not</b> let you take tumble during legendary levels)</li></ul>"
   - id: ab-enhance-stack-bug
     title: "Weapons with both Attack Bonus (AB) and Enhancement Bonus (EB) appear to mis-calculate stats"
     group: combat-classes
@@ -696,7 +696,7 @@ ideas:
     type: Defect
     player: "Piskan (Alec Cain)"
     date: "2026-06-23"
-    notes: "<p>Root cause is hardcoded NWN engine behavior, not a module bug: the <b>Attack Bonus</b> property and the <i>attack component</i> of the <b>Enhancement Bonus</b> property do <b>not</b> stack — the engine applies only the higher of the two to the attack roll — while the enhancement's damage and damage-reduction bypass always apply. A weapon carrying both therefore shows a confusing character sheet, and any Attack Bonus ≤ the Enhancement Bonus is dead weight.</p><p>There is no global toggle for this, so we audited every weapon. <b>199 weapons</b> (blueprints plus all placed/inventory instances) carried both a generic Attack Bonus and Enhancement Bonus; each was collapsed to a single Enhancement Bonus. Where Attack Bonus exceeded Enhancement, the kept value was set per-item to a balanced figure between the two. Driven by <code>bin/ab-enhance-audit.py</code> → <code>ab-enhance-audit.csv</code> → <code>bin/ab-enhance-apply.py</code>.</p><p><b>Follow-up (player report: Chosen Kama still +13/+13):</b> the first pass matched the Attack/Enhancement properties only when their unused subtype was encoded as <code>0</code>, but NWN also encodes it as <code>65535</code> (0xFFFF). That hid <b>54 more weapons</b> (Chosen Kama, the Tournament set, Spear of Destiny, Super Kama, Mindmelter, and others) from the audit, the blueprint collapse, <i>and</i> the player-inventory repair. All three tools now treat subtype <code>0</code> or <code>65535</code> as generic; the 54 were collapsed and the server vault was re-swept, fixing the carried copies in players' character files.</p><p><br><b>NOTE:&nbsp; Any old versions of items left in persistent storage boxes </b>(Bank of Bree) must be pulled out of the storage and left in a character's inventory overnight to be fixed -- the daily 3am reboots will scan character .bic files adjust remove the AB bonus and fix (raise) the enchant bonus property to match items as documented in the wiki/aligned with their updated blueprints.&nbsp;</p>"
+    notes: "<p>Root cause is hardcoded NWN engine behavior, not a module bug: the <b>Attack Bonus</b> property and the <i>attack component</i> of the <b>Enhancement Bonus</b> property do <b>not</b> stack — the engine applies only the higher of the two to the attack roll — while the enhancement's damage and damage-reduction bypass always apply. A weapon carrying both therefore shows a confusing character sheet, and any Attack Bonus ≤ the Enhancement Bonus is dead weight.</p><p>There is no global toggle for this, so we audited every weapon. <b>199 weapons</b> (blueprints plus all placed/inventory instances) carried both a generic Attack Bonus and Enhancement Bonus; each was collapsed to a single Enhancement Bonus. Where Attack Bonus exceeded Enhancement, the kept value was set per-item to a balanced figure between the two. Driven by bin/ab-enhance-audit.py → ab-enhance-audit.csv → bin/ab-enhance-apply.py.</p><p><b>Follow-up (player report: Chosen Kama still +13/+13):</b> the first pass matched the Attack/Enhancement properties only when their unused subtype was encoded as 0, but NWN also encodes it as 65535 (0xFFFF). That hid <b>54 more weapons</b> (Chosen Kama, the Tournament set, Spear of Destiny, Super Kama, Mindmelter, and others) from the audit, the blueprint collapse, <i>and</i> the player-inventory repair. All three tools now treat subtype 0 or 65535 as generic; the 54 were collapsed and the server vault was re-swept, fixing the carried copies in players' character files.</p><p><br><b>NOTE:  Any old versions of items left in persistent storage boxes </b>(Bank of Bree) must be pulled out of the storage and left in a character's inventory overnight to be fixed -- the daily 3am reboots will scan character .bic files adjust remove the AB bonus and fix (raise) the enchant bonus property to match items as documented in the wiki/aligned with their updated blueprints. </p>"
     notes_h: 258
 
   # ---- Forge & crafting (queued / planned) ---------------------------------
@@ -796,7 +796,7 @@ ideas:
     status: planned
     type: Enhancement
     player: "Piskan (Alec Cain)"
-    notes: "<div><b>Examples </b>(Will work on some more class spec ideas)</div><div><ul><li>Monk: Quarterstaff +15 Enhancement 20 Divine dmg 2d12 Blud 2d12 Sonic Keen +2 Apr (Also, QS needs to be added to Monk weapons for it to work as intended, which they should have been from the start imo)</li><li>Sorc/Wiz: Staff +10 Con +10 Int +10 Cha Flowcasting (Make spell slots reset after doing a certain amount of dmg with spells)&nbsp;</li><li>Paladin: Maul (if you can add them, can add it to Warhammer spec) +15 Enhancement 20 Divine 2d12 Positive 2d12 Lightning Keen Chance on Hit: Sunbeam</li><li>Barbarian: Greataxe +15 Enhancement 20 Slashing 2d12 Piercing 2d12 Blud Keen Call lightning On-Hit (Once per round, if possible) }</li></ul></div>"
+    notes: "<div><b>Examples </b>(Will work on some more class spec ideas)</div><div><ul><li>Monk: Quarterstaff +15 Enhancement 20 Divine dmg 2d12 Blud 2d12 Sonic Keen +2 Apr (Also, QS needs to be added to Monk weapons for it to work as intended, which they should have been from the start imo)</li><li>Sorc/Wiz: Staff +10 Con +10 Int +10 Cha Flowcasting (Make spell slots reset after doing a certain amount of dmg with spells) </li><li>Paladin: Maul (if you can add them, can add it to Warhammer spec) +15 Enhancement 20 Divine 2d12 Positive 2d12 Lightning Keen Chance on Hit: Sunbeam</li><li>Barbarian: Greataxe +15 Enhancement 20 Slashing 2d12 Piercing 2d12 Blud Keen Call lightning On-Hit (Once per round, if possible) }</li></ul></div>"
   - id: monk-weapons
     title: "Add Shuriken, Katana and Quarterstaff to monk weapon list and count as finessable"
     group: combat-classes
@@ -814,7 +814,7 @@ ideas:
     status: unlikely
     type: Defect
     player: community
-    notes: "<div>This is working as intended:&nbsp;<a href=\"https://homerslotr.com/creatures/azagoth001\">The Balrog</a> currently has no heal potions or spells, should we add some?</div>"
+    notes: "<div>This is working as intended: <a href=\"https://homerslotr.com/creatures/azagoth001\">The Balrog</a> currently has no heal potions or spells, should we add some?</div>"
   - id: sauron-minion-faction
     title: "Sauron's Chosen Minion fights his own faction (faction looks wrong)"
     group: bosses
@@ -846,7 +846,7 @@ ideas:
     status: unlikely
     type: Enhancement
     player: "Piskan (Alec Cain)"
-    notes: "This is resolved basically by&nbsp;<a href=\"#idea-forge-bree-starter\">updates to the forge system</a>"
+    notes: "This is resolved basically by <a href=\"#idea-forge-bree-starter\">updates to the forge system</a>"
   - id: true-damage-type
     title: "A new low-dice 'true' damage type no boss is immune to — made incompatible with the forge so you choose optimized gear vs. boss-chipping gear"
     group: bosses
@@ -1013,4 +1013,4 @@ ideas:
     status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit.&nbsp;</li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div>"
+    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit. </li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div>"
