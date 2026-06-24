@@ -41,10 +41,10 @@ Each entry under `ideas:` is one backlog item:
 | `id` | yes | Stable unique key, lowercase-hyphen (e.g. `forge-zero-value-exploit`). Referenced by `dupe_of`. |
 | `title` | yes | The public one-line description shown on the page. This **is** the description. |
 | `group` | yes | Must match a `groups[].id` (`forge`, `combat-classes`, `bosses`, …). |
-| `status` | yes | One of the five below. |
+| `status` | yes | One of the eight workflow values below. |
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
-| `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. |
-| `commit` | no | git ref used to derive `date` for shipped items. |
+| `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. **When you ship an item, set this to today.** |
+| `commit` | no | git commit hash (short or full, e.g. `f1e0b114d7d`) of the change that shipped the item. **Add this when you ship.** Used to derive `date` for shipped items when `date` is absent. |
 | `notes` | no | Extra detail beyond the title. May contain **rich-text HTML** (bold/italic/lists/font color, and cross-idea links `<a href="#idea-<id>">`) — authored via the editor's Rich text / HTML tabs, rendered as-is on the public page. |
 | `notes_h` | no | Editor-only: remembered pixel height of that idea's Notes box. Written by the GUI when you resize; ignored by `gen-roadmap.py`. |
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
@@ -55,6 +55,31 @@ Each entry under `ideas:` is one backlog item:
 `unlikely` (logged but not likely to be implemented).
 The badge labels live in `STATUS` in `bin/gen-roadmap.py` — the editor reads them from
 there so the two never drift, and the roadmap board orders tiers by their `rank`.
+
+### Agent rules when editing `roadmap.yaml`
+
+These are hard rules — follow them exactly:
+
+- **Shipping an item → `status: implemented`, never `awarded`.** When you finish the code
+  for an item, move it to `implemented` (shipped, in testing). **Never** set `awarded` (or
+  otherwise mark an item "done") — that step credits Merit to the player and is the admin's
+  call. Leave it at `implemented` and let the user promote it manually after they verify
+  in-game.
+- **Always record the commit hash.** When you ship an item, put the git commit hash of the
+  fix in the `commit:` field (short or full, e.g. `commit: f1e0b114d7d`). Commit the code
+  first, then write its hash into the item.
+- **Always bump `date` to today** (`YYYY-MM-DD`) when you ship an item, so the page reflects
+  when it actually shipped — don't leave the original report date.
+- **Never invent new ideas on your own. Always ask the user first** before adding a new
+  `ideas:` entry. Editing/annotating existing items (status, notes, commit, date) is fine
+  without asking; creating a brand-new backlog row is not.
+- **Document the fix in `notes`.** Append a short "Fixed YYYY-MM-DD" line (rich HTML is
+  fine) describing the root cause and what changed, so the public roadmap and future
+  readers have the context. Keep the original report text intact above it.
+
+After editing, validate with `python3 bin/gen-roadmap.py --check`, then regenerate with
+`python3 bin/gen-roadmap.py`, and commit `roadmap.yaml` together with the regenerated
+`docs.manual/Roadmap.html`.
 
 **Duplicate ideas:** when several players suggest the same thing, keep one canonical item
 and add a row per other submitter with `dupe_of: <canonical-id>` and their `player:`.
