@@ -70,6 +70,7 @@ def load_gen():
 GEN = load_gen()
 STATUS = GEN.STATUS  # ordered dict: status -> {label, cls, board, rank}
 TYPES = GEN.TYPES    # ordered dict: type -> {label, cls}
+sanitize_notes = GEN.sanitize_notes  # whitelist sanitizer for idea `notes`
 
 
 # --------------------------------------------------------------------------
@@ -447,6 +448,10 @@ class Handler(BaseHTTPRequestHandler):
                     it["notes_h"] = int(float(it["notes_h"]))
                 except (TypeError, ValueError):
                     it.pop("notes_h", None)
+            # Strip any pasted chrome (e.g. Discord DOM) down to the whitelist
+            # so the YAML — and every regenerate/publish from it — stays clean.
+            if it.get("notes"):
+                it["notes"] = sanitize_notes(it["notes"])
         errors, warnings = validate_document(ideas, groups, players)
         if errors:
             return self._json({"ok": False, "errors": errors, "warnings": warnings})
@@ -900,6 +905,53 @@ function initNotes(it){
   const lb=$('#rt_link');
   lb.onmousedown=e=>{ e.preventDefault(); saveRange(); };
   lb.onclick=openIdeaLink;
+
+  // Strip pasted chrome (e.g. Discord's whole message DOM) to the same whitelist
+  // the Python sanitizer enforces, so it never enters the editor in the first
+  // place. Python remains the authoritative backstop on save.
+  rich.addEventListener('paste', e=>{
+    e.preventDefault();
+    const cb=e.clipboardData||window.clipboardData;
+    const htmlData=cb && cb.getData('text/html');
+    const cleaned = htmlData
+      ? cleanPastedHTML(htmlData)
+      : esc((cb && cb.getData('text/plain'))||'');
+    rich.focus();
+    document.execCommand('insertHTML', false, cleaned);
+  });
+}
+
+// Allowed tags / per-tag attrs — mirrors bin/roadmap_sanitize.py.
+const PASTE_TAGS = new Set(['A','B','STRONG','I','EM','U','UL','OL','LI',
+  'P','BR','HR','DIV','SPAN','FONT','IMG','BLOCKQUOTE']);
+const PASTE_ATTRS = {A:['href','target','rel'], FONT:['color'],
+  IMG:['src','alt','width','height']};
+
+function cleanPastedHTML(html){
+  const tmpl=document.createElement('template');
+  tmpl.innerHTML = html||'';
+  const walk = node => {
+    const out=[];
+    node.childNodes.forEach(ch=>{
+      if (ch.nodeType===3){ out.push(esc(ch.nodeValue)); return; }   // text
+      if (ch.nodeType!==1) return;                                   // skip comments etc.
+      const tag=ch.tagName;
+      const inner=walk(ch);
+      if (!PASTE_TAGS.has(tag)){ out.push(inner); return; }          // unwrap
+      const allow=PASTE_ATTRS[tag]||[];
+      let attrs='';
+      allow.forEach(a=>{
+        let v=ch.getAttribute(a); if(v==null) return; v=v.trim();
+        if (a==='href' && !(v.startsWith('#')||/^(https?:|mailto:)/i.test(v))) return;
+        if (a==='src'  && !/^https?:/i.test(v)) return;
+        attrs += ' '+a+'="'+esc(v).replace(/"/g,'&quot;')+'"';
+      });
+      if (tag==='BR'||tag==='HR'||tag==='IMG') out.push('<'+tag.toLowerCase()+attrs+'>');
+      else out.push('<'+tag.toLowerCase()+attrs+'>'+inner+'</'+tag.toLowerCase()+'>');
+    });
+    return out.join('');
+  };
+  return walk(tmpl.content);
 }
 
 function switchNotes(to){

@@ -25,6 +25,9 @@ from pathlib import Path
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from roadmap_sanitize import sanitize_notes  # noqa: E402
+
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
 OUT_PATH = REPO / "docs.manual" / "Roadmap.html"
@@ -217,10 +220,11 @@ def idea_row(idea: dict, shipped: bool) -> str:
     credit = credit_html(idea, shipped)
     if credit:
         bits.append(credit)
-    # notes is trusted author HTML (rich text from the editor); render as a block
-    # so it may contain <ul>/<ol>. amp() escapes lone & without touching tags.
-    notes = (f'<div class="rm-notes">{amp(idea["notes"])}</div>'
-             if idea.get("notes") else "")
+    # notes is author rich text from the editor; it may contain <ul>/<ol>/<a>.
+    # sanitize_notes() reduces it to a safe tag/attr whitelist (and escapes text),
+    # so a stray Discord-DOM paste can't break the page layout.
+    clean = sanitize_notes(idea.get("notes"))
+    notes = f'<div class="rm-notes">{clean}</div>' if clean else ""
     return (
         f'<li class="rm-item" id="idea-{idea["id"]}">'
         f'<div class="rm-title">{amp(idea["title"])}</div>'
