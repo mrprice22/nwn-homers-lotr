@@ -800,10 +800,12 @@ ideas:
   - id: monk-weapons
     title: "Add Shuriken, Katana and Quarterstaff to monk weapon list and count as finessable"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "Piskan (Alec Cain)"
     date: "2026-06-24"
+    commit: 24a7a96bc31
+    notes: "<div>baseitems.2da: Shuriken, Katana and Quarterstaff are now monk weapons (IsMonkWeapon=1, like Kama), so they get monk attack-bonus progression. Katana and Quarterstaff are now finessable (WeaponFinesseMinimumCreatureSize=2) for <em>any</em> class with the Weapon Finesse feat — not just monks, and small races included.</div><div><br></div><div>Note on flurry: NWN has a single IsMonkWeapon flag that governs both monk-weapon benefits and Flurry of Blows — there is no per-weapon flurry toggle. Kama itself is flurry-compatible, so these weapons are too (the original “not compatible with flurry” ask was dropped after confirming Kama allows flurry).</div><div><br></div><div>Live deployment requires repacking lotr_rules.hak with the new baseitems.2da, then refresh-nwsync + server restart.</div>"
 
   # ---- Bosses & difficulty (queued / planned) ------------------------------
   - id: balrog-not-healing
