@@ -102,14 +102,29 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
-  - id: bard-song-2
-    title: "Bard song damge modifier (not working again)"
-    group: combat-classes
+  - id: Morannon-Spell-Failure
+    title: "Is Morannon meant to have arcane spell failure?"
+    group: quests-areas
     status: wip
     type: Defect
     player: Yazkir
+    date: "2026-06-24"
+    notes: "<li id=\"chat-messages-514354202068254720-1519325108974391356\" class=\"messageListItem__5126c\" aria-setsize=\"-1\"><div class=\"message__5126c cozyMessage__5126c groupStart__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55 hasReply_c19a55\" role=\"article\" data-list-item-id=\"chat-messages___chat-messages-514354202068254720-1519325108974391356\" tabindex=\"-1\" aria-setsize=\"-1\" aria-roledescription=\"Message\" aria-labelledby=\"message-reply-context-1519325108974391356 uid_1 message-content-1519325108974391356 uid_2 message-timestamp-1519325108974391356\"><div class=\"contents_c19a55\"><div id=\"message-content-1519325108974391356\" class=\"markup__75297 messageContent_c19a55\"><span>Whenever I rest there I get 100% spell failure</span></div></div><div class=\"buttonContainer_c19a55\"><div class=\"buttons__5126c container__040f0 isHeader__040f0 isReply__040f0\" role=\"group\" aria-label=\"Message Actions\"></div></div></div></li><li id=\"chat-messages-514354202068254720-1519326678214643783\" class=\"messageListItem__5126c\" aria-setsize=\"-1\"><div class=\"message__5126c cozyMessage__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55\" role=\"article\" data-list-item-id=\"chat-messages___chat-messages-514354202068254720-1519326678214643783\" tabindex=\"-1\" aria-setsize=\"-1\" aria-roledescription=\"Message\" aria-labelledby=\"message-username-1519325108974391356 uid_1 message-content-1519326678214643783 uid_2 message-timestamp-1519326678214643783\"><div class=\"contents_c19a55\"> <div id=\"message-content-1519326678214643783\" class=\"markup__75297 messageContent_c19a55\"><span>Also, I've noticed NPC's being able to cast spells while silenced even though they don't have silent spell casting </span><span class=\"emojiContainer__75abc emojiContainerClickable__75abc\" aria-expanded=\"false\" role=\"button\" tabindex=\"0\"><img class=\"emoji\" data-type=\"emoji\" data-name=\":eyes:\" alt=\"👀\" draggable=\"false\" src=\"https://discord.com/assets/4b6781044811b929.svg\"></span></div></div></div></li>"
+  - id: weapon-forge-gp-too-low
+    title: "Weapon forging is bascially unusable, gp value (limit) way too low"
+    group: forge
+    status: planned
+    type: Defect
+    player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-23"
-    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>)</span></div><div><li id=\"chat-messages-514354202068254720-1519157417085108275\" class=\"messageListItem__5126c\" aria-setsize=\"-1\"><div class=\"message__5126c cozyMessage__5126c mentioned__5126c groupStart__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55 hasReply_c19a55\" role=\"article\" data-list-item-id=\"chat-messages___chat-messages-514354202068254720-1519157417085108275\" tabindex=\"-1\" aria-setsize=\"-1\" aria-roledescription=\"Message\" aria-labelledby=\"message-reply-context-1519157417085108275 uid_1 message-content-1519157417085108275 uid_2 message-timestamp-1519157417085108275\"><div class=\"contents_c19a55\"><div id=\"message-content-1519157417085108275\" class=\"markup__75297 messageContent_c19a55\"><span>Bard char is Bruno Mars </span><span class=\"emojiContainer__75abc emojiContainerClickable__75abc\" aria-expanded=\"false\" role=\"button\" tabindex=\"0\"><img class=\"emoji\" data-type=\"emoji\" data-id=\"988830389005062224\" alt=\":KEKLEO:\" draggable=\"false\" src=\"https://cdn.discordapp.com/emojis/988830389005062224.webp?size=44\"></span></div></div></div></li><li id=\"chat-messages-514354202068254720-1519157508374134784\" class=\"messageListItem__5126c\" aria-setsize=\"-1\"><div class=\"message__5126c cozyMessage__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55\" role=\"article\" data-list-item-id=\"chat-messages___chat-messages-514354202068254720-1519157508374134784\" tabindex=\"-1\" aria-setsize=\"-1\" aria-roledescription=\"Message\" aria-labelledby=\"message-username-1519157417085108275 uid_1 message-content-1519157508374134784 uid_2 message-timestamp-1519157508374134784\"><div class=\"contents_c19a55\"> <div id=\"message-content-1519157508374134784\" class=\"markup__75297 messageContent_c19a55\"><span>It’s 121 post-song, with the 1d4 on myself and another player.</span></div></div></div></li><br></div>"
+  - id: bard-song-2
+    title: "Bard song damge modifier (not working again)"
+    group: combat-classes
+    status: implemented
+    type: Defect
+    player: Yazkir
+    date: "2026-06-23"
+    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) --&nbsp;Bruno Mars is the character</span></div><div><strong>Fixed 2026-06-24 (in testing):</strong> root cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer &mdash; the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6&nbsp;&rarr;&nbsp;flat&nbsp;+6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat &minus;6/&minus;8/&minus;10). Tiers 1&ndash;5 were always correct and are unchanged; only the damage column was affected. Pending in-game UAT.</div>"
   - id: Character-Rebirths
     title: "Character Rebirths"
     group: progression
