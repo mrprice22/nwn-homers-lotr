@@ -123,8 +123,9 @@ ideas:
     status: implemented
     type: Defect
     player: Yazkir
-    date: "2026-06-23"
-    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) --&nbsp;Bruno Mars is the character</span></div><div><strong>Fixed 2026-06-24 (in testing):</strong> root cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer &mdash; the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6&nbsp;&rarr;&nbsp;flat&nbsp;+6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat &minus;6/&minus;8/&minus;10). Tiers 1&ndash;5 were always correct and are unchanged; only the damage column was affected. Pending in-game UAT.</div>"
+    date: "2026-06-24"
+    commit: f1e0b114d7d
+    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) --&nbsp;Bruno Mars is the character</span></div><div><strong>Fixed 2026-06-24 (in testing):</strong> root cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer — the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6&nbsp;→&nbsp;flat&nbsp;+6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat −6/−8/−10). Tiers 1–5 were always correct and are unchanged; only the damage column was affected. Pending in-game UAT.</div>"
   - id: Character-Rebirths
     title: "Character Rebirths"
     group: progression
