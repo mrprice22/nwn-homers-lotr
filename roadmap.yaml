@@ -102,6 +102,14 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: bard-song-2
+    title: "Bard song damge modifier (not working again)"
+    group: combat-classes
+    status: wip
+    type: Defect
+    player: Yazkir
+    date: "2026-06-23"
+    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>)</span></div><div><li id=\"chat-messages-514354202068254720-1519157417085108275\" class=\"messageListItem__5126c\" aria-setsize=\"-1\"><div class=\"message__5126c cozyMessage__5126c mentioned__5126c groupStart__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55 hasReply_c19a55\" role=\"article\" data-list-item-id=\"chat-messages___chat-messages-514354202068254720-1519157417085108275\" tabindex=\"-1\" aria-setsize=\"-1\" aria-roledescription=\"Message\" aria-labelledby=\"message-reply-context-1519157417085108275 uid_1 message-content-1519157417085108275 uid_2 message-timestamp-1519157417085108275\"><div class=\"contents_c19a55\"><div id=\"message-content-1519157417085108275\" class=\"markup__75297 messageContent_c19a55\"><span>Bard char is Bruno Mars </span><span class=\"emojiContainer__75abc emojiContainerClickable__75abc\" aria-expanded=\"false\" role=\"button\" tabindex=\"0\"><img class=\"emoji\" data-type=\"emoji\" data-id=\"988830389005062224\" alt=\":KEKLEO:\" draggable=\"false\" src=\"https://cdn.discordapp.com/emojis/988830389005062224.webp?size=44\"></span></div></div></div></li><li id=\"chat-messages-514354202068254720-1519157508374134784\" class=\"messageListItem__5126c\" aria-setsize=\"-1\"><div class=\"message__5126c cozyMessage__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55\" role=\"article\" data-list-item-id=\"chat-messages___chat-messages-514354202068254720-1519157508374134784\" tabindex=\"-1\" aria-setsize=\"-1\" aria-roledescription=\"Message\" aria-labelledby=\"message-username-1519157417085108275 uid_1 message-content-1519157508374134784 uid_2 message-timestamp-1519157508374134784\"><div class=\"contents_c19a55\"> <div id=\"message-content-1519157508374134784\" class=\"markup__75297 messageContent_c19a55\"><span>It’s 121 post-song, with the 1d4 on myself and another player.</span></div></div></div></li><br></div>"
   - id: Character-Rebirths
     title: "Character Rebirths"
     group: progression
@@ -234,7 +242,7 @@ ideas:
   - id: teleport-to-fornost
     title: "Fornost teleport Broken"
     group: travel
-    status: soon
+    status: confirmed
     type: Defect
     player: Llikanthus
   - id: wiki-playerguide-legendarylevelingare
@@ -642,9 +650,11 @@ ideas:
   - id: ab-enhance-stack-bug
     title: "Weapons with both Attack Bonus and Enhancement Bonus appear to mis-calculate stats"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Piskan (Alec Cain)"
+    date: "2026-06-23"
+    notes: "<p>Root cause is hardcoded NWN engine behavior, not a module bug: the <b>Attack Bonus</b> property and the <i>attack component</i> of the <b>Enhancement Bonus</b> property do <b>not</b> stack — the engine applies only the higher of the two to the attack roll — while the enhancement's damage and damage-reduction bypass always apply. A weapon carrying both therefore shows a confusing character sheet, and any Attack Bonus &le; the Enhancement Bonus is dead weight.</p><p>There is no global toggle for this, so we audited every weapon. <b>199 weapons</b> (blueprints plus all placed/inventory instances) carried both a generic Attack Bonus and Enhancement Bonus; each was collapsed to a single Enhancement Bonus. Where Attack Bonus exceeded Enhancement, the kept value was set per-item to a balanced figure between the two. Driven by <code>bin/ab-enhance-audit.py</code> &rarr; <code>ab-enhance-audit.csv</code> &rarr; <code>bin/ab-enhance-apply.py</code>.</p>"
 
   # ---- Forge & crafting (queued / planned) ---------------------------------
   - id: legendary-forge-4th
@@ -670,7 +680,7 @@ ideas:
   - id: plot-flag-craft
     title: "Tainted Steel of Morgrond & Skinner's Acidic Plate are flagged Plot and can't be used in the craft-skill menu"
     group: forge
-    status: wip
+    status: confirmed
     type: Defect
     player: "-Methonash-"
   - id: discipline-forge-craft
@@ -897,7 +907,7 @@ ideas:
   - id: party-loot-roll
     title: "Chat command to roll d100 for boss loot, or one command to roll for the whole party"
     group: items-gear
-    status: wip
+    status: confirmed
     type: Enhancement
     player: "-Methonash-"
   - id: npc-disarm-despawn
