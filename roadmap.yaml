@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-06-23 23:15 CDT"
+  as_of: "2026-06-24 14:29 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -91,6 +91,7 @@ players:
   - Yazkir
   - Llikanthus
   - "HomelessSon (Server Admin)"
+  - Magyk
 
 # -----------------------------------------------------------------------------
 # How merit is earned and spent (Merit Redemption Shop + Player Housing price
@@ -102,6 +103,30 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: Hobbit-Subrace
+    title: "Hobbit Subrace"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: Magyk
+    date: "2026-06-24"
+    notes: "Add hobbit as a playable subrace"
+  - id: Ithilien-Transitions
+    title: "At least one of the Norther Forest of Ithilien transitions seems off"
+    group: quests-areas
+    status: soon
+    type: Defect
+    player: Tukwut
+    date: "2026-06-24"
+    notes: "<span>\nif i go north of the vale area to the zone where one of the legends is, going back south seems to send you not back to the proper transition but to some other random one (note there are multiple zones with the same title so probably just a mislinked transition unless lore-wise this forest is supposed to turn you around)</span>"
+  - id: knock-spell-issue
+    title: "Knock Spell Effect not working"
+    group: quests-areas
+    status: wip
+    type: Defect
+    player: Yazkir
+    date: "2026-06-24"
+    notes: "<div><span>Knock scrolls and items are not working currently. I don't have a wizard leveled atm, so can't test a direct spell cast.</span></div><div><ul><li><span>E.g. The chests in Numerok's Den and the door to get into the chest room.</span></li></ul></div><div><ul><li><span>E.g at the Endless Stair door to Moria.&nbsp;</span></li></ul><span>Looks like the spell isn't fully triggering.</span></div>"
   - id: Morannon-Spell-Failure
     title: "Is Morannon meant to have arcane spell failure?"
     group: quests-areas
@@ -125,7 +150,7 @@ ideas:
     player: Yazkir
     date: "2026-06-24"
     commit: f1e0b114d7d
-    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) --&nbsp;Bruno Mars is the character</span></div><div><strong>Fixed 2026-06-24 (in testing):</strong> root cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer — the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6&nbsp;→&nbsp;flat&nbsp;+6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat −6/−8/−10). Tiers 1–5 were always correct and are unchanged; only the damage column was affected. Pending in-game UAT.</div>"
+    notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per&nbsp;</span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) --&nbsp;Bruno Mars is the character</span></div><div><br></div><div><strong>R</strong>oot cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer — the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6&nbsp;→&nbsp;flat&nbsp;+6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat −6/−8/−10). Tiers 1–5 were always correct and are unchanged; only the damage column was affected.</div>"
   - id: Character-Rebirths
     title: "Character Rebirths"
     group: progression
@@ -217,6 +242,7 @@ ideas:
     type: Defect
     player: Yazkir
     date: "2026-06-22"
+    notes: "<div><span>Also confirmed impact is from the Mirkwood Spiders, specifically:</span></div><ul><li><span>Lava Climber</span></li><li><span>Death Weeper</span></li><li><span>Black Spear Spider</span></li></ul>"
   - id: improved-invis-issues-part2
     title: "Issues with improved invisibility after buff duration exentsion (and exclusion)"
     group: qol
@@ -772,11 +798,13 @@ ideas:
     player: "Piskan (Alec Cain)"
     notes: "<div><b>Examples </b>(Will work on some more class spec ideas)</div><div><ul><li>Monk: Quarterstaff +15 Enhancement 20 Divine dmg 2d12 Blud 2d12 Sonic Keen +2 Apr (Also, QS needs to be added to Monk weapons for it to work as intended, which they should have been from the start imo)</li><li>Sorc/Wiz: Staff +10 Con +10 Int +10 Cha Flowcasting (Make spell slots reset after doing a certain amount of dmg with spells)&nbsp;</li><li>Paladin: Maul (if you can add them, can add it to Warhammer spec) +15 Enhancement 20 Divine 2d12 Positive 2d12 Lightning Keen Chance on Hit: Sunbeam</li><li>Barbarian: Greataxe +15 Enhancement 20 Slashing 2d12 Piercing 2d12 Blud Keen Call lightning On-Hit (Once per round, if possible) }</li></ul></div>"
   - id: monk-weapons
-    title: "Add Shuriken, Katana and Quarterstaff to monk weapons (usable with Flurry of Blows)"
+    title: "Add Shuriken, Katana and Quarterstaff to monk weapon list and count as finessable"
     group: combat-classes
-    status: planned
+    status: confirmed
     type: Enhancement
     player: "Piskan (Alec Cain)"
+    date: "2026-06-24"
+    notes: "not compatible with flurry of blows"
 
   # ---- Bosses & difficulty (queued / planned) ------------------------------
   - id: balrog-not-healing
@@ -979,8 +1007,9 @@ ideas:
 
   # ---- Economy & merit (open) ----------------------------------------------
   - id: merit-redemption-poc
-    title: "Build out the Merit redemption options as a proof of concept"
+    title: "Build out the Merit redemption options"
     group: economy
     status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit.&nbsp;</li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div>"
