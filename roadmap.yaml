@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-06-23 19:14 CDT"
+  as_of: "2026-06-23 23:15 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -220,7 +220,7 @@ ideas:
   - id: wiki-missing-creature-numarockblackhand
     title: "Wiki Missing creature: Numanan Numerocks Second Hand (CARN DUM)"
     group: wiki-tools
-    status: implemented
+    status: awarded
     type: Defect
     player: Yazkir
     date: "2026-06-23"
@@ -642,19 +642,20 @@ ideas:
   - id: ll-leveler-tumble
     title: "Legendary Leveler: can't find Tumble"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Defect
     player: "Piskan (Alec Cain)"
     date: "2026-06-23"
     notes: "<ul><li>Found and fixed HGLL bug that caused <font color=\"#f66151\">armor check penalty</font> <i>for currently equipped armor</i> to be factored into skill ranks during legendary level ups</li><li><font color=\"#26a269\">Added note in level up conversation</font> that calls out what the system sees as the player's dominant class (highest level class), <b>which is what&nbsp;determines the skills that are available</b> for selection during level up (it is expected that having a minor class with tumble, <b>does not</b> let you take tumble during legendary levels)</li></ul>"
   - id: ab-enhance-stack-bug
-    title: "Weapons with both Attack Bonus and Enhancement Bonus appear to mis-calculate stats"
+    title: "Weapons with both Attack Bonus (AB) and Enhancement Bonus (EB) appear to mis-calculate stats"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Defect
     player: "Piskan (Alec Cain)"
     date: "2026-06-23"
-    notes: "<p>Root cause is hardcoded NWN engine behavior, not a module bug: the <b>Attack Bonus</b> property and the <i>attack component</i> of the <b>Enhancement Bonus</b> property do <b>not</b> stack — the engine applies only the higher of the two to the attack roll — while the enhancement's damage and damage-reduction bypass always apply. A weapon carrying both therefore shows a confusing character sheet, and any Attack Bonus &le; the Enhancement Bonus is dead weight.</p><p>There is no global toggle for this, so we audited every weapon. <b>199 weapons</b> (blueprints plus all placed/inventory instances) carried both a generic Attack Bonus and Enhancement Bonus; each was collapsed to a single Enhancement Bonus. Where Attack Bonus exceeded Enhancement, the kept value was set per-item to a balanced figure between the two. Driven by <code>bin/ab-enhance-audit.py</code> &rarr; <code>ab-enhance-audit.csv</code> &rarr; <code>bin/ab-enhance-apply.py</code>.</p><p><b>Follow-up (player report: Chosen Kama still +13/+13):</b> the first pass matched the Attack/Enhancement properties only when their unused subtype was encoded as <code>0</code>, but NWN also encodes it as <code>65535</code> (0xFFFF). That hid <b>54 more weapons</b> (Chosen Kama, the Tournament set, Spear of Destiny, Super Kama, Mindmelter, and others) from the audit, the blueprint collapse, <i>and</i> the player-inventory repair. All three tools now treat subtype <code>0</code> or <code>65535</code> as generic; the 54 were collapsed and the server vault was re-swept, fixing the carried copies in players' character files.</p>"
+    notes: "<p>Root cause is hardcoded NWN engine behavior, not a module bug: the <b>Attack Bonus</b> property and the <i>attack component</i> of the <b>Enhancement Bonus</b> property do <b>not</b> stack — the engine applies only the higher of the two to the attack roll — while the enhancement's damage and damage-reduction bypass always apply. A weapon carrying both therefore shows a confusing character sheet, and any Attack Bonus ≤ the Enhancement Bonus is dead weight.</p><p>There is no global toggle for this, so we audited every weapon. <b>199 weapons</b> (blueprints plus all placed/inventory instances) carried both a generic Attack Bonus and Enhancement Bonus; each was collapsed to a single Enhancement Bonus. Where Attack Bonus exceeded Enhancement, the kept value was set per-item to a balanced figure between the two. Driven by <code>bin/ab-enhance-audit.py</code> → <code>ab-enhance-audit.csv</code> → <code>bin/ab-enhance-apply.py</code>.</p><p><b>Follow-up (player report: Chosen Kama still +13/+13):</b> the first pass matched the Attack/Enhancement properties only when their unused subtype was encoded as <code>0</code>, but NWN also encodes it as <code>65535</code> (0xFFFF). That hid <b>54 more weapons</b> (Chosen Kama, the Tournament set, Spear of Destiny, Super Kama, Mindmelter, and others) from the audit, the blueprint collapse, <i>and</i> the player-inventory repair. All three tools now treat subtype <code>0</code> or <code>65535</code> as generic; the 54 were collapsed and the server vault was re-swept, fixing the carried copies in players' character files.</p><p><br><b>NOTE:&nbsp; Any old versions of items left in persistent storage boxes </b>(Bank of Bree) must be pulled out of the storage and left in a character's inventory overnight to be fixed -- the daily 3am reboots will scan character .bic files adjust remove the AB bonus and fix (raise) the enchant bonus property to match items as documented in the wiki/aligned with their updated blueprints.&nbsp;</p>"
+    notes_h: 258
 
   # ---- Forge & crafting (queued / planned) ---------------------------------
   - id: legendary-forge-4th
@@ -686,7 +687,7 @@ ideas:
   - id: discipline-forge-craft
     title: "Discipline missing from the forge craft list (Rivendell forge)"
     group: forge
-    status: implemented
+    status: awarded
     type: Defect
     player: McGondy
     date: "2026-06-23"
