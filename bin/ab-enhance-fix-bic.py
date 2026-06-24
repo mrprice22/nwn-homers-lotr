@@ -54,10 +54,11 @@ CHANGES_CSV = os.path.join(REPO, "ab-enhance-bic-changes.csv")
 # --- property transform (same semantics as bin/ab-enhance-apply.py) -----------
 
 def is_generic(p, prop_name):
+    # Unused AB/ENH subtype is encoded as 0 or 65535 (0xFFFF); both are generic.
     return (
         isinstance(p, dict)
         and p.get("PropertyName", {}).get("value") == prop_name
-        and p.get("Subtype", {}).get("value", 0) == 0
+        and p.get("Subtype", {}).get("value", 0) in (0, 65535)
     )
 
 

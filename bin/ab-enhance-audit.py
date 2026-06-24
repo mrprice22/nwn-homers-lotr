@@ -48,12 +48,17 @@ def resolved_name(d):
 
 
 def generic_value(props, prop_name):
-    """Max CostValue across generic (Subtype 0) structs of prop_name, or None."""
+    """Max CostValue across generic structs of prop_name, or None.
+
+    Generic = the property's unused subtype, which NWN encodes as either 0 or
+    65535 (0xFFFF, the empty-word sentinel). Matching only Subtype 0 silently
+    skipped weapons whose AB/ENH carried 65535 (e.g. Chosen Kama).
+    """
     vals = [
         p.get("CostValue", {}).get("value")
         for p in props
         if p.get("PropertyName", {}).get("value") == prop_name
-        and p.get("Subtype", {}).get("value", 0) == 0
+        and p.get("Subtype", {}).get("value", 0) in (0, 65535)
         and p.get("CostValue", {}).get("value") is not None
     ]
     return max(vals) if vals else None
@@ -67,11 +72,34 @@ def main():
         help="overwrite ab-enhance-audit.csv even if it already exists "
         "(guards against clobbering hand-edited keep/value decisions)",
     )
+    ap.add_argument(
+        "--append",
+        action="store_true",
+        help="keep the existing ab-enhance-audit.csv rows verbatim (preserving "
+        "hand-edited keep/value) and only add rows for resrefs not already "
+        "listed. Use after fixing the subtype match to pick up newly-found "
+        "weapons without re-deciding the historical ones.",
+    )
     args = ap.parse_args()
-    if os.path.exists(OUT_CSV) and not args.force:
+    if args.force and args.append:
+        print("--force and --append are mutually exclusive.", file=sys.stderr)
+        return 1
+
+    existing_rows = []
+    existing_resrefs = set()
+    if args.append:
+        if not os.path.exists(OUT_CSV):
+            print(f"--append needs an existing {OUT_CSV} -- run without it first.",
+                  file=sys.stderr)
+            return 1
+        with open(OUT_CSV, newline="", encoding="utf-8") as fh:
+            existing_rows = list(csv.DictReader(fh))
+        existing_resrefs = {r["resref"] for r in existing_rows}
+    elif os.path.exists(OUT_CSV) and not args.force:
         print(
             f"{OUT_CSV} already exists -- refusing to overwrite (your edits would\n"
-            f"be lost). Re-run with --force to regenerate from scratch.",
+            f"be lost). Re-run with --force to regenerate from scratch, or "
+            f"--append to add only newly-found weapons.",
             file=sys.stderr,
         )
         return 1
@@ -90,6 +118,8 @@ def main():
         if ab is None or enh is None:
             continue
         resref = os.path.basename(path)[: -len(".uti.json")]
+        if resref in existing_resrefs:
+            continue  # --append: keep the existing (possibly hand-edited) row
         base_item = d.get("BaseItem", {}).get("value", "")
         if ab < enh:
             relation = "AB<ENH"
@@ -121,14 +151,21 @@ def main():
         "resref", "name", "base_item", "enh_current", "ab_current",
         "relation", "keep", "value",
     ]
+    # In --append mode, existing rows are written back verbatim and the newly
+    # found weapons are appended after them.
+    out_rows = existing_rows + rows
     with open(OUT_CSV, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=fields)
         w.writeheader()
-        w.writerows(rows)
+        w.writerows(out_rows)
 
     review = sum(1 for r in rows if r["keep"] == "REVIEW")
-    print(f"Wrote {OUT_CSV}")
-    print(f"  {len(rows)} weapons with both generic AB + ENH")
+    if args.append:
+        print(f"Updated {OUT_CSV} (kept {len(existing_rows)} existing row(s))")
+        print(f"  {len(rows)} newly-found weapon(s) appended")
+    else:
+        print(f"Wrote {OUT_CSV}")
+        print(f"  {len(rows)} weapons with both generic AB + ENH")
     print(f"  {review} flagged REVIEW (AB>ENH) -- edit keep/value before apply")
     print(f"  {len(rows) - review} pre-filled (AB<=ENH, drop redundant AB)")
     return 0

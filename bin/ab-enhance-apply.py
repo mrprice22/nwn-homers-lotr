@@ -60,11 +60,15 @@ def make_prop(prop_name, value):
 
 
 def is_generic(p, prop_name):
-    """True for a generic (Subtype 0) struct of the given property."""
+    """True for a generic struct of the given property.
+
+    The AB/ENH subtype is unused and NWN encodes the empty word as 0 or 65535
+    (0xFFFF). Both count as generic; conditional variants use a real subtype.
+    """
     return (
         isinstance(p, dict)
         and p.get("PropertyName", {}).get("value") == prop_name
-        and p.get("Subtype", {}).get("value", 0) == 0
+        and p.get("Subtype", {}).get("value", 0) in (0, 65535)
     )
 
 
