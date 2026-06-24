@@ -15,6 +15,7 @@
 //:: Last Updated By: Andrew Nobbs May 20, 2003
 
 #include "x2_i0_spells"
+#include "x2_inc_itemprop"
 
 void main()
 {
@@ -322,7 +323,11 @@ void main()
     effect eVis = EffectVisualEffect(VFX_IMP_DOOM);
 
     eAttack = EffectAttackDecrease(nAttack);
-    eDamage = EffectDamageDecrease(nDamage, DAMAGE_TYPE_SLASHING);
+    // EffectDamageDecrease uses the same DAMAGE_BONUS_* encoding as
+    // EffectDamageIncrease: raw values >5 become dice (6 = 1d4, 8 = 1d8,
+    // 10 = 2d6). Map the intended flat penalty to the correct constant so the
+    // top tiers deliver flat -6/-8/-10 instead of dice.
+    eDamage = EffectDamageDecrease(nDamage > 0 ? IPGetDamageBonusConstantFromNumber(nDamage) : nDamage, DAMAGE_TYPE_SLASHING);
     effect eLink = EffectLinkEffects(eAttack, eDamage);
 
     if(nWill > 0)

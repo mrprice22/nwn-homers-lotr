@@ -27,6 +27,7 @@
 //:://////////////////////////////////////////////
 
 #include "x2_i0_spells"
+#include "x2_inc_itemprop"
 
 void main()
 {
@@ -171,7 +172,11 @@ void main()
     effect eVis = EffectVisualEffect(VFX_DUR_BARD_SONG);
 
     eAttack = EffectAttackIncrease(nAttack);
-    eDamage = EffectDamageIncrease(nDamage, DAMAGE_TYPE_BLUDGEONING);
+    // EffectDamageIncrease takes a DAMAGE_BONUS_* constant, NOT a flat int: raw
+    // values >5 become dice (6 = 1d4, 8 = 1d8, 10 = 2d6). Map the intended flat
+    // amount to the correct constant (6 -> DAMAGE_BONUS_6 = 16, etc.) so the top
+    // tier delivers flat +6 instead of 1d4.
+    eDamage = EffectDamageIncrease(nDamage > 0 ? IPGetDamageBonusConstantFromNumber(nDamage) : nDamage, DAMAGE_TYPE_BLUDGEONING);
     effect eLink = EffectLinkEffects(eAttack, eDamage);
 
     if (nWill > 0)
