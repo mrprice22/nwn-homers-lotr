@@ -49,13 +49,19 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_stg_t1</code></h1><pre class="nss-source"><code>// Toggle plan bit 1 (strike/keep the 1th permanent property). The menu
-// re-shows via the D1 entry (forge_stg_anvil), which re-primes the cues.
+<h1>Script: <code>forge_stg_t1</code></h1><pre class="nss-source"><code>// Toggle the plan bit for staged disenchant menu slot 1 on the current page
+// (absolute permanent-property index = FORGE_STG_PAGE * FORGE_DIS_SLOTS + 1),
+// then re-prime the menu&#x27;s per-slot cues + status header for the SAME page. The
+// re-prime must happen here (a reply Actions Taken), before the D1 entry re-shows
+// its text, so the [planned] marker and projected worth update on every click.
+#include &quot;forge_inc&quot;
+
 void main()
 {
     object oPC = GetPCSpeaker();
-    SetLocalInt(oPC, &quot;FORGE_STG_MASK&quot;,
-        GetLocalInt(oPC, &quot;FORGE_STG_MASK&quot;) ^ (1 &lt;&lt; 1));
+    ForgeStageToggleBit(oPC,
+        GetLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;) * FORGE_DIS_SLOTS + 1);
+    ForgeStageSetupCued(oPC, GetLocalObject(oPC, &quot;MODIFY_ITEM&quot;));
 }
 </code></pre>
   </main>

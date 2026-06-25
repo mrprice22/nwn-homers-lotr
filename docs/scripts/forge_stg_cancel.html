@@ -50,10 +50,14 @@
   </header>
   <main>
 <h1>Script: <code>forge_stg_cancel</code></h1><pre class="nss-source"><code>// Abandon the disenchant plan: nothing was mutated, so the item is left whole
-// and exactly as legal as it was before. Just clear the staging plan.
+// and exactly as legal as it was before. Clear the staging plan and page.
+#include &quot;forge_inc&quot;
+
 void main()
 {
-    DeleteLocalInt(GetPCSpeaker(), &quot;FORGE_STG_MASK&quot;);
+    object oPC = GetPCSpeaker();
+    ForgeStageClear(oPC);
+    DeleteLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;);
 }
 </code></pre>
   </main>

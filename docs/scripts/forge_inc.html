@@ -49,7 +49,7 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_inc</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>jailed</code> (<a href="../areas/prison.html">0o Pit Prison o0</a>)</dd></dl><pre class="nss-source"><code>// forge_inc.nss — shared helpers for the Forge of Wonders system.
+<h1>Script: <code>forge_inc</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>jailed</code> (<a href="../areas/prison.html">0o Pit Prison o0</a>), <code>pAnvilOfWonder</code> (<a href="../areas/area057.html">Moria: Forge of Wonders</a>)</dd></dl><pre class="nss-source"><code>// forge_inc.nss — shared helpers for the Forge of Wonders system.
 //
 // Pricing, per-forge caps, legality checks and the disenchant service all go
 // through here. Do NOT #include &quot;itemprocs&quot; from this file (NWScript has no
@@ -63,6 +63,10 @@
 #include &quot;forge_legal_inc&quot;
 // Appraise scaling (AppraiseBonusScaled) for the per-player value ceiling.
 #include &quot;appraise_inc&quot;
+// Colour-token strings (COLOR_RED / COLOR_END / ColorString) for the staged
+// disenchant menu&#x27;s &quot;[planned]&quot; marker. No forge consumer also includes &quot;color&quot;,
+// so this is conflict-free (NWScript has no include guards).
+#include &quot;color&quot;
 
 const int FORGE_LEGAL_MAX_PROPS = 6;
 const int FORGE_LEGAL_MAX_VALUE = 750000;
@@ -87,6 +91,15 @@ int ForgeAppraiseBonus(object oPC)
 }
 const string FORGE_VAULT_TAG = &quot;FORGE_VAULT&quot;;
 const int FORGE_DIS_SLOTS = 8;
+
+// Staged-disenchant plan bitmask: one bit per ORIGINAL permanent-property index,
+// spread across FORGE_STG_WORDS local ints (FORGE_STG_M0..) of FORGE_STG_BITS
+// bits each, so the menu can paginate past the 8 visible slots and plan removals
+// on items with far more than 8 enchantments. 30 bits/word stays clear of the
+// sign bit; 6 words covers 180 properties (no real item approaches that). A
+// page of FORGE_DIS_SLOTS slots maps slot n -&gt; absolute index page*8 + n.
+const int FORGE_STG_BITS  = 30;
+const int FORGE_STG_WORDS = 6;
 
 // Contraband-scan &quot;clean&quot; stamp. An item verified legal by the login scan gets
 // item-local int &quot;FORGE_CLEAN&quot; set to FORGE_CLEAN_VER; future logins skip it,
@@ -179,6 +192,158 @@ int ForgeItemValue(object oItem, int bPerUnit = FALSE)
     int nValue = GetGoldPieceValue(oCopy);
     DestroyObject(oCopy);
     return nValue;
+}
+
+// Format a non-negative gold amount with thousands separators for player-facing
+// text: 1234567 -&gt; &quot;1,234,567&quot;. Negative inputs (sentinel/&quot;unavailable&quot; values)
+// pass through unformatted. Used everywhere a gold value is shown in the forge
+// dialogs; property counts and page numbers stay plain IntToString.
+string ForgeGold(int n)
+{
+    if (n &lt; 0)
+        return IntToString(n);
+    string sIn = IntToString(n);
+    int nLen = GetStringLength(sIn);
+    string sOut = &quot;&quot;;
+    int i;
+    for (i = 0; i &lt; nLen; i++)
+    {
+        if (i &gt; 0 &amp;&amp; (nLen - i) % 3 == 0)
+            sOut += &quot;,&quot;;
+        sOut += GetSubString(sIn, i, 1);
+    }
+    return sOut;
+}
+
+// Display word for token 102 (&quot;Sword&quot;, &quot;Armor&quot;, &quot;Ring&quot;, ...) from the base item
+// type. Used by the anvil context refresh below.
+string ForgeBaseWord(int iBase)
+{
+    switch (iBase)
+    {
+        case BASE_ITEM_AMULET:        return &quot;Amulet&quot;;
+        case BASE_ITEM_ARMOR:         return &quot;Armor&quot;;
+        case BASE_ITEM_ARROW:         return &quot;Arrow&quot;;
+        case BASE_ITEM_BASTARDSWORD:  return &quot;Sword&quot;;
+        case BASE_ITEM_BATTLEAXE:     return &quot;Axe&quot;;
+        case BASE_ITEM_BELT:          return &quot;Belt&quot;;
+        case BASE_ITEM_BOLT:          return &quot;Bolt&quot;;
+        case BASE_ITEM_BOOTS:         return &quot;Boots&quot;;
+        case BASE_ITEM_BRACER:        return &quot;Bracers&quot;;
+        case BASE_ITEM_BULLET:        return &quot;Bullet&quot;;
+        case BASE_ITEM_CLOAK:         return &quot;Cloak&quot;;
+        case BASE_ITEM_CLUB:          return &quot;Club&quot;;
+        case BASE_ITEM_DAGGER:        return &quot;Dagger&quot;;
+        case BASE_ITEM_DART:          return &quot;Dart&quot;;
+        case BASE_ITEM_DIREMACE:      return &quot;Dire Mace&quot;;
+        case BASE_ITEM_DOUBLEAXE:     return &quot;Double Axe&quot;;
+        case BASE_ITEM_DWARVENWARAXE: return &quot;War Axe&quot;;
+        case BASE_ITEM_GLOVES:        return &quot;Gloves&quot;;
+        case BASE_ITEM_GREATAXE:      return &quot;Axe&quot;;
+        case BASE_ITEM_GREATSWORD:    return &quot;Sword&quot;;
+        case BASE_ITEM_HALBERD:       return &quot;Halberd&quot;;
+        case BASE_ITEM_HANDAXE:       return &quot;Axe&quot;;
+        case BASE_ITEM_HEAVYCROSSBOW: return &quot;Crossbow&quot;;
+        case BASE_ITEM_HEAVYFLAIL:    return &quot;Flail&quot;;
+        case BASE_ITEM_HELMET:        return &quot;Helm&quot;;
+        case BASE_ITEM_KAMA:          return &quot;Kama&quot;;
+        case BASE_ITEM_KATANA:        return &quot;Katana&quot;;
+        case BASE_ITEM_KUKRI:         return &quot;Kukri&quot;;
+        case BASE_ITEM_LARGESHIELD:   return &quot;Shield&quot;;
+        case BASE_ITEM_LIGHTCROSSBOW: return &quot;Crossbow&quot;;
+        case BASE_ITEM_LIGHTFLAIL:    return &quot;Flail&quot;;
+        case BASE_ITEM_LIGHTHAMMER:   return &quot;Hammer&quot;;
+        case BASE_ITEM_LIGHTMACE:     return &quot;Mace&quot;;
+        case BASE_ITEM_LONGBOW:       return &quot;Bow&quot;;
+        case BASE_ITEM_LONGSWORD:     return &quot;Sword&quot;;
+        case BASE_ITEM_MAGICSTAFF:    return &quot;Staff&quot;;
+        case BASE_ITEM_MORNINGSTAR:   return &quot;Morningstar&quot;;
+        case BASE_ITEM_QUARTERSTAFF:  return &quot;Staff&quot;;
+        case BASE_ITEM_RAPIER:        return &quot;Rapier&quot;;
+        case BASE_ITEM_RING:          return &quot;Ring&quot;;
+        case BASE_ITEM_SCIMITAR:      return &quot;Scimitar&quot;;
+        case BASE_ITEM_SCYTHE:        return &quot;Scythe&quot;;
+        case BASE_ITEM_SHORTBOW:      return &quot;Bow&quot;;
+        case BASE_ITEM_SHORTSPEAR:    return &quot;Spear&quot;;
+        case BASE_ITEM_SHORTSWORD:    return &quot;Sword&quot;;
+        case BASE_ITEM_SHURIKEN:      return &quot;Shuriken&quot;;
+        case BASE_ITEM_SICKLE:        return &quot;Sickle&quot;;
+        case BASE_ITEM_SLING:         return &quot;Sling&quot;;
+        case BASE_ITEM_SMALLSHIELD:   return &quot;Shield&quot;;
+        case BASE_ITEM_THROWINGAXE:   return &quot;Axe&quot;;
+        case BASE_ITEM_TOWERSHIELD:   return &quot;Shield&quot;;
+        case BASE_ITEM_TWOBLADEDSWORD:return &quot;Sword&quot;;
+        case BASE_ITEM_WARHAMMER:     return &quot;Hammer&quot;;
+        case BASE_ITEM_WHIP:          return &quot;Whip&quot;;
+    }
+    return &quot;Item&quot;;
+}
+
+// Find the single item on the nearest pAnvilOfWonder, cache it on oPC as
+// MODIFY_ITEM, and prime EVERY display token the forge dialogs use: name (100),
+// base word (102), PC name (103), current worth (104), this forge&#x27;s cap (105)
+// and the remaining headroom (106) — plus the PC value/property caps MODIFY_MAX
+// / MODIFY_MAX_PROPS. Returns TRUE only when exactly one item sits on the anvil.
+//
+// This is the SINGLE source of truth for &quot;the item on the anvil&quot;. NWN custom
+// tokens are server-global, so a node that shows &lt;CUSTOM100&gt;/&lt;CUSTOM105&gt; renders
+// whatever item was last refreshed by ANY player; the dialog therefore calls
+// this both as the isitemonanvil reply-gate AND as the modify/strip reply script
+// (forge_anvil_ctx), so the tokens are always re-primed immediately before the
+// node that shows them — never the previously-worked item, never a stale cap.
+int ForgeRefreshAnvilContext(object oPC)
+{
+    object oAnvil = GetNearestObjectByTag(&quot;pAnvilOfWonder&quot;);
+    if (oAnvil == OBJECT_INVALID)
+    {
+        ForgeLog(&quot;anvil-ctx: PC=&quot; + GetName(oPC) + &quot; anvil NOT FOUND&quot;);
+        return FALSE;
+    }
+    object oItem = GetFirstItemInInventory(oAnvil);
+    if (oItem == OBJECT_INVALID)
+    {
+        ForgeLog(&quot;anvil-ctx: PC=&quot; + GetName(oPC) + &quot; no item on anvil&quot;);
+        return FALSE;
+    }
+    if (GetNextItemInInventory(oAnvil) != OBJECT_INVALID)
+    {
+        ForgeLog(&quot;anvil-ctx: PC=&quot; + GetName(oPC) + &quot; MULTIPLE items on anvil&quot;);
+        return FALSE;
+    }
+    SetIdentified(oItem, TRUE);
+    if (!GetLocalInt(oItem, &quot;FORGE_BASE_SET&quot;))
+    {
+        SetLocalInt(oItem, &quot;FORGE_BASE_VALUE&quot;, ForgeItemValue(oItem));
+        SetLocalInt(oItem, &quot;FORGE_BASE_SET&quot;, TRUE);
+    }
+    SetLocalObject(oPC, &quot;MODIFY_ITEM&quot;, oItem);
+
+    // Per-forge ceilings read from the anvil&#x27;s area. Uncapped forges were removed
+    // June 2026, so a missing/zero cap falls back to the global legal ceiling
+    // rather than the old &quot;no&quot; placeholder. A high Appraise raises the ceiling
+    // for this player (take-20, up to +500k at an Appraise check of 65).
+    int iMaxValue = GetLocalInt(GetArea(oAnvil), &quot;FORGE_MAX_VALUE&quot;);
+    if (iMaxValue &lt;= 0)
+        iMaxValue = FORGE_LEGAL_MAX_VALUE;
+    iMaxValue += ForgeAppraiseBonus(oPC);
+    SetLocalInt(oPC, &quot;MODIFY_MAX&quot;, iMaxValue);
+    int iMaxProps = GetLocalInt(GetArea(oAnvil), &quot;FORGE_MAX_PROPS&quot;);
+    if (iMaxProps &lt;= 0)
+        iMaxProps = FORGE_LEGAL_MAX_PROPS;
+    SetLocalInt(oPC, &quot;MODIFY_MAX_PROPS&quot;, iMaxProps);
+
+    SetCustomToken(100, GetName(oItem));
+    SetCustomToken(102, ForgeBaseWord(GetBaseItemType(oItem)));
+    SetCustomToken(103, GetName(oPC));
+    int iWorth = ForgeItemValue(oItem);
+    SetCustomToken(104, ForgeGold(iWorth));
+    SetCustomToken(105, ForgeGold(iMaxValue));
+    int iHeadroom = iMaxValue - iWorth;
+    if (iHeadroom &lt; 0) iHeadroom = 0;
+    SetCustomToken(106, ForgeGold(iHeadroom));
+    ForgeLog(&quot;anvil-ctx: PC=&quot; + GetName(oPC) + &quot; item=&#x27;&quot; + GetName(oItem)
+        + &quot;&#x27; worth=&quot; + IntToString(iWorth) + &quot; cap=&quot; + IntToString(iMaxValue));
+    return TRUE;
 }
 
 int ForgeCountProps(object oItem)
@@ -527,8 +692,8 @@ string ForgeLegalStatus(object oItem)
     if (!bProps &amp;&amp; !bValue)
         return &quot;It is within the law now: &quot; + IntToString(nProps)
             + &quot; enchantments of the &quot; + IntToString(FORGE_LEGAL_MAX_PROPS)
-            + &quot; allowed, and a worth of &quot; + IntToString(nValue)
-            + &quot; gold under the lawful &quot; + IntToString(nValueCeil) + &quot;.&quot;;
+            + &quot; allowed, and a worth of &quot; + ForgeGold(nValue)
+            + &quot; gold under the lawful &quot; + ForgeGold(nValueCeil) + &quot;.&quot;;
     string s = &quot;&quot;;
     if (bProps)
         s += &quot;It still bears &quot; + IntToString(nProps) + &quot; enchantments where the &quot;
@@ -537,8 +702,8 @@ string ForgeLegalStatus(object oItem)
     {
         if (s != &quot;&quot;) s += &quot; And i&quot;;
         else s += &quot;I&quot;;
-        s += &quot;ts worth, &quot; + IntToString(nValue) + &quot; gold, still exceeds the lawful &quot;
-            + IntToString(nValueCeil) + &quot;.&quot;;
+        s += &quot;ts worth, &quot; + ForgeGold(nValue) + &quot; gold, still exceeds the lawful &quot;
+            + ForgeGold(nValueCeil) + &quot;.&quot;;
     }
     return s;
 }
@@ -589,12 +754,49 @@ int ForgeEffectiveCeil(object oPC, object oItem)
     return nCeil;
 }
 
-// Projected per-unit value of oItem if every permanent-property index whose bit
-// is set in nMask were removed. Works on a throwaway copy in FORGE_VAULT: copy,
-// remove the staged props in DESCENDING index order (so the lower indices stay
-// valid as we go), then price it identified/non-plot/per-unit exactly like
-// ForgeItemValue. Returns -1 when valuation infrastructure is unavailable.
-int ForgeProjectedValue(object oItem, int nMask)
+// --- Staged plan bitmask (per-PC, indexed by absolute permanent-property index).
+// Spread across FORGE_STG_WORDS local ints so the menu can plan removals on more
+// than 8 (or 30) properties. Bit `idx` lives in word idx/FORGE_STG_BITS.
+int ForgeStageGetBit(object oPC, int idx)
+{
+    int w = idx / FORGE_STG_BITS;
+    int b = idx % FORGE_STG_BITS;
+    return (GetLocalInt(oPC, &quot;FORGE_STG_M&quot; + IntToString(w)) &amp; (1 &lt;&lt; b)) != 0;
+}
+
+void ForgeStageToggleBit(object oPC, int idx)
+{
+    int w = idx / FORGE_STG_BITS;
+    int b = idx % FORGE_STG_BITS;
+    string sVar = &quot;FORGE_STG_M&quot; + IntToString(w);
+    SetLocalInt(oPC, sVar, GetLocalInt(oPC, sVar) ^ (1 &lt;&lt; b));
+}
+
+void ForgeStageClear(object oPC)
+{
+    int w;
+    for (w = 0; w &lt; FORGE_STG_WORDS; w++)
+        DeleteLocalInt(oPC, &quot;FORGE_STG_M&quot; + IntToString(w));
+    DeleteLocalInt(oPC, &quot;FORGE_STG_MASK&quot;); // legacy single-int mask, if present
+}
+
+int ForgeStageAnyBit(object oPC)
+{
+    int w;
+    for (w = 0; w &lt; FORGE_STG_WORDS; w++)
+        if (GetLocalInt(oPC, &quot;FORGE_STG_M&quot; + IntToString(w)) != 0)
+            return TRUE;
+    return FALSE;
+}
+
+// Projected per-unit value of oItem with the planned removals (oPC&#x27;s plan
+// bitmask) applied, optionally flipping one index (nToggleIdx) to preview what
+// CLICKING that slot would do without mutating the live plan. Works on a
+// throwaway copy in FORGE_VAULT: copy, remove every selected property index in
+// DESCENDING order (so lower indices stay valid as we go), then price it
+// identified/non-plot/per-unit exactly like ForgeItemValue. Returns -1 when
+// valuation infrastructure is unavailable.
+int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
 {
     if (!GetIsObjectValid(oItem))
         return -1;
@@ -604,59 +806,82 @@ int ForgeProjectedValue(object oItem, int nMask)
     object oCopy = CopyItem(oItem, oHolder, TRUE);
     if (!GetIsObjectValid(oCopy))
         return -1;
+    int nCount = ForgeCountProps(oItem);
+    int nValBefore = GetGoldPieceValue(oCopy);   // DIAG
+    int nPlanned = 0;                            // DIAG
     int n;
-    for (n = FORGE_DIS_SLOTS - 1; n &gt;= 0; n--)
+    for (n = nCount - 1; n &gt;= 0; n--)
     {
-        if (nMask &amp; (1 &lt;&lt; n))
+        int bPlanned = ForgeStageGetBit(oPC, n);
+        if (n == nToggleIdx)
+            bPlanned = !bPlanned;
+        if (bPlanned)
         {
+            nPlanned++;                          // DIAG
             itemproperty ip = ForgeGetPermPropByIndex(oCopy, n);
             if (GetIsItemPropertyValid(ip))
                 RemoveItemProperty(oCopy, ip);
         }
     }
-    SetItemStackSize(oCopy, 1);
-    SetIdentified(oCopy, TRUE);
-    SetPlotFlag(oCopy, FALSE);
-    int nValue = GetGoldPieceValue(oCopy);
+    // NWN recomputes an item&#x27;s gold value when a property is ADDED but not after a
+    // RemoveItemProperty on the same object, so GetGoldPieceValue(oCopy) here would
+    // still read the pre-removal worth (the projection never dropped). Price a FRESH
+    // copy of the reduced item via ForgeItemValue, which re-copies before valuing —
+    // the same recompute the working add-path (modifyitem -&gt; ForgeItemValue) relies
+    // on. Per-unit to match ForgeEffectiveCeil / ForgeItemLegality.
+    int nValSame = GetGoldPieceValue(oCopy);     // DIAG: same-object value post-remove
+    int nPropsAfter = ForgeCountProps(oCopy);    // DIAG: did the props actually leave?
+    int nValue = ForgeItemValue(oCopy, TRUE);
+    // DIAG (temporary): on the header valuation only, message the tester the deltas
+    // so we can see whether removal applied and whether value tracks it. Remove once
+    // the projection is confirmed working.
+    if (nToggleIdx == -1 &amp;&amp; nPlanned &gt; 0)
+        SendMessageToPC(oPC, &quot;[forge dbg] &#x27;&quot; + GetName(oItem) + &quot;&#x27; props &quot;
+            + IntToString(nCount) + &quot;-&gt;&quot; + IntToString(nPropsAfter)
+            + &quot; (planned &quot; + IntToString(nPlanned) + &quot;) | val copy &quot;
+            + IntToString(nValBefore) + &quot;-&gt;&quot; + IntToString(nValSame)
+            + &quot; | fresh &quot; + IntToString(nValue));
     DestroyObject(oCopy);
     return nValue;
 }
 
 // Permanent-property count remaining after the planned removals.
-int ForgeProjectedPropCount(object oItem, int nMask)
+int ForgeProjectedPropCount(object oPC, object oItem)
 {
     int nCount = ForgeCountProps(oItem);
     int nRemoved = 0;
     int n;
-    for (n = 0; n &lt; FORGE_DIS_SLOTS &amp;&amp; n &lt; nCount; n++)
-        if (nMask &amp; (1 &lt;&lt; n))
+    for (n = 0; n &lt; nCount; n++)
+        if (ForgeStageGetBit(oPC, n))
             nRemoved++;
     return nCount - nRemoved;
 }
 
 // Player-facing running status of the planned result (header token 6119): the
 // projected worth and whether it is within the law or how much it is still over.
-string ForgeProjectedStatus(object oPC, object oItem, int nMask)
+// Returns a non-empty fallback for an invalid/unvaluable item so the dialog&#x27;s
+// &lt;CUSTOM6119&gt; never renders as &quot;&lt;UNRECOGNIZED TOKEN&gt;&quot;.
+string ForgeProjectedStatus(object oPC, object oItem)
 {
     if (!GetIsObjectValid(oItem))
-        return &quot;&quot;;
-    int nVal = ForgeProjectedValue(oItem, nMask);
+        return &quot;Place an item on the anvil for me to weigh.&quot;;
+    int nVal = ForgeProjectedValue(oPC, oItem);
     if (nVal &lt; 0)
-        return &quot;&quot;;
+        return &quot;I cannot weigh that piece just now.&quot;;
     int nCeil = ForgeEffectiveCeil(oPC, oItem);
-    int nProps = ForgeProjectedPropCount(oItem, nMask);
+    int nProps = ForgeProjectedPropCount(oPC, oItem);
     string s;
-    if (nMask == 0)
+    if (!ForgeStageAnyBit(oPC))
         s = &quot;As it stands the &quot; + GetName(oItem) + &quot; is worth &quot;
-            + IntToString(nVal) + &quot; gold&quot;;
+            + ForgeGold(nVal) + &quot; gold&quot;;
     else
         s = &quot;With your plan struck, the &quot; + GetName(oItem) + &quot; would be worth &quot;
-            + IntToString(nVal) + &quot; gold&quot;;
+            + ForgeGold(nVal) + &quot; gold&quot;;
     if (nVal &lt;= nCeil &amp;&amp; nProps &lt;= FORGE_LEGAL_MAX_PROPS)
-        return s + &quot; — within the lawful &quot; + IntToString(nCeil) + &quot;.&quot;;
+        return s + &quot; — within the lawful &quot; + ForgeGold(nCeil) + &quot;.&quot;;
     if (nVal &gt; nCeil)
-        s += &quot;, still &quot; + IntToString(nVal - nCeil) + &quot; over the lawful &quot;
-            + IntToString(nCeil);
+        s += &quot;, still &quot; + ForgeGold(nVal - nCeil) + &quot; over the lawful &quot;
+            + ForgeGold(nCeil);
     if (nProps &gt; FORGE_LEGAL_MAX_PROPS)
         s += &quot;, and bears &quot; + IntToString(nProps) + &quot; enchantments where the law &quot;
             + &quot;allows but &quot; + IntToString(FORGE_LEGAL_MAX_PROPS);
@@ -666,21 +891,23 @@ string ForgeProjectedStatus(object oPC, object oItem, int nMask)
 // TRUE when the plan is non-empty AND the projected result is lawful (worth
 // within ForgeEffectiveCeil and at most FORGE_LEGAL_MAX_PROPS properties).
 // Drives the commit reply&#x27;s Active gate (forge_stg_ok).
-int ForgeStagePlanIsLawful(object oPC, object oItem, int nMask)
+int ForgeStagePlanIsLawful(object oPC, object oItem)
 {
-    if (nMask == 0 || !GetIsObjectValid(oItem))
+    if (!GetIsObjectValid(oItem) || !ForgeStageAnyBit(oPC))
         return FALSE;
-    int nVal = ForgeProjectedValue(oItem, nMask);
+    int nVal = ForgeProjectedValue(oPC, oItem);
     if (nVal &lt; 0)
         return FALSE;
     if (nVal &gt; ForgeEffectiveCeil(oPC, oItem))
         return FALSE;
-    return ForgeProjectedPropCount(oItem, nMask) &lt;= FORGE_LEGAL_MAX_PROPS;
+    return ForgeProjectedPropCount(oPC, oItem) &lt;= FORGE_LEGAL_MAX_PROPS;
 }
 
-// Prime the staged anvil disenchant menu: target item, property count, name
-// token 100, per-slot label+cue tokens 6110-6117 (each marked planned/kept with
-// the worth that CLICKING it would produce), and the running status token 6119.
+// Prime the staged anvil disenchant menu for the CURRENT page (FORGE_STG_PAGE):
+// target item, property count, the eight per-slot label+cue tokens 6110-6117
+// (slot n shows absolute property index page*8 + n, marked planned/kept with the
+// worth that CLICKING it would produce), and the running status token 6119 (with
+// a page indicator when the item has more than one page of enchantments).
 void ForgeStageSetupCued(object oPC, object oItem)
 {
     SetLocalObject(oPC, &quot;FORGE_STG_ITEM&quot;, oItem);
@@ -691,35 +918,70 @@ void ForgeStageSetupCued(object oPC, object oItem)
         SetCustomToken(100, GetName(oItem));
     }
     SetLocalInt(oPC, &quot;FORGE_DIS_COUNT&quot;, nCount);
-    int nMask = GetLocalInt(oPC, &quot;FORGE_STG_MASK&quot;);
+
+    int nPages = (nCount + FORGE_DIS_SLOTS - 1) / FORGE_DIS_SLOTS;
+    if (nPages &lt; 1) nPages = 1;
+    int nPage = GetLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;);
+    // Clamp the page if the list shrank (e.g. after a commit removed properties).
+    if (nPage &gt;= nPages)
+    {
+        nPage = nPages - 1;
+        SetLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;, nPage);
+    }
+
     int nCeil = GetIsObjectValid(oItem) ? ForgeEffectiveCeil(oPC, oItem) : 0;
     int n;
     for (n = 0; n &lt; FORGE_DIS_SLOTS; n++)
     {
+        int a = nPage * FORGE_DIS_SLOTS + n;   // absolute property index
         string sLabel = &quot;&quot;;
-        if (n &lt; nCount)
+        if (a &lt; nCount)
         {
-            int bStaged = (nMask &amp; (1 &lt;&lt; n)) != 0;
-            string sName = ForgePropName(ForgeGetPermPropByIndex(oItem, n));
+            int bStaged = ForgeStageGetBit(oPC, a);
+            string sName = ForgePropName(ForgeGetPermPropByIndex(oItem, a));
             // Worth the item would have if the player CLICKS this slot (toggles
             // its plan bit): striking an unplanned prop, or keeping a planned one.
-            int nVal = ForgeProjectedValue(oItem, nMask ^ (1 &lt;&lt; n));
+            int nVal = ForgeProjectedValue(oPC, oItem, a);
             string sCue = &quot;&quot;;
             if (nVal &gt;= 0)
             {
                 string sVerb = bStaged ? &quot;keep&quot; : &quot;strike&quot;;
                 if (nVal &lt;= nCeil)
-                    sCue = &quot;  (&quot; + sVerb + &quot; -&gt; &quot; + IntToString(nVal)
+                    sCue = &quot;  (&quot; + sVerb + &quot; -&gt; &quot; + ForgeGold(nVal)
                         + &quot; gp: lawful)&quot;;
                 else
-                    sCue = &quot;  (&quot; + sVerb + &quot; -&gt; &quot; + IntToString(nVal) + &quot; gp: &quot;
-                        + IntToString(nVal - nCeil) + &quot; over)&quot;;
+                    sCue = &quot;  (&quot; + sVerb + &quot; -&gt; &quot; + ForgeGold(nVal) + &quot; gp: &quot;
+                        + ForgeGold(nVal - nCeil) + &quot; over)&quot;;
             }
-            sLabel = (bStaged ? &quot;[planned] &quot; : &quot;&quot;) + sName + sCue;
+            sLabel = (bStaged ? ColorString(&quot;[planned]&quot;, COLOR_RED) + &quot; &quot; : &quot;&quot;)
+                + sName + sCue;
         }
         SetCustomToken(6110 + n, sLabel);
     }
-    SetCustomToken(6119, ForgeProjectedStatus(oPC, oItem, nMask));
+
+    string sStatus = ForgeProjectedStatus(oPC, oItem);
+    if (nPages &gt; 1)
+        sStatus += &quot; [Page &quot; + IntToString(nPage + 1) + &quot; of &quot;
+            + IntToString(nPages) + &quot;]&quot;;
+    SetCustomToken(6119, sStatus);
+}
+
+// Open/refresh the staged disenchant menu for the item on the anvil: start a
+// fresh plan + first page whenever the menu opens on a DIFFERENT item, then prime
+// every slot/status token. Call this from the reply scripts that lead INTO the D1
+// menu entry (the strip-hook + &quot;reconsider&quot; replies via forge_stg_open, the slot
+// toggles, the page-nav replies) so the tokens are set BEFORE D1&#x27;s text renders.
+// An NWN entry&#x27;s own &quot;Actions Taken&quot; runs AFTER its text, which left token 6119
+// unset (&quot;&lt;UNRECOGNIZED TOKEN&gt;&quot;) on first open and the slot labels one click stale.
+void ForgeStageOpen(object oPC)
+{
+    object oItem = GetLocalObject(oPC, &quot;MODIFY_ITEM&quot;);
+    if (oItem != GetLocalObject(oPC, &quot;FORGE_STG_ITEM&quot;))
+    {
+        ForgeStageClear(oPC);
+        DeleteLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;);
+    }
+    ForgeStageSetupCued(oPC, oItem);
 }
 
 // Stamp the lawful ceiling and clean mark on a freshly-worked item so legality
@@ -746,11 +1008,11 @@ void ForgeStageCommit(object oPC, object oItem)
 {
     if (!GetIsObjectValid(oItem))
         return;
-    int nMask = GetLocalInt(oPC, &quot;FORGE_STG_MASK&quot;);
+    int nCount = ForgeCountProps(oItem);
     int n;
-    for (n = FORGE_DIS_SLOTS - 1; n &gt;= 0; n--)
+    for (n = nCount - 1; n &gt;= 0; n--)
     {
-        if (nMask &amp; (1 &lt;&lt; n))
+        if (ForgeStageGetBit(oPC, n))
         {
             itemproperty ip = ForgeGetPermPropByIndex(oItem, n);
             if (GetIsItemPropertyValid(ip))
@@ -765,7 +1027,8 @@ void ForgeStageCommit(object oPC, object oItem)
     // ceiling + clean mark on the now-lawful result.
     DeleteLocalInt(oItem, &quot;FORGE_CLEAN&quot;);
     ForgeStampLawful(oPC, oItem);
-    DeleteLocalInt(oPC, &quot;FORGE_STG_MASK&quot;);
+    ForgeStageClear(oPC);
+    DeleteLocalInt(oPC, &quot;FORGE_STG_PAGE&quot;);
 }
 
 // Sequester a contested item for DM review: stored in the craftdb quarantine
