@@ -58,6 +58,14 @@ PREV_TEXT = "Show the previous enchantments."
 DONE_TEXT = ("It is done. Your <CUSTOM100> bears the law's blessing once more — no "
              "enchantment upon it now offends the law.")
 THANKS_TEXT = "My thanks."
+LEAVE_TEXT = "Leave it as it is."
+# Shown when "modify" is chosen on an item already at/over the forge's value cap:
+# offers ONLY the strip hook (no yes/no add-enchant flow that could only fail at
+# commit). worth=104, cap=105 are primed by the forge_can_mod / isitemonanvil gate.
+OVERLIMIT_TEXT = ("The <CUSTOM100> is already worth <CUSTOM104> gold — at or beyond "
+                  "the <CUSTOM105> gold the law lets me bind into one piece. I'll not "
+                  "add to it. I can only strike enchantments from it to bring it "
+                  "within the law.")
 
 # Cleanup script wired to both end-conversation hooks (mirrors forge_ward_clr):
 # clears the cached anvil item + staged plan so a fresh conversation re-derives
@@ -66,6 +74,15 @@ END_SCRIPT = "forge_anvil_clr"
 # Refresh script set on the "modify / strip" reply so every entry into the forge
 # re-primes the item/cap display tokens (the modify path used to set none).
 CTX_SCRIPT = "forge_anvil_ctx"
+# Script on the replies that OPEN the staged strip menu (the strip hook and the
+# confirm screen's "reconsider"): primes the slot/status tokens BEFORE the D1 menu
+# entry's text renders (an entry's own Actions Taken runs too late — token 6119
+# showed as "<UNRECOGNIZED TOKEN>" on first open).
+OPEN_SCRIPT = "forge_stg_open"
+# Gate on the modify-confirm entry link: open the add-enchant flow only when the
+# item still has value headroom to enchant upward; over-cap single items route to
+# the OVERLIMIT entry instead of the yes/no add-enchant path.
+MOD_GATE = "forge_can_mod"
 
 
 def resref(v):
@@ -130,8 +147,8 @@ def migrate(data) -> bool:
     r_base = min(l["Index"]["value"]
                  for l in entries[d1]["RepliesList"]["value"])
 
-    del entries[d1:]      # drop injected entries (D1, D2)
-    del replies[r_base:]  # drop injected replies (slots, commit, cancel, yes/no, hook)
+    del entries[d1:]      # drop injected entries (D1, D2, D3, D4)
+    del replies[r_base:]  # drop injected replies (slots, commit, cancel, yes/no, hook, leave)
 
     # Drop any link into the removed reply block (the hook links on anchors).
     for e in entries:
@@ -139,6 +156,29 @@ def migrate(data) -> bool:
             l for l in e["RepliesList"]["value"]
             if l["Index"]["value"] < r_base
         ]
+
+    # Reverse the modify-path re-gate (see inject): a surviving reply (the modify
+    # reply ReplyList[1]) may carry a link into the now-removed OVERLIMIT entry and
+    # a confirm link re-gated to MOD_GATE. Drop the dangling link and restore the
+    # original isitemonanvil gate so re-injection starts from the pristine routing.
+    for r in replies:
+        el = r.get("EntriesList", {}).get("value")
+        if not el:
+            continue
+        changed = False
+        kept = []
+        for l in el:
+            if l["Index"]["value"] >= d1:
+                changed = True          # link into the removed injected entry block
+                continue
+            if l.get("Active", {}).get("value", "") == MOD_GATE:
+                l["Active"] = resref("isitemonanvil")
+                changed = True
+            kept.append(l)
+        if changed:
+            for i, l in enumerate(kept):
+                l["__struct_id"] = i
+            r["EntriesList"]["value"] = kept
     return True
 
 
@@ -182,6 +222,7 @@ def inject(path: Path):
     d1 = len(entries)        # disenchant menu entry
     d2 = d1 + 1              # confirm entry
     d3 = d1 + 2              # success entry (returns to the forge hub)
+    d4 = d1 + 3              # "at the limit — strike only" entry (over-cap modify)
     r_slot0 = len(replies)   # 8 slot replies: r_slot0 .. r_slot0+7
     r_more = r_slot0 + 8     # "Show more enchantments"  (next page)
     r_prev = r_slot0 + 9     # "Show previous enchantments"
@@ -191,6 +232,7 @@ def inject(path: Path):
     r_no = r_slot0 + 13
     r_thanks = r_slot0 + 14  # D3 "My thanks." -> hub
     r_hook = r_slot0 + 15
+    r_leave = r_slot0 + 16   # D4 "Leave it as it is." -> hub
 
     # Entry D1: 8 paginated slot toggles + page nav + commit + cancel.
     e1 = node(d1, D1_TEXT, script="forge_stg_anvil", entry=True)
@@ -210,6 +252,14 @@ def inject(path: Path):
     # Entry D3: success line shown after a committed strike.
     e3 = node(d3, DONE_TEXT, entry=True)
     e3["RepliesList"]["value"].append(link(0, r_thanks))
+
+    # Entry D4: shown when "modify" is chosen on an item already at/over the forge's
+    # value cap. Offers ONLY the strip hook (gated by isitemonanvil) plus "leave it"
+    # — never the yes/no add-enchant flow, which could only fail at commit.
+    e4 = node(d4, OVERLIMIT_TEXT, entry=True)
+    e4["RepliesList"]["value"].append(
+        link(0, r_hook, active="isitemonanvil", child=True))
+    e4["RepliesList"]["value"].append(link(1, r_leave, child=True))
 
     new_replies = []
     # Slot toggles: each re-shows D1 (child link) so the cues refresh.
@@ -241,8 +291,8 @@ def inject(path: Path):
     r["EntriesList"]["value"].append(link(0, d3))
     new_replies.append(r)
 
-    # D2 "No": back to D1, no change.
-    r = node(r_no, NO_TEXT)
+    # D2 "No": back to D1, no change. Re-primes the menu tokens before D1 re-renders.
+    r = node(r_no, NO_TEXT, script=OPEN_SCRIPT)
     r["EntriesList"]["value"].append(link(0, d1, child=True))
     new_replies.append(r)
 
@@ -251,12 +301,18 @@ def inject(path: Path):
     r["EntriesList"]["value"].append(link(0, hub, child=True))
     new_replies.append(r)
 
-    # Hook reply: owns D1 (the one non-child link to it).
-    r = node(r_hook, HOOK_TEXT)
+    # Hook reply: owns D1 (the one non-child link to it). Its Script primes the
+    # menu tokens before D1's text renders (fixes the "<UNRECOGNIZED TOKEN>" open).
+    r = node(r_hook, HOOK_TEXT, script=OPEN_SCRIPT)
     r["EntriesList"]["value"].append(link(0, d1))
     new_replies.append(r)
 
-    entries.extend([e1, e2, e3])
+    # D4 "Leave it as it is": return to the forge hub, item untouched.
+    r = node(r_leave, LEAVE_TEXT)
+    r["EntriesList"]["value"].append(link(0, hub, child=True))
+    new_replies.append(r)
+
+    entries.extend([e1, e2, e3, e4])
     replies.extend(new_replies)
 
     # Hook the new reply into every anchor menu entry. The entry that owns
@@ -266,10 +322,26 @@ def inject(path: Path):
         rl.append(link(len(rl), r_hook, active="isitemonanvil",
                        child=(ischild == 1)))
 
+    # Re-gate the modify-confirm entry: open the add-enchant flow only when the
+    # item still has value headroom (MOD_GATE); route over-cap single items to the
+    # OVERLIMIT entry D4 (still gated by isitemonanvil, evaluated immediately after,
+    # so a no/multiple-item case falls through to the dialog's own fallback).
+    r1_links = replies[1]["EntriesList"]["value"]
+    for i, l in enumerate(r1_links):
+        if l.get("Active", {}).get("value", "") == "isitemonanvil":
+            l["Active"] = resref(MOD_GATE)
+            r1_links.insert(i + 1, link(0, d4, active="isitemonanvil"))
+            break
+    else:
+        raise SystemExit(f"{path.name}: modify reply (ReplyList[1]) has no "
+                         f"isitemonanvil-gated confirm link to re-gate")
+    for i, l in enumerate(r1_links):
+        l["__struct_id"] = i
+
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     verb = "re-injected (migrated)" if migrated else "injected"
     print(f"{path.name}: {verb} (D1=entry {d1}, D2=entry {d2}, D3=entry {d3}, "
-          f"replies {r_slot0}..{r_hook}, hub=entry {hub}, "
+          f"D4=entry {d4}, replies {r_slot0}..{r_leave}, hub=entry {hub}, "
           f"anchors {[a for a, _ in anchors]})")
 
 

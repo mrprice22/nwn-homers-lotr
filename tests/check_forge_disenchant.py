@@ -29,7 +29,7 @@ WARDEN = "forge_warden"
 REQUIRED_SCRIPTS = (
     ["forge_stg_anvil", "forge_stg_ok", "forge_stg_go", "forge_stg_cancel",
      "forge_stg_pgn", "forge_stg_pgp", "forge_stg_hasn", "forge_stg_hasp",
-     "forge_anvil_ctx", "forge_anvil_clr"]
+     "forge_anvil_ctx", "forge_anvil_clr", "forge_stg_open", "forge_can_mod"]
     + [f"forge_stg_t{n}" for n in range(8)]
     + [f"forge_stg_c{n}" for n in range(8)]      # paginated staged count gates
     + [f"forge_dis_c{n}" for n in range(8)]      # shared by the Warden's immediate menu
@@ -55,6 +55,10 @@ def active(lnk):
 
 def idx(lnk):
     return lnk.get("Index", {}).get("value")
+
+
+def ischild(lnk):
+    return lnk.get("IsChild", {}).get("value", 0)
 
 
 def links(nd, key):
@@ -86,6 +90,40 @@ def check_anvil(name, errs):
     # The "modify / strip" reply (ReplyList[1]) refreshes item/cap tokens.
     if len(R) > 1 and script(R[1]) != "forge_anvil_ctx":
         errs.append(f"{name}: ReplyList[1] Script={script(R[1])!r}, want forge_anvil_ctx")
+
+    # The strip-hook reply owns D1 (the single non-child link into it) and must run
+    # forge_stg_open so the menu tokens are primed BEFORE D1's text renders — an
+    # entry's own Actions Taken run too late, which left token 6119 unset on first
+    # open ("<UNRECOGNIZED TOKEN>") and the slot labels one click stale.
+    hook_idx = None
+    for ri, r in enumerate(R):
+        for l in links(r, "EntriesList"):
+            if idx(l) == d1i and not ischild(l):
+                hook_idx = ri
+    if hook_idx is None:
+        errs.append(f"{name}: no owning (non-child) reply links the D1 strip menu")
+    elif script(R[hook_idx]) != "forge_stg_open":
+        errs.append(f"{name}: strip-hook reply Script={script(R[hook_idx])!r}, "
+                    f"want forge_stg_open")
+
+    # Over-cap modify gate: the modify reply (ReplyList[1]) opens the add-enchant
+    # confirm only via forge_can_mod, and routes over-cap single items (still gated
+    # by isitemonanvil) to an OVERLIMIT entry whose only enabled reply is the strip
+    # hook — so an item already at/over the cap can never enter the enchant flow.
+    if len(R) > 1:
+        r1_links = links(R[1], "EntriesList")
+        if "forge_can_mod" not in [active(l) for l in r1_links]:
+            errs.append(f"{name}: modify reply (ReplyList[1]) not re-gated on "
+                        f"forge_can_mod (over-cap items still reach the enchant flow)")
+        over = [l for l in r1_links if active(l) == "isitemonanvil"]
+        if not over:
+            errs.append(f"{name}: modify reply has no isitemonanvil route to the "
+                        f"over-limit entry")
+        elif hook_idx is not None:
+            d4 = E[idx(over[0])]
+            if hook_idx not in [idx(x) for x in links(d4, "RepliesList")]:
+                errs.append(f"{name}: over-limit entry E[{idx(over[0])}] does not "
+                            f"offer the strip hook reply")
 
     d1_links = links(e1, "RepliesList")
     actives = [active(l) for l in d1_links]

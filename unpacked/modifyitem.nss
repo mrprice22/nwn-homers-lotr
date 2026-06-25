@@ -59,7 +59,7 @@ void main()
     if (iMax > 0 && iProjected > iMax)
         {
         SpeakString("I'm sorry — my forge cannot work this piece any further. I "
-            + "dare not raise its worth past " + IntToString(iMax) + " gold. Take "
+            + "dare not raise its worth past " + ForgeGold(iMax) + " gold. Take "
             + "it to a greater forge if you would push it beyond that.");
         return;
         }

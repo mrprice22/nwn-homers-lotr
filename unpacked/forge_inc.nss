@@ -139,6 +139,27 @@ int ForgeItemValue(object oItem, int bPerUnit = FALSE)
     return nValue;
 }
 
+// Format a non-negative gold amount with thousands separators for player-facing
+// text: 1234567 -> "1,234,567". Negative inputs (sentinel/"unavailable" values)
+// pass through unformatted. Used everywhere a gold value is shown in the forge
+// dialogs; property counts and page numbers stay plain IntToString.
+string ForgeGold(int n)
+{
+    if (n < 0)
+        return IntToString(n);
+    string sIn = IntToString(n);
+    int nLen = GetStringLength(sIn);
+    string sOut = "";
+    int i;
+    for (i = 0; i < nLen; i++)
+    {
+        if (i > 0 && (nLen - i) % 3 == 0)
+            sOut += ",";
+        sOut += GetSubString(sIn, i, 1);
+    }
+    return sOut;
+}
+
 // Display word for token 102 ("Sword", "Armor", "Ring", ...) from the base item
 // type. Used by the anvil context refresh below.
 string ForgeBaseWord(int iBase)
@@ -260,11 +281,11 @@ int ForgeRefreshAnvilContext(object oPC)
     SetCustomToken(102, ForgeBaseWord(GetBaseItemType(oItem)));
     SetCustomToken(103, GetName(oPC));
     int iWorth = ForgeItemValue(oItem);
-    SetCustomToken(104, IntToString(iWorth));
-    SetCustomToken(105, IntToString(iMaxValue));
+    SetCustomToken(104, ForgeGold(iWorth));
+    SetCustomToken(105, ForgeGold(iMaxValue));
     int iHeadroom = iMaxValue - iWorth;
     if (iHeadroom < 0) iHeadroom = 0;
-    SetCustomToken(106, IntToString(iHeadroom));
+    SetCustomToken(106, ForgeGold(iHeadroom));
     ForgeLog("anvil-ctx: PC=" + GetName(oPC) + " item='" + GetName(oItem)
         + "' worth=" + IntToString(iWorth) + " cap=" + IntToString(iMaxValue));
     return TRUE;
@@ -616,8 +637,8 @@ string ForgeLegalStatus(object oItem)
     if (!bProps && !bValue)
         return "It is within the law now: " + IntToString(nProps)
             + " enchantments of the " + IntToString(FORGE_LEGAL_MAX_PROPS)
-            + " allowed, and a worth of " + IntToString(nValue)
-            + " gold under the lawful " + IntToString(nValueCeil) + ".";
+            + " allowed, and a worth of " + ForgeGold(nValue)
+            + " gold under the lawful " + ForgeGold(nValueCeil) + ".";
     string s = "";
     if (bProps)
         s += "It still bears " + IntToString(nProps) + " enchantments where the "
@@ -626,8 +647,8 @@ string ForgeLegalStatus(object oItem)
     {
         if (s != "") s += " And i";
         else s += "I";
-        s += "ts worth, " + IntToString(nValue) + " gold, still exceeds the lawful "
-            + IntToString(nValueCeil) + ".";
+        s += "ts worth, " + ForgeGold(nValue) + " gold, still exceeds the lawful "
+            + ForgeGold(nValueCeil) + ".";
     }
     return s;
 }
@@ -780,15 +801,15 @@ string ForgeProjectedStatus(object oPC, object oItem)
     string s;
     if (!ForgeStageAnyBit(oPC))
         s = "As it stands the " + GetName(oItem) + " is worth "
-            + IntToString(nVal) + " gold";
+            + ForgeGold(nVal) + " gold";
     else
         s = "With your plan struck, the " + GetName(oItem) + " would be worth "
-            + IntToString(nVal) + " gold";
+            + ForgeGold(nVal) + " gold";
     if (nVal <= nCeil && nProps <= FORGE_LEGAL_MAX_PROPS)
-        return s + " — within the lawful " + IntToString(nCeil) + ".";
+        return s + " — within the lawful " + ForgeGold(nCeil) + ".";
     if (nVal > nCeil)
-        s += ", still " + IntToString(nVal - nCeil) + " over the lawful "
-            + IntToString(nCeil);
+        s += ", still " + ForgeGold(nVal - nCeil) + " over the lawful "
+            + ForgeGold(nCeil);
     if (nProps > FORGE_LEGAL_MAX_PROPS)
         s += ", and bears " + IntToString(nProps) + " enchantments where the law "
             + "allows but " + IntToString(FORGE_LEGAL_MAX_PROPS);
@@ -854,11 +875,11 @@ void ForgeStageSetupCued(object oPC, object oItem)
             {
                 string sVerb = bStaged ? "keep" : "strike";
                 if (nVal <= nCeil)
-                    sCue = "  (" + sVerb + " -> " + IntToString(nVal)
+                    sCue = "  (" + sVerb + " -> " + ForgeGold(nVal)
                         + " gp: lawful)";
                 else
-                    sCue = "  (" + sVerb + " -> " + IntToString(nVal) + " gp: "
-                        + IntToString(nVal - nCeil) + " over)";
+                    sCue = "  (" + sVerb + " -> " + ForgeGold(nVal) + " gp: "
+                        + ForgeGold(nVal - nCeil) + " over)";
             }
             sLabel = (bStaged ? "[planned] " : "") + sName + sCue;
         }
@@ -870,6 +891,24 @@ void ForgeStageSetupCued(object oPC, object oItem)
         sStatus += " [Page " + IntToString(nPage + 1) + " of "
             + IntToString(nPages) + "]";
     SetCustomToken(6119, sStatus);
+}
+
+// Open/refresh the staged disenchant menu for the item on the anvil: start a
+// fresh plan + first page whenever the menu opens on a DIFFERENT item, then prime
+// every slot/status token. Call this from the reply scripts that lead INTO the D1
+// menu entry (the strip-hook + "reconsider" replies via forge_stg_open, the slot
+// toggles, the page-nav replies) so the tokens are set BEFORE D1's text renders.
+// An NWN entry's own "Actions Taken" runs AFTER its text, which left token 6119
+// unset ("<UNRECOGNIZED TOKEN>") on first open and the slot labels one click stale.
+void ForgeStageOpen(object oPC)
+{
+    object oItem = GetLocalObject(oPC, "MODIFY_ITEM");
+    if (oItem != GetLocalObject(oPC, "FORGE_STG_ITEM"))
+    {
+        ForgeStageClear(oPC);
+        DeleteLocalInt(oPC, "FORGE_STG_PAGE");
+    }
+    ForgeStageSetupCued(oPC, oItem);
 }
 
 // Stamp the lawful ceiling and clean mark on a freshly-worked item so legality
