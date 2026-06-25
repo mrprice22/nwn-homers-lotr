@@ -95,6 +95,18 @@
     .rm-roadmap-table td:nth-child(2), .rm-roadmap-table td:nth-child(3),
     .rm-roadmap-table th:nth-child(2), .rm-roadmap-table th:nth-child(3) { white-space: nowrap; }
     .rm-roadmap-table a { color: var(--link); }
+
+    /* About-section summary pivot: idea type x lifecycle stage. */
+    .rm-pivot-caption { margin: 1em 0 0.3em; font-weight: 600; }
+    .rm-pivot { border-collapse: collapse; margin: 0 0 1.2em; }
+    .rm-pivot th, .rm-pivot td { border: 1px solid var(--border); padding: 0.35em 0.8em; }
+    .rm-pivot thead th { color: var(--muted); font-size: 0.82em; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em; background: var(--card); }
+    .rm-pivot td { text-align: right; }
+    .rm-pivot tbody th[scope="row"] { text-align: left; font-weight: 600; }
+    .rm-pivot .rm-pivot-tot { font-weight: 700; }
+    .rm-pivot .rm-pivot-total th, .rm-pivot .rm-pivot-total td { font-weight: 700;
+      border-top: 2px solid var(--accent-soft); }
     h2, h3 { scroll-margin-top: 1.5em; }
   </style>
   <div class="mw-layout">
@@ -137,10 +149,13 @@
 <h1>Roadmap &amp; Player Ideas &mdash; Homer's LOTR</h1>
 
 <div class="asof-banner">
-  <span class="asof-tag">As of June 24th, 2026 at 21:14 CDT</span>
+  <span class="asof-tag">As of June 24th, 2026 at 21:39 CDT</span>
 </div>
 
 <p id="about">This is the living development roadmap for Homer's LOTR. Almost everything here started as a player suggestion or bug report — <strong><em>when an idea ships</em></strong>, the player who submitted it earns <strong>Merit</strong> points to spend on the rewards documented <a href="../manual/Customizations.html#merit">here</a>. Have an idea or found a bug? Tell a DM in game or on <a href="https://discord.gg/VpAtSpe" target="_blank" rel="noopener">Discord</a>; if it makes the cut, you get the credit.</p>
+
+<p class="rm-pivot-caption">Idea counts by type and stage:</p>
+<table class="rm-pivot"><thead><tr><th></th><th>Backlog</th><th>Shipped</th><th>Not Likely</th><th class="rm-pivot-tot">Total</th></tr></thead><tbody><tr><th scope="row">Defect</th><td>19</td><td>30</td><td>1</td><td class="rm-pivot-tot">50</td></tr><tr><th scope="row">Enhancement</th><td>36</td><td>21</td><td>3</td><td class="rm-pivot-tot">60</td></tr><tr><th scope="row">Exploit</th><td>0</td><td>5</td><td>0</td><td class="rm-pivot-tot">5</td></tr><tr class="rm-pivot-total"><th scope="row">Total</th><td class="rm-pivot-tot">55</td><td class="rm-pivot-tot">56</td><td class="rm-pivot-tot">4</td><td class="rm-pivot-tot">115</td></tr></tbody></table>
 
 <hr>
 

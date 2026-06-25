@@ -314,6 +314,50 @@ def render_roadmap_tables(groups, ideas) -> str:
     return "\n".join(out)
 
 
+def render_summary_pivot(ideas) -> str:
+    """At-a-glance counts: idea type (rows) x lifecycle stage (columns), with totals."""
+    cols = ["Backlog", "Shipped", "Not Likely"]
+
+    def col_of(status: str) -> str:
+        if STATUS[status]["board"] == "shipped":
+            return "Shipped"
+        return "Not Likely" if status == "unlikely" else "Backlog"
+
+    counts: dict[tuple[str, str], int] = {}
+    for i in ideas:
+        t = i.get("type")
+        if t not in TYPES:
+            continue
+        key = (t, col_of(i["status"]))
+        counts[key] = counts.get(key, 0) + 1
+
+    head = "".join(f"<th>{c}</th>" for c in cols)
+    rows = []
+    col_tot = {c: 0 for c in cols}
+    for t in TYPES:
+        cells, rtot = [], 0
+        for c in cols:
+            n = counts.get((t, c), 0)
+            rtot += n
+            col_tot[c] += n
+            cells.append(f"<td>{n}</td>")
+        rows.append(
+            f'<tr><th scope="row">{TYPES[t]["label"]}</th>'
+            f'{"".join(cells)}<td class="rm-pivot-tot">{rtot}</td></tr>'
+        )
+    grand = sum(col_tot.values())
+    foot_cells = "".join(f'<td class="rm-pivot-tot">{col_tot[c]}</td>' for c in cols)
+    rows.append(
+        f'<tr class="rm-pivot-total"><th scope="row">Total</th>'
+        f'{foot_cells}<td class="rm-pivot-tot">{grand}</td></tr>'
+    )
+    return (
+        '<table class="rm-pivot">'
+        f'<thead><tr><th></th>{head}<th class="rm-pivot-tot">Total</th></tr></thead>'
+        f'<tbody>{"".join(rows)}</tbody></table>'
+    )
+
+
 def render_shipped_board(ideas) -> str:
     """Recently shipped, newest first."""
     rows = [i for i in ideas if STATUS[i["status"]]["board"] == "shipped"]
@@ -408,6 +452,18 @@ STYLE = """  <style>
     .rm-roadmap-table td:nth-child(2), .rm-roadmap-table td:nth-child(3),
     .rm-roadmap-table th:nth-child(2), .rm-roadmap-table th:nth-child(3) { white-space: nowrap; }
     .rm-roadmap-table a { color: var(--link); }
+
+    /* About-section summary pivot: idea type x lifecycle stage. */
+    .rm-pivot-caption { margin: 1em 0 0.3em; font-weight: 600; }
+    .rm-pivot { border-collapse: collapse; margin: 0 0 1.2em; }
+    .rm-pivot th, .rm-pivot td { border: 1px solid var(--border); padding: 0.35em 0.8em; }
+    .rm-pivot thead th { color: var(--muted); font-size: 0.82em; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em; background: var(--card); }
+    .rm-pivot td { text-align: right; }
+    .rm-pivot tbody th[scope="row"] { text-align: left; font-weight: 600; }
+    .rm-pivot .rm-pivot-tot { font-weight: 700; }
+    .rm-pivot .rm-pivot-total th, .rm-pivot .rm-pivot-total td { font-weight: 700;
+      border-top: 2px solid var(--accent-soft); }
     h2, h3 { scroll-margin-top: 1.5em; }
   </style>"""
 
@@ -468,6 +524,9 @@ def build_html(data: dict) -> str:
 </div>
 
 <p id="about">{meta.get("intro", "")}</p>
+
+<p class="rm-pivot-caption">Idea counts by type and stage:</p>
+{render_summary_pivot(canon)}
 
 <hr>
 
