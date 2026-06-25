@@ -27,9 +27,12 @@ ANVIL = ["forge_item_mid", "kimli_forge", "bellnius_smith"]
 WARDEN = "forge_warden"
 
 REQUIRED_SCRIPTS = (
-    ["forge_stg_anvil", "forge_stg_ok", "forge_stg_go", "forge_stg_cancel"]
+    ["forge_stg_anvil", "forge_stg_ok", "forge_stg_go", "forge_stg_cancel",
+     "forge_stg_pgn", "forge_stg_pgp", "forge_stg_hasn", "forge_stg_hasp",
+     "forge_anvil_ctx", "forge_anvil_clr"]
     + [f"forge_stg_t{n}" for n in range(8)]
-    + [f"forge_dis_c{n}" for n in range(8)]
+    + [f"forge_stg_c{n}" for n in range(8)]      # paginated staged count gates
+    + [f"forge_dis_c{n}" for n in range(8)]      # shared by the Warden's immediate menu
 )
 
 
@@ -67,21 +70,33 @@ def check_anvil(name, errs):
     if len(d1s) != 1:
         errs.append(f"{name}: expected exactly one forge_stg_anvil entry, found {len(d1s)}")
         return
-    e1 = E[d1s[0]]
+    d1i = d1s[0]
+    e1 = E[d1i]
     t = text0(e1)
     for tok in ("<CUSTOM6119>", "<CUSTOM100>"):
         if tok not in t:
             errs.append(f"{name}: D1 menu text missing {tok}")
 
+    # Conversation cleanup wired to BOTH end hooks (no stale cached item/plan).
+    for hook in ("EndConversation", "EndConverAbort"):
+        got = d.get(hook, {}).get("value") or ""
+        if got != "forge_anvil_clr":
+            errs.append(f"{name}: {hook}={got!r}, want forge_anvil_clr")
+
+    # The "modify / strip" reply (ReplyList[1]) refreshes item/cap tokens.
+    if len(R) > 1 and script(R[1]) != "forge_anvil_ctx":
+        errs.append(f"{name}: ReplyList[1] Script={script(R[1])!r}, want forge_anvil_ctx")
+
     d1_links = links(e1, "RepliesList")
     actives = [active(l) for l in d1_links]
 
-    # 8 slot toggles: Active forge_dis_cN -> reply (Script forge_stg_tN, text <CUSTOM611N>)
+    # 8 paginated slot toggles: Active forge_stg_cN -> reply (Script forge_stg_tN,
+    # text <CUSTOM611N>). Slot N maps to absolute property index page*8 + N.
     for n in range(8):
-        if f"forge_dis_c{n}" not in actives:
-            errs.append(f"{name}: D1 missing slot link Active=forge_dis_c{n}")
+        if f"forge_stg_c{n}" not in actives:
+            errs.append(f"{name}: D1 missing slot link Active=forge_stg_c{n}")
     for l in d1_links:
-        m = re.fullmatch(r"forge_dis_c(\d)", active(l))
+        m = re.fullmatch(r"forge_stg_c(\d)", active(l))
         if not m:
             continue
         n = int(m.group(1))
@@ -90,6 +105,15 @@ def check_anvil(name, errs):
             errs.append(f"{name}: slot {n} reply Script={script(rr)!r}, want forge_stg_t{n}")
         if f"<CUSTOM{6110 + n}>" not in text0(rr):
             errs.append(f"{name}: slot {n} reply text missing <CUSTOM{6110 + n}>")
+
+    # Pagination: Next/Prev page replies gated by their conditionals.
+    for cond, scr, label in (("forge_stg_hasn", "forge_stg_pgn", "next-page"),
+                             ("forge_stg_hasp", "forge_stg_pgp", "prev-page")):
+        pg = [l for l in d1_links if active(l) == cond]
+        if not pg:
+            errs.append(f"{name}: D1 missing {label} link Active={cond}")
+        elif script(R[idx(pg[0])]) != scr:
+            errs.append(f"{name}: {label} reply Script={script(R[idx(pg[0])])!r}, want {scr}")
 
     # Commit reply: gated by forge_stg_ok, leads to a D2 confirm whose 'Aye' runs forge_stg_go.
     commit = [l for l in d1_links if active(l) == "forge_stg_ok"]
@@ -102,9 +126,20 @@ def check_anvil(name, errs):
             errs.append(f"{name}: commit reply does not lead to a confirm entry")
         else:
             d2 = E[idx(d2_links[0])]
-            yes = [R[idx(x)] for x in links(d2, "RepliesList")]
-            if not any(script(y) == "forge_stg_go" for y in yes):
+            go = [R[idx(x)] for x in links(d2, "RepliesList")
+                  if script(R[idx(x)]) == "forge_stg_go"]
+            if not go:
                 errs.append(f"{name}: confirm entry has no forge_stg_go reply")
+            else:
+                # Loop-fix: the committed strike must NOT return to the strip menu
+                # (which used to re-ask forever). It links to a success entry whose
+                # script is not the menu's forge_stg_anvil.
+                go_tgt = links(go[0], "EntriesList")
+                if not go_tgt:
+                    errs.append(f"{name}: forge_stg_go reply leads nowhere")
+                elif idx(go_tgt[0]) == d1i or script(E[idx(go_tgt[0])]) == "forge_stg_anvil":
+                    errs.append(f"{name}: forge_stg_go loops back to the strip menu "
+                                f"(should lead to a success entry)")
 
     # Cancel + commit scripts present somewhere in the reply list.
     rscripts = {script(r) for r in R}

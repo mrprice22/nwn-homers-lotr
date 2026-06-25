@@ -7,7 +7,5 @@
 int StartingConditional()
 {
     object oPC = GetPCSpeaker();
-    return ForgeStagePlanIsLawful(oPC,
-        GetLocalObject(oPC, "FORGE_STG_ITEM"),
-        GetLocalInt(oPC, "FORGE_STG_MASK"));
+    return ForgeStagePlanIsLawful(oPC, GetLocalObject(oPC, "FORGE_STG_ITEM"));
 }

@@ -7,8 +7,11 @@ void main()
 {
     object oPC = GetPCSpeaker();
     object oItem = GetLocalObject(oPC, "MODIFY_ITEM");
-    // Fresh plan whenever the menu is opened on a different item than last time.
+    // Fresh plan + first page whenever the menu opens on a different item.
     if (oItem != GetLocalObject(oPC, "FORGE_STG_ITEM"))
-        DeleteLocalInt(oPC, "FORGE_STG_MASK");
+    {
+        ForgeStageClear(oPC);
+        DeleteLocalInt(oPC, "FORGE_STG_PAGE");
+    }
     ForgeStageSetupCued(oPC, oItem);
 }

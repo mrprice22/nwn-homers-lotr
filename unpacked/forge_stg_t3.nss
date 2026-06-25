@@ -1,8 +1,11 @@
-// Toggle plan bit 3 (strike/keep the 3th permanent property). The menu
-// re-shows via the D1 entry (forge_stg_anvil), which re-primes the cues.
+// Toggle the plan bit for menu slot 3 on the current page (absolute property
+// index = page * FORGE_DIS_SLOTS + 3). The menu re-shows via the D1 entry
+// (forge_stg_anvil), which re-primes the per-slot cues.
+#include "forge_inc"
+
 void main()
 {
     object oPC = GetPCSpeaker();
-    SetLocalInt(oPC, "FORGE_STG_MASK",
-        GetLocalInt(oPC, "FORGE_STG_MASK") ^ (1 << 3));
+    ForgeStageToggleBit(oPC,
+        GetLocalInt(oPC, "FORGE_STG_PAGE") * FORGE_DIS_SLOTS + 3);
 }

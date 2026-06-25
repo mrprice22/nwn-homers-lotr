@@ -53,6 +53,19 @@ COMMIT_TEXT = "Strike the planned enchantments now."
 CANCEL_TEXT = "Never mind — leave it whole."
 YES_TEXT = "Aye, strike them. The magic is forfeit."
 NO_TEXT = "No, let me reconsider."
+MORE_TEXT = "Show me more enchantments."
+PREV_TEXT = "Show the previous enchantments."
+DONE_TEXT = ("It is done. Your <CUSTOM100> bears the law's blessing once more — no "
+             "enchantment upon it now offends the law.")
+THANKS_TEXT = "My thanks."
+
+# Cleanup script wired to both end-conversation hooks (mirrors forge_ward_clr):
+# clears the cached anvil item + staged plan so a fresh conversation re-derives
+# the live item and the status token never lingers as "<UNRECOGNIZED TOKEN>".
+END_SCRIPT = "forge_anvil_clr"
+# Refresh script set on the "modify / strip" reply so every entry into the forge
+# re-primes the item/cap display tokens (the modify path used to set none).
+CTX_SCRIPT = "forge_anvil_ctx"
 
 
 def resref(v):
@@ -61,6 +74,10 @@ def resref(v):
 
 def locstring(text):
     return {"type": "cexolocstring", "value": {"0": text}}
+
+
+def entry_text(nd):
+    return nd.get("Text", {}).get("value", {}).get("0", "") or ""
 
 
 def link(struct_id, index, active="", child=False):
@@ -129,11 +146,22 @@ def inject(path: Path):
     data = json.loads(path.read_text())
     migrated = migrate(data)
 
+    # Cleanup on both end-conversation hooks (was stock nw_walk_wp, which
+    # forge_anvil_clr still calls so the smith walks back to its post).
+    data["EndConversation"] = resref(END_SCRIPT)
+    data["EndConverAbort"] = resref(END_SCRIPT)
+
     entries = data["EntryList"]["value"]
     replies = data["ReplyList"]["value"]
 
+    # The "modify / strip" reply (ReplyList[1]) now refreshes the item/cap tokens
+    # every time it is chosen, so the smith never speaks about a previously-worked
+    # item or quotes a stale GP cap.
+    if len(replies) > 1:
+        replies[1]["Script"] = resref(CTX_SCRIPT)
+
     # Anchor entries: those whose RepliesList links the anvil-menu reply (index
-    # 1, the isitemonanvil-gated "modify the item" link in all three dialogs).
+    # 1, the "modify the item" link in all three dialogs).
     anchors = []
     for ei, e in enumerate(entries):
         for l in e["RepliesList"]["value"]:
@@ -143,27 +171,45 @@ def inject(path: Path):
     if not anchors:
         raise SystemExit(f"{path.name}: no anchor entry links ReplyList[1]")
 
+    # Forge hub to return to after a successful strike: the "Is there anything
+    # else?" entry (present in all three dialogs), else the owning anchor.
+    hub = anchors[0][0]
+    for ei, _ in anchors:
+        if "anything else" in entry_text(entries[ei]).lower():
+            hub = ei
+            break
+
     d1 = len(entries)        # disenchant menu entry
     d2 = d1 + 1              # confirm entry
+    d3 = d1 + 2              # success entry (returns to the forge hub)
     r_slot0 = len(replies)   # 8 slot replies: r_slot0 .. r_slot0+7
-    r_commit = r_slot0 + 8
-    r_cancel = r_slot0 + 9
-    r_yes = r_slot0 + 10
-    r_no = r_slot0 + 11
-    r_hook = r_slot0 + 12
+    r_more = r_slot0 + 8     # "Show more enchantments"  (next page)
+    r_prev = r_slot0 + 9     # "Show previous enchantments"
+    r_commit = r_slot0 + 10
+    r_cancel = r_slot0 + 11
+    r_yes = r_slot0 + 12
+    r_no = r_slot0 + 13
+    r_thanks = r_slot0 + 14  # D3 "My thanks." -> hub
+    r_hook = r_slot0 + 15
 
-    # Entry D1: 8 slot toggles + commit + cancel.
+    # Entry D1: 8 paginated slot toggles + page nav + commit + cancel.
     e1 = node(d1, D1_TEXT, script="forge_stg_anvil", entry=True)
     for n in range(8):
         e1["RepliesList"]["value"].append(
-            link(n, r_slot0 + n, active=f"forge_dis_c{n}"))
-    e1["RepliesList"]["value"].append(link(8, r_commit, active="forge_stg_ok"))
-    e1["RepliesList"]["value"].append(link(9, r_cancel))
+            link(n, r_slot0 + n, active=f"forge_stg_c{n}"))
+    e1["RepliesList"]["value"].append(link(8, r_more, active="forge_stg_hasn"))
+    e1["RepliesList"]["value"].append(link(9, r_prev, active="forge_stg_hasp"))
+    e1["RepliesList"]["value"].append(link(10, r_commit, active="forge_stg_ok"))
+    e1["RepliesList"]["value"].append(link(11, r_cancel))
 
     # Entry D2: confirm yes/no.
     e2 = node(d2, D2_TEXT, entry=True)
     e2["RepliesList"]["value"].append(link(0, r_yes))
     e2["RepliesList"]["value"].append(link(1, r_no))
+
+    # Entry D3: success line shown after a committed strike.
+    e3 = node(d3, DONE_TEXT, entry=True)
+    e3["RepliesList"]["value"].append(link(0, r_thanks))
 
     new_replies = []
     # Slot toggles: each re-shows D1 (child link) so the cues refresh.
@@ -171,6 +217,14 @@ def inject(path: Path):
         r = node(r_slot0 + n, f"<CUSTOM{6110 + n}>", script=f"forge_stg_t{n}")
         r["EntriesList"]["value"].append(link(0, d1, child=True))
         new_replies.append(r)
+
+    # Page navigation: both re-show D1 with the new page's cues (child link).
+    r = node(r_more, MORE_TEXT, script="forge_stg_pgn")
+    r["EntriesList"]["value"].append(link(0, d1, child=True))
+    new_replies.append(r)
+    r = node(r_prev, PREV_TEXT, script="forge_stg_pgp")
+    r["EntriesList"]["value"].append(link(0, d1, child=True))
+    new_replies.append(r)
 
     # Commit reply: navigation only (the actual removal runs from D2's "Aye").
     # Owns D2.
@@ -181,9 +235,10 @@ def inject(path: Path):
     # Cancel reply: clears the plan and ends (no entry link).
     new_replies.append(node(r_cancel, CANCEL_TEXT, script="forge_stg_cancel"))
 
-    # D2 "Aye": commit, then back to D1 to show the now-lawful status.
+    # D2 "Aye": commit, then to the success line D3 (NOT back to the strip menu,
+    # which looped forever). Owns D3.
     r = node(r_yes, YES_TEXT, script="forge_stg_go")
-    r["EntriesList"]["value"].append(link(0, d1, child=True))
+    r["EntriesList"]["value"].append(link(0, d3))
     new_replies.append(r)
 
     # D2 "No": back to D1, no change.
@@ -191,12 +246,17 @@ def inject(path: Path):
     r["EntriesList"]["value"].append(link(0, d1, child=True))
     new_replies.append(r)
 
+    # D3 "My thanks": return to the forge hub ("Is there anything else?").
+    r = node(r_thanks, THANKS_TEXT)
+    r["EntriesList"]["value"].append(link(0, hub, child=True))
+    new_replies.append(r)
+
     # Hook reply: owns D1 (the one non-child link to it).
     r = node(r_hook, HOOK_TEXT)
     r["EntriesList"]["value"].append(link(0, d1))
     new_replies.append(r)
 
-    entries.extend([e1, e2])
+    entries.extend([e1, e2, e3])
     replies.extend(new_replies)
 
     # Hook the new reply into every anchor menu entry. The entry that owns
@@ -208,8 +268,9 @@ def inject(path: Path):
 
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     verb = "re-injected (migrated)" if migrated else "injected"
-    print(f"{path.name}: {verb} (D1=entry {d1}, D2=entry {d2}, "
-          f"replies {r_slot0}..{r_hook}, anchors {[a for a, _ in anchors]})")
+    print(f"{path.name}: {verb} (D1=entry {d1}, D2=entry {d2}, D3=entry {d3}, "
+          f"replies {r_slot0}..{r_hook}, hub=entry {hub}, "
+          f"anchors {[a for a, _ in anchors]})")
 
 
 def main():
