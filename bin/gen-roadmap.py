@@ -208,12 +208,20 @@ def credit_html(idea: dict, shipped: bool) -> str:
     return f'<span class="rm-credit">{word}: {joined}</span>'
 
 
+def type_badge(idea: dict) -> str:
+    """The Defect/Enhancement/Exploit pill, or '' when the idea has no/unknown type."""
+    tmeta = TYPES.get(idea.get("type"))
+    if not tmeta:
+        return ""
+    return f'<span class="rm-type rm-type-{tmeta["cls"]}">{tmeta["label"]}</span>'
+
+
 def idea_row(idea: dict, shipped: bool) -> str:
     meta = STATUS[idea["status"]]
     bits = []
-    if idea.get("type") in TYPES:
-        tmeta = TYPES[idea["type"]]
-        bits.append(f'<span class="rm-type rm-type-{tmeta["cls"]}">{tmeta["label"]}</span>')
+    tbadge = type_badge(idea)
+    if tbadge:
+        bits.append(tbadge)
     bits.append(f'<span class="rm-badge rm-{meta["cls"]}">{meta["label"]}</span>')
     if shipped and idea.get("date"):
         bits.append(f'<span class="rm-date">{amp(pretty_date(idea["date"]))}</span>')
@@ -254,6 +262,54 @@ def render_roadmap_board(groups, ideas) -> str:
         out.append(
             f'<h3 id="next-{g["id"]}">{g["title"]}</h3>'
             f'<ul class="rm-list">{items}</ul>'
+        )
+    return "\n".join(out)
+
+
+# The "Roadmap" status board: one table per status, in workflow order. Each row
+# links into the matching card down in the "By Category" board. `unlikely` ("Not
+# likely to implement") is intentionally omitted here — those still show in By Category.
+ROADMAP_SUBSECTIONS = [
+    ("confirmed", "In Progress"),
+    ("wip",       "Up Next"),
+    ("soon",      "Coming Soon"),
+    ("later",     "Coming Later"),
+    ("planned",   "Under Consideration"),
+]
+
+
+def roadmap_subsections_present(ideas) -> list[tuple[str, str]]:
+    """The (status, heading) pairs that actually have at least one idea."""
+    have = {i["status"] for i in ideas}
+    return [(s, h) for s, h in ROADMAP_SUBSECTIONS if s in have]
+
+
+def render_roadmap_tables(groups, ideas) -> str:
+    """Roadmap board: in-flight ideas as Name/Type/Category tables, grouped by status."""
+    ordered = group_order(groups)
+    title_of = {g["id"]: g["title"] for g in ordered}
+    order_of = {g["id"]: n for n, g in enumerate(ordered)}
+    out = []
+    for status, heading in roadmap_subsections_present(ideas):
+        rows = [i for i in ideas if i["status"] == status]
+        rows.sort(key=lambda i: (order_of.get(i["group"], 9999), norm_title(i["title"])))
+        body = []
+        for i in rows:
+            gid = i["group"]
+            cat = (f'<a href="#next-{gid}">{title_of.get(gid, gid)}</a>'
+                   if gid in title_of else amp(gid))
+            body.append(
+                "<tr>"
+                f'<td><a href="#idea-{i["id"]}">{amp(i["title"])}</a></td>'
+                f'<td>{type_badge(i)}</td>'
+                f'<td>{cat}</td>'
+                "</tr>"
+            )
+        out.append(
+            f'<h3 id="roadmap-{status}">{heading}</h3>'
+            '<table class="rm-roadmap-table change-table">'
+            '<thead><tr><th>Name</th><th>Type</th><th>Category</th></tr></thead>'
+            f'<tbody>{"".join(body)}</tbody></table>'
         )
     return "\n".join(out)
 
@@ -341,6 +397,17 @@ STYLE = """  <style>
     .rm-cost-table td.rm-cost, .rm-cost-table th:first-child { white-space: nowrap; }
     .rm-cost { font-weight: 600; text-align: center; }
     .change-table td, .change-table th { font-size: 0.92em; vertical-align: top; }
+
+    /* Roadmap status board: compact Name/Type/Category tables that link down
+       into the matching cards under "By Category". */
+    .rm-roadmap-table { width: 100%; border-collapse: collapse; margin: 0.4em 0 1.4em; }
+    .rm-roadmap-table th, .rm-roadmap-table td { text-align: left; padding: 0.4em 0.7em;
+      border-bottom: 1px solid var(--border); vertical-align: top; }
+    .rm-roadmap-table thead th { color: var(--muted); font-size: 0.82em;
+      text-transform: uppercase; letter-spacing: 0.04em; }
+    .rm-roadmap-table td:nth-child(2), .rm-roadmap-table td:nth-child(3),
+    .rm-roadmap-table th:nth-child(2), .rm-roadmap-table th:nth-child(3) { white-space: nowrap; }
+    .rm-roadmap-table a { color: var(--link); }
     h2, h3 { scroll-margin-top: 1.5em; }
   </style>"""
 
@@ -353,7 +420,13 @@ def build_html(data: dict) -> str:
     canon = merge_dupes(ideas)
     asof = pretty_asof(meta.get("as_of", ""))
 
-    # TOC: roadmap groups that actually have queued items
+    # TOC: status subsections of the Roadmap board that have at least one idea
+    toc_roadmap = "\n".join(
+        f'<li><a href="#roadmap-{s}">{h}</a></li>'
+        for s, h in roadmap_subsections_present(canon)
+    )
+
+    # TOC: By Category groups that actually have queued items
     roadmap_groups = group_order([
         g for g in groups
         if any(i["group"] == g["id"] and STATUS[i["status"]]["board"] == "roadmap"
@@ -372,7 +445,12 @@ def build_html(data: dict) -> str:
       <h2>Contents</h2>
       <ol>
         <li><a href="#about">About this page</a></li>
-        <li><a href="#next">Roadmap &mdash; In Progress &amp; Up Next</a>
+        <li><a href="#roadmap">Roadmap</a>
+          <ol style="margin:0.2em 0 0 0;">
+{toc_roadmap}
+          </ol>
+        </li>
+        <li><a href="#by-category">By Category</a>
           <ol style="margin:0.2em 0 0 0;">
 {toc_next}
           </ol>
@@ -393,9 +471,17 @@ def build_html(data: dict) -> str:
 
 <hr>
 
-<div class="section-header" id="next">
-  <h2>Roadmap &mdash; In Progress &amp; Up Next</h2>
-  <p class="section-sub">Where the module is heading, grouped by feature. "In progress" is being actively worked; "Up next" is queued, with "Soon" and "Later" progressively further out; "Under consideration" is captured but not yet committed to; "Not likely to implement" is logged but probably won't happen.</p>
+<div class="section-header" id="roadmap">
+  <h2>Roadmap</h2>
+  <p class="section-sub">Where the module is heading, by stage &mdash; from "In Progress" through "Up Next", "Coming Soon", "Coming Later" and "Under Consideration". Click any name or category to jump to its full detail under <a href="#by-category">By Category</a> below.</p>
+</div>
+{render_roadmap_tables(groups, canon)}
+
+<hr>
+
+<div class="section-header" id="by-category">
+  <h2>By Category</h2>
+  <p class="section-sub">The same in-flight ideas, grouped by feature theme with full notes. Each item's badge shows its stage: "In progress" is being actively worked; "Up next" is queued, with "Soon" and "Later" progressively further out; "Under consideration" is captured but not yet committed to; "Not likely to implement" is logged but probably won't happen.</p>
 </div>
 {render_roadmap_board(groups, canon)}
 
