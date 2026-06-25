@@ -756,6 +756,8 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
     if (!GetIsObjectValid(oCopy))
         return -1;
     int nCount = ForgeCountProps(oItem);
+    int nValBefore = GetGoldPieceValue(oCopy);   // DIAG
+    int nPlanned = 0;                            // DIAG
     int n;
     for (n = nCount - 1; n >= 0; n--)
     {
@@ -764,6 +766,7 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
             bPlanned = !bPlanned;
         if (bPlanned)
         {
+            nPlanned++;                          // DIAG
             itemproperty ip = ForgeGetPermPropByIndex(oCopy, n);
             if (GetIsItemPropertyValid(ip))
                 RemoveItemProperty(oCopy, ip);
@@ -775,7 +778,18 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
     // copy of the reduced item via ForgeItemValue, which re-copies before valuing —
     // the same recompute the working add-path (modifyitem -> ForgeItemValue) relies
     // on. Per-unit to match ForgeEffectiveCeil / ForgeItemLegality.
+    int nValSame = GetGoldPieceValue(oCopy);     // DIAG: same-object value post-remove
+    int nPropsAfter = ForgeCountProps(oCopy);    // DIAG: did the props actually leave?
     int nValue = ForgeItemValue(oCopy, TRUE);
+    // DIAG (temporary): on the header valuation only, message the tester the deltas
+    // so we can see whether removal applied and whether value tracks it. Remove once
+    // the projection is confirmed working.
+    if (nToggleIdx == -1 && nPlanned > 0)
+        SendMessageToPC(oPC, "[forge dbg] '" + GetName(oItem) + "' props "
+            + IntToString(nCount) + "->" + IntToString(nPropsAfter)
+            + " (planned " + IntToString(nPlanned) + ") | val copy "
+            + IntToString(nValBefore) + "->" + IntToString(nValSame)
+            + " | fresh " + IntToString(nValue));
     DestroyObject(oCopy);
     return nValue;
 }
