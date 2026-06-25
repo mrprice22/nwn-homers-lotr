@@ -12,6 +12,10 @@
 #include "forge_legal_inc"
 // Appraise scaling (AppraiseBonusScaled) for the per-player value ceiling.
 #include "appraise_inc"
+// Colour-token strings (COLOR_RED / COLOR_END / ColorString) for the staged
+// disenchant menu's "[planned]" marker. No forge consumer also includes "color",
+// so this is conflict-free (NWScript has no include guards).
+#include "color"
 
 const int FORGE_LEGAL_MAX_PROPS = 6;
 const int FORGE_LEGAL_MAX_VALUE = 750000;
@@ -765,10 +769,13 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
                 RemoveItemProperty(oCopy, ip);
         }
     }
-    SetItemStackSize(oCopy, 1);
-    SetIdentified(oCopy, TRUE);
-    SetPlotFlag(oCopy, FALSE);
-    int nValue = GetGoldPieceValue(oCopy);
+    // NWN recomputes an item's gold value when a property is ADDED but not after a
+    // RemoveItemProperty on the same object, so GetGoldPieceValue(oCopy) here would
+    // still read the pre-removal worth (the projection never dropped). Price a FRESH
+    // copy of the reduced item via ForgeItemValue, which re-copies before valuing —
+    // the same recompute the working add-path (modifyitem -> ForgeItemValue) relies
+    // on. Per-unit to match ForgeEffectiveCeil / ForgeItemLegality.
+    int nValue = ForgeItemValue(oCopy, TRUE);
     DestroyObject(oCopy);
     return nValue;
 }
@@ -881,7 +888,8 @@ void ForgeStageSetupCued(object oPC, object oItem)
                     sCue = "  (" + sVerb + " -> " + ForgeGold(nVal) + " gp: "
                         + ForgeGold(nVal - nCeil) + " over)";
             }
-            sLabel = (bStaged ? "[planned] " : "") + sName + sCue;
+            sLabel = (bStaged ? ColorString("[planned]", COLOR_RED) + " " : "")
+                + sName + sCue;
         }
         SetCustomToken(6110 + n, sLabel);
     }
