@@ -21,6 +21,6 @@ if (!GetIsPC(oPC)) return;
 if (!(GetHitDice(oPC) >= 20))
    return;
 
-RewardPartyXP(350, oPC, TRUE);
+RewardPartyXP(350, oPC, FALSE);
 
 }
