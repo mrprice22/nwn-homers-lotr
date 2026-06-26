@@ -772,24 +772,22 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
                 RemoveItemProperty(oCopy, ip);
         }
     }
-    // NWN recomputes an item's gold value when a property is ADDED but not after a
-    // RemoveItemProperty on the same object, so GetGoldPieceValue(oCopy) here would
-    // still read the pre-removal worth (the projection never dropped). Price a FRESH
-    // copy of the reduced item via ForgeItemValue, which re-copies before valuing —
-    // the same recompute the working add-path (modifyitem -> ForgeItemValue) relies
-    // on. Per-unit to match ForgeEffectiveCeil / ForgeItemLegality.
     int nValSame = GetGoldPieceValue(oCopy);     // DIAG: same-object value post-remove
     int nPropsAfter = ForgeCountProps(oCopy);    // DIAG: did the props actually leave?
+    // DIAG: items like The High Staff carry a fixed blueprint Cost override that
+    // GetGoldPieceValue returns regardless of properties. Test whether an
+    // AddItemProperty forces the engine to recompute the value from the CURRENT
+    // property set (discarding the override): add a 0-cost cosmetic Light, then
+    // re-read. If nValRecomp tracks the remaining real properties, this is the lever.
+    AddItemProperty(DURATION_TYPE_PERMANENT,
+        ItemPropertyLight(IP_CONST_LIGHTBRIGHTNESS_DIM, IP_CONST_LIGHTCOLOR_WHITE), oCopy);
+    int nValRecomp = GetGoldPieceValue(oCopy);   // DIAG: value after a forced recompute
     int nValue = ForgeItemValue(oCopy, TRUE);
-    // DIAG (temporary): on the header valuation only, message the tester the deltas
-    // so we can see whether removal applied and whether value tracks it. Remove once
-    // the projection is confirmed working.
     if (nToggleIdx == -1 && nPlanned > 0)
         SendMessageToPC(oPC, "[forge dbg] '" + GetName(oItem) + "' props "
             + IntToString(nCount) + "->" + IntToString(nPropsAfter)
-            + " (planned " + IntToString(nPlanned) + ") | val copy "
-            + IntToString(nValBefore) + "->" + IntToString(nValSame)
-            + " | fresh " + IntToString(nValue));
+            + " | val " + IntToString(nValBefore) + "->" + IntToString(nValSame)
+            + " recomp " + IntToString(nValRecomp) + " fresh " + IntToString(nValue));
     DestroyObject(oCopy);
     return nValue;
 }
