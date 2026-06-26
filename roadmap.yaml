@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-06-26 09:57 CDT"
+  as_of: "2026-06-26 15:45 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -114,7 +114,7 @@ ideas:
   - id: stackable-scrolls
     title: "Make scrolls stackable (x99)"
     group: items-gear
-    status: wip
+    status: confirmed
     type: Enhancement
     player: "Piskan (Alec Cain)"
     date: "2026-06-25"
@@ -129,7 +129,7 @@ ideas:
   - id: high-wizard-pulse-defect
     title: "the High wizard in Gondor kills herself with her pulse attacks"
     group: forge
-    status: soon
+    status: wip
     type: Defect
     player: "-Methonash-"
     date: "2018-11-29"
@@ -152,7 +152,7 @@ ideas:
   - id: Ithilien-Transitions
     title: "At least one of the Norther Forest of Ithilien transitions seems off"
     group: quests-areas
-    status: soon
+    status: wip
     type: Defect
     player: Tukwut
     date: "2026-06-24"
@@ -160,7 +160,7 @@ ideas:
   - id: knock-spell-issue
     title: "Knock Spell Effect not working"
     group: quests-areas
-    status: wip
+    status: confirmed
     type: Defect
     player: Yazkir
     date: "2026-06-24"
@@ -168,7 +168,7 @@ ideas:
   - id: Morannon-Spell-Failure
     title: "Is Morannon meant to have arcane spell failure?"
     group: quests-areas
-    status: wip
+    status: confirmed
     type: Defect
     player: Yazkir
     date: "2026-06-24"
@@ -210,7 +210,7 @@ ideas:
   - id: kallrist-dungeon-removed
     title: "Dungeon Area Transition in Kallrist North Shore intentionally removed?"
     group: travel
-    status: soon
+    status: wip
     type: Defect
     player: Yazkir
     notes: "Looks like broken/removed area transition: <span>the waypoints still exist and the dungeon still exists in the module itself.</span>"
@@ -243,7 +243,7 @@ ideas:
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-19"
-    notes: "An item to improve epic summons would be nice, not to make them more tanks, but more dps so they do something vs higher bosses. Or a way to improve spells in general, obviously there are a lot of spells that can't be used as they are mobs are just immune to them. Like an item to change implosion to do 'chaos' dmg instead of deatg As a whole for casters there are very little ways to kill something, its either damage shields, igms or epic spell lucky rolls for the majority. So some boosting to lvl 9 spells would be nice"
+    notes: "An item to improve epic summons would be nice, not to make them more tanks, but more dps so they do something vs higher bosses. Or a way to improve spells in general, obviously there are a lot of spells that can't be used as they are mobs are just immune to them. Like an item to change implosion to do 'chaos' dmg instead of death As a whole for casters there are very little ways to kill something, its either damage shields, igms or epic spell lucky rolls for the majority. So some boosting to lvl 9 spells would be nice"
   - id: respawn-tracker-well-of-eru
     title: "Respawn Tracker in Well of Eru"
     group: bosses
@@ -287,7 +287,7 @@ ideas:
   - id: improved-invis-issues-part2
     title: "Issues with improved invisibility after buff duration exentsion (and exclusion)"
     group: qol
-    status: soon
+    status: wip
     type: Defect
     player: Yazkir
     date: "2026-06-21"
@@ -295,7 +295,7 @@ ideas:
   - id: duration-divine-might-issue
     title: "divine might duration bug"
     group: qol
-    status: soon
+    status: wip
     type: Defect
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-20"
@@ -864,7 +864,7 @@ ideas:
   - id: rancid-skinner-bark
     title: "The Rancid Skinner shouts 'Helms Deep is under attack' on death"
     group: bosses
-    status: wip
+    status: confirmed
     type: Defect
     player: Tukwut
   - id: theoden-chosen-ac
@@ -1012,13 +1012,13 @@ ideas:
   - id: gwathdor-stuck
     title: "Getting stuck in the wall at Gwathdor"
     group: quests-areas
-    status: soon
+    status: wip
     type: Defect
     player: Tukwut
   - id: glorfind-potion-quest
     title: "Glorfindel's potion quest: the plant doesn't spawn and there are no journal entries"
     group: quests-areas
-    status: soon
+    status: wip
     type: Defect
     player: "FLYING HITCHER"
   - id: moria-door
@@ -1048,7 +1048,7 @@ ideas:
   - id: mw-appearance
     title: "Tune Meaningwave appearances — some spawn naked instead of wearing their armor"
     group: meaningwave
-    status: wip
+    status: confirmed
     type: Defect
     player: "HomelessSon (Server Admin)"
 
@@ -1056,8 +1056,8 @@ ideas:
   - id: merit-redemption-poc
     title: "Build out the Merit redemption options"
     group: economy
-    status: implemented
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-06-26"
-    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit. </li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div><div><b>Shipped (proof-of-concept):</b> built the redemption request/approval engine. The whole documented catalogue (teleport/travel, premium, vanity, housing size + add-ons) is offered as red <b>[PLACEHOLDER]</b> options that create a pending request rather than auto-granting. Escrow accounting: requesting holds the cost (new <code>redemptions</code> table + <code>merit_spent</code>), cancelling refunds it, fulfilling keeps it; earned merit is never decremented and spent can never exceed earned. Players redeem and self-cancel at <b>Barliman</b> (the merit NPC, now a bartender appearance) in the Prancing Pony, which also has a wiki/Discord conversation for players with no merit. DMs get a chat alert per request and use EmoteWand &gt; <i>[Admin] Merit Redemptions</i> to fulfil or cancel (refund). See CLAUDE-merit.md to add options or graduate a placeholder to an automated reward.</div>"
+    commit: b419628d927
+    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit. </li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div>"
