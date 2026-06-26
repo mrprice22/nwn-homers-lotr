@@ -156,6 +156,7 @@
         <li><a href="#items">Custom Gameplay Items</a></li>
         <li><a href="#systems">Notable Custom Systems</a>
           <ol style="margin:0.2em 0 0 0;">
+            <li><a href="#party-loot">Party Loot Rolls</a></li>
             <li><a href="#merit">Merit Reward System</a></li>
           </ol>
         </li>
@@ -745,6 +746,38 @@ are not in active combat, and each rest is an <strong>instant full rest</strong>
 restored immediately, no waiting). Resting opens a <strong>custom rest menu</strong> that also lets
 you take other actions from the same place, including <strong>teleporting</strong> to key
 destinations and <strong>summoning henchmen and Legend companions</strong>.</p>
+
+<h3 id="party-loot">Party Loot Rolls</h3>
+<p>When you pick up a valuable item and <strong>other party members are in the same area</strong>, a
+clickable <strong>Need / Greed / Pass</strong> window pops up for everyone in the party — a fair way
+to decide who gets the drop, with no out-of-character arguing. It is loosely modelled on the loot
+roll from MMOs.</p>
+<ul>
+  <li><strong>Need</strong> beats <strong>Greed</strong>: the highest Need roll wins; if nobody
+  needs it, the highest Greed roll wins. <strong>Pass</strong> bows out and can never win.</li>
+  <li>The <strong>finder rolls too</strong> and keeps the item if they win. Otherwise the item is
+  <strong>handed to the winner automatically</strong>.</li>
+  <li>You have <strong>30 seconds</strong> to choose; no answer counts as a Pass.</li>
+  <li>The window shows the item's <strong>type</strong> (e.g. <em>Scimitar</em>, <em>Wand</em>,
+  <em>Heavy Armor</em>), its <strong>gold value</strong>, and a grouped list of its
+  <strong>magical properties</strong>.</li>
+</ul>
+<p><strong>Unidentified items.</strong> If the item is not yet identified, every player who would roll
+first makes a <strong>Lore check</strong> (your Lore skill plus a d20 against a difficulty based on
+the item's value — the same rule the Rod of Fast Lore uses). The results are shown in your combat
+log. If <em>anyone</em> succeeds, the item is identified for the whole party. If <em>nobody</em>
+does, the popup reveals <strong>only the item's type</strong> and marks it Unidentified — its name,
+value, and properties stay hidden, so you roll on a mystery.</p>
+<p><strong>Configuring it (rest menu → Party loot roll settings).</strong></p>
+<ul>
+  <li><strong>Any player</strong> can <strong>opt out</strong> of party loot rolls (you will never be
+  prompted, and rolls won't trigger just for you).</li>
+  <li>The <strong>party leader</strong> sets the <strong>minimum item value</strong> that triggers a
+  roll (default <strong>10,000 gp</strong>; choose 5k, 10k, 50k, 100k, 250k, 500k, or 1M), or
+  <strong>disables</strong> party rolling entirely.</li>
+  <li>You get a <strong>green confirmation message</strong> of the current settings whenever you join
+  a party, become a party leader, or the leader changes a setting.</li>
+</ul>
 
 <h3>Dungeon Solitaire</h3>
 <p>A custom card-game-style encounter arena: a sequence of drawn challenges with its own creatures

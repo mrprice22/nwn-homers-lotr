@@ -51,6 +51,7 @@
   <main>
 <h1>Script: <code>acquireditem_tag</code></h1><pre class="nss-source"><code>#include &quot;nw_i0_plotwizard&quot;
 #include &quot;bdm_include&quot;
+#include &quot;inc_partyloot&quot;
 void main()
 {
     // PLOT WIZARD MANAGED CODE BEGINS
@@ -62,6 +63,10 @@ void main()
         SetLocalInt(oItem, &quot;PCItem&quot;, 1);
     }
     BDM_ModuleItemAcquired();
+
+    // Party loot roll: if a PC picks up a valuable item with other eligible
+    // party members in the area, prompt a Need/Greed/Pass NUI roll.
+    PL_OnItemAcquired();
 
     // Paths of the Dead: acquiring the Flame of the West (Tag &quot;narsil&quot;) by
     // looting it -- rather than receiving it honourably from Aragorn -- records
