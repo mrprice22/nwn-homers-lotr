@@ -38,6 +38,11 @@ ExecuteScript("mw_spawn", GetModule());
 // Double the duration of every temporary effect a player creates (eff_dur_x2).
 NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
 
+// Party loot: announce current roll settings when a player joins a party or the
+// party leadership changes (pl_party_evt broadcasts to the whole party).
+NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, "pl_party_evt");
+NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_TRANSFER_LEADERSHIP_AFTER, "pl_party_evt");
+
 // Color tokens for dialogue text (used in bank XP retirement warnings)
 // CUSTOM6100 = red, CUSTOM6101 = yellow, CUSTOM6102 = close
 SetCustomToken(6100, COLOR_RED);
