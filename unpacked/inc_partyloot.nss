@@ -471,41 +471,97 @@ void PL_OnItemAcquired()
         (GetObjectType(oFrom) == OBJECT_TYPE_STORE || GetIsPC(oFrom)))
         return;
 
+    // GetGoldPieceValue returns 1 for unidentified items, so defer the threshold
+    // check for them — we'll re-check after the lore step if identification succeeds.
+    int bWasUnidentified = !GetIdentified(oItem);
+
     object oLeader = GetFactionLeader(oPC);
     if (PL_IsDisabled(oLeader)) return;
-    if (GetGoldPieceValue(oItem) < PL_GetThreshold(oLeader)) return;
+    if (!bWasUnidentified && GetGoldPieceValue(oItem) < PL_GetThreshold(oLeader)) return;
 
     object oArea = GetArea(oPC);
 
-    // Build the participant roster: PC faction members in the same area who
-    // have not opted out (the looter is included unless they opted out).
+    // Build the window roster: non-opted-out in-area PCs.
+    // An opted-out looter is excluded (they auto-Pass) but eligible others still roll.
     int nCount = 0;
-    int bOtherPresent = FALSE;
+    int nOtherEligible = 0;
     object oM = GetFirstFactionMember(oPC, TRUE);
     while (GetIsObjectValid(oM))
     {
-        if (GetArea(oM) == oArea)
+        if (GetArea(oM) == oArea && !PL_IsOptedOut(oM))
         {
-            if (oM != oPC) bOtherPresent = TRUE;
-            if (!PL_IsOptedOut(oM))
-            {
-                SetLocalObject(oItem, "pl_p" + IntToString(nCount), oM);
-                SetLocalInt(oM, "pl_choice", PL_PENDING);
-                nCount++;
-            }
+            SetLocalObject(oItem, "pl_p" + IntToString(nCount), oM);
+            SetLocalInt(oM, "pl_choice", PL_PENDING);
+            nCount++;
+            if (oM != oPC) nOtherEligible++;
         }
         oM = GetNextFactionMember(oPC, TRUE);
     }
 
-    // Need at least one other party member in the area, and at least two
-    // willing participants for there to be a contest.
-    if (!bOtherPresent || nCount < 2)
+    // Need at least one non-opted-out party member other than the looter.
+    if (nOtherEligible < 1)
     {
-        // Roll back any partial roster we stamped.
         int i;
         for (i = 0; i < nCount; i++)
+        {
+            object oP = GetLocalObject(oItem, "pl_p" + IntToString(i));
+            if (GetIsObjectValid(oP)) DeleteLocalInt(oP, "pl_choice");
             DeleteLocalObject(oItem, "pl_p" + IntToString(i));
+        }
         return;
+    }
+
+    int i;
+
+    // Lore identification: ALL in-area party members attempt to ID an unidentified
+    // item — including opted-out players (they contribute lore but get no window).
+    // DC uses the item's true (identified) gold value; temporarily identify to read it.
+    if (bWasUnidentified)
+    {
+        SetIdentified(oItem, TRUE);
+        int nDC = GetGoldPieceValue(oItem) / 100 + 1;
+        SetIdentified(oItem, FALSE);
+
+        int bIdentified = FALSE;
+        string sLog = "Party loot - Lore check to identify (DC " + IntToString(nDC) + "):";
+        oM = GetFirstFactionMember(oPC, TRUE);
+        while (GetIsObjectValid(oM))
+        {
+            if (GetArea(oM) == oArea)
+            {
+                int nLore = GetSkillRank(SKILL_LORE, oM);
+                int nRoll = d20();
+                int nTotal = nRoll + nLore;
+                int bPass = (nTotal >= nDC);
+                if (bPass) bIdentified = TRUE;
+                sLog += "\n  " + GetName(oM) + ": d20(" + IntToString(nRoll) + ") + Lore("
+                      + IntToString(nLore) + ") = " + IntToString(nTotal)
+                      + (bPass ? " - IDENTIFIED" : " - failed");
+            }
+            oM = GetNextFactionMember(oPC, TRUE);
+        }
+        if (bIdentified) SetIdentified(oItem, TRUE);
+        else sLog += "\n  No one identified the item; it remains UNIDENTIFIED.";
+
+        // Broadcast the roll log to all in-area party members.
+        oM = GetFirstFactionMember(oPC, TRUE);
+        while (GetIsObjectValid(oM))
+        {
+            if (GetArea(oM) == oArea) SendMessageToPC(oM, sLog);
+            oM = GetNextFactionMember(oPC, TRUE);
+        }
+
+        // If lore identified the item and its value is below threshold, skip the roll.
+        if (GetIdentified(oItem) && GetGoldPieceValue(oItem) < PL_GetThreshold(oLeader))
+        {
+            for (i = 0; i < nCount; i++)
+            {
+                object oP = GetLocalObject(oItem, "pl_p" + IntToString(i));
+                if (GetIsObjectValid(oP)) DeleteLocalInt(oP, "pl_choice");
+                DeleteLocalObject(oItem, "pl_p" + IntToString(i));
+            }
+            return;
+        }
     }
 
     int nSession = GetLocalInt(oItem, "pl_session") + 1;
@@ -514,40 +570,6 @@ void PL_OnItemAcquired()
     SetLocalInt(oItem, "pl_count", nCount);
     SetLocalInt(oItem, "pl_responded", 0);
     SetLocalObject(oItem, "pl_looter", oPC);
-
-    int i;
-
-    // Lore identification: every prospective roller attempts to ID an
-    // unidentified item (module standard, per rodfastlore.nss): d20 + Lore rank
-    // vs DC = gold value / 100 + 1. Any single success IDs it for everyone.
-    // Results are logged to each roller's combat/chat window.
-    if (!GetIdentified(oItem))
-    {
-        int nDC = GetGoldPieceValue(oItem) / 100 + 1;
-        int bIdentified = FALSE;
-        string sLog = "Party loot - Lore check to identify (DC " + IntToString(nDC) + "):";
-        for (i = 0; i < nCount; i++)
-        {
-            object oP = GetLocalObject(oItem, "pl_p" + IntToString(i));
-            int nLore = GetSkillRank(SKILL_LORE, oP);
-            int nRoll = d20();
-            int nTotal = nRoll + nLore;
-            int bPass = (nTotal >= nDC);
-            if (bPass) bIdentified = TRUE;
-            sLog += "\n  " + GetName(oP) + ": d20(" + IntToString(nRoll) + ") + Lore("
-                  + IntToString(nLore) + ") = " + IntToString(nTotal)
-                  + (bPass ? " - IDENTIFIED" : " - failed");
-        }
-        if (bIdentified) SetIdentified(oItem, TRUE);
-        else sLog += "\n  No one identified the item; it remains UNIDENTIFIED.";
-
-        // Broadcast the roll log to every roller's combat log.
-        for (i = 0; i < nCount; i++)
-        {
-            object oP = GetLocalObject(oItem, "pl_p" + IntToString(i));
-            SendMessageToPC(oP, sLog);
-        }
-    }
 
     for (i = 0; i < nCount; i++)
     {
