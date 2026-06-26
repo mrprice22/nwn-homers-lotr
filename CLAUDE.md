@@ -149,6 +149,7 @@ After editing Comments in the toolset, run `bin/refresh-homers-lotr-wiki` to reb
 - [CLAUDE-gotchas.md](CLAUDE-gotchas.md) — Silent failure modes and common traps
 - [CLAUDE-meaningwave.md](CLAUDE-meaningwave.md) — Meaningwave philosopher NPC system: blueprints, spawn waypoints, how to add a new NPC
 - [CLAUDE-roadmap.md](CLAUDE-roadmap.md) — Roadmap / merit-tracking backlog: `roadmap.yaml` schema, refresh process, and the `bin/roadmap-editor.py` GUI + systemd service
+- [CLAUDE-merit.md](CLAUDE-merit.md) — Merit award + redemption system: `meritdb` schema (earned vs escrowed `merit_spent`), the `merit_redeem.nss` catalogue, how to add/graduate a redemption option, custom-token ranges, and the Barliman NPC + DM EmoteWand flow
 
 ## Useful references
 

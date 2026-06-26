@@ -31,6 +31,24 @@ void Merit_InitDb()
         "features INTEGER DEFAULT 0," +
         "merit_spent INTEGER DEFAULT 0)");
     SqlStep(q);
+
+    // Redemption requests. Escrow model: cost is debited (added to
+    // players.merit_spent) the moment a row is inserted as 'pending', and
+    // refunded only if the row is 'cancelled'. 'fulfilled' rows keep the debit.
+    sqlquery qr = SqlPrepareQueryCampaign(MERIT_DB,
+        "CREATE TABLE IF NOT EXISTS redemptions (" +
+        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+        "cdkey TEXT NOT NULL," +
+        "player_name TEXT," +
+        "reward_id INTEGER NOT NULL," +
+        "reward_label TEXT," +
+        "cost INTEGER NOT NULL," +
+        "needs_dm INTEGER NOT NULL DEFAULT 1," +
+        "status TEXT NOT NULL DEFAULT 'pending'," +     // pending|fulfilled|cancelled
+        "requested_at TEXT NOT NULL DEFAULT (datetime('now'))," +
+        "resolved_by TEXT," +
+        "resolved_at TEXT)");
+    SqlStep(qr);
 }
 
 // ------------------------------------------------------------
@@ -72,7 +90,7 @@ void Merit_LoginMessage(object oPC)
         "  Exploits reported:   " + IntToString(nExp)  + "\n" +
         "  Features implemented:" + IntToString(nFtr)  + "\n" +
         "Merit balance: " + IntToString(nAvail) + " pts available to spend.\n" +
-        "Visit the Keeper of Records in the Prancing Pony to redeem rewards.");
+        "Visit Barliman the barkeep in the Prancing Pony to redeem rewards.");
 }
 
 // ------------------------------------------------------------
@@ -125,6 +143,18 @@ void Merit_Spend(string sCdKey, int nCost)
 {
     sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
         "UPDATE players SET merit_spent=merit_spent+@c WHERE cdkey=@k");
+    SqlBindInt(q, "@c", nCost);
+    SqlBindString(q, "@k", sCdKey);
+    SqlStep(q);
+}
+
+// Refund escrowed merit (e.g. a cancelled redemption). Clamps merit_spent at 0
+// so a double-cancel or bookkeeping slip can never drive it negative.
+void Merit_Refund(string sCdKey, int nCost)
+{
+    if (nCost <= 0) return;
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        "UPDATE players SET merit_spent=MAX(0, merit_spent-@c) WHERE cdkey=@k");
     SqlBindInt(q, "@c", nCost);
     SqlBindString(q, "@k", sCdKey);
     SqlStep(q);

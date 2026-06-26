@@ -278,10 +278,11 @@ ideas:
   - id: party-xp-given-to-whole-party-issue
     title: "party XP is applied to the whole party even if not in the same area"
     group: progression
-    status: confirmed
+    status: implemented
     type: Defect
     player: Yazkir
     date: "2026-06-22"
+    commit: f5e3f11072c
     notes: "<div><span>Also confirmed impact is from the Mirkwood Spiders, specifically:</span></div><ul><li><span>Lava Climber</span></li><li><span>Death Weeper</span></li><li><span>Black Spear Spider</span></li></ul>"
   - id: improved-invis-issues-part2
     title: "Issues with improved invisibility after buff duration exentsion (and exclusion)"
@@ -1055,7 +1056,8 @@ ideas:
   - id: merit-redemption-poc
     title: "Build out the Merit redemption options"
     group: economy
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit. </li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div>"
+    date: "2026-06-26"
+    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit. </li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div><div><b>Shipped (proof-of-concept):</b> built the redemption request/approval engine. The whole documented catalogue (teleport/travel, premium, vanity, housing size + add-ons) is offered as red <b>[PLACEHOLDER]</b> options that create a pending request rather than auto-granting. Escrow accounting: requesting holds the cost (new <code>redemptions</code> table + <code>merit_spent</code>), cancelling refunds it, fulfilling keeps it; earned merit is never decremented and spent can never exceed earned. Players redeem and self-cancel at <b>Barliman</b> (the merit NPC, now a bartender appearance) in the Prancing Pony, which also has a wiki/Discord conversation for players with no merit. DMs get a chat alert per request and use EmoteWand &gt; <i>[Admin] Merit Redemptions</i> to fulfil or cancel (refund). See CLAUDE-merit.md to add options or graduate a placeholder to an automated reward.</div>"
