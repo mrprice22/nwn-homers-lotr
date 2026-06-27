@@ -16,6 +16,7 @@
 #include "nwnx_admin"
 #include "nwnx_events"
 #include "x2_inc_switches"
+#include "ru_db"
 
 
 void main()
@@ -48,5 +49,9 @@ NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_TRANSFER_LEADERSHIP_AFTER, "pl_party_ev
 SetCustomToken(6100, COLOR_RED);
 SetCustomToken(6101, COLOR_YELLOW);
 SetCustomToken(6102, COLOR_END);
+
+// Recent Updates sign (Well of Eru): ensure the roadmapdb table exists before
+// any read. It is populated externally by the roadmap editor's Publish button.
+RU_InitDb();
 
 }   //end of main

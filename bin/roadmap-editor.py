@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import html
 import importlib.util
 import io
 import json
@@ -211,6 +212,91 @@ def pending_requests() -> dict:
         return {"available": True, "count": len(rows), "rows": rows}
     finally:
         con.close()
+
+
+# --------------------------------------------------------------------------
+# In-game "Recent Updates" sign DB (write)
+# --------------------------------------------------------------------------
+# The Well of Eru "Recent Updates" sign (tag recent_updates, conversation
+# ru_sign, read by ru_db.nss) browses a campaign SQLite DB "roadmapdb". On
+# Publish we refill its recent_updates table with the 10 most recently shipped
+# ideas so the in-game board mirrors the website. The DB is NOT git-tracked
+# (it lives under NWN_HOME_DIR); the live server picks up changes on next read.
+SHIPPED_STATUSES = ("implemented", "awarded")
+TYPE_PREFIX = {
+    "Defect":      "Bug fixed: ",
+    "Enhancement": "New feature: ",
+    "Exploit":     "Exploit closed: ",
+}
+DEFAULT_PREFIX = "Update: "
+_TAG_RE = re.compile(r"<[^>]+>")
+_BLANKS_RE = re.compile(r"\n[ \t]*\n[ \t]*\n+")
+
+
+def recent_db_path() -> Path:
+    """Filesystem path to the live roadmapdb campaign database."""
+    home = os.environ.get("NWN_HOME_DIR") or os.path.join(
+        os.path.expanduser("~"), ".local", "share", "Neverwinter Nights")
+    return Path(home) / "database" / "roadmapdb.sqlite3"
+
+
+def html_to_plain(s: str) -> str:
+    """Render an idea's `notes` HTML as NWN-readable plain text."""
+    if not s:
+        return ""
+    t = s.replace("\r\n", "\n")
+    t = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", t)        # <br> -> newline
+    t = re.sub(r"(?i)<\s*li[^>]*>", "\n• ", t)    # <li> -> bullet
+    t = re.sub(r"(?i)<\s*/\s*(div|p|li|ul|ol|h[1-6])\s*>", "\n", t)
+    t = _TAG_RE.sub("", t)            # drop remaining tags, keep their text
+    t = html.unescape(t)             # &amp; &lt; &#39; ...
+    t = t.replace("\\n", "\n")       # any literal backslash-n in the source
+    t = _BLANKS_RE.sub("\n\n", t)    # collapse 3+ newlines
+    return "\n".join(ln.rstrip() for ln in t.split("\n")).strip()
+
+
+def sync_recent_updates_db(ideas: list, groups: list | None) -> tuple[bool, str]:
+    """Refill roadmapdb.recent_updates with the 10 most recently shipped ideas."""
+    GEN.resolve_dates(ideas)  # explicit date wins; else derived from commit
+    glabel = {g["id"]: html.unescape(g.get("title", g["id"]))
+              for g in (groups or [])}
+    shipped = [i for i in ideas
+               if i.get("status") in SHIPPED_STATUSES and not i.get("dupe_of")]
+    shipped.sort(key=lambda i: (i.get("date") or "", i.get("id") or ""),
+                 reverse=True)
+
+    rows = []
+    for rank, idea in enumerate(shipped[:10]):
+        player = idea.get("player") or ""
+        if player == "community":
+            player = "Community"
+        rows.append((
+            rank,
+            idea.get("title") or "",
+            TYPE_PREFIX.get(idea.get("type"), DEFAULT_PREFIX),
+            glabel.get(idea.get("group"), idea.get("group") or ""),
+            player,
+            idea.get("date") or "",
+            html_to_plain(idea.get("notes") or ""),
+        ))
+
+    db = recent_db_path()
+    db.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(str(db))
+    try:
+        con.execute(
+            "CREATE TABLE IF NOT EXISTS recent_updates ("
+            "rank INTEGER PRIMARY KEY, title TEXT, prefix TEXT, "
+            "group_label TEXT, player TEXT, date TEXT, notes TEXT)")
+        con.execute("DELETE FROM recent_updates")
+        con.executemany(
+            "INSERT INTO recent_updates"
+            "(rank,title,prefix,group_label,player,date,notes)"
+            " VALUES(?,?,?,?,?,?,?)", rows)
+        con.commit()
+    finally:
+        con.close()
+    return True, f"synced {len(rows)} recent update(s) to {db.name}."
 
 
 # --------------------------------------------------------------------------
@@ -601,6 +687,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"ok": False, "warnings": warnings,
                                    "output": "\n".join(steps),
                                    "message": "Publish FAILED."})
+            # Sync the in-game Recent Updates sign DB. Non-fatal: a DB failure
+            # must never block the wiki publish/push.
+            try:
+                _, db_msg = sync_recent_updates_db(ideas, groups)
+            except Exception as e:
+                db_msg = f"DB sync FAILED (wiki still published): {e}"
+            steps.append(db_msg)
             git_ok, git_msg = git_publish()
             steps.append(git_msg)
             return self._json({"ok": git_ok, "warnings": warnings,
@@ -949,7 +1042,7 @@ function select(i){
     <div class="bar">
       <button class="primary" id="save">Save</button>
       <button id="regen">Save &amp; regenerate HTML</button>
-      <button id="publish">Publish to Wiki</button>
+      <button id="publish">Publish to Wiki &amp; DB</button>
       <span class="spacer"></span>
       <button class="danger" id="del">Delete</button>
     </div>
@@ -971,7 +1064,7 @@ function select(i){
   $('#save').onclick = ()=>commit('/api/save');
   $('#regen').onclick = ()=>commit('/api/regenerate');
   $('#publish').onclick = ()=>{
-    if(!confirm('Regenerate, publish the roadmap into docs/, commit & git push?')) return;
+    if(!confirm('Regenerate, publish the roadmap into docs/, sync the in-game Recent Updates DB, commit & git push?')) return;
     commit('/api/publish');
   };
   $('#del').onclick = del;
