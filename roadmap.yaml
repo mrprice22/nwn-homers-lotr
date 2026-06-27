@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-06-27 11:29 CDT"
+  as_of: "2026-06-27 11:38 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -88,10 +88,11 @@ players:
   - "-Methonash-"
   - "Piskan (Alec Cain)"
   - Tukwut
-  - Yazkir
+  - Y a z k i r
   - Llikanthus
   - "HomelessSon (Server Admin)"
   - Magyk
+  - Yazkir
 
 # -----------------------------------------------------------------------------
 # How merit is earned and spent (Merit Redemption Shop + Player Housing price
@@ -162,7 +163,7 @@ ideas:
     group: quests-areas
     status: confirmed
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-24"
     notes: "<div><span>Knock scrolls and items are not working currently. I don't have a wizard leveled atm, so can't test a direct spell cast.</span></div><div><ul><li><span>E.g. The chests in Numerok's Den and the door to get into the chest room.</span></li></ul></div><div><ul><li><span>E.g at the Endless Stair door to Moria. </span></li></ul><span>Looks like the spell isn't fully triggering.</span></div>"
   - id: Morannon-Spell-Failure
@@ -170,7 +171,7 @@ ideas:
     group: quests-areas
     status: confirmed
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-24"
     notes: "<ul><li>Whenever I rest there I get 100% spell failure.</li><li>Also NPCs can cast spells while silenced even without Silent Spell casting. 👀</li></ul>"
   - id: weapon-forge-gp-too-low
@@ -187,7 +188,7 @@ ideas:
     group: combat-classes
     status: awarded
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-24"
     commit: f1e0b114d7d
     notes: "<div><span>The damage on bard song isn't correct:\n\n38 bard, 121 perform, giving +D4 damage? (expecting +6 instead at this skill and bard level, per </span><a href=\"#idea-bard-song\">Bard Song customized to mirror the customized Curse Song</a><span>) -- Bruno Mars is the character</span></div><div><br></div><div><strong>R</strong>oot cause was that <em>EffectDamageIncrease</em> takes a DAMAGE_BONUS_* constant, not a flat integer — the raw value 6 was being read as DAMAGE_BONUS_1d4, so the top tier rolled 1d4 instead of applying a flat +6. The damage amount is now routed through <em>IPGetDamageBonusConstantFromNumber()</em> so each tier maps to the correct constant (6 → flat +6). The identical bug was fixed in the matching <a href=\"#idea-bard-song\">Curse Song</a> (x2_s2_cursesong) damage tiers (raw 6/8/10 were rolling 1d4/1d8/2d6, now flat −6/−8/−10). Tiers 1–5 were always correct and are unchanged; only the damage column was affected.</div>"
@@ -212,7 +213,7 @@ ideas:
     group: travel
     status: wip
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     notes: "Looks like broken/removed area transition: <span>the waypoints still exist and the dungeon still exists in the module itself.</span>"
   - id: server-seasons-character-wipe
     title: "Server-wide 'seasons' where achievements get archived and characters get wiped with partial XP bank"
@@ -272,7 +273,7 @@ ideas:
     group: items-gear
     status: later
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-22"
     notes: "Look into if this is a bug"
   - id: party-xp-given-to-whole-party-issue
@@ -280,7 +281,7 @@ ideas:
     group: progression
     status: implemented
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-22"
     commit: f5e3f11072c
     notes: "<div><span>Also confirmed impact is from the Mirkwood Spiders, specifically:</span></div><ul><li><span>Lava Climber</span></li><li><span>Death Weeper</span></li><li><span>Black Spear Spider</span></li></ul>"
@@ -289,7 +290,7 @@ ideas:
     group: qol
     status: wip
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-21"
     notes: "When casting imp invis, it now looks like 50% conceal isn't being applied (but you get the effect of it from combat log) And the invis icon stays up no matter what but it doesn’t actually stay once you do damage (but you are still attacked by mobs, so you're not really invis)"
   - id: duration-divine-might-issue
@@ -305,7 +306,7 @@ ideas:
     group: wiki-tools
     status: awarded
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-23"
     notes: "<div>\"That spawn point is wacky, sometimes I see Numarok the black hand, and other times this guy. And Numarok the Black Hand has his own room to the left of the building, opposite way of the temple\"</div><div><br></div><div>FIX1: the wiki generator deduped creatures by combat identity only, so one blueprint (cultmember002) placed under different FirstName overrides collapsed to a single page. nwn-wiki now folds the placement's display name into the canonical-creature key, giving each renamed placement its own page (general fix — covered ~17 reused blueprints, e.g. Old Tagget, Sarah the Librarian).</div><div><br></div><div>Fix2: (root cause of the 'sometimes Numarok' part): the respawn system (se_respawn_inc via nw_c2_default7 OnDeath) re-creates a dead creature from its BLUEPRINT, keeping only the tag — so every placement-level override (name, faction/hostility, abilities, classes, feats, special abilities, equipment, natural AC, race, conversation) was lost on the first death. bin/split-divergent-creatures.py gives each diverging placement its own baked blueprint (123 new blueprints, ~245 placements across 60 areas) so respawn reproduces exactly what was placed; tags untouched so no quest/script lookups change. Added tests/check_divergent_creatures.py to the build smoke-test so it can't regress, plus TESTING-respawn-overrides.md for player validation.</div>"
   - id: forge-warden-script-overflow-isssue
@@ -334,7 +335,7 @@ ideas:
     group: wiki-tools
     status: awarded
     type: Defect
-    player: Yazkir
+    player: "Y a z k i r"
     date: "2026-06-22"
   - id: wiki-inaccessible-items-audit
     title: "Audit inaccessible_items.json for loot that should be droppable"
@@ -985,7 +986,7 @@ ideas:
     group: items-gear
     status: planned
     type: Enhancement
-    player: Yazkir
+    player: "Y a z k i r"
   - id: mail-delivery
     title: "Mail-delivery system: pay postage by weight to send items to a specific character; they're notified after login (post office if no player house)"
     group: items-gear
@@ -1046,7 +1047,7 @@ ideas:
 
   # ---- Meaningwave (open) ---------------------------------------------------
   - id: mw-appearance
-    title: "Tune Meaningwave Henchmen appearances — some spawn naked instead of wearing their armor"
+    title: "Tune Meaningwave Henchmen appearances (some spawn naked instead of wearing their armor)"
     group: meaningwave
     status: implemented
     type: Defect
