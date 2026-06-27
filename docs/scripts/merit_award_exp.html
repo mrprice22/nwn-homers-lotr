@@ -58,6 +58,7 @@ void main()
     string sName  = GetLocalString(oDM, &quot;merit_sel_name&quot;);
 
     Merit_AwardExploit(sCdKey);
+    Merit_Ledger(sCdKey, sName, MERIT_EXPLOIT_VALUE, &quot;award: exploit report&quot;, 0);
 
     SendMessageToPC(oDM, &quot;[Merit] Awarded Exploit Report (+3) to &quot; + sName + &quot;.&quot;);
 

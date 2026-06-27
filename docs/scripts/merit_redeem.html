@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script merit_redeem</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-respawn-overrides.html">Respawn-override validation — tester checklist</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>merit_redeem</code></h1><pre class="nss-source"><code>// merit_redeem.nss — Merit redemption catalogue + request/approval engine.
+//
+// Earned merit is never decremented (it stays bugs*1 + exploits*3 + features*2,
+// in merit_db.nss). Spending is tracked entirely through players.merit_spent via
+// an ESCROW model:
+//   * Merit_RequestById debits the cost immediately and inserts a &#x27;pending&#x27;
+//     redemptions row. The server-side affordability check there guarantees
+//     merit_spent can never exceed earned.
+//   * Cancelling a pending request refunds the escrow (Merit_Refund).
+//   * Fulfilling keeps the debit.
+//
+// This pass ships every documented option as a PLACEHOLDER (red prefix). Nothing
+// is auto-granted; each selection creates a request a DM fulfils or cancels.
+// See CLAUDE-merit.md for how to add an option or graduate one to automated.
+//
+// Custom token map (this file):
+//   5037        Player: confirmation-step prompt (delivery type / affordability)
+//   5038        DM: selected-request description (detail entry)
+//   5040-5048   DM: pending-redemption list slot labels
+//   5049        DM: pending-redemption list header
+//   5050-5058   Player: own-pending list slot labels ([Cancel] rows)
+//   5059        Player: own-pending list header
+//   5060-5068   Player: category option slot labels (with red placeholder prefix)
+//   5070-5078   Player: tournament-gear picker slot labels (item names)
+// Shared per-speaker locals &quot;merit_lslot_0&quot;..&quot;merit_lslot_8&quot; hold the row/reward
+// id for the currently displayed list (0 = empty). DM list also stashes
+// &quot;merit_lslot_&lt;i&gt;_desc&quot; for the detail entry. The confirmation step uses
+// separate locals: merit_pick_id / merit_pick_dm / merit_pick_afford, and the
+// tournament picker uses merit_tslot_&lt;i&gt; (resref) + merit_tpage_off/total — all
+// distinct from merit_lslot_* so &quot;Nevermind&quot; returns to the option list intact.
+
+#include &quot;merit_db&quot;
+
+// Red &quot;[PLACEHOLDER] &quot; prefix. MERITREDOPEN is replaced post-write with the raw
+// colour bytes &quot;&lt;c&quot; + FF 01 01 + &quot;&gt;&quot; (null-free bright red, repo convention).
+const string MERIT_PH = &quot;&lt;c�&gt;[PLACEHOLDER]&lt;/c&gt; &quot;;
+
+// Categories (match the conversation sub-menus and Merit_CatReward below).
+const int MERIT_CAT_TELE      = 0;
+const int MERIT_CAT_PREM      = 1;
+const int MERIT_CAT_VANITY    = 2;
+const int MERIT_CAT_HOUSESIZE = 3;
+const int MERIT_CAT_HOUSEFEAT = 4;
+
+struct merit_reward
+{
+    int    valid;
+    int    cost;
+    int    needs_dm;
+    string label;
+};
+
+// ------------------------------------------------------------
+// Catalogue — single source of truth. To add a redemption: add a case here and
+// register its id in Merit_CatReward / Merit_CatCount.
+
+struct merit_reward Merit_GetReward(int nId)
+{
+    struct merit_reward r;
+    r.valid = 1;
+    switch (nId)
+    {
+        // --- Teleport &amp; travel (rest-menu features) ---
+        case 101: r.cost = 3;  r.needs_dm = 0; r.label = &quot;Teleport to your party leader&quot;; break;
+        case 102: r.cost = 4;  r.needs_dm = 0; r.label = &quot;Teleport to your last Well-of-Eru save point&quot;; break;
+        case 103: r.cost = 6;  r.needs_dm = 0; r.label = &quot;Save-slot teleport (Slot 1)&quot;; break;
+        case 104: r.cost = 7;  r.needs_dm = 0; r.label = &quot;Save-slot teleport (Slot 2)&quot;; break;
+        case 105: r.cost = 8;  r.needs_dm = 0; r.label = &quot;Save-slot teleport (Slot 3)&quot;; break;
+        case 106: r.cost = 9;  r.needs_dm = 0; r.label = &quot;Save-slot teleport (Slot 4)&quot;; break;
+        case 107: r.cost = 10; r.needs_dm = 0; r.label = &quot;Save-slot teleport (Slot 5)&quot;; break;
+
+        // --- Premium boosts (3x gold &amp; XP) ---
+        case 201: r.cost = 1;  r.needs_dm = 0; r.label = &quot;1 week of premium for you (3x gold &amp; XP)&quot;; break;
+        case 202: r.cost = 3;  r.needs_dm = 0; r.label = &quot;1 month of premium for you&quot;; break;
+        case 203: r.cost = 4;  r.needs_dm = 0; r.label = &quot;1 week of premium for the whole server (+ your name in login welcome)&quot;; break;
+        case 204: r.cost = 8;  r.needs_dm = 0; r.label = &quot;1 month of premium for the whole server (+ your name in login welcome)&quot;; break;
+
+        // --- Vanity &amp; swag ---
+        case 301: r.cost = 5;   r.needs_dm = 1; r.label = &quot;Graffiti the Well of Eru with your name &amp; description&quot;; break;
+        case 302: r.cost = 10;  r.needs_dm = 0; r.label = &quot;Tournament gear - pick one piece&quot;; break;
+        case 303: r.cost = 25;  r.needs_dm = 1; r.label = &quot;A hand-made duct-tape wallet mailed to you (3 colours + design)&quot;; break;
+        case 304: r.cost = 100; r.needs_dm = 1; r.label = &quot;Become a DM&quot;; break;
+
+        // --- Player housing: area size (cost scales with Length x Width) ---
+        case 401: r.cost = 1;  r.needs_dm = 1; r.label = &quot;Player home - area size 2 (LxW)&quot;; break;
+        case 402: r.cost = 2;  r.needs_dm = 1; r.label = &quot;Player home - area size 4 (LxW)&quot;; break;
+        case 403: r.cost = 3;  r.needs_dm = 1; r.label = &quot;Player home - area size 8 (LxW)&quot;; break;
+        case 404: r.cost = 4;  r.needs_dm = 1; r.label = &quot;Player home - area size 16 (LxW)&quot;; break;
+        case 405: r.cost = 5;  r.needs_dm = 1; r.label = &quot;Player home - area size 32 (LxW)&quot;; break;
+        case 406: r.cost = 6;  r.needs_dm = 1; r.label = &quot;Player home - area size 64 (LxW)&quot;; break;
+        case 407: r.cost = 7;  r.needs_dm = 1; r.label = &quot;Player home - area size 81 (LxW)&quot;; break;
+        case 408: r.cost = 8;  r.needs_dm = 1; r.label = &quot;Player home - area size 100 (LxW)&quot;; break;
+
+        // --- Player housing: optional add-ons ---
+        case 501: r.cost = 2;  r.needs_dm = 1; r.label = &quot;Home add-on: persistent storage chest (shared across your characters)&quot;; break;
+        case 502: r.cost = 2;  r.needs_dm = 1; r.label = &quot;Home add-on: a Well-of-Eru store (100K buy limit; you pick NPC name &amp; look)&quot;; break;
+        case 503: r.cost = 5;  r.needs_dm = 1; r.label = &quot;Home add-on: a Tagget-tier forge&quot;; break;
+        case 504: r.cost = 10; r.needs_dm = 1; r.label = &quot;Home add-on: a Rivendell-tier forge&quot;; break;
+        case 505: r.cost = 15; r.needs_dm = 1; r.label = &quot;Home add-on: a Balrog-tier forge&quot;; break;
+
+        default:  r.valid = 0; r.cost = 0; r.needs_dm = 1; r.label = &quot;&quot;; break;
+    }
+    return r;
+}
+
+int Merit_CatCount(int nCat)
+{
+    switch (nCat)
+    {
+        case MERIT_CAT_TELE:      return 7;
+        case MERIT_CAT_PREM:      return 4;
+        case MERIT_CAT_VANITY:    return 4;
+        case MERIT_CAT_HOUSESIZE: return 8;
+        case MERIT_CAT_HOUSEFEAT: return 5;
+    }
+    return 0;
+}
+
+int Merit_CatReward(int nCat, int nIdx)
+{
+    switch (nCat)
+    {
+        case MERIT_CAT_TELE:      return 101 + nIdx;  // 101..107
+        case MERIT_CAT_PREM:      return 201 + nIdx;  // 201..204
+        case MERIT_CAT_VANITY:    return 301 + nIdx;  // 301..304
+        case MERIT_CAT_HOUSESIZE: return 401 + nIdx;  // 401..408
+        case MERIT_CAT_HOUSEFEAT: return 501 + nIdx;  // 501..505
+    }
+    return 0;
+}
+
+// ------------------------------------------------------------
+// Helpers
+
+// Message the holder of sCdKey if they are currently online.
+void Merit_NotifyOnline(string sCdKey, string sMsg)
+{
+    object o = GetFirstPC();
+    while (GetIsObjectValid(o))
+    {
+        if (GetPCPublicCDKey(o) == sCdKey)
+        {
+            SendMessageToPC(o, sMsg);
+            return;
+        }
+        o = GetNextPC();
+    }
+}
+
+// ------------------------------------------------------------
+// Request / cancel / fulfill
+
+// Returns TRUE if a pending request was created (cost escrowed).
+int Merit_RequestById(object oPC, int nId)
+{
+    struct merit_reward r = Merit_GetReward(nId);
+    if (!r.valid)
+    {
+        SendMessageToPC(oPC, &quot;[Merit] Unknown reward.&quot;);
+        return FALSE;
+    }
+
+    string sCdKey = GetPCPublicCDKey(oPC);
+    int nAvail = Merit_Available(sCdKey);
+    if (nAvail &lt; r.cost)
+    {
+        SendMessageToPC(oPC, &quot;[Merit] That costs &quot; + IntToString(r.cost)
+            + &quot; merit, but you only have &quot; + IntToString(nAvail) + &quot; available.&quot;);
+        return FALSE;
+    }
+
+    Merit_Spend(sCdKey, r.cost);   // escrow the cost
+
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;INSERT INTO redemptions(cdkey, player_name, reward_id, reward_label, cost, needs_dm)&quot;
+        + &quot; VALUES(@k, @n, @r, @l, @c, @d)&quot;);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    SqlBindString(q, &quot;@n&quot;, GetPCPlayerName(oPC));
+    SqlBindInt(q, &quot;@r&quot;, nId);
+    SqlBindString(q, &quot;@l&quot;, r.label);
+    SqlBindInt(q, &quot;@c&quot;, r.cost);
+    SqlBindInt(q, &quot;@d&quot;, r.needs_dm);
+    SqlStep(q);
+
+    int nReqId = 0;
+    sqlquery qid = SqlPrepareQueryCampaign(MERIT_DB, &quot;SELECT last_insert_rowid()&quot;);
+    if (SqlStep(qid)) nReqId = SqlGetInt(qid, 0);
+
+    Merit_Ledger(sCdKey, GetPCPlayerName(oPC), -r.cost,
+        &quot;request #&quot; + IntToString(nReqId) + &quot;: &quot; + r.label, nReqId);
+
+    Merit_SetNpcTokens(oPC);  // refresh the displayed balance
+
+    SendMessageToPC(oPC, &quot;[Merit] Request #&quot; + IntToString(nReqId) + &quot; submitted: &quot;
+        + r.label + &quot;. &quot; + IntToString(r.cost)
+        + &quot; merit is now held. A DM will fulfil it; cancel any time from &quot;
+        + &quot;&#x27;My pending requests&#x27; for a full refund.&quot;);
+
+    SendMessageToAllDMs(&quot;[Merit] &quot; + GetPCPlayerName(oPC) + &quot; requested redemption #&quot;
+        + IntToString(nReqId) + &quot;: &quot; + r.label + &quot; (&quot; + IntToString(r.cost) + &quot; merit&quot;
+        + (r.needs_dm ? &quot;, DM approval&quot; : &quot;&quot;) + &quot;). EmoteWand &gt; [Admin] Merit Redemptions.&quot;);
+    return TRUE;
+}
+
+// bIsDm: a player may only cancel their own pending request; a DM may cancel any.
+int Merit_CancelRedemption(int nReqId, string sActorCdKey, string sActorName, int bIsDm)
+{
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;SELECT cdkey, player_name, reward_label, cost, status FROM redemptions WHERE id=@i&quot;);
+    SqlBindInt(q, &quot;@i&quot;, nReqId);
+    if (!SqlStep(q)) return FALSE;
+
+    string sOwner  = SqlGetString(q, 0);
+    string sPName  = SqlGetString(q, 1);
+    string sLabel  = SqlGetString(q, 2);
+    int    nCost   = SqlGetInt(q, 3);
+    string sStatus = SqlGetString(q, 4);
+
+    if (sStatus != &quot;pending&quot;) return FALSE;
+    if (!bIsDm &amp;&amp; sOwner != sActorCdKey) return FALSE;
+
+    Merit_Refund(sOwner, nCost);
+    Merit_Ledger(sOwner, sPName, nCost,
+        &quot;cancel #&quot; + IntToString(nReqId) + &quot; refund: &quot; + sLabel, nReqId);
+
+    sqlquery qu = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;UPDATE redemptions SET status=&#x27;cancelled&#x27;, resolved_by=@by, resolved_at=datetime(&#x27;now&#x27;)&quot;
+        + &quot; WHERE id=@i&quot;);
+    SqlBindString(qu, &quot;@by&quot;, (bIsDm ? &quot;DM:&quot; : &quot;&quot;) + sActorName);
+    SqlBindInt(qu, &quot;@i&quot;, nReqId);
+    SqlStep(qu);
+
+    Merit_NotifyOnline(sOwner, &quot;[Merit] Redemption #&quot; + IntToString(nReqId) + &quot; (&quot;
+        + sLabel + &quot;) was cancelled. &quot; + IntToString(nCost) + &quot; merit refunded.&quot;);
+    SendMessageToAllDMs(&quot;[Merit] Redemption #&quot; + IntToString(nReqId) + &quot; (&quot; + sLabel
+        + &quot;) cancelled by &quot; + sActorName + &quot;; &quot; + IntToString(nCost) + &quot; merit refunded to &quot;
+        + sPName + &quot;.&quot;);
+    return TRUE;
+}
+
+int Merit_FulfillRedemption(int nReqId, string sDmName)
+{
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;SELECT cdkey, player_name, reward_label, cost, status FROM redemptions WHERE id=@i&quot;);
+    SqlBindInt(q, &quot;@i&quot;, nReqId);
+    if (!SqlStep(q)) return FALSE;
+
+    string sOwner  = SqlGetString(q, 0);
+    string sPName  = SqlGetString(q, 1);
+    string sLabel  = SqlGetString(q, 2);
+    string sStatus = SqlGetString(q, 4);
+
+    if (sStatus != &quot;pending&quot;) return FALSE;
+
+    sqlquery qu = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;UPDATE redemptions SET status=&#x27;fulfilled&#x27;, resolved_by=@by, resolved_at=datetime(&#x27;now&#x27;)&quot;
+        + &quot; WHERE id=@i&quot;);
+    SqlBindString(qu, &quot;@by&quot;, &quot;DM:&quot; + sDmName);
+    SqlBindInt(qu, &quot;@i&quot;, nReqId);
+    SqlStep(qu);
+
+    Merit_NotifyOnline(sOwner, &quot;[Merit] Your redemption #&quot; + IntToString(nReqId) + &quot; (&quot;
+        + sLabel + &quot;) has been fulfilled by a DM. Enjoy!&quot;);
+    SendMessageToAllDMs(&quot;[Merit] Redemption #&quot; + IntToString(nReqId) + &quot; (&quot; + sLabel
+        + &quot;) for &quot; + sPName + &quot; marked fulfilled by &quot; + sDmName + &quot;.&quot;);
+    return TRUE;
+}
+
+// ------------------------------------------------------------
+// List builders (set tokens + per-speaker slot locals before the entry renders)
+
+// Player: options in a category -&gt; tokens 5060-5068, locals merit_lslot_&lt;i&gt;.
+void Merit_BuildCategory(object oPC, int nCat)
+{
+    int i;
+    for (i = 0; i &lt; 9; i++)
+    {
+        DeleteLocalInt(oPC, &quot;merit_lslot_&quot; + IntToString(i));
+        SetCustomToken(5060 + i, &quot;&quot;);
+    }
+
+    int nCount = Merit_CatCount(nCat);
+    for (i = 0; i &lt; nCount &amp;&amp; i &lt; 9; i++)
+    {
+        int nId = Merit_CatReward(nCat, i);
+        struct merit_reward r = Merit_GetReward(nId);
+        SetLocalInt(oPC, &quot;merit_lslot_&quot; + IntToString(i), nId);
+        // Only the nominal instant rewards (teleports/premium) are still
+        // unwired placeholders. DM-fulfilled options work today (a DM delivers
+        // them) and tournament gear (302) delivers on the spot, so neither
+        // carries the red [PLACEHOLDER] prefix.
+        string sPrefix = (r.needs_dm == 1 || nId == 302) ? &quot;&quot; : MERIT_PH;
+        SetCustomToken(5060 + i, sPrefix + r.label + &quot; [&quot; + IntToString(r.cost) + &quot; merit]&quot;);
+    }
+}
+
+// Player: own pending requests -&gt; tokens 5050-5058 (+5059 header), locals merit_lslot_&lt;i&gt;.
+void Merit_BuildMyPending(object oPC)
+{
+    int i;
+    for (i = 0; i &lt; 9; i++)
+    {
+        DeleteLocalInt(oPC, &quot;merit_lslot_&quot; + IntToString(i));
+        SetCustomToken(5050 + i, &quot;&quot;);
+    }
+
+    string sCdKey = GetPCPublicCDKey(oPC);
+
+    sqlquery qc = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;SELECT COUNT(*) FROM redemptions WHERE cdkey=@k AND status=&#x27;pending&#x27;&quot;);
+    SqlBindString(qc, &quot;@k&quot;, sCdKey);
+    int nCount = 0;
+    if (SqlStep(qc)) nCount = SqlGetInt(qc, 0);
+    SetCustomToken(5059, nCount
+        ? (&quot;You have &quot; + IntToString(nCount) + &quot; pending request(s)&quot;
+           + (nCount &gt; 9 ? &quot; (showing first 9)&quot; : &quot;&quot;) + &quot;. Select one to cancel for a refund:&quot;)
+        : &quot;You have no pending requests.&quot;);
+
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;SELECT id, reward_label, cost FROM redemptions WHERE cdkey=@k AND status=&#x27;pending&#x27;&quot;
+        + &quot; ORDER BY requested_at LIMIT 9&quot;);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    i = 0;
+    while (SqlStep(q) &amp;&amp; i &lt; 9)
+    {
+        int nId    = SqlGetInt(q, 0);
+        string sL  = SqlGetString(q, 1);
+        int nCost  = SqlGetInt(q, 2);
+        SetLocalInt(oPC, &quot;merit_lslot_&quot; + IntToString(i), nId);
+        SetCustomToken(5050 + i, &quot;[Cancel] #&quot; + IntToString(nId) + &quot; &quot; + sL
+            + &quot; (&quot; + IntToString(nCost) + &quot; merit)&quot;);
+        i++;
+    }
+}
+
+// DM: all pending requests, paged -&gt; tokens 5040-5048 (+5049 header),
+// locals merit_lslot_&lt;i&gt; and merit_lslot_&lt;i&gt;_desc.
+void Merit_BuildPendingPage(object oDM)
+{
+    int nOff = GetLocalInt(oDM, &quot;merit_rpage_off&quot;);
+
+    sqlquery qc = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;SELECT COUNT(*) FROM redemptions WHERE status=&#x27;pending&#x27;&quot;);
+    int nTotal = 0;
+    if (SqlStep(qc)) nTotal = SqlGetInt(qc, 0);
+    SetLocalInt(oDM, &quot;merit_rpage_total&quot;, nTotal);
+
+    int nPages = (nTotal + 8) / 9;
+    if (nPages == 0) nPages = 1;
+    int nPage = nOff / 9 + 1;
+    SetCustomToken(5049, IntToString(nTotal) + &quot; pending  (page &quot;
+        + IntToString(nPage) + &quot; of &quot; + IntToString(nPages) + &quot;)&quot;);
+
+    int i;
+    for (i = 0; i &lt; 9; i++)
+    {
+        DeleteLocalInt(oDM, &quot;merit_lslot_&quot; + IntToString(i));
+        DeleteLocalString(oDM, &quot;merit_lslot_&quot; + IntToString(i) + &quot;_desc&quot;);
+        SetCustomToken(5040 + i, &quot;(empty)&quot;);
+    }
+
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;SELECT id, player_name, reward_label, cost, needs_dm FROM redemptions&quot;
+        + &quot; WHERE status=&#x27;pending&#x27; ORDER BY requested_at LIMIT 9 OFFSET @o&quot;);
+    SqlBindInt(q, &quot;@o&quot;, nOff);
+    i = 0;
+    while (SqlStep(q) &amp;&amp; i &lt; 9)
+    {
+        int nId    = SqlGetInt(q, 0);
+        string sN  = SqlGetString(q, 1);
+        string sL  = SqlGetString(q, 2);
+        int nCost  = SqlGetInt(q, 3);
+        int nDm    = SqlGetInt(q, 4);
+        string sDesc = &quot;#&quot; + IntToString(nId) + &quot; &quot; + sN + &quot;: &quot; + sL
+            + &quot; (&quot; + IntToString(nCost) + &quot; merit&quot; + (nDm ? &quot;, DM approval&quot; : &quot;&quot;) + &quot;)&quot;;
+        SetLocalInt(oDM, &quot;merit_lslot_&quot; + IntToString(i), nId);
+        SetLocalString(oDM, &quot;merit_lslot_&quot; + IntToString(i) + &quot;_desc&quot;, sDesc);
+        SetCustomToken(5040 + i, sDesc);
+        i++;
+    }
+}
+
+// ------------------------------------------------------------
+// Tournament gear (reward 302) — curated picker. One solid item per weapon
+// type plus armour, tower shield, gauntlets, and bows (dupes/mislabeled
+// blueprints dropped). The chosen piece is delivered instantly.
+
+int Merit_TournCount() { return 23; }
+
+string Merit_TournResref(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;tournamaentlongs&quot;;  // Longsword (sic: blueprint resref)
+        case 1:  return &quot;tournamentshorts&quot;;  // Short Sword
+        case 2:  return &quot;tournamentgreats&quot;;  // Greatsword
+        case 3:  return &quot;item093&quot;;           // Bastard Sword
+        case 4:  return &quot;tournamentscimit&quot;;  // Scimitar
+        case 5:  return &quot;tournamentdagger&quot;;  // Dagger
+        case 6:  return &quot;tournamentkama&quot;;    // Kama
+        case 7:  return &quot;tournamentkuk001&quot;;  // Kukri
+        case 8:  return &quot;tournamentclub&quot;;    // Club
+        case 9:  return &quot;tournamentmace&quot;;    // Mace
+        case 10: return &quot;tournamentmornin&quot;;  // Morningstar
+        case 11: return &quot;tournamentwarham&quot;;  // Warhammer
+        case 12: return &quot;tournamentbattle&quot;;  // Battleaxe
+        case 13: return &quot;tournamentgreata&quot;;  // Greataxe
+        case 14: return &quot;tournamenthalber&quot;;  // Halberd
+        case 15: return &quot;tournamentscythe&quot;;  // Scythe
+        case 16: return &quot;tournamentmaugdo&quot;;  // Maug Double Sword
+        case 17: return &quot;tournamentlongbo&quot;;  // Longbow
+        case 18: return &quot;tournamentshortb&quot;;  // Shortbow
+        case 19: return &quot;tournamentdarts&quot;;   // Darts
+        case 20: return &quot;tournamentarmour&quot;;  // Armour
+        case 21: return &quot;tournamenttowers&quot;;  // Tower Shield
+        case 22: return &quot;tournamentgauntl&quot;;  // Gauntlets
+    }
+    return &quot;&quot;;
+}
+
+string Merit_TournName(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;Tournament Longsword&quot;;
+        case 1:  return &quot;Tournament Short Sword&quot;;
+        case 2:  return &quot;Tournament Greatsword&quot;;
+        case 3:  return &quot;Tournament Bastard Sword&quot;;
+        case 4:  return &quot;Tournament Scimitar&quot;;
+        case 5:  return &quot;Tournament Dagger&quot;;
+        case 6:  return &quot;Tournament Kama&quot;;
+        case 7:  return &quot;Tournament Kukri&quot;;
+        case 8:  return &quot;Tournament Club&quot;;
+        case 9:  return &quot;Tournament Mace&quot;;
+        case 10: return &quot;Tournament Morningstar&quot;;
+        case 11: return &quot;Tournament Warhammer&quot;;
+        case 12: return &quot;Tournament Battleaxe&quot;;
+        case 13: return &quot;Tournament Greataxe&quot;;
+        case 14: return &quot;Tournament Halberd&quot;;
+        case 15: return &quot;Tournament Scythe&quot;;
+        case 16: return &quot;Tournament Maug Double Sword&quot;;
+        case 17: return &quot;Tournament Longbow&quot;;
+        case 18: return &quot;Tournament Shortbow&quot;;
+        case 19: return &quot;Tournament Darts&quot;;
+        case 20: return &quot;Tournament Armour&quot;;
+        case 21: return &quot;Tournament Tower Shield&quot;;
+        case 22: return &quot;Tournament Gauntlets&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// Build the tournament picker page -&gt; tokens 5070-5078, locals merit_tslot_&lt;i&gt;.
+void Merit_BuildTournament(object oPC)
+{
+    int nOff   = GetLocalInt(oPC, &quot;merit_tpage_off&quot;);
+    int nTotal = Merit_TournCount();
+    SetLocalInt(oPC, &quot;merit_tpage_total&quot;, nTotal);
+
+    int i;
+    for (i = 0; i &lt; 9; i++)
+    {
+        DeleteLocalString(oPC, &quot;merit_tslot_&quot; + IntToString(i));
+        DeleteLocalString(oPC, &quot;merit_tslot_&quot; + IntToString(i) + &quot;_name&quot;);
+        SetCustomToken(5070 + i, &quot;&quot;);
+    }
+    for (i = 0; i &lt; 9; i++)
+    {
+        int idx = nOff + i;
+        if (idx &gt;= nTotal) break;
+        SetLocalString(oPC, &quot;merit_tslot_&quot; + IntToString(i), Merit_TournResref(idx));
+        SetLocalString(oPC, &quot;merit_tslot_&quot; + IntToString(i) + &quot;_name&quot;, Merit_TournName(idx));
+        SetCustomToken(5070 + i, Merit_TournName(idx));
+    }
+}
+
+// ------------------------------------------------------------
+// Confirmation step (token 5037 + merit_pick_* locals on the speaker)
+
+void Merit_PrepConfirm(object oPC, int nId)
+{
+    struct merit_reward r = Merit_GetReward(nId);
+    string sCdKey = GetPCPublicCDKey(oPC);
+    int nAvail = Merit_Available(sCdKey);
+    int bAfford = (nAvail &gt;= r.cost);
+
+    SetLocalInt(oPC, &quot;merit_pick_id&quot;, nId);
+    SetLocalInt(oPC, &quot;merit_pick_dm&quot;, r.needs_dm);
+    SetLocalInt(oPC, &quot;merit_pick_afford&quot;, bAfford);
+
+    if (!r.valid)
+    {
+        SetCustomToken(5037, &quot;Hmm, I can&#x27;t find that reward. Try again?&quot;);
+        SetLocalInt(oPC, &quot;merit_pick_afford&quot;, FALSE);
+        return;
+    }
+    if (!bAfford)
+    {
+        SetCustomToken(5037, &quot;I&#x27;m afraid &#x27;&quot; + r.label + &quot;&#x27; costs &quot; + IntToString(r.cost)
+            + &quot; merit, and you&#x27;ve only &quot; + IntToString(nAvail)
+            + &quot; available. Best earn a bit more first.&quot;);
+        return;
+    }
+    if (nId == 302)
+    {
+        SetLocalInt(oPC, &quot;merit_tpage_off&quot;, 0);
+        Merit_BuildTournament(oPC);
+        SetCustomToken(5037, &quot;A fine choice - &quot; + IntToString(r.cost)
+            + &quot; merit for one piece of Tournament gear, yours on the spot (this cannot be undone). Pick one:&quot;);
+        return;
+    }
+    if (r.needs_dm == 0)
+        SetCustomToken(5037, &quot;Reward of &#x27;&quot; + r.label + &quot;&#x27; to be granted instantly -- this cannot be undone. (&quot;
+            + IntToString(r.cost) + &quot; merit)&quot;);
+    else
+        SetCustomToken(5037, &quot;Reward of &#x27;&quot; + r.label
+            + &quot;&#x27; to be fulfilled by a DM later, as time and bandwidth allow. (&quot;
+            + IntToString(r.cost) + &quot; merit)&quot;);
+}
+
+// ------------------------------------------------------------
+// Instant grant (needs_dm == 0): spend, record a fulfilled row, ledger, deliver.
+
+int Merit_GrantInstant(object oPC, int nId)
+{
+    struct merit_reward r = Merit_GetReward(nId);
+    if (!r.valid) return FALSE;
+
+    string sCdKey = GetPCPublicCDKey(oPC);
+    if (Merit_Available(sCdKey) &lt; r.cost)
+    {
+        SendMessageToPC(oPC, &quot;[Merit] You can no longer afford that.&quot;);
+        return FALSE;
+    }
+
+    Merit_Spend(sCdKey, r.cost);
+
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;INSERT INTO redemptions(cdkey, player_name, reward_id, reward_label, cost, needs_dm, status, resolved_by, resolved_at)&quot;
+        + &quot; VALUES(@k, @n, @r, @l, @c, 0, &#x27;fulfilled&#x27;, &#x27;auto&#x27;, datetime(&#x27;now&#x27;))&quot;);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    SqlBindString(q, &quot;@n&quot;, GetPCPlayerName(oPC));
+    SqlBindInt(q, &quot;@r&quot;, nId);
+    SqlBindString(q, &quot;@l&quot;, r.label);
+    SqlBindInt(q, &quot;@c&quot;, r.cost);
+    SqlStep(q);
+
+    int nReqId = 0;
+    sqlquery qid = SqlPrepareQueryCampaign(MERIT_DB, &quot;SELECT last_insert_rowid()&quot;);
+    if (SqlStep(qid)) nReqId = SqlGetInt(qid, 0);
+
+    Merit_Ledger(sCdKey, GetPCPlayerName(oPC), -r.cost,
+        &quot;instant #&quot; + IntToString(nReqId) + &quot;: &quot; + r.label, nReqId);
+    Merit_SetNpcTokens(oPC);
+
+    SendMessageToPC(oPC, &quot;[Merit] Redeemed instantly: &quot; + r.label + &quot; (&quot;
+        + IntToString(r.cost) + &quot; merit). Logged as #&quot; + IntToString(nReqId) + &quot;.&quot;);
+    SendMessageToAllDMs(&quot;[Merit] &quot; + GetPCPlayerName(oPC) + &quot; redeemed (instant) #&quot;
+        + IntToString(nReqId) + &quot;: &quot; + r.label + &quot; (&quot; + IntToString(r.cost) + &quot; merit).&quot;);
+    return TRUE;
+}
+
+// Tournament instant grant — like Merit_GrantInstant but delivers a chosen item.
+int Merit_GrantTournament(object oPC, string sResref, string sItemName)
+{
+    struct merit_reward r = Merit_GetReward(302);
+
+    string sCdKey = GetPCPublicCDKey(oPC);
+    if (Merit_Available(sCdKey) &lt; r.cost)
+    {
+        SendMessageToPC(oPC, &quot;[Merit] You can no longer afford that.&quot;);
+        return FALSE;
+    }
+
+    // Deliver the item FIRST and confirm it exists before spending any merit.
+    // CreateItemOnObject only returns an invalid object when the item truly
+    // could not be made (bad blueprint); when the PC&#x27;s inventory is full the
+    // item is still created but lands on the ground at their feet. Both count as
+    // &quot;delivered&quot; for billing purposes -- the player has the item either way --
+    // so we only abort (no charge) when nothing was created at all.
+    object oItem = CreateItemOnObject(sResref, oPC);
+    if (!GetIsObjectValid(oItem))
+    {
+        SendMessageToPC(oPC, &quot;[Merit] Could not create &quot; + sItemName + &quot; (item &#x27;&quot;
+            + sResref + &quot;&#x27;) - no merit was spent. Please try again, or tell a DM &quot;
+            + &quot;if it keeps failing.&quot;);
+        return FALSE;
+    }
+    int bOnGround = (GetItemPossessor(oItem) != oPC);  // inventory was full
+
+    // Delivery confirmed (in inventory or on the ground); now charge and record.
+    Merit_Spend(sCdKey, r.cost);
+    string sLabel = &quot;Tournament gear: &quot; + sItemName;
+
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;INSERT INTO redemptions(cdkey, player_name, reward_id, reward_label, cost, needs_dm, status, resolved_by, resolved_at)&quot;
+        + &quot; VALUES(@k, @n, 302, @l, @c, 0, &#x27;fulfilled&#x27;, &#x27;auto&#x27;, datetime(&#x27;now&#x27;))&quot;);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    SqlBindString(q, &quot;@n&quot;, GetPCPlayerName(oPC));
+    SqlBindString(q, &quot;@l&quot;, sLabel);
+    SqlBindInt(q, &quot;@c&quot;, r.cost);
+    SqlStep(q);
+
+    int nReqId = 0;
+    sqlquery qid = SqlPrepareQueryCampaign(MERIT_DB, &quot;SELECT last_insert_rowid()&quot;);
+    if (SqlStep(qid)) nReqId = SqlGetInt(qid, 0);
+
+    Merit_Ledger(sCdKey, GetPCPlayerName(oPC), -r.cost,
+        &quot;instant #&quot; + IntToString(nReqId) + &quot;: &quot; + sLabel, nReqId);
+    Merit_SetNpcTokens(oPC);
+
+    if (bOnGround)
+        SendMessageToPC(oPC, &quot;[Merit] Granted &quot; + sItemName + &quot; (&quot; + IntToString(r.cost)
+            + &quot; merit), but your inventory was full so it dropped at your feet - &quot;
+            + &quot;pick it up off the ground!&quot;);
+    else
+        SendMessageToPC(oPC, &quot;[Merit] Granted &quot; + sItemName + &quot; (&quot;
+            + IntToString(r.cost) + &quot; merit). Check your inventory!&quot;);
+    SendMessageToAllDMs(&quot;[Merit] &quot; + GetPCPlayerName(oPC) + &quot; redeemed Tournament gear #&quot;
+        + IntToString(nReqId) + &quot;: &quot; + sItemName + &quot;.&quot;);
+    return TRUE;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

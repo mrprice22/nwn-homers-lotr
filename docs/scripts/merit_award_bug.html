@@ -58,6 +58,7 @@ void main()
     string sName  = GetLocalString(oDM, &quot;merit_sel_name&quot;);
 
     Merit_AwardBug(sCdKey);
+    Merit_Ledger(sCdKey, sName, MERIT_BUG_VALUE, &quot;award: defect report&quot;, 0);
 
     SendMessageToPC(oDM, &quot;[Merit] Awarded Defect Report (+1) to &quot; + sName + &quot;.&quot;);
 

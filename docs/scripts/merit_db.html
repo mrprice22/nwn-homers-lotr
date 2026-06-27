@@ -82,6 +82,38 @@ void Merit_InitDb()
         &quot;features INTEGER DEFAULT 0,&quot; +
         &quot;merit_spent INTEGER DEFAULT 0)&quot;);
     SqlStep(q);
+
+    // Redemption requests. Escrow model: cost is debited (added to
+    // players.merit_spent) the moment a row is inserted as &#x27;pending&#x27;, and
+    // refunded only if the row is &#x27;cancelled&#x27;. &#x27;fulfilled&#x27; rows keep the debit.
+    sqlquery qr = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS redemptions (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;cdkey TEXT NOT NULL,&quot; +
+        &quot;player_name TEXT,&quot; +
+        &quot;reward_id INTEGER NOT NULL,&quot; +
+        &quot;reward_label TEXT,&quot; +
+        &quot;cost INTEGER NOT NULL,&quot; +
+        &quot;needs_dm INTEGER NOT NULL DEFAULT 1,&quot; +
+        &quot;status TEXT NOT NULL DEFAULT &#x27;pending&#x27;,&quot; +     // pending|fulfilled|cancelled
+        &quot;requested_at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)),&quot; +
+        &quot;resolved_by TEXT,&quot; +
+        &quot;resolved_at TEXT)&quot;);
+    SqlStep(qr);
+
+    // Transaction ledger — every merit movement (spend/refund/award) with the
+    // resulting available balance, for audit and recovery. Never pruned.
+    sqlquery ql = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS merit_ledger (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;cdkey TEXT NOT NULL,&quot; +
+        &quot;player_name TEXT,&quot; +
+        &quot;delta INTEGER NOT NULL,&quot; +          // &lt;0 spent, &gt;0 refunded/awarded
+        &quot;balance_after INTEGER,&quot; +
+        &quot;reason TEXT,&quot; +
+        &quot;redemption_id INTEGER,&quot; +
+        &quot;created_at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)))&quot;);
+    SqlStep(ql);
 }
 
 // ------------------------------------------------------------
@@ -123,7 +155,7 @@ void Merit_LoginMessage(object oPC)
         &quot;  Exploits reported:   &quot; + IntToString(nExp)  + &quot;\n&quot; +
         &quot;  Features implemented:&quot; + IntToString(nFtr)  + &quot;\n&quot; +
         &quot;Merit balance: &quot; + IntToString(nAvail) + &quot; pts available to spend.\n&quot; +
-        &quot;Visit the Keeper of Records in the Prancing Pony to redeem rewards.&quot;);
+        &quot;Visit Barliman the barkeep in the Prancing Pony to redeem rewards.&quot;);
 }
 
 // ------------------------------------------------------------
@@ -172,10 +204,49 @@ int Merit_Available(string sCdKey)
          - nSpent;
 }
 
+// Append a ledger row. nDelta &lt; 0 = spent, &gt; 0 = refunded/awarded. Records the
+// available balance *after* the movement, so call this once the underlying
+// counters (merit_spent / bugs / exploits / features) are already updated.
+// Pass nRedemptionId = 0 when not tied to a redemption. If sName is &quot;&quot;, the
+// player&#x27;s stored name is looked up.
+void Merit_Ledger(string sCdKey, string sName, int nDelta, string sReason, int nRedemptionId)
+{
+    if (sName == &quot;&quot;)
+    {
+        sqlquery qn = SqlPrepareQueryCampaign(MERIT_DB,
+            &quot;SELECT name FROM players WHERE cdkey=@k&quot;);
+        SqlBindString(qn, &quot;@k&quot;, sCdKey);
+        if (SqlStep(qn)) sName = SqlGetString(qn, 0);
+    }
+
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;INSERT INTO merit_ledger(cdkey, player_name, delta, balance_after, reason, redemption_id)&quot;
+        + &quot; VALUES(@k, @n, @d, @b, @r, @i)&quot;);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    SqlBindString(q, &quot;@n&quot;, sName);
+    SqlBindInt(q, &quot;@d&quot;, nDelta);
+    SqlBindInt(q, &quot;@b&quot;, Merit_Available(sCdKey));
+    SqlBindString(q, &quot;@r&quot;, sReason);
+    SqlBindInt(q, &quot;@i&quot;, nRedemptionId);
+    SqlStep(q);
+}
+
 void Merit_Spend(string sCdKey, int nCost)
 {
     sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
         &quot;UPDATE players SET merit_spent=merit_spent+@c WHERE cdkey=@k&quot;);
+    SqlBindInt(q, &quot;@c&quot;, nCost);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    SqlStep(q);
+}
+
+// Refund escrowed merit (e.g. a cancelled redemption). Clamps merit_spent at 0
+// so a double-cancel or bookkeeping slip can never drive it negative.
+void Merit_Refund(string sCdKey, int nCost)
+{
+    if (nCost &lt;= 0) return;
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;UPDATE players SET merit_spent=MAX(0, merit_spent-@c) WHERE cdkey=@k&quot;);
     SqlBindInt(q, &quot;@c&quot;, nCost);
     SqlBindString(q, &quot;@k&quot;, sCdKey);
     SqlStep(q);
