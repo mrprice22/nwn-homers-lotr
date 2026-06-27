@@ -49,6 +49,20 @@ void Merit_InitDb()
         "resolved_by TEXT," +
         "resolved_at TEXT)");
     SqlStep(qr);
+
+    // Transaction ledger — every merit movement (spend/refund/award) with the
+    // resulting available balance, for audit and recovery. Never pruned.
+    sqlquery ql = SqlPrepareQueryCampaign(MERIT_DB,
+        "CREATE TABLE IF NOT EXISTS merit_ledger (" +
+        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+        "cdkey TEXT NOT NULL," +
+        "player_name TEXT," +
+        "delta INTEGER NOT NULL," +          // <0 spent, >0 refunded/awarded
+        "balance_after INTEGER," +
+        "reason TEXT," +
+        "redemption_id INTEGER," +
+        "created_at TEXT NOT NULL DEFAULT (datetime('now')))");
+    SqlStep(ql);
 }
 
 // ------------------------------------------------------------
@@ -137,6 +151,33 @@ int Merit_Available(string sCdKey)
          + nExp   * MERIT_EXPLOIT_VALUE
          + nFtr   * MERIT_FEATURE_VALUE
          - nSpent;
+}
+
+// Append a ledger row. nDelta < 0 = spent, > 0 = refunded/awarded. Records the
+// available balance *after* the movement, so call this once the underlying
+// counters (merit_spent / bugs / exploits / features) are already updated.
+// Pass nRedemptionId = 0 when not tied to a redemption. If sName is "", the
+// player's stored name is looked up.
+void Merit_Ledger(string sCdKey, string sName, int nDelta, string sReason, int nRedemptionId)
+{
+    if (sName == "")
+    {
+        sqlquery qn = SqlPrepareQueryCampaign(MERIT_DB,
+            "SELECT name FROM players WHERE cdkey=@k");
+        SqlBindString(qn, "@k", sCdKey);
+        if (SqlStep(qn)) sName = SqlGetString(qn, 0);
+    }
+
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        "INSERT INTO merit_ledger(cdkey, player_name, delta, balance_after, reason, redemption_id)"
+        + " VALUES(@k, @n, @d, @b, @r, @i)");
+    SqlBindString(q, "@k", sCdKey);
+    SqlBindString(q, "@n", sName);
+    SqlBindInt(q, "@d", nDelta);
+    SqlBindInt(q, "@b", Merit_Available(sCdKey));
+    SqlBindString(q, "@r", sReason);
+    SqlBindInt(q, "@i", nRedemptionId);
+    SqlStep(q);
 }
 
 void Merit_Spend(string sCdKey, int nCost)

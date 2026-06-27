@@ -7,6 +7,7 @@ void main()
     string sName  = GetLocalString(oDM, "merit_sel_name");
 
     Merit_AwardFeature(sCdKey);
+    Merit_Ledger(sCdKey, sName, MERIT_FEATURE_VALUE, "award: feature implementation", 0);
 
     SendMessageToPC(oDM, "[Merit] Awarded Feature Implementation (+2) to " + sName + ".");
 
