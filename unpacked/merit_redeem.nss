@@ -130,6 +130,31 @@ int Merit_CatReward(int nCat, int nIdx)
 }
 
 // ------------------------------------------------------------
+// Teleport unlocks (ids 101-107). Ownership is recorded as a 'fulfilled'
+// redemptions row for the CD Key, so unlocks are per-CD-Key (every character on
+// that key gets them). They must be bought in order: 101 -> 102 -> ... -> 107.
+
+int Merit_IsTeleReward(int nId) { return nId >= 101 && nId <= 107; }
+
+// TRUE if this CD Key already owns the unlock for reward nId.
+int Merit_TeleOwned(string sCdKey, int nId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        "SELECT 1 FROM redemptions WHERE cdkey=@k AND reward_id=@r"
+        + " AND status='fulfilled' LIMIT 1");
+    SqlBindString(q, "@k", sCdKey);
+    SqlBindInt(q, "@r", nId);
+    return SqlStep(q);
+}
+
+// TRUE if the predecessor (if any) is owned, so nId may be purchased next.
+int Merit_TelePrereqMet(string sCdKey, int nId)
+{
+    if (nId <= 101) return TRUE;
+    return Merit_TeleOwned(sCdKey, nId - 1);
+}
+
+// ------------------------------------------------------------
 // Helpers
 
 // Message the holder of sCdKey if they are currently online.
@@ -279,16 +304,32 @@ void Merit_BuildCategory(object oPC, int nCat)
         SetCustomToken(5060 + i, "");
     }
 
+    string sCdKey = GetPCPublicCDKey(oPC);
     int nCount = Merit_CatCount(nCat);
     for (i = 0; i < nCount && i < 9; i++)
     {
         int nId = Merit_CatReward(nCat, i);
         struct merit_reward r = Merit_GetReward(nId);
         SetLocalInt(oPC, "merit_lslot_" + IntToString(i), nId);
-        // Only the nominal instant rewards (teleports/premium) are still
-        // unwired placeholders. DM-fulfilled options work today (a DM delivers
-        // them) and tournament gear (302) delivers on the spot, so neither
-        // carries the red [PLACEHOLDER] prefix.
+
+        // Teleport unlocks (101-107) are live rest-menu features bought in
+        // order: show their unlock status instead of the red placeholder.
+        if (Merit_IsTeleReward(nId))
+        {
+            if (Merit_TeleOwned(sCdKey, nId))
+                SetCustomToken(5060 + i, "[Owned] " + r.label);
+            else if (!Merit_TelePrereqMet(sCdKey, nId))
+                SetCustomToken(5060 + i, "[Locked - buy the previous one first] "
+                    + r.label + " [" + IntToString(r.cost) + " merit]");
+            else
+                SetCustomToken(5060 + i, r.label + " [" + IntToString(r.cost) + " merit]");
+            continue;
+        }
+
+        // Only the nominal instant rewards (premium) are still unwired
+        // placeholders. DM-fulfilled options work today (a DM delivers them)
+        // and tournament gear (302) delivers on the spot, so neither carries
+        // the red [PLACEHOLDER] prefix.
         string sPrefix = (r.needs_dm == 1 || nId == 302) ? "" : MERIT_PH;
         SetCustomToken(5060 + i, sPrefix + r.label + " [" + IntToString(r.cost) + " merit]");
     }
@@ -500,6 +541,24 @@ void Merit_PrepConfirm(object oPC, int nId)
             + " available. Best earn a bit more first.");
         return;
     }
+    if (Merit_IsTeleReward(nId))
+    {
+        if (Merit_TeleOwned(sCdKey, nId))
+        {
+            SetCustomToken(5037, "You already own that teleport unlock - it is "
+                + "available to all your characters from the rest menu.");
+            SetLocalInt(oPC, "merit_pick_afford", FALSE);
+            return;
+        }
+        if (!Merit_TelePrereqMet(sCdKey, nId))
+        {
+            struct merit_reward rPrev = Merit_GetReward(nId - 1);
+            SetCustomToken(5037, "These teleport unlocks must be bought in order. "
+                + "Buy '" + rPrev.label + "' first before this one.");
+            SetLocalInt(oPC, "merit_pick_afford", FALSE);
+            return;
+        }
+    }
     if (nId == 302)
     {
         SetLocalInt(oPC, "merit_tpage_off", 0);
@@ -526,6 +585,23 @@ int Merit_GrantInstant(object oPC, int nId)
     if (!r.valid) return FALSE;
 
     string sCdKey = GetPCPublicCDKey(oPC);
+
+    // Teleport unlocks: authoritative order/duplicate guard (the conversation
+    // gating above is only UX). Never spend when out of order or already owned.
+    if (Merit_IsTeleReward(nId))
+    {
+        if (Merit_TeleOwned(sCdKey, nId))
+        {
+            SendMessageToPC(oPC, "[Merit] You already own that teleport unlock.");
+            return FALSE;
+        }
+        if (!Merit_TelePrereqMet(sCdKey, nId))
+        {
+            SendMessageToPC(oPC, "[Merit] Teleport unlocks must be purchased in order.");
+            return FALSE;
+        }
+    }
+
     if (Merit_Available(sCdKey) < r.cost)
     {
         SendMessageToPC(oPC, "[Merit] You can no longer afford that.");
