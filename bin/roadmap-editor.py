@@ -26,9 +26,11 @@ import json
 import os
 import re
 import socket
+import sqlite3
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import webbrowser
 from contextlib import redirect_stderr
 from datetime import datetime
@@ -100,6 +102,114 @@ def vocab(data: dict) -> dict:
     ids = [i.get("id") for i in ideas if i.get("id")]
     return {"groups": groups, "players": players, "statuses": statuses,
             "types": types, "ids": ids}
+
+
+# --------------------------------------------------------------------------
+# In-game merit database (read-only)
+# --------------------------------------------------------------------------
+# The live NWN server keeps merit totals + redemption requests in a campaign
+# SQLite DB ("meritdb"). We read it strictly read-only to surface real in-game
+# numbers next to the YAML-derived merit estimate. Earned merit is NOT stored;
+# it is computed from the raw counters at these rates (mirrors merit_db.nss):
+MERIT_RATE_BUG = 1       # Defect
+MERIT_RATE_FEATURE = 2   # Enhancement
+MERIT_RATE_EXPLOIT = 3   # Exploit
+
+
+def merit_db_path() -> Path:
+    """Filesystem path to the live meritdb campaign database."""
+    home = os.environ.get("NWN_HOME_DIR") or os.path.join(
+        os.path.expanduser("~"), ".local", "share", "Neverwinter Nights")
+    return Path(home) / "database" / "meritdb.sqlite3"
+
+
+def _merit_connect():
+    """Open meritdb read-only, or return None if it can't be read."""
+    db = merit_db_path()
+    if not db.exists():
+        return None
+    con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    con.row_factory = sqlite3.Row
+    return con
+
+
+def _name_candidates(roadmap_name: str) -> list[str]:
+    """Strings to try matching a roadmap player name against players.name.
+
+    Roadmap names are free text and often carry a parenthetical alias, e.g.
+    "dc0960 (Dungeon_Crawler)" or "HomelessSon (Server Admin)". We try the full
+    string, the part before '(', and the part inside '(...)'.
+    """
+    out: list[str] = []
+    n = (roadmap_name or "").strip()
+    if n:
+        out.append(n)
+    m = re.match(r"^([^(]+?)\s*\(([^)]*)\)\s*$", n)
+    if m:
+        for part in (m.group(1).strip(), m.group(2).strip()):
+            if part and part not in out:
+                out.append(part)
+    return out
+
+
+def _resolve_player_row(con, roadmap_name: str):
+    """Smart-match a roadmap player name to a meritdb players row (or None)."""
+    for cand in _name_candidates(roadmap_name):
+        row = con.execute(
+            "SELECT * FROM players WHERE name = ? COLLATE NOCASE LIMIT 1",
+            (cand,)).fetchone()
+        if row:
+            return row
+    return None
+
+
+def merit_for_player(roadmap_name: str) -> dict:
+    """Read-only in-game merit snapshot + spend history for one roadmap name."""
+    con = _merit_connect()
+    if con is None:
+        return {"available": False,
+                "reason": f"meritdb not found at {merit_db_path()}"}
+    try:
+        row = _resolve_player_row(con, roadmap_name)
+        if row is None:
+            return {"available": True, "matched": False,
+                    "query": roadmap_name}
+        bugs = row["bugs"] or 0
+        exploits = row["exploits"] or 0
+        features = row["features"] or 0
+        spent = row["merit_spent"] or 0
+        earned = (bugs * MERIT_RATE_BUG + features * MERIT_RATE_FEATURE
+                  + exploits * MERIT_RATE_EXPLOIT)
+        txns = [dict(r) for r in con.execute(
+            "SELECT reward_label, cost, status, requested_at, resolved_at, "
+            "needs_dm FROM redemptions WHERE cdkey = ? ORDER BY id DESC",
+            (row["cdkey"],)).fetchall()]
+        return {
+            "available": True, "matched": True,
+            "matched_name": row["name"], "last_login": row["last_login"],
+            "bugs": bugs, "exploits": exploits, "features": features,
+            "earned": earned, "spent": spent, "balance": earned - spent,
+            "transactions": txns,
+        }
+    finally:
+        con.close()
+
+
+def pending_requests() -> dict:
+    """Open DM-delivery merit requests (status='pending' AND needs_dm=1)."""
+    con = _merit_connect()
+    if con is None:
+        return {"available": False, "count": 0, "rows": [],
+                "reason": f"meritdb not found at {merit_db_path()}"}
+    try:
+        rows = [dict(r) for r in con.execute(
+            "SELECT id, player_name, reward_label, cost, needs_dm, "
+            "requested_at FROM redemptions "
+            "WHERE status = 'pending' AND needs_dm = 1 "
+            "ORDER BY requested_at").fetchall()]
+        return {"available": True, "count": len(rows), "rows": rows}
+    finally:
+        con.close()
 
 
 # --------------------------------------------------------------------------
@@ -420,6 +530,12 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/data":
             data = read_yaml()
             self._json({"ideas": data.get("ideas", []) or [], "vocab": vocab(data)})
+        elif self.path.startswith("/api/merit"):
+            q = urllib.parse.urlparse(self.path).query
+            player = urllib.parse.parse_qs(q).get("player", [""])[0]
+            self._json(merit_for_player(player))
+        elif self.path == "/api/pending":
+            self._json(pending_requests())
         else:
             self._send(404, b"not found", "text/plain")
 
@@ -611,6 +727,17 @@ PAGE = r"""<!doctype html>
   .merit .pts b { font-size:16px; color:var(--ok); }
   .merit .note { color:var(--warn); font-size:11px; margin-top:6px; }
   .merit .sub { color:var(--mut); font-size:11px; margin-top:6px; }
+  .merit .bal { color:var(--accent); }
+  .merit .muted { color:var(--mut); }
+  .txns { width:100%; border-collapse:collapse; margin-top:9px; font-size:12px; }
+  .txns th, .txns td { text-align:left; padding:3px 6px; border-bottom:1px solid var(--line); }
+  .txns th { color:var(--mut); font-weight:600; }
+  .txns td.cost { text-align:right; color:var(--err); font-variant-numeric:tabular-nums; }
+  .txns .st { font-size:11px; }
+  .txns .st.pending { color:var(--warn); }
+  .txns .st.fulfilled { color:var(--ok); }
+  .txns .st.cancelled { color:var(--mut); text-decoration:line-through; }
+  #mpending.has { color:var(--warn); font-weight:600; }
 </style></head>
 <body>
 <div id="left">
@@ -637,6 +764,7 @@ PAGE = r"""<!doctype html>
       <button id="add">+ Add idea</button>
       <button id="mgroups" class="linkbtn">Manage groups</button>
       <button id="mplayers" class="linkbtn">Manage players</button>
+      <button id="mpending" class="linkbtn">Pending Merit Requests</button>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
@@ -669,6 +797,17 @@ function groupTitle(id){
 async function load(){
   const r = await fetch('/api/data'); DATA = await r.json();
   populateFilters(); renderList(); if (DATA.ideas.length) select(0);
+  refreshPending();
+}
+
+// Update the "X Pending Merit Requests" button label from the live game DB.
+function refreshPending(){
+  const btn=$('#mpending'); if(!btn) return;
+  fetch('/api/pending').then(r=>r.json()).then(d=>{
+    const n=d.count||0;
+    btn.textContent=`${n} Pending Merit Request${n===1?'':'s'}`;
+    btn.classList.toggle('has', n>0);
+  }).catch(()=>{});
 }
 
 function populateFilters(){
@@ -818,11 +957,16 @@ function select(i){
       <button id="up">↑ Move up</button>
       <button id="down">↓ Move down</button>
     </div>
-    <div id="merit"></div>`;
+    <div id="merit"></div>
+    <div id="merit_ingame"></div>`;
   bindPlayerHint();
   initNotes(it);
   renderMerit(it.player||'');
-  $('#f_player').addEventListener('input', e=>renderMerit(e.target.value.trim()));
+  renderMeritIngame(it.player||'');
+  $('#f_player').addEventListener('input', e=>{
+    const v=e.target.value.trim();
+    renderMerit(v); renderMeritIngame(v);
+  });
   $('#save').onclick = ()=>commit('/api/save');
   $('#regen').onclick = ()=>commit('/api/regenerate');
   $('#publish').onclick = ()=>{
@@ -863,6 +1007,62 @@ function renderMerit(name){
     <div class="sub">${awarded} awarded idea(s) · Defect=1, Enhancement=2, Exploit=3.</div>
     ${note}
   </div>`;
+}
+
+// Real in-game merit for a player, read live (read-only) from the game's
+// meritdb. Earned is computed from raw counters (Defect=1, Enhancement=2,
+// Exploit=3); spend history comes from the redemptions table. Tracks the
+// pending fetch so a fast typist doesn't get a stale earlier response.
+let meritReq = 0;
+function renderMeritIngame(name){
+  const box=$('#merit_ingame'); if(!box) return;
+  if(!name){ box.innerHTML=''; return; }
+  const my = ++meritReq;
+  box.innerHTML=`<div class="merit"><div class="sub">Loading in-game merit…</div></div>`;
+  fetch('/api/merit?player='+encodeURIComponent(name))
+    .then(r=>r.json())
+    .then(d=>{
+      if(my!==meritReq) return;  // a newer request superseded this one
+      if(!d.available){
+        box.innerHTML=`<div class="merit"><h3>In-game merit</h3>
+          <div class="note">${esc(d.reason||'in-game database unavailable')}</div></div>`;
+        return;
+      }
+      if(!d.matched){
+        box.innerHTML=`<div class="merit"><h3>In-game merit — <span class="who">${esc(name)}</span></h3>
+          <div class="note">No in-game record found for this player name.</div>
+          <div class="sub">Name is matched against the account login name in meritdb.</div></div>`;
+        return;
+      }
+      const chip=(t,n)=>`<span class="tbadge ${t.toLowerCase()}">${t}: ${n}</span>`;
+      const txns=(d.transactions||[]);
+      const rows=txns.map(t=>{
+        const when=(t.requested_at||'').slice(0,10);
+        const st=(t.status||'').toLowerCase();
+        return `<tr>
+          <td>${esc(t.reward_label||('#'+(t.reward_id||'?')))}</td>
+          <td class="cost">${t.cost}</td>
+          <td><span class="st ${st}">${esc(t.status||'')}</span></td>
+          <td class="muted">${esc(when)}</td>
+        </tr>`;
+      }).join('');
+      const table = txns.length ? `<table class="txns">
+        <tr><th>Reward</th><th style="text-align:right">Cost</th><th>Status</th><th>When</th></tr>
+        ${rows}</table>`
+        : `<div class="sub">No merit-spending transactions.</div>`;
+      box.innerHTML=`<div class="merit">
+        <h3>In-game merit — <span class="who">${esc(d.matched_name)}</span></h3>
+        <div class="counts">${chip('Defect',d.bugs)} ${chip('Enhancement',d.features)} ${chip('Exploit',d.exploits)}</div>
+        <div class="pts">Earned: <b>${d.earned}</b> · Spent: ${d.spent} · Available: <b class="bal">${d.balance}</b></div>
+        <div class="sub">Live from meritdb (account-wide). Defect=1, Enhancement=2, Exploit=3.</div>
+        ${table}
+      </div>`;
+    })
+    .catch(e=>{
+      if(my!==meritReq) return;
+      box.innerHTML=`<div class="merit"><h3>In-game merit</h3>
+        <div class="note">Could not load in-game merit: ${esc(String(e))}</div></div>`;
+    });
 }
 
 // ---- rich-text notes widget ---------------------------------------------
@@ -1267,10 +1467,52 @@ function openPlayers(){
   $('#p_close').onclick=closeModal;
 }
 
+// ---- pending DM-delivery merit requests (read-only) ---------------------
+function openPending(){
+  modalHTML(`<h2>Pending Merit Requests</h2>
+    <p class="small">Loading open DM-delivery requests…</p>`);
+  fetch('/api/pending').then(r=>r.json()).then(d=>{
+    refreshPending();
+    if(!d.available){
+      modalHTML(`<h2>Pending Merit Requests</h2>
+        <p class="hint">${esc(d.reason||'in-game database unavailable')}</p>
+        <div class="bar"><span class="spacer"></span><button id="pr_close">Close</button></div>`);
+      $('#pr_close').onclick=closeModal; return;
+    }
+    const rows=(d.rows||[]).map(t=>{
+      const when=(t.requested_at||'').slice(0,16).replace('T',' ');
+      return `<tr>
+        <td class="muted">#${t.id}</td>
+        <td>${esc(t.player_name||'')}</td>
+        <td>${esc(t.reward_label||'')}</td>
+        <td class="cost">${t.cost}</td>
+        <td class="muted">${esc(when)}</td>
+      </tr>`;
+    }).join('');
+    const body = d.count
+      ? `<table class="txns">
+          <tr><th>ID</th><th>Player</th><th>Reward</th><th style="text-align:right">Cost</th><th>Requested</th></tr>
+          ${rows}</table>`
+      : `<p class="small">No open DM-delivery requests. 🎉</p>`;
+    modalHTML(`<h2>${d.count} Pending Merit Request${d.count===1?'':'s'}</h2>
+      <p class="small">Open requests awaiting DM delivery (status=pending, needs a DM).
+        Read-only — fulfil/cancel them in game.</p>
+      ${body}
+      <div class="bar"><span class="spacer"></span><button id="pr_close">Close</button></div>`);
+    $('#pr_close').onclick=closeModal;
+  }).catch(e=>{
+    modalHTML(`<h2>Pending Merit Requests</h2>
+      <p class="hint">Could not load: ${esc(String(e))}</p>
+      <div class="bar"><span class="spacer"></span><button id="pr_close">Close</button></div>`);
+    $('#pr_close').onclick=closeModal;
+  });
+}
+
 ['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_sort'].forEach(id=>$('#'+id).onchange=renderList);
 $('#f_showawarded').onchange=renderList;
 $('#mgroups').onclick=openGroups;
 $('#mplayers').onclick=openPlayers;
+$('#mpending').onclick=openPending;
 $('#filter').oninput = renderList;
 load();
 </script>
