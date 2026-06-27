@@ -47,8 +47,24 @@ void Merit_InitDb()
         "status TEXT NOT NULL DEFAULT 'pending'," +     // pending|fulfilled|cancelled
         "requested_at TEXT NOT NULL DEFAULT (datetime('now'))," +
         "resolved_by TEXT," +
-        "resolved_at TEXT)");
+        "resolved_at TEXT," +
+        "item_tag TEXT)");                              // unique serial tag of a granted item
     SqlStep(qr);
+
+    // Migration: older DBs created the redemptions table before item_tag
+    // existed; CREATE TABLE IF NOT EXISTS won't alter it, so add the column
+    // when missing. PRAGMA table_info is checked first to avoid logging a SQL
+    // error every boot from re-running ALTER on a table that already has it.
+    int bHasItemTag = FALSE;
+    sqlquery qp = SqlPrepareQueryCampaign(MERIT_DB, "PRAGMA table_info(redemptions)");
+    while (SqlStep(qp))
+        if (SqlGetString(qp, 1) == "item_tag") { bHasItemTag = TRUE; break; }
+    if (!bHasItemTag)
+    {
+        sqlquery qa = SqlPrepareQueryCampaign(MERIT_DB,
+            "ALTER TABLE redemptions ADD COLUMN item_tag TEXT");
+        SqlStep(qa);
+    }
 
     // Transaction ledger — every merit movement (spend/refund/award) with the
     // resulting available balance, for audit and recovery. Never pruned.

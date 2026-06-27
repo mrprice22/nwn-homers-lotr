@@ -181,8 +181,9 @@ def merit_for_player(roadmap_name: str) -> dict:
         earned = (bugs * MERIT_RATE_BUG + features * MERIT_RATE_FEATURE
                   + exploits * MERIT_RATE_EXPLOIT)
         txns = [dict(r) for r in con.execute(
-            "SELECT reward_label, cost, status, requested_at, resolved_at, "
-            "needs_dm FROM redemptions WHERE cdkey = ? ORDER BY id DESC",
+            "SELECT reward_label, reward_id, item_tag, cost, status, "
+            "requested_at, resolved_at, needs_dm FROM redemptions "
+            "WHERE cdkey = ? ORDER BY id DESC",
             (row["cdkey"],)).fetchall()]
         return {
             "available": True, "matched": True,
@@ -1041,13 +1042,14 @@ function renderMeritIngame(name){
         const st=(t.status||'').toLowerCase();
         return `<tr>
           <td>${esc(t.reward_label||('#'+(t.reward_id||'?')))}</td>
+          <td class="muted">${esc(t.item_tag||'')}</td>
           <td class="cost">${t.cost}</td>
           <td><span class="st ${st}">${esc(t.status||'')}</span></td>
           <td class="muted">${esc(when)}</td>
         </tr>`;
       }).join('');
       const table = txns.length ? `<table class="txns">
-        <tr><th>Reward</th><th style="text-align:right">Cost</th><th>Status</th><th>When</th></tr>
+        <tr><th>Reward</th><th>Tag</th><th style="text-align:right">Cost</th><th>Status</th><th>When</th></tr>
         ${rows}</table>`
         : `<div class="sub">No merit-spending transactions.</div>`;
       box.innerHTML=`<div class="merit">

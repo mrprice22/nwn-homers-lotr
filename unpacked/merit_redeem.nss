@@ -680,18 +680,33 @@ int Merit_GrantTournament(object oPC, string sResref, string sItemName)
     sqlquery qid = SqlPrepareQueryCampaign(MERIT_DB, "SELECT last_insert_rowid()");
     if (SqlStep(qid)) nReqId = SqlGetInt(qid, 0);
 
+    // Stamp the granted item with a unique, serialized tag derived from the
+    // redemption id (MTG = Merit Tournament Gear). The autoincrement id is
+    // globally unique and monotonic, so every grant gets a distinct serial.
+    // "MTG_" + a decimal id stays well under NWN's 32-char tag limit. The tag
+    // is recorded on the redemption row so a physical item can be traced back
+    // to the grant that produced it.
+    string sTag = "MTG_" + IntToString(nReqId);
+    SetTag(oItem, sTag);
+
+    sqlquery qt = SqlPrepareQueryCampaign(MERIT_DB,
+        "UPDATE redemptions SET item_tag=@t WHERE id=@id");
+    SqlBindString(qt, "@t", sTag);
+    SqlBindInt(qt, "@id", nReqId);
+    SqlStep(qt);
+
     Merit_Ledger(sCdKey, GetPCPlayerName(oPC), -r.cost,
-        "instant #" + IntToString(nReqId) + ": " + sLabel, nReqId);
+        "instant #" + IntToString(nReqId) + " [" + sTag + "]: " + sLabel, nReqId);
     Merit_SetNpcTokens(oPC);
 
     if (bOnGround)
         SendMessageToPC(oPC, "[Merit] Granted " + sItemName + " (" + IntToString(r.cost)
-            + " merit), but your inventory was full so it dropped at your feet - "
-            + "pick it up off the ground!");
+            + " merit, tag " + sTag + "), but your inventory was full so it dropped "
+            + "at your feet - pick it up off the ground!");
     else
         SendMessageToPC(oPC, "[Merit] Granted " + sItemName + " ("
-            + IntToString(r.cost) + " merit). Check your inventory!");
+            + IntToString(r.cost) + " merit, tag " + sTag + "). Check your inventory!");
     SendMessageToAllDMs("[Merit] " + GetPCPlayerName(oPC) + " redeemed Tournament gear #"
-        + IntToString(nReqId) + ": " + sItemName + ".");
+        + IntToString(nReqId) + " (tag " + sTag + "): " + sItemName + ".");
     return TRUE;
 }
