@@ -181,6 +181,31 @@ int Merit_CatReward(int nCat, int nIdx)
 }
 
 // ------------------------------------------------------------
+// Teleport unlocks (ids 101-107). Ownership is recorded as a &#x27;fulfilled&#x27;
+// redemptions row for the CD Key, so unlocks are per-CD-Key (every character on
+// that key gets them). They must be bought in order: 101 -&gt; 102 -&gt; ... -&gt; 107.
+
+int Merit_IsTeleReward(int nId) { return nId &gt;= 101 &amp;&amp; nId &lt;= 107; }
+
+// TRUE if this CD Key already owns the unlock for reward nId.
+int Merit_TeleOwned(string sCdKey, int nId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;SELECT 1 FROM redemptions WHERE cdkey=@k AND reward_id=@r&quot;
+        + &quot; AND status=&#x27;fulfilled&#x27; LIMIT 1&quot;);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    SqlBindInt(q, &quot;@r&quot;, nId);
+    return SqlStep(q);
+}
+
+// TRUE if the predecessor (if any) is owned, so nId may be purchased next.
+int Merit_TelePrereqMet(string sCdKey, int nId)
+{
+    if (nId &lt;= 101) return TRUE;
+    return Merit_TeleOwned(sCdKey, nId - 1);
+}
+
+// ------------------------------------------------------------
 // Helpers
 
 // Message the holder of sCdKey if they are currently online.
@@ -330,16 +355,32 @@ void Merit_BuildCategory(object oPC, int nCat)
         SetCustomToken(5060 + i, &quot;&quot;);
     }
 
+    string sCdKey = GetPCPublicCDKey(oPC);
     int nCount = Merit_CatCount(nCat);
     for (i = 0; i &lt; nCount &amp;&amp; i &lt; 9; i++)
     {
         int nId = Merit_CatReward(nCat, i);
         struct merit_reward r = Merit_GetReward(nId);
         SetLocalInt(oPC, &quot;merit_lslot_&quot; + IntToString(i), nId);
-        // Only the nominal instant rewards (teleports/premium) are still
-        // unwired placeholders. DM-fulfilled options work today (a DM delivers
-        // them) and tournament gear (302) delivers on the spot, so neither
-        // carries the red [PLACEHOLDER] prefix.
+
+        // Teleport unlocks (101-107) are live rest-menu features bought in
+        // order: show their unlock status instead of the red placeholder.
+        if (Merit_IsTeleReward(nId))
+        {
+            if (Merit_TeleOwned(sCdKey, nId))
+                SetCustomToken(5060 + i, &quot;[Owned] &quot; + r.label);
+            else if (!Merit_TelePrereqMet(sCdKey, nId))
+                SetCustomToken(5060 + i, &quot;[Locked - buy the previous one first] &quot;
+                    + r.label + &quot; [&quot; + IntToString(r.cost) + &quot; merit]&quot;);
+            else
+                SetCustomToken(5060 + i, r.label + &quot; [&quot; + IntToString(r.cost) + &quot; merit]&quot;);
+            continue;
+        }
+
+        // Only the nominal instant rewards (premium) are still unwired
+        // placeholders. DM-fulfilled options work today (a DM delivers them)
+        // and tournament gear (302) delivers on the spot, so neither carries
+        // the red [PLACEHOLDER] prefix.
         string sPrefix = (r.needs_dm == 1 || nId == 302) ? &quot;&quot; : MERIT_PH;
         SetCustomToken(5060 + i, sPrefix + r.label + &quot; [&quot; + IntToString(r.cost) + &quot; merit]&quot;);
     }
@@ -551,6 +592,24 @@ void Merit_PrepConfirm(object oPC, int nId)
             + &quot; available. Best earn a bit more first.&quot;);
         return;
     }
+    if (Merit_IsTeleReward(nId))
+    {
+        if (Merit_TeleOwned(sCdKey, nId))
+        {
+            SetCustomToken(5037, &quot;You already own that teleport unlock - it is &quot;
+                + &quot;available to all your characters from the rest menu.&quot;);
+            SetLocalInt(oPC, &quot;merit_pick_afford&quot;, FALSE);
+            return;
+        }
+        if (!Merit_TelePrereqMet(sCdKey, nId))
+        {
+            struct merit_reward rPrev = Merit_GetReward(nId - 1);
+            SetCustomToken(5037, &quot;These teleport unlocks must be bought in order. &quot;
+                + &quot;Buy &#x27;&quot; + rPrev.label + &quot;&#x27; first before this one.&quot;);
+            SetLocalInt(oPC, &quot;merit_pick_afford&quot;, FALSE);
+            return;
+        }
+    }
     if (nId == 302)
     {
         SetLocalInt(oPC, &quot;merit_tpage_off&quot;, 0);
@@ -577,6 +636,23 @@ int Merit_GrantInstant(object oPC, int nId)
     if (!r.valid) return FALSE;
 
     string sCdKey = GetPCPublicCDKey(oPC);
+
+    // Teleport unlocks: authoritative order/duplicate guard (the conversation
+    // gating above is only UX). Never spend when out of order or already owned.
+    if (Merit_IsTeleReward(nId))
+    {
+        if (Merit_TeleOwned(sCdKey, nId))
+        {
+            SendMessageToPC(oPC, &quot;[Merit] You already own that teleport unlock.&quot;);
+            return FALSE;
+        }
+        if (!Merit_TelePrereqMet(sCdKey, nId))
+        {
+            SendMessageToPC(oPC, &quot;[Merit] Teleport unlocks must be purchased in order.&quot;);
+            return FALSE;
+        }
+    }
+
     if (Merit_Available(sCdKey) &lt; r.cost)
     {
         SendMessageToPC(oPC, &quot;[Merit] You can no longer afford that.&quot;);
@@ -655,19 +731,34 @@ int Merit_GrantTournament(object oPC, string sResref, string sItemName)
     sqlquery qid = SqlPrepareQueryCampaign(MERIT_DB, &quot;SELECT last_insert_rowid()&quot;);
     if (SqlStep(qid)) nReqId = SqlGetInt(qid, 0);
 
+    // Stamp the granted item with a unique, serialized tag derived from the
+    // redemption id (MTG = Merit Tournament Gear). The autoincrement id is
+    // globally unique and monotonic, so every grant gets a distinct serial.
+    // &quot;MTG_&quot; + a decimal id stays well under NWN&#x27;s 32-char tag limit. The tag
+    // is recorded on the redemption row so a physical item can be traced back
+    // to the grant that produced it.
+    string sTag = &quot;MTG_&quot; + IntToString(nReqId);
+    SetTag(oItem, sTag);
+
+    sqlquery qt = SqlPrepareQueryCampaign(MERIT_DB,
+        &quot;UPDATE redemptions SET item_tag=@t WHERE id=@id&quot;);
+    SqlBindString(qt, &quot;@t&quot;, sTag);
+    SqlBindInt(qt, &quot;@id&quot;, nReqId);
+    SqlStep(qt);
+
     Merit_Ledger(sCdKey, GetPCPlayerName(oPC), -r.cost,
-        &quot;instant #&quot; + IntToString(nReqId) + &quot;: &quot; + sLabel, nReqId);
+        &quot;instant #&quot; + IntToString(nReqId) + &quot; [&quot; + sTag + &quot;]: &quot; + sLabel, nReqId);
     Merit_SetNpcTokens(oPC);
 
     if (bOnGround)
         SendMessageToPC(oPC, &quot;[Merit] Granted &quot; + sItemName + &quot; (&quot; + IntToString(r.cost)
-            + &quot; merit), but your inventory was full so it dropped at your feet - &quot;
-            + &quot;pick it up off the ground!&quot;);
+            + &quot; merit, tag &quot; + sTag + &quot;), but your inventory was full so it dropped &quot;
+            + &quot;at your feet - pick it up off the ground!&quot;);
     else
         SendMessageToPC(oPC, &quot;[Merit] Granted &quot; + sItemName + &quot; (&quot;
-            + IntToString(r.cost) + &quot; merit). Check your inventory!&quot;);
+            + IntToString(r.cost) + &quot; merit, tag &quot; + sTag + &quot;). Check your inventory!&quot;);
     SendMessageToAllDMs(&quot;[Merit] &quot; + GetPCPlayerName(oPC) + &quot; redeemed Tournament gear #&quot;
-        + IntToString(nReqId) + &quot;: &quot; + sItemName + &quot;.&quot;);
+        + IntToString(nReqId) + &quot; (tag &quot; + sTag + &quot;): &quot; + sItemName + &quot;.&quot;);
     return TRUE;
 }
 </code></pre>

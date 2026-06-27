@@ -61,6 +61,7 @@
 #include &quot;merit_db&quot;
 #include &quot;bst_db&quot;
 #include &quot;forge_inc&quot;
+#include &quot;tele_db&quot;
 
 // Death amulet check + persistent state restore. Delayed so the engine&#x27;s
 // own post-login passes (inventory hydration, spellbook sync, &quot;fresh PC&quot;
@@ -127,6 +128,10 @@ void main()
     // per-character identity key for all kill records.
     Bst_InitDb();
     GetObjectUUID(oPC);
+
+    // Rest-menu teleport unlocks (merit redemptions 101-107): ensure the
+    // saved-slot / return-state tables exist.
+    Tele_InitDb();
 
     // Server-info reference journals (Rules/Guilds/Website). Each category&#x27;s
     // entry 1 has End=1, so these land in the player&#x27;s Completed section.

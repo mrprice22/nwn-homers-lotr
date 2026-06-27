@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script tele_db</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-respawn-overrides.html">Respawn-override validation — tester checklist</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>tele_db</code></h1><pre class="nss-source"><code>// tele_db.nss — Rest-menu teleport persistence (merit redemptions 101-107).
+//
+// Reuses the campaign SQLite DB &quot;meritdb&quot;. Saved positions are PER CHARACTER
+// (keyed by GetObjectUUID), while the unlock entitlements themselves live in the
+// merit redemptions table and are per-CD-Key (see merit_redeem.nss).
+//
+// Tables:
+//   tele_slots(pid, slot, area, name, x, y, z, facing)
+//     slot 0     = last Well-of-Eru return point (armed by the rest-menu
+//                  &quot;To. The Well of Eru.&quot; teleport only; death never arms it)
+//     slot 1..5  = dedicated rewriteable save-slots
+//   tele_state(pid, return_armed)
+//     return_armed = 1 after a Well-of-Eru teleport, cleared on a return jump,
+//     so the return can never be used twice in a row.
+
+const string TELE_DB = &quot;meritdb&quot;;
+
+// ------------------------------------------------------------
+// Schema
+
+void Tele_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;CREATE TABLE IF NOT EXISTS tele_slots (&quot; +
+        &quot;pid TEXT NOT NULL,&quot; +
+        &quot;slot INTEGER NOT NULL,&quot; +
+        &quot;area TEXT,&quot; +
+        &quot;name TEXT,&quot; +
+        &quot;x REAL, y REAL, z REAL, facing REAL,&quot; +
+        &quot;PRIMARY KEY(pid, slot))&quot;);
+    SqlStep(q);
+
+    sqlquery qs = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;CREATE TABLE IF NOT EXISTS tele_state (&quot; +
+        &quot;pid TEXT PRIMARY KEY,&quot; +
+        &quot;return_armed INTEGER NOT NULL DEFAULT 0)&quot;);
+    SqlStep(qs);
+}
+
+// ------------------------------------------------------------
+// Saved slots
+
+// Store the PC&#x27;s current area + position/facing into nSlot (upsert).
+void Tele_SaveSlot(object oPC, int nSlot)
+{
+    object oArea = GetArea(oPC);
+    if (!GetIsObjectValid(oArea)) return;
+    vector v = GetPosition(oPC);
+
+    sqlquery q = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;INSERT INTO tele_slots(pid, slot, area, name, x, y, z, facing)&quot; +
+        &quot; VALUES(@p, @s, @a, @n, @x, @y, @z, @f)&quot; +
+        &quot; ON CONFLICT(pid, slot) DO UPDATE SET&quot; +
+        &quot; area=excluded.area, name=excluded.name,&quot; +
+        &quot; x=excluded.x, y=excluded.y, z=excluded.z, facing=excluded.facing&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@s&quot;, nSlot);
+    SqlBindString(q, &quot;@a&quot;, GetResRef(oArea));
+    SqlBindString(q, &quot;@n&quot;, GetName(oArea));
+    SqlBindFloat(q, &quot;@x&quot;, v.x);
+    SqlBindFloat(q, &quot;@y&quot;, v.y);
+    SqlBindFloat(q, &quot;@z&quot;, v.z);
+    SqlBindFloat(q, &quot;@f&quot;, GetFacing(oPC));
+    SqlStep(q);
+}
+
+// TRUE if nSlot has a saved location for this character.
+int Tele_HasSlot(object oPC, int nSlot)
+{
+    sqlquery q = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;SELECT 1 FROM tele_slots WHERE pid=@p AND slot=@s LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@s&quot;, nSlot);
+    return SqlStep(q);
+}
+
+// Stored area name for nSlot, or &quot;Unused&quot; when unbound.
+string Tele_SlotName(object oPC, int nSlot)
+{
+    sqlquery q = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;SELECT name FROM tele_slots WHERE pid=@p AND slot=@s LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@s&quot;, nSlot);
+    if (SqlStep(q))
+    {
+        string sName = SqlGetString(q, 0);
+        if (sName != &quot;&quot;) return sName;
+    }
+    return &quot;Unused&quot;;
+}
+
+// Resolve a saved slot into a usable location. There is no get-area-by-resref
+// builtin, so we scan the module&#x27;s areas for a matching ResRef. Returns an
+// invalid location (area OBJECT_INVALID) when the slot is unbound or its area
+// no longer exists.
+location Tele_SlotLocation(object oPC, int nSlot)
+{
+    // Sentinel with an invalid area, so Tele_DoJump&#x27;s GetAreaFromLocation guard
+    // rejects it (GetStartingLocation would be a *valid* area and teleport the
+    // player to the module start instead).
+    vector vZero;
+    location lInvalid = Location(OBJECT_INVALID, vZero, 0.0);
+
+    sqlquery q = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;SELECT area, x, y, z, facing FROM tele_slots WHERE pid=@p AND slot=@s LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@s&quot;, nSlot);
+    if (!SqlStep(q)) return lInvalid;
+
+    string sArea = SqlGetString(q, 0);
+    vector v;
+    v.x = SqlGetFloat(q, 1);
+    v.y = SqlGetFloat(q, 2);
+    v.z = SqlGetFloat(q, 3);
+    float fFacing = SqlGetFloat(q, 4);
+
+    object oArea = GetFirstArea();
+    while (GetIsObjectValid(oArea))
+    {
+        if (GetResRef(oArea) == sArea)
+            return Location(oArea, v, fFacing);
+        oArea = GetNextArea();
+    }
+    return lInvalid;
+}
+
+// Depart-then-arrive teleport. Vanishes the PC with a themed burst at the
+// origin, jumps after a short beat, then plays a themed arrival burst at the
+// destination. nDepartVfx / nArriveVfx are VFX_* constants chosen per teleport
+// type by the caller, so leader / Well-return / save-slot teleports each read
+// differently. Does nothing if the location&#x27;s area is invalid.
+void Tele_DoJump(object oPC, location lLoc, int nDepartVfx, int nArriveVfx)
+{
+    if (GetAreaFromLocation(lLoc) == OBJECT_INVALID)
+    {
+        SendMessageToPC(oPC, &quot;[Teleport] That destination is no longer reachable.&quot;);
+        return;
+    }
+
+    // --- depart (at origin) ---
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(nDepartVfx), oPC);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oPC);
+
+    // --- jump after the vanish reads, then arrive burst at the destination ---
+    AssignCommand(oPC, ClearAllActions());
+    DelayCommand(1.0, AssignCommand(oPC, ActionJumpToLocation(lLoc)));
+    DelayCommand(1.2, ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectAppear(), oPC));
+    DelayCommand(1.2, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                                          EffectVisualEffect(nArriveVfx), oPC));
+}
+
+// ------------------------------------------------------------
+// Return-armed flag (Well-of-Eru one-shot return)
+
+int Tele_GetArmed(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;SELECT return_armed FROM tele_state WHERE pid=@p LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return 0;
+}
+
+void Tele_SetArmed(object oPC, int bArmed)
+{
+    sqlquery q = SqlPrepareQueryCampaign(TELE_DB,
+        &quot;INSERT INTO tele_state(pid, return_armed) VALUES(@p, @a)&quot; +
+        &quot; ON CONFLICT(pid) DO UPDATE SET return_armed=excluded.return_armed&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@a&quot;, bArmed);
+    SqlStep(q);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

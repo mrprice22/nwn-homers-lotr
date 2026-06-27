@@ -174,7 +174,7 @@ ideas:
     date: "2026-06-24"
     notes: "<ul><li>Whenever I rest there I get 100% spell failure.</li><li>Also NPCs can cast spells while silenced even without Silent Spell casting. 👀</li></ul>"
   - id: weapon-forge-gp-too-low
-    title: "Weapon forging issues (Previous item cached)"
+    title: "Forge/Smith updates for weapons (Better handling for items worth more than default forge GP value limit)"
     group: forge
     status: awarded
     type: Defect
@@ -323,7 +323,7 @@ ideas:
     player: "-Methonash-"
     date: "2026-06-20"
   - id: teleport-to-fornost
-    title: "Fornost teleport Broken"
+    title: "Fornost teleport Broken (Removed dead area from list of teleports)"
     group: travel
     status: awarded
     type: Defect
@@ -993,14 +993,14 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
   - id: party-loot-roll
-    title: "Chat command to roll d100 for boss loot, or one command to roll for the whole party"
+    title: "Party Loot Roll system (configurable through rest menu)"
     group: items-gear
     status: awarded
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-25"
     commit: 18beb42a131, 9458a8b4a90, 87966648be0
-    notes: "Instead of chat command, party rolls can be opted in or out through the rest menu. More info at: <a href=\"https://homerslotr.com/manual/Customizations#party-loot\" target=\"_blank\" rel=\"noopener\">https://homerslotr.com/manual/Customizations#party-loot</a>"
+    notes: "Party rolls can be opted in or out through the rest menu. More info at: <a href=\"https://homerslotr.com/manual/Customizations#party-loot\" target=\"_blank\" rel=\"noopener\">https://homerslotr.com/manual/Customizations#party-loot<br></a>Original request (Chat command to roll d100 for boss loot, or one command to roll for the whole party)"
   - id: npc-disarm-despawn
     title: "When an NPC disarms you the weapon can despawn — send disarms to your inventory instead of the ground"
     group: items-gear
@@ -1055,10 +1055,11 @@ ideas:
 
   # ---- Economy & merit (open) ----------------------------------------------
   - id: merit-redemption-poc
-    title: "Build out the Merit redemption options"
+    title: "Merit Rward redemption go-live"
     group: economy
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    date: "2026-06-27"
     commit: b419628d927
-    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\">Customizations#Merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit. </li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li></ul></div>"
+    notes: "<div>Implement ideas documented in <a href=\"https://homerslotr.com/manual/Customizations#merit\" target=\"_blank\" rel=\"noopener\">https://homerslotr.com/manual/Customizations#merit</a></div><div><ul><li>Never subtract 'earned' merit, keep that for a valid running total per player. Track 'spent merit' instead as a new DB int and insure it never exceeds earned merit. </li><li>Some redemption item ideas require DM support to fulfill or approve, while some may be granted instantly. Need system to alert DM of pending requests, and for DM to mark requests as fulfilled, and for either player or DM to cancel a pending request</li><li>Use a bartender appearance for the merit tracker visual, confirm has valid conversation for players with no merit (point to wiki for more info and discord to report issues/ideas)</li><li>Integrate pending merit requests for DM fulfillment with back-end roadmap tool for DM-visibility</li><li>Logging of all merit transactions with serialized tags for rewarded gear (tournament gear)</li></ul></div>"
