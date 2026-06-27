@@ -9,5 +9,5 @@ void main()
         SendMessageToPC(oPC, "[Teleport] You are your own party leader - nowhere to go.");
         return;
     }
-    Tele_DoJump(oPC, GetLocation(oLeader));
+    Tele_DoJump(oPC, GetLocation(oLeader), VFX_FNF_LOS_HOLY_30, VFX_IMP_HOLY_AID);
 }

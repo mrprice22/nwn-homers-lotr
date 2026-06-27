@@ -10,5 +10,5 @@ void main()
         SendMessageToPC(oPC, "[Teleport] That slot is empty.");
         return;
     }
-    Tele_DoJump(oPC, Tele_SlotLocation(oPC, nSlot));
+    Tele_DoJump(oPC, Tele_SlotLocation(oPC, nSlot), VFX_FNF_PWKILL, VFX_IMP_UNSUMMON);
 }

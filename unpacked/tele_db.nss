@@ -124,19 +124,29 @@ location Tele_SlotLocation(object oPC, int nSlot)
     return lInvalid;
 }
 
-// Validated jump: clears actions, applies a teleport VFX, jumps. Mirrors the
-// voidportal.nss idiom. Does nothing if the location's area is invalid.
-void Tele_DoJump(object oPC, location lLoc)
+// Depart-then-arrive teleport. Vanishes the PC with a themed burst at the
+// origin, jumps after a short beat, then plays a themed arrival burst at the
+// destination. nDepartVfx / nArriveVfx are VFX_* constants chosen per teleport
+// type by the caller, so leader / Well-return / save-slot teleports each read
+// differently. Does nothing if the location's area is invalid.
+void Tele_DoJump(object oPC, location lLoc, int nDepartVfx, int nArriveVfx)
 {
     if (GetAreaFromLocation(lLoc) == OBJECT_INVALID)
     {
         SendMessageToPC(oPC, "[Teleport] That destination is no longer reachable.");
         return;
     }
-    effect eVis = EffectVisualEffect(VFX_FNF_LOS_NORMAL_30);
-    ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oPC);
+
+    // --- depart (at origin) ---
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(nDepartVfx), oPC);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oPC);
+
+    // --- jump after the vanish reads, then arrive burst at the destination ---
     AssignCommand(oPC, ClearAllActions());
-    AssignCommand(oPC, ActionJumpToLocation(lLoc));
+    DelayCommand(1.0, AssignCommand(oPC, ActionJumpToLocation(lLoc)));
+    DelayCommand(1.2, ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectAppear(), oPC));
+    DelayCommand(1.2, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                                          EffectVisualEffect(nArriveVfx), oPC));
 }
 
 // ------------------------------------------------------------

@@ -11,6 +11,6 @@ void main()
             + "Use the 'To. The Well of Eru.' teleport first.");
         return;
     }
-    Tele_DoJump(oPC, Tele_SlotLocation(oPC, 0));
+    Tele_DoJump(oPC, Tele_SlotLocation(oPC, 0), VFX_FNF_SUMMON_GATE, VFX_IMP_RAISE_DEAD);
     Tele_SetArmed(oPC, FALSE);
 }
