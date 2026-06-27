@@ -124,11 +124,15 @@ location Tele_SlotLocation(object oPC, int nSlot)
     return lInvalid;
 }
 
-// Depart-then-arrive teleport. Vanishes the PC with a themed burst at the
-// origin, jumps after a short beat, then plays a themed arrival burst at the
-// destination. nDepartVfx / nArriveVfx are VFX_* constants chosen per teleport
-// type by the caller, so leader / Well-return / save-slot teleports each read
-// differently. Does nothing if the location's area is invalid.
+// Depart-then-arrive teleport. Plays a themed depart burst at the origin, jumps
+// after a short beat, then plays a themed arrival burst at the destination.
+// nDepartVfx / nArriveVfx are VFX_* constants chosen per teleport type by the
+// caller, so leader / Well-return / save-slot teleports each read differently.
+// Does nothing if the location's area is invalid.
+//
+// NOTE: deliberately does NOT use EffectDisappear/EffectAppear. Those leave the
+// PC non-commandable, which silently blocks the queued ActionJumpToLocation
+// below (the player would play both VFX in place and never move).
 void Tele_DoJump(object oPC, location lLoc, int nDepartVfx, int nArriveVfx)
 {
     if (GetAreaFromLocation(lLoc) == OBJECT_INVALID)
@@ -137,15 +141,18 @@ void Tele_DoJump(object oPC, location lLoc, int nDepartVfx, int nArriveVfx)
         return;
     }
 
-    // --- depart (at origin) ---
+    // --- depart burst at origin (no EffectDisappear: it would leave the PC
+    //     non-commandable and the queued ActionJumpToLocation below would never
+    //     run, so the player stays put while both VFX still fire) ---
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(nDepartVfx), oPC);
-    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oPC);
 
-    // --- jump after the vanish reads, then arrive burst at the destination ---
+    // --- jump after the depart burst reads (PC stays commandable so the queued
+    //     action actually executes) ---
     AssignCommand(oPC, ClearAllActions());
     DelayCommand(1.0, AssignCommand(oPC, ActionJumpToLocation(lLoc)));
-    DelayCommand(1.2, ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectAppear(), oPC));
-    DelayCommand(1.2, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+
+    // --- arrival burst at the destination, just after the jump lands ---
+    DelayCommand(1.3, ApplyEffectToObject(DURATION_TYPE_INSTANT,
                                           EffectVisualEffect(nArriveVfx), oPC));
 }
 
