@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script ru_db</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-respawn-overrides.html">Respawn-override validation — tester checklist</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>ru_db</code></h1><pre class="nss-source"><code>// ru_db.nss — &quot;Recent Updates&quot; sign database helpers.
+//
+// Campaign DB &quot;roadmapdb&quot; (file database/roadmapdb.sqlite3), table recent_updates.
+// The table is written by bin/roadmap-editor.py on the &quot;Publish to Wiki &amp; DB&quot;
+// button: the 10 most recently shipped roadmap ideas (status implemented/awarded)
+// by date desc. In-game we only READ it.
+//
+//   rank 0..9 (0 = newest), title, prefix, group_label, player, date, notes
+//
+// Browsed 5-per-page in ru_sign.dlg (the Well of Eru sign). Custom tokens:
+//   6200-6204 = list row labels   6210-6214 = drill-down detail fields
+// Per-PC locals:
+//   int &quot;ru_page_off&quot;     row offset (0 or 5)
+//   int &quot;ru_total&quot;        total rows (for [Next page] visibility)
+//   int &quot;ru_slot_N_rank&quot;  rank shown in list slot N (-1 = empty / hidden)
+
+const string RU_DB = &quot;roadmapdb&quot;;
+
+void RU_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(RU_DB,
+        &quot;CREATE TABLE IF NOT EXISTS recent_updates (&quot; +
+        &quot;rank INTEGER PRIMARY KEY,&quot; +
+        &quot;title TEXT,&quot; +
+        &quot;prefix TEXT,&quot; +
+        &quot;group_label TEXT,&quot; +
+        &quot;player TEXT,&quot; +
+        &quot;date TEXT,&quot; +
+        &quot;notes TEXT)&quot;);
+    SqlStep(q);
+}
+
+// Build the current list page: clears the 5 slots then fills them from the DB
+// at the current offset, and records the total row count for pagination.
+void RU_BuildPage(object oPC)
+{
+    int nOff = GetLocalInt(oPC, &quot;ru_page_off&quot;);
+
+    sqlquery qc = SqlPrepareQueryCampaign(RU_DB,
+        &quot;SELECT COUNT(*) FROM recent_updates&quot;);
+    int nTotal = 0;
+    if (SqlStep(qc)) nTotal = SqlGetInt(qc, 0);
+    SetLocalInt(oPC, &quot;ru_total&quot;, nTotal);
+
+    int i;
+    for (i = 0; i &lt; 5; i++)
+    {
+        SetLocalInt(oPC, &quot;ru_slot_&quot; + IntToString(i) + &quot;_rank&quot;, -1);
+        SetCustomToken(6200 + i, &quot;&quot;);
+    }
+
+    sqlquery q = SqlPrepareQueryCampaign(RU_DB,
+        &quot;SELECT rank, prefix, title FROM recent_updates&quot; +
+        &quot; ORDER BY rank ASC LIMIT 5 OFFSET @off&quot;);
+    SqlBindInt(q, &quot;@off&quot;, nOff);
+
+    i = 0;
+    while (SqlStep(q) &amp;&amp; i &lt; 5)
+    {
+        int    nRank   = SqlGetInt(q, 0);
+        string sPrefix = SqlGetString(q, 1);
+        string sTitle  = SqlGetString(q, 2);
+        SetLocalInt(oPC, &quot;ru_slot_&quot; + IntToString(i) + &quot;_rank&quot;, nRank);
+        SetCustomToken(6200 + i, sPrefix + sTitle);
+        i++;
+    }
+}
+
+// Populate the drill-down detail tokens for one idea (by rank).
+void RU_BuildDetail(object oPC, int nRank)
+{
+    SetCustomToken(6210, &quot;&quot;);
+    SetCustomToken(6211, &quot;&quot;);
+    SetCustomToken(6212, &quot;&quot;);
+    SetCustomToken(6213, &quot;&quot;);
+    SetCustomToken(6214, &quot;&quot;);
+
+    sqlquery q = SqlPrepareQueryCampaign(RU_DB,
+        &quot;SELECT title, prefix, group_label, player, date, notes&quot; +
+        &quot; FROM recent_updates WHERE rank=@r&quot;);
+    SqlBindInt(q, &quot;@r&quot;, nRank);
+    if (!SqlStep(q)) return;
+
+    string sTitle  = SqlGetString(q, 0);
+    string sPrefix = SqlGetString(q, 1);
+    SetCustomToken(6210, sPrefix + sTitle);
+    SetCustomToken(6211, SqlGetString(q, 2));
+    SetCustomToken(6212, SqlGetString(q, 3));
+    SetCustomToken(6213, SqlGetString(q, 4));
+
+    string sNotes = SqlGetString(q, 5);
+    if (sNotes == &quot;&quot;) sNotes = &quot;(No further details recorded.)&quot;;
+    SetCustomToken(6214, sNotes);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
