@@ -17,6 +17,7 @@ string GetCodeExpiration(string sCodeLower)
     if (sCodeLower == "defect20260516") return "2026-05-25";
     if (sCodeLower == "first100hours") return "2026-07-01";
     if (sCodeLower == "forgingahead") return "2026-07-15";
+    if (sCodeLower == "amuletgift") return "2099-12-31";
     return "";
 }
 
@@ -42,6 +43,11 @@ int ApplyCodeBenefit(string sCodeLower, object oPC)
     {
         int i;
         for (i = 0; i < 3; i++) CreateItemOnObject("forgekey", oPC);
+        return TRUE;
+    }
+    if (sCodeLower == "amuletgift")
+    {
+        CreateItemOnObject("amuletgift", oPC);
         return TRUE;
     }
     return FALSE;
