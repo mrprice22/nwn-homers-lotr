@@ -186,8 +186,6 @@ ideas:
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-29"
-    commit: a6580d74067
-    fix: "Module had no nw_s0_knock override, so knock used the stock script that refuses to unlock Plot-flagged objects -- and every locked object in the module is Plot-flagged (Plot is what blocks bashing). Added unpacked/nw_s0_knock.nss: unlocks Plot locks via SetLocked (Plot still blocks bashing), and for genuinely key-required locks tells the caster a key is needed instead of failing silently."
     notes: "<div><span>Knock scrolls and items are not working currently. I don't have a wizard leveled atm, so can't test a direct spell cast.</span></div><div><ul><li><span>E.g. The chests in Numerok's Den and the door to get into the chest room.</span></li></ul></div><div><ul><li><span>E.g at the Endless Stair door to Moria. </span></li></ul><span>Looks like the spell isn't fully triggering.</span></div>"
   - id: Morannon-Spell-Failure
     title: "Is Morannon meant to have arcane spell failure?"
