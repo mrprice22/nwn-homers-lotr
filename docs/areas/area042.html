@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Methonash&#x27;s Place</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1><span style="color:#fe20fe">Methonash&#x27;s Place</span></h1>
+<dl class="meta"><dt>ResRef</dt><dd>area042</dd><dt>Tag</dt><dd>MethonashsPlace</dd><dt>Tileset</dt><dd>tii01</dd><dt>Size</dt><dd>4×4 tiles</dd><dt>OnEnter</dt><dd>leash_to_area</dd></dl>
+<h2>Path from <span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></h2>
+<p><strong>2 hops</strong></p><ol><li><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a> &rarr; <a href="bree.html">Bree</a> <em class="muted">[use the &#8220;x2_doorhard2&#8221; door]</em></li><li><a href="bree.html">Bree</a> &rarr; <a href="area042.html"><span style="color:#fe20fe">Methonash&#x27;s Place</span></a> <em class="muted">[use the &#8220;bree2methplace2&#8221; door]</em></li></ol>
+<h2>Outgoing transitions</h2>
+<table class="data"><thead><tr><th>Kind</th><th>Label</th><th>Destination</th><th>Waypoint tag</th></tr></thead><tbody><tr><td>door</td><td>Door</td><td><a href="bree.html">Bree</a></td><td><code>bree2methplace1</code></td></tr>
+<tr><td>use</td><td>WellofEruPortal</td><td><a href="thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></td><td><code>respawn</code></td></tr></tbody></table>
+<h2>Incoming transitions</h2>
+<table class="data"><thead><tr><th>Kind</th><th>From</th><th>Label</th><th>Requires Key</th></tr></thead><tbody><tr><td>door</td><td><a href="bree.html">Bree</a></td><td>bree2methplace2</td><td><a href="../items/methskey.html">Methonash&#x27; Key</a></td></tr>
+<tr><td>door</td><td><a href="bree.html">Bree</a></td><td>bree2methplace1</td><td><a href="../items/methskey.html">Methonash&#x27; Key</a></td></tr></tbody></table>
+<h2>NPCs</h2>
+<table class="data"><thead><tr><th>Name</th><th>ResRef</th><th>Race</th><th>Class</th><th>HP</th><th>CR</th><th>Faction</th><th>Conversation</th></tr></thead><tbody><tr><td><a href="../creatures/methonashmart.html"><span style="color:#a52020">»[The]«</span> <span style="color:#a52020">»[Well-Mart]«</span></a></td><td>methonashmart</td><td>Human</td><td>Monk 20/Blackguard 20/Barbarian 20</td><td>528</td><td>17427.0</td><td>Merchant</td><td><a href="../conversations/methmart.html">methmart</a></td></tr>
+<tr><td><a href="../creatures/methonashforge.html"><span style="color:#a52020">»[The]«</span> <span style="color:#a52020">»[Forger]«</span></a></td><td>methonashforge</td><td>Human</td><td>Monk 20/Blackguard 20/Barbarian 20</td><td>528</td><td>17427.0</td><td>Merchant</td><td><a href="../conversations/bellnius_smith.html">bellnius_smith</a></td></tr></tbody></table>
+<h2>Stores</h2>
+<table class="data"><thead><tr><th>Name</th><th>Items</th><th>Opened By</th><th title="Price store charges you to buy items (% of base)">Sells At</th><th title="Item types the store will buy from you">Buys</th><th title="Price store pays you for items (% of base); N/A if the store buys nothing">Buys At</th><th title="Maximum the store will pay for any single item">Max Buy</th><th title="Highest base item value in stock (before markup)">Max GP</th><th title="Average base item value in stock (before markup)">Avg GP</th></tr></thead><tbody><tr><td><a href="../stores/area042_methmart.html">Methonash&#x27;s Well-Mart</a></td><td>29</td><td><em class="muted">unknown</em></td><td>500%</td><td>All types</td><td>50%</td><td>100,000 gp</td><td>35,032</td><td>4,856</td></tr></tbody></table>
+<h2>Conversations triggered here</h2>
+<table class="data"><thead><tr><th>Conversation</th><th>ResRef</th><th>Triggered via</th><th>Teleports to</th></tr></thead><tbody><tr><td><a href="../conversations/bellnius_smith.html">Greetings my . What can I do for you?</a></td><td><code>bellnius_smith</code></td><td>NPC blueprint <code>methonashforge</code>; NPC <a href="../creatures/methonashforge.html"><span style="color:#a52020">»[The]«</span> <span style="color:#a52020">»[Forger]«</span></a></td><td>—</td></tr>
+<tr><td><a href="../conversations/methmart.html">Welcome to Methonash&#x27;s Well-Mart. Browse my wares.</a></td><td><code>methmart</code></td><td>NPC blueprint <code>methonashmart</code>; NPC <a href="../creatures/methonashmart.html"><span style="color:#a52020">»[The]«</span> <span style="color:#a52020">»[Well-Mart]«</span></a></td><td>—</td></tr></tbody></table>
+<h2>Waypoints</h2>
+<table class="data"><thead><tr><th>Tag</th><th>ResRef</th></tr></thead><tbody><tr><td><code>methplace</code></td><td>nw_waypoint001</td></tr></tbody></table>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

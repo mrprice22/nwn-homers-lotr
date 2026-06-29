@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation dmrelevelconv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>dmrelevelconv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>11</dd>
+<dt>PC replies</dt><dd>15</dd>
+<dt>NumWords</dt><dd>369</dd>
+<dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
+<dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
+</dl>
+<h2>Triggered by</h2><p class="muted">No caller found in static analysis. May be invoked from runtime-only code paths (string-built resrefs, etc.).</p>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>relevelscript</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>deletecharacter</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>sc_001</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>checkpalerddclas</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e0">entry #0</a> — What may I help you with adventurer?</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">What may I help you with adventurer?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
+<div class="dlg-text">I need some gold and a good weapon.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #10</span> <a class="dlg-anchor" href="#e10" title="jump to flat entry #10">¶</a></summary>
+<div class="dlg-text">Begging anytime or anywhere will get you nuked, is that clear lackey?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
+<div class="dlg-text">YES SIR!</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">I want to RELEVEL my character.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <small class="muted">(if <code>sc_001</code>)</small> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">I am sorry but I cannot assist because you are either a Red Dragon Disciple or a Pale Master.</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">Understand that if you have taken legendary levels, this is not a reccommened option as this may not work for you, and you may lose your legendary level feats.  If you choose to continue, you will lose all your experience points and then will shortly thereafter gain them back.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text">I understand and I wish to procceed.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <small class="muted">(if <code>checkpalerddclas</code>)</small> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">I am sorry, but Red Dragon Disciples and Pale Masters are Not Allowed to Relevel due to their statistic not being removed when they lose levels.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
+<div class="dlg-text">Dang, and I really wanted to level too!</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">Well if you speak with a live DM maybe they will be willing to assist you, but there is no garauntee they as they are very busy.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #12</span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
+<div class="dlg-text">Thanks man!</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>relevelscript</code></span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">Great, here you go!</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text">Wow, thanks a lot!!!</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">STOP, I don&#x27;t want to relevel!</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">I want to DELETE my current character I am playing now.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">I hope you understand that this cannot be changed once you agree to be deleted, you will be booted, and if you make a new character with the same name you might run into problems.  Also, it would be wise to transfer any things you may not want to lose on this character to another character before you delete it, as DMs will not replace any lost items, ever.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">I understand clearly and wish to proceed...</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">NOTE: Characters with names that have #&#x27;s, Symbols, or Alt Code in them will NOT be deleted, 
+
+(For example (*Børt - *†he* Bold1*) ( Bl@t 2) Bane - Arch 3) or any similar type names.)  
+(Only normal named character will be deleted)</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">I see, please continue to Delete my character.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">Are you sure?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>deletecharacter</code></span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">YES, delete this character!</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">NO, I don&#x27;t want to delete my character!</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Ok, I don&#x27;t want to delete my character!</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">I want to Change My Alignment.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">I am sorry but I cannot assist you there, you must speak with a Live DM.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">What may I help you with adventurer?</div><ul class="dlg-links"><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“I need some gold and a good weapon.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“I want to RELEVEL my character.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I want to DELETE my current character I am playing now.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I want to Change My Alignment.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">I am sorry but I cannot assist you there, you must speak with a Live DM.</div></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">I hope you understand that this cannot be changed once you agree to be deleted, you will be booted, and if you make a new character with the same name you might run into problems.  Also, it would be wise to transfer any things you may not want to lose on this character to another character before you delete it, as DMs will not replace any lost items, ever.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“I understand clearly and wish to proceed...”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Ok, I don&#x27;t want to delete my character!”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">NOTE: Characters with names that have #&#x27;s, Symbols, or Alt Code in them will NOT be deleted, 
+
+(For example (*Børt - *†he* Bold1*) ( Bl@t 2) Bane - Arch 3) or any similar type names.)  
+(Only normal named character will be deleted)</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I see, please continue to Delete my character.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Are you sure?</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“YES, delete this character!”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“NO, I don&#x27;t want to delete my character!”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Understand that if you have taken legendary levels, this is not a reccommened option as this may not work for you, and you may lose your legendary level feats.  If you choose to continue, you will lose all your experience points and then will shortly thereafter gain them back.</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“I understand and I wish to procceed.”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“STOP, I don&#x27;t want to relevel!”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>relevelscript</code></span></div><div class="dlg-text">Great, here you go!</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Wow, thanks a lot!!!”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">I am sorry, but Red Dragon Disciples and Pale Masters are Not Allowed to Relevel due to their statistic not being removed when they lose levels.</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Dang, and I really wanted to level too!”</span></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Well if you speak with a live DM maybe they will be willing to assist you, but there is no garauntee they as they are very busy.</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Thanks man!”</span></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">I am sorry but I cannot assist because you are either a Red Dragon Disciple or a Pale Master.</div></div>
+<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">Begging anytime or anywhere will get you nuked, is that clear lackey?</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“YES SIR!”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">I want to Change My Alignment.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“I am sorry but I cannot assist you there, you must speak with a Live DM.”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I want to DELETE my current character I am playing now.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“I hope you understand that this cannot be changed once you agree to be deleted,…”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Ok, I don&#x27;t want to delete my character!</div></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">I understand clearly and wish to proceed...</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“NOTE: Characters with names that have #&#x27;s, Symbols, or Alt Code in them will NOT…”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I see, please continue to Delete my character.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Are you sure?”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">NO, I don&#x27;t want to delete my character!</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>deletecharacter</code></span></div><div class="dlg-text">YES, delete this character!</div></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">I want to RELEVEL my character.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“I am sorry but I cannot assist because you are either a Red Dragon Disciple or a…”</span> <small class="muted">(if <code>sc_001</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Understand that if you have taken legendary levels, this is not a reccommened op…”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">STOP, I don&#x27;t want to relevel!</div></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">I understand and I wish to procceed.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“I am sorry, but Red Dragon Disciples and Pale Masters are Not Allowed to Relevel…”</span> <small class="muted">(if <code>checkpalerddclas</code>)</small></li><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Great, here you go!”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Wow, thanks a lot!!!</div></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">Dang, and I really wanted to level too!</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Well if you speak with a live DM maybe they will be willing to assist you, but t…”</span></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Thanks man!</div></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">I need some gold and a good weapon.</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“Begging anytime or anywhere will get you nuked, is that clear lackey?”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">YES SIR!</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

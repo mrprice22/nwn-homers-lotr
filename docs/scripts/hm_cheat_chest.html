@@ -48,16 +48,16 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>hm_cheat_chest</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>hm_cheat_chest</code></h1><pre class="nss-source"><code>#include &quot;admin_db&quot;
+
+void main()
 {
     object oPC = GetLastUsedBy();
     if (!GetIsPC(oPC)) return;
 
-    string sKey = GetPCPublicCDKey(oPC);
-    int bAuth =   (sKey == &quot;FT6RKMX4&quot;)   // Homer
-               || (sKey == &quot;QR69DAFR&quot;)   // Homeless
-               || (sKey == &quot;FTM47TW9&quot;)   // Cassy
-               || (sKey == &quot;QG6QKQV3&quot;);  // Popoe
+    // Whitelist lives in the &quot;admindb&quot; campaign database (admins.can_chest),
+    // not in source — keys never ship inside the .mod.
+    int bAuth = Admin_CanChest(oPC);
 
     if (!bAuth)
     {

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script meth_house_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>meth_house_inc</code></h1><pre class="nss-source"><code>// meth_house_inc — shared helpers for the Methonash&#x27;s Place player house
+// (and any future player house built on the same plumbing).
+//
+// Ownership is decided entirely by the key-free admindb `houses` table
+// (see admin_db.nss). No CD keys appear in source — the chest/key-ring just
+// ask Admin_OwnsAreaHouse(). Persistence uses the legacy Bioware campaign
+// object store (same mechanism as the module&#x27;s PPIS chests), keyed by the
+// owner&#x27;s CD key, so a house&#x27;s stored items follow the CD key across all of
+// that account&#x27;s characters.
+
+const string MCH_DB        = &quot;housechest&quot;;       // campaign object DB (items)
+const string MCH_LOCKER_RR = &quot;meth_chest_inv&quot;;   // invisible storage placeable
+const string MCH_STORE_CRE = &quot;ppis_individual&quot;;  // invisible item-carrier creature
+
+// 50 magical damage + the standard refusal message, for anyone who tries to
+// use a house fixture they don&#x27;t own.
+void MethZapUnauthorized(object oPC)
+{
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                        EffectDamage(50, DAMAGE_TYPE_MAGICAL), oPC);
+    FloatingTextStringOnCreature(&quot;You are not authorized to use this&quot;, oPC, FALSE);
+}
+
+// Snapshot oLocker&#x27;s contents into the campaign DB under sKey (creature method:
+// copy items onto an invisible carrier creature, store the creature, destroy it).
+void MethChestSave(object oLocker, string sKey)
+{
+    if (sKey == &quot;&quot;) return;
+    location lLoc = GetLocation(oLocker);
+    object oCre = CreateObject(OBJECT_TYPE_CREATURE, MCH_STORE_CRE, lLoc, FALSE, sKey);
+    if (!GetIsObjectValid(oCre)) return;
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT,
+                        EffectVisualEffect(VFX_DUR_CUTSCENE_INVISIBILITY), oCre);
+    object oItem = GetFirstItemInInventory(oLocker);
+    while (GetIsObjectValid(oItem))
+    {
+        CopyItem(oItem, oCre, TRUE);
+        oItem = GetNextItemInInventory(oLocker);
+    }
+    StoreCampaignObject(MCH_DB, sKey, oCre);
+    DestroyObject(oCre, 0.2);
+}
+
+// Get (creating + DB-loading on first use this session) the invisible locker
+// that backs visible chest oChest for owner CD key sKey. The locker is spawned
+// 10m underground so players can never click it directly.
+object MethChestGetLocker(object oChest, string sKey)
+{
+    object oLocker = GetLocalObject(oChest, &quot;meth_locker&quot;);
+    if (GetIsObjectValid(oLocker)) return oLocker;
+
+    vector v = GetPosition(oChest);
+    location lLoc = Location(GetArea(oChest), Vector(v.x, v.y, v.z - 10.0),
+                             GetFacing(oChest));
+    oLocker = CreateObject(OBJECT_TYPE_PLACEABLE, MCH_LOCKER_RR, lLoc, FALSE);
+    SetLocalString(oLocker, &quot;meth_cdkey&quot;, sKey);
+    SetLocalObject(oChest, &quot;meth_locker&quot;, oLocker);
+
+    object oCre = RetrieveCampaignObject(MCH_DB, sKey, lLoc);
+    if (GetIsObjectValid(oCre))
+    {
+        object oItem = GetFirstItemInInventory(oCre);
+        while (GetIsObjectValid(oItem))
+        {
+            CopyItem(oItem, oLocker, TRUE);
+            oItem = GetNextItemInInventory(oCre);
+        }
+        DestroyObject(oCre, 0.2);
+    }
+    return oLocker;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
