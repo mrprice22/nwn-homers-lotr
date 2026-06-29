@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation npguide</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>npguide</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>12</dd>
+<dt>PC replies</dt><dd>15</dd>
+<dt>NumWords</dt><dd>0</dd>
+<dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
+<dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/npguide.html">New Player&#x27;s Guide</a> <code>npguide</code> — in <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/npguide.html">New Player&#x27;s Guide</a> — in <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
+</ul>
+<h2>Starting entries</h2><ul>
+<li><a href="#e0">entry #0</a> — Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Any quick tips to get started?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">Getting started - what do you need?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">Any free gear nearby?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">The Donations Chest right here restocks every reboot - and players drop spare gear in it. Check it often!</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r4">reply #4</a> <span class="dlg-link-preview">“Any free gear nearby?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Can anyone help me fight?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">Recruit henchmen scattered across the module. Each grows stronger as you unlock more - find all 7 for a permanent +1 to every ability score. The Wiki maps them all.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r4">reply #4</a> <span class="dlg-link-preview">“Any free gear nearby?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r5">reply #5</a> <span class="dlg-link-preview">“Can anyone help me fight?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Is there a free starter item?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">Type  Code:AmuletGift  in chat (no quotes) for a one-time starter amulet. And check your Journal&#x27;s Completed tab for more tips.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r4">reply #4</a> <span class="dlg-link-preview">“Any free gear nearby?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r5">reply #5</a> <span class="dlg-link-preview">“Can anyone help me fight?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Is there a free starter item?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">[Back]</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r7">reply #7</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Is there a free starter item?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r7">reply #7</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r5">reply #5</a> <span class="dlg-link-preview">“Can anyone help me fight?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Is there a free starter item?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r7">reply #7</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">What&#x27;s this Wiki I keep hearing about?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">The Wiki at homerslotr.com has nearly everything:</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">Where should I level up?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">It has a leveling guide - recommended starting areas and which enemies to fight.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r8">reply #8</a> <span class="dlg-link-preview">“Where should I level up?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text">Can it help me find items and foes?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">Locate every item, store and creature. Search by type or property, get directions to any area, and see full stats and loot.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r8">reply #8</a> <span class="dlg-link-preview">“Where should I level up?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r9">reply #9</a> <span class="dlg-link-preview">“Can it help me find items and foes?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text">What about server info?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">See planned and past updates, what&#x27;s custom vs. stock, and when players are most active - handy for finding a party.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r8">reply #8</a> <span class="dlg-link-preview">“Where should I level up?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r9">reply #9</a> <span class="dlg-link-preview">“Can it help me find items and foes?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r10">reply #10</a> <span class="dlg-link-preview">“What about server info?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
+<div class="dlg-text">[Back]</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r11">reply #11</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r10">reply #10</a> <span class="dlg-link-preview">“What about server info?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r11">reply #11</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r9">reply #9</a> <span class="dlg-link-preview">“Can it help me find items and foes?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r10">reply #10</a> <span class="dlg-link-preview">“What about server info?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r11">reply #11</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Is there a community?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">We gather at  discord.gg/VpAtSpe  :</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #12</span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
+<div class="dlg-text">Why should I join?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #10</span> <a class="dlg-anchor" href="#e10" title="jump to flat entry #10">¶</a></summary>
+<div class="dlg-text">All other redeem codes are posted in announcements, plus alerts on updates and scheduled events.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r12">reply #12</a> <span class="dlg-link-preview">“Why should I join?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
+<div class="dlg-text">What are Merit rewards?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #11</span> <a class="dlg-anchor" href="#e11" title="jump to flat entry #11">¶</a></summary>
+<div class="dlg-text">Submit ideas, bugs and exploits to earn Merit - spend it on teleport save-slots and player housing. Vote on others&#x27; ideas to help steer the roadmap.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r12">reply #12</a> <span class="dlg-link-preview">“Why should I join?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r13">reply #13</a> <span class="dlg-link-preview">“What are Merit rewards?”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
+<div class="dlg-text">[Back]</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r14">reply #14</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r13">reply #13</a> <span class="dlg-link-preview">“What are Merit rewards?”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r14">reply #14</a> <span class="dlg-link-preview">“[Back]”</span></div>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Goodbye.</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Any quick tips to get started?”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“What&#x27;s this Wiki I keep hearing about?”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Is there a community?”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Goodbye.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Getting started - what do you need?</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Any free gear nearby?”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Can anyone help me fight?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Is there a free starter item?”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">The Wiki at homerslotr.com has nearly everything:</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Where should I level up?”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Can it help me find items and foes?”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“What about server info?”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">We gather at  discord.gg/VpAtSpe  :</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Why should I join?”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“What are Merit rewards?”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">The Donations Chest right here restocks every reboot - and players drop spare gear in it. Check it often!</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Any free gear nearby?”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Can anyone help me fight?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Is there a free starter item?”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Recruit henchmen scattered across the module. Each grows stronger as you unlock more - find all 7 for a permanent +1 to every ability score. The Wiki maps them all.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Any free gear nearby?”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Can anyone help me fight?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Is there a free starter item?”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Type  Code:AmuletGift  in chat (no quotes) for a one-time starter amulet. And check your Journal&#x27;s Completed tab for more tips.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Any free gear nearby?”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Can anyone help me fight?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Is there a free starter item?”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">It has a leveling guide - recommended starting areas and which enemies to fight.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Where should I level up?”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Can it help me find items and foes?”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“What about server info?”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Locate every item, store and creature. Search by type or property, get directions to any area, and see full stats and loot.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Where should I level up?”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Can it help me find items and foes?”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“What about server info?”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">See planned and past updates, what&#x27;s custom vs. stock, and when players are most active - handy for finding a party.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Where should I level up?”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Can it help me find items and foes?”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“What about server info?”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">All other redeem codes are posted in announcements, plus alerts on updates and scheduled events.</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Why should I join?”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“What are Merit rewards?”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">Submit ideas, bugs and exploits to earn Merit - spend it on teleport save-slots and player housing. Vote on others&#x27; ideas to help steer the roadmap.</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Why should I join?”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“What are Merit rewards?”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“[Back]”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Any quick tips to get started?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Getting started - what do you need?”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">What&#x27;s this Wiki I keep hearing about?</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“The Wiki at homerslotr.com has nearly everything:”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Is there a community?</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“We gather at  discord.gg/VpAtSpe  :”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Goodbye.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Any free gear nearby?</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“The Donations Chest right here restocks every reboot - and players drop spare ge…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Can anyone help me fight?</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Recruit henchmen scattered across the module. Each grows stronger as you unlock…”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Is there a free starter item?</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Type  Code:AmuletGift  in chat (no quotes) for a one-time starter amulet. And ch…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">[Back]</div><ul class="dlg-links"><li><a href="#e0">→ entry #0</a> <span class="dlg-link-preview">“Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Where should I level up?</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“It has a leveling guide - recommended starting areas and which enemies to fight.”</span></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Can it help me find items and foes?</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Locate every item, store and creature. Search by type or property, get direction…”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">What about server info?</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“See planned and past updates, what&#x27;s custom vs. stock, and when players are most…”</span></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">[Back]</div><ul class="dlg-links"><li><a href="#e0">→ entry #0</a> <span class="dlg-link-preview">“Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.”</span></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Why should I join?</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“All other redeem codes are posted in announcements, plus alerts on updates and s…”</span></li></ul></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">What are Merit rewards?</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Submit ideas, bugs and exploits to earn Merit - spend it on teleport save-slots…”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">[Back]</div><ul class="dlg-links"><li><a href="#e0">→ entry #0</a> <span class="dlg-link-preview">“Welcome, traveler! New to these lands? Ask away - I&#x27;ll point you the right way.”</span></li></ul></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

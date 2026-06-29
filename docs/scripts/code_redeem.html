@@ -44,8 +44,7 @@
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
-<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../manual/TESTING-respawn-overrides.html">Respawn-override validation — tester checklist</a></div></div>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
     </nav>
   </header>
   <main>
@@ -68,6 +67,7 @@ string GetCodeExpiration(string sCodeLower)
     if (sCodeLower == &quot;defect20260516&quot;) return &quot;2026-05-25&quot;;
     if (sCodeLower == &quot;first100hours&quot;) return &quot;2026-07-01&quot;;
     if (sCodeLower == &quot;forgingahead&quot;) return &quot;2026-07-15&quot;;
+    if (sCodeLower == &quot;amuletgift&quot;) return &quot;2099-12-31&quot;;
     return &quot;&quot;;
 }
 
@@ -93,6 +93,11 @@ int ApplyCodeBenefit(string sCodeLower, object oPC)
     {
         int i;
         for (i = 0; i &lt; 3; i++) CreateItemOnObject(&quot;forgekey&quot;, oPC);
+        return TRUE;
+    }
+    if (sCodeLower == &quot;amuletgift&quot;)
+    {
+        CreateItemOnObject(&quot;amuletgift&quot;, oPC);
         return TRUE;
     }
     return FALSE;
