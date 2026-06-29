@@ -17,7 +17,6 @@
 #include "x0_i0_assoc"
 // #include "x0_i0_match" -- included in x0_i0_enemy
 #include "x0_i0_enemy"
-#include "j_inc_equip_best"
 
 /**********************************************************************
  * CONSTANTS
@@ -432,8 +431,8 @@ void bkEquipMelee(object oTarget = OBJECT_INVALID, int nClearActions=TRUE)
         return;
     }
 
-    // Fallback: If I'm still here, try equipping the most damaging melee weapon
-    EquipBestMeleeWeapon(oTarget);
+    // Fallback: If I'm still here, try ActionEquipMostDamagingMelee
+    ActionEquipMostDamagingMelee(oTarget);
 
     // * if not melee weapon found then try ranged
     // * April 2003 removed this beccause henchmen sometimes fall down into this
