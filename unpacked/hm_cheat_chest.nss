@@ -1,13 +1,13 @@
+#include "admin_db"
+
 void main()
 {
     object oPC = GetLastUsedBy();
     if (!GetIsPC(oPC)) return;
 
-    string sKey = GetPCPublicCDKey(oPC);
-    int bAuth =   (sKey == "FT6RKMX4")   // Homer
-               || (sKey == "QR69DAFR")   // Homeless
-               || (sKey == "FTM47TW9")   // Cassy
-               || (sKey == "QG6QKQV3");  // Popoe
+    // Whitelist lives in the "admindb" campaign database (admins.can_chest),
+    // not in source — keys never ship inside the .mod.
+    int bAuth = Admin_CanChest(oPC);
 
     if (!bAuth)
     {

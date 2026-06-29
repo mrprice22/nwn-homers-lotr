@@ -6,9 +6,13 @@
 *.ncs
 *.erf
 *.hak
-*cdkey*
 /tlk/
 /server.env.local
+
+# Admin CD-key whitelist seed — contains plaintext public CD keys; lives only on
+# this machine and is loaded into the admindb campaign DB out of band. The
+# admindb itself is a campaign SQLite file (never part of the .mod or this repo).
+/bin/seed-admindb.sh
 __pycache__/
 *.pyc
 

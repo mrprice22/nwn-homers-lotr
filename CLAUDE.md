@@ -105,6 +105,42 @@ A blueprint's filename **is** its ResRef (e.g. `bree.are.json` → ResRef `bree`
 Areas are 1:1:1 between `.are` (static), `.git` (instances), and `.gic` (per-instance
 comments) — keep all three when renaming or deleting an area.
 
+## Admin authorization & secrets — never hard-code CD keys
+
+**Rule: no CD keys (or other secrets) in `unpacked/` — ever.** `nasher` compiles
+**every** `.nss` on disk into the `.mod`, regardless of `.gitignore`. A gitignored
+key file is still *shipped* inside the packed module, so anyone who unpacks a
+shared `.mod` can read it. (This actually happened: an uploaded build leaked the
+admin CD keys.) Keeping a secret out of git is **not** keeping it out of the build.
+
+**Current setup — admin whitelist in the `admindb` campaign DB:**
+
+- Admin authorization lives in the **`admindb`** campaign SQLite database, not in
+  source. Campaign DBs live in the server's `database/` folder on the physical
+  machine (`$HOME/.local/share/Neverwinter Nights/database/admindb.sqlite3`) and
+  are caught by the daily backup. **A campaign DB is never part of the `.mod`**, so
+  keys can't leak through a shared module.
+- Schema: `admins(cdkey PK, name, can_admin, can_homeless, can_chest, added_at)`.
+  Tiers: `can_admin` → rest-menu **Admin Options**; `can_homeless` → rest-menu
+  **Options for the Homeless**; `can_chest` → the cheat-chest placeable.
+- `unpacked/admin_db.nss` is the **key-free** include: `Admin_InitDb()` (idempotent
+  `CREATE TABLE IF NOT EXISTS`, called from `onmoduleload.nss`) and
+  `Admin_CanAdmin/Homeless/Chest(oPC)` — all **`SELECT`-only**, keyed by
+  `GetPCPublicCDKey(oPC)`. Module scripts never compare keys directly; they call
+  these helpers. Consumers: `_cdkey.nss`, `_cdkeysum1.nss`, `_cdkeyhome.nss`,
+  `_restemo_admin.nss` (StartingConditionals), `hm_cheat_chest.nss`.
+- **Seeding/management is out of band** via `bin/seed-admindb.sh` — a
+  **gitignored** helper (contains the plaintext keys; lives only on this machine)
+  that upserts the whitelist with `sqlite3`. Edit the keys/tiers there and re-run
+  on the server; restart so the conditionals re-read live rows. There is no
+  in-game admin-management UI by design.
+
+**Adding a new gated feature:** put the check behind an `Admin_Can*()` helper (add
+a new tier column + helper + seed column if needed) — don't write a new
+`GetPCPublicCDKey(oPC) == "…"` literal. If you ever need a new secret on disk,
+gitignore it **and** keep it out of `unpacked/` (e.g. under `bin/`), because
+gitignore alone does not stop nasher from packing it.
+
 ## Quest wiki directives
 
 The wiki's **Quests** section is driven by the **Comment** field of each journal category (set in the NWN Toolset's Journal editor — it is the only per-quest free text; individual entries have no Comment). Add any of the following directives to control how a quest appears on the wiki:

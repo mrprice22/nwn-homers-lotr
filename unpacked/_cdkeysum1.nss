@@ -1,4 +1,4 @@
-// Admin Options conditional (legacy rest-menu variant). Whitelist lives in the
+// Admin Options conditional (alternate menu entry). Whitelist lives in the
 // "admindb" campaign database (admins.can_admin), not in source.
 #include "admin_db"
 

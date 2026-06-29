@@ -17,6 +17,7 @@
 #include "nwnx_events"
 #include "x2_inc_switches"
 #include "ru_db"
+#include "admin_db"
 
 
 void main()
@@ -53,5 +54,9 @@ SetCustomToken(6102, COLOR_END);
 // Recent Updates sign (Well of Eru): ensure the roadmapdb table exists before
 // any read. It is populated externally by the roadmap editor's Publish button.
 RU_InitDb();
+
+// Admin whitelist (rest-menu Admin/Homeless options, cheat chest): ensure the
+// admins table exists before any read. Seeded externally by bin/seed-admindb.sh.
+Admin_InitDb();
 
 }   //end of main
