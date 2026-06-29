@@ -106,7 +106,7 @@ ideas:
   - id: mw-counterspell-2
     title: "MW Henchmen: Counterspell mode not working -- needs revisions"
     group: meaningwave
-    status: confirmed
+    status: implemented
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-06-29"
@@ -120,10 +120,10 @@ ideas:
   - id: newbie-starting-gear-01
     title: "Newbie starting gear once per account"
     group: forge
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: Tukwut
-    date: "2026-06-27"
+    date: "2026-06-29"
     notes: "<div><span>the server can give a starter gift like this upon character creation, unsellable, unforgable ofc, simply have to drop it on the floor for trash pixie to pick it up when it's not needed anymore, they get haste, some ac, and little damage resist, so they don't die instantly when they start their journey. Example \"Amulet Gift\"</span></div><div><ul><li><span>+3 AC</span></li><li><span>5 / - Resist all 3 physical</span></li><li><span>Haste</span></li><li><span>Immunity: Fear</span></li><li><span>Light Bright (20m) Red</span></li><li><span>Regen 1</span></li></ul></div>"
   - id: toggle-reboot-on-empty
     title: "[Anvil] Adhoc toggle reboot on empty with warning to players"
@@ -182,10 +182,12 @@ ideas:
   - id: knock-spell-issue
     title: "Knock Spell Effect not working"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Y a z k i r"
-    date: "2026-06-24"
+    date: "2026-06-29"
+    commit: a6580d74067
+    fix: "Module had no nw_s0_knock override, so knock used the stock script that refuses to unlock Plot-flagged objects -- and every locked object in the module is Plot-flagged (Plot is what blocks bashing). Added unpacked/nw_s0_knock.nss: unlocks Plot locks via SetLocked (Plot still blocks bashing), and for genuinely key-required locks tells the caster a key is needed instead of failing silently."
     notes: "<div><span>Knock scrolls and items are not working currently. I don't have a wizard leveled atm, so can't test a direct spell cast.</span></div><div><ul><li><span>E.g. The chests in Numerok's Den and the door to get into the chest room.</span></li></ul></div><div><ul><li><span>E.g at the Endless Stair door to Moria. </span></li></ul><span>Looks like the spell isn't fully triggering.</span></div>"
   - id: Morannon-Spell-Failure
     title: "Is Morannon meant to have arcane spell failure?"
@@ -880,7 +882,7 @@ ideas:
   - id: sauron-minion-faction
     title: "Sauron's Chosen Minion fights his own faction (faction looks wrong)"
     group: bosses
-    status: confirmed
+    status: implemented
     type: Defect
     player: Tukwut
     date: "2026-06-16"

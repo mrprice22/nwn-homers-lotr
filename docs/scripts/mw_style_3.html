@@ -49,14 +49,16 @@
   </header>
   <main>
 <h1>Script: <code>mw_style_3</code></h1><pre class="nss-source"><code>// mw_style_3 -- set combat style 3 (Counterspell).
-// Caster guides ready counterspells against enemy mages instead of nuking/healing.
+// Caster guides stand ground and counter enemy spells instead of nuking/healing.
 // Used by Peterson, Watts, Campbell, McKenna, and Aurelius.
+#include &quot;mw_counter_inc&quot;
 void main()
 {
     SetLocalInt(OBJECT_SELF, &quot;MW_STYLE&quot;, 3);
     object oMaster = GetMaster();
     if (GetIsObjectValid(oMaster))
         FloatingTextStringOnCreature(&quot;I will turn their magic against them.&quot;, oMaster, FALSE);
+    MW_CtrEnsurePulse(); // begin the counterspell detection pulse
 }
 </code></pre>
   </main>
