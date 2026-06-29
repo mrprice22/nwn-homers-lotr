@@ -8,7 +8,14 @@
 //:: party member suffering ability-score damage -- regardless of combat style,
 //:: in or out of combat. Casters are granted 3 memorized charges of each
 //:: (engine refreshes on rest; a fresh summon restores them too).
+//::
+//:: Counterspell (MW_STYLE 3): with a foe in sight the guide stands ground --
+//:: we skip the stock associate AI (nw_ch_ac1) so it doesn't resume casting --
+//:: and the mw_ctr_pulse detection loop does the countering. Out of combat the
+//:: stock AI still runs so the guide follows the master normally.
 //:://////////////////////////////////////////////
+
+#include "mw_counter_inc"
 
 int MW_HasPetrify(object o)
 {
@@ -71,7 +78,17 @@ void MW_CureScan(object oMaster)
 
 void main()
 {
-    ExecuteScript("nw_ch_ac1", OBJECT_SELF);
+    // Counterspell mode with a foe in sight: stand ground (skip the stock
+    // associate AI so the guide doesn't resume casting) and keep the detection
+    // pulse alive. Otherwise run the stock AI as usual (handles following).
+    int bStyle3 = MW_Style3();
+    int bEnemy  = GetIsObjectValid(GetNearestCreature(
+        CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, OBJECT_SELF,
+        1, CREATURE_TYPE_PERCEPTION, PERCEPTION_SEEN));
+    if (!(bStyle3 && bEnemy))
+        ExecuteScript("nw_ch_ac1", OBJECT_SELF);
+    if (bStyle3)
+        MW_CtrEnsurePulse();
 
     object oMaster = GetMaster();
     if (!GetIsObjectValid(oMaster))
