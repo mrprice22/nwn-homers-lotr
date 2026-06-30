@@ -122,6 +122,31 @@ If a graduated item is ammunition and should give a stack of 99, add its case
 number to the `GetBonusItemStackSize` switch in `_inc_donations.nss` manually
 after the sync run.
 
+## Plot-door audit
+
+`bin/list_plot_doors.py` scans all area instance files and lists every **locked**
+door that has the **Plot** flag set but **no key requirement** (`KeyRequired = 0`,
+`KeyName = ""`). These are the doors the Knock spell can unlock.
+
+```sh
+python3 bin/list_plot_doors.py          # pretty table
+python3 bin/list_plot_doors.py --json   # JSON array for scripting
+```
+
+Output columns: door name, door tag, area, destination tag, destination type
+(`door` / `waypoint` / `none/trigger`).
+
+`bin/list_plot_containers.py` does the same for placeable containers (`HasInventory = 1`).
+Output columns: container name, tag, area.
+
+```sh
+python3 bin/list_plot_containers.py
+python3 bin/list_plot_containers.py --json
+```
+
+Both scripts are useful after adding or editing plot doors/containers to confirm
+they are (or aren't) Knock-able.
+
 ## Forge legal-variant whitelist
 
 The Forge contraband system (`unpacked/forge_inc.nss`) jails players who carry
