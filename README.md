@@ -368,12 +368,17 @@ folder before any hak and is not distributed to clients via nwsync.
    ```
    519  MULTICLASS_LIMIT                                 4
    ```
-3. Build the hak and install it:
+3. Build the hak and install it. The live `lotr_rules.hak` contains **both**
+   `ruleset.2da` and `baseitems.2da` (the latter holds the module's custom item
+   stack sizes — ammo 999, potions/scrolls 99 — tracked in git at
+   `hak_2da/baseitems.2da`). Pack both, or a from-scratch rebuild silently drops
+   those customizations:
    ```sh
    mkdir -p /tmp/lotr_rules_hak
    cp /tmp/nwn_2da/ruleset.2da /tmp/lotr_rules_hak/
+   cp hak_2da/baseitems.2da    /tmp/lotr_rules_hak/
    ~/.nimble/bin/nwn_erf -c -f /tmp/lotr_rules.hak -e HAK \
-     /tmp/lotr_rules_hak/ruleset.2da
+     /tmp/lotr_rules_hak/ruleset.2da /tmp/lotr_rules_hak/baseitems.2da
    cp /tmp/lotr_rules.hak \
      "$HOME/.local/share/Neverwinter Nights/hak/lotr_rules.hak"
    ```
@@ -382,7 +387,9 @@ folder before any hak and is not distributed to clients via nwsync.
    cp /tmp/nwn_2da/ruleset.2da \
      "$HOME/.local/share/Neverwinter Nights/override/ruleset.2da"
    ```
-5. Repack the module and run the nwsync refresh so clients receive the new hak.
+5. Run `bin/refresh-nwsync` so clients receive the new hak (incremental — see
+   [Updating a hak / refreshing nwsync](#updating-a-hak--refreshing-nwsync)). A
+   `.mod` repack is only needed if module content under `unpacked/` also changed.
 
 ### Rolling back to 3 classes
 
@@ -394,6 +401,42 @@ folder before any hak and is not distributed to clients via nwsync.
    characters (the extra loop iterations hit `CLASS_TYPE_INVALID` and
    short-circuit). Reverting them is optional; `git revert` the relevant commit
    if you want exact parity with the original.
+
+## Updating a hak / refreshing nwsync
+
+Clients receive the haks + `cep.tlk` the module references through an **nwsync**
+repository served by nginx (`bin/serve-nwsync`). After changing any hak, publish
+it with:
+
+```sh
+bin/refresh-nwsync          # rebuild the manifest; incremental — only changed
+                            # resources are hashed, compressed and written
+```
+
+Key points:
+
+- **Incremental by default.** The nwsync repo
+  (`~/.local/share/Neverwinter Nights/nwsync/HomersLOTR`, ~1.9 GB) is a
+  content-addressed store keyed by per-resource SHA1. A routine refresh reuses
+  every blob that already exists and writes only what actually changed, then
+  publishes a fresh manifest. Editing one 2DA inside `lotr_rules.hak` writes a
+  single new blob — it does **not** reprocess the ~8 GB of CEP haks. The first
+  run after a clean/empty repo is still a full bootstrap; later runs are fast.
+- **A hak-only change does not need a `.mod` repack.** Install the updated hak
+  into `~/.local/share/Neverwinter Nights/hak/`, then run `bin/refresh-nwsync`.
+  (The `.mod` is only read to discover its hak/tlk dependency list.) A repack is
+  only needed when module content under `unpacked/` changed.
+- **No nginx bounce.** The repo is updated in place, so the live nginx mount
+  keeps serving; `refresh-nwsync` just ensures the container is up. Clients pick
+  up the new manifest via the `no-cache` `/latest` pointer on next connect.
+
+Flags:
+
+| Flag | Effect |
+|------|--------|
+| `--silent` | Quiet spinner instead of full nwsync output. |
+| `--force`  | Re-add nwsync's `-f` to rewrite **all** blobs even if identical. Slow (~full rebuild); use only to recover from a suspected-corrupt repo. |
+| `--prune`  | After writing, run `nwn_nwsync_prune` to garbage-collect orphaned blobs from superseded manifests (self-protects data < 2 weeks old). Safe to run occasionally — e.g. monthly — not needed every refresh. |
 
 ## Area leashing (creatures locked to spawn area)
 
@@ -507,7 +550,8 @@ included. Archives land in `~/OneDrive/Games/NWNHomersLOTR/backups/` as
 plus one per month for 12 months.
 
 **Not backed up** (regenerable): `hak/`, `tlk/`, `nwsync/` (rebuild via
-`bin/refresh-nwsync`), compiled `.mod` files (rebuild from the git module source),
+`bin/refresh-nwsync` — incremental, so a from-empty rebuild is a one-time full
+bootstrap), compiled `.mod` files (rebuild from the git module source),
 wiki `docs/`, and the Dungeon Solitaire Anvil DLLs (source is in `csharp/`, rebuilt
 via `dotnet build`).
 

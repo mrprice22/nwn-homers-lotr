@@ -11,9 +11,13 @@
 set -euo pipefail
 
 SILENT=0
+FORCE=0
+PRUNE=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --silent) SILENT=1 ;;
+    --force)  FORCE=1 ;;   # rewrite all blobs even if identical (slow; corruption recovery)
+    --prune)  PRUNE=1 ;;   # garbage-collect orphaned blobs after writing (safe; min-age 2wk)
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
   shift
@@ -45,10 +49,10 @@ if [[ ! -f $MOD_FILE ]]; then
   exit 1
 fi
 
-if [[ -d $NWNSYNC_REPO ]]; then
-  echo "[nwsync] wiping old repo: $NWNSYNC_REPO"
-  rm -rf "$NWNSYNC_REPO"
-fi
+# Persistent content-addressed store: do NOT wipe it. nwsync hashes every
+# resource by SHA1 and reuses any blob that already exists, writing only the
+# resources that actually changed — so a routine refresh is incremental and
+# fast. (Pass --force to rewrite everything; see below.)
 mkdir -p "$NWNSYNC_REPO"
 
 echo "[nwsync] repo:    $NWNSYNC_REPO"
@@ -62,12 +66,17 @@ echo
 # to discover its dependency list and pulls them from --path dirs.
 manifest_name="${NWN_SERVERNAME:-Homers LOTR VEL v3}"
 
+# --force re-adds nwsync's -f (force rewrite of existing data). Without it the
+# tool dedupes against the existing store, writing only changed resources.
+force_flag=()
+[[ $FORCE -eq 1 ]] && force_flag=(-f)
+
 nwsync_args=(
   --name "$manifest_name"
   --description "Homers LotR VEL v3 — CEP 2 content pack"
   --path "$NWN_HOME_DIR/hak"
   --path "$NWN_HOME_DIR/tlk"
-  -f
+  "${force_flag[@]}"
   "$NWNSYNC_REPO"
   "$MOD_FILE"
 )
@@ -107,14 +116,22 @@ if [[ -f "$NWNSYNC_REPO/latest" ]]; then
   fi
 fi
 
-# The rm -rf above broke any live nginx bind mount (old inode). Restart the
-# container so it gets a fresh mount pointing at the new directory.
-NWNSYNC_CONTAINER="${NWNSYNC_CONTAINER:-nwnsync-nginx}"
-if podman container exists "$NWNSYNC_CONTAINER" 2>/dev/null; then
-  state=$(podman inspect -f '{{.State.Status}}' "$NWNSYNC_CONTAINER" 2>/dev/null || echo missing)
-  if [[ $state == running ]]; then
-    echo "[nwsync] restarting $NWNSYNC_CONTAINER to pick up new repo directory..."
-    podman stop -t 4 "$NWNSYNC_CONTAINER" >/dev/null 2>&1 || true
-    "$PROJECT_ROOT/bin/serve-nwsync"
+# Optional housekeeping: incremental writes leave orphaned blobs from manifests
+# they superseded. nwn_nwsync_prune drops any blob no manifest references
+# (self-protecting data < 2 weeks old). Opt-in; run it occasionally, not every
+# refresh.
+if [[ $PRUNE -eq 1 ]]; then
+  NWN_NWSYNC_PRUNE="${NWN_NWSYNC_PRUNE:-$HOME/.nimble/bin/nwn_nwsync_prune}"
+  if [[ -x $NWN_NWSYNC_PRUNE ]]; then
+    echo "[nwsync] pruning orphaned blobs..."
+    "$NWN_NWSYNC_PRUNE" "$NWNSYNC_REPO"
+  else
+    echo "[nwsync] warning: nwn_nwsync_prune not found at $NWN_NWSYNC_PRUNE — skipping prune" >&2
   fi
 fi
+
+# The repo directory is now updated in place (no rm -rf, so the inode is stable),
+# which means nginx's live bind mount keeps serving the newly written blobs and
+# the updated /latest with no restart. Just make sure the container is up;
+# serve-nwsync is idempotent and leaves a healthy running container alone.
+"$PROJECT_ROOT/bin/serve-nwsync" || true
