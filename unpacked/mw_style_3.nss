@@ -8,5 +8,4 @@ void main()
     object oMaster = GetMaster();
     if (GetIsObjectValid(oMaster))
         FloatingTextStringOnCreature("I will turn their magic against them.", oMaster, FALSE);
-    MW_CtrEnsurePulse(); // begin the counterspell detection pulse
 }

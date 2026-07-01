@@ -21,6 +21,7 @@
 
 //#include "x2_inc_itemprop" - Inherited from x2_inc_craft
 #include "x2_inc_craft"
+#include "mw_counter_inc"
 
 
 const int X2_EVENT_CONCENTRATION_BROKEN = 12400;
@@ -243,6 +244,17 @@ void X2DoBreakConcentrationCheck()
 //------------------------------------------------------------------------------
 int X2PreSpellCastCode()
 {
+   //---------------------------------------------------------------------------
+   // MeaningWave: give a nearby hostile counterspelling guide a chance to
+   // interrupt this cast. Must run before the non-PC early-return below,
+   // which otherwise skips everything for NPC casters (our audience).
+   // Near-zero cost when nobody is watching this caster.
+   //---------------------------------------------------------------------------
+   if (!MW_CounterspellHook())
+   {
+       return FALSE;
+   }
+
    object oTarget = GetSpellTargetObject();
    int nContinue;
 
