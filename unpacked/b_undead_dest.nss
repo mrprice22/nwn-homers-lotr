@@ -1,3 +1,4 @@
+#include "boost_inc"
 void main()
 {
 
@@ -14,6 +15,6 @@ if(GetLastSpell() == SPELL_LESSER_DISPEL || GetLastSpell() == SPELL_REMOVE_CURSE
    ApplyEffectToObject(DURATION_TYPE_INSTANT, eVisual, oGrave);
    AddJournalQuestEntry("cursedgrave", 2, oPC);
    iXP = GetJournalQuestExperience("cursedgrave");
-   GiveXPToCreature(oPC, iXP);
+   Boost_GiveXP(oPC, iXP);
   }
 }

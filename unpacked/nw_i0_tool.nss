@@ -15,6 +15,11 @@
 //::
 //:://////////////////////////////////////////////
 
+// Premium 2x gold/XP boost (merit redemptions 201-204): the party reward helpers
+// below multiply gold/XP for players with an active boost. Bank withdrawals and
+// item sales do NOT route through here, so they stay un-boosted by design.
+#include "boost_inc"
+
 int DC_EASY = 0;
 int DC_MEDIUM = 1;
 int DC_HARD = 2;
@@ -152,7 +157,7 @@ void DoGiveXP(string sJournalTag, int nPercentage, object oTarget, int QuestAlig
         nRewardMod = 0.75;
     }
 
-    GiveXPToCreature(oTarget, FloatToInt(nRewardMod * nXP));
+    Boost_GiveXP(oTarget, FloatToInt(nRewardMod * nXP));
 }
 
 
@@ -179,13 +184,13 @@ void RewardPartyGP(int GP, object oTarget,int bAllParty=TRUE)
         while (GetIsObjectValid(oPartyMember) == TRUE)
         {
             //AssignCommand(oPartyMember, SpeakString("MY GP reward is: " + IntToString(GP)));
-            GiveGoldToCreature(oPartyMember, GP);
+            Boost_GiveGold(oPartyMember, GP);
             oPartyMember = GetNextFactionMember(oTarget, TRUE);
         }
     }
     else
     {
-     GiveGoldToCreature(oTarget, GP);
+     Boost_GiveGold(oTarget, GP);
     }
 }
 
@@ -211,13 +216,13 @@ void RewardPartyXP(int XP, object oTarget,int bAllParty=TRUE)
         object oPartyMember = GetFirstFactionMember(oTarget, TRUE);
         while (GetIsObjectValid(oPartyMember) == TRUE)
         {
-            GiveXPToCreature(oPartyMember, XP);
+            Boost_GiveXP(oPartyMember, XP);
             oPartyMember = GetNextFactionMember(oTarget, TRUE);
         }
     }
     else
     {
-     GiveXPToCreature(oTarget, XP);
+     Boost_GiveXP(oTarget, XP);
     }
 }
 

@@ -1,10 +1,11 @@
 //Give player 50 xp
 
 #include "nw_i0_plot"
+#include "boost_inc"
 
 void main()
 {
-    GiveXPToCreature(GetPCSpeaker(),50);
+    Boost_GiveXP(GetPCSpeaker(),50);
 }
 
 

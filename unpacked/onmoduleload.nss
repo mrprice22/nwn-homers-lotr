@@ -18,6 +18,7 @@
 #include "x2_inc_switches"
 #include "ru_db"
 #include "admin_db"
+#include "boost_db"
 
 
 void main()
@@ -58,5 +59,9 @@ RU_InitDb();
 // Admin whitelist (rest-menu Admin/Homeless options, cheat chest): ensure the
 // admins table exists before any read. Seeded externally by bin/seed-admindb.sh.
 Admin_InitDb();
+
+// Premium 2x gold/XP boost subscriptions (merit redemptions 201-204): ensure the
+// boostdb tables exist before any kill/quest reward reads them.
+Boost_InitDb();
 
 }   //end of main

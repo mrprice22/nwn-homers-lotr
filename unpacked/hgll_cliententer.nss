@@ -11,6 +11,7 @@
 #include "bst_db"
 #include "forge_inc"
 #include "tele_db"
+#include "boost_db"
 
 // Death amulet check + persistent state restore. Delayed so the engine's
 // own post-login passes (inventory hydration, spellbook sync, "fresh PC"
@@ -81,6 +82,12 @@ void main()
     // Rest-menu teleport unlocks (merit redemptions 101-107): ensure the
     // saved-slot / return-state tables exist.
     Tele_InitDb();
+
+    // Premium 2x gold/XP boosts (merit redemptions 201-204): ensure the tables
+    // exist, then report any active/pending server + personal subscriptions —
+    // who bought each and the estimated end date. Delayed past the login flood.
+    Boost_InitDb();
+    DelayCommand(4.0, Boost_LoginReport(oPC));
 
     // Server-info reference journals (Rules/Guilds/Website). Each category's
     // entry 1 has End=1, so these land in the player's Completed section.

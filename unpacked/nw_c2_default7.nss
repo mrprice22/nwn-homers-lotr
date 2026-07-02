@@ -15,6 +15,7 @@
 #include "x2_inc_compon"
 #include "x0_i0_spawncond"
 #include "se_respawn_inc"
+#include "boost_inc"
 void main()
 {
     int nClass = GetLevelByClass(CLASS_TYPE_COMMONER);
@@ -46,5 +47,9 @@ void main()
     return;
     { SE_DoCreatureRespawn(); }
 
+// Premium 2x boost: party_xp lives in a hak (no source here), so snapshot each
+// recipient's XP, let it grant, then top up the boosted bonus.
+Boost_SnapshotPartyXP(oKiller);
 ExecuteScript("party_xp", OBJECT_SELF);
+Boost_TopupPartyXP(oKiller);
 }

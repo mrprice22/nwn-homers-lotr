@@ -1,5 +1,6 @@
 //aldaron 13042004
 
+#include "boost_inc"
 void main()
 {
 
@@ -10,7 +11,7 @@ object FM = GetFirstFactionMember(oPC, TRUE);
 
 while (GetIsObjectValid(FM))
 {
- GiveXPToCreature (FM, 10000);
+ Boost_GiveXP (FM, 10000);
  FM = GetNextFactionMember (oPC, TRUE);
 }
 

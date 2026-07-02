@@ -4,6 +4,7 @@
 //:: Consumes the heirloom and rewards the PC. Gated upstream by
 //:: sc_glsn_have, so the item is present when this fires.
 //:://////////////////////////////////////////////
+#include "boost_inc"
 void main()
 {
     object oPC   = GetPCSpeaker();
@@ -12,6 +13,6 @@ void main()
     if (GetIsObjectValid(oItem))
         DestroyObject(oItem);
 
-    GiveXPToCreature(oPC, 5000);
-    GiveGoldToCreature(oPC, 15000);
+    Boost_GiveXP(oPC, 5000);
+    Boost_GiveGold(oPC, 15000);
 }

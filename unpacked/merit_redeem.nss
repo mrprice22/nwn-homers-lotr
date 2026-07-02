@@ -30,6 +30,7 @@
 // distinct from merit_lslot_* so "Nevermind" returns to the option list intact.
 
 #include "merit_db"
+#include "boost_inc"
 
 // Red "[PLACEHOLDER] " prefix. MERITREDOPEN is replaced post-write with the raw
 // colour bytes "<c" + FF 01 01 + ">" (null-free bright red, repo convention).
@@ -69,11 +70,11 @@ struct merit_reward Merit_GetReward(int nId)
         case 106: r.cost = 9;  r.needs_dm = 0; r.label = "Save-slot teleport (Slot 4)"; break;
         case 107: r.cost = 10; r.needs_dm = 0; r.label = "Save-slot teleport (Slot 5)"; break;
 
-        // --- Premium boosts (3x gold & XP) ---
-        case 201: r.cost = 1;  r.needs_dm = 0; r.label = "1 week of premium for you (3x gold & XP)"; break;
-        case 202: r.cost = 3;  r.needs_dm = 0; r.label = "1 month of premium for you"; break;
-        case 203: r.cost = 4;  r.needs_dm = 0; r.label = "1 week of premium for the whole server (+ your name in login welcome)"; break;
-        case 204: r.cost = 8;  r.needs_dm = 0; r.label = "1 month of premium for the whole server (+ your name in login welcome)"; break;
+        // --- Premium boosts (2x gold & XP; extra purchases queue, they never stack) ---
+        case 201: r.cost = 1;  r.needs_dm = 0; r.label = "1 week of 2x gold & XP for you"; break;
+        case 202: r.cost = 3;  r.needs_dm = 0; r.label = "1 month of 2x gold & XP for you"; break;
+        case 203: r.cost = 4;  r.needs_dm = 0; r.label = "1 week of 2x gold & XP for the whole server (+ your name in login welcome)"; break;
+        case 204: r.cost = 8;  r.needs_dm = 0; r.label = "1 month of 2x gold & XP for the whole server (+ your name in login welcome)"; break;
 
         // --- Vanity & swag ---
         case 301: r.cost = 5;   r.needs_dm = 1; r.label = "Graffiti the Well of Eru with your name & description"; break;
@@ -326,11 +327,12 @@ void Merit_BuildCategory(object oPC, int nCat)
             continue;
         }
 
-        // Only the nominal instant rewards (premium) are still unwired
-        // placeholders. DM-fulfilled options work today (a DM delivers them)
-        // and tournament gear (302) delivers on the spot, so neither carries
-        // the red [PLACEHOLDER] prefix.
-        string sPrefix = (r.needs_dm == 1 || nId == 302) ? "" : MERIT_PH;
+        // Every option is now wired: DM-fulfilled options are delivered by a DM,
+        // tournament gear (302) and the premium 2x boosts (201-204) grant on the
+        // spot. Nothing carries the red [PLACEHOLDER] prefix anymore. MERIT_PH is
+        // kept for any future not-yet-wired instant reward.
+        string sPrefix = (r.needs_dm == 1 || nId == 302 || (nId >= 201 && nId <= 204))
+                         ? "" : MERIT_PH;
         SetCustomToken(5060 + i, sPrefix + r.label + " [" + IntToString(r.cost) + " merit]");
     }
 }
@@ -632,6 +634,29 @@ int Merit_GrantInstant(object oPC, int nId)
         + IntToString(r.cost) + " merit). Logged as #" + IntToString(nReqId) + ".");
     SendMessageToAllDMs("[Merit] " + GetPCPlayerName(oPC) + " redeemed (instant) #"
         + IntToString(nReqId) + ": " + r.label + " (" + IntToString(r.cost) + " merit).");
+
+    // Premium 2x gold/XP boosts (201-204): enqueue a subscription. Buying more of
+    // the same kind never runs two clocks at once — extra time queues and slow-
+    // burns (see boost_db.nss). Server buffs pause everyone's personal clock.
+    if (nId >= 201 && nId <= 204)
+    {
+        int    nDays  = (nId == 201 || nId == 203) ? 7 : 30;
+        string sScope = (nId >= 203) ? "server" : "personal";
+
+        Boost_Reconcile();
+        int nBefore = (sScope == "server")
+            ? Boost_ChainRemaining("server", "")
+            : Boost_ChainRemaining("personal", sCdKey);
+
+        Boost_Enqueue(sScope, sCdKey, GetPCPlayerName(oPC), nDays);
+
+        if (nBefore > 0)
+            SendMessageToPC(oPC, "[Boost] Queued — it activates when the current "
+                + sScope + " boost runs out.");
+        else
+            SendMessageToPC(oPC, "[Boost] Active now — enjoy 2x gold & XP for "
+                + IntToString(nDays) + " days!");
+    }
     return TRUE;
 }
 
