@@ -43,6 +43,10 @@ void main()
 {
     int nStyle = GetLocalInt(OBJECT_SELF, "MW_STYLE");
 
+    // Auto-fell-back-to-melee guides keep tagging nearby enemies so a later
+    // counterable cast can pull them back into Style 3.
+    if (GetLocalInt(OBJECT_SELF, "MW_CTR_AUTOMELEE")) MW_CtrTagWatchers();
+
     if (nStyle == 3) { MW_CounterspellRound(); return; } // Counterspell mode
 
     object oEnemy = GetNearestCreature(CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, OBJECT_SELF, 1, CREATURE_TYPE_IS_ALIVE, TRUE);

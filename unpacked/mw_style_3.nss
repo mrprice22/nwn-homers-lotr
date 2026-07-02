@@ -5,6 +5,8 @@
 void main()
 {
     SetLocalInt(OBJECT_SELF, "MW_STYLE", 3);
+    DeleteLocalInt(OBJECT_SELF, "MW_CTR_AUTOMELEE");
+    DeleteLocalInt(OBJECT_SELF, "MW_CTR_STREAK");
     object oMaster = GetMaster();
     if (GetIsObjectValid(oMaster))
         FloatingTextStringOnCreature("I will turn their magic against them.", oMaster, FALSE);

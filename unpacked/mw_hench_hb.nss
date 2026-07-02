@@ -12,11 +12,9 @@
 //:: Counterspell (MW_STYLE 3): with a foe in sight the guide stands ground --
 //:: we skip the stock associate AI (nw_ch_ac1) so it doesn't resume casting --
 //:: and the X2PreSpellCastCode spell hook does the actual countering (see
-//:: mw_counter_inc.nss). Out of combat the stock AI still runs so the guide
-//:: follows the master normally. As a safety net (in case the guide's watched
-//:: enemies never actually cast anything, so the hook path never fires), the
-//:: heartbeat also checks whether the guide has run dry and falls back to
-//:: melee if so.
+//:: mw_counter_inc.nss), including the 3-miss-streak melee fallback and
+//:: auto-resume. Out of combat the stock AI still runs so the guide follows
+//:: the master normally.
 //:://////////////////////////////////////////////
 
 #include "mw_counter_inc"
@@ -84,16 +82,15 @@ void main()
 {
     // Counterspell mode with a foe in sight: stand ground (skip the stock
     // associate AI so the guide doesn't resume casting) -- the spell hook
-    // handles the actual countering. Otherwise run the stock AI as usual
-    // (handles following).
+    // handles the actual countering, streak-based melee fallback, and
+    // auto-resume. Otherwise run the stock AI as usual (handles following,
+    // and melee attacks once MW_STYLE has fallen back to 0).
     int bStyle3 = MW_Style3();
     int bEnemy  = GetIsObjectValid(GetNearestCreature(
         CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, OBJECT_SELF,
         1, CREATURE_TYPE_PERCEPTION, PERCEPTION_SEEN));
     if (!(bStyle3 && bEnemy))
         ExecuteScript("nw_ch_ac1", OBJECT_SELF);
-    if (bStyle3 && !MW_GuideHasAnyCounterSlot(OBJECT_SELF))
-        MW_SwitchToMelee(OBJECT_SELF); // safety net; no-op if already switched
 
     object oMaster = GetMaster();
     if (!GetIsObjectValid(oMaster))

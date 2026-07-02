@@ -14,9 +14,11 @@
 //:: The guide's Spellcraft is boosted a small flat amount in MW_ScaleGuide;
 //:: most of the per-guide variance now comes from each blueprint's base rank.
 
-const string MW_CTR_TARGET   = "MW_CTR_TARGET";   // last announced target (on guide)
-const string MW_CTR_WATCHER  = "MW_CTR_WATCHER";  // guide watching this enemy (on enemy)
-const string MW_CTR_COOLDOWN = "MW_CTR_COOLDOWN"; // attempt cooldown flag (on guide)
+const string MW_CTR_TARGET    = "MW_CTR_TARGET";    // last announced target (on guide)
+const string MW_CTR_WATCHER   = "MW_CTR_WATCHER";   // guide watching this enemy (on enemy)
+const string MW_CTR_COOLDOWN  = "MW_CTR_COOLDOWN";  // attempt cooldown flag (on guide)
+const string MW_CTR_STREAK    = "MW_CTR_STREAK";    // consecutive no-slot misses (on guide)
+const string MW_CTR_AUTOMELEE = "MW_CTR_AUTOMELEE"; // auto-fell back, still watching to resume (on guide)
 
 int MW_Style3()
 {
@@ -141,6 +143,7 @@ int MW_Pool_Peterson(object oGuide, int nReqLevel, int bHealPass)
     if (bHealPass) return -1; // Peterson has no dedicated heal spells
 
     if (nReqLevel <= 1 && GetHasSpell(SPELL_MAGIC_MISSILE, oGuide)) return SPELL_MAGIC_MISSILE;
+    if (nReqLevel <= 2 && GetHasSpell(SPELL_MELFS_ACID_ARROW, oGuide)) return SPELL_MELFS_ACID_ARROW;
     if (nReqLevel <= 3 && GetHasSpell(SPELL_FIREBALL, oGuide)) return SPELL_FIREBALL;
     if (nReqLevel <= 4 && GetHasSpell(SPELL_STONESKIN, oGuide)) return SPELL_STONESKIN;
     if (nReqLevel <= 5 && GetHasSpell(SPELL_CONE_OF_COLD, oGuide)) return SPELL_CONE_OF_COLD;
@@ -187,6 +190,7 @@ int MW_Pool_Campbell(object oGuide, int nReqLevel, int bHealPass)
         if (nReqLevel <= 4 && GetHasSpell(SPELL_CURE_CRITICAL_WOUNDS, oGuide)) return SPELL_CURE_CRITICAL_WOUNDS;
         return -1;
     }
+    if (nReqLevel <= 2 && GetHasSpell(SPELL_SILENCE, oGuide)) return SPELL_SILENCE;
     if (nReqLevel <= 3 && GetHasSpell(SPELL_HASTE, oGuide)) return SPELL_HASTE;
     if (nReqLevel <= 4 && GetHasSpell(SPELL_DOMINATE_PERSON, oGuide)) return SPELL_DOMINATE_PERSON;
     if (nReqLevel <= 6 && GetHasSpell(SPELL_DIRGE, oGuide)) return SPELL_DIRGE;
@@ -203,6 +207,7 @@ int MW_Pool_McKenna(object oGuide, int nReqLevel, int bHealPass)
     }
     if (nReqLevel <= 1 && GetHasSpell(SPELL_ENTANGLE, oGuide)) return SPELL_ENTANGLE;
     if (nReqLevel <= 2 && GetHasSpell(SPELL_BARKSKIN, oGuide)) return SPELL_BARKSKIN;
+    if (nReqLevel <= 3 && GetHasSpell(SPELL_CALL_LIGHTNING, oGuide)) return SPELL_CALL_LIGHTNING;
     if (nReqLevel <= 4 && GetHasSpell(SPELL_ICE_STORM, oGuide)) return SPELL_ICE_STORM;
     if (nReqLevel <= 7 && GetHasSpell(SPELL_FIRE_STORM, oGuide)) return SPELL_FIRE_STORM;
     if (nReqLevel <= 7 && GetHasSpell(SPELL_CREEPING_DOOM, oGuide)) return SPELL_CREEPING_DOOM;
@@ -270,11 +275,15 @@ int MW_ConsumeCounterSlot(object oGuide, int nReqLevel)
     return nSpell;
 }
 
-// Fall back out of Style 3 once a guide has nothing left to counter with.
+// Fall back out of Style 3 once a guide has missed 3 counters in a row for
+// lack of a qualifying slot. Stays "watching" via MW_CTR_AUTOMELEE so a later
+// counterable cast can pull the guide back into Style 3 (see
+// MW_CounterspellResolve).
 void MW_SwitchToMelee(object oGuide)
 {
     if (GetLocalInt(oGuide, "MW_STYLE") != 3) return; // already switched
     SetLocalInt(oGuide, "MW_STYLE", 0);
+    SetLocalInt(oGuide, MW_CTR_AUTOMELEE, 1);
     AssignCommand(oGuide, ClearAllActions());
     object oMaster = GetMaster(oGuide);
     if (GetIsObjectValid(oMaster))
@@ -287,9 +296,14 @@ void MW_SwitchToMelee(object oGuide)
 // Returns TRUE to let the spell continue, FALSE to abort it (silent fizzle).
 int MW_CounterspellResolve(object oGuide)
 {
-    if (GetIsDead(oGuide) || GetLocalInt(oGuide, "MW_STYLE") != 3) return TRUE;
+    if (GetIsDead(oGuide)) return TRUE;
+
+    int bStyle3    = GetLocalInt(oGuide, "MW_STYLE") == 3;
+    int bAutoMelee = GetLocalInt(oGuide, MW_CTR_AUTOMELEE);
+    if (!bStyle3 && !bAutoMelee) return TRUE; // player chose a different style on purpose
+
     if (GetDistanceBetween(oGuide, OBJECT_SELF) > 20.0) return TRUE;
-    if (GetLocalInt(oGuide, MW_CTR_COOLDOWN)) return TRUE;
+    if (bStyle3 && GetLocalInt(oGuide, MW_CTR_COOLDOWN)) return TRUE;
 
     int nSpellId = GetSpellId();
     int nClass   = GetLastSpellCastClass();
@@ -299,10 +313,38 @@ int MW_CounterspellResolve(object oGuide)
     int nUsed = MW_ConsumeCounterSlot(oGuide, nReqLvl);
     if (nUsed == -1)
     {
-        // No qualifying slot -- no attempt, no cooldown. If truly out of
-        // everything, fall back to melee now.
-        if (!MW_GuideHasAnyCounterSlot(oGuide)) MW_SwitchToMelee(oGuide);
+        // No qualifying slot -- no attempt, no cooldown. Only actively
+        // counterspelling guides accumulate a miss streak; a guide already
+        // in auto-melee just keeps waiting.
+        if (bStyle3)
+        {
+            int nStreak = GetLocalInt(oGuide, MW_CTR_STREAK) + 1;
+            if (nStreak >= 3)
+            {
+                SetLocalInt(oGuide, MW_CTR_STREAK, 0);
+                MW_SwitchToMelee(oGuide); // 3 misses in a row -- fall back
+            }
+            else
+            {
+                SetLocalInt(oGuide, MW_CTR_STREAK, nStreak);
+            }
+        }
         return TRUE;
+    }
+
+    // A qualifying slot was found and spent -- reset the miss streak.
+    SetLocalInt(oGuide, MW_CTR_STREAK, 0);
+
+    if (bAutoMelee)
+    {
+        // Enough resources are available again -- resume counterspelling.
+        DeleteLocalInt(oGuide, MW_CTR_AUTOMELEE);
+        SetLocalInt(oGuide, "MW_STYLE", 3);
+        object oResume = GetMaster(oGuide);
+        if (GetIsObjectValid(oResume))
+            FloatingTextStringOnCreature(GetName(oGuide) +
+                " sheathes steel and turns their magic against them once more.",
+                oResume, FALSE);
     }
 
     // An attempt is happening: start the cooldown regardless of outcome.
@@ -328,8 +370,6 @@ int MW_CounterspellResolve(object oGuide)
             ">> " + GetName(oGuide) + " fails to counter! (rolled " +
             IntToString(nRoll) + ")", oMaster, FALSE);
     }
-
-    if (!MW_GuideHasAnyCounterSlot(oGuide)) MW_SwitchToMelee(oGuide);
 
     return !bSuccess; // FALSE aborts the spell's mechanical effect on success
 }
