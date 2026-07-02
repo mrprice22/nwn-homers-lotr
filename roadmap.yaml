@@ -124,10 +124,12 @@ ideas:
   - id: Elronds-Sword-Bugged
     title: "Jailed for Elrond's Sword (unmodified)"
     group: forge
-    status: confirmed
+    status: implemented
     type: Defect
     player: Zambro
-    notes: "<div><span>So I logged in with the longsword of elrond in my inventory and I ended up in Jail.</span></div><div><span><br></span></div><div><span>Forge Warden also greets with \"<i>Hold Prisoner. The &lt;UNRECOGNIZED TOKEN&gt; you carry bears unlawful enchant</i>\" and later \"</span><span><i>&lt;UNRECOGNIZED TOKEN&gt; You will go no further until it is stripped back within the law</i>\"</span></div><div><span><br></span></div>"
+    date: "2026-07-01"
+    commit: 1204b88d546
+    notes: "<div><span>So I logged in with the longsword of elrond in my inventory and I ended up in Jail.</span></div><div><span><br></span></div><div><span>Forge Warden also greets with \"<i>Hold Prisoner. The &lt;UNRECOGNIZED TOKEN&gt; you carry bears unlawful enchant</i>\" and later \"</span><span><i>&lt;UNRECOGNIZED TOKEN&gt; You will go no further until it is stripped back within the law</i>\"</span></div><div><span><br></span></div><div><span><b>Fixed 2026-07-01:</b> Root cause was a stale Forge legal-variant whitelist (<code>forge_legal_inc.nss</code>) — it was last regenerated 2026-06-11, 12 days before a balance fix (<code>a026a118b6f</code>, ab-enhance-stack-bug) changed the sword's stored properties, so the post-fix item no longer matched the whitelist's old fingerprint and got flagged as illegal. Regenerated the whitelist and hardened <code>forge_ward_intro.nss</code> so the Warden releases the PC instead of showing the broken &lt;UNRECOGNIZED TOKEN&gt; accusation when it can't confirm an illegal item.</span></div><div><span><br></span></div><div><span><b>Known residual risk:</b> re-ran <code>bin/ab-enhance-audit.py</code> against the live vault and it found zero out-of-sync .bic files — but that sweep (and the original repair) only touches carried/equipped inventory, not player bank storage. A sword stashed in a bank before the June 23 property fix and pulled out later would still carry the pre-fix shape, which genuinely deviates from the current blueprint and isn't in the whitelist (which only covers current, not legacy, fingerprints) — so it could still trip the contraband check on a technically-true but player-unfair basis. Bank storage isn't audited by the existing ab-enhance tooling; flagging as follow-up work if reports of this recur.</span></div>"
   - id: Transition-Pelennor-Fields-2-Gates
     title: "Transition is missing from Pelennor Fields into Minas Tirith: Gates"
     group: quests-areas
@@ -1054,6 +1056,13 @@ ideas:
     status: planned
     type: Enhancement
     player: "Y a z k i r"
+  - id: dedupe-item-tags
+    title: "Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref"
+    group: items-gear
+    status: planned
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    notes: "Items that share a Tag but differ in properties break tag-based lookups and confuse the Forge contraband whitelist (a single resref can only represent one blueprint fingerprint). Surfaced by the Longsword of Elrond false-jailing bug: Elrond's Rivendell copy and Card Mennard's Edoras copy both use resref/tag <code>handofpaladine</code>/<code>LongswordofElrond</code> with different properties, which is why that item needed a whitelist entry at all. Audit every entry in <code>module-index/item_tag_conflicts.json</code> and give each variant its own unique Tag (and resref where the conflict is resref-level), then regenerate <code>forge_legal_inc.nss</code> and the wiki."
   - id: mail-delivery
     title: "Mail-delivery system: pay postage by weight to send items to a specific character; they're notified after login (post office if no player house)"
     group: items-gear
