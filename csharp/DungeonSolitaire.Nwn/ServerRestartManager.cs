@@ -16,6 +16,19 @@ namespace DungeonSolitaire.Nwn;
 /// (HH:mm, server-local time; forwarded from server.env). Set it empty to
 /// disable. A control file <c>&lt;PluginData&gt;/restart-now</c> triggers the
 /// shutdown sequence immediately, for testing without waiting for the clock.
+///
+/// <para><b>Adhoc "reboot on empty".</b> A control file
+/// <c>&lt;PluginData&gt;/reboot-on-empty</c> (presence = armed; its text = a
+/// custom player message) lets an admin stage a module update and have the
+/// server reboot itself the moment it next sits empty — without kicking anyone.
+/// While armed, online players are warned (broadcast + shout) and new joiners
+/// get an on-login notice. Once the server has been empty for
+/// <see cref="EmptyGraceSeconds"/>, it deletes the arm file (so it can't
+/// boot-loop), writes <c>&lt;PluginData&gt;/restart-server</c> (a host systemd
+/// <c>.path</c> unit watches this and restarts <i>just</i> the server service,
+/// optionally rebuilding the NWSync manifest first), then runs the same clean
+/// export+shutdown as the daily restart. The arm/disarm CLI is
+/// <c>bin/reboot-on-empty</c>.</para>
 /// </summary>
 [ServiceBinding(typeof(ServerRestartManager))]
 internal sealed class ServerRestartManager
@@ -27,13 +40,31 @@ internal sealed class ServerRestartManager
     private static readonly TimeSpan Tick = TimeSpan.FromSeconds(15);
     private const string DownDuration = "about 8 minutes";
 
+    // How long the server must sit continuously empty (while armed) before an
+    // adhoc reboot-on-empty fires. A short grace lets a mid-login player connect
+    // instead of being cut off the instant the last player logs out.
+    private const double EmptyGraceSeconds = 45;
+    // How often the "reboot pending, please log off" reminder is re-broadcast to
+    // players who are still online while armed.
+    private static readonly TimeSpan RemindEvery = TimeSpan.FromMinutes(15);
+
     private readonly TimeSpan? _target;     // local time-of-day, or null when disabled
     private readonly string _controlFile;
     private DateTime? _nextRestart;          // updated by RunLoop; read by OnClientEnter
 
+    // Adhoc reboot-on-empty state (all driven from RunLoop on the main thread).
+    private readonly string _armFile;            // presence = armed; text = custom message
+    private readonly string _restartRequestFile; // host .path unit watches this
+    private bool _emptyArmed;
+    private string _emptyMsg = "";
+    private double _emptyIdleSeconds;            // how long we've been empty while armed
+    private DateTime _lastReminder = DateTime.MinValue;
+
     public ServerRestartManager()
     {
         _controlFile = Path.Combine(HomeStorage.PluginData, "restart-now");
+        _armFile = Path.Combine(HomeStorage.PluginData, "reboot-on-empty");
+        _restartRequestFile = Path.Combine(HomeStorage.PluginData, "restart-server");
         _target = ParseTarget(Environment.GetEnvironmentVariable("ANVIL_RESTART_DAILY"));
         if (_target == null)
         {
@@ -78,6 +109,13 @@ internal sealed class ServerRestartManager
                 _nextRestart = _target == null ? null : NextOccurrence(_target.Value);
                 continue;
             }
+
+            // Adhoc "reboot on empty": arm/disarm from the control file, warn
+            // online players, and fire once the server has sat empty long enough.
+            // Runs independently of the daily schedule; if it fires it exits the
+            // loop via ShutdownSequence, so process it before the daily block.
+            ProcessRebootOnEmpty();
+            if (await MaybeRebootOnEmpty()) continue;
 
             if (_nextRestart == null) continue;
 
@@ -124,6 +162,102 @@ internal sealed class ServerRestartManager
             return $"[Server] Scheduled restart in 1 minute. The server will reboot for {DownDuration}; "
                  + "find a safe spot and expect a brief disconnect.";
         return $"[Server] Scheduled restart in {minutes} minutes.";
+    }
+
+    // ── Adhoc reboot-on-empty ────────────────────────────────────────────────────
+
+    // Reconcile armed state against the control file each tick: arm on first
+    // sight (or re-announce if the admin changed the message), disarm if the file
+    // was removed (an admin can cancel a pending reboot with `bin/reboot-on-empty off`).
+    private void ProcessRebootOnEmpty()
+    {
+        bool present = File.Exists(_armFile);
+        if (present)
+        {
+            string msg = ReadAllTextSafe(_armFile).Trim();
+            if (!_emptyArmed)
+            {
+                _emptyArmed = true;
+                _emptyMsg = msg;
+                _emptyIdleSeconds = 0;
+                _lastReminder = DateTime.Now;
+                AnnounceArm();
+            }
+            else if (msg != _emptyMsg)
+            {
+                _emptyMsg = msg;      // admin updated the message — re-announce
+                _lastReminder = DateTime.Now;
+                AnnounceArm();
+            }
+        }
+        else if (_emptyArmed)
+        {
+            _emptyArmed = false;
+            _emptyIdleSeconds = 0;
+            Broadcast("[Server] The pending reboot has been cancelled by the admin.", ColorConstants.Green);
+        }
+    }
+
+    // Fire the reboot once the server has been continuously empty for the grace
+    // window. Returns true if a shutdown was triggered (caller should `continue`).
+    private async Task<bool> MaybeRebootOnEmpty()
+    {
+        if (!_emptyArmed) return false;
+
+        int online = NwModule.Instance.Players.Count(p => p.IsValid);
+        if (online == 0)
+        {
+            _emptyIdleSeconds += Tick.TotalSeconds;
+            if (_emptyIdleSeconds >= EmptyGraceSeconds)
+            {
+                await FireEmptyReboot();
+                return true;
+            }
+            return false;
+        }
+
+        // Players present: reset the idle timer and re-nudge them periodically.
+        _emptyIdleSeconds = 0;
+        if (DateTime.Now - _lastReminder >= RemindEvery)
+        {
+            _lastReminder = DateTime.Now;
+            Broadcast(ArmHeadline(), ColorConstants.Orange);
+        }
+        return false;
+    }
+
+    private async Task FireEmptyReboot()
+    {
+        Log.Info("[ServerRestart] reboot-on-empty: server empty — rebooting to load the staged update.");
+
+        // Order matters. Delete the arm file FIRST so the restarted (still-empty)
+        // server doesn't immediately reboot again — a boot loop. Then drop the
+        // host restart-request flag; the systemd .path unit picks it up and
+        // relaunches just the server service (optionally rebuilding nwsync first).
+        TryDelete(_armFile);
+        try { File.WriteAllText(_restartRequestFile, DateTime.Now.ToString("o")); }
+        catch (Exception ex) { Log.Error(ex, "[ServerRestart] failed to write restart-request flag"); }
+
+        _emptyArmed = false;
+        await ShutdownSequence();   // clean export + ShutdownServer, same as the daily path
+    }
+
+    private void AnnounceArm()
+    {
+        string head = ArmHeadline();
+        Broadcast(head, ColorConstants.Orange);
+        Shout(head);
+        if (!string.IsNullOrWhiteSpace(_emptyMsg))
+            Broadcast(_emptyMsg, ColorConstants.Cyan);
+    }
+
+    private string ArmHeadline() =>
+        "[Server] A module update is staged. The server will reboot automatically the moment "
+        + "it is next empty — please wrap up and log out when convenient.";
+
+    private static string ReadAllTextSafe(string path)
+    {
+        try { return File.ReadAllText(path); } catch { return ""; }
     }
 
     private async Task ShutdownSequence()
@@ -202,6 +336,17 @@ internal sealed class ServerRestartManager
 
     private string? RestartNotice()
     {
+        // A pending adhoc reboot-on-empty takes precedence in the on-login notice
+        // — it's the more actionable "please log off so we can update" message.
+        if (_emptyArmed)
+        {
+            string notice = "[Server] A module update is pending — the server will reboot as soon "
+                          + "as it is next empty. Please log out when you're at a good stopping point.";
+            if (!string.IsNullOrWhiteSpace(_emptyMsg))
+                notice += " " + _emptyMsg;
+            return notice;
+        }
+
         if (_nextRestart == null) return null;
         double remaining = (_nextRestart.Value - DateTime.Now).TotalMinutes;
         if (remaining <= 0) return null;

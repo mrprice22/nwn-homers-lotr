@@ -103,6 +103,42 @@ Reverse both changes:
 
 ---
 
+## Adhoc "reboot on empty" (push an update without kicking players)
+
+For pushing a module update mid-day without waiting for 03:00 or asking players to
+log out. Unlike the daily cycle this restarts **only the server service**, not the
+whole machine.
+
+**Flow:**
+1. Build + deploy the new `.mod` as usual (repack/deploy).
+2. Arm it: `bin/reboot-on-empty "Adds the new Moria wing — brief reboot when the server empties."`
+   (add `--nwsync` if the update changed haks/tlk clients download).
+3. The Anvil `ServerRestartManager` warns online players (broadcast + shout) and
+   shows new joiners an on-login notice while armed.
+4. Once the server sits empty for ~45s it exports characters, shuts down cleanly,
+   and drops an `anvil/PluginData/restart-server` flag.
+5. A host `.path` unit (`homers-lotr-empty-restart.path`) sees the flag and runs
+   `bin/empty-restart-handler`: optionally rebuilds NWSync, then
+   `systemctl --user restart homers-lotr-server.service` — the server comes back on
+   the new module. The arm flag is deleted before shutdown, so there is no boot loop.
+
+**Cancel a pending reboot:** `bin/reboot-on-empty off` (players are told it was cancelled).
+**Check state:** `bin/reboot-on-empty status`.
+
+**One-time install of the restart trigger units:**
+```bash
+cp systemd/homers-lotr-empty-restart.path systemd/homers-lotr-empty-restart.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now homers-lotr-empty-restart.path
+```
+> The `.path` unit watches `~/.local/share/Neverwinter Nights/anvil/PluginData/restart-server`.
+> If `NWN_HOME_DIR` differs from that default, edit `PathExists=` in the `.path` unit to match.
+
+**Test without real players:** arm it on an empty server — after the ~45s grace it
+will reboot itself (loading whatever `.mod` is currently deployed).
+
+---
+
 ## Auto-login after reboot (GDM)
 
 The June 2026 reboot failed because the machine came up at the GDM login screen instead of auto-logging in, so the NWN start-up programs never ran.

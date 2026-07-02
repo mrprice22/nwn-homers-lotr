@@ -669,6 +669,16 @@ the next reboot bootstrap it). To test without waiting for 03:00, set
 `ANVIL_RESTART_DAILY` a few minutes ahead in `server.env.local` and restart, or
 `touch …/anvil/PluginData/restart-now` while the server runs.
 
+### Adhoc "reboot on empty"
+
+To push a module update mid-day without kicking players or waiting for 03:00:
+deploy the new `.mod`, then `bin/reboot-on-empty "<message>"` (add `--nwsync` if
+haks/tlk changed). The `ServerRestartManager` warns online players and shows new
+joiners an on-login notice; once the server is empty for ~45s it saves + shuts down
+cleanly and the host `homers-lotr-empty-restart.path` unit restarts **just the
+server service** onto the new module. Cancel with `bin/reboot-on-empty off`. Full
+setup + one-time unit install: [`rebootSchedule.md`](rebootSchedule.md#adhoc-reboot-on-empty-push-an-update-without-kicking-players).
+
 ## Prerequisites
 
 `nasher`, `nwn_gff`, `nwn_script_comp`, and `python3` (for `wiki`) must be

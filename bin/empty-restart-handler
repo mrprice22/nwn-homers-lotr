@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# empty-restart-handler — invoked by homers-lotr-empty-restart.service when the
+# Anvil plugin drops the `restart-server` flag after a reboot-on-empty shutdown.
+#
+# Runs in the window *after* the server process has exited (clean shutdown) and
+# *before* it comes back: it optionally rebuilds the NWSync manifest, then
+# restarts the server user service, which relaunches bin/serve onto the current
+# (freshly deployed) module.
+#
+# Not meant to be run by hand — the systemd .path unit fires it. Reads
+# NWN_HOME_DIR from ../server.env.
+set -uo pipefail
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+ENV_FILE="$PROJECT_ROOT/server.env"
+LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+[[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
+: "${NWN_HOME_DIR:?server.env must define NWN_HOME_DIR}"
+
+PLUGIN_DATA="$NWN_HOME_DIR/anvil/PluginData"
+REQUEST_FILE="$PLUGIN_DATA/restart-server"
+NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
+
+# Consume the trigger flag first so the .path unit re-arms for next time and we
+# never loop on a stale flag.
+rm -f "$REQUEST_FILE"
+
+echo "[empty-restart] reboot-on-empty triggered."
+
+if [[ -f $NWSYNC_FILE ]]; then
+  rm -f "$NWSYNC_FILE"
+  echo "[empty-restart] rebuilding NWSync manifest before relaunch..."
+  if "$PROJECT_ROOT/bin/refresh-nwsync" --silent; then
+    echo "[empty-restart] NWSync manifest rebuilt."
+  else
+    echo "[empty-restart] WARNING: refresh-nwsync failed; restarting server anyway." >&2
+  fi
+fi
+
+echo "[empty-restart] restarting homers-lotr-server.service..."
+systemctl --user restart homers-lotr-server.service
+echo "[empty-restart] done."
