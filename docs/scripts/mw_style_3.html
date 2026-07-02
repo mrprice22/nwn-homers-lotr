@@ -55,10 +55,11 @@
 void main()
 {
     SetLocalInt(OBJECT_SELF, &quot;MW_STYLE&quot;, 3);
+    DeleteLocalInt(OBJECT_SELF, &quot;MW_CTR_AUTOMELEE&quot;);
+    DeleteLocalInt(OBJECT_SELF, &quot;MW_CTR_STREAK&quot;);
     object oMaster = GetMaster();
     if (GetIsObjectValid(oMaster))
         FloatingTextStringOnCreature(&quot;I will turn their magic against them.&quot;, oMaster, FALSE);
-    MW_CtrEnsurePulse(); // begin the counterspell detection pulse
 }
 </code></pre>
   </main>

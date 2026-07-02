@@ -266,9 +266,10 @@ void MW_ScaleGuide(object oGuide, object oPC)
         MW_AddWeaponDamage(oArms, nDmg, nDmg);
     }
 
-    // --- Spellcraft so casters succeed at the Counterspell combat mode ---
+    // --- Small Spellcraft top-up for the Counterspell combat mode -- most of
+    // --- the per-guide variance now comes from each blueprint&#x27;s base Rank ---
     ApplyEffectToObject(DURATION_TYPE_PERMANENT,
-        SupernaturalEffect(EffectSkillIncrease(SKILL_SPELLCRAFT, 30)), oGuide);
+        SupernaturalEffect(EffectSkillIncrease(SKILL_SPELLCRAFT, 5)), oGuide);
 }
 
 void MW_SummonGuide(object oPC, string sGuide)

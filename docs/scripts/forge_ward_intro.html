@@ -48,7 +48,7 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_ward_intro</code></h1><pre class="nss-source"><code>// Forge Warden accusation entry: name the offending item and prime the
+<h1>Script: <code>forge_ward_intro</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>secondchance</code> (<a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a>)</dd></dl><pre class="nss-source"><code>// Forge Warden accusation entry: name the offending item and prime the
 // disenchant property list (shared forge_dis_* scripts work off these).
 #include &quot;forge_inc&quot;
 
@@ -62,6 +62,29 @@ void main()
     object oBad = GetLocalObject(oPC, &quot;FORGE_ILLEGAL_ITEM&quot;);
     if (!ForgePCHolds(oPC, oBad) || !ForgeIsItemIllegal(oBad))
         oBad = ForgeFindIllegalItem(oPC);
+
+    if (!GetIsObjectValid(oBad))
+    {
+        // The cached verdict said DIRTY, but neither the cache nor a fresh
+        // scan can back it up now (stale/recycled handle, item moved beyond
+        // ForgeFindIllegalItem&#x27;s reach, or already resolved off-scan). Never
+        // accuse on an unconfirmed charge, and never leave &lt;CUSTOM100&gt;/
+        // &lt;CUSTOM6119&gt; unset on screen — release instead.
+        ForgeLog(&quot;forge_ward_intro: DIRTY set but no illegal item resolved for &quot;
+            + GetName(oPC) + &quot; -- releasing without judgment.&quot;);
+        SetLocalInt(oPC, &quot;FORGE_WARDEN_DIRTY&quot;, FALSE);
+        DeleteLocalObject(oPC, &quot;FORGE_ILLEGAL_ITEM&quot;);
+        object oWP = GetWaypointByTag(&quot;secondchance&quot;);
+        if (GetIsObjectValid(oWP))
+        {
+            location lWell = GetLocation(oWP);
+            DelayCommand(3.0, AssignCommand(oPC, ClearAllActions()));
+            DelayCommand(3.0, AssignCommand(oPC, JumpToLocation(lWell)));
+        }
+        else
+            ForgeLog(&quot;forge_ward_intro: waypoint &#x27;secondchance&#x27; missing!&quot;);
+        return;
+    }
     SetLocalObject(oPC, &quot;FORGE_ILLEGAL_ITEM&quot;, oBad);
     // A stale success flag must not leak into the revert branch gate.
     DeleteLocalInt(oPC, &quot;FORGE_RVT_OK&quot;);

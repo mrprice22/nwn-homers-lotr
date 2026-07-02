@@ -50,12 +50,12 @@
   <main>
 <h1>Script: <code>mw_def_attacked</code></h1><pre class="nss-source"><code>//:: mw_def_attacked -- OnPhysicalAttacked for MeaningWave caster guides.
 //:: In counterspell mode (MW_STYLE 3) the guide stands ground and lets the
-//:: detection pulse do the work instead of running the stock AI (which would
-//:: resume casting). Otherwise defer to the default handler.
+//:: spell hook (mw_counter_inc.nss) do the work instead of running the stock
+//:: AI (which would resume casting). Otherwise defer to the default handler.
 #include &quot;mw_counter_inc&quot;
 void main()
 {
-    if (MW_Style3()) { MW_CtrEnsurePulse(); return; }
+    if (MW_Style3()) return;
     ExecuteScript(&quot;x2_def_attacked&quot;, OBJECT_SELF);
 }
 </code></pre>

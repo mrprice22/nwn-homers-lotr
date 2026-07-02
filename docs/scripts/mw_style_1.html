@@ -54,6 +54,8 @@
 void main()
 {
     SetLocalInt(OBJECT_SELF, &quot;MW_STYLE&quot;, 1);
+    DeleteLocalInt(OBJECT_SELF, &quot;MW_CTR_AUTOMELEE&quot;);
+    DeleteLocalInt(OBJECT_SELF, &quot;MW_CTR_STREAK&quot;);
     object oMaster = GetMaster();
     if (GetIsObjectValid(oMaster))
         FloatingTextStringOnCreature(&quot;As you say.&quot;, oMaster, FALSE);

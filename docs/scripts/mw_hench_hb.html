@@ -61,8 +61,10 @@
 //::
 //:: Counterspell (MW_STYLE 3): with a foe in sight the guide stands ground --
 //:: we skip the stock associate AI (nw_ch_ac1) so it doesn&#x27;t resume casting --
-//:: and the mw_ctr_pulse detection loop does the countering. Out of combat the
-//:: stock AI still runs so the guide follows the master normally.
+//:: and the X2PreSpellCastCode spell hook does the actual countering (see
+//:: mw_counter_inc.nss), including the 3-miss-streak melee fallback and
+//:: auto-resume. Out of combat the stock AI still runs so the guide follows
+//:: the master normally.
 //:://////////////////////////////////////////////
 
 #include &quot;mw_counter_inc&quot;
@@ -129,16 +131,16 @@ void MW_CureScan(object oMaster)
 void main()
 {
     // Counterspell mode with a foe in sight: stand ground (skip the stock
-    // associate AI so the guide doesn&#x27;t resume casting) and keep the detection
-    // pulse alive. Otherwise run the stock AI as usual (handles following).
+    // associate AI so the guide doesn&#x27;t resume casting) -- the spell hook
+    // handles the actual countering, streak-based melee fallback, and
+    // auto-resume. Otherwise run the stock AI as usual (handles following,
+    // and melee attacks once MW_STYLE has fallen back to 0).
     int bStyle3 = MW_Style3();
     int bEnemy  = GetIsObjectValid(GetNearestCreature(
         CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, OBJECT_SELF,
         1, CREATURE_TYPE_PERCEPTION, PERCEPTION_SEEN));
     if (!(bStyle3 &amp;&amp; bEnemy))
         ExecuteScript(&quot;nw_ch_ac1&quot;, OBJECT_SELF);
-    if (bStyle3)
-        MW_CtrEnsurePulse();
 
     object oMaster = GetMaster();
     if (!GetIsObjectValid(oMaster))

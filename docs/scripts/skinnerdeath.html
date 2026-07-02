@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script mw_ctr_pulse</title>
+  <title>Script skinnerdeath</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -48,14 +48,35 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>mw_ctr_pulse</code></h1><pre class="nss-source"><code>//:: mw_ctr_pulse -- 1-second counterspell detection pulse for caster guides.
-//:: Scheduled by MW_CtrEnsurePulse; runs MW_CounterspellPulse, which detects an
-//:: enemy mid-cast, rolls the opposed Spellcraft check, interrupts on success,
-//:: and reschedules itself until the guide leaves counterspell mode.
-#include &quot;mw_counter_inc&quot;
+<h1>Script: <code>skinnerdeath</code></h1><pre class="nss-source"><code>#include &quot;color&quot;
+
 void main()
 {
-    MW_CounterspellPulse();
+//Alerts which PC killed boss and where
+object oBoss = OBJECT_SELF;
+object oPC = GetLastHostileActor(oBoss);
+object oArea = GetArea(oBoss);
+string sBoss = GetName(oBoss);
+string sPC = GetName(oPC);
+string sArea = GetName(oArea);
+object oPlayer = GetFirstPC();
+if (GetIsDead(oBoss))
+     while (oPlayer != OBJECT_INVALID)
+        {
+        string sMessage = (sBoss + &quot; was killed by &quot;+sPC+&quot; in &lt;c�  &gt; &quot;+sArea + &quot;&lt;/c&gt;&quot;);
+        SendMessageToPC(oPlayer, sMessage);
+        oPlayer = GetNextPC();
+        }
+
+object oMod = GetModule();
+string name = GetName(OBJECT_SELF);
+
+string currentList = GetLocalString( oMod, &quot;EvilNPCDeathList&quot;);
+  if( currentList != &quot;&quot;) currentList += &quot;; &quot;;
+  currentList += name;
+  SetLocalString( oMod, &quot;EvilNPCDeathList&quot;, currentList);
+
+SpeakString(&quot;Dol Guldur is under attack! Rally Servants of Sauron to Dol Guldur!&quot;, TALKVOLUME_SHOUT);
 }
 </code></pre>
   </main>

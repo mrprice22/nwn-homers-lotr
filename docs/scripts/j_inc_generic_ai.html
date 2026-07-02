@@ -771,18 +771,14 @@ void CheckInventory()
             PotionsAvalible = FALSE;
         }
     }
+    // Silenced creatures can use items (wands/potions) but not verbal spells.
+    if(GetHasEffect(EFFECT_TYPE_SILENCE))
+    {
+        OnlyUseItems = TRUE;
+    }
     // Set items that cast spell, if we have any.
     if(WandsAvalible)
     {
-        int nAlreadySilenced = GetHasEffect(EFFECT_TYPE_SILENCE);
-        if(!nAlreadySilenced)
-        {
-            ApplyEffectToObject(DURATION_TYPE_PERMANENT, EffectSilence(), OBJECT_SELF);
-        }
-        else
-        {
-            OnlyUseItems = TRUE;
-        }
         // All the same - we will just go through each category,
             tBest = GetCreatureTalentBest(TALENT_CATEGORY_HARMFUL_AREAEFFECT_DISCRIMINANT, 20);
             if(GetIsTalentValid(tBest))
@@ -850,21 +846,6 @@ void CheckInventory()
             if(GetIsTalentValid(tBest))
             {   ItemValid15 = TRUE;
                 ItemSpell15 = GetIdFromTalent(tBest);    }
-        // If we had silence already, we won&#x27;t remove it, else it was just
-        // set by us, so remove it so we can cast again.
-        if(!nAlreadySilenced)
-        {
-            effect eSilence = GetFirstEffect(OBJECT_SELF);
-            while(GetIsEffectValid(eSilence))
-            {
-                if(GetEffectType(eSilence) == EFFECT_TYPE_SILENCE)
-                {
-                    RemoveEffect(OBJECT_SELF, eSilence);
-                    break;
-                }
-                eSilence = GetNextEffect(OBJECT_SELF);
-            }
-        }
         // End wands.
     }
     }//End race checks
