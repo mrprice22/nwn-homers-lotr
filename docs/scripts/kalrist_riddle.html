@@ -48,7 +48,8 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>kalrist_riddle</code></h1><pre class="nss-source"><code>int CheckIsInInventory (object oChest, object oGem)
+<h1>Script: <code>kalrist_riddle</code></h1><pre class="nss-source"><code>#include &quot;boost_inc&quot;
+int CheckIsInInventory (object oChest, object oGem)
 {
     object oObj = GetFirstItemInInventory(oChest);
     while (GetIsObjectValid(oObj))
@@ -88,7 +89,7 @@ if ((CheckIsInInventory(oChestA,oGemA)) &amp;&amp; (CheckIsInInventory(oChestF,o
      SetLocalInt(OBJECT_SELF,&quot;silenced&quot;,1);
      CreateItemOnObject(&quot;kalcryptkey001&quot;,OBJECT_SELF,1);
      DelayCommand(1.5,SpeakString(&quot;Phew...music to my ears...&quot;));
-     GiveXPToCreature(oPC,666);
+     Boost_GiveXP(oPC,666);
      SendMessageToPC(oPC,&quot;The noises in the chamber become quieter, less chaotic, and you hear a sigh of relief.&quot;);
      SetPlotFlag(OBJECT_SELF, FALSE);
      DelayCommand(1.6,ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectVisualEffect(VFX_FNF_MYSTICAL_EXPLOSION),OBJECT_SELF));

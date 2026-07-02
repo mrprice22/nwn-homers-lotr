@@ -48,12 +48,13 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>gdrev1</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>gdrev1</code></h1><pre class="nss-source"><code>#include &quot;boost_inc&quot;
+void main()
 {
 object oPC = GetPCSpeaker();
 
-GiveXPToCreature (oPC, 500);
-GiveGoldToCreature (oPC, 1000);
+Boost_GiveXP (oPC, 500);
+Boost_GiveGold (oPC, 1000);
 
 SetLocalInt (oPC, &quot;gdquest&quot;, 3);
 AddJournalQuestEntry (&quot;gdquest1&quot;, 2, oPC, TRUE, FALSE);

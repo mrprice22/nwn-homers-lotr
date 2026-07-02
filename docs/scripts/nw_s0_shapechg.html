@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script gqend</title>
+  <title>Script nw_s0_shapechg</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -48,23 +48,88 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>gqend</code></h1><pre class="nss-source"><code>//aldaron 13042004
+<h1>Script: <code>nw_s0_shapechg</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Shapechange
+//:: NW_S0_ShapeChg.nss
+//:: Copyright (c) 2001 Bioware Corp.
+//:://////////////////////////////////////////////
+//:://////////////////////////////////////////////
+//:: Created By: Preston Watamaniuk
+//:: Created On: Jan 22, 2002
+//:://////////////////////////////////////////////
 
-#include &quot;boost_inc&quot;
+#include &quot;x2_inc_spellhook&quot;
+#include &quot;shape_merge_inc&quot;
+
 void main()
 {
 
-object oPC = GetPCSpeaker();
-SetLocalInt (oPC, &quot;gquest&quot;, 2);
+/*
+  Spellcast Hook Code
+  Added 2003-06-23 by GeorgZ
+  If you want to make changes to all spells,
+  check x2_inc_spellhook.nss to find out more
 
-object FM = GetFirstFactionMember(oPC, TRUE);
+*/
 
-while (GetIsObjectValid(FM))
-{
- Boost_GiveXP (FM, 10000);
- FM = GetNextFactionMember (oPC, TRUE);
-}
+    if (!X2PreSpellCastCode())
+    {
+    // If code within the PreSpellCastHook (i.e. UMD) reports FALSE, do not run this spell
+        return;
+    }
 
+// End of Spell Cast Hook
+
+
+    //Declare major variables
+    int nSpell = GetSpellId();
+    object oTarget = GetSpellTargetObject();
+    effect eVis = EffectVisualEffect(VFX_FNF_SUMMON_MONSTER_3);
+    effect ePoly;
+    int nPoly;
+    int nMetaMagic = GetMetaMagicFeat();
+    int nDuration = GetCasterLevel(OBJECT_SELF);
+    //Enter Metamagic conditions
+    if (nMetaMagic == METAMAGIC_EXTEND)
+    {
+        nDuration = nDuration *2; //Duration is +100%
+    }
+
+    //Determine Polymorph subradial type
+    if(nSpell == 392)
+    {
+        nPoly = POLYMORPH_TYPE_RED_DRAGON;
+    }
+    else if (nSpell == 393)
+    {
+        nPoly = POLYMORPH_TYPE_FIRE_GIANT;
+    }
+    else if (nSpell == 394)
+    {
+        nPoly = POLYMORPH_TYPE_BALOR;
+    }
+    else if (nSpell == 395)
+    {
+        nPoly = POLYMORPH_TYPE_DEATH_SLAAD;
+    }
+    else if (nSpell == 396)
+    {
+        nPoly = POLYMORPH_TYPE_IRON_GOLEM;
+    }
+    ePoly = EffectPolymorph(nPoly);
+    //Fire cast spell at event for the specified target
+    SignalEvent(oTarget, EventSpellCastAt(OBJECT_SELF, SPELL_SHAPECHANGE, FALSE));
+
+    // Merge equipped item properties into the new form (shape_merge_inc);
+    // vanilla merged nothing for arcane polymorphs. The polymorph effect is
+    // applied on a delay below, so the merge runs just after it.
+    struct ShapeMergeGear gear = ShapeMergeSnapshot(oTarget);
+
+    //Apply the VFX impact and effects
+    ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eVis, GetLocation(oTarget));
+    DelayCommand(0.4, AssignCommand(oTarget, ClearAllActions())); // prevents an exploit
+    DelayCommand(0.5, ApplyEffectToObject(DURATION_TYPE_TEMPORARY, ePoly, oTarget, TurnsToSeconds(nDuration)));
+    DelayCommand(0.6, ShapeMergeAll(oTarget, gear));
 }
 </code></pre>
   </main>

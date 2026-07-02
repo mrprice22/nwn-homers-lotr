@@ -48,7 +48,8 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>b_undead_dest</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>b_undead_dest</code></h1><pre class="nss-source"><code>#include &quot;boost_inc&quot;
+void main()
 {
 
 if(GetLastSpell() == SPELL_LESSER_DISPEL || GetLastSpell() == SPELL_REMOVE_CURSE || GetLastSpell() == SPELL_DISPEL_MAGIC)
@@ -64,7 +65,7 @@ if(GetLastSpell() == SPELL_LESSER_DISPEL || GetLastSpell() == SPELL_REMOVE_CURSE
    ApplyEffectToObject(DURATION_TYPE_INSTANT, eVisual, oGrave);
    AddJournalQuestEntry(&quot;cursedgrave&quot;, 2, oPC);
    iXP = GetJournalQuestExperience(&quot;cursedgrave&quot;);
-   GiveXPToCreature(oPC, iXP);
+   Boost_GiveXP(oPC, iXP);
   }
 }
 </code></pre>

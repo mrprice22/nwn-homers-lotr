@@ -80,6 +80,7 @@
 // distinct from merit_lslot_* so &quot;Nevermind&quot; returns to the option list intact.
 
 #include &quot;merit_db&quot;
+#include &quot;boost_inc&quot;
 
 // Red &quot;[PLACEHOLDER] &quot; prefix. MERITREDOPEN is replaced post-write with the raw
 // colour bytes &quot;&lt;c&quot; + FF 01 01 + &quot;&gt;&quot; (null-free bright red, repo convention).
@@ -119,11 +120,11 @@ struct merit_reward Merit_GetReward(int nId)
         case 106: r.cost = 9;  r.needs_dm = 0; r.label = &quot;Save-slot teleport (Slot 4)&quot;; break;
         case 107: r.cost = 10; r.needs_dm = 0; r.label = &quot;Save-slot teleport (Slot 5)&quot;; break;
 
-        // --- Premium boosts (3x gold &amp; XP) ---
-        case 201: r.cost = 1;  r.needs_dm = 0; r.label = &quot;1 week of premium for you (3x gold &amp; XP)&quot;; break;
-        case 202: r.cost = 3;  r.needs_dm = 0; r.label = &quot;1 month of premium for you&quot;; break;
-        case 203: r.cost = 4;  r.needs_dm = 0; r.label = &quot;1 week of premium for the whole server (+ your name in login welcome)&quot;; break;
-        case 204: r.cost = 8;  r.needs_dm = 0; r.label = &quot;1 month of premium for the whole server (+ your name in login welcome)&quot;; break;
+        // --- Premium boosts (2x gold &amp; XP; extra purchases queue, they never stack) ---
+        case 201: r.cost = 1;  r.needs_dm = 0; r.label = &quot;1 week of 2x gold &amp; XP for you&quot;; break;
+        case 202: r.cost = 3;  r.needs_dm = 0; r.label = &quot;1 month of 2x gold &amp; XP for you&quot;; break;
+        case 203: r.cost = 4;  r.needs_dm = 0; r.label = &quot;1 week of 2x gold &amp; XP for the whole server (+ your name in login welcome)&quot;; break;
+        case 204: r.cost = 8;  r.needs_dm = 0; r.label = &quot;1 month of 2x gold &amp; XP for the whole server (+ your name in login welcome)&quot;; break;
 
         // --- Vanity &amp; swag ---
         case 301: r.cost = 5;   r.needs_dm = 1; r.label = &quot;Graffiti the Well of Eru with your name &amp; description&quot;; break;
@@ -376,11 +377,12 @@ void Merit_BuildCategory(object oPC, int nCat)
             continue;
         }
 
-        // Only the nominal instant rewards (premium) are still unwired
-        // placeholders. DM-fulfilled options work today (a DM delivers them)
-        // and tournament gear (302) delivers on the spot, so neither carries
-        // the red [PLACEHOLDER] prefix.
-        string sPrefix = (r.needs_dm == 1 || nId == 302) ? &quot;&quot; : MERIT_PH;
+        // Every option is now wired: DM-fulfilled options are delivered by a DM,
+        // tournament gear (302) and the premium 2x boosts (201-204) grant on the
+        // spot. Nothing carries the red [PLACEHOLDER] prefix anymore. MERIT_PH is
+        // kept for any future not-yet-wired instant reward.
+        string sPrefix = (r.needs_dm == 1 || nId == 302 || (nId &gt;= 201 &amp;&amp; nId &lt;= 204))
+                         ? &quot;&quot; : MERIT_PH;
         SetCustomToken(5060 + i, sPrefix + r.label + &quot; [&quot; + IntToString(r.cost) + &quot; merit]&quot;);
     }
 }
@@ -682,6 +684,29 @@ int Merit_GrantInstant(object oPC, int nId)
         + IntToString(r.cost) + &quot; merit). Logged as #&quot; + IntToString(nReqId) + &quot;.&quot;);
     SendMessageToAllDMs(&quot;[Merit] &quot; + GetPCPlayerName(oPC) + &quot; redeemed (instant) #&quot;
         + IntToString(nReqId) + &quot;: &quot; + r.label + &quot; (&quot; + IntToString(r.cost) + &quot; merit).&quot;);
+
+    // Premium 2x gold/XP boosts (201-204): enqueue a subscription. Buying more of
+    // the same kind never runs two clocks at once — extra time queues and slow-
+    // burns (see boost_db.nss). Server buffs pause everyone&#x27;s personal clock.
+    if (nId &gt;= 201 &amp;&amp; nId &lt;= 204)
+    {
+        int    nDays  = (nId == 201 || nId == 203) ? 7 : 30;
+        string sScope = (nId &gt;= 203) ? &quot;server&quot; : &quot;personal&quot;;
+
+        Boost_Reconcile();
+        int nBefore = (sScope == &quot;server&quot;)
+            ? Boost_ChainRemaining(&quot;server&quot;, &quot;&quot;)
+            : Boost_ChainRemaining(&quot;personal&quot;, sCdKey);
+
+        Boost_Enqueue(sScope, sCdKey, GetPCPlayerName(oPC), nDays);
+
+        if (nBefore &gt; 0)
+            SendMessageToPC(oPC, &quot;[Boost] Queued — it activates when the current &quot;
+                + sScope + &quot; boost runs out.&quot;);
+        else
+            SendMessageToPC(oPC, &quot;[Boost] Active now — enjoy 2x gold &amp; XP for &quot;
+                + IntToString(nDays) + &quot; days!&quot;);
+    }
     return TRUE;
 }
 

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script boost_db</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>boost_db</code></h1><pre class="nss-source"><code>// boost_db.nss -- Temporary 2x gold/XP &quot;premium boost&quot; subscriptions.
+//
+// Campaign DB: &quot;boostdb&quot; (SQLite). Backs merit redemptions 201-204
+// (see merit_redeem.nss). A purchase enqueues a subscription; the buff
+// multiplies creature/quest gold &amp; XP (never bank withdrawals or item sales --
+// that scoping lives at the reward call sites, not here). Read boost_inc.nss for
+// how the multiplier is applied.
+//
+// Two independent chains, both &quot;one active at a time, rest queued&quot;:
+//   * server chain  -- all server-wide subs across all buyers. Always burns real
+//                     time while it has any remaining; &quot;server on&quot; the whole time.
+//   * personal chain (per CD key) -- that player&#x27;s own subs. Burns real time ONLY
+//                     while the server chain is NOT active (a live server buff
+//                     pauses everyone&#x27;s personal clock, since it already grants 2x).
+//
+// Time is settled lazily (no DelayCommand timers): Boost_Reconcile() drains
+// remaining_sec by the wall-clock elapsed since last_reconciled, promotes the new
+// head of each chain, and recomputes two cached absolute expiry timestamps:
+//   boost_state.server_active_until            = now + sum of (server remaining)
+//   player_boost.personal_active_until[cdkey]  = now + sum of (server remaining)
+//                                                    + sum of (that player&#x27;s personal remaining)
+// Those absolutes stay correct as plain time passes (time only shifts remaining
+// seconds around; it never changes a chain&#x27;s contents), so the hot path
+// (Boost_Mult in boost_inc.nss) just compares them to now -- no per-kill reconcile.
+// They are only recomputed when a chain changes: on purchase and on login.
+
+const string BOOST_DB   = &quot;boostdb&quot;;
+const int    BOOST_MULT = 2;         // &quot;take the higher&quot;: any active buff =&gt; 2x, never 4x.
+
+// ------------------------------------------------------------
+// Small helpers
+
+int Boost_Now()
+{
+    sqlquery q = SqlPrepareQueryCampaign(BOOST_DB, &quot;SELECT CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// Human date for a unix epoch, e.g. &quot;2026-07-15 04:12&quot;.
+string Boost_FmtDate(int nEpoch)
+{
+    sqlquery q = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;SELECT strftime(&#x27;%Y-%m-%d %H:%M&#x27;, @e, &#x27;unixepoch&#x27;)&quot;);
+    SqlBindInt(q, &quot;@e&quot;, nEpoch);
+    return SqlStep(q) ? SqlGetString(q, 0) : &quot;&quot;;
+}
+
+// ------------------------------------------------------------
+// Schema
+
+void Boost_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;CREATE TABLE IF NOT EXISTS boost_sub (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;scope TEXT NOT NULL,&quot; +              // &#x27;server&#x27; | &#x27;personal&#x27;
+        &quot;cdkey TEXT NOT NULL,&quot; +              // owner (personal) / buyer (server)
+        &quot;buyer_name TEXT,&quot; +
+        &quot;dur_sec INTEGER NOT NULL,&quot; +         // original length
+        &quot;remaining_sec INTEGER NOT NULL,&quot; +   // decremented on reconcile
+        &quot;status TEXT NOT NULL DEFAULT &#x27;pending&#x27;,&quot; +   // active | pending | done
+        &quot;created_at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)))&quot;);
+    SqlStep(q);
+
+    sqlquery qs = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;CREATE TABLE IF NOT EXISTS boost_state (&quot; +
+        &quot;id INTEGER PRIMARY KEY CHECK(id=1),&quot; +
+        &quot;last_reconciled INTEGER NOT NULL,&quot; +
+        &quot;server_active_until INTEGER NOT NULL DEFAULT 0)&quot;);
+    SqlStep(qs);
+
+    sqlquery qi = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;INSERT OR IGNORE INTO boost_state(id, last_reconciled, server_active_until)&quot; +
+        &quot; VALUES(1, CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER), 0)&quot;);
+    SqlStep(qi);
+
+    sqlquery qp = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;CREATE TABLE IF NOT EXISTS player_boost (&quot; +
+        &quot;cdkey TEXT PRIMARY KEY,&quot; +
+        &quot;personal_active_until INTEGER NOT NULL DEFAULT 0)&quot;);
+    SqlStep(qp);
+}
+
+// ------------------------------------------------------------
+// Reconciliation internals
+
+// sum of  remaining_sec of a still-running chain. sCdKey &quot;&quot; = the whole server scope;
+// otherwise a single player&#x27;s personal chain.
+int Boost_ChainRemaining(string sScope, string sCdKey)
+{
+    string sSql = &quot;SELECT COALESCE(SUM(remaining_sec),0) FROM boost_sub&quot; +
+        &quot; WHERE scope=@s AND status IN(&#x27;active&#x27;,&#x27;pending&#x27;)&quot;;
+    if (sCdKey != &quot;&quot;) sSql += &quot; AND cdkey=@k&quot;;
+    sqlquery q = SqlPrepareQueryCampaign(BOOST_DB, sSql);
+    SqlBindString(q, &quot;@s&quot;, sScope);
+    if (sCdKey != &quot;&quot;) SqlBindString(q, &quot;@k&quot;, sCdKey);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// Drain nBurn seconds off the head(s) of one chain, oldest-first, marking
+// exhausted subs &#x27;done&#x27;. Then promote the earliest survivor to &#x27;active&#x27; and the
+// rest to &#x27;pending&#x27;. sCdKey &quot;&quot; = server scope; otherwise one player&#x27;s chain.
+void Boost_DrainChain(string sScope, string sCdKey, int nBurn)
+{
+    string sWhere = &quot;scope=@s AND status IN(&#x27;active&#x27;,&#x27;pending&#x27;)&quot;;
+    if (sCdKey != &quot;&quot;) sWhere += &quot; AND cdkey=@k&quot;;
+
+    int nGuard = 0;
+    while (nBurn &gt; 0 &amp;&amp; nGuard &lt; 256)
+    {
+        nGuard++;
+        sqlquery qh = SqlPrepareQueryCampaign(BOOST_DB,
+            &quot;SELECT id, remaining_sec FROM boost_sub WHERE &quot; + sWhere + &quot; ORDER BY id LIMIT 1&quot;);
+        SqlBindString(qh, &quot;@s&quot;, sScope);
+        if (sCdKey != &quot;&quot;) SqlBindString(qh, &quot;@k&quot;, sCdKey);
+        if (!SqlStep(qh)) break;   // chain empty
+
+        int nId  = SqlGetInt(qh, 0);
+        int nRem = SqlGetInt(qh, 1);
+        int nTake = (nBurn &lt; nRem) ? nBurn : nRem;
+        int nNew  = nRem - nTake;
+        nBurn -= nTake;
+
+        sqlquery qu = SqlPrepareQueryCampaign(BOOST_DB,
+            &quot;UPDATE boost_sub SET remaining_sec=@r, status=@st WHERE id=@id&quot;);
+        SqlBindInt(qu, &quot;@r&quot;, nNew);
+        SqlBindString(qu, &quot;@st&quot;, (nNew &lt;= 0) ? &quot;done&quot; : &quot;active&quot;);
+        SqlBindInt(qu, &quot;@id&quot;, nId);
+        SqlStep(qu);
+    }
+
+    // Promote head: exactly one &#x27;active&#x27;, the rest &#x27;pending&#x27;.
+    sqlquery qp = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;UPDATE boost_sub SET status=&#x27;pending&#x27; WHERE &quot; + sWhere);
+    SqlBindString(qp, &quot;@s&quot;, sScope);
+    if (sCdKey != &quot;&quot;) SqlBindString(qp, &quot;@k&quot;, sCdKey);
+    SqlStep(qp);
+
+    string sHead = &quot;UPDATE boost_sub SET status=&#x27;active&#x27; WHERE id=&quot; +
+        &quot;(SELECT MIN(id) FROM boost_sub WHERE &quot; + sWhere + &quot;)&quot;;
+    sqlquery qa = SqlPrepareQueryCampaign(BOOST_DB, sHead);
+    SqlBindString(qa, &quot;@s&quot;, sScope);
+    if (sCdKey != &quot;&quot;) SqlBindString(qa, &quot;@k&quot;, sCdKey);
+    SqlStep(qa);
+}
+
+// Settle elapsed wall-clock time, promote chain heads, and refresh the cached
+// absolute expiry timestamps. Idempotent; safe (and cheap) to call repeatedly.
+void Boost_Reconcile()
+{
+    int nNow = Boost_Now();
+
+    int nLast = nNow;
+    sqlquery ql = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;SELECT last_reconciled FROM boost_state WHERE id=1&quot;);
+    if (SqlStep(ql)) nLast = SqlGetInt(ql, 0);
+    int nElapsed = nNow - nLast;
+    if (nElapsed &lt; 0) nElapsed = 0;
+
+    // Server chain burns continuously while it has time.
+    int nServerRem = Boost_ChainRemaining(&quot;server&quot;, &quot;&quot;);
+    int nServerBurn = (nElapsed &lt; nServerRem) ? nElapsed : nServerRem;
+    Boost_DrainChain(&quot;server&quot;, &quot;&quot;, nServerBurn);
+
+    // Personal chains only burn during the server-inactive part of the window.
+    int nPersInactive = nElapsed - nServerBurn;
+
+    // Snapshot the set of players who have personal subs (before draining, so we
+    // still refresh the cache for those whose last sub just expired).
+    string sKeys = &quot;&quot;;
+    sqlquery qk = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;SELECT DISTINCT cdkey FROM boost_sub WHERE scope=&#x27;personal&#x27;&quot;);
+    while (SqlStep(qk)) sKeys += SqlGetString(qk, 0) + &quot;|&quot;;
+
+    int nSrvAfter = Boost_ChainRemaining(&quot;server&quot;, &quot;&quot;);   // = nServerRem - nServerBurn
+
+    int nPos = 0;
+    int nBar = FindSubString(sKeys, &quot;|&quot;);
+    while (nBar &gt;= 0)
+    {
+        string sKey = GetSubString(sKeys, nPos, nBar - nPos);
+        Boost_DrainChain(&quot;personal&quot;, sKey, nPersInactive);
+
+        int nPersAfter = Boost_ChainRemaining(&quot;personal&quot;, sKey);
+        int nUntil = nNow + nSrvAfter + nPersAfter;
+        sqlquery qu = SqlPrepareQueryCampaign(BOOST_DB,
+            &quot;INSERT INTO player_boost(cdkey, personal_active_until) VALUES(@k, @u)&quot; +
+            &quot; ON CONFLICT(cdkey) DO UPDATE SET personal_active_until=excluded.personal_active_until&quot;);
+        SqlBindString(qu, &quot;@k&quot;, sKey);
+        SqlBindInt(qu, &quot;@u&quot;, nUntil);
+        SqlStep(qu);
+
+        nPos = nBar + 1;
+        nBar = FindSubString(sKeys, &quot;|&quot;, nPos);
+    }
+
+    // Refresh server cache + reconcile marker.
+    sqlquery qs = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;UPDATE boost_state SET last_reconciled=@n, server_active_until=@u WHERE id=1&quot;);
+    SqlBindInt(qs, &quot;@n&quot;, nNow);
+    SqlBindInt(qs, &quot;@u&quot;, nNow + nSrvAfter);
+    SqlStep(qs);
+}
+
+// ------------------------------------------------------------
+// Purchase
+
+// Enqueue a subscription. scope &quot;server&quot; or &quot;personal&quot;; sCdKey is the buyer&#x27;s CD
+// key (also the owner for a personal sub). Reconciles before (so the new row can
+// never rewrite the past) and after (to promote heads + refresh caches).
+void Boost_Enqueue(string sScope, string sCdKey, string sBuyerName, int nDays)
+{
+    Boost_Reconcile();
+
+    int nDur = nDays * 86400;
+    sqlquery q = SqlPrepareQueryCampaign(BOOST_DB,
+        &quot;INSERT INTO boost_sub(scope, cdkey, buyer_name, dur_sec, remaining_sec, status)&quot; +
+        &quot; VALUES(@s, @k, @b, @d, @d, &#x27;pending&#x27;)&quot;);
+    SqlBindString(q, &quot;@s&quot;, sScope);
+    SqlBindString(q, &quot;@k&quot;, sCdKey);
+    SqlBindString(q, &quot;@b&quot;, sBuyerName);
+    SqlBindInt(q, &quot;@d&quot;, nDur);
+    SqlStep(q);
+
+    Boost_Reconcile();
+}
+
+// ------------------------------------------------------------
+// Login report
+
+// Round seconds to a friendly &quot;Nd Nh&quot; string.
+string Boost_FmtSpan(int nSec)
+{
+    if (nSec &lt; 0) nSec = 0;
+    int nDays  = nSec / 86400;
+    int nHours = (nSec % 86400) / 3600;
+    return IntToString(nDays) + &quot;d &quot; + IntToString(nHours) + &quot;h&quot;;
+}
+
+// Message the entering player about every active + pending 2x subscription
+// (server-wide and their own personal), who bought each, and the estimated end
+// date of each chain. Silent when nothing is active.
+void Boost_LoginReport(object oPC)
+{
+    Boost_Reconcile();
+    int nNow = Boost_Now();
+
+    int nSrvRem = Boost_ChainRemaining(&quot;server&quot;, &quot;&quot;);
+    string sMsg = &quot;&quot;;
+
+    if (nSrvRem &gt; 0)
+    {
+        sMsg += &quot;\n[Boost] Server-wide 2x gold &amp; XP is ACTIVE (everyone benefits).&quot;;
+        sqlquery q = SqlPrepareQueryCampaign(BOOST_DB,
+            &quot;SELECT buyer_name, remaining_sec, status FROM boost_sub&quot; +
+            &quot; WHERE scope=&#x27;server&#x27; AND status IN(&#x27;active&#x27;,&#x27;pending&#x27;) ORDER BY id&quot;);
+        while (SqlStep(q))
+        {
+            string sTag = (SqlGetString(q, 2) == &quot;active&quot;) ? &quot;active&quot; : &quot;queued&quot;;
+            sMsg += &quot;\n   - &quot; + SqlGetString(q, 0) + &quot; (&quot; + sTag + &quot;, &quot;
+                 + Boost_FmtSpan(SqlGetInt(q, 1)) + &quot;)&quot;;
+        }
+        sMsg += &quot;\n   Chain ends ~&quot; + Boost_FmtDate(nNow + nSrvRem) + &quot;.&quot;;
+    }
+
+    string sKey = GetPCPublicCDKey(oPC);
+    int nPersRem = Boost_ChainRemaining(&quot;personal&quot;, sKey);
+    if (nPersRem &gt; 0)
+    {
+        if (nSrvRem &gt; 0)
+            sMsg += &quot;\n[Boost] Your personal 2x is PAUSED while the server buff runs; &quot;
+                 + Boost_FmtSpan(nPersRem) + &quot; of personal time is preserved.&quot;;
+        else
+            sMsg += &quot;\n[Boost] Your personal 2x gold &amp; XP is ACTIVE (&quot;
+                 + Boost_FmtSpan(nPersRem) + &quot; remaining).&quot;;
+        // personal_active_until already folds in the server-pause offset.
+        sMsg += &quot;\n   Your boost ends ~&quot; + Boost_FmtDate(nNow + nSrvRem + nPersRem) + &quot;.&quot;;
+    }
+
+    if (sMsg != &quot;&quot;) SendMessageToPC(oPC, sMsg);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
