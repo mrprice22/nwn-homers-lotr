@@ -12,6 +12,29 @@ void main()
     object oBad = GetLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
     if (!ForgePCHolds(oPC, oBad) || !ForgeIsItemIllegal(oBad))
         oBad = ForgeFindIllegalItem(oPC);
+
+    if (!GetIsObjectValid(oBad))
+    {
+        // The cached verdict said DIRTY, but neither the cache nor a fresh
+        // scan can back it up now (stale/recycled handle, item moved beyond
+        // ForgeFindIllegalItem's reach, or already resolved off-scan). Never
+        // accuse on an unconfirmed charge, and never leave <CUSTOM100>/
+        // <CUSTOM6119> unset on screen — release instead.
+        ForgeLog("forge_ward_intro: DIRTY set but no illegal item resolved for "
+            + GetName(oPC) + " -- releasing without judgment.");
+        SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", FALSE);
+        DeleteLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
+        object oWP = GetWaypointByTag("secondchance");
+        if (GetIsObjectValid(oWP))
+        {
+            location lWell = GetLocation(oWP);
+            DelayCommand(3.0, AssignCommand(oPC, ClearAllActions()));
+            DelayCommand(3.0, AssignCommand(oPC, JumpToLocation(lWell)));
+        }
+        else
+            ForgeLog("forge_ward_intro: waypoint 'secondchance' missing!");
+        return;
+    }
     SetLocalObject(oPC, "FORGE_ILLEGAL_ITEM", oBad);
     // A stale success flag must not leak into the revert branch gate.
     DeleteLocalInt(oPC, "FORGE_RVT_OK");
