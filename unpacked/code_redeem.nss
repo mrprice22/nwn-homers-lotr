@@ -26,7 +26,7 @@ int ApplyCodeBenefit(string sCodeLower, object oPC)
 {
     if (sCodeLower == "freelegendary")
     {
-        SetXP(oPC, 17498600);
+        SetXP(oPC, 3581000);
         return TRUE;
     }
     if (sCodeLower == "defect20260516")

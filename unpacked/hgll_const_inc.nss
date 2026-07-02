@@ -11,28 +11,28 @@ const int DEBUG = FALSE;//set this to TRUE to enable debugging
 const int DEV_CRIT_DISABLED = FALSE;//set this to TRUE to disable devastating critical feat selection on levelup
 
 // Experience Requirements for Legendary Levels
-// Adjust as desired. These were set by increasing the additional amount required for the
-// previous level by 25%. Level 40 required 39000 experience points, so Level 41 was set
-// to require 39000 x 1.25 = 48800 experience points. This will be ALOT on some worlds,
-// and not enough on others, so adjust to suit your needs.
+// Adjust as desired. Level 40 required 39000 experience points, so Level 41 was set
+// to require 39000 x 1.25 = 48800 experience points. From Level 42 onward, the
+// additional amount required for the previous level increases by 10%. This will be
+// ALOT on some worlds, and not enough on others, so adjust to suit your needs.
 const int BASE_XP_LVL_40 = 780000; //780000
 const int XP_REQ_LVL41 = 828800;    //48800
-const int XP_REQ_LVL42 = 889700;    //60900
-const int XP_REQ_LVL43 = 965900;    //76200
-const int XP_REQ_LVL44 = 1061100;    //95200
-const int XP_REQ_LVL45 = 1180100;   //119000
-const int XP_REQ_LVL46 = 1328900;   //148800
-const int XP_REQ_LVL47 = 1514900;   //186000
-const int XP_REQ_LVL48 = 1747400;   //232500
-const int XP_REQ_LVL49 = 2038000;   //290600
-const int XP_REQ_LVL50 = 2401200;   //363200
-const int XP_REQ_LVL51 = 2855200;   //454000
-const int XP_REQ_LVL52 = 3422700;   //567500
-const int XP_REQ_LVL53 = 4132100;   //709400
-const int XP_REQ_LVL54 = 5018900;   //886800
-const int XP_REQ_LVL55 = 6127300;  //1108400
-const int XP_REQ_LVL56 = 7512900;  //1385600
-const int XP_REQ_LVL57 = 9244800;  //1731900
-const int XP_REQ_LVL58 = 11409700;  //2164900
-const int XP_REQ_LVL59 = 14115900;  //2706200
-const int XP_REQ_LVL60 = 17498600;  //3382700
+const int XP_REQ_LVL42 = 882500;    //53700
+const int XP_REQ_LVL43 = 941600;    //59100
+const int XP_REQ_LVL44 = 1006600;    //65000
+const int XP_REQ_LVL45 = 1078100;   //71500
+const int XP_REQ_LVL46 = 1156800;   //78700
+const int XP_REQ_LVL47 = 1243400;   //86600
+const int XP_REQ_LVL48 = 1338700;   //95300
+const int XP_REQ_LVL49 = 1443500;   //104800
+const int XP_REQ_LVL50 = 1558800;   //115300
+const int XP_REQ_LVL51 = 1685600;   //126800
+const int XP_REQ_LVL52 = 1825100;   //139500
+const int XP_REQ_LVL53 = 1978600;   //153500
+const int XP_REQ_LVL54 = 2147500;   //168900
+const int XP_REQ_LVL55 = 2333300;  //185800
+const int XP_REQ_LVL56 = 2537700;  //204400
+const int XP_REQ_LVL57 = 2762500;  //224800
+const int XP_REQ_LVL58 = 3009800;  //247300
+const int XP_REQ_LVL59 = 3281800;  //272000
+const int XP_REQ_LVL60 = 3581000;  //299200

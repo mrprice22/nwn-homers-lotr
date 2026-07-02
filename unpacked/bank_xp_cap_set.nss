@@ -2,7 +2,7 @@ void main()
 {
 object oPC = GetPCSpeaker();
 string sCDKey = GetPCPublicCDKey(oPC);
-int iNeeded = 17498600 - GetXP(oPC);
+int iNeeded = 3581000 - GetXP(oPC);
 if(iNeeded <= 0) return;
 int iFamXP = GetCampaignInt("bankdb", "fam_xp_" + sCDKey);
 int iGive = iFamXP;

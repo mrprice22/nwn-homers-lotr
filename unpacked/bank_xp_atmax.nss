@@ -1,4 +1,4 @@
 int StartingConditional()
 {
-return GetXP(GetPCSpeaker()) >= 17498600;
+return GetXP(GetPCSpeaker()) >= 3581000;
 }
