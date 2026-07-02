@@ -1,4 +1,3 @@
-#include "boost_inc"
 int CheckIsInInventory (object oChest, object oGem)
 {
     object oObj = GetFirstItemInInventory(oChest);
@@ -39,7 +38,7 @@ if ((CheckIsInInventory(oChestA,oGemA)) && (CheckIsInInventory(oChestF,oGemF)) &
      SetLocalInt(OBJECT_SELF,"silenced",1);
      CreateItemOnObject("kalcryptkey001",OBJECT_SELF,1);
      DelayCommand(1.5,SpeakString("Phew...music to my ears..."));
-     Boost_GiveXP(oPC,666);
+     GiveXPToCreature(oPC,666);
      SendMessageToPC(oPC,"The noises in the chamber become quieter, less chaotic, and you hear a sigh of relief.");
      SetPlotFlag(OBJECT_SELF, FALSE);
      DelayCommand(1.6,ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectVisualEffect(VFX_FNF_MYSTICAL_EXPLOSION),OBJECT_SELF));

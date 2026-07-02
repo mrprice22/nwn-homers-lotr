@@ -1,4 +1,5 @@
  #include "xp_inc"
+#include "boost_inc"
 
 void main()
 {
@@ -15,6 +16,6 @@ string sCDKey = GetPCPublicCDKey( oPC);;
 int fXP = GetCampaignInt( "XP", sCDKey) -1000000;
 
  SetCampaignInt( "XP", sCDKey, fXP);
- GiveXPToCreature(oPC, 1000000);
+ Boost_GiveXPNoBoost(oPC, 1000000);
  SpeakString ("You have withdrawn 1,000,000 XP.");
 }

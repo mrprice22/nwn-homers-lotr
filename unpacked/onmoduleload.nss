@@ -41,6 +41,12 @@ ExecuteScript("mw_spawn", GetModule());
 // Double the duration of every temporary effect a player creates (eff_dur_x2).
 NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
 
+// Premium 2x gold/XP boost: multiply positive XP gains for players with an active
+// boost (merit redemptions 201-204). Engine combat XP is not script-granted, so
+// XP is intercepted centrally here rather than at kill sites. The event name has
+// no const in nwnx_events.nss, so it is passed as a literal string.
+NWNX_Events_SubscribeEvent("NWNX_ON_SET_EXPERIENCE_BEFORE", "boost_xp_evt");
+
 // Party loot: announce current roll settings when a player joins a party or the
 // party leadership changes (pl_party_evt broadcasts to the whole party).
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, "pl_party_evt");

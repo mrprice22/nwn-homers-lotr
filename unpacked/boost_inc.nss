@@ -1,9 +1,17 @@
-// boost_inc.nss -- Apply the premium 2x gold/XP buff at reward call sites.
+// boost_inc.nss -- premium 2x gold/XP buff helpers.
 //
-// Include this ONLY in scripts that grant creature-kill or quest-turn-in gold/XP.
-// Do NOT include it in bank or merchant scripts: withdrawing banked gold/XP and
-// selling items must never be multiplied. See boost_db.nss for the subscription
-// model; the hot path here just reads the cached absolute expiry timestamps.
+// GOLD is boosted at the call site: reward scripts call Boost_GiveGold. Bank
+// withdrawals and merchant sales call GiveGoldToCreature directly, so they stay
+// un-boosted.
+//
+// XP is boosted centrally, NOT here: the NWNX_ON_SET_EXPERIENCE_BEFORE handler
+// (boost_xp_evt.nss) doubles every positive XP delta while a boost is active.
+// The ONE thing that must be shielded from it is banked XP (deposit->withdraw
+// would otherwise pay out 2x) -- bank XP scripts call Boost_GiveXPNoBoost, which
+// raises a per-PC "boost_no_xp" flag the handler honours.
+//
+// See boost_db.nss for the subscription model; Boost_Mult just reads the cached
+// absolute expiry timestamps.
 
 #include "boost_db"
 
@@ -31,47 +39,13 @@ void Boost_GiveGold(object oPC, int nBase)
     GiveGoldToCreature(oPC, nBase * Boost_Mult(oPC));
 }
 
-void Boost_GiveXP(object oPC, int nBase)
+// Grant XP that must NEVER be boosted (banked XP withdrawals). Raises the
+// boost_no_xp flag so boost_xp_evt.nss leaves this write at face value. The
+// SET_EXPERIENCE BEFORE event fires synchronously inside GiveXPToCreature, so a
+// set-flag / grant / clear-flag sequence fully brackets it.
+void Boost_GiveXPNoBoost(object oPC, int nXP)
 {
-    GiveXPToCreature(oPC, nBase * Boost_Mult(oPC));
-}
-
-// ------------------------------------------------------------
-// Kill-XP top-up. The bulk of creature XP is granted by the hak scripts
-// party_xp / pwfxp (no source in this repo), so we can't multiply inside them.
-// Instead snapshot each recipient's XP just before running the hak grant, then
-// top up the extra (mult-1)*delta afterwards. Recipients are the killer's party
-// (same set party_xp distributes to).
-
-void Boost_SnapshotPartyXP(object oKiller)
-{
-    if (!GetIsObjectValid(oKiller)) return;
-    object oMember = GetFirstFactionMember(oKiller, TRUE);
-    while (GetIsObjectValid(oMember))
-    {
-        SetLocalInt(oMember, "boost_xp_pre", GetXP(oMember));
-        SetLocalInt(oMember, "boost_xp_seen", 1);
-        oMember = GetNextFactionMember(oKiller, TRUE);
-    }
-}
-
-void Boost_TopupPartyXP(object oKiller)
-{
-    if (!GetIsObjectValid(oKiller)) return;
-    object oMember = GetFirstFactionMember(oKiller, TRUE);
-    while (GetIsObjectValid(oMember))
-    {
-        if (GetLocalInt(oMember, "boost_xp_seen"))
-        {
-            int nMult = Boost_Mult(oMember);
-            if (nMult > 1)
-            {
-                int nDelta = GetXP(oMember) - GetLocalInt(oMember, "boost_xp_pre");
-                if (nDelta > 0) GiveXPToCreature(oMember, nDelta * (nMult - 1));
-            }
-            DeleteLocalInt(oMember, "boost_xp_pre");
-            DeleteLocalInt(oMember, "boost_xp_seen");
-        }
-        oMember = GetNextFactionMember(oKiller, TRUE);
-    }
+    SetLocalInt(oPC, "boost_no_xp", 1);
+    GiveXPToCreature(oPC, nXP);
+    DeleteLocalInt(oPC, "boost_no_xp");
 }

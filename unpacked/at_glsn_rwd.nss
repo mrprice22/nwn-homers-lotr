@@ -13,6 +13,6 @@ void main()
     if (GetIsObjectValid(oItem))
         DestroyObject(oItem);
 
-    Boost_GiveXP(oPC, 5000);
+    GiveXPToCreature(oPC, 5000);
     Boost_GiveGold(oPC, 15000);
 }

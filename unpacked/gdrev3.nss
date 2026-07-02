@@ -3,7 +3,7 @@ void main()
 {
 object oPC = GetPCSpeaker();
 
-Boost_GiveXP (oPC, 4000);
+GiveXPToCreature (oPC, 4000);
 Boost_GiveGold (oPC, 8000);
 
 SetLocalInt (oPC, "gdquest", 3);

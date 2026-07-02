@@ -15,9 +15,10 @@
 //::
 //:://////////////////////////////////////////////
 
-// Premium 2x gold/XP boost (merit redemptions 201-204): the party reward helpers
-// below multiply gold/XP for players with an active boost. Bank withdrawals and
-// item sales do NOT route through here, so they stay un-boosted by design.
+// Premium 2x boost (merit redemptions 201-204): RewardPartyGP multiplies quest
+// GOLD via Boost_GiveGold for players with an active boost. (Quest XP is doubled
+// centrally by the NWNX SetExperience handler boost_xp_evt, not here.) Bank
+// withdrawals and item sales do NOT route through here, so they stay un-boosted.
 #include "boost_inc"
 
 int DC_EASY = 0;
@@ -157,7 +158,7 @@ void DoGiveXP(string sJournalTag, int nPercentage, object oTarget, int QuestAlig
         nRewardMod = 0.75;
     }
 
-    Boost_GiveXP(oTarget, FloatToInt(nRewardMod * nXP));
+    GiveXPToCreature(oTarget, FloatToInt(nRewardMod * nXP));
 }
 
 
@@ -216,13 +217,13 @@ void RewardPartyXP(int XP, object oTarget,int bAllParty=TRUE)
         object oPartyMember = GetFirstFactionMember(oTarget, TRUE);
         while (GetIsObjectValid(oPartyMember) == TRUE)
         {
-            Boost_GiveXP(oPartyMember, XP);
+            GiveXPToCreature(oPartyMember, XP);
             oPartyMember = GetNextFactionMember(oTarget, TRUE);
         }
     }
     else
     {
-     Boost_GiveXP(oTarget, XP);
+     GiveXPToCreature(oTarget, XP);
     }
 }
 
