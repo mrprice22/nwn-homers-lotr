@@ -92,7 +92,7 @@ players:
   - Llikanthus
   - "HomelessSon (Server Admin)"
   - Magyk
-  - Zambro
+  - "Zambro (Xil)"
 
 # -----------------------------------------------------------------------------
 # How merit is earned and spent (Merit Redemption Shop + Player Housing price
@@ -107,7 +107,7 @@ ideas:
   - id: remove-multi_class-xp-penalty
     title: "Remove mutli class XP penalty"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-07-01"
@@ -115,10 +115,10 @@ ideas:
   - id: xp-requirement-normal
     title: "proper leveling for 40-60 (normal class progression)"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Enhancement
     player: Llikanthus
-    date: "2026-07-01"
+    date: "2026-07-02"
     commit: bccd437b7b9
     notes: "<div><span>Request: keep the xp ceiling but put proper leveling for 40-60 (normal class progression)</span></div><div><span>Note: Original HGLL levels added a 1.25 compounding rate on top of the original exponential rate, <br>Resolution: With this change I have reduced it to 1.1 compounding rate. </span></div>"
   - id: Elronds-Sword-Bugged
@@ -126,7 +126,7 @@ ideas:
     group: forge
     status: implemented
     type: Defect
-    player: Zambro
+    player: "Zambro (Xil)"
     date: "2026-07-01"
     commit: 1204b88d546
     notes: "<div><span>So I logged in with the longsword of elrond in my inventory and I ended up in Jail.</span></div><div><span><br></span></div><div><span>Forge Warden also greets with \"<i>Hold Prisoner. The &lt;UNRECOGNIZED TOKEN&gt; you carry bears unlawful enchant</i>\" and later \"</span><span><i>&lt;UNRECOGNIZED TOKEN&gt; You will go no further until it is stripped back within the law</i>\"</span></div><div><span><br></span></div><div><span><b>Fixed 2026-07-01:</b> Root cause was a stale Forge legal-variant whitelist (forge_legal_inc.nss) — it was last regenerated 2026-06-11, 12 days before a balance fix (a026a118b6f, ab-enhance-stack-bug) changed the sword's stored properties, so the post-fix item no longer matched the whitelist's old fingerprint and got flagged as illegal. Regenerated the whitelist <font color=\"#26a269\">and hardened forge_ward_intro.nss so the Warden releases the PC instead of showing the broken &lt;UNRECOGNIZED TOKEN&gt; accusation when it can't confirm an illegal item.</font></span></div><div><span><br></span></div><div><span><b>Known residual risk:</b> re-ran bin/ab-enhance-audit.py against the live vault and it found zero out-of-sync .bic files — but that sweep (and the original repair) only touches carried/equipped inventory, not player bank storage. A sword stashed in a bank before the June 23 property fix and pulled out later would still carry the pre-fix shape, which genuinely deviates from the current blueprint and isn't in the whitelist (which only covers current, not legacy, fingerprints) — so it could still trip the contraband check on a technically-true but player-unfair basis. Bank storage isn't audited by the existing ab-enhance tooling; flagging as follow-up work if reports of this recur. --&gt; </span><a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a></div>"
@@ -203,7 +203,7 @@ ideas:
   - id: wildshape-shifter-item-merge
     title: "including other items into druid/shifter shapes"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Enhancement
     player: McGondy
     date: "2026-07-02"
@@ -228,7 +228,7 @@ ideas:
   - id: knock-spell-issue
     title: "Knock Spell Effect not working"
     group: quests-areas
-    status: implemented
+    status: awarded
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-29"
@@ -237,7 +237,7 @@ ideas:
   - id: Morannon-Spell-Failure
     title: "Is Morannon meant to have arcane spell failure?"
     group: quests-areas
-    status: implemented
+    status: awarded
     type: Defect
     player: "Y a z k i r"
     date: "2026-07-01"
@@ -928,7 +928,7 @@ ideas:
   - id: sauron-minion-faction
     title: "Sauron's Chosen Minion fights his own faction (faction looks wrong)"
     group: bosses
-    status: implemented
+    status: awarded
     type: Defect
     player: Tukwut
     date: "2026-06-29"
@@ -936,7 +936,7 @@ ideas:
   - id: rancid-skinner-bark
     title: "The Rancid Skinner shouts 'Helms Deep is under attack' on death"
     group: bosses
-    status: implemented
+    status: awarded
     type: Defect
     player: Tukwut
     date: "2026-07-01"
@@ -1019,7 +1019,7 @@ ideas:
   - id: xp-bank-penalty-warn
     title: "Don't withdraw XP from the bank while on an XP penalty; banker should warn about multiclass penalties first"
     group: banking
-    status: implemented
+    status: awarded
     type: Defect
     player: "-Methonash-"
     date: "2026-07-01"
@@ -1153,7 +1153,7 @@ ideas:
   - id: merit-premium-boosts
     title: "Merit premium boosts: temporary 2x gold & XP (personal + server-wide)"
     group: economy
-    status: implemented
+    status: awarded
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-02"
