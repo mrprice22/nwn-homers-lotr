@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-01 08:15 CDT"
+  as_of: "2026-07-01 22:41 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -129,11 +129,11 @@ ideas:
     player: Zambro
     date: "2026-07-01"
     commit: 1204b88d546
-    notes: "<div><span>So I logged in with the longsword of elrond in my inventory and I ended up in Jail.</span></div><div><span><br></span></div><div><span>Forge Warden also greets with \"<i>Hold Prisoner. The &lt;UNRECOGNIZED TOKEN&gt; you carry bears unlawful enchant</i>\" and later \"</span><span><i>&lt;UNRECOGNIZED TOKEN&gt; You will go no further until it is stripped back within the law</i>\"</span></div><div><span><br></span></div><div><span><b>Fixed 2026-07-01:</b> Root cause was a stale Forge legal-variant whitelist (<code>forge_legal_inc.nss</code>) — it was last regenerated 2026-06-11, 12 days before a balance fix (<code>a026a118b6f</code>, ab-enhance-stack-bug) changed the sword's stored properties, so the post-fix item no longer matched the whitelist's old fingerprint and got flagged as illegal. Regenerated the whitelist and hardened <code>forge_ward_intro.nss</code> so the Warden releases the PC instead of showing the broken &lt;UNRECOGNIZED TOKEN&gt; accusation when it can't confirm an illegal item.</span></div><div><span><br></span></div><div><span><b>Known residual risk:</b> re-ran <code>bin/ab-enhance-audit.py</code> against the live vault and it found zero out-of-sync .bic files — but that sweep (and the original repair) only touches carried/equipped inventory, not player bank storage. A sword stashed in a bank before the June 23 property fix and pulled out later would still carry the pre-fix shape, which genuinely deviates from the current blueprint and isn't in the whitelist (which only covers current, not legacy, fingerprints) — so it could still trip the contraband check on a technically-true but player-unfair basis. Bank storage isn't audited by the existing ab-enhance tooling; flagging as follow-up work if reports of this recur.</span></div>"
+    notes: "<div><span>So I logged in with the longsword of elrond in my inventory and I ended up in Jail.</span></div><div><span><br></span></div><div><span>Forge Warden also greets with \"<i>Hold Prisoner. The &lt;UNRECOGNIZED TOKEN&gt; you carry bears unlawful enchant</i>\" and later \"</span><span><i>&lt;UNRECOGNIZED TOKEN&gt; You will go no further until it is stripped back within the law</i>\"</span></div><div><span><br></span></div><div><span><b>Fixed 2026-07-01:</b> Root cause was a stale Forge legal-variant whitelist (forge_legal_inc.nss) — it was last regenerated 2026-06-11, 12 days before a balance fix (a026a118b6f, ab-enhance-stack-bug) changed the sword's stored properties, so the post-fix item no longer matched the whitelist's old fingerprint and got flagged as illegal. Regenerated the whitelist <font color=\"#26a269\">and hardened forge_ward_intro.nss so the Warden releases the PC instead of showing the broken &lt;UNRECOGNIZED TOKEN&gt; accusation when it can't confirm an illegal item.</font></span></div><div><span><br></span></div><div><span><b>Known residual risk:</b> re-ran bin/ab-enhance-audit.py against the live vault and it found zero out-of-sync .bic files — but that sweep (and the original repair) only touches carried/equipped inventory, not player bank storage. A sword stashed in a bank before the June 23 property fix and pulled out later would still carry the pre-fix shape, which genuinely deviates from the current blueprint and isn't in the whitelist (which only covers current, not legacy, fingerprints) — so it could still trip the contraband check on a technically-true but player-unfair basis. Bank storage isn't audited by the existing ab-enhance tooling; flagging as follow-up work if reports of this recur. --&gt; </span><a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a></div>"
   - id: Transition-Pelennor-Fields-2-Gates
     title: "Transition is missing from Pelennor Fields into Minas Tirith: Gates"
     group: quests-areas
-    status: wip
+    status: confirmed
     type: Defect
     player: "-Methonash-"
     date: "2026-06-28"
@@ -152,11 +152,12 @@ ideas:
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-01"
+    commit: 63844b0e702, b74605d9a07, 3dbcca4c1ef
     notes: "<ul><li>Need cooldown on counter spell</li><li>need dice roll D20 + spellcraft check , rolling 1 = auto fail</li><li>Need to lower MW henchmen spellcraft check to total around 50, maybe vary per henchmen</li><li>need to consume spell slots on counterspell attempt, and switch to melee mode when out of spell slots</li></ul>"
   - id: goblin-caves-door
     title: "Door not working at bottom of goblin caves (SE Corner)"
     group: quests-areas
-    status: wip
+    status: confirmed
     type: Defect
     player: "Fugdish (Try_this)"
     date: "2026-06-29"
@@ -171,7 +172,7 @@ ideas:
   - id: toggle-reboot-on-empty
     title: "[Anvil] Adhoc toggle reboot on empty with warning to players"
     group: wiki-tools
-    status: wip
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-06-25"
@@ -186,7 +187,7 @@ ideas:
   - id: petrification-timeout
     title: "Add a timeout to Petrification (from NPCs)"
     group: bosses
-    status: soon
+    status: confirmed
     type: Enhancement
     player: Tukwut
     date: "2026-06-25"
@@ -194,14 +195,14 @@ ideas:
   - id: high-wizard-pulse-defect
     title: "the High wizard in Gondor kills herself with her pulse attacks"
     group: forge
-    status: wip
+    status: confirmed
     type: Defect
     player: "-Methonash-"
     date: "2018-11-29"
   - id: wildshape-shifter-item-merge
     title: "including other items into druid/shifter shapes"
     group: combat-classes
-    status: wip
+    status: confirmed
     type: Enhancement
     player: McGondy
     date: "2026-06-24"
@@ -229,6 +230,7 @@ ideas:
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-29"
+    commit: a6580d74067, 31b3d5c25f4
     notes: "<div><span>Knock scrolls and items are not working currently. I don't have a wizard leveled atm, so can't test a direct spell cast.</span></div><div><ul><li><span>E.g. The chests in Numerok's Den and the door to get into the chest room.</span></li></ul></div><div><ul><li><span>E.g at the Endless Stair door to Moria. </span></li></ul><span>Looks like the spell isn't fully triggering.</span></div><div><br></div><div>Resolution: Updated knock so it can work even on plot doors/containers but only when they don't require a key, and to give a message if they do require a key.</div>"
   - id: Morannon-Spell-Failure
     title: "Is Morannon meant to have arcane spell failure?"
@@ -237,6 +239,7 @@ ideas:
     type: Defect
     player: "Y a z k i r"
     date: "2026-07-01"
+    commit: 54e9dab98d7
     notes: "<ul><li>Whenever I rest there I get 100% spell failure.</li><li>Also NPCs can cast spells while silenced even without Silent Spell casting. 👀</li></ul><div><br></div><div>Resolution: This is intended for theme of area; but added a WILL save check (dc 45) every minute you are in that area to try and resist it.</div>"
   - id: weapon-forge-gp-too-low
     title: "Forge/Smith updates for weapons (Better handling for items worth more than default forge GP value limit)"
@@ -304,7 +307,7 @@ ideas:
   - id: Gear-to-boost-specific-mage-spells
     title: "Gear to boost specific mage spells"
     group: items-gear
-    status: soon
+    status: wip
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-19"
@@ -312,7 +315,7 @@ ideas:
   - id: respawn-tracker-well-of-eru
     title: "Respawn Tracker in Well of Eru"
     group: bosses
-    status: soon
+    status: wip
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-19"
@@ -328,18 +331,18 @@ ideas:
   - id: Socket-system-for-weapons
     title: "Socket system for weapons, max dmg 2d10, max ab +16, limited properties"
     group: forge
-    status: later
+    status: soon
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-20"
   - id: Card-mendard-drops-elronds-sword
     title: "Card Menard in Edoras drops Elrond's sword"
     group: items-gear
-    status: later
+    status: wip
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-22"
-    notes: "Look into if this is a bug"
+    notes: "Look into if this is a bug -- Should be resolved by <a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a>"
   - id: party-xp-given-to-whole-party-issue
     title: "party XP is applied to the whole party even if not in the same area"
     group: progression
@@ -360,7 +363,7 @@ ideas:
   - id: duration-divine-might-issue
     title: "divine might duration bug"
     group: qol
-    status: wip
+    status: confirmed
     type: Defect
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-20"
@@ -404,7 +407,7 @@ ideas:
   - id: wiki-inaccessible-items-audit
     title: "Audit inaccessible_items.json for loot that should be droppable"
     group: wiki-tools
-    status: soon
+    status: wip
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "module-index/inaccessible_items.json lists ~2014 items players can't obtain. Most are correctly inaccessible (equipped commoner clothing / NPC garb with Dropable=0 on every carrier). Sweep the list for any genuine loot/reward items that should actually drop or be sold, and flag/fix those blueprints. Spun off from the wiki-missing-creature investigation, which confirmed the name-collapse bug did NOT wrongly mark loot inaccessible (item_carried_by reads all instances; accessibility is gated on Dropable/Pickpocketable, not wiki visibility)."
@@ -873,7 +876,7 @@ ideas:
   - id: summons-boost
     title: "Scale druid summons/companions (HP, saves, AB, AC) with level, Animal Empathy and epic Conjuration"
     group: combat-classes
-    status: later
+    status: confirmed
     type: Enhancement
     player: "Piskan (Alec Cain)"
   - id: dr-stacks
@@ -926,7 +929,8 @@ ideas:
     status: implemented
     type: Defect
     player: Tukwut
-    date: "2026-06-16"
+    date: "2026-06-29"
+    commit: 82fbaddaf1d
   - id: rancid-skinner-bark
     title: "The Rancid Skinner shouts 'Helms Deep is under attack' on death"
     group: bosses
@@ -934,6 +938,7 @@ ideas:
     type: Defect
     player: Tukwut
     date: "2026-07-01"
+    commit: a379f902c8e, ebc4a27abcd
     notes: "updated shout for skinner to ask evil servants of sauron to rally to Dol Guldur"
   - id: theoden-chosen-ac
     title: "Theoden's Chosen seems to have more AC than the wiki's 82"
@@ -958,7 +963,7 @@ ideas:
   - id: true-damage-type
     title: "A new low-dice 'true' damage type no boss is immune to — made incompatible with the forge so you choose optimized gear vs. boss-chipping gear"
     group: bosses
-    status: later
+    status: soon
     type: Enhancement
     player: Tukwut
 
@@ -979,13 +984,13 @@ ideas:
   - id: item-slot-tokens
     title: "Increase an item's property slots using boss-drop 'tokens' or a rare boss drop"
     group: progression
-    status: soon
+    status: wip
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
   - id: forge-limits-progressive
     title: "Tie forge limits to boss-kill progress (kill more bosses to earn a slight gear edge)"
     group: progression
-    status: soon
+    status: wip
     type: Enhancement
     player: Tukwut
     notes: "<div>related to <a href=\"#idea-wiki-kill-counts\">Show per-character kill counts on creature pages, with KD ratio and total deaths</a></div><div>related to <a href=\"#idea-wiki-top-killers\">On each creature page, show the top players/characters by kills</a></div><div>related to <a href=\"#idea-bestiary-tracking\">Bestiary kill-tracking with both PARTY and SOLO credit</a></div>"
@@ -1012,9 +1017,11 @@ ideas:
   - id: xp-bank-penalty-warn
     title: "Don't withdraw XP from the bank while on an XP penalty; banker should warn about multiclass penalties first"
     group: banking
-    status: wip
+    status: implemented
     type: Defect
     player: "-Methonash-"
+    date: "2026-07-01"
+    notes: "resolved by <a href=\"#idea-remove-multi_class-xp-penalty\">Remove mutli class XP penalty</a>"
 
   # ---- Wiki & tools ---------------------------------------------------------
   - id: wiki-kill-counts
@@ -1062,7 +1069,7 @@ ideas:
     status: planned
     type: Defect
     player: "HomelessSon (Server Admin)"
-    notes: "Items that share a Tag but differ in properties break tag-based lookups and confuse the Forge contraband whitelist (a single resref can only represent one blueprint fingerprint). Surfaced by the Longsword of Elrond false-jailing bug: Elrond's Rivendell copy and Card Mennard's Edoras copy both use resref/tag <code>handofpaladine</code>/<code>LongswordofElrond</code> with different properties, which is why that item needed a whitelist entry at all. Audit every entry in <code>module-index/item_tag_conflicts.json</code> and give each variant its own unique Tag (and resref where the conflict is resref-level), then regenerate <code>forge_legal_inc.nss</code> and the wiki."
+    notes: "Items that share a Tag but differ in properties break tag-based lookups and confuse the Forge contraband whitelist (a single resref can only represent one blueprint fingerprint). Surfaced by the Longsword of Elrond false-jailing bug: Elrond's Rivendell copy and Card Mennard's Edoras copy both use resref/tag handofpaladine/LongswordofElrond with different properties, which is why that item needed a whitelist entry at all. Audit every entry in module-index/item_tag_conflicts.json and give each variant its own unique Tag (and resref where the conflict is resref-level), then regenerate forge_legal_inc.nss and the wiki."
   - id: mail-delivery
     title: "Mail-delivery system: pay postage by weight to send items to a specific character; they're notified after login (post office if no player house)"
     group: items-gear
@@ -1095,13 +1102,13 @@ ideas:
   - id: glorfind-potion-quest
     title: "Glorfindel's potion quest: the plant doesn't spawn and there are no journal entries"
     group: quests-areas
-    status: wip
+    status: confirmed
     type: Defect
     player: "FLYING HITCHER"
   - id: moria-door
     title: "Once the Moria door is closed you must use the Balin's Tomb side entrance until reset; 'Mellon' password and gate state inconsistent"
     group: quests-areas
-    status: wip
+    status: confirmed
     type: Defect
     player: McGondy
     date: "2026-06-08"
