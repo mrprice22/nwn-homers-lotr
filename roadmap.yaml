@@ -188,10 +188,11 @@ ideas:
   - id: petrification-timeout
     title: "Add a timeout to Petrification (from NPCs)"
     group: bosses
-    status: confirmed
+    status: implemented
     type: Enhancement
-    player: Tukwut
+    player: "Zambro (Xil)"
     date: "2026-06-25"
+    commit: 46aa7efaa1e
     notes: "e.g., after 2 minutes of Petrification, player dies and can respawn."
   - id: high-wizard-pulse-defect
     title: "the High wizard in Gondor kills herself with her pulse attacks"
@@ -369,7 +370,7 @@ ideas:
     type: Defect
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-20"
-    notes: "I think divine might has a bug related to the double duration update, but instead of the dmg getting the duration it still lasts normal time but you can't re buff it till double the time"
+    notes: "<div>I think divine might has a bug related to the double duration update, but instead of the dmg getting the duration it still lasts normal time but you can't re buff it till double the time\n\nINVESTIGATION (2026-07-02): No module script implements or overrides Divine Might (feat 413 / spell 473) - exhaustive search of unpacked/ found only a cosmetic display-name lookup (hgll_featreq_inc.nss). Its behavior script x0_s2_divmight is stock, un-overridden HotU content, compiled straight from the base game .bif. Disassembled the vanilla compiled script: actual buff duration is RoundsToSeconds(charisma modifier), applied once via a temporary effect - no explicit duration-doubling logic found. It checks GetHasFeatEffect(413)==0 before reapplying (correctly refuses to stack) and skips DecrementRemainingFeatUses while already active, so retrying mid-buff doesn't burn a use. USESPERDAY is unset in feat.2da, so daily-use count is engine/charisma-mod-driven, refilled on rest - not module-controlled. </div><div><br></div><div>Ruled out the module's ReplenishLimitedUseFeats() (hgll_func_inc.nss) as a factor - it's only called from the character-start dialog, not any rest hook. </div><div><br></div><div>Conclusion: likely either a known NWN:EE engine timing quirk (GetHasFeatEffect reads active slightly longer than the buff's visible duration) or the player exhausting charisma-mod-gated daily uses and needing to rest, misread as a duration bug. No module fix is possible without shadowing the base script; need repro details from the player (<b><u>does resting restore it? what's their CHA mod?)</u></b> before writing a speculative override.</div>"
   - id: wiki-missing-creature-numarockblackhand
     title: "Wiki Missing creature: Numanan Numerocks Second Hand (CARN DUM)"
     group: wiki-tools
