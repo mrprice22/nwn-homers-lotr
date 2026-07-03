@@ -18,6 +18,9 @@ void main()
     // Bestiary kill-tracking: install the OnDamaged/OnDeath wrappers (idempotent).
     ExecuteScript("bst_install", OBJECT_SELF);
 
+    // Scale druid/ranger summons & companions with the master's power (see summon_boost.nss).
+    ExecuteScript("summon_boost", OBJECT_SELF);
+
     SetAssociateListenPatterns();//Sets up the special henchmen listening patterns
 
     SetAssociateState(NW_ASC_POWER_CASTING);
