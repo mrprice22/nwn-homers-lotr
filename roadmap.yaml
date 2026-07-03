@@ -197,10 +197,12 @@ ideas:
   - id: high-wizard-pulse-defect
     title: "the High wizard in Gondor kills herself with her pulse attacks"
     group: bosses
-    status: confirmed
+    status: implemented
     type: Defect
     player: "-Methonash-"
-    date: "2018-11-29"
+    date: "2026-07-02"
+    commit: e5b83f4622a
+    notes: "some of the pulse effect code came from elemental creatures where they would consume 50% of their own life to do it.. added racial check for is elemental for that part so non-elementals won't self-damage"
   - id: wildshape-shifter-item-merge
     title: "including other items into druid/shifter shapes"
     group: combat-classes
@@ -1112,10 +1114,12 @@ ideas:
   - id: moria-door
     title: "Once the Moria door is closed you must use the Balin's Tomb side entrance until reset; 'Mellon' password and gate state inconsistent"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: McGondy
-    date: "2026-06-08"
+    date: "2026-07-03"
+    commit: f6ab25248a4
+    notes: "the Mellon-listening trigger only existed on one side of the riddle door, and the door always re-locks ~10s after opening, so anyone who ended up on the other side had no way to reopen it. Added a matching trigger on the east side; also fixed a tag-lookup bug in exitrid.nss that a second trigger would have turned into a real race."
 
   # ---- Combat / rules tweaks (open) ----------------------------------------
   - id: true-seeing-spot
