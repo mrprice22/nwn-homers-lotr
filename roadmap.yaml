@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-01 22:47 CDT"
+  as_of: "2026-07-03 07:54 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -882,9 +882,12 @@ ideas:
   - id: summons-boost
     title: "Scale druid summons/companions (HP, saves, AB, AC) with level, Animal Empathy and epic Conjuration"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "Piskan (Alec Cain)"
+    date: "2026-07-03"
+    commit: fd5a1bccdf0
+    notes: "<div>Druid/ranger summons and animal companions now scale with the master's power the moment they spawn, so late-game pets stay relevant on this high-magic server.</div><div><br></div><div><b>Implemented 2026-07-03:</b> new summon_boost script, run from the associate OnSpawn (nw_ch_ac9 / ww_ch_ac9), applies one permanent <b>supernatural</b> (undispellable) effect to the master's own summoned creatures and animal companions. Bonuses scale off <b>class level</b> (druid, or the greater of druid/ranger for a companion), the <b>Animal Empathy</b> skill, and the existing <b>Spell Focus → Greater → Epic Spell Focus: Conjuration</b> feat line — no new feats were added.</div><div><br></div><div>High-magic caps: <b>+20</b> attack, <b>+12</b> dodge AC, <b>+20</b> all saves, and <b>+24 to every ability score</b> (CON carries the HP growth; STR/DEX/mentals add damage, reflex and mind-effect resistance). Non-druid/ranger summons (e.g. a wizard's) are left unboosted. See <a>Customizations → Scaled Summons &amp; Animal Companions</a>.</div>"
   - id: dr-stacks
     title: "Make class/feat damage reduction stack with gear damage reduction"
     group: combat-classes
