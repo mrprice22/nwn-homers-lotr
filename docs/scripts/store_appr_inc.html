@@ -59,16 +59,57 @@
 // a delayed fallback in case the close event is missed.
 //
 // Use this in place of OpenStore(...) / gplotAppraiseOpenStore(...) in the
-// conversation/opener scripts of stores that BUY from players. The only added
-// effect is the Appraise-scaled buy cap on capped stores; the store is otherwise
-// opened exactly as before. bAppraisePricing mirrors how the original opener
+// conversation/opener scripts of stores that BUY from players. On capped stores it
+// raises the buy cap by the opener&#x27;s Appraise, then stacks the premium 2x gold boost
+// (Boost_Mult) multiplicatively on top, and sends the player a cyan breakdown of the
+// result; the store is otherwise opened exactly as before. bAppraisePricing mirrors
+// how the original opener
 // opened the store, so existing buy/sell pricing is preserved:
 //   - openers that used plain OpenStore  -&gt; OpenStoreAppr(oStore, oPC)        (FALSE)
 //   - openers that used gplotAppraiseOpenStore -&gt; OpenStoreAppr(o, oPC, TRUE) (gplot)
 // Uncapped stores (MaxBuyPrice -1) open normally with no copy.
 
 #include &quot;appraise_inc&quot;
+#include &quot;boost_inc&quot;    // Boost_Mult(oPC) -&gt; 2 when the premium boost is active, else 1
+#include &quot;color&quot;        // ColorString + COLOR_LIGHT_BLUE (the module&#x27;s cyan token)
 #include &quot;nw_i0_plot&quot;   // gplotAppraiseOpenStore — preserves stock store pricing
+
+// Thousands-separated gold string, standard-currency style: 196000 -&gt; &quot;196,000&quot;.
+// Values passed here are non-negative store caps.
+string GoldStr(int n)
+{
+    string s = IntToString(n);
+    string sOut = &quot;&quot;;
+    int nLen = GetStringLength(s), i;
+    for (i = 0; i &lt; nLen; i++)
+    {
+        if (i &gt; 0 &amp;&amp; (nLen - i) % 3 == 0) sOut += &quot;,&quot;;
+        sOut += GetSubString(s, i, 1);
+    }
+    return sOut;
+}
+
+// Cyan one-line breakdown of the buy-from-player cap the player just got, sent on
+// every merchant open. nBase &lt;= 0 means the store is uncapped (unlimited buy price);
+// Appraise and the boost don&#x27;t apply there, so report it as unlimited.
+void StoreApprReport(object oPC, int nBase, int nApprBonus, int nMult, int nFinal)
+{
+    string sMsg;
+    if (nBase &lt;= 0)
+    {
+        sMsg = &quot;[Merchant] Buy-from-you cap: unlimited (no per-item limit).&quot;;
+    }
+    else
+    {
+        int nPct = nApprBonus * 100 / nBase;
+        string sBoost = (nMult &gt; 1) ? &quot; | Premium x2 ACTIVE&quot; : &quot;&quot;;
+        sMsg = &quot;[Merchant] Buy-from-you cap: base &quot; + GoldStr(nBase)
+             + &quot; | Appraise &quot; + IntToString(AppraiseCheck(oPC))
+             + &quot; (+&quot; + IntToString(nPct) + &quot;%)&quot; + sBoost
+             + &quot; | Total: &quot; + GoldStr(nFinal) + &quot; gp&quot;;
+    }
+    SendMessageToPC(oPC, ColorString(sMsg, COLOR_LIGHT_BLUE));
+}
 
 // Open oStore for oPC using whichever stock open call the original opener used.
 void StoreOpenAs(object oStore, object oPC, int bAppraisePricing)
@@ -88,6 +129,7 @@ void OpenStoreAppr(object oStore, object oPC, int bAppraisePricing = FALSE)
     // -1 = uncapped: nothing to raise, open the real store directly.
     if (nBase &lt;= 0)
     {
+        StoreApprReport(oPC, nBase, 0, 1, nBase);
         StoreOpenAs(oStore, oPC, bAppraisePricing);
         return;
     }
@@ -102,9 +144,15 @@ void OpenStoreAppr(object oStore, object oPC, int bAppraisePricing = FALSE)
         return;
     }
 
-    // Raise this player&#x27;s cap: +0 with no Appraise investment, up to +100%
-    // (double) at an Appraise check of 65.
-    SetStoreMaxBuyPrice(oCopy, nBase + AppraiseBonusScaled(oPC, nBase));
+    // Raise this player&#x27;s cap. Appraise adds +0 (no investment) up to +100% (double)
+    // at an Appraise check of 65; the premium 2x boost then STACKS multiplicatively on
+    // top (up to 4x base with both maxed). Merchant sales were previously the one gold
+    // path the boost never touched — this is the 2x-gold-defect fix.
+    int nApprBonus = AppraiseBonusScaled(oPC, nBase);   // 0 .. nBase
+    int nMult      = Boost_Mult(oPC);                   // 1 or 2
+    int nFinal     = (nBase + nApprBonus) * nMult;
+    SetStoreMaxBuyPrice(oCopy, nFinal);
+    StoreApprReport(oPC, nBase, nApprBonus, nMult, nFinal);
     SetLocalInt(oCopy, &quot;STORE_APPR_COPY&quot;, TRUE);
     SetEventScript(oCopy, EVENT_SCRIPT_STORE_ON_CLOSE, &quot;store_appr_cls&quot;);
     StoreOpenAs(oCopy, oPC, bAppraisePricing);
