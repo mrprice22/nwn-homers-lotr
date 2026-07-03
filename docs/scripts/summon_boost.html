@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script summon_boost</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>summon_boost</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Summon / Companion power scaling
+//:: summon_boost
+//:://////////////////////////////////////////////
+/*
+    Scales a druid&#x27;s/ranger&#x27;s summoned creatures and animal companions with the
+    master&#x27;s investment: class level, Animal Empathy skill, and the existing
+    Conjuration spell-focus feat line (Focus -&gt; Greater -&gt; Epic Spell Focus).
+
+    Boosts HP (via ability scores), saving throws, attack bonus and AC so
+    late-game pets stay relevant on this high-magic server.
+
+    Called once, at spawn, from the associate OnSpawn scripts nw_ch_ac9 /
+    ww_ch_ac9 (added alongside the existing bst_install ExecuteScript hook).
+
+    High-magic tuning -- the caps are the single knob to dial the system up or
+    down. Only stock feats/skills are read; no new feat is introduced.
+*/
+//:://////////////////////////////////////////////
+
+int clampMax(int n, int nMax) { return (n &gt; nMax) ? nMax : n; }
+
+void main()
+{
+    object oSelf   = OBJECT_SELF;
+    object oMaster = GetMaster(oSelf);
+    if (!GetIsObjectValid(oMaster)) return;
+
+    // Only boost the master&#x27;s own summoned creatures and animal companions.
+    // (Familiars and dominated creatures are intentionally excluded.)
+    int bSummon    = GetAssociate(ASSOCIATE_TYPE_SUMMONED,        oMaster) == oSelf;
+    int bCompanion = GetAssociate(ASSOCIATE_TYPE_ANIMALCOMPANION, oMaster) == oSelf;
+    if (!bSummon &amp;&amp; !bCompanion) return;
+
+    // Apply once per creature.
+    if (GetLocalInt(oSelf, &quot;summon_boosted&quot;)) return;
+    SetLocalInt(oSelf, &quot;summon_boosted&quot;, 1);
+
+    // ---- Read the master&#x27;s inputs ------------------------------------------
+    int nDruid  = GetLevelByClass(CLASS_TYPE_DRUID,  oMaster);
+    int nRanger = GetLevelByClass(CLASS_TYPE_RANGER, oMaster);
+
+    // Driving class level: druid drives summons; an animal companion may be a
+    // ranger&#x27;s, so companions take the greater of the two.
+    int nLevel = nDruid;
+    if (bCompanion &amp;&amp; nRanger &gt; nLevel) nLevel = nRanger;
+    if (nLevel &lt;= 0) return; // not a druid/ranger master -- leave stock stats.
+
+    int nAE = GetSkillRank(SKILL_ANIMAL_EMPATHY, oMaster);
+    if (nAE &lt; 0) nAE = 0; // untrained cross-class returns -1
+
+    // Conjuration focus tier held (cumulative feat line): 0..3.
+    int nConj = 0;
+    if (GetHasFeat(FEAT_SPELL_FOCUS_CONJURATION,         oMaster)) nConj = 1;
+    if (GetHasFeat(FEAT_GREATER_SPELL_FOCUS_CONJURATION, oMaster)) nConj = 2;
+    if (GetHasFeat(FEAT_EPIC_SPELL_FOCUS_CONJURATION,    oMaster)) nConj = 3;
+
+    // ---- Compute bonuses (high-magic tuning; caps are the knob) -------------
+    // Attack:  +1/2 lvl, +1/8 AE ranks, +2 per Conjuration tier      cap +20
+    int nAB   = clampMax(nLevel / 2 + nAE / 8 + nConj * 2, 20);
+    // AC dodge:+1/3 lvl, +1/10 AE ranks, Conj +1/+2/+4 (Focus/Gr/Ep) cap +12
+    int nACc  = (nConj == 3) ? 4 : nConj;
+    int nAC   = clampMax(nLevel / 3 + nAE / 10 + nACc, 12);
+    // Saves:   +1/2 lvl, +1/5 AE ranks, +2 per Conjuration tier       cap +20
+    int nSave = clampMax(nLevel / 2 + nAE / 5 + nConj * 2, 20);
+    // Abilities (all six): +1/2 lvl, +1/4 AE ranks, +2 per tier       cap +24
+    int nAbil = clampMax(nLevel / 2 + nAE / 4 + nConj * 2, 24);
+
+    // ---- Build one linked, permanent, supernatural effect ------------------
+    // Ability boosts raise HP (CON), damage/carry (STR), reflex/AC (DEX) and
+    // mind-effect resistance (mentals). Supernatural =&gt; cannot be dispelled,
+    // matching the module&#x27;s epic-summon theme.
+    effect eLink = EffectAttackIncrease(nAB);
+    eLink = EffectLinkEffects(eLink, EffectSavingThrowIncrease(SAVING_THROW_ALL, nSave));
+    eLink = EffectLinkEffects(eLink, EffectACIncrease(nAC, AC_DODGE_BONUS));
+    if (nAbil &gt; 0)
+    {
+        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(ABILITY_STRENGTH,     nAbil));
+        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(ABILITY_DEXTERITY,    nAbil));
+        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(ABILITY_CONSTITUTION, nAbil));
+        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(ABILITY_INTELLIGENCE, nAbil));
+        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(ABILITY_WISDOM,       nAbil));
+        eLink = EffectLinkEffects(eLink, EffectAbilityIncrease(ABILITY_CHARISMA,     nAbil));
+    }
+    eLink = SupernaturalEffect(eLink);
+
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, eLink, oSelf);
+
+    // Brief spawn-in flourish so the boost is visible.
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_SUPER_HEROISM), oSelf);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

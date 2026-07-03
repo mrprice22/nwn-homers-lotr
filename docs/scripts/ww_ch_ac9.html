@@ -71,6 +71,9 @@ void main()
     effect eVis = EffectVisualEffect(VFX_DUR_GHOSTLY_VISAGE);
     ApplyEffectToObject(DURATION_TYPE_PERMANENT, eVis, OBJECT_SELF);
 
+    // Scale druid/ranger summons &amp; companions with the master&#x27;s power (see summon_boost.nss).
+    ExecuteScript(&quot;summon_boost&quot;, OBJECT_SELF);
+
     SetAssociateListenPatterns();//Sets up the special henchmen listening patterns
     SetListeningPatterns();      // Goes through and sets up which shouts the NPC will listen to.
 
