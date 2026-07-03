@@ -192,6 +192,7 @@
           <ol>
             <li><a href="#max-hp">Maximum Hit Points</a></li>
             <li><a href="#max-ability">Maximum Ability Bonus from Items</a></li>
+            <li><a href="#multiclass-xp">No Multiclass XP Penalty</a></li>
             <li><a href="#legendary-levels">Legendary Levels: 41–60</a></li>
             <li><a href="#monk-weapons">Monk Weapons</a></li>
           </ol>
@@ -847,6 +848,14 @@ This server raises it to <strong>+24</strong>, allowing high-end gear and buffs 
 higher stat totals without hitting an invisible wall.
 (Set via <code>ruleset.combat.max-ability-bonus</code> in <code>settings.tml</code>.)</p>
 
+<h3 id="multiclass-xp">No Multiclass XP Penalty</h3>
+<p>Stock NWN quietly taxes multiclass characters: if your highest and lowest class levels ever
+differ by more than one, XP you earn is reduced until you level the lagging class back up. This
+server <strong>disables that penalty entirely</strong> — every class combination earns full XP,
+no matter how unevenly your levels are split. With up to <strong>4 classes</strong> stackable per
+character, build experimentation is the point, so there is no XP cost for going wide instead of
+staying balanced.</p>
+
 <h3 id="legendary-levels">Legendary Levels: 41–60</h3>
 <p>Standard NWN stops at level 40. Once you reach 40 you may continue to <strong>level 60</strong>
 through the Legendary Leveling system — speak to the <strong>Legendary Leveler</strong> NPC in the
@@ -878,9 +887,26 @@ It is built on the
 </table>
 
 <p>In short, Legendary levels make you <em>tougher and more versatile</em> through raw stats and
-feats, but do not increase spellcasting power. The XP cost climbs steeply — from roughly 49,000
-for level 41 to over 3,000,000 for level 60 (about 17.5M XP total to reach 60). See the
-<a href="../manual/LevelingGuide.html">Leveling Guide</a> for where to earn it.</p>
+feats, but do not increase spellcasting power. Stock HGLL charges a steep 1.25x compounding
+increase in XP per level; this server has <strong>reduced that to a 1.1x compounding rate</strong>,
+so the climb to 60 is noticeably gentler than the vanilla add-on. See the
+<a href="../manual/LevelingGuide.html">Leveling Guide</a> for where to earn XP.</p>
+
+<table class="data change-table">
+  <thead><tr><th>Level</th><th>XP Required</th></tr></thead>
+  <tbody>
+    <tr><td>41</td><td>828,800</td></tr>
+    <tr><td>44</td><td>1,006,600</td></tr>
+    <tr><td>48</td><td>1,338,700</td></tr>
+    <tr><td>52</td><td>1,825,100</td></tr>
+    <tr><td>56</td><td>2,537,700</td></tr>
+    <tr><td>60</td><td>3,581,000</td></tr>
+  </tbody>
+</table>
+
+<p>The full level-by-level table (41 through 60) is posted in-game on the <strong>Legendary
+Leveler</strong> placeable in the Legendary Leveling area, reachable from the
+<a href="../areas/thewelloferu.html">Well of Eru</a>.</p>
 
 <h3 id="monk-weapons">Monk Weapons</h3>
 <p>Three weapons have been reclassified for monks relative to stock NWN:</p>

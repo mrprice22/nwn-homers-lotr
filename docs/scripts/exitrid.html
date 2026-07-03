@@ -50,9 +50,9 @@
   <main>
 <h1>Script: <code>exitrid</code></h1><pre class="nss-source"><code>void main()
 {
-   object listener = GetObjectByTag( &quot;listener&quot;);
-   if (listener != OBJECT_INVALID)
-      DestroyObject(listener); // mute check
+   object listener = GetNearestObjectByTag(&quot;listener&quot;, OBJECT_SELF);
+   if (listener != OBJECT_INVALID &amp;&amp; GetDistanceBetween(OBJECT_SELF, listener) &lt; 3.0)
+      DestroyObject(listener); // only destroy this trigger&#x27;s own runtime listener
 }
 </code></pre>
   </main>
