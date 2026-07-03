@@ -48,8 +48,15 @@ void main()
     if (fDur <= 0.0)
         return;
 
-    // Optional: spells whose duration is deliberately fixed can be excluded here, e.g.:
-    //   if (StringToInt(NWNX_Events_GetEventData("SPELL_ID")) == SPELL_SUMMON_CREATURE_IX) return;
+    // Divine Might / Divine Shield build their buff as EffectLinkEffects (attack+damage,
+    // AC+visual) just like the invisibility family below -- remove+reapply splits the
+    // link, so the mechanical bonus can revert to its natural duration while whatever
+    // GetHasFeatEffect() reads to block re-casting stays doubled. Confirmed by
+    // disassembling the vanilla x0_s2_divmight/x0_s2_divshield scripts. Leave both at
+    // natural duration rather than risk the same corruption.
+    int nSpellId = StringToInt(NWNX_Events_GetEventData("SPELL_ID"));
+    if (nSpellId == SPELL_DIVINE_MIGHT || nSpellId == SPELL_DIVINE_SHIELD)
+        return;
 
     string sUID = NWNX_Events_GetEventData("UNIQUE_ID");
 
