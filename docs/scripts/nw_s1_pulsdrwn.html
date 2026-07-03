@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script gdrev1</title>
+  <title>Script nw_s1_pulsdrwn</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -48,16 +48,76 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>gdrev1</code></h1><pre class="nss-source"><code>#include &quot;boost_inc&quot;
-void main()
+<h1>Script: <code>nw_s1_pulsdrwn</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Pulse Drown
+//:: NW_S1_PulsDrwn
+//:: Copyright (c) 2001 Bioware Corp.
+//:://////////////////////////////////////////////
+/*
+    CHANGED JANUARY 2003
+     - does an actual &#x27;drown spell&#x27; on each target
+     in the area of effect.
+     - Each use of this spells consumes 50% of the
+     elementals hit points.
+
+    Module override: the self-damage above was written for
+    elemental casters only, but this ability is granted to several
+    non-elemental NPCs (e.g. the High Wizard of Gondor, Boromir),
+    who were bleeding half their current HP to themselves on every
+    cast. Gate the self-damage to actual elementals to match the
+    original intent.
+*/
+//:://////////////////////////////////////////////
+//:: Created By: Preston Watmaniuk
+//:: Created On: April 15, 2002
+//:://////////////////////////////////////////////
+
+#include &quot;NW_I0_SPELLS&quot;
+void Drown(object oTarget)
 {
-object oPC = GetPCSpeaker();
 
-GiveXPToCreature (oPC, 500);
-Boost_GiveGold (oPC, 1000);
+    effect eVis = EffectVisualEffect(VFX_IMP_FROST_S);
+    // * certain racial types are immune
+    if ((GetRacialType(oTarget) != RACIAL_TYPE_CONSTRUCT)
+     &amp;&amp;(GetRacialType(oTarget) != RACIAL_TYPE_UNDEAD)
+     &amp;&amp;(GetRacialType(oTarget) != RACIAL_TYPE_ELEMENTAL))
+    {
+        //Make a fortitude save
+        if(MySavingThrow(SAVING_THROW_FORT, oTarget, 20) == FALSE)
+        {
+            //Apply the VFX impact and damage effect
+            ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
+            //Set damage effect to kill the target
+            ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), oTarget);
 
-SetLocalInt (oPC, &quot;gdquest&quot;, 3);
-AddJournalQuestEntry (&quot;gdquest1&quot;, 2, oPC, TRUE, FALSE);
+         }
+    }
+}
+void main ()
+{
+    if (GetRacialType(OBJECT_SELF) == RACIAL_TYPE_ELEMENTAL)
+    {
+        int nDamage = GetCurrentHitPoints() / 2;
+        ApplyEffectToObject(DURATION_TYPE_PERMANENT, EffectDamage(nDamage), OBJECT_SELF);
+    }
+    //Declare major variables
+    object oTarget;
+    int bSave = FALSE;
+    int nIdx;
+
+    effect eImpact = EffectVisualEffect(VFX_IMP_PULSE_WATER);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, eImpact, OBJECT_SELF);
+    oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_LARGE, GetLocation(OBJECT_SELF));
+    while(GetIsObjectValid(oTarget) == TRUE)
+    {
+      	if(!GetIsReactionTypeFriendly(oTarget) &amp;&amp; oTarget != OBJECT_SELF)
+    	{
+            //Fire cast spell at event for the specified target
+            SignalEvent(oTarget, EventSpellCastAt(OBJECT_SELF, SPELLABILITY_PULSE_DROWN));
+            Drown(oTarget);
+        }
+        oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_LARGE, GetLocation(OBJECT_SELF));
+    }
 }
 </code></pre>
   </main>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script gdrev1</title>
+  <title>Script boost_xp_evt</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -48,16 +48,40 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>gdrev1</code></h1><pre class="nss-source"><code>#include &quot;boost_inc&quot;
+<h1>Script: <code>boost_xp_evt</code></h1><pre class="nss-source"><code>// boost_xp_evt.nss -- NWNX_ON_SET_EXPERIENCE_BEFORE handler for the premium 2x
+// XP boost. Subscribed in onmoduleload.nss.
+//
+// The event fires on every XP write for a player (engine combat XP, GiveXP,
+// RewardPartyXP, SetXP). Event data &quot;XP&quot; is the NEW ABSOLUTE total. We double
+// only positive gains, and only while the player has an active boost:
+//   newTotal = oldTotal + gain * BOOST_MULT
+//
+// Excluded:
+//   * boost_no_xp flag set  -&gt; banked-XP withdrawals (Boost_GiveXPNoBoost); the
+//     deposit-&gt;withdraw path must pay out at face value, never 2x.
+//   * non-positive delta     -&gt; level drain, XP-bank deposit (SetXP to 0), etc.
+
+#include &quot;boost_inc&quot;
+#include &quot;nwnx_events&quot;
+
 void main()
 {
-object oPC = GetPCSpeaker();
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
 
-GiveXPToCreature (oPC, 500);
-Boost_GiveGold (oPC, 1000);
+    // Banked-XP withdrawal in progress: leave it untouched.
+    if (GetLocalInt(oPC, &quot;boost_no_xp&quot;)) return;
 
-SetLocalInt (oPC, &quot;gdquest&quot;, 3);
-AddJournalQuestEntry (&quot;gdquest1&quot;, 2, oPC, TRUE, FALSE);
+    int nNew = StringToInt(NWNX_Events_GetEventData(&quot;XP&quot;));
+    int nOld = GetXP(oPC);
+    int nGain = nNew - nOld;
+    if (nGain &lt;= 0) return;                 // only scale increases
+
+    int nMult = Boost_Mult(oPC);
+    if (nMult &lt;= 1) return;                 // no active boost
+
+    NWNX_Events_SkipEvent();
+    NWNX_Events_SetEventResult(IntToString(nOld + nGain * nMult));
 }
 </code></pre>
   </main>

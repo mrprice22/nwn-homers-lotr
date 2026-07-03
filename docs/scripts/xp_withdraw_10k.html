@@ -49,6 +49,7 @@
   </header>
   <main>
 <h1>Script: <code>xp_withdraw_10k</code></h1><pre class="nss-source"><code>#include &quot;xp_inc&quot;
+#include &quot;boost_inc&quot;
 
 void main()
 {
@@ -65,7 +66,7 @@ string sCDKey = GetPCPublicCDKey( oPC);
 int fXP = GetCampaignInt( &quot;XP&quot;, sCDKey) - 10000;
 
  SetCampaignInt( &quot;XP&quot;, sCDKey, fXP);
- GiveXPToCreature(oPC, 10000);
+ Boost_GiveXPNoBoost(oPC, 10000);
  SpeakString (&quot;You have withrawn 10,000 XP.&quot;);
 }
 </code></pre>

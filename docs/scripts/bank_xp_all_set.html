@@ -48,12 +48,13 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bank_xp_all_set</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>bank_xp_all_set</code></h1><pre class="nss-source"><code>#include &quot;boost_inc&quot;
+void main()
 {
 object oPC = GetPCSpeaker();
 string sCDKey = GetPCPublicCDKey(oPC);
 int iFamXP = GetCampaignInt(&quot;bankdb&quot;, &quot;fam_xp_&quot; + sCDKey);
-GiveXPToCreature(oPC, iFamXP);
+Boost_GiveXPNoBoost(oPC, iFamXP);
 SetCampaignInt(&quot;bankdb&quot;, &quot;fam_xp_&quot; + sCDKey, 0);
 SetCustomToken(6002, &quot;0&quot;);
 }

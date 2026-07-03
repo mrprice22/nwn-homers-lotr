@@ -50,7 +50,6 @@
   <main>
 <h1>Script: <code>gqend</code></h1><pre class="nss-source"><code>//aldaron 13042004
 
-#include &quot;boost_inc&quot;
 void main()
 {
 
@@ -61,7 +60,7 @@ object FM = GetFirstFactionMember(oPC, TRUE);
 
 while (GetIsObjectValid(FM))
 {
- Boost_GiveXP (FM, 10000);
+ GiveXPToCreature (FM, 10000);
  FM = GetNextFactionMember (oPC, TRUE);
 }
 
