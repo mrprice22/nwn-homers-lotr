@@ -194,7 +194,9 @@ internal sealed class ServerRestartManager
         {
             _emptyArmed = false;
             _emptyIdleSeconds = 0;
-            Broadcast("[Server] The pending reboot has been cancelled by the admin.", ColorConstants.Green);
+            string cancelMsg = "[Server] The pending reboot has been cancelled by the admin.";
+            Broadcast(cancelMsg, ColorConstants.Green);
+            Shout(cancelMsg);
         }
     }
 
