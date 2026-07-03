@@ -1,6 +1,6 @@
 void main()
 {
-   object listener = GetObjectByTag( "listener");
-   if (listener != OBJECT_INVALID)
-      DestroyObject(listener); // mute check
+   object listener = GetNearestObjectByTag("listener", OBJECT_SELF);
+   if (listener != OBJECT_INVALID && GetDistanceBetween(OBJECT_SELF, listener) < 3.0)
+      DestroyObject(listener); // only destroy this trigger's own runtime listener
 }
