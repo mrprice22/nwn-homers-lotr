@@ -4,9 +4,10 @@ Documentation=file:///var/home/james/GIT/nwn_homers_lotr/bin/empty-restart-handl
 
 [Path]
 # The ServerRestartManager plugin drops this file after it exports characters and
-# shuts the server down for an adhoc reboot-on-empty. Path is the host-visible
-# Anvil PluginData dir (NWN_HOME_DIR/anvil/PluginData). Update if NWN_HOME_DIR moves.
-PathExists=%h/.local/share/Neverwinter Nights/anvil/PluginData/restart-server
+# shuts the server down for an adhoc reboot-on-empty. Path is the server's Anvil
+# PluginData dir, which lives under the userdirectory (NWN_RUN_DIR, bind-mounted to
+# /nwn/run) — NOT NWN_HOME_DIR. Keep in sync with NWN_RUN_DIR in server.env.
+PathExists=%h/.local/state/nwnxee-homer/anvil/PluginData/restart-server
 Unit=homers-lotr-empty-restart.service
 
 [Install]

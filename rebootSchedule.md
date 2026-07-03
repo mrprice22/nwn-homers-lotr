@@ -131,8 +131,11 @@ cp systemd/homers-lotr-empty-restart.path systemd/homers-lotr-empty-restart.serv
 systemctl --user daemon-reload
 systemctl --user enable --now homers-lotr-empty-restart.path
 ```
-> The `.path` unit watches `~/.local/share/Neverwinter Nights/anvil/PluginData/restart-server`.
-> If `NWN_HOME_DIR` differs from that default, edit `PathExists=` in the `.path` unit to match.
+> The `.path` unit watches `~/.local/state/nwnxee-homer/anvil/PluginData/restart-server`
+> — the server's *userdirectory* (`NWN_RUN_DIR`, bind-mounted to `/nwn/run`), which is
+> where Anvil's `HomeStorage.PluginData` resolves. This is **not** `NWN_HOME_DIR`
+> (`~/.local/share/Neverwinter Nights`, the `/nwn/home` mount). If `NWN_RUN_DIR` differs
+> from that default, edit `PathExists=` in the `.path` unit to match.
 
 **Test without real players:** arm it on an empty server — after the ~45s grace it
 will reboot itself (loading whatever `.mod` is currently deployed).

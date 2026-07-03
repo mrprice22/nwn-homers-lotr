@@ -8,7 +8,8 @@
 # (freshly deployed) module.
 #
 # Not meant to be run by hand — the systemd .path unit fires it. Reads
-# NWN_HOME_DIR from ../server.env.
+# NWN_RUN_DIR from ../server.env (the server's userdirectory / Anvil PluginData
+# lives under NWN_RUN_DIR, not NWN_HOME_DIR).
 set -uo pipefail
 
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -17,9 +18,9 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 # shellcheck disable=SC1090
 . "$ENV_FILE"
 [[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
-: "${NWN_HOME_DIR:?server.env must define NWN_HOME_DIR}"
+: "${NWN_RUN_DIR:?server.env must define NWN_RUN_DIR}"
 
-PLUGIN_DATA="$NWN_HOME_DIR/anvil/PluginData"
+PLUGIN_DATA="$NWN_RUN_DIR/anvil/PluginData"
 REQUEST_FILE="$PLUGIN_DATA/restart-server"
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
 

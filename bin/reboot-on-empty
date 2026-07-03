@@ -18,7 +18,10 @@
 # haks/tlk that clients download.
 #
 # The flags live on the host-visible Anvil PluginData dir (same place as the
-# restart-now test control file). Reads NWN_HOME_DIR from ../server.env.
+# restart-now test control file). This must be the server's *userdirectory*
+# (NWN_RUN_DIR, bind-mounted to /nwn/run in the container) — NOT NWN_HOME_DIR,
+# which is mounted at /nwn/home and is not where Anvil's HomeStorage.PluginData
+# resolves. Reads NWN_RUN_DIR from ../server.env.
 set -euo pipefail
 
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -27,9 +30,9 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 # shellcheck disable=SC1090
 . "$ENV_FILE"
 [[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
-: "${NWN_HOME_DIR:?server.env must define NWN_HOME_DIR}"
+: "${NWN_RUN_DIR:?server.env must define NWN_RUN_DIR}"
 
-PLUGIN_DATA="$NWN_HOME_DIR/anvil/PluginData"
+PLUGIN_DATA="$NWN_RUN_DIR/anvil/PluginData"
 ARM_FILE="$PLUGIN_DATA/reboot-on-empty"
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
 
