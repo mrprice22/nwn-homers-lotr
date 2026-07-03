@@ -21,13 +21,31 @@ echo "Container: $NWN_CONTAINER_NAME"
 echo "(Read-only. Ctrl+C / closing this window stops watching, NOT the server.)"
 echo
 
-# After a reboot the boot service takes ~40s to load the module. Wait for the
-# container rather than erroring out on an empty window.
-if ! podman container exists "$NWN_CONTAINER_NAME" 2>/dev/null; then
-  echo "Waiting for the server container to come up..."
-  until podman container exists "$NWN_CONTAINER_NAME" 2>/dev/null; do sleep 2; done
-  echo
-fi
+# Ctrl+C / closing the window should stop watching cleanly. Without this trap the
+# reconnect loop below would treat the interrupt like a container restart and just
+# re-attach. (podman logs runs in the foreground, so Ctrl+C hits it too; bash runs
+# this trap once podman exits.)
+trap 'echo; echo "Stopped watching (server still running)."; exit 0' INT
 
-# Show recent history, then follow live.
-exec podman logs --tail 100 -f "$NWN_CONTAINER_NAME"
+# Follow the container's logs, and RECONNECT across restarts. A reboot-on-empty or
+# scheduled restart destroys the container and `podman run --rm` makes a new one
+# (new instance, same name), so `podman logs -f` on the old one exits. Instead of
+# dying, wait for the fresh container and re-attach — the monitor rides through
+# restarts without needing a manual relaunch.
+while true; do
+  # After a reboot the boot service takes ~40s to load the module. Wait for the
+  # container rather than erroring out on an empty window.
+  if ! podman container exists "$NWN_CONTAINER_NAME" 2>/dev/null; then
+    echo "Waiting for the server container to come up..."
+    until podman container exists "$NWN_CONTAINER_NAME" 2>/dev/null; do sleep 2; done
+    echo
+  fi
+
+  # Show recent history, then follow live. Returns (non-zero) when the container
+  # goes away on restart; the loop then reconnects to the new one.
+  podman logs --tail 100 -f "$NWN_CONTAINER_NAME" || true
+
+  echo
+  echo "--- server container went away (restart?) — reconnecting... ---"
+  sleep 2
+done

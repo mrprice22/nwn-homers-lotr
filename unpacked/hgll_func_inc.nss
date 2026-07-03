@@ -574,27 +574,33 @@ int GetHasGreatCharisma(object oPC)
 int GetBaseStat(int nStatType, int nStat, object oPC)
 {
 int nSubtract = 0;
-int nBase;
+// nStat arrives gear-polluted (and effect-free only by luck) from
+// GetRoughAbilities' clone read. Use the engine base score, which excludes
+// equipped-item AND effect modifiers, so HGLL base abilities — and everything
+// downstream (skill points on level-up, epic-feat stat prereqs) — are never
+// influenced by gear or by temporary buffs/debuffs (e.g. boss stat drains).
+// roadmap: hgll-skills-gear
+int nBase = GetAbilityScore(oPC, nStatType, TRUE);
 switch(nStatType)
     {
     case ABILITY_STRENGTH:
         nSubtract = GetHasGreatStrenth(oPC) + GetRDDStatMod(nStatType, oPC);
-        nBase = nStat; break;
+        break;
     case ABILITY_DEXTERITY:
         nSubtract = GetHasGreatDexterity(oPC) + GetRDDStatMod(nStatType, oPC);
-        nBase = nStat; break ;
+        break;
     case ABILITY_CONSTITUTION:
-        nSubtract = GetHasGreatConstitution(oPC) + GetRDDStatMod(nStatType, oPC);;
-        nBase = nStat; break;
+        nSubtract = GetHasGreatConstitution(oPC) + GetRDDStatMod(nStatType, oPC);
+        break;
     case ABILITY_INTELLIGENCE:
-        nSubtract = GetHasGreatIntelligence(oPC) + GetRDDStatMod(nStatType, oPC);;
-        nBase = nStat; break;
+        nSubtract = GetHasGreatIntelligence(oPC) + GetRDDStatMod(nStatType, oPC);
+        break;
     case ABILITY_WISDOM:
-        nSubtract = GetHasGreatWisdom(oPC) + GetRDDStatMod(nStatType, oPC);;
-        nBase = nStat; break;
+        nSubtract = GetHasGreatWisdom(oPC) + GetRDDStatMod(nStatType, oPC);
+        break;
     case ABILITY_CHARISMA:
-        nSubtract = GetHasGreatCharisma(oPC) + GetRDDStatMod(nStatType, oPC);;
-        nBase = nStat; break;
+        nSubtract = GetHasGreatCharisma(oPC) + GetRDDStatMod(nStatType, oPC);
+        break;
     default: return -3;  break;
     }
 return (nBase-nSubtract);
