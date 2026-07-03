@@ -14,6 +14,7 @@
 #include "x2_inc_toollib"
 
 #include "x2_inc_spellhook"
+#include "epic_summon_inc"
 void main()
 {
 
@@ -29,18 +30,11 @@ void main()
         return;
     }
 
-
-    //Declare major variables
-    int nDuration = 30;
-    effect eSummon;
-    effect eVis = EffectVisualEffect(460);
-    eSummon = EffectSummonCreature("epicdragonknight",481,0.0f,TRUE);
-
-    // * make it so dragon cannot be dispelled
-    eSummon = ExtraordinaryEffect(eSummon);
-    //Apply the summon visual and summon the dragon.
-    ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, eSummon,GetSpellTargetLocation(), RoundsToSeconds(nDuration));
-    DelayCommand(1.0f,ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, eVis,GetSpellTargetLocation()));
+    // Epic summon: spawn the dragon knight as a timed henchman so it can be out
+    // alongside a normal summon-animal. See epic_summon_inc.nss.
+    // Duration fixed to 30 hours (the old code used RoundsToSeconds -> ~3 min).
+    EpicSummon_Cast(OBJECT_SELF, "epicdragonknight", GetSpellTargetLocation(),
+                    HoursToSeconds(30), 460);
 }
 
 

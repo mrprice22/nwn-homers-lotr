@@ -8,10 +8,14 @@
 #include "hgll_func_inc"
 #include "pers_state_inc"
 #include "bank_box_inc"
+#include "epic_summon_inc"
 
 void main()
 {
     object PC = GetExitingObject();
+    // Epic summons live in the henchman slot and don't auto-despawn on logout
+    // like summoned associates do -- clean up any lingering one here.
+    EpicSummon_Dismiss(PC);
     // Safety net: if the player logs out mid-session with a Bank of Bree storage
     // box still in inventory (i.e. before finishing the banker dialog), commit it
     // here so the contents are not lost. No-op when no box is carried.

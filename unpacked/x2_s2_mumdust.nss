@@ -13,6 +13,7 @@
 //:://////////////////////////////////////////////
 
 #include "x2_inc_spellhook"
+#include "epic_summon_inc"
 void main()
 {
     /*
@@ -29,18 +30,10 @@ void main()
             return;
         }
 
-
-    //Declare major variables
-    int nDuration = 30;
-    //effect eVis = EffectVisualEffect(VFX_FNF_SUMMON_UNDEAD);
-    effect eSummon;
-    //Summon the appropriate creature based on the summoner level
-    //Warrior Mummy
-    eSummon = EffectSummonCreature("mummyreaper",496,1.0f);
-    eSummon = ExtraordinaryEffect(eSummon);
-    //Apply the summon visual and summon the undead.
-    //ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eVis, GetSpellTargetLocation());
-    ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, eSummon, GetSpellTargetLocation(), HoursToSeconds(nDuration));
+    // Epic summon: spawn the mummy reaper as a timed henchman so it can be out
+    // alongside a normal summon-animal. See epic_summon_inc.nss.
+    EpicSummon_Cast(OBJECT_SELF, "mummyreaper", GetSpellTargetLocation(),
+                    HoursToSeconds(30), VFX_FNF_SUMMON_UNDEAD);
 }
 
 
