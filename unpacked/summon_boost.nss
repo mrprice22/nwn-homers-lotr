@@ -11,29 +11,51 @@
     late-game pets stay relevant on this high-magic server.
 
     Called once, at spawn, from the associate OnSpawn scripts nw_ch_ac9 /
-    ww_ch_ac9 (added alongside the existing bst_install ExecuteScript hook).
+    ww_ch_ac9 / nw_ch_summon_9 (added alongside the existing bst_install hook).
+
+    OnSpawn timing note: at the instant OnSpawn fires, GetMaster() and the
+    associate wiring are often not populated yet. We classify OBJECT_SELF with
+    GetAssociateType() (no dependence on the master's associate list) and, if the
+    link isn't ready, re-run ourselves via a short DelayCommand until it resolves.
 
     High-magic tuning -- the caps are the single knob to dial the system up or
     down. Only stock feats/skills are read; no new feat is introduced.
 */
 //:://////////////////////////////////////////////
 
+const int SB_MAX_TRIES = 6; // ~3s of 0.5s retries while the master link settles
+
 int clampMax(int n, int nMax) { return (n > nMax) ? nMax : n; }
 
 void main()
 {
-    object oSelf   = OBJECT_SELF;
-    object oMaster = GetMaster(oSelf);
-    if (!GetIsObjectValid(oMaster)) return;
-
-    // Only boost the master's own summoned creatures and animal companions.
-    // (Familiars and dominated creatures are intentionally excluded.)
-    int bSummon    = GetAssociate(ASSOCIATE_TYPE_SUMMONED,        oMaster) == oSelf;
-    int bCompanion = GetAssociate(ASSOCIATE_TYPE_ANIMALCOMPANION, oMaster) == oSelf;
-    if (!bSummon && !bCompanion) return;
+    object oSelf = OBJECT_SELF;
 
     // Apply once per creature.
     if (GetLocalInt(oSelf, "summon_boosted")) return;
+
+    object oMaster = GetMaster(oSelf);
+    int    nType   = GetAssociateType(oSelf);
+
+    // Not wired up yet (master link / association not populated at OnSpawn)?
+    // Retry shortly rather than silently giving up.
+    if (!GetIsObjectValid(oMaster) || nType == ASSOCIATE_TYPE_NONE)
+    {
+        int nTries = GetLocalInt(oSelf, "summon_boost_try");
+        if (nTries < SB_MAX_TRIES)
+        {
+            SetLocalInt(oSelf, "summon_boost_try", nTries + 1);
+            DelayCommand(0.5, ExecuteScript("summon_boost", oSelf));
+        }
+        return;
+    }
+
+    // Only boost the master's own summoned creatures and animal companions.
+    // (Familiars, dominated and henchmen are intentionally excluded -- and, being
+    // a resolved type, they fall out here with no further retries.)
+    if (nType != ASSOCIATE_TYPE_SUMMONED && nType != ASSOCIATE_TYPE_ANIMALCOMPANION)
+        return;
+
     SetLocalInt(oSelf, "summon_boosted", 1);
 
     // ---- Read the master's inputs ------------------------------------------
@@ -42,6 +64,7 @@ void main()
 
     // Driving class level: druid drives summons; an animal companion may be a
     // ranger's, so companions take the greater of the two.
+    int bCompanion = (nType == ASSOCIATE_TYPE_ANIMALCOMPANION);
     int nLevel = nDruid;
     if (bCompanion && nRanger > nLevel) nLevel = nRanger;
     if (nLevel <= 0) return; // not a druid/ranger master -- leave stock stats.
@@ -89,4 +112,11 @@ void main()
     // Brief spawn-in flourish so the boost is visible.
     ApplyEffectToObject(DURATION_TYPE_INSTANT,
         EffectVisualEffect(VFX_IMP_SUPER_HEROISM), oSelf);
+
+    // TEMPORARY diagnostic readout (only the pet's owner sees it). Confirms the
+    // system fired and shows the applied magnitudes. Remove or gate once verified.
+    SendMessageToPC(oMaster,
+        "Your " + GetName(oSelf) + " is empowered: +" + IntToString(nAB) +
+        " attack, +" + IntToString(nAC) + " AC, +" + IntToString(nSave) +
+        " all saves, +" + IntToString(nAbil) + " all ability scores.");
 }

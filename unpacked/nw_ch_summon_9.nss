@@ -12,6 +12,9 @@
 
 void main()
 {
+    // Scale druid/ranger summons & companions with the master's power (see summon_boost.nss).
+    ExecuteScript("summon_boost", OBJECT_SELF);
+
     SetAssociateListenPatterns();//Sets up the special henchmen listening patterns
     SetListeningPatterns();      // Goes through and sets up which shouts the NPC will listen to.
 
