@@ -248,7 +248,11 @@ internal sealed class ServerRestartManager
         Broadcast(head, ColorConstants.Orange);
         Shout(head);
         if (!string.IsNullOrWhiteSpace(_emptyMsg))
-            Broadcast(_emptyMsg, ColorConstants.Cyan);
+        {
+            string reason = "Reason: " + _emptyMsg;
+            Broadcast(reason, ColorConstants.Cyan);
+            Shout(reason);
+        }
     }
 
     private string ArmHeadline() =>
