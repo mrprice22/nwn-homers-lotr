@@ -67,6 +67,23 @@ void main()
     // party members in the area, prompt a Need/Greed/Pass NUI roll.
     PL_OnItemAcquired();
 
+    // Glorfindel&#x27;s Curative: advance the journal as each of the three
+    // ingredients is collected. Count-based so any pickup order works.
+    string sTag = GetTag(oItem);
+    if (sTag == &quot;Athelas&quot; || sTag == &quot;StonefromArathorn&quot; || sTag == &quot;EssenseofIceDrake&quot;)
+    {
+        object oPC = GetModuleItemAcquiredBy();
+        if (GetIsPC(oPC) &amp;&amp; GetLocalInt(oPC, &quot;glorquestgiven&quot;) == 1)
+        {
+            int nCount = 0;
+            if (GetIsObjectValid(GetItemPossessedBy(oPC, &quot;Athelas&quot;)))            nCount++;
+            if (GetIsObjectValid(GetItemPossessedBy(oPC, &quot;StonefromArathorn&quot;)))  nCount++;
+            if (GetIsObjectValid(GetItemPossessedBy(oPC, &quot;EssenseofIceDrake&quot;)))  nCount++;
+            if (nCount &gt;= 1 &amp;&amp; nCount &lt;= 3)
+                AddJournalQuestEntry(&quot;glorfindel_potion&quot;, nCount + 1, oPC, FALSE, FALSE);
+        }
+    }
+
     // Paths of the Dead: acquiring the Flame of the West (Tag &quot;narsil&quot;) by
     // looting it -- rather than receiving it honourably from Aragorn -- records
     // the &quot;took it by force&quot; path. The honourable grant (q_potd_reward) sets a
