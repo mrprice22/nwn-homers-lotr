@@ -48,7 +48,10 @@ void main()
 
       if(GetTag(oItem)=="DyeKit")
    {
-      AssignCommand(oActivator, ActionStartConversation(oActivator, "dye_dyekit", TRUE));
+      // Repointed to the ZEP appearance/dye station (x0_skill_ctrap): all six
+      // color channels + model-part reshaping on armor/helm/cloak/shield/weapon.
+      // Self-conversation launch, mirrors zep_cr_dialogue.nss (self-craft mode).
+      AssignCommand(oActivator, ActionStartConversation(oActivator, "x0_skill_ctrap", TRUE, FALSE));
       return;
    }
    if(GetTag(oItem)=="StoneofDivineIntervention")

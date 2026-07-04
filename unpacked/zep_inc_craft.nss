@@ -99,6 +99,11 @@ const float  ZEP_CR_REQUIRED_DISTANCE = 4.0f;
 // Set to FALSE to disable the requirement and use of dyes when recolouring
 const int    ZEP_CR_REQUIRE_DYES      = FALSE;
 
+// Homer's LotR: the ZEP station is deployed purely as a free cosmetic dye/appearance
+// kit (launched from the DyeKit item). When TRUE, every craft costs 0 gold and always
+// succeeds (no skill-check failure/revert). Set FALSE to restore ZEP's stock economy.
+const int    ZEP_CR_FREE              = TRUE;
+
 // Maximum cost in percent of the item's original valie at all times regardless of any other settings
 const int    ZEP_CR_MAXCOST           = 90;
 // Percentage of cost for each part of a weapon (3 parts max) or a helmet/shield (1 part max)
@@ -446,8 +451,8 @@ void ZEP_AttemptCraft(object oPC) {
         sDyes = GetSubString(sDyes, n+1, nLen);
         DestroyObject(GetItemPossessedBy(oPC, sDyeTag));
     }
-    // roll DC
-    if (nNPC || GetIsSkillSuccessful(oPC, nSkill, nDC)) {
+    // roll DC (ZEP_CR_FREE = always succeed; deployed as a free cosmetic kit)
+    if (ZEP_CR_FREE || nNPC || GetIsSkillSuccessful(oPC, nSkill, nDC)) {
         SetLocalInt(oPC, "ZEP_CR_DONE", ZEP_CR_DONE_SUCCESS);
         return;
     }
@@ -466,6 +471,16 @@ void ZEP_StopCraft(object oPC, int nExecute) {
     // backup is restored rather than destroyed along with the invalid item ref.
     if (nExecute && !GetIsObjectValid(oItem)) nExecute = FALSE;
     if (nExecute) {
+        // Preserve the forge legality stamps across the appearance edit. The
+        // recolor/remodel rebuilt the item via CopyItemAndModify, which can drop
+        // item-local ints; without carrying these over, a lawfully-forged >750k
+        // item loses FORGE_CEIL and the login/Well-of-Eru contraband scan jails
+        // the bearer. oBackup was made with CopyItem(...,TRUE) so it still holds
+        // the originals. (jailed-for-appearance-crafting fix)
+        int nCeil  = GetLocalInt(oBackup, "FORGE_CEIL");
+        if (nCeil)  SetLocalInt(oItem, "FORGE_CEIL", nCeil);
+        int nClean = GetLocalInt(oBackup, "FORGE_CLEAN");
+        if (nClean) SetLocalInt(oItem, "FORGE_CLEAN", nClean);
         DestroyObject(oBackup);
         ZEP_RemoveItemVariables(oItem); //- cfx change
         DeleteLocalInt(oItem, "ZEP_CR_TEMPITEM");
@@ -625,6 +640,7 @@ void ZEP_SetPart(object oPC, int nPart, int nStrRef) {
 // - private -
 // Gets the cost to modify oItem into oNew
 int ZEP_GetModificationCost(object oItem, object oNew, int nNPC=FALSE) {
+    if (ZEP_CR_FREE) return 0;   // deployed as a free cosmetic kit
     int nCost = 0;
     int nChanges = -1;
     int nPart;

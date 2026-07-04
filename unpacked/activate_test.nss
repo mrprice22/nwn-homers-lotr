@@ -45,7 +45,8 @@ void main()
 
    if(GetTag(oItem)=="DyeKit")
    {
-      AssignCommand(oActivator, ActionStartConversation(oActivator, "dye_dyekit", TRUE));
+      // Repointed to the ZEP appearance/dye station (see dmfi_activate.nss).
+      AssignCommand(oActivator, ActionStartConversation(oActivator, "x0_skill_ctrap", TRUE, FALSE));
       return;
    }
    //if(GetTag(oItem)=="00")
