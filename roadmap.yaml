@@ -108,19 +108,21 @@ ideas:
   - id: dye-kit
     title: "Requesting proper dying kit(which works on cloaks) or dyes that work on metallic 1,2 and leather 1,2"
     group: forge
-    status: wip
+    status: implemented
     type: Enhancement
     player: Rajmund
     date: "2026-07-04"
-    notes: "<div><span>User: Not sure bug or feature request: but proper dying kit(which works on cloaks) or dyes that work on metallic 1,2 and leather 1,2 would be nice</span></div><div><span><br></span></div><div><span>DM: There is a \"Dye Kit\" in the well-mart store and tagget's smith, this is what you're saying doesn't do metallic 1, 2, and leather 1, 2?</span></div><div><span><br></span></div><div><span>User:</span></div><div><li><div><div><div><span>The well one works only on armor and helmet</span></div></div></div></li><li><div><div> <div><span>The single color one works only on cloth 1,2</span></div></div></div></li><br></div>"
+    commit: 7f9759ebb24
+    notes: "<div><span>User: Not sure bug or feature request: but proper dying kit(which works on cloaks) or dyes that work on metallic 1,2 and leather 1,2 would be nice</span></div><div><span><br></span></div><div><span>DM: There is a \"Dye Kit\" in the well-mart store and tagget's smith, this is what you're saying doesn't do metallic 1, 2, and leather 1, 2?</span></div><div><span><br></span></div><div><span>User:</span></div><div><li><div><div><div><span>The well one works only on armor and helmet</span></div></div></div></li><li><div><div> <div><span>The single color one works only on cloth 1,2</span></div></div></div></li><br></div><div><span><b>Fixed:</b> the Dye Kit now opens the full appearance station and dyes armor, helmet, cloak, shield and weapon across all six color channels (cloth/leather/metal 1&amp;2) in any of 64 colors, plus model-part reshaping. Free and always-succeeds. (Also fixes the appearance-crafting prison bug — see below.)</span></div>"
   - id: jailed-for-appearance-crafting
     title: "Item appearance crafting can send you to prison"
     group: forge
-    status: confirmed
+    status: implemented
     type: Defect
     player: Rajmund
     date: "2026-07-04"
-    notes: "<div><span> have a cloak of mutant skin. AC8,  DamRedBldg 30, DamRedPrc 20, DamRedSls 30.\nChanged its appearance and got into prison</span></div><div><span><br></span></div><div><span>Root cause: suspect this item is out of sync instance compared to blueprint (related to </span><a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a>) combined possibly with newly discovered issue that changing appearance of item counts as being modified</div>"
+    commit: 7f9759ebb24
+    notes: "<div><span> have a cloak of mutant skin. AC8,  DamRedBldg 30, DamRedPrc 20, DamRedSls 30.\nChanged its appearance and got into prison</span></div><div><span><br></span></div><div><span>Root cause: suspect this item is out of sync instance compared to blueprint (related to </span><a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a>) combined possibly with newly discovered issue that changing appearance of item counts as being modified</div><div><span><br></span></div><div><span><b>Fixed:</b> confirmed root cause — recoloring/reshaping rebuilds the item via CopyItemAndModify, which dropped the item-local FORGE_CEIL exemption stamp; the login/Well-of-Eru contraband scan then re-judged a lawfully-forged &gt;750k item as illegal and jailed the bearer (on the next login/Well entry, not immediately). The dye/appearance paths now carry FORGE_CEIL/FORGE_CLEAN across the edit so legitimate gear stays legal.</span></div>"
   - id: Legendary-travel-menu
     title: "What is 'Legendary travel menu' how is it obtainable?"
     group: wiki-tools
