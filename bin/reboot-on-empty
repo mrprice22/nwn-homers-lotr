@@ -37,6 +37,26 @@ ARM_FILE="$PLUGIN_DATA/reboot-on-empty"
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
 
 case "${1:-}" in
+  -h|--help|help)
+    cat <<'USAGE'
+reboot-on-empty — arm/disarm the adhoc "reboot when the server next empties" feature.
+
+Deploy the new .mod first, then arm this with a message. Online players are warned
+(broadcast + shout) and new joiners see a login notice; once the server sits empty
+for ~45s it saves characters, shuts down cleanly, and a host systemd .path unit
+restarts just the server onto the new module (optionally rebuilding NWSync first).
+
+Usage:
+  bin/reboot-on-empty [--nwsync] "Custom message shown to players"   # arm
+  bin/reboot-on-empty off                                            # cancel
+  bin/reboot-on-empty status                                         # show state (also the no-arg default)
+  bin/reboot-on-empty --help                                         # this help
+
+  --nwsync   also rebuild the NWSync manifest (bin/refresh-nwsync) during the
+             down window — use when the update changed haks/tlk that clients download.
+USAGE
+    exit 0
+    ;;
   off|cancel|disarm)
     rm -f "$ARM_FILE" "$NWSYNC_FILE"
     echo "[reboot-on-empty] disarmed. Players will be told the reboot was cancelled."
