@@ -117,14 +117,15 @@ What it does:
 - **Filter, sort, and hide done.** The list has dropdown filters (status / player /
   group), a sort selector, and a free-text search, all combinable. `awarded` (done) ideas
   are **hidden by default** — tick "Show awarded" to see them.
-- **Two views: List / Board.** A toggle switches the right pane between the detail form
-  (List) and a **kanban Board** — eight vertical lanes in pipeline order (Under
-  consideration → Later → Soon → Up next → In progress → In testing → Merit awarded → Not
-  likely). Lane labels come from `gen-roadmap.py`'s `STATUS` so they never drift. The board
-  honors the same filters/search; it always shows the awarded lane (ignores "Show
-  awarded"). **Drag a card between lanes** — or use its per-card status dropdown — to
-  change an idea's `status`, which auto-saves. Click a card to open it in the List form;
-  **+ Add idea** works from the board too (it drops you into the form).
+- **Two views: Board / List.** A toggle switches the right pane between the **kanban
+  Board** (the default view) and the detail form (List). The board has eight vertical lanes
+  in pipeline order (Under consideration → Later → Soon → Up next → In progress → In testing
+  → Merit awarded → Not likely); lane labels come from `gen-roadmap.py`'s `STATUS` so they
+  never drift. The board honors the same filters/search; it always shows the awarded lane
+  (ignores "Show awarded"). **Drag a card between lanes** to change an idea's `status`,
+  which auto-saves. An optional **Card status dropdowns (Board)** checkbox (off by default)
+  adds a per-card status `<select>` as a drag-free alternative. Click a card to open it in
+  the List form; **+ Add idea** works from the board too (it drops you into the form).
 - **External-edit / anti-clobber guard.** The page keeps a content hash of `roadmap.yaml`
   as loaded. A background poll warns when the file changes on disk (e.g. an edit by Claude
   or another tab), and every Save/Regenerate/Publish sends that baseline: if the file

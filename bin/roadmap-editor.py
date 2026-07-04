@@ -903,9 +903,11 @@ PAGE = r"""<!doctype html>
       <a href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Public roadmap ↗</a>
     </div>
     <div class="viewtoggle">
-      <button id="view_list" class="on">List</button>
-      <button id="view_board">Board</button>
+      <button id="view_board" class="on">Board</button>
+      <button id="view_list">List</button>
     </div>
+    <label class="chk"><input type="checkbox" id="f_carddd">
+      Card status dropdowns (Board)</label>
     <input id="filter" placeholder="search title, player, group, status…">
     <div class="filters">
       <select id="f_fstatus"><option value="">All statuses</option></select>
@@ -943,7 +945,8 @@ PAGE = r"""<!doctype html>
 let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}};
 let sel = -1;
 let baseVersion = null;      // hash of roadmap.yaml as we last loaded/saved it
-let view = 'list';           // 'list' | 'board'
+let view = 'board';          // 'list' | 'board' — Board is the default view
+let showCardDropdown = false; // per-card status <select> on board cards (off by default)
 // Board lanes, left→right = pipeline flow. Labels come from DATA.vocab.statuses
 // (sourced from gen-roadmap.py STATUS) so they never drift.
 const BOARD_LANES = ['planned','later','soon','wip','confirmed',
@@ -967,7 +970,7 @@ async function load(){
   const r = await fetch('/api/data'); DATA = await r.json();
   baseVersion = DATA.version || null;
   populateFilters();
-  if (view==='board'){ renderBoard(); }
+  if (view==='board'){ const f=$('#form'); if (f) f.style.display='none'; renderBoard(); }
   else { renderList(); if (DATA.ideas.length) select(0); }
   refreshPending();
 }
@@ -1087,12 +1090,14 @@ function renderBoard(){
     const cards = buckets[s].map(({it,idx})=>{
       const tbadge = it.type
         ? `<span class="tbadge ${typeCls(it.type)}">${esc(it.type)}</span> ` : '';
-      const optsHtml = BOARD_LANES.map(ls=>
-        `<option value="${esc(ls)}"${ls===it.status?' selected':''}>${esc(statusLabel(ls))}</option>`).join('');
+      const ddHtml = showCardDropdown
+        ? `<select class="cst" data-idx="${idx}">${BOARD_LANES.map(ls=>
+            `<option value="${esc(ls)}"${ls===it.status?' selected':''}>${esc(statusLabel(ls))}</option>`).join('')}</select>`
+        : '';
       return `<div class="card" draggable="true" data-idx="${idx}">
         <span class="ct">${esc(it.title||'(untitled)')}</span>
         <span class="cmeta">${tbadge}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>
-        <select class="cst" data-idx="${idx}">${optsHtml}</select>
+        ${ddHtml}
       </div>`;
     }).join('');
     return `<div class="lane" data-status="${esc(s)}">
@@ -1802,6 +1807,8 @@ $('#mpending').onclick=openPending;
 $('#filter').oninput = render;
 $('#view_list').onclick=()=>setView('list');
 $('#view_board').onclick=()=>setView('board');
+$('#f_carddd').onchange=e=>{ showCardDropdown=e.target.checked;
+  if (view==='board') renderBoard(); };
 
 // Background poll: notice an external edit (Claude, hand-edit, another tab) and
 // warn passively. Paused while a modal is open, and never clobbers a live
