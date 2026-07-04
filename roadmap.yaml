@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-04 09:40 CDT"
+  as_of: "2026-07-04 10:58 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -105,6 +105,14 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: jailed-for-appearance-crafting
+    title: "Item appearance crafting can send you to prison"
+    group: forge
+    status: confirmed
+    type: Defect
+    player: Rajmund
+    date: "2026-07-04"
+    notes: "<div><span> have a cloak of mutant skin. AC8,  DamRedBldg 30, DamRedPrc 20, DamRedSls 30.\nChanged its appearance and got into prison</span></div><div><span><br></span></div><div><span>Root cause: suspect this item is out of sync instance compared to blueprint (related to </span><a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a>) combined possibly with newly discovered issue that changing appearance of item counts as being modified</div>"
   - id: Legendary-travel-menu
     title: "What is 'Legendary travel menu' how is it obtainable?"
     group: wiki-tools
@@ -1118,9 +1126,10 @@ ideas:
   - id: dedupe-item-tags
     title: "Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref"
     group: items-gear
-    status: planned
+    status: confirmed
     type: Defect
     player: "HomelessSon (Server Admin)"
+    date: "2026-07-04"
     notes: "Items that share a Tag but differ in properties break tag-based lookups and confuse the Forge contraband whitelist (a single resref can only represent one blueprint fingerprint). Surfaced by the Longsword of Elrond false-jailing bug: Elrond's Rivendell copy and Card Mennard's Edoras copy both use resref/tag handofpaladine/LongswordofElrond with different properties, which is why that item needed a whitelist entry at all. Audit every entry in module-index/item_tag_conflicts.json and give each variant its own unique Tag (and resref where the conflict is resref-level), then regenerate forge_legal_inc.nss and the wiki."
   - id: mail-delivery
     title: "Mail-delivery system: pay postage by weight to send items to a specific character; they're notified after login (post office if no player house)"
