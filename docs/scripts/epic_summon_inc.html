@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script epic_summon_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>epic_summon_inc</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Epic summon helper  (Mummy Reaper / Dragon Knight)
+//:: epic_summon_inc
+//:://////////////////////////////////////////////
+/*
+    Lets the epic summons (Mummy Dust -&gt; &quot;mummyreaper&quot;, Dragon Knight -&gt;
+    &quot;epicdragonknight&quot;) coexist with a normal summon.
+
+    The NWN engine gives a master only ONE ASSOCIATE_TYPE_SUMMONED slot: casting
+    any EffectSummonCreature auto-unsummons the previous one, so an epic summon
+    and a summon-animal spell can never be out together. To get a second,
+    independent slot we put the epic summons on the HENCHMAN slot instead
+    (CreateObject + AddHenchman) -- the same pattern the Meaningwave guide system
+    uses (mw_unlock_inc.nss: MW_SummonGuide / MW_DismissActiveGuide).
+
+    Result:
+      - Epic slot  (henchman)  : Mummy Reaper OR Dragon Knight, mutually
+                                 exclusive -- EpicSummon_Cast dismisses the prior
+                                 epic before creating the new one.
+      - Normal slot (summoned) : unchanged; the engine still allows only one
+                                 summon-animal at a time.
+      - Epic + normal can be out at the same time (different slots).
+
+    The epic blueprints are FactionID 2 (Commoner) -- non-hostile to PCs -- so
+    AddHenchman produces a friendly follower whose henchman AI fights the
+    master&#x27;s enemies. No faction change needed.
+*/
+//:://////////////////////////////////////////////
+
+// PC local that tracks that PC&#x27;s current epic henchman.
+const string EPIC_SUMMON_OBJ = &quot;EPIC_SUMMON_OBJ&quot;;
+// Marker set on the epic creature itself.
+const string EPIC_SUMMON_TAG = &quot;EPIC_SUMMON&quot;;
+
+// Remove oPC&#x27;s current epic summon (if any) and clear the tracking local.
+void EpicSummon_Dismiss(object oPC)
+{
+    object oOld = GetLocalObject(oPC, EPIC_SUMMON_OBJ);
+    if (GetIsObjectValid(oOld))
+    {
+        RemoveHenchman(oPC, oOld);
+        AssignCommand(oOld, ClearAllActions());
+        ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oOld);
+    }
+    DeleteLocalObject(oPC, EPIC_SUMMON_OBJ);
+}
+
+// Timed-expiry callback -- runs assigned to the epic creature (OBJECT_SELF), so
+// it dies harmlessly with the creature if it was already killed/dismissed.
+// Re-checks that this is still the PC&#x27;s tracked epic so a newer summon (cast
+// before this one expired) is never clobbered.
+void EpicSummon_Expire(object oPC)
+{
+    object oSelf = OBJECT_SELF;
+    if (GetLocalObject(oPC, EPIC_SUMMON_OBJ) != oSelf) return;
+    RemoveHenchman(oPC, oSelf);
+    DeleteLocalObject(oPC, EPIC_SUMMON_OBJ);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oSelf);
+}
+
+// Cast an epic summon: dismiss any existing epic, then spawn sResRef as a
+// timed henchman of oPC at lLoc with the given summon visual.
+void EpicSummon_Cast(object oPC, string sResRef, location lLoc,
+                     float fDuration, int nSummonVFX)
+{
+    // One epic at a time: clear the previous Mummy/Dragon Knight first.
+    EpicSummon_Dismiss(oPC);
+
+    object oEpic = CreateObject(OBJECT_TYPE_CREATURE, sResRef, lLoc);
+    if (!GetIsObjectValid(oEpic))
+    {
+        FloatingTextStringOnCreature(
+            &quot;Summon failed (blueprint &quot; + sResRef + &quot; missing).&quot;, oPC, FALSE);
+        return;
+    }
+
+    AddHenchman(oPC, oEpic);
+    SetLocalInt(oEpic, EPIC_SUMMON_TAG, 1);
+    SetLocalObject(oPC, EPIC_SUMMON_OBJ, oEpic);
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(nSummonVFX), oEpic);
+
+    // Timed like a summon -- henchmen do not auto-expire, so schedule removal
+    // on the creature&#x27;s own action queue.
+    AssignCommand(oEpic, DelayCommand(fDuration, EpicSummon_Expire(oPC)));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
