@@ -48,10 +48,10 @@ void main()
 
       if(GetTag(oItem)=="DyeKit")
    {
-      // Repointed to the ZEP appearance/dye station (x0_skill_ctrap): all six
-      // color channels + model-part reshaping on armor/helm/cloak/shield/weapon.
-      // Self-conversation launch, mirrors zep_cr_dialogue.nss (self-craft mode).
-      AssignCommand(oActivator, ActionStartConversation(oActivator, "x0_skill_ctrap", TRUE, FALSE));
+      // Opens the Dye Studio NUI color picker (all 176 colors, armor/helm/cloak).
+      // The NUI's "Reshape appearance..." button hands off to the ZEP station
+      // (x0_skill_ctrap) for model/shield/weapon editing.
+      ExecuteScript("dye_nui_open", oActivator);
       return;
    }
    if(GetTag(oItem)=="StoneofDivineIntervention")

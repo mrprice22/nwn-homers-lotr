@@ -1123,11 +1123,14 @@ void ZEP_RecolorItem(object oPC, int nMode) {
     object oNew;
 
 
-    if (GetBaseItemType(oItem)==BASE_ITEM_ARMOR || GetBaseItemType(oItem)==BASE_ITEM_HELMET) {
-        // Handle Armor change
+    if (GetBaseItemType(oItem)==BASE_ITEM_ARMOR || GetBaseItemType(oItem)==BASE_ITEM_HELMET
+        || GetBaseItemType(oItem)==BASE_ITEM_CLOAK) {
+        // Handle Armor change (cloaks tint via the same ARMOR_COLOR channels as
+        // armor/helmet; without this a cloak fell into the weapon-color branch
+        // and recolor did nothing.)
         nCurrApp = GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nPart);
         int nMin = 0;
-        int nMax = 63;         //64 colors in NWN Palette-Loki
+        int nMax = 175;        // NWN:EE expanded armor tint palette (0-175)
 
         if (nMode == ZEP_CR_COLOR_NEXT) {
             if (++nCurrApp>nMax) nCurrApp = nMin;
@@ -1140,6 +1143,8 @@ void ZEP_RecolorItem(object oPC, int nMode) {
         nSlot = INVENTORY_SLOT_CHEST;
         if (GetBaseItemType(oItem)==BASE_ITEM_HELMET)
             nSlot = INVENTORY_SLOT_HEAD;
+        else if (GetBaseItemType(oItem)==BASE_ITEM_CLOAK)
+            nSlot = INVENTORY_SLOT_CLOAK;
 
     } else if (nPart == ZEP_CR_SHIELD) {
         // Handle Weapon change

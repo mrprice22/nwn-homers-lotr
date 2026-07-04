@@ -12,8 +12,8 @@
 
    if(GetTag(oItem)=="DyeKit")
    {
-      // Repointed to the ZEP appearance/dye station (see dmfi_activate.nss).
-      AssignCommand(oActivator, ActionStartConversation(oActivator, "x0_skill_ctrap", TRUE, FALSE));
+      // Opens the Dye Studio NUI color picker (see dmfi_activate.nss).
+      ExecuteScript("dye_nui_open", oActivator);
       return;
    }
    //if(GetTag(oItem)=="00")
