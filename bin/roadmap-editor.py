@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import importlib.util
 import io
@@ -81,6 +82,17 @@ sanitize_notes = GEN.sanitize_notes  # whitelist sanitizer for idea `notes`
 # --------------------------------------------------------------------------
 def read_yaml() -> dict:
     return yaml.safe_load(YAML_PATH.read_text(encoding="utf-8")) or {}
+
+
+def yaml_version() -> str:
+    """Short content hash of roadmap.yaml — a version token the client rebases
+    on. Any external edit (Claude, a hand-edit, another editor tab) changes it,
+    which is how we detect a would-be clobber before writing. Missing file =>
+    empty token."""
+    try:
+        return hashlib.sha256(YAML_PATH.read_bytes()).hexdigest()[:16]
+    except OSError:
+        return ""
 
 
 def vocab(data: dict) -> dict:
@@ -616,7 +628,10 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, PAGE.encode("utf-8"), "text/html; charset=utf-8")
         elif self.path == "/api/data":
             data = read_yaml()
-            self._json({"ideas": data.get("ideas", []) or [], "vocab": vocab(data)})
+            self._json({"ideas": data.get("ideas", []) or [], "vocab": vocab(data),
+                        "version": yaml_version()})
+        elif self.path == "/api/version":
+            self._json({"version": yaml_version()})
         elif self.path.startswith("/api/merit"):
             q = urllib.parse.urlparse(self.path).query
             player = urllib.parse.parse_qs(q).get("player", [""])[0]
@@ -638,6 +653,19 @@ class Handler(BaseHTTPRequestHandler):
         ideas = payload.get("ideas", [])
         groups = payload.get("groups")
         players = payload.get("players")
+        base_version = payload.get("base_version")
+        force = bool(payload.get("force"))
+        # Anti-clobber: if the file changed on disk since the client loaded it
+        # (external edit — Claude, a hand-edit, another tab) and the user hasn't
+        # explicitly chosen Force, refuse the write so the external edit isn't
+        # silently overwritten.
+        if (base_version is not None and not force
+                and base_version != yaml_version()):
+            return self._json({
+                "ok": False, "conflict": True, "version": yaml_version(),
+                "message": ("roadmap.yaml changed on disk since you opened it "
+                            "(external edit detected). Reload to pull those "
+                            "changes, or Force save to overwrite them.")})
         if groups is not None:
             for g in groups:
                 if str(g.get("order", "")).strip() != "":
@@ -662,12 +690,14 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/save":
             write_document(ideas, groups, players)
             return self._json({"ok": True, "warnings": warnings,
+                               "version": yaml_version(),
                                "message": "Saved roadmap.yaml."})
         if self.path == "/api/regenerate":
             write_document(ideas, groups, players)
             stamp = stamp_as_of()
             ok, output = regenerate()
             return self._json({"ok": ok, "warnings": warnings, "output": output,
+                               "version": yaml_version(),
                                "message": (f"Saved + regenerated Roadmap.html (as of {stamp})."
                                            if ok else "Regenerate FAILED.")})
         if self.path == "/api/publish":
@@ -679,12 +709,14 @@ class Handler(BaseHTTPRequestHandler):
                 steps.append(output)
             if not ok:
                 return self._json({"ok": False, "warnings": warnings,
+                                   "version": yaml_version(),
                                    "output": "\n".join(steps),
                                    "message": "Regenerate FAILED — not published."})
             pub_ok, pub_msg = publish_roadmap_to_docs()
             steps.append(pub_msg)
             if not pub_ok:
                 return self._json({"ok": False, "warnings": warnings,
+                                   "version": yaml_version(),
                                    "output": "\n".join(steps),
                                    "message": "Publish FAILED."})
             # Sync the in-game Recent Updates sign DB. Non-fatal: a DB failure
@@ -697,6 +729,7 @@ class Handler(BaseHTTPRequestHandler):
             git_ok, git_msg = git_publish()
             steps.append(git_msg)
             return self._json({"ok": git_ok, "warnings": warnings,
+                               "version": yaml_version(),
                                "output": "\n".join(steps),
                                "message": ("Published to wiki + pushed to git."
                                            if git_ok else "Publish/push FAILED.")})
@@ -832,11 +865,47 @@ PAGE = r"""<!doctype html>
   .txns .st.fulfilled { color:var(--ok); }
   .txns .st.cancelled { color:var(--mut); text-decoration:line-through; }
   #mpending.has { color:var(--warn); font-weight:600; }
+  /* header external links */
+  .extlinks { display:flex; gap:12px; margin:2px 0 8px; }
+  .extlinks a { color:var(--accent); font-size:12px; text-decoration:none; }
+  .extlinks a:hover { text-decoration:underline; }
+  /* view toggle */
+  .viewtoggle { display:flex; gap:4px; margin:0 0 8px; }
+  .viewtoggle button { padding:4px 12px; font-size:12px; width:auto; }
+  .viewtoggle button.on { background:var(--accent); color:#10161f;
+                          border-color:var(--accent); font-weight:600; }
+  /* kanban board */
+  #board { display:flex; gap:10px; height:100%; align-items:stretch;
+           overflow-x:auto; overflow-y:hidden; padding-bottom:6px; }
+  .lane { flex:0 0 230px; display:flex; flex-direction:column; min-width:0;
+          background:var(--panel); border:1px solid var(--line); border-radius:8px; }
+  .lane-h { padding:8px 10px; border-bottom:1px solid var(--line); font-size:12px;
+            font-weight:600; display:flex; align-items:center; gap:6px; }
+  .lane-h .n { color:var(--mut); font-weight:400; }
+  .lane-cards { flex:1; overflow-y:auto; padding:8px; display:flex;
+                flex-direction:column; gap:8px; }
+  .lane.drop { border-color:var(--accent); }
+  .lane.drop .lane-cards { background:#2a3040; }
+  .card { background:var(--bg); border:1px solid var(--line); border-radius:6px;
+          padding:8px 9px; cursor:pointer; }
+  .card:hover { border-color:var(--accent); }
+  .card.dragging { opacity:0.45; }
+  .card .ct { display:block; font-size:13px; margin-bottom:5px; }
+  .card .cmeta { color:var(--mut); font-size:11px; display:block; margin-bottom:6px; }
+  .card select { padding:3px 5px; font-size:11px; }
 </style></head>
 <body>
 <div id="left">
   <div class="pad">
     <h1>Roadmap / Merit Backlog</h1>
+    <div class="extlinks">
+      <a href="https://homerslotr.com/" target="_blank" rel="noopener">Public wiki ↗</a>
+      <a href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Public roadmap ↗</a>
+    </div>
+    <div class="viewtoggle">
+      <button id="view_list" class="on">List</button>
+      <button id="view_board">Board</button>
+    </div>
     <input id="filter" placeholder="search title, player, group, status…">
     <div class="filters">
       <select id="f_fstatus"><option value="">All statuses</option></select>
@@ -873,6 +942,12 @@ PAGE = r"""<!doctype html>
 <script>
 let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}};
 let sel = -1;
+let baseVersion = null;      // hash of roadmap.yaml as we last loaded/saved it
+let view = 'list';           // 'list' | 'board'
+// Board lanes, left→right = pipeline flow. Labels come from DATA.vocab.statuses
+// (sourced from gen-roadmap.py STATUS) so they never drift.
+const BOARD_LANES = ['planned','later','soon','wip','confirmed',
+                     'implemented','awarded','unlikely'];
 // Sentinel filter value: match rows whose field is empty/unset.
 const BLANK = '__BLANK__';
 const BLANK_OPT = `<option value="${BLANK}">&lt;Is Blank&gt;</option>`;
@@ -890,7 +965,10 @@ function groupTitle(id){
 
 async function load(){
   const r = await fetch('/api/data'); DATA = await r.json();
-  populateFilters(); renderList(); if (DATA.ideas.length) select(0);
+  baseVersion = DATA.version || null;
+  populateFilters();
+  if (view==='board'){ renderBoard(); }
+  else { renderList(); if (DATA.ideas.length) select(0); }
   refreshPending();
 }
 
@@ -928,7 +1006,9 @@ function visibleRows(){
   const q = $('#filter').value.toLowerCase();
   const fs=$('#f_fstatus').value, ft=$('#f_ftype').value;
   const fp=$('#f_fplayer').value, fg=$('#f_fgroup').value;
-  const showAwarded=$('#f_showawarded').checked, sort=$('#f_sort').value;
+  // Board always shows the awarded lane; the "Show awarded" checkbox only
+  // governs the list view.
+  const showAwarded=(view==='board') || $('#f_showawarded').checked, sort=$('#f_sort').value;
   let rows = DATA.ideas.map((it,idx)=>({it,idx})).filter(({it})=>{
     if (!showAwarded && it.status==='awarded') return false;
     if (fs && it.status!==fs) return false;
@@ -968,6 +1048,91 @@ function renderList(){
     box.appendChild(d);
   });
   $('#count').textContent=`${rows.length}/${DATA.ideas.length} ideas`;
+}
+
+// Re-render whichever view is active (filters/search call this).
+function render(){ if (view==='board') renderBoard(); else renderList(); }
+
+function setView(v){
+  view = v;
+  $('#view_list').classList.toggle('on', v==='list');
+  $('#view_board').classList.toggle('on', v==='board');
+  const right=$('#right'), form=$('#form');
+  if (v==='board'){
+    if (form) form.style.display='none';
+    renderBoard();
+  } else {
+    let b=$('#board'); if (b) b.remove();
+    if (form) form.style.display='';
+    renderList();
+    if (sel>=0 && DATA.ideas[sel]) select(sel); else if (DATA.ideas.length) select(0);
+  }
+}
+
+function statusLabel(id){
+  const s=(DATA.vocab.statuses||[]).find(x=>x.id===id);
+  return s ? s.label : id;
+}
+
+let dragIdx = -1;   // idea index currently being dragged across lanes
+
+function renderBoard(){
+  const rows = visibleRows();
+  const buckets={}; BOARD_LANES.forEach(s=>buckets[s]=[]);
+  rows.forEach(({it,idx})=>{ if (buckets[it.status]) buckets[it.status].push({it,idx}); });
+
+  let board=$('#board');
+  if (!board){ board=document.createElement('div'); board.id='board'; $('#right').appendChild(board); }
+  board.innerHTML = BOARD_LANES.map(s=>{
+    const cards = buckets[s].map(({it,idx})=>{
+      const tbadge = it.type
+        ? `<span class="tbadge ${typeCls(it.type)}">${esc(it.type)}</span> ` : '';
+      const optsHtml = BOARD_LANES.map(ls=>
+        `<option value="${esc(ls)}"${ls===it.status?' selected':''}>${esc(statusLabel(ls))}</option>`).join('');
+      return `<div class="card" draggable="true" data-idx="${idx}">
+        <span class="ct">${esc(it.title||'(untitled)')}</span>
+        <span class="cmeta">${tbadge}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>
+        <select class="cst" data-idx="${idx}">${optsHtml}</select>
+      </div>`;
+    }).join('');
+    return `<div class="lane" data-status="${esc(s)}">
+      <div class="lane-h">${esc(statusLabel(s))} <span class="n">${buckets[s].length}</span></div>
+      <div class="lane-cards">${cards}</div>
+    </div>`;
+  }).join('');
+  $('#count').textContent=`${rows.length}/${DATA.ideas.length} ideas`;
+
+  // Card click → open the edit form (switches back to list view). The status
+  // dropdown must not trigger this.
+  board.querySelectorAll('.card').forEach(c=>{
+    c.onclick=e=>{ if (e.target.closest('.cst')) return;
+      const idx=+c.dataset.idx; setView('list'); select(idx); };
+    c.ondragstart=e=>{ dragIdx=+c.dataset.idx; c.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move'; };
+    c.ondragend=()=>{ c.classList.remove('dragging'); dragIdx=-1; };
+  });
+  // Per-card status dropdown fallback.
+  board.querySelectorAll('.cst').forEach(sel0=>{
+    sel0.onclick=e=>e.stopPropagation();
+    sel0.onchange=e=>moveToStatus(+sel0.dataset.idx, e.target.value);
+  });
+  // Lane drop targets.
+  board.querySelectorAll('.lane').forEach(lane=>{
+    lane.ondragover=e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move';
+      lane.classList.add('drop'); };
+    lane.ondragleave=()=>lane.classList.remove('drop');
+    lane.ondrop=e=>{ e.preventDefault(); lane.classList.remove('drop');
+      if (dragIdx>=0) moveToStatus(dragIdx, lane.dataset.status); };
+  });
+}
+
+// Change one idea's status (drag drop or dropdown) and persist via Save.
+function moveToStatus(idx, status){
+  const it=DATA.ideas[idx];
+  if (!it || it.status===status) return;
+  it.status=status;
+  renderBoard();
+  commit('/api/save');
 }
 
 function opt(value,label,cur){
@@ -1397,12 +1562,15 @@ function pruneEmpty(o){
 
 function banner(cls,msg){ const b=$('#banner'); b.className=cls; b.textContent=msg; }
 
-async function commit(endpoint){
+async function commit(endpoint, force){
   // Capture where we are in the *visible* (filtered + sorted) list so we can
   // advance to the next item there after the save reloads from the file, even
   // if the edit moved or dropped the current item out of the view.
   let nextId=null, curPos=-1;
-  if (sel>=0){
+  // In list view, fold the open form's edits into DATA before sending. In board
+  // view there is no live form, so skip this (moveToStatus already mutated the
+  // idea in place).
+  if (view==='list' && sel>=0 && $('#f_id')){
     // Capture the next row from the list *as currently displayed*, BEFORE the
     // edit is applied — otherwise an edit that changes a sort key (status,
     // group, title…) re-sorts the current item and "next" is taken relative to
@@ -1415,8 +1583,11 @@ async function commit(endpoint){
   const r = await fetch(endpoint, {method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ideas: DATA.ideas, groups: DATA.vocab.groups,
-                          players: DATA.vocab.players})});
+                          players: DATA.vocab.players,
+                          base_version: baseVersion, force: !!force})});
   const res = await r.json();
+  if (res.version) baseVersion = res.version;   // rebase our baseline
+  if (res.conflict){ conflictBanner(endpoint); return; }
   if (!res.ok){
     banner('bad', 'Not saved:\n• ' + (res.errors||['unknown error']).join('\n• ')
       + (res.warnings&&res.warnings.length ? '\n\nWarnings:\n• '+res.warnings.join('\n• '):''));
@@ -1427,7 +1598,25 @@ async function commit(endpoint){
   if (res.output) msg += '\n\n'+res.output;
   banner(res.warnings&&res.warnings.length ? 'warn':'ok', msg);
   await load();
-  advanceSelection(nextId, curPos);
+  if (view==='list') advanceSelection(nextId, curPos);
+}
+
+// External-edit conflict: the file changed on disk since we loaded it. Offer to
+// Reload the latest (losing in-page edits) or Force-overwrite it.
+function conflictBanner(endpoint){
+  const b=$('#banner'); b.className='warn';
+  b.innerHTML='';
+  const msg=document.createElement('div');
+  msg.textContent='⚠ roadmap.yaml changed on disk since you opened it '
+    +'(external edit detected). Reload to pull those changes, or Force save to overwrite them.';
+  const bar=document.createElement('div'); bar.className='bar';
+  const reload=document.createElement('button'); reload.textContent='Reload latest';
+  reload.onclick=()=>{ b.className=''; b.textContent=''; load(); };
+  const forceb=document.createElement('button'); forceb.className='danger';
+  forceb.textContent='Force save (overwrite)';
+  forceb.onclick=()=>commit(endpoint, true);
+  bar.appendChild(reload); bar.appendChild(forceb);
+  b.appendChild(msg); b.appendChild(bar);
 }
 
 function advanceSelection(nextId, curPos){
@@ -1461,6 +1650,8 @@ function del(){
 $('#add').onclick = ()=>{
   const g = DATA.vocab.groups[0] ? DATA.vocab.groups[0].id : '';
   DATA.ideas.unshift({id:'', title:'', group:g, status:'planned'});
+  // Adding needs the full form (id + title), so always land in list view.
+  if (view!=='list'){ setView('list'); }
   sel=0; renderList(); select(0);
   banner('warn','New idea added. Give it a unique id + title, then Save.');
 };
@@ -1603,12 +1794,32 @@ function openPending(){
   });
 }
 
-['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_sort'].forEach(id=>$('#'+id).onchange=renderList);
-$('#f_showawarded').onchange=renderList;
+['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_sort'].forEach(id=>$('#'+id).onchange=render);
+$('#f_showawarded').onchange=render;
 $('#mgroups').onclick=openGroups;
 $('#mplayers').onclick=openPlayers;
 $('#mpending').onclick=openPending;
-$('#filter').oninput = renderList;
+$('#filter').oninput = render;
+$('#view_list').onclick=()=>setView('list');
+$('#view_board').onclick=()=>setView('board');
+
+// Background poll: notice an external edit (Claude, hand-edit, another tab) and
+// warn passively. Paused while a modal is open, and never clobbers a live
+// conflict banner. The Save/Force flow is the hard guard; this is just a nudge.
+setInterval(async ()=>{
+  if ($('#modal').classList.contains('show')) return;
+  try{
+    const d=await (await fetch('/api/version')).json();
+    if (d.version && baseVersion && d.version!==baseVersion){
+      const b=$('#banner');
+      if (!b.querySelector('button')){   // don't stomp an active conflict banner
+        banner('warn','⚠ roadmap.yaml changed on disk (external edit) — Reload '
+          +'to see it. Your next Save will warn before overwriting.');
+      }
+    }
+  }catch(e){}
+}, 15000);
+
 load();
 </script>
 </body></html>

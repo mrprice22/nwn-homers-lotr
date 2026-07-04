@@ -117,6 +117,22 @@ What it does:
 - **Filter, sort, and hide done.** The list has dropdown filters (status / player /
   group), a sort selector, and a free-text search, all combinable. `awarded` (done) ideas
   are **hidden by default** — tick "Show awarded" to see them.
+- **Two views: List / Board.** A toggle switches the right pane between the detail form
+  (List) and a **kanban Board** — eight vertical lanes in pipeline order (Under
+  consideration → Later → Soon → Up next → In progress → In testing → Merit awarded → Not
+  likely). Lane labels come from `gen-roadmap.py`'s `STATUS` so they never drift. The board
+  honors the same filters/search; it always shows the awarded lane (ignores "Show
+  awarded"). **Drag a card between lanes** — or use its per-card status dropdown — to
+  change an idea's `status`, which auto-saves. Click a card to open it in the List form;
+  **+ Add idea** works from the board too (it drops you into the form).
+- **External-edit / anti-clobber guard.** The page keeps a content hash of `roadmap.yaml`
+  as loaded. A background poll warns when the file changes on disk (e.g. an edit by Claude
+  or another tab), and every Save/Regenerate/Publish sends that baseline: if the file
+  changed since you loaded it, the write is **blocked** with a banner offering **Reload
+  latest** (pull the external change, losing in-page edits) or **Force save (overwrite)**.
+  A normal save rebases the baseline so the next save doesn't spuriously conflict.
+- **Links to the live site.** The header has **Public wiki ↗** (`https://homerslotr.com/`)
+  and **Public roadmap ↗** (`https://homerslotr.com/manual/Roadmap`) shortcuts.
 - **Manage groups** (button): add a group (`id` + title + order) or rename a title /
   change order. The `id` is the immutable stable key ideas reference, so a title rename
   needs no cascade — every idea shows the new title automatically. A group in use can't be
