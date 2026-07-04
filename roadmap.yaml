@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-04 12:24 CDT"
+  as_of: "2026-07-04 14:06 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -93,7 +93,7 @@ players:
   - "HomelessSon (Server Admin)"
   - Magyk
   - "Zambro (Xil)"
-  - Rajmund
+  - "Rajmund (Ray)"
 
 # -----------------------------------------------------------------------------
 # How merit is earned and spent (Merit Redemption Shop + Player Housing price
@@ -105,30 +105,37 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: xp-bank-intial3
+    title: "Initial 3 free levels worth of xp from new characters can be xp-banked"
+    group: banking
+    status: confirmed
+    type: Exploit
+    player: "Rajmund (Ray)"
+    date: "2026-07-04"
   - id: dye-kit
     title: "Requesting proper dying kit(which works on cloaks) or dyes that work on metallic 1,2 and leather 1,2"
     group: forge
-    status: implemented
+    status: awarded
     type: Enhancement
-    player: Rajmund
+    player: "Rajmund (Ray)"
     date: "2026-07-04"
     commit: 7f9759ebb24
     notes: "<div><span><b>Fixed:</b> the Dye Kit now opens the full appearance station and dyes armor, helmet, cloak, shield and weapon across all six color channels (cloth/leather/metal 1&amp;2) in any of 64 colors, plus model-part reshaping. Free and always-succeeds. (Also fixes the </span><a href=\"#idea-jailed-for-appearance-crafting\">appearance-crafting prison bug</a>)</div>"
   - id: jailed-for-appearance-crafting
     title: "Item appearance crafting can send you to prison"
     group: forge
-    status: implemented
+    status: awarded
     type: Defect
-    player: Rajmund
+    player: "Rajmund (Ray)"
     date: "2026-07-04"
     commit: 7f9759ebb24
     notes: "<div><span> have a cloak of mutant skin. AC8,  DamRedBldg 30, DamRedPrc 20, DamRedSls 30.\nChanged its appearance and got into prison</span></div><div><span><br></span></div><div><span>Root cause: suspect this item is out of sync instance compared to blueprint (related to </span><a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a>) combined possibly with newly discovered issue that changing appearance of item counts as being modified</div><div><span><br></span></div><div><span><b>Fixed:</b> confirmed root cause — recoloring/reshaping rebuilds the item via CopyItemAndModify, which dropped the item-local FORGE_CEIL exemption stamp; the login/Well-of-Eru contraband scan then re-judged a lawfully-forged &gt;750k item as illegal and jailed the bearer (on the next login/Well entry, not immediately). The dye/appearance paths now carry FORGE_CEIL/FORGE_CLEAN across the edit so legitimate gear stays legal.</span></div>"
   - id: Legendary-travel-menu
     title: "What is 'Legendary travel menu' how is it obtainable?"
     group: wiki-tools
-    status: implemented
+    status: awarded
     type: Defect
-    player: Rajmund
+    player: "Rajmund (Ray)"
     date: "2026-07-04"
     notes: "<div><span>Resolution: good find -- that does not exist, removing this verbiage from </span><a href=\"https://homerslotr.com/manual/Customizations\" target=\"_blank\" rel=\"noopener\">https://homerslotr.com/manual/Customizations</a></div><div><span>Cause: minor claude hallucination.. I think it was written in early days of forge updates, when I had a duplicate of the moria forge of wonders in my personal in-game castle for testing, and I do have a special rest menu with teleports, but it was never called legendary travel</span></div>"
   - id: Ammo-shortage
@@ -151,9 +158,9 @@ ideas:
   - id: hgll-skills-gear
     title: "HGLL should not be influenced by gear"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Exploit
-    player: Rajmund
+    player: "Rajmund (Ray)"
     date: "2026-07-03"
     notes: "HGLL is currently giving bonus skill points on level up based on boosted/modified INT not base int."
   - id: 2x-gold-defect
@@ -233,7 +240,7 @@ ideas:
   - id: toggle-reboot-on-empty
     title: "[Anvil] Adhoc toggle reboot on empty with warning to players"
     group: wiki-tools
-    status: implemented
+    status: awarded
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-02"
