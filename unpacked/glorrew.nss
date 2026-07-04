@@ -15,6 +15,9 @@ void main()
 	// Give the speaker the items
 	CreateItemOnObject("bracersofglorfin", GetPCSpeaker(), 1);
 
+	// Journal: quest complete
+	AddJournalQuestEntry("glorfindel_potion", 5, GetPCSpeaker(), FALSE, FALSE);
+
 
 	// Remove items from the player's inventory
 	object oItemToTake;

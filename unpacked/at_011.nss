@@ -10,4 +10,7 @@ void main()
 	// Set the variables
 	SetLocalInt(GetPCSpeaker(), "glorquestgiven", 1);
 
+	// Journal: quest accepted
+	AddJournalQuestEntry("glorfindel_potion", 1, GetPCSpeaker(), FALSE, FALSE);
+
 }
