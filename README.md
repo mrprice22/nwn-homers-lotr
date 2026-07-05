@@ -101,29 +101,33 @@ campaign DB (`<NWN_HOME_DIR>/database/respawndb.sqlite3`): `boss_registry`
 (reseeded from source on every module load), `boss_alias`, `boss_deaths`
 (wiped on load — a restart revives everything, so the board starts empty).
 
-**The registry is hand-curated in one place:** the `BRD_SeedBoss(...)` calls in
-`unpacked/brd_db.nss`. Nothing else needs editing to add/remove a boss, but a
-boss must satisfy the **single-instance rule** — only ever one live copy in
-the world:
+**The registry is generated from a rule, not hand-curated.**
+`bin/gen-boss-registry.py` scans `unpacked/` and rewrites the `BRD_SeedBoss(...)`
+block (between `// BEGIN/END GENERATED REGISTRY` markers) in
+`unpacked/brd_db.nss`. A creature is a boss when it has **ChallengeRating > 60**
+and only ever **one live copy** in the world — one placement and no encounter
+slot (`placed`), or one `MaxCreatures=1`/`Respawns=-1`/`Reset=1` encounter
+instance and no placement (`encounter`) — and it is **not plot/immortal** and
+**not a merchant/utility NPC**. Same tag in different areas is fine (the two
+Khamuls); same tag in the same area is dropped (two copies alive at once).
 
-- **placed** boss: exactly one instance across all `*.git.json`, never in any
-  encounter, tag without `NSP` (its OnDeath must reach `SE_DoCreatureRespawn`
-  — `nw_c2_default7`/`x2_def_ondeath`/`staticspawn` all do), respawns exactly
-  900 s after death;
-- **encounter** boss: never placed directly, exactly one encounter *instance*
-  spawning it (`MaxCreatures=1`, `Respawns=-1`, `Reset=1`), and the registry's
-  `respawn_seconds` must equal that instance's `ResetTime` (both the `.ute`
-  **and** the instance struct in the area `.git.json` — the instance wins).
+To change the list, edit the rule/levers in `gen-boss-registry.py` (`EXCLUDE`
+denylist for vendors/props, `INCLUDE` to force a sub-CR-60 boss on, `CR_MIN`),
+run it once as a dry-run to read the report (included bosses, respawn warnings,
+diff vs. current), then `--write`. It's on-demand like `gen-roadmap.py`, not
+part of repack — re-run it after adding boss content.
 
-If one boss spawns as several variant blueprints (the five leveled Xanith
-`.utc`s), map the extras to one canonical resref with `BRD_SeedAlias(...)`.
-
-All of the above is enforced at build time by `tests/check_boss_registry.py`
-(part of `tests/smoke-test`, run by every repack): it re-derives placements and
-encounter slots from `unpacked/` and fails the build on any drift — a boss
-placed a second time, a changed ResetTime, a tag rename, a deleted blueprint.
-So the safe workflow is simply: edit `brd_db.nss`, run
-`python3 tests/check_boss_registry.py`, repack.
+The generated block is validated at build time by
+`tests/check_boss_registry.py` (part of `tests/smoke-test`, run by every
+repack): it **independently** re-derives placements and encounter slots from
+`unpacked/` and fails the build on any drift — a boss placed a second time, a
+changed ResetTime, a tag rename, a deleted blueprint. Encounter bosses carry
+their real `ResetTime` as `respawn_seconds` (accurate countdowns); placed
+bosses respawn 900 s after death **if** their OnDeath reaches
+`SE_DoCreatureRespawn`. The generator reports any placed boss whose OnDeath
+won't bring it back (currently the Rancid Skinner, Wart Gondorian Gate Captain,
+and the Fell Beast) — those are listed anyway and clear on server restart until
+their wiring is fixed. See [CLAUDE-boss-tracker.md](CLAUDE-boss-tracker.md).
 
 Death recording rides the bestiary wrapper — one `BRD_RecordDeath()` call in
 `bst_ondeath.nss` (which reads the `bst_ctrb_N` damage-contributor locals for
@@ -135,9 +139,9 @@ The board conversation is `brd_sign.dlg` + the `brd_*` scripts (custom tokens
 **Wiki page stays in sync automatically:** `nwn-wiki` parses the same
 `BRD_SeedBoss` rows out of `brd_db.nss` at build time and generates
 `docs/creatures/bosses.html` (Creatures → Bosses menu) plus
-`module-index/bosses.json` — there is no second list to maintain. Adding a
-boss to `brd_db.nss` updates the game on the next repack and the wiki on the
-next scheduled refresh. A seed row whose resref has no creature page renders
+`module-index/bosses.json` — there is no second list to maintain. Regenerating
+the registry updates the game on the next repack and the wiki on the next
+scheduled refresh. A seed row whose resref has no creature page renders
 unlinked and is flagged in `module-index/lookup_warnings.json`.
 
 ## Donations Chest sync
