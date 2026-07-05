@@ -32,7 +32,9 @@ string DyeSlotName(int nSlot);
 object DyeGetItem(object oPC);
 void   DyeSaveOriginals(object oPC);
 json   DyeBuildGridJson(object oPC);
-json   DyeBuildControlsJson(object oPC);
+json   DyeGridBtn(string sId, string sLabel);
+json   DyeCtlRow(string a, string la, string b, string lb, string c, string lc);
+void   DyeSetHighlights(object oPC);
 json   DyeBuildWindow(object oPC);
 object DyeApply(object oPC, int nIdx);
 void   DyeUpdateStatus(object oPC);
@@ -159,71 +161,64 @@ json DyeBuildGridJson(object oPC) {
     return NuiCol(jRows);
 }
 
-// A fixed-size slot/material button; when selected it gets a highlighted
-// background (translucent fill) + bright border via a draw list.
-json DyeGridBtn(string sId, string sLabel, int bSelected) {
+// An auto-width slot/material button. Its highlight is a translucent fill drawn
+// only when the bind "hl_<id>" is TRUE (toggled by DyeSetHighlights). scissor=TRUE
+// clips the oversized rect to the button, so no fixed button size is needed — the
+// buttons stay auto-width (equal thirds in their row) like the proven round-1 rows.
+json DyeGridBtn(string sId, string sLabel) {
     json jBtn = NuiButton(JsonString(sLabel));
     jBtn = NuiId(jBtn, sId);
-    jBtn = NuiWidth(jBtn, 128.0);
-    jBtn = NuiHeight(jBtn, 30.0);
-    if (bSelected) {
-        json jList = JsonArray();
-        jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(80, 160, 255, 90),
-                    JsonBool(TRUE), JsonFloat(1.0), NuiRect(0.0, 0.0, 128.0, 30.0),
-                    NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
-        jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(130, 205, 255),
-                    JsonBool(FALSE), JsonFloat(3.0), NuiRect(1.0, 1.0, 126.0, 28.0),
-                    NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
-        jBtn = NuiDrawList(jBtn, JsonBool(FALSE), jList);
-    }
+    json jList = JsonArray();
+    jList = JsonArrayInsert(jList, NuiDrawListRect(NuiBind("hl_" + sId), NuiColor(70, 150, 255, 120),
+                JsonBool(TRUE), JsonFloat(1.0), NuiRect(0.0, 0.0, 400.0, 60.0),
+                NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
+    jBtn = NuiDrawList(jBtn, JsonBool(TRUE), jList);   // scissor clips fill to button
     return jBtn;
 }
 
-// The 3x3 slot/material control grid, with the active slot and active material
-// highlighted. Columns = Cloth / Leather / Metal; rows: slots, material 1, material 2.
-json DyeBuildControlsJson(object oPC) {
+// One row of the 3x3 slot/material grid (3 auto-width buttons).
+json DyeCtlRow(string a, string la, string b, string lb, string c, string lc) {
+    json r = JsonArray();
+    r = JsonArrayInsert(r, DyeGridBtn(a, la));
+    r = JsonArrayInsert(r, DyeGridBtn(b, lb));
+    r = JsonArrayInsert(r, DyeGridBtn(c, lc));
+    return NuiHeight(NuiRow(r), 30.0);
+}
+
+// Set the 9 highlight binds so the active slot + active material light up.
+void DyeSetHighlights(object oPC) {
+    int nTok  = GetLocalInt(oPC, DYE_TOK);
     int nSlot = GetLocalInt(oPC, DYE_SLOT);
     int nChan = GetLocalInt(oPC, DYE_CH);
-    json jRows = JsonArray();
-
-    json r0 = JsonArray();
-    r0 = JsonArrayInsert(r0, DyeGridBtn("slc", "Armor",  nSlot == INVENTORY_SLOT_CHEST));
-    r0 = JsonArrayInsert(r0, DyeGridBtn("slh", "Helmet", nSlot == INVENTORY_SLOT_HEAD));
-    r0 = JsonArrayInsert(r0, DyeGridBtn("slk", "Cloak",  nSlot == INVENTORY_SLOT_CLOAK));
-    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r0), 32.0));
-
-    json r1 = JsonArray();
-    r1 = JsonArrayInsert(r1, DyeGridBtn("ch2", "Cloth 1",   nChan == ITEM_APPR_ARMOR_COLOR_CLOTH1));
-    r1 = JsonArrayInsert(r1, DyeGridBtn("ch0", "Leather 1", nChan == ITEM_APPR_ARMOR_COLOR_LEATHER1));
-    r1 = JsonArrayInsert(r1, DyeGridBtn("ch4", "Metal 1",   nChan == ITEM_APPR_ARMOR_COLOR_METAL1));
-    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r1), 32.0));
-
-    json r2 = JsonArray();
-    r2 = JsonArrayInsert(r2, DyeGridBtn("ch3", "Cloth 2",   nChan == ITEM_APPR_ARMOR_COLOR_CLOTH2));
-    r2 = JsonArrayInsert(r2, DyeGridBtn("ch1", "Leather 2", nChan == ITEM_APPR_ARMOR_COLOR_LEATHER2));
-    r2 = JsonArrayInsert(r2, DyeGridBtn("ch5", "Metal 2",   nChan == ITEM_APPR_ARMOR_COLOR_METAL2));
-    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r2), 32.0));
-
-    return NuiCol(jRows);
+    NuiSetBind(oPC, nTok, "hl_slc", JsonBool(nSlot == INVENTORY_SLOT_CHEST));
+    NuiSetBind(oPC, nTok, "hl_slh", JsonBool(nSlot == INVENTORY_SLOT_HEAD));
+    NuiSetBind(oPC, nTok, "hl_slk", JsonBool(nSlot == INVENTORY_SLOT_CLOAK));
+    NuiSetBind(oPC, nTok, "hl_ch2", JsonBool(nChan == ITEM_APPR_ARMOR_COLOR_CLOTH1));
+    NuiSetBind(oPC, nTok, "hl_ch0", JsonBool(nChan == ITEM_APPR_ARMOR_COLOR_LEATHER1));
+    NuiSetBind(oPC, nTok, "hl_ch4", JsonBool(nChan == ITEM_APPR_ARMOR_COLOR_METAL1));
+    NuiSetBind(oPC, nTok, "hl_ch3", JsonBool(nChan == ITEM_APPR_ARMOR_COLOR_CLOTH2));
+    NuiSetBind(oPC, nTok, "hl_ch1", JsonBool(nChan == ITEM_APPR_ARMOR_COLOR_LEATHER2));
+    NuiSetBind(oPC, nTok, "hl_ch5", JsonBool(nChan == ITEM_APPR_ARMOR_COLOR_METAL2));
 }
 
 json DyeBuildWindow(object oPC) {
     json jCol = JsonArray();
 
-    // Slot + material controls (group id "ctl" so highlight can be refreshed)
-    // NUI groups have internal padding (~8px/side), so a fixed-height group must
-    // exceed its content by ~18px or the layout solver fails ("constraint cannot
-    // be satisfied"). Controls content = 3 rows x 32 = 96 -> group 124.
-    json jCtl = NuiId(NuiGroup(DyeBuildControlsJson(oPC), FALSE, NUI_SCROLLBARS_NONE), "ctl");
-    jCol = JsonArrayInsert(jCol, NuiHeight(jCtl, 124.0));
+    // Slot + material controls: 3 plain rows of auto-width buttons (no group).
+    // Columns = Cloth / Leather / Metal; rows = slots, material 1, material 2.
+    // Highlights are bind-toggled fills (DyeSetHighlights), so no rebuild needed.
+    jCol = JsonArrayInsert(jCol, DyeCtlRow("slc", "Armor",   "slh", "Helmet",    "slk", "Cloak"));
+    jCol = JsonArrayInsert(jCol, DyeCtlRow("ch2", "Cloth 1", "ch0", "Leather 1", "ch4", "Metal 1"));
+    jCol = JsonArrayInsert(jCol, DyeCtlRow("ch3", "Cloth 2", "ch1", "Leather 2", "ch5", "Metal 2"));
 
     // Status label (bound "dstat")
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(NuiBind("dstat"),
                 JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 20.0));
 
-    // Swatch grid (group id "grid" so it can be refreshed via NuiSetGroupLayout)
+    // Swatch grid (group id "grid" so it can be refreshed via NuiSetGroupLayout).
+    // This is the only group in the window, matching the proven round-1 structure.
     json jGrid = NuiId(NuiGroup(DyeBuildGridJson(oPC), FALSE, NUI_SCROLLBARS_NONE), "grid");
-    jCol = JsonArrayInsert(jCol, NuiHeight(jGrid, 134.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(jGrid, 130.0));
 
     // Page navigation row
     json jNav = JsonArray();
@@ -248,7 +243,7 @@ json DyeBuildWindow(object oPC) {
     // Default the window to the centre of the right half of the screen so it does
     // not cover the character live-preview. Falls back to screen-centre (-1,-1).
     float ww = 520.0;
-    float wh = 480.0;
+    float wh = 500.0;
     float wx = -1.0;
     float wy = -1.0;
     int gw = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_WIDTH);
@@ -315,9 +310,8 @@ void DyeUpdatePageLabel(object oPC) {
 }
 
 void DyeRefresh(object oPC) {
-    int nTok = GetLocalInt(oPC, DYE_TOK);
-    NuiSetGroupLayout(oPC, nTok, "ctl",  DyeBuildControlsJson(oPC));
-    NuiSetGroupLayout(oPC, nTok, "grid", DyeBuildGridJson(oPC));
+    NuiSetGroupLayout(oPC, GetLocalInt(oPC, DYE_TOK), "grid", DyeBuildGridJson(oPC));
+    DyeSetHighlights(oPC);
     DyeUpdateStatus(oPC);
     DyeUpdatePageLabel(oPC);
 }

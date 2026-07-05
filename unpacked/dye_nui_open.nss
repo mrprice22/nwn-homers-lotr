@@ -33,6 +33,7 @@ void main() {
 
     int nTok = NuiCreate(oPC, DyeBuildWindow(oPC), "dyestudio", "dye_nui_evt");
     SetLocalInt(oPC, DYE_TOK, nTok);
+    DyeSetHighlights(oPC);
     DyeUpdateStatus(oPC);
     DyeUpdatePageLabel(oPC);
 }
