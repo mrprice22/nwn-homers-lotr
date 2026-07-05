@@ -151,36 +151,88 @@ void BRD_InitDb()
     q = SqlPrepareQueryCampaign(BRD_DB, &quot;DELETE FROM boss_alias&quot;);
     SqlStep(q);
 
-    // -- Encounter bosses (eligible after 900s, return when the lair re-triggers)
-    BRD_SeedBoss(&quot;azagoth001&quot;,       &quot;The Balrog of Moria&quot;,             &quot;TheBalrogofMoria&quot;,            &quot;thebalrogofmoria&quot;, &quot;Moria: The Balrog of Moria&quot;,            555.0,  900, &quot;encounter&quot;);
-    BRD_SeedBoss(&quot;shelob001&quot;,        &quot;Shelob&quot;,                          &quot;ms_shel1&quot;,                    &quot;shelobslair&quot;,      &quot;Shelob&#x27;s Lair&quot;,                          220.0,  900, &quot;encounter&quot;);
-    BRD_SeedBoss(&quot;kerufall003&quot;,      &quot;Kerufall&quot;,                        &quot;ms_keru1&quot;,                    &quot;kerufallslair&quot;,    &quot;Kerufall&#x27;s Lair&quot;,                        418.0,  900, &quot;encounter&quot;);
-    BRD_SeedBoss(&quot;xaniththemad&quot;,     &quot;Xanith The Mad&quot;,                  &quot;XanithTheMad&quot;,                &quot;enchantedcave002&quot;, &quot;Enchanted Caverns&quot;,                       32.0,  900, &quot;encounter&quot;);
-    BRD_SeedBoss(&quot;legolasgreenl001&quot;, &quot;Legolas Greenleaf&quot;,               &quot;LegolasGreenleaf&quot;,            &quot;area023&quot;,          &quot;Mirkwoods - Halls of Greenleafs&quot;,       1418.0,  900, &quot;encounter&quot;);
-    BRD_SeedBoss(&quot;creature007&quot;,      &quot;Khamul The Ringwraith (Dol Guldur)&quot;, &quot;Khamul&quot;,                   &quot;area031&quot;,          &quot;Dol Guldur: Tower Of Black Magic&quot;,       965.0,  900, &quot;encounter&quot;);
+    // BEGIN GENERATED REGISTRY — produced by bin/gen-boss-registry.py
+    // Do not hand-edit; run the generator to refresh (see CLAUDE-boss-tracker.md).
+    BRD_SeedBoss(&quot;creature016&quot;, &quot;Theoden&#x27;s Chosen&quot;, &quot;TheodensChosen&quot;, &quot;area013&quot;, &quot;Helm&#x27;s Deep: Cave&quot;, 9540.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;summanus&quot;, &quot;Summanus&quot;, &quot;Summanus&quot;, &quot;falseheaven&quot;, &quot;Numenor: Noirinan&quot;, 2938.0, 480, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;gandalf001&quot;, &quot;Gandalf the Gray&quot;, &quot;Gandalf&quot;, &quot;shirehobbiton001&quot;, &quot;Hobbiton&quot;, 1914.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;highwizardofgo_2&quot;, &quot;High Wizard of Gondor&quot;, &quot;HighWizardofGondor&quot;, &quot;towerofthehighwi&quot;, &quot;Tower of the High Wizard: The High Wizard&#x27;s Chamber&quot;, 1795.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature019&quot;, &quot;Sauron The Abhorred&quot;, &quot;Constantinethesecond&quot;, &quot;area016&quot;, &quot;Mount Doom: Halls of Sauron&quot;, 1768.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gwathdorlord001&quot;, &quot;Gwathdor Lord of the Dark Arts&quot;, &quot;GwathdorLord&quot;, &quot;gwaththrone&quot;, &quot;Gwathdor: Throne of the Lord&quot;, 1615.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature009&quot;, &quot;Boromir, Steward of Gondor&quot;, &quot;BoromirStewardofGondor&quot;, &quot;minastirith&quot;, &quot;Minas Tirith: City&quot;, 1461.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature003&quot;, &quot;Denethor, Steward of Gondor&quot;, &quot;DenethorStewardofGondor&quot;, &quot;area005&quot;, &quot;Minas Tirith: Keep&quot;, 1459.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;legolasgreenl001&quot;, &quot;Legolas Greenleaf - Silvan Prince of Mirkwood&quot;, &quot;LegolasGreenleaf&quot;, &quot;area023&quot;, &quot;Mirkwoods - Halls of Greenleafs&quot;, 1418.0, 900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;witchking&quot;, &quot;Witch King Leader of The Nine&quot;, &quot;WitchKing&quot;, &quot;thewitchkingsthr&quot;, &quot;The Witch King&#x27;s Throne&quot;, 1198.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;radagastthebro_2&quot;, &quot;Radagast the Brown&quot;, &quot;RadagasttheBrown&quot;, &quot;rhosgobeltower&quot;, &quot;Rhosgobel: Tower&quot;, 1086.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;thecursedone002&quot;, &quot;Heir of Haldor&quot;, &quot;TheCursedOne&quot;, &quot;forgottenking&quot;, &quot;Dimholt: The Forgotten King&quot;, 1066.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;themightysmag002&quot;, &quot;The Mighty Smaug&quot;, &quot;TheMightySmaug&quot;, &quot;darkcavern&quot;, &quot;The Ruins of Dale: Cavern&quot;, 1048.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gollum&quot;, &quot;Gollum&quot;, &quot;Gollum&quot;, &quot;area007&quot;, &quot;Gollum&#x27;s Chambers&quot;, 1029.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;templemistress_2&quot;, &quot;Temple Mistress&quot;, &quot;TempleMistress&quot;, &quot;blackgatge&quot;, &quot;Morannon - The Black Gate&quot;, 980.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature007&quot;, &quot;Khamul The Ringwraith (Dol Guldur)&quot;, &quot;Khamul&quot;, &quot;area031&quot;, &quot;Dol Guldur: Tower Of Black Magic Nazgul Quaters&quot;, 965.0, 900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;creature007_2&quot;, &quot;Khamul The Ringwraith (Carn Dum)&quot;, &quot;Khamul&quot;, &quot;carndumthrone&quot;, &quot;Carn Dum: Throne&quot;, 839.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;elrond001_2&quot;, &quot;Elrond&quot;, &quot;Elrond&quot;, &quot;rivendellupperha&quot;, &quot;Rivendell Upper Halls&quot;, 829.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;harethofthehalad&quot;, &quot;Hareth of the Haladin&quot;, &quot;HarethoftheHaladin&quot;, &quot;edoras&quot;, &quot;Edoras&quot;, 811.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature023_2&quot;, &quot;The Rancid Skinner Green Mortal of Khamul&quot;, &quot;Skinner&quot;, &quot;dolguldurcast001&quot;, &quot;Dol Guldur: Tower Of Black Magic Depths&quot;, 810.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;adwarfguardia001&quot;, &quot;Gloin King Under the Mountain&quot;, &quot;GloinKingUndertheMountain&quot;, &quot;lonelymountainma&quot;, &quot;Lonely Mountain: Main Hall&quot;, 799.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature005&quot;, &quot;Arwen, The Evenstar&quot;, &quot;ArwenTheEvenstar&quot;, &quot;rivendellupperha&quot;, &quot;Rivendell Upper Halls&quot;, 767.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;aragornsonofarat&quot;, &quot;Aragorn Son of Arathorn&quot;, &quot;AragornSonofArathorn&quot;, &quot;minastirithgates&quot;, &quot;Minas Tirith: Gates&quot;, 712.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;eowyntheshieldma&quot;, &quot;Eowyn the Shieldmaiden&quot;, &quot;EowyntheShieldmaiden&quot;, &quot;area008&quot;, &quot;Helm&#x27;s Deep: Keep&quot;, 693.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;shadowlordof_2&quot;, &quot;Shadow Lord of Dol Guldur&quot;, &quot;ShadowLordof&quot;, &quot;dolguldur&quot;, &quot;Mirkwood: Dol Guldur&quot;, 660.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;angmar&quot;, &quot;Angmar&quot;, &quot;ms_Angmar&quot;, &quot;area009&quot;, &quot;Angmar&#x27;s Lair&quot;, 637.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;sarumanthewhi001&quot;, &quot;Saruman the White&quot;, &quot;ms_orth17&quot;, &quot;towerofothancsar&quot;, &quot;Tower of Orthanc: Saruman&#x27;s Chambers&quot;, 627.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;thehighmageofbar&quot;, &quot;Gothmog Lord of Barad-Dur&quot;, &quot;LordofBaradDur&quot;, &quot;baraddurkeep&quot;, &quot;Barad-Dur: Keep&quot;, 604.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;grimbeorntheo001&quot;, &quot;Grimbeorn the Old Lord of the Beornings&quot;, &quot;GrimbeorntheOld&quot;, &quot;beorn&quot;, &quot;Beorn&quot;, 587.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;basilisk008&quot;, &quot;Basilisk King&quot;, &quot;BasiliskKing&quot;, &quot;area003&quot;, &quot;Mirkwood: Crypt Chamber&quot;, 564.0, 3000, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;azagoth001&quot;, &quot;The Balrog of Moria&quot;, &quot;TheBalrogofMoria&quot;, &quot;thebalrogofmoria&quot;, &quot;Moria: The Balrog of Moria&quot;, 555.0, 900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;highpriestofmora&quot;, &quot;High Priest of Morannon&quot;, &quot;HighPriestofMorannon&quot;, &quot;thetempleofmoran&quot;, &quot;The Temple of Morannon&quot;, 495.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;thranduil_2&quot;, &quot;Thranduil, King of Eryn Lasgalen&quot;, &quot;ThranduilKingofErynLasgalen&quot;, &quot;thranduilshall&quot;, &quot;Mirkwood: Thranduil&#x27;s Hall&quot;, 476.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;shadowlordof001&quot;, &quot;Shadow Priestess of Dol Guldur&quot;, &quot;ShadowLordof&quot;, &quot;cavesofdolguldur&quot;, &quot;Caves of Dol Guldur&quot;, 463.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature002&quot;, &quot;Faramir, Prince of Ithillien&quot;, &quot;Faramir&quot;, &quot;citidelofstars&quot;, &quot;Osgiliath: Citidal of the Stars&quot;, 451.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;shopkeep002_2&quot;, &quot;High Priest of Gondor&quot;, &quot;NW_PriestofGondor&quot;, &quot;minastirithtemp&quot;, &quot;Minas Tirith: Temple&quot;, 447.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature017_2&quot;, &quot;Eothain Captian of Helm&#x27;s Deep&quot;, &quot;othain&quot;, &quot;helmsdeep001&quot;, &quot;Helm&#x27;s Deep&quot;, 440.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;maggotfarmer&quot;, &quot;Maggot Farmer&quot;, &quot;MaggotFarmer&quot;, &quot;bywater&quot;, &quot;Bywater&quot;, 436.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;akhorahil006_2&quot;, &quot;Morgrond Captian of Dol Guldur&quot;, &quot;MorgrondCaptian&quot;, &quot;dolguldurcity&quot;, &quot;Dol Guldur City&quot;, 433.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gimli_2&quot;, &quot;Gimli&quot;, &quot;Gimli&quot;, &quot;halloftruth&quot;, &quot;The Halls of Truth&quot;, 418.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;kerufall003&quot;, &quot;Kerufall&quot;, &quot;ms_keru1&quot;, &quot;kerufallslair&quot;, &quot;Kerufall&#x27;s Lair&quot;, 418.0, 900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;urukai010&quot;, &quot;The White Hand Destroyer&quot;, &quot;ms_iseno10&quot;, &quot;isengardouterrim&quot;, &quot;Isengard (Outerrim)&quot;, 374.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gondorianwiza001&quot;, &quot;Sarah the Librarian&quot;, &quot;GreaterGondorianWizard&quot;, &quot;towerofthehig001&quot;, &quot;Tower of the High Wizard: The Library&quot;, 372.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gondorianguar005&quot;, &quot;Wart Gondorian Gate Captain&quot;, &quot;ms_minas22122&quot;, &quot;minastirithgates&quot;, &quot;Minas Tirith: Gates&quot;, 341.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;theoden002&quot;, &quot;Theoden King of Rohan&quot;, &quot;ms_edort5&quot;, &quot;theodenshall&quot;, &quot;Theoden&#x27;s Hall&quot;, 338.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;bauglirthegene_2&quot;, &quot;Deekin the General&quot;, &quot;DeekintheGeneral&quot;, &quot;orcarmory&quot;, &quot;Orc Armory&quot;, 336.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;badass_2&quot;, &quot;Fell Beast&quot;, &quot;balsum&quot;, &quot;kallristcryptlow&quot;, &quot;Kallrist Crypt&quot;, 333.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;glorfindel002&quot;, &quot;Glorfindel&quot;, &quot;Glorfindel&quot;, &quot;thevalleyofriven&quot;, &quot;The Valley of Rivendell&quot;, 323.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature013&quot;, &quot;Sarumon&#x27;s Master Experiment&quot;, &quot;SarumonsMasterExperiment&quot;, &quot;towerofothancsar&quot;, &quot;Tower of Orthanc: Saruman&#x27;s Chambers&quot;, 316.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;strongminitao002&quot;, &quot;Gwathdor Minitaour&quot;, &quot;StrongMinitaour&quot;, &quot;gwathtomb&quot;, &quot;Gwathdor: Tomb&quot;, 280.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;akhorahil004&quot;, &quot;Dol Guldur Orc General&quot;, &quot;DolGuldurOrcGeneral&quot;, &quot;dolguldurcity&quot;, &quot;Dol Guldur City&quot;, 277.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature012_2&quot;, &quot;Thragg, Gate Commander&quot;, &quot;ThraggGateCommander&quot;, &quot;blackgatge&quot;, &quot;Morannon - The Black Gate&quot;, 267.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;rangerofthe002&quot;, &quot;Tren Notteel&quot;, &quot;Rangerofthe&quot;, &quot;rivendell&quot;, &quot;Rivendell&quot;, 267.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;frost001&quot;, &quot;Frost&quot;, &quot;Frost&quot;, &quot;emynarnen&quot;, &quot;Emyn Arnen: Peak&quot;, 256.0, 3000, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;greaterelvenw003&quot;, &quot;Celeborn&quot;, &quot;ms_lorien21&quot;, &quot;lothlorienflets&quot;, &quot;Lothlorien: Flets&quot;, 250.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;anaraliathewidow&quot;, &quot;Anaralia, The widow maker&quot;, &quot;AnaraliaThewidowmaker&quot;, &quot;mirkwoodcentrale&quot;, &quot;Mirkwood: Central East&quot;, 248.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;kainnatheward001&quot;, &quot;Kainna the War Dancer&quot;, &quot;ms_isen24&quot;, &quot;isengardinnerrim&quot;, &quot;Isengard (Innerrim)&quot;, 239.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;jester&quot;, &quot;Jester&quot;, &quot;Jester&quot;, &quot;area008&quot;, &quot;Helm&#x27;s Deep: Keep&quot;, 236.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature020&quot;, &quot;Mashano, Messenger To The Witch King&quot;, &quot;MashanoMessengerToTheWitchKing&quot;, &quot;nazgulguildhouse&quot;, &quot;House of Nazgul&quot;, 236.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;shelob001&quot;, &quot;Shelob&quot;, &quot;ms_shel1&quot;, &quot;shelobslair&quot;, &quot;Shelob&#x27;s Lair&quot;, 220.0, 900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;adwarfajudica003&quot;, &quot;Fifur the Craftsman&quot;, &quot;FifurtheCraftsman&quot;, &quot;thehallsoftruth&quot;, &quot;Temple of Marr&quot;, 212.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;arohirrimsold006&quot;, &quot;Card Mennard&quot;, &quot;ms_edor1&quot;, &quot;edoras&quot;, &quot;Edoras&quot;, 201.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gntfire003&quot;, &quot;Gorg the General&quot;, &quot;ms_gund27&quot;, &quot;mountgundabadlev&quot;, &quot;Mount Gundabad&quot;, 191.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;garbag&quot;, &quot;Garbag Gulon&quot;, &quot;Garbag&quot;, &quot;orcarmory&quot;, &quot;Orc Armory&quot;, 179.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;trollking&quot;, &quot;Troll King&quot;, &quot;TrollKing&quot;, &quot;thetrollshalls&quot;, &quot;The Trollshaws&quot;, 155.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;galadriel&quot;, &quot;Galadriel&quot;, &quot;Galadriel&quot;, &quot;lothlorien&quot;, &quot;Lothlorien: Main&quot;, 150.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;railthewhiteh001&quot;, &quot;Rail the White Hand Blaster&quot;, &quot;ms_isen1&quot;, &quot;isengardinnerrim&quot;, &quot;Isengard (Innerrim)&quot;, 146.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;drgblue004&quot;, &quot;The Ice Queen&quot;, &quot;TheIceQueen&quot;, &quot;icequeennest&quot;, &quot;Ice Queen: Nest&quot;, 133.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;themutantterror&quot;, &quot;The Mutant Terror&quot;, &quot;TheMutantTerror&quot;, &quot;balinstomb&quot;, &quot;Balin&#x27;s Tomb&quot;, 132.0, 500, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;cultmember002_3&quot;, &quot;Numanan Numerocks Second Hand&quot;, &quot;ms_carn26&quot;, &quot;carndumcity&quot;, &quot;Carn Dum: City&quot;, 130.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;cultmember002_2&quot;, &quot;Numarok The Black Hand&quot;, &quot;ms_carn26&quot;, &quot;area078&quot;, &quot;Carn Dum: Numerok&#x27;s Den&quot;, 130.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;urukai013&quot;, &quot;Marshall of the White Hand&quot;, &quot;ms_orth5&quot;, &quot;toweroforthanc&quot;, &quot;Tower of Orthanc&quot;, 107.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;drowfight023_2&quot;, &quot;Elor Desh&quot;, &quot;BlackNumenorianMilitia&quot;, &quot;carndum&quot;, &quot;Carn Dum&quot;, 106.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;railthewhiteh003&quot;, &quot;Fail the White Hand Blaster&quot;, &quot;ms_isenm1&quot;, &quot;isengardmagicroo&quot;, &quot;Isengard (Magic Room)&quot;, 96.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;drowrogue024_2&quot;, &quot;Morfiril Cendel&quot;, &quot;BlackNumenorianShadowMaster&quot;, &quot;carndumtemple&quot;, &quot;Carn Dum: Temple&quot;, 89.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gondorianguar0_4&quot;, &quot;Gondorian Bowman&quot;, &quot;ms_minas1&quot;, &quot;watchmandefender&quot;, &quot;Minas Tirith: Watchman Defender&#x27;s Head Quarters&quot;, 85.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gondorianguar0_2&quot;, &quot;Gondorian Guardsman&quot;, &quot;ms_minas2&quot;, &quot;watchmandefender&quot;, &quot;Minas Tirith: Watchman Defender&#x27;s Head Quarters&quot;, 80.0, 900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;adwarfajudica0_3&quot;, &quot;Dellinth the Advocet&quot;, &quot;ms_lone37&quot;, &quot;halloftruth&quot;, &quot;The Halls of Truth&quot;, 63.0, 900, &quot;placed&quot;);
+    // END GENERATED REGISTRY
 
-    // -- Placed bosses (se_respawn_inc: exact 900s respawn at the spawn point)
-    BRD_SeedBoss(&quot;creature016&quot;,      &quot;Theoden&#x27;s Chosen&quot;,                &quot;TheodensChosen&quot;,              &quot;area013&quot;,          &quot;Helm&#x27;s Deep: Cave&quot;,                     9540.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;gandalf001&quot;,       &quot;Gandalf the Gray&quot;,                &quot;Gandalf&quot;,                     &quot;shirehobbiton001&quot;, &quot;Hobbiton&quot;,                              1914.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;highwizardofgo_2&quot;, &quot;High Wizard of Gondor&quot;,           &quot;HighWizardofGondor&quot;,          &quot;towerofthehighwi&quot;, &quot;Tower of the High Wizard&quot;,              1795.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;creature019&quot;,      &quot;Sauron The Abhorred&quot;,             &quot;Constantinethesecond&quot;,        &quot;area016&quot;,          &quot;Mount Doom: Halls of Sauron&quot;,           1768.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;gwathdorlord001&quot;,  &quot;Gwathdor Lord of the Dark Arts&quot;,  &quot;GwathdorLord&quot;,                &quot;gwaththrone&quot;,      &quot;Gwathdor: Throne of the Lord&quot;,          1615.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;creature009&quot;,      &quot;Boromir, Steward of Gondor&quot;,      &quot;BoromirStewardofGondor&quot;,      &quot;minastirith&quot;,      &quot;Minas Tirith: City&quot;,                    1461.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;creature003&quot;,      &quot;Denethor, Steward of Gondor&quot;,     &quot;DenethorStewardofGondor&quot;,     &quot;area005&quot;,          &quot;Minas Tirith: Keep&quot;,                    1459.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;witchking&quot;,        &quot;Witch King Leader of The Nine&quot;,   &quot;WitchKing&quot;,                   &quot;thewitchkingsthr&quot;, &quot;The Witch King&#x27;s Throne&quot;,               1198.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;radagastthebro_2&quot;, &quot;Radagast the Brown&quot;,              &quot;RadagasttheBrown&quot;,            &quot;rhosgobeltower&quot;,   &quot;Rhosgobel: Tower&quot;,                      1086.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;thecursedone002&quot;,  &quot;Heir of Haldor&quot;,                  &quot;TheCursedOne&quot;,                &quot;forgottenking&quot;,    &quot;Dimholt: The Forgotten King&quot;,           1066.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;themightysmag002&quot;, &quot;The Mighty Smaug&quot;,                &quot;TheMightySmaug&quot;,              &quot;darkcavern&quot;,       &quot;The Ruins of Dale: Cavern&quot;,             1048.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;gollum&quot;,           &quot;Gollum&quot;,                          &quot;Gollum&quot;,                      &quot;area007&quot;,          &quot;Gollum&#x27;s Chambers&quot;,                     1029.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;creature007_2&quot;,    &quot;Khamul The Ringwraith (Carn Dum)&quot;, &quot;Khamul&quot;,                     &quot;carndumthrone&quot;,    &quot;Carn Dum: Throne&quot;,                       839.0,  900, &quot;placed&quot;);
-    BRD_SeedBoss(&quot;thranduil_2&quot;,      &quot;Thranduil, King of Eryn Lasgalen&quot;, &quot;ThranduilKingofErynLasgalen&quot;, &quot;thranduilshall&quot;,  &quot;Mirkwood: Thranduil&#x27;s Hall&quot;,             476.0,  900, &quot;placed&quot;);
-
-    // Xanith The Mad spawns as one of five leveled blueprints (Max=1 encounter),
-    // all the same boss on the board.
-    BRD_SeedAlias(&quot;xaniththemad001&quot;, &quot;xaniththemad&quot;);
-    BRD_SeedAlias(&quot;xaniththemad002&quot;, &quot;xaniththemad&quot;);
-    BRD_SeedAlias(&quot;xaniththemad003&quot;, &quot;xaniththemad&quot;);
-    BRD_SeedAlias(&quot;xaniththemad004&quot;, &quot;xaniththemad&quot;);
 }
 
 // ------------------------------------------------------------

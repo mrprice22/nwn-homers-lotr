@@ -51,6 +51,7 @@
   </header>
   <main>
 <h1>Script: <code>skinnerdeath</code></h1><pre class="nss-source"><code>#include &quot;color&quot;
+#include &quot;se_respawn_inc&quot;
 
 void main()
 {
@@ -79,6 +80,10 @@ string currentList = GetLocalString( oMod, &quot;EvilNPCDeathList&quot;);
   SetLocalString( oMod, &quot;EvilNPCDeathList&quot;, currentList);
 
 SpeakString(&quot;Dol Guldur is under attack! Rally Servants of Sauron to Dol Guldur!&quot;, TALKVOLUME_SHOUT);
+
+// Respawn this boss 15 min after death (feeds the Roll of the Fallen board).
+if (FindSubString(GetTag(OBJECT_SELF), &quot;NSP&quot;) == -1)
+    SE_DoCreatureRespawn();
 }
 </code></pre>
   </main>

@@ -51,6 +51,7 @@
   </header>
   <main>
 <h1>Script: <code>demondeath</code></h1><pre class="nss-source"><code>#include &quot;NW_I0_SPELLS&quot;
+#include &quot;se_respawn_inc&quot;
 
 void destroy()
 {
@@ -67,6 +68,10 @@ oTrash=GetNextItemInInventory(oC);
 
 void main()
 {
+    // Respawn this boss 15 min after death (feeds the Roll of the Fallen board).
+    if (FindSubString(GetTag(OBJECT_SELF), &quot;NSP&quot;) == -1)
+        SE_DoCreatureRespawn();
+
     //Declare major variables
 
 
