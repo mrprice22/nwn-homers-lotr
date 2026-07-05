@@ -132,6 +132,14 @@ wrapping for a tracked boss, and keep `BRD_InitDb()` in `onmoduleload.nss`.
 The board conversation is `brd_sign.dlg` + the `brd_*` scripts (custom tokens
 **6300–6313** — reserved, don't reuse elsewhere).
 
+**Wiki page stays in sync automatically:** `nwn-wiki` parses the same
+`BRD_SeedBoss` rows out of `brd_db.nss` at build time and generates
+`docs/creatures/bosses.html` (Creatures → Bosses menu) plus
+`module-index/bosses.json` — there is no second list to maintain. Adding a
+boss to `brd_db.nss` updates the game on the next repack and the wiki on the
+next scheduled refresh. A seed row whose resref has no creature page renders
+unlinked and is flagged in `module-index/lookup_warnings.json`.
+
 ## Donations Chest sync
 
 The Well of Eru area stocks a Donations Chest on each server reset with random
