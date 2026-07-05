@@ -1,4 +1,4 @@
 int StartingConditional()
 {
-return 1;
+return GetHitDice(GetPCSpeaker()) >= 4;
 }

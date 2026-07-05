@@ -5,6 +5,13 @@ void main()
 object oPC = GetPCSpeaker();
 string sCDKey = GetPCPublicCDKey(oPC);
 
+if(GetHitDice(oPC) < 4)
+{
+    FloatingTextStringOnCreature("You must reach level 4 before the bank will accept your retirement.", oPC, FALSE);
+    SendMessageToPC(oPC, "Come back once your character has reached level 4 -- the bank does not accept starting funds alone.");
+    return;
+}
+
 // Place the retirement marker first — also acts as an inventory-space check.
 // CreateItemOnObject returns OBJECT_INVALID if the inventory is full.
 object oMarker = CreateItemOnObject("bank_xp_retired", oPC);
@@ -15,8 +22,13 @@ if(!GetIsObjectValid(oMarker))
     return;
 }
 
-// 85% of current XP, integer division rounds down automatically
-int iXPToBank = (GetXP(oPC) * 85) / 100;
+// Exclude the 3000 starting XP grant from the bank fee -- only earned XP
+// is subject to the 15% fee. Clamped so it can never go negative.
+int iBankableXP = GetXP(oPC) - 3000;
+if(iBankableXP < 0) iBankableXP = 0;
+
+// 85% of bankable XP, integer division rounds down automatically
+int iXPToBank = (iBankableXP * 85) / 100;
 
 // Transfer all gold to family gold account
 int iGold = GetGold(oPC);
