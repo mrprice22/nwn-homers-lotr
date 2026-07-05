@@ -11,6 +11,15 @@ const string DYE_SLOT = "DYE_SLOT";   // INVENTORY_SLOT_* being dyed
 const string DYE_CH   = "DYE_CH";     // ITEM_APPR_ARMOR_COLOR_* channel (0..5)
 const string DYE_SEL  = "DYE_SEL";    // currently selected color index (highlight)
 const string DYE_ITEM = "DYE_ITEM";   // current item object (changes on each apply)
+const string DYE_PAGE = "DYE_PAGE";   // current swatch page (0-based)
+
+// The grid is paged: rendering all 176 swatches (each a button + draw list) in
+// one window overflows the client's layout builder ("Error constructing window
+// from json"). We show one page of DYE_PAGESIZE swatches at a time.
+const int DYE_COLS     = 12;
+const int DYE_ROWS     = 4;
+const int DYE_PAGESIZE = 48;          // DYE_COLS * DYE_ROWS
+const int DYE_NPAGES   = 4;           // ceil(176 / 48)
 
 // ---- prototypes ----
 int    DyeIsDyeable(object oItem);
@@ -24,7 +33,9 @@ json   DyeBuildGridJson(object oPC);
 json   DyeBuildWindow(object oPC);
 object DyeApply(object oPC, int nIdx);
 void   DyeUpdateStatus(object oPC);
+void   DyeUpdatePageLabel(object oPC);
 void   DyeRefresh(object oPC);
+void   DyeSetPage(object oPC, int nPage);
 void   DyeSelectSlot(object oPC, int nSlot);
 void   DyeSelectChannel(object oPC, int nChan);
 void   DyeRevert(object oPC);
@@ -99,33 +110,38 @@ json DyeCell(int nChan, int nIdx, int nSel) {
     json jFill = NuiColor((nRGB >> 16) & 255, (nRGB >> 8) & 255, nRGB & 255);
     json jList = JsonArray();
     jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), jFill, JsonBool(TRUE),
-                JsonFloat(1.0), NuiRect(0.0, 0.0, 30.0, 20.0),
+                JsonFloat(1.0), NuiRect(0.0, 0.0, 32.0, 24.0),
                 NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
     if (nIdx == nSel)
         jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(255, 255, 255),
-                    JsonBool(FALSE), JsonFloat(2.5), NuiRect(1.0, 1.0, 28.0, 18.0),
+                    JsonBool(FALSE), JsonFloat(2.5), NuiRect(1.0, 1.0, 30.0, 22.0),
                     NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
-    json jCell = NuiButton(JsonString(""));
+    json jCell = NuiButton(JsonString(IntToString(nIdx)));
     jCell = NuiId(jCell, "sw" + IntToString(nIdx));
-    jCell = NuiWidth(jCell, 30.0);
-    jCell = NuiHeight(jCell, 20.0);
+    jCell = NuiWidth(jCell, 32.0);
+    jCell = NuiHeight(jCell, 24.0);
     jCell = NuiDrawList(jCell, JsonBool(FALSE), jList);
     return jCell;
 }
 
-// 176 cells in 11 rows x 16 cols, colored for the active channel's palette.
+// One page of DYE_PAGESIZE swatches (DYE_COLS cols x DYE_ROWS rows), colored for
+// the active channel's palette. Empty trailing rows are skipped. Cells have a
+// fixed size so the color fill rect lines up; the window must be sized wider than
+// DYE_COLS*cell so the NUI layout constraint solver can satisfy the row.
 json DyeBuildGridJson(object oPC) {
-    int nChan = GetLocalInt(oPC, DYE_CH);
-    int nSel  = GetLocalInt(oPC, DYE_SEL);
+    int nChan  = GetLocalInt(oPC, DYE_CH);
+    int nSel   = GetLocalInt(oPC, DYE_SEL);
+    int nStart = GetLocalInt(oPC, DYE_PAGE) * DYE_PAGESIZE;
     json jRows = JsonArray();
-    int r, c, idx = 0;
-    for (r = 0; r < 11; r++) {
+    int r, c, idx;
+    for (r = 0; r < DYE_ROWS; r++) {
         json jRow = JsonArray();
-        for (c = 0; c < 16; c++) {
-            if (idx < 176) jRow = JsonArrayInsert(jRow, DyeCell(nChan, idx, nSel));
-            idx++;
+        int nInRow = 0;
+        for (c = 0; c < DYE_COLS; c++) {
+            idx = nStart + r * DYE_COLS + c;
+            if (idx < 176) { jRow = JsonArrayInsert(jRow, DyeCell(nChan, idx, nSel)); nInRow++; }
         }
-        jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(jRow), 22.0));
+        if (nInRow > 0) jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(jRow), 28.0));
     }
     return NuiCol(jRows);
 }
@@ -156,7 +172,14 @@ json DyeBuildWindow(object oPC) {
 
     // Swatch grid (group id "grid" so it can be refreshed via NuiSetGroupLayout)
     json jGrid = NuiId(NuiGroup(DyeBuildGridJson(oPC), FALSE, NUI_SCROLLBARS_NONE), "grid");
-    jCol = JsonArrayInsert(jCol, NuiHeight(jGrid, 258.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(jGrid, 130.0));
+
+    // Page navigation row
+    json jNav = JsonArray();
+    jNav = JsonArrayInsert(jNav, NuiId(NuiButton(JsonString("< Prev colors")), "bprev"));
+    jNav = JsonArrayInsert(jNav, NuiLabel(NuiBind("dpage"), JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)));
+    jNav = JsonArrayInsert(jNav, NuiId(NuiButton(JsonString("More colors >")), "bnext"));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jNav), 30.0));
 
     // Footer
     json jFoot = JsonArray();
@@ -166,7 +189,7 @@ json DyeBuildWindow(object oPC) {
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
 
     return NuiWindow(NuiCol(jCol), JsonString("Dye Studio"),
-        NuiRect(-1.0, -1.0, 580.0, 440.0),
+        NuiRect(-1.0, -1.0, 520.0, 400.0),
         JsonBool(FALSE),   // resizable
         JsonBool(FALSE),   // collapsed
         JsonBool(TRUE),    // closable
@@ -209,9 +232,27 @@ void DyeUpdateStatus(object oPC) {
     NuiSetBind(oPC, nTok, "dstat", JsonString(s));
 }
 
+void DyeUpdatePageLabel(object oPC) {
+    int nPage = GetLocalInt(oPC, DYE_PAGE);
+    int nLo = nPage * DYE_PAGESIZE;
+    int nHi = nLo + DYE_PAGESIZE - 1;
+    if (nHi > 175) nHi = 175;
+    NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), "dpage",
+        JsonString("Colors " + IntToString(nLo) + "-" + IntToString(nHi)
+                 + "  (page " + IntToString(nPage + 1) + "/" + IntToString(DYE_NPAGES) + ")"));
+}
+
 void DyeRefresh(object oPC) {
     NuiSetGroupLayout(oPC, GetLocalInt(oPC, DYE_TOK), "grid", DyeBuildGridJson(oPC));
     DyeUpdateStatus(oPC);
+    DyeUpdatePageLabel(oPC);
+}
+
+void DyeSetPage(object oPC, int nPage) {
+    if (nPage < 0) nPage = 0;
+    if (nPage >= DYE_NPAGES) nPage = DYE_NPAGES - 1;
+    SetLocalInt(oPC, DYE_PAGE, nPage);
+    DyeRefresh(oPC);
 }
 
 void DyeSelectSlot(object oPC, int nSlot) {
@@ -264,6 +305,7 @@ void DyeCleanup(object oPC) {
     DeleteLocalInt(oPC, DYE_SLOT);
     DeleteLocalInt(oPC, DYE_CH);
     DeleteLocalInt(oPC, DYE_SEL);
+    DeleteLocalInt(oPC, DYE_PAGE);
     DeleteLocalObject(oPC, DYE_ITEM);
     DeleteLocalInt(oPC, "DYE_OS_" + IntToString(INVENTORY_SLOT_CHEST));
     DeleteLocalInt(oPC, "DYE_OS_" + IntToString(INVENTORY_SLOT_HEAD));

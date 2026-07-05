@@ -20,7 +20,9 @@ void main() {
         AssignCommand(oPC, ActionStartConversation(oPC, "x0_skill_ctrap", TRUE, FALSE));
         return;
     }
-    if (e == "brev") { DyeRevert(oPC); return; }
+    if (e == "brev")  { DyeRevert(oPC); return; }
+    if (e == "bprev") { DyeSetPage(oPC, GetLocalInt(oPC, DYE_PAGE) - 1); return; }
+    if (e == "bnext") { DyeSetPage(oPC, GetLocalInt(oPC, DYE_PAGE) + 1); return; }
 
     if (e == "slc") { DyeSelectSlot(oPC, INVENTORY_SLOT_CHEST); return; }
     if (e == "slh") { DyeSelectSlot(oPC, INVENTORY_SLOT_HEAD);  return; }

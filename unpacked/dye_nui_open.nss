@@ -23,6 +23,7 @@ void main() {
     DyeSaveOriginals(oPC);
     SetLocalInt(oPC, DYE_SLOT, nSlot);
     SetLocalInt(oPC, DYE_CH, ITEM_APPR_ARMOR_COLOR_CLOTH1);
+    SetLocalInt(oPC, DYE_PAGE, 0);
     DeleteLocalObject(oPC, DYE_ITEM);
     object oItem = GetItemInSlot(nSlot, oPC);
     SetLocalObject(oPC, DYE_ITEM, oItem);
@@ -31,4 +32,5 @@ void main() {
     int nTok = NuiCreate(oPC, DyeBuildWindow(oPC), "dyestudio", "dye_nui_evt");
     SetLocalInt(oPC, DYE_TOK, nTok);
     DyeUpdateStatus(oPC);
+    DyeUpdatePageLabel(oPC);
 }
