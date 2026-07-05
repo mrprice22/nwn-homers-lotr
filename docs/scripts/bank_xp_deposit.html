@@ -40,6 +40,7 @@
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -55,6 +56,13 @@ void main()
 object oPC = GetPCSpeaker();
 string sCDKey = GetPCPublicCDKey(oPC);
 
+if(GetHitDice(oPC) &lt; 4)
+{
+    FloatingTextStringOnCreature(&quot;You must reach level 4 before the bank will accept your retirement.&quot;, oPC, FALSE);
+    SendMessageToPC(oPC, &quot;Come back once your character has reached level 4 -- the bank does not accept starting funds alone.&quot;);
+    return;
+}
+
 // Place the retirement marker first — also acts as an inventory-space check.
 // CreateItemOnObject returns OBJECT_INVALID if the inventory is full.
 object oMarker = CreateItemOnObject(&quot;bank_xp_retired&quot;, oPC);
@@ -65,8 +73,13 @@ if(!GetIsObjectValid(oMarker))
     return;
 }
 
-// 85% of current XP, integer division rounds down automatically
-int iXPToBank = (GetXP(oPC) * 85) / 100;
+// Exclude the 3000 starting XP grant from the bank fee -- only earned XP
+// is subject to the 15% fee. Clamped so it can never go negative.
+int iBankableXP = GetXP(oPC) - 3000;
+if(iBankableXP &lt; 0) iBankableXP = 0;
+
+// 85% of bankable XP, integer division rounds down automatically
+int iXPToBank = (iBankableXP * 85) / 100;
 
 // Transfer all gold to family gold account
 int iGold = GetGold(oPC);

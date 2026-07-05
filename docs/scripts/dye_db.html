@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script dye_db</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>dye_db</code></h1><pre class="nss-source"><code>// dye_db.nss — persistence for the Dye Studio &quot;save/apply color scheme&quot; feature.
+//
+// One saved scheme PER CHARACTER, keyed by (account CD-key, character GUID), so a
+// player can copy an item&#x27;s six armor-tint channel colors and paste them onto
+// another item — and it survives reboots. Saving again overwrites the scheme.
+// Uses the campaign SQLite DB &quot;dyedb&quot; (mirrors tele_db.nss / merit_db.nss).
+
+const string DYE_DB = &quot;dyedb&quot;;
+
+// Idempotent — safe to call on every window open.
+void Dye_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(DYE_DB,
+        &quot;CREATE TABLE IF NOT EXISTS dye_scheme (&quot; +
+        &quot;cdkey TEXT NOT NULL, pid TEXT NOT NULL,&quot; +
+        &quot;c0 INTEGER, c1 INTEGER, c2 INTEGER, c3 INTEGER, c4 INTEGER, c5 INTEGER,&quot; +
+        &quot;PRIMARY KEY(cdkey, pid))&quot;);
+    SqlStep(q);
+}
+
+// Upsert this character&#x27;s saved scheme (6 armor-color channel values).
+void Dye_SaveScheme(object oPC, int c0, int c1, int c2, int c3, int c4, int c5)
+{
+    sqlquery q = SqlPrepareQueryCampaign(DYE_DB,
+        &quot;INSERT INTO dye_scheme(cdkey, pid, c0, c1, c2, c3, c4, c5)&quot; +
+        &quot; VALUES(@k, @p, @c0, @c1, @c2, @c3, @c4, @c5)&quot; +
+        &quot; ON CONFLICT(cdkey, pid) DO UPDATE SET&quot; +
+        &quot; c0=excluded.c0, c1=excluded.c1, c2=excluded.c2,&quot; +
+        &quot; c3=excluded.c3, c4=excluded.c4, c5=excluded.c5&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c0&quot;, c0);
+    SqlBindInt(q, &quot;@c1&quot;, c1);
+    SqlBindInt(q, &quot;@c2&quot;, c2);
+    SqlBindInt(q, &quot;@c3&quot;, c3);
+    SqlBindInt(q, &quot;@c4&quot;, c4);
+    SqlBindInt(q, &quot;@c5&quot;, c5);
+    SqlStep(q);
+}
+
+// Load this character&#x27;s scheme into PC locals DYE_LS_0..5. Returns TRUE if a
+// scheme exists, FALSE otherwise.
+int Dye_LoadScheme(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(DYE_DB,
+        &quot;SELECT c0, c1, c2, c3, c4, c5 FROM dye_scheme WHERE cdkey=@k AND pid=@p LIMIT 1&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    if (!SqlStep(q)) return FALSE;
+    int i;
+    for (i = 0; i &lt; 6; i++)
+        SetLocalInt(oPC, &quot;DYE_LS_&quot; + IntToString(i), SqlGetInt(q, i));
+    return TRUE;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

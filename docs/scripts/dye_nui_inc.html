@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script dye_nui_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>dye_nui_inc</code></h1><pre class="nss-source"><code>// dye_nui_inc.nss — &quot;Dye Studio&quot; NUI color picker (all 176 armor-tint colors).
+// Launched from the DyeKit item (dye_nui_open) for armor / helmet / cloak.
+// Clicking a swatch tints the equipped item live via CopyItemAndModify, preserving
+// the forge legality stamps (FORGE_CEIL/FORGE_CLEAN) so dyeing never jails the bearer.
+#include &quot;nw_inc_nui&quot;
+#include &quot;dye_palette_inc&quot;
+#include &quot;dye_db&quot;
+
+// ---- session locals (on the PC) ----
+const string DYE_TOK  = &quot;DYE_TOK&quot;;    // NUI token
+const string DYE_SLOT = &quot;DYE_SLOT&quot;;   // INVENTORY_SLOT_* being dyed
+const string DYE_CH   = &quot;DYE_CH&quot;;     // ITEM_APPR_ARMOR_COLOR_* channel (0..5)
+const string DYE_SEL  = &quot;DYE_SEL&quot;;    // currently selected color index (highlight)
+const string DYE_ITEM = &quot;DYE_ITEM&quot;;   // current item object (changes on each apply)
+const string DYE_PAGE = &quot;DYE_PAGE&quot;;   // current swatch page (0-based)
+
+// The grid is paged: rendering all 176 swatches (each a button + draw list) in
+// one window overflows the client&#x27;s layout builder (&quot;Error constructing window
+// from json&quot;). We show one page of DYE_PAGESIZE swatches at a time.
+const int DYE_COLS     = 12;
+const int DYE_ROWS     = 4;
+const int DYE_PAGESIZE = 48;          // DYE_COLS * DYE_ROWS
+const int DYE_NPAGES   = 4;           // ceil(176 / 48)
+
+// ---- prototypes ----
+int    DyeIsDyeable(object oItem);
+int    DyeIsMetal(int nChan);
+int    DyeSwatchRGB(int nChan, int nIdx);
+string DyeColorName(int nChan, int nIdx);
+string DyeChanName(int nChan);
+string DyeSlotName(int nSlot);
+object DyeGetItem(object oPC);
+void   DyeSaveOriginals(object oPC);
+json   DyeBuildGridJson(object oPC);
+json   DyeBuildControlsJson(object oPC);
+json   DyeBuildWindow(object oPC);
+object DyeApply(object oPC, int nIdx);
+void   DyeUpdateStatus(object oPC);
+void   DyeUpdatePageLabel(object oPC);
+void   DyeRefresh(object oPC);
+void   DyeSetPage(object oPC, int nPage);
+void   DyeJumpToSel(object oPC);
+void   DyeSelectSlot(object oPC, int nSlot);
+void   DyeSelectChannel(object oPC, int nChan);
+void   DyeRevert(object oPC);
+void   DyeSaveSchemeFromItem(object oPC);
+void   DyeApplyScheme(object oPC);
+void   DyeCleanup(object oPC);
+
+// ---- helpers ----
+int DyeIsDyeable(object oItem) {
+    int t = GetBaseItemType(oItem);
+    return (t == BASE_ITEM_ARMOR || t == BASE_ITEM_HELMET || t == BASE_ITEM_CLOAK);
+}
+
+int DyeIsMetal(int nChan) {
+    return (nChan == ITEM_APPR_ARMOR_COLOR_METAL1 || nChan == ITEM_APPR_ARMOR_COLOR_METAL2);
+}
+
+// Representative swatch RGB (packed 0xRRGGBB) for a channel+index. Cloth &amp; leather
+// share the cloth palette; metal uses the armor(metal) palette.
+int DyeSwatchRGB(int nChan, int nIdx) {
+    if (DyeIsMetal(nChan)) return DyeMetalRGB(nIdx);
+    return DyeClothRGB(nIdx);
+}
+
+// Human-readable color name for a channel+index (metal vs cloth palette).
+string DyeColorName(int nChan, int nIdx) {
+    if (nIdx &lt; 0 || nIdx &gt; 175) return &quot;&quot;;
+    if (DyeIsMetal(nChan)) return DyeMetalName(nIdx);
+    return DyeClothName(nIdx);
+}
+
+string DyeChanName(int nChan) {
+    switch (nChan) {
+        case 2: return &quot;Cloth 1&quot;;
+        case 3: return &quot;Cloth 2&quot;;
+        case 0: return &quot;Leather 1&quot;;
+        case 1: return &quot;Leather 2&quot;;
+        case 4: return &quot;Metal 1&quot;;
+        case 5: return &quot;Metal 2&quot;;
+    }
+    return &quot;?&quot;;
+}
+
+string DyeSlotName(int nSlot) {
+    switch (nSlot) {
+        case INVENTORY_SLOT_CHEST: return &quot;Armor&quot;;
+        case INVENTORY_SLOT_HEAD:  return &quot;Helmet&quot;;
+        case INVENTORY_SLOT_CLOAK: return &quot;Cloak&quot;;
+    }
+    return &quot;?&quot;;
+}
+
+object DyeGetItem(object oPC) {
+    object oItem = GetLocalObject(oPC, DYE_ITEM);
+    if (GetIsObjectValid(oItem)) return oItem;
+    oItem = GetItemInSlot(GetLocalInt(oPC, DYE_SLOT), oPC);
+    if (GetIsObjectValid(oItem)) SetLocalObject(oPC, DYE_ITEM, oItem);
+    return oItem;
+}
+
+void DyeSaveOneSlot(object oPC, int nSlot) {
+    object oItem = GetItemInSlot(nSlot, oPC);
+    if (!GetIsObjectValid(oItem) || !DyeIsDyeable(oItem)) return;
+    int ch;
+    for (ch = 0; ch &lt; 6; ch++)
+        SetLocalInt(oPC, &quot;DYE_O_&quot; + IntToString(nSlot) + &quot;_&quot; + IntToString(ch),
+                    GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, ch));
+    SetLocalInt(oPC, &quot;DYE_OS_&quot; + IntToString(nSlot), 1);
+}
+
+void DyeSaveOriginals(object oPC) {
+    DyeSaveOneSlot(oPC, INVENTORY_SLOT_CHEST);
+    DyeSaveOneSlot(oPC, INVENTORY_SLOT_HEAD);
+    DyeSaveOneSlot(oPC, INVENTORY_SLOT_CLOAK);
+}
+
+// One 30x20 clickable swatch cell (id &quot;sw&lt;idx&gt;&quot;), filled with its palette color,
+// with a white border when it is the currently-selected color.
+json DyeCell(int nChan, int nIdx, int nSel) {
+    int nRGB = DyeSwatchRGB(nChan, nIdx);
+    json jFill = NuiColor((nRGB &gt;&gt; 16) &amp; 255, (nRGB &gt;&gt; 8) &amp; 255, nRGB &amp; 255);
+    json jList = JsonArray();
+    jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), jFill, JsonBool(TRUE),
+                JsonFloat(1.0), NuiRect(0.0, 0.0, 32.0, 24.0),
+                NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
+    if (nIdx == nSel)
+        jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(255, 255, 255),
+                    JsonBool(FALSE), JsonFloat(2.5), NuiRect(1.0, 1.0, 30.0, 22.0),
+                    NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
+    json jCell = NuiButton(JsonString(IntToString(nIdx)));
+    jCell = NuiId(jCell, &quot;sw&quot; + IntToString(nIdx));
+    jCell = NuiWidth(jCell, 32.0);
+    jCell = NuiHeight(jCell, 24.0);
+    jCell = NuiDrawList(jCell, JsonBool(FALSE), jList);
+    return jCell;
+}
+
+// One page of DYE_PAGESIZE swatches (DYE_COLS cols x DYE_ROWS rows), colored for
+// the active channel&#x27;s palette. Empty trailing rows are skipped. Cells have a
+// fixed size so the color fill rect lines up; the window must be sized wider than
+// DYE_COLS*cell so the NUI layout constraint solver can satisfy the row.
+json DyeBuildGridJson(object oPC) {
+    int nChan  = GetLocalInt(oPC, DYE_CH);
+    int nSel   = GetLocalInt(oPC, DYE_SEL);
+    int nStart = GetLocalInt(oPC, DYE_PAGE) * DYE_PAGESIZE;
+    json jRows = JsonArray();
+    int r, c, idx;
+    for (r = 0; r &lt; DYE_ROWS; r++) {
+        json jRow = JsonArray();
+        int nInRow = 0;
+        for (c = 0; c &lt; DYE_COLS; c++) {
+            idx = nStart + r * DYE_COLS + c;
+            if (idx &lt; 176) { jRow = JsonArrayInsert(jRow, DyeCell(nChan, idx, nSel)); nInRow++; }
+        }
+        if (nInRow &gt; 0) jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(jRow), 28.0));
+    }
+    return NuiCol(jRows);
+}
+
+// A fixed-size slot/material button; when selected it gets a highlighted
+// background (translucent fill) + bright border via a draw list.
+json DyeGridBtn(string sId, string sLabel, int bSelected) {
+    json jBtn = NuiButton(JsonString(sLabel));
+    jBtn = NuiId(jBtn, sId);
+    jBtn = NuiWidth(jBtn, 128.0);
+    jBtn = NuiHeight(jBtn, 30.0);
+    if (bSelected) {
+        json jList = JsonArray();
+        jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(80, 160, 255, 90),
+                    JsonBool(TRUE), JsonFloat(1.0), NuiRect(0.0, 0.0, 128.0, 30.0),
+                    NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
+        jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(130, 205, 255),
+                    JsonBool(FALSE), JsonFloat(3.0), NuiRect(1.0, 1.0, 126.0, 28.0),
+                    NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
+        jBtn = NuiDrawList(jBtn, JsonBool(FALSE), jList);
+    }
+    return jBtn;
+}
+
+// The 3x3 slot/material control grid, with the active slot and active material
+// highlighted. Columns = Cloth / Leather / Metal; rows: slots, material 1, material 2.
+json DyeBuildControlsJson(object oPC) {
+    int nSlot = GetLocalInt(oPC, DYE_SLOT);
+    int nChan = GetLocalInt(oPC, DYE_CH);
+    json jRows = JsonArray();
+
+    json r0 = JsonArray();
+    r0 = JsonArrayInsert(r0, DyeGridBtn(&quot;slc&quot;, &quot;Armor&quot;,  nSlot == INVENTORY_SLOT_CHEST));
+    r0 = JsonArrayInsert(r0, DyeGridBtn(&quot;slh&quot;, &quot;Helmet&quot;, nSlot == INVENTORY_SLOT_HEAD));
+    r0 = JsonArrayInsert(r0, DyeGridBtn(&quot;slk&quot;, &quot;Cloak&quot;,  nSlot == INVENTORY_SLOT_CLOAK));
+    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r0), 32.0));
+
+    json r1 = JsonArray();
+    r1 = JsonArrayInsert(r1, DyeGridBtn(&quot;ch2&quot;, &quot;Cloth 1&quot;,   nChan == ITEM_APPR_ARMOR_COLOR_CLOTH1));
+    r1 = JsonArrayInsert(r1, DyeGridBtn(&quot;ch0&quot;, &quot;Leather 1&quot;, nChan == ITEM_APPR_ARMOR_COLOR_LEATHER1));
+    r1 = JsonArrayInsert(r1, DyeGridBtn(&quot;ch4&quot;, &quot;Metal 1&quot;,   nChan == ITEM_APPR_ARMOR_COLOR_METAL1));
+    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r1), 32.0));
+
+    json r2 = JsonArray();
+    r2 = JsonArrayInsert(r2, DyeGridBtn(&quot;ch3&quot;, &quot;Cloth 2&quot;,   nChan == ITEM_APPR_ARMOR_COLOR_CLOTH2));
+    r2 = JsonArrayInsert(r2, DyeGridBtn(&quot;ch1&quot;, &quot;Leather 2&quot;, nChan == ITEM_APPR_ARMOR_COLOR_LEATHER2));
+    r2 = JsonArrayInsert(r2, DyeGridBtn(&quot;ch5&quot;, &quot;Metal 2&quot;,   nChan == ITEM_APPR_ARMOR_COLOR_METAL2));
+    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r2), 32.0));
+
+    return NuiCol(jRows);
+}
+
+json DyeBuildWindow(object oPC) {
+    json jCol = JsonArray();
+
+    // Slot + material controls (group id &quot;ctl&quot; so highlight can be refreshed)
+    // NUI groups have internal padding (~8px/side), so a fixed-height group must
+    // exceed its content by ~18px or the layout solver fails (&quot;constraint cannot
+    // be satisfied&quot;). Controls content = 3 rows x 32 = 96 -&gt; group 124.
+    json jCtl = NuiId(NuiGroup(DyeBuildControlsJson(oPC), FALSE, NUI_SCROLLBARS_NONE), &quot;ctl&quot;);
+    jCol = JsonArrayInsert(jCol, NuiHeight(jCtl, 124.0));
+
+    // Status label (bound &quot;dstat&quot;)
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(NuiBind(&quot;dstat&quot;),
+                JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 20.0));
+
+    // Swatch grid (group id &quot;grid&quot; so it can be refreshed via NuiSetGroupLayout)
+    json jGrid = NuiId(NuiGroup(DyeBuildGridJson(oPC), FALSE, NUI_SCROLLBARS_NONE), &quot;grid&quot;);
+    jCol = JsonArrayInsert(jCol, NuiHeight(jGrid, 134.0));
+
+    // Page navigation row
+    json jNav = JsonArray();
+    jNav = JsonArrayInsert(jNav, NuiId(NuiButton(JsonString(&quot;&lt; Prev colors&quot;)), &quot;bprev&quot;));
+    jNav = JsonArrayInsert(jNav, NuiLabel(NuiBind(&quot;dpage&quot;), JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)));
+    jNav = JsonArrayInsert(jNav, NuiId(NuiButton(JsonString(&quot;More colors &gt;&quot;)), &quot;bnext&quot;));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jNav), 30.0));
+
+    // Footer row 1
+    json jFoot = JsonArray();
+    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Revert&quot;)), &quot;brev&quot;));
+    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Reshape appearance...&quot;)), &quot;bshape&quot;));
+    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Close&quot;)), &quot;bclose&quot;));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
+
+    // Footer row 2 — save/apply a color scheme (persistent per character)
+    json jFoot2 = JsonArray();
+    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString(&quot;Save colors&quot;)), &quot;bsave&quot;));
+    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString(&quot;Apply saved colors&quot;)), &quot;bapply&quot;));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot2), 32.0));
+
+    // Default the window to the centre of the right half of the screen so it does
+    // not cover the character live-preview. Falls back to screen-centre (-1,-1).
+    float ww = 520.0;
+    float wh = 480.0;
+    float wx = -1.0;
+    float wy = -1.0;
+    int gw = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_WIDTH);
+    int gh = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_HEIGHT);
+    if (gw &gt; 0 &amp;&amp; gh &gt; 0) {
+        wx = IntToFloat(gw) * 0.75 - ww / 2.0;
+        wy = (IntToFloat(gh) - wh) / 2.0;
+        if (wx &lt; 0.0) wx = 0.0;
+        if (wy &lt; 0.0) wy = 0.0;
+    }
+
+    return NuiWindow(NuiCol(jCol), JsonString(&quot;Dye Studio&quot;),
+        NuiRect(wx, wy, ww, wh),
+        JsonBool(FALSE),   // resizable
+        JsonBool(FALSE),   // collapsed
+        JsonBool(TRUE),    // closable
+        JsonBool(FALSE),   // transparent
+        JsonBool(TRUE));   // border
+}
+
+// Apply color index nIdx to the current channel of the current slot&#x27;s item, live.
+object DyeApply(object oPC, int nIdx) {
+    int nSlot = GetLocalInt(oPC, DYE_SLOT);
+    int nChan = GetLocalInt(oPC, DYE_CH);
+    object oItem = DyeGetItem(oPC);
+    if (!GetIsObjectValid(oItem)) return OBJECT_INVALID;
+    int nCeil  = GetLocalInt(oItem, &quot;FORGE_CEIL&quot;);
+    int nClean = GetLocalInt(oItem, &quot;FORGE_CLEAN&quot;);
+    object oNew = CopyItemAndModify(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nChan, nIdx, TRUE);
+    if (!GetIsObjectValid(oNew)) return oItem;
+    if (nCeil)  SetLocalInt(oNew, &quot;FORGE_CEIL&quot;, nCeil);
+    if (nClean) SetLocalInt(oNew, &quot;FORGE_CLEAN&quot;, nClean);
+    DestroyObject(oItem);
+    SetLocalObject(oPC, DYE_ITEM, oNew);
+    AssignCommand(oPC, ClearAllActions(TRUE));
+    AssignCommand(oPC, ActionEquipItem(oNew, nSlot));
+    return oNew;
+}
+
+void DyeUpdateStatus(object oPC) {
+    int nTok = GetLocalInt(oPC, DYE_TOK);
+    object oItem = DyeGetItem(oPC);
+    int nChan = GetLocalInt(oPC, DYE_CH);
+    string s;
+    if (!GetIsObjectValid(oItem) || !DyeIsDyeable(oItem))
+        s = &quot;No dyeable item equipped.&quot;;
+    else {
+        int nCur = GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nChan);
+        // The highlighted slot/material buttons already show which combo is active,
+        // so the status line just names the current color.
+        s = &quot;Color #&quot; + IntToString(nCur) + &quot;  -  &quot; + DyeColorName(nChan, nCur);
+    }
+    NuiSetBind(oPC, nTok, &quot;dstat&quot;, JsonString(s));
+}
+
+void DyeUpdatePageLabel(object oPC) {
+    int nPage = GetLocalInt(oPC, DYE_PAGE);
+    int nLo = nPage * DYE_PAGESIZE;
+    int nHi = nLo + DYE_PAGESIZE - 1;
+    if (nHi &gt; 175) nHi = 175;
+    NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), &quot;dpage&quot;,
+        JsonString(&quot;Colors &quot; + IntToString(nLo) + &quot;-&quot; + IntToString(nHi)
+                 + &quot;  (page &quot; + IntToString(nPage + 1) + &quot;/&quot; + IntToString(DYE_NPAGES) + &quot;)&quot;));
+}
+
+void DyeRefresh(object oPC) {
+    int nTok = GetLocalInt(oPC, DYE_TOK);
+    NuiSetGroupLayout(oPC, nTok, &quot;ctl&quot;,  DyeBuildControlsJson(oPC));
+    NuiSetGroupLayout(oPC, nTok, &quot;grid&quot;, DyeBuildGridJson(oPC));
+    DyeUpdateStatus(oPC);
+    DyeUpdatePageLabel(oPC);
+}
+
+// Jump the swatch view to the page holding this combo&#x27;s current color.
+void DyeJumpToSel(object oPC) {
+    int nSel = GetLocalInt(oPC, DYE_SEL);
+    if (nSel &gt;= 0 &amp;&amp; nSel &lt;= 175) SetLocalInt(oPC, DYE_PAGE, nSel / DYE_PAGESIZE);
+}
+
+void DyeSetPage(object oPC, int nPage) {
+    if (nPage &lt; 0) nPage = 0;
+    if (nPage &gt;= DYE_NPAGES) nPage = DYE_NPAGES - 1;
+    SetLocalInt(oPC, DYE_PAGE, nPage);
+    DyeRefresh(oPC);
+}
+
+void DyeSelectSlot(object oPC, int nSlot) {
+    SetLocalInt(oPC, DYE_SLOT, nSlot);
+    DeleteLocalObject(oPC, DYE_ITEM);
+    object oItem = GetItemInSlot(nSlot, oPC);
+    if (GetIsObjectValid(oItem)) SetLocalObject(oPC, DYE_ITEM, oItem);
+    if (GetIsObjectValid(oItem) &amp;&amp; DyeIsDyeable(oItem))
+        SetLocalInt(oPC, DYE_SEL, GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, GetLocalInt(oPC, DYE_CH)));
+    else
+        SetLocalInt(oPC, DYE_SEL, -1);
+    DyeJumpToSel(oPC);
+    DyeRefresh(oPC);
+}
+
+void DyeSelectChannel(object oPC, int nChan) {
+    SetLocalInt(oPC, DYE_CH, nChan);
+    object oItem = DyeGetItem(oPC);
+    if (GetIsObjectValid(oItem) &amp;&amp; DyeIsDyeable(oItem))
+        SetLocalInt(oPC, DYE_SEL, GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nChan));
+    else
+        SetLocalInt(oPC, DYE_SEL, -1);
+    DyeJumpToSel(oPC);
+    DyeRefresh(oPC);
+}
+
+// Restore the current slot&#x27;s item to the colors it had when the window opened.
+void DyeRevert(object oPC) {
+    int nSlot = GetLocalInt(oPC, DYE_SLOT);
+    if (!GetLocalInt(oPC, &quot;DYE_OS_&quot; + IntToString(nSlot))) return;
+    object oCur = DyeGetItem(oPC);
+    if (!GetIsObjectValid(oCur)) return;
+    int nCeil  = GetLocalInt(oCur, &quot;FORGE_CEIL&quot;);
+    int nClean = GetLocalInt(oCur, &quot;FORGE_CLEAN&quot;);
+    int ch;
+    for (ch = 0; ch &lt; 6; ch++) {
+        int nVal = GetLocalInt(oPC, &quot;DYE_O_&quot; + IntToString(nSlot) + &quot;_&quot; + IntToString(ch));
+        object oTmp = CopyItemAndModify(oCur, ITEM_APPR_TYPE_ARMOR_COLOR, ch, nVal, TRUE);
+        if (GetIsObjectValid(oTmp)) { DestroyObject(oCur); oCur = oTmp; }
+    }
+    if (nCeil)  SetLocalInt(oCur, &quot;FORGE_CEIL&quot;, nCeil);
+    if (nClean) SetLocalInt(oCur, &quot;FORGE_CLEAN&quot;, nClean);
+    SetLocalObject(oPC, DYE_ITEM, oCur);
+    AssignCommand(oPC, ClearAllActions(TRUE));
+    AssignCommand(oPC, ActionEquipItem(oCur, nSlot));
+    SetLocalInt(oPC, DYE_SEL, GetLocalInt(oPC, &quot;DYE_O_&quot; + IntToString(nSlot) + &quot;_&quot; + IntToString(GetLocalInt(oPC, DYE_CH))));
+    DyeRefresh(oPC);
+}
+
+// Save the current item&#x27;s 6 channel colors as this character&#x27;s scheme (persistent).
+void DyeSaveSchemeFromItem(object oPC) {
+    object oItem = DyeGetItem(oPC);
+    if (!GetIsObjectValid(oItem) || !DyeIsDyeable(oItem)) {
+        SendMessageToPC(oPC, &quot;Dye Studio: no dyeable item to save colors from.&quot;);
+        return;
+    }
+    Dye_SaveScheme(oPC,
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 0),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 1),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 2),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 3),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 4),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 5));
+    NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), &quot;dstat&quot;,
+               JsonString(&quot;Saved this item&#x27;s color scheme.&quot;));
+}
+
+// Apply this character&#x27;s saved scheme to the current slot&#x27;s item (jail-safe).
+void DyeApplyScheme(object oPC) {
+    if (!Dye_LoadScheme(oPC)) {
+        SendMessageToPC(oPC, &quot;Dye Studio: no saved color scheme yet. Use &#x27;Save colors&#x27; first.&quot;);
+        NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), &quot;dstat&quot;, JsonString(&quot;No saved scheme yet.&quot;));
+        return;
+    }
+    int nSlot = GetLocalInt(oPC, DYE_SLOT);
+    object oCur = DyeGetItem(oPC);
+    if (!GetIsObjectValid(oCur) || !DyeIsDyeable(oCur)) {
+        SendMessageToPC(oPC, &quot;Dye Studio: no dyeable item to apply colors to.&quot;);
+        return;
+    }
+    int nCeil  = GetLocalInt(oCur, &quot;FORGE_CEIL&quot;);
+    int nClean = GetLocalInt(oCur, &quot;FORGE_CLEAN&quot;);
+    int ch;
+    for (ch = 0; ch &lt; 6; ch++) {
+        int nVal = GetLocalInt(oPC, &quot;DYE_LS_&quot; + IntToString(ch));
+        object oTmp = CopyItemAndModify(oCur, ITEM_APPR_TYPE_ARMOR_COLOR, ch, nVal, TRUE);
+        if (GetIsObjectValid(oTmp)) { DestroyObject(oCur); oCur = oTmp; }
+    }
+    if (nCeil)  SetLocalInt(oCur, &quot;FORGE_CEIL&quot;, nCeil);
+    if (nClean) SetLocalInt(oCur, &quot;FORGE_CLEAN&quot;, nClean);
+    SetLocalObject(oPC, DYE_ITEM, oCur);
+    AssignCommand(oPC, ClearAllActions(TRUE));
+    AssignCommand(oPC, ActionEquipItem(oCur, nSlot));
+    SetLocalInt(oPC, DYE_SEL, GetLocalInt(oPC, &quot;DYE_LS_&quot; + IntToString(GetLocalInt(oPC, DYE_CH))));
+    DyeJumpToSel(oPC);
+    DyeRefresh(oPC);
+}
+
+void DyeCleanup(object oPC) {
+    DeleteLocalInt(oPC, DYE_TOK);
+    DeleteLocalInt(oPC, DYE_SLOT);
+    DeleteLocalInt(oPC, DYE_CH);
+    DeleteLocalInt(oPC, DYE_SEL);
+    DeleteLocalInt(oPC, DYE_PAGE);
+    DeleteLocalObject(oPC, DYE_ITEM);
+    DeleteLocalInt(oPC, &quot;DYE_OS_&quot; + IntToString(INVENTORY_SLOT_CHEST));
+    DeleteLocalInt(oPC, &quot;DYE_OS_&quot; + IntToString(INVENTORY_SLOT_HEAD));
+    DeleteLocalInt(oPC, &quot;DYE_OS_&quot; + IntToString(INVENTORY_SLOT_CLOAK));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

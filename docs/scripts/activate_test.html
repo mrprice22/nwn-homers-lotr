@@ -40,6 +40,7 @@
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -48,7 +49,7 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>activate_test</code></h1><dl class="meta"><dt>Starts dialogs</dt><dd><code>00</code>, <a href="../conversations/dmwand.html">dmwand</a>, <a href="../conversations/dye_dyekit.html">dye_dyekit</a>, <a href="../conversations/emotewand.html">emotewand</a>, <a href="../conversations/fxwand.html">fxwand</a></dd>
+<h1>Script: <code>activate_test</code></h1><dl class="meta"><dt>Starts dialogs</dt><dd><code>00</code>, <a href="../conversations/dmwand.html">dmwand</a>, <a href="../conversations/emotewand.html">emotewand</a>, <a href="../conversations/fxwand.html">fxwand</a></dd>
 <dt>Teleports to</dt><dd><code>respawn</code> (<a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a>)</dd></dl><pre class="nss-source"><code>void dmw_CleanUp(object oMySpeaker)
 {
    int nCount;
@@ -96,7 +97,8 @@ void main()
 
    if(GetTag(oItem)==&quot;DyeKit&quot;)
    {
-      AssignCommand(oActivator, ActionStartConversation(oActivator, &quot;dye_dyekit&quot;, TRUE));
+      // Opens the Dye Studio NUI color picker (see dmfi_activate.nss).
+      ExecuteScript(&quot;dye_nui_open&quot;, oActivator);
       return;
    }
    //if(GetTag(oItem)==&quot;00&quot;)

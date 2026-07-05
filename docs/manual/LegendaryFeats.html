@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Legendary Feats</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+
+  <main>
+  <style>
+    .mw-layout {
+      display: flex;
+      gap: 2.5em;
+      align-items: flex-start;
+    }
+    .mw-toc-pane {
+      flex: 0 0 220px;
+      position: sticky;
+      top: 1.5em;
+      max-height: calc(100vh - 3em);
+      overflow-y: auto;
+    }
+    .mw-content {
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+
+    .toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1em 1.2em;
+    }
+    .toc h2 {
+      font-size: 1em;
+      margin: 0 0 0.5em;
+      border: none;
+      padding: 0;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+
+    .tier-header {
+      background: rgba(107,58,28,0.08);
+      border-left: 4px solid var(--accent);
+      padding: 0.5em 1em;
+      margin: 2em 0 0.8em;
+      border-radius: 0 4px 4px 0;
+    }
+    .tier-header h2 { margin: 0; border: none; padding: 0; }
+    .tier-header .tier-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+
+    .loot-box {
+      background: rgba(200,165,119,0.10);
+      border: 1px solid var(--accent-soft);
+      border-radius: 4px;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+    }
+    .loot-box strong { display: block; margin-bottom: 0.3em; color: var(--accent); }
+
+    .tip-box {
+      background: rgba(30,30,60,0.07);
+      border-left: 4px solid var(--accent-soft);
+      border-radius: 0 4px 4px 0;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+      font-size: 0.93em;
+    }
+    .tip-box p { margin: 0.3em 0; }
+
+    .warning-box {
+      background: rgba(200, 60, 60, 0.08);
+      border-left: 4px solid #c03030;
+      border-radius: 0 4px 4px 0;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+      font-size: 0.93em;
+    }
+    .warning-box p { margin: 0.3em 0; }
+
+    /* Feat tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.8em 0 1.4em;
+      font-size: 0.93em;
+    }
+    th {
+      background: rgba(107,58,28,0.10);
+      text-align: left;
+      padding: 0.45em 0.7em;
+      border-bottom: 2px solid var(--accent-soft);
+      color: var(--muted);
+      font-size: 0.85em;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 0.45em 0.7em;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    td:first-child { font-weight: 600; white-space: nowrap; }
+    td em { color: var(--muted); font-size: 0.9em; }
+
+    .class-allotment td:first-child { white-space: nowrap; }
+
+    /* Draft badge */
+    .draft-badge {
+      display: inline-block;
+      background: rgba(200,60,60,0.12);
+      color: #c03030;
+      border: 1px solid #c03030;
+      border-radius: 3px;
+      font-size: 0.75em;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.1em 0.5em;
+      margin-left: 0.6em;
+      vertical-align: middle;
+    }
+  </style>
+
+  <div class="mw-layout">
+    <aside class="mw-toc-pane">
+      <nav class="toc" aria-label="Page contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#allotments">Class Allotments</a></li>
+          <li><a href="#ability-scores">Ability Scores</a></li>
+          <li><a href="#martial">Martial</a></li>
+          <li><a href="#defensive">Defensive &amp; Survival</a></li>
+          <li><a href="#arcane">Arcane Spellcasting</a></li>
+          <li><a href="#divine">Divine Spellcasting</a></li>
+          <li><a href="#ki">Ki &amp; Mystic</a></li>
+          <li><a href="#performance">Performance &amp; Support</a></li>
+          <li><a href="#skills">Skills &amp; Utility</a></li>
+          <li><a href="#exotic">Exotic</a></li>
+          <li><a href="#legendary-spells">Legendary Spell Feats</a>
+            <ol>
+              <li><a href="#ls-summons">Summons</a></li>
+              <li><a href="#ls-damage">Damage Spells</a></li>
+              <li><a href="#ls-control">Control &amp; Debuff</a></li>
+              <li><a href="#ls-buff">Buff &amp; Support</a></li>
+              <li><a href="#ls-necromancy">Necromancy</a></li>
+              <li><a href="#ls-abjuration">Abjuration &amp; Utility</a></li>
+            </ol>
+          </li>
+          <li><a href="#dominion">Dominion Feats</a>
+            <ol>
+              <li><a href="#arcane-dominion">Arcane Dominion</a></li>
+              <li><a href="#divine-wrath">Divine Wrath</a></li>
+              <li><a href="#primal-force">Primal Force</a></li>
+            </ol>
+          </li>
+          <li><a href="#hybrid-casters">Hybrid Caster Feats</a></li>
+          <li><a href="#pure-class-bonuses">Pure Class Bonuses</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <div class="mw-content">
+
+      <h1>Legendary Feats <span class="draft-badge">Draft</span></h1>
+
+      <p>At level 40, characters who have remained in a single pure class are granted a pool of <strong>Legendary Feats</strong> via the server HAK. These feats represent the ultimate mastery of a chosen path — abilities no multiclassed build can replicate. Each class receives 2 picks from the pool (Fighter receives 3), gated by sensible prerequisites so players can personalise their build rather than being locked into one archetype.</p>
+
+      <div class="tip-box">
+        <p><strong>High magic server.</strong> These feats are intentionally strong. The server is tuned for epic-level, high-magic play and these bonuses reflect that. They are rewards for commitment to a pure class, not balance patches.</p>
+      </div>
+
+      <div class="warning-box">
+        <p><strong>Draft.</strong> All feats on this page are under active design review. Names, effects, and prerequisites may change before implementation. Do not rely on this page for final balance decisions.</p>
+      </div>
+
+      <hr>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="overview">
+        <h2>Overview</h2>
+        <p class="tier-sub">How the legendary feat system works.</p>
+      </div>
+
+      <p>When a character reaches level 40 with no levels in any other class, the HAK grants a <code>Pure &lt;Classname&gt;</code> feat automatically. This feat unlocks the legendary feat pool for that class and allows the player to select their allotted picks from the lists below. Prerequisites are checked at the time of selection. Picks are permanent and cannot be changed after resting.</p>
+
+      <div class="loot-box">
+        <strong>Implementation note</strong>
+        Legendary feats are granted via HAK feat and managed through local variables. Ability score bonuses are applied as item properties on an undroppable cursed token. Spell upgrades are handled by branching in the relevant spell scripts when a flag variable is set on the caster.
+      </div>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="allotments">
+        <h2>Class Allotments</h2>
+        <p class="tier-sub">How many legendary feat picks each pure class receives.</p>
+      </div>
+
+      <table class="class-allotment">
+        <thead>
+          <tr><th>Class</th><th>Picks</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fighter</td><td>3</td><td>No magic fallback; bonus feats are Fighter's entire identity.</td></tr>
+          <tr><td>Barbarian</td><td>2</td><td>Legendary Rage → Legendary Bloodlust chain is nearly mandatory and intentionally so.</td></tr>
+          <tr><td>Ranger</td><td>2</td><td>Has access to hybrid caster feats as well as the martial pool.</td></tr>
+          <tr><td>Rogue</td><td>2</td><td></td></tr>
+          <tr><td>Monk</td><td>2</td><td></td></tr>
+          <tr><td>Paladin</td><td>2</td><td>Has access to hybrid caster feats as well as the divine pool.</td></tr>
+          <tr><td>Cleric</td><td>2</td><td></td></tr>
+          <tr><td>Druid</td><td>2</td><td>Qualifies for Legendary Primal Force dominion feat.</td></tr>
+          <tr><td>Sorcerer</td><td>2</td><td>Qualifies for Legendary Arcane Dominion.</td></tr>
+          <tr><td>Wizard</td><td>2</td><td>Qualifies for Legendary Arcane Dominion.</td></tr>
+          <tr><td>Bard</td><td>2</td><td>Has access to hybrid caster feats as well as the arcane pool (excluding Dominion).</td></tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="ability-scores">
+        <h2>Ability Score Feats</h2>
+        <p class="tier-sub">Permanent +6 to a core ability score. No class restriction — any class may take these.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Strength</td><td>+6 STR permanently</td><td>—</td></tr>
+          <tr><td>Legendary Dexterity</td><td>+6 DEX permanently</td><td>—</td></tr>
+          <tr><td>Legendary Constitution</td><td>+6 CON permanently</td><td>—</td></tr>
+          <tr><td>Legendary Intelligence</td><td>+6 INT permanently</td><td>—</td></tr>
+          <tr><td>Legendary Wisdom</td><td>+6 WIS permanently</td><td>—</td></tr>
+          <tr><td>Legendary Charisma</td><td>+6 CHA permanently</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="martial">
+        <h2>Martial Feats</h2>
+        <p class="tier-sub">Combat offense, attack, and class-specific martial abilities.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Weapon Mastery</td><td>+5 damage with any weapon you have Epic Weapon Specialization in</td><td>Epic Weapon Specialization</td></tr>
+          <tr><td>Legendary Assault</td><td>+5 AB permanently</td><td>BAB 20+</td></tr>
+          <tr><td>Legendary Onslaught</td><td>One bonus attack per round</td><td>BAB 20+, Legendary Assault</td></tr>
+          <tr><td>Legendary Weapon Finesse</td><td>Add DEX modifier to melee damage rolls</td><td>Weapon Finesse, DEX 25+</td></tr>
+          <tr><td>Legendary Cleave</td><td>Cleave triggers on every kill with no limit per round</td><td>Cleave, BAB 20+</td></tr>
+          <tr><td>Legendary Overwhelm</td><td>Critical hits stun target for 1 round (Fort DC 20 negates)</td><td>BAB 20+, Improved Critical (any weapon)</td></tr>
+          <tr><td>Legendary Ambidexterity</td><td>Off-hand attacks deal full STR/DEX modifier damage (not half)</td><td>Ambidexterity</td></tr>
+          <tr><td>Legendary Power Attack</td><td>Power Attack grants +3 damage per point sacrificed instead of +1</td><td>Power Attack, BAB 20+</td></tr>
+          <tr><td>Legendary Devastating Critical</td><td>Devastating Critical save DC increases by +4</td><td>Devastating Critical (any weapon)</td></tr>
+          <tr><td>Legendary Knockdown</td><td>Knockdown and Disarm treat your size and weapon as 1 size larger</td><td>Knockdown</td></tr>
+          <tr><td>Legendary Whirlwind</td><td>Whirlwind Attack hits all enemies in range twice instead of once</td><td>Whirlwind Attack</td></tr>
+          <tr><td>Legendary Intimidate</td><td>Successful Intimidate causes target to take +10% damage from all sources for 12 seconds</td><td>Intimidate 30+</td></tr>
+          <tr><td>Legendary Fury</td><td>On death, revive at 50% HP and gain +6 AB for 3 rounds (once per rest)</td><td>Fighter level 40</td></tr>
+          <tr><td>Legendary Rage</td><td>Rage grants +8 STR/CON instead of +4</td><td>Barbarian Rage</td></tr>
+          <tr><td>Legendary Bloodlust</td><td>Dropping to 20% HP grants +12 STR until healed above threshold or leaving combat; 3 min cooldown</td><td>Barbarian Rage, Legendary Rage</td></tr>
+          <tr><td>Legendary Precision</td><td>Dual-wield any sized weapons without penalty</td><td>Two-Weapon Fighting</td></tr>
+          <tr><td>Legendary Hunter</td><td>Favored Enemy bonus +4</td><td>Favored Enemy ×1</td></tr>
+          <tr><td>Legendary Bleeding Wound</td><td>On hit vs Favored Enemy, Fort save DC 10 + Favored Enemy bonus or suffer 3d6 bleed/round for 5 rounds, stacks 3×</td><td>Legendary Hunter</td></tr>
+          <tr><td>Legendary Sneak</td><td>Sneak Attack +3d6</td><td>Sneak Attack 10d6+</td></tr>
+          <tr><td>Legendary Vital Strike</td><td>Once per round, one Sneak Attack auto-confirms as a critical hit</td><td>Sneak Attack 15d6+</td></tr>
+          <tr><td>Legendary Cutpurse</td><td>Successful pickpocket grants +3d6 Sneak Attack for 6 seconds</td><td>Pickpocket 30+</td></tr>
+          <tr><td>Legendary Momentum</td><td>Each consecutive hit on the same target grants +1 AB and +1d4 damage, stacks up to 5×, resets on miss</td><td>BAB 20+</td></tr>
+          <tr><td>Legendary Parry</td><td>Once per round, negate one melee attack entirely</td><td>Parry, Discipline 30+</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="defensive">
+        <h2>Defensive &amp; Survival Feats</h2>
+        <p class="tier-sub">AC, DR, saves, and passive resilience.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Toughness</td><td>+50 HP permanently</td><td>Epic Toughness</td></tr>
+          <tr><td>Legendary Resilience</td><td>+10 HP regen per round passively</td><td>CON 21+</td></tr>
+          <tr><td>Legendary Dodge</td><td>+5 dodge bonus to AC permanently</td><td>Dodge, DEX 21+</td></tr>
+          <tr><td>Legendary Armor Skin</td><td>+4 natural AC permanently</td><td>Epic Armor Skin</td></tr>
+          <tr><td>Legendary Damage Reduction</td><td>DR 10/+5 permanently, stacks with existing DR</td><td>CON 25+, BAB 15+</td></tr>
+          <tr><td>Legendary Evasion</td><td>Evasion now applies to all elemental damage, not just Reflex-based</td><td>Evasion</td></tr>
+          <tr><td>Legendary Fortitude</td><td>+6 to all Fortitude saves</td><td>Great Fortitude, CON 21+</td></tr>
+          <tr><td>Legendary Iron Will</td><td>+6 to all Will saves</td><td>Iron Will, WIS 21+</td></tr>
+          <tr><td>Legendary Lightning Reflexes</td><td>+6 to all Reflex saves</td><td>Lightning Reflexes, DEX 21+</td></tr>
+          <tr><td>Legendary Slippery Mind</td><td>Once per round, reroll any failed Will save</td><td>Iron Will, WIS 21+, Legendary Iron Will</td></tr>
+          <tr><td>Legendary Spell Immunity</td><td>Gain immunity to one spell school of your choice</td><td>Spell Resistance 30+, caster level 20+</td></tr>
+          <tr><td>Legendary Uncanny Dodge</td><td>Cannot be flanked; immune to Sneak Attack from non-Rogues</td><td>Uncanny Dodge</td></tr>
+          <tr><td>Legendary Diehard</td><td>Remain conscious and fighting at negative HP down to −20</td><td>Diehard, CON 23+</td></tr>
+          <tr><td>Legendary Discipline</td><td>Knockdown, Disarm, and Improved Knockdown attempts against you automatically fail</td><td>Discipline 40+</td></tr>
+          <tr><td>Legendary Fate's Hand</td><td>Once per rest, automatically stabilise from dying state at 1 HP with no action required</td><td>CON 21+, any divine class level 20+</td></tr>
+          <tr><td>Legendary Death Ward</td><td>Permanent immunity to death effects and negative energy damage</td><td>Cleric or Paladin level 25+, WIS or CHA 23+</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="arcane">
+        <h2>Arcane Spellcasting Feats</h2>
+        <p class="tier-sub">Feats for arcane casters — Wizard, Sorcerer, and Bard.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Spell Penetration</td><td>+5 Spell Penetration</td><td>Epic Spell Penetration</td></tr>
+          <tr><td>Legendary Caster</td><td>All spells cast at +1 caster level</td><td>Arcane caster level 30+</td></tr>
+          <tr><td>Legendary Spell DC</td><td>Spell DC +2 across all schools</td><td>Spell Focus (any school)</td></tr>
+          <tr><td>Legendary Arcane Recovery</td><td>On exiting combat, randomly recover 3 spent spell slots across any levels</td><td>Wizard level 30+</td></tr>
+          <tr><td>Legendary Spell Echo</td><td>10% chance on spell cast to regain that spell slot</td><td>Sorcerer level 30+</td></tr>
+          <tr><td>Legendary Metamagic</td><td>Metamagic costs 1 less spell level (min 0)</td><td>Any metamagic feat</td></tr>
+          <tr><td>Legendary Battle Mage</td><td>Casting does not provoke attacks of opportunity</td><td>Arcane caster level 25+, BAB 10+</td></tr>
+          <tr><td>Legendary Spellsword</td><td>Melee attacks have 10% chance to trigger a free 0th–3rd level spell at no slot cost</td><td>Arcane caster level 20+, BAB 15+</td></tr>
+          <tr><td>Legendary Empower</td><td>All spells deal +50% damage without using the Empower metamagic slot</td><td>Empower Spell, caster level 25+</td></tr>
+          <tr><td>Legendary Counterspell</td><td>Once per round, automatically counterspell any incoming spell if you have the same school memorised</td><td>Spellcraft 30+</td></tr>
+          <tr><td>Legendary Arcane Shield</td><td>Once per round, 25% chance to absorb an incoming spell entirely</td><td>Spell Resistance 20+, arcane caster level 20+</td></tr>
+          <tr><td>Legendary Spellcraft</td><td>+2 to all spell save DCs and +2 Spell Penetration</td><td>Spellcraft 40+</td></tr>
+          <tr><td>Legendary Spell Thief</td><td>On successful Spell Resistance, steal the spell and add it to your castable list for 60 seconds</td><td>SR 30+, Spellcraft 35+</td></tr>
+          <tr><td>Legendary Timestop</td><td>Time Stop grants 3 full rounds of free action instead of normal 1–2</td><td>Time Stop, caster level 30+</td></tr>
+          <tr><td>Legendary Wish</td><td>Wish can replicate any spell of 8th level or lower once per rest at no slot cost</td><td>Wish, caster level 30+, INT or CHA 25+</td></tr>
+          <tr><td>Legendary Concentration</td><td>Cannot be interrupted while casting regardless of damage taken</td><td>Concentration 40+</td></tr>
+          <tr><td>Legendary Spell Shaping</td><td>Area spells automatically exclude all allies within the area</td><td>Spell Focus (Evocation or Transmutation)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="divine">
+        <h2>Divine Spellcasting Feats</h2>
+        <p class="tier-sub">Feats for divine casters — Cleric, Druid, and Paladin.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Divine Penetration</td><td>+5 Spell Penetration</td><td>Epic Spell Penetration, divine caster level 30+</td></tr>
+          <tr><td>Legendary Turning</td><td>Turn Undead uses class level +4</td><td>Turn Undead</td></tr>
+          <tr><td>Legendary Holy Wrath</td><td>+2d6 holy damage vs undead on all attacks</td><td>Turn Undead</td></tr>
+          <tr><td>Legendary Spontaneous Recovery</td><td>20% chance to regain the spell slot used when spontaneously casting</td><td>Cleric level 30+</td></tr>
+          <tr><td>Legendary Intercession</td><td>When a nearby ally drops below 20% HP, absorb half the triggering damage and heal them 2d8+WIS</td><td>Cleric or Paladin level 30+</td></tr>
+          <tr><td>Legendary Smite</td><td>Free auto Smite Evil once per round on nearest evil target</td><td>Smite Evil</td></tr>
+          <tr><td>Legendary Mass Healing</td><td>Lay on Hands becomes a full party Mass Heal</td><td>Paladin level 30+</td></tr>
+          <tr><td>Legendary Divine Shield</td><td>Add CHA modifier to AC as a sacred bonus</td><td>Paladin level 20+, CHA 21+</td></tr>
+          <tr><td>Legendary Shapeshift</td><td>All shapeshift forms (including Dragonshape) gain +6 STR/CON/DEX</td><td>Druid level 30+, Shapeshift</td></tr>
+          <tr><td>Legendary Primal Wrath</td><td>Once per turn when struck while shapeshifted, auto-cast Lightning Storm on attacker at no spell slot cost</td><td>Legendary Shapeshift</td></tr>
+          <tr><td>Legendary Nature's Grasp</td><td>While shapeshifted, melee attacks apply Entangle (Reflex DC 10+Druid level negates)</td><td>Legendary Shapeshift</td></tr>
+          <tr><td>Legendary Wild Surge</td><td>15% chance any spell cast while shapeshifted is cast at double caster level</td><td>Legendary Shapeshift, Druid level 35+</td></tr>
+          <tr><td>Legendary Wrath of God</td><td>Turn Undead attempts deal 1d6 per Cleric level damage to all undead in range on a failed turn</td><td>Turn Undead, Legendary Turning</td></tr>
+          <tr><td>Legendary Sanctified Body</td><td>Permanent immunity to disease, poison, and ability drain</td><td>Cleric or Paladin level 30+</td></tr>
+          <tr><td>Legendary Aura</td><td>Passive +2 to all saving throws for all allies in range</td><td>Paladin or Cleric level 30+</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="ki">
+        <h2>Ki &amp; Mystic Feats</h2>
+        <p class="tier-sub">Monk-specific legendary feats.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Ki Strike</td><td>Unarmed attacks bypass all DR and count as epic, aligned, and elemental simultaneously</td><td>Monk level 30+</td></tr>
+          <tr><td>Legendary Wholeness</td><td>Wholeness of Body heals 4× Monk level instantly AND grants +20 HP regen/round for 10 rounds</td><td>Monk level 30+</td></tr>
+          <tr><td>Legendary Iron Body</td><td>+5 Spell Resistance</td><td>Monk level 30+, WIS 25+</td></tr>
+          <tr><td>Legendary Shadow Step</td><td>Once per round, teleport up to 30ft as a free action with no AoO</td><td>Hide 35+, Monk level 20+</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="performance">
+        <h2>Performance &amp; Support Feats</h2>
+        <p class="tier-sub">Bard-specific legendary feats.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Perform</td><td>+10 Perform permanently</td><td>Perform 30+</td></tr>
+          <tr><td>Legendary Wordstrike</td><td>Bard Song grants all allies +1d12 sonic damage on hit</td><td>Bard level 30+, Perform 30+</td></tr>
+          <tr><td>Legendary Maestro</td><td>All Bard Song and Countersong effects doubled in potency</td><td>Legendary Wordstrike</td></tr>
+          <tr><td>Legendary Silver Tongue</td><td>All Bard enchantment spells ignore Spell Resistance entirely</td><td>Bard level 40, Spell Focus Enchantment</td></tr>
+          <tr><td>Legendary Illusionist</td><td>All Bard illusion spells treated as 4 levels higher for saves and penetration</td><td>Bard level 40, Spell Focus Illusion</td></tr>
+          <tr><td>Legendary Cutting Words</td><td>Bestow Curse and Crushing Despair apply double the penalty values</td><td>Bard level 40, Spellcraft 35+</td></tr>
+          <tr><td>Legendary Inspiration</td><td>Mass Suggestion affects unlimited targets in range</td><td>Bard level 40, Perform 40+</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="skills">
+        <h2>Skills &amp; Utility Feats</h2>
+        <p class="tier-sub">Legendary rewards for heavy skill investment.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Lore</td><td>+4 to all saves vs traps and spells from identified enemy types</td><td>Lore 40+</td></tr>
+          <tr><td>Legendary Tumble</td><td>No attacks of opportunity when moving through threatened squares, ever</td><td>Tumble 40+</td></tr>
+          <tr><td>Legendary Hide</td><td>Entering stealth is instant and does not break on failed checks while stationary</td><td>Hide 40+, Move Silently 40+</td></tr>
+          <tr><td>Legendary Heal</td><td>Using the Heal skill restores full HP and removes all negative effects</td><td>Heal 40+</td></tr>
+          <tr><td>Legendary Persuade</td><td>Successful persuasion in dialogue grants 60 second combat buff: +2 AB, +2 AC to whole party</td><td>Persuade 40+</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="exotic">
+        <h2>Exotic Feats</h2>
+        <p class="tier-sub">Unusual or situational effects that reward creative builds.</p>
+      </div>
+
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Second Wind</td><td>Once per rest as a free action, heal 50% of max HP instantly</td><td>CON 23+, Fighter or Barbarian level 20+</td></tr>
+          <tr><td>Legendary Shadow Step</td><td>Once per round, teleport up to 30ft as a free action with no AoO</td><td>Hide 35+, Rogue or Monk level 20+</td></tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="legendary-spells">
+        <h2>Legendary Spell Feats</h2>
+        <p class="tier-sub">Feats that upgrade specific spells rather than granting new ones. Rewards commitment to a spell line.</p>
+      </div>
+
+      <p>Legendary Spell feats modify the behaviour of an existing spell when cast by the feat holder. The spell itself is unchanged for all other characters. Implementation uses a local variable flag checked in the spell script at cast time.</p>
+
+      <h3 id="ls-summons">Summon Upgrades</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Gate</td><td>Gate summon becomes an Epic Balor or Pit Fiend (Dragon Knight / Mummy Dust tier) for full duration</td><td>Gate, caster level 30+</td></tr>
+          <tr><td>Legendary Summon IX</td><td>Summon Monster IX calls 2 creatures instead of 1</td><td>Summon Monster IX, caster level 28+</td></tr>
+          <tr><td>Legendary Animate Dead</td><td>Animated undead created at double HP with +10 AB and +5 damage</td><td>Animate Dead, caster level 20+</td></tr>
+          <tr><td>Legendary Planar Binding</td><td>Bound creature serves indefinitely until killed, not just one encounter</td><td>Planar Binding, caster level 28+</td></tr>
+          <tr><td>Legendary Nature's Alliance</td><td>Summon Nature's Ally spells summon pairs with +6 STR/CON</td><td>Druid level 30+, Summon Nature's Ally IX</td></tr>
+          <tr><td>Legendary Shadow Conjuration</td><td>Shadow creatures are 100% real instead of 20%</td><td>Shadow Conjuration, caster level 25+</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="ls-damage">Damage Spell Upgrades</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Meteor Swarm</td><td>Meteor Swarm hits twice in one cast; second volley at half damage</td><td>Meteor Swarm, caster level 30+</td></tr>
+          <tr><td>Legendary Fireball</td><td>Fireball deals d8 per caster level instead of d6, no damage cap</td><td>Fireball, Spell Focus Evocation, caster level 20+</td></tr>
+          <tr><td>Legendary Chain Lightning</td><td>Chain Lightning jumps to 2 additional targets beyond normal</td><td>Chain Lightning, caster level 25+</td></tr>
+          <tr><td>Legendary Horrid Wilting</td><td>Also permanently reduces target CON by 2 on a failed save</td><td>Horrid Wilting, caster level 28+</td></tr>
+          <tr><td>Legendary Earthquake</td><td>Also stuns all affected creatures for 1 round regardless of save</td><td>Earthquake, caster level 28+</td></tr>
+          <tr><td>Legendary Storm of Vengeance</td><td>Double duration; acid, lightning, and cold applied each round simultaneously instead of rotating</td><td>Storm of Vengeance, caster level 30+</td></tr>
+          <tr><td>Legendary Sunbeam</td><td>Also permanently blinds non-undead on a failed Will save until magically cured</td><td>Sunbeam, caster level 25+</td></tr>
+          <tr><td>Legendary Ice Storm</td><td>Also applies 50% movement slow for 3 rounds</td><td>Ice Storm, caster level 20+</td></tr>
+          <tr><td>Legendary Lightning Storm</td><td>Druid Lightning Storm hits twice per round instead of once</td><td>Druid level 30+, Lightning Storm</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="ls-control">Control &amp; Debuff Upgrades</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Wail of the Banshee</td><td>Affects 2 additional targets beyond the normal cap</td><td>Wail of the Banshee, caster level 30+</td></tr>
+          <tr><td>Legendary Dominate</td><td>Dominated creatures remain dominated through combat damage</td><td>Dominate Monster, caster level 28+</td></tr>
+          <tr><td>Legendary Hold Monster</td><td>Hold Monster now affects creatures normally immune to hold effects</td><td>Hold Monster, Spell Focus Enchantment, caster level 25+</td></tr>
+          <tr><td>Legendary Feeblemind</td><td>Also permanently silences the target until magically cured</td><td>Feeblemind, Spell Focus Enchantment, caster level 25+</td></tr>
+          <tr><td>Legendary Slow</td><td>Also applies −4 to all saves for duration</td><td>Slow, caster level 20+</td></tr>
+          <tr><td>Legendary Entangle</td><td>Also deals 3d6 piercing damage per round to trapped creatures</td><td>Druid or Ranger level 20+, Entangle</td></tr>
+          <tr><td>Legendary Web</td><td>Web is permanent until dispelled rather than duration-based</td><td>Web, caster level 20+</td></tr>
+          <tr><td>Legendary Power Word Stun</td><td>Power Word Stun ignores the HP threshold; works on any creature</td><td>Power Word Stun, caster level 30+</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="ls-buff">Buff &amp; Support Upgrades</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Haste</td><td>Haste grants 2 bonus attacks instead of 1</td><td>Haste, caster level 20+</td></tr>
+          <tr><td>Legendary Mass Haste</td><td>Mass Haste grants the same 2 bonus attacks as Legendary Haste</td><td>Mass Haste, Legendary Haste, caster level 28+</td></tr>
+          <tr><td>Legendary Stoneskin</td><td>DR 20/+5 instead of DR 10/+5, no HP absorption cap</td><td>Stoneskin, caster level 20+</td></tr>
+          <tr><td>Legendary Premonition</td><td>DR 30/epic, double duration</td><td>Premonition, caster level 30+</td></tr>
+          <tr><td>Legendary Tensers</td><td>Tenser's Transformation also grants +10 AB and +6 STR on top of normal effects</td><td>Tenser's Transformation, caster level 25+</td></tr>
+          <tr><td>Legendary Greater Restoration</td><td>Also fully restores all spell slots when cast on self</td><td>Greater Restoration, caster level 25+</td></tr>
+          <tr><td>Legendary Regenerate</td><td>Heals 5 HP/round instead of 1; restores ability score damage 3× faster</td><td>Regenerate, caster level 22+</td></tr>
+          <tr><td>Legendary Energy Buffer</td><td>Absorbs 50% more damage before collapsing</td><td>Energy Buffer, caster level 25+</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="ls-necromancy">Necromancy Upgrades</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Mummy Dust</td><td>Summons 2 mummies at full epic stats instead of 1</td><td>Mummy Dust, caster level 30+</td></tr>
+          <tr><td>Legendary Dragon Knight</td><td>Summons an Elder Dragon with breath weapon every 3 rounds</td><td>Dragon Knight, caster level 30+</td></tr>
+          <tr><td>Legendary Circle of Death</td><td>Affects creatures of any HD, not capped at 9</td><td>Circle of Death, Spell Focus Necromancy, caster level 25+</td></tr>
+          <tr><td>Legendary Finger of Death</td><td>Ignores death immunity; deals 20d6 damage to immune targets instead</td><td>Finger of Death, Spell Focus Necromancy, caster level 28+</td></tr>
+          <tr><td>Legendary Vampiric Touch</td><td>Absorbed HP becomes a permanent max HP increase up to +50</td><td>Vampiric Touch, caster level 20+</td></tr>
+          <tr><td>Legendary Energy Drain</td><td>Applies 4 negative levels instead of 2</td><td>Energy Drain, caster level 25+</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="ls-abjuration">Abjuration &amp; Utility Upgrades</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Dispel Magic</td><td>Cannot be resisted — no caster level check, always strips one effect</td><td>Dispel Magic, Spellcraft 35+</td></tr>
+          <tr><td>Legendary Greater Dispel</td><td>Strips all effects simultaneously rather than rolling per effect</td><td>Greater Dispelling, Spellcraft 40+</td></tr>
+          <tr><td>Legendary Spell Mantle</td><td>Absorbs 5 additional spells beyond normal cap</td><td>Spell Mantle, caster level 25+</td></tr>
+          <tr><td>Legendary Globe</td><td>Globe of Invulnerability also blocks 5th and 6th level spells</td><td>Globe of Invulnerability, caster level 25+</td></tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="dominion">
+        <h2>Dominion Feats</h2>
+        <p class="tier-sub">Damage type override for full 9-spell-level casters only. Toggle via cantrip during combat.</p>
+      </div>
+
+      <p>Dominion feats allow a caster to override the damage type of all their damaging spells to a chosen element. The active element is selected by casting a specific cantrip, consuming one level 0 spell slot. The selection persists until switched or until rest. With no toggle cast, spells behave normally.</p>
+
+      <div class="tip-box">
+        <p><strong>Eligibility.</strong> Dominion feats require access to 9th level spells and are therefore restricted to pure Wizard, Sorcerer, Cleric, and Druid builds. Paladin, Bard, and Ranger are excluded by design and receive separate hybrid caster feats instead.</p>
+      </div>
+
+      <div class="loot-box">
+        <strong>Toggle system</strong>
+        Each cantrip toggle consumes one level 0 slot. A caster with 10 level 0 slots may switch element up to 10 times per rest. In practice most players commit to 1–2 elements per dungeon. No toggle = default spell damage types.
+      </div>
+
+      <h3 id="arcane-dominion">Legendary Arcane Dominion</h3>
+      <p><em>Prereq: Wizard or Sorcerer level 40.</em> All damaging spells override their damage type to the selected Arcane Element.</p>
+      <table>
+        <thead><tr><th>Cantrip Toggle</th><th>Damage Type</th></tr></thead>
+        <tbody>
+          <tr><td>Ray of Frost</td><td>Cold</td></tr>
+          <tr><td>Electric Jolt</td><td>Electrical</td></tr>
+          <tr><td>Fire Bolt</td><td>Fire</td></tr>
+          <tr><td>Acid Splash</td><td>Acid</td></tr>
+          <tr><td>Sonic Snap <em>(HAK cantrip)</em></td><td>Sonic</td></tr>
+          <tr><td>Void Touch <em>(HAK cantrip)</em></td><td>Negative Energy</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="divine-wrath">Legendary Divine Wrath</h3>
+      <p><em>Prereq: Cleric level 40.</em> All damaging spells and Smite weapon damage override their type to the selected Divine Conduit.</p>
+      <table>
+        <thead><tr><th>Cantrip Toggle</th><th>Damage Type</th></tr></thead>
+        <tbody>
+          <tr><td>Holy Spark <em>(HAK cantrip)</em></td><td>Divine / Holy — bypasses most DR</td></tr>
+          <tr><td>Shadow Bolt <em>(HAK cantrip)</em></td><td>Negative Energy</td></tr>
+          <tr><td>Searing Light (0th) <em>(HAK cantrip)</em></td><td>Fire (sacred flame)</td></tr>
+          <tr><td>Frost of Faith <em>(HAK cantrip)</em></td><td>Cold (divine ice)</td></tr>
+          <tr><td>Thunder Word <em>(HAK cantrip)</em></td><td>Sonic (voice of god)</td></tr>
+          <tr><td>True Strike <em>(repurposed)</em></td><td>Magical Bludgeoning (pure force)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="primal-force">Legendary Primal Force</h3>
+      <p><em>Prereq: Druid level 40.</em> All damaging spells override their type to the selected Primal Element. Pool is grounded in nature — elemental types plus one unique Druid-exclusive option.</p>
+      <table>
+        <thead><tr><th>Cantrip Toggle</th><th>Damage Type</th></tr></thead>
+        <tbody>
+          <tr><td>Ray of Frost</td><td>Cold</td></tr>
+          <tr><td>Electric Jolt</td><td>Electrical</td></tr>
+          <tr><td>Fire Bolt</td><td>Fire</td></tr>
+          <tr><td>Acid Splash</td><td>Acid</td></tr>
+          <tr><td>Thorn Whip <em>(HAK cantrip)</em></td><td>Piercing (nature weapons)</td></tr>
+          <tr><td>Verdant Surge <em>(HAK cantrip, Druid-only)</em></td><td>Magical — pure primal force, bypasses elemental resistances</td></tr>
+        </tbody>
+      </table>
+
+      <div class="tip-box">
+        <p><strong>Verdant Surge</strong> is the premium pick — bypassing elemental resistances entirely makes it universally useful. The slot cost to switch makes committing to it a meaningful choice mid-combat.</p>
+      </div>
+
+      <hr>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="hybrid-casters">
+        <h2>Hybrid Caster Feats</h2>
+        <p class="tier-sub">Dedicated feats for Paladin, Bard, and Ranger who are excluded from Dominion feats by design.</p>
+      </div>
+
+      <p>These classes cap below 9th level spells. Rather than damage type overrides, their legendary feats amplify what makes their limited spell lists uniquely powerful.</p>
+
+      <h3>Paladin</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Sacred Flame</td><td>All Paladin damaging spells deal additional +2d6 holy damage</td><td>Paladin level 40, CHA 25+</td></tr>
+          <tr><td>Legendary Holy Aegis</td><td>Divine Favor and Divine Power cast at double caster level</td><td>Paladin level 40, CHA 23+</td></tr>
+          <tr><td>Legendary Crusader's Seal</td><td>Bless Weapon permanently enchants the weapon until rest — no duration</td><td>Paladin level 40</td></tr>
+          <tr><td>Legendary Aura of Sacrifice</td><td>Magic Circle Against Evil radius doubles; all allies inside gain +4 AC and +4 saves</td><td>Paladin level 40, CHA 25+</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Bard</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Silver Tongue</td><td>All Bard enchantment spells ignore Spell Resistance entirely</td><td>Bard level 40, Spell Focus Enchantment</td></tr>
+          <tr><td>Legendary Illusionist</td><td>All Bard illusion spells treated as 4 levels higher for saves and penetration</td><td>Bard level 40, Spell Focus Illusion</td></tr>
+          <tr><td>Legendary Cutting Words</td><td>Bestow Curse and Crushing Despair apply double the penalty values</td><td>Bard level 40, Spellcraft 35+</td></tr>
+          <tr><td>Legendary Inspiration</td><td>Mass Suggestion affects unlimited targets in range</td><td>Bard level 40, Perform 40+</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Ranger</h3>
+      <table>
+        <thead><tr><th>Feat</th><th>Effect</th><th>Prereq</th></tr></thead>
+        <tbody>
+          <tr><td>Legendary Camouflage</td><td>Camouflage and Improved Invisibility cast by Ranger last until broken by combat — no duration</td><td>Ranger level 40, Hide 35+</td></tr>
+          <tr><td>Legendary Hunter's Mark</td><td>Resist Elements and Protection from Elements grant full immunity instead of resistance</td><td>Ranger level 40</td></tr>
+          <tr><td>Legendary Call of the Wild</td><td>Summon Nature's Ally spells summon one tier higher than normal</td><td>Ranger level 40, WIS 21+</td></tr>
+          <tr><td>Legendary Arrow Storm</td><td>True Strike grants 3 rounds of guaranteed hits instead of 1</td><td>Ranger level 40, DEX 25+</td></tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <!-- ============================================================ -->
+      <div class="tier-header" id="pure-class-bonuses">
+        <h2>Pure Class Passive Bonuses</h2>
+        <p class="tier-sub">Fixed bonuses granted automatically to all pure class builds at level 40, separate from legendary feat picks.</p>
+      </div>
+
+      <p>In addition to legendary feat picks, each pure class receives a set of fixed passive bonuses automatically on reaching level 40. These are not picks — every pure member of the class receives them.</p>
+
+      <table>
+        <thead><tr><th>Class</th><th>Fixed Bonuses</th></tr></thead>
+        <tbody>
+          <tr><td>Sorcerer</td><td>+5 Spell Penetration · Spells cast at +1 caster level · 10% chance on cast to regain spent slot</td></tr>
+          <tr><td>Wizard</td><td>+5 Spell Penetration · Spell DC +2 all schools · Arcane Recovery: recover 3 random spell slots on exiting combat</td></tr>
+          <tr><td>Cleric</td><td>+5 Spell Penetration · +2d6 holy damage vs undead · 20% chance to regain slot on spontaneous cast</td></tr>
+          <tr><td>Druid</td><td>+5 Spell Penetration · All shapeshift forms +6 STR/CON/DEX · Lightning Storm counter on being struck (1/turn, free)</td></tr>
+          <tr><td>Bard</td><td>+10 Perform · Wordstrike: Bard Song grants allies +1d12 sonic damage on hit · All Bard Song and Countersong effects doubled</td></tr>
+          <tr><td>Paladin</td><td>+2 all saving throws · Mass Heal 1/day (replaces LoH) · Free auto Smite Evil once per round</td></tr>
+          <tr><td>Monk</td><td>+5 Spell Resistance · Wholeness of Body: 4× Monk level instant heal AND +20 HP regen/round for 10 rounds · Ki Strike bypasses all DR</td></tr>
+          <tr><td>Fighter</td><td>+5 AB · +5 damage with Epic Weapon Specialization weapons · Bonus attack per round · Legendary Knockdown (size bump) · Fighter's Fury (revive at 50% HP, +6 AB for 3 rounds, 1/rest)</td></tr>
+          <tr><td>Barbarian</td><td>Rage grants +8 STR/CON · +10 HP regen/round while raging · Bloodlust: +12 STR below 20% HP (conditional, 3 min cooldown)</td></tr>
+          <tr><td>Ranger</td><td>Favored Enemy bonus +4 · Dual-wield any sized weapons without penalty · Bleeding Wound on-hit vs Favored Enemy</td></tr>
+          <tr><td>Rogue</td><td>Sneak Attack +3d6 · Cutpurse's Rush (pickpocket → +3d6 SA for 6s) · Vital Strike (auto-crit SA once/round)</td></tr>
+        </tbody>
+      </table>
+
+    </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

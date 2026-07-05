@@ -40,6 +40,7 @@
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -148,6 +149,11 @@ const float  ZEP_CR_REQUIRED_DISTANCE = 4.0f;
 
 // Set to FALSE to disable the requirement and use of dyes when recolouring
 const int    ZEP_CR_REQUIRE_DYES      = FALSE;
+
+// Homer&#x27;s LotR: the ZEP station is deployed purely as a free cosmetic dye/appearance
+// kit (launched from the DyeKit item). When TRUE, every craft costs 0 gold and always
+// succeeds (no skill-check failure/revert). Set FALSE to restore ZEP&#x27;s stock economy.
+const int    ZEP_CR_FREE              = TRUE;
 
 // Maximum cost in percent of the item&#x27;s original valie at all times regardless of any other settings
 const int    ZEP_CR_MAXCOST           = 90;
@@ -496,8 +502,8 @@ void ZEP_AttemptCraft(object oPC) {
         sDyes = GetSubString(sDyes, n+1, nLen);
         DestroyObject(GetItemPossessedBy(oPC, sDyeTag));
     }
-    // roll DC
-    if (nNPC || GetIsSkillSuccessful(oPC, nSkill, nDC)) {
+    // roll DC (ZEP_CR_FREE = always succeed; deployed as a free cosmetic kit)
+    if (ZEP_CR_FREE || nNPC || GetIsSkillSuccessful(oPC, nSkill, nDC)) {
         SetLocalInt(oPC, &quot;ZEP_CR_DONE&quot;, ZEP_CR_DONE_SUCCESS);
         return;
     }
@@ -516,6 +522,16 @@ void ZEP_StopCraft(object oPC, int nExecute) {
     // backup is restored rather than destroyed along with the invalid item ref.
     if (nExecute &amp;&amp; !GetIsObjectValid(oItem)) nExecute = FALSE;
     if (nExecute) {
+        // Preserve the forge legality stamps across the appearance edit. The
+        // recolor/remodel rebuilt the item via CopyItemAndModify, which can drop
+        // item-local ints; without carrying these over, a lawfully-forged &gt;750k
+        // item loses FORGE_CEIL and the login/Well-of-Eru contraband scan jails
+        // the bearer. oBackup was made with CopyItem(...,TRUE) so it still holds
+        // the originals. (jailed-for-appearance-crafting fix)
+        int nCeil  = GetLocalInt(oBackup, &quot;FORGE_CEIL&quot;);
+        if (nCeil)  SetLocalInt(oItem, &quot;FORGE_CEIL&quot;, nCeil);
+        int nClean = GetLocalInt(oBackup, &quot;FORGE_CLEAN&quot;);
+        if (nClean) SetLocalInt(oItem, &quot;FORGE_CLEAN&quot;, nClean);
         DestroyObject(oBackup);
         ZEP_RemoveItemVariables(oItem); //- cfx change
         DeleteLocalInt(oItem, &quot;ZEP_CR_TEMPITEM&quot;);
@@ -675,6 +691,7 @@ void ZEP_SetPart(object oPC, int nPart, int nStrRef) {
 // - private -
 // Gets the cost to modify oItem into oNew
 int ZEP_GetModificationCost(object oItem, object oNew, int nNPC=FALSE) {
+    if (ZEP_CR_FREE) return 0;   // deployed as a free cosmetic kit
     int nCost = 0;
     int nChanges = -1;
     int nPart;
@@ -1157,11 +1174,14 @@ void ZEP_RecolorItem(object oPC, int nMode) {
     object oNew;
 
 
-    if (GetBaseItemType(oItem)==BASE_ITEM_ARMOR || GetBaseItemType(oItem)==BASE_ITEM_HELMET) {
-        // Handle Armor change
+    if (GetBaseItemType(oItem)==BASE_ITEM_ARMOR || GetBaseItemType(oItem)==BASE_ITEM_HELMET
+        || GetBaseItemType(oItem)==BASE_ITEM_CLOAK) {
+        // Handle Armor change (cloaks tint via the same ARMOR_COLOR channels as
+        // armor/helmet; without this a cloak fell into the weapon-color branch
+        // and recolor did nothing.)
         nCurrApp = GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nPart);
         int nMin = 0;
-        int nMax = 63;         //64 colors in NWN Palette-Loki
+        int nMax = 175;        // NWN:EE expanded armor tint palette (0-175)
 
         if (nMode == ZEP_CR_COLOR_NEXT) {
             if (++nCurrApp&gt;nMax) nCurrApp = nMin;
@@ -1174,6 +1194,8 @@ void ZEP_RecolorItem(object oPC, int nMode) {
         nSlot = INVENTORY_SLOT_CHEST;
         if (GetBaseItemType(oItem)==BASE_ITEM_HELMET)
             nSlot = INVENTORY_SLOT_HEAD;
+        else if (GetBaseItemType(oItem)==BASE_ITEM_CLOAK)
+            nSlot = INVENTORY_SLOT_CLOAK;
 
     } else if (nPart == ZEP_CR_SHIELD) {
         // Handle Weapon change

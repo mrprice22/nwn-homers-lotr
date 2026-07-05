@@ -40,6 +40,7 @@
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -77,6 +78,12 @@ void main()
         // Set armor to being edited
         SetLocalInt(oItem, &quot;mil_EditingItem&quot;, TRUE);
 
+        // Preserve the forge legality stamps across the dye (CopyItemAndModify can
+        // drop item-local ints; losing FORGE_CEIL makes the contraband scan jail
+        // a lawfully-forged &gt;750k item). Capture before oItem is destroyed.
+        int nCeil  = GetLocalInt(oItem, &quot;FORGE_CEIL&quot;);
+        int nClean = GetLocalInt(oItem, &quot;FORGE_CLEAN&quot;);
+
         // Copy item to the chest
         object oInChest = CopyItem(oItem, oChest, TRUE);
         DestroyObject(oItem);
@@ -88,6 +95,10 @@ void main()
         // Copy the armor back to the PC
         object oOnPC = CopyItem(oDyedItem, oPC, TRUE);
         DestroyObject(oDyedItem);
+
+        // Re-apply the forge legality stamps captured above.
+        if (nCeil)  SetLocalInt(oOnPC, &quot;FORGE_CEIL&quot;, nCeil);
+        if (nClean) SetLocalInt(oOnPC, &quot;FORGE_CLEAN&quot;, nClean);
 
         // Equip the armor
        DelayCommand(0.5f, AssignCommand(oPC, ActionEquipItem(oOnPC, iItemToDye)));

@@ -40,6 +40,7 @@
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -48,7 +49,7 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>dmfi_activate</code></h1><dl class="meta"><dt>Starts dialogs</dt><dd><a href="../conversations/bst_book.html">bst_book</a>, <a href="../conversations/devinering.html">devinering</a>, <a href="../conversations/dmfi_universal.html">dmfi_universal</a>, <a href="../conversations/dye_dyekit.html">dye_dyekit</a>, <a href="../conversations/emotewand.html">emotewand</a>, <a href="../conversations/mw_mixtape_use.html">mw_mixtape_use</a></dd></dl><pre class="nss-source"><code>#include &quot;x2_inc_switches&quot;
+<h1>Script: <code>dmfi_activate</code></h1><dl class="meta"><dt>Starts dialogs</dt><dd><a href="../conversations/bst_book.html">bst_book</a>, <a href="../conversations/devinering.html">devinering</a>, <a href="../conversations/dmfi_universal.html">dmfi_universal</a>, <a href="../conversations/emotewand.html">emotewand</a>, <a href="../conversations/mw_mixtape_use.html">mw_mixtape_use</a></dd></dl><pre class="nss-source"><code>#include &quot;x2_inc_switches&quot;
 
 void dmw_CleanUp(object oMySpeaker)
 {
@@ -98,7 +99,10 @@ void main()
 
       if(GetTag(oItem)==&quot;DyeKit&quot;)
    {
-      AssignCommand(oActivator, ActionStartConversation(oActivator, &quot;dye_dyekit&quot;, TRUE));
+      // Opens the Dye Studio NUI color picker (all 176 colors, armor/helm/cloak).
+      // The NUI&#x27;s &quot;Reshape appearance...&quot; button hands off to the ZEP station
+      // (x0_skill_ctrap) for model/shield/weapon editing.
+      ExecuteScript(&quot;dye_nui_open&quot;, oActivator);
       return;
    }
    if(GetTag(oItem)==&quot;StoneofDivineIntervention&quot;)
