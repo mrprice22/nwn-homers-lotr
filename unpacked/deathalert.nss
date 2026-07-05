@@ -1,4 +1,5 @@
 #include "color"
+#include "se_respawn_inc"
 
 void main()
 {
@@ -10,10 +11,19 @@ string sBoss = GetName(oBoss);
 string sPC = GetName(oPC);
 string sArea = GetName(oArea);
 object oPlayer = GetFirstPC();
+
+// Standardized boss respawn: placed deathalert bosses (Thranduil, the Carn Dum
+// Khamul) previously never respawned until reboot. Same 15-minute timer as all
+// other placed creatures; encounter-spawned bosses (Balrog, Legolas, the Dol
+// Guldur Khamul) are skipped inside SE_DoCreatureRespawn and come back via
+// their encounter's ResetTime instead.
+if (FindSubString(GetTag(oBoss), "NSP") == -1)
+    SE_DoCreatureRespawn();
+
 if (GetIsDead(oBoss))
      while (oPlayer != OBJECT_INVALID)
         {
-        string sMessage = (sBoss + " was killed by "+sPC+" in <cþ  > "+sArea + "</c>");
+        string sMessage = (sBoss + " was killed by "+sPC+" in <cï¿½  > "+sArea + "</c>");
         SendMessageToPC(oPlayer, sMessage);
         oPlayer = GetNextPC();
         }

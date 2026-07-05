@@ -1,0 +1,10 @@
+// brd_use — Roll of the Fallen board OnUsed: prime page 1 and open the conversation.
+#include "brd_db"
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+    SetLocalInt(oPC, "brd_page_off", 0);
+    BRD_BuildPage(oPC);
+    ActionStartConversation(oPC, "", TRUE, FALSE);
+}

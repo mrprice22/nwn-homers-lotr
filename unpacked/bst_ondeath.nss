@@ -7,6 +7,7 @@
 // BEFORE chaining the original handler so respawn/cleanup can't drop the count.
 
 #include "bst_db"
+#include "brd_db"
 
 // Walk the master chain to the owning PC; returns OBJECT_INVALID if none is a PC.
 object Bst_OwningPC(object o)
@@ -34,6 +35,11 @@ void main()
         if (sOrigSummon != "") ExecuteScript(sOrigSummon, oCre);
         return;
     }
+
+    // Roll of the Fallen (Well of Eru board): record a tracked boss's death
+    // regardless of who lands the blow — the boss is gone either way. Reads the
+    // bst_ctrb_N contributor locals for the "slain by" line; no-op otherwise.
+    BRD_RecordDeath(oCre);
 
     int nN = GetLocalInt(oCre, "bst_ctrb_n");
     int i;

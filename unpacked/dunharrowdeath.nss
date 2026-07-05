@@ -1,7 +1,13 @@
 #include "color"
+#include "se_respawn_inc"
 
 void main()
 {
+// Standardized boss respawn: the Heir of Haldor previously never respawned
+// until reboot. Same 15-minute timer as all other placed creatures.
+if (FindSubString(GetTag(OBJECT_SELF), "NSP") == -1)
+    SE_DoCreatureRespawn();
+
 //Alerts which PC killed boss and where
 object oBoss = OBJECT_SELF;
 object oPC = GetLastHostileActor(oBoss);

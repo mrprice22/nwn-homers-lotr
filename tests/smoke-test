@@ -38,4 +38,12 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: boss respawn registry…"
+if python3 "$HERE/check_boss_registry.py"; then
+  echo "ok: boss respawn registry"
+else
+  echo "fail: boss respawn registry"
+  rc=1
+fi
+
 exit $rc
