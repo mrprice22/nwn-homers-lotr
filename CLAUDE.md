@@ -194,6 +194,7 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
 - [CLAUDE-gotchas.md](CLAUDE-gotchas.md) — Silent failure modes and common traps
 - [CLAUDE-meaningwave.md](CLAUDE-meaningwave.md) — Meaningwave philosopher NPC system: blueprints, spawn waypoints, how to add a new NPC
 - [CLAUDE-roadmap.md](CLAUDE-roadmap.md) — Roadmap / merit-tracking backlog: `roadmap.yaml` schema, refresh process, and the `bin/roadmap-editor.py` GUI + systemd service
+- [CLAUDE-boss-tracker.md](CLAUDE-boss-tracker.md) — Boss respawn tracker ("Roll of the Fallen" board in the Well of Eru): how to add/remove a boss in `brd_db.nss`, the single-instance rule, respawn-time invariants (encounter instance `ResetTime` vs registry), and the `tests/check_boss_registry.py` build gate
 - [CLAUDE-merit.md](CLAUDE-merit.md) — Merit award + redemption system: `meritdb` schema (earned vs escrowed `merit_spent`), the `merit_redeem.nss` catalogue, how to add/graduate a redemption option, custom-token ranges, and the Barliman NPC + DM EmoteWand flow
 
 ## Useful references

@@ -91,6 +91,47 @@ The wiki seeds the full creature catalogue into the live DB and reads kill stats
 from it; because the server runs in a container, the wiki is pointed at the real
 DB dir with `--db-dir` (see `refresh-homers-lotr-wiki`), not `--log-dir`.
 
+## Boss respawn tracker (Roll of the Fallen)
+
+A billboard next to the Recent Updates sign in the Well of Eru
+(`thewelloferu`, tag `boss_respawn_board`) lists every tracked boss that is
+**currently dead**, sorted by CR, with time-to-respawn in the row and the
+slaying player/party in the drill-down. State lives in the `respawndb`
+campaign DB (`<NWN_HOME_DIR>/database/respawndb.sqlite3`): `boss_registry`
+(reseeded from source on every module load), `boss_alias`, `boss_deaths`
+(wiped on load — a restart revives everything, so the board starts empty).
+
+**The registry is hand-curated in one place:** the `BRD_SeedBoss(...)` calls in
+`unpacked/brd_db.nss`. Nothing else needs editing to add/remove a boss, but a
+boss must satisfy the **single-instance rule** — only ever one live copy in
+the world:
+
+- **placed** boss: exactly one instance across all `*.git.json`, never in any
+  encounter, tag without `NSP` (its OnDeath must reach `SE_DoCreatureRespawn`
+  — `nw_c2_default7`/`x2_def_ondeath`/`staticspawn` all do), respawns exactly
+  900 s after death;
+- **encounter** boss: never placed directly, exactly one encounter *instance*
+  spawning it (`MaxCreatures=1`, `Respawns=-1`, `Reset=1`), and the registry's
+  `respawn_seconds` must equal that instance's `ResetTime` (both the `.ute`
+  **and** the instance struct in the area `.git.json` — the instance wins).
+
+If one boss spawns as several variant blueprints (the five leveled Xanith
+`.utc`s), map the extras to one canonical resref with `BRD_SeedAlias(...)`.
+
+All of the above is enforced at build time by `tests/check_boss_registry.py`
+(part of `tests/smoke-test`, run by every repack): it re-derives placements and
+encounter slots from `unpacked/` and fails the build on any drift — a boss
+placed a second time, a changed ResetTime, a tag rename, a deleted blueprint.
+So the safe workflow is simply: edit `brd_db.nss`, run
+`python3 tests/check_boss_registry.py`, repack.
+
+Death recording rides the bestiary wrapper — one `BRD_RecordDeath()` call in
+`bst_ondeath.nss` (which reads the `bst_ctrb_N` damage-contributor locals for
+the "Slain by" line). Don't remove that call or bypass `bst_install`'s OnDeath
+wrapping for a tracked boss, and keep `BRD_InitDb()` in `onmoduleload.nss`.
+The board conversation is `brd_sign.dlg` + the `brd_*` scripts (custom tokens
+**6300–6313** — reserved, don't reuse elsewhere).
+
 ## Donations Chest sync
 
 The Well of Eru area stocks a Donations Chest on each server reset with random
