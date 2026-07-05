@@ -1,4 +1,5 @@
 #include "color"
+#include "se_respawn_inc"
 
 void main()
 {
@@ -27,4 +28,8 @@ string currentList = GetLocalString( oMod, "EvilNPCDeathList");
   SetLocalString( oMod, "EvilNPCDeathList", currentList);
 
 SpeakString("Dol Guldur is under attack! Rally Servants of Sauron to Dol Guldur!", TALKVOLUME_SHOUT);
+
+// Respawn this boss 15 min after death (feeds the Roll of the Fallen board).
+if (FindSubString(GetTag(OBJECT_SELF), "NSP") == -1)
+    SE_DoCreatureRespawn();
 }

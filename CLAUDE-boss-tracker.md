@@ -69,13 +69,19 @@ comes back. The generator classifies each placed boss's OnDeath:
   countdown is accurate.
 - **legacy** — re-creates via the old `StaticSpawn`/`CreateObject` path; the
   boss returns but on a non-standard timer the board's 900 s may not match.
-- **none** — stays dead until a server restart. The board will count down and
-  falsely clear it. Currently: `creature023_2` (Rancid Skinner / `skinnerdeath`),
-  `gondorianguar005` (`hotuxpfix`), `badass_2` (`demondeath`).
+- **none** — stays dead until a server restart. The board would count down and
+  falsely clear it. **Currently none** — the three that were like this were
+  fixed to the standard 900 s (see below).
 
-These are **included anyway** (report, don't auto-fix). To make one truthful,
-fix its OnDeath to reach `SE_DoCreatureRespawn` (the deathalert/dunharrowdeath
-pattern) — a separate content edit, then regenerate.
+To make a `none` boss truthful, add `#include "se_respawn_inc"` and a guarded
+`SE_DoCreatureRespawn()` (skip when the tag contains `NSP`) to its OnDeath, then
+regenerate. **If the OnDeath script is shared with non-boss creatures, don't
+edit it** — point the boss's blueprint `ScriptDeath` at a small wrapper that
+`ExecuteScript`s the original then respawns. Done for the original three:
+`skinnerdeath` (Rancid Skinner, sole user — edited directly), `demondeath`
+(Fell Beast, sole live user — edited directly), and Wart Gondorian Gate
+Captain, whose `hotuxpfix` is shared by 7 Black Numenorean mobs → new
+`wartdeath.nss` wrapper + `gondorianguar005.utc.json` `ScriptDeath` repointed.
 
 Encounter bosses carry their real `ResetTime` as `respawn_seconds` (the
 generator reads it; the gate enforces they match), so their countdowns are

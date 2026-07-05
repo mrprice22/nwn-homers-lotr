@@ -1,4 +1,5 @@
 #include "NW_I0_SPELLS"
+#include "se_respawn_inc"
 
 void destroy()
 {
@@ -15,6 +16,10 @@ oTrash=GetNextItemInInventory(oC);
 
 void main()
 {
+    // Respawn this boss 15 min after death (feeds the Roll of the Fallen board).
+    if (FindSubString(GetTag(OBJECT_SELF), "NSP") == -1)
+        SE_DoCreatureRespawn();
+
     //Declare major variables
 
 

@@ -123,11 +123,10 @@ repack): it **independently** re-derives placements and encounter slots from
 `unpacked/` and fails the build on any drift — a boss placed a second time, a
 changed ResetTime, a tag rename, a deleted blueprint. Encounter bosses carry
 their real `ResetTime` as `respawn_seconds` (accurate countdowns); placed
-bosses respawn 900 s after death **if** their OnDeath reaches
-`SE_DoCreatureRespawn`. The generator reports any placed boss whose OnDeath
-won't bring it back (currently the Rancid Skinner, Wart Gondorian Gate Captain,
-and the Fell Beast) — those are listed anyway and clear on server restart until
-their wiring is fixed. See [CLAUDE-boss-tracker.md](CLAUDE-boss-tracker.md).
+bosses respawn 900 s after death via `SE_DoCreatureRespawn`. The generator
+reports any placed boss whose OnDeath won't bring it back so it can be fixed —
+none currently (the Rancid Skinner, Wart Gondorian Gate Captain and Fell Beast
+were repaired). See [CLAUDE-boss-tracker.md](CLAUDE-boss-tracker.md).
 
 Death recording rides the bestiary wrapper — one `BRD_RecordDeath()` call in
 `bst_ondeath.nss` (which reads the `bst_ctrb_N` damage-contributor locals for
