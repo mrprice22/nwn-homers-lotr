@@ -211,8 +211,11 @@ json DyeBuildWindow(object oPC) {
     json jCol = JsonArray();
 
     // Slot + material controls (group id "ctl" so highlight can be refreshed)
+    // NUI groups have internal padding (~8px/side), so a fixed-height group must
+    // exceed its content by ~18px or the layout solver fails ("constraint cannot
+    // be satisfied"). Controls content = 3 rows x 32 = 96 -> group 124.
     json jCtl = NuiId(NuiGroup(DyeBuildControlsJson(oPC), FALSE, NUI_SCROLLBARS_NONE), "ctl");
-    jCol = JsonArrayInsert(jCol, NuiHeight(jCtl, 104.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(jCtl, 124.0));
 
     // Status label (bound "dstat")
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(NuiBind("dstat"),
@@ -220,7 +223,7 @@ json DyeBuildWindow(object oPC) {
 
     // Swatch grid (group id "grid" so it can be refreshed via NuiSetGroupLayout)
     json jGrid = NuiId(NuiGroup(DyeBuildGridJson(oPC), FALSE, NUI_SCROLLBARS_NONE), "grid");
-    jCol = JsonArrayInsert(jCol, NuiHeight(jGrid, 130.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(jGrid, 134.0));
 
     // Page navigation row
     json jNav = JsonArray();
@@ -245,7 +248,7 @@ json DyeBuildWindow(object oPC) {
     // Default the window to the centre of the right half of the screen so it does
     // not cover the character live-preview. Falls back to screen-centre (-1,-1).
     float ww = 520.0;
-    float wh = 470.0;
+    float wh = 480.0;
     float wx = -1.0;
     float wy = -1.0;
     int gw = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_WIDTH);
