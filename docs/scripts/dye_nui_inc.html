@@ -282,19 +282,19 @@ json DyeBuildWindow(object oPC) {
     json jFoot = JsonArray();
     jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Revert&quot;)), &quot;brev&quot;));
     jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Reshape appearance...&quot;)), &quot;bshape&quot;));
-    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Close&quot;)), &quot;bclose&quot;));
+    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Save and Close&quot;)), &quot;bclose&quot;));
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
 
     // Footer row 2 — save/apply a color scheme (persistent per character)
     json jFoot2 = JsonArray();
-    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString(&quot;Save colors&quot;)), &quot;bsave&quot;));
-    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString(&quot;Apply saved colors&quot;)), &quot;bapply&quot;));
+    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString(&quot;Copy colors&quot;)), &quot;bsave&quot;));
+    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString(&quot;Paste colors&quot;)), &quot;bapply&quot;));
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot2), 32.0));
 
     // Default the window to the centre of the right half of the screen so it does
     // not cover the character live-preview. Falls back to screen-centre (-1,-1).
     float ww = 520.0;
-    float wh = 500.0;
+    float wh = 448.0;
     float wx = -1.0;
     float wy = -1.0;
     int gw = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_WIDTH);
@@ -352,12 +352,8 @@ void DyeUpdateStatus(object oPC) {
 
 void DyeUpdatePageLabel(object oPC) {
     int nPage = GetLocalInt(oPC, DYE_PAGE);
-    int nLo = nPage * DYE_PAGESIZE;
-    int nHi = nLo + DYE_PAGESIZE - 1;
-    if (nHi &gt; 175) nHi = 175;
     NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), &quot;dpage&quot;,
-        JsonString(&quot;Colors &quot; + IntToString(nLo) + &quot;-&quot; + IntToString(nHi)
-                 + &quot;  (page &quot; + IntToString(nPage + 1) + &quot;/&quot; + IntToString(DYE_NPAGES) + &quot;)&quot;));
+        JsonString(&quot;Page &quot; + IntToString(nPage + 1) + &quot; / &quot; + IntToString(DYE_NPAGES)));
 }
 
 void DyeRefresh(object oPC) {
@@ -442,14 +438,14 @@ void DyeSaveSchemeFromItem(object oPC) {
         GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 4),
         GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 5));
     NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), &quot;dstat&quot;,
-               JsonString(&quot;Saved this item&#x27;s color scheme.&quot;));
+               JsonString(&quot;Copied this item&#x27;s colors.&quot;));
 }
 
 // Apply this character&#x27;s saved scheme to the current slot&#x27;s item (jail-safe).
 void DyeApplyScheme(object oPC) {
     if (!Dye_LoadScheme(oPC)) {
-        SendMessageToPC(oPC, &quot;Dye Studio: no saved color scheme yet. Use &#x27;Save colors&#x27; first.&quot;);
-        NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), &quot;dstat&quot;, JsonString(&quot;No saved scheme yet.&quot;));
+        SendMessageToPC(oPC, &quot;Dye Studio: nothing copied yet. Use &#x27;Copy colors&#x27; first.&quot;);
+        NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), &quot;dstat&quot;, JsonString(&quot;Nothing copied yet.&quot;));
         return;
     }
     int nSlot = GetLocalInt(oPC, DYE_SLOT);
