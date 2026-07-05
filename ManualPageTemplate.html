@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Page Title Here</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <main>
+  <!--
+    Template for a new docs.manual/*.html page.
+
+    Usage:
+      1. Copy this file into docs.manual/, rename to match the page (e.g. docs.manual/MyGuide.html).
+      2. Replace the <title>, <h1>, TOC entries, and section anchors below.
+      3. Do NOT add <header>/<footer> — the wiki generator injects those, and copies
+         everything between <body> and </body> into docs/manual/<Name>.html verbatim,
+         wrapping it with the site header/nav/footer. Keep <body><main> at the top.
+      4. Leave docs/ alone after editing docs.manual/ — the scheduled wiki refresh
+         (nwn-manager wiki) picks it up. Don't run the refresh yourself unless asked.
+      5. Delete this comment block from the copy.
+  -->
+  <style>
+    /* Two-column layout: sticky TOC on the left, content on the right. */
+    .mw-layout {
+      display: flex;
+      gap: 2.5em;
+      align-items: flex-start;
+    }
+    .mw-toc-pane {
+      flex: 0 0 220px;
+      position: sticky;
+      top: 1.5em;
+      max-height: calc(100vh - 3em);
+      overflow-y: auto;
+    }
+    .mw-content {
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+
+    .toc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1em 1.2em;
+    }
+    .toc h2 {
+      font-size: 1em;
+      margin: 0 0 0.5em;
+      border: none;
+      padding: 0;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+
+    /* Section banner — use for major headings you want visually set off. */
+    .tier-header {
+      background: rgba(107,58,28,0.08);
+      border-left: 4px solid var(--accent);
+      padding: 0.5em 1em;
+      margin: 2em 0 0.8em;
+      border-radius: 0 4px 4px 0;
+    }
+    .tier-header h2 { margin: 0; border: none; padding: 0; }
+    .tier-header .tier-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+
+    /* Callout boxes for asides, tips, and warnings. */
+    .loot-box {
+      background: rgba(200,165,119,0.10);
+      border: 1px solid var(--accent-soft);
+      border-radius: 4px;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+    }
+    .loot-box strong { display: block; margin-bottom: 0.3em; color: var(--accent); }
+
+    .tip-box {
+      background: rgba(30,30,60,0.07);
+      border-left: 4px solid var(--accent-soft);
+      border-radius: 0 4px 4px 0;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+      font-size: 0.93em;
+    }
+    .tip-box p { margin: 0.3em 0; }
+
+    .warning-box {
+      background: rgba(200, 60, 60, 0.08);
+      border-left: 4px solid #c03030;
+      border-radius: 0 4px 4px 0;
+      padding: 0.7em 1.1em;
+      margin: 0.8em 0 1em;
+      font-size: 0.93em;
+    }
+    .warning-box p { margin: 0.3em 0; }
+  </style>
+
+  <div class="mw-layout">
+    <aside class="mw-toc-pane">
+      <nav class="toc" aria-label="Page contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#section1">First Section</a></li>
+          <li><a href="#section2">Second Section</a></li>
+          <li><a href="#section3">Third Section</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <div class="mw-content">
+
+<h1>Page Title Here</h1>
+
+<p>One or two sentences introducing what this page covers and who it's for.</p>
+
+<div class="tip-box">
+  <p><strong>Tip.</strong> Use tip-box for helpful context that isn't essential to follow the
+  main text — starting points, shortcuts, cross-references.</p>
+</div>
+
+<div class="warning-box">
+  <p><strong>Warning.</strong> Use warning-box to flag pitfalls, one-way choices, or anything
+  that can go wrong if the reader isn't careful.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="section1">
+  <h2>First Section</h2>
+  <p class="tier-sub">One-line summary of what this section covers.</p>
+</div>
+
+<p>Body content for the first section.</p>
+
+<div class="loot-box">
+  <strong>Notable item or reward</strong>
+  A description of the item, where it's found, and why it matters.
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="section2">
+  <h2>Second Section</h2>
+  <p class="tier-sub">One-line summary of what this section covers.</p>
+</div>
+
+<p>Body content for the second section.</p>
+
+<!-- ============================================================ -->
+<h2 id="section3">Third Section</h2>
+
+<p>Plain <code>&lt;h2&gt;</code> works fine too when you don't need the banner styling —
+just make sure the <code>id</code> matches its TOC entry.</p>
+
+    </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+</body>
+</html>
