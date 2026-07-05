@@ -68,6 +68,7 @@
 #include &quot;nwnx_events&quot;
 #include &quot;x2_inc_switches&quot;
 #include &quot;ru_db&quot;
+#include &quot;brd_db&quot;
 #include &quot;admin_db&quot;
 #include &quot;boost_db&quot;
 
@@ -112,6 +113,10 @@ SetCustomToken(6102, COLOR_END);
 // Recent Updates sign (Well of Eru): ensure the roadmapdb table exists before
 // any read. It is populated externally by the roadmap editor&#x27;s Publish button.
 RU_InitDb();
+
+// Roll of the Fallen board (Well of Eru): reseed the boss registry and clear
+// stale death rows — a restart revives every boss, so the board starts empty.
+BRD_InitDb();
 
 // Admin whitelist (rest-menu Admin/Homeless options, cheat chest): ensure the
 // admins table exists before any read. Seeded externally by bin/seed-admindb.sh.

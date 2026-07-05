@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script brd_db</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>brd_db</code></h1><pre class="nss-source"><code>// brd_db.nss — &quot;Roll of the Fallen&quot; boss respawn tracker database helpers.
+//
+// Campaign DB &quot;respawndb&quot; (file database/respawndb.sqlite3).
+//
+// Tables:
+//   boss_registry (resref PK, name, tag, area_resref, area_name, cr,
+//                  respawn_seconds, spawn_type) — the curated list of tracked
+//                  bosses, reseeded from this file on every module load.
+//                  spawn_type &#x27;placed&#x27;    = se_respawn_inc DelayCommand, exact
+//                                           respawn respawn_seconds after death;
+//                  spawn_type &#x27;encounter&#x27; = native encounter ResetTime, the boss
+//                                           becomes ELIGIBLE after respawn_seconds
+//                                           and returns when its lair encounter
+//                                           next triggers.
+//   boss_alias    (resref PK, canonical) — variant blueprints that all represent
+//                  the same boss (e.g. the five leveled Xanith The Mad blueprints).
+//   boss_deaths   (resref PK, died_at, killed_by) — one row per currently-dead
+//                  boss; wiped on module load because a restart revives everything.
+//
+// Membership rule: only bosses that can ever have ONE live instance at a time
+// (exactly one placement, or one Max=1 encounter slot). Enforced by
+// tests/check_boss_registry.py in the build smoke-test.
+//
+// Browsed 9-per-page in brd_sign.dlg (the Well of Eru board). Custom tokens:
+//   6300-6308 = list row labels   6309 = header / page line
+//   6310-6313 = drill-down detail (name, lair, return line, slain-by)
+// Per-PC locals:
+//   int    &quot;brd_page_off&quot;  row offset (multiples of 9)
+//   int    &quot;brd_total&quot;     total dead-boss rows (for [Next page] visibility)
+//   string &quot;brd_slot_N&quot;    registry resref shown in list slot N (&quot;&quot; = hidden)
+
+const string BRD_DB = &quot;respawndb&quot;;
+
+// ------------------------------------------------------------
+// Schema + registry seed
+
+void BRD_SeedBoss(string sResref, string sName, string sTag, string sAreaRes,
+                  string sAreaName, float fCR, int nRespawn, string sType)
+{
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;REPLACE INTO boss_registry(resref,name,tag,area_resref,area_name,cr,respawn_seconds,spawn_type)&quot; +
+        &quot; VALUES(@r,@n,@t,@ar,@an,@c,@s,@ty)&quot;);
+    SqlBindString(q, &quot;@r&quot;,  sResref);
+    SqlBindString(q, &quot;@n&quot;,  sName);
+    SqlBindString(q, &quot;@t&quot;,  sTag);
+    SqlBindString(q, &quot;@ar&quot;, sAreaRes);
+    SqlBindString(q, &quot;@an&quot;, sAreaName);
+    SqlBindFloat (q, &quot;@c&quot;,  fCR);
+    SqlBindInt   (q, &quot;@s&quot;,  nRespawn);
+    SqlBindString(q, &quot;@ty&quot;, sType);
+    SqlStep(q);
+}
+
+void BRD_SeedAlias(string sResref, string sCanonical)
+{
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;REPLACE INTO boss_alias(resref,canonical) VALUES(@r,@c)&quot;);
+    SqlBindString(q, &quot;@r&quot;, sResref);
+    SqlBindString(q, &quot;@c&quot;, sCanonical);
+    SqlStep(q);
+}
+
+void BRD_InitDb()
+{
+    sqlquery q;
+
+    q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;CREATE TABLE IF NOT EXISTS boss_registry (&quot; +
+        &quot;resref TEXT PRIMARY KEY,&quot; +
+        &quot;name TEXT NOT NULL,&quot; +
+        &quot;tag TEXT NOT NULL,&quot; +
+        &quot;area_resref TEXT NOT NULL,&quot; +
+        &quot;area_name TEXT NOT NULL,&quot; +
+        &quot;cr REAL NOT NULL DEFAULT 0,&quot; +
+        &quot;respawn_seconds INTEGER NOT NULL DEFAULT 900,&quot; +
+        &quot;spawn_type TEXT NOT NULL DEFAULT &#x27;placed&#x27;)&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;CREATE TABLE IF NOT EXISTS boss_alias (&quot; +
+        &quot;resref TEXT PRIMARY KEY, canonical TEXT NOT NULL)&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;CREATE TABLE IF NOT EXISTS boss_deaths (&quot; +
+        &quot;resref TEXT PRIMARY KEY,&quot; +
+        &quot;died_at TEXT NOT NULL,&quot; +
+        &quot;killed_by TEXT)&quot;);
+    SqlStep(q);
+
+    // A restart revives every boss (DelayCommand timers die; areas reload from
+    // the .git), so pending death rows are stale by definition.
+    q = SqlPrepareQueryCampaign(BRD_DB, &quot;DELETE FROM boss_deaths&quot;);
+    SqlStep(q);
+
+    // Reseed the registry so this file is the single source of truth.
+    q = SqlPrepareQueryCampaign(BRD_DB, &quot;DELETE FROM boss_registry&quot;);
+    SqlStep(q);
+    q = SqlPrepareQueryCampaign(BRD_DB, &quot;DELETE FROM boss_alias&quot;);
+    SqlStep(q);
+
+    // -- Encounter bosses (eligible after 900s, return when the lair re-triggers)
+    BRD_SeedBoss(&quot;azagoth001&quot;,       &quot;The Balrog of Moria&quot;,             &quot;TheBalrogofMoria&quot;,            &quot;thebalrogofmoria&quot;, &quot;Moria: The Balrog of Moria&quot;,            555.0,  900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;shelob001&quot;,        &quot;Shelob&quot;,                          &quot;ms_shel1&quot;,                    &quot;shelobslair&quot;,      &quot;Shelob&#x27;s Lair&quot;,                          220.0,  900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;kerufall003&quot;,      &quot;Kerufall&quot;,                        &quot;ms_keru1&quot;,                    &quot;kerufallslair&quot;,    &quot;Kerufall&#x27;s Lair&quot;,                        418.0,  900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;xaniththemad&quot;,     &quot;Xanith The Mad&quot;,                  &quot;XanithTheMad&quot;,                &quot;enchantedcave002&quot;, &quot;Enchanted Caverns&quot;,                       32.0,  900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;legolasgreenl001&quot;, &quot;Legolas Greenleaf&quot;,               &quot;LegolasGreenleaf&quot;,            &quot;area023&quot;,          &quot;Mirkwoods - Halls of Greenleafs&quot;,       1418.0,  900, &quot;encounter&quot;);
+    BRD_SeedBoss(&quot;creature007&quot;,      &quot;Khamul The Ringwraith (Dol Guldur)&quot;, &quot;Khamul&quot;,                   &quot;area031&quot;,          &quot;Dol Guldur: Tower Of Black Magic&quot;,       965.0,  900, &quot;encounter&quot;);
+
+    // -- Placed bosses (se_respawn_inc: exact 900s respawn at the spawn point)
+    BRD_SeedBoss(&quot;creature016&quot;,      &quot;Theoden&#x27;s Chosen&quot;,                &quot;TheodensChosen&quot;,              &quot;area013&quot;,          &quot;Helm&#x27;s Deep: Cave&quot;,                     9540.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gandalf001&quot;,       &quot;Gandalf the Gray&quot;,                &quot;Gandalf&quot;,                     &quot;shirehobbiton001&quot;, &quot;Hobbiton&quot;,                              1914.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;highwizardofgo_2&quot;, &quot;High Wizard of Gondor&quot;,           &quot;HighWizardofGondor&quot;,          &quot;towerofthehighwi&quot;, &quot;Tower of the High Wizard&quot;,              1795.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature019&quot;,      &quot;Sauron The Abhorred&quot;,             &quot;Constantinethesecond&quot;,        &quot;area016&quot;,          &quot;Mount Doom: Halls of Sauron&quot;,           1768.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gwathdorlord001&quot;,  &quot;Gwathdor Lord of the Dark Arts&quot;,  &quot;GwathdorLord&quot;,                &quot;gwaththrone&quot;,      &quot;Gwathdor: Throne of the Lord&quot;,          1615.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature009&quot;,      &quot;Boromir, Steward of Gondor&quot;,      &quot;BoromirStewardofGondor&quot;,      &quot;minastirith&quot;,      &quot;Minas Tirith: City&quot;,                    1461.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature003&quot;,      &quot;Denethor, Steward of Gondor&quot;,     &quot;DenethorStewardofGondor&quot;,     &quot;area005&quot;,          &quot;Minas Tirith: Keep&quot;,                    1459.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;witchking&quot;,        &quot;Witch King Leader of The Nine&quot;,   &quot;WitchKing&quot;,                   &quot;thewitchkingsthr&quot;, &quot;The Witch King&#x27;s Throne&quot;,               1198.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;radagastthebro_2&quot;, &quot;Radagast the Brown&quot;,              &quot;RadagasttheBrown&quot;,            &quot;rhosgobeltower&quot;,   &quot;Rhosgobel: Tower&quot;,                      1086.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;thecursedone002&quot;,  &quot;Heir of Haldor&quot;,                  &quot;TheCursedOne&quot;,                &quot;forgottenking&quot;,    &quot;Dimholt: The Forgotten King&quot;,           1066.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;themightysmag002&quot;, &quot;The Mighty Smaug&quot;,                &quot;TheMightySmaug&quot;,              &quot;darkcavern&quot;,       &quot;The Ruins of Dale: Cavern&quot;,             1048.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;gollum&quot;,           &quot;Gollum&quot;,                          &quot;Gollum&quot;,                      &quot;area007&quot;,          &quot;Gollum&#x27;s Chambers&quot;,                     1029.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;creature007_2&quot;,    &quot;Khamul The Ringwraith (Carn Dum)&quot;, &quot;Khamul&quot;,                     &quot;carndumthrone&quot;,    &quot;Carn Dum: Throne&quot;,                       839.0,  900, &quot;placed&quot;);
+    BRD_SeedBoss(&quot;thranduil_2&quot;,      &quot;Thranduil, King of Eryn Lasgalen&quot;, &quot;ThranduilKingofErynLasgalen&quot;, &quot;thranduilshall&quot;,  &quot;Mirkwood: Thranduil&#x27;s Hall&quot;,             476.0,  900, &quot;placed&quot;);
+
+    // Xanith The Mad spawns as one of five leveled blueprints (Max=1 encounter),
+    // all the same boss on the board.
+    BRD_SeedAlias(&quot;xaniththemad001&quot;, &quot;xaniththemad&quot;);
+    BRD_SeedAlias(&quot;xaniththemad002&quot;, &quot;xaniththemad&quot;);
+    BRD_SeedAlias(&quot;xaniththemad003&quot;, &quot;xaniththemad&quot;);
+    BRD_SeedAlias(&quot;xaniththemad004&quot;, &quot;xaniththemad&quot;);
+}
+
+// ------------------------------------------------------------
+// Recording
+
+string BRD_Canonical(string sResref)
+{
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;SELECT canonical FROM boss_alias WHERE resref=@r&quot;);
+    SqlBindString(q, &quot;@r&quot;, sResref);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return sResref;
+}
+
+// Walk the master chain to the owning PC; OBJECT_INVALID if none is a PC.
+object BRD_OwningPC(object o)
+{
+    while (GetIsObjectValid(GetMaster(o))) o = GetMaster(o);
+    if (GetIsPC(o) &amp;&amp; !GetIsDM(o)) return o;
+    return OBJECT_INVALID;
+}
+
+// Record a tracked boss&#x27;s death (no-op for anything not in the registry).
+// Called from bst_ondeath, so the bestiary damage-contributor list
+// (bst_ctrb_N locals, gathered by bst_ondamage) is available on the corpse;
+// the killing blow&#x27;s owning PC is folded in for one-shot kills.
+void BRD_RecordDeath(object oCre)
+{
+    string sRef = BRD_Canonical(GetResRef(oCre));
+
+    sqlquery qc = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;SELECT 1 FROM boss_registry WHERE resref=@r&quot;);
+    SqlBindString(qc, &quot;@r&quot;, sRef);
+    if (!SqlStep(qc)) return;
+
+    string sKilledBy = &quot;&quot;;
+    object oKiller = BRD_OwningPC(GetLastKiller());
+    int bKillerListed = FALSE;
+
+    int nN = GetLocalInt(oCre, &quot;bst_ctrb_n&quot;);
+    int i;
+    for (i = 0; i &lt; nN; i++)
+    {
+        object m = GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i));
+        if (!GetIsObjectValid(m) || !GetIsPC(m) || GetIsDM(m)) continue;
+        if (m == oKiller) bKillerListed = TRUE;
+        if (sKilledBy != &quot;&quot;) sKilledBy += &quot;, &quot;;
+        sKilledBy += GetName(m);
+    }
+    if (GetIsObjectValid(oKiller) &amp;&amp; !bKillerListed)
+    {
+        if (sKilledBy != &quot;&quot;) sKilledBy += &quot;, &quot;;
+        sKilledBy += GetName(oKiller);
+    }
+    if (sKilledBy == &quot;&quot;) sKilledBy = &quot;unknown forces&quot;;
+
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;REPLACE INTO boss_deaths(resref,died_at,killed_by)&quot; +
+        &quot; VALUES(@r,datetime(&#x27;now&#x27;),@k)&quot;);
+    SqlBindString(q, &quot;@r&quot;, sRef);
+    SqlBindString(q, &quot;@k&quot;, sKilledBy);
+    SqlStep(q);
+}
+
+// ------------------------------------------------------------
+// Board conversation (brd_sign.dlg)
+
+// &quot;12m 30s&quot; / &quot;45s&quot;
+string BRD_FmtRemain(int nSec)
+{
+    if (nSec &lt; 0) nSec = 0;
+    int nMin = nSec / 60;
+    int nS   = nSec % 60;
+    if (nMin &gt; 0) return IntToString(nMin) + &quot;m &quot; + IntToString(nS) + &quot;s&quot;;
+    return IntToString(nS) + &quot;s&quot;;
+}
+
+// TRUE when a living creature with sTag stands in area sAreaRes.
+int BRD_BossAlive(string sTag, string sAreaRes)
+{
+    int n = 0;
+    object o = GetObjectByTag(sTag, n);
+    while (GetIsObjectValid(o))
+    {
+        if (GetObjectType(o) == OBJECT_TYPE_CREATURE &amp;&amp; !GetIsDead(o)
+            &amp;&amp; GetResRef(GetArea(o)) == sAreaRes)
+            return TRUE;
+        n++;
+        o = GetObjectByTag(sTag, n);
+    }
+    return FALSE;
+}
+
+// Drop rows whose boss is back: placed bosses respawn exactly on schedule, so
+// an expired row is stale; encounter bosses only return when the lair
+// re-triggers, so keep their row (&quot;ready to return&quot;) until the boss is seen
+// alive in its area.
+void BRD_CleanupExpired(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;SELECT d.resref, r.tag, r.area_resref, r.spawn_type&quot; +
+        &quot; FROM boss_deaths d JOIN boss_registry r ON r.resref=d.resref&quot; +
+        &quot; WHERE r.respawn_seconds - (strftime(&#x27;%s&#x27;,&#x27;now&#x27;) - strftime(&#x27;%s&#x27;,d.died_at)) &lt;= 0&quot;);
+    int nDel = 0;
+    while (SqlStep(q))
+    {
+        string sRef  = SqlGetString(q, 0);
+        string sTag  = SqlGetString(q, 1);
+        string sArea = SqlGetString(q, 2);
+        string sType = SqlGetString(q, 3);
+        if (sType == &quot;placed&quot; || BRD_BossAlive(sTag, sArea))
+        {
+            SetLocalString(oPC, &quot;brd_del_&quot; + IntToString(nDel), sRef);
+            nDel++;
+        }
+    }
+    int i;
+    for (i = 0; i &lt; nDel; i++)
+    {
+        sqlquery qd = SqlPrepareQueryCampaign(BRD_DB,
+            &quot;DELETE FROM boss_deaths WHERE resref=@r&quot;);
+        SqlBindString(qd, &quot;@r&quot;, GetLocalString(oPC, &quot;brd_del_&quot; + IntToString(i)));
+        SqlStep(qd);
+        DeleteLocalString(oPC, &quot;brd_del_&quot; + IntToString(i));
+    }
+}
+
+// Build the current list page: only currently-slain bosses, mightiest (highest
+// CR) first, time-to-return at the end of each label.
+void BRD_BuildPage(object oPC)
+{
+    BRD_CleanupExpired(oPC);
+
+    int nOff = GetLocalInt(oPC, &quot;brd_page_off&quot;);
+
+    sqlquery qc = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;SELECT COUNT(*) FROM boss_deaths d&quot; +
+        &quot; JOIN boss_registry r ON r.resref=d.resref&quot;);
+    int nTotal = 0;
+    if (SqlStep(qc)) nTotal = SqlGetInt(qc, 0);
+    SetLocalInt(oPC, &quot;brd_total&quot;, nTotal);
+
+    int i;
+    for (i = 0; i &lt; 9; i++)
+    {
+        DeleteLocalString(oPC, &quot;brd_slot_&quot; + IntToString(i));
+        SetCustomToken(6300 + i, &quot;&quot;);
+    }
+
+    if (nTotal == 0)
+    {
+        SetCustomToken(6309,
+            &quot;All the great powers of Middle-earth stir once more. None lie slain.&quot;);
+        return;
+    }
+
+    int nPages = (nTotal + 8) / 9;
+    int nPage  = nOff / 9 + 1;
+    SetCustomToken(6309, IntToString(nTotal)
+        + (nTotal == 1 ? &quot; power lies&quot; : &quot; powers lie&quot;)
+        + &quot; slain, mightiest first.  (Page &quot; + IntToString(nPage)
+        + &quot; of &quot; + IntToString(nPages) + &quot;)&quot;);
+
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;SELECT d.resref, r.name, r.spawn_type,&quot; +
+        &quot; r.respawn_seconds - (strftime(&#x27;%s&#x27;,&#x27;now&#x27;) - strftime(&#x27;%s&#x27;,d.died_at))&quot; +
+        &quot; FROM boss_deaths d JOIN boss_registry r ON r.resref=d.resref&quot; +
+        &quot; ORDER BY r.cr DESC, r.name ASC LIMIT 9 OFFSET @off&quot;);
+    SqlBindInt(q, &quot;@off&quot;, nOff);
+
+    i = 0;
+    while (SqlStep(q) &amp;&amp; i &lt; 9)
+    {
+        string sRef    = SqlGetString(q, 0);
+        string sName   = SqlGetString(q, 1);
+        string sType   = SqlGetString(q, 2);
+        int    nRemain = SqlGetInt(q, 3);
+
+        SetLocalString(oPC, &quot;brd_slot_&quot; + IntToString(i), sRef);
+
+        string sWhen;
+        if (nRemain &gt; 0)      sWhen = &quot;returns in &quot; + BRD_FmtRemain(nRemain);
+        else                  sWhen = &quot;ready to return&quot;;  // expired encounter boss
+        SetCustomToken(6300 + i, sName + &quot;  -  &quot; + sWhen);
+        i++;
+    }
+}
+
+// Populate the drill-down detail tokens for one slain boss.
+void BRD_BuildDetail(object oPC, string sResref)
+{
+    SetCustomToken(6310, &quot;&quot;);
+    SetCustomToken(6311, &quot;&quot;);
+    SetCustomToken(6312, &quot;&quot;);
+    SetCustomToken(6313, &quot;&quot;);
+
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;SELECT r.name, r.area_name, r.spawn_type, d.killed_by,&quot; +
+        &quot; r.respawn_seconds - (strftime(&#x27;%s&#x27;,&#x27;now&#x27;) - strftime(&#x27;%s&#x27;,d.died_at))&quot; +
+        &quot; FROM boss_deaths d JOIN boss_registry r ON r.resref=d.resref&quot; +
+        &quot; WHERE d.resref=@r&quot;);
+    SqlBindString(q, &quot;@r&quot;, sResref);
+    if (!SqlStep(q))
+    {
+        SetCustomToken(6310, &quot;The ink has faded; this power walks again.&quot;);
+        return;
+    }
+
+    string sType   = SqlGetString(q, 2);
+    int    nRemain = SqlGetInt(q, 4);
+
+    SetCustomToken(6310, SqlGetString(q, 0));
+    SetCustomToken(6311, SqlGetString(q, 1));
+
+    string sWhen;
+    if (nRemain &gt; 0)
+    {
+        sWhen = &quot;Expected to return in &quot; + BRD_FmtRemain(nRemain) + &quot;.&quot;;
+        if (sType == &quot;encounter&quot;)
+            sWhen += &quot; It rises only when its lair is next disturbed.&quot;;
+    }
+    else
+        sWhen = &quot;It may return the moment its lair is next disturbed.&quot;;
+    SetCustomToken(6312, sWhen);
+
+    string sKilledBy = SqlGetString(q, 3);
+    if (sKilledBy == &quot;&quot;) sKilledBy = &quot;unknown forces&quot;;
+    SetCustomToken(6313, sKilledBy);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
