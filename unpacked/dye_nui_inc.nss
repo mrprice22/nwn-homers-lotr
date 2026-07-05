@@ -4,6 +4,7 @@
 // the forge legality stamps (FORGE_CEIL/FORGE_CLEAN) so dyeing never jails the bearer.
 #include "nw_inc_nui"
 #include "dye_palette_inc"
+#include "dye_db"
 
 // ---- session locals (on the PC) ----
 const string DYE_TOK  = "DYE_TOK";    // NUI token
@@ -25,20 +26,25 @@ const int DYE_NPAGES   = 4;           // ceil(176 / 48)
 int    DyeIsDyeable(object oItem);
 int    DyeIsMetal(int nChan);
 int    DyeSwatchRGB(int nChan, int nIdx);
+string DyeColorName(int nChan, int nIdx);
 string DyeChanName(int nChan);
 string DyeSlotName(int nSlot);
 object DyeGetItem(object oPC);
 void   DyeSaveOriginals(object oPC);
 json   DyeBuildGridJson(object oPC);
+json   DyeBuildControlsJson(object oPC);
 json   DyeBuildWindow(object oPC);
 object DyeApply(object oPC, int nIdx);
 void   DyeUpdateStatus(object oPC);
 void   DyeUpdatePageLabel(object oPC);
 void   DyeRefresh(object oPC);
 void   DyeSetPage(object oPC, int nPage);
+void   DyeJumpToSel(object oPC);
 void   DyeSelectSlot(object oPC, int nSlot);
 void   DyeSelectChannel(object oPC, int nChan);
 void   DyeRevert(object oPC);
+void   DyeSaveSchemeFromItem(object oPC);
+void   DyeApplyScheme(object oPC);
 void   DyeCleanup(object oPC);
 
 // ---- helpers ----
@@ -56,6 +62,13 @@ int DyeIsMetal(int nChan) {
 int DyeSwatchRGB(int nChan, int nIdx) {
     if (DyeIsMetal(nChan)) return DyeMetalRGB(nIdx);
     return DyeClothRGB(nIdx);
+}
+
+// Human-readable color name for a channel+index (metal vs cloth palette).
+string DyeColorName(int nChan, int nIdx) {
+    if (nIdx < 0 || nIdx > 175) return "";
+    if (DyeIsMetal(nChan)) return DyeMetalName(nIdx);
+    return DyeClothName(nIdx);
 }
 
 string DyeChanName(int nChan) {
@@ -146,25 +159,60 @@ json DyeBuildGridJson(object oPC) {
     return NuiCol(jRows);
 }
 
+// A fixed-size slot/material button; when selected it gets a highlighted
+// background (translucent fill) + bright border via a draw list.
+json DyeGridBtn(string sId, string sLabel, int bSelected) {
+    json jBtn = NuiButton(JsonString(sLabel));
+    jBtn = NuiId(jBtn, sId);
+    jBtn = NuiWidth(jBtn, 128.0);
+    jBtn = NuiHeight(jBtn, 30.0);
+    if (bSelected) {
+        json jList = JsonArray();
+        jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(80, 160, 255, 90),
+                    JsonBool(TRUE), JsonFloat(1.0), NuiRect(0.0, 0.0, 128.0, 30.0),
+                    NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
+        jList = JsonArrayInsert(jList, NuiDrawListRect(JsonBool(TRUE), NuiColor(130, 205, 255),
+                    JsonBool(FALSE), JsonFloat(3.0), NuiRect(1.0, 1.0, 126.0, 28.0),
+                    NUI_DRAW_LIST_ITEM_ORDER_AFTER, NUI_DRAW_LIST_ITEM_RENDER_ALWAYS, FALSE));
+        jBtn = NuiDrawList(jBtn, JsonBool(FALSE), jList);
+    }
+    return jBtn;
+}
+
+// The 3x3 slot/material control grid, with the active slot and active material
+// highlighted. Columns = Cloth / Leather / Metal; rows: slots, material 1, material 2.
+json DyeBuildControlsJson(object oPC) {
+    int nSlot = GetLocalInt(oPC, DYE_SLOT);
+    int nChan = GetLocalInt(oPC, DYE_CH);
+    json jRows = JsonArray();
+
+    json r0 = JsonArray();
+    r0 = JsonArrayInsert(r0, DyeGridBtn("slc", "Armor",  nSlot == INVENTORY_SLOT_CHEST));
+    r0 = JsonArrayInsert(r0, DyeGridBtn("slh", "Helmet", nSlot == INVENTORY_SLOT_HEAD));
+    r0 = JsonArrayInsert(r0, DyeGridBtn("slk", "Cloak",  nSlot == INVENTORY_SLOT_CLOAK));
+    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r0), 32.0));
+
+    json r1 = JsonArray();
+    r1 = JsonArrayInsert(r1, DyeGridBtn("ch2", "Cloth 1",   nChan == ITEM_APPR_ARMOR_COLOR_CLOTH1));
+    r1 = JsonArrayInsert(r1, DyeGridBtn("ch0", "Leather 1", nChan == ITEM_APPR_ARMOR_COLOR_LEATHER1));
+    r1 = JsonArrayInsert(r1, DyeGridBtn("ch4", "Metal 1",   nChan == ITEM_APPR_ARMOR_COLOR_METAL1));
+    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r1), 32.0));
+
+    json r2 = JsonArray();
+    r2 = JsonArrayInsert(r2, DyeGridBtn("ch3", "Cloth 2",   nChan == ITEM_APPR_ARMOR_COLOR_CLOTH2));
+    r2 = JsonArrayInsert(r2, DyeGridBtn("ch1", "Leather 2", nChan == ITEM_APPR_ARMOR_COLOR_LEATHER2));
+    r2 = JsonArrayInsert(r2, DyeGridBtn("ch5", "Metal 2",   nChan == ITEM_APPR_ARMOR_COLOR_METAL2));
+    jRows = JsonArrayInsert(jRows, NuiHeight(NuiRow(r2), 32.0));
+
+    return NuiCol(jRows);
+}
+
 json DyeBuildWindow(object oPC) {
     json jCol = JsonArray();
 
-    // Slot row
-    json jSlots = JsonArray();
-    jSlots = JsonArrayInsert(jSlots, NuiId(NuiButton(JsonString("Armor")),  "slc"));
-    jSlots = JsonArrayInsert(jSlots, NuiId(NuiButton(JsonString("Helmet")), "slh"));
-    jSlots = JsonArrayInsert(jSlots, NuiId(NuiButton(JsonString("Cloak")),  "slk"));
-    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jSlots), 30.0));
-
-    // Channel row (element id "ch<channelConst>")
-    json jCh = JsonArray();
-    jCh = JsonArrayInsert(jCh, NuiId(NuiButton(JsonString("Cloth 1")),   "ch2"));
-    jCh = JsonArrayInsert(jCh, NuiId(NuiButton(JsonString("Cloth 2")),   "ch3"));
-    jCh = JsonArrayInsert(jCh, NuiId(NuiButton(JsonString("Leather 1")), "ch0"));
-    jCh = JsonArrayInsert(jCh, NuiId(NuiButton(JsonString("Leather 2")), "ch1"));
-    jCh = JsonArrayInsert(jCh, NuiId(NuiButton(JsonString("Metal 1")),   "ch4"));
-    jCh = JsonArrayInsert(jCh, NuiId(NuiButton(JsonString("Metal 2")),   "ch5"));
-    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jCh), 30.0));
+    // Slot + material controls (group id "ctl" so highlight can be refreshed)
+    json jCtl = NuiId(NuiGroup(DyeBuildControlsJson(oPC), FALSE, NUI_SCROLLBARS_NONE), "ctl");
+    jCol = JsonArrayInsert(jCol, NuiHeight(jCtl, 104.0));
 
     // Status label (bound "dstat")
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(NuiBind("dstat"),
@@ -181,15 +229,36 @@ json DyeBuildWindow(object oPC) {
     jNav = JsonArrayInsert(jNav, NuiId(NuiButton(JsonString("More colors >")), "bnext"));
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jNav), 30.0));
 
-    // Footer
+    // Footer row 1
     json jFoot = JsonArray();
     jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString("Revert")), "brev"));
     jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString("Reshape appearance...")), "bshape"));
     jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString("Close")), "bclose"));
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
 
+    // Footer row 2 — save/apply a color scheme (persistent per character)
+    json jFoot2 = JsonArray();
+    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString("Save colors")), "bsave"));
+    jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString("Apply saved colors")), "bapply"));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot2), 32.0));
+
+    // Default the window to the centre of the right half of the screen so it does
+    // not cover the character live-preview. Falls back to screen-centre (-1,-1).
+    float ww = 520.0;
+    float wh = 470.0;
+    float wx = -1.0;
+    float wy = -1.0;
+    int gw = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_WIDTH);
+    int gh = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_HEIGHT);
+    if (gw > 0 && gh > 0) {
+        wx = IntToFloat(gw) * 0.75 - ww / 2.0;
+        wy = (IntToFloat(gh) - wh) / 2.0;
+        if (wx < 0.0) wx = 0.0;
+        if (wy < 0.0) wy = 0.0;
+    }
+
     return NuiWindow(NuiCol(jCol), JsonString("Dye Studio"),
-        NuiRect(-1.0, -1.0, 520.0, 400.0),
+        NuiRect(wx, wy, ww, wh),
         JsonBool(FALSE),   // resizable
         JsonBool(FALSE),   // collapsed
         JsonBool(TRUE),    // closable
@@ -220,14 +289,14 @@ void DyeUpdateStatus(object oPC) {
     int nTok = GetLocalInt(oPC, DYE_TOK);
     object oItem = DyeGetItem(oPC);
     int nChan = GetLocalInt(oPC, DYE_CH);
-    int nSlot = GetLocalInt(oPC, DYE_SLOT);
     string s;
     if (!GetIsObjectValid(oItem) || !DyeIsDyeable(oItem))
-        s = "No dyeable item equipped in the " + DyeSlotName(nSlot) + " slot.";
+        s = "No dyeable item equipped.";
     else {
         int nCur = GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nChan);
-        s = "Slot: " + DyeSlotName(nSlot) + "     Channel: " + DyeChanName(nChan)
-          + "     Current color: #" + IntToString(nCur);
+        // The highlighted slot/material buttons already show which combo is active,
+        // so the status line just names the current color.
+        s = "Color #" + IntToString(nCur) + "  -  " + DyeColorName(nChan, nCur);
     }
     NuiSetBind(oPC, nTok, "dstat", JsonString(s));
 }
@@ -243,9 +312,17 @@ void DyeUpdatePageLabel(object oPC) {
 }
 
 void DyeRefresh(object oPC) {
-    NuiSetGroupLayout(oPC, GetLocalInt(oPC, DYE_TOK), "grid", DyeBuildGridJson(oPC));
+    int nTok = GetLocalInt(oPC, DYE_TOK);
+    NuiSetGroupLayout(oPC, nTok, "ctl",  DyeBuildControlsJson(oPC));
+    NuiSetGroupLayout(oPC, nTok, "grid", DyeBuildGridJson(oPC));
     DyeUpdateStatus(oPC);
     DyeUpdatePageLabel(oPC);
+}
+
+// Jump the swatch view to the page holding this combo's current color.
+void DyeJumpToSel(object oPC) {
+    int nSel = GetLocalInt(oPC, DYE_SEL);
+    if (nSel >= 0 && nSel <= 175) SetLocalInt(oPC, DYE_PAGE, nSel / DYE_PAGESIZE);
 }
 
 void DyeSetPage(object oPC, int nPage) {
@@ -264,6 +341,7 @@ void DyeSelectSlot(object oPC, int nSlot) {
         SetLocalInt(oPC, DYE_SEL, GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, GetLocalInt(oPC, DYE_CH)));
     else
         SetLocalInt(oPC, DYE_SEL, -1);
+    DyeJumpToSel(oPC);
     DyeRefresh(oPC);
 }
 
@@ -274,6 +352,7 @@ void DyeSelectChannel(object oPC, int nChan) {
         SetLocalInt(oPC, DYE_SEL, GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, nChan));
     else
         SetLocalInt(oPC, DYE_SEL, -1);
+    DyeJumpToSel(oPC);
     DyeRefresh(oPC);
 }
 
@@ -297,6 +376,55 @@ void DyeRevert(object oPC) {
     AssignCommand(oPC, ClearAllActions(TRUE));
     AssignCommand(oPC, ActionEquipItem(oCur, nSlot));
     SetLocalInt(oPC, DYE_SEL, GetLocalInt(oPC, "DYE_O_" + IntToString(nSlot) + "_" + IntToString(GetLocalInt(oPC, DYE_CH))));
+    DyeRefresh(oPC);
+}
+
+// Save the current item's 6 channel colors as this character's scheme (persistent).
+void DyeSaveSchemeFromItem(object oPC) {
+    object oItem = DyeGetItem(oPC);
+    if (!GetIsObjectValid(oItem) || !DyeIsDyeable(oItem)) {
+        SendMessageToPC(oPC, "Dye Studio: no dyeable item to save colors from.");
+        return;
+    }
+    Dye_SaveScheme(oPC,
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 0),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 1),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 2),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 3),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 4),
+        GetItemAppearance(oItem, ITEM_APPR_TYPE_ARMOR_COLOR, 5));
+    NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), "dstat",
+               JsonString("Saved this item's color scheme."));
+}
+
+// Apply this character's saved scheme to the current slot's item (jail-safe).
+void DyeApplyScheme(object oPC) {
+    if (!Dye_LoadScheme(oPC)) {
+        SendMessageToPC(oPC, "Dye Studio: no saved color scheme yet. Use 'Save colors' first.");
+        NuiSetBind(oPC, GetLocalInt(oPC, DYE_TOK), "dstat", JsonString("No saved scheme yet."));
+        return;
+    }
+    int nSlot = GetLocalInt(oPC, DYE_SLOT);
+    object oCur = DyeGetItem(oPC);
+    if (!GetIsObjectValid(oCur) || !DyeIsDyeable(oCur)) {
+        SendMessageToPC(oPC, "Dye Studio: no dyeable item to apply colors to.");
+        return;
+    }
+    int nCeil  = GetLocalInt(oCur, "FORGE_CEIL");
+    int nClean = GetLocalInt(oCur, "FORGE_CLEAN");
+    int ch;
+    for (ch = 0; ch < 6; ch++) {
+        int nVal = GetLocalInt(oPC, "DYE_LS_" + IntToString(ch));
+        object oTmp = CopyItemAndModify(oCur, ITEM_APPR_TYPE_ARMOR_COLOR, ch, nVal, TRUE);
+        if (GetIsObjectValid(oTmp)) { DestroyObject(oCur); oCur = oTmp; }
+    }
+    if (nCeil)  SetLocalInt(oCur, "FORGE_CEIL", nCeil);
+    if (nClean) SetLocalInt(oCur, "FORGE_CLEAN", nClean);
+    SetLocalObject(oPC, DYE_ITEM, oCur);
+    AssignCommand(oPC, ClearAllActions(TRUE));
+    AssignCommand(oPC, ActionEquipItem(oCur, nSlot));
+    SetLocalInt(oPC, DYE_SEL, GetLocalInt(oPC, "DYE_LS_" + IntToString(GetLocalInt(oPC, DYE_CH))));
+    DyeJumpToSel(oPC);
     DyeRefresh(oPC);
 }
 

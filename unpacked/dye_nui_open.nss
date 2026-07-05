@@ -6,6 +6,8 @@ void main() {
     object oPC = OBJECT_SELF;
     if (!GetIsPC(oPC)) return;
 
+    Dye_InitDb();   // idempotent; ensures the saved-scheme table exists
+
     // Close any stale instance.
     int nOld = NuiFindWindow(oPC, "dyestudio");
     if (nOld) { NuiDestroy(oPC, nOld); DyeCleanup(oPC); }
