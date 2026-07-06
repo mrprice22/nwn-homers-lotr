@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Testing guide — Item Tag Dedup</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Testing guide — Item Tag Dedup</h1>
+<p><strong>Build:</strong> item-tag dedup (commit <code>74803a6f53a</code>)<br><strong>Audience:</strong> testers / DMs<br><strong>Time to test:</strong> ~30–45 min for the core checks; more if you want to sweep quests.</p>
+<hr>
+<h2>What changed (plain-English)</h2>
+<p>Lots of different items in the module were secretly sharing the same internal<br><strong>Tag</strong> (the hidden name scripts and the game use to identify an item). When two<br><em>different</em> items share a tag, the game can't tell them apart — that's what<br>caused the <strong>Longsword of Elrond "false jailing"</strong> bug (a legit sword kept<br>getting flagged as illegal contraband).</p>
+<p>This build gives <strong>every distinct item its own unique tag</strong>. Under the hood:</p>
+<ul>
+<li>Some items just had their tag renamed.</li>
+<li>Some "custom" copies of items (a merchant's or an NPC's tweaked version) were</li>
+</ul>
+<p>turned into their <strong>own separate blueprint</strong> with a new internal id.</p>
+<ul>
+<li>Items <strong>equipped on creatures</strong> were handled carefully so monsters/NPCs still</li>
+</ul>
+<p>respawn wearing the right gear.</p>
+<p><strong>361 of 369 conflicts were fixed.</strong> 8 were left alone <strong>on purpose</strong> (see<br>"Deliberately unchanged" below) because their tag is used by a quest and<br>renaming them could break that quest.</p>
+<p>**Nothing about how items look, what they do, their stats, or their value<br>changed.** Only hidden internal names/ids changed.</p>
+<hr>
+<h2>The #1 thing to test: no false "contraband" jailing</h2>
+<p>The old bug jailed players for carrying <strong>legitimate</strong> high-end gear when they<br>logged in or entered the <strong>Well of Eru</strong> (the Forge Warden's contraband scan).<br>The fix was specifically designed so this can't happen — **please try hard to<br>break it.**</p>
+<h3>Test A — carry your existing gear through the scan</h3>
+<ol>
+<li>Log in with a character that already owns high-value/enchanted gear</li>
+</ol>
+<p>(especially anything looted or bought <strong>before</strong> this build).</p>
+<ol>
+<li>Walk into the <strong>Well of Eru</strong>.</li>
+<li><strong>Expected:</strong> you are NOT jailed, the Forge Warden does NOT accuse you, no</li>
+</ol>
+<p><code>&lt;UNRECOGNIZED TOKEN&gt;</code> message.</p>
+<ol>
+<li>⚠️ <strong>Please also test items pulled out of your BANK / player-house chest</strong>,</li>
+</ol>
+<p>not just what you were carrying — banked items are the most likely to trip a<br>contraband check if anything was missed.</p>
+<h3>Test B — the Longsword of Elrond itself</h3>
+<ul>
+<li>Grab/loot the <strong>Longsword of Elrond</strong> (Elrond in Rivendell, or Card Mennard's</li>
+</ul>
+<p>copy in Edoras). Carry it into the Well of Eru. <strong>Expected:</strong> no jailing; both<br>swords work and look normal.</p>
+<h3>Test C — re-color / re-shape an item (Bree appearance station / dye kit)</h3>
+<ul>
+<li>Dye or reshape a valuable item, then walk into the Well of Eru.</li>
+<li><strong>Expected:</strong> still no false jailing. (A related past bug jailed players after</li>
+</ul>
+<p>they recolored an item — worth re-confirming.)</p>
+<p>**If anyone gets jailed by the Forge Warden for legit gear, that's a P1 bug —<br>grab the character name, the item, and where/when it happened.**</p>
+<hr>
+<h2>Core item sanity checks</h2>
+<p>For a spread of items — cheap, mid, and top-tier — confirm the basics still work:</p>
+<ul>
+<li>[ ] <strong>Loot</strong> it off a creature/chest — it appears, correct name, correct stats.</li>
+<li>[ ] <strong>Buy/sell</strong> it at the relevant merchant — price unchanged, transaction works.</li>
+<li>[ ] <strong>Equip / unequip</strong> it — bonuses apply, no error.</li>
+<li>[ ] <strong>Stack</strong> stackable items (arrows, potions, gems) — they still stack.</li>
+<li>[ ] Item <strong>name and description</strong> read correctly (in-game and on the wiki).</li>
+</ul>
+<p>Good candidate items to spot-check (all were touched by the dedup):</p>
+<ul>
+<li><strong>Longsword of Elrond</strong> (Elrond, Card Mennard)</li>
+<li><strong>Chain of The Guardian</strong> / Adamantine armors</li>
+<li><strong>Black Galvorn Plate</strong> / Plate of the Witch King (Ronus crafting quest — see below)</li>
+<li><strong>Gloves / Epic Gloves of the Stone Heart</strong> (Ronus crafting quest)</li>
+<li>Boss-dropped rings/plates, Galadhrim gear, Drider/Numenorean gear</li>
+<li>Anything sold by major merchants (Rivendell, Bree, Edoras, forges)</li>
+</ul>
+<hr>
+<h2>Creature respawns (equipment)</h2>
+<p>Equipped gear on monsters/NPCs got special handling so respawns stay correct.</p>
+<ul>
+<li>[ ] Kill a named/boss enemy that carries distinctive gear.</li>
+<li>[ ] Let it respawn (or reboot).</li>
+<li>[ ] <strong>Expected:</strong> it comes back wearing the <strong>same</strong> weapon/armor as before —</li>
+</ul>
+<p>no "reverted to a generic version," no missing weapon.</p>
+<p>Watch especially: <strong>Card Mennard (Edoras)</strong>, Rohirrim soldiers, Galadhrim<br>guards/archers, Drider priestesses/militia, Black Numenorean casters, Dol-Guldur<br>defenders, and any boss you know the loadout of.</p>
+<hr>
+<h2>Quests — the 8 deliberately-unchanged items</h2>
+<p>These 8 items were <strong>left exactly as-is</strong> because a quest looks them up by tag.<br>They should behave <strong>identically to before</strong> — the point of testing them is to<br>confirm we correctly <em>avoided</em> touching them. If any of these quests broke, it's<br>unrelated to this build, but please report it anyway:</p>
+<p>| Item / tag | Where it matters |<br>|---|---|<br>| <strong>Boss Ring</strong> (<code>BossRing</code>) | boss-ring turn-ins / rewards |<br>| <strong>Dye Kit</strong> (<code>DyeKit</code>) | the dye/recolor system |<br>| <strong>Denethor's Plate</strong> (<code>DenethorsPlate</code>) | related turn-in |<br>| <strong>Gandalf's Epic Ring</strong> (<code>EpicRing</code>) | related turn-in |<br>| <strong>Witch Weed</strong> (<code>witchbud</code>) | donation / herb turn-in |<br>| <strong>"Proof" item</strong> (<code>nw<em>wplmsc004</code>) | the proof turn-in at the reward NPC (at</em>036/sc_021) |<br>| <strong>Black Galvorn Plate</strong> (<code>BlackGalvornPlate</code>) | Ronus crafting/transmute quest |<br>| <strong>Epic Gloves of the Stone Heart</strong> (<code>X2<em>IT</em>MGLOVE018</code>) | Ronus crafting/transmute quest |</p>
+<ul>
+<li>[ ] Run each of these turn-ins/crafts end-to-end. <strong>Expected:</strong> works as before.</li>
+</ul>
+<hr>
+<h2>Possible issues / impacts to watch for</h2>
+<ul>
+<li><strong>Duplicated-looking items on the wiki (expected, not a bug):</strong> some items that</li>
+</ul>
+<p>were "one item with two versions" are now correctly shown as **two separate<br>items** with distinct names/ids. The wiki updates on the next scheduled<br>refresh, so it may briefly look inconsistent until then.</p>
+<ul>
+<li><strong>Old vs new copies:</strong> an item you looted <em>before</em> this build and the <em>same</em></li>
+</ul>
+<p>item looted <em>after</em> may now have slightly different internal ids. Both are<br>legal and both work — this is expected. (The forge whitelist was specifically<br>updated to keep the older copies legal.)</p>
+<ul>
+<li><strong>Merchant "custom" stock:</strong> a few merchants sold hand-tweaked versions of</li>
+</ul>
+<p>items; those are now their own blueprints. Confirm the merchant still lists<br>them and they still buy/sell.</p>
+<ul>
+<li><strong>Tag-based scripts:</strong> general item scripts were reviewed and quest lookups</li>
+</ul>
+<p>protected. If a <em>script/quest</em> stops recognizing an item you're carrying,<br>note the exact item + quest + NPC.</p>
+<ul>
+<li><strong>Banked / player-house stored items:</strong> most likely place for an edge case to</li>
+</ul>
+<p>hide. Please pull stored gear out and re-check it (Test A, step 4).</p>
+<hr>
+<h2>How to report</h2>
+<p>For anything unexpected, include:</p>
+<ul>
+<li>Character name + the item (exact in-game name).</li>
+<li>Where it came from (looted where / bought where / how long you've had it).</li>
+<li>What you did and what happened (screenshot of any error/jail message helps).</li>
+<li>Whether it was a <strong>freshly-obtained</strong> copy or one you've **had since before</li>
+</ul>
+<p>this build** (this distinction matters a lot for diagnosis).</p>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
