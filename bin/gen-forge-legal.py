@@ -33,8 +33,13 @@ Usage:
   --all      also include every no-blueprint fingerprint regardless of the
              cap-plausibility filter (bigger file; normally unnecessary)
 
+If dedupe-item-tags-map.csv is present (bin/dedupe-item-tags.py), the whitelist
+also re-includes each promoted/re-pointed item's PRE-dedup resref fingerprint,
+so copies players already carry are not jailed after the rename lands.
+
 Re-run after editing store inventories, creature loot, or placed container
-items, then repack. Do not hand-edit forge_legal_inc.nss.
+items, or after re-running the tag dedup, then repack. Do not hand-edit
+forge_legal_inc.nss.
 """
 
 import json
@@ -99,6 +104,31 @@ def walk_items(node, out):
             walk_items(v, out)
 
 
+def legacy_fingerprints(blueprints):
+    """Fingerprints for items players may still carry under a pre-dedup resref.
+
+    Reads dedupe-item-tags-map.csv (bin/dedupe-item-tags.py). For each B/R row
+    the item's resref changed from old_resref to new_resref; a player copy still
+    hashes as fingerprint(old_resref, <new blueprint props>). Returns that set so
+    those legitimate legacy items stay whitelisted. Empty if the map is absent.
+    """
+    import csv
+    map_path = REPO / "dedupe-item-tags-map.csv"
+    if not map_path.exists():
+        return set()
+    out = set()
+    with map_path.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            if row["class"] not in ("B", "R"):
+                continue
+            uti = UNPACKED / f"{row['new_resref']}.uti.json"
+            if not uti.exists():
+                continue
+            props = item_props(json.loads(uti.read_text()))
+            out.add(fingerprint(row["old_resref"], props))
+    return out
+
+
 def main():
     dry_run = "--dry-run" in sys.argv
     include_all = "--all" in sys.argv
@@ -133,12 +163,21 @@ def main():
 
     nb_kept = {fp: src for fp, (src, cap) in no_blueprint.items()
                if cap or include_all}
-    entries = sorted(set(deviant) | set(nb_kept))
+
+    # Legacy fingerprints from the item-tag dedup (bin/dedupe-item-tags.py).
+    # Promoting/​re-pointing an override changed its resref, so copies players
+    # already carry hash under the OLD resref and would otherwise fall off the
+    # whitelist and be jailed. Re-add old_resref|props for every B/R migration
+    # (T keeps its resref, so it is already covered by the source scan above).
+    legacy = legacy_fingerprints(blueprints)
+
+    entries = sorted(set(deviant) | set(nb_kept) | set(legacy))
 
     print("blueprints scanned:        %d" % len(blueprints))
     print("deviant variants (w/ uti): %d" % len(deviant))
     print("no-blueprint fingerprints: %d (kept after cap filter: %d)"
           % (len(no_blueprint), len(nb_kept)))
+    print("legacy dedup fingerprints: %d" % len(legacy))
     print("total whitelist entries:   %d" % len(entries))
 
     if dry_run:
