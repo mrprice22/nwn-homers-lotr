@@ -60,8 +60,13 @@ void main()
         }
         else if (GetIsObjectValid(oEnemy))
         {
-            // Curse Song debuffs enemies (bards only -- no-ops for Druid)
-            if (GetHasFeat(FEAT_CURSE_SONG))
+            // Curse Song debuffs enemies (bards only -- no-ops for Druid).
+            // Curse Song shares the Bard Song use pool (x2_s2_cursesong
+            // decrements FEAT_BARD_SONGS), so gate on FEAT_BARD_SONGS: gating on
+            // FEAT_CURSE_SONG never trips and floods "no more bardsong uses left"
+            // every round once the pool is empty. Also skip an already-cursed
+            // enemy so we don't burn a use re-cursing each round.
+            if (GetHasFeat(FEAT_BARD_SONGS) && !GetHasFeatEffect(FEAT_CURSE_SONG, oEnemy))
                 ActionUseFeat(FEAT_CURSE_SONG, OBJECT_SELF);
             if (GetHasSpell(SPELL_STORM, OBJECT_SELF))
                 ActionCastSpellAtObject(SPELL_STORM, oEnemy);
@@ -94,7 +99,9 @@ void main()
                 ActionCastSpellAtObject(SPELL_HASTE, oPC);
         }
         // Bard song keeps party buffed; no-ops on Druid. x2 won't run in this mode.
-        if (GetHasFeat(FEAT_BARD_SONGS))
+        // Mirror TalentBardSong(): don't re-sing while the song buff (spell 411)
+        // is still up, or it churns through all daily uses in seconds.
+        if (GetHasFeat(FEAT_BARD_SONGS) && !GetHasSpellEffect(411))
             ActionUseFeat(FEAT_BARD_SONGS, OBJECT_SELF);
         return; // Healer does not fall through to standard attack AI
     }
