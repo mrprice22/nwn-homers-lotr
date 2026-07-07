@@ -430,11 +430,11 @@ ideas:
   - id: Card-mendard-drops-elronds-sword
     title: "Card Menard in Edoras drops Elrond's sword"
     group: items-gear
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Y a z k i r"
-    date: "2026-06-22"
-    notes: "Look into if this is a bug -- Should be resolved by <a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a>"
+    date: "2026-07-07"
+    notes: "Look into if this is a bug -- Should be resolved by <a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a><br><br><b>Fixed:</b> the dedupe pass had already given Card Mennard's Edoras copy the unique tag <code>LongswordofElrond2</code> (Elrond's Rivendell copy keeps <code>LongswordofElrond</code>), so it was no longer a tag duplicate. To stop it reading as a straight clone of Elrond's blade it is now its own distinct item: renamed <b>Blade of the Golden Hall</b> and reskinned (longsword models 172/222/111). Item properties/resref unchanged, so the Forge whitelist fingerprint is unaffected — no jailing risk and no forge regen needed. Edit is a single inline equipped-item override in <code>edoras.git.json</code>; Elrond's Rivendell sword is untouched."
   - id: party-xp-given-to-whole-party-issue
     title: "party XP is applied to the whole party even if not in the same area"
     group: progression
