@@ -335,6 +335,11 @@ It validates with `gen-roadmap.py`'s own checks before writing and only
 rewrites the `ideas:` block, leaving the rest of the file untouched. It can run
 on boot as a systemd user service (`systemd/roadmap-editor.service`).
 
+`gen-roadmap.py` also prints an advisory (non-blocking) warning when two ideas in
+the same group have titles that share too many words — a nudge to link them with
+`dupe_of` if they're really the same request. See **CLAUDE-roadmap.md** for the
+exact word-overlap rule and threshold, and how to reword a false positive.
+
 See **[CLAUDE-roadmap.md](CLAUDE-roadmap.md)** for the full schema, the refresh
 process, and the editor + service setup.
 

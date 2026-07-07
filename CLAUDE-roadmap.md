@@ -88,6 +88,24 @@ and add a row per other submitter with `dupe_of: <canonical-id>` and their `play
 `gen-roadmap.py` folds all the credits onto the canonical item, and warns (advisory only)
 when two same-group titles look similar but aren't linked with `dupe_of`.
 
+**The similar-title warning, exactly** (`norm_title()` + the check in `validate()`,
+`bin/gen-roadmap.py:109-158`):
+- Only compares `title`, and only among ideas that don't already have `dupe_of` set.
+- Normalizes each title: lowercase, then collapse any run of non-alphanumeric characters
+  (spaces, punctuation, hyphens, quotes, parens) to a single space, then strip.
+- Splits the normalized title into a **set of unique words** (order/repeats don't matter).
+- Similarity = `len(intersection) / min(len(words_a), len(words_b))` — the fraction of the
+  *shorter* title's unique words that also appear in the other title. This is a min-based
+  overlap ratio, not `difflib`/edit-distance and not a standard union-based Jaccard index.
+- Warns when that ratio is **`>= 0.7`** and the two ideas share the same `group`.
+  Cross-group similar titles are never flagged, no matter how close the wording.
+- **Advisory only** — printed to stderr, never added to `validate()`'s `errors` list, so it
+  never fails `--check` or blocks a GUI save.
+- If two ideas are genuinely distinct but trip this warning (e.g. both describe "convert
+  X to a roll for bonus damage, or a new Y damage type" for different mechanics X/Y), the
+  fix is **not** `dupe_of` — reword one title enough to push the shared-word count below
+  the threshold (a synonym swap or rephrase is usually enough) while keeping its meaning.
+
 **Established submitter names** (avoid typos — a misspelling silently splits a player's
 credit). The authoritative list is the `players:` block in `roadmap.yaml` (the GUI sources
 its player picker from it); match those strings exactly. As of 2026-06-24:
