@@ -105,6 +105,15 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: MW-Bardsong-Bug
+    title: "MW Companions/Henchmen can get stuck trying to use Bard Song over and over"
+    group: meaningwave
+    status: implemented
+    type: Defect
+    player: "Fugdish (Try_this)"
+    date: "2026-07-07"
+    commit: e745a3f4c60
+    notes: "<div>this happens even when you ask them to attack (<span>the dialogue questions under tactics -- </span>\nWhen you speak to him, He doesn’t seem to respond to the menu options when I click on him)</div><div>screen shot shows server log messages indicating MW henchmen is out of bard song uses and keeps trying to use it anyway, but also has confusing verbiage as if it consumes the PC's own bard song uses instead of the henchmen's bard song uses.</div><div><br></div><div><strong>Root cause:</strong> <em>mw_sup_er</em> (Campbell/McKenna OnEndCombatRound) issued song feats every combat round with no guards. Style 1 gated Curse Song on <em>FEAT_CURSE_SONG</em>, but Curse Song actually spends the <em>Bard Song</em> pool (x2_s2_cursesong decrements/checks FEAT_BARD_SONGS) -- so the gate never tripped and it re-queued Curse Song every round, flooding the &quot;no more bardsong uses left&quot; message (which names <em>bard</em> song, hence the confusing verbiage). Style 2 re-sang Bard Song every round with no &quot;already singing&quot; guard, burning all daily uses in seconds; the constant feat attempts also monopolized the henchman's action queue, pre-empting attack/tactics orders. <strong>Fix:</strong> gate Curse Song on the real FEAT_BARD_SONGS pool and skip an already-cursed enemy; add <em>!GetHasSpellEffect(411)</em> to Bard Song so it isn't re-sung while the buff is up (mirroring the module's canonical TalentBardSong()).</div>"
   - id: Legendary-Feats
     title: "Implement Legendary Feats"
     group: forge
@@ -434,7 +443,8 @@ ideas:
     type: Defect
     player: "Y a z k i r"
     date: "2026-07-07"
-    notes: "Look into if this is a bug -- Should be resolved by <a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a><br><br><b>Fixed:</b> the dedupe pass had already given Card Mennard's Edoras copy the unique tag <code>LongswordofElrond2</code> (Elrond's Rivendell copy keeps <code>LongswordofElrond</code>), so it was no longer a tag duplicate. To stop it reading as a straight clone of Elrond's blade it is now its own distinct item: renamed <b>Blade of the Golden Hall</b> and reskinned (longsword models 172/222/111). Item properties/resref unchanged, so the Forge whitelist fingerprint is unaffected — no jailing risk and no forge regen needed. Edit is a single inline equipped-item override in <code>edoras.git.json</code>; Elrond's Rivendell sword is untouched."
+    commit: 265383b113c
+    notes: "Resolution: Card and a modified instance copy of Elrond's sword that was causing players to go to jail. It received a unique tag via idea [<a href=\"#idea-dedupe-item-tags\">Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref</a>] and was further renamed and modified appearance and description by this idea."
   - id: party-xp-given-to-whole-party-issue
     title: "party XP is applied to the whole party even if not in the same area"
     group: progression
@@ -934,7 +944,7 @@ ideas:
     commit: fd895fd8465
     notes: "Found missing skills and added to forge crafting enchant options:<ul><li>Discipline</li><li>Lore</li><li>Move Silently</li><li>Spellcraft</li><li>Spot</li><li>Use Magic Device</li></ul><br>"
   - id: sneak-attack-shadowdmg
-    title: "Convert Sneak Attack to a roll for bonus damage (or a new 'shadow' damage type)"
+    title: "Rework Sneak Attack as a bonus-damage roll (or a new 'shadow' damage type)"
     group: combat-classes
     status: later
     type: Enhancement
@@ -1167,7 +1177,7 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-07-05"
     commit: 74803a6f53a
-    notes: "Items that share a Tag but differ in properties break tag-based lookups and confuse the Forge contraband whitelist (a single resref can only represent one blueprint fingerprint). Surfaced by the Longsword of Elrond false-jailing bug: Elrond's Rivendell copy and Card Mennard's Edoras copy both use resref/tag handofpaladine/LongswordofElrond with different properties, which is why that item needed a whitelist entry at all. Audit every entry in module-index/item_tag_conflicts.json and give each variant its own unique Tag (and resref where the conflict is resref-level), then regenerate forge_legal_inc.nss and the wiki.<br><br><b>Fixed:</b> new reusable tool <code>bin/dedupe-item-tags.py</code> scans <code>unpacked/</code> directly, groups each shared tag's members by property signature, keeps one canonical signature on the tag and gives every other a unique tag with the cheapest safe rewrite — retag blueprint (367), promote an inline override to its own <code>.uti</code> (211), re-point to a same-signature blueprint (11), retag-in-place for creature-equipped overrides so respawns stay faithful (90), and retag module blueprints that borrowed a base-game resref as their tag (13). 361 of 369 conflicts resolved. The remaining <b>8</b> are left intact on purpose: their tag is used as a live quest/script lookup key (e.g. BossRing, DyeKit, DenethorsPlate, EpicRing, witchbud, nw_wplmsc004, BlackGalvornPlate, X2_IT_MGLOVE018), so renaming the item would break a quest — the tool detects and defers these for manual, per-quest reconciliation. Because promotions change an item's resref, <code>bin/gen-forge-legal.py</code> now re-whitelists each migration's pre-dedup fingerprint from the committed map, so items players already carry are never jailed after the rename lands (no player .bic edit required). Verified: 0 remaining source-scan conflicts (besides the 8), idempotent re-apply, all build gates pass, and every one of the 750 changed resources round-trips through nwn_gff. The wiki's conflict report and item pages update on the next scheduled refresh."
+    notes: "Items that share a Tag but differ in properties break tag-based lookups and confuse the Forge contraband whitelist (a single resref can only represent one blueprint fingerprint). Surfaced by the Longsword of Elrond false-jailing bug: Elrond's Rivendell copy and Card Mennard's Edoras copy both use resref/tag handofpaladine/LongswordofElrond with different properties, which is why that item needed a whitelist entry at all. Audit every entry in module-index/item_tag_conflicts.json and give each variant its own unique Tag (and resref where the conflict is resref-level), then regenerate forge_legal_inc.nss and the wiki.<br><br><b>Fixed:</b> new reusable tool bin/dedupe-item-tags.py scans unpacked/ directly, groups each shared tag's members by property signature, keeps one canonical signature on the tag and gives every other a unique tag with the cheapest safe rewrite — retag blueprint (367), promote an inline override to its own .uti (211), re-point to a same-signature blueprint (11), retag-in-place for creature-equipped overrides so respawns stay faithful (90), and retag module blueprints that borrowed a base-game resref as their tag (13). 361 of 369 conflicts resolved. The remaining <b>8</b> are left intact on purpose: their tag is used as a live quest/script lookup key (e.g. BossRing, DyeKit, DenethorsPlate, EpicRing, witchbud, nw_wplmsc004, BlackGalvornPlate, X2_IT_MGLOVE018), so renaming the item would break a quest — the tool detects and defers these for manual, per-quest reconciliation. Because promotions change an item's resref, bin/gen-forge-legal.py now re-whitelists each migration's pre-dedup fingerprint from the committed map, so items players already carry are never jailed after the rename lands (no player .bic edit required). Verified: 0 remaining source-scan conflicts (besides the 8), idempotent re-apply, all build gates pass, and every one of the 750 changed resources round-trips through nwn_gff. The wiki's conflict report and item pages update on the next scheduled refresh."
   - id: mail-delivery
     title: "Mail-delivery system: pay postage by weight to send items to a specific character; they're notified after login (post office if no player house)"
     group: items-gear
