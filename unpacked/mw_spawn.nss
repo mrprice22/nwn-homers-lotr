@@ -11,7 +11,7 @@
 // MW_SPAWN_AURELIUS   mw_aurelius_w       gwaththrone (Gwaththrone)
 // MW_SPAWN_AKIRA      mw_akira            hallofleg (Hall of Legends)
 // MW_SPAWN_JOCKO      mw_jocko_w          helmsdeep001 (Helm's Deep)
-// MW_SPAWN_MCKENNA    mw_mckenna_w        northernforestso (Northern Forests)
+// MW_SPAWN_MCKENNA    mw_mckenna_w        hennethannun002 (Henneth Annun)
 // MW_SPAWN_WATTS      mw_watts_w          oldforest001 (Old Forest)
 
 void SpawnAtWaypoint(string sWPTag, string sResRef)

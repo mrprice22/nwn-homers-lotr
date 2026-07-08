@@ -51,15 +51,12 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>mw_nfoi_enter</code></h1><pre class="nss-source"><code>#include &quot;mw_spawn_inc&quot;
-
-void main()
+<h1>Script: <code>mw_nfoi_enter</code></h1><pre class="nss-source"><code>void main()
 {
     // Keep creatures in their spawn area (anti-kiting); see leash_to_area.nss.
     ExecuteScript(&quot;leash_to_area&quot;, OBJECT_SELF);
 
     ExecuteScript(&quot;d_cleartrash&quot;, OBJECT_SELF);
-    MWSpawnAtWaypoint(&quot;MW_SPAWN_MCKENNA&quot;, &quot;mw_mckenna_w&quot;);
 }
 </code></pre>
   </main>
