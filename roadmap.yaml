@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-05 08:40 CDT"
+  as_of: "2026-07-08 14:57 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -113,7 +113,7 @@ ideas:
     player: "Fugdish (Try_this)"
     date: "2026-07-07"
     commit: e745a3f4c60
-    notes: "<div>this happens even when you ask them to attack (<span>the dialogue questions under tactics -- </span>\nWhen you speak to him, He doesn’t seem to respond to the menu options when I click on him)</div><div>screen shot shows server log messages indicating MW henchmen is out of bard song uses and keeps trying to use it anyway, but also has confusing verbiage as if it consumes the PC's own bard song uses instead of the henchmen's bard song uses.</div><div><br></div><div><strong>Root cause:</strong> <em>mw_sup_er</em> (Campbell/McKenna OnEndCombatRound) issued song feats every combat round with no guards. Style 1 gated Curse Song on <em>FEAT_CURSE_SONG</em>, but Curse Song actually spends the <em>Bard Song</em> pool (x2_s2_cursesong decrements/checks FEAT_BARD_SONGS) -- so the gate never tripped and it re-queued Curse Song every round, flooding the &quot;no more bardsong uses left&quot; message (which names <em>bard</em> song, hence the confusing verbiage). Style 2 re-sang Bard Song every round with no &quot;already singing&quot; guard, burning all daily uses in seconds; the constant feat attempts also monopolized the henchman's action queue, pre-empting attack/tactics orders. <strong>Fix:</strong> gate Curse Song on the real FEAT_BARD_SONGS pool and skip an already-cursed enemy; add <em>!GetHasSpellEffect(411)</em> to Bard Song so it isn't re-sung while the buff is up (mirroring the module's canonical TalentBardSong()).</div>"
+    notes: "<div>this happens even when you ask them to attack (<span>the dialogue questions under tactics -- </span>\nWhen you speak to him, He doesn’t seem to respond to the menu options when I click on him)</div><div>screen shot shows server log messages indicating MW henchmen is out of bard song uses and keeps trying to use it anyway, but also has confusing verbiage as if it consumes the PC's own bard song uses instead of the henchmen's bard song uses.</div><div><br></div><div><strong>Root cause:</strong> <em>mw_sup_er</em> (Campbell/McKenna OnEndCombatRound) issued song feats every combat round with no guards. Style 1 gated Curse Song on <em>FEAT_CURSE_SONG</em>, but Curse Song actually spends the <em>Bard Song</em> pool (x2_s2_cursesong decrements/checks FEAT_BARD_SONGS) -- so the gate never tripped and it re-queued Curse Song every round, flooding the \"no more bardsong uses left\" message (which names <em>bard</em> song, hence the confusing verbiage). Style 2 re-sang Bard Song every round with no \"already singing\" guard, burning all daily uses in seconds; the constant feat attempts also monopolized the henchman's action queue, pre-empting attack/tactics orders. <strong>Fix:</strong> gate Curse Song on the real FEAT_BARD_SONGS pool and skip an already-cursed enemy; add <em>!GetHasSpellEffect(411)</em> to Bard Song so it isn't re-sung while the buff is up (mirroring the module's canonical TalentBardSong()).</div>"
   - id: Legendary-Feats
     title: "Implement Legendary Feats"
     group: forge
@@ -228,10 +228,10 @@ ideas:
   - id: Transition-Pelennor-Fields-2-Gates
     title: "Transition is missing from Pelennor Fields into Minas Tirith: Gates"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: "-Methonash-"
-    date: "2026-06-28"
+    date: "2026-07-08"
   - id: CEP3-CCOH
     title: "CEP3 + CCOH"
     group: qol
@@ -252,10 +252,10 @@ ideas:
   - id: goblin-caves-door
     title: "Door not working at bottom of goblin caves (SE Corner)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Fugdish (Try_this)"
-    date: "2026-06-29"
+    date: "2026-07-08"
   - id: newbie-starting-gear-01
     title: "Newbie starting gear once per account"
     group: forge
@@ -318,10 +318,10 @@ ideas:
   - id: Ithilien-Transitions
     title: "At least one of the Norther Forest of Ithilien transitions seems off"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: Tukwut
-    date: "2026-06-24"
+    date: "2026-07-08"
     notes: "<span>\nif i go north of the vale area to the zone where one of the legends is, going back south seems to send you not back to the proper transition but to some other random one (note there are multiple zones with the same title so probably just a mislinked transition unless lore-wise this forest is supposed to turn you around)</span>"
   - id: knock-spell-issue
     title: "Knock Spell Effect not working"
