@@ -174,6 +174,50 @@ If a graduated item is ammunition and should give a stack of 99, add its case
 number to the `GetBonusItemStackSize` switch in `_inc_donations.nss` manually
 after the sync run.
 
+## Chest / container loot tables
+
+Most chests in the module don't carry a static loot list. Instead, the placed
+**instance's `OnOpen` field** (in the area's `.git.json`, not the `.utp`
+blueprint) points at one of three scripts that procedurally roll fresh loot
+every time the chest is opened:
+
+| `OnOpen` script | Tier | Generator called |
+|---|---|---|
+| `chest_refilllow.nss` | Low | `GenerateLowTreasure` |
+| `chest_respawner.nss` | Medium | `GenerateMediumTreasure` |
+| `chest_refillhigh.nss` | High | `GenerateHighTreasure` |
+
+All three live in `unpacked/` and share the same shape: on open, destroy
+everything currently in the chest's inventory, then call the matching
+`Generate*Treasure(oLastOpener, OBJECT_SELF)` helper from
+`unpacked/nw_o2_coninclude.nss`, which rolls level-scaled gold/items onto the
+container. A `CS_Opened`/`NW_DO_ONCE` local-int pair throttles this to once per
+~200 real-world seconds, so re-opening immediately doesn't reroll. Two more
+tiers exist in the same include but aren't wired to any chest yet —
+`GenerateBossTreasure` and `GenerateBookTreasure` — available if a boss-tier or
+book-drop chest is ever needed.
+
+**The gotcha:** placing a chest from the toolset palette using a non-module
+blueprint (e.g. stock Hordes-of-the-Underdark `x0_treasure_high`,
+`x0_mod_trea_uniq`, `x0_mod_trea_high`) gives you an instance whose event
+script fields — including `OnOpen` — are all blank. The chest looks and opens
+fine but never drops anything, because nothing is wired to generate loot into
+it. This happened to 3 chests placed in `mistymountainsa`
+(`unpacked/mistymountainsa.git.json`, tags `X0_TREASURE_HIGH` /
+`X0_MOD_TREASURE_UNIQ` / `X0_MOD_TREASURE_HIGH`) and was fixed by setting their
+`OnOpen` to `chest_refillhigh`.
+
+**To add a working loot chest:** clone an existing working chest *instance*
+from the same or a neighboring area — search any `.git.json` for
+`TemplateResRef` `chest1`/`chest2`/`chest3` or `plc_chest1`–`plc_chest4`
+(`Tag` values like `ChestLow`/`ChestMed`/`ChestHigh`) — and only overwrite
+`Tag`, position (`X`/`Y`/`Z`/`Bearing`), and description/name fields. Don't
+build the struct from scratch off a `.utp`/palette blueprint; see the
+"clone a working sibling" placement guidance in
+[CLAUDE-blueprints.md](CLAUDE-blueprints.md). If you do need a stock/non-module
+blueprint's appearance for some reason, at minimum set its instance `OnOpen` to
+one of the three scripts above so it actually drops loot.
+
 ## Plot-door audit
 
 `bin/list_plot_doors.py` scans all area instance files and lists every **locked**
