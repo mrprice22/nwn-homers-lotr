@@ -38,6 +38,7 @@ DIALOGS = [
     "forge_item_mid.dlg.json",
     "kimli_forge.dlg.json",
     "bellnius_smith.dlg.json",
+    "kallrist_forge.dlg.json",
 ]
 
 # Markers identifying our D1 menu entry across versions (immediate or staged).

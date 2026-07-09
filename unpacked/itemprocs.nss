@@ -48,6 +48,8 @@ itemproperty GetNewProperty(object oItem)
        ip = ItemPropertyMaxRangeStrengthMod(iParam3);
    else if ( sProp == "Miscellaneous Immunity")
        ip = ItemPropertyImmunityMisc(iParam3);
+   else if ( sProp == "Spell Immunity Specific")
+       ip = ItemPropertySpellImmunitySpecific(iParam3);
    else if ( sProp == "On Hit Properties")
        ip = ItemPropertyOnHitProps(iParam1, iParam2, iParam3);
    else if ( sProp == "Regeneration")

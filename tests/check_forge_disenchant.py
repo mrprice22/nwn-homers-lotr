@@ -23,7 +23,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UNPACKED = os.path.join(ROOT, "unpacked")
 
-ANVIL = ["forge_item_mid", "kimli_forge", "bellnius_smith"]
+ANVIL = ["forge_item_mid", "kimli_forge", "bellnius_smith", "kallrist_forge"]
 WARDEN = "forge_warden"
 
 REQUIRED_SCRIPTS = (
