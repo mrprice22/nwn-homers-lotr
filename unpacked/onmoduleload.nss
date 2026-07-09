@@ -39,6 +39,11 @@ SetModuleSwitch(MODULE_SWITCH_ENABLE_TAGBASED_SCRIPTS, TRUE);
 // Spawn Meaningwave NPCs at their designated waypoints
 ExecuteScript("mw_spawn", GetModule());
 
+// Gwathdor Labyrinth (area025): re-roll the maze wiring for this reboot. Sets a
+// "MAZE_DEST" local on every maze door/trigger; the doors/triggers teleport the
+// PC there via gwathlab_door / gwathlab_trig. A restart = a fresh maze layout.
+ExecuteScript("gwathlab_wire", GetModule());
+
 // Double the duration of every temporary effect a player creates (eff_dur_x2).
 NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
 
