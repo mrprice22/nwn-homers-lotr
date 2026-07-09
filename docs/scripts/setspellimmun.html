@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script setpropspellimmun</title>
+  <title>Script setspellimmun</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -51,9 +51,9 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>setpropspellimmun</code></h1><pre class="nss-source"><code>// Forge option setter: select the &quot;Immunity: Specific Spell&quot; item property.
-// The concrete spell subtype (index into iprp_spellimmun.2da) is supplied by a
-// companion setter that writes MODIFY_PARAM3 (e.g. setimplosion / setflesh2stone).
+<h1>Script: <code>setspellimmun</code></h1><pre class="nss-source"><code>// Forge option setter: select the &quot;Immunity: Specific Spell&quot; item property.
+// The concrete spell subtype (an IP_CONST_IMMUNITYSPELL_* value) is supplied by a
+// companion setter that writes MODIFY_PARAM3 (e.g. setimplosion).
 // Dispatched by GetNewProperty in itemprocs.nss -&gt; ItemPropertySpellImmunitySpecific.
 void main()
 {
