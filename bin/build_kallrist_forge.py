@@ -2,28 +2,40 @@
 """Build kallrist_forge.dlg.json — the Kallrist Crypt signature forge dialog.
 
 The Kallrist Crypt forge is the fourth Forge of Wonders (see CLAUDE.md / the
-forge memory). It sits at the top legal cap (6 props / 750k, like Moria) but is
-distinguished by a crypt/undeath SIGNATURE immunity menu the other three forges
-do not offer.
+forge memory). It is a small, SPECIALIZED forge: unlike the other three, it does
+NOT offer the shared enchant menu at all. It sits at the top legal cap (6 props /
+750k, like Moria) but its whole menu is the crypt/undeath signature options the
+other forges lack.
 
-This script derives the dialog from the top-tier Bellnius (Moria) forge dialog so
-it inherits the full high-tier enchant menu, then:
+This script derives the dialog from the top-tier Bellnius (Moria) forge dialog
+(so it inherits the greeting / shared calcmodvalue1 confirm scaffolding), then
+strips the entire shared enchant menu down to the signature-only offerings:
 
   * strips the staged-disenchant subtree (re-appended afterwards by
     inject_forge_disenchant.py, which must list kallrist_forge in DIALOGS);
   * adds a "Death Magic" leaf to the Miscellaneous Immunity submenu
-    (setpropmiscimmun already selected there -> new setimmundeath param);
+    (setpropmiscimmun already selected there -> new setimmundeath param) — Deathless;
   * adds a new top-level "Spell Immunity" category (setspellimmun) leading to
     an "Implosion" leaf (setimplosion) — the module's AI casts SPELL_IMPLOSION as
-    an instant-death effect, so warding it is meaningful;
+    an instant-death effect, so warding it is meaningful — Voidshield;
   * reflavors the existing Paralysis immunity leaf to advertise that it also wards
     the crypt's petrifying gazes (EffectPetrify is a paralyze-family effect in
-    NWN:EE, so Paralysis immunity blocks basilisk/medusa petrification).
+    NWN:EE, so Paralysis immunity blocks basilisk/medusa petrification) — Unbroken;
+  * adds a unique offensive option: a Negative-Energy Damage Bonus category
+    (setdampropneg sets MODIFY_PROPERTY="Damage Bonus" + MODIFY_PARAM2=NEGATIVE)
+    leading to a dice submenu with 5 choices (setdam4 / setdam2d4 / setdam1d6 /
+    setdam1d10 / setdam1d12 -> MODIFY_PARAM3). No other forge offers negative-energy
+    damage. itemprocs.nss builds ItemPropertyDamageBonus(PARAM2, PARAM3) unchanged;
+  * PRUNES the main menu to keep only the two immunity categories + the new
+    negative-energy category, and prunes the immunity submenu to the two wardings
+    (Death Magic + Paralysis). The now-orphaned shared-enchant category nodes stay
+    in the lists (unreachable, harmless) so existing node INDICES are preserved and
+    inject_forge_disenchant.py — which keys off reply index 1 — still works.
 
-Every new leaf routes to the dialog's shared calcmodvalue1 confirm entry exactly
-like the stock immunity leaves, so pricing / cap enforcement / apply are reused
-unchanged (GetNewProperty in itemprocs.nss dispatches the new
-"Spell Immunity Specific" property to ItemPropertySpellImmunitySpecific).
+Every leaf routes to the dialog's shared calcmodvalue1 confirm entry, so pricing /
+cap enforcement / apply are reused unchanged (GetNewProperty in itemprocs.nss
+dispatches "Spell Immunity Specific" -> ItemPropertySpellImmunitySpecific and
+"Damage Bonus" -> ItemPropertyDamageBonus).
 
 Idempotent: rebuilding from the same Moria source reproduces the file.
 
@@ -70,28 +82,33 @@ def main():
     R[r_para]["Text"] = locstr(
         "Paralysis — and the petrifying gaze of basilisk and medusa.")
 
-    # New node indices (computed before any append; appends follow this order).
+    # New node indices (computed before any append; appends must follow this order).
     e_si = len(E)          # new "Spell Immunity" submenu entry
+    e_dice = e_si + 1      # new negative-energy dice submenu entry
     r_dm = len(R)          # Death Magic leaf (added to the immunity submenu)
-    r_sc = r_dm + 1        # Spell-Immunity category reply (added to the main menu)
-    r_impl = r_dm + 2      # Implosion leaf (added to the new submenu)
+    r_sc = r_dm + 1        # Spell-Immunity category reply (main menu)
+    r_impl = r_dm + 2      # Implosion leaf (Spell Immunity submenu)
+    r_negcat = r_dm + 3    # Negative-Energy Damage category reply (main menu)
+    # Five dice leaves (dice submenu) -> shared confirm.
+    r_d4 = r_dm + 4        # +4 flat
+    r_d2d4 = r_dm + 5      # 2d4
+    r_d1d6 = r_dm + 6      # 1d6
+    r_d1d10 = r_dm + 7     # 1d10
+    r_d1d12 = r_dm + 8     # 1d12
 
-    # Death Magic leaf -> shared confirm entry (child link, like stock leaves).
+    # --- Signature immunity leaves (Death Magic + Spell Immunity/Implosion) ---
+    # Death Magic leaf (Deathless) -> shared confirm (child link, like stock leaves).
     nd = node(r_dm, "Death Magic — the tomb's own art, turned against you.",
               script="setimmundeath")
     nd["EntriesList"]["value"].append(link(0, e_calc, child=True))
     R.append(nd)
-    rl = E[e_immun]["RepliesList"]["value"]
-    rl.append(link(len(rl), r_dm))
 
-    # Spell-Immunity category reply on the main menu -> new submenu entry.
+    # Spell-Immunity category reply (Voidshield) -> new submenu entry.
     nd = node(r_sc, "Spell Immunity.", script="setspellimmun")
     nd["EntriesList"]["value"].append(link(0, e_si))
     R.append(nd)
-    rl = E[e_menu]["RepliesList"]["value"]
-    rl.append(link(len(rl), r_sc))
 
-    # New submenu entry + its Implosion leaf.
+    # New Spell Immunity submenu entry + its Implosion leaf.
     ne = node(e_si, "Against which spell shall the crypt ward you?", entry=True)
     ne["RepliesList"]["value"].append(link(0, r_impl))
     E.append(ne)
@@ -99,6 +116,58 @@ def main():
               script="setimplosion")
     nd["EntriesList"]["value"].append(link(0, e_calc, child=True))
     R.append(nd)
+
+    # --- Signature offensive option: Negative-Energy Damage Bonus ---
+    # No other forge offers negative-energy damage. The category script sets both
+    # MODIFY_PROPERTY="Damage Bonus" and MODIFY_PARAM2=IP_CONST_DAMAGETYPE_NEGATIVE;
+    # the dice leaves set MODIFY_PARAM3, then route to the shared confirm exactly
+    # like the stock damage-dice leaves. itemprocs.nss builds
+    # ItemPropertyDamageBonus(PARAM2, PARAM3) unchanged.
+    nd = node(r_negcat,
+              "Negative-Energy Damage — the grave's own chill, bound to the edge.",
+              script="setdampropneg")
+    nd["EntriesList"]["value"].append(link(0, e_dice))
+    R.append(nd)
+
+    ne = node(e_dice, "How deep shall the grave-chill bite?", entry=True)
+    dice = [(r_d4, "setdam4", "+4."),
+            (r_d2d4, "setdam2d4", "2d4."),
+            (r_d1d6, "setdam1d6", "1d6."),
+            (r_d1d10, "setdam1d10", "1d10."),
+            (r_d1d12, "setdam1d12", "1d12.")]
+    for pos, (ri, scr, txt) in enumerate(dice):
+        ne["RepliesList"]["value"].append(link(pos, ri))
+    E.append(ne)
+    for ri, scr, txt in dice:
+        nd = node(ri, txt, script=scr)
+        nd["EntriesList"]["value"].append(link(0, e_calc, child=True))
+        R.append(nd)
+
+    # --- Prune to a signature-only menu ------------------------------------
+    # The main menu keeps ONLY: Miscellaneous Immunity (-> wardings submenu), the
+    # new Spell Immunity category, and the new Negative-Energy Damage category.
+    # All other stock enchant categories are dropped from the reply list (their
+    # nodes remain orphaned in R so existing indices — and inject_forge_disenchant's
+    # reply-index-1 keying — are preserved).
+    def script_of(reply_link):
+        return (R[reply_link["Index"]["value"]].get("Script", {}).get("value") or "")
+
+    keep_menu = [l for l in E[e_menu]["RepliesList"]["value"]
+                 if script_of(l) == "setpropmiscimmun"]
+    keep_menu.append(link(0, r_sc))       # Spell Immunity
+    keep_menu.append(link(0, r_negcat))   # Negative-Energy Damage
+    for i, l in enumerate(keep_menu):
+        l["__struct_id"] = i
+    E[e_menu]["RepliesList"]["value"] = keep_menu
+
+    # The wardings submenu keeps ONLY Paralysis (Unbroken) + the new Death Magic
+    # (Deathless) leaf; the other stock immunity leaves are dropped.
+    keep_immun = [l for l in E[e_immun]["RepliesList"]["value"]
+                  if script_of(l) == "setimmunparalyze"]
+    keep_immun.append(link(0, r_dm))      # Death Magic
+    for i, l in enumerate(keep_immun):
+        l["__struct_id"] = i
+    E[e_immun]["RepliesList"]["value"] = keep_immun
 
     # --- Forge access gate: require the Horn of the Fell Beast in inventory ---
     # The forge is bound to the crypt guardian; only one bearing the horn looted
@@ -127,8 +196,11 @@ def main():
 
     DST.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
     print(f"built {DST.name}: entries={len(E)} replies={len(R)} "
-          f"(menu=E{e_menu}, immun=E{e_immun}, calc=E{e_calc}, spellimmun=E{e_si}, "
-          f"deathmagic=R{r_dm}, spellcat=R{r_sc}, implosion=R{r_impl})")
+          f"(menu=E{e_menu} keeps {len(E[e_menu]['RepliesList']['value'])} categories, "
+          f"immun=E{e_immun} keeps {len(E[e_immun]['RepliesList']['value'])} leaves, "
+          f"calc=E{e_calc}, spellimmun=E{e_si}, dice=E{e_dice}, "
+          f"deathmagic=R{r_dm}, spellcat=R{r_sc}, implosion=R{r_impl}, "
+          f"negcat=R{r_negcat}, dice=R{r_d4}..R{r_d1d12})")
 
 
 if __name__ == "__main__":
