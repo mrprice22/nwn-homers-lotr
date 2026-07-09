@@ -69,6 +69,13 @@ void main()
       AssignCommand(oActivator, ActionStartConversation(oActivator, "bst_book", TRUE));
       return;
    }
+   if(GetTag(oItem)=="HornFellBeast")
+   {
+      // Sound the Horn of the Fell Beast: summon the crypt companion
+      // (per-character, once per real hour). See horn_summon.nss.
+      ExecuteScript("horn_summon", oActivator);
+      return;
+   }
     //object oItem=GetItemActivated();
     object oUser=GetItemActivator();
     object oOther=GetItemActivatedTarget();

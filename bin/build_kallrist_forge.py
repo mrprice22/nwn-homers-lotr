@@ -100,6 +100,31 @@ def main():
     nd["EntriesList"]["value"].append(link(0, e_calc, child=True))
     R.append(nd)
 
+    # --- Forge access gate: require the Horn of the Fell Beast in inventory ---
+    # The forge is bound to the crypt guardian; only one bearing the horn looted
+    # from it may use the anvil. A refusal entry sits at the TOP of the
+    # StartingList, gated by fb_no_horn (TRUE when the PC lacks the horn); the
+    # original greeting entries remain below as the fallback that fires for
+    # horn-bearers. StartingList links carry __struct_id (their position) but no
+    # IsChild, so they are built by hand rather than via link().
+    e_refuse = len(E)
+    E.append(node(
+        e_refuse,
+        "You do not bear the Horn of the Fell Beast. This forge was bound to the "
+        "crypt's guardian; without its horn the anvil stays cold to your hand. "
+        "Slay the beast, take up its horn, and return to me.",
+        entry=True))
+    old_start = d["StartingList"]["value"]
+    new_start = [{
+        "__struct_id": 0,
+        "Active": {"type": "resref", "value": "fb_no_horn"},
+        "Index": {"type": "dword", "value": e_refuse},
+    }]
+    for i, l in enumerate(old_start):
+        l["__struct_id"] = i + 1
+        new_start.append(l)
+    d["StartingList"]["value"] = new_start
+
     DST.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
     print(f"built {DST.name}: entries={len(E)} replies={len(R)} "
           f"(menu=E{e_menu}, immun=E{e_immun}, calc=E{e_calc}, spellimmun=E{e_si}, "
