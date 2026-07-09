@@ -457,11 +457,12 @@ ideas:
   - id: improved-invis-issues-part2
     title: "Issues with improved invisibility after buff duration exentsion (and exclusion)"
     group: qol
-    status: confirmed
+    status: implemented
     type: Defect
     player: "Y a z k i r"
-    date: "2026-06-21"
-    notes: "When casting imp invis, it now looks like 50% conceal isn't being applied (but you get the effect of it from combat log) And the invis icon stays up no matter what but it doesn’t actually stay once you do damage (but you are still attacked by mobs, so you're not really invis)"
+    date: "2026-07-08"
+    commit: 58deb72400b
+    notes: "When casting imp invis, it now looks like 50% conceal isn't being applied (but you get the effect of it from combat log) And the invis icon stays up no matter what but it doesn’t actually stay once you do damage (but you are still attacked by mobs, so you're not really invis)<div><br></div><div><b>Root cause found 2026-07-08:</b> the invisibility exclusion added by the earlier fix (f9565ed4202) only inspected the <i>first</i> true-effect entry sharing the applied effect's UNIQUE_ID. Improved Invisibility is applied as a <i>linked</i> effect (EffectInvisibility + a duration visual) whose components share a single engine effect id, so the loop could land on the non-excluded linked visual, skip the guard, RemoveEffectById the <i>whole</i> link, and reapply only one component — splitting the link exactly as the exclusion was meant to prevent. That matches the report: the visual icon stayed up at doubled duration while the real improved-invisibility+concealment effect was stripped (not really invis, 50% conceal gone, still attacked by mobs).</div><div><br></div><div><b>Fix:</b> exclude the whole invisibility/illusion family by SPELL_ID before the re-timing loop — Improved Invisibility (88), Invisibility (90), Invisibility Sphere (92), Sanctuary (154), Ethereal Visage (121), Etherealness (443) — the same robust approach that fixed Divine Might/Shield, and one that also covers item-cast sources (potions/wands/scrolls). Additionally hardened the effect-type guard to scan <i>every</i> component sharing the id (a guard pass before the apply pass), so script-applied invisibility with no spell id can't regress the same way. Documented in docs.manual/Customizations.html#spell-duration.</div>"
   - id: duration-divine-might-issue
     title: "divine might duration bug"
     group: qol
