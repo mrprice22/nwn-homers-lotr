@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script fb_guard_death</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>fb_guard_death</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: fb_guard_death -- OnDeath for the Kallrist Crypt guardian (the placed
+//:: badass_2 &quot;Fell Beast&quot; instance). Replaces the shared demondeath on this
+//:: instance so it can DROP the Horn of the Fell Beast without demondeath&#x27;s
+//:: destroy() wiping the corpse&#x27;s inventory.
+//::
+//:: Behavior:
+//::   1. Award &quot;Horn of the Fell Beast&quot; (horn_fellbeast / tag HornFellBeast)
+//::      to the killer and to every PC party member present in the area,
+//::      skipping anyone who already owns one (no farming duplicates).
+//::      The Horn both summons the Fell Beast companion and unlocks the
+//::      Kallrist Crypt forge.
+//::   2. Preserve the boss behavior: feed the Roll of the Fallen respawn
+//::      (SE_DoCreatureRespawn, gated exactly as demondeath does) and the
+//::      fireball nova. Destroy only the wielded weapon -- never the corpse
+//::      inventory.
+//:://////////////////////////////////////////////
+#include &quot;NW_I0_SPELLS&quot;
+#include &quot;se_respawn_inc&quot;
+
+const string HORN_RESREF = &quot;horn_fellbeast&quot;;
+const string HORN_TAG    = &quot;HornFellBeast&quot;;
+
+void GiveHorn(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+    if (GetIsObjectValid(GetItemPossessedBy(oPC, HORN_TAG))) return; // already has one
+    CreateItemOnObject(HORN_RESREF, oPC);
+    FloatingTextStringOnCreature(
+        &quot;The Fell Beast falls -- and its horn is yours to sound.&quot;, oPC, FALSE);
+}
+
+void main()
+{
+    object oSelf = OBJECT_SELF;
+
+    // --- Horn to the killer and their present party ---
+    object oKiller = GetLastKiller();
+    object oAnchor = GetIsPC(oKiller) ? oKiller
+                                      : (GetIsPC(GetMaster(oKiller)) ? GetMaster(oKiller)
+                                                                     : oKiller);
+    if (GetIsObjectValid(oAnchor))
+    {
+        object oMember = GetFirstFactionMember(oAnchor, TRUE); // PCs only
+        while (GetIsObjectValid(oMember))
+        {
+            if (GetArea(oMember) == GetArea(oSelf))
+                GiveHorn(oMember);
+            oMember = GetNextFactionMember(oAnchor, TRUE);
+        }
+    }
+
+    // --- Boss upkeep: Roll of the Fallen respawn (same gate as demondeath) ---
+    if (FindSubString(GetTag(oSelf), &quot;NSP&quot;) == -1)
+        SE_DoCreatureRespawn();
+
+    // Destroy the wielded weapon (as demondeath did); leave the rest of the
+    // corpse inventory intact so nothing swallows the Horn logic&#x27;s assumptions.
+    DestroyObject(GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oSelf));
+
+    // --- Fireball nova ---
+    location lTarget = GetLocation(oSelf);
+    effect eExplode = EffectVisualEffect(VFX_FNF_FIREBALL);
+    effect eVis = EffectVisualEffect(VFX_IMP_FLAME_M);
+    ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eExplode, lTarget);
+
+    object oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_HUGE,
+        lTarget, TRUE, OBJECT_TYPE_CREATURE | OBJECT_TYPE_DOOR);
+    while (GetIsObjectValid(oTarget))
+    {
+        SignalEvent(oTarget, EventSpellCastAt(oSelf, SPELL_FIREBALL));
+        float fDelay = GetDistanceBetweenLocations(lTarget, GetLocation(oTarget)) / 20.0;
+        if (!MyResistSpell(oSelf, oTarget, fDelay))
+        {
+            int nDamage = GetReflexAdjustedDamage(10, oTarget, GetSpellSaveDC(),
+                                                  SAVING_THROW_TYPE_FIRE);
+            if (nDamage &gt; 0)
+            {
+                effect eDam = EffectDamage(nDamage, DAMAGE_TYPE_FIRE);
+                DelayCommand(fDelay, ApplyEffectToObject(DURATION_TYPE_INSTANT, eDam, oTarget));
+                DelayCommand(fDelay, ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget));
+            }
+        }
+        oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_HUGE,
+            lTarget, TRUE, OBJECT_TYPE_CREATURE | OBJECT_TYPE_DOOR);
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
