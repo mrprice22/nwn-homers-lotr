@@ -58,25 +58,47 @@ void main()
     if (nSpellId == SPELL_DIVINE_MIGHT || nSpellId == SPELL_DIVINE_SHIELD)
         return;
 
+    // The invisibility/illusion family is also applied as LINKED effects (see the
+    // effect-type guard in the loop below). The type guard alone is NOT enough:
+    // Improved Invisibility links its EffectInvisibility with a duration visual, and
+    // the linked components share the same effect id, so the loop's "inspect the first
+    // matching component" check can land on the non-excluded visual, bypass the guard,
+    // strip the whole link via RemoveEffectById, and reapply only one component --
+    // exactly the corruption reported in roadmap item improved-invis-issues-part2.
+    // Exclude the whole spell by id up front (the same approach that fixed Divine
+    // Might/Shield), which also covers item-cast sources (potions/wands/scrolls) since
+    // they carry the spell id. Direct script-applied invis with no spell id is still
+    // caught by the effect-type guard below.
+    if (nSpellId == SPELL_IMPROVED_INVISIBILITY ||
+        nSpellId == SPELL_INVISIBILITY ||
+        nSpellId == SPELL_INVISIBILITY_SPHERE ||
+        nSpellId == SPELL_SANCTUARY ||
+        nSpellId == SPELL_ETHEREAL_VISAGE ||
+        nSpellId == SPELL_ETHEREALNESS)
+        return;
+
     string sUID = NWNX_Events_GetEventData("UNIQUE_ID");
 
     // UNIQUE_ID and the unpacked sID are both std::to_string(m_nID), so this matches
     // the exact effect that just fired.
     int nCount = NWNX_Effect_GetTrueEffectCount(oTarget);
     int i;
+
+    // Guard pass: a LINKED effect surfaces as several true-effects that all share the
+    // same id. Link-sensitive effects (improved invisibility, invisibility, concealment,
+    // sanctuary, etherealness) rely on the engine link staying intact -- our
+    // remove+reapply would split it and corrupt it (e.g. attacking would strip the
+    // concealment instead of just dropping invisibility). So scan EVERY component that
+    // shares this id and bail if ANY of them is link-sensitive -- inspecting only the
+    // first matching component is not enough, since the excluded component may not be
+    // the one the loop hits first. Use GetEffectType (script EFFECT_TYPE_* constants),
+    // NOT e.nType (raw engine enum). See docs.manual/Customizations.html#spell-duration.
     for (i = 0; i < nCount; i++)
     {
         struct NWNX_EffectUnpacked e = NWNX_Effect_GetTrueEffect(oTarget, i);
         if (e.sID != sUID)
             continue;
 
-        // Link-sensitive effects (improved invisibility, invisibility, concealment,
-        // sanctuary, etherealness) are applied as LINKED effects whose on-attack
-        // handling relies on the engine link staying intact. Our remove+reapply would
-        // split the link and corrupt it -- e.g. attacking would strip the concealment
-        // instead of just dropping invisibility. Leave them at their natural duration.
-        // Use GetEffectType (script EFFECT_TYPE_* constants), NOT e.nType (raw engine
-        // enum). See docs.manual/Customizations.html#spells.
         int nFx = GetEffectType(NWNX_Effect_PackEffect(e));
         if (nFx == EFFECT_TYPE_INVISIBILITY ||
             nFx == EFFECT_TYPE_IMPROVEDINVISIBILITY ||
@@ -84,6 +106,14 @@ void main()
             nFx == EFFECT_TYPE_SANCTUARY ||
             nFx == EFFECT_TYPE_ETHEREAL)
             return;
+    }
+
+    // Apply pass: re-time the matching effect.
+    for (i = 0; i < nCount; i++)
+    {
+        struct NWNX_EffectUnpacked e = NWNX_Effect_GetTrueEffect(oTarget, i);
+        if (e.sID != sUID)
+            continue;
 
         e.fDuration = fDur * 2.0;                 // cosmetic; the apply param below rules
         effect eNew = NWNX_Effect_PackEffect(e);  // faithful copy, keeps creator

@@ -881,11 +881,14 @@ familiars. Effects that enemies place on <em>you</em> are unchanged.</p>
 </div>
 <div class="tip-box">
   <p><strong>Exception — invisibility-type effects.</strong> <em>Improved Invisibility</em>,
-  <em>Invisibility</em>, concealment, <em>Sanctuary</em> and <em>Etherealness</em> keep their
-  <strong>normal</strong> duration. These are applied as linked effects, and their
+  <em>Invisibility</em>, <em>Invisibility Sphere</em>, concealment, <em>Sanctuary</em>,
+  <em>Ethereal Visage</em> and <em>Etherealness</em> keep their <strong>normal</strong>
+  duration. These are applied as linked effects, and their
   "go visible but keep your concealment when you attack" behaviour depends on that engine
   link — which the duration-doubling system cannot safely rebuild — so they are left
-  untouched.</p>
+  untouched. The exclusion is enforced both by spell id (so the whole spell is skipped
+  before any re-timing, covering potions/wands/scrolls too) and by effect type (so
+  invisibility applied directly by a script is caught as well).</p>
 </div>
 <div class="tip-box">
   <p><strong>Exception — Divine Might &amp; Divine Shield.</strong> These Paladin feats also
