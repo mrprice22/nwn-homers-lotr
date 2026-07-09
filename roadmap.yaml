@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-09 07:59 CDT"
+  as_of: "2026-07-09 15:10 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -1236,11 +1236,12 @@ ideas:
   - id: gwathdor-stuck
     title: "Getting stuck in the wall at Gwathdor"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: Tukwut
-    date: "2026-06-05"
-    notes: "<div><span>Impacted area is called '</span>Gwathdor:  West Deeps\" tag: GwathdorWestDeeps, issue is with the placeable walls, tagged 'pl_PlcWallDark'</div><div><span>A workaround (that exists for mages only) is to summon familiar, control it and use it to sidestep you out of the wall</span></div><div><br>Currently this is a short linear maze (no splits or dead ends) with 8 encounters that  have respawntime 600:</div><ol><li>gwathdorshortswo</li><li>gwathdortridents</li><li>gwathdorwatch001</li><li>gwathdorshort001</li><li>gwathdortride002</li><li>gwathdorwatch001</li><li>gwathdorshort001</li><li>gwathdortride002</li></ol><div><br></div><div>Fix: replace the tight-spaced maze with a new dedicated Gwathdor Labyrinth area of similar length and encounters that do not use wall placeables. Can leverage nwnx and/or Anvil c# for creature randomized maze paths.</div>"
+    date: "2026-07-09"
+    commit: 30673ea4ea2
+    notes: "<div><span>Impacted area is called '</span>Gwathdor:  West Deeps\" tag: GwathdorWestDeeps, issue is with the placeable walls, tagged 'pl_PlcWallDark'</div><div><span>A workaround (that exists for mages only) is to summon familiar, control it and use it to sidestep you out of the wall</span></div><div><br>Originally there was a short linear maze (no splits or dead ends) with 8 encounters that  have respawntime 600:</div><ol><li>gwathdorshortswo</li><li>gwathdortridents</li><li>gwathdorwatch001</li><li>gwathdorshort001</li><li>gwathdortride002</li><li>gwathdorwatch001</li><li>gwathdorshort001</li><li>gwathdortride002</li></ol><div><br></div><div>Fix: replace the tight-spaced maze with a new dedicated Gwathdor Labyrinth area of similar length and encounters that do not use wall placeables. Maze paths still has 8 encounters, but now includes dead ends and randomizes happy path every module reboot.</div>"
     notes_h: 257
   - id: glorfind-potion-quest
     title: "Glorfindel's potion quest: the plant doesn't spawn and there are no journal entries"
