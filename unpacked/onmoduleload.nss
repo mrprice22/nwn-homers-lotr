@@ -53,6 +53,13 @@ NWNX_Events_SubscribeEvent("NWNX_ON_SET_EXPERIENCE_BEFORE", "boost_xp_evt");
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, "pl_party_evt");
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_TRANSFER_LEADERSHIP_AFTER, "pl_party_evt");
 
+// Disarm catch: when an NPC disarms a PC, deposit the weapon into the PC's pack
+// instead of dropping it on the ground (where it can despawn / be grabbed by the
+// NPC). BEFORE snapshots the wielded weapon; AFTER moves it. PvP disarms are left
+// vanilla. See disarm_catch.nss.
+NWNX_Events_SubscribeEvent(NWNX_ON_DISARM_BEFORE, "disarm_catch");
+NWNX_Events_SubscribeEvent(NWNX_ON_DISARM_AFTER,  "disarm_catch");
+
 // Color tokens for dialogue text (used in bank XP retirement warnings)
 // CUSTOM6100 = red, CUSTOM6101 = yellow, CUSTOM6102 = close
 SetCustomToken(6100, COLOR_RED);
