@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-08 17:07 CDT"
+  as_of: "2026-07-08 21:44 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -383,7 +383,7 @@ ideas:
     player: "Y a z k i r"
     date: "2026-07-08"
     commit: 8fd6935a3b1
-    notes: "Confirmed: the 'Plane of the Render' dungeon (entered via the evil altar in the Kallrist Outer Banks, one land-bridge hop from North Shore) was severed at both ends and its guardian stripped. Fix: re-added the missing arrival waypoint <code>WP_renderinside</code> so the altar teleport works again; repointed the render-plane escape trigger and exit door to the existing <code>WP_renderexit</code> in the Outer Banks so the dungeon is escapable; and recreated the guardian <code>raitheen</code> (Raitheen the Watcher, CR 60) placed at the shackled altar. <b>In-game verify:</b> from the Kallrist Outer Banks, use the evil altar &rarr; you are teleported into the Plane of the Render &rarr; fight through to and kill Raitheen at the far shackled altar &rarr; use the escape transition (or the entrance door) &rarr; you return to the Outer Banks."
+    notes: "Confirmed: the 'Plane of the Render' dungeon (entered via the evil altar in the Kallrist Outer Banks, one land-bridge hop from North Shore) was severed at both ends and its guardian stripped. Fix: re-added the missing arrival waypoint WP_renderinside so the altar teleport works again; repointed the render-plane escape trigger and exit door to the existing WP_renderexit in the Outer Banks so the dungeon is escapable; and recreated the guardian raitheen (Raitheen the Watcher, CR 60) placed at the shackled altar. <b>In-game verify:</b> from the Kallrist Outer Banks, use the evil altar → you are teleported into the Plane of the Render → fight through to and kill Raitheen at the far shackled altar → use the escape transition (or the entrance door) → you return to the Outer Banks."
   - id: kallrist-crypt-key-missing
     title: "Kallrist Crypt riddle puzzle grants no key -- inner crypt sealed"
     group: travel
@@ -392,7 +392,7 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-07-08"
     commit: 8fd6935a3b1
-    notes: "Found while investigating the Kallrist render-plane transition. The elemental-pillar riddle (four ECHO pillars + matching ambient sound cues in the upper crypt) rewards <code>kalcryptkey001</code> via <code>CreateItemOnObject</code>, but that item blueprint was missing from the module, so solving the puzzle minted nothing and the only door into <code>centralchamber</code> + the lower crypt/forge (<code>kallupper2riddledoor</code>, KeyRequired) could never open. Fix: recreated the <code>kalcryptkey001</code> key blueprint (BaseItem Key; Tag matches the door's KeyName). <b>In-game verify:</b> in the upper Kallrist Crypt, place the correct gem in each elemental pillar per the riddle (Red&rarr;Earth, Blue&rarr;Fire, Green&rarr;Water, Golden/Yellow&rarr;Air, cued by the ambient sounds) &rarr; use the brazier &rarr; you receive the Kallrist Crypt Key &rarr; unlock <code>kallupper2riddledoor</code> &rarr; you can now reach centralchamber and the lower crypt loot."
+    notes: "Found while investigating the Kallrist render-plane transition. The elemental-pillar riddle (four ECHO pillars + matching ambient sound cues in the upper crypt) rewards kalcryptkey001 via CreateItemOnObject, but that item blueprint was missing from the module, so solving the puzzle minted nothing and the only door into centralchamber + the lower crypt/forge (kallupper2riddledoor, KeyRequired) could never open. Fix: recreated the kalcryptkey001 key blueprint (BaseItem Key; Tag matches the door's KeyName). <b>In-game verify:</b> in the upper Kallrist Crypt, place the correct gem in each elemental pillar per the riddle (Red→Earth, Blue→Fire, Green→Water, Golden/Yellow→Air, cued by the ambient sounds) → use the brazier → you receive the Kallrist Crypt Key → unlock kallupper2riddledoor → you can now reach centralchamber and the lower crypt loot."
   - id: server-seasons-character-wipe
     title: "Server-wide 'seasons' where achievements get archived and characters get wiped with partial XP bank"
     group: progression
