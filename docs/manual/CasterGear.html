@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Caster Signature Gear — Homer&#x27;s LOTR</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a></div></div>
+    </nav>
+  </header>
+  <main>
+
+  <main>
+  <style>
+    /* Two-column layout: sticky TOC on the left, content on the right. */
+    .mw-layout { display: flex; gap: 2.5em; align-items: flex-start; }
+    .mw-toc-pane {
+      flex: 0 0 220px; position: sticky; top: 1.5em;
+      max-height: calc(100vh - 3em); overflow-y: auto;
+    }
+    .mw-content { flex: 1; min-width: 0; }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+    .toc {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1em 1.2em;
+    }
+    .toc h2 {
+      font-size: 1em; margin: 0 0 0.5em; border: none; padding: 0;
+      color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+
+    .tier-header {
+      background: rgba(107,58,28,0.08); border-left: 4px solid var(--accent);
+      padding: 0.5em 1em; margin: 2em 0 0.8em; border-radius: 0 4px 4px 0;
+    }
+    .tier-header h2 { margin: 0; border: none; padding: 0; }
+    .tier-header .tier-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+
+    .loot-box {
+      background: rgba(200,165,119,0.10); border: 1px solid var(--accent-soft);
+      border-radius: 4px; padding: 0.7em 1.1em; margin: 0.8em 0 1em;
+    }
+    .loot-box strong { display: block; margin-bottom: 0.3em; color: var(--accent); }
+    .tip-box {
+      background: rgba(30,30,60,0.07); border-left: 4px solid var(--accent-soft);
+      border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em;
+    }
+    .tip-box p { margin: 0.3em 0; }
+    .warning-box {
+      background: rgba(200, 60, 60, 0.08); border-left: 4px solid #c03030;
+      border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em;
+    }
+    .warning-box p { margin: 0.3em 0; }
+
+    /* Catalogue table */
+    .cg-wrap { overflow-x: auto; margin: 0.6em 0 1.4em; }
+    table.cg { border-collapse: collapse; width: 100%; font-size: 0.92em; }
+    table.cg th, table.cg td {
+      border: 1px solid var(--border); padding: 0.5em 0.65em; vertical-align: top; text-align: left;
+    }
+    table.cg th { background: var(--card); }
+    table.cg td.item { white-space: nowrap; font-weight: 600; }
+    .pure { color: var(--accent); font-weight: 600; }
+
+    /* Small inline badges */
+    .badge {
+      display: inline-block; font-size: 0.72em; font-weight: 700; letter-spacing: 0.03em;
+      text-transform: uppercase; padding: 0.08em 0.5em; border-radius: 999px;
+      border: 1px solid var(--accent-soft); color: var(--muted); vertical-align: middle;
+    }
+    .badge.t-prem  { border-color: #b8860b; color: #b8860b; }
+    .badge.t-mid   { border-color: #6b8e9e; color: #6b8e9e; }
+    .badge.t-acc   { border-color: var(--muted); }
+    .mtag { font-size: 0.8em; color: var(--muted); font-style: italic; }
+
+    h2, h3 { scroll-margin-top: 1.5em; }
+  </style>
+
+  <div class="mw-layout">
+    <aside class="mw-toc-pane">
+      <nav class="toc" aria-label="Page contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#pure">The Pure-Caster Bonus</a></li>
+          <li><a href="#mechanics">The Four Effects</a></li>
+          <li><a href="#clerics">Cleric Gear</a></li>
+          <li><a href="#druids">Druid Gear</a></li>
+          <li><a href="#sorcerers">Sorcerer Gear</a></li>
+          <li><a href="#wizards">Wizard Gear</a></li>
+          <li><a href="#balance">Tiers &amp; Balance</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <div class="mw-content">
+
+<h1>Caster Signature Gear</h1>
+
+<p>A planned line of <strong>boss-drop gear that boosts specific spells</strong> — built to give
+Clerics, Druids, Sorcerers, and Wizards a real way to threaten high-tier bosses instead of falling
+back on damage shields, IGMS, and lucky epic-spell rolls. Each piece pairs strong conventional
+stats with one <strong>signature effect</strong> that amplifies, retypes, or supercharges a handful
+of that class's spells (or its summons).</p>
+
+<div class="warning-box">
+  <p><strong>Design preview — not yet in game.</strong> This page is the design catalogue for a
+  <a href="Roadmap.html#idea-Gear-to-boost-specific-mage-spells">planned</a> feature. Item names,
+  numbers, and drop sources are a <em>starting point</em> and may change before (or during)
+  implementation. Item links below will go live once each piece is built.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="overview">Overview</h2>
+<p>Twenty items — five per caster class — each looted from a thematically matched boss already in the
+world (no new areas required). Every item does two things:</p>
+<ul>
+  <li><strong>Conventional stats</strong> at or just above the current obtainable ceiling — bonus
+  spell slots (up to level&nbsp;9) for the class, plus a large bonus to its casting ability, scaled
+  to the <a href="#balance">tier</a> of the boss that drops it.</li>
+  <li>A <strong>signature spell effect</strong> — the reason to chase the item — that keys off the
+  actual spell you cast.</li>
+</ul>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="pure">
+  <h2>The Pure-Caster Bonus</h2>
+  <p class="tier-sub">Every item rewards single-class devotion with a stronger effect.</p>
+</div>
+<p>A <strong class="pure">pure caster</strong> — a character whose <em>every</em> level is in one
+spellcasting class (Cleric, Druid, Sorcerer, or Wizard), with no multiclass or prestige-class dip —
+gets an upgraded version of each item's signature effect: bigger dice, a higher amplification, or an
+outright spell upgrade. This deliberately hands undiluted casters the boss-killing tools that
+multiclass "splash" builds don't need, and gives a concrete reason to commit to a class.</p>
+<p>In the tables below, the <strong>base effect</strong> applies to any character who can wear and cast
+from the item; the <span class="pure">pure-caster upgrade</span> is called out in the same cell.
+Amplification percentages are applied <em>after</em> metamagic, so a <strong class="pure">+50%</strong>
+boost <strong>stacks with Empower and Maximize</strong> rather than replacing them.</p>
+
+<!-- ============================================================ -->
+<h2 id="mechanics">The Four Effects</h2>
+<ul>
+  <li><strong>Amplify</strong> — a percentage or flat boost to a named spell's or school's damage.</li>
+  <li><strong>Retype</strong> — changes a spell's damage to a type the target isn't immune to, using
+  <em>existing</em> damage types only (e.g. Implosion's death effect becomes divine damage). No new
+  damage type is invented.</li>
+  <li><strong>Summon boost</strong> — extends
+  <a href="Customizations.html#scaled-summons">scaled summons</a>: your companions and summoned
+  creatures gain attack, damage, and attacks-per-round so they matter against high-CR bosses (DPS,
+  not tankiness).</li>
+  <li><strong>Focus</strong> — raises save DC and/or caster level for a school so save-based and
+  SR-gated spells actually land on tough targets.</li>
+</ul>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="clerics">
+  <h2>Cleric Gear</h2>
+  <p class="tier-sub">Divine fire, anti-undead smiting, death-magic retyping, and celestial DPS.</p>
+</div>
+<div class="cg-wrap">
+<table class="cg">
+  <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure cleric</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="item"><a href="../items/reliquaryunmake.html">Reliquary of the Unmaking</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Retype.</span> Implosion &amp; Destruction deal <strong>divine damage</strong> instead of death: <strong>1d6 divine / caster level</strong>. Destruction's kill becomes a flat <strong>10&nbsp;×&nbsp;CL</strong> divine. <span class="pure">Pure: 1d8 / CL, Destruction 15&nbsp;×&nbsp;CL.</span></td>
+      <td>+8 Wis, 3× Cleric L9 slots, SR&nbsp;22</td>
+      <td>Heir of Haldor <span class="mtag">(Dimholt)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/censerholyfire.html">Censer of Holy Fire</a><br><span class="badge t-mid">Mid</span></td>
+      <td><span class="mtag">Amplify.</span> Flame Strike &amp; Fire Storm <strong>+30%</strong> damage. <span class="pure">Pure: +50%</span> (stacks with metamagic).</td>
+      <td>+6 Wis, 3× Cleric L8/L9 slots</td>
+      <td>High Priest of Morannon <span class="mtag">(Temple of Morannon)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/aegiswhitetree.html">Aegis of the White Tree</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Amplify / upgrade.</span> Your healing spells also smite undead for <strong>+50% as divine damage</strong>. <span class="pure">Pure: your single-target <strong>Heal</strong> casts as <strong>Mass Heal</strong></span> (whole party in radius).</td>
+      <td>+8 Wis, 3× Cleric L9 slots, Regen 3</td>
+      <td>Underlord of Sauron <span class="mtag">(Mount Doom: Grand Hall)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/circletdoomsay.html">Circlet of the Doomsayer</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Focus.</span> +2 DC and +4 caster level to death &amp; necromancy spells (Slay Living, Destruction, Harm). <span class="pure">Pure: doubled — +4 DC / +8 CL.</span></td>
+      <td>+8 Wis, 3× Cleric L9 slots</td>
+      <td>Witch King <span class="mtag">(Witch King's Throne)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/hornofthehost.html">Horn of the Host</a><br><span class="badge t-mid">Mid</span></td>
+      <td><span class="mtag">Summon boost.</span> Called celestials &amp; planar allies gain <strong>+4 attack, +2d6 divine on hit, +10 HP per CL</strong>. <span class="pure">Pure: +8 attack, +4d6 divine, +1 APR, +20 HP/CL, DR 10/-.</span></td>
+      <td>+6 Wis, 3× Cleric L7 slots</td>
+      <td>Kerufall <span class="mtag">(Kerufall's Lair)</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="druids">
+  <h2>Druid Gear</h2>
+  <p class="tier-sub">Epic summon DPS, elemental storms, poison, and sunfire against the undead.</p>
+</div>
+<div class="cg-wrap">
+<table class="cg">
+  <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure druid</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="item"><a href="../items/radagasttotem.html">Radagast's Totem</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Summon boost.</span> Animal companion &amp; summons gain <strong>+4 attack, +6 damage, +2d6 magical on hit</strong>. <span class="pure">Pure: +8 attack, +12 damage, +4d6 elemental, +1 APR, +50% max HP, Improved Knockdown</span> — the marquee epic-summon-DPS item.</td>
+      <td>+8 Wis, Druid L9 slots</td>
+      <td>Radagast the Brown <span class="mtag">(Rhosgobel Tower)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/frostwardidol.html">Frostward Idol</a><br><span class="badge t-acc">Accessible</span></td>
+      <td><span class="mtag">Amplify + retype.</span> Ice Storm &amp; Cone of Cold <strong>+30%</strong> and cold&nbsp;→&nbsp;magical (bypass cold immunity). <span class="pure">Pure: +50%.</span></td>
+      <td>+6 Wis, Druid L8/L9 slots</td>
+      <td>Frost <span class="mtag">(Emyn Arnen: Peak)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/widowsweave.html">Widow's Weave</a><br><span class="badge t-acc">Accessible</span></td>
+      <td><span class="mtag">Amplify.</span> Creeping Doom &amp; Insect Plague deal <strong>+1d6 poison per 2 CL</strong> and grant <strong>+4 poison save DC</strong>. <span class="pure">Pure: +8 poison DC.</span></td>
+      <td>+6 Wis, Druid L9 slots</td>
+      <td>Anaralia the Widow Maker <span class="mtag">(Mirkwood)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/emberofdeeps.html">Ember of the Deeps</a><br><span class="badge t-mid">Mid</span></td>
+      <td><span class="mtag">Amplify.</span> Fire Storm &amp; Flame Strike <strong>+30%</strong>. <span class="pure">Pure: +50%</span> (stacks with metamagic).</td>
+      <td>+6 Wis, Druid L9 slots</td>
+      <td>The Balrog of Moria <span class="mtag">(Moria)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/circletofanor.html">Circlet of Anor</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Amplify.</span> Sunbeam &amp; Sunburst deal full damage vs <strong>all</strong> undead (ignore light immunity) plus <strong>+1d6 divine per 2 CL</strong>. <span class="pure">Pure: undead take double dice and are blinded (no save).</span></td>
+      <td>+8 Wis, Druid L9 slots</td>
+      <td>Khamûl the Ringwraith <span class="mtag">(Dol Guldur)</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="sorcerers">
+  <h2>Sorcerer Gear</h2>
+  <p class="tier-sub">Dragonfire, missile storms, and death-magic retyped to slip past immunities.</p>
+</div>
+<div class="cg-wrap">
+<table class="cg">
+  <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure sorcerer</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="item"><a href="../items/heartofsmaug.html">Heart of Smaug</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Amplify.</span> All fire spells (Fireball, Delayed Blast, Meteor Swarm) <strong>+30%</strong> and ignore the first 20 fire resistance. <span class="pure">Pure: +50%.</span></td>
+      <td>+8 Cha, 4× Sorcerer L9 slots</td>
+      <td>The Mighty Smaug <span class="mtag">(Ruins of Dale: Cavern)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/bracersvolley.html">Bracers of the Endless Volley</a><br><span class="badge t-acc">Accessible</span></td>
+      <td><span class="mtag">Amplify.</span> Isaac's Missile Storms &amp; Magic Missile fire <strong>+2 missiles</strong> (magic damage bypasses most immunity). <span class="pure">Pure: +4 missiles, and each missile deals +1d4.</span></td>
+      <td>+6 Cha, Sorcerer L9 slots</td>
+      <td>Saruman's Master Experiment <span class="mtag">(Orthanc)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/shardofeverice.html">Shard of Everice</a><br><span class="badge t-acc">Accessible</span></td>
+      <td><span class="mtag">Retype.</span> Cone of Cold &amp; Horrid Wilting deal magical instead of cold/negative. <span class="pure">Pure: also raises the damage-die cap (Cone of Cold 15d6 → up to 25d6).</span></td>
+      <td>+6 Cha</td>
+      <td>The Ice Queen <span class="mtag">(Ice Queen: Nest)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/sorrowofnine.html">Sorrow of the Nine</a><br><span class="badge t-mid">Mid</span></td>
+      <td><span class="mtag">Retype.</span> Wail of the Banshee &amp; Weird deal <strong>magical damage</strong> instead of death: <strong>1d8 / CL</strong>. <span class="pure">Pure: 1d10 / CL, +2 DC.</span></td>
+      <td>+6 Cha, SR&nbsp;20</td>
+      <td>Khamûl the Ringwraith <span class="mtag">(Carn Dûm: Throne)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/galastormheart.html">Galadhrim Stormheart</a><br><span class="badge t-acc">Accessible</span></td>
+      <td><span class="mtag">Amplify + retype.</span> Chain Lightning &amp; Ball Lightning <strong>+30%</strong>, half electrical&nbsp;→&nbsp;magical. <span class="pure">Pure: +50% and full&nbsp;→&nbsp;magical.</span></td>
+      <td>+6 Cha, Sorcerer L9 slots</td>
+      <td>Rail the White Hand Blaster <span class="mtag">(Isengard)</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="wizards">
+  <h2>Wizard Gear</h2>
+  <p class="tier-sub">Specialist-school mastery, bound blades, and a caster-level capstone.</p>
+</div>
+<div class="cg-wrap">
+<table class="cg">
+  <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure wizard</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="item"><a href="../items/branchunmaking.html">Branch of Unmaking</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Retype + focus.</span> Finger of Death &amp; Circle of Death deal <strong>magical</strong> instead of death (<strong>1d6 / CL</strong>), +2 Necromancy DC. <span class="pure">Pure: 1d8 / CL, +4 Necromancy DC.</span></td>
+      <td>+8 Int, Wizard L9 slots</td>
+      <td>Gwathdor Lord of the Dark Arts <span class="mtag">(Gwathdor: Throne)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/roberevokersup.html">Robe of the Evoker Supreme</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Amplify.</span> All Evocation spells <strong>+25%</strong> damage. <span class="pure">Pure: +50%</span> (stacks with metamagic).</td>
+      <td>+8 Int, Wizard L9 slots</td>
+      <td>High Wizard of Gondor <span class="mtag">(Tower of the High Wizard)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/codexboundblade.html">Codex of the Bound Blade</a><br><span class="badge t-mid">Mid</span></td>
+      <td><span class="mtag">Summon boost.</span> Mordenkainen's Sword, Elemental Swarm &amp; summons gain <strong>+4 attack, +2d6 magical</strong>. <span class="pure">Pure: +8 attack, +4d6 magical, +1 APR, and Mordenkainen's Sword is duplicated (two swords).</span></td>
+      <td>+6 Int, Wizard L9 slots</td>
+      <td>Sarah the Librarian <span class="mtag">(Tower of the High Wizard: Library)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/desiccgrimoire.html">Desiccating Grimoire</a><br><span class="badge t-mid">Mid</span></td>
+      <td><span class="mtag">Amplify + retype.</span> Horrid Wilting &amp; Ice Storm <strong>+30%</strong>, negative&nbsp;→&nbsp;magical. <span class="pure">Pure: +50%.</span></td>
+      <td>+6 Int, Wizard L9 slots</td>
+      <td>Saruman the White <span class="mtag">(Orthanc)</span></td>
+    </tr>
+    <tr>
+      <td class="item"><a href="../items/staffdeepmagic.html">Staff of the Deep Magic</a><br><span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Focus — capstone.</span> +4 caster level to all spells (spell resistance penetration and extended damage caps) and +2 DC to your specialist school. <span class="pure">Pure: +6 CL, +4 specialist DC, and all damage-die caps removed.</span></td>
+      <td>+8 Int, Wizard L9 slots</td>
+      <td>Gandalf the Gray <span class="mtag">(Hobbiton)</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="balance">
+  <h2>Tiers &amp; Balance</h2>
+  <p class="tier-sub">How stat weight is set, and how these stay legal.</p>
+</div>
+<p>An item's conventional stats scale to the <strong>challenge rating of the boss that drops it</strong>:</p>
+<ul>
+  <li><span class="badge t-acc">Accessible</span> — from mid-tier bosses: +6 casting stat, 5–6 bonus
+  level-9 slots.</li>
+  <li><span class="badge t-mid">Mid</span> — from strong bosses: +6/+7 stat, SR&nbsp;20, 6 slots.</li>
+  <li><span class="badge t-prem">Premium</span> — from marquee bosses (Smaug, Gandalf, the Witch King,
+  the Underlord): +8 stat, SR&nbsp;22, 7–8 slots, Regen&nbsp;3.</li>
+</ul>
+<div class="tip-box">
+  <p>The signature spell effect — not the raw stat line — is meant to be the reason to chase each
+  item. The stats keep the piece competitive to equip; the effect is what lets the class finally
+  threaten a boss it couldn't touch before.</p>
+</div>
+<div class="warning-box">
+  <p><strong>Legality.</strong> These items sit above the player-forge value ceiling (like the
+  existing Belt of Sorcerery), so they are hand-placed boss loot registered on the module's
+  legal-item whitelist — they will never flag you for contraband, but they also can't be reproduced
+  at the <a href="Customizations.html#forge">Forge of Wonders</a>.</p>
+</div>
+
+    </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
