@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Slotted Items (Gem Socketing) — Design Notes</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+
+  <main>
+  <style>
+    .mw-layout { display: flex; gap: 2.5em; align-items: flex-start; }
+    .mw-toc-pane { flex: 0 0 220px; position: sticky; top: 1.5em; max-height: calc(100vh - 3em); overflow-y: auto; }
+    .mw-content { flex: 1; min-width: 0; }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+    .toc { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 1em 1.2em; }
+    .toc h2 { font-size: 1em; margin: 0 0 0.5em; border: none; padding: 0; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+    .tier-header { background: rgba(107,58,28,0.08); border-left: 4px solid var(--accent); padding: 0.5em 1em; margin: 2em 0 0.8em; border-radius: 0 4px 4px 0; }
+    .tier-header h2 { margin: 0; border: none; padding: 0; }
+    .tier-header .tier-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+    .loot-box { background: rgba(200,165,119,0.10); border: 1px solid var(--accent-soft); border-radius: 4px; padding: 0.7em 1.1em; margin: 0.8em 0 1em; }
+    .loot-box strong { display: block; margin-bottom: 0.3em; color: var(--accent); }
+    .tip-box { background: rgba(30,30,60,0.07); border-left: 4px solid var(--accent-soft); border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em; }
+    .tip-box p { margin: 0.3em 0; }
+    .warning-box { background: rgba(200, 60, 60, 0.08); border-left: 4px solid #c03030; border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em; }
+    .warning-box p { margin: 0.3em 0; }
+    table.bu { border-collapse: collapse; width: 100%; font-size: 0.9em; margin: 0.6em 0 1.2em; }
+    table.bu th, table.bu td { border: 1px solid var(--border); padding: 0.35em 0.6em; text-align: left; vertical-align: top; }
+    table.bu th { background: var(--card); }
+    .wrap-scroll { overflow-x: auto; }
+  </style>
+
+  <div class="mw-layout">
+    <aside class="mw-toc-pane">
+      <nav class="toc" aria-label="Page contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#context">Context</a></li>
+          <li><a href="#decisions">Design decisions</a></li>
+          <li><a href="#datamodel">Data model</a></li>
+          <li><a href="#newfiles">New files</a></li>
+          <li><a href="#modfiles">Files to modify</a></li>
+          <li><a href="#behavior">Behavior detail</a></li>
+          <li><a href="#verify">Verification</a></li>
+          <li><a href="#critfiles">Critical files referenced</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <div class="mw-content">
+
+<h1>Slotted Items (Gem Socketing) System — Design Notes</h1>
+
+<div class="warning-box">
+  <p><strong>Status: draft plan — not yet implemented.</strong> To be refined / implemented later.
+  This is the socket/loot vehicle referenced by the opt-in curse in
+  <a href="boss-updates.html#curse">Endgame Difficulty</a>.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="context">
+  <h2>Context</h2>
+  <p class="tier-sub">A native socket layer built on the module's own Forge / persistence infrastructure.</p>
+</div>
+
+<p>The module currently has <strong>no</strong> gem-socketing / "slotted items" mechanic. The goal is a
+system where equipment carries a number of <strong>sockets</strong>, and players insert <strong>gems</strong>
+that permanently grant item properties. It must:</p>
+
+<ol>
+  <li>Roll out to <strong>players with pre-existing items</strong> (retroactive socket grants).</li>
+  <li>Use <strong>gem rarity tiers</strong> — common gems from standard/common mobs, rare gems from bosses.</li>
+  <li>Support <strong>retroactive updates</strong> — bump a version stamp and existing items re-reconcile
+  to the latest socket schema on next login.</li>
+  <li><strong>Not send players to jail.</strong> Socketed properties must be recognized as legitimate by
+  the existing Forge contraband / "pit prison" illegal-item checks
+  (<code>forge_scan_step.nss</code> → <code>ForgeItemLegality</code> in <code>forge_inc.nss</code>).</li>
+</ol>
+
+<p>Rather than import a foreign Neverwinter Vault socket mod (which would clash with CEP, the local
+persistence conventions, and the Forge legality system), this builds a <strong>native socket layer on the
+existing infrastructure</strong>: the Forge's item-property apply/inspect helpers, the chunked login-scan
+retroactive pattern, item-local <code>.bic</code> stamps, the generated-include pattern
+(<code>gen-forge-legal.py</code>), and the bestiary universal OnDeath wrapper.</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="decisions">
+  <h2>Design decisions (confirmed with user)</h2>
+  <p class="tier-sub">The shape of the system as agreed.</p>
+</div>
+
+<ul>
+  <li><strong>Socket UI:</strong> standalone usable gem — activate the gem, target the equipment.</li>
+  <li><strong>Schema:</strong> per-item socket count from a <strong>generated lookup</strong>
+  (<code>resref → count</code> + value/base-item tier fallback), compiled to <code>socket_def_inc.nss</code>
+  by a <code>bin/</code> python script (mirrors <code>bin/gen-forge-legal.py</code> → <code>forge_legal_inc.nss</code>).</li>
+  <li><strong>Retroactive rollout:</strong> a login reconciliation pass brings each player-owned item up to
+  its defined socket count (adds missing sockets only, never removes), version-stamped.</li>
+  <li><strong>Gem rarity by CR (drop curve across all creatures):</strong> gems come in <strong>rarity tiers</strong>
+  (e.g. common → uncommon → rare → epic). <strong>Common/standard mobs drop common gems</strong>; higher
+  CR drops rarer gems; <strong>bosses drop rare/epic gems</strong>. One scripted drop hook on the universal
+  creature-death path keys the rarity band off <code>GetChallengeRating</code>, with a weighted random
+  "upgrade" so the same creature can occasionally roll one band higher.</li>
+  <li><strong>Gem effects:</strong> each gem resref = a <strong>fixed</strong> item property; socketing is
+  <strong>permanent</strong> (gem consumed, no extraction).</li>
+</ul>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="datamodel">
+  <h2>Data model — item-local vars (persist in the <code>.bic</code>, survive trade)</h2>
+  <p class="tier-sub">Stored on each socketable item, mirroring how <code>FORGE_CLEAN</code>/<code>FORGE_CEIL</code> already ride in the <code>.bic</code> (<code>forge_inc.nss:40-48</code>).</p>
+</div>
+
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Var</th><th>Type</th><th>Meaning</th></tr>
+  <tr><td><code>SOCKET_MAX</code></td><td>int</td><td>sockets this item has (set by reconciliation from the schema)</td></tr>
+  <tr><td><code>SOCKET_FILLED</code></td><td>int</td><td>how many are filled</td></tr>
+  <tr><td><code>SOCKET_n_GEM</code> (n=0..MAX-1)</td><td>string</td><td>gem <strong>resref</strong> in slot n (empty = open)</td></tr>
+  <tr><td><code>SOCKET_VER</code></td><td>int</td><td>schema version stamp; bump <code>SOCKET_VER_CUR</code> to force re-reconcile</td></tr>
+</table>
+</div>
+
+<p>Recording the gem resref per slot is what makes the legality reconstruction (below) possible.</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="newfiles">
+  <h2>New files</h2>
+  <p class="tier-sub">Includes, generated schema, action/scan scripts, drop hook, gem blueprints, generator.</p>
+</div>
+
+<ul>
+  <li><strong><code>gem_inc.nss</code></strong> — shared include. Constants (<code>SOCKET_VER_CUR</code>,
+  rarity bands, drop chances, <code>GEM_*</code> keys), socket var helpers,
+  <code>GemBuildProperty(object oGem)</code> (returns the gem's <code>itemproperty</code> from its blueprint
+  locals — modeled on <code>GetNewProperty()</code> in <code>itemprocs.nss</code>, but reading locals off the
+  gem object, not the PC), <code>GemReconcileItem(oItem)</code>, <code>GemSocketSummary(oItem)</code> (for
+  description/feedback), gem rarity pools, and <code>GemBeginScan(oPC)</code> (queues inventory like
+  <code>ForgeBeginScan</code> in <code>forge_inc.nss</code>). Note <code>forge_inc.nss</code>'s warning: do
+  <strong>not</strong> <code>#include "itemprocs"</code> from inside an include consumed alongside it —
+  include both side-by-side in the leaf scripts instead.</li>
+  <li><strong><code>socket_def_inc.nss</code></strong> — <strong>GENERATED</strong>, do not hand-edit. Exposes
+  <code>int GemSocketMax(string sResref, int nBaseItem, int nValue)</code> returning the schema socket count
+  (explicit resref override, else value/base-item tier fallback).</li>
+  <li><strong><code>gem_activate.nss</code></strong> — the socket action (invoked from
+  <code>dmfi_activate</code>, see below).</li>
+  <li><strong><code>gem_scan_step.nss</code></strong> — one chunked reconciliation step, a near-clone of
+  <code>forge_scan_step.nss</code> (own <code>GEM_SCAN_*</code> locals so it never collides with
+  <code>FORGE_SCAN_*</code>).</li>
+  <li><strong><code>gem_drop.nss</code></strong> — CR→rarity drop on every creature death (common mobs →
+  common gems, bosses → rare/epic), with a weighted random upgrade. Gem pools are keyed by rarity band.</li>
+  <li><strong>Gem <code>.uti.json</code> blueprints</strong>, grouped by <strong>rarity band</strong>
+  (common/uncommon/rare/epic) and effect — e.g. <code>gem_common_fire</code>, <code>gem_rare_str</code>, ….
+  Each is a non-equippable gem with a <strong>"Cast Spell: Unique Power – Self Only"</strong> item property
+  (so activation fires <code>OnActivateItem</code>) and blueprint local vars describing its effect
+  (<code>GEM_PROP</code>, <code>GEM_P1/2/3</code>, <code>GEM_RARITY</code>) read by <code>GemBuildProperty</code>.
+  Stronger properties live on rarer bands. Add a palette entry (<code>itempalcus.itp.json</code>). The existing
+  <code>1kgem</code>/<code>10kgem</code>/<code>100kgem</code> are vendor-trash — <strong>do not reuse them.</strong></li>
+  <li><strong><code>bin/gen-socket-defs.py</code></strong> + a <strong><code>socket_defs.json</code></strong>
+  config (resref overrides + tier rules). Scans <code>unpacked/*.uti.json</code> for base item / gold value
+  and emits <code>socket_def_inc.nss</code>. Mirrors <code>bin/gen-forge-legal.py</code>.
+  <code>forge_legal_inc.nss</code> appears committed, so commit <code>socket_def_inc.nss</code> too.</li>
+</ul>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="modfiles">
+  <h2>Files to modify</h2>
+  <p class="tier-sub">Activation dispatch, login scan wiring, and the critical Forge-legality integration.</p>
+</div>
+
+<ul>
+  <li><strong><code>dmfi_activate.nss</code></strong> — the live <code>Mod_OnActvtItem</code> handler. Add an
+  early branch: if the activated item is a gem (tag prefix <code>gem_</code> or a <code>GEM_RARITY</code> local),
+  <code>ExecuteScript("gem_activate")</code> and <code>return</code>. (It already supports x2 tag-based dispatch
+  at line 45 via <code>GetUserDefinedItemEventScriptName</code>; an explicit branch is simpler and matches the
+  existing <code>DyeKit</code>/<code>bestiarybook</code> branches.)</li>
+  <li><strong><code>hgll_cliententer.nss</code></strong> — add <code>DelayCommand(7.0, GemBeginScan(oPC));</code>
+  next to the existing <code>DelayCommand(6.0, ForgeBeginScan(oPC));</code> (line 107). This is the retroactive
+  rollout + update trigger: a bumped <code>SOCKET_VER_CUR</code> re-reconciles all items at next login.</li>
+</ul>
+
+<div class="warning-box">
+  <p><strong><code>forge_inc.nss</code> — <code>ForgeItemLegality</code> (CRITICAL, the jail concern).</strong>
+  Before it declares an item illegal (fingerprint not whitelisted / over value or prop caps), it must account
+  for socketed gems:</p>
+  <ol>
+    <li>Reconstruct the <strong>expected</strong> property set = blueprint/whitelist baseline <strong>plus</strong>
+    the properties contributed by each recorded <code>SOCKET_n_GEM</code> resref (via <code>GemBuildProperty</code>).
+    If the item's actual permanent properties equal baseline + socket contributions, it is <strong>legal</strong>,
+    even though the raw fingerprint isn't in <code>forge_legal_inc.nss</code>.</li>
+    <li>Raise the effective value / prop-count ceiling by the socket contributions (or stamp <code>FORGE_CEIL</code>
+    on socket, as <code>modifyitem.nss</code> already does for Appraise-extended items), so legitimate socketing
+    doesn't trip <code>FORGE_LEGAL_MAX_PROPS</code> (6) / <code>FORGE_LEGAL_MAX_VALUE</code> (750000). Anti-exploit:
+    a gem only applies when it lands in a real schema socket (<code>GemSocketMax &gt; SOCKET_FILLED</code>) and its
+    property is bounded by gem rarity, so this can't be used to launder arbitrary forge value.</li>
+  </ol>
+  <p><code>gem_activate.nss</code> must also <code>DeleteLocalInt(oItem, "FORGE_CLEAN")</code> after socketing
+  (as <code>modifyitem.nss</code> does) so the item is re-validated under the new rules next scan.</p>
+</div>
+
+<ul>
+  <li><strong>Creature death hook for gem drops.</strong> Add <code>ExecuteScript("gem_drop", OBJECT_SELF)</code>
+  to the universal creature-death path. Preferred hook: <strong><code>bst_ondeath.nss</code></strong> (the
+  bestiary death handler that <code>bst_install</code> already wraps onto every spawned creature) — uniform
+  coverage of all current and future creatures without editing 900+ blueprints. Fallback for any unwrapped
+  creatures: <code>nw_c2_default9.nss</code> (default creature OnDeath, right after <code>CTG_GenerateNPCTreasure</code>).</li>
+</ul>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="behavior">
+  <h2>Behavior detail</h2>
+  <p class="tier-sub">Socketing, reconciliation, and the CR→rarity drop roll.</p>
+</div>
+
+<p><strong>Socketing (<code>gem_activate.nss</code>):</strong> <code>oGem = GetItemActivated()</code>,
+<code>oPC = GetItemActivator()</code>, <code>oTarget = GetItemActivatedTarget()</code>. Validate target is an
+item the PC owns/equips and is socketable (<code>GemReconcileItem</code> then <code>SOCKET_MAX &gt; 0</code>).
+If <code>SOCKET_FILLED &lt; SOCKET_MAX</code>: <code>AddItemProperty(DURATION_TYPE_PERMANENT, GemBuildProperty(oGem), oTarget)</code>
+(stock add, as the forge uses — not <code>IPSafeAddItemProperty</code>), set <code>SOCKET_&lt;filled&gt;_GEM = GetResRef(oGem)</code>,
+increment <code>SOCKET_FILLED</code>, raise <code>FORGE_CEIL</code>, clear <code>FORGE_CLEAN</code>,
+<code>DestroyObject(oGem)</code> (consumed), update description/feedback. Else: "This item has no open sockets."</p>
+
+<p><strong>Reconciliation (<code>gem_scan_step.nss</code>):</strong> per queued item,
+<code>nWant = GemSocketMax(resref, baseitem, value)</code>; if <code>SOCKET_VER</code> stale and
+<code>nWant &gt; SOCKET_MAX</code>, set <code>SOCKET_MAX = nWant</code> (preserve <code>SOCKET_FILLED</code>),
+stamp <code>SOCKET_VER = SOCKET_VER_CUR</code>. Never removes sockets or properties. Reschedules itself via
+<code>DelayCommand(0.1, ...)</code> exactly like <code>forge_scan_step</code>.</p>
+
+<p><strong>Drops by rarity (<code>gem_drop.nss</code>):</strong> <code>cr = GetChallengeRating(OBJECT_SELF)</code>;
+map CR to a <strong>rarity band</strong> (e.g. CR&lt;5 → common, 5–14 → uncommon, 15–29 → rare, 30+ → epic;
+bands tunable, can align with the bestiary's <code>BST_SF_CR = 60.0</code> "hard creature" threshold for an epic
+cutoff). Roll <code>d100() &lt;= dropChance(band)</code> (common mobs have a lower per-kill chance, bosses higher).
+On success, apply a weighted upgrade roll (e.g. ~80% base band / ~15% +1 band / ~5% +2 band) so the same creature
+can occasionally yield a rarer gem, pick a random gem resref from that band's pool, and
+<code>CreateItemOnObject(sGem, &lt;corpse&gt;)</code>. Drop on the corpse so normal looting/party rules apply
+(consistent with how blueprint loot drops today).</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="verify">
+  <h2>Verification</h2>
+  <p class="tier-sub">Build, socket, persist, jail-safety, drops, wiki.</p>
+</div>
+
+<ol>
+  <li><strong>Build:</strong> run <code>bin/gen-socket-defs.py</code>; repack via the <code>repack-homers-lotr</code>
+  wrapper (not bare <code>nwn-manager repack</code>); restart the server; confirm <code>socket_def_inc.nss</code>,
+  <code>gem_*.nss</code> compile clean (the repack dialog-integrity/compile gate will surface errors).</li>
+  <li><strong>Socket:</strong> give yourself a gem + a socketable weapon, activate gem → target weapon →
+  property applied, gem consumed, socket filled, message shown. Activate again with no open socket → refusal message.</li>
+  <li><strong>Persistence + retro update:</strong> log out/in → socket vars persist. Bump <code>SOCKET_VER_CUR</code>,
+  relog → existing item gains newly-defined sockets (none removed).</li>
+  <li><strong>Jail safety (the key check):</strong> put a socketed item in inventory and trigger the login
+  contraband sweep (<code>ForgeBeginScan</code>) → player is <strong>not</strong> jailed; an item with a
+  <em>forged</em> illegal property still is. Verify against the pit-prison flow.</li>
+  <li><strong>Rarity drops:</strong> kill common mobs → common gems at low rate; kill high-CR bosses →
+  rare/epic gems; confirm occasional one-band-up upgrades.</li>
+  <li><strong>Wiki:</strong> run <code>bin/refresh-homers-lotr-wiki</code> so gem items/sources appear in
+  <code>item_index.json</code>.</li>
+</ol>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="critfiles">
+  <h2>Critical files referenced</h2>
+  <p class="tier-sub">The existing infrastructure this system extends.</p>
+</div>
+
+<ul>
+  <li><code>unpacked/forge_inc.nss</code> — <code>ForgeItemLegality</code>, <code>ForgeBeginScan</code>, caps,
+  <code>FORGE_CLEAN</code>/<code>FORGE_CEIL</code> (extend here)</li>
+  <li><code>unpacked/forge_scan_step.nss</code> — template for <code>gem_scan_step.nss</code></li>
+  <li><code>unpacked/forge_legal_inc.nss</code> + <code>bin/gen-forge-legal.py</code> — generated-whitelist
+  pattern to mirror</li>
+  <li><code>unpacked/itemprocs.nss</code> (<code>GetNewProperty</code>, <code>CustomAddProperty</code>) —
+  property-builder template</li>
+  <li><code>unpacked/modifyitem.nss</code> — <code>FORGE_CLEAN</code> clear + <code>FORGE_CEIL</code> stamp precedent</li>
+  <li><code>unpacked/dmfi_activate.nss</code> — <code>Mod_OnActvtItem</code> handler (add gem branch)</li>
+  <li><code>unpacked/hgll_cliententer.nss</code> (~line 107) — login scan wiring (add <code>GemBeginScan</code>)</li>
+  <li><code>unpacked/bst_ondeath.nss</code> / <code>bst_install.nss</code> / <code>nw_c2_default9.nss</code> —
+  creature-death hook for drops</li>
+  <li><code>unpacked/module.ifo.json</code> — event-handler resref map (no edit needed; handlers already route)</li>
+</ul>
+
+    </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

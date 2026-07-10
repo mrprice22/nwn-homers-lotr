@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Endgame Difficulty &amp;amp; New High-Level Tier</title>
+  <title>Endgame Difficulty — Tactical, Not Spongy</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -42,6 +42,7 @@
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
 <a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
@@ -49,7 +50,7 @@
 <a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
 <a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a>
-<a href="../manual/boss-updates.html">Endgame Difficulty &amp;amp; New High-Level Tier</a></div></div>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
     </nav>
   </header>
   <main>
@@ -57,7 +58,7 @@
   <main>
   <style>
     .mw-layout { display: flex; gap: 2.5em; align-items: flex-start; }
-    .mw-toc-pane { flex: 0 0 220px; position: sticky; top: 1.5em; max-height: calc(100vh - 3em); overflow-y: auto; }
+    .mw-toc-pane { flex: 0 0 240px; position: sticky; top: 1.5em; max-height: calc(100vh - 3em); overflow-y: auto; }
     .mw-content { flex: 1; min-width: 0; }
     @media (max-width: 700px) {
       .mw-layout { flex-direction: column; }
@@ -77,6 +78,8 @@
     .tip-box p { margin: 0.3em 0; }
     .warning-box { background: rgba(200, 60, 60, 0.08); border-left: 4px solid #c03030; border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em; }
     .warning-box p { margin: 0.3em 0; }
+    .northstar { background: rgba(107,58,28,0.10); border: 1px solid var(--accent); border-radius: 4px; padding: 0.9em 1.2em; margin: 1em 0 1.4em; }
+    .northstar strong { color: var(--accent); }
     table.bu { border-collapse: collapse; width: 100%; font-size: 0.9em; margin: 0.6em 0 1.2em; }
     table.bu th, table.bu td { border: 1px solid var(--border); padding: 0.35em 0.6em; text-align: left; vertical-align: top; }
     table.bu th { background: var(--card); }
@@ -84,6 +87,10 @@
     .wrap-scroll { overflow-x: auto; }
     .done { color: #2e7d32; font-weight: 600; }
     .hole { color: #c03030; font-weight: 600; }
+    .check { font-size: 0.9em; color: var(--muted); margin: 0.2em 0 1.1em; padding-left: 0.9em; border-left: 3px solid var(--accent-soft); }
+    .check strong { color: var(--accent); }
+    .new-badge { display: inline-block; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; background: var(--accent); border-radius: 3px; padding: 0.05em 0.4em; vertical-align: middle; margin-left: 0.4em; }
+    .greenfield { color: #b26a00; font-weight: 600; }
   </style>
 
   <div class="mw-layout">
@@ -91,18 +98,35 @@
       <nav class="toc" aria-label="Page contents">
         <h2>Contents</h2>
         <ol>
+          <li><a href="#northstar">North star: tactical, not spongy</a></li>
           <li><a href="#why">Why the top end is too easy</a></li>
-          <li><a href="#recipe">The tuning recipe</a></li>
+          <li><a href="#recipe">The per-boss tuning recipe</a></li>
           <li><a href="#bosses">Per-boss tuning suggestions</a></li>
-          <li><a href="#density">Encounter density (CR&gt;150 packs)</a></li>
-          <li><a href="#tier">New highest-level tier</a>
+          <li><a href="#levers">Module-wide difficulty levers</a>
             <ol>
-              <li><a href="#tier-moria">Moria: Deep Caverns</a></li>
-              <li><a href="#tier-tombs">Tombs of the Lost Souls</a></li>
-              <li><a href="#tier-temple">Temple of Nazgûl</a></li>
+              <li><a href="#fatigue">Soul-fatigue on Heal</a></li>
+              <li><a href="#enrage">Enrage-on-retreat</a></li>
+            </ol>
+          </li>
+          <li><a href="#curse">Opt-in curse (risk &harr; reward)</a></li>
+          <li><a href="#gimmicks">Gimmick bosses</a>
+            <ol>
+              <li><a href="#gimmick-borg">Adaptive "Borg" immunity</a></li>
+              <li><a href="#gimmick-swarm">Elemental swarm waves</a></li>
+              <li><a href="#gimmick-wander">Wandering boss</a></li>
+              <li><a href="#gimmick-parent">Clone / parent boss</a></li>
+            </ol>
+          </li>
+          <li><a href="#density">Encounter density (revised)</a></li>
+          <li><a href="#tier">New tier &amp; the Forbidden Realms Key</a>
+            <ol>
+              <li><a href="#tier-key">The key chain</a></li>
+              <li><a href="#tier-weathertop">Weathertop / Amon Sûl</a></li>
+              <li><a href="#tier-other">Moria &amp; Nazgûl areas</a></li>
             </ol>
           </li>
           <li><a href="#impl">Implementation checklist</a></li>
+          <li><a href="#scorecard">Honesty scorecard</a></li>
           <li><a href="#appendix">Appendix: unlockable creatures</a></li>
         </ol>
       </nav>
@@ -110,24 +134,38 @@
 
     <div class="mw-content">
 
-<h1>Endgame Difficulty &amp; New High-Level Tier</h1>
+<h1>Endgame Difficulty — Tactical, Not Spongy</h1>
 
 <p>Top-end players have out-scaled the existing bosses and are asking for a real challenge.
-This page documents <em>why</em> the current bosses are easy for a maxed character, a concrete
-recipe for making them threatening again, and a design for opening three currently-inaccessible
-areas as a new highest-level tier populated with beefed-up "absent" creatures.</p>
+This page is the working design brief for the next difficulty pass. It documents <em>why</em>
+maxed characters trivialise the current fights, a concrete per-boss recipe to make them
+threatening again, a set of module-wide levers and gimmick fights, and a new high-level tier
+opened by an already-existing key.</p>
 
-<div class="warning-box">
-  <p><strong>Status: design / proposal — not yet applied in-game.</strong> Nothing here is live.
-  The numbers, placements, and links below are recommendations for review. When approved, apply
-  per the <a href="#impl">implementation checklist</a> and regenerate the boss registry.</p>
+<div class="northstar" id="northstar">
+  <p><strong>North star — tactical difficulty, not HP sponges.</strong> Every proposal on this
+  page has to earn its place by making a fight demand the <em>right tactics, gear, or build</em> —
+  resisting crowd control, forcing misses, punishing sloppy play — <strong>not</strong> by simply
+  adding hit points so the same rotation takes longer. When a change would only lengthen a fight,
+  it is not done: it is paired with something that changes <em>how</em> the fight is played.</p>
+  <p><strong>The honesty checklist</strong> (hold every idea below against it):</p>
+  <ol style="margin:0.3em 0 0">
+    <li><strong>Tactical demand?</strong> Does it reward a specific counter, build, or positioning — or is it just bigger numbers?</li>
+    <li><strong>Sponginess risk?</strong> If the only felt effect is "the fight is longer", it fails.</li>
+    <li><strong>Exploit surface?</strong> Can it be cheesed (kiting, potion-spam, leash abuse, teamwork loopholes)?</li>
+    <li><strong>Build effort vs. payoff?</strong> Is the implementation cost worth the tactical change it buys?</li>
+  </ol>
 </div>
 
 <div class="tip-box">
+  <p><strong>Status: design / proposal — not yet applied in-game.</strong> Nothing here is live.
+  Numbers, placements, and hook points are recommendations for review, verified against the
+  current source. When approved, apply per the <a href="#impl">implementation checklist</a>.</p>
   <p><strong>Sources.</strong> Effective boss stats (AC/saves/SR/DR/immunities <em>including gear</em>)
   are in <code>module-index/counter_gear.md</code>; the boss list is <code>module-index/bosses.json</code>;
-  the pool of unused creatures is <code>module-index/unspawned_creatures.json</code>; empty/unconnected
-  areas are in <code>module-index/area_index.json</code>. Raw blueprints are <code>unpacked/&lt;resref&gt;.utc.json</code>.</p>
+  unused creatures are <code>module-index/unspawned_creatures.json</code>; creature/encounter
+  cross-refs are <code>module-index/creature_index.json</code>. Raw blueprints are
+  <code>unpacked/&lt;resref&gt;.utc.json</code>.</p>
 </div>
 
 <hr>
@@ -135,7 +173,7 @@ areas as a new highest-level tier populated with beefed-up "absent" creatures.</
 <!-- ============================================================ -->
 <div class="tier-header" id="why">
   <h2>Why the top end is too easy</h2>
-  <p class="tier-sub">The big CR numbers are cosmetic; two systemic holes make maxed players trivialise the fights.</p>
+  <p class="tier-sub">The big CR numbers are cosmetic; two systemic holes let maxed players trivialise the fights.</p>
 </div>
 
 <p>Nearly every boss forces <code>CRAdjust = 125</code> (the engine maximum), so the huge displayed
@@ -165,7 +203,7 @@ Two weaknesses recur across the roster:</p>
 
 <!-- ============================================================ -->
 <div class="tier-header" id="recipe">
-  <h2>The tuning recipe</h2>
+  <h2>The per-boss tuning recipe</h2>
   <p class="tier-sub">Per-boss, by hand — no shared script. Three levers, applied only where a boss has the hole.</p>
 </div>
 
@@ -235,111 +273,300 @@ carries <code>bossring</code>/<code>npcbuffgear</code>. "Effective" saves/AC inc
 (<code>thecursedone002</code>, already has the narsil-only damage-immunity gimmick) are close to
 where we want the ceiling — at most nudge their lowest save (High Wizard Fort +10 → fB 0→15).</p>
 
-<div class="tip-box">
-  <p><strong>Marquee gimmicks (optional, 1–3 bosses).</strong> For a memorable capstone fight, follow the
-  proven precedent <code>unpacked/dunharrowking.nss</code> (Heir of Haldor): a custom <em>OnDamaged</em> that
-  negates/heals damage unless the PC wields a specific weapon tag, or a phase/enrage mechanic. It already
-  coexists with the bestiary/boss-tracker/leash wrapper chain (see <a href="#impl">implementation</a>). Good
-  candidates: <strong>Sauron</strong> and a new <strong>Angmar the Evocator</strong> capstone.</p>
+<!-- ============================================================ -->
+<div class="tier-header" id="levers">
+  <h2>Module-wide difficulty levers <span class="new-badge">new</span></h2>
+  <p class="tier-sub">Two systemic mechanics that raise the skill floor for <em>every</em> hard fight — and close the biggest cheese.</p>
 </div>
+
+<p>Per-boss tuning fixes the stat holes, but two behaviours let a maxed player ignore tactics entirely:
+walking around with hundreds of <strong>Heal</strong> potions, and the <strong>tank-and-retreat</strong>
+duo (one player holds aggro while another runs off to rest to full). These two levers target exactly
+those, and they are designed to reinforce each other.</p>
+
+<h3 id="fatigue">1. Soul-fatigue on Heal</h3>
+<p>A stacking penalty that makes reflexive full-heals dangerous, so healing becomes a <em>timed
+resource</em> rather than a spam button. Mechanic:</p>
+<ul>
+  <li>Each time you are healed by the <strong>Heal</strong> spell (and by extension Heal potions),
+  a <strong>soul-fatigue stack</strong> is added <em>after</em> the heal resolves.</li>
+  <li>Each stack lasts <strong>3 minutes</strong> on its own independent timer, then falls off.</li>
+  <li><strong>When you are healed</strong>, you first take <strong>10% of your max HP as damage per
+  <em>already-active</em> stack</strong> — this can kill you. The heal then applies, and a new stack is added.</li>
+  <li>Because the damage keys off stacks that were active <em>before</em> this heal, a heal from
+  <strong>zero stacks</strong> gives its full benefit (then leaves you at 1 stack). Chain-healing is
+  what gets punishing: 2nd heal = -10% first, 3rd = -20%, etc.</li>
+</ul>
+<div class="tip-box">
+  <p><strong>Where it hooks in (verified).</strong> The module already installs a module override
+  spellscript (<code>on_module_load.nss</code> → <code>SetModuleOverrideSpellscript("stop_spellcheat")</code>),
+  which runs on <em>every</em> cast — including item/potion activations via <code>GetSpellCastItem()</code>.
+  Branch on <code>GetSpellId() == SPELL_HEAL</code> (and the mass-heal variants). Track stacks per PC with a
+  local int + one <code>DelayCommand(180.0, …)</code> per stack to decrement (precedent:
+  <code>_build_dont_cast.nss</code>); persist across relog only if wanted (bestiary/merit SQLite pattern).
+  There is no <code>Mod_OnSpellCast</code>/<code>OnPlayerHeal</code> event — the override spellscript is the hook.</p>
+</div>
+<p class="check"><strong>Honesty check:</strong> on its own this mostly just makes fights longer (retreat,
+wait out the stacks, return). It only becomes <em>tactical</em> when paired with enrage-on-retreat below —
+which removes the "wait it out" option — so the two ship together.</p>
+
+<h3 id="enrage">2. Enrage-on-retreat</h3>
+<p>The direct counter to soul-fatigue's escape hatch and to the tank-and-retreat duo. Applies to
+<strong>qualified bosses only</strong> — the CR&gt;60 single-instance set on the
+<em>Roll of the Fallen</em> registry, not to ordinary creatures players walk away from.</p>
+<ul>
+  <li>When a player <strong>disengages / leaves combat</strong> with the boss — <em>regardless of whether
+  they stay in the area, and regardless of whether other players are still fighting it</em> — the boss:</li>
+  <li>Shouts a taunt over the <strong>shout channel</strong>, naming the fleeing player, e.g.
+  <em>"Fool, &lt;FirstName&gt;, my power only grows as you retreat."</em></li>
+  <li>Gains <strong>+2 to all ability scores for the remainder of that life</strong> — a permanent,
+  stacking enrage that is <strong>never carried to a future respawn</strong>.</li>
+  <li>Instantly <strong>heals 25% of its missing HP</strong>.</li>
+</ul>
+<p>Every retreat makes the boss stronger and undoes a quarter of the progress made, so the winning line
+is a single sustained engagement with the throughput and mitigation to see it through — which is exactly
+the "come properly geared and built" intent.</p>
+<div class="warning-box">
+  <p><strong>Open design detail — how "left combat" is detected.</strong> This needs a concrete trigger.
+  Candidates: a boss heartbeat that inspects its recent-attacker / aggro list and flags any PC who was
+  engaged and is now out of melee/attack range for N seconds; or a per-PC "engaged" flag set when the PC
+  attacks the boss and cleared on distance/rest. Note the existing <code>leash_to_area.nss</code> sends a
+  boss <em>home</em> when led out of its area but <strong>does not heal it</strong> — enrage-on-retreat
+  closes the attrition gap the leash leaves open, and covers the case where the player retreats <em>within</em>
+  the same area (which the leash never sees).</p>
+</div>
+<p class="check"><strong>Honesty check:</strong> pure tactical demand — it doesn't touch boss HP or the CR
+label; it makes disengaging strictly worse than committing, killing the potion-attrition and tank-swap cheese.</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="curse">
+  <h2>Opt-in curse — risk &harr; reward <span class="new-badge">new</span></h2>
+  <p class="tier-sub">Let players volunteer for a harder game in exchange for rarer loot — difficulty as a choice, not a wall.</p>
+</div>
+
+<p>Not every player wants the hardest version of every fight, so make the extra difficulty <strong>opt-in</strong>
+and pay it back in loot. A player who takes the curse accepts, for example:</p>
+<ul>
+  <li><strong>≈50% more damage taken</strong>, and/or</li>
+  <li><strong>doubled soul-fatigue</strong> — double the per-stack penalty and/or the stack duration.</li>
+</ul>
+<p>…in exchange for a materially better <strong>reward roll</strong>. The reward vehicle is
+<strong>chance-based, rarity-tiered socketed-gem loot</strong>. The module has no chance-based loot today
+(<span class="greenfield">greenfield</span>), but the socket/gem system is already fully specified in a
+sibling design doc — see <a href="Gem-Socketing.html"><strong>Slotted Items (Gem Socketing)</strong></a>.
+That draft already drops gems by creature CR (common mobs → common gems; bosses → rare/epic) built on the
+existing Forge legality system so socketed items don't trip the contraband/pit-prison sweep. The curse
+simply <strong>bumps the rarity band and/or drop chance</strong> while active — no separate loot system needed.</p>
+<p class="check"><strong>Honesty check:</strong> creates a build/greed decision (do I take more risk for a
+shot at a rarer gem?) rather than more HP; it also gives the difficulty knob to the player instead of
+flattening everyone.</p>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="gimmicks">
+  <h2>Gimmick bosses <span class="new-badge">new</span></h2>
+  <p class="tier-sub">Fights that demand a <em>specific</em> answer. Today there is exactly one — let's build more.</p>
+</div>
+
+<p>The most memorable fight in the module is the <strong>Heir of Haldor / King of the Dead</strong>
+(<code>dunharrowking.nss</code>): a custom <em>OnDamaged</em> handler that <strong>fully self-heals all
+damage unless the attacker's right hand wields weapon tag <code>narsil</code></strong>, taunting on wrong-weapon
+hits and planting a journal hint on the first one. That is the template — a fight with a single correct
+answer — and it already coexists cleanly with the bestiary / boss-tracker / leash wrapper chain
+(see <a href="#impl">implementation</a>). Four new gimmicks in that spirit:</p>
+
+<h3 id="gimmick-borg">a. Adaptive "Borg" immunity boss</h3>
+<p>A boss that learns. It starts <strong>not immune to anything</strong>, and as it takes damage it builds
+type immunity from a shared reserve:</p>
+<ul>
+  <li>A <strong>universal reserve pool of 500%</strong> — enough to become fully (100%) immune to at most
+  <strong>5 damage types</strong> at once.</li>
+  <li>Each time it takes a damage type, it draws from the pool in <strong>5–10% increments</strong> toward
+  100% immunity <em>for that type</em>.</li>
+  <li>When the pool is empty and it takes a type it isn't yet fully immune to, it still adds an increment —
+  but <strong>steals that power from the least-recently-received</strong> type it is currently immune to
+  (so a party that keeps switching damage types keeps it off-balance; a mono-damage party gets locked out).</li>
+</ul>
+<div class="tip-box">
+  <p><strong>Feasibility (verified).</strong> NWN percentage damage immunity is item property
+  <code>PropertyName 20</code>, only in discrete steps (5/10/25/50/75/100%), which <em>stack additively
+  across equipment slots</em> and cap at 100 per type. So the boss carries immunity across several gear
+  slots and the <em>OnDamaged</em> handler adds/removes those properties at runtime to hit the current
+  per-type total — the same mechanism the shared <code>bossring</code>/<code>npcbuffgear</code> already use,
+  driven dynamically. The bookkeeping (pool, per-type totals, recency) is <span class="greenfield">greenfield</span>
+  script but built entirely from existing pieces.</p>
+</div>
+<p class="check"><strong>Honesty check:</strong> hard tactical demand — rewards a party that coordinates and
+rotates damage types, punishes one-note builds; no HP inflation.</p>
+
+<h3 id="gimmick-swarm">b. Elemental swarm waves</h3>
+<p>Not a single boss but an <strong>attrition arena</strong>. Players clear multiple <strong>waves</strong>,
+and the element changes each wave (fire → cold → acid → …). Per wave:</p>
+<ul>
+  <li><strong>24 elementals</strong> of that wave's type, <strong>trickle-spawned</strong> to surround the
+  players — <strong>4 at a time every 10 seconds over ~1 minute</strong> — so the pressure ramps instead of
+  dumping all at once.</li>
+  <li>The element rotates when a wave is cleared, forcing players to re-gear resistances / swap tactics mid-fight.</li>
+</ul>
+<p>Reusable elemental blueprints already exist (water <code>nw_watergreat</code>/<code>nw_waterhuge</code>,
+frost and frost/fire giants, acid archers). The <strong>timed trickle-wave controller</strong> is
+<span class="greenfield">greenfield</span>, but the building blocks are standard
+(<code>CreateObject</code> + <code>DelayCommand</code>, plus the <code>se_respawn</code> timer pattern).
+These are trash-wave adds, <em>not</em> single-instance registry bosses — so they don't touch the boss tracker.</p>
+<p class="check"><strong>Honesty check:</strong> tactical if the element rotation actually forces resistance/AoE
+adjustments each wave; guard against it degenerating into a plain HP-over-time slog by keeping waves short and lethal.</p>
+
+<h3 id="gimmick-wander">c. Wandering boss</h3>
+<p>A boss that <strong>can't be pinned to one area</strong> on the wiki — it patrols a route, or genuinely
+relocates to a random valid area (filtering out low-level zones) so players have to hunt it.</p>
+<div class="tip-box">
+  <p><strong>Precedent + the catch (verified).</strong> A full wander state machine already exists but is
+  unused — <code>wandering.nss</code> (INIT/MOVING/SEARCHING/REST with random relocation) — ready to attach
+  to a boss's user-defined/heartbeat event. <strong>Critical:</strong> the module's anti-kiting
+  <code>leash_to_area.nss</code> (every area's OnEnter) would instantly snap a roamer back home, so a
+  wandering boss <strong>must</strong> set <code>SetLocalInt(self,"NO_LEASH",1)</code> (the documented
+  exemption). It still qualifies as a single-instance registry boss; its wiki/board attribution just
+  becomes "roaming".</p>
+</div>
+<p class="check"><strong>Honesty check:</strong> the "tactic" is discovery/logistics rather than combat —
+good for variety, but pair it with a real combat profile so finding it isn't the whole fight.</p>
+
+<h3 id="gimmick-parent">d. Clone / parent boss</h3>
+<p>A boss with a <strong>chance to gate-crash an existing boss fight</strong> as, e.g.,
+"<em>&lt;Existing Boss&gt;'s Mom</em>" (or Dad) — similar to the original but with boosted stats and better
+gear, turning a known fight into a surprise 2-front battle.</p>
+<div class="tip-box">
+  <p><strong>Gear integration (verified path).</strong> For the parent to carry <em>better</em> gear, its
+  drops must be real item blueprints <strong>and</strong> registered as legal via
+  <code>bin/gen-forge-legal.py</code> (which whitelists item property fingerprints in
+  <code>forge_legal_inc.nss</code>) — otherwise the Forge login sweep flags them as contraband and jails the
+  looter. Where a drop is <em>meant</em> to be contraband, flag it deliberately through the same Warden
+  system. This is a well-trodden path (it's how all current over-cap boss gear is legal).</p>
+</div>
+<p class="check"><strong>Honesty check:</strong> tactical via the surprise + target-priority decision it
+forces; keep the parent's stat boost modest so it's a threat multiplier, not a second sponge.</p>
 
 <!-- ============================================================ -->
 <div class="tier-header" id="density">
-  <h2>Encounter density — double the CR&gt;150 packs</h2>
-  <p class="tier-sub">More enemies per fight where it's a group encounter — not on solo-boss encounters.</p>
+  <h2>Encounter density — revised rule</h2>
+  <p class="tier-sub">More bodies where a mob is genuinely reused — and a correction to how density is actually edited.</p>
 </div>
-
-<p>Of the 36 encounters (<code>unpacked/*.ute.json</code>) whose pool contains a CR&gt;150 creature,
-<strong>22 are multi-creature packs</strong> (<code>MaxCreatures &gt; 1</code>). For those, double both
-<code>MaxCreatures</code> (the cap) and <code>RecCreatures</code> (the number actually spawned) for ~2× enemies.</p>
 
 <div class="warning-box">
-  <p><strong>Do not double the 14 solo-boss encounters (<code>MaxCreatures == 1</code>)</strong> — e.g.
-  <code>angmar</code> (CR 4260), <code>iidda</code>, <code>moriabyss</code>, <code>gullom</code>, <code>understudy</code>.
-  Several are tracked on the <em>Roll of the Fallen</em> board; adding a second live copy violates the boss
-  registry's <strong>single-instance rule</strong> and silently drops them from the tracker and the wiki Bosses page.</p>
+  <p><strong>Correction — editing <code>.ute.json</code> templates does nothing at runtime.</strong> The
+  earlier version of this page proposed doubling <code>MaxCreatures</code>/<code>RecCreatures</code> on the
+  encounter <em>templates</em>. But every one of the <strong>778 placed encounter instances</strong> carries
+  its own <code>CreatureList</code>/<code>MaxCreatures</code>/<code>RecCreatures</code> inside the area
+  <code>.git.json</code>; the <code>.ute</code> is only a toolset default. 35 of the 81 templates are never
+  even placed (including <code>weathertop</code> and <code>insectoldforest</code>, previously used as examples).
+  <strong>Any density change must edit the git instances</strong>, not the templates.</p>
 </div>
 
-<div class="wrap-scroll">
-<table class="bu">
-  <tr><th>Encounter</th><th class="num">MaxCreatures</th><th class="num">RecCreatures</th></tr>
-  <tr><td><code>haraddesrtencoun</code></td><td class="num">8 → 16</td><td class="num">3 → 6</td></tr>
-  <tr><td><code>mtdoomskeletongr</code></td><td class="num">8 → 16</td><td class="num">3 → 6</td></tr>
-  <tr><td><code>blackgateencount</code>, <code>gondorundead</code>, <code>gwathdorsnakes</code>, <code>hennethelves</code>, <code>mordorhard</code>, <code>mordorithilien</code>, <code>whitebelt</code></td><td class="num">6 → 12</td><td class="num">2–4 → 4–8</td></tr>
-  <tr><td><code>baradspawn</code>, <code>carndumoutside</code>, <code>carndumspawn</code>, <code>deadmarsh</code>, <code>isengardouter</code>, <code>ithilienrangers</code>, <code>rivendellspawn</code>, <code>shelobspiderling</code>, <code>weathertop</code></td><td class="num">4 → 8</td><td class="num">2–4 → 4–8</td></tr>
-  <tr><td><code>minastirithspawn</code></td><td class="num">3 → 6</td><td class="num">3 → 6</td></tr>
-  <tr><td><code>gelcube</code>, <code>lesserspider</code>, <code>shadowdolguldur</code></td><td class="num">2 → 4</td><td class="num">1–2 → 2–4</td></tr>
-</table>
+<p>Revised rule — a targeted nudge, not a blanket doubling:</p>
+<ul>
+  <li><strong>Bump a creature's per-instance spawn count 1 → 2 (max 2)</strong>, and only for a creature that
+  is spawned by <strong>more than one encounter</strong> across the module. This thickens genuinely reused
+  mobs (the ones that read as "the local rank-and-file") while leaving one-off set-pieces alone.</li>
+  <li>Identify the "&gt;1 encounter" creatures from <code>module-index/creature_index.json</code> —
+  each creature's <code>locations[]</code> lists its <code>encounter_resref</code> entries. Roughly
+  <strong>144 of 382</strong> encounter creatures appear in more than one encounter and qualify.</li>
+</ul>
+
+<div class="tip-box">
+  <p><strong>The boss rule (restated): one spawn per <em>module</em>, not per encounter.</strong> This is
+  already enforced mechanically — <code>bin/gen-boss-registry.py</code> treats any CR&gt;60 creature with
+  exactly one live instance module-wide as a <em>Roll of the Fallen</em> boss (78 today). Note the built-in
+  consistency: a boss is by definition <em>not</em> in more than one encounter, so the density rule
+  ("&gt;1 encounter") and the boss carve-out can never both apply to the same creature. And never bump the
+  <strong>19 solo (<code>MaxCreatures == 1</code>) encounters</strong> — doing so would add a second live
+  copy and silently drop that boss from the tracker and the wiki Bosses page.</p>
 </div>
+
+<p>The previous "any pool entry with CR&gt;150" trigger is retired: per-entry CR is a level-scaling weight,
+and plenty of ordinary trash exceeds 150, so it caught the wrong encounters.</p>
 
 <!-- ============================================================ -->
 <div class="tier-header" id="tier">
-  <h2>New highest-level tier — three inaccessible areas</h2>
-  <p class="tier-sub">Opt-in zones off existing endgame hubs, populated with beefed-up "absent" creature blueprints.</p>
+  <h2>New tier — the Forbidden Realms Key</h2>
+  <p class="tier-sub">Build the top tier on a themed key the module already ships, unlocking areas that already exist.</p>
 </div>
 
-<p>The module has 15 finished, non-hidden areas with <strong>zero normal connections</strong> — cut off today.
-Three are thematically perfect for a top tier, span three different regions, and can each be reached from an
-existing endgame hub. Each new boss is a currently-<em>unspawned</em> blueprint from
-<code>unspawned_creatures.json</code>, tuned per the <a href="#recipe">recipe</a> on placement.</p>
-
-<!-- ---- Area 1 ---- -->
-<h3 id="tier-moria">1. Moria: Deep Caverns &nbsp;<code>area020</code></h3>
-<p><strong>Theme:</strong> the deep-dweller horrors below the Bridge of Khazad-dûm — cave beasts, not undead.
-<strong>Link-in:</strong> a descent from <strong>The Abyss of Moria</strong> (<code>theabyssofmoria</code>) or
-<strong>Moria: The Balrog of Moria</strong> (<code>thebalrogofmoria</code>) — add a door/trigger transition in
-that area's <code>.git.json</code> pointing to <code>area020</code>, plus a return waypoint. Naturally gated
-by the Balrog fight that already guards deep Moria, so an <strong>open transition</strong> is fine.</p>
-<div class="wrap-scroll">
-<table class="bu">
-  <tr><th>Boss / content</th><th>resref</th><th class="num">CR</th><th>Role</th></tr>
-  <tr><td>Mutated Basilisk (pack)</td><td><code>basilisk002/003/004</code></td><td class="num">405–445</td><td>petrify-gaze trash pack (place 3, or as an encounter)</td></tr>
-  <tr><td>Sewer Master</td><td><code>sewermaster001</code></td><td class="num">1907</td><td>mid-boss, deep-water horror</td></tr>
-  <tr><td>Capstone deep horror</td><td>(new / re-skin)</td><td class="num">—</td><td>marquee — % immunity + gimmick, AC ≥ 90</td></tr>
-</table>
-</div>
-
-<!-- ---- Area 2 ---- -->
-<h3 id="tier-tombs">2. Tombs of the Lost Souls &nbsp;<code>gravesofthelostk</code></h3>
-<p><strong>Theme:</strong> a barrow-court of undead kings and queens. <strong>Link-in:</strong> from
-<strong>The Barrow Downs</strong> (<code>thebarrowdowns</code>, already a 6-connection hub) — the most natural
-lore fit for wights and dead kings. Add a tomb-entrance trigger/door in <code>thebarrowdowns.git.json</code> →
-<code>gravesofthelostk</code>, return waypoint back. Suggest a <strong>light gate</strong>: a grave-key dropped by
-an existing Barrow-downs boss, or open if you prefer.</p>
-<div class="wrap-scroll">
-<table class="bu">
-  <tr><th>Boss / content</th><th>resref</th><th class="num">CR</th><th>Role</th></tr>
-  <tr><td>Weathertop King</td><td><code>weathertopkin004</code></td><td class="num">1514</td><td>court capstone (+ kin/queen variants as the court)</td></tr>
-  <tr><td>Weathertop Queen</td><td><code>weathertopque003</code></td><td class="num">594</td><td>paired boss</td></tr>
-  <tr><td>Greater Doom Knight</td><td><code>doomkght001</code></td><td class="num">472</td><td>elite guardian</td></tr>
-  <tr><td>Fallen Hero of Gondor</td><td><code>fallenheroofgond</code></td><td class="num">399</td><td>mid-boss / mini-pack</td></tr>
-</table>
-</div>
-<p class="tip-box" style="margin-top:0.4em">Undead bosses have their own weak-save pattern (dumped Con → weak Fort is
-common on the <em>living</em> ones, but undead are Con-less and lean on Will) — apply the recipe per blueprint.</p>
-
-<!-- ---- Area 3 ---- -->
-<h3 id="tier-temple">3. Temple of Nazgûl &nbsp;<code>area010</code></h3>
-<p><strong>Theme:</strong> a Ringwraith / dark-arcane sanctum — the hardest of the three.
-<strong>Ready-made:</strong> this area already contains <strong>7 encounters</strong>; it only needs a link
-and named bosses. <strong>Link-in:</strong> from <strong>Mirkwood: Dol Guldur</strong> (<code>dolguldur</code>,
-4 connections) or <strong>Dol Guldur City</strong> (<code>dolguldurcity</code>). Suggest a <strong>quest/token
-gate</strong> — a Morgul-key dropped by Khamûl (<code>creature007</code>) — so it reads as the true capstone.</p>
-<div class="wrap-scroll">
-<table class="bu">
-  <tr><th>Boss / content</th><th>resref</th><th class="num">CR</th><th>Role</th></tr>
-  <tr><td>Angmar the Evocator</td><td><code>angmartheevoocat</code></td><td class="num">4260</td><td><strong>capstone</strong> — % immunity, AC ≥ 95, marquee gimmick</td></tr>
-  <tr><td>Thuringwethil</td><td><code>thuringwethil</code></td><td class="num">1591</td><td>vampire-wraith lieutenant</td></tr>
-  <tr><td>Shadow Lord of Dol Guldur</td><td><code>shadowlordof</code></td><td class="num">655</td><td>caster boss (fix its dumped save)</td></tr>
-  <tr><td>Morgrond Captain of Dol Guldur</td><td><code>akhorahil006</code></td><td class="num">433</td><td>guardian</td></tr>
-</table>
-</div>
-
+<h3 id="tier-key">The key chain</h3>
+<p>The module already contains <code>forbiddenrealmsk</code> — the <strong>Forbidden Realms Key</strong>
+(tag <code>ForbiddenRealmsKey</code>) — which is <strong>pickpocket-only from Summanus</strong>
+(<code>summanus</code>; it does not drop on death). Its flavour is perfect and completely unused today.
+Unidentified description, verbatim:</p>
 <div class="loot-box">
-  <strong>Why these three</strong>
-  Distinct themes (cave-beast / undead-court / Nazgûl-arcane), three different entry hubs (Moria, Barrow Downs,
-  Dol Guldur), and a spread of gating (open → light key → quest token) so the tier escalates in both difficulty
-  and exclusivity. All bosses are finished blueprints already in the module — no new art required.
+  <strong>Forbidden Realms Key</strong>
+  <em>"It shakes wildly, never ceasing to stop for a moment. You look at it, and wonder what gate this key will open..."</em>
+</div>
+<p>Nothing is wired to it — no journal, no quest, no door. Build the tier on it:</p>
+<ol>
+  <li><strong>Journal quest.</strong> Add a new category (<code>forbidden_realms_key</code>) to
+  <code>module.jrl.json</code> and a tag branch in <code>acquireditem_tag.nss</code> (the module
+  <code>Mod_OnAcquirItem</code> handler) that fires <code>AddJournalQuestEntry</code> when the key is
+  acquired — which happens naturally when it's pickpocketed onto the PC. Add a <strong>retroactive
+  enter-time check</strong> (module OnClientEnter) so players who <em>already</em> stole the key get the
+  journal entry too. Entry text hints: <em>"…search the surrounding realms for the gate it opens."</em></li>
+  <li><strong>The gate.</strong> The key opens a locked door — placed in a <strong>Númenor</strong> hub,
+  <strong>Bay of Andúnië</strong> (<code>heavensscorn</code>) or <strong>Arnenelos</strong>
+  (<code>heavensdisdain</code>) — keyed on tag <code>ForbiddenRealmsKey</code>, with a hint-giving NPC
+  nearby (mirroring the <code>dunharrowking</code> journal-hint precedent).</li>
+  <li><strong>Behind the gate.</strong> The door leads into the <strong>Tombs of the Lost Souls</strong>
+  (<code>gravesofthelostk</code>) — a finished area that is <strong>completely orphaned today</strong>
+  (zero connections in or out), so it's a ready-made destination that costs no new art.</li>
+</ol>
+
+<h3 id="tier-weathertop">Weathertop / Amon Sûl — and what to put in the Tombs</h3>
+<p>There's a second dangling thread that fits perfectly. <code>weatherhills</code> (Weather Hills) contains a
+trigger tagged <code>weatherhills2amonsul</code> whose <code>LinkedTo = whills2amonsul</code> — but
+<strong>no such waypoint exists anywhere</strong>: it's a dead link to an <strong>Amon Sûl / Weathertop
+area that was never built</strong> (other areas have the same orphaned <code>amonsul</code> stubs). That
+missing area was meant to house the Weathertop court — the <strong>King, Queen, and Archer blueprints that
+are all currently unspawned</strong> (<code>weathertopking</code>, <code>weathertopkin002–004</code>,
+<code>weathertopque002/003</code>, <code>weathertoparcher</code>, <code>weathertoparc001/002</code>,
+<code>weathertopfighte</code>).</p>
+<div class="loot-box">
+  <strong>Recommendation — unify the two threads.</strong>
+  Make the key-unlocked <strong>Tombs of the Lost Souls</strong> the barrow-court of the Weathertop dead:
+  the Forbidden Realms Key → the Númenor gate → the Tombs → the Weathertop King/Queen/Archer court. One
+  coherent chain, using an existing key, an orphaned area, and a set of finished-but-unplaced boss
+  blueprints. (Alternative if you'd rather split them: actually build the Amon Sûl area and wire the
+  existing <code>weatherhills2amonsul</code>/<code>amonsul2whills</code> triggers to it — more work, no
+  reuse of the orphaned Tombs.)
+</div>
+<p>Apply the <a href="#recipe">tuning recipe</a> per court blueprint on placement (undead lean on Will;
+close whatever save each one dumps), and equip immunity gear where missing.</p>
+
+<h3 id="tier-other">The other two tier areas</h3>
+<p>Two more finished, currently-inaccessible areas round out the tier — each reached from an existing
+endgame hub and populated with unspawned blueprints tuned on placement.</p>
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Area</th><th>resref</th><th>Theme &amp; link-in</th><th>Candidate bosses</th></tr>
+  <tr>
+    <td>Moria: Deep Caverns</td><td><code>area020</code></td>
+    <td>Deep-dweller cave horrors below Khazad-dûm. Descent from <strong>The Abyss of Moria</strong>
+    (<code>theabyssofmoria</code>) / <strong>Balrog of Moria</strong> (<code>thebalrogofmoria</code>);
+    naturally gated by the Balrog, so an open transition is fine.</td>
+    <td>Mutated Basilisks (<code>basilisk002/003/004</code>, CR 405–445, petrify pack); Sewer Master
+    (<code>sewermaster001</code>, CR 1907) mid-boss; a re-skin capstone (% immunity + gimmick, AC ≥ 90).</td>
+  </tr>
+  <tr>
+    <td>Temple of Nazgûl</td><td><code>area010</code></td>
+    <td>Ringwraith / dark-arcane sanctum — the hardest of the tier. Already contains 7 encounters; needs
+    only a link + named bosses. Link from <strong>Mirkwood: Dol Guldur</strong> (<code>dolguldur</code>) or
+    <strong>Dol Guldur City</strong> (<code>dolguldurcity</code>).</td>
+    <td>Angmar the Evocator (<code>angmartheevoocat</code>, CR 4260) capstone + marquee gimmick;
+    Thuringwethil (<code>thuringwethil</code>, 1591); Shadow Lord of Dol Guldur (<code>shadowlordof</code>, 655,
+    fix its dumped save); Morgrond Captain (<code>akhorahil006</code>, 433).</td>
+  </tr>
+</table>
+</div>
+<div class="warning-box">
+  <p><strong>Gating references corrected.</strong> Earlier drafts of this page invented a "grave-key dropped
+  by a Barrow-downs boss" and a "Morgul-key" — neither exists as an item. Use the real
+  <strong>Forbidden Realms Key</strong> as the tier's gate (above); if the Nazgûl area also wants a distinct
+  token gate, that key is <em>to-create</em>, not something already in the module.</p>
 </div>
 
 <!-- ============================================================ -->
@@ -351,22 +578,34 @@ gate</strong> — a Morgul-key dropped by Khamûl (<code>creature007</code>) —
 <ol>
   <li><strong>Boss tuning:</strong> edit the <code>fortbonus</code>/<code>refbonus</code>/<code>willbonus</code>/<code>NaturalAC</code>
   fields (and <code>Equip_ItemList</code> for immunity gear) directly in each <code>unpacked/&lt;resref&gt;.utc.json</code>.</li>
-  <li><strong>Encounter density:</strong> double <code>MaxCreatures</code> + <code>RecCreatures</code> on the 22
-  pack encounters only (never the 14 solo-boss encounters).</li>
+  <li><strong>Soul-fatigue on Heal:</strong> extend the module override spellscript (currently
+  <code>stop_spellcheat.nss</code>, wired via <code>on_module_load.nss</code>) — branch on
+  <code>GetSpellId()</code> for Heal + mass-heal; apply pre-heal damage per active stack; add a stack with a
+  180s <code>DelayCommand</code> decay. Potions are covered by the same hook.</li>
+  <li><strong>Enrage-on-retreat:</strong> scope strictly to the CR&gt;60 single-instance registry bosses.
+  Decide the "left combat" trigger (heartbeat aggro-list scan vs. per-PC engaged flag), then apply the
+  taunt-shout + permanent-for-this-life +2 all stats + 25%-missing-HP heal. Must not persist onto respawn.</li>
+  <li><strong>Encounter density:</strong> edit the placed encounter <em>instances</em> in the area
+  <code>.git.json</code> (never the inert <code>.ute</code> templates). Bump 1 → 2 only for creatures in
+  &gt;1 encounter; never the 19 solo (<code>MaxCreatures == 1</code>) encounters.</li>
   <li><strong>Place new-tier bosses:</strong> in each area's <code>.git.json</code> <em>Creature List</em>, deep-copy
   a working sibling creature struct (keep <code>__struct_id = 4</code>), then overwrite only
   <code>TemplateResRef</code>, <code>Tag</code>, name, and position; add the matching <code>.gic.json</code> stub
-  (<code>__struct_id 4</code> + empty Comment). Never author from the <code>.utc</code> and never include
-  <code>Comment</code>/<code>PaletteID</code> in the git struct. Use <code>bin/place-helper.py &lt;area&gt; --suggest</code>
+  (<code>__struct_id 4</code> + empty Comment). Use <code>bin/place-helper.py &lt;area&gt; --suggest</code>
   for coordinates. Verify <code>FactionID</code> is Hostile.</li>
-  <li><strong>Link the areas:</strong> add door/trigger transitions (+ return waypoints) in the source-hub
-  <code>.git.json</code> files; for gated zones, put a key/plot check on the transition.</li>
-  <li><strong>Leashing is automatic</strong> for a boss cloned from a sibling with the standard
-  <code>x2_def_spawn</code> OnSpawn (it records its <code>"spawn"</code> home; the area OnEnter <code>leash_to_area</code>
-  keeps it home). Confirm the target area's OnEnter is <code>leash_to_area</code> or chains to it. Do not set
-  <code>NO_LEASH</code> on a stationary boss.</li>
-  <li><strong>Regenerate the boss registry</strong> (any CR&gt;60 single-instance placement auto-qualifies for the
-  <em>Roll of the Fallen</em> board):
+  <li><strong>Link the areas &amp; the key gate:</strong> add door/trigger transitions (+ return waypoints) in the
+  source-hub <code>.git.json</code> files. For the Tombs, place the locked door in the Númenor hub keyed on
+  tag <code>ForbiddenRealmsKey</code>; add the journal category to <code>module.jrl.json</code> + the
+  <code>acquireditem_tag.nss</code> branch + the retroactive OnClientEnter check.</li>
+  <li><strong>Wandering boss (if built):</strong> set <code>NO_LEASH = 1</code> on the blueprint/instance and
+  attach <code>wandering.nss</code>; confirm it doesn't get snapped home by <code>leash_to_area</code>.</li>
+  <li><strong>New boss gear (clone/parent, tier drops):</strong> author the item blueprints, then regenerate
+  the Forge whitelist with <code>bin/gen-forge-legal.py</code> so the login sweep doesn't jail looters
+  (never hand-edit <code>forge_legal_inc.nss</code>).</li>
+  <li><strong>Leashing is automatic</strong> for a stationary boss cloned from a sibling with the standard
+  <code>x2_def_spawn</code> OnSpawn (records its <code>"spawn"</code> home; the area OnEnter <code>leash_to_area</code>
+  keeps it home). Do not set <code>NO_LEASH</code> on a stationary boss.</li>
+  <li><strong>Regenerate the boss registry</strong> (any CR&gt;60 single-instance placement auto-qualifies):
   <code>python3 bin/gen-boss-registry.py</code> (dry run) → <code>--write</code> → <code>python3 tests/check_boss_registry.py</code>.
   Never hand-edit the generated block in <code>brd_db.nss</code>. Confirm each new boss's OnDeath reaches
   <code>SE_DoCreatureRespawn</code> (e.g. <code>x2_def_ondeath</code>) so the board countdown is truthful.</li>
@@ -377,19 +616,45 @@ gate</strong> — a Morgul-key dropped by Khamûl (<code>creature007</code>) —
 <div class="warning-box">
   <p><strong>Do not break the wrapper chain.</strong> <code>x2_def_spawn</code> → <code>nw_c2_default9</code>
   (stores the leash home; runs <code>bst_install</code>) → <code>bst_install</code> re-points OnDamaged/OnDeath
-  to the bestiary trackers at runtime and chains the originals. A custom per-boss OnDamaged gimmick is preserved
-  as the "original" and still runs — the bestiary, boss-tracker, and leash systems keep working.</p>
+  to the bestiary trackers at runtime and chains the originals. A custom per-boss OnDamaged gimmick (Borg
+  immunity, Narsil-style gate) is preserved as the "original" and still runs — the bestiary, boss-tracker,
+  and leash systems keep working.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="scorecard">
+  <h2>Honesty scorecard</h2>
+  <p class="tier-sub">The shared "stay honest" artifact — rate every proposal by what it actually changes.</p>
+</div>
+
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Proposal</th><th>Tactical demand created</th><th>Sponginess risk</th><th>Exploit surface</th><th>Build effort</th></tr>
+  <tr><td>Per-boss save/AC/immunity tuning</td><td>High — closes save-or-die &amp; forces misses</td><td class="done">None</td><td class="done">Low</td><td class="done">Low (data edits)</td></tr>
+  <tr><td>Soul-fatigue on Heal</td><td>Med — only with enrage</td><td class="hole">High if shipped alone</td><td class="hole">Retreat-and-wait (see enrage)</td><td>Med (spellhook + stacks)</td></tr>
+  <tr><td>Enrage-on-retreat</td><td>High — kills potion-attrition &amp; tank-swap</td><td class="done">None (no HP/CR change)</td><td class="done">Low</td><td>Med (retreat detection)</td></tr>
+  <tr><td>Opt-in curse + gem loot</td><td>Med — risk/greed &amp; build choice</td><td class="done">Low</td><td>Low (bounded by gem rarity)</td><td class="hole">High (new loot + gem system)</td></tr>
+  <tr><td>Adaptive "Borg" immunity</td><td>High — rewards damage-type rotation</td><td class="done">Low</td><td>Low</td><td class="hole">High (runtime prop juggling)</td></tr>
+  <tr><td>Elemental swarm waves</td><td>Med — resistance/AoE swaps per wave</td><td class="hole">Med (keep waves short)</td><td>Low</td><td>Med (wave controller)</td></tr>
+  <tr><td>Wandering boss</td><td>Low-Med — discovery/logistics</td><td class="done">Low</td><td>Low (NO_LEASH required)</td><td>Med (reuse <code>wandering.nss</code>)</td></tr>
+  <tr><td>Clone / parent boss</td><td>Med — target-priority &amp; surprise</td><td class="hole">Med (keep boost modest)</td><td>Low</td><td>Med (gear + forge whitelist)</td></tr>
+  <tr><td>Density 1→2 (reused mobs)</td><td>Low — pressure, not tactics</td><td class="hole">Med (that's the point — cap at 2)</td><td class="done">Low</td><td class="done">Low (git edits)</td></tr>
+  <tr><td>Forbidden Realms Key tier</td><td>N/A (content, not a mechanic)</td><td class="done">—</td><td class="done">Low</td><td>Med (link + journal + placement)</td></tr>
+</table>
 </div>
 
 <!-- ============================================================ -->
 <h2 id="appendix">Appendix — candidate unlockable creatures</h2>
 
-<p>Beyond the tier bosses above, <code>unspawned_creatures.json</code> lists ~226 non-utility blueprints never
-placed anywhere. The genuine lore-boss candidates (CR ≥ 300, excluding DM/summon/companion/merchant blueprints)
-include: Angmar the Evocator (4260), Sewer Master (1907), High Wizard of Gondor (1794), Thuringwethil (1591),
-the Weathertop King/Queen court (1514/594…), Stinkfest the Peacemaker (1352), The Executioner of the Living (962),
-Shadow Lord of Dol Guldur (655), Iidda the Wraith Warrior (603), Greater Doom Knight (472), the Mutated Basilisks
-(405–445), Morgrond Captain of Dol Guldur (433), and Fallen Hero of Gondor (399).</p>
+<p><code>unspawned_creatures.json</code> lists ~226 non-utility blueprints never placed anywhere. The genuine
+lore-boss candidates (CR ≥ 300, excluding DM/summon/companion/merchant blueprints) include: Angmar the
+Evocator (4260), Sewer Master (1907), High Wizard of Gondor (1794), Thuringwethil (1591), the <strong>Weathertop
+court</strong> — King (<code>weathertopkin004</code> 1514, plus <code>weathertopking</code>/<code>kin002/003</code> 367–454),
+Queen (<code>weathertopque003</code> 594, <code>que002</code> 559), Archers (<code>weathertoparc002</code> 337,
+<code>weathertoparcher</code> 277, <code>weathertoparc001</code> 198) — Stinkfest the Peacemaker (1352),
+The Executioner of the Living (962), Shadow Lord of Dol Guldur (655), Iidda the Wraith Warrior (603), Greater
+Doom Knight (472), the Mutated Basilisks (405–445), Morgrond Captain of Dol Guldur (433), and Fallen Hero of
+Gondor (399).</p>
 
 <p><strong>Exclude</strong> (not hostile bosses): DM/dev blueprints (<code>*dm</code>, <code>homer</code>,
 <code>bubba</code>, <code>POPOE</code>), summons (<code>wwp_*</code>/<code>wwl_*</code>), Meaningwave guides
