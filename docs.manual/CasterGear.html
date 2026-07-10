@@ -61,7 +61,8 @@
       border: 1px solid var(--border); padding: 0.5em 0.65em; vertical-align: top; text-align: left;
     }
     table.cg th { background: var(--card); }
-    table.cg td.item { white-space: nowrap; font-weight: 600; }
+    table.cg td.item { font-weight: 600; }
+    table.cg td.item .slot { display: block; font-weight: 400; font-size: 0.85em; color: var(--muted); }
     .pure { color: var(--accent); font-weight: 600; }
 
     /* Small inline badges */
@@ -86,11 +87,11 @@
           <li><a href="#overview">Overview</a></li>
           <li><a href="#pure">The Pure-Caster Bonus</a></li>
           <li><a href="#mechanics">The Four Effects</a></li>
+          <li><a href="#balance">Tiers &amp; Balance</a></li>
           <li><a href="#clerics">Cleric Gear</a></li>
           <li><a href="#druids">Druid Gear</a></li>
           <li><a href="#sorcerers">Sorcerer Gear</a></li>
           <li><a href="#wizards">Wizard Gear</a></li>
-          <li><a href="#balance">Tiers &amp; Balance</a></li>
         </ol>
       </nav>
     </aside>
@@ -117,9 +118,9 @@ of that class's spells (or its summons).</p>
 <p>Twenty items — five per caster class — each looted from a thematically matched boss already in the
 world (no new areas required). Every item does two things:</p>
 <ul>
-  <li><strong>Conventional stats</strong> at or just above the current obtainable ceiling — bonus
-  spell slots (up to level&nbsp;9) for the class, plus a large bonus to its casting ability, scaled
-  to the <a href="#balance">tier</a> of the boss that drops it.</li>
+  <li><strong>Conventional stats</strong> at or just above the current obtainable ceiling — a stated
+  number of <strong>bonus spell slots</strong> (up to level&nbsp;9) for the class, plus a large bonus
+  to its casting ability, scaled to the <a href="#balance">tier</a> of the boss that drops it.</li>
   <li>A <strong>signature spell effect</strong> — the reason to chase the item — that keys off the
   actual spell you cast.</li>
 </ul>
@@ -155,6 +156,33 @@ boost <strong>stacks with Empower and Maximize</strong> rather than replacing th
 </ul>
 
 <!-- ============================================================ -->
+<div class="tier-header" id="balance">
+  <h2>Tiers &amp; Balance</h2>
+  <p class="tier-sub">How stat weight is set, and how these stay legal.</p>
+</div>
+<p>An item's conventional stats scale to the <strong>challenge rating of the boss that drops it</strong>.
+The <strong>bonus-spell-slot count</strong> listed for each item is on top of what the class already
+prepares, and every item's tier is shown as a badge in its row:</p>
+<ul>
+  <li><span class="badge t-acc">Accessible</span> — from mid-tier bosses: +6 casting stat, ~5 bonus
+  spell slots.</li>
+  <li><span class="badge t-mid">Mid</span> — from strong bosses: +6/+7 stat, SR&nbsp;20, ~6 slots.</li>
+  <li><span class="badge t-prem">Premium</span> — from marquee bosses (Smaug, Gandalf, the Witch King,
+  the Underlord): +8 stat, SR&nbsp;22, 6–8 slots, Regen&nbsp;3.</li>
+</ul>
+<div class="tip-box">
+  <p>The signature spell effect — not the raw stat line — is meant to be the reason to chase each
+  item. The stats keep the piece competitive to equip; the effect is what lets the class finally
+  threaten a boss it couldn't touch before.</p>
+</div>
+<div class="warning-box">
+  <p><strong>Legality.</strong> These items sit above the player-forge value ceiling (like the
+  existing Belt of Sorcerery), so they are hand-placed boss loot registered on the module's
+  legal-item whitelist — they will never flag you for contraband, but they also can't be reproduced
+  at the <a href="Customizations.html#forge">Forge of Wonders</a>.</p>
+</div>
+
+<!-- ============================================================ -->
 <div class="tier-header" id="clerics">
   <h2>Cleric Gear</h2>
   <p class="tier-sub">Divine fire, anti-undead smiting, death-magic retyping, and celestial DPS.</p>
@@ -164,34 +192,34 @@ boost <strong>stacks with Empower and Maximize</strong> rather than replacing th
   <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure cleric</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
   <tbody>
     <tr>
-      <td class="item"><a href="../items/reliquaryunmake.html">Reliquary of the Unmaking</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/reliquaryunmake.html">Reliquary of the Unmaking</a> <span class="slot">(amulet)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Retype.</span> Implosion &amp; Destruction deal <strong>divine damage</strong> instead of death: <strong>1d6 divine / caster level</strong>. Destruction's kill becomes a flat <strong>10&nbsp;×&nbsp;CL</strong> divine. <span class="pure">Pure: 1d8 / CL, Destruction 15&nbsp;×&nbsp;CL.</span></td>
-      <td>+8 Wis, 3× Cleric L9 slots, SR&nbsp;22</td>
-      <td>Heir of Haldor <span class="mtag">(Dimholt)</span></td>
+      <td>+8 Wis; <strong>3× Cleric level-8 + 3× Cleric level-9</strong> bonus slots; SR&nbsp;22</td>
+      <td><a href="../creatures/thecursedone002.html">Heir of Haldor</a> <span class="mtag">(Dimholt)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/censerholyfire.html">Censer of Holy Fire</a><br><span class="badge t-mid">Mid</span></td>
+      <td class="item"><a href="../items/censerholyfire.html">Censer of Holy Fire</a> <span class="slot">(helmet)</span><br><span class="badge t-mid">Mid</span></td>
       <td><span class="mtag">Amplify.</span> Flame Strike &amp; Fire Storm <strong>+30%</strong> damage. <span class="pure">Pure: +50%</span> (stacks with metamagic).</td>
-      <td>+6 Wis, 3× Cleric L8/L9 slots</td>
-      <td>High Priest of Morannon <span class="mtag">(Temple of Morannon)</span></td>
+      <td>+6 Wis; <strong>4× Cleric level-8 + 2× Cleric level-9</strong> bonus slots</td>
+      <td><a href="../creatures/highpriestofmora.html">High Priest of Morannon</a> <span class="mtag">(Temple of Morannon)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/aegiswhitetree.html">Aegis of the White Tree</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/aegiswhitetree.html">Aegis of the White Tree</a> <span class="slot">(amulet)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Amplify / upgrade.</span> Your healing spells also smite undead for <strong>+50% as divine damage</strong>. <span class="pure">Pure: your single-target <strong>Heal</strong> casts as <strong>Mass Heal</strong></span> (whole party in radius).</td>
-      <td>+8 Wis, 3× Cleric L9 slots, Regen 3</td>
-      <td>Underlord of Sauron <span class="mtag">(Mount Doom: Grand Hall)</span></td>
+      <td>+8 Wis; <strong>3× Cleric level-9</strong> bonus slots; Regen 3</td>
+      <td><a href="../creatures/mummyboss001.html">Underlord of Sauron</a> <span class="mtag">(Mount Doom: Grand Hall)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/circletdoomsay.html">Circlet of the Doomsayer</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/circletdoomsay.html">Circlet of the Doomsayer</a> <span class="slot">(helmet)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Focus.</span> +2 DC and +4 caster level to death &amp; necromancy spells (Slay Living, Destruction, Harm). <span class="pure">Pure: doubled — +4 DC / +8 CL.</span></td>
-      <td>+8 Wis, 3× Cleric L9 slots</td>
-      <td>Witch King <span class="mtag">(Witch King's Throne)</span></td>
+      <td>+8 Wis; <strong>5× Cleric level-9</strong> bonus slots</td>
+      <td><a href="../creatures/witchking.html">Witch King</a> <span class="mtag">(Witch King's Throne)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/hornofthehost.html">Horn of the Host</a><br><span class="badge t-mid">Mid</span></td>
+      <td class="item"><a href="../items/hornofthehost.html">Horn of the Host</a> <span class="slot">(amulet)</span><br><span class="badge t-mid">Mid</span></td>
       <td><span class="mtag">Summon boost.</span> Called celestials &amp; planar allies gain <strong>+4 attack, +2d6 divine on hit, +10 HP per CL</strong>. <span class="pure">Pure: +8 attack, +4d6 divine, +1 APR, +20 HP/CL, DR 10/-.</span></td>
-      <td>+6 Wis, 3× Cleric L7 slots</td>
-      <td>Kerufall <span class="mtag">(Kerufall's Lair)</span></td>
+      <td>+6 Wis; <strong>3× Cleric level-7</strong> bonus slots</td>
+      <td><a href="../creatures/kerufall003.html">Kerufall</a> <span class="mtag">(Kerufall's Lair)</span></td>
     </tr>
   </tbody>
 </table>
@@ -207,34 +235,34 @@ boost <strong>stacks with Empower and Maximize</strong> rather than replacing th
   <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure druid</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
   <tbody>
     <tr>
-      <td class="item"><a href="../items/radagasttotem.html">Radagast's Totem</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/radagasttotem.html">Radagast's Totem</a> <span class="slot">(gloves)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Summon boost.</span> Animal companion &amp; summons gain <strong>+4 attack, +6 damage, +2d6 magical on hit</strong>. <span class="pure">Pure: +8 attack, +12 damage, +4d6 elemental, +1 APR, +50% max HP, Improved Knockdown</span> — the marquee epic-summon-DPS item.</td>
-      <td>+8 Wis, Druid L9 slots</td>
-      <td>Radagast the Brown <span class="mtag">(Rhosgobel Tower)</span></td>
+      <td>+8 Wis; <strong>4× Druid level-9</strong> bonus slots</td>
+      <td><a href="../creatures/radagastthebro_2.html">Radagast the Brown</a> <span class="mtag">(Rhosgobel Tower)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/frostwardidol.html">Frostward Idol</a><br><span class="badge t-acc">Accessible</span></td>
+      <td class="item"><a href="../items/frostwardidol.html">Frostward Idol</a> <span class="slot">(amulet)</span><br><span class="badge t-acc">Accessible</span></td>
       <td><span class="mtag">Amplify + retype.</span> Ice Storm &amp; Cone of Cold <strong>+30%</strong> and cold&nbsp;→&nbsp;magical (bypass cold immunity). <span class="pure">Pure: +50%.</span></td>
-      <td>+6 Wis, Druid L8/L9 slots</td>
-      <td>Frost <span class="mtag">(Emyn Arnen: Peak)</span></td>
+      <td>+6 Wis; <strong>2× Druid level-8 + 2× Druid level-9</strong> bonus slots</td>
+      <td><a href="../creatures/frost001.html">Frost</a> <span class="mtag">(Emyn Arnen: Peak)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/widowsweave.html">Widow's Weave</a><br><span class="badge t-acc">Accessible</span></td>
+      <td class="item"><a href="../items/widowsweave.html">Widow's Weave</a> <span class="slot">(cloak)</span><br><span class="badge t-acc">Accessible</span></td>
       <td><span class="mtag">Amplify.</span> Creeping Doom &amp; Insect Plague deal <strong>+1d6 poison per 2 CL</strong> and grant <strong>+4 poison save DC</strong>. <span class="pure">Pure: +8 poison DC.</span></td>
-      <td>+6 Wis, Druid L9 slots</td>
-      <td>Anaralia the Widow Maker <span class="mtag">(Mirkwood)</span></td>
+      <td>+6 Wis; <strong>5× Druid level-9</strong> bonus slots</td>
+      <td><a href="../creatures/anaraliathewidow.html">Anaralia the Widow Maker</a> <span class="mtag">(Mirkwood)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/emberofdeeps.html">Ember of the Deeps</a><br><span class="badge t-mid">Mid</span></td>
+      <td class="item"><a href="../items/emberofdeeps.html">Ember of the Deeps</a> <span class="slot">(amulet)</span><br><span class="badge t-mid">Mid</span></td>
       <td><span class="mtag">Amplify.</span> Fire Storm &amp; Flame Strike <strong>+30%</strong>. <span class="pure">Pure: +50%</span> (stacks with metamagic).</td>
-      <td>+6 Wis, Druid L9 slots</td>
-      <td>The Balrog of Moria <span class="mtag">(Moria)</span></td>
+      <td>+6 Wis; <strong>3× Druid level-9</strong> bonus slots</td>
+      <td><a href="../creatures/azagoth001.html">The Balrog of Moria</a> <span class="mtag">(Moria)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/circletofanor.html">Circlet of Anor</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/circletofanor.html">Circlet of Anor</a> <span class="slot">(helmet)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Amplify.</span> Sunbeam &amp; Sunburst deal full damage vs <strong>all</strong> undead (ignore light immunity) plus <strong>+1d6 divine per 2 CL</strong>. <span class="pure">Pure: undead take double dice and are blinded (no save).</span></td>
-      <td>+8 Wis, Druid L9 slots</td>
-      <td>Khamûl the Ringwraith <span class="mtag">(Dol Guldur)</span></td>
+      <td>+8 Wis; <strong>5× Druid level-9</strong> bonus slots</td>
+      <td><a href="../creatures/creature007.html">Khamûl the Ringwraith</a> <span class="mtag">(Dol Guldur)</span></td>
     </tr>
   </tbody>
 </table>
@@ -250,34 +278,34 @@ boost <strong>stacks with Empower and Maximize</strong> rather than replacing th
   <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure sorcerer</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
   <tbody>
     <tr>
-      <td class="item"><a href="../items/heartofsmaug.html">Heart of Smaug</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/heartofsmaug.html">Heart of Smaug</a> <span class="slot">(amulet)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Amplify.</span> All fire spells (Fireball, Delayed Blast, Meteor Swarm) <strong>+30%</strong> and ignore the first 20 fire resistance. <span class="pure">Pure: +50%.</span></td>
-      <td>+8 Cha, 4× Sorcerer L9 slots</td>
-      <td>The Mighty Smaug <span class="mtag">(Ruins of Dale: Cavern)</span></td>
+      <td>+8 Cha; <strong>4× Sorcerer level-9</strong> bonus slots</td>
+      <td><a href="../creatures/themightysmag002.html">The Mighty Smaug</a> <span class="mtag">(Ruins of Dale: Cavern)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/bracersvolley.html">Bracers of the Endless Volley</a><br><span class="badge t-acc">Accessible</span></td>
+      <td class="item"><a href="../items/bracersvolley.html">Bracers of the Endless Volley</a> <span class="slot">(bracers)</span><br><span class="badge t-acc">Accessible</span></td>
       <td><span class="mtag">Amplify.</span> Isaac's Missile Storms &amp; Magic Missile fire <strong>+2 missiles</strong> (magic damage bypasses most immunity). <span class="pure">Pure: +4 missiles, and each missile deals +1d4.</span></td>
-      <td>+6 Cha, Sorcerer L9 slots</td>
-      <td>Saruman's Master Experiment <span class="mtag">(Orthanc)</span></td>
+      <td>+6 Cha; <strong>4× Sorcerer level-9</strong> bonus slots</td>
+      <td><a href="../creatures/creature013.html">Saruman's Master Experiment</a> <span class="mtag">(Orthanc)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/shardofeverice.html">Shard of Everice</a><br><span class="badge t-acc">Accessible</span></td>
+      <td class="item"><a href="../items/shardofeverice.html">Shard of Everice</a> <span class="slot">(amulet)</span><br><span class="badge t-acc">Accessible</span></td>
       <td><span class="mtag">Retype.</span> Cone of Cold &amp; Horrid Wilting deal magical instead of cold/negative. <span class="pure">Pure: also raises the damage-die cap (Cone of Cold 15d6 → up to 25d6).</span></td>
-      <td>+6 Cha</td>
-      <td>The Ice Queen <span class="mtag">(Ice Queen: Nest)</span></td>
+      <td>+6 Cha; <strong>3× Sorcerer level-9</strong> bonus slots</td>
+      <td><a href="../creatures/drgblue004.html">The Ice Queen</a> <span class="mtag">(Ice Queen: Nest)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/sorrowofnine.html">Sorrow of the Nine</a><br><span class="badge t-mid">Mid</span></td>
+      <td class="item"><a href="../items/sorrowofnine.html">Sorrow of the Nine</a> <span class="slot">(amulet)</span><br><span class="badge t-mid">Mid</span></td>
       <td><span class="mtag">Retype.</span> Wail of the Banshee &amp; Weird deal <strong>magical damage</strong> instead of death: <strong>1d8 / CL</strong>. <span class="pure">Pure: 1d10 / CL, +2 DC.</span></td>
-      <td>+6 Cha, SR&nbsp;20</td>
-      <td>Khamûl the Ringwraith <span class="mtag">(Carn Dûm: Throne)</span></td>
+      <td>+6 Cha; <strong>3× Sorcerer level-9</strong> bonus slots; SR&nbsp;20</td>
+      <td><a href="../creatures/creature007_2.html">Khamûl the Ringwraith</a> <span class="mtag">(Carn Dûm: Throne)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/galastormheart.html">Galadhrim Stormheart</a><br><span class="badge t-acc">Accessible</span></td>
+      <td class="item"><a href="../items/galastormheart.html">Galadhrim Stormheart</a> <span class="slot">(belt)</span><br><span class="badge t-acc">Accessible</span></td>
       <td><span class="mtag">Amplify + retype.</span> Chain Lightning &amp; Ball Lightning <strong>+30%</strong>, half electrical&nbsp;→&nbsp;magical. <span class="pure">Pure: +50% and full&nbsp;→&nbsp;magical.</span></td>
-      <td>+6 Cha, Sorcerer L9 slots</td>
-      <td>Rail the White Hand Blaster <span class="mtag">(Isengard)</span></td>
+      <td>+6 Cha; <strong>5× Sorcerer level-9</strong> bonus slots</td>
+      <td><a href="../creatures/railthewhiteh001.html">Rail the White Hand Blaster</a> <span class="mtag">(Isengard)</span></td>
     </tr>
   </tbody>
 </table>
@@ -293,62 +321,37 @@ boost <strong>stacks with Empower and Maximize</strong> rather than replacing th
   <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure wizard</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
   <tbody>
     <tr>
-      <td class="item"><a href="../items/branchunmaking.html">Branch of Unmaking</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/branchunmaking.html">Branch of Unmaking</a> <span class="slot">(magic staff)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Retype + focus.</span> Finger of Death &amp; Circle of Death deal <strong>magical</strong> instead of death (<strong>1d6 / CL</strong>), +2 Necromancy DC. <span class="pure">Pure: 1d8 / CL, +4 Necromancy DC.</span></td>
-      <td>+8 Int, Wizard L9 slots</td>
-      <td>Gwathdor Lord of the Dark Arts <span class="mtag">(Gwathdor: Throne)</span></td>
+      <td>+8 Int; <strong>6× Wizard level-9</strong> bonus slots</td>
+      <td><a href="../creatures/gwathdorlord001.html">Gwathdor Lord of the Dark Arts</a> <span class="mtag">(Gwathdor: Throne)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/roberevokersup.html">Robe of the Evoker Supreme</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/roberevokersup.html">Robe of the Evoker Supreme</a> <span class="slot">(robe / armor)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Amplify.</span> All Evocation spells <strong>+25%</strong> damage. <span class="pure">Pure: +50%</span> (stacks with metamagic).</td>
-      <td>+8 Int, Wizard L9 slots</td>
-      <td>High Wizard of Gondor <span class="mtag">(Tower of the High Wizard)</span></td>
+      <td>+8 Int; <strong>6× Wizard level-9</strong> bonus slots</td>
+      <td><a href="../creatures/highwizardofgo_2.html">High Wizard of Gondor</a> <span class="mtag">(Tower of the High Wizard)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/codexboundblade.html">Codex of the Bound Blade</a><br><span class="badge t-mid">Mid</span></td>
+      <td class="item"><a href="../items/codexboundblade.html">Codex of the Bound Blade</a> <span class="slot">(book / misc)</span><br><span class="badge t-mid">Mid</span></td>
       <td><span class="mtag">Summon boost.</span> Mordenkainen's Sword, Elemental Swarm &amp; summons gain <strong>+4 attack, +2d6 magical</strong>. <span class="pure">Pure: +8 attack, +4d6 magical, +1 APR, and Mordenkainen's Sword is duplicated (two swords).</span></td>
-      <td>+6 Int, Wizard L9 slots</td>
-      <td>Sarah the Librarian <span class="mtag">(Tower of the High Wizard: Library)</span></td>
+      <td>+6 Int; <strong>5× Wizard level-9</strong> bonus slots</td>
+      <td><a href="../creatures/gondorianwiza001.html">Sarah the Librarian</a> <span class="mtag">(Tower of the High Wizard: Library)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/desiccgrimoire.html">Desiccating Grimoire</a><br><span class="badge t-mid">Mid</span></td>
+      <td class="item"><a href="../items/desiccgrimoire.html">Desiccating Grimoire</a> <span class="slot">(book / misc)</span><br><span class="badge t-mid">Mid</span></td>
       <td><span class="mtag">Amplify + retype.</span> Horrid Wilting &amp; Ice Storm <strong>+30%</strong>, negative&nbsp;→&nbsp;magical. <span class="pure">Pure: +50%.</span></td>
-      <td>+6 Int, Wizard L9 slots</td>
-      <td>Saruman the White <span class="mtag">(Orthanc)</span></td>
+      <td>+6 Int; <strong>5× Wizard level-9</strong> bonus slots</td>
+      <td><a href="../creatures/sarumanthewhi001.html">Saruman the White</a> <span class="mtag">(Orthanc)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/staffdeepmagic.html">Staff of the Deep Magic</a><br><span class="badge t-prem">Premium</span></td>
+      <td class="item"><a href="../items/staffdeepmagic.html">Staff of the Deep Magic</a> <span class="slot">(magic staff)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Focus — capstone.</span> +4 caster level to all spells (spell resistance penetration and extended damage caps) and +2 DC to your specialist school. <span class="pure">Pure: +6 CL, +4 specialist DC, and all damage-die caps removed.</span></td>
-      <td>+8 Int, Wizard L9 slots</td>
-      <td>Gandalf the Gray <span class="mtag">(Hobbiton)</span></td>
+      <td>+8 Int; <strong>6× Wizard level-9</strong> bonus slots</td>
+      <td><a href="../creatures/gandalf001.html">Gandalf the Gray</a> <span class="mtag">(Hobbiton)</span></td>
     </tr>
   </tbody>
 </table>
-</div>
-
-<!-- ============================================================ -->
-<div class="tier-header" id="balance">
-  <h2>Tiers &amp; Balance</h2>
-  <p class="tier-sub">How stat weight is set, and how these stay legal.</p>
-</div>
-<p>An item's conventional stats scale to the <strong>challenge rating of the boss that drops it</strong>:</p>
-<ul>
-  <li><span class="badge t-acc">Accessible</span> — from mid-tier bosses: +6 casting stat, 5–6 bonus
-  level-9 slots.</li>
-  <li><span class="badge t-mid">Mid</span> — from strong bosses: +6/+7 stat, SR&nbsp;20, 6 slots.</li>
-  <li><span class="badge t-prem">Premium</span> — from marquee bosses (Smaug, Gandalf, the Witch King,
-  the Underlord): +8 stat, SR&nbsp;22, 7–8 slots, Regen&nbsp;3.</li>
-</ul>
-<div class="tip-box">
-  <p>The signature spell effect — not the raw stat line — is meant to be the reason to chase each
-  item. The stats keep the piece competitive to equip; the effect is what lets the class finally
-  threaten a boss it couldn't touch before.</p>
-</div>
-<div class="warning-box">
-  <p><strong>Legality.</strong> These items sit above the player-forge value ceiling (like the
-  existing Belt of Sorcerery), so they are hand-placed boss loot registered on the module's
-  legal-item whitelist — they will never flag you for contraband, but they also can't be reproduced
-  at the <a href="Customizations.html#forge">Forge of Wonders</a>.</p>
 </div>
 
     </div><!-- .mw-content -->
