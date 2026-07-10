@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Endgame Difficulty &amp;amp; New High-Level Tier</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty &amp;amp; New High-Level Tier</a></div></div>
+    </nav>
+  </header>
+  <main>
+
+  <main>
+  <style>
+    .mw-layout { display: flex; gap: 2.5em; align-items: flex-start; }
+    .mw-toc-pane { flex: 0 0 220px; position: sticky; top: 1.5em; max-height: calc(100vh - 3em); overflow-y: auto; }
+    .mw-content { flex: 1; min-width: 0; }
+    @media (max-width: 700px) {
+      .mw-layout { flex-direction: column; }
+      .mw-toc-pane { position: static; max-height: none; flex: none; width: 100%; }
+    }
+    .toc { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 1em 1.2em; }
+    .toc h2 { font-size: 1em; margin: 0 0 0.5em; border: none; padding: 0; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .toc ol { margin: 0; padding-left: 1.3em; }
+    .toc li { margin: 0.2em 0; }
+    .toc a { color: var(--link); }
+    .tier-header { background: rgba(107,58,28,0.08); border-left: 4px solid var(--accent); padding: 0.5em 1em; margin: 2em 0 0.8em; border-radius: 0 4px 4px 0; }
+    .tier-header h2 { margin: 0; border: none; padding: 0; }
+    .tier-header .tier-sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
+    .loot-box { background: rgba(200,165,119,0.10); border: 1px solid var(--accent-soft); border-radius: 4px; padding: 0.7em 1.1em; margin: 0.8em 0 1em; }
+    .loot-box strong { display: block; margin-bottom: 0.3em; color: var(--accent); }
+    .tip-box { background: rgba(30,30,60,0.07); border-left: 4px solid var(--accent-soft); border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em; }
+    .tip-box p { margin: 0.3em 0; }
+    .warning-box { background: rgba(200, 60, 60, 0.08); border-left: 4px solid #c03030; border-radius: 0 4px 4px 0; padding: 0.7em 1.1em; margin: 0.8em 0 1em; font-size: 0.93em; }
+    .warning-box p { margin: 0.3em 0; }
+    table.bu { border-collapse: collapse; width: 100%; font-size: 0.9em; margin: 0.6em 0 1.2em; }
+    table.bu th, table.bu td { border: 1px solid var(--border); padding: 0.35em 0.6em; text-align: left; vertical-align: top; }
+    table.bu th { background: var(--card); }
+    table.bu td.num { text-align: right; white-space: nowrap; }
+    .wrap-scroll { overflow-x: auto; }
+    .done { color: #2e7d32; font-weight: 600; }
+    .hole { color: #c03030; font-weight: 600; }
+  </style>
+
+  <div class="mw-layout">
+    <aside class="mw-toc-pane">
+      <nav class="toc" aria-label="Page contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#why">Why the top end is too easy</a></li>
+          <li><a href="#recipe">The tuning recipe</a></li>
+          <li><a href="#bosses">Per-boss tuning suggestions</a></li>
+          <li><a href="#density">Encounter density (CR&gt;150 packs)</a></li>
+          <li><a href="#tier">New highest-level tier</a>
+            <ol>
+              <li><a href="#tier-moria">Moria: Deep Caverns</a></li>
+              <li><a href="#tier-tombs">Tombs of the Lost Souls</a></li>
+              <li><a href="#tier-temple">Temple of Nazgûl</a></li>
+            </ol>
+          </li>
+          <li><a href="#impl">Implementation checklist</a></li>
+          <li><a href="#appendix">Appendix: unlockable creatures</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <div class="mw-content">
+
+<h1>Endgame Difficulty &amp; New High-Level Tier</h1>
+
+<p>Top-end players have out-scaled the existing bosses and are asking for a real challenge.
+This page documents <em>why</em> the current bosses are easy for a maxed character, a concrete
+recipe for making them threatening again, and a design for opening three currently-inaccessible
+areas as a new highest-level tier populated with beefed-up "absent" creatures.</p>
+
+<div class="warning-box">
+  <p><strong>Status: design / proposal — not yet applied in-game.</strong> Nothing here is live.
+  The numbers, placements, and links below are recommendations for review. When approved, apply
+  per the <a href="#impl">implementation checklist</a> and regenerate the boss registry.</p>
+</div>
+
+<div class="tip-box">
+  <p><strong>Sources.</strong> Effective boss stats (AC/saves/SR/DR/immunities <em>including gear</em>)
+  are in <code>module-index/counter_gear.md</code>; the boss list is <code>module-index/bosses.json</code>;
+  the pool of unused creatures is <code>module-index/unspawned_creatures.json</code>; empty/unconnected
+  areas are in <code>module-index/area_index.json</code>. Raw blueprints are <code>unpacked/&lt;resref&gt;.utc.json</code>.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="why">
+  <h2>Why the top end is too easy</h2>
+  <p class="tier-sub">The big CR numbers are cosmetic; two systemic holes make maxed players trivialise the fights.</p>
+</div>
+
+<p>Nearly every boss forces <code>CRAdjust = 125</code> (the engine maximum), so the huge displayed
+Challenge Ratings (Theoden's Chosen 9540, Summanus 2938, …) are <strong>manual labels, not threat</strong>.
+Underneath, difficulty comes down to a hand-typed HP pool (5,000–13,000) plus inflated ability scores.
+<code>counter_gear.md</code> confirms <strong>zero</strong> current bosses are unbeatable with obtainable gear.
+Two weaknesses recur across the roster:</p>
+
+<ol>
+  <li><strong>Lopsided saves.</strong> The base save fields (<code>fortbonus</code>/<code>refbonus</code>/<code>willbonus</code>)
+  are almost always <code>0</code>; the big save numbers come purely from one inflated ability. Every boss
+  therefore has a <em>dumped</em> stat that opens a save category wide to save-or-die / crowd control
+  (Witch King Con 13 → Fort +3; Smaug Dex 10 → Ref +0; Gwathdor Wis 20 → Will +5; Summanus Wis 10 → Will +0).</li>
+  <li><strong>Flat "Soak" damage reduction is worthless.</strong> Players reach weapon enhancement +15 to +18,
+  which bypasses all flat DR. Real defense on the good bosses comes from <em>percentage</em> damage-type
+  <strong>immunity</strong> (the shared <code>bossring</code> = ~50% physical + magical) and from high
+  effective <strong>AC</strong> (≥ 85 still forces misses against the maxed player attack ceiling of ~high +60s/+70s).</li>
+</ol>
+
+<div class="tip-box">
+  <p><strong>Player-power ceiling (what a boss must beat).</strong> Forgeable gear is capped at 6 properties /
+  ~750k–1.25M gp value (<code>forge_inc.nss</code>). Enhancement and Attack-Bonus item properties
+  <em>do not stack</em> for to-hit (the engine takes the max, not the sum), so a maxed melee to-hit from
+  gear tops out near +18–20 over BAB/Str — realistic total AB in the high +60s/+70s. So: <strong>AC ≥ 85</strong>
+  stays relevant, <strong>every save ≥ ~+25</strong> removes the cheese, and <strong>% immunity</strong> beats flat DR.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="recipe">
+  <h2>The tuning recipe</h2>
+  <p class="tier-sub">Per-boss, by hand — no shared script. Three levers, applied only where a boss has the hole.</p>
+</div>
+
+<ul>
+  <li><strong>Close the dumped save.</strong> Raise the relevant <code>fortbonus</code>/<code>refbonus</code>/<code>willbonus</code>
+  so no save sits below ~+25. This is the single biggest anti-cheese fix.</li>
+  <li><strong>Floor effective AC ≥ 85.</strong> Raise <code>NaturalAC</code> (cleanest, no gear conflicts) and/or add AC-bonus gear.</li>
+  <li><strong>Ensure % immunity, not flat DR.</strong> If a boss lacks the shared invisible buff items,
+  equip <code>bossring</code> (prop 20, ~50% physical + magical) and/or <code>npcbuffgear</code> (stacked resist + immunities)
+  in its blueprint <code>Equip_ItemList</code>. Drop reliance on prop-23 "Soak" DR.</li>
+</ul>
+
+<p><strong>Leave HP and the CR label alone</strong> — the goal is <em>tactical</em> difficulty (fights that resist
+CC and force misses), not longer sponges.</p>
+
+<div class="loot-box">
+  <strong>Worked example — Witch King (<code>witchking</code>)</strong>
+  Already carries <code>bossring</code> + <code>npcbuffgear</code> (immunity backbone present), so only the
+  save/AC holes needed fixing:
+  <div class="wrap-scroll">
+  <table class="bu">
+    <tr><th>Field</th><th class="num">Before</th><th class="num">After</th><th>Effect</th></tr>
+    <tr><td><code>NaturalAC</code></td><td class="num">0</td><td class="num">30</td><td>effective AC ~56 → <strong>~86</strong></td></tr>
+    <tr><td><code>fortbonus</code></td><td class="num">0</td><td class="num">27</td><td>Fort ~+3 → <strong>~+30</strong> (closes the dumped Con save)</td></tr>
+    <tr><td><code>refbonus</code></td><td class="num">3</td><td class="num">15</td><td>Ref ~+13 → <strong>~+25</strong></td></tr>
+    <tr><td><code>willbonus</code></td><td class="num">13</td><td class="num">22</td><td>Will ~+13 → <strong>~+31</strong></td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="bosses">
+  <h2>Per-boss tuning suggestions</h2>
+  <p class="tier-sub">Not everything needs a boost — target the bosses with a glaring hole. Priority tiers below.</p>
+</div>
+
+<p><code>nAC</code> = NaturalAC, <code>fB/rB/wB</code> = Fort/Ref/Will save-bonus fields, <code>R/B</code> = already
+carries <code>bossring</code>/<code>npcbuffgear</code>. "Effective" saves/AC include gear (from <code>counter_gear.md</code>).</p>
+
+<h3>Priority A — glaring single hole (highest value, low effort)</h3>
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Boss</th><th>resref</th><th>The hole</th><th>Suggested change</th></tr>
+  <tr><td>Witch King</td><td><code>witchking</code></td><td>AC 56, Fort +3</td><td class="done">DONE (example): nAC→30, fB→27, rB→15, wB→22</td></tr>
+  <tr><td>Smaug</td><td><code>themightysmag002</code></td><td><span class="hole">Ref +0</span> (Dex 10) — free save-or-die; Will +5</td><td>rB 0→25, wB 0→22; keep AC 78</td></tr>
+  <tr><td>Summanus</td><td><code>summanus</code></td><td><span class="hole">Will +0</span> (Wis 10)</td><td>wB 0→30; Fort +7 low → fB 0→20</td></tr>
+  <tr><td>Gwathdor Lord</td><td><code>gwathdorlord001</code></td><td><span class="hole">Will +5</span> (Wis 20)</td><td>wB 0→27</td></tr>
+  <tr><td>Sauron the Abhorred</td><td><code>creature019</code></td><td>AC 65, <span class="hole">Fort +4</span> (Con 20)</td><td>nAC 25→55 (AC→~95), fB 0→28; marquee gimmick candidate</td></tr>
+  <tr><td>Gandalf the Gray</td><td><code>gandalf001</code></td><td>AC 63, Will +10</td><td>nAC 0→30 (AC→~93), wB 0→18</td></tr>
+</table>
+</div>
+
+<h3>Priority B — low AC sponge (add a wall)</h3>
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Boss</th><th>resref</th><th>The hole</th><th>Suggested change</th></tr>
+  <tr><td>Boromir, Steward</td><td><code>creature009</code></td><td>AC 66 (saves fine ~+24/+29)</td><td>nAC 2→30 (AC→~94)</td></tr>
+  <tr><td>Denethor, Steward</td><td><code>creature003</code></td><td>AC 72, Ref +7</td><td>nAC 20→35 (AC→~87), rB 0→18</td></tr>
+  <tr><td>Temple Mistress</td><td><code>templemistress_2</code></td><td>AC 67, <span class="hole">no immunity gear</span></td><td>nAC 0→25 (AC→~92), equip <code>bossring</code>+<code>npcbuffgear</code></td></tr>
+  <tr><td>Legolas</td><td><code>legolasgreenl001</code></td><td>Fort +14; has ring, <span class="hole">no npcbuffgear</span></td><td>fB 0→12, equip <code>npcbuffgear</code></td></tr>
+  <tr><td>Theoden's Chosen</td><td><code>creature016</code></td><td>AB only +49 &amp; no immunity gear — doesn't threaten offensively</td><td>equip <code>bossring</code>+<code>npcbuffgear</code>; consider a damage rider / on-hit effect</td></tr>
+</table>
+</div>
+
+<h3>Priority C — already strong (leave or light touch)</h3>
+<p>High Wizard of Gondor (<code>highwizardofgo_2</code>, AC 106) and Heir of Haldor
+(<code>thecursedone002</code>, already has the narsil-only damage-immunity gimmick) are close to
+where we want the ceiling — at most nudge their lowest save (High Wizard Fort +10 → fB 0→15).</p>
+
+<div class="tip-box">
+  <p><strong>Marquee gimmicks (optional, 1–3 bosses).</strong> For a memorable capstone fight, follow the
+  proven precedent <code>unpacked/dunharrowking.nss</code> (Heir of Haldor): a custom <em>OnDamaged</em> that
+  negates/heals damage unless the PC wields a specific weapon tag, or a phase/enrage mechanic. It already
+  coexists with the bestiary/boss-tracker/leash wrapper chain (see <a href="#impl">implementation</a>). Good
+  candidates: <strong>Sauron</strong> and a new <strong>Angmar the Evocator</strong> capstone.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="density">
+  <h2>Encounter density — double the CR&gt;150 packs</h2>
+  <p class="tier-sub">More enemies per fight where it's a group encounter — not on solo-boss encounters.</p>
+</div>
+
+<p>Of the 36 encounters (<code>unpacked/*.ute.json</code>) whose pool contains a CR&gt;150 creature,
+<strong>22 are multi-creature packs</strong> (<code>MaxCreatures &gt; 1</code>). For those, double both
+<code>MaxCreatures</code> (the cap) and <code>RecCreatures</code> (the number actually spawned) for ~2× enemies.</p>
+
+<div class="warning-box">
+  <p><strong>Do not double the 14 solo-boss encounters (<code>MaxCreatures == 1</code>)</strong> — e.g.
+  <code>angmar</code> (CR 4260), <code>iidda</code>, <code>moriabyss</code>, <code>gullom</code>, <code>understudy</code>.
+  Several are tracked on the <em>Roll of the Fallen</em> board; adding a second live copy violates the boss
+  registry's <strong>single-instance rule</strong> and silently drops them from the tracker and the wiki Bosses page.</p>
+</div>
+
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Encounter</th><th class="num">MaxCreatures</th><th class="num">RecCreatures</th></tr>
+  <tr><td><code>haraddesrtencoun</code></td><td class="num">8 → 16</td><td class="num">3 → 6</td></tr>
+  <tr><td><code>mtdoomskeletongr</code></td><td class="num">8 → 16</td><td class="num">3 → 6</td></tr>
+  <tr><td><code>blackgateencount</code>, <code>gondorundead</code>, <code>gwathdorsnakes</code>, <code>hennethelves</code>, <code>mordorhard</code>, <code>mordorithilien</code>, <code>whitebelt</code></td><td class="num">6 → 12</td><td class="num">2–4 → 4–8</td></tr>
+  <tr><td><code>baradspawn</code>, <code>carndumoutside</code>, <code>carndumspawn</code>, <code>deadmarsh</code>, <code>isengardouter</code>, <code>ithilienrangers</code>, <code>rivendellspawn</code>, <code>shelobspiderling</code>, <code>weathertop</code></td><td class="num">4 → 8</td><td class="num">2–4 → 4–8</td></tr>
+  <tr><td><code>minastirithspawn</code></td><td class="num">3 → 6</td><td class="num">3 → 6</td></tr>
+  <tr><td><code>gelcube</code>, <code>lesserspider</code>, <code>shadowdolguldur</code></td><td class="num">2 → 4</td><td class="num">1–2 → 2–4</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="tier">
+  <h2>New highest-level tier — three inaccessible areas</h2>
+  <p class="tier-sub">Opt-in zones off existing endgame hubs, populated with beefed-up "absent" creature blueprints.</p>
+</div>
+
+<p>The module has 15 finished, non-hidden areas with <strong>zero normal connections</strong> — cut off today.
+Three are thematically perfect for a top tier, span three different regions, and can each be reached from an
+existing endgame hub. Each new boss is a currently-<em>unspawned</em> blueprint from
+<code>unspawned_creatures.json</code>, tuned per the <a href="#recipe">recipe</a> on placement.</p>
+
+<!-- ---- Area 1 ---- -->
+<h3 id="tier-moria">1. Moria: Deep Caverns &nbsp;<code>area020</code></h3>
+<p><strong>Theme:</strong> the deep-dweller horrors below the Bridge of Khazad-dûm — cave beasts, not undead.
+<strong>Link-in:</strong> a descent from <strong>The Abyss of Moria</strong> (<code>theabyssofmoria</code>) or
+<strong>Moria: The Balrog of Moria</strong> (<code>thebalrogofmoria</code>) — add a door/trigger transition in
+that area's <code>.git.json</code> pointing to <code>area020</code>, plus a return waypoint. Naturally gated
+by the Balrog fight that already guards deep Moria, so an <strong>open transition</strong> is fine.</p>
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Boss / content</th><th>resref</th><th class="num">CR</th><th>Role</th></tr>
+  <tr><td>Mutated Basilisk (pack)</td><td><code>basilisk002/003/004</code></td><td class="num">405–445</td><td>petrify-gaze trash pack (place 3, or as an encounter)</td></tr>
+  <tr><td>Sewer Master</td><td><code>sewermaster001</code></td><td class="num">1907</td><td>mid-boss, deep-water horror</td></tr>
+  <tr><td>Capstone deep horror</td><td>(new / re-skin)</td><td class="num">—</td><td>marquee — % immunity + gimmick, AC ≥ 90</td></tr>
+</table>
+</div>
+
+<!-- ---- Area 2 ---- -->
+<h3 id="tier-tombs">2. Tombs of the Lost Souls &nbsp;<code>gravesofthelostk</code></h3>
+<p><strong>Theme:</strong> a barrow-court of undead kings and queens. <strong>Link-in:</strong> from
+<strong>The Barrow Downs</strong> (<code>thebarrowdowns</code>, already a 6-connection hub) — the most natural
+lore fit for wights and dead kings. Add a tomb-entrance trigger/door in <code>thebarrowdowns.git.json</code> →
+<code>gravesofthelostk</code>, return waypoint back. Suggest a <strong>light gate</strong>: a grave-key dropped by
+an existing Barrow-downs boss, or open if you prefer.</p>
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Boss / content</th><th>resref</th><th class="num">CR</th><th>Role</th></tr>
+  <tr><td>Weathertop King</td><td><code>weathertopkin004</code></td><td class="num">1514</td><td>court capstone (+ kin/queen variants as the court)</td></tr>
+  <tr><td>Weathertop Queen</td><td><code>weathertopque003</code></td><td class="num">594</td><td>paired boss</td></tr>
+  <tr><td>Greater Doom Knight</td><td><code>doomkght001</code></td><td class="num">472</td><td>elite guardian</td></tr>
+  <tr><td>Fallen Hero of Gondor</td><td><code>fallenheroofgond</code></td><td class="num">399</td><td>mid-boss / mini-pack</td></tr>
+</table>
+</div>
+<p class="tip-box" style="margin-top:0.4em">Undead bosses have their own weak-save pattern (dumped Con → weak Fort is
+common on the <em>living</em> ones, but undead are Con-less and lean on Will) — apply the recipe per blueprint.</p>
+
+<!-- ---- Area 3 ---- -->
+<h3 id="tier-temple">3. Temple of Nazgûl &nbsp;<code>area010</code></h3>
+<p><strong>Theme:</strong> a Ringwraith / dark-arcane sanctum — the hardest of the three.
+<strong>Ready-made:</strong> this area already contains <strong>7 encounters</strong>; it only needs a link
+and named bosses. <strong>Link-in:</strong> from <strong>Mirkwood: Dol Guldur</strong> (<code>dolguldur</code>,
+4 connections) or <strong>Dol Guldur City</strong> (<code>dolguldurcity</code>). Suggest a <strong>quest/token
+gate</strong> — a Morgul-key dropped by Khamûl (<code>creature007</code>) — so it reads as the true capstone.</p>
+<div class="wrap-scroll">
+<table class="bu">
+  <tr><th>Boss / content</th><th>resref</th><th class="num">CR</th><th>Role</th></tr>
+  <tr><td>Angmar the Evocator</td><td><code>angmartheevoocat</code></td><td class="num">4260</td><td><strong>capstone</strong> — % immunity, AC ≥ 95, marquee gimmick</td></tr>
+  <tr><td>Thuringwethil</td><td><code>thuringwethil</code></td><td class="num">1591</td><td>vampire-wraith lieutenant</td></tr>
+  <tr><td>Shadow Lord of Dol Guldur</td><td><code>shadowlordof</code></td><td class="num">655</td><td>caster boss (fix its dumped save)</td></tr>
+  <tr><td>Morgrond Captain of Dol Guldur</td><td><code>akhorahil006</code></td><td class="num">433</td><td>guardian</td></tr>
+</table>
+</div>
+
+<div class="loot-box">
+  <strong>Why these three</strong>
+  Distinct themes (cave-beast / undead-court / Nazgûl-arcane), three different entry hubs (Moria, Barrow Downs,
+  Dol Guldur), and a spread of gating (open → light key → quest token) so the tier escalates in both difficulty
+  and exclusivity. All bosses are finished blueprints already in the module — no new art required.
+</div>
+
+<!-- ============================================================ -->
+<div class="tier-header" id="impl">
+  <h2>Implementation checklist</h2>
+  <p class="tier-sub">When approved — the order of operations and the systems not to break.</p>
+</div>
+
+<ol>
+  <li><strong>Boss tuning:</strong> edit the <code>fortbonus</code>/<code>refbonus</code>/<code>willbonus</code>/<code>NaturalAC</code>
+  fields (and <code>Equip_ItemList</code> for immunity gear) directly in each <code>unpacked/&lt;resref&gt;.utc.json</code>.</li>
+  <li><strong>Encounter density:</strong> double <code>MaxCreatures</code> + <code>RecCreatures</code> on the 22
+  pack encounters only (never the 14 solo-boss encounters).</li>
+  <li><strong>Place new-tier bosses:</strong> in each area's <code>.git.json</code> <em>Creature List</em>, deep-copy
+  a working sibling creature struct (keep <code>__struct_id = 4</code>), then overwrite only
+  <code>TemplateResRef</code>, <code>Tag</code>, name, and position; add the matching <code>.gic.json</code> stub
+  (<code>__struct_id 4</code> + empty Comment). Never author from the <code>.utc</code> and never include
+  <code>Comment</code>/<code>PaletteID</code> in the git struct. Use <code>bin/place-helper.py &lt;area&gt; --suggest</code>
+  for coordinates. Verify <code>FactionID</code> is Hostile.</li>
+  <li><strong>Link the areas:</strong> add door/trigger transitions (+ return waypoints) in the source-hub
+  <code>.git.json</code> files; for gated zones, put a key/plot check on the transition.</li>
+  <li><strong>Leashing is automatic</strong> for a boss cloned from a sibling with the standard
+  <code>x2_def_spawn</code> OnSpawn (it records its <code>"spawn"</code> home; the area OnEnter <code>leash_to_area</code>
+  keeps it home). Confirm the target area's OnEnter is <code>leash_to_area</code> or chains to it. Do not set
+  <code>NO_LEASH</code> on a stationary boss.</li>
+  <li><strong>Regenerate the boss registry</strong> (any CR&gt;60 single-instance placement auto-qualifies for the
+  <em>Roll of the Fallen</em> board):
+  <code>python3 bin/gen-boss-registry.py</code> (dry run) → <code>--write</code> → <code>python3 tests/check_boss_registry.py</code>.
+  Never hand-edit the generated block in <code>brd_db.nss</code>. Confirm each new boss's OnDeath reaches
+  <code>SE_DoCreatureRespawn</code> (e.g. <code>x2_def_ondeath</code>) so the board countdown is truthful.</li>
+  <li><strong>Build gates:</strong> a repack runs <code>tests/smoke-test</code> (boss registry, spawn-leash,
+  forge, divergent-creatures, dialog-integrity). New qualifying content won't break them.</li>
+</ol>
+
+<div class="warning-box">
+  <p><strong>Do not break the wrapper chain.</strong> <code>x2_def_spawn</code> → <code>nw_c2_default9</code>
+  (stores the leash home; runs <code>bst_install</code>) → <code>bst_install</code> re-points OnDamaged/OnDeath
+  to the bestiary trackers at runtime and chains the originals. A custom per-boss OnDamaged gimmick is preserved
+  as the "original" and still runs — the bestiary, boss-tracker, and leash systems keep working.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="appendix">Appendix — candidate unlockable creatures</h2>
+
+<p>Beyond the tier bosses above, <code>unspawned_creatures.json</code> lists ~226 non-utility blueprints never
+placed anywhere. The genuine lore-boss candidates (CR ≥ 300, excluding DM/summon/companion/merchant blueprints)
+include: Angmar the Evocator (4260), Sewer Master (1907), High Wizard of Gondor (1794), Thuringwethil (1591),
+the Weathertop King/Queen court (1514/594…), Stinkfest the Peacemaker (1352), The Executioner of the Living (962),
+Shadow Lord of Dol Guldur (655), Iidda the Wraith Warrior (603), Greater Doom Knight (472), the Mutated Basilisks
+(405–445), Morgrond Captain of Dol Guldur (433), and Fallen Hero of Gondor (399).</p>
+
+<p><strong>Exclude</strong> (not hostile bosses): DM/dev blueprints (<code>*dm</code>, <code>homer</code>,
+<code>bubba</code>, <code>POPOE</code>), summons (<code>wwp_*</code>/<code>wwl_*</code>), Meaningwave guides
+(<code>mw_*</code>), Dungeon-Solitaire mirrors (<code>ds_*</code>), merchants/utility NPCs, and companion
+blueprints (<code>legolas</code>, <code>gimli</code>, <code>samwise</code>, <code>elrond001</code>,
+<code>radagastthebrown</code>) unless deliberately reused as hostiles.</p>
+
+    </div><!-- .mw-content -->
+  </div><!-- .mw-layout -->
+  </main>
+
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
