@@ -62,9 +62,8 @@
           <li><a href="#curse">Opt-in curse (risk &harr; reward)</a></li>
           <li><a href="#gimmicks">Gimmick bosses</a>
             <ol>
-              <li><a href="#gimmick-borg">Adaptive "Borg" immunity</a></li>
+              <li><a href="#gimmick-borg">Wandering adaptive-immunity boss</a></li>
               <li><a href="#gimmick-swarm">Elemental swarm waves</a></li>
-              <li><a href="#gimmick-wander">Wandering boss</a></li>
               <li><a href="#gimmick-parent">Clone / parent boss</a></li>
             </ol>
           </li>
@@ -99,6 +98,11 @@ opened by an already-existing key.</p>
   resisting crowd control, forcing misses, punishing sloppy play — <strong>not</strong> by simply
   adding hit points so the same rotation takes longer. When a change would only lengthen a fight,
   it is not done: it is paired with something that changes <em>how</em> the fight is played.</p>
+  <p><strong>The one test — is it a <em>gate</em> or a <em>tax</em>?</strong> The honest way to tell a
+  tactical mechanic from a sponge: a <strong>gate</strong> scales its difficulty against a <em>player
+  choice</em> — build, gear, buff, tactic, positioning — so a prepared player passes and an unprepared one
+  doesn't; a <strong>tax</strong> scales against <em>nothing</em>, hitting everyone equally, which is
+  mathematically identical to just adding hit points. Gates create decisions; taxes only add minutes.</p>
   <p><strong>The honesty checklist</strong> (hold every idea below against it):</p>
   <ol style="margin:0.3em 0 0">
     <li><strong>Tactical demand?</strong> Does it reward a specific counter, build, or positioning — or is it just bigger numbers?</li>
@@ -106,6 +110,12 @@ opened by an already-existing key.</p>
     <li><strong>Exploit surface?</strong> Can it be cheesed (kiting, potion-spam, leash abuse, teamwork loopholes)?</li>
     <li><strong>Build effort vs. payoff?</strong> Is the implementation cost worth the tactical change it buys?</li>
   </ol>
+  <p style="margin-top:0.6em"><strong>These levers compose — they are not independent knobs.</strong>
+  <a href="#fatigue">Soul-fatigue on Heal</a> is the hub: it turns healing into a finite resource, so
+  <em>everything that raises incoming damage</em> — <a href="#density">doubled spawns</a>,
+  <a href="#gimmick-swarm">elemental swarms</a>, the <a href="#curse">opt-in curse's +damage</a> — feeds it,
+  forcing more heals and stacking fatigue faster. Read the whole page as one <strong>healing-economy
+  layer</strong>, not a pile of separate difficulty sliders.</p>
 </div>
 
 <div class="tip-box">
@@ -140,16 +150,18 @@ Two weaknesses recur across the roster:</p>
   (Witch King Con 13 → Fort +3; Smaug Dex 10 → Ref +0; Gwathdor Wis 20 → Will +5; Summanus Wis 10 → Will +0).</li>
   <li><strong>Flat "Soak" damage reduction is worthless.</strong> Players reach weapon enhancement +15 to +18,
   which bypasses all flat DR. Real defense on the good bosses comes from <em>percentage</em> damage-type
-  <strong>immunity</strong> (the shared <code>bossring</code> = ~50% physical + magical) and from high
-  effective <strong>AC</strong> (≥ 85 still forces misses against the maxed player attack ceiling of ~high +60s/+70s).</li>
+  <strong>immunity</strong> (the shared <code>bossring</code> = ~50% physical + magical). Effective
+  <strong>AC</strong> matters too — but as a <em>build gate</em>, not a wall (see the AC callout in the recipe).</li>
 </ol>
 
 <div class="tip-box">
   <p><strong>Player-power ceiling (what a boss must beat).</strong> Forgeable gear is capped at 6 properties /
-  ~750k–1.25M gp value (<code>forge_inc.nss</code>). Enhancement and Attack-Bonus item properties
-  <em>do not stack</em> for to-hit (the engine takes the max, not the sum), so a maxed melee to-hit from
-  gear tops out near +18–20 over BAB/Str — realistic total AB in the high +60s/+70s. So: <strong>AC ≥ 85</strong>
-  stays relevant, <strong>every save ≥ ~+25</strong> removes the cheese, and <strong>% immunity</strong> beats flat DR.</p>
+  ~750k gp value (<code>forge_inc.nss</code>). A maxed melee's total attack bonus lands in the
+  <strong>+80s–90s</strong> range (BAB 20 + legendary-Str + weapon enhancement/AB + Weapon-Focus feats +
+  buffs), matching the module's own top creatures (Summanus attacks +90, Witch King +83, High Wizard +78).
+  An under-invested build sits near +70. So the two <em>decisive, cheese-removing</em> knobs are
+  <strong>every save ≥ ~+25</strong> and <strong>% immunity</strong> (beats flat DR); <strong>AC</strong> is
+  a secondary build gate that only bites the under-built (below).</p>
 </div>
 
 <!-- ============================================================ -->
@@ -158,17 +170,50 @@ Two weaknesses recur across the roster:</p>
   <p class="tier-sub">Per-boss, by hand — no shared script. Three levers, applied only where a boss has the hole.</p>
 </div>
 
-<ul>
-  <li><strong>Close the dumped save.</strong> Raise the relevant <code>fortbonus</code>/<code>refbonus</code>/<code>willbonus</code>
-  so no save sits below ~+25. This is the single biggest anti-cheese fix.</li>
-  <li><strong>Floor effective AC ≥ 85.</strong> Raise <code>NaturalAC</code> (cleanest, no gear conflicts) and/or add AC-bonus gear.</li>
-  <li><strong>Ensure % immunity, not flat DR.</strong> If a boss lacks the shared invisible buff items,
-  equip <code>bossring</code> (prop 20, ~50% physical + magical) and/or <code>npcbuffgear</code> (stacked resist + immunities)
-  in its blueprint <code>Equip_ItemList</code>. Drop reliance on prop-23 "Soak" DR.</li>
-</ul>
+<p>The three levers do <em>three different tactical jobs</em>, and they are applied in priority order —
+the first two are the decisive anti-cheese fixes; AC is a lighter, selective touch on top.</p>
+<ol>
+  <li><strong>Close the dumped save — the CC gate (do this first).</strong> Raise the relevant
+  <code>fortbonus</code>/<code>refbonus</code>/<code>willbonus</code> so no save sits below ~+25. This is the
+  single biggest anti-cheese fix: it gates save-or-die and crowd control on whether the player brought the
+  save-DC-beating build. Binary and decisive — it does not lengthen the fight, it changes whether the cheese works.</li>
+  <li><strong>Ensure % immunity, not flat DR — the damage-type gate.</strong> If a boss lacks the shared
+  invisible buff items, equip <code>bossring</code> (prop 20, ~50% physical + magical) and/or
+  <code>npcbuffgear</code> (stacked resist + immunities) in its blueprint <code>Equip_ItemList</code>. Drop
+  reliance on prop-23 "Soak" DR. This rewards damage-type diversity and punishes one-note builds.</li>
+  <li><strong>Raise effective AC — the to-hit/build gate (light touch, selective).</strong> Raise
+  <code>NaturalAC</code> (cleanest, no gear conflicts) only where a boss is in <em>auto-hit</em> territory
+  (AC in the 50s–60s), and only up to roughly the player AB ceiling (~85). Do <strong>not</strong> blanket-floor
+  every boss to 85, and never push toward an unhittable wall — see the callout below for why AC is a gate and
+  where it turns back into a sponge.</li>
+</ol>
 
 <p><strong>Leave HP and the CR label alone</strong> — the goal is <em>tactical</em> difficulty (fights that resist
 CC and force misses), not longer sponges.</p>
+
+<div class="tip-box">
+  <p><strong>Why AC is a build gate, not a sponge — and why it's only a light touch.</strong> AC differs from
+  HP in one way that matters: it scales against the player's <em>attack bonus</em>, a thing players control.
+  NWN is ±5% to hit per AB point, so against <strong>AC 85</strong> the outcome swings hard on build:</p>
+  <div class="wrap-scroll">
+  <table class="bu">
+    <tr><th>Total attack bonus</th><th>Primary-attack hit rate vs AC 85</th><th>Read</th></tr>
+    <tr><td>+70 (under-invested)</td><td class="hole">~30%</td><td>whiffs most swings; iteratives don't connect</td></tr>
+    <tr><td>+76</td><td>~60%</td><td>the crossover</td></tr>
+    <tr><td>+80–90 (maxed / buffed)</td><td class="done">80–95%</td><td>lands most swings</td></tr>
+  </table>
+  </div>
+  <p>So AC 85 <em>differentiates builds</em> rather than throttling everyone equally, and the gate is cheap to
+  clear: <strong>Bard Song +6</strong>, <strong>True Strike +20</strong>, <strong>Curse Song −15 to the boss's
+  AC</strong>, or <strong>Knockdown</strong> (works on Witch King, Sauron, Angmar, even Summanus — only Huge+
+  creatures are immune) each shove a marginal build well past the line. That's the point: invest in / buff
+  to-hit and you connect; ignore it and you flounder.</p>
+  <p><strong>The guardrail (why light touch):</strong> the gate is <em>steep</em> — an unbuffed, un-invested
+  character genuinely whiffs — so AC is powerful but easy to over-apply. Keep it in the window (break auto-hit,
+  sit near ~85, never a wall). Pushed to unhittable AC, nobody connects regardless of build and it collapses
+  back into a pure sponge. Hence: fix saves and immunity everywhere they're holed; add AC only where a boss
+  is trivially auto-hit.</p>
+</div>
 
 <div class="loot-box">
   <strong>Worked example — Witch King (<code>witchking</code>)</strong>
@@ -202,18 +247,20 @@ carries <code>bossring</code>/<code>npcbuffgear</code>. "Effective" saves/AC inc
   <tr><td>Smaug</td><td><code>themightysmag002</code></td><td><span class="hole">Ref +0</span> (Dex 10) — free save-or-die; Will +5</td><td>rB 0→25, wB 0→22; keep AC 78</td></tr>
   <tr><td>Summanus</td><td><code>summanus</code></td><td><span class="hole">Will +0</span> (Wis 10)</td><td>wB 0→30; Fort +7 low → fB 0→20</td></tr>
   <tr><td>Gwathdor Lord</td><td><code>gwathdorlord001</code></td><td><span class="hole">Will +5</span> (Wis 20)</td><td>wB 0→27</td></tr>
-  <tr><td>Sauron the Abhorred</td><td><code>creature019</code></td><td>AC 65, <span class="hole">Fort +4</span> (Con 20)</td><td>nAC 25→55 (AC→~95), fB 0→28; marquee gimmick candidate</td></tr>
-  <tr><td>Gandalf the Gray</td><td><code>gandalf001</code></td><td>AC 63, Will +10</td><td>nAC 0→30 (AC→~93), wB 0→18</td></tr>
+  <tr><td>Sauron the Abhorred</td><td><code>creature019</code></td><td>AC 65, <span class="hole">Fort +4</span> (Con 20)</td><td>fB 0→28 (the real fix); nAC 25→45 (AC→~85, into the gate window); marquee gimmick candidate</td></tr>
+  <tr><td>Gandalf the Gray</td><td><code>gandalf001</code></td><td>AC 63, Will +10</td><td>wB 0→18 (the real fix); nAC 0→22 (AC→~85)</td></tr>
 </table>
 </div>
 
-<h3>Priority B — low AC sponge (add a wall)</h3>
+<h3>Priority B — auto-hit AC (raise into the gate window)</h3>
+<p>These bosses sit in auto-hit territory (AC in the 60s–70s), where attack-bonus investment is wasted. Raise
+AC toward ~85 — into the window, not past it — so to-hit builds/buffs start to matter; pair with the real save/immunity fix.</p>
 <div class="wrap-scroll">
 <table class="bu">
   <tr><th>Boss</th><th>resref</th><th>The hole</th><th>Suggested change</th></tr>
-  <tr><td>Boromir, Steward</td><td><code>creature009</code></td><td>AC 66 (saves fine ~+24/+29)</td><td>nAC 2→30 (AC→~94)</td></tr>
-  <tr><td>Denethor, Steward</td><td><code>creature003</code></td><td>AC 72, Ref +7</td><td>nAC 20→35 (AC→~87), rB 0→18</td></tr>
-  <tr><td>Temple Mistress</td><td><code>templemistress_2</code></td><td>AC 67, <span class="hole">no immunity gear</span></td><td>nAC 0→25 (AC→~92), equip <code>bossring</code>+<code>npcbuffgear</code></td></tr>
+  <tr><td>Boromir, Steward</td><td><code>creature009</code></td><td>AC 66 (saves fine ~+24/+29)</td><td>nAC 2→22 (AC→~86)</td></tr>
+  <tr><td>Denethor, Steward</td><td><code>creature003</code></td><td>AC 72, Ref +7</td><td>rB 0→18 (the real fix); nAC 20→33 (AC→~85)</td></tr>
+  <tr><td>Temple Mistress</td><td><code>templemistress_2</code></td><td>AC 67, <span class="hole">no immunity gear</span></td><td>equip <code>bossring</code>+<code>npcbuffgear</code> (the real fix); nAC 0→18 (AC→~85)</td></tr>
   <tr><td>Legolas</td><td><code>legolasgreenl001</code></td><td>Fort +14; has ring, <span class="hole">no npcbuffgear</span></td><td>fB 0→12, equip <code>npcbuffgear</code></td></tr>
   <tr><td>Theoden's Chosen</td><td><code>creature016</code></td><td>AB only +49 &amp; no immunity gear — doesn't threaten offensively</td><td>equip <code>bossring</code>+<code>npcbuffgear</code>; consider a damage rider / on-hit effect</td></tr>
 </table>
@@ -223,6 +270,11 @@ carries <code>bossring</code>/<code>npcbuffgear</code>. "Effective" saves/AC inc
 <p>High Wizard of Gondor (<code>highwizardofgo_2</code>, AC 106) and Heir of Haldor
 (<code>thecursedone002</code>, already has the narsil-only damage-immunity gimmick) are close to
 where we want the ceiling — at most nudge their lowest save (High Wizard Fort +10 → fB 0→15).</p>
+<p class="check"><strong>On the High Wizard's AC 106:</strong> that's above the ~85 gate window and edges into
+wall territory for pure melee (a +90 build needs 16+ → ~25%). It's defensible <em>because</em> he's a caster
+you'd typically burst or debuff — <strong>Curse Song −15</strong> drops him to an effective 91, and Knockdown
+strips his Dex-AC — so the to-hit toolkit becomes mandatory rather than optional. Leave it, but treat it as the
+top of the scale, not a target to copy: don't push new bosses to 106.</p>
 
 <!-- ============================================================ -->
 <div class="tier-header" id="levers">
@@ -237,16 +289,23 @@ those, and they are designed to reinforce each other.</p>
 
 <h3 id="fatigue">1. Soul-fatigue on Heal</h3>
 <p>A stacking penalty that makes reflexive full-heals dangerous, so healing becomes a <em>timed
-resource</em> rather than a spam button. Mechanic:</p>
+resource</em> rather than a spam button. The order of operations matters — the heal must land
+<strong>first</strong>, then the fatigue bites, then the stack grows:</p>
 <ul>
-  <li>Each time you are healed by the <strong>Heal</strong> spell (and by extension Heal potions),
-  a <strong>soul-fatigue stack</strong> is added <em>after</em> the heal resolves.</li>
   <li>Each stack lasts <strong>3 minutes</strong> on its own independent timer, then falls off.</li>
-  <li><strong>When you are healed</strong>, you first take <strong>10% of your max HP as damage per
-  <em>already-active</em> stack</strong> — this can kill you. The heal then applies, and a new stack is added.</li>
-  <li>Because the damage keys off stacks that were active <em>before</em> this heal, a heal from
-  <strong>zero stacks</strong> gives its full benefit (then leaves you at 1 stack). Chain-healing is
-  what gets punishing: 2nd heal = -10% first, 3rd = -20%, etc.</li>
+  <li>When you are healed by the <strong>Heal</strong> spell (and by extension Heal potions), three
+  things happen in strict order:
+    <ol>
+      <li><strong>The heal fully resolves</strong> — you go to 100% HP as normal.</li>
+      <li><strong>You then take <em>10% of your max HP as damage per already-active stack</em></strong> —
+      applied <em>after</em> the top-off, so it isn't erased by the heal. This can kill you.</li>
+      <li><strong>A new stack is added.</strong></li>
+    </ol>
+  </li>
+  <li>Because the damage keys off the stacks active <em>before</em> this heal, a heal from
+  <strong>zero stacks</strong> gives its full benefit and simply leaves you at 100% with 1 stack.
+  Chain-healing is what turns lethal: heal at 1 stack ends you at ~90% (2 stacks), at 2 stacks ~80%
+  (3 stacks), … and at 10 stacks the post-heal hit is 100% of max — a full heal that immediately kills you.</li>
 </ul>
 <div class="tip-box">
   <p><strong>Where it hooks in (verified).</strong> The module already installs a module override
@@ -323,11 +382,15 @@ flattening everyone.</p>
 damage unless the attacker's right hand wields weapon tag <code>narsil</code></strong>, taunting on wrong-weapon
 hits and planting a journal hint on the first one. That is the template — a fight with a single correct
 answer — and it already coexists cleanly with the bestiary / boss-tracker / leash wrapper chain
-(see <a href="#impl">implementation</a>). Four new gimmicks in that spirit:</p>
+(see <a href="#impl">implementation</a>). Three new gimmicks in that spirit:</p>
 
-<h3 id="gimmick-borg">a. Adaptive "Borg" immunity boss</h3>
-<p>A boss that learns. It starts <strong>not immune to anything</strong>, and as it takes damage it builds
-type immunity from a shared reserve:</p>
+<h3 id="gimmick-borg">a. The Wandering One — an adaptive "Borg" immunity boss you have to hunt</h3>
+<p>One creature that fuses two ideas: it <strong>roams the module</strong> (no fixed wiki area — players must
+find it) and it <strong>learns to resist whatever hits it</strong> (the real fight). The wandering supplies the
+hunt; the adaptive immunity supplies the tactics, so the fight itself is a genuine gate rather than just a
+scavenger hunt.</p>
+<p><strong>The adaptive-immunity core.</strong> It starts <strong>not immune to anything</strong>, and as it
+takes damage it builds type immunity from a shared reserve:</p>
 <ul>
   <li>A <strong>universal reserve pool of 500%</strong> — enough to become fully (100%) immune to at most
   <strong>5 damage types</strong> at once.</li>
@@ -337,17 +400,25 @@ type immunity from a shared reserve:</p>
   but <strong>steals that power from the least-recently-received</strong> type it is currently immune to
   (so a party that keeps switching damage types keeps it off-balance; a mono-damage party gets locked out).</li>
 </ul>
+<p><strong>The wandering shell.</strong> It relocates to a random valid area (filtering out low-level zones) or
+patrols a route, so it can't be pinned on the wiki and players have to track it down.</p>
 <div class="tip-box">
-  <p><strong>Feasibility (verified).</strong> NWN percentage damage immunity is item property
+  <p><strong>Feasibility (verified).</strong> <em>Immunity:</em> NWN percentage damage immunity is item property
   <code>PropertyName 20</code>, only in discrete steps (5/10/25/50/75/100%), which <em>stack additively
   across equipment slots</em> and cap at 100 per type. So the boss carries immunity across several gear
-  slots and the <em>OnDamaged</em> handler adds/removes those properties at runtime to hit the current
-  per-type total — the same mechanism the shared <code>bossring</code>/<code>npcbuffgear</code> already use,
-  driven dynamically. The bookkeeping (pool, per-type totals, recency) is <span class="greenfield">greenfield</span>
-  script but built entirely from existing pieces.</p>
+  slots and its <em>OnDamaged</em> handler adds/removes those properties at runtime to hit the current
+  per-type total — the same mechanism <code>bossring</code>/<code>npcbuffgear</code> already use, driven
+  dynamically. <em>Wandering:</em> a full wander state machine already exists but is unused —
+  <code>wandering.nss</code> (INIT/MOVING/SEARCHING/REST with random relocation) — ready to attach to the boss's
+  user-defined/heartbeat event. <strong>Critical:</strong> the anti-kiting <code>leash_to_area.nss</code> (every
+  area's OnEnter) would snap a roamer back home, so this boss <strong>must</strong> set
+  <code>SetLocalInt(self,"NO_LEASH",1)</code> (the documented exemption). It still qualifies as a single-instance
+  registry boss; its board/wiki attribution just becomes "roaming". The immunity bookkeeping (pool, per-type
+  totals, recency) is <span class="greenfield">greenfield</span> script built from existing pieces.</p>
 </div>
-<p class="check"><strong>Honesty check:</strong> hard tactical demand — rewards a party that coordinates and
-rotates damage types, punishes one-note builds; no HP inflation.</p>
+<p class="check"><strong>Honesty check:</strong> hard tactical demand — the adaptive immunity rewards a party
+that coordinates and rotates damage types and punishes one-note builds (no HP inflation); the wandering adds
+discovery/logistics on top of a fight that already stands on its own tactically.</p>
 
 <h3 id="gimmick-swarm">b. Elemental swarm waves</h3>
 <p>Not a single boss but an <strong>attrition arena</strong>. Players clear multiple <strong>waves</strong>,
@@ -362,26 +433,14 @@ and the element changes each wave (fire → cold → acid → …). Per wave:</p
 frost and frost/fire giants, acid archers). The <strong>timed trickle-wave controller</strong> is
 <span class="greenfield">greenfield</span>, but the building blocks are standard
 (<code>CreateObject</code> + <code>DelayCommand</code>, plus the <code>se_respawn</code> timer pattern).
-These are trash-wave adds, <em>not</em> single-instance registry bosses — so they don't touch the boss tracker.</p>
-<p class="check"><strong>Honesty check:</strong> tactical if the element rotation actually forces resistance/AoE
-adjustments each wave; guard against it degenerating into a plain HP-over-time slog by keeping waves short and lethal.</p>
+These are trash-wave adds, <em>not</em> single-instance registry bosses — so they don't touch the boss tracker.
+They also feed the <a href="#fatigue">healing-economy</a>: a surround that keeps chipping the party forces heals,
+which stack soul-fatigue — so the pressure is real, not just an HP-over-time bar.</p>
+<p class="check"><strong>Honesty check:</strong> tactical <em>only if</em> each element rotation forces a real
+counter-swap (resistances, AoE, positioning vs. the surround); keep waves short and lethal so it can't
+degenerate into a plain HP-over-time slog. If the elements don't demand different answers, it's off-axis.</p>
 
-<h3 id="gimmick-wander">c. Wandering boss</h3>
-<p>A boss that <strong>can't be pinned to one area</strong> on the wiki — it patrols a route, or genuinely
-relocates to a random valid area (filtering out low-level zones) so players have to hunt it.</p>
-<div class="tip-box">
-  <p><strong>Precedent + the catch (verified).</strong> A full wander state machine already exists but is
-  unused — <code>wandering.nss</code> (INIT/MOVING/SEARCHING/REST with random relocation) — ready to attach
-  to a boss's user-defined/heartbeat event. <strong>Critical:</strong> the module's anti-kiting
-  <code>leash_to_area.nss</code> (every area's OnEnter) would instantly snap a roamer back home, so a
-  wandering boss <strong>must</strong> set <code>SetLocalInt(self,"NO_LEASH",1)</code> (the documented
-  exemption). It still qualifies as a single-instance registry boss; its wiki/board attribution just
-  becomes "roaming".</p>
-</div>
-<p class="check"><strong>Honesty check:</strong> the "tactic" is discovery/logistics rather than combat —
-good for variety, but pair it with a real combat profile so finding it isn't the whole fight.</p>
-
-<h3 id="gimmick-parent">d. Clone / parent boss</h3>
+<h3 id="gimmick-parent">c. Clone / parent boss</h3>
 <p>A boss with a <strong>chance to gate-crash an existing boss fight</strong> as, e.g.,
 "<em>&lt;Existing Boss&gt;'s Mom</em>" (or Dad) — similar to the original but with boosted stats and better
 gear, turning a known fight into a surprise 2-front battle.</p>
@@ -399,7 +458,17 @@ forces; keep the parent's stat boost modest so it's a threat multiplier, not a s
 <!-- ============================================================ -->
 <div class="tier-header" id="density">
   <h2>Encounter density — revised rule</h2>
-  <p class="tier-sub">More bodies where a mob is genuinely reused — and a correction to how density is actually edited.</p>
+  <p class="tier-sub">More bodies where a mob is genuinely reused — tactical <em>because</em> it feeds the healing economy.</p>
+</div>
+
+<div class="loot-box">
+  <strong>Why density is on-axis (not just atmosphere)</strong>
+  On its own, "more bodies" is a tax — it raises incoming damage for everyone equally, which is just a longer
+  fight. It becomes <em>tactical</em> through its pairing with <a href="#fatigue">soul-fatigue</a>: doubling a
+  pack roughly doubles incoming damage, which forces the party to heal more often, which stacks fatigue faster
+  and pushes them toward the lethal over-heal. So density is not a standalone difficulty slider — it's a
+  <strong>throughput multiplier on the healing economy</strong>. That's also why it's capped at ×2 and kept
+  off boss encounters: enough to pressure the heal budget, not so much it becomes a numbers wall.
 </div>
 
 <div class="warning-box">
@@ -500,7 +569,7 @@ endgame hub and populated with unspawned blueprints tuned on placement.</p>
     (<code>theabyssofmoria</code>) / <strong>Balrog of Moria</strong> (<code>thebalrogofmoria</code>);
     naturally gated by the Balrog, so an open transition is fine.</td>
     <td>Mutated Basilisks (<code>basilisk002/003/004</code>, CR 405–445, petrify pack); Sewer Master
-    (<code>sewermaster001</code>, CR 1907) mid-boss; a re-skin capstone (% immunity + gimmick, AC ≥ 90).</td>
+    (<code>sewermaster001</code>, CR 1907) mid-boss; a re-skin capstone (% immunity + gimmick, AC ~85).</td>
   </tr>
   <tr>
     <td>Temple of Nazgûl</td><td><code>area010</code></td>
@@ -531,8 +600,9 @@ endgame hub and populated with unspawned blueprints tuned on placement.</p>
   fields (and <code>Equip_ItemList</code> for immunity gear) directly in each <code>unpacked/&lt;resref&gt;.utc.json</code>.</li>
   <li><strong>Soul-fatigue on Heal:</strong> extend the module override spellscript (currently
   <code>stop_spellcheat.nss</code>, wired via <code>on_module_load.nss</code>) — branch on
-  <code>GetSpellId()</code> for Heal + mass-heal; apply pre-heal damage per active stack; add a stack with a
-  180s <code>DelayCommand</code> decay. Potions are covered by the same hook.</li>
+  <code>GetSpellId()</code> for Heal + mass-heal. Order: let the heal resolve, then (post-heal) apply
+  10%-max-HP damage per already-active stack, then add a stack with a 180s <code>DelayCommand</code> decay.
+  Potions are covered by the same hook.</li>
   <li><strong>Enrage-on-retreat:</strong> scope strictly to the CR&gt;60 single-instance registry bosses.
   Decide the "left combat" trigger (heartbeat aggro-list scan vs. per-PC engaged flag), then apply the
   taunt-shout + permanent-for-this-life +2 all stats + 25%-missing-HP heal. Must not persist onto respawn.</li>
@@ -548,8 +618,11 @@ endgame hub and populated with unspawned blueprints tuned on placement.</p>
   source-hub <code>.git.json</code> files. For the Tombs, place the locked door in the Númenor hub keyed on
   tag <code>ForbiddenRealmsKey</code>; add the journal category to <code>module.jrl.json</code> + the
   <code>acquireditem_tag.nss</code> branch + the retroactive OnClientEnter check.</li>
-  <li><strong>Wandering boss (if built):</strong> set <code>NO_LEASH = 1</code> on the blueprint/instance and
-  attach <code>wandering.nss</code>; confirm it doesn't get snapped home by <code>leash_to_area</code>.</li>
+  <li><strong>Wandering adaptive-immunity boss (if built):</strong> one creature carries both halves — attach
+  <code>wandering.nss</code> and set <code>NO_LEASH = 1</code> (else <code>leash_to_area</code> snaps it home),
+  <em>and</em> put the adaptive-immunity bookkeeping on its OnDamaged handler (add/remove
+  <code>PropertyName 20</code> immunity properties across its gear slots per the 500% pool / recency rules).
+  Both coexist with the wrapper chain below.</li>
   <li><strong>New boss gear (clone/parent, tier drops):</strong> author the item blueprints, then regenerate
   the Forge whitelist with <code>bin/gen-forge-legal.py</code> so the login sweep doesn't jail looters
   (never hand-edit <code>forge_legal_inc.nss</code>).</li>
@@ -578,19 +651,23 @@ endgame hub and populated with unspawned blueprints tuned on placement.</p>
   <p class="tier-sub">The shared "stay honest" artifact — rate every proposal by what it actually changes.</p>
 </div>
 
+<p>The middle column is the important one: the <strong>mechanism</strong> by which each proposal stays a
+<em>gate</em> (scales against a player choice) rather than a <em>tax</em> (scales against nothing = HP by
+another name). If a row can't name a player choice it scales against, it's off-axis.</p>
 <div class="wrap-scroll">
 <table class="bu">
-  <tr><th>Proposal</th><th>Tactical demand created</th><th>Sponginess risk</th><th>Exploit surface</th><th>Build effort</th></tr>
-  <tr><td>Per-boss save/AC/immunity tuning</td><td>High — closes save-or-die &amp; forces misses</td><td class="done">None</td><td class="done">Low</td><td class="done">Low (data edits)</td></tr>
-  <tr><td>Soul-fatigue on Heal</td><td>Med — only with enrage</td><td class="hole">High if shipped alone</td><td class="hole">Retreat-and-wait (see enrage)</td><td>Med (spellhook + stacks)</td></tr>
-  <tr><td>Enrage-on-retreat</td><td>High — kills potion-attrition &amp; tank-swap</td><td class="done">None (no HP/CR change)</td><td class="done">Low</td><td>Med (retreat detection)</td></tr>
-  <tr><td>Opt-in curse + gem loot</td><td>Med — risk/greed &amp; build choice</td><td class="done">Low</td><td>Low (bounded by gem rarity)</td><td class="hole">High (new loot + gem system)</td></tr>
-  <tr><td>Adaptive "Borg" immunity</td><td>High — rewards damage-type rotation</td><td class="done">Low</td><td>Low</td><td class="hole">High (runtime prop juggling)</td></tr>
-  <tr><td>Elemental swarm waves</td><td>Med — resistance/AoE swaps per wave</td><td class="hole">Med (keep waves short)</td><td>Low</td><td>Med (wave controller)</td></tr>
-  <tr><td>Wandering boss</td><td>Low-Med — discovery/logistics</td><td class="done">Low</td><td>Low (NO_LEASH required)</td><td>Med (reuse <code>wandering.nss</code>)</td></tr>
-  <tr><td>Clone / parent boss</td><td>Med — target-priority &amp; surprise</td><td class="hole">Med (keep boost modest)</td><td>Low</td><td>Med (gear + forge whitelist)</td></tr>
-  <tr><td>Density 1→2 (reused mobs)</td><td>Low — pressure, not tactics</td><td class="hole">Med (that's the point — cap at 2)</td><td class="done">Low</td><td class="done">Low (git edits)</td></tr>
-  <tr><td>Forbidden Realms Key tier</td><td>N/A (content, not a mechanic)</td><td class="done">—</td><td class="done">Low</td><td>Med (link + journal + placement)</td></tr>
+  <tr><th>Proposal</th><th>Mechanism — why it's a gate, not a sponge</th><th>Tactical demand</th><th>Sponginess risk</th><th>Build effort</th></tr>
+  <tr><td>Close dumped saves</td><td>Scales against the player's save-DC / CC-immunity build — binary pass/fail</td><td>High — closes save-or-die &amp; CC</td><td class="done">None</td><td class="done">Low (data edits)</td></tr>
+  <tr><td>% immunity (not flat DR)</td><td>Scales against damage-type diversity — rewards rotation, walls mono-damage</td><td>High — damage-type gate</td><td class="done">None</td><td class="done">Low (equip gear)</td></tr>
+  <tr><td>AC (light touch)</td><td>Scales against attack bonus (build + buffs + AC-debuffs) — <em>only</em> in the ~85 window; a wall past it</td><td>Med — to-hit/build gate</td><td class="hole">High if over-applied (keep in window, selective)</td><td class="done">Low (data edits)</td></tr>
+  <tr><td>Soul-fatigue on Heal</td><td>Scales against heal discipline + throughput — finite healing, only tactical <em>paired with enrage</em></td><td>Med — only with enrage</td><td class="hole">High if shipped alone</td><td>Med (spellhook + stacks)</td></tr>
+  <tr><td>Enrage-on-retreat</td><td>Scales against commitment — makes disengage strictly dominated; no HP/CR change</td><td>High — kills potion-attrition &amp; tank-swap</td><td class="done">None</td><td>Med (retreat detection)</td></tr>
+  <tr><td>Opt-in curse + gem loot</td><td>Player <em>chooses</em> the difficulty for a reward — risk/greed &amp; build decision</td><td>Med — risk/greed choice</td><td class="done">Low</td><td class="hole">High (new loot + gem system)</td></tr>
+  <tr><td>Wandering adaptive-immunity boss</td><td>Scales against damage-type coordination (the fight) + discovery (the hunt)</td><td>High — damage rotation + hunt</td><td class="done">Low</td><td class="hole">High (prop juggling + <code>wandering.nss</code>)</td></tr>
+  <tr><td>Elemental swarm waves</td><td>Scales against per-element counters + AoE/positioning — <em>only if</em> elements demand different answers</td><td>Med — conditional on rotation</td><td class="hole">Med (short/lethal waves)</td><td>Med (wave controller)</td></tr>
+  <tr><td>Clone / parent boss</td><td>Scales against target-priority + adaptation to a surprise; keep boost modest</td><td>Med — target-priority</td><td class="hole">Med (modest boost)</td><td>Med (gear + forge whitelist)</td></tr>
+  <tr><td>Density 1→2 (reused mobs)</td><td>Not standalone — a throughput multiplier that feeds soul-fatigue (2× incoming → forced heals)</td><td>Med — via the healing economy</td><td class="hole">Med (cap at 2, off boss encounters)</td><td class="done">Low (git edits)</td></tr>
+  <tr><td>Forbidden Realms Key tier</td><td>Content, not a mechanic — the bosses inside get the recipe above</td><td>N/A</td><td class="done">—</td><td>Med (link + journal + placement)</td></tr>
 </table>
 </div>
 
