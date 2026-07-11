@@ -148,11 +148,12 @@ ideas:
   - id: standard-map-notes
     title: "Standard Map Notes for all area transitions"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-09"
-    notes: "<div>Audit, fix, and standardize map notes on area transitions (doors and triggers) so it has the name of the destination's area in the map note (add waypoints for doors or transitions that don't have one, update/audit ones that already do (fix or add map note names). </div><div><br></div><div>Exclude conversation based teleports for destination level map notes, but add the conversation's creature as a dedicated map note with that creature's name instead as a point of interest. </div>"
+    date: "2026-07-11"
+    commit: 6cb1fd24002
+    notes: "<div>Audit, fix, and standardize map notes on area transitions (doors and triggers) so it has the name of the destination's area in the map note (add waypoints for doors or transitions that don't have one, update/audit ones that already do (fix or add map note names). </div><div><br></div><div>Exclude conversation based teleports for destination level map notes, but add the conversation's creature as a dedicated map note with that creature's name instead as a point of interest. </div><div><br></div><div><b>Shipped:</b> new <code>bin/gen-map-notes.py</code> places a destination-labeled map-note pin on every door / trigger / placeable-portal transition (561 notes across 264 areas), plus one point-of-interest pin at each conversation-teleporter NPC named after the NPC. The tool is idempotent and re-runnable; it defers to hand-placed notes and skips ambiguous multi-destination tags (the Gwathdor maze, Dol Guldur).</div>"
   - id: kallrist-forge
     title: "New Forge in Kallrist Crypt"
     group: forge
@@ -296,7 +297,7 @@ ideas:
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-29"
-    notes: "<span>Get CEP 3 on the module, and also add CCOH for some incredible character customizations</span>"
+    notes: "<div><span>Get </span><a href=\"https://neverwintervault.org/project/nwnee/hakpak/combined/cep-3-community-expansion-pack\" target=\"_blank\" rel=\"noopener\">CEP 3</a><span> on the module, and also add </span><a href=\"https://neverwintervault.org/project/nwnee/hakpak/original-hakpak/customize-character-override-hak-extended-edition-ccohee\" target=\"_blank\" rel=\"noopener\">CCOH</a><span> for some incredible character customizations</span></div>"
   - id: mw-counterspell-2
     title: "MW Henchmen: Counterspell mode not working -- needs revisions"
     group: meaningwave
