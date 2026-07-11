@@ -243,6 +243,39 @@ python3 bin/list_plot_containers.py --json
 Both scripts are useful after adding or editing plot doors/containers to confirm
 they are (or aren't) Knock-able.
 
+## Map notes on area transitions
+
+`bin/gen-map-notes.py` keeps every area transition labeled on the in-game area
+map. It places a map-note waypoint (`nw_mapnote001`, `HasMapNote = 1`) on each
+**door / trigger / placeable-portal** transition, labeled with the **destination
+area's name**, and one **point-of-interest** note at each **conversation-teleporter
+NPC**, labeled with that NPC's name.
+
+```sh
+python3 bin/gen-map-notes.py                   # dry-run audit (default)
+python3 bin/gen-map-notes.py --verbose         # + every per-note action
+python3 bin/gen-map-notes.py --apply           # write the .git/.gic edits
+python3 bin/gen-map-notes.py --update-manual   # also rewrite disagreeing hand notes
+```
+
+Transition resolution (which door goes where, edge kinds) comes from
+`module-index/area_graph.json`; object positions and NPC names come from
+`unpacked/`. The tool is **idempotent** — auto notes carry deterministic tags
+(`mnx_<object-tag>` for transfers, `mnp_<npc-tag>` for NPC POIs) that it updates
+in place, so re-running never creates overlapping duplicates. It **defers to
+hand-placed notes** within 8 m of a transition (reported, not overwritten unless
+`--apply --update-manual`) and **skips ambiguous multi-destination tags** (e.g.
+the Gwathdor maze, whose destinations are randomized at reboot).
+
+**Re-run it whenever you add or change areas / transitions.** After adding a new
+area, door, trigger, portal placeable, or teleporter NPC, run
+`python3 bin/gen-map-notes.py` to see what's missing, then `--apply` to add the
+notes. It's on-demand like `gen-boss-registry.py` / `gen-roadmap.py`, not part of
+the wiki refresh. Note: `area_graph.json` is a wiki-generated index, so it must
+reflect the new areas — if you added areas since the last wiki build, the tool
+warns that the graph is stale; refresh the wiki (or wait for the daily refresh)
+before relying on a full sync.
+
 ## Forge legal-variant whitelist
 
 The Forge contraband system (`unpacked/forge_inc.nss`) jails players who carry

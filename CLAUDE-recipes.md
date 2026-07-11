@@ -68,6 +68,14 @@ This is the most invasive change.
    `JumpToLocation`/`JumpToObject`, or doors (`.utd`) with a
    `LinkedTo` waypoint tag.
 5. Repack — script compile errors will surface here.
+6. **Re-run the map-note sync** so the new transitions get destination pins on
+   the area map: `python3 bin/gen-map-notes.py` (audit) then `--apply`. It adds a
+   destination-labeled map note on each new door/trigger/portal and a POI note at
+   any teleporter NPC; it's idempotent so it won't touch existing notes. See the
+   "Map notes on area transitions" section in `README.md`. (The tool reads
+   `module-index/area_graph.json`, which is wiki-generated — if you added areas
+   since the last wiki build it will warn the graph is stale; the full sync lands
+   after the next wiki refresh.)
 
 ## Add or edit a conversation
 
