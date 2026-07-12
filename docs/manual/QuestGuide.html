@@ -203,6 +203,8 @@
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
             <li><a href="#kalrist-tiger">Kallrist Tiger Hunt</a></li>
+            <li><a href="#paths-of-the-dead">Paths of the Dead</a></li>
+            <li><a href="#glorfindel">Glorfindel's Curative</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -237,6 +239,18 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   pre-existing first-login check to hang the server-info journals from; and the
   <em>Book of the Cora</em> already carries useful properties. Changes still require an
   in-game pass — see <a href="#player-reports">UAT</a>.</p>
+</div>
+
+<div class="warning-box">
+  <p><strong>Update (2026-07-11) — audit pass:</strong> A re-audit against the live module
+  found this guide had drifted. Corrections applied below: two fully-scripted reward quests
+  were undocumented and are now listed (<a href="#paths-of-the-dead">Paths of the Dead</a>,
+  <a href="#glorfindel">Glorfindel's Curative</a>); the <strong>Guilds</strong> server-info
+  journal is <em>not</em> delivered (the earlier "fixed" claim was wrong — see
+  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> is in fact
+  <em>unstartable</em> — no Gondor Scribe NPC is placed — so its badge is corrected to
+  <span class="status-badge status-broke">Broken</span>. The six <code>mod_*</code> server-info
+  journals that <em>are</em> delivered are now documented too.</p>
 </div>
 
 <hr>
@@ -285,7 +299,11 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <div class="dm-note">Journal entry 2 is defined in the journal but the DLG Quest field for it points to the correct tag.
   The ring item (<code>RingofSharkey</code>) and Sharkey's Orders (<code>SharkeysOrders</code>) must be in
   inventory when speaking to Ferny. The ambush trigger is in <code>ferny_convo2.dlg.json</code>.
-  XP: 500 via <code>endferny1.nss</code> (give letter) or <code>aquirering.nss</code> (keep letter) — raised from 150.</div>
+  XP: 500 via <code>endferny1.nss</code> (give letter) or <code>aquirering.nss</code> (keep letter) — raised from 150.
+  <br><br><strong>Known issue (2026-07-11):</strong> a legacy ported-campaign plot category <code>p000</code>
+  (struct 0, driven by <code>p000c001ondeath.nss</code> and the <code>p000q001-005</code> scripts) is still wired
+  in parallel with this custom <code>Ferny's Ring</code> chain, so a player can end up with two journal tracks
+  for the same plot. Tracked as roadmap idea <code>p000-duplicate-ferny-journal</code>.</div>
 </div>
 
 <!-- MILLER'S SON -->
@@ -392,24 +410,35 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
 <!-- WELL OF SOULS -->
 <div class="quest-card" id="well-of-souls">
-  <h3>The Well of Souls <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Well of Souls <span class="status-badge status-broke">Broken</span></h3>
   <div class="quest-meta">
     <span>Journal tag: <code>The Well of Souls</code></span>
-    <span>Giver: Gondor Scribe, Gondor area</span>
+    <span>Intended giver: Gondor Scribe, Tower of the High Wizard: Ground Floor (<code>area011</code>)</span>
     <span>Level range: 30–45</span>
-    <span>Reward: 4,000&nbsp;XP + <em>Annuminas Key</em></span>
+    <span>Reward: 4,000&nbsp;XP + <em>Annuminas Key</em> (to be raised to 10,000 XP)</span>
   </div>
-  <p>The Gondor Scribe asks you to face <strong>Azagoth</strong>, who threatens to open the Well of Souls. You must
-  kill Azagoth and bring back his head to prove the deed is done.</p>
+  <p>The Gondor Scribe is meant to ask you to face <strong>Azagoth</strong>, who threatens to open the Well of
+  Souls — kill Azagoth in the Ruins of Annuminas and bring back his head to prove the deed is done.</p>
 
-  <strong>How to start:</strong> Speak to the <strong>Gondor Scribe</strong>. Journal entry 1 is set.<br><br>
+  <div class="warning-box">
+    <p><strong>Currently unstartable (audit 2026-07-11).</strong> The quest-giver NPC was designed but
+    <em>never created or placed</em>. The <code>gondorscribe</code> conversation, the journal category, the
+    condition/action scripts, and the boss all exist — but no creature in the module carries the
+    <code>gondorscribe</code> conversation, and <code>ruinsofannuminas.git.json</code> has zero static creatures.
+    The 2026-05-28 pass fixed only the DLG Quest field name and missed the absent NPC. Tracked as roadmap idea
+    <code>gondor-scribe</code> (<em>confirmed</em>).</p>
+  </div>
 
-  <strong>Steps:</strong>
+  <strong>Intended flow (once the scribe is placed):</strong>
   <ol>
-    <li>Find and kill <strong>Azagoth</strong> in the Moria Byss / <a href="../areas/thebalrogofmoria.html">Balrog of Moria</a> area.</li>
-    <li>Loot <em>Azagoth's Head</em> from the corpse.</li>
-    <li>Return to the Gondor Scribe with the head — <code>at_008.nss</code> removes the head and awards 4,000 XP
-    (raised from 1,000). The Annuminas Key is given by <code>at_007.nss</code> (no XP of its own). Journal entry 2 set.</li>
+    <li><strong>Hanee the Loon</strong> in <a href="../areas/bree.html">Bree</a> points you north to the
+    <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> (the <em>Ruin of Annuminas</em> journal).</li>
+    <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) in the Ruins of Annuminas and loot <em>Azagoth's Head</em>.</li>
+    <li>Return to Hanee for an intermediate reward (planned 5,000&nbsp;XP); she keeps you holding the head and
+    points you to the Gondor wizards.</li>
+    <li>Take the head to the <strong>Gondor Scribe</strong> in the Tower of the High Wizard: Ground Floor —
+    <code>at_008.nss</code> removes the head and awards XP (currently 4,000, to be raised to 10,000);
+    <code>at_007.nss</code> gives the Annuminas Key. Journal entry 2 set.</li>
   </ol>
 
   <strong>Journal entries:</strong>
@@ -418,12 +447,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>Azagoth is dead and the Well of Souls is safe. Time for a drink at the Prancing Pony.</li>
   </ol>
 
-  <div class="warning-box">
-    <p><strong>Fixed (2026-05-28):</strong> The dialogue node in <code>gondorscribe.dlg.json</code> that set
-    the DLG Quest field to <code>wellofsouls</code> now sets <code>The Well of Souls</code>, so the
-    accept entry is written. The completion entry (entry 2) was already correct.</p>
-  </div>
-  <div class="dm-note"><strong>Balance:</strong> Azagoth is a Moria-deep boss, so the old 1,000 XP was trivial for the level-30+ players who can reach him. Reward raised to 4,000 XP in <code>at_008.nss</code>. A named item drop themed around souls would still be a welcome future addition.</div>
+  <div class="dm-note"><strong>Fix outstanding:</strong> create <code>gondorscribe.utc.json</code> (base
+  <code>comfemale002</code>, Tag <code>GondorScribe</code>, FactionID&nbsp;6) and place one instance in
+  <code>area011.git</code>/<code>.gic</code> near the Gondorian wizards; add the Hanee intermediate reward
+  (<code>sc_hanee_head.nss</code>/<code>at_hanee_head.nss</code>) and bump the scribe payout to 10,000 XP. Note:
+  the actual boss is <strong>Azagoth</strong> in the Ruins of Annuminas — <em>not</em> Moria Byss and not the
+  Balrog of Moria (<code>azagoth001</code>, tag <code>TheBalrogofMoria</code>), which is a separate creature.</div>
 </div>
 
 <!-- KALLRIST TIGER HUNT -->
@@ -455,6 +484,64 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     functional, it just had zero journal presence.</p>
   </div>
   <div class="dm-note">The island has 9 areas: <code>kallristinner</code>, <code>kallristeastshor</code>, <code>kallristnorthsho</code>, <code>kallristsouthsho</code>, <code>kallristwestshor</code>, <code>kallristouterban</code>, <code>kallristdarkrim</code>, <code>kallristcryptlow</code>, <code>kallristcryptupp</code>. Tiger blueprint: <code>kallristtiger.utc.json</code> (CR 6, drops <code>kallristtigerhea</code>). A "ten hearts delivered" milestone entry (e.g. 500 XP) remains a possible future addition.</div>
+</div>
+
+<!-- PATHS OF THE DEAD -->
+<div class="quest-card" id="paths-of-the-dead">
+  <h3>Paths of the Dead <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>paths_of_the_dead</code></span>
+    <span>Giver: Aragorn, at the gates of Minas Tirith</span>
+    <span>Level range: high (end-game)</span>
+    <span>Reward: <em>Andúril, Flame of the West</em> (<code>glamhring2</code>)</span>
+  </div>
+  <p>Aragorn summons you to walk the <strong>Paths of the Dead</strong>: rouse the Oathbreakers under the mountain,
+  hold to the oath sworn of old, and turn the tide against the Witch-king. A full five-state quest chain and the
+  module's marquee reward — a copy of Andúril.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Aragorn</strong> at the gates of Minas Tirith
+  (conversation <code>aragorn_potd.dlg</code>).<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept Aragorn's charge — <code>q_potd_start.nss</code> sets entry 10.</li>
+    <li>Seek the <strong>King of the Dead</strong> in the Dimholt / Dunharrow (<code>dunharrowking.nss</code> sets entry 1).</li>
+    <li>Fight through the Oathbreaker trials (<code>arag_ondeath.nss</code> advances to entry 30).</li>
+    <li>Claim the reward — <code>q_potd_reward.nss</code> creates <code>glamhring2</code> (Andúril) and sets entry 40.</li>
+    <li>The chain completes at entry 50 (<code>dunharrowdeath.nss</code>).</li>
+  </ol>
+
+  <div class="dm-note">Fully scripted and wired — giver <code>aragorn_potd.dlg.json</code>, reward blueprint
+  <code>glamhring2.uti.json</code>. This quest was undocumented before the 2026-07-11 audit; wiki page at
+  <a href="../quests/paths-of-the-dead.html">Paths of the Dead</a>.</div>
+</div>
+
+<!-- GLORFINDEL'S CURATIVE -->
+<div class="quest-card" id="glorfindel">
+  <h3>Glorfindel's Curative <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>glorfindel_potion</code></span>
+    <span>Giver: Glorfindel, <a href="../areas/rivendell.html">Rivendell</a></span>
+    <span>Level range: mid</span>
+    <span>Reward: 1,700&nbsp;XP + <em>Bracers of Glorfindel</em> (<code>bracersofglorfin</code>)</span>
+  </div>
+  <p>Glorfindel of Rivendell asks you to gather the ingredients for a curative: <em>Athelas</em> from the
+  foothills of the Misty Mountains, a graveside token from the <strong>Statue of Arathorn</strong> headstone in
+  the Barrow Downs, and drake essence from the Caves of the Carrock.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Glorfindel</strong> in <a href="../areas/rivendell.html">Rivendell</a>
+  (<code>glorfindel002.utc.json</code>).<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the task — <code>at_011.nss</code> sets entry 1.</li>
+    <li>Gather the three ingredients across the Misty-Mountain foothills, the Barrow Downs, and the Caves of the Carrock.</li>
+    <li>Return to Glorfindel — <code>glorrew.nss</code> awards 1,700 XP and the <em>Bracers of Glorfindel</em>
+    (<code>bracersofglorfin.uti.json</code>); entry 5 set.</li>
+  </ol>
+
+  <div class="dm-note">Fully scripted and wired — giver placed in Rivendell (<code>thevalleyofriven.git.json</code>).
+  Undocumented before the 2026-07-11 audit; wiki page at <a href="../quests/glorfindel-potion.html">Glorfindel's Curative</a>.</div>
 </div>
 
 <hr>
@@ -573,30 +660,41 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
 <!-- SERVER INFO -->
 <div class="quest-card" id="server-info">
-  <h3>Server Info Journals (Rules, Guilds, Website) <span class="status-badge status-ok">Working</span></h3>
+  <h3>Server Info Journals <span class="status-badge status-ok">Mostly Working</span> <span class="status-badge status-broke">Guilds Broken</span></h3>
   <div class="quest-meta">
-    <span>Journal tags: <code>rules</code>, <code>guilds</code>, <code>website</code></span>
-    <span>Intended trigger: player first login</span>
-    <span>Current state: never delivered to any player</span>
+    <span>Delivered on every login by <code>hgll_cliententer.nss</code></span>
+    <span>All land in the player's <strong>Completed</strong> section (entry 1, <code>End=1</code>)</span>
   </div>
-  <p>Three journal categories carry server meta-information: the Server Rules, Guild creation rules, and the
-  old forum website URL. These were intended to be given to players automatically on their first login.</p>
+  <p>Several journal categories carry server meta-information and are handed to players automatically on login.
+  As of the 2026-07-11 audit, <code>hgll_cliententer.nss</code> delivers <strong>eight</strong> of them:</p>
+
+  <table class="data reward-table">
+    <thead><tr><th>Journal</th><th>Tag</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Server Rules</td><td><code>rules</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Website / Discord</td><td><code>website</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Spells &amp; Magic</td><td><code>modcustoms</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Character Progression</td><td><code>mod_progress</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Death &amp; Respawn</td><td><code>mod_death</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Appearance &amp; Crafting</td><td><code>mod_forge</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Custom Systems</td><td><code>mod_systems</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Good/Evil Factions</td><td><code>mod_factions</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-broke">Never delivered</span></td></tr>
+    </tbody>
+  </table>
 
   <div class="warning-box">
-    <p><strong>Fixed (2026-05-28):</strong> The old delivery script <code>mod_enter.nss</code> was dead code —
-    not the module's <code>OnClientEnter</code> handler (that is <code>hgll_cliententer.nss</code>) and not
-    referenced anywhere — and it carried a <code>gguild</code> vs <code>guilds</code> tag typo. Rather than wire
-    it, the three deliveries were added directly to <code>hgll_cliententer.nss</code> with the correct tags.
-    All three categories already have entry 1 with <code>End=1</code>, so they land in the player's
-    <strong>Completed</strong> section.</p>
-    <p><strong>Note — correction to an earlier claim:</strong> <code>hgll_cliententer.nss</code> had no
-    pre-existing first-login check to hang these from. <code>AddJournalQuestEntry</code> is idempotent
-    (re-adding the same state just resets it), so the calls run unconditionally on every login — this
-    deliberately reaches existing characters too, not just first-time logins.</p>
+    <p><strong>Guilds is still broken (correction, 2026-07-11).</strong> An earlier version of this guide
+    claimed the <code>guilds</code> journal was fixed and wired into <code>hgll_cliententer.nss</code> — it was
+    not. The handler delivers <code>rules</code>, <code>website</code> and the six <code>mod_*</code> tags, but
+    <strong>never <code>guilds</code></strong>. The only reference to the guild journal is the dead-code
+    <code>mod_enter.nss</code>, which still carries the original <code>gguild</code> typo, so no player ever
+    receives it. Tracked as roadmap idea <code>guilds-journal-never-delivered</code>. Fix: add the missing
+    <code>AddJournalQuestEntry("guilds", 1, oPC, FALSE, FALSE)</code> to <code>hgll_cliententer.nss</code>.</p>
   </div>
-  <div class="dm-note">The website URL in the <code>website</code> journal entry (<em>http://Legend.nwnforums.com</em>)
-  is almost certainly dead — update the entry text in <code>module.jrl.json</code> to the current community
-  resource when one is confirmed.</div>
+  <div class="dm-note">The old dead forum URL in the <code>website</code> entry has already been updated to the
+  Discord invite (<em>https://discord.gg/VpAtSpe</em>) in <code>module.jrl.json</code> — that fix is done. Minor:
+  the category's display <code>Name</code> is still literally "Website" while its content is now the Discord link.</div>
 </div>
 
 <!-- UNJOURNALED -->
@@ -736,13 +834,15 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <p>A thorough search of all creature placements in and around <a href="../areas/bree.html">Bree</a> and the surrounding
   north areas finds no demon creature. The 1,000 XP reward described matches <code>at_008.nss</code> — the
   <strong>Gondor Scribe's</strong> payout for bringing Azagoth's Head (Well of Souls quest completion). Azagoth
-  is placed in the Moria Byss area, not near Bree. Either:</p>
+  spawns in the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> north of Bree (via an encounter),
+  not in Moria. Either:</p>
   <ul>
     <li>A demon NPC was placed near Bree by a DM in the past and later removed from the GIT, or</li>
-    <li>The player confused Azagoth (Moria) with a Bree-region encounter.</li>
+    <li>The player was describing the Azagoth / Well of Souls payout.</li>
   </ul>
-  <p>Either way, the 1,000 XP complaint was valid — <strong>resolved:</strong> the Well of Souls payout in
-  <code>at_008.nss</code> was raised to 4,000 XP.</p>
+  <p>Either way, the 1,000 XP complaint was valid — the <code>at_008.nss</code> payout was raised to 4,000 XP
+  (and is slated for 10,000). Note, however, that the quest is <strong>currently unstartable</strong> because no
+  Gondor Scribe is placed — see <a href="#well-of-souls">The Well of Souls</a>.</p>
 </div>
 
 <div class="quest-card">
@@ -755,11 +855,14 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   was dead code, not wired to any event, so players never received those entries. Before and after speaking to
   Elrond, the server-info journals were absent — because they were never given. The timing coincidence made it
   look like Elrond's quest was clearing them.</p>
-  <p><strong>Fixed:</strong> the three <code>AddJournalQuestEntry</code> calls (with the correct
-  <code>guilds</code> tag) were added directly to <code>hgll_cliententer.nss</code>, the real OnClientEnter
-  handler, and run idempotently on every login so all characters receive them in their Completed section. The
-  dead-code <code>gguild</code> typo in <code>mod_enter.nss</code> is bypassed. The forum URL in the
-  <code>website</code> entry is still stale and should be refreshed when a current community resource is known.</p>
+  <p><strong>Partly fixed (corrected 2026-07-11):</strong> <code>AddJournalQuestEntry</code> calls for
+  <code>rules</code>, <code>website</code> and the six <code>mod_*</code> journals were added directly to
+  <code>hgll_cliententer.nss</code>, the real OnClientEnter handler, and run idempotently on every login so all
+  characters receive them in their Completed section. However, <strong>the <code>guilds</code> journal was
+  <em>not</em> included</strong> — it is still never delivered (the dead-code <code>gguild</code> typo in
+  <code>mod_enter.nss</code> was bypassed but never replaced). See the
+  <a href="#server-info">Server Info Journals</a> card. The forum URL in the <code>website</code> entry has since
+  been refreshed to the community Discord.</p>
 </div>
 
   </div><!-- .mw-content -->
