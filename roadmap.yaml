@@ -116,11 +116,12 @@ ideas:
   - id: party-loot-pickpocket
     title: "Party Loot Roll and Pickpocket"
     group: items-gear
-    status: confirmed
+    status: implemented
+    commit: ddbd2bdd8cb
     type: Defect
     player: Tukwut
-    date: "2026-07-10"
-    notes: "<span>Need to experiment to reproduce more: While fighting Gwathdor Lord, pickpocket was a success but due to being in party there was a loot roll for the HP, during fight he used HP 4 times but should have only had 3 remaining due to the PP.\n\nMay be a strange interaction with PP and loot roll happening</span>"
+    date: "2026-07-11"
+    notes: "<span>Fixed: pickpocketing an item from a living NPC no longer triggers a party Need/Greed/Pass loot roll — the roll's source filter now also skips living-creature sources (pickpocket is an individual skill contest). Dead-creature corpse/boss loot still rolls.\n\nThe 'boss used HP 4 more times than expected' half was a misread, not a duplication bug: the Gwathdor Lord carries multiple cure potions plus casts cure spells as an 80-level caster, and the loot-roll code never writes to the victim's inventory.</span>"
   - id: gondor-scribe
     title: "Well of Souls Quest: No Gondor Scribe"
     group: quests-areas
