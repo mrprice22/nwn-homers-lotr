@@ -128,8 +128,8 @@ ideas:
     status: confirmed
     type: Defect
     player: "Rajmund (Ray)"
-    date: "2026-07-10"
-    notes: "<span>The Well of Souls Quest may be broken as I cannot find any Gondor Scribe</span>"
+    date: "2026-07-11"
+    notes: "<div><span>Player report: the Well of Souls Quest may be broken as I cannot find any Gondor Scribe.</span></div><div><br></div><div><b>Root cause (confirmed):</b> the quest-giver NPC was designed but never created or placed. The gondorscribe conversation, journal category, condition/action scripts and the boss all exist, but no creature in the module carries the gondorscribe conversation, and ruinsofannuminas.git.json has zero static creatures. A 2026-05-28 pass only fixed a DLG Quest field name and missed the absent NPC.</div><div><br></div><div><b>Intended two-stage arc:</b> Hanee the Loon (Bree, b_oldwoman_con1) gives 'Ruin of Annuminas' -> go north, kill Azagoth (CR 37, carries azagothshead) in the Ruins of Annuminas -> return to Hanee for an intermediate 5,000 XP + a handoff to the Gondor wizards (she does NOT take the head) -> take the head to the Gondor Scribe in the Tower of the High Wizard: Ground Floor (area011) for 10,000 XP (raised from 4,000) + the Annuminas Key, head consumed. Cold-start alt path: reach the scribe without the head and she starts the quest.</div><div><br></div><div><b>Build steps:</b> new gondorscribe.utc.json (base comfemale002, Tag GondorScribe, Conversation gondorscribe, FactionID 6); place one instance in area011.git/.gic near the wizards (use bin/place-helper.py, __struct_id 4 hardcoded); new sc_hanee_head.nss (StartingConditional: has azagothshead and not hanee_head_reward) + at_hanee_head.nss (RewardPartyXP 5000, set flag, journal entry 2, keep head); bump at_008.nss scribe reward 4000 -> 10000; add Ruin of Annuminas journal entry 2 (End 1). Undecided: whether the Annuminas Key is also granted on the Hanee-first path (currently only on the scribe cold-start). Full draft in QUEST_FIX_well_of_souls_plan.md.</div>"
   - id: unlock-more-inacessible-creature
     title: "Unlock Inacessible creatures, beef up stats, give them areas to live in"
     group: bosses
@@ -1347,3 +1347,908 @@ ideas:
     date: "2026-07-02"
     commit: f5c50c2f381
     notes: "<div>Merit redemptions 201-204 now grant a real, temporary <b>2x gold &amp; XP</b> boost (1 week or 1 month, for yourself or the whole server).</div><ul><li>Applies to creature kill gold/XP and quest turn-in gold/XP only. Bank withdrawals (Bree gold/family/XP banks) and selling items to merchants are <b>never</b> boosted.</li><li>Merchant per-item buy caps were doubled separately (WellMart, First Bank of Middle-earth, methmart) so genuinely valuable items can fetch their full price.</li><li>Buying more of the same kind never runs two clocks at once — extra time <b>queues and slow-burns</b>. A live server-wide boost <b>pauses</b> everyone's personal boost (their time is preserved).</li><li>On login the server reports every active and pending subscription, who bought each, and the estimated end date of the chain.</li></ul>"
+
+  # ===========================================================================
+  # Quest-doc audit pass (2026-07-11): defects surfaced by the QuestGuide
+  # review, plus the Quest Ideas.html backlog broken into sized, tier-ranked
+  # entries. Priority: low-tier quests nearer go-live (soon > later > planned).
+  # ===========================================================================
+
+  # ---- Audit defects -------------------------------------------------------
+  - id: guilds-journal-never-delivered
+    title: "Guilds server-info journal is never delivered to players"
+    group: quests-areas
+    status: soon
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Audit 2026-07-11: hgll_cliententer.nss delivers rules, website and the six mod_* server-info journals but never the 'guilds' category; only the dead-code mod_enter.nss references it (with a 'gguild' typo). The QuestGuide wrongly claimed this was fixed. Fix: add the missing guilds AddJournalQuestEntry (End=1) to hgll_cliententer.nss.</span>"
+
+  - id: p000-duplicate-ferny-journal
+    title: "Legacy p000 plot fires a duplicate Bill Ferny journal track"
+    group: quests-areas
+    status: later
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Audit 2026-07-11: the ported-campaign p000 journal category (struct 0) is still wired (p000c001ondeath.nss and p000q001-005 scripts) in parallel with the custom 'Ferny's Ring' chain, so a player can end up with two journal tracks for the same plot. Decide whether to retire p000 or the custom category.</span>"
+
+  # ---- Quest infrastructure (build first; unblocks many) -------------------
+  - id: quest-cooldown-lib
+    title: "Quest cooldown helper library (daily/weekly gating)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Shared include quest_cd_inc.nss with IsQuestOnCooldown(sQuest,oPC,nDays) / StampQuest(...) backed by persistent local time. Prerequisite for every Daily/Weekly quest below. Small, high-leverage — build first.</span>"
+
+  - id: prestige-trainer-hub
+    title: "Prestige-class quest trainer hub near the Well of Eru"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>A single Prestige-Trainer hub NPC plus a shared prestige-gating dialogue framework (per-line class-level check). Prerequisite for all twelve prestige-class quests. T1-T3.</span>"
+
+  - id: faction-scaffolding
+    title: "Faction scaffolding: new reputation factions + matrix for faction quests"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>repute.fac.json ships only Good/Evil/Neutral. Add 10-15 named factions (Rohan, Mordor, Isengard, Lorien, etc.) plus the pairwise RepList matrix so faction quests can grant real standing instead of collapsing to Good/Evil. Unblocks the whole Faction Quests section.</span>"
+
+  - id: world-state-tick-logic
+    title: "Living-world server-state tick logic (daily/weekly resets)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Add daily/weekly reset ticks to the module heartbeat (bleeding.nss) for the shared SetCampaignInt living-world variables (Isengard war machine, goblin civil war, corsair pressure, deeps control, etc.). One infra item unblocking every server-state quest.</span>"
+
+  - id: capstone-item-encoding-ref
+    title: "Reference: encoding non-stock item properties for quest capstones"
+    group: items-gear
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>One-page reference item mapping non-stock properties (+N caster level, Spell DC +N, Sneak Attack +Nd6, Stunning Fist DC +N, +2 saves aura) to CEP / OnHit / OnEquip spellscript substitutes. Needed before authoring class-line and prestige capstones.</span>"
+
+  # ---- Module-grounded quests (all areas exist; cheapest to ship) ----------
+  - id: ferny-return
+    title: "Quest: Ferny's Return (Bree, prequel to Ferny's Ring)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1 (L3). Prequel to the existing Ferny's Ring: expose a ruffian impostor in Bree, unlocking a discount branch. Journal tag ferny_return. All areas/NPCs exist — single-session build.</span>"
+
+  - id: miller-other-son
+    title: "Quest: The Miller's Other Son (Bree, sequel to The Miller's Son)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1 (L8). Sequel to the existing Bree Miller's Son: Persuade DC18 / fight / let-be branch. Journal tag bree_miller_son2. Reuses existing Bree content.</span>"
+
+  - id: frogmorton-last-drop
+    title: "Quest: The Last Drop at Frogmorton Inn (Shire social daily)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1 daily. Pure social — a monthly-rotating correct answer, tiny reward, rich dialogue; reuses existing Shire hobbits. Depends on the quest-cooldown helper.</span>"
+
+  - id: beorns-garden
+    title: "Quest: Beorn's Garden (daily — wargs & honey)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2 daily (L12+). Kill 6 wargs and clear 3 honey hives; randomized treasure_beorn reward. Depends on the quest-cooldown helper.</span>"
+
+  - id: twentieth-plot-mazarbul
+    title: "Quest: The Twentieth Plot of Mazarbul (Moria crypt)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2 (L18). Re-seal a forgotten crypt (light 3 braziers, wraith fight); ties into Elrond's Request. Areas exist.</span>"
+
+  - id: tharbad-bridge-watcher
+    title: "Quest: The Watcher of Tharbad Bridge"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L20). Twilight boss spawn with a server-locking choice (slay vs pact, tharbad_watcher flag). Areas exist.</span>"
+
+  - id: carndum-ledger
+    title: "Quest: The Carn Dum Ledger (weekly, weakens the Witch-King)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 weekly (L28+). Steal ledger pages; each success decrements carndum_ledger_pages and weakens the Witch-King. Depends on the quest-cooldown helper.</span>"
+
+  - id: faramir-watch
+    title: "Quest: Faramir's Watch (Ithilien, weekly)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T4 weekly (L32+). Rotating side-objective (intel / supply / stealth). Needs a Faramir NPC (clone Aragorn). Depends on the quest-cooldown helper.</span>"
+
+  - id: grey-lord-annuminas
+    title: "Quest: The Grey Lord's Errand at Annuminas"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L38). Three king-shade trials for a sceptre reward; needs 3 new undead UTCs. Area (ruinsofannuminas) exists.</span>"
+
+  - id: empty-throne-dolguldur
+    title: "Quest: The Empty Throne of Dol Guldur"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L42). Alignment branch (consecrate vs claim) across the full Dol Guldur complex; shadow-priest boss. Area exists.</span>"
+
+  # ---- Prestige-class quests (all gated on the prestige trainer hub) -------
+  - id: harper-scout-quest
+    title: "Prestige quest: Harper Scout (L6+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1. Compact single quest from the prestige hub, gated on 1+ Harper Scout level; grants a modest +3-tier class item. Depends on the prestige trainer hub.</span>"
+
+  - id: knight-westernesse-quest
+    title: "Prestige quest: Knight of Westernesse (L6+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1. Compact single quest from the prestige hub, gated on 1+ Knight of Westernesse level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+
+  - id: pale-master-quest
+    title: "Prestige quest: Pale Master (L11+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact single quest, gated on 1+ Pale Master level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+
+  - id: shadowdancer-quest
+    title: "Prestige quest: Shadowdancer (L11+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact quest with a torch-suppression fail condition, gated on 1+ Shadowdancer level. Depends on the prestige trainer hub.</span>"
+
+  - id: arcane-archer-quest
+    title: "Prestige quest: Arcane Archer (L12+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact single quest, gated on 1+ Arcane Archer level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+
+  - id: red-dragon-disciple-quest
+    title: "Prestige quest: Red Dragon Disciple (L12+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact single quest, gated on 1+ Red Dragon Disciple level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+
+  - id: assassin-quest
+    title: "Prestige quest: Assassin (L13+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact single quest, gated on 1+ Assassin level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+
+  - id: weapon-master-quest
+    title: "Prestige quest: Weapon Master (L13+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Arena quest with a gear-swap gimmick, gated on 1+ Weapon Master level. Depends on the prestige trainer hub.</span>"
+
+  - id: blackguard-quest
+    title: "Prestige quest: Blackguard (L14+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact quest with a permanent alignment shift, gated on 1+ Blackguard level. Depends on the prestige trainer hub.</span>"
+
+  - id: divine-champion-quest
+    title: "Prestige quest: Divine Champion (L14+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact single quest, gated on 1+ Divine Champion level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+
+  - id: dwarven-defender-quest
+    title: "Prestige quest: Dwarven Defender (L14+, Dwarf only)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Dwarf-only compact quest, gated on 1+ Dwarven Defender level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+
+  - id: shifter-quest
+    title: "Prestige quest: Shifter (L16+)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2. Compact quest with a form-lock fail condition, gated on 1+ Shifter level. Depends on the prestige trainer hub.</span>"
+
+  # ---- Faction quests (all depend on faction scaffolding) ------------------
+  - id: palantir-watch
+    title: "Faction quest (Good): The Palantir Watch (daily)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L20+). Escort a blindfolded lore-keeper to the palantir vault and defend 2-3 Uruk waves; stacking rep-token reward. Areas exist. Depends on faction scaffolding + cooldown helper.</span>"
+
+  - id: riders-of-the-mark
+    title: "Faction quest (Good): Riders of the Mark (weekly)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T4 (L30+). Investigate a silent Rohirric patrol near Helm's Deep; 4-wave escalating defence with friendly reinforcements. Eored-armor reward (encode +5 + situational, not +8). Depends on faction scaffolding.</span>"
+
+  - id: dead-marshes-lantern
+    title: "Faction quest (Good): The Dead Marshes Lantern"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T4 (L35). Rescue an entranced hobbit; Will save every 30s or be Confused. Reward: an Elven waystone teleport token. Areas exist. Depends on faction scaffolding.</span>"
+
+  - id: white-council-errand
+    title: "Faction quest (Good): The White Council's Errand (weekly)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L40+). Retrieve a map fragment. Ship the linear version first; add the branching Saruman-betrayal path (persist whitecouncil_status=-1, sours Gandalf) as a v2. Eregion absent — substitute ruinsofannuminas/tharbad. Depends on faction scaffolding.</span>"
+
+  - id: eagles-eyrie-quest
+    title: "Faction quest (Good): Eagles of the Eyrie"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T6 (L50+). Clear corrupted wargs to earn the Eagles' favour. Needs a new Eagles' Eyrie area + Gwaihir NPC (authoring). Split from the Eagle Courier network.</span>"
+
+  - id: eagle-courier-network
+    title: "Feature: Eagle Courier fast-travel network (good PCs)"
+    group: travel
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Unlocked by Eagles of the Eyrie: courier placeables in every capital giving good-aligned PCs a fast-travel network. Split out as its own feature; depends on the Eyrie quest.</span>"
+
+  - id: sowing-discord-bree
+    title: "Faction quest (Evil): Sowing Discord in Bree (daily)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2 (L15+). Plant forged letters in Prancing Pony placeables under Stealth/Bluff; the sheriff arrives after N heartbeats. Morgul-silver + cloak reward. All Bree areas exist. Depends on cooldown helper (and faction scaffolding for rep).</span>"
+
+  - id: sarumans-voice
+    title: "Faction quest (Evil): Saruman's Voice (social, no combat)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L25). Pure social Bluff/Persuade tree to divert a mithril shipment; failure turns guards hostile. Reward: Ring of Silver Tongue (stock +5 Bluff/Persuade). Depends on faction scaffolding.</span>"
+
+  - id: unmaking-wards
+    title: "Faction quest (Evil): Unmaking the Wards (weekly)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L40+). Sneak past detection traps and destroy 3 Lothlorien ward-stones (UTP OnUsed counter), then extract before Haldir patrols. Needs a Haldir NPC (clone elf guard). Depends on faction scaffolding.</span>"
+
+  - id: nine-are-abroad
+    title: "Faction quest (Evil): The Nine Are Abroad"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L45). Recover a Nazgul horse's iron shoes before sunrise (GetTimeHour past dawn). Witch-King + Nazgul guildhouse exist. Depends on faction scaffolding.</span>"
+
+  - id: sacking-pelargir
+    title: "Faction quest (Evil): The Sacking of Pelargir (weekly)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T4 (L35+). Corsair raid: burn 3 warehouses, sink 2 ships, capture the harbormaster. Ship the PvE raid first; the optional live-PvP contested layer (SetIsTemporaryEnemy) is a separate follow-up. Pelargir absent — needs area authoring (substitute hiddenport interim).</span>"
+
+  # ---- Location quests -----------------------------------------------------
+  - id: pass-the-pass
+    title: "Quest: Pass the Pass (Misty Mountains, daily escort)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2 (L10+). Escort a caravan; difficulty-selectable, reward scales as nDiff*200; Stone-Giant clone at high tier. Areas exist. Depends on cooldown helper.</span>"
+
+  - id: spider-silk-harvest
+    title: "Quest: Spider Silk Harvest (Mirkwood, daily)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2 (L12+). Kill spiders for silk; a dynamic-pricing v2 can read a server silk_supply var later. Areas exist. Depends on cooldown helper.</span>"
+
+  - id: lumber-ent-tugofwar
+    title: "Quest pair: Lumber Runners (Evil) vs Ent-Watch (Good), Fangorn dailies"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T2 (L15+). A linked server-state tug-of-war — a shared isengard_warmachine var scales the Helm's Deep event. Ship the pair together. Depends on cooldown helper + world-state tick logic.</span>"
+
+  - id: goblin-town-throne
+    title: "Quest: The Goblin-Town Throne (Misty Mountains)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L18). Assassinate the successor and plant a false document to trigger a server-wide 7-day halved-orc-spawn buff. Areas exist. Depends on world-state tick logic.</span>"
+
+  - id: mithril-seam
+    title: "Quest: The Mithril Seam (Misty Mountains, weekly race)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L28+). Race for a single first-takes-it node (weekly SetCampaignInt claim flag). Areas exist. Depends on cooldown helper + world-state tick logic.</span>"
+
+  - id: claim-the-deeps
+    title: "Quest: Claim the Deeps (Moria, daily faction-control)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L20+). A faction-control state (deeps_control) that gates access to a crafting table. Areas exist. Depends on cooldown helper + world-state tick logic.</span>"
+
+  - id: thranduil-jailbreak
+    title: "Quest: Halls of Thranduil Jailbreak (Mirkwood, weekly)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L22+). Alignment-mirrored (two journal tags, same layout, opposite objective). Areas exist. Depends on cooldown helper.</span>"
+
+  - id: thirteenth-ent
+    title: "Quest: The Thirteenth Ent (Fangorn)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T4 (L32). Restore a tree-still Ent via a Druid/Bard/Lore branch; permanent +1 STR/CON draught reward. Areas exist.</span>"
+
+  - id: twentyfirst-hall
+    title: "Quest: The Twenty-First Hall (Moria, party dungeon)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T4 (L36). A party-of-4 crawl to the Chamber of Mazarbul with an ambush finale. Areas exist.</span>"
+
+  - id: smaugs-curse
+    title: "Quest: Smaug's Lingering Curse (Mirkwood)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L40). Trace a dragon-curse to a shrine; crafting turn-in. Areas exist.</span>"
+
+  - id: mordor-forage
+    title: "Quest: Mordor Forage (weekly, Evil)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L40+). Gather rare crafting components under a lava-damage OnEnter. Areas exist. Depends on cooldown helper.</span>"
+
+  - id: durins-bane-remnant
+    title: "Quest: Durin's Bane Remnant (Moria, weekly)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T6 (L50+). Reuse the Balrog UTC; failure spawns fire-wraiths server-wide. Depends on cooldown helper + world-state tick logic.</span>"
+
+  - id: cracks-of-doom-finale
+    title: "Quest (epic): Cracks of Doom — endgame group finale"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T6 (L58-60), up to 6 players. Umbrella epic — split into per-leg items (Gorgoroth approach, Shelob's Pass, the ascent, the Chamber of Fire) and per final-objective variant (endgame_mode var); ties into Smeagol's Side.</span>"
+
+  - id: grey-havens-area
+    title: "Area authoring: the Grey Havens (+ Cirdan NPC)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Author the Grey Havens area (.are/.git/.gic + module.ifo entry + gen-map-notes rerun) and a Cirdan NPC. Shared prerequisite for the two Grey Havens quests below.</span>"
+
+  - id: last-ships-cargo
+    title: "Quest: The Last Ship's Cargo (Grey Havens)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T6 (L55). Recover cargo for the last ship west; no swim mechanic — flavour substitute. Blocked on Grey Havens area + Cirdan authoring.</span>"
+
+  - id: harbour-watch
+    title: "Quest: Harbour Watch (Grey Havens, daily)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Daily whose difficulty scales off a corsair_pressure var. Blocked on Grey Havens area authoring; depends on cooldown helper + world-state tick logic.</span>"
+
+  # ---- Wildcard quests -----------------------------------------------------
+  - id: hobbit-post
+    title: "Quest: Hobbit Post (Shire, daily deliveries)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1 daily. Rotating delivery (GetCalendarDay % 5) with a speed bonus and a rare misdelivered-parcel drop; rich low-pressure dialogue. Depends on cooldown helper.</span>"
+
+  - id: riddle-game
+    title: "Quest: The Riddle Game (weekly, vs Gollum)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1 (L1+). A 7-riddle Tolkien-trivia minigame; win 5/7. Content-heavy dialogue — author the riddle bank incrementally. Depends on cooldown helper.</span>"
+
+  - id: concerning-hobbits
+    title: "Quest: Concerning Hobbits (Shire genealogy)"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1 (L5). A genealogy dispute via skill checks; the correct answer rotates by season; reward = Bag End housing access (owner-check workaround, no instancing).</span>"
+
+  - id: bombadils-errand
+    title: "Quest: Bombadil's Errand (Old Forest)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T1 but level-immune: abilities suppressed and the forest rearranges (SetTransitionTarget rewrite). Needs a Tom Bombadil NPC + area rewrite, so mid-sized.</span>"
+
+  - id: smeagols-side
+    title: "Quest: Smeagol's Side (narrative, no combat)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L20). Pure split-personality dialogue; a meter persists to smeagol_alignment and is read later by Cracks of Doom.</span>"
+
+  - id: ents-dont-hasty
+    title: "Quest: Ents Don't Hasty (Fangorn, weekly drip)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T3 (L25+). A 7-day drip narrative (one sentence/day) ending in a 7-day self-destructing buff item. Depends on cooldown helper.</span>"
+
+  - id: watcher-in-water
+    title: "Quest: The Watcher in the Water (Moria gate)"
+    group: quests-areas
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T4 (L30). Sequential fishing (OnUsed): trout to tentacle to a boss escalation. Needs a CEP aquatic clone.</span>"
+
+  - id: istaris-bet
+    title: "Quest: The Istari's Bet (no-magic crossing)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T5 (L45). A solo no-magic crossing of the Brown Lands/Emyn Muil under a 24h clock with item suppression. Brown Lands absent — substitute dagorlad/nindalf.</span>"
+
+  - id: ungoliants-hunger
+    title: "Quest: Ungoliant's Hunger (mirror-puzzle boss)"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>T6 (L52). A mirror-rotation puzzle vs an unlight shadow-elemental under a lethal timer. Nan Dungortheb absent — rebrand eredduathroada.</span>"
+
+  - id: long-winter-state-machine
+    title: "The Long Winter (seasonal): server state machine & progress tracking"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Epic split 1/4. The 30-day server event's state machine: start/advance/end ticks, a collective progress counter, and a +10% seasonal XP payoff wrapper (GiveXPToCreature; Mod_XPScale is static). Depends on world-state tick logic.</span>"
+
+  - id: long-winter-cold-auras
+    title: "The Long Winter (seasonal): cold-aura effects across Eriador"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Epic split 2/4. Apply a cold aura / periodic damage on Eriador zones while the event is active, driven by the Long Winter state machine.</span>"
+
+  - id: long-winter-subquests
+    title: "The Long Winter (seasonal): gather & forge sub-quest chain"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Epic split 3/4. The gather/forge sub-quests that feed collective progress during the event.</span>"
+
+  - id: long-winter-forochel-boss
+    title: "The Long Winter (seasonal): Bay of Forochel finale boss"
+    group: quests-areas
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Epic split 4/4. The finale boss. Bay of Forochel absent — substitute the existing icequeen areas.</span>"
+
+  # ---- Class questlines (per-tier chunks; capstone folds into endgame) -----
+  - id: fighter-line-early
+    title: "Class line: Fighter — The Unbroken Shield (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Fighter line. One-tier chunk sized for a single session; class lines intentionally cross other quests' zones.</span>"
+
+  - id: fighter-line-mid
+    title: "Class line: Fighter — The Unbroken Shield (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Fighter line.</span>"
+
+  - id: fighter-line-endgame
+    title: "Class line: Fighter — The Unbroken Shield (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Fighter line, culminating in the class-restricted capstone. Depends on the capstone-item-encoding reference.</span>"
+
+  - id: wizard-line-early
+    title: "Class line: Wizard — The Colour of Power (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Wizard line.</span>"
+
+  - id: wizard-line-mid
+    title: "Class line: Wizard — The Colour of Power (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Wizard line.</span>"
+
+  - id: wizard-line-endgame
+    title: "Class line: Wizard — The Colour of Power (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Wizard line. L46 is a colour branch (White / Many-Colours / Brown) persisted via wizard_colour, each with different capstone properties — split branch selection from the three payoffs. Depends on the capstone-item-encoding reference.</span>"
+
+  - id: rogue-line-early
+    title: "Class line: Rogue — The Long Shadow (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Rogue line.</span>"
+
+  - id: rogue-line-mid
+    title: "Class line: Rogue — The Long Shadow (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Rogue line.</span>"
+
+  - id: rogue-line-endgame
+    title: "Class line: Rogue — The Long Shadow (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Rogue line, culminating in the class-restricted capstone (Sneak Attack +Nd6 encoding). Depends on the capstone-item-encoding reference.</span>"
+
+  - id: druid-line-early
+    title: "Class line: Druid — The Breathing of the World (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Druid line. Needs Tom Bombadil + Old Man Willow NPC authoring.</span>"
+
+  - id: druid-line-mid
+    title: "Class line: Druid — The Breathing of the World (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Druid line.</span>"
+
+  - id: druid-line-endgame
+    title: "Class line: Druid — The Breathing of the World (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Druid line, culminating in the class-restricted capstone. Depends on the capstone-item-encoding reference.</span>"
+
+  - id: ranger-line-early
+    title: "Class line: Ranger — The Uncrowned Path (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Ranger line.</span>"
+
+  - id: ranger-line-mid
+    title: "Class line: Ranger — The Uncrowned Path (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Ranger line.</span>"
+
+  - id: ranger-line-endgame
+    title: "Class line: Ranger — The Uncrowned Path (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Ranger line, culminating in the class-restricted capstone. Depends on the capstone-item-encoding reference.</span>"
+
+  - id: cleric-line-early
+    title: "Class line: Cleric — Flame of Anor (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Cleric line.</span>"
+
+  - id: cleric-line-mid
+    title: "Class line: Cleric — Flame of Anor (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Cleric line.</span>"
+
+  - id: cleric-line-endgame
+    title: "Class line: Cleric — Flame of Anor (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Cleric line. The L46 node (Unlight of Ungoliant) needs Nan Dungortheb (absent — rebrand eredduathroada). Depends on the capstone-item-encoding reference.</span>"
+
+  - id: paladin-line-early
+    title: "Class line: Paladin — Oath-Sworn to the West (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Paladin line.</span>"
+
+  - id: paladin-line-mid
+    title: "Class line: Paladin — Oath-Sworn to the West (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Paladin line. Paladin mounts are flavour-only in stock NWN unless Mod_HorseEnabled.</span>"
+
+  - id: paladin-line-endgame
+    title: "Class line: Paladin — Oath-Sworn to the West (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Paladin line, culminating in the class-restricted capstone (Smite +Nd6 encoding). Depends on the capstone-item-encoding reference.</span>"
+
+  - id: bard-line-early
+    title: "Class line: Bard — Tales That Live Forever (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Bard line.</span>"
+
+  - id: bard-line-mid
+    title: "Class line: Bard — Tales That Live Forever (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Bard line.</span>"
+
+  - id: bard-line-endgame
+    title: "Class line: Bard — Tales That Live Forever (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Bard line. Do NOT edit the global nw_s2_bardsong (affects all bards) — encode the capstone as a CEP feat property instead. Depends on the capstone-item-encoding reference.</span>"
+
+  - id: monk-line-early
+    title: "Class line: Monk — The Empty Hand of the West (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Monk line.</span>"
+
+  - id: monk-line-mid
+    title: "Class line: Monk — The Empty Hand of the West (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Monk line.</span>"
+
+  - id: monk-line-endgame
+    title: "Class line: Monk — The Empty Hand of the West (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Monk line, culminating in the class-restricted capstone (Stunning Fist DC encoding). Depends on the capstone-item-encoding reference.</span>"
+
+  - id: sorcerer-line-early
+    title: "Class line: Sorcerer — Blood of the Elder Days (early tier, L1-15)"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Early nodes (L1/8/15) of the Sorcerer line.</span>"
+
+  - id: sorcerer-line-mid
+    title: "Class line: Sorcerer — Blood of the Elder Days (mid tier, L22-38)"
+    group: combat-classes
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Mid nodes (L22/30/38) of the Sorcerer line.</span>"
+
+  - id: sorcerer-line-endgame
+    title: "Class line: Sorcerer — Blood of the Elder Days (endgame, L46-60 + capstone)"
+    group: combat-classes
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-11"
+    notes: "<span>Endgame nodes (L46/55/60) of the Sorcerer line, culminating in the class-restricted capstone (+caster-level encoding). Depends on the capstone-item-encoding reference.</span>"
