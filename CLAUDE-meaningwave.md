@@ -24,12 +24,14 @@ dialogues). To add a new Meaningwave NPC:
 4. Place an `mw_spawn` waypoint in the target area (from Waypoint palette →
    Custom 5) with the correct `Tag`.
 5. Extend the spawn table in `docs/scripts/mw_spawn.html`.
-6. Wire up the unlock quiz: add a 20-question bank to `mw_quiz_data.nss`, a
-   flavour block to `bin/gen-mw-quiz.py` (then run it to emit `mw_<guide>_m`),
-   and the answer key to `MeaningWave.md`. See the "Adding a new Meaningwave NPC"
-   recipe in [MeaningWave.md](MeaningWave.md) for the full quiz-engine checklist.
-   The quiz engine itself (`mw_quiz_inc.nss` + generic `mw_q_*.nss` scripts) is
-   shared across all guides — you do not write per-NPC quiz scripts.
+6. Wire up the unlock quiz: add a 20-question bank to **`mw_quiz_bank.yaml`** (the
+   single source of truth), register the guide in `bin/gen-mw-quiz.py`, then run it
+   to (re)generate `mw_quiz_data.nss`, `mw_quiz_bank.json`, the `MeaningWave.md`
+   answer key, and `mw_<guide>_m.dlg.json`. See the "Adding a new Meaningwave NPC"
+   recipe in [MeaningWave.md](MeaningWave.md) for the full checklist. The quiz engine
+   itself (`mw_quiz_inc.nss` + generic `mw_q_*.nss` scripts) is shared across all
+   guides — you do not write per-NPC quiz scripts, and you never hand-edit the files
+   generated from the YAML.
 
 See also `MeaningWave.md` for fuller developer notes: blueprint resrefs,
 waypoint tags, spawn script locations, and how to regenerate path documentation.

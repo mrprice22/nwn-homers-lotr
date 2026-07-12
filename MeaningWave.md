@@ -27,8 +27,13 @@ This file covers implementation details, script locations, and maintenance tasks
   `MW_Unlock`, journal/summon helpers) plus `MW_GuideFromTag()` (derives the guide name
   from the NPC's `mw_<guide>_w` tag so the quiz scripts stay generic). Used by the quiz
   dialogue conditionals and by the emote-wand summon logic.
-- **`mw_quiz_data.nss`** — the **question banks**: 20 questions per guide, each a packed
-  `"QUESTION~RIGHT~WRONG1~WRONG2~WRONG3"` row. Source of truth for the answer key below.
+- **`mw_quiz_bank.yaml`** (repo root) — the **single source of truth** for the question
+  banks (20/guide). `bin/gen-mw-quiz.py` derives everything from it: `mw_quiz_data.nss`
+  (game), `mw_quiz_bank.json` (the browser-native twin a wiki quiz engine reads), the
+  answer key below, and the seven `_m` dialogues. Edit the YAML, then run the generator
+  and `tests/check_mw_quiz.py` — never hand-edit the derived files.
+- **`mw_quiz_data.nss`** — **generated** from the YAML: 20 questions per guide as packed
+  `"QUESTION~RIGHT~WRONG1~WRONG2~WRONG3"` rows, consumed by the engine.
 - **`mw_quiz_inc.nss`** — the **quiz engine**: draws 5 random questions (no repeats) from a
   guide's bank, shuffles the four choices into random slots (tokens 7000–7005), tracks the
   score in per-PC LocalInts, and gates the pass at 4/5. See "How the quiz engine works" below.
@@ -81,13 +86,14 @@ Scripts `mw_style_0.nss`, `mw_style_1.nss`, `mw_style_2.nss` set the value from 
 4. Place an `mw_spawn` waypoint in the target area (Waypoint palette → Custom 5) with
    Tag = `MW_SPAWN_<NAME>`.
 5. Add the guide to the quiz system:
-   - Add a 20-question block (a new `MW_<Abbr>Row(int i)` function + a dispatch line in
-     `MW_QRow`) to `mw_quiz_data.nss`, drawn from the figure's real work.
-   - Add the guide name to `mw_unlock_inc.nss` (`MW_GuideAt` / `MW_GuideDisplayName`) and add
-     the flavour block + guide key to `bin/gen-mw-quiz.py`, then run
-     `python3 bin/gen-mw-quiz.py` to emit `mw_<name>_m.dlg.json`.
-   - Add the 20-row answer key to this file's "Quiz question banks" section, then run
-     `python3 tests/check_mw_quiz.py` (it gates count/well-formedness + doc sync).
+   - Add a `<name>:` block with a 20-question bank to `mw_quiz_bank.yaml` (the source of
+     truth), drawn from the figure's real work — the gate enforces 20 questions, 4 distinct
+     ASCII options, no `~`/`|`/newlines.
+   - Register the guide in `bin/gen-mw-quiz.py`: add it to `GUIDE_ORDER`, give it a `FUNC`
+     name (`MW_<Abbr>Row`), and add its `GUIDES` flavour block. Add the guide name to
+     `mw_unlock_inc.nss` (`MW_GuideAt` / `MW_GuideDisplayName`).
+   - Run `python3 bin/gen-mw-quiz.py` (emits the `.nss`, `mw_quiz_bank.json`, the answer key,
+     and `mw_<name>_m.dlg.json`), then `python3 tests/check_mw_quiz.py`.
    - The world NPC's tag **must** be `mw_<name>_w` — the generic quiz scripts derive the
      guide name from it.
 6. Author `mw_<name>_h.dlg.json` for the henchman/tactics dialogue, and add the unlock flag
@@ -130,15 +136,16 @@ the unlock flags set in `mw_unlock_inc.nss`. See the Hall of Legends area and th
 
 ## Quiz question banks (answer key)
 
-**This is the internal answer key.** Each run draws **5 of these 20 at random** and shuffles
-the four options, so the correct answer is never in a fixed slot. The **bold** answer is
-correct; the rest are distractors. The `[guide NN]` tag is the bank index used when the
-questions are wired into `unpacked/mw_quiz_data.nss`. Every question is spoken by the guide,
-so the phrasing is first-person and tests the figure's core teachings (not their biography).
+**Generated from `mw_quiz_bank.yaml` by `bin/gen-mw-quiz.py` — do not edit here.**
+The YAML bank is the single source of truth; the same generator also emits
+`mw_quiz_bank.json` (the browser-native twin a wiki quiz engine can read) and
+`unpacked/mw_quiz_data.nss` (the compiled-in bank the game uses), so all three stay
+in sync. To change a question, edit the YAML, run `python3 bin/gen-mw-quiz.py`, then
+`python3 tests/check_mw_quiz.py`.
 
-> **Revision status.** This bank has been revised for wording and distractor quality and is
-> **pending review**. Once approved it will be ported into `mw_quiz_data.nss` and the in-game
-> conversations; until then the live `.nss` still holds the previous questions.
+Each run draws **5 of a guide's 20 at random** and shuffles the four options, so the
+correct answer is never in a fixed slot. The **bold** answer is correct; the rest are
+distractors. The `[guide NN]` tag is the bank index (its position in the YAML).
 
 ### Jocko Willink — `MW_JocRow`
 
@@ -314,6 +321,7 @@ _Tested on: the dichotomy of control, virtue, and memento mori._
 - **[aurelius 17]** How should you regard death? → **As natural, nothing to fear.** _(distractors: As a return to nature. · As the door to rest. · As the price of life.)_
 - **[aurelius 18]** What, in truth, can harm you? → **Your own judgement of events.** _(distractors: A life without virtue. · The loss of reason. · Turning from duty.)_
 - **[aurelius 19]** Where should your attention rest? → **On the task before you now.** _(distractors: On living by virtue. · On the good of others. · On what you can control.)_
+
 ## How the quiz engine works
 
 `mw_<guide>_m.dlg.json` is a small template (generated by `bin/gen-mw-quiz.py`): an intro,
@@ -341,8 +349,10 @@ Flow (guide name is derived from the NPC tag `mw_<guide>_w` by `MW_GuideFromTag`
 
 **Tuning:** change the number drawn / pass threshold via `MW_QUIZ_DRAW` / `MW_QUIZ_PASS` in
 `mw_quiz_inc.nss` (the dialogue always has 5 question slots, so `MW_QUIZ_DRAW` must stay 5
-unless the template is regenerated with more). Add/reword questions in `mw_quiz_data.nss` and
-mirror them here.
+unless the template is regenerated with more), and keep `meta:` in `mw_quiz_bank.yaml` matched
+to those constants (the gate enforces it). Add or reword questions by editing
+`mw_quiz_bank.yaml`, then run `python3 bin/gen-mw-quiz.py` and `python3 tests/check_mw_quiz.py` —
+the `.nss`, the `mw_quiz_bank.json` twin, and the answer key above all regenerate from it.
 
 **Multiplayer caveat:** `SetCustomToken` is module-global, so two players mid-quiz can briefly
 see each other's option text on a single node render — the same accepted limitation as every
