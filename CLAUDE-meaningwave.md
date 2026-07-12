@@ -27,11 +27,23 @@ dialogues). To add a new Meaningwave NPC:
 6. Wire up the unlock quiz: add a 20-question bank to **`mw_quiz_bank.yaml`** (the
    single source of truth), register the guide in `bin/gen-mw-quiz.py`, then run it
    to (re)generate `mw_quiz_data.nss`, `mw_quiz_bank.json`, the `MeaningWave.md`
-   answer key, and `mw_<guide>_m.dlg.json`. See the "Adding a new Meaningwave NPC"
+   answer key, `mw_<guide>_m.dlg.json`, and the in-wiki practice quiz on
+   `docs.manual/MeaningWave.html`. See the "Adding a new Meaningwave NPC"
    recipe in [MeaningWave.md](MeaningWave.md) for the full checklist. The quiz engine
    itself (`mw_quiz_inc.nss` + generic `mw_q_*.nss` scripts) is shared across all
    guides — you do not write per-NPC quiz scripts, and you never hand-edit the files
    generated from the YAML.
+
+   **In-wiki practice quiz.** `docs.manual/MeaningWave.html` also hosts a per-legend
+   *practice* quiz (same 5-of-20 draw and 4/5 pass mark, reports score % only, no
+   in-game unlock). `gen-mw-quiz.py` owns only the question data — it injects the
+   bank into the page's `#mw-quiz-bank` island between the `MW-QUIZ-DATA` markers;
+   the quiz engine, per-legend `<div class="mw-quiz" data-guide="…">` widgets, and
+   CSS are hand-authored in the page. A new guide needs one widget div added under
+   its `<h2 id>` section (slug = guide key). Re-running the generator keeps the wiki
+   data in sync; `tests/check_mw_quiz.py` gates drift. The questions change rarely,
+   so this re-sync stays a **manual** `python3 bin/gen-mw-quiz.py` run — do **not**
+   trigger a wiki refresh for it.
 
 See also `MeaningWave.md` for fuller developer notes: blueprint resrefs,
 waypoint tags, spawn script locations, and how to regenerate path documentation.
