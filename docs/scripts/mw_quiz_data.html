@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script mw_quiz_data</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>mw_quiz_data</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: mw_quiz_data -- MeaningWave guide quiz question banks.
+//::
+//:: 20 questions per guide. The engine (mw_quiz_inc) draws 5 at random with
+//:: no repeats and shuffles the four answer choices into random display slots.
+//::
+//:: Each question is one packed row:
+//::     &quot;QUESTION~RIGHT~WRONG1~WRONG2~WRONG3&quot;
+//:: Field 0 is the prompt, field 1 is the SINGLE correct answer, fields 2-4 are
+//:: distractors. The &#x27;~&#x27; is a reserved delimiter -- never use it in text. Avoid
+//:: non-ASCII (em-dashes etc.) in these literals; use plain hyphens.
+//::
+//:: This file is the source of truth for the banks. The human-readable answer
+//:: key in MeaningWave.md mirrors it, and tests/check_mw_quiz.py gates that each
+//:: guide has exactly 20 well-formed rows. Grounded in each figure&#x27;s real work
+//:: (see the &quot;Further reading&quot; rows in docs.manual/MeaningWave.html).
+//:://////////////////////////////////////////////
+
+const int MW_BANK_SIZE = 20;
+
+int MW_QCount(string sGuide) { return MW_BANK_SIZE; }
+
+// ------------------------------------------------------------------ Jocko
+// Extreme Ownership (Willink/Babin), Discipline Equals Freedom, Jocko Podcast.
+string MW_JocRow(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;Complete the maxim: &#x27;Discipline equals ___.&#x27;~Freedom.~Misery.~Obedience.~Comfort.&quot;;
+        case 1:  return &quot;Whose fault is it when the mission fails?~Mine. Extreme ownership.~The team&#x27;s.~Circumstance.~The enemy&#x27;s.&quot;;
+        case 2:  return &quot;Jocko gets bad news. What single word does he answer with?~Good.~Why me?~Retreat.~Unfair.&quot;;
+        case 3:  return &quot;What does Jocko recommend doing the moment the alarm sounds?~Get up immediately, no snooze.~Snooze once.~Sleep until rested.~Check your phone.&quot;;
+        case 4:  return &quot;You do not feel like doing the work. What do you do?~Do it anyway; the wanting follows the doing.~Wait to feel ready.~Find an easier path.~Rest first.&quot;;
+        case 5:  return &quot;In Extreme Ownership, who is ultimately responsible for a team&#x27;s performance?~The leader.~The lowest performer.~Higher command.~No one.&quot;;
+        case 6:  return &quot;What does Jocko mean by &#x27;Default: Aggressive&#x27;?~Lean into problems and act decisively.~Attack every person you meet.~Never plan ahead.~Always retreat to safety.&quot;;
+        case 7:  return &quot;What is the &#x27;dichotomy of leadership&#x27;?~Balancing opposing qualities, like leading and following.~Choosing chaos over order.~Ranking soldiers by strength.~Never compromising.&quot;;
+        case 8:  return &quot;The combat principle &#x27;Cover and Move&#x27; means what?~Teams support each other toward the goal.~Hide and never advance.~Every man for himself.~Abandon the wounded.&quot;;
+        case 9:  return &quot;What does Jocko say about a plan&#x27;s complexity?~Keep it simple so everyone can execute under stress.~Make it as detailed as possible.~Plans are useless.~Only the leader needs the plan.&quot;;
+        case 10: return &quot;&#x27;Prioritize and Execute&#x27; tells a leader to do what?~Handle the highest-priority problem first, then the next.~Do everything at once.~Delegate everything.~Wait for orders.&quot;;
+        case 11: return &quot;What is the relationship between discipline and freedom, per Jocko?~Discipline creates freedom.~Discipline destroys freedom.~Freedom needs no discipline.~They are unrelated.&quot;;
+        case 12: return &quot;What is the title of Jocko&#x27;s first book, co-written with Leif Babin?~Extreme Ownership.~The Way of the SEAL.~Discipline Equals Freedom.~Can&#x27;t Hurt Me.&quot;;
+        case 13: return &quot;In which branch of the U.S. military did Jocko serve?~The Navy, in the SEAL Teams.~The Army.~The Marines.~The Air Force.&quot;;
+        case 14: return &quot;When a subordinate makes a mistake, extreme ownership says the leader first asks what?~How did I fail to lead them?~Who do I blame?~How do I punish them?~Why are they weak?&quot;;
+        case 15: return &quot;What does Jocko say about excuses?~Own the outcome; there are no excuses.~A good excuse ends the matter.~Excuses protect the team.~Blame the circumstance.&quot;;
+        case 16: return &quot;The disciplined mind treats a hard task as what?~An opportunity to get better.~A punishment to avoid.~Someone else&#x27;s job.~A reason to quit.&quot;;
+        case 17: return &quot;What does Jocko say a leader must do to see the whole battlefield?~Detach, step back, and assess.~Charge in blindly.~Follow the crowd.~Wait to be told.&quot;;
+        case 18: return &quot;Extreme ownership points blame in which direction first?~Inward, toward yourself.~Downward, to subordinates.~Outward, to circumstance.~Upward only.&quot;;
+        case 19: return &quot;What is Jocko&#x27;s counsel when you feel overwhelmed by problems?~Prioritize, then execute one at a time.~Freeze and wait.~Quit the mission.~Do them all at once.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------------ Peterson
+// 12 Rules for Life, Maps of Meaning.
+string MW_PetRow(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;What is Rule 1 of 12 Rules for Life?~Stand up straight with your shoulders back.~Tell the truth.~Set your house in order.~Pet a cat.&quot;;
+        case 1:  return &quot;What is responsibility, in Peterson&#x27;s view?~The path to meaning, freely chosen.~A burden imposed by tyrants.~A trick to enslave the strong.~An illusion.&quot;;
+        case 2:  return &quot;Rule 4 says compare yourself to whom?~Who you were yesterday, not who someone else is today.~The most successful person you know.~No one at all.~Your parents.&quot;;
+        case 3:  return &quot;What &#x27;dragon&#x27; must the individual confront?~The chaos within oneself.~The taxman.~A literal beast.~Your neighbour.&quot;;
+        case 4:  return &quot;Rule 6 says do what before criticising the world?~Set your house in perfect order.~Overthrow the government.~Read more books.~Blame your parents.&quot;;
+        case 5:  return &quot;Rule 8 concerns what?~Telling the truth, or at least not lying.~Standing up straight.~Petting cats.~Cleaning your room.&quot;;
+        case 6:  return &quot;What does Peterson say about hierarchies of competence?~They are ancient, not merely social constructs.~They are always corrupt and must be destroyed.~Lobsters invented them.~They should be ignored.&quot;;
+        case 7:  return &quot;Rule 7 tells you to pursue what?~What is meaningful, not what is expedient.~What is easy.~What others expect.~Wealth above all.&quot;;
+        case 8:  return &quot;Peterson cites which animal to argue hierarchy is deep in biology?~The lobster.~The wolf.~The chimpanzee.~The eagle.&quot;;
+        case 9:  return &quot;What is the title of Peterson&#x27;s dense first book on myth and meaning?~Maps of Meaning.~12 Rules for Life.~Beyond Order.~The Gulag Archipelago.&quot;;
+        case 10: return &quot;Rule 2 says to treat yourself like whom?~Someone you are responsible for helping.~A worthless failure.~A king above others.~A stranger.&quot;;
+        case 11: return &quot;Where is meaning found, for Peterson?~At the border between order and chaos.~In pure order.~In pure chaos.~In wealth.&quot;;
+        case 12: return &quot;Rule 9 advises you to assume the person you&#x27;re listening to might what?~Know something you don&#x27;t.~Be lying to you.~Be beneath you.~Waste your time.&quot;;
+        case 13: return &quot;Whose account of the Gulag shaped Peterson&#x27;s warnings about ideology?~Aleksandr Solzhenitsyn.~Karl Marx.~Friedrich Nietzsche.~Sigmund Freud.&quot;;
+        case 14: return &quot;Rule 10 is about being precise in what?~Your speech.~Your diet.~Your finances.~Your posture.&quot;;
+        case 15: return &quot;Peterson says the antidote to chaos begins with what small act?~Setting your own life, and room, in order.~Winning an argument.~Quitting your job.~Blaming society.&quot;;
+        case 16: return &quot;What does Peterson mean by &#x27;the tragedy of Being&#x27;?~Suffering is inherent, yet can be borne with meaning.~Life is meaningless.~Suffering can be eliminated.~Only the weak suffer.&quot;;
+        case 17: return &quot;Rule 3 advises making friends with people who do what?~Want the best for you.~Flatter you constantly.~Envy your success.~Ask nothing of you.&quot;;
+        case 18: return &quot;Peterson frames the ideal as balancing which two forces?~Order and chaos.~Good and evil spirits.~Wealth and poverty.~Past and future.&quot;;
+        case 19: return &quot;&#x27;Compare yourself to who you were yesterday&#x27; guards against what?~Envy and unfair comparison to others.~Ambition of any kind.~Self-improvement.~Telling the truth.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------------ Watts
+// The Book, The Way of Zen, The Wisdom of Insecurity.
+string MW_WatRow(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;Who is doing the experiencing, according to Watts?~There is no separate experiencer apart from the experience.~A soul sealed in the skull.~A self standing outside the world.~No one at all.&quot;;
+        case 1:  return &quot;In The Book, what is the taboo Watts says we are never told?~That you are the whole universe, not a separate ego.~That death is final.~That money is evil.~That desire is sin.&quot;;
+        case 2:  return &quot;What is the universe, in Watts&#x27;s playful metaphor?~A game of hide-and-seek played by what we are.~A machine of dead matter.~A moral test set by God.~A meaningless accident.&quot;;
+        case 3:  return &quot;Why act at all, if the goal is incidental?~Because the doing is the play, like music or dance.~To defeat others.~To earn salvation.~To escape the body.&quot;;
+        case 4:  return &quot;Watts describes the self as more like which part of speech?~A verb, not a noun.~A noun.~An adjective.~A pronoun only.&quot;;
+        case 5:  return &quot;How do you truly let go, per Watts?~By yielding gracefully, not gripping harder.~By renouncing the body.~By force of will.~By seizing control.&quot;;
+        case 6:  return &quot;The Wisdom of Insecurity argues security is found where?~In accepting impermanence, not resisting it.~In wealth and safety.~In rigid belief.~In controlling the future.&quot;;
+        case 7:  return &quot;Which Eastern traditions did Watts popularise in the West?~Zen Buddhism and Taoism.~Sunni Islam and Sufism.~Calvinism.~Jainism only.&quot;;
+        case 8:  return &quot;The Taoist idea of &#x27;wu wei&#x27; means what?~Effortless action, going with the grain of things.~Constant striving.~Total inaction and sloth.~Aggressive conquest.&quot;;
+        case 9:  return &quot;Watts says the ego is best understood as what?~A useful illusion, a social convention.~Your eternal true soul.~A demon to be exorcised.~The seat of reason only.&quot;;
+        case 10: return &quot;Chasing pleasure directly, Watts warns, tends to do what?~Destroy the very pleasure sought.~Guarantee happiness.~Please the gods.~Build character.&quot;;
+        case 11: return &quot;What did Watts call the belief that we are skin-encapsulated egos?~An illusion of separateness.~The highest truth.~Scientific fact.~Divine law.&quot;;
+        case 12: return &quot;In Zen, &#x27;satori&#x27; refers to what?~A sudden flash of awakening.~A long punishment.~A written scripture.~A meditation posture.&quot;;
+        case 13: return &quot;Watts compares life to music to make what point?~The point is the playing, not reaching the end.~Only the finale matters.~Life should be efficient.~Silence is superior.&quot;;
+        case 14: return &quot;The symbol of yin and yang expresses what?~Opposites are interdependent, not at war.~Good must destroy evil.~Matter is an illusion.~Order defeats chaos.&quot;;
+        case 15: return &quot;What was Watts trained as before turning to Zen?~An Anglican, then Episcopal, priest.~A physicist.~A soldier.~A lawyer.&quot;;
+        case 16: return &quot;&#x27;You are the universe experiencing itself&#x27; expresses which idea?~Nonduality; self and cosmos are not separate.~Solipsism, only you exist.~Materialism.~Predestination.&quot;;
+        case 17: return &quot;What does Watts say about the present moment?~It is the only place life actually happens.~It is an illusion.~It must be sacrificed for the future.~It cannot be experienced.&quot;;
+        case 18: return &quot;In the Tao, how does the sage act toward nature?~Flows with it rather than forcing against it.~Conquers and tames it.~Ignores it entirely.~Fears it.&quot;;
+        case 19: return &quot;Watts&#x27;s overall message about the cosmos is best described as what?~Playful and interconnected, not grim and separate.~Cold and mechanical.~A courtroom of judgment.~An accident to endure.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------------ Campbell
+// The Hero with a Thousand Faces, The Power of Myth; the monomyth.
+string MW_CamRow(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;What is the first stage of the hero&#x27;s journey?~The Call to Adventure.~The Return.~The Apotheosis.~The Reward.&quot;;
+        case 1:  return &quot;What is the role of the threshold guardian?~To test whether the hero is worthy to cross.~To kill all who approach.~To guide the hero home.~To grant wishes.&quot;;
+        case 2:  return &quot;Why must the hero descend into the abyss?~To die to the old self and be reborn.~To collect gold.~To impress onlookers.~To avoid danger.&quot;;
+        case 3:  return &quot;What famous advice did Campbell give for living?~Follow your bliss.~Obey the law.~Seek wealth.~Trust no one.&quot;;
+        case 4:  return &quot;What does the hero bring back at the journey&#x27;s end?~A boon to benefit the community.~Conquest and spoils.~Nothing.~Personal fame only.&quot;;
+        case 5:  return &quot;Campbell&#x27;s word for the single myth underlying all cultures is what?~The monomyth.~The parable.~The allegory.~The epic.&quot;;
+        case 6:  return &quot;What is the title of Campbell&#x27;s landmark 1949 book?~The Hero with a Thousand Faces.~The Golden Bough.~The Power of Myth.~The Masks of God.&quot;;
+        case 7:  return &quot;Which filmmaker credited Campbell as an influence on Star Wars?~George Lucas.~Steven Spielberg.~Stanley Kubrick.~Ridley Scott.&quot;;
+        case 8:  return &quot;The stage of &#x27;supernatural aid&#x27; often involves what figure?~A mentor or wise helper.~A tax collector.~A rival king.~A merchant.&quot;;
+        case 9:  return &quot;&#x27;Refusal of the Call&#x27; describes what?~The hero&#x27;s initial hesitation to begin.~The hero&#x27;s death.~The final victory.~The mentor&#x27;s betrayal.&quot;;
+        case 10: return &quot;Campbell&#x27;s three broad phases are Departure, Initiation, and what?~Return.~Conquest.~Judgment.~Rest.&quot;;
+        case 11: return &quot;The &#x27;belly of the whale&#x27; symbolises what?~The hero passing into transformation.~A literal sea voyage.~The reward.~The ordinary world.&quot;;
+        case 12: return &quot;In Campbell&#x27;s view, myths function to do what?~Give life meaning and orient the psyche.~Record accurate history.~Entertain children only.~Predict the future.&quot;;
+        case 13: return &quot;Who was Campbell&#x27;s collaborator in the PBS series The Power of Myth?~Bill Moyers.~Carl Sagan.~Joseph Pulitzer.~Alan Watts.&quot;;
+        case 14: return &quot;&#x27;Meeting with the goddess&#x27; and &#x27;atonement with the father&#x27; belong to which phase?~Initiation.~Departure.~Return.~Refusal.&quot;;
+        case 15: return &quot;Campbell drew heavily on which psychologist&#x27;s idea of archetypes?~Carl Jung.~Sigmund Freud.~B.F. Skinner.~William James.&quot;;
+        case 16: return &quot;What does &#x27;follow your bliss&#x27; actually urge?~Pursue your deepest calling even at a cost.~Chase easy pleasure.~Avoid all risk.~Obey tradition.&quot;;
+        case 17: return &quot;The hero&#x27;s journey ultimately serves whom?~The community, through the boon returned.~Only the hero.~The gods alone.~No one.&quot;;
+        case 18: return &quot;The &#x27;ultimate boon&#x27; is best described as what?~The goal achieved that can renew the world.~A pile of treasure.~A weapon.~A throne.&quot;;
+        case 19: return &quot;Campbell taught comparative mythology for decades at which college?~Sarah Lawrence College.~Harvard.~Oxford.~Yale.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------------ McKenna
+// Food of the Gods, The Archaic Revival; timewave, the Other, &#x27;felt presence&#x27;.
+string MW_MckRow(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;Culture is best described by McKenna as what?~Your operating system.~An adornment.~A prison to smash.~An illusion.&quot;;
+        case 1:  return &quot;Complete McKenna&#x27;s phrase: &#x27;the felt presence of ___.&#x27;~immediate experience.~ancient gods.~future novelty.~the timewave.&quot;;
+        case 2:  return &quot;What is McKenna&#x27;s &#x27;timewave&#x27;?~A fractal model of novelty increasing over time.~A strictly linear calendar.~A tidal chart.~A memory illusion.&quot;;
+        case 3:  return &quot;How did McKenna describe &#x27;the Other&#x27; met in visions?~Closer to you than your own breath.~A distant stranger.~Purely nonexistent.~A hostile enemy.&quot;;
+        case 4:  return &quot;McKenna described language as what kind of thing?~An almost living organism that wants to be shared.~Mere communication.~A useless trick.~A prison only.&quot;;
+        case 5:  return &quot;What is the thesis of McKenna&#x27;s &#x27;Stoned Ape&#x27; hypothesis?~Psilocybin catalysed human cognitive evolution.~Apes never changed.~Fire alone made us human.~Language came from writing.&quot;;
+        case 6:  return &quot;What is the title of McKenna&#x27;s book on drugs and human history?~Food of the Gods.~The Archaic Revival.~True Hallucinations.~The Doors of Perception.&quot;;
+        case 7:  return &quot;McKenna urged a &#x27;return&#x27; to what?~The archaic, shamanic ways of direct experience.~Pure rationalism.~Industrial progress.~Strict tradition.&quot;;
+        case 8:  return &quot;What did McKenna mean by &#x27;novelty&#x27;?~The increase of complexity and connection in the universe.~Boredom.~Random noise.~Simple repetition.&quot;;
+        case 9:  return &quot;McKenna&#x27;s brother and frequent collaborator was named what?~Dennis McKenna.~Terence Jr.~Aldous.~Gordon.&quot;;
+        case 10: return &quot;McKenna urged us to trust what as a teacher?~Nature and the plants.~Only governments.~Only machines.~No experience at all.&quot;;
+        case 11: return &quot;&#x27;The syntactic prison&#x27; refers to what?~Being trapped inside habitual language and thought.~An actual jail.~Grammar textbooks.~A computer program.&quot;;
+        case 12: return &quot;&#x27;Boundary dissolution&#x27; describes what?~The felt merging of self and world in deep states.~Building stronger walls.~A legal ruling.~Physical death.&quot;;
+        case 13: return &quot;What did McKenna claim about the imagination?~It is a real ground of being to be explored.~It is worthless.~It is dangerous and must be suppressed.~It does not exist.&quot;;
+        case 14: return &quot;Which field did McKenna work in?~The study of psychoactive plants and shamanism.~Nuclear physics.~Corporate law.~Marine biology.&quot;;
+        case 15: return &quot;McKenna saw history as accelerating toward what?~A concrescence of novelty.~Total stasis.~Simple decay.~Endless repetition.&quot;;
+        case 16: return &quot;What was McKenna&#x27;s stance toward blind belief?~Reject dogma; value direct experience.~Accept all authority.~Believe nothing ever.~Follow one guru.&quot;;
+        case 17: return &quot;McKenna held that real insight often comes how?~Through direct, sometimes psychedelic, experience.~Through obedience.~Through wealth.~Through avoidance.&quot;;
+        case 18: return &quot;McKenna saw the psychedelic experience primarily as what?~A doorway to meaning and the imagination.~Mere entertainment.~A medical error.~A punishment.&quot;;
+        case 19: return &quot;McKenna&#x27;s tone about the future was generally what?~Hopeful about a coming shift in consciousness.~Nihilistic despair.~Total indifference.~Fear of all change.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------------ Jung
+// Shadow, individuation, persona, collective unconscious, archetypes.
+string MW_JunRow(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;What is the shadow, in Jungian terms?~The disowned parts of yourself, neither simply good nor evil.~The literal devil.~Pure evil to be destroyed.~Your reflection.&quot;;
+        case 1:  return &quot;How does one become psychologically whole?~By integrating the shadow, not denying it.~By denying the shadow.~By becoming perfectly pure.~By ignoring the unconscious.&quot;;
+        case 2:  return &quot;What is individuation?~Becoming the totality of who you truly are.~Selfishness.~Total solitude.~Conformity to society.&quot;;
+        case 3:  return &quot;What lives in the collective unconscious?~Inherited archetypes shared by all humanity.~Nothing of importance.~Only demons.~Personal memories only.&quot;;
+        case 4:  return &quot;What is the persona?~The social mask we wear; useful, but not our true self.~Our deepest true self.~A lie to be destroyed.~A mental illness.&quot;;
+        case 5:  return &quot;Jung&#x27;s term for universal, inherited images and patterns is what?~Archetypes.~Complexes.~Reflexes.~Instincts only.&quot;;
+        case 6:  return &quot;What does the &#x27;anima&#x27; refer to in Jung&#x27;s model?~The inner feminine within a man&#x27;s psyche.~An external spirit.~A dream symbol only.~A neurosis.&quot;;
+        case 7:  return &quot;What did Jung call meaningful coincidence?~Synchronicity.~Causality.~Projection.~Sublimation.&quot;;
+        case 8:  return &quot;Jung broke from which former mentor over theory?~Sigmund Freud.~Alfred Adler.~William James.~B.F. Skinner.&quot;;
+        case 9:  return &quot;What is the &#x27;Self&#x27;, with a capital S, in Jung&#x27;s thought?~The unifying centre of the whole psyche.~The ego alone.~The body.~The persona.&quot;;
+        case 10: return &quot;What happens when the shadow is repressed and unowned?~It is projected onto others and acted out.~It simply disappears.~It becomes the persona.~It strengthens the ego healthily.&quot;;
+        case 11: return &quot;What is the name of Jung&#x27;s book of confrontations with his own unconscious?~The Red Book (Liber Novus).~The Interpretation of Dreams.~Man and His Symbols.~The Ego and the Id.&quot;;
+        case 12: return &quot;Dreams, for Jung, primarily serve to do what?~Compensate and communicate from the unconscious.~Predict the lottery.~Mean nothing at all.~Only replay the day.&quot;;
+        case 13: return &quot;The &#x27;wise old man&#x27; and &#x27;the great mother&#x27; are examples of what?~Archetypes.~Personas.~Complexes.~Neuroses.&quot;;
+        case 14: return &quot;What is a &#x27;complex&#x27; in Jungian psychology?~An emotionally charged cluster of associations.~A building.~A rational argument.~A persona.&quot;;
+        case 15: return &quot;Jung believed the second half of life should focus on what?~Meaning, individuation, and the inner world.~Accumulating wealth.~Social climbing.~Nothing in particular.&quot;;
+        case 16: return &quot;What does the &#x27;animus&#x27; refer to?~The inner masculine within a woman&#x27;s psyche.~A group of enemies.~A dream demon.~The persona.&quot;;
+        case 17: return &quot;Jung saw religious symbols as what?~Expressions of deep psychic realities.~Pure superstition to discard.~Literal history.~Meaningless.&quot;;
+        case 18: return &quot;Confronting the shadow typically feels how, at first?~Uncomfortable, even shameful.~Effortless and pleasant.~Completely neutral.~Physically painful only.&quot;;
+        case 19: return &quot;The goal of Jungian analysis is best described as what?~Integration of the psyche toward wholeness.~Elimination of all emotion.~Perfect happiness forever.~Erasing the unconscious.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------------ Aurelius
+// Meditations; Stoicism.
+string MW_AurRow(int i)
+{
+    switch (i)
+    {
+        case 0:  return &quot;What is truly in your power, per Aurelius?~Your judgements, intentions, and reactions.~Everything you want.~Other people&#x27;s actions.~The future.&quot;;
+        case 1:  return &quot;Complete the Stoic maxim: &#x27;The obstacle is ___.&#x27;~the way.~to be avoided.~a punishment.~meaningless.&quot;;
+        case 2:  return &quot;What does &#x27;memento mori&#x27; mean?~Remember that you will die.~Remember the dead.~Remember the dawn.~Remember to rest.&quot;;
+        case 3:  return &quot;The soul, Aurelius writes, is dyed by what?~The colour of its thoughts.~Its birth.~The body.~Fortune.&quot;;
+        case 4:  return &quot;How should one begin each day, per Meditations?~Expecting to meet the ungrateful and cruel, unharmed within.~Expecting only joy.~Expecting the gods to provide.~Expecting wealth.&quot;;
+        case 5:  return &quot;Aurelius was emperor of which realm?~Rome.~Greece.~Persia.~Egypt.&quot;;
+        case 6:  return &quot;To which school of philosophy did Aurelius belong?~Stoicism.~Epicureanism.~Cynicism.~Skepticism.&quot;;
+        case 7:  return &quot;For whom was Meditations originally written?~Himself, as private notes.~The Roman Senate.~His son.~The public.&quot;;
+        case 8:  return &quot;The Stoics divide things into which two categories?~What is up to us and what is not.~Good and evil people.~Rich and poor.~Body and gods.&quot;;
+        case 9:  return &quot;What should we do about things outside our control, per the Stoics?~Accept them calmly.~Rage against them.~Fear them.~Neglect all duty.&quot;;
+        case 10: return &quot;Aurelius often reminds himself that all things are what?~Impermanent and soon forgotten.~Eternal.~Under his command.~Meaningless jokes.&quot;;
+        case 11: return &quot;What is the Stoic view of virtue?~It is the only true good.~It is worthless.~It is one good among riches.~It is unattainable.&quot;;
+        case 12: return &quot;When wronged, Aurelius counsels what response?~Return to reason; refuse to be harmed by another&#x27;s fault.~Immediate revenge.~Despair.~Public complaint.&quot;;
+        case 13: return &quot;Complete the thought: &#x27;The best revenge is ___.&#x27;~to not be like your enemy.~swift retaliation.~to grow rich.~to forget nothing.&quot;;
+        case 14: return &quot;Aurelius reminds himself to act for what?~The common good, the good of the whole.~His own glory.~Wealth.~Comfort.&quot;;
+        case 15: return &quot;The Stoic idea of &#x27;amor fati&#x27; means what?~Love of one&#x27;s fate; embracing what happens.~Hatred of destiny.~Fear of death.~Love of money.&quot;;
+        case 16: return &quot;What does Aurelius say about complaining and blame?~Waste no time on it; do the work before you.~Blame the gods.~Blame others freely.~Complaint is a virtue.&quot;;
+        case 17: return &quot;Reason, the &#x27;ruling faculty&#x27;, should govern what?~Our impulses and reactions.~Only our finances.~Other people.~The weather.&quot;;
+        case 18: return &quot;Aurelius pictures the cosmos as what?~An ordered, interconnected whole.~Random chaos.~A cruel joke.~A machine of despair.&quot;;
+        case 19: return &quot;The Stoic sage remains what amid fortune&#x27;s changes?~Tranquil and steadfast.~Anxious.~Greedy.~Vengeful.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// Dispatch: return the packed row for guide sGuide, question index i (0-based).
+string MW_QRow(string sGuide, int i)
+{
+    if (sGuide == &quot;jocko&quot;)    return MW_JocRow(i);
+    if (sGuide == &quot;peterson&quot;) return MW_PetRow(i);
+    if (sGuide == &quot;watts&quot;)    return MW_WatRow(i);
+    if (sGuide == &quot;campbell&quot;) return MW_CamRow(i);
+    if (sGuide == &quot;mckenna&quot;)  return MW_MckRow(i);
+    if (sGuide == &quot;jung&quot;)     return MW_JunRow(i);
+    if (sGuide == &quot;aurelius&quot;) return MW_AurRow(i);
+    return &quot;&quot;;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

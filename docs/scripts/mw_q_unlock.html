@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script mw_jun_inc</title>
+  <title>Script mw_q_unlock</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,11 +54,14 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>mw_jun_inc</code></h1><pre class="nss-source"><code>// mw_jun_inc -- increment Carl Jung&#x27;s quiz score on a correct answer.
+<h1>Script: <code>mw_q_unlock</code></h1><pre class="nss-source"><code>// mw_q_unlock -- ActionTaken on the pass entry: unlock the guide and clear state.
+#include &quot;mw_quiz_inc&quot;
 void main()
 {
     object oPC = GetPCSpeaker();
-    SetLocalInt(oPC, &quot;mw_jun_score&quot;, GetLocalInt(oPC, &quot;mw_jun_score&quot;) + 1);
+    string sGuide = GetLocalString(oPC, &quot;mw_active&quot;);
+    MW_Unlock(oPC, sGuide);
+    MW_QuizClear(oPC, sGuide);
 }
 </code></pre>
   </main>

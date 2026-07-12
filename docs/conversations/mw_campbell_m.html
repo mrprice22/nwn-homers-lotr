@@ -57,8 +57,8 @@
 <h1>Conversation: <code>mw_campbell_m</code></h1>
 <dl class="meta">
 <dt>NPC lines</dt><dd>10</dd>
-<dt>PC replies</dt><dd>20</dd>
-<dt>NumWords</dt><dd>200</dd>
+<dt>PC replies</dt><dd>25</dd>
+<dt>NumWords</dt><dd>0</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code></code></dd>
 </dl>
@@ -66,85 +66,104 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/mw_campbell_w.html">Joseph Campbell</a> <code>mw_campbell_w</code></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>mw_enc_campbell</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>mw_cam_unl</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>mw_cam_reset</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>mw_cam_inc</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>mw_cam_pass</code></td><td>active</td><td>✓</td><td></td></tr>
-<tr><td><code>mw_chk_campbell</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
-<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/mw-joseph-campbell.html">MW: Joseph Campbell</a></td><td><code>mw joseph campbell</code></td><td>1, 2</td></tr>
-<tr><td><a href="../quests/mw-path-of-meaning.html">The Path of Meaning</a></td><td><code>mw path of meaning</code></td><td>1</td></tr></tbody></table>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>mw_q_enc</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_load</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_unlock</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_a1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_a2</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_a3</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_a4</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_pass</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>mw_q_chk</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/mw-path-of-meaning.html">The Path of Meaning</a></td><td><code>mw path of meaning</code></td><td>1</td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM7000&gt;</code></td><td><a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a></td></tr>
+<tr><td><code>&lt;CUSTOM7001&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM7002&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM7003&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM7004&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM7005&gt;</code></td><td><a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e9">entry #9</a> <small class="muted">(if <code>mw_chk_campbell</code>)</small> — You have already heard the call and answered it, . Your bliss is already leading…</li>
+<li><a href="#e9">entry #9</a> <small class="muted">(if <code>mw_q_chk</code>)</small> — You have already heard the call and answered it, . Your bliss is already leading…</li>
 <li><a href="#e0">entry #0</a> — Hello, traveller. Every hero&#x27;s tale is yours, and every name you read is your ow…</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #9</span> <small class="muted">(if <code>mw_chk_campbell</code>)</small> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<summary><span class="dlg-id">entry #9</span> <small class="muted">(if <code>mw_q_chk</code>)</small> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
 <div class="dlg-text">You have already heard the call and answered it, &lt;FullName&gt;. Your bliss is already leading you forward. The threshold is behind you — walk on.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #19</span> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
+<summary><span class="dlg-id">reply #24</span> <a class="dlg-anchor" href="#r24" title="jump to flat reply #24">¶</a></summary>
 <div class="dlg-text">Thank you.</div>
 </details>
 </div>
 </details>
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>mw_enc_campbell</code></span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<summary><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>mw_q_enc</code></span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
 <div class="dlg-text">Hello, traveller. Every hero&#x27;s tale is yours, and every name you read is your own. Will you let me test what you remember of the path?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>mw_cam_reset</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>mw_q_start</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
 <div class="dlg-text">Ask. I will answer.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">What is the first stage of any hero&#x27;s tale?</div>
+<summary><span class="dlg-id">entry #1</span> <span class="dlg-action">→ <code>mw_q_load</code></span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
-<div class="dlg-text">Victory.</div>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>mw_q_a1</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
-<div class="dlg-text">What is the role of the threshold guardian?</div>
+<summary><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>mw_q_load</code></span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
-<div class="dlg-text">To stop you forever.</div>
+<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>mw_q_a1</code></span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
-<div class="dlg-text">Why must the hero descend?</div>
+<summary><span class="dlg-id">entry #3</span> <span class="dlg-action">→ <code>mw_q_load</code></span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
-<div class="dlg-text">To gain treasure.</div>
+<summary><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>mw_q_a1</code></span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
-<div class="dlg-text">What is bliss?</div>
+<summary><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>mw_q_load</code></span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
-<div class="dlg-text">Pleasure.</div>
+<summary><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>mw_q_a1</code></span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
-<div class="dlg-text">What does the hero bring back?</div>
+<summary><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>mw_q_load</code></span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
-<div class="dlg-text">Gold.</div>
+<summary><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>mw_q_a1</code></span> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>mw_cam_unl</code></span> <small class="muted">(if <code>mw_cam_pass</code>)</small> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<summary><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>mw_q_unlock</code></span> <small class="muted">(if <code>mw_q_pass</code>)</small> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
 <div class="dlg-text">You walk the path. Follow your bliss — and when you dream, I will be your companion at the threshold.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #17</span> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
+<summary><span class="dlg-id">reply #22</span> <a class="dlg-anchor" href="#r22" title="jump to flat reply #22">¶</a></summary>
 <div class="dlg-text">Thank you.</div>
 </details>
 </div>
@@ -154,7 +173,7 @@
 <div class="dlg-text">You have not yet heard the call. Listen. The world is full of calls.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #18</span> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
+<summary><span class="dlg-id">reply #23</span> <a class="dlg-anchor" href="#r23" title="jump to flat reply #23">¶</a></summary>
 <div class="dlg-text">I will return.</div>
 </details>
 </div>
@@ -162,18 +181,26 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
-<div class="dlg-text">A boon for the village.</div>
+<summary><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>mw_q_a2</code></span> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_cam_pass</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_q_pass</code>)</small></div>
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #16</span> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
-<div class="dlg-text">Conquest.</div>
+<summary><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>mw_q_a3</code></span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_cam_pass</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_q_pass</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #21</span> <span class="dlg-action">→ <code>mw_q_a4</code></span> <a class="dlg-anchor" href="#r21" title="jump to flat reply #21">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_q_pass</code>)</small></div>
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></div>
 </div>
 </details>
@@ -182,35 +209,24 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
-<div class="dlg-text">Following the deepest urge in you, even when it costs.</div>
+<summary><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>mw_q_a2</code></span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“What does the hero bring back?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
-<div class="dlg-text">Heaven after death.</div>
+<summary><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>mw_q_a3</code></span> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“What does the hero bring back?”</span></div>
-</div>
-</details>
-</div>
-</details>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
-<div class="dlg-text">To die to what they were and be born to what they could be.</div>
+<summary><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>mw_q_a4</code></span> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“What is bliss?”</span></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
-<div class="dlg-text">To prove courage to onlookers.</div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“What is bliss?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a></div>
 </div>
 </details>
 </div>
@@ -218,17 +234,24 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
-<div class="dlg-text">To test whether you are worthy of crossing.</div>
+<summary><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>mw_q_a2</code></span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Why must the hero descend?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
-<div class="dlg-text">To kill the unworthy.</div>
+<summary><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>mw_q_a3</code></span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Why must the hero descend?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>mw_q_a4</code></span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a></div>
 </div>
 </details>
 </div>
@@ -236,17 +259,49 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
-<div class="dlg-text">The Call to Adventure.</div>
+<summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>mw_q_a2</code></span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“What is the role of the threshold guardian?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
-<div class="dlg-text">Death.</div>
+<summary><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>mw_q_a3</code></span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“What is the role of the threshold guardian?”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>mw_q_a4</code></span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>mw_q_a2</code></span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>mw_q_a3</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>mw_q_a4</code></span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a></div>
 </div>
 </details>
 </div>
@@ -267,37 +322,52 @@
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>mw_enc_campbell</code></span></div><div class="dlg-text">Hello, traveller. Every hero&#x27;s tale is yours, and every name you read is your own. Will you let me test what you remember of the path?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Ask. I will answer.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Not today.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">What is the first stage of any hero&#x27;s tale?</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Victory.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“The Call to Adventure.”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Death.”</span></li></ul></div>
-<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">What is the role of the threshold guardian?</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“To stop you forever.”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“To test whether you are worthy of crossing.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“To kill the unworthy.”</span></li></ul></div>
-<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Why must the hero descend?</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“To gain treasure.”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“To die to what they were and be born to what they could be.”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“To prove courage to onlookers.”</span></li></ul></div>
-<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">What is bliss?</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Pleasure.”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Following the deepest urge in you, even when it costs.”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Heaven after death.”</span></li></ul></div>
-<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">What does the hero bring back?</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Gold.”</span></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“A boon for the village.”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“Conquest.”</span></li></ul></div>
-<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>mw_cam_unl</code></span></div><div class="dlg-text">You walk the path. Follow your bliss — and when you dream, I will be your companion at the threshold.</div><ul class="dlg-links"><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“Thank you.”</span></li></ul></div>
-<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">You have not yet heard the call. Listen. The world is full of calls.</div><ul class="dlg-links"><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“I will return.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span> <span class="dlg-action">→ <code>mw_q_enc</code></span></div><div class="dlg-text">Hello, traveller. Every hero&#x27;s tale is yours, and every name you read is your own. Will you let me test what you remember of the path?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Ask. I will answer.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Not today.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span> <span class="dlg-action">→ <code>mw_q_load</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a></li><li><a href="#r3">→ reply #3</a></li><li><a href="#r4">→ reply #4</a></li><li><a href="#r5">→ reply #5</a></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>mw_q_load</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a></li><li><a href="#r7">→ reply #7</a></li><li><a href="#r8">→ reply #8</a></li><li><a href="#r9">→ reply #9</a></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span> <span class="dlg-action">→ <code>mw_q_load</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a></li><li><a href="#r11">→ reply #11</a></li><li><a href="#r12">→ reply #12</a></li><li><a href="#r13">→ reply #13</a></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>mw_q_load</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a></li><li><a href="#r15">→ reply #15</a></li><li><a href="#r16">→ reply #16</a></li><li><a href="#r17">→ reply #17</a></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>mw_q_load</code></span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(7005, ...) called in: mw_quiz_inc">&lt;CUSTOM7005&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span>
+
+<span class="custom-token" title="SetCustomToken(7000, ...) called in: mw_quiz_inc">&lt;CUSTOM7000&gt;<sup class="token-setters">[<a href="../scripts/mw_quiz_inc.html">mw_quiz_inc</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r18">→ reply #18</a></li><li><a href="#r19">→ reply #19</a></li><li><a href="#r20">→ reply #20</a></li><li><a href="#r21">→ reply #21</a></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>mw_q_unlock</code></span></div><div class="dlg-text">You walk the path. Follow your bliss — and when you dream, I will be your companion at the threshold.</div><ul class="dlg-links"><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“Thank you.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">You have not yet heard the call. Listen. The world is full of calls.</div><ul class="dlg-links"><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“I will return.”</span></li></ul></div>
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Then walk on.</div></div>
-<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">You have already heard the call and answered it, &lt;FullName&gt;. Your bliss is already leading you forward. The threshold is behind you — walk on.</div><ul class="dlg-links"><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“Thank you.”</span></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">You have already heard the call and answered it, &lt;FullName&gt;. Your bliss is already leading you forward. The threshold is behind you — walk on.</div><ul class="dlg-links"><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“Thank you.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
-<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>mw_cam_reset</code></span></div><div class="dlg-text">Ask. I will answer.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“What is the first stage of any hero&#x27;s tale?”</span></li></ul></div>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>mw_q_start</code></span></div><div class="dlg-text">Ask. I will answer.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Not today.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Then walk on.”</span></li></ul></div>
-<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Victory.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“What is the role of the threshold guardian?”</span></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span></div><div class="dlg-text">The Call to Adventure.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“What is the role of the threshold guardian?”</span></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Death.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“What is the role of the threshold guardian?”</span></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">To stop you forever.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Why must the hero descend?”</span></li></ul></div>
-<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span></div><div class="dlg-text">To test whether you are worthy of crossing.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Why must the hero descend?”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">To kill the unworthy.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Why must the hero descend?”</span></li></ul></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">To gain treasure.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“What is bliss?”</span></li></ul></div>
-<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span></div><div class="dlg-text">To die to what they were and be born to what they could be.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“What is bliss?”</span></li></ul></div>
-<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">To prove courage to onlookers.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“What is bliss?”</span></li></ul></div>
-<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">Pleasure.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“What does the hero bring back?”</span></li></ul></div>
-<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span></div><div class="dlg-text">Following the deepest urge in you, even when it costs.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“What does the hero bring back?”</span></li></ul></div>
-<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">Heaven after death.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“What does the hero bring back?”</span></li></ul></div>
-<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">Gold.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_cam_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></li></ul></div>
-<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>mw_cam_inc</code></span></div><div class="dlg-text">A boon for the village.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_cam_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></li></ul></div>
-<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">Conquest.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_cam_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></li></ul></div>
-<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">Thank you.</div></div>
-<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">I will return.</div></div>
-<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">Thank you.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>mw_q_a1</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>mw_q_a2</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>mw_q_a3</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>mw_q_a4</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>mw_q_a1</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>mw_q_a2</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>mw_q_a3</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span> <span class="dlg-action">→ <code>mw_q_a4</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span> <span class="dlg-action">→ <code>mw_q_a1</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>mw_q_a2</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>mw_q_a3</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a></li></ul></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>mw_q_a4</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>mw_q_a1</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a></li></ul></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>mw_q_a2</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a></li></ul></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>mw_q_a3</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a></li></ul></div>
+<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>mw_q_a4</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a></li></ul></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>mw_q_a1</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7001, ...) — no setter found in static analysis">&lt;CUSTOM7001&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_q_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></li></ul></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>mw_q_a2</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7002, ...) — no setter found in static analysis">&lt;CUSTOM7002&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_q_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></li></ul></div>
+<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>mw_q_a3</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7003, ...) — no setter found in static analysis">&lt;CUSTOM7003&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_q_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></li></ul></div>
+<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span> <span class="dlg-action">→ <code>mw_q_a4</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(7004, ...) — no setter found in static analysis">&lt;CUSTOM7004&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“You walk the path. Follow your bliss — and when you dream, I will be your compan…”</span> <small class="muted">(if <code>mw_q_pass</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“You have not yet heard the call. Listen. The world is full of calls.”</span></li></ul></div>
+<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">Thank you.</div></div>
+<div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span></div><div class="dlg-text">I will return.</div></div>
+<div class="dlg-node reply" id="r24"><div class="dlg-head"><span class="dlg-id">reply #24</span></div><div class="dlg-text">Thank you.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>
