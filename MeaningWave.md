@@ -130,186 +130,190 @@ the unlock flags set in `mw_unlock_inc.nss`. See the Hall of Legends area and th
 
 ## Quiz question banks (answer key)
 
-**This is the internal answer key.** The banks live in `unpacked/mw_quiz_data.nss`;
-`tests/check_mw_quiz.py` gates that this section stays in sync (20 rows per guide). Each
-run draws **5 of these 20 at random** and shuffles the four options, so the correct answer
-is never in a fixed slot. The bold answer is correct; the rest are distractors. The
-`[guide NN]` tag is the bank index (`case NN:`), not the display order.
+**This is the internal answer key.** Each run draws **5 of these 20 at random** and shuffles
+the four options, so the correct answer is never in a fixed slot. The **bold** answer is
+correct; the rest are distractors. The `[guide NN]` tag is the bank index used when the
+questions are wired into `unpacked/mw_quiz_data.nss`. Every question is spoken by the guide,
+so the phrasing is first-person and tests the figure's core teachings (not their biography).
+
+> **Revision status.** This bank has been revised for wording and distractor quality and is
+> **pending review**. Once approved it will be ported into `mw_quiz_data.nss` and the in-game
+> conversations; until then the live `.nss` still holds the previous questions.
 
 ### Jocko Willink — `MW_JocRow`
 
-_Drawn from: *Extreme Ownership*, Jocko Podcast, *Discipline Equals Freedom*._
+_Tested on: extreme ownership, discipline, and the laws of combat leadership._
 
-- **[jocko 00]** Complete the maxim: 'Discipline equals ___.' → **Freedom.** _(distractors: Misery. · Obedience. · Comfort.)_
-- **[jocko 01]** Whose fault is it when the mission fails? → **Mine. Extreme ownership.** _(distractors: The team's. · Circumstance. · The enemy's.)_
-- **[jocko 02]** Jocko gets bad news. What single word does he answer with? → **Good.** _(distractors: Why me? · Retreat. · Unfair.)_
-- **[jocko 03]** What does Jocko recommend doing the moment the alarm sounds? → **Get up immediately, no snooze.** _(distractors: Snooze once. · Sleep until rested. · Check your phone.)_
-- **[jocko 04]** You do not feel like doing the work. What do you do? → **Do it anyway; the wanting follows the doing.** _(distractors: Wait to feel ready. · Find an easier path. · Rest first.)_
-- **[jocko 05]** In Extreme Ownership, who is ultimately responsible for a team's performance? → **The leader.** _(distractors: The lowest performer. · Higher command. · No one.)_
-- **[jocko 06]** What does Jocko mean by 'Default: Aggressive'? → **Lean into problems and act decisively.** _(distractors: Attack every person you meet. · Never plan ahead. · Always retreat to safety.)_
-- **[jocko 07]** What is the 'dichotomy of leadership'? → **Balancing opposing qualities, like leading and following.** _(distractors: Choosing chaos over order. · Ranking soldiers by strength. · Never compromising.)_
-- **[jocko 08]** The combat principle 'Cover and Move' means what? → **Teams support each other toward the goal.** _(distractors: Hide and never advance. · Every man for himself. · Abandon the wounded.)_
-- **[jocko 09]** What does Jocko say about a plan's complexity? → **Keep it simple so everyone can execute under stress.** _(distractors: Make it as detailed as possible. · Plans are useless. · Only the leader needs the plan.)_
-- **[jocko 10]** 'Prioritize and Execute' tells a leader to do what? → **Handle the highest-priority problem first, then the next.** _(distractors: Do everything at once. · Delegate everything. · Wait for orders.)_
-- **[jocko 11]** What is the relationship between discipline and freedom, per Jocko? → **Discipline creates freedom.** _(distractors: Discipline destroys freedom. · Freedom needs no discipline. · They are unrelated.)_
-- **[jocko 12]** What is the title of Jocko's first book, co-written with Leif Babin? → **Extreme Ownership.** _(distractors: The Way of the SEAL. · Discipline Equals Freedom. · Can't Hurt Me.)_
-- **[jocko 13]** In which branch of the U.S. military did Jocko serve? → **The Navy, in the SEAL Teams.** _(distractors: The Army. · The Marines. · The Air Force.)_
-- **[jocko 14]** When a subordinate makes a mistake, extreme ownership says the leader first asks what? → **How did I fail to lead them?** _(distractors: Who do I blame? · How do I punish them? · Why are they weak?)_
-- **[jocko 15]** What does Jocko say about excuses? → **Own the outcome; there are no excuses.** _(distractors: A good excuse ends the matter. · Excuses protect the team. · Blame the circumstance.)_
-- **[jocko 16]** The disciplined mind treats a hard task as what? → **An opportunity to get better.** _(distractors: A punishment to avoid. · Someone else's job. · A reason to quit.)_
-- **[jocko 17]** What does Jocko say a leader must do to see the whole battlefield? → **Detach, step back, and assess.** _(distractors: Charge in blindly. · Follow the crowd. · Wait to be told.)_
-- **[jocko 18]** Extreme ownership points blame in which direction first? → **Inward, toward yourself.** _(distractors: Downward, to subordinates. · Outward, to circumstance. · Upward only.)_
-- **[jocko 19]** What is Jocko's counsel when you feel overwhelmed by problems? → **Prioritize, then execute one at a time.** _(distractors: Freeze and wait. · Quit the mission. · Do them all at once.)_
+- **[jocko 00]** Complete my maxim: "Discipline equals ___." → **Freedom.** _(distractors: Misery. · Comfort. · Obedience.)_
+- **[jocko 01]** When the mission fails, whose fault is it? → **Mine.** _(distractors: The team's. · The enemy's. · Command's.)_
+- **[jocko 02]** When I get bad news, what single word do I say? → **"Good."** _(distractors: "Why me?" · "Retreat." · "Unfair.")_
+- **[jocko 03]** The alarm goes off before dawn. What do I do? → **Get up. Now.** _(distractors: Snooze once. · Sleep in. · Wait for sunrise.)_
+- **[jocko 04]** I do not feel like doing the work. What then? → **Do it anyway.** _(distractors: Wait to feel ready. · Rest first. · Find an easier way.)_
+- **[jocko 05]** Who owns a team's performance? → **The leader.** _(distractors: The weakest link. · Higher command. · Plain luck.)_
+- **[jocko 06]** What does "Default: Aggressive" mean? → **Attack the problem before it attacks you.** _(distractors: Wait for perfect conditions. · Let others move first. · Hold the line and defend.)_
+- **[jocko 07]** The dichotomy of leadership means balancing traits. Which pairing is it? → **Lead, but be ready to follow.** _(distractors: Command, and never yield. · Plan, but never adapt. · Speak, but never listen.)_
+- **[jocko 08]** What does "Cover and Move" demand? → **Teams support each other toward the goal.** _(distractors: Each fighter fends for himself. · Hold your ground at all costs. · Advance alone and fast.)_
+- **[jocko 09]** How complex should a plan be? → **Simple enough for anyone to execute.** _(distractors: As detailed as it can be. · Known to the leader alone. · Loose to the point of vague.)_
+- **[jocko 10]** Many problems hit at once. What do I do? → **Prioritize, then execute.** _(distractors: Tackle them all at once. · Wait for new orders. · Freeze until it clears.)_
+- **[jocko 11]** How do discipline and freedom relate? → **Discipline creates freedom.** _(distractors: Discipline kills freedom. · Freedom needs no discipline. · They never meet.)_
+- **[jocko 12]** What does "Decentralized Command" mean? → **Push decisions down to those closest to the fight.** _(distractors: Keep every choice at the top. · Let no one act without me. · Do away with all rank.)_
+- **[jocko 13]** In which branch did I serve? → **The Navy, with the SEAL Teams.** _(distractors: The Army, with the Green Berets. · The Marines, with Force Recon. · The Air Force, with the Pararescuemen.)_
+- **[jocko 14]** My man makes a mistake. What do I ask first? → **How did I fail to lead him?** _(distractors: Who is there to blame? · How should I punish him? · Why is he so weak?)_
+- **[jocko 15]** What place do excuses have? → **None. Own the outcome.** _(distractors: A good one ends it. · They shield the team. · They explain the loss.)_
+- **[jocko 16]** How should I treat a hard task? → **As a chance to get better.** _(distractors: As a punishment to dodge. · As someone else's job. · As a reason to quit.)_
+- **[jocko 17]** Amid chaos, how do I see clearly? → **Detach and assess the whole.** _(distractors: Charge straight in. · Follow the crowd. · Wait to be told.)_
+- **[jocko 18]** Where does ownership point first? → **Inward, at myself.** _(distractors: Downward, at my team. · Outward, at bad luck. · Upward, at command.)_
+- **[jocko 19]** You feel overwhelmed. What saves you? → **One priority at a time.** _(distractors: Doing it all at once. · Standing dead still. · Simply walking away.)_
 
 ### Jordan Peterson — `MW_PetRow`
 
-_Drawn from: *12 Rules for Life*, *Maps of Meaning*._
+_Tested on: responsibility, hierarchy, meaning, and the order-chaos balance._
 
-- **[peterson 00]** What is Rule 1 of 12 Rules for Life? → **Stand up straight with your shoulders back.** _(distractors: Tell the truth. · Set your house in order. · Pet a cat.)_
-- **[peterson 01]** What is responsibility, in Peterson's view? → **The path to meaning, freely chosen.** _(distractors: A burden imposed by tyrants. · A trick to enslave the strong. · An illusion.)_
-- **[peterson 02]** Rule 4 says compare yourself to whom? → **Who you were yesterday, not who someone else is today.** _(distractors: The most successful person you know. · No one at all. · Your parents.)_
-- **[peterson 03]** What 'dragon' must the individual confront? → **The chaos within oneself.** _(distractors: The taxman. · A literal beast. · Your neighbour.)_
-- **[peterson 04]** Rule 6 says do what before criticising the world? → **Set your house in perfect order.** _(distractors: Overthrow the government. · Read more books. · Blame your parents.)_
-- **[peterson 05]** Rule 8 concerns what? → **Telling the truth, or at least not lying.** _(distractors: Standing up straight. · Petting cats. · Cleaning your room.)_
-- **[peterson 06]** What does Peterson say about hierarchies of competence? → **They are ancient, not merely social constructs.** _(distractors: They are always corrupt and must be destroyed. · Lobsters invented them. · They should be ignored.)_
-- **[peterson 07]** Rule 7 tells you to pursue what? → **What is meaningful, not what is expedient.** _(distractors: What is easy. · What others expect. · Wealth above all.)_
-- **[peterson 08]** Peterson cites which animal to argue hierarchy is deep in biology? → **The lobster.** _(distractors: The wolf. · The chimpanzee. · The eagle.)_
-- **[peterson 09]** What is the title of Peterson's dense first book on myth and meaning? → **Maps of Meaning.** _(distractors: 12 Rules for Life. · Beyond Order. · The Gulag Archipelago.)_
-- **[peterson 10]** Rule 2 says to treat yourself like whom? → **Someone you are responsible for helping.** _(distractors: A worthless failure. · A king above others. · A stranger.)_
-- **[peterson 11]** Where is meaning found, for Peterson? → **At the border between order and chaos.** _(distractors: In pure order. · In pure chaos. · In wealth.)_
-- **[peterson 12]** Rule 9 advises you to assume the person you're listening to might what? → **Know something you don't.** _(distractors: Be lying to you. · Be beneath you. · Waste your time.)_
-- **[peterson 13]** Whose account of the Gulag shaped Peterson's warnings about ideology? → **Aleksandr Solzhenitsyn.** _(distractors: Karl Marx. · Friedrich Nietzsche. · Sigmund Freud.)_
-- **[peterson 14]** Rule 10 is about being precise in what? → **Your speech.** _(distractors: Your diet. · Your finances. · Your posture.)_
-- **[peterson 15]** Peterson says the antidote to chaos begins with what small act? → **Setting your own life, and room, in order.** _(distractors: Winning an argument. · Quitting your job. · Blaming society.)_
-- **[peterson 16]** What does Peterson mean by 'the tragedy of Being'? → **Suffering is inherent, yet can be borne with meaning.** _(distractors: Life is meaningless. · Suffering can be eliminated. · Only the weak suffer.)_
-- **[peterson 17]** Rule 3 advises making friends with people who do what? → **Want the best for you.** _(distractors: Flatter you constantly. · Envy your success. · Ask nothing of you.)_
-- **[peterson 18]** Peterson frames the ideal as balancing which two forces? → **Order and chaos.** _(distractors: Good and evil spirits. · Wealth and poverty. · Past and future.)_
-- **[peterson 19]** 'Compare yourself to who you were yesterday' guards against what? → **Envy and unfair comparison to others.** _(distractors: Ambition of any kind. · Self-improvement. · Telling the truth.)_
+- **[peterson 00]** How should you carry yourself in the world? → **Stand up straight, shoulders back.** _(distractors: Shrink back, stay unseen. · Slouch; it draws no envy. · Bow to whoever is loudest.)_
+- **[peterson 01]** What is responsibility, truly? → **The path to meaning, freely chosen.** _(distractors: A burden tyrants impose. · A trick to enslave the strong. · A weight best set down.)_
+- **[peterson 02]** Whom should you measure yourself against? → **Who you were yesterday.** _(distractors: Whoever is winning today. · No one at all. · Your own parents.)_
+- **[peterson 03]** What dragon must you face? → **The chaos within yourself.** _(distractors: The taxman at the door. · A beast in the wild. · Your envious neighbour.)_
+- **[peterson 04]** Before you criticise the world, what must you do? → **Set your own house in order.** _(distractors: Tear down the state. · Read a few more books. · Blame your parents.)_
+- **[peterson 05]** What must you do, even when it costs you? → **Tell the truth.** _(distractors: Win the argument. · Please the crowd. · Say what is expected.)_
+- **[peterson 06]** What is a hierarchy of competence? → **An ancient order, not a mere invention.** _(distractors: Always corrupt, to be torn down. · A modern trick of the strong. · A thing best ignored.)_
+- **[peterson 07]** You should pursue what? → **What is meaningful, not expedient.** _(distractors: Whatever is easiest. · Whatever others expect. · Wealth above all else.)_
+- **[peterson 08]** I point to which creature to show hierarchy runs deep in nature? → **The lobster.** _(distractors: The wolf. · The chimpanzee. · The eagle.)_
+- **[peterson 09]** What is the antidote to resentment? → **Aim up and take responsibility.** _(distractors: Blame the world's unfairness. · Demand what you are owed. · Withdraw and expect nothing.)_
+- **[peterson 10]** How should you treat yourself? → **As someone you must help.** _(distractors: As a worthless failure. · As a king above others. · As a passing stranger.)_
+- **[peterson 11]** Where is meaning found? → **On the border of order and chaos.** _(distractors: In perfect order alone. · In pure chaos alone. · In wealth alone.)_
+- **[peterson 12]** When you listen to someone, what should you assume? → **They might know something you don't.** _(distractors: They are surely wrong. · They are beneath you. · They waste your time.)_
+- **[peterson 13]** What befalls a person who abandons truth? → **He descends into his own hell.** _(distractors: He finally finds peace. · He gains lasting power. · Nothing changes at all.)_
+- **[peterson 14]** In what must you be precise? → **Your speech.** _(distractors: Your diet. · Your finances. · Your posture.)_
+- **[peterson 15]** Where does order begin? → **With the small things you can fix now.** _(distractors: With winning an argument. · With quitting your job. · With blaming society.)_
+- **[peterson 16]** What is the tragedy of Being? → **Suffering is woven in, yet can be borne.** _(distractors: Life is simply meaningless. · Suffering can be erased. · Only the weak suffer.)_
+- **[peterson 17]** What kind of friends should you make? → **Those who want the best for you.** _(distractors: Those who flatter you always. · Those who envy your wins. · Those who ask nothing of you.)_
+- **[peterson 18]** What two forces must you balance? → **Order and chaos.** _(distractors: Good and evil. · Rich and poor. · Past and future.)_
+- **[peterson 19]** Why measure yourself only against your past self? → **To escape envy and false comparison.** _(distractors: To crush all ambition. · To avoid improving. · To justify your pride.)_
 
 ### Alan Watts — `MW_WatRow`
 
-_Drawn from: *The Book*, *The Way of Zen*, *The Wisdom of Insecurity*._
+_Tested on: ego, nonduality, flow, and the universe at play._
 
-- **[watts 00]** Who is doing the experiencing, according to Watts? → **There is no separate experiencer apart from the experience.** _(distractors: A soul sealed in the skull. · A self standing outside the world. · No one at all.)_
-- **[watts 01]** In The Book, what is the taboo Watts says we are never told? → **That you are the whole universe, not a separate ego.** _(distractors: That death is final. · That money is evil. · That desire is sin.)_
-- **[watts 02]** What is the universe, in Watts's playful metaphor? → **A game of hide-and-seek played by what we are.** _(distractors: A machine of dead matter. · A moral test set by God. · A meaningless accident.)_
-- **[watts 03]** Why act at all, if the goal is incidental? → **Because the doing is the play, like music or dance.** _(distractors: To defeat others. · To earn salvation. · To escape the body.)_
-- **[watts 04]** Watts describes the self as more like which part of speech? → **A verb, not a noun.** _(distractors: A noun. · An adjective. · A pronoun only.)_
-- **[watts 05]** How do you truly let go, per Watts? → **By yielding gracefully, not gripping harder.** _(distractors: By renouncing the body. · By force of will. · By seizing control.)_
-- **[watts 06]** The Wisdom of Insecurity argues security is found where? → **In accepting impermanence, not resisting it.** _(distractors: In wealth and safety. · In rigid belief. · In controlling the future.)_
-- **[watts 07]** Which Eastern traditions did Watts popularise in the West? → **Zen Buddhism and Taoism.** _(distractors: Sunni Islam and Sufism. · Calvinism. · Jainism only.)_
-- **[watts 08]** The Taoist idea of 'wu wei' means what? → **Effortless action, going with the grain of things.** _(distractors: Constant striving. · Total inaction and sloth. · Aggressive conquest.)_
-- **[watts 09]** Watts says the ego is best understood as what? → **A useful illusion, a social convention.** _(distractors: Your eternal true soul. · A demon to be exorcised. · The seat of reason only.)_
-- **[watts 10]** Chasing pleasure directly, Watts warns, tends to do what? → **Destroy the very pleasure sought.** _(distractors: Guarantee happiness. · Please the gods. · Build character.)_
-- **[watts 11]** What did Watts call the belief that we are skin-encapsulated egos? → **An illusion of separateness.** _(distractors: The highest truth. · Scientific fact. · Divine law.)_
-- **[watts 12]** In Zen, 'satori' refers to what? → **A sudden flash of awakening.** _(distractors: A long punishment. · A written scripture. · A meditation posture.)_
-- **[watts 13]** Watts compares life to music to make what point? → **The point is the playing, not reaching the end.** _(distractors: Only the finale matters. · Life should be efficient. · Silence is superior.)_
-- **[watts 14]** The symbol of yin and yang expresses what? → **Opposites are interdependent, not at war.** _(distractors: Good must destroy evil. · Matter is an illusion. · Order defeats chaos.)_
-- **[watts 15]** What was Watts trained as before turning to Zen? → **An Anglican, then Episcopal, priest.** _(distractors: A physicist. · A soldier. · A lawyer.)_
-- **[watts 16]** 'You are the universe experiencing itself' expresses which idea? → **Nonduality; self and cosmos are not separate.** _(distractors: Solipsism, only you exist. · Materialism. · Predestination.)_
-- **[watts 17]** What does Watts say about the present moment? → **It is the only place life actually happens.** _(distractors: It is an illusion. · It must be sacrificed for the future. · It cannot be experienced.)_
-- **[watts 18]** In the Tao, how does the sage act toward nature? → **Flows with it rather than forcing against it.** _(distractors: Conquers and tames it. · Ignores it entirely. · Fears it.)_
-- **[watts 19]** Watts's overall message about the cosmos is best described as what? → **Playful and interconnected, not grim and separate.** _(distractors: Cold and mechanical. · A courtroom of judgment. · An accident to endure.)_
+- **[watts 00]** Who is doing the experiencing? → **No separate self apart from the experience.** _(distractors: A soul locked in the skull. · A self outside the world. · No one at all.)_
+- **[watts 01]** What is the great secret you were never told? → **You are the whole universe, not a separate ego.** _(distractors: That death ends everything. · That desire is sinful. · That the world is unreal.)_
+- **[watts 02]** What is the universe, really? → **A cosmic game of hide-and-seek.** _(distractors: A machine of dead matter. · A test of moral worth. · A meaningless accident.)_
+- **[watts 03]** Why act at all, if the goal is incidental? → **Because the doing is the play.** _(distractors: Because winning is all. · Because the gods demand it. · Because idleness is sin.)_
+- **[watts 04]** The self is more like which part of speech? → **A verb, not a noun.** _(distractors: A noun, fixed and solid. · An adjective, describing. · A lonely pronoun.)_
+- **[watts 05]** How do you truly let go? → **By yielding, not gripping harder.** _(distractors: By sheer force of will. · By renouncing the body. · By seizing full control.)_
+- **[watts 06]** Where is real security found? → **In accepting that all things pass.** _(distractors: In wealth and safety. · In unshakeable belief. · In ruling tomorrow.)_
+- **[watts 07]** Which two ways of seeing do I draw from most? → **Zen and the Tao.** _(distractors: Stoicism and Zen. · Sufism and the Tao. · Nihilism and Zen.)_
+- **[watts 08]** What is "wu wei"? → **Effortless action, with the grain of things.** _(distractors: Ceaseless, grinding effort. · Idle, drowsy laziness. · Forceful conquest.)_
+- **[watts 09]** What is the ego, really? → **A useful illusion, a social mask.** _(distractors: Your eternal true soul. · A demon to cast out. · The seat of all reason.)_
+- **[watts 10]** Chase pleasure head-on, and what happens? → **It slips through your fingers.** _(distractors: It is surely captured. · The gods reward you. · Your character is forged.)_
+- **[watts 11]** Believing you are a lone ego in a bag of skin is what? → **A hallucination of separateness.** _(distractors: The highest of truths. · A well-proven fact. · A sacred, holy law.)_
+- **[watts 12]** What is "satori"? → **A sudden flash of awakening.** _(distractors: A long, slow penance. · A sacred, written scripture. · A seated meditation posture.)_
+- **[watts 13]** Life is like music. Why? → **The point is the playing, not the end.** _(distractors: Only the last note matters. · It should be rushed through. · Silence is always better.)_
+- **[watts 14]** What do yin and yang teach? → **Opposites need each other.** _(distractors: Good must destroy evil. · Matter is unreal. · Order beats chaos.)_
+- **[watts 15]** What are you, at the deepest level? → **The universe knowing itself.** _(distractors: A stranger passing through. · A soul awaiting judgment. · A machine made of meat.)_
+- **[watts 16]** "You are the universe experiencing itself" points to what? → **Nonduality: self and cosmos are one.** _(distractors: Solipsism: only you exist. · Materialism: all is matter. · Fatalism: all is fixed.)_
+- **[watts 17]** What of the present moment? → **It is the only place life happens.** _(distractors: It is a mere illusion. · It is spent for later. · It cannot be felt.)_
+- **[watts 18]** How does the sage meet nature? → **Flowing with it, not forcing it.** _(distractors: Conquering and taming it. · Ignoring it entirely. · Fearing its every turn.)_
+- **[watts 19]** What is the cosmos, in a word? → **Playful and all connected.** _(distractors: Cold and mechanical. · A courtroom of judgment. · An accident to endure.)_
 
 ### Joseph Campbell — `MW_CamRow`
 
-_Drawn from: *The Hero with a Thousand Faces*, *The Power of Myth*._
+_Tested on: the monomyth: departure, initiation, and the return._
 
-- **[campbell 00]** What is the first stage of the hero's journey? → **The Call to Adventure.** _(distractors: The Return. · The Apotheosis. · The Reward.)_
-- **[campbell 01]** What is the role of the threshold guardian? → **To test whether the hero is worthy to cross.** _(distractors: To kill all who approach. · To guide the hero home. · To grant wishes.)_
-- **[campbell 02]** Why must the hero descend into the abyss? → **To die to the old self and be reborn.** _(distractors: To collect gold. · To impress onlookers. · To avoid danger.)_
-- **[campbell 03]** What famous advice did Campbell give for living? → **Follow your bliss.** _(distractors: Obey the law. · Seek wealth. · Trust no one.)_
-- **[campbell 04]** What does the hero bring back at the journey's end? → **A boon to benefit the community.** _(distractors: Conquest and spoils. · Nothing. · Personal fame only.)_
-- **[campbell 05]** Campbell's word for the single myth underlying all cultures is what? → **The monomyth.** _(distractors: The parable. · The allegory. · The epic.)_
-- **[campbell 06]** What is the title of Campbell's landmark 1949 book? → **The Hero with a Thousand Faces.** _(distractors: The Golden Bough. · The Power of Myth. · The Masks of God.)_
-- **[campbell 07]** Which filmmaker credited Campbell as an influence on Star Wars? → **George Lucas.** _(distractors: Steven Spielberg. · Stanley Kubrick. · Ridley Scott.)_
-- **[campbell 08]** The stage of 'supernatural aid' often involves what figure? → **A mentor or wise helper.** _(distractors: A tax collector. · A rival king. · A merchant.)_
-- **[campbell 09]** 'Refusal of the Call' describes what? → **The hero's initial hesitation to begin.** _(distractors: The hero's death. · The final victory. · The mentor's betrayal.)_
-- **[campbell 10]** Campbell's three broad phases are Departure, Initiation, and what? → **Return.** _(distractors: Conquest. · Judgment. · Rest.)_
-- **[campbell 11]** The 'belly of the whale' symbolises what? → **The hero passing into transformation.** _(distractors: A literal sea voyage. · The reward. · The ordinary world.)_
-- **[campbell 12]** In Campbell's view, myths function to do what? → **Give life meaning and orient the psyche.** _(distractors: Record accurate history. · Entertain children only. · Predict the future.)_
-- **[campbell 13]** Who was Campbell's collaborator in the PBS series The Power of Myth? → **Bill Moyers.** _(distractors: Carl Sagan. · Joseph Pulitzer. · Alan Watts.)_
-- **[campbell 14]** 'Meeting with the goddess' and 'atonement with the father' belong to which phase? → **Initiation.** _(distractors: Departure. · Return. · Refusal.)_
-- **[campbell 15]** Campbell drew heavily on which psychologist's idea of archetypes? → **Carl Jung.** _(distractors: Sigmund Freud. · B.F. Skinner. · William James.)_
-- **[campbell 16]** What does 'follow your bliss' actually urge? → **Pursue your deepest calling even at a cost.** _(distractors: Chase easy pleasure. · Avoid all risk. · Obey tradition.)_
-- **[campbell 17]** The hero's journey ultimately serves whom? → **The community, through the boon returned.** _(distractors: Only the hero. · The gods alone. · No one.)_
-- **[campbell 18]** The 'ultimate boon' is best described as what? → **The goal achieved that can renew the world.** _(distractors: A pile of treasure. · A weapon. · A throne.)_
-- **[campbell 19]** Campbell taught comparative mythology for decades at which college? → **Sarah Lawrence College.** _(distractors: Harvard. · Oxford. · Yale.)_
+- **[campbell 00]** What begins every hero's journey? → **The Call to Adventure.** _(distractors: The final Return. · The great Reward. · The hero's Death.)_
+- **[campbell 01]** What does the threshold guardian do? → **Tests whether you are worthy to cross.** _(distractors: Bars the way forever. · Guides you safely home. · Grants your every wish.)_
+- **[campbell 02]** Why must the hero descend into the dark? → **To die to the old self and be reborn.** _(distractors: To gather up treasure. · To impress the crowd. · To flee from danger.)_
+- **[campbell 03]** What single counsel do I give for a life? → **Follow your bliss.** _(distractors: Obey every law. · Chase after wealth. · Trust no one.)_
+- **[campbell 04]** What do I call the one myth beneath all cultures? → **The monomyth.** _(distractors: The parable. · The allegory. · The epic.)_
+- **[campbell 05]** The hero's journey is ultimately a figure for what? → **Inner transformation.** _(distractors: Getting rich. · Winning a war. · Escaping the world.)_
+- **[campbell 06]** To cross the first threshold means what? → **Leaving the ordinary world behind.** _(distractors: Reaching the final goal. · Slaying the last foe. · Returning home again.)_
+- **[campbell 07]** The one who gives supernatural aid is usually what? → **A mentor or wise guide.** _(distractors: A grasping tax collector. · A jealous rival king. · A passing merchant.)_
+- **[campbell 08]** What is the "Refusal of the Call"? → **The hero's first hesitation.** _(distractors: The hero's lonely death. · The final, great triumph. · The mentor's betrayal.)_
+- **[campbell 09]** The three phases of the hero's journey are Departure, Initiation, and what? → **Return.** _(distractors: Conquest. · Judgment. · Rest.)_
+- **[campbell 10]** What does the "belly of the whale" mark? → **The passage into transformation.** _(distractors: A literal sea voyage. · The final reward. · The ordinary world.)_
+- **[campbell 11]** What do myths do for us? → **Give life meaning and shape the soul.** _(distractors: Record exact history. · Amuse small children. · Foretell the future.)_
+- **[campbell 12]** What ordeal awaits at the darkest point? → **The supreme trial.** _(distractors: A gentle rest. · An easy victory. · A quiet market.)_
+- **[campbell 13]** "Meeting the goddess" and "atonement with the father" belong to which phase? → **Initiation.** _(distractors: Departure. · Return. · Refusal.)_
+- **[campbell 14]** Where does the hero's road begin? → **In the ordinary, everyday world.** _(distractors: In the land of the dead. · In a distant paradise. · On the final battlefield.)_
+- **[campbell 15]** What does "follow your bliss" truly mean? → **Pursue your deepest calling, whatever it costs.** _(distractors: Chase after easy comfort. · Avoid every risk. · Cling to old tradition.)_
+- **[campbell 16]** Whom does the hero's journey ultimately serve? → **The community he returns to.** _(distractors: Only the hero himself. · The distant gods alone. · No one at all.)_
+- **[campbell 17]** What is the "ultimate boon"? → **The prize that can renew the world.** _(distractors: A heap of gold. · A mighty weapon. · A golden throne.)_
+- **[campbell 18]** What befalls the hero who refuses to return? → **His gift is lost to the world.** _(distractors: He is richly rewarded. · He becomes a living god. · Nothing at all is lost.)_
+- **[campbell 19]** What does the hero carry home? → **A boon for his people.** _(distractors: The spoils of conquest. · Nothing at all. · Fame for himself.)_
 
 ### Terence McKenna — `MW_MckRow`
 
-_Drawn from: *Food of the Gods*, *The Archaic Revival*._
+_Tested on: culture, novelty, the Other, and direct experience._
 
-- **[mckenna 00]** Culture is best described by McKenna as what? → **Your operating system.** _(distractors: An adornment. · A prison to smash. · An illusion.)_
-- **[mckenna 01]** Complete McKenna's phrase: 'the felt presence of ___.' → **immediate experience.** _(distractors: ancient gods. · future novelty. · the timewave.)_
-- **[mckenna 02]** What is McKenna's 'timewave'? → **A fractal model of novelty increasing over time.** _(distractors: A strictly linear calendar. · A tidal chart. · A memory illusion.)_
-- **[mckenna 03]** How did McKenna describe 'the Other' met in visions? → **Closer to you than your own breath.** _(distractors: A distant stranger. · Purely nonexistent. · A hostile enemy.)_
-- **[mckenna 04]** McKenna described language as what kind of thing? → **An almost living organism that wants to be shared.** _(distractors: Mere communication. · A useless trick. · A prison only.)_
-- **[mckenna 05]** What is the thesis of McKenna's 'Stoned Ape' hypothesis? → **Psilocybin catalysed human cognitive evolution.** _(distractors: Apes never changed. · Fire alone made us human. · Language came from writing.)_
-- **[mckenna 06]** What is the title of McKenna's book on drugs and human history? → **Food of the Gods.** _(distractors: The Archaic Revival. · True Hallucinations. · The Doors of Perception.)_
-- **[mckenna 07]** McKenna urged a 'return' to what? → **The archaic, shamanic ways of direct experience.** _(distractors: Pure rationalism. · Industrial progress. · Strict tradition.)_
-- **[mckenna 08]** What did McKenna mean by 'novelty'? → **The increase of complexity and connection in the universe.** _(distractors: Boredom. · Random noise. · Simple repetition.)_
-- **[mckenna 09]** McKenna's brother and frequent collaborator was named what? → **Dennis McKenna.** _(distractors: Terence Jr. · Aldous. · Gordon.)_
-- **[mckenna 10]** McKenna urged us to trust what as a teacher? → **Nature and the plants.** _(distractors: Only governments. · Only machines. · No experience at all.)_
-- **[mckenna 11]** 'The syntactic prison' refers to what? → **Being trapped inside habitual language and thought.** _(distractors: An actual jail. · Grammar textbooks. · A computer program.)_
-- **[mckenna 12]** 'Boundary dissolution' describes what? → **The felt merging of self and world in deep states.** _(distractors: Building stronger walls. · A legal ruling. · Physical death.)_
-- **[mckenna 13]** What did McKenna claim about the imagination? → **It is a real ground of being to be explored.** _(distractors: It is worthless. · It is dangerous and must be suppressed. · It does not exist.)_
-- **[mckenna 14]** Which field did McKenna work in? → **The study of psychoactive plants and shamanism.** _(distractors: Nuclear physics. · Corporate law. · Marine biology.)_
-- **[mckenna 15]** McKenna saw history as accelerating toward what? → **A concrescence of novelty.** _(distractors: Total stasis. · Simple decay. · Endless repetition.)_
-- **[mckenna 16]** What was McKenna's stance toward blind belief? → **Reject dogma; value direct experience.** _(distractors: Accept all authority. · Believe nothing ever. · Follow one guru.)_
-- **[mckenna 17]** McKenna held that real insight often comes how? → **Through direct, sometimes psychedelic, experience.** _(distractors: Through obedience. · Through wealth. · Through avoidance.)_
-- **[mckenna 18]** McKenna saw the psychedelic experience primarily as what? → **A doorway to meaning and the imagination.** _(distractors: Mere entertainment. · A medical error. · A punishment.)_
-- **[mckenna 19]** McKenna's tone about the future was generally what? → **Hopeful about a coming shift in consciousness.** _(distractors: Nihilistic despair. · Total indifference. · Fear of all change.)_
+- **[mckenna 00]** What is culture, really? → **Your operating system.** _(distractors: A pretty ornament. · A prison to smash. · A passing fashion.)_
+- **[mckenna 01]** Complete my phrase: "the felt presence of ___." → **immediate experience.** _(distractors: the ancient gods. · endless novelty. · a distant memory.)_
+- **[mckenna 02]** What is the timewave? → **A fractal of rising novelty.** _(distractors: A straight, flat line. · A tide that repeats. · A trick of memory.)_
+- **[mckenna 03]** How near is "the Other"? → **Closer than your own breath.** _(distractors: A whole world away. · Nowhere at all. · An open enemy.)_
+- **[mckenna 04]** What is language, to me? → **A living thing that longs to be shared.** _(distractors: A dead tool we picked up. · A clever, empty trick. · A cage around the mind.)_
+- **[mckenna 05]** What sparked the leap in the human mind? → **Psilocybin in the primate diet.** _(distractors: Fire, and nothing more. · The birth of writing. · Pure blind luck.)_
+- **[mckenna 06]** What is the mushroom, to me? → **A teacher, not a drug.** _(distractors: A simple poison. · An idle toy. · A forbidden sin.)_
+- **[mckenna 07]** What "return" did I call for? → **A return to shamanic ways.** _(distractors: A march into pure reason. · A leap into industry. · A retreat into dogma.)_
+- **[mckenna 08]** What is "novelty"? → **Rising complexity and connection.** _(distractors: Deepening boredom. · Random static. · Dull repetition.)_
+- **[mckenna 09]** What waits at the end of time? → **An attractor drawing all novelty on.** _(distractors: A cold and final silence. · A wall of pure repetition. · Nothing worth the name.)_
+- **[mckenna 10]** What is "boundary dissolution"? → **Self and world melting into one.** _(distractors: Walls built ever higher. · A court's final ruling. · The body's plain death.)_
+- **[mckenna 11]** What is the "syntactic prison"? → **Being trapped inside habitual language.** _(distractors: An actual stone cell. · A dry grammar lesson. · A line of computer code.)_
+- **[mckenna 12]** What is the imagination, to me? → **A real ground of being to explore.** _(distractors: A worthless daydream. · A danger to suppress. · A thing that isn't there.)_
+- **[mckenna 13]** What does the psychedelic doorway open? → **A path to meaning and mind.** _(distractors: A harmless daydream. · A simple medical error. · A well-earned punishment.)_
+- **[mckenna 14]** What should you trust above dogma? → **Your own direct experience.** _(distractors: The word of the state. · The loudest crowd. · A single chosen book.)_
+- **[mckenna 15]** Who are the truest teachers? → **The plants and the living world.** _(distractors: The state and its laws. · The market and its gold. · The machine and its code.)_
+- **[mckenna 16]** How should you treat any one guru? → **Follow none of them blindly.** _(distractors: Obey without a question. · Worship him as a god. · Fear him above all.)_
+- **[mckenna 17]** What did I feel about the future? → **A shift in consciousness is coming.** _(distractors: Only ruin lies ahead. · Nothing will ever change. · Best not to look at all.)_
+- **[mckenna 18]** What is a "heroic dose"? → **A big dose, taken in silent dark.** _(distractors: A tiny, cautious sip. · A daily, casual habit. · A dose shared at a party.)_
+- **[mckenna 19]** "Culture is not your friend" warns you to do what? → **Not let culture define you.** _(distractors: Obey culture in all things. · Destroy culture outright. · Pretend culture is absent.)_
 
 ### Carl Jung — `MW_JunRow`
 
-_Drawn from: shadow, individuation, persona, the collective unconscious._
+_Tested on: the shadow, individuation, persona, and the archetypes._
 
-- **[jung 00]** What is the shadow, in Jungian terms? → **The disowned parts of yourself, neither simply good nor evil.** _(distractors: The literal devil. · Pure evil to be destroyed. · Your reflection.)_
-- **[jung 01]** How does one become psychologically whole? → **By integrating the shadow, not denying it.** _(distractors: By denying the shadow. · By becoming perfectly pure. · By ignoring the unconscious.)_
-- **[jung 02]** What is individuation? → **Becoming the totality of who you truly are.** _(distractors: Selfishness. · Total solitude. · Conformity to society.)_
-- **[jung 03]** What lives in the collective unconscious? → **Inherited archetypes shared by all humanity.** _(distractors: Nothing of importance. · Only demons. · Personal memories only.)_
-- **[jung 04]** What is the persona? → **The social mask we wear; useful, but not our true self.** _(distractors: Our deepest true self. · A lie to be destroyed. · A mental illness.)_
-- **[jung 05]** Jung's term for universal, inherited images and patterns is what? → **Archetypes.** _(distractors: Complexes. · Reflexes. · Instincts only.)_
-- **[jung 06]** What does the 'anima' refer to in Jung's model? → **The inner feminine within a man's psyche.** _(distractors: An external spirit. · A dream symbol only. · A neurosis.)_
-- **[jung 07]** What did Jung call meaningful coincidence? → **Synchronicity.** _(distractors: Causality. · Projection. · Sublimation.)_
-- **[jung 08]** Jung broke from which former mentor over theory? → **Sigmund Freud.** _(distractors: Alfred Adler. · William James. · B.F. Skinner.)_
-- **[jung 09]** What is the 'Self', with a capital S, in Jung's thought? → **The unifying centre of the whole psyche.** _(distractors: The ego alone. · The body. · The persona.)_
-- **[jung 10]** What happens when the shadow is repressed and unowned? → **It is projected onto others and acted out.** _(distractors: It simply disappears. · It becomes the persona. · It strengthens the ego healthily.)_
-- **[jung 11]** What is the name of Jung's book of confrontations with his own unconscious? → **The Red Book (Liber Novus).** _(distractors: The Interpretation of Dreams. · Man and His Symbols. · The Ego and the Id.)_
-- **[jung 12]** Dreams, for Jung, primarily serve to do what? → **Compensate and communicate from the unconscious.** _(distractors: Predict the lottery. · Mean nothing at all. · Only replay the day.)_
-- **[jung 13]** The 'wise old man' and 'the great mother' are examples of what? → **Archetypes.** _(distractors: Personas. · Complexes. · Neuroses.)_
-- **[jung 14]** What is a 'complex' in Jungian psychology? → **An emotionally charged cluster of associations.** _(distractors: A building. · A rational argument. · A persona.)_
-- **[jung 15]** Jung believed the second half of life should focus on what? → **Meaning, individuation, and the inner world.** _(distractors: Accumulating wealth. · Social climbing. · Nothing in particular.)_
-- **[jung 16]** What does the 'animus' refer to? → **The inner masculine within a woman's psyche.** _(distractors: A group of enemies. · A dream demon. · The persona.)_
-- **[jung 17]** Jung saw religious symbols as what? → **Expressions of deep psychic realities.** _(distractors: Pure superstition to discard. · Literal history. · Meaningless.)_
-- **[jung 18]** Confronting the shadow typically feels how, at first? → **Uncomfortable, even shameful.** _(distractors: Effortless and pleasant. · Completely neutral. · Physically painful only.)_
-- **[jung 19]** The goal of Jungian analysis is best described as what? → **Integration of the psyche toward wholeness.** _(distractors: Elimination of all emotion. · Perfect happiness forever. · Erasing the unconscious.)_
+- **[jung 00]** What is the shadow? → **The disowned parts of yourself.** _(distractors: The literal devil. · Pure evil within. · Your mirror image.)_
+- **[jung 01]** How do you become whole? → **By integrating the shadow.** _(distractors: By denying the shadow. · By becoming all light. · By fleeing the mind.)_
+- **[jung 02]** What is individuation? → **Becoming all of who you are.** _(distractors: Mere selfishness. · Total solitude. · Blind conformity.)_
+- **[jung 03]** What fills the collective unconscious? → **Shared archetypes of all humankind.** _(distractors: Nothing of any worth. · Only private memories. · Demons, and nothing else.)_
+- **[jung 04]** What is the persona? → **The mask you wear for the world.** _(distractors: Your deepest true self. · A lie to be destroyed. · A kind of sickness.)_
+- **[jung 05]** What do I call the deep images shared by us all? → **Archetypes.** _(distractors: Complexes. · Reflexes. · Mere habits.)_
+- **[jung 06]** What is the "anima"? → **The inner feminine in a man.** _(distractors: An outside spirit. · A mere dream-image. · A passing illness.)_
+- **[jung 07]** What do I call a meaningful coincidence? → **Synchronicity.** _(distractors: Mere chance. · Cause and effect. · Plain projection.)_
+- **[jung 08]** What does it mean to hold the tension of opposites? → **Bear both sides until they unite.** _(distractors: Pick one and crush the other. · Deny any conflict exists. · Flee the discomfort entirely.)_
+- **[jung 09]** What is the "Self", with a capital S? → **The whole psyche's uniting centre.** _(distractors: The ego, and nothing more. · The body alone. · The outer mask.)_
+- **[jung 10]** What becomes of a shadow left unowned? → **It is cast onto others.** _(distractors: It simply melts away. · It turns into the mask. · It makes the ego strong.)_
+- **[jung 11]** The persona is useful, but what is its danger? → **Mistaking the mask for your true self.** _(distractors: Losing it in a crowd. · Wearing it too rarely. · Showing it to no one.)_
+- **[jung 12]** What do dreams do, in my view? → **Speak and balance from the unconscious.** _(distractors: Foretell the lottery. · Mean nothing at all. · Merely replay the day.)_
+- **[jung 13]** The "wise old man" and "great mother" are what? → **Archetypes.** _(distractors: Masks. · Complexes. · Illnesses.)_
+- **[jung 14]** What is a "complex"? → **A charged knot of feelings and ideas.** _(distractors: A tall stone building. · A cool, clear argument. · A social mask.)_
+- **[jung 15]** What should the second half of life turn toward? → **Meaning and the inner world.** _(distractors: Piling up wealth. · Climbing over others. · Nothing much at all.)_
+- **[jung 16]** What is the "animus"? → **The inner masculine in a woman.** _(distractors: A band of foes. · A mere dream-demon. · The outer mask.)_
+- **[jung 17]** How do I see religious symbols? → **As voices of deep psychic truth.** _(distractors: As mere superstition. · As plain, literal fact. · As empty nonsense.)_
+- **[jung 18]** How does facing your shadow feel at first? → **Uneasy, even shameful.** _(distractors: Easy and pleasant. · Wholly neutral. · Purely physical.)_
+- **[jung 19]** What is the aim of the whole work? → **Wholeness of the psyche.** _(distractors: An end to all feeling. · Endless happiness. · Erasing the depths.)_
 
 ### Marcus Aurelius — `MW_AurRow`
 
-_Drawn from: *Meditations*, Stoicism._
+_Tested on: the dichotomy of control, virtue, and memento mori._
 
-- **[aurelius 00]** What is truly in your power, per Aurelius? → **Your judgements, intentions, and reactions.** _(distractors: Everything you want. · Other people's actions. · The future.)_
-- **[aurelius 01]** Complete the Stoic maxim: 'The obstacle is ___.' → **the way.** _(distractors: to be avoided. · a punishment. · meaningless.)_
-- **[aurelius 02]** What does 'memento mori' mean? → **Remember that you will die.** _(distractors: Remember the dead. · Remember the dawn. · Remember to rest.)_
-- **[aurelius 03]** The soul, Aurelius writes, is dyed by what? → **The colour of its thoughts.** _(distractors: Its birth. · The body. · Fortune.)_
-- **[aurelius 04]** How should one begin each day, per Meditations? → **Expecting to meet the ungrateful and cruel, unharmed within.** _(distractors: Expecting only joy. · Expecting the gods to provide. · Expecting wealth.)_
-- **[aurelius 05]** Aurelius was emperor of which realm? → **Rome.** _(distractors: Greece. · Persia. · Egypt.)_
-- **[aurelius 06]** To which school of philosophy did Aurelius belong? → **Stoicism.** _(distractors: Epicureanism. · Cynicism. · Skepticism.)_
-- **[aurelius 07]** For whom was Meditations originally written? → **Himself, as private notes.** _(distractors: The Roman Senate. · His son. · The public.)_
-- **[aurelius 08]** The Stoics divide things into which two categories? → **What is up to us and what is not.** _(distractors: Good and evil people. · Rich and poor. · Body and gods.)_
-- **[aurelius 09]** What should we do about things outside our control, per the Stoics? → **Accept them calmly.** _(distractors: Rage against them. · Fear them. · Neglect all duty.)_
-- **[aurelius 10]** Aurelius often reminds himself that all things are what? → **Impermanent and soon forgotten.** _(distractors: Eternal. · Under his command. · Meaningless jokes.)_
-- **[aurelius 11]** What is the Stoic view of virtue? → **It is the only true good.** _(distractors: It is worthless. · It is one good among riches. · It is unattainable.)_
-- **[aurelius 12]** When wronged, Aurelius counsels what response? → **Return to reason; refuse to be harmed by another's fault.** _(distractors: Immediate revenge. · Despair. · Public complaint.)_
-- **[aurelius 13]** Complete the thought: 'The best revenge is ___.' → **to not be like your enemy.** _(distractors: swift retaliation. · to grow rich. · to forget nothing.)_
-- **[aurelius 14]** Aurelius reminds himself to act for what? → **The common good, the good of the whole.** _(distractors: His own glory. · Wealth. · Comfort.)_
-- **[aurelius 15]** The Stoic idea of 'amor fati' means what? → **Love of one's fate; embracing what happens.** _(distractors: Hatred of destiny. · Fear of death. · Love of money.)_
-- **[aurelius 16]** What does Aurelius say about complaining and blame? → **Waste no time on it; do the work before you.** _(distractors: Blame the gods. · Blame others freely. · Complaint is a virtue.)_
-- **[aurelius 17]** Reason, the 'ruling faculty', should govern what? → **Our impulses and reactions.** _(distractors: Only our finances. · Other people. · The weather.)_
-- **[aurelius 18]** Aurelius pictures the cosmos as what? → **An ordered, interconnected whole.** _(distractors: Random chaos. · A cruel joke. · A machine of despair.)_
-- **[aurelius 19]** The Stoic sage remains what amid fortune's changes? → **Tranquil and steadfast.** _(distractors: Anxious. · Greedy. · Vengeful.)_
+- **[aurelius 00]** What is truly in your power? → **Your judgements and reactions.** _(distractors: Every outcome you want. · Other people's deeds. · Whatever fate sends.)_
+- **[aurelius 01]** Complete the maxim: "The obstacle is ___." → **the way.** _(distractors: to be avoided. · a punishment. · an illusion.)_
+- **[aurelius 02]** What does "memento mori" mean? → **Remember that you will die.** _(distractors: Remember the honoured dead. · Remember the coming dawn. · Remember to take your rest.)_
+- **[aurelius 03]** By what is the soul dyed? → **The colour of its thoughts.** _(distractors: The luck of its birth. · The needs of the body. · The turns of fortune.)_
+- **[aurelius 04]** How should you begin each day? → **Braced to meet difficult people, unshaken.** _(distractors: Expecting only kindness. · Awaiting the gods' gifts. · Counting on good fortune.)_
+- **[aurelius 05]** Into which two kinds do I sort all things? → **What is up to us, and what is not.** _(distractors: The rich and the poor. · The living and the dead. · The near and the far.)_
+- **[aurelius 06]** What alone is truly good? → **A virtuous character.** _(distractors: Great wealth. · High honour. · A long life.)_
+- **[aurelius 07]** When wronged, how do you answer? → **Return to reason, not revenge.** _(distractors: Strike back at once. · Sink into despair. · Complain to all who hear.)_
+- **[aurelius 08]** Complete the thought: "The best revenge is ___." → **to be unlike your enemy.** _(distractors: to strike back fast. · to grow far richer. · to forget nothing.)_
+- **[aurelius 09]** What of things beyond your control? → **Accept them with calm.** _(distractors: Rage against them. · Live in fear of them. · Forsake all your duty.)_
+- **[aurelius 10]** What should you recall about all things? → **They pass and are soon forgotten.** _(distractors: They last forever. · They obey your will. · They mean nothing.)_
+- **[aurelius 11]** What does "amor fati" mean? → **Love of your own fate.** _(distractors: Hatred of destiny. · Fear of dying. · Love of gold.)_
+- **[aurelius 12]** What should you do instead of complaining? → **The work in front of you.** _(distractors: Blame the gods. · Blame other men. · Nurse the grievance.)_
+- **[aurelius 13]** What should reason, the ruling part, govern? → **Your impulses and reactions.** _(distractors: Only your money. · Other people. · The weather.)_
+- **[aurelius 14]** How do I picture the cosmos? → **One ordered, connected whole.** _(distractors: Blind, random chaos. · A cruel, empty joke. · A grinding machine.)_
+- **[aurelius 15]** How does the sage stand amid change? → **Tranquil and steadfast.** _(distractors: Anxious and grasping. · Bitter and vengeful. · Fearful and small.)_
+- **[aurelius 16]** For whose good should you act? → **The good of the whole.** _(distractors: Your own glory. · Your own purse. · Your own ease.)_
+- **[aurelius 17]** How should you regard death? → **As natural, nothing to fear.** _(distractors: As the worst of evils. · As a cruel injustice. · As never truly coming.)_
+- **[aurelius 18]** What, in truth, can harm you? → **Your own judgement of events.** _(distractors: The deeds of cruel men. · The turns of fortune. · The passing of time.)_
+- **[aurelius 19]** Where should your attention rest? → **On the task before you now.** _(distractors: On glories long past. · On fears of tomorrow. · On the crowd's applause.)_
 
 ## How the quiz engine works
 
