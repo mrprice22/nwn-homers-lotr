@@ -468,7 +468,13 @@ void PL_OnItemAcquired()
     // Source filter: ignore store purchases and PC-to-PC trades.
     object oFrom = GetModuleItemAcquiredFrom();
     if (GetIsObjectValid(oFrom) &&
-        (GetObjectType(oFrom) == OBJECT_TYPE_STORE || GetIsPC(oFrom)))
+        (GetObjectType(oFrom) == OBJECT_TYPE_STORE ||
+         GetIsPC(oFrom) ||
+         // Pickpocket: item taken from a *living* creature. Corpse/boss loot
+         // comes from a dead body (still passes -> still rolls); this only
+         // suppresses stealing from a creature that's still up, which is an
+         // individual skill contest and not party-contested loot.
+         (GetObjectType(oFrom) == OBJECT_TYPE_CREATURE && !GetIsDead(oFrom))))
         return;
 
     // GetGoldPieceValue returns 1 for unidentified items, so defer the threshold
