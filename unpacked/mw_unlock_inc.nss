@@ -54,6 +54,20 @@ int MW_IsUnlocked(object oPC, string sGuide)
     return GetCampaignInt(MW_DB, "u_" + sGuide, oPC);
 }
 
+// Derive the guide name ("jocko", "aurelius", ...) from the world NPC's tag,
+// which follows the "mw_<guide>_w" convention. Call from a dialogue script where
+// OBJECT_SELF is the guide NPC. Lets every quiz script stay generic (no per-NPC
+// copies). Returns "" if the tag does not match the pattern.
+string MW_GuideFromTag()
+{
+    string sTag = GetTag(OBJECT_SELF);
+    int nLen = GetStringLength(sTag);
+    if (nLen <= 5) return "";                       // needs "mw_" + name + "_w"
+    if (GetStringLeft(sTag, 3) != "mw_") return "";
+    if (GetStringRight(sTag, 2) != "_w") return "";
+    return GetSubString(sTag, 3, nLen - 5);         // strip "mw_" and "_w"
+}
+
 int MW_UnlockCount(object oPC)
 {
     int n = 0;

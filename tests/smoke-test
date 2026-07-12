@@ -46,4 +46,12 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: MeaningWave quiz banks…"
+if python3 "$HERE/check_mw_quiz.py"; then
+  echo "ok: MeaningWave quiz banks"
+else
+  echo "fail: MeaningWave quiz banks"
+  rc=1
+fi
+
 exit $rc
