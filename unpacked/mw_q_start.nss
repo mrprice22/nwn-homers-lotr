@@ -1,5 +1,11 @@
-// mw_q_start -- ActionTaken on the "begin" reply: reset the quiz for this guide.
-// The guide is derived from the NPC's tag (mw_<guide>_w); the first question is
-// loaded by the question entry's own mw_q_load, not here.
+// mw_q_start -- ActionTaken on the "begin" reply: reset the quiz for this guide
+// and draw the FIRST question, so its tokens are set before the question entry
+// renders. The guide is derived from the NPC's tag (mw_<guide>_w).
 #include "mw_quiz_inc"
-void main() { MW_QuizStart(GetPCSpeaker(), MW_GuideFromTag()); }
+void main()
+{
+    object oPC = GetPCSpeaker();
+    string sGuide = MW_GuideFromTag();
+    MW_QuizStart(oPC, sGuide);
+    MW_QuizLoad(oPC, sGuide);
+}

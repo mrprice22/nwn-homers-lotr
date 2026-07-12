@@ -7,8 +7,14 @@
 //:: slots. Pass MW_QUIZ_PASS of MW_QUIZ_DRAW to unlock. Correctness is tracked in
 //:: per-PC LocalInts keyed by guide name; nothing is stored in the dialogue tree.
 //::
-//:: Runtime tokens (module-global, set just before a node renders -- same pattern
-//:: as the forge staged-disenchant, see forge_stg_anvil / bellnius_smith.dlg):
+//:: Runtime tokens (module-global). They are populated by the reply that LEADS
+//:: INTO each question node -- the "begin" reply draws question 1, and each answer
+//:: reply scores the current question then draws the next -- so the tokens are set
+//:: before the following entry renders. This is the same ordering the forge relies
+//:: on (a reply's Actions Taken runs before the entry it links to is displayed;
+//:: see forge_stg_* -> bellnius_smith.dlg). Setting them on the question entry's
+//:: own Actions Taken instead is unreliable (the entry text can render against the
+//:: PREVIOUS load), which desynced the displayed question from the scored answer.
 //::   7000 = question prompt
 //::   7001..7004 = the four answer choices (shuffled)
 //::   7005 = "Question N of 5" progress label
@@ -50,7 +56,8 @@ string MW_Field(string sRow, int idx)
 }
 
 // Begin a fresh run: clear all per-run state and mark this guide active.
-// Does NOT load a question -- the first question entry's mw_q_load does that.
+// The "begin" reply (mw_q_start) calls this and then MW_QuizLoad, so question 1's
+// tokens are set before the first question entry renders.
 void MW_QuizStart(object oPC, string sGuide)
 {
     DeleteLocalInt(oPC, "mw_" + sGuide + "_n");
@@ -112,6 +119,19 @@ void MW_QuizAnswer(object oPC, string sGuide, int nSlot)
     if (nSlot == GetLocalInt(oPC, "mw_" + sGuide + "_cor"))
         SetLocalInt(oPC, "mw_" + sGuide + "_score",
                     GetLocalInt(oPC, "mw_" + sGuide + "_score") + 1);
+}
+
+// Score the pick, then draw the next question so its tokens are populated BEFORE
+// the following entry renders. Loading on the answer reply (rather than on the
+// question entry itself) is what keeps the displayed question aligned with the
+// scored answer. After the final question (_n == MW_QUIZ_DRAW) there is nothing
+// left to draw; the reply falls through to the pass/fail entry instead.
+void MW_QuizAnswerNext(object oPC, string sGuide, int nSlot)
+{
+    MW_QuizAnswer(oPC, sGuide, nSlot);
+    if (sGuide == "") return;
+    if (GetLocalInt(oPC, "mw_" + sGuide + "_n") < MW_QUIZ_DRAW)
+        MW_QuizLoad(oPC, sGuide);
 }
 
 // Pass check for the final branch (StartingConditional on the pass entry).

@@ -393,9 +393,13 @@ def build_dlg(flavour):
     entries = []
     entries.append(entry(E_INTRO, flavour["intro"], "mw_q_enc",
                          [(R_BEGIN, ""), (R_DECLINE, "")]))
+    # Question entries carry NO Actions Taken: their tokens are drawn by the reply
+    # that leads in (mw_q_start for Q1, mw_q_a* for Q2..N), which runs before the
+    # entry renders. Loading on the entry itself desynced the shown question from
+    # the scored answer -- see mw_quiz_inc header.
     for q in range(NUM_QUESTIONS):
         base = R_ANS0 + q * NUM_OPTS
-        entries.append(entry(E_Q1 + q, "<CUSTOM7005>\n\n<CUSTOM7000>", "mw_q_load",
+        entries.append(entry(E_Q1 + q, "<CUSTOM7005>\n\n<CUSTOM7000>", "",
                              [(base + s, "") for s in range(NUM_OPTS)]))
     entries.append(entry(E_PASS, flavour["pass"], "mw_q_unlock", [(R_TERM_PASS, "")]))
     entries.append(entry(E_FAIL, flavour["fail"], "", [(R_TERM_FAIL, "")]))
