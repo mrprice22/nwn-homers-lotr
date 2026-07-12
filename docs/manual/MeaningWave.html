@@ -155,6 +155,53 @@
     .yt-links { margin: 0.3em 0 0; padding-left: 1.4em; }
     .yt-links li { margin: 0.25em 0; font-size: 0.9em; }
     .yt-type { color: var(--muted); font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.03em; margin-left: 0.4em; }
+
+    /* Per-legend practice quiz (data injected by bin/gen-mw-quiz.py). */
+    .mw-quiz {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.9em 1.1em;
+      margin: 1em 0 1.4em;
+    }
+    .mw-quiz h4 { margin: 0 0 0.5em; font-size: 1em; color: var(--accent); }
+    .mw-quiz .mwq-intro { margin: 0 0 0.8em; font-size: 0.9em; color: var(--muted); }
+    .mw-quiz .mwq-progress {
+      margin: 0 0 0.5em; font-size: 0.8em; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .mw-quiz .mwq-question { font-weight: 600; margin: 0 0 0.8em; }
+    .mw-quiz .mwq-options { display: flex; flex-direction: column; gap: 0.45em; }
+    .mw-quiz button {
+      font: inherit;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: border-color 0.12s, background 0.12s, filter 0.12s;
+    }
+    .mw-quiz button.mwq-btn {
+      text-align: left;
+      color: inherit;
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 0.55em 0.85em;
+    }
+    .mw-quiz button.mwq-btn:hover,
+    .mw-quiz button.mwq-btn:focus-visible {
+      border-color: var(--accent);
+      background: rgba(200,165,119,0.14);
+      outline: none;
+    }
+    .mw-quiz button.mwq-start,
+    .mw-quiz button.mwq-again {
+      background: var(--accent); color: #fff; border: none; padding: 0.55em 1.1em;
+    }
+    .mw-quiz button.mwq-start:hover,
+    .mw-quiz button.mwq-again:hover { filter: brightness(1.08); }
+    .mw-quiz .mwq-result { text-align: center; }
+    .mw-quiz .mwq-score { font-size: 2em; font-weight: 700; margin: 0.1em 0 0.2em; color: var(--accent); }
+    .mw-quiz .mwq-verdict { margin: 0 0 0.4em; font-size: 1.05em; }
+    .mw-quiz .mwq-verdict.pass { color: var(--accent); font-weight: 600; }
+    .mw-quiz .mwq-note { margin: 0 0 0.9em; font-size: 0.85em; color: var(--muted); }
   </style>
   <div class="mw-layout">
   <aside class="mw-toc-pane">
@@ -208,6 +255,9 @@ Akira's hub.</p>
   <p><strong>Tip.</strong> Resting (or activating the emote wand item) opens the legacy emote menu.
   A new option, "[Summon a Legend.]", appears at the bottom once you have at least one guide.
   Only the legends you have unlocked appear in the submenu.</p>
+  <p><strong>Practice here.</strong> Each legend below has a <strong>practice quiz</strong> right on this
+  page &mdash; the same five-of-twenty draw and 4-of-5 pass mark as in-game, so you can rehearse before
+  you make the trip. It only reports your score; it does not unlock anything in the module.</p>
 </blockquote>
 
 <h2 id="roster">The Roster</h2>
@@ -260,6 +310,9 @@ Akira's hub.</p>
     </ul>
   </dd>
 </dl>
+<div class="mw-quiz" data-guide="peterson">
+  <noscript><p class="mwq-note">Enable JavaScript to take the practice quiz.</p></noscript>
+</div>
 <h3>Path from Well of Eru <span class="muted">(2 hops)</span></h3>
 <ol class="hop-path">
   <li><strong>Well of Eru → <a href="../areas/rivendell.html">Rivendell</a></strong>: talk to the <strong>Guardian of Light</strong> and choose Rivendell.</li>
@@ -294,6 +347,9 @@ Akira's hub.</p>
     </ul>
   </dd>
 </dl>
+<div class="mw-quiz" data-guide="watts">
+  <noscript><p class="mwq-note">Enable JavaScript to take the practice quiz.</p></noscript>
+</div>
 <h3>Path from Well of Eru <span class="muted">(4 hops)</span></h3>
 <ol class="hop-path">
   <li><strong>Well of Eru → Bree</strong>: use the door (the main Bree gate).</li>
@@ -329,6 +385,9 @@ Akira's hub.</p>
     </ul>
   </dd>
 </dl>
+<div class="mw-quiz" data-guide="campbell">
+  <noscript><p class="mwq-note">Enable JavaScript to take the practice quiz.</p></noscript>
+</div>
 <h3>Path from Well of Eru <span class="muted">(6 hops)</span></h3>
 <ol class="hop-path">
   <li><strong>Well of Eru → Lothlorien: Main</strong>: Guardian of Light, choose Lothlorien.</li>
@@ -368,6 +427,9 @@ Akira's hub.</p>
     </ul>
   </dd>
 </dl>
+<div class="mw-quiz" data-guide="mckenna">
+  <noscript><p class="mwq-note">Enable JavaScript to take the practice quiz.</p></noscript>
+</div>
 <h3>Path from Well of Eru <span class="muted">(6 hops)</span></h3>
 <ol class="hop-path">
   <li><strong>Well of Eru → <a href="../areas/minastirithgates.html">Minas Tirith: Gates</a></strong>: talk to the <strong>Guardian of Light</strong> and choose Minas Tirith.</li>
@@ -408,6 +470,9 @@ Akira's hub.</p>
     </ul>
   </dd>
 </dl>
+<div class="mw-quiz" data-guide="jocko">
+  <noscript><p class="mwq-note">Enable JavaScript to take the practice quiz.</p></noscript>
+</div>
 <h3>Path from Well of Eru <span class="muted">(1 hop)</span></h3>
 <ol class="hop-path">
   <li><strong>Well of Eru → <a href="../areas/helmsdeep001.html">Helm's Deep</a></strong>: Guardian of Light, choose Helm's Deep.</li>
@@ -442,6 +507,9 @@ Akira's hub.</p>
     </ul>
   </dd>
 </dl>
+<div class="mw-quiz" data-guide="jung">
+  <noscript><p class="mwq-note">Enable JavaScript to take the practice quiz.</p></noscript>
+</div>
 <h3>Path from Well of Eru <span class="muted">(2 hops)</span></h3>
 <ol class="hop-path">
   <li><strong>Well of Eru → Esgaroth (Lake Town)</strong>: Guardian of Darkness, choose Esgaroth.</li>
@@ -475,6 +543,9 @@ Akira's hub.</p>
     </ul>
   </dd>
 </dl>
+<div class="mw-quiz" data-guide="aurelius">
+  <noscript><p class="mwq-note">Enable JavaScript to take the practice quiz.</p></noscript>
+</div>
 <h3>Path from Well of Eru <span class="muted">(9 hops)</span></h3>
 <ol class="hop-path">
   <li><strong>Well of Eru → Edoras</strong>: Guardian of Light, choose Edoras.</li>
@@ -626,6 +697,1451 @@ basilisks, medusas, cockatrices, or ability-draining foes.</em></p>
 
   </div><!-- .mw-content -->
   </div><!-- .mw-layout -->
+
+  <!-- MW-QUIZ-DATA:START (generated by bin/gen-mw-quiz.py -- do not edit) -->
+  <script id="mw-quiz-bank" type="application/json">
+{
+  "meta": {
+    "draw": 5,
+    "pass": 4,
+    "options": 4
+  },
+  "guides": {
+    "jocko": {
+      "display_name": "Jocko Willink",
+      "tested_on": "extreme ownership, discipline, and the laws of combat leadership",
+      "questions": [
+        {
+          "q": "Complete my maxim: \"Discipline equals ___.\"",
+          "correct": "Freedom.",
+          "distractors": [
+            "Success.",
+            "Respect.",
+            "Strength."
+          ]
+        },
+        {
+          "q": "When the mission fails, whose fault is it?",
+          "correct": "Mine.",
+          "distractors": [
+            "The team's.",
+            "The plan's.",
+            "Bad luck's."
+          ]
+        },
+        {
+          "q": "When I get bad news, what single word do I say?",
+          "correct": "\"Good.\"",
+          "distractors": [
+            "\"Okay.\"",
+            "\"Understood.\"",
+            "\"Ready.\""
+          ]
+        },
+        {
+          "q": "The alarm goes off before dawn. What do I do?",
+          "correct": "Get up. Now.",
+          "distractors": [
+            "Stretch first.",
+            "Plan the day.",
+            "Start slow."
+          ]
+        },
+        {
+          "q": "I do not feel like doing the work. What then?",
+          "correct": "Do it anyway.",
+          "distractors": [
+            "Push through later.",
+            "Start small.",
+            "Build the habit first."
+          ]
+        },
+        {
+          "q": "Who owns a team's performance?",
+          "correct": "The leader.",
+          "distractors": [
+            "The whole team.",
+            "Each individual.",
+            "The commander above."
+          ]
+        },
+        {
+          "q": "What does \"Default: Aggressive\" mean?",
+          "correct": "Attack the problem before it attacks you.",
+          "distractors": [
+            "Take the fight to the enemy first.",
+            "Keep the pressure on constantly.",
+            "Meet force with greater force."
+          ]
+        },
+        {
+          "q": "The dichotomy of leadership means balancing traits. Which pairing is it?",
+          "correct": "Lead, but be ready to follow.",
+          "distractors": [
+            "Lead hard from the front.",
+            "Trust your team completely.",
+            "Own every call yourself."
+          ]
+        },
+        {
+          "q": "What does \"Cover and Move\" demand?",
+          "correct": "Teams support each other toward the goal.",
+          "distractors": [
+            "Advance under covering fire.",
+            "Hold position and defend.",
+            "Split up to move faster."
+          ]
+        },
+        {
+          "q": "How complex should a plan be?",
+          "correct": "Simple enough for anyone to execute.",
+          "distractors": [
+            "Detailed enough for every case.",
+            "Flexible enough to change fast.",
+            "Clear enough for the leader."
+          ]
+        },
+        {
+          "q": "Many problems hit at once. What do I do?",
+          "correct": "Prioritize, then execute.",
+          "distractors": [
+            "Delegate across the team.",
+            "Solve the easiest first.",
+            "Attack the biggest head-on."
+          ]
+        },
+        {
+          "q": "How do discipline and freedom relate?",
+          "correct": "Discipline creates freedom.",
+          "distractors": [
+            "Freedom means doing as you please.",
+            "Talent matters more than habit.",
+            "Rest is what sets you free."
+          ]
+        },
+        {
+          "q": "What does \"Decentralized Command\" mean?",
+          "correct": "Push decisions down to those closest to the fight.",
+          "distractors": [
+            "Give clear orders from the top.",
+            "Share command among equals.",
+            "Let the team vote on calls."
+          ]
+        },
+        {
+          "q": "In which branch did I serve?",
+          "correct": "The Navy, with the SEAL Teams.",
+          "distractors": [
+            "The Army, with the Green Berets.",
+            "The Marines, with Force Recon.",
+            "The Air Force, with the Pararescuemen."
+          ]
+        },
+        {
+          "q": "My man makes a mistake. What do I ask first?",
+          "correct": "How did I fail to lead him?",
+          "distractors": [
+            "Did he understand the plan?",
+            "Was he trained enough?",
+            "What will fix it next time?"
+          ]
+        },
+        {
+          "q": "What place do excuses have?",
+          "correct": "None. Own the outcome.",
+          "distractors": [
+            "A reason helps you learn.",
+            "Context explains the loss.",
+            "Some things are truly beyond us."
+          ]
+        },
+        {
+          "q": "How should I treat a hard task?",
+          "correct": "As a chance to get better.",
+          "distractors": [
+            "As a test to endure.",
+            "As a job to finish fast.",
+            "As a duty to bear."
+          ]
+        },
+        {
+          "q": "Amid chaos, how do I see clearly?",
+          "correct": "Detach and assess the whole.",
+          "distractors": [
+            "Trust your gut and move.",
+            "Focus on the nearest threat.",
+            "Fall back on the training."
+          ]
+        },
+        {
+          "q": "Where does ownership point first?",
+          "correct": "Inward, at myself.",
+          "distractors": [
+            "At the team's effort.",
+            "At the plan's flaws.",
+            "At the conditions we faced."
+          ]
+        },
+        {
+          "q": "You feel overwhelmed. What saves you?",
+          "correct": "One priority at a time.",
+          "distractors": [
+            "A short rest to reset.",
+            "Leaning on your team.",
+            "Trusting the training."
+          ]
+        }
+      ]
+    },
+    "peterson": {
+      "display_name": "Jordan Peterson",
+      "tested_on": "responsibility, hierarchy, meaning, and the order-chaos balance",
+      "questions": [
+        {
+          "q": "How should you carry yourself in the world?",
+          "correct": "Stand up straight, shoulders back.",
+          "distractors": [
+            "Stay humble and quiet.",
+            "Blend in with the crowd.",
+            "Guard your energy."
+          ]
+        },
+        {
+          "q": "What is responsibility, truly?",
+          "correct": "The path to meaning, freely chosen.",
+          "distractors": [
+            "A duty owed to others.",
+            "The price of freedom.",
+            "A weight we must bear."
+          ]
+        },
+        {
+          "q": "Whom should you measure yourself against?",
+          "correct": "Who you were yesterday.",
+          "distractors": [
+            "The best in your field.",
+            "Your closest peers.",
+            "The person you hope to be."
+          ]
+        },
+        {
+          "q": "What dragon must you face?",
+          "correct": "The chaos within yourself.",
+          "distractors": [
+            "The obstacles in your path.",
+            "The people who wrong you.",
+            "The fear of failing."
+          ]
+        },
+        {
+          "q": "Before you criticise the world, what must you do?",
+          "correct": "Set your own house in order.",
+          "distractors": [
+            "Understand it deeply first.",
+            "Earn the right to speak.",
+            "Offer a better answer."
+          ]
+        },
+        {
+          "q": "What must you do, even when it costs you?",
+          "correct": "Tell the truth.",
+          "distractors": [
+            "Keep your word.",
+            "Do what is right.",
+            "Stand your ground."
+          ]
+        },
+        {
+          "q": "What is a hierarchy of competence?",
+          "correct": "An ancient order, not a mere invention.",
+          "distractors": [
+            "A ladder anyone can climb.",
+            "A useful modern tool.",
+            "A fair way to reward skill."
+          ]
+        },
+        {
+          "q": "You should pursue what?",
+          "correct": "What is meaningful, not expedient.",
+          "distractors": [
+            "What makes you happy.",
+            "What you are good at.",
+            "What the world needs."
+          ]
+        },
+        {
+          "q": "I point to which creature to show hierarchy runs deep in nature?",
+          "correct": "The lobster.",
+          "distractors": [
+            "The wolf.",
+            "The ape.",
+            "The bee."
+          ]
+        },
+        {
+          "q": "What is the antidote to resentment?",
+          "correct": "Aim up and take responsibility.",
+          "distractors": [
+            "Forgive and move on.",
+            "Name what is unfair.",
+            "Count your blessings."
+          ]
+        },
+        {
+          "q": "How should you treat yourself?",
+          "correct": "As someone you must help.",
+          "distractors": [
+            "As your harshest critic.",
+            "As your own best friend.",
+            "As a work in progress."
+          ]
+        },
+        {
+          "q": "Where is meaning found?",
+          "correct": "On the border of order and chaos.",
+          "distractors": [
+            "In a life of order.",
+            "In freedom from all rules.",
+            "In serving something greater."
+          ]
+        },
+        {
+          "q": "When you listen to someone, what should you assume?",
+          "correct": "They might know something you don't.",
+          "distractors": [
+            "They mean well.",
+            "They see it their own way.",
+            "They want to be heard."
+          ]
+        },
+        {
+          "q": "What befalls a person who abandons truth?",
+          "correct": "He descends into his own hell.",
+          "distractors": [
+            "He loses others' trust.",
+            "He forgets who he is.",
+            "He weakens over time."
+          ]
+        },
+        {
+          "q": "In what must you be precise?",
+          "correct": "Your speech.",
+          "distractors": [
+            "Your aim.",
+            "Your habits.",
+            "Your promises."
+          ]
+        },
+        {
+          "q": "Where does order begin?",
+          "correct": "With the small things you can fix now.",
+          "distractors": [
+            "With a clear plan.",
+            "With honest self-reflection.",
+            "With the right values."
+          ]
+        },
+        {
+          "q": "What is the tragedy of Being?",
+          "correct": "Suffering is woven in, yet can be borne.",
+          "distractors": [
+            "Suffering falls only on the unlucky.",
+            "Enough progress will end it.",
+            "Meaning removes all pain."
+          ]
+        },
+        {
+          "q": "What kind of friends should you make?",
+          "correct": "Those who want the best for you.",
+          "distractors": [
+            "Those who are fun to be with.",
+            "Those who challenge you.",
+            "Those loyal no matter what."
+          ]
+        },
+        {
+          "q": "What two forces must you balance?",
+          "correct": "Order and chaos.",
+          "distractors": [
+            "Reason and emotion.",
+            "Freedom and duty.",
+            "Self and others."
+          ]
+        },
+        {
+          "q": "Why measure yourself only against your past self?",
+          "correct": "To escape envy and false comparison.",
+          "distractors": [
+            "To track real progress.",
+            "To stay humble.",
+            "To set fair goals."
+          ]
+        }
+      ]
+    },
+    "watts": {
+      "display_name": "Alan Watts",
+      "tested_on": "ego, nonduality, flow, and the universe at play",
+      "questions": [
+        {
+          "q": "Who is doing the experiencing?",
+          "correct": "No separate self apart from the experience.",
+          "distractors": [
+            "The mind behind your eyes.",
+            "The soul within the body.",
+            "The 'I' that watches it all."
+          ]
+        },
+        {
+          "q": "What is the great secret you were never told?",
+          "correct": "You are the whole universe, not a separate ego.",
+          "distractors": [
+            "Your fate is already written.",
+            "Desire is the root of suffering.",
+            "The world is a passing dream."
+          ]
+        },
+        {
+          "q": "What is the universe, really?",
+          "correct": "A cosmic game of hide-and-seek.",
+          "distractors": [
+            "A grand design with a purpose.",
+            "A vast, living organism.",
+            "A mystery beyond knowing."
+          ]
+        },
+        {
+          "q": "Why act at all, if the goal is incidental?",
+          "correct": "Because the doing is the play.",
+          "distractors": [
+            "Because growth is the point.",
+            "Because the world needs you.",
+            "Because effort is its own reward."
+          ]
+        },
+        {
+          "q": "The self is more like which part of speech?",
+          "correct": "A verb, not a noun.",
+          "distractors": [
+            "A noun, solid and real.",
+            "A story we tell.",
+            "A name we answer to."
+          ]
+        },
+        {
+          "q": "How do you truly let go?",
+          "correct": "By yielding, not gripping harder.",
+          "distractors": [
+            "By understanding its cause.",
+            "By replacing it with something better.",
+            "By simply deciding to."
+          ]
+        },
+        {
+          "q": "Where is real security found?",
+          "correct": "In accepting that all things pass.",
+          "distractors": [
+            "In building something lasting.",
+            "In faith and trust.",
+            "In knowing yourself well."
+          ]
+        },
+        {
+          "q": "Which two ways of seeing do I draw from most?",
+          "correct": "Zen and the Tao.",
+          "distractors": [
+            "Stoicism and Zen.",
+            "Hinduism and Sufism.",
+            "Buddhism and Christianity."
+          ]
+        },
+        {
+          "q": "What is \"wu wei\"?",
+          "correct": "Effortless action, with the grain of things.",
+          "distractors": [
+            "Patient, steady effort.",
+            "Action guided by reason.",
+            "Stillness and quiet."
+          ]
+        },
+        {
+          "q": "What is the ego, really?",
+          "correct": "A useful illusion, a social mask.",
+          "distractors": [
+            "The core of who you are.",
+            "The voice of conscience.",
+            "The seat of the will."
+          ]
+        },
+        {
+          "q": "Chase pleasure head-on, and what happens?",
+          "correct": "It slips through your fingers.",
+          "distractors": [
+            "It leaves you wanting more.",
+            "It costs more than it gives.",
+            "It dulls over time."
+          ]
+        },
+        {
+          "q": "Believing you are a lone ego in a bag of skin is what?",
+          "correct": "A hallucination of separateness.",
+          "distractors": [
+            "Simple common sense.",
+            "The way we are built to feel.",
+            "A hard truth to accept."
+          ]
+        },
+        {
+          "q": "What is \"satori\"?",
+          "correct": "A sudden flash of awakening.",
+          "distractors": [
+            "A lifetime of practice.",
+            "A deep, calm peace.",
+            "A state of pure focus."
+          ]
+        },
+        {
+          "q": "Life is like music. Why?",
+          "correct": "The point is the playing, not the end.",
+          "distractors": [
+            "Every part has its rhythm.",
+            "It rises and falls in time.",
+            "It moves us beyond words."
+          ]
+        },
+        {
+          "q": "What do yin and yang teach?",
+          "correct": "Opposites need each other.",
+          "distractors": [
+            "Balance is the goal.",
+            "All things are in flux.",
+            "Light will outlast the dark."
+          ]
+        },
+        {
+          "q": "What are you, at the deepest level?",
+          "correct": "The universe knowing itself.",
+          "distractors": [
+            "A spark of the divine.",
+            "A mind made of matter.",
+            "A soul on a journey."
+          ]
+        },
+        {
+          "q": "\"You are the universe experiencing itself\" points to what?",
+          "correct": "Nonduality: self and cosmos are one.",
+          "distractors": [
+            "Pantheism: God is all things.",
+            "Idealism: all is mind.",
+            "Humanism: we make our own meaning."
+          ]
+        },
+        {
+          "q": "What of the present moment?",
+          "correct": "It is the only place life happens.",
+          "distractors": [
+            "It shapes the future.",
+            "It passes too quickly to hold.",
+            "It is best not to dwell in."
+          ]
+        },
+        {
+          "q": "How does the sage meet nature?",
+          "correct": "Flowing with it, not forcing it.",
+          "distractors": [
+            "Studying its every law.",
+            "Living simply within it.",
+            "Tending it with care."
+          ]
+        },
+        {
+          "q": "What is the cosmos, in a word?",
+          "correct": "Playful and all connected.",
+          "distractors": [
+            "Vast and mysterious.",
+            "Ordered and lawful.",
+            "Sacred and alive."
+          ]
+        }
+      ]
+    },
+    "campbell": {
+      "display_name": "Joseph Campbell",
+      "tested_on": "the monomyth: departure, initiation, and the return",
+      "questions": [
+        {
+          "q": "What begins every hero's journey?",
+          "correct": "The Call to Adventure.",
+          "distractors": [
+            "A great loss.",
+            "A chance meeting.",
+            "A restless longing."
+          ]
+        },
+        {
+          "q": "What does the threshold guardian do?",
+          "correct": "Tests whether you are worthy to cross.",
+          "distractors": [
+            "Warns of the dangers ahead.",
+            "Demands a price to pass.",
+            "Points the hero's way."
+          ]
+        },
+        {
+          "q": "Why must the hero descend into the dark?",
+          "correct": "To die to the old self and be reborn.",
+          "distractors": [
+            "To find a hidden strength.",
+            "To face his deepest fear.",
+            "To win the great prize."
+          ]
+        },
+        {
+          "q": "What single counsel do I give for a life?",
+          "correct": "Follow your bliss.",
+          "distractors": [
+            "Know thyself.",
+            "Serve a cause.",
+            "Seek the truth."
+          ]
+        },
+        {
+          "q": "What do I call the one myth beneath all cultures?",
+          "correct": "The monomyth.",
+          "distractors": [
+            "The archetype.",
+            "The great story.",
+            "The eternal return."
+          ]
+        },
+        {
+          "q": "The hero's journey is ultimately a figure for what?",
+          "correct": "Inner transformation.",
+          "distractors": [
+            "The path to power.",
+            "The search for home.",
+            "The triumph of good."
+          ]
+        },
+        {
+          "q": "To cross the first threshold means what?",
+          "correct": "Leaving the ordinary world behind.",
+          "distractors": [
+            "Passing the first test.",
+            "Making the fateful choice.",
+            "Facing the unknown at last."
+          ]
+        },
+        {
+          "q": "The one who gives supernatural aid is usually what?",
+          "correct": "A mentor or wise guide.",
+          "distractors": [
+            "A loyal companion.",
+            "A hidden god.",
+            "A former hero."
+          ]
+        },
+        {
+          "q": "What is the \"Refusal of the Call\"?",
+          "correct": "The hero's first hesitation.",
+          "distractors": [
+            "The villain's challenge.",
+            "A test of resolve.",
+            "The turning point."
+          ]
+        },
+        {
+          "q": "The three phases of the hero's journey are Departure, Initiation, and what?",
+          "correct": "Return.",
+          "distractors": [
+            "Trial.",
+            "Reward.",
+            "Renewal."
+          ]
+        },
+        {
+          "q": "What does the \"belly of the whale\" mark?",
+          "correct": "The passage into transformation.",
+          "distractors": [
+            "The point of no return.",
+            "The darkest despair.",
+            "A time of hidden rest."
+          ]
+        },
+        {
+          "q": "What do myths do for us?",
+          "correct": "Give life meaning and shape the soul.",
+          "distractors": [
+            "Preserve a people's past.",
+            "Teach right from wrong.",
+            "Explain the mysteries of nature."
+          ]
+        },
+        {
+          "q": "What ordeal awaits at the darkest point?",
+          "correct": "The supreme trial.",
+          "distractors": [
+            "The final reward.",
+            "The long road home.",
+            "The mentor's parting."
+          ]
+        },
+        {
+          "q": "\"Meeting the goddess\" and \"atonement with the father\" belong to which phase?",
+          "correct": "Initiation.",
+          "distractors": [
+            "Departure.",
+            "Return.",
+            "The Call."
+          ]
+        },
+        {
+          "q": "Where does the hero's road begin?",
+          "correct": "In the ordinary, everyday world.",
+          "distractors": [
+            "At a moment of crisis.",
+            "In a place of safety.",
+            "At the edge of the unknown."
+          ]
+        },
+        {
+          "q": "What does \"follow your bliss\" truly mean?",
+          "correct": "Pursue your deepest calling, whatever it costs.",
+          "distractors": [
+            "Do what brings you joy.",
+            "Trust where life leads you.",
+            "Find work you love."
+          ]
+        },
+        {
+          "q": "Whom does the hero's journey ultimately serve?",
+          "correct": "The community he returns to.",
+          "distractors": [
+            "The hero's own growth.",
+            "The generations to come.",
+            "The gods who sent him."
+          ]
+        },
+        {
+          "q": "What is the \"ultimate boon\"?",
+          "correct": "The prize that can renew the world.",
+          "distractors": [
+            "The wisdom hard-won.",
+            "The treasure long sought.",
+            "The hero's true name."
+          ]
+        },
+        {
+          "q": "What befalls the hero who refuses to return?",
+          "correct": "His gift is lost to the world.",
+          "distractors": [
+            "He remains forever changed.",
+            "He must begin again.",
+            "He finds peace apart."
+          ]
+        },
+        {
+          "q": "What does the hero carry home?",
+          "correct": "A boon for his people.",
+          "distractors": [
+            "The scars of his trials.",
+            "A story worth telling.",
+            "Wisdom he cannot share."
+          ]
+        }
+      ]
+    },
+    "mckenna": {
+      "display_name": "Terence McKenna",
+      "tested_on": "culture, novelty, the Other, and direct experience",
+      "questions": [
+        {
+          "q": "What is culture, really?",
+          "correct": "Your operating system.",
+          "distractors": [
+            "A shared way of life.",
+            "The story a people tells.",
+            "A set of inherited rules."
+          ]
+        },
+        {
+          "q": "Complete my phrase: \"the felt presence of ___.\"",
+          "correct": "immediate experience.",
+          "distractors": [
+            "the living cosmos.",
+            "the eternal now.",
+            "another mind."
+          ]
+        },
+        {
+          "q": "What is the timewave?",
+          "correct": "A fractal of rising novelty.",
+          "distractors": [
+            "A cycle of endless return.",
+            "A map of history's turns.",
+            "A rhythm of the cosmos."
+          ]
+        },
+        {
+          "q": "How near is \"the Other\"?",
+          "correct": "Closer than your own breath.",
+          "distractors": [
+            "Just beyond ordinary sight.",
+            "Deep within the mind.",
+            "At the edge of the cosmos."
+          ]
+        },
+        {
+          "q": "What is language, to me?",
+          "correct": "A living thing that longs to be shared.",
+          "distractors": [
+            "A tool for shaping thought.",
+            "A bridge between minds.",
+            "A gift we are born to use."
+          ]
+        },
+        {
+          "q": "What sparked the leap in the human mind?",
+          "correct": "Psilocybin in the primate diet.",
+          "distractors": [
+            "The mastery of fire.",
+            "The dawn of language.",
+            "The making of tools."
+          ]
+        },
+        {
+          "q": "What is the mushroom, to me?",
+          "correct": "A teacher, not a drug.",
+          "distractors": [
+            "A door to other worlds.",
+            "A gift from the earth.",
+            "A medicine for the mind."
+          ]
+        },
+        {
+          "q": "What \"return\" did I call for?",
+          "correct": "A return to shamanic ways.",
+          "distractors": [
+            "A return to nature.",
+            "A return to wonder.",
+            "A return to the body."
+          ]
+        },
+        {
+          "q": "What is \"novelty\"?",
+          "correct": "Rising complexity and connection.",
+          "distractors": [
+            "The birth of new ideas.",
+            "The thrill of the unknown.",
+            "A break from routine."
+          ]
+        },
+        {
+          "q": "What waits at the end of time?",
+          "correct": "An attractor drawing all novelty on.",
+          "distractors": [
+            "A great awakening.",
+            "A merging of all minds.",
+            "A door beyond time."
+          ]
+        },
+        {
+          "q": "What is \"boundary dissolution\"?",
+          "correct": "Self and world melting into one.",
+          "distractors": [
+            "The mind opening wide.",
+            "A release from all fear.",
+            "The fading of the ego."
+          ]
+        },
+        {
+          "q": "What is the \"syntactic prison\"?",
+          "correct": "Being trapped inside habitual language.",
+          "distractors": [
+            "The limits of the thinking mind.",
+            "The rules society imposes.",
+            "The cage of old beliefs."
+          ]
+        },
+        {
+          "q": "What is the imagination, to me?",
+          "correct": "A real ground of being to explore.",
+          "distractors": [
+            "The source of all creation.",
+            "A window to the soul.",
+            "The mind's deepest power."
+          ]
+        },
+        {
+          "q": "What does the psychedelic doorway open?",
+          "correct": "A path to meaning and mind.",
+          "distractors": [
+            "A glimpse of the divine.",
+            "The doors of perception.",
+            "A journey within."
+          ]
+        },
+        {
+          "q": "What should you trust above dogma?",
+          "correct": "Your own direct experience.",
+          "distractors": [
+            "The wisdom of nature.",
+            "An open, questioning mind.",
+            "The evidence of your senses."
+          ]
+        },
+        {
+          "q": "Who are the truest teachers?",
+          "correct": "The plants and the living world.",
+          "distractors": [
+            "The old shamans and sages.",
+            "Your own inner voice.",
+            "The great mystics of history."
+          ]
+        },
+        {
+          "q": "How should you treat any one guru?",
+          "correct": "Follow none of them blindly.",
+          "distractors": [
+            "Learn what you can, then move on.",
+            "Question all they teach.",
+            "Trust only what you test."
+          ]
+        },
+        {
+          "q": "What did I feel about the future?",
+          "correct": "A shift in consciousness is coming.",
+          "distractors": [
+            "A great transformation awaits.",
+            "Wonders we cannot yet imagine.",
+            "A return to older wisdom."
+          ]
+        },
+        {
+          "q": "What is a \"heroic dose\"?",
+          "correct": "A big dose, taken in silent dark.",
+          "distractors": [
+            "A dose taken with a guide.",
+            "The largest one can bear.",
+            "A dose for deep questions."
+          ]
+        },
+        {
+          "q": "\"Culture is not your friend\" warns you to do what?",
+          "correct": "Not let culture define you.",
+          "distractors": [
+            "Question what you were taught.",
+            "Think for yourself.",
+            "See past its illusions."
+          ]
+        }
+      ]
+    },
+    "jung": {
+      "display_name": "Carl Jung",
+      "tested_on": "the shadow, individuation, persona, and the archetypes",
+      "questions": [
+        {
+          "q": "What is the shadow?",
+          "correct": "The disowned parts of yourself.",
+          "distractors": [
+            "The dark side of the mind.",
+            "The self you hide from others.",
+            "The instincts we repress."
+          ]
+        },
+        {
+          "q": "How do you become whole?",
+          "correct": "By integrating the shadow.",
+          "distractors": [
+            "By mastering your instincts.",
+            "By rising above the ego.",
+            "By healing old wounds."
+          ]
+        },
+        {
+          "q": "What is individuation?",
+          "correct": "Becoming all of who you are.",
+          "distractors": [
+            "Standing apart from the crowd.",
+            "Finding your true purpose.",
+            "Making peace with the past."
+          ]
+        },
+        {
+          "q": "What fills the collective unconscious?",
+          "correct": "Shared archetypes of all humankind.",
+          "distractors": [
+            "Memories from this life alone.",
+            "Instincts passed from your parents.",
+            "Urges left over from childhood."
+          ]
+        },
+        {
+          "q": "What is the persona?",
+          "correct": "The mask you wear for the world.",
+          "distractors": [
+            "The role you play in life.",
+            "The face you show at work.",
+            "The self you present to others."
+          ]
+        },
+        {
+          "q": "What do I call the deep images shared by us all?",
+          "correct": "Archetypes.",
+          "distractors": [
+            "Symbols.",
+            "Instincts.",
+            "Myths."
+          ]
+        },
+        {
+          "q": "What is the \"anima\"?",
+          "correct": "The inner feminine in a man.",
+          "distractors": [
+            "The soul's true voice.",
+            "A guide met in dreams.",
+            "The gentler side of the self."
+          ]
+        },
+        {
+          "q": "What do I call a meaningful coincidence?",
+          "correct": "Synchronicity.",
+          "distractors": [
+            "Fate.",
+            "Providence.",
+            "Intuition."
+          ]
+        },
+        {
+          "q": "What does it mean to hold the tension of opposites?",
+          "correct": "Bear both sides until they unite.",
+          "distractors": [
+            "Choose the wiser path.",
+            "Find the middle way.",
+            "Let time resolve it."
+          ]
+        },
+        {
+          "q": "What is the \"Self\", with a capital S?",
+          "correct": "The whole psyche's uniting centre.",
+          "distractors": [
+            "The soul within us all.",
+            "The person we truly are.",
+            "The image of God within."
+          ]
+        },
+        {
+          "q": "What becomes of a shadow left unowned?",
+          "correct": "It is cast onto others.",
+          "distractors": [
+            "It grows in the dark.",
+            "It surfaces in dreams.",
+            "It rules from behind."
+          ]
+        },
+        {
+          "q": "The persona is useful, but what is its danger?",
+          "correct": "Mistaking the mask for your true self.",
+          "distractors": [
+            "Wearing it too often.",
+            "Losing touch with others.",
+            "Hiding your real gifts."
+          ]
+        },
+        {
+          "q": "What do dreams do, in my view?",
+          "correct": "Speak and balance from the unconscious.",
+          "distractors": [
+            "Reveal our hidden wishes.",
+            "Work through the day's cares.",
+            "Warn us of what may come."
+          ]
+        },
+        {
+          "q": "The \"wise old man\" and \"great mother\" are what?",
+          "correct": "Archetypes.",
+          "distractors": [
+            "Symbols.",
+            "Spirits.",
+            "Instincts."
+          ]
+        },
+        {
+          "q": "What is a \"complex\"?",
+          "correct": "A charged knot of feelings and ideas.",
+          "distractors": [
+            "A deep-seated fear.",
+            "A pattern of behaviour.",
+            "A wound from the past."
+          ]
+        },
+        {
+          "q": "What should the second half of life turn toward?",
+          "correct": "Meaning and the inner world.",
+          "distractors": [
+            "Passing on what you have learned.",
+            "Making peace with the end.",
+            "Deepening your closest bonds."
+          ]
+        },
+        {
+          "q": "What is the \"animus\"?",
+          "correct": "The inner masculine in a woman.",
+          "distractors": [
+            "The strength within the self.",
+            "A figure seen in dreams.",
+            "The voice of reason inside."
+          ]
+        },
+        {
+          "q": "How do I see religious symbols?",
+          "correct": "As voices of deep psychic truth.",
+          "distractors": [
+            "As maps of the inner life.",
+            "As humanity's oldest wisdom.",
+            "As bridges to the sacred."
+          ]
+        },
+        {
+          "q": "How does facing your shadow feel at first?",
+          "correct": "Uneasy, even shameful.",
+          "distractors": [
+            "Strange and unfamiliar.",
+            "Frightening yet freeing.",
+            "Humbling but honest."
+          ]
+        },
+        {
+          "q": "What is the aim of the whole work?",
+          "correct": "Wholeness of the psyche.",
+          "distractors": [
+            "Peace of mind.",
+            "Self-knowledge.",
+            "Freedom from the past."
+          ]
+        }
+      ]
+    },
+    "aurelius": {
+      "display_name": "Marcus Aurelius",
+      "tested_on": "the dichotomy of control, virtue, and memento mori",
+      "questions": [
+        {
+          "q": "What is truly in your power?",
+          "correct": "Your judgements and reactions.",
+          "distractors": [
+            "Your words and deeds.",
+            "Your effort and will.",
+            "Your duty to others."
+          ]
+        },
+        {
+          "q": "Complete the maxim: \"The obstacle is ___.\"",
+          "correct": "the way.",
+          "distractors": [
+            "a teacher.",
+            "a test.",
+            "temporary."
+          ]
+        },
+        {
+          "q": "What does \"memento mori\" mean?",
+          "correct": "Remember that you will die.",
+          "distractors": [
+            "Live each day fully.",
+            "Honour those now gone.",
+            "Time is always fleeting."
+          ]
+        },
+        {
+          "q": "By what is the soul dyed?",
+          "correct": "The colour of its thoughts.",
+          "distractors": [
+            "The company it keeps.",
+            "The deeds it does.",
+            "The trials it endures."
+          ]
+        },
+        {
+          "q": "How should you begin each day?",
+          "correct": "Braced to meet difficult people, unshaken.",
+          "distractors": [
+            "Grateful to be alive.",
+            "Set on your duties.",
+            "Calm and clear of mind."
+          ]
+        },
+        {
+          "q": "Into which two kinds do I sort all things?",
+          "correct": "What is up to us, and what is not.",
+          "distractors": [
+            "The good and the harmful.",
+            "The lasting and the fleeting.",
+            "The body and the mind."
+          ]
+        },
+        {
+          "q": "What alone is truly good?",
+          "correct": "A virtuous character.",
+          "distractors": [
+            "A tranquil mind.",
+            "A life well lived.",
+            "Wisdom hard-won."
+          ]
+        },
+        {
+          "q": "When wronged, how do you answer?",
+          "correct": "Return to reason, not revenge.",
+          "distractors": [
+            "Forgive and let it go.",
+            "Set a firm boundary.",
+            "Consider their reasons."
+          ]
+        },
+        {
+          "q": "Complete the thought: \"The best revenge is ___.\"",
+          "correct": "to be unlike your enemy.",
+          "distractors": [
+            "to rise above it.",
+            "to live well.",
+            "to feel no anger."
+          ]
+        },
+        {
+          "q": "What of things beyond your control?",
+          "correct": "Accept them with calm.",
+          "distractors": [
+            "Prepare for them wisely.",
+            "Trust they serve a purpose.",
+            "Turn your mind elsewhere."
+          ]
+        },
+        {
+          "q": "What should you recall about all things?",
+          "correct": "They pass and are soon forgotten.",
+          "distractors": [
+            "They change without cease.",
+            "They serve the whole.",
+            "They are as nature wills."
+          ]
+        },
+        {
+          "q": "What does \"amor fati\" mean?",
+          "correct": "Love of your own fate.",
+          "distractors": [
+            "Trust in providence.",
+            "Peace with what is.",
+            "Courage before death."
+          ]
+        },
+        {
+          "q": "What should you do instead of complaining?",
+          "correct": "The work in front of you.",
+          "distractors": [
+            "Give quiet thanks.",
+            "Accept what is.",
+            "Look for the lesson."
+          ]
+        },
+        {
+          "q": "What should reason, the ruling part, govern?",
+          "correct": "Your impulses and reactions.",
+          "distractors": [
+            "Your daily choices.",
+            "Your desires and fears.",
+            "Your whole way of life."
+          ]
+        },
+        {
+          "q": "How do I picture the cosmos?",
+          "correct": "One ordered, connected whole.",
+          "distractors": [
+            "A living, breathing being.",
+            "A work of divine reason.",
+            "A dance of endless change."
+          ]
+        },
+        {
+          "q": "How does the sage stand amid change?",
+          "correct": "Tranquil and steadfast.",
+          "distractors": [
+            "Watchful and ready.",
+            "Humble and accepting.",
+            "Patient and wise."
+          ]
+        },
+        {
+          "q": "For whose good should you act?",
+          "correct": "The good of the whole.",
+          "distractors": [
+            "The good of your city.",
+            "Those in your care.",
+            "Future generations."
+          ]
+        },
+        {
+          "q": "How should you regard death?",
+          "correct": "As natural, nothing to fear.",
+          "distractors": [
+            "As a return to nature.",
+            "As the door to rest.",
+            "As the price of life."
+          ]
+        },
+        {
+          "q": "What, in truth, can harm you?",
+          "correct": "Your own judgement of events.",
+          "distractors": [
+            "A life without virtue.",
+            "The loss of reason.",
+            "Turning from duty."
+          ]
+        },
+        {
+          "q": "Where should your attention rest?",
+          "correct": "On the task before you now.",
+          "distractors": [
+            "On living by virtue.",
+            "On the good of others.",
+            "On what you can control."
+          ]
+        }
+      ]
+    }
+  }
+}
+  </script>
+  <!-- MW-QUIZ-DATA:END -->
+
+  <script>
+  /* MeaningWave per-legend practice quiz engine (hand-authored).
+     Reads the question bank from the #mw-quiz-bank JSON island above and drives
+     each .mw-quiz[data-guide] widget: draw meta.draw of the guide's questions at
+     random, shuffle the options, ask one at a time, then report % + pass/fail
+     only (never which questions were right or wrong). Pure self-test: nothing
+     here unlocks a guide in-game. */
+  (function () {
+    "use strict";
+    var island = document.getElementById("mw-quiz-bank");
+    if (!island) return;
+    var BANK;
+    try { BANK = JSON.parse(island.textContent); } catch (e) { return; }
+    var META = BANK.meta || {};
+    var DRAW = META.draw || 5, PASS = META.pass || 4;
+
+    function shuffle(a) {
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1)), t = a[i];
+        a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+
+    function buildRun(guide) {
+      var qs = guide.questions || [], pool = [];
+      for (var i = 0; i < qs.length; i++) pool.push(i);
+      shuffle(pool);
+      return pool.slice(0, Math.min(DRAW, qs.length)).map(function (i) {
+        var q = qs[i];
+        return { q: q.q, correct: q.correct,
+                 options: shuffle([q.correct].concat(q.distractors || [])) };
+      });
+    }
+
+    function el(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+
+    function render(container, guide) {
+      function clear() { while (container.firstChild) container.removeChild(container.firstChild); }
+
+      function showIdle() {
+        clear();
+        container.appendChild(el("h4", null, "Practice quiz"));
+        container.appendChild(el("p", "mwq-intro",
+          "Take the same test " + (guide.display_name || "this legend") +
+          " gives in-game: " + DRAW + " questions drawn at random, options shuffled. " +
+          "Score " + PASS + " of " + DRAW + " to pass. Practice only — this does not " +
+          "unlock anything in the module."));
+        var start = el("button", "mwq-start", "Take the practice quiz");
+        start.type = "button";
+        start.addEventListener("click", showRun);
+        container.appendChild(start);
+      }
+
+      function showRun() {
+        var run = buildRun(guide), pos = 0, score = 0;
+        clear();
+        container.appendChild(el("h4", null, "Practice quiz"));
+        var prog = el("p", "mwq-progress");
+        var qEl = el("p", "mwq-question");
+        var opts = el("div", "mwq-options");
+        container.appendChild(prog);
+        container.appendChild(qEl);
+        container.appendChild(opts);
+
+        function step() {
+          if (pos >= run.length) { showResult(score, run.length); return; }
+          var item = run[pos];
+          prog.textContent = "Question " + (pos + 1) + " of " + run.length;
+          qEl.textContent = item.q;
+          while (opts.firstChild) opts.removeChild(opts.firstChild);
+          item.options.forEach(function (opt) {
+            var b = el("button", "mwq-btn", opt);
+            b.type = "button";
+            b.addEventListener("click", function () {
+              if (opt === item.correct) score++;
+              pos++;
+              step();
+            });
+            opts.appendChild(b);
+          });
+        }
+        step();
+      }
+
+      function showResult(score, total) {
+        clear();
+        var pct = Math.round((score / total) * 100);
+        var passPct = Math.round((PASS / total) * 100);
+        var passed = score >= PASS;
+        container.appendChild(el("h4", null, "Result"));
+        var wrap = el("div", "mwq-result");
+        wrap.appendChild(el("p", "mwq-score", "You scored " + pct + "%"));
+        wrap.appendChild(el("p", "mwq-verdict" + (passed ? " pass" : ""),
+          passed ? "That's a pass — the guide would recognise you."
+                 : "Not a pass this time."));
+        wrap.appendChild(el("p", "mwq-note",
+          "Pass mark: " + passPct + "% (" + PASS + " of " + total + ")."));
+        var again = el("button", "mwq-again", "Try again");
+        again.type = "button";
+        again.addEventListener("click", showRun);
+        wrap.appendChild(again);
+        container.appendChild(wrap);
+      }
+
+      showIdle();
+    }
+
+    function init() {
+      var nodes = document.querySelectorAll(".mw-quiz[data-guide]");
+      Array.prototype.forEach.call(nodes, function (node) {
+        var guide = (BANK.guides || {})[node.getAttribute("data-guide")];
+        if (guide) render(node, guide);
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  })();
+  </script>
   </main>
 
   </main>
