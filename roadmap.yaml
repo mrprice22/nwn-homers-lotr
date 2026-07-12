@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-11 07:33 CDT"
+  as_of: "2026-07-11 20:31 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -117,10 +117,10 @@ ideas:
     title: "Party Loot Roll and Pickpocket"
     group: items-gear
     status: implemented
-    commit: ddbd2bdd8cb
     type: Defect
     player: Tukwut
     date: "2026-07-11"
+    commit: ddbd2bdd8cb
     notes: "<span>Fixed: pickpocketing an item from a living NPC no longer triggers a party Need/Greed/Pass loot roll — the roll's source filter now also skips living-creature sources (pickpocket is an individual skill contest). Dead-creature corpse/boss loot still rolls.\n\nThe 'boss used HP 4 more times than expected' half was a misread, not a duplication bug: the Gwathdor Lord carries multiple cure potions plus casts cure spells as an 80-level caster, and the loot-roll code never writes to the victim's inventory.</span>"
   - id: gondor-scribe
     title: "Well of Souls Quest: No Gondor Scribe"
@@ -129,7 +129,7 @@ ideas:
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-07-11"
-    notes: "<div><span>Player report: the Well of Souls Quest may be broken as I cannot find any Gondor Scribe.</span></div><div><br></div><div><b>Root cause (confirmed):</b> the quest-giver NPC was designed but never created or placed. The gondorscribe conversation, journal category, condition/action scripts and the boss all exist, but no creature in the module carries the gondorscribe conversation, and ruinsofannuminas.git.json has zero static creatures. A 2026-05-28 pass only fixed a DLG Quest field name and missed the absent NPC.</div><div><br></div><div><b>Intended two-stage arc:</b> Hanee the Loon (Bree, b_oldwoman_con1) gives 'Ruin of Annuminas' -> go north, kill Azagoth (CR 37, carries azagothshead) in the Ruins of Annuminas -> return to Hanee for an intermediate 5,000 XP + a handoff to the Gondor wizards (she does NOT take the head) -> take the head to the Gondor Scribe in the Tower of the High Wizard: Ground Floor (area011) for 10,000 XP (raised from 4,000) + the Annuminas Key, head consumed. Cold-start alt path: reach the scribe without the head and she starts the quest.</div><div><br></div><div><b>Build steps:</b> new gondorscribe.utc.json (base comfemale002, Tag GondorScribe, Conversation gondorscribe, FactionID 6); place one instance in area011.git/.gic near the wizards (use bin/place-helper.py, __struct_id 4 hardcoded); new sc_hanee_head.nss (StartingConditional: has azagothshead and not hanee_head_reward) + at_hanee_head.nss (RewardPartyXP 5000, set flag, journal entry 2, keep head); bump at_008.nss scribe reward 4000 -> 10000; add Ruin of Annuminas journal entry 2 (End 1). Undecided: whether the Annuminas Key is also granted on the Hanee-first path (currently only on the scribe cold-start). Full draft in QUEST_FIX_well_of_souls_plan.md.</div>"
+    notes: "<div><span>Player report: the Well of Souls Quest may be broken as I cannot find any Gondor Scribe.</span></div><div><br></div><div><b>Root cause (confirmed):</b> the quest-giver NPC was designed but never created or placed. The gondorscribe conversation, journal category, condition/action scripts and the boss all exist, but no creature in the module carries the gondorscribe conversation, and ruinsofannuminas.git.json has zero static creatures. A 2026-05-28 pass only fixed a DLG Quest field name and missed the absent NPC.</div><div><br></div><div><b>Intended two-stage arc:</b> Hanee the Loon (Bree, b_oldwoman_con1) gives 'Ruin of Annuminas' -&gt; go north, kill Azagoth (CR 37, carries azagothshead) in the Ruins of Annuminas -&gt; return to Hanee for an intermediate 5,000 XP + a handoff to the Gondor wizards (she does NOT take the head) -&gt; take the head to the Gondor Scribe in the Tower of the High Wizard: Ground Floor (area011) for 10,000 XP (raised from 4,000) + the Annuminas Key, head consumed. Cold-start alt path: reach the scribe without the head and she starts the quest.</div><div><br></div><div><b>Build steps:</b> new gondorscribe.utc.json (base comfemale002, Tag GondorScribe, Conversation gondorscribe, FactionID 6); place one instance in area011.git/.gic near the wizards (use bin/place-helper.py, __struct_id 4 hardcoded); new sc_hanee_head.nss (StartingConditional: has azagothshead and not hanee_head_reward) + at_hanee_head.nss (RewardPartyXP 5000, set flag, journal entry 2, keep head); bump at_008.nss scribe reward 4000 -&gt; 10000; add Ruin of Annuminas journal entry 2 (End 1). Undecided: whether the Annuminas Key is also granted on the Hanee-first path (currently only on the scribe cold-start). Full draft in QUEST_FIX_well_of_souls_plan.md.</div>"
   - id: unlock-more-inacessible-creature
     title: "Unlock Inacessible creatures, beef up stats, give them areas to live in"
     group: bosses
@@ -154,7 +154,7 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-07-11"
     commit: 6cb1fd24002
-    notes: "<div>Audit, fix, and standardize map notes on area transitions (doors and triggers) so it has the name of the destination's area in the map note (add waypoints for doors or transitions that don't have one, update/audit ones that already do (fix or add map note names). </div><div><br></div><div>Exclude conversation based teleports for destination level map notes, but add the conversation's creature as a dedicated map note with that creature's name instead as a point of interest. </div><div><br></div><div><b>Shipped:</b> new <code>bin/gen-map-notes.py</code> places a destination-labeled map-note pin on every door / trigger / placeable-portal transition (561 notes across 264 areas), plus one point-of-interest pin at each conversation-teleporter NPC named after the NPC. The tool is idempotent and re-runnable; it defers to hand-placed notes and skips ambiguous multi-destination tags (the Gwathdor maze, Dol Guldur).</div>"
+    notes: "<div>Audit, fix, and standardize map notes on area transitions (doors and triggers) so it has the name of the destination's area in the map note (add waypoints for doors or transitions that don't have one, update/audit ones that already do (fix or add map note names). </div><div><br></div><div>Exclude conversation based teleports for destination level map notes, but add the conversation's creature as a dedicated map note with that creature's name instead as a point of interest. </div><div><br></div><div><b>Shipped:</b> new bin/gen-map-notes.py places a destination-labeled map-note pin on every door / trigger / placeable-portal transition (561 notes across 264 areas), plus one point-of-interest pin at each conversation-teleporter NPC named after the NPC. The tool is idempotent and re-runnable; it defers to hand-placed notes and skips ambiguous multi-destination tags (the Gwathdor maze, Dol Guldur).</div>"
   - id: kallrist-forge
     title: "New Forge in Kallrist Crypt"
     group: forge
