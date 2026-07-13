@@ -22,10 +22,13 @@ void main()
     CommitStrongBoxes(PC, "client_leave");
     CommitFamilyBoxes(PC, "client_leave");
     PersState_Snapshot(PC);
+    // A level-up interrupted by a logout leaves its staged picks on the PC, and PC
+    // locals ride into the BIC. Drop them before the export so they can never be
+    // committed in a later session.
+    HGLL_ClearPendingPicks(PC);
     // Force BIC write so the amulet (if any) and any other inventory /
     // BIC-resident state from this session survive a logout that beats
     // the next pc_export_inc auto-save tick.
     ExportSingleCharacter(PC);
     SetLocalString(PC, "LetoScript", "");
-    SetLocalString(PC, "LetoscriptLL", "");
 }

@@ -124,6 +124,30 @@ string GetNameOfClass(int nClass);
 // enough levels in the class to take it. Otherwise it returns FALSE.
 int GetIsClassFeat(int nFeat, int nClass, object oPC);
 
+//------------------------- STAGED (TRANSACTIONAL) LEVEL-UP -------------------//
+// The leveler stages every pick and applies nothing until the player confirms on
+// the final page, where HGLL_CommitLevelUp() applies the whole level-up at once.
+// Anything else (backing out, walking away, disconnecting) must leave the
+// character untouched. Applying picks as they were confirmed - while the level
+// itself was only consumed at the end - is what let players farm free skill
+// points, feats and ability scores by backing out of the last confirmation.
+
+// Points staged into nSkill so far this session.
+int  HGLL_GetPendingSkillPoints(object oPC, int nSkill);
+void HGLL_AddPendingSkillPoint(object oPC, int nSkill);
+// Staged feat, or -1 if none.
+int  HGLL_GetPendingFeat(object oPC);
+void HGLL_SetPendingFeat(object oPC, int nFeat);
+// Staged ability score, or -1 if none.
+int  HGLL_GetPendingStat(object oPC);
+void HGLL_SetPendingStat(object oPC, int nStat);
+// Discards all staged picks and the session scratch vars. Safe to call twice.
+void HGLL_ClearPendingPicks(object oPC);
+// Discards the staged picks and hands the player their full point pool back.
+void HGLL_ResetLevelUpSession(object oPC);
+// Applies every staged pick, then the HP/saves/level the level-up itself grants.
+void HGLL_CommitLevelUp(object oPC);
+
 //----------------------------------FUNCTIONS---------------------------------//
 
 int CheckLegendaryLevel(object oPC)
@@ -1196,12 +1220,15 @@ int nClass = GetControlClass(oPC);
 int nLevel = CheckLegendaryLevel(oPC);
 int nSkillMax;
 // True invested ranks straight from the engine: ignores ability mods, feats and
-// (critically) armor/shield check penalties, and updates live as points are added
-// via HGLL_AddSkillPoint. Replaces the old BASE_* local-int markers, whose value
-// for the armor-check skills (Hide/Move Silently/Parry/Pick Pocket/Set Trap/Tumble)
-// was inflated by the GetBaseSkill armor add-back and pushed them over the cap.
+// (critically) armor/shield check penalties. Replaces the old BASE_* local-int
+// markers, whose value for the armor-check skills (Hide/Move Silently/Parry/Pick
+// Pocket/Set Trap/Tumble) was inflated by the GetBaseSkill armor add-back and
+// pushed them over the cap.
+// Picks made earlier in this session are staged, not applied, so the engine rank
+// does not move during the conversation - add the staged points back in or the cap
+// would not bind until the level was committed.
 // The menu index (nSkill) is identical to the engine SKILL_* constant.
-int nSkillTotal = GetSkillRank(nSkill, oPC, TRUE);
+int nSkillTotal = GetSkillRank(nSkill, oPC, TRUE) + HGLL_GetPendingSkillPoints(oPC, nSkill);
 int nSkillCost = GetCostOfSkill(nClass, nSkill);//returns -1 if not available
 if (nSkillCost == 2)//cross-class
     {
@@ -1252,6 +1279,9 @@ switch (nSkill)
 return sSkill;
 }
 
+// Unused. These names collide with the BASE_* ability markers, so the leveler's old
+// "tracking int" increments were really overwriting that snapshot. Staged skill picks
+// now live in their own HGLL_PEND_SK_* namespace.
 string GetNameOfTrackingInt(int nSkill)
 {
 string sSkill;
@@ -1394,6 +1424,110 @@ int nLevel = GetClassLevelReqForFeat(nFeat, nClass);
 if (nLevel < -1) return FALSE;
 if (GetLevelByClass(nClass, oPC) < nLevel) return FALSE;
 return TRUE;
+}
+
+//------------------------- STAGED (TRANSACTIONAL) LEVEL-UP -------------------//
+
+const string HGLL_PEND_SKILL = "HGLL_PEND_SK_";
+const string HGLL_PEND_FEAT  = "HGLL_PEND_FEAT";
+const string HGLL_PEND_STAT  = "HGLL_PEND_STAT";
+
+int HGLL_GetPendingSkillPoints(object oPC, int nSkill)
+{
+return GetLocalInt(oPC, HGLL_PEND_SKILL + IntToString(nSkill));
+}
+
+void HGLL_AddPendingSkillPoint(object oPC, int nSkill)
+{
+string sVar = HGLL_PEND_SKILL + IntToString(nSkill);
+SetLocalInt(oPC, sVar, GetLocalInt(oPC, sVar) + 1);
+}
+
+// Feat and stat are stored biased by 1: feat 0 and ABILITY_STRENGTH (0) are both
+// valid picks, so an unset variable has to be distinguishable from a picked zero.
+int HGLL_GetPendingFeat(object oPC)
+{
+return GetLocalInt(oPC, HGLL_PEND_FEAT) - 1;
+}
+
+void HGLL_SetPendingFeat(object oPC, int nFeat)
+{
+SetLocalInt(oPC, HGLL_PEND_FEAT, nFeat + 1);
+}
+
+int HGLL_GetPendingStat(object oPC)
+{
+return GetLocalInt(oPC, HGLL_PEND_STAT) - 1;
+}
+
+void HGLL_SetPendingStat(object oPC, int nStat)
+{
+SetLocalInt(oPC, HGLL_PEND_STAT, nStat + 1);
+}
+
+void HGLL_ClearPendingPicks(object oPC)
+{
+int i;
+for (i = 0; i < 27; i++)
+    {
+    DeleteLocalInt(oPC, HGLL_PEND_SKILL + IntToString(i));
+    }
+DeleteLocalInt(oPC, HGLL_PEND_FEAT);
+DeleteLocalInt(oPC, HGLL_PEND_STAT);
+// Session scratch. These are PC locals, which ride into the .bic, so a level-up
+// interrupted by a disconnect would otherwise leave them behind.
+DeleteLocalInt(oPC, "PointsAvailable");
+DeleteLocalInt(oPC, "LastResponseInt");
+DeleteLocalInt(oPC, "SkillIndex");
+DeleteLocalString(oPC, "LastResponse");
+DeleteLocalString(oPC, "TrackChanges");
+DeleteLocalString(oPC, "LetoscriptLL");
+}
+
+void HGLL_ResetLevelUpSession(object oPC)
+{
+HGLL_ClearPendingPicks(oPC);
+// BASE_INT still holds this session's snapshot - the markers are only dropped in
+// the conversation's CleanUp - so the pool recomputes to the same value it was
+// seeded with in hgll_start_dlg.
+int nPoints = NWNX_Object_GetInt(oPC, "hgll_points_avail");
+nPoints += GetSkillPointsGainedOnLevelUp(oPC);
+SetLocalInt(oPC, "PointsAvailable", nPoints);
+SetLocalString(oPC, "TrackChanges", "");
+}
+
+void HGLL_CommitLevelUp(object oPC)
+{
+int nSkill, nPoint, nPending;
+for (nSkill = 0; nSkill < 27; nSkill++)
+    {
+    nPending = HGLL_GetPendingSkillPoints(oPC, nSkill);
+    for (nPoint = 0; nPoint < nPending; nPoint++)
+        {
+        HGLL_AddSkillPoint(oPC, nSkill);//re-reads the live rank on each call
+        }
+    }
+
+int nFeat = HGLL_GetPendingFeat(oPC);
+if (nFeat >= 0) HGLL_AddFeat(oPC, nFeat);//also bumps the ability score for the Great_* feats
+
+int nStat = HGLL_GetPendingStat(oPC);
+if (nStat >= 0) HGLL_AddStatPoint(oPC, nStat);
+
+// HP is derived from the BASE_CON snapshot, not the live score, so a CON pick this
+// level does not feed its own hit points - as before.
+int nLevel = HGLL_GetDocumentedLevel(oPC);
+HGLL_AddHitPoints(oPC, GetHitPointsGainedOnLevelUp(oPC), nLevel);
+if (GetGainsSavesOnLevelUp(oPC)) HGLL_ModifySaves(oPC);
+
+if (nLevel < 41) HGLL_SetDocumentedLevel(oPC, 41);
+else             HGLL_SetDocumentedLevel(oPC, nLevel + 1);
+
+//carry any unspent skill points into the next legendary level
+NWNX_Object_SetInt(oPC, "hgll_points_avail", GetLocalInt(oPC, "PointsAvailable"), TRUE);
+
+HGLL_FlushChanges(oPC);
+HGLL_ClearPendingPicks(oPC);
 }
 
 //below used to compile

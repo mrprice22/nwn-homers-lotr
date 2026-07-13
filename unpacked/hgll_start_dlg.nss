@@ -45,6 +45,11 @@ void main()
         case 1:
             if (GetCanGainLL(oPC))//covers any conditions you add other than level and experience
                 {                 //by default this always returns TRUE, you may set additional conditions
+            ////////Drop any staged picks left behind by an interrupted level-up////////
+                //these are PC locals, so a disconnect part-way through the conversation
+                //carries them into the .bic; committing them next session would hand out
+                //picks the player never confirmed. Must run before PointsAvailable is seeded.
+                HGLL_ClearPendingPicks(oPC);
             ////////Check Abilities and Set Local Ints to track them////////
                 ability = GetRoughAbilities(oPC);//Pull up info on base skills and stats
                 base = GetBaseAbilities(ability, oPC);//Process that data further to get base skills and base stats
