@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script enr_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>enr_inc</code></h1><pre class="nss-source"><code>// enr_inc — boss enrage-on-retreat (roadmap: boss-enrage-on-retreat).
+//
+// Design spec: docs.manual/boss-updates.html#enrage.
+//
+// Scope: ONLY the CR&gt;60 single-instance bosses on the Roll-of-the-Fallen
+// registry (respawndb.boss_registry, seeded from brd_db.nss). When a PC who
+// has been fighting such a boss disengages — leaves the area, moves out of
+// engagement range, or logs out, whether or not other PCs are still fighting —
+// the boss:
+//   1. shouts a taunt naming the fleeing player (shout channel),
+//   2. gains +2 to ALL ability scores for the remainder of that life
+//      (supernatural + permanent: undispellable, stacks per retreat, and can
+//      never carry onto a respawn because a respawn is a fresh creature), and
+//   3. instantly heals 25% of its missing HP.
+//
+// &quot;Left combat&quot; detection (the open design detail in the brief): a hybrid of
+// the two candidates, built on plumbing that already exists —
+//   * ENGAGEMENT is recorded by the bestiary&#x27;s runtime OnDamaged wrapper
+//     (bst_ondamage calls ENR_OnBossDamaged with the master-chain-resolved
+//     owning PC), so anyone who damages the boss — melee, ranged, caster, or
+//     via summons/henchmen — is &quot;engaged&quot;. No new event hooks needed.
+//   * DISENGAGEMENT is decided by a boss-side pseudo-heartbeat (a DelayCommand
+//     loop that only runs while at least one PC is engaged — zero cost for the
+//     other 500+ creatures and for idle bosses). Each tick, an engaged PC who
+//     is out of the boss&#x27;s area, farther than ENR_RANGE, or logged out gets a
+//     strike; ENR_STRIKES consecutive strikes (~ENR_TICK * ENR_STRIKES
+//     seconds) = disengaged. Any new damage from that PC resets the strikes,
+//     so a long-range archer/caster past ENR_RANGE stays engaged as long as
+//     they keep contributing. Dying is NOT retreating: a dead engaged PC is
+//     dropped silently with no enrage.
+//
+// This deliberately complements leash_to_area: the leash sends a kited boss
+// home but never heals it; enrage-on-retreat closes that attrition gap and
+// also covers within-area retreats the leash never sees.
+//
+// Defensive by construction: not-a-registry-boss no-ops (cached, one SQL
+// lookup per creature life), invalid objects no-op, the tick loop dies with
+// the boss, and nothing here touches placed content.
+//
+// Locals used (all on the boss, so they vanish with the corpse):
+//   int    enr_isboss     registry check cache: 0 unknown, 1 boss, -1 not
+//   int    enr_n          number of engaged entries
+//   object enr_pc_&lt;i&gt;     engaged PC
+//   string enr_name_&lt;i&gt;   PC first name, captured at engage (survives logout)
+//   int    enr_out_&lt;i&gt;    consecutive out-of-range strikes
+//   int    enr_ticking    guard: the pseudo-heartbeat loop is scheduled
+//   int    enr_stacks     enrage stacks applied this life (debug/telemetry)
+
+#include &quot;brd_db&quot;
+
+const float ENR_RANGE   = 40.0;  // metres; past this (or out of area) = retreating
+const float ENR_TICK    = 6.0;   // seconds between disengage scans
+const int   ENR_STRIKES = 2;     // consecutive out-of-range ticks = disengaged
+
+// TRUE when oCre is on the Roll-of-the-Fallen boss registry. One campaign-DB
+// lookup per creature life, cached in a local.
+int ENR_IsRegistryBoss(object oCre)
+{
+    int nCache = GetLocalInt(oCre, &quot;enr_isboss&quot;);
+    if (nCache != 0) return (nCache == 1);
+
+    string sRef = BRD_Canonical(GetResRef(oCre));
+    sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
+        &quot;SELECT 1 FROM boss_registry WHERE resref=@r&quot;);
+    SqlBindString(q, &quot;@r&quot;, sRef);
+    int bBoss = SqlStep(q);
+
+    SetLocalInt(oCre, &quot;enr_isboss&quot;, bBoss ? 1 : -1);
+    return bBoss;
+}
+
+// First word of the PC&#x27;s name, for the taunt.
+string ENR_FirstName(object oPC)
+{
+    string sName = GetName(oPC);
+    int nSpace = FindSubString(sName, &quot; &quot;);
+    if (nSpace &gt; 0) return GetStringLeft(sName, nSpace);
+    return sName;
+}
+
+// Apply one enrage stack: taunt, +2 all abilities for this life, heal 25%
+// of missing HP.
+void ENR_TriggerEnrage(object oBoss, string sFleeingName)
+{
+    if (!GetIsObjectValid(oBoss) || GetIsDead(oBoss)) return;
+
+    if (sFleeingName == &quot;&quot;) sFleeingName = &quot;coward&quot;;
+    AssignCommand(oBoss, SpeakString(
+        &quot;Fool, &quot; + sFleeingName + &quot;, my power only grows as you retreat.&quot;,
+        TALKVOLUME_SHOUT));
+
+    // +2 to all six ability scores, supernatural (undispellable) + permanent:
+    // lasts exactly this life, stacks per retreat, gone on respawn.
+    effect eBuff = EffectAbilityIncrease(ABILITY_STRENGTH, 2);
+    eBuff = EffectLinkEffects(eBuff, EffectAbilityIncrease(ABILITY_DEXTERITY,    2));
+    eBuff = EffectLinkEffects(eBuff, EffectAbilityIncrease(ABILITY_CONSTITUTION, 2));
+    eBuff = EffectLinkEffects(eBuff, EffectAbilityIncrease(ABILITY_INTELLIGENCE, 2));
+    eBuff = EffectLinkEffects(eBuff, EffectAbilityIncrease(ABILITY_WISDOM,       2));
+    eBuff = EffectLinkEffects(eBuff, EffectAbilityIncrease(ABILITY_CHARISMA,     2));
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, SupernaturalEffect(eBuff), oBoss);
+
+    // Heal 25% of missing HP.
+    int nMissing = GetMaxHitPoints(oBoss) - GetCurrentHitPoints(oBoss);
+    if (nMissing &gt; 0)
+        ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectHeal(nMissing / 4), oBoss);
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_IMPROVE_ABILITY_SCORE), oBoss);
+
+    SetLocalInt(oBoss, &quot;enr_stacks&quot;, GetLocalInt(oBoss, &quot;enr_stacks&quot;) + 1);
+}
+
+// Remove engaged entry i by moving the last entry into its slot.
+void ENR_RemoveEntry(object oBoss, int i, int nN)
+{
+    int nLast = nN - 1;
+    if (i != nLast)
+    {
+        SetLocalObject(oBoss, &quot;enr_pc_&quot;   + IntToString(i),
+            GetLocalObject(oBoss, &quot;enr_pc_&quot;   + IntToString(nLast)));
+        SetLocalString(oBoss, &quot;enr_name_&quot; + IntToString(i),
+            GetLocalString(oBoss, &quot;enr_name_&quot; + IntToString(nLast)));
+        SetLocalInt   (oBoss, &quot;enr_out_&quot;  + IntToString(i),
+            GetLocalInt   (oBoss, &quot;enr_out_&quot;  + IntToString(nLast)));
+    }
+    DeleteLocalObject(oBoss, &quot;enr_pc_&quot;   + IntToString(nLast));
+    DeleteLocalString(oBoss, &quot;enr_name_&quot; + IntToString(nLast));
+    DeleteLocalInt   (oBoss, &quot;enr_out_&quot;  + IntToString(nLast));
+    SetLocalInt(oBoss, &quot;enr_n&quot;, nLast);
+}
+
+// The disengage scan. Reschedules itself while anyone is engaged; the loop
+// (and every local it reads) dies with the boss, so enrage never persists
+// onto a respawned instance.
+void ENR_Tick(object oBoss)
+{
+    if (!GetIsObjectValid(oBoss) || GetIsDead(oBoss)) return;
+
+    object oBossArea = GetArea(oBoss);
+    int nN = GetLocalInt(oBoss, &quot;enr_n&quot;);
+    int i = 0;
+    while (i &lt; nN)
+    {
+        string sI  = IntToString(i);
+        object oPC = GetLocalObject(oBoss, &quot;enr_pc_&quot; + sI);
+
+        int bDropSilent = FALSE;   // remove without enrage (death)
+        int bOut        = FALSE;   // this tick counts as a strike
+
+        if (!GetIsObjectValid(oPC))
+            bOut = TRUE;                       // logged out / gone = retreating
+        else if (GetIsDead(oPC))
+            bDropSilent = TRUE;                // dying is not retreating
+        else if (GetArea(oPC) != oBossArea
+              || GetDistanceBetween(oBoss, oPC) &gt; ENR_RANGE)
+            bOut = TRUE;
+
+        if (bDropSilent)
+        {
+            ENR_RemoveEntry(oBoss, i, nN);
+            nN--;
+            continue;                          // re-check the swapped-in entry
+        }
+
+        if (bOut)
+        {
+            int nStrikes = GetLocalInt(oBoss, &quot;enr_out_&quot; + sI) + 1;
+            if (nStrikes &gt;= ENR_STRIKES)
+            {
+                ENR_TriggerEnrage(oBoss, GetLocalString(oBoss, &quot;enr_name_&quot; + sI));
+                ENR_RemoveEntry(oBoss, i, nN);
+                nN--;
+                continue;
+            }
+            SetLocalInt(oBoss, &quot;enr_out_&quot; + sI, nStrikes);
+        }
+        else
+            SetLocalInt(oBoss, &quot;enr_out_&quot; + sI, 0);
+
+        i++;
+    }
+
+    if (nN &gt; 0)
+        DelayCommand(ENR_TICK, ENR_Tick(oBoss));
+    else
+        SetLocalInt(oBoss, &quot;enr_ticking&quot;, 0);
+}
+
+// Entry point, called from bst_ondamage with the master-chain-resolved owning
+// PC. OBJECT_SELF is the damaged creature. No-ops for anything that isn&#x27;t a
+// registry boss.
+void ENR_OnBossDamaged(object oCre, object oPC)
+{
+    if (!GetIsObjectValid(oCre) || GetIsDead(oCre)) return;
+    if (!GetIsObjectValid(oPC)) return;
+    if (!ENR_IsRegistryBoss(oCre)) return;
+
+    // Already engaged? Refresh: damage proves they&#x27;re still in the fight.
+    int nN = GetLocalInt(oCre, &quot;enr_n&quot;);
+    int i;
+    for (i = 0; i &lt; nN; i++)
+    {
+        if (GetLocalObject(oCre, &quot;enr_pc_&quot; + IntToString(i)) == oPC)
+        {
+            SetLocalInt(oCre, &quot;enr_out_&quot; + IntToString(i), 0);
+            return;
+        }
+    }
+
+    // New engagement (or re-engagement after a previous retreat — which can
+    // legitimately earn the boss another stack later).
+    string sN = IntToString(nN);
+    SetLocalObject(oCre, &quot;enr_pc_&quot;   + sN, oPC);
+    SetLocalString(oCre, &quot;enr_name_&quot; + sN, ENR_FirstName(oPC));
+    SetLocalInt   (oCre, &quot;enr_out_&quot;  + sN, 0);
+    SetLocalInt   (oCre, &quot;enr_n&quot;, nN + 1);
+
+    if (!GetLocalInt(oCre, &quot;enr_ticking&quot;))
+    {
+        SetLocalInt(oCre, &quot;enr_ticking&quot;, 1);
+        DelayCommand(ENR_TICK, ENR_Tick(oCre));
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

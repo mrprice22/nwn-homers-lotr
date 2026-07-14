@@ -64,38 +64,53 @@ const string FIFTH_PAGE = &quot;stat_select&quot;;
 const string SIXTH_PAGE = &quot;stat_confirm&quot;;
 const string SEVENTH_PAGE = &quot;final_confirm&quot;;
 
+// (Re)builds the skill menu from whatever the PC can still afford and still has room
+// for. Called on entry, after every pick, and on a restart.
+void BuildSkillList(object oPC)
+{
+    int nSkill;
+    int nCount = 0;
+    string sCrossClass;
+    DeleteList(FIRST_PAGE, oPC);
+    for(nSkill = 0; nSkill &lt; 27; nSkill++) //loop through the skill constants
+        {
+        if (GetIsSkillAvailable(oPC, nSkill)) //if the PC can take the skill, it is displayed
+            {
+            if (GetCostOfSkill(GetControlClass(oPC), nSkill) == 2)
+                {
+                sCrossClass = &quot; [Cross-Class]&quot;;
+                }
+            else
+                {
+                sCrossClass = &quot;&quot;;
+                }
+            AddStringElement(GetNameOfSkill(nSkill) + sCrossClass, FIRST_PAGE, oPC );
+            ReplaceIntElement(nCount, nSkill, FIRST_PAGE, oPC); //store the skill int with the skill
+            DoDebug(oPC, &quot;Response Number: &quot; + IntToString(nCount) + &quot;, Skill Number: &quot; + IntToString(nSkill) + &quot;.&quot;);
+            nCount ++;
+            }
+        }
+    AddStringElement (&quot;I cannot or do not wish to select any more skills at this time.&quot;, FIRST_PAGE, oPC );
+}
+
+// Throws away every staged pick and puts the player back at the top with a full pool.
+// Nothing has been applied to the character yet, so there is nothing to roll back.
+void RestartPicks(object oPC)
+{
+    HGLL_ResetLevelUpSession(oPC);
+    BuildSkillList(oPC);
+    SetDlgPageString( &quot;skill&quot; );
+}
+
 void Init()
 {
     string page = GetDlgPageString();
-    int nSkill;
-    int nFeat;
-    int nCount = 0;
-    int nCount2 = 0;
-    string sCrossClass;
     object oPC = GetPcDlgSpeaker();
     if( page == &quot;&quot; )
         {
         if( GetElementCount(FIRST_PAGE, oPC) == 0 )
             {
-            for(nSkill = 0; nSkill &lt; 27; nSkill++) //loop through the skill constants
-                {
-                if (GetIsSkillAvailable(oPC, nSkill)) //if the PC can take the skill, it is displayed
-                    {
-                    if (GetCostOfSkill(GetControlClass(oPC), nSkill) == 2)
-                        {
-                        sCrossClass = &quot; [Cross-Class]&quot;;
-                        }
-                    else
-                        {
-                        sCrossClass = &quot;&quot;;
-                        }
-                    AddStringElement(GetNameOfSkill(nSkill) + sCrossClass, FIRST_PAGE, oPC );
-                    ReplaceIntElement(nCount, nSkill, FIRST_PAGE, oPC); //store the skill int with the skill
-                    DoDebug(oPC, &quot;Response Number: &quot; + IntToString(nCount) + &quot;, Skill Number: &quot; + IntToString(nSkill) + &quot;.&quot;);
-                    nCount ++;
-                    }
-                }
-            AddStringElement (&quot;I cannot or do not wish to select any more skills at this time.&quot;, FIRST_PAGE, oPC );
+            BuildSkillList(oPC);
             }
         if( GetElementCount(SECOND_PAGE, oPC) == 0 )
             {
@@ -176,6 +191,10 @@ void CleanUp()
     DeleteList( SIXTH_PAGE, oPC );
     DeleteList( SEVENTH_PAGE, oPC );
     DeleteBaseAbilityMarkers(oPC);
+    // Fires on DLG_END and DLG_ABORT alike, so walking away or hitting ESC part-way
+    // through discards the staged picks. A committed level-up has already cleared
+    // them, and clearing twice is harmless.
+    HGLL_ClearPendingPicks(oPC);
 }
 
 void PageInit()
@@ -240,19 +259,11 @@ void HandleSelection()
     int nSkill;
     int nFeat;
     int nStat;
-    int nHP;
-    int nLootable;
     string sName;
-    string sLeto;
     string sTrack;
     string sChange;
-    string sCrossClass;
     int nChange;
-    int nTInt;
-    int nSLRSkill;
-    int nSLRCount;
     int nPointsAvailable;
-    int nLevel;
     if( page == &quot;&quot; || page == &quot;skill&quot;)
         {
         nElements = GetElementCount(FIRST_PAGE, oPC);
@@ -290,51 +301,19 @@ void HandleSelection()
         switch( selection )
             {
             case 0: // Yes
-                // add to leto and tracking strings
-                sLeto = GetLocalString(oPC, &quot;LetoscriptLL&quot;);//String to track Letoscript changes to be made
                 sTrack = GetLocalString(oPC, &quot;TrackChanges&quot;);//String to track description of changes to be made
                 sChange = GetLocalString(oPC, &quot;LastResponse&quot;) + &quot;, &quot;;
                 nChange = GetLocalInt(oPC, &quot;LastResponseInt&quot;);
                 DoDebug(oPC, &quot;LastResponseInt: &quot; + IntToString(nChange));
-                HGLL_AddSkillPoint(oPC, nChange);
-                sLeto += AddSkillPoint(nChange);
-                SetLocalString(oPC, &quot;LetoscriptLL&quot;, sLeto);
+                HGLL_AddPendingSkillPoint(oPC, nChange);//staged only - applied by HGLL_CommitLevelUp
                 sTrack += sChange;
                 SetLocalString(oPC, &quot;TrackChanges&quot;, sTrack);
-                // add 1 to the skill&#x27;s tracking int
-                nTInt = GetLocalInt(oPC, GetNameOfTrackingInt(nChange));
-                nTInt++;
-                SetLocalInt(oPC, GetNameOfTrackingInt(nChange), nTInt);
-                DoDebug(oPC, GetNameOfTrackingInt(nChange) + IntToString(nTInt));
-                DoDebug(oPC, &quot;TInt Set: &quot; + GetNameOfTrackingInt(nChange) + IntToString(GetLocalInt(oPC, GetNameOfTrackingInt(nChange))));
                 // subtract cost of skill from points available
                 nPointsAvailable = GetLocalInt(oPC, &quot;PointsAvailable&quot;);
                 nPointsAvailable = nPointsAvailable - (GetCostOfSkill(GetControlClass(oPC), nChange));
                 SetLocalInt(oPC, &quot;PointsAvailable&quot;, nPointsAvailable);
                 // if they have maxed out the skill or don&#x27;t have points left for it remove it from the list
-                DeleteList(FIRST_PAGE, oPC);
-                if( GetElementCount(FIRST_PAGE, oPC) == 0 )
-                    {
-                    for(nSLRSkill = 0; nSLRSkill &lt; 27; nSLRSkill++) //loop through the skill constants
-                        {
-                        if (GetIsSkillAvailable(oPC, nSLRSkill)) //if the PC can take the skill, it is displayed
-                            {
-                            if (GetCostOfSkill(GetControlClass(oPC), nSLRSkill) == 2)
-                                {
-                                sCrossClass = &quot; [Cross-Class]&quot;;
-                                }
-                            else
-                                {
-                                sCrossClass = &quot;&quot;;
-                                }
-                            AddStringElement(GetNameOfSkill(nSLRSkill) + sCrossClass, FIRST_PAGE, oPC );
-                            ReplaceIntElement(nSLRCount, nSLRSkill, FIRST_PAGE, oPC); //store the skill int with the skill
-                            DoDebug(oPC, &quot;Response Number: &quot; + IntToString(nSLRCount) + &quot;, Skill Number: &quot; + IntToString(nSLRSkill) + &quot;.&quot;);
-                            nSLRCount ++;
-                            }
-                        }
-                    AddStringElement (&quot;I cannot or do not wish to select any more skills at this time.&quot;, FIRST_PAGE, oPC );
-                    }
+                BuildSkillList(oPC);
                 // if they have skill points left, go back to start page
                 if (nPointsAvailable &gt; 0)
                     {
@@ -355,8 +334,8 @@ void HandleSelection()
                     SetDlgPageString( &quot;finish&quot; );
                     }
                 break;
-            case 1: // No
-                EndDlg();
+            case 1: // No, start over
+                RestartPicks(oPC);
                 break;
             }
         }
@@ -374,14 +353,10 @@ void HandleSelection()
         switch( selection )
             {
             case 0: // Yes
-                // add to leto and tracking strings
-                sLeto = GetLocalString(oPC, &quot;LetoscriptLL&quot;);//String to track Letoscript changes to be made
                 sTrack = GetLocalString(oPC, &quot;TrackChanges&quot;);//String to track description of changes to be made
                 sChange = GetLocalString(oPC, &quot;LastResponse&quot;) + &quot;, &quot;;
                 nChange = GetLocalInt(oPC, &quot;LastResponseInt&quot;);
-                HGLL_AddFeat(oPC, nChange);
-                sLeto += AddFeat(nChange);
-                SetLocalString(oPC, &quot;LetoscriptLL&quot;, sLeto);
+                HGLL_SetPendingFeat(oPC, nChange);//staged only - applied by HGLL_CommitLevelUp
                 sTrack += sChange;
                 SetLocalString(oPC, &quot;TrackChanges&quot;, sTrack);
                 if (GetGainsStatOnLevelUp(oPC))
@@ -394,8 +369,8 @@ void HandleSelection()
                     SetDlgPageString( &quot;finish&quot; );
                     }
                 break;
-            case 1: // No
-                EndDlg();
+            case 1: // No, start over
+                RestartPicks(oPC);
                 break;
             }
         }
@@ -414,21 +389,16 @@ void HandleSelection()
         switch( selection )
             {
             case 0: // Yes
-                // add to leto and tracking strings
-                sLeto = GetLocalString(oPC, &quot;LetoscriptLL&quot;);//String to track Letoscript changes to be made
                 sTrack = GetLocalString(oPC, &quot;TrackChanges&quot;);//String to track description of changes to be made
                 sChange = GetLocalString(oPC, &quot;LastResponse&quot;) + &quot;, &quot;;
                 nChange = GetLocalInt(oPC, &quot;LastResponseInt&quot;);
-                HGLL_AddStatPoint(oPC, nChange);
-                sLeto += AddStatPoint(nChange);
-                DoDebug(oPC, &quot;Leto String: &quot; + sLeto);
-                SetLocalString(oPC, &quot;LetoscriptLL&quot;, sLeto);
+                HGLL_SetPendingStat(oPC, nChange);//staged only - applied by HGLL_CommitLevelUp
                 sTrack += sChange;
                 SetLocalString(oPC, &quot;TrackChanges&quot;, sTrack);
                 SetDlgPageString( &quot;finish&quot; );
                 break;
-            case 1: // No
-                EndDlg();
+            case 1: // No, start over
+                RestartPicks(oPC);
                 break;
             }
         }
@@ -437,32 +407,14 @@ void HandleSelection()
         switch( selection )
             {
             case 0: // Yes
-                 sLeto = GetLocalString(oPC, &quot;LetoscriptLL&quot;);//String to track Letoscript changes to be made (now unused; see hgll_leto_inc port notes)
-                 nHP = GetHitPointsGainedOnLevelUp(oPC);//calcualate hit point gain
-                 nLevel = HGLL_GetDocumentedLevel(oPC);
-                 HGLL_AddHitPoints(oPC, nHP, nLevel);
-                 if (GetGainsSavesOnLevelUp(oPC))
-                    {
-                    HGLL_ModifySaves(oPC);
-                    }
-                 nLootable = HGLL_GetDocumentedLevel(oPC);//track the PC&#x27;s HGLL level
-                 if (nLootable &lt; 41)
-                    {
-                    HGLL_SetDocumentedLevel(oPC, 41);
-                    }
-                 else
-                    {
-                    nLootable++;
-                    HGLL_SetDocumentedLevel(oPC, nLootable);
-                    }
-                 //SubtractXPForNextLL(oPC);
-                 nPointsAvailable = GetLocalInt(oPC, &quot;PointsAvailable&quot;);//check to see if any skill points left over
-                 NWNX_Object_SetInt(oPC, &quot;hgll_points_avail&quot;, nPointsAvailable, TRUE);//if so, store them for use for next level
-                 HGLL_FlushChanges(oPC);
+                 //this is the only point at which the character is touched: skills, feat
+                 //and stat are applied together with the hit points, saves and the level
+                 //itself, so a level-up either happens in full or not at all
+                 HGLL_CommitLevelUp(oPC);
                  EndDlg();
                  break;
-            case 1: // No
-                EndDlg();
+            case 1: // No, start over
+                RestartPicks(oPC);
                 break;
             }
         }

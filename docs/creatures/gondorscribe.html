@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script bst_ondamage</title>
+  <title>Gondor Scribe</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,55 +54,47 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bst_ondamage</code></h1><pre class="nss-source"><code>// bst_ondamage — wrapped creature OnDamaged: record PC damage contributors.
-//
-// Installed by bst_install. Records each distinct PC that has dealt damage to
-// this creature (walking the summon/henchman master chain to the owning PC) so
-// bst_ondeath can tell Solo from Party kills and credit every contributor.
-// Always chains the creature&#x27;s original OnDamaged handler.
-//
-// Also feeds the boss enrage-on-retreat system (enr_inc): registry bosses
-// mark each damaging PC as &quot;engaged&quot; here; ENR_OnBossDamaged no-ops for
-// everything else (cached one-query registry check).
-
-#include &quot;enr_inc&quot;
-
-void main()
-{
-    object oCre = OBJECT_SELF;
-
-    object oDmg = GetLastDamager(oCre);
-    // Summons, henchmen, familiars, animal companions -&gt; credit the owning PC.
-    while (GetIsObjectValid(GetMaster(oDmg))) oDmg = GetMaster(oDmg);
-
-    if (GetIsPC(oDmg) &amp;&amp; !GetIsDM(oDmg))
-    {
-        int nN = GetLocalInt(oCre, &quot;bst_ctrb_n&quot;);
-        int i;
-        int bFound = FALSE;
-        for (i = 0; i &lt; nN; i++)
-        {
-            if (GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i)) == oDmg)
-            {
-                bFound = TRUE;
-                break;
-            }
-        }
-        if (!bFound)
-        {
-            SetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(nN), oDmg);
-            SetLocalInt(oCre, &quot;bst_ctrb_n&quot;, nN + 1);
-        }
-
-        // Enrage-on-retreat: registry bosses track this PC as engaged.
-        ENR_OnBossDamaged(oCre, oDmg);
-    }
-
-    // Chain the creature&#x27;s original OnDamaged handler, if any.
-    string sOrig = GetLocalString(oCre, &quot;bst_orig_dmg&quot;);
-    if (sOrig != &quot;&quot;) ExecuteScript(sOrig, oCre);
-}
-</code></pre>
+<h1>Gondor Scribe</h1>
+<dl class="meta">
+<dt>ResRef</dt><dd>gondorscribe</dd>
+<dt>Tag</dt><dd>GondorScribe</dd>
+<dt>Race</dt><dd><a href="../creatures/by-race/index.html#race-6">Human</a></dd>
+<dt>Appearance</dt><dd>Halfling: Female</dd>
+<dt>Class(es)</dt><dd>Commoner 1</dd>
+<dt>HP</dt><dd>2</dd>
+<dt>CR</dt><dd>0.25</dd>
+<dt>Faction</dt><dd><a href="../factions.html">Good</a> <small class="muted">(id 6)</small></dd>
+<dt>Conversation</dt><dd><a href="../conversations/gondorscribe.html">gondorscribe</a></dd>
+</dl>
+<h2>Kills</h2><p>Not yet slain by any adventurer.</p>
+<h2>Where to find</h2>
+<h3>Placed directly</h3><table class="data"><thead><tr><th>Area</th><th>Count</th></tr></thead><tbody><tr><td><a href="../areas/area011.html">Tower of the High Wizard: Ground Floor</a></td><td>1</td></tr></tbody></table>
+<h2>Abilities</h2>
+<table class="data"><tr><th>Str</th><td>8</td><th>Dex</th><td>10</td><th>Con</th><td>8</td><th>Int</th><td>8</td><th>Wis</th><td>10</td><th>Cha</th><td>8</td></tr></table>
+<h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Commoner</td><td>1</td></tr></tbody></table>
+<p class="desc">A scribe of Gondor, sent north with the wizards&#x27; expedition to catalogue the lore of ruined Annuminas. She looks up from her ledgers with keen, worried eyes.</p>
+<h2>Combat</h2>
+<table class="data"><tr><th>HP</th><td>2</td><th>AC</th><td>10 <small class="muted">(10 base + +0 Dex)</small></td><th>BAB</th><td>+0</td></tr><tr><th>Fort</th><td>-1</td><th>Ref</th><td>+0</td><th>Will</th><td>+0</td></tr></table>
+<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
+<h2>Equipment</h2>
+<table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/nw_cloth024.html">Commoner&#x27;s Tunic</a></td><td><span style="color:#888">No</span></td></tr></tbody></table>
+<h2>Feats <small class="muted">(2)</small></h2><ul class="featlist"><li>QuickMaster</li><li>Toughness</li></ul>
+<h2>Skills</h2><table class="data"><thead><tr><th>Skill</th><th>Ranks</th></tr></thead><tbody><tr><td>Lore</td><td>2</td></tr>
+<tr><td>Taunt</td><td>2</td></tr></tbody></table>
+<h2>Scripts</h2>
+<table class="data"><thead><tr><th>Event</th><th>Script</th></tr></thead><tbody><tr><td>ScriptHeartbeat</td><td>nw_c2_default1</td></tr>
+<tr><td>ScriptOnNotice</td><td>nw_c2_default2</td></tr>
+<tr><td>ScriptEndRound</td><td>nw_c2_default3</td></tr>
+<tr><td>ScriptDialogue</td><td>nw_c2_default4</td></tr>
+<tr><td>ScriptAttacked</td><td>nw_c2_default5</td></tr>
+<tr><td>ScriptDamaged</td><td>nw_c2_default6</td></tr>
+<tr><td>ScriptDeath</td><td>nw_c2_default7</td></tr>
+<tr><td>ScriptDisturbed</td><td>nw_c2_default8</td></tr>
+<tr><td>ScriptSpawn</td><td>nw_c2_default9</td></tr>
+<tr><td>ScriptRested</td><td>nw_c2_defaulta</td></tr>
+<tr><td>ScriptSpellAt</td><td>nw_c2_defaultb</td></tr>
+<tr><td>ScriptUserDefine</td><td>nw_c2_defaultd</td></tr>
+<tr><td>ScriptOnBlocked</td><td>nw_c2_defaulte</td></tr></tbody></table>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

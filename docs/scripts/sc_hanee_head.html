@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script bst_ondamage</title>
+  <title>Script sc_hanee_head</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,53 +54,31 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bst_ondamage</code></h1><pre class="nss-source"><code>// bst_ondamage — wrapped creature OnDamaged: record PC damage contributors.
-//
-// Installed by bst_install. Records each distinct PC that has dealt damage to
-// this creature (walking the summon/henchman master chain to the owning PC) so
-// bst_ondeath can tell Solo from Party kills and credit every contributor.
-// Always chains the creature&#x27;s original OnDamaged handler.
-//
-// Also feeds the boss enrage-on-retreat system (enr_inc): registry bosses
-// mark each damaging PC as &quot;engaged&quot; here; ENR_OnBossDamaged no-ops for
-// everything else (cached one-query registry check).
+<h1>Script: <code>sc_hanee_head</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: FileName sc_hanee_head
+//:://////////////////////////////////////////////
+/*
+    Hanee the Loon (Bree) - head-reaction branch gate.
+    Fires when the PC returns carrying Azagoth&#x27;s Head
+    and has not yet collected the intermediate reward.
+    (roadmap: gondor-scribe)
+*/
+//:://////////////////////////////////////////////
+#include &quot;nw_i0_tool&quot;
 
-#include &quot;enr_inc&quot;
-
-void main()
+int StartingConditional()
 {
-    object oCre = OBJECT_SELF;
+    object oPC = GetPCSpeaker();
 
-    object oDmg = GetLastDamager(oCre);
-    // Summons, henchmen, familiars, animal companions -&gt; credit the owning PC.
-    while (GetIsObjectValid(GetMaster(oDmg))) oDmg = GetMaster(oDmg);
+    // Must be carrying Azagoth&#x27;s Head
+    if(!CheckPlayerForItem(oPC, &quot;azagothshead&quot;))
+        return FALSE;
 
-    if (GetIsPC(oDmg) &amp;&amp; !GetIsDM(oDmg))
-    {
-        int nN = GetLocalInt(oCre, &quot;bst_ctrb_n&quot;);
-        int i;
-        int bFound = FALSE;
-        for (i = 0; i &lt; nN; i++)
-        {
-            if (GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i)) == oDmg)
-            {
-                bFound = TRUE;
-                break;
-            }
-        }
-        if (!bFound)
-        {
-            SetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(nN), oDmg);
-            SetLocalInt(oCre, &quot;bst_ctrb_n&quot;, nN + 1);
-        }
+    // One-time reward - Hanee does not take the head, so gate on a flag
+    if(GetLocalInt(oPC, &quot;hanee_head_reward&quot;))
+        return FALSE;
 
-        // Enrage-on-retreat: registry bosses track this PC as engaged.
-        ENR_OnBossDamaged(oCre, oDmg);
-    }
-
-    // Chain the creature&#x27;s original OnDamaged handler, if any.
-    string sOrig = GetLocalString(oCre, &quot;bst_orig_dmg&quot;);
-    if (sOrig != &quot;&quot;) ExecuteScript(sOrig, oCre);
+    return TRUE;
 }
 </code></pre>
   </main>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script bst_ondamage</title>
+  <title>Script epic_summon_hb</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,53 +54,56 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bst_ondamage</code></h1><pre class="nss-source"><code>// bst_ondamage — wrapped creature OnDamaged: record PC damage contributors.
-//
-// Installed by bst_install. Records each distinct PC that has dealt damage to
-// this creature (walking the summon/henchman master chain to the owning PC) so
-// bst_ondeath can tell Solo from Party kills and credit every contributor.
-// Always chains the creature&#x27;s original OnDamaged handler.
-//
-// Also feeds the boss enrage-on-retreat system (enr_inc): registry bosses
-// mark each damaging PC as &quot;engaged&quot; here; ENR_OnBossDamaged no-ops for
-// everything else (cached one-query registry check).
+<h1>Script: <code>epic_summon_hb</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Epic summon heartbeat  (Mummy Reaper / Dragon Knight)
+//:: epic_summon_hb
+//:://////////////////////////////////////////////
+/*
+    OnHeartbeat for the epic summon blueprints (mummyreaper.utc,
+    epicdragonknight.utc). Runs the standard henchman heartbeat AI, then
+    fixes the &quot;dismissed but left standing&quot; defect (roadmap:
+    epic-summon-unsummon):
 
-#include &quot;enr_inc&quot;
+    Epic summons live on the HENCHMAN slot (see epic_summon_inc.nss), and
+    kicking a henchman via the party/dismiss flow only severs the master
+    link -- the engine never destroys the creature the way it does a real
+    ASSOCIATE_TYPE_SUMMONED. Detect the orphaned state (marker set, no
+    master) and unsummon properly: clear the owner&#x27;s tracking local, play
+    the unsummon visual, and disappear.
+
+    Real Meaningwave henchmen and other companions are untouched -- this
+    script is only wired to the two epic summon blueprints, and the check
+    additionally requires the EPIC_SUMMON_TAG marker that only
+    EpicSummon_Cast sets.
+*/
+//:://////////////////////////////////////////////
+
+#include &quot;epic_summon_inc&quot;
 
 void main()
 {
-    object oCre = OBJECT_SELF;
+    // Standard henchman heartbeat AI (stock resource, resolved by resman).
+    ExecuteScript(&quot;x0_ch_hen_heart&quot;, OBJECT_SELF);
 
-    object oDmg = GetLastDamager(oCre);
-    // Summons, henchmen, familiars, animal companions -&gt; credit the owning PC.
-    while (GetIsObjectValid(GetMaster(oDmg))) oDmg = GetMaster(oDmg);
+    object oSelf = OBJECT_SELF;
+    if (!GetLocalInt(oSelf, EPIC_SUMMON_TAG)) return;
+    if (GetIsObjectValid(GetMaster(oSelf))) return;
 
-    if (GetIsPC(oDmg) &amp;&amp; !GetIsDM(oDmg))
+    // Orphaned: the master link was severed outside EpicSummon_Dismiss /
+    // EpicSummon_Expire (party-kick, or any other RemoveHenchman path).
+    // Clear the owner&#x27;s tracking local if it still points at us so a later
+    // EpicSummon_Cast/Dismiss doesn&#x27;t chase a stale reference.
+    object oOwner = GetLocalObject(oSelf, EPIC_SUMMON_OWNER);
+    if (GetIsObjectValid(oOwner)
+        &amp;&amp; GetLocalObject(oOwner, EPIC_SUMMON_OBJ) == oSelf)
     {
-        int nN = GetLocalInt(oCre, &quot;bst_ctrb_n&quot;);
-        int i;
-        int bFound = FALSE;
-        for (i = 0; i &lt; nN; i++)
-        {
-            if (GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i)) == oDmg)
-            {
-                bFound = TRUE;
-                break;
-            }
-        }
-        if (!bFound)
-        {
-            SetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(nN), oDmg);
-            SetLocalInt(oCre, &quot;bst_ctrb_n&quot;, nN + 1);
-        }
-
-        // Enrage-on-retreat: registry bosses track this PC as engaged.
-        ENR_OnBossDamaged(oCre, oDmg);
+        DeleteLocalObject(oOwner, EPIC_SUMMON_OBJ);
     }
 
-    // Chain the creature&#x27;s original OnDamaged handler, if any.
-    string sOrig = GetLocalString(oCre, &quot;bst_orig_dmg&quot;);
-    if (sOrig != &quot;&quot;) ExecuteScript(sOrig, oCre);
+    AssignCommand(oSelf, ClearAllActions());
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_UNSUMMON), oSelf);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oSelf);
 }
 </code></pre>
   </main>

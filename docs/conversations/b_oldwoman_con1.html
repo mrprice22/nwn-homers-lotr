@@ -56,9 +56,9 @@
   <main>
 <h1>Conversation: <code>b_oldwoman_con1</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>5</dd>
-<dt>PC replies</dt><dd>7</dd>
-<dt>NumWords</dt><dd>155</dd>
+<dt>NPC lines</dt><dd>6</dd>
+<dt>PC replies</dt><dd>8</dd>
+<dt>NumWords</dt><dd>234</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
@@ -66,13 +66,27 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/nw_oldwoman_2.html">Hanee The Loon</a> <code>nw_oldwoman_2</code> — in <a href="../areas/bree.html">Bree</a></li>
 <li><span class="badge">creature</span> NPC <a href="../creatures/nw_oldwoman_2.html">Hanee The Loon</a> — in <a href="../areas/bree.html">Bree</a></li>
 </ul>
-<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/ruin-of-annuminas.html">Ruin of Annuminas</a></td><td><code>ruin of annuminas</code></td><td>1</td></tr></tbody></table>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>at_hanee_head</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>sc_hanee_head</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/ruin-of-annuminas.html">Ruin of Annuminas</a></td><td><code>ruin of annuminas</code></td><td>1, 2</td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>sc_hanee_head</code>)</small> — Ooh! Ooh - is that a HEAD ya got there? Heehee, gruesome lovely, that is! *pokes…</li>
 <li><a href="#e0">entry #0</a> — Eh?? Whats that?? Speak up my hearing ain&#x27;t so good. Why ya botherin an old woma…</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>at_hanee_head</code></span> <small class="muted">(if <code>sc_hanee_head</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">Ooh! Ooh - is that a HEAD ya got there? Heehee, gruesome lovely, that is! *pokes at the grisly trophy* Azagoth hisself, I&#x27;d wager me last tooth on it! Y&#x27;know, dearie, them fancy robe-wearin&#x27; wizard folk over in Gondor - up the High Wizard&#x27;s tower - they&#x27;d give their pointy hats for a gawp at that. Off ya trot, and mind it don&#x27;t drip on yer boots!</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">Er... thank you, Hanee. To the wizards of Gondor it is, then.</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
 <div class="dlg-text">Eh?? Whats that?? Speak up my hearing ain&#x27;t so good. Why ya botherin an old woman fer eh? </div>
@@ -146,6 +160,7 @@
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Eh? Oh fine, where was I? Oh yes! Say I know where you can have grand fun! And I would be there myself save I&#x27;m to old to go back.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Go on...”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Head north to the Ruins of Annuminas. There your likely to find all sorts of lost lore and relics.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Hmm thanks for the tip I&#x27;ll keep it in mind.”</span></li></ul></div>
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">No need to be rude there youngin. I&#x27;ll be on my way.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“You better be or else.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>at_hanee_head</code></span></div><div class="dlg-text">Ooh! Ooh - is that a HEAD ya got there? Heehee, gruesome lovely, that is! *pokes at the grisly trophy* Azagoth hisself, I&#x27;d wager me last tooth on it! Y&#x27;know, dearie, them fancy robe-wearin&#x27; wizard folk over in Gondor - up the High Wizard&#x27;s tower - they&#x27;d give their pointy hats for a gawp at that. Off ya trot, and mind it don&#x27;t drip on yer boots!</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Er... thank you, Hanee. To the wizards of Gondor it is, then.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">I&#x27;ll be going now.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I&#x27;m sorry to bother you, where are my manners. My names &lt;FirstName&gt;.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Oh well thats more like it! Heh I bet you&#x27;re one of them adventure seekin types…”</span></li></ul></div>
@@ -154,6 +169,7 @@
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Hmm thanks for the tip I&#x27;ll keep it in mind.</div></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">I bother whom I like Old Hag.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“No need to be rude there youngin. I&#x27;ll be on my way.”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">You better be or else.</div></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Er... thank you, Hanee. To the wizards of Gondor it is, then.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

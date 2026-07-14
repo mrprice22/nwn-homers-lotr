@@ -247,9 +247,10 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   were undocumented and are now listed (<a href="#paths-of-the-dead">Paths of the Dead</a>,
   <a href="#glorfindel">Glorfindel's Curative</a>); the <strong>Guilds</strong> server-info
   journal is <em>not</em> delivered (the earlier "fixed" claim was wrong — see
-  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> is in fact
-  <em>unstartable</em> — no Gondor Scribe NPC is placed — so its badge is corrected to
-  <span class="status-badge status-broke">Broken</span>. The six <code>mod_*</code> server-info
+  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
+  <em>unstartable</em> — no Gondor Scribe NPC was placed. (That gap has since been fixed on
+  2026-07-13: the scribe is now placed and the quest is <span class="status-badge status-ok">Working</span> —
+  see the card.) The six <code>mod_*</code> server-info
   journals that <em>are</em> delivered are now documented too.</p>
 </div>
 
@@ -410,35 +411,38 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
 <!-- WELL OF SOULS -->
 <div class="quest-card" id="well-of-souls">
-  <h3>The Well of Souls <span class="status-badge status-broke">Broken</span></h3>
+  <h3>The Well of Souls <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
     <span>Journal tag: <code>The Well of Souls</code></span>
-    <span>Intended giver: Gondor Scribe, Tower of the High Wizard: Ground Floor (<code>area011</code>)</span>
+    <span>Giver: Gondor Scribe, Tower of the High Wizard: Ground Floor (<code>area011</code>)</span>
     <span>Level range: 30–45</span>
-    <span>Reward: 4,000&nbsp;XP + <em>Annuminas Key</em> (to be raised to 10,000 XP)</span>
+    <span>Reward: 10,000&nbsp;XP + <em>Annuminas Key</em></span>
   </div>
-  <p>The Gondor Scribe is meant to ask you to face <strong>Azagoth</strong>, who threatens to open the Well of
-  Souls — kill Azagoth in the Ruins of Annuminas and bring back his head to prove the deed is done.</p>
+  <p>The Gondor Scribe asks you to face <strong>Azagoth</strong>, who threatens to open the Well of
+  Souls — kill Azagoth in the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> (not Moria!)
+  and bring back his head to prove the deed is done.</p>
 
-  <div class="warning-box">
-    <p><strong>Currently unstartable (audit 2026-07-11).</strong> The quest-giver NPC was designed but
-    <em>never created or placed</em>. The <code>gondorscribe</code> conversation, the journal category, the
-    condition/action scripts, and the boss all exist — but no creature in the module carries the
-    <code>gondorscribe</code> conversation, and <code>ruinsofannuminas.git.json</code> has zero static creatures.
-    The 2026-05-28 pass fixed only the DLG Quest field name and missed the absent NPC. Tracked as roadmap idea
-    <code>gondor-scribe</code> (<em>confirmed</em>).</p>
+  <div class="tip-box">
+    <p><strong>Fixed (2026-07-13).</strong> The quest-giver NPC had been designed but never created or
+    placed — the <code>gondorscribe</code> conversation, journal category, condition/action scripts and the
+    boss all existed, but no creature carried the conversation, so the quest was unstartable. The
+    <strong>Gondor Scribe</strong> is now placed in the Tower of the High Wizard: Ground Floor, next to the
+    Gondorian wizards, and the turn-in reward was raised from 4,000 to <strong>10,000 XP</strong>. The quest
+    is also now the second stage of the <a href="#annuminas">Ruin of Annuminas</a> arc (roadmap
+    <code>gondor-scribe</code>).</p>
   </div>
 
-  <strong>Intended flow (once the scribe is placed):</strong>
+  <strong>How to play:</strong>
   <ol>
     <li><strong>Hanee the Loon</strong> in <a href="../areas/bree.html">Bree</a> points you north to the
     <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> (the <em>Ruin of Annuminas</em> journal).</li>
     <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) in the Ruins of Annuminas and loot <em>Azagoth's Head</em>.</li>
-    <li>Return to Hanee for an intermediate reward (planned 5,000&nbsp;XP); she keeps you holding the head and
+    <li>Return to Hanee for an intermediate <strong>5,000&nbsp;XP</strong>; she keeps you holding the head and
     points you to the Gondor wizards.</li>
     <li>Take the head to the <strong>Gondor Scribe</strong> in the Tower of the High Wizard: Ground Floor —
-    <code>at_008.nss</code> removes the head and awards XP (currently 4,000, to be raised to 10,000);
-    <code>at_007.nss</code> gives the Annuminas Key. Journal entry 2 set.</li>
+    she consumes the head, awards <strong>10,000&nbsp;XP</strong> and the <em>Annuminas Key</em>. Journal entry 2 set.</li>
+    <li><em>Alternate start:</em> talk to the scribe <em>without</em> the head and she offers the quest directly
+    (journal entry 1 + the key up front), then kill Azagoth and return for the turn-in.</li>
   </ol>
 
   <strong>Journal entries:</strong>
@@ -447,12 +451,17 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>Azagoth is dead and the Well of Souls is safe. Time for a drink at the Prancing Pony.</li>
   </ol>
 
-  <div class="dm-note"><strong>Fix outstanding:</strong> create <code>gondorscribe.utc.json</code> (base
-  <code>comfemale002</code>, Tag <code>GondorScribe</code>, FactionID&nbsp;6) and place one instance in
-  <code>area011.git</code>/<code>.gic</code> near the Gondorian wizards; add the Hanee intermediate reward
-  (<code>sc_hanee_head.nss</code>/<code>at_hanee_head.nss</code>) and bump the scribe payout to 10,000 XP. Note:
-  the actual boss is <strong>Azagoth</strong> in the Ruins of Annuminas — <em>not</em> Moria Byss and not the
-  Balrog of Moria (<code>azagoth001</code>, tag <code>TheBalrogofMoria</code>), which is a separate creature.</div>
+  <div class="dm-note"><strong>Builder note (2026-07-13):</strong> the giver is
+  <code>gondorscribe.utc.json</code> (base <code>comfemale002</code>, Tag <code>GondorScribe</code>,
+  FactionID&nbsp;6, Plot), placed in <code>area011.git</code>/<code>.gic</code> beside the Gondorian wizards.
+  Hanee's intermediate reward is <code>sc_hanee_head.nss</code>/<code>at_hanee_head.nss</code>
+  (one-time 5,000&nbsp;XP, gated by the <code>hanee_head_reward</code> local on the PC; she does not take
+  the head); the scribe payout in <code>at_008.nss</code> is 10,000 XP. Note: the boss is
+  <strong>Azagoth</strong> in the Ruins of Annuminas — <em>not</em> Moria Byss and not the
+  Balrog of Moria (<code>azagoth001</code>, tag <code>TheBalrogofMoria</code>), which is a separate creature.
+  Open point: the Annuminas Key is only granted on the scribe's paths, so on the Hanee-first route the
+  four key-locked chests in the ruins are reached before the key exists (they remain pickable —
+  <code>KeyRequired=0</code>).</div>
 </div>
 
 <!-- KALLRIST TIGER HUNT -->
@@ -646,16 +655,26 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <div class="quest-meta">
     <span>Journal tag: <code>Ruin of Annuminas</code></span>
     <span>Giver: old woman in Bree ("Hanee the Loon")</span>
-    <span>Reward: none defined</span>
+    <span>Reward: 5,000&nbsp;XP (bring Azagoth's Head back to Hanee)</span>
   </div>
-  <p>An old woman in Bree tells you to seek out the Ruins of Annuminas, an ancient Dúnedain realm to the north.</p>
+  <p>An old woman in Bree tells you to seek out the Ruins of Annuminas, an ancient Dúnedain realm to the
+  north. Since 2026-07-13 this is a proper two-stage arc: kill <strong>Azagoth</strong> in the ruins, bring
+  his head back to Hanee for <strong>5,000&nbsp;XP</strong> (she doesn't take it — she gleefully points you
+  to the wizards in Gondor), then deliver the head to the <a href="#well-of-souls">Gondor Scribe</a> in the
+  Tower of the High Wizard: Ground Floor for a further <strong>10,000&nbsp;XP</strong>.</p>
 
   <div class="warning-box">
     <p><strong>Fixed (2026-05-28):</strong> The old woman's dialogue (<code>b_oldwoman_con1.dlg.json</code>) set the
     DLG Quest field to <code>annuminas</code> (entry 1) while the journal category is <code>Ruin of Annuminas</code>,
     so the entry was silently dropped. The tag now matches and the journal entry is written.</p>
+    <p><strong>Extended (2026-07-13):</strong> was a lore pointer with no completion; now has a head turn-in
+    branch (one-time 5,000&nbsp;XP, journal entry 2 with <code>End=1</code>) that hands off to the Well of
+    Souls scribe.</p>
   </div>
-  <div class="dm-note">The area (<code>ruinsofannuminas</code>) and its content already exist. This quest is a lore pointer with a single entry — no completion/turn-in is defined.</div>
+  <div class="dm-note">The area (<code>ruinsofannuminas</code>) and its content already exist. The head-reaction
+  branch is <code>sc_hanee_head.nss</code>/<code>at_hanee_head.nss</code> at the top of Hanee's
+  <code>StartingList</code>; the 5,000&nbsp;XP is one-time per character (local int
+  <code>hanee_head_reward</code>).</div>
 </div>
 
 <!-- SERVER INFO -->

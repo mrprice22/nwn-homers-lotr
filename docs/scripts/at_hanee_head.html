@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script bst_ondamage</title>
+  <title>Script at_hanee_head</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,53 +54,31 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bst_ondamage</code></h1><pre class="nss-source"><code>// bst_ondamage — wrapped creature OnDamaged: record PC damage contributors.
-//
-// Installed by bst_install. Records each distinct PC that has dealt damage to
-// this creature (walking the summon/henchman master chain to the owning PC) so
-// bst_ondeath can tell Solo from Party kills and credit every contributor.
-// Always chains the creature&#x27;s original OnDamaged handler.
-//
-// Also feeds the boss enrage-on-retreat system (enr_inc): registry bosses
-// mark each damaging PC as &quot;engaged&quot; here; ENR_OnBossDamaged no-ops for
-// everything else (cached one-query registry check).
-
-#include &quot;enr_inc&quot;
+<h1>Script: <code>at_hanee_head</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: FileName at_hanee_head
+//:://////////////////////////////////////////////
+/*
+    Hanee the Loon (Bree) - intermediate reward for
+    bringing back Azagoth&#x27;s Head: 5,000 XP, one time.
+    She does NOT take the head - the player carries it
+    on to the Gondor Scribe (Tower of the High Wizard)
+    for the 10,000 XP turn-in. Advances the
+    &quot;Ruin of Annuminas&quot; journal to entry 2.
+    (roadmap: gondor-scribe)
+*/
+//:://////////////////////////////////////////////
+#include &quot;nw_i0_tool&quot;
 
 void main()
 {
-    object oCre = OBJECT_SELF;
+    object oPC = GetPCSpeaker();
 
-    object oDmg = GetLastDamager(oCre);
-    // Summons, henchmen, familiars, animal companions -&gt; credit the owning PC.
-    while (GetIsObjectValid(GetMaster(oDmg))) oDmg = GetMaster(oDmg);
+    // Intermediate reward - one time only (flag checked by sc_hanee_head)
+    RewardPartyXP(5000, oPC);
+    SetLocalInt(oPC, &quot;hanee_head_reward&quot;, 1);
 
-    if (GetIsPC(oDmg) &amp;&amp; !GetIsDM(oDmg))
-    {
-        int nN = GetLocalInt(oCre, &quot;bst_ctrb_n&quot;);
-        int i;
-        int bFound = FALSE;
-        for (i = 0; i &lt; nN; i++)
-        {
-            if (GetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(i)) == oDmg)
-            {
-                bFound = TRUE;
-                break;
-            }
-        }
-        if (!bFound)
-        {
-            SetLocalObject(oCre, &quot;bst_ctrb_&quot; + IntToString(nN), oDmg);
-            SetLocalInt(oCre, &quot;bst_ctrb_n&quot;, nN + 1);
-        }
-
-        // Enrage-on-retreat: registry bosses track this PC as engaged.
-        ENR_OnBossDamaged(oCre, oDmg);
-    }
-
-    // Chain the creature&#x27;s original OnDamaged handler, if any.
-    string sOrig = GetLocalString(oCre, &quot;bst_orig_dmg&quot;);
-    if (sOrig != &quot;&quot;) ExecuteScript(sOrig, oCre);
+    // Hand off to the Gondor wizards - keep the head on the player
+    AddJournalQuestEntry(&quot;Ruin of Annuminas&quot;, 2, oPC);
 }
 </code></pre>
   </main>
