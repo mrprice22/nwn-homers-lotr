@@ -36,7 +36,7 @@ The loop is designed to survive context compaction and long runs. Two rules:
 - **Fresh context per item — delegate implementation to a subagent.** The orchestrating
   session runs the loop bookkeeping (select, rebalance, roadmap edits, commits, pushes)
   and launches a `general-purpose` subagent (synchronous, `run_in_background: false`) to
-  do step 3 for each item. Each subagent starts with a clean context window — the
+  do steps 3/3b for each item. Each subagent starts with a clean context window — the
   equivalent of `/clear` between items. The subagent's brief must include: the item's
   `id`/`title`/`notes`, an instruction to read `CLAUDE.md` + `CLAUDE-autopilot.md` first,
   the no-coordinate-picking and hard rules, and what to report back (see step 3). Small,
@@ -102,6 +102,29 @@ Two autopilot-specific rules:
   `admin-action-required.md`, and still ship the item as `implemented`. The admin
   completes the deploy step later.
 
+### 3b. Keep `docs.manual/` in sync
+
+After implementing, check whether any manual page under `docs.manual/` describes the
+system you just changed, and update it **in the same code commit** (step 7.1). Editing
+`docs.manual/` is *not* a wiki refresh — it's source; the daily refresh copies it into
+`docs/`.
+
+- **`Quest Ideas.html` is a burndown doc.** When a quest idea from it (or from
+  `Quest Ideas.md`) ships: **remove** the idea from `Quest Ideas.html` and integrate the
+  finished quest into `QuestGuide.html` (where it's found, how it works, rewards — match
+  the page's existing structure). The goal is to retire `Quest Ideas.html` entirely as
+  its contents ship; it is the only manual page meant to shrink.
+- **`Customizations.html` especially** must track changes to player-facing customization
+  systems (merit shop, housing, forge, gem socketing pointers, etc.) — if the item
+  touches one of those, update the relevant section.
+- Likewise for the other topical pages when the item touches their system:
+  `CasterGear.html`, `Gem-Socketing.html`, `LegendaryFeats.html`, `LevelingGuide.html`,
+  `MeaningWave.html`, `boss-updates.html`.
+- **Never touch `docs.manual/Roadmap.html` by hand** — it's generated
+  (`bin/gen-roadmap.py` in step 7.3, plus the admin's background service).
+- New pages only if genuinely warranted, starting from `ManualPageTemplate.html`; don't
+  create a page for a minor tweak — a sentence in an existing page beats a new one.
+
 ### 4. Escape hatch: design questions
 
 If the item turns out to be under-specified, needs an admin decision (mechanics, balance,
@@ -143,7 +166,8 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
 
 ### 7. Ship
 
-1. **Commit the code** on `main` (this repo commits straight to main — no branches/PRs).
+1. **Commit the code** on `main` (this repo commits straight to main — no branches/PRs),
+   including any `docs.manual/` sync edits from step 3b.
    This must be the *final* commit made after the item is fully done: a background
    auto-committer ("Auto Wiki Activity Refresh") may snapshot the working tree mid-work,
    and the hash recorded in the roadmap must be the real completion commit. Message
