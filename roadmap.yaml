@@ -1494,11 +1494,12 @@ ideas:
   - id: quest-cooldown-lib
     title: "Quest cooldown helper library (daily/weekly gating)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Shared include quest_cd_inc.nss with IsQuestOnCooldown(sQuest,oPC,nDays) / StampQuest(...) backed by persistent local time. Prerequisite for every Daily/Weekly quest below. Small, high-leverage — build first.</span>"
+    date: "2026-07-14"
+    commit: 93a20946566
+    notes: "<span>Shared include quest_cd_inc.nss with IsQuestOnCooldown(sQuest,oPC,nDays) / StampQuest(...) backed by persistent local time. Prerequisite for every Daily/Weekly quest below. Small, high-leverage — build first.</span><div><br></div><div><b>Fixed 2026-07-14:</b> new include quest_cd_inc.nss backed by a new questcddb campaign SQLite DB (quest_cd table keyed by character UUID + quest string, real-world epoch time so cooldowns survive reboots/relogs). API: QCD_InitDb (wired into onmoduleload alongside Admin/Boost init), QCD_Stamp, QCD_IsOnCooldown, QCD_SecondsRemaining, QCD_LastStamp, QCD_Clear (DM/UAT reset), QCD_FmtSpan (\"come back in 5h 12m\" dialog tokens), QCD_HOUR/DAY/WEEK constants, plus calendar-style QCD_IsDoneToday / QCD_IsDoneThisWeek resets. Header has usage examples for the upcoming daily/weekly quests. Compile-verified via a scratch consumer exercising every function + full repack (all gates green).</div><div><br></div><div><b>UAT:</b> no consumers yet, so in-game checks are limited until the first daily quest (e.g. ferny-return) ships — after the next reboot, database/questcddb.sqlite3 should exist with an empty quest_cd table. Full behavioral UAT lands with the first consumer quest.</div>"
 
   - id: prestige-trainer-hub
     title: "Prestige-class quest trainer hub near the Well of Eru"
