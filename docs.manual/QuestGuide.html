@@ -149,6 +149,7 @@
         <li><a href="#active">Active Quests</a>
           <ol>
             <li><a href="#ferrys-ring">Bill Ferny's Ring</a></li>
+            <li><a href="#fernys-return">Ferny's Return</a></li>
             <li><a href="#millers-son">The Miller's Son</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
@@ -256,6 +257,54 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   (struct 0, driven by <code>p000c001ondeath.nss</code> and the <code>p000q001-005</code> scripts) is still wired
   in parallel with this custom <code>Ferny's Ring</code> chain, so a player can end up with two journal tracks
   for the same plot. Tracked as roadmap idea <code>p000-duplicate-ferny-journal</code>.</div>
+</div>
+
+<!-- FERNY'S RETURN -->
+<div class="quest-card" id="fernys-return">
+  <h3>Ferny's Return <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>ferny_return</code></span>
+    <span>Giver: Guardian of Bree, Bree</span>
+    <span>Level range: ~3 (one-off)</span>
+    <span>Reward: 200 gp + 250 XP + <em>Ferny's Filching Gloves</em> (Pick Pocket +2)</span>
+  </div>
+  <p>A prequel to <a href="#ferrys-ring">Bill Ferny's Ring</a>. Bill Ferny has been seen skulking
+  around his old house — but Ferny himself has been standing in the market all the while. Someone
+  is wearing Ferny's name, and the Bree watch is stretched too thin to find out who.</p>
+
+  <strong>How to start:</strong> Ask any <strong>Guardian of Bree</strong> (the town guards,
+  conversation <code>b_guard_convo1.dlg</code>) if anything strange is going on in town.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the guard's request — <code>q_fret_start.nss</code> sets entry 1 and spawns the
+      impostor in <a href="../areas/billfernyshouse.html">Bill Ferny's house</a>.</li>
+    <li>Confront the "Bill Ferny" squatting there (<code>fret_impostor</code>, conversation
+      <code>fret_imp.dlg</code>) and call his bluff. He is one of Sharkey's ruffians, and he
+      offers a choice:
+      <ul>
+        <li><strong>Take his bribe</strong> — 75 gp from Ferny's own stash, and he slips out of
+          Bree (<code>q_fret_bribe.nss</code>); or</li>
+        <li><strong>Refuse and fight</strong> — he turns hostile (<code>q_fret_fight.nss</code>;
+          stage advances on his death via <code>q_fret_death.nss</code>).</li>
+      </ul>
+    </li>
+    <li>Report back to any Guardian of Bree for the payout (<code>q_fret_end.nss</code>) — the
+      report line differs by outcome, but both complete the quest.</li>
+  </ol>
+
+  <strong>Prequel bonus:</strong> completing this quest permanently unlocks a grateful greeting
+  from Bill Ferny and a <em>half-again</em> payout on the <a href="#ferrys-ring">Ferny's Ring</a>
+  turn-in (+100 gp on either ending, via <code>endferny1.nss</code> / <code>aquirering.nss</code>).
+  The flag persists across relogs and reboots (campaign DB <code>fret</code>).<br><br>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>ferny-return</code>) — scripted and built,
+  pending in-game UAT. <strong>Admin action required:</strong> the impostor spawns at waypoint
+  <code>AP_ferny_return_1</code>, which must be placed in <code>billfernyshouse</code> in the
+  toolset (see <code>admin-action-required.md</code>). Until then the quest can be accepted but
+  the house stands empty — the guard's stage-1 reminder line re-runs the spawn check on every
+  conversation, so no player state is ever stranded. Quest state lives per character in the
+  <code>fret</code> campaign DB (stages 0–3 + outcome), not in session-local ints.</div>
 </div>
 
 <!-- MILLER'S SON -->
