@@ -151,6 +151,7 @@
             <li><a href="#ferrys-ring">Bill Ferny's Ring</a></li>
             <li><a href="#fernys-return">Ferny's Return</a></li>
             <li><a href="#millers-son">The Miller's Son</a></li>
+            <li><a href="#millers-other-son">The Miller's Other Son</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -334,7 +335,63 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>You delivered the sad news. The Miller grieves; his wife and his ale are small comfort.</li>
   </ol>
 
-  <div class="dm-note">Conversation in <code>b_miller_convo1.dlg.json</code>. Completion script <code>at_003.nss</code> (now 450 XP). The shipment scene is scripted on the South Greenway.</div>
+  <div class="dm-note">Conversation in <code>b_miller_convo1.dlg.json</code>. Completion script <code>at_003.nss</code> (now 450 XP). The shipment scene is scripted on the South Greenway.
+  Completing this quest now also stamps a persistent flag (campaign DB <code>mos2</code>) that unlocks the sequel below.</div>
+</div>
+
+<!-- MILLER'S OTHER SON -->
+<div class="quest-card" id="millers-other-son">
+  <h3>The Miller's Other Son <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>bree_miller_son2</code></span>
+    <span>Giver: Han the Bree Miller, Bree</span>
+    <span>Level range: ~8 (one-off)</span>
+    <span>Reward: 500 gp + 500 XP + <em>Magic Bag</em> (good endings) / 200 XP (sad truth)</span>
+  </div>
+  <p>A sequel to <a href="#millers-son">The Miller's Son</a> — offered only after that quest is
+  complete. Han's <em>other</em> son, Dob, took his brother's death hard and fell in with a
+  "trading crowd" on the road to Tharbad. The traders turned out to be cultists of the Red Eye,
+  and their leader — a man they call <strong>the Voice</strong> — keeps the boy close.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Han the Bree Miller</strong> in
+  <a href="../areas/bree.html">Bree</a> after completing The Miller's Son.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept Han's plea — <code>q_mos2_start.nss</code> sets entry 1 and spawns the quest NPCs.</li>
+    <li>(Optional) Talk to <strong>Tolly the Peddler</strong> at
+      <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> (<code>mos2_ped.dlg</code>) — a
+      coin (10 gp) or a kind word buys directions to the cult camp (journal entry 2).</li>
+    <li>Confront <strong>the Voice of the Red Eye</strong> in
+      <a href="../areas/thardbadeast.html">Tharbad (East)</a> (<code>mos2_cult.dlg</code>).
+      Three resolutions:
+      <ul>
+        <li><strong>Persuade</strong> (DC 18: d20 + Persuade rank, <em>one attempt per
+          character, ever</em> — <code>q_mos2_persu.nss</code>): he releases Dob peacefully.
+          On a failed roll he attacks;</li>
+        <li><strong>Fight</strong> — he turns hostile (<code>q_mos2_fight.nss</code>); his death
+          frees the boy (<code>q_mos2_death.nss</code>, advances all party members in the area);</li>
+        <li><strong>Walk away</strong> — leave Dob to the cult (<code>q_mos2_leave.nss</code>).
+          You can still change your mind and fight him later.</li>
+      </ul>
+    </li>
+    <li>Report back to Han — outcome-specific lines. Freed endings pay 500 gp + 500 XP + a
+      <em>Magic Bag</em> ("Dob's trading pack", <code>q_mos2_end1.nss</code>); the sad truth pays
+      200 XP (<code>q_mos2_end2.nss</code>).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>miller-other-son</code>) — scripted and
+  built, pending in-game UAT. <strong>Admin action required:</strong> the two quest NPCs spawn at
+  waypoints <code>AP_miller-other-son_1</code> (peddler, <code>tharbadbridge</code>) and
+  <code>AP_miller-other-son_2</code> (cult leader, <code>thardbadeast</code>), which must be
+  placed in the toolset (see <code>admin-action-required.md</code>). Until then the quest can be
+  accepted but the road stands empty — Han's reminder line and the peddler's greeting re-run the
+  spawn check, so no player state is ever stranded. Quest state lives per character in the
+  <code>mos2</code> campaign DB (stages 0–3 + outcome + the spent Persuade attempt), not in
+  session-local ints. Gating on the original quest uses the session-local
+  <code>millerson == 2</code> <em>or</em> the persistent <code>mos2/m1done</code> flag now stamped
+  by <code>at_003.nss</code>; characters who finished The Miller's Son before this shipped can
+  simply re-run the original (its state is session-local) to qualify.</div>
 </div>
 
 <!-- FEEDING THARBAD -->

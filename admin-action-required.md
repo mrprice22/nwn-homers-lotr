@@ -10,6 +10,16 @@ _Appended by autopilot; delete entries as you complete them._
   ambush encounter trigger) — spawn point for the `fret_impostor` ruffian in the new
   Ferny's Return quest. Until it exists the quest can be accepted but the house stands
   empty (scripts no-op gracefully; the guard's reminder line re-checks on every talk).
+- [ ] **miller-other-son** (2026-07-14): create waypoint tag `AP_miller-other-son_1` in
+  `tharbadbridge` (on or near the bridge road, clear of the refugee crowd) — spawn point for
+  `mos2_peddler` (Tolly the Peddler), the optional signpost NPC in the new The Miller's Other
+  Son quest. Scripts no-op gracefully until it exists; Han's reminder line and the peddler's
+  own greeting re-run the spawn check on every talk.
+- [ ] **miller-other-son** (2026-07-14): create waypoint tag `AP_miller-other-son_2` in
+  `thardbadeast` (in the ruins east of the bridge, a reasonable walk from the area transition
+  so the "cult camp" reads as a destination) — spawn point for `mos2_leader` (The Voice of the
+  Red Eye, tag `MillerCultLeader`), the quest's finale NPC. He spawns non-hostile (talk first,
+  Persuade/fight/walk-away resolutions) and only turns hostile by script.
 
 ## Design questions
 - [ ] **unlock-more-inacessible-creature** (2026-07-13): the item's original ask ("write plan
