@@ -155,6 +155,7 @@
             <li><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></li>
             <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
+            <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -550,6 +551,55 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   placements, no waypoints needed. The Quest Ideas dynamic-pricing variant (server-wide
   <code>silk_supply</code> moving the price) is deferred to a possible v2; v1 pays a flat
   bounty.</div>
+</div>
+
+<!-- THE RIDDLE GAME -->
+<div class="quest-card" id="riddle-game">
+  <h3>The Riddle Game <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>riddle_game</code></span>
+    <span>Giver: the Whispering Wretch, <a href="../areas/breecave.html">Bree Cave</a> (down the cave mouth off <a href="../areas/bree.html">Bree</a>)</span>
+    <span>Level range: 1+ (weekly dialogue minigame — no combat)</span>
+    <span>Reward on a win: 100&ndash;300 gp + 250 XP + one random trinket from the hoard</span>
+  </div>
+  <p>Something pale and whispering squats at the water's edge in the cave beneath Bree-hill, and it
+  wants to play the old game: <strong>seven riddles</strong>, asked in the classic Hobbit style and
+  answered by picking one of four answers. Guess <strong>five or more of the seven</strong> rightly
+  and it grudgingly surrenders a present from its little hoard; guess fewer and you get nothing but
+  wet chuckling. It plays <strong>once per real week per character</strong>, win or lose — the
+  riddles "must ripen".</p>
+
+  <strong>How to start:</strong> Enter Bree Cave and speak to the <strong>Whispering Wretch</strong>;
+  accept the challenge. Open to all levels.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the game — the journal opens and the wretch asks riddle one of seven.</li>
+    <li>Answer each riddle from the four choices. The wretch heckles you between riddles either
+      way; the running score is kept for you.</li>
+    <li>After the seventh answer the game resolves on the spot: <strong>5+ right</strong> pays
+      100&ndash;300 gp, 250 XP and one random minor treasure (a lesser ring, a gem or a potent
+      potion); fewer pays nothing.</li>
+    <li>The game reopens when the calendar week turns (Monday 00:00 UTC); until then the wretch
+      quotes the exact time remaining.</li>
+  </ol>
+
+  <p>The riddle set changes <strong>weekly</strong> — everyone on the server gets the same seven
+  riddles in a given week, drawn from a larger bank, and the answer order shuffles per riddle.
+  Walking away (or relogging) mid-game forfeits nothing: the week is only spent when the seventh
+  answer lands, and the wretch will restart the same week's game from riddle one.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>riddle-game</code>) — scripted and built,
+  pending in-game UAT. Fourth consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-weekly via
+  <code>QCD_IsDoneThisWeek</code>. The wretch (<code>q_rid_wretch</code>) is a plot, non-hostile
+  clone of the Gollum blueprint — strongly implied to be, never named — script-spawned at waypoint
+  <code>AP_riddle-game_1</code> from the Bree Cave OnEnter wrapper (<code>q_rid_enter</code>);
+  <strong>the waypoint must be placed in the toolset before the wretch appears</strong> (scripts
+  no-op gracefully until then; see admin-action-required.md). The placed CR-1029 Gollum boss and
+  its Roll-of-the-Fallen tracking are untouched. One generic riddle dialogue node serves the whole
+  bank via custom tokens 6360&ndash;6368; the 16-riddle bank, weekly seeded selection
+  (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
 </div>
 
 <!-- FEEDING THARBAD -->

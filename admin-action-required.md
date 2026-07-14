@@ -21,6 +21,14 @@ _Appended by autopilot; delete entries as you complete them._
   Red Eye, tag `MillerCultLeader`), the quest's finale NPC. He spawns non-hostile (talk first,
   Persuade/fight/walk-away resolutions) and only turns hostile by script.
 
+- [ ] **riddle-game** (2026-07-14): create waypoint tag `AP_riddle-game_1` in
+  `breecave` (Bree Cave — near the water's edge or a shadowy corner, clear of the
+  existing spawns and the cave-mouth transition) — spawn point for `q_rid_wretch`
+  (the Whispering Wretch), the weekly Riddle Game NPC. Spawned by `q_rid_spawn`
+  from the area's OnEnter wrapper whenever a PC walks in; scripts no-op gracefully
+  until the waypoint exists and never double-spawn. The placed Gollum boss is a
+  separate blueprint and is unaffected.
+
 ## Design questions
 - [ ] **unlock-more-inacessible-creature** (2026-07-13): the item's original ask ("write plan
   to incorporate the absent creatures") is done — the plan is in the Endgame Difficulty design
