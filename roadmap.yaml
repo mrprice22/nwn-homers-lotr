@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-13 20:52 CDT"
+  as_of: "2026-07-14 07:31 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -116,7 +116,7 @@ ideas:
   - id: epic-summon-unsummon
     title: "Epic Summons don't unsummon when dismissed"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
@@ -125,7 +125,7 @@ ideas:
   - id: hgll-skill-point-exploit
     title: "Legendary Level Skill Points Exploit"
     group: combat-classes
-    status: implemented
+    status: awarded
     type: Exploit
     player: "Rajmund (Ray)"
     date: "2026-07-13"
@@ -142,7 +142,7 @@ ideas:
   - id: party-loot-pickpocket
     title: "Party Loot Roll and Pickpocket"
     group: items-gear
-    status: implemented
+    status: awarded
     type: Defect
     player: Tukwut
     date: "2026-07-11"
@@ -168,7 +168,7 @@ ideas:
   - id: higher-difficulty-ceiling-revamp
     title: "New end game bosses/higher difficulty ceiling (Epic)"
     group: bosses
-    status: implemented
+    status: awarded
     type: Enhancement
     player: Tukwut
     date: "2026-07-13"
@@ -1176,7 +1176,7 @@ ideas:
   - id: boss-stat-tuning-pass
     title: "Per-boss stat tuning: close dumped saves, swap flat DR for % immunity gear, raise auto-hit AC into the ~85 gate window"
     group: bosses
-    status: implemented
+    status: awarded
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
@@ -1185,21 +1185,21 @@ ideas:
   - id: boss-enrage-on-retreat
     title: "Enrage-on-retreat: registry bosses taunt, gain +2 all stats for that life, and heal 25% of missing HP when a player disengages"
     group: bosses
-    status: implemented
+    status: awarded
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
     commit: 044c61c14fa
-    notes: "<div>Kills the potion-attrition and tank-and-retreat cheese: every retreat makes the boss stronger and undoes a quarter of the progress, so the winning line is one sustained, properly-geared engagement. Scope is strictly the CR&gt;60 single-instance Roll-of-the-Fallen registry bosses; the enrage never persists onto a respawn. Design: <a href=\"https://homerslotr.com/manual/boss-updates#enrage\">boss-updates#enrage</a>.</div><div><br></div><div><b>Ships together with</b> <a href=\"#idea-heal-soul-fatigue\">soul-fatigue on Heal</a> — this is what removes fatigue's \"retreat and wait out the stacks\" escape hatch. Open design detail: how \"left combat\" is detected (heartbeat aggro-list scan vs. per-PC engaged flag).</div><div><br></div><div><b>Fixed 2026-07-13:</b> pure script on existing plumbing (new enr_inc.nss + one call from bst_ondamage.nss). Registry scoping is a cached query against respawndb's boss_registry, so it always matches the Roll of the Fallen. Left-combat detection is a hybrid: engagement rides the bestiary's OnDamaged wrapper (summons/pets resolve to the owning PC), disengagement is a boss-side 6s pseudo-heartbeat that only runs while someone is engaged — an engaged PC out of the area, beyond 40m, or logged out for ~12s has retreated. Dying is not retreating; logging out is. Each retreat: shout taunt naming the PC, +2 all six abilities (supernatural, undispellable, stacks per retreat, dies with the creature so it can never persist onto a respawn), instant heal of 25% missing HP with a buff VFX.</div><div><br></div><div><b>UAT:</b> (1) damage a registry boss, run &gt;40m or leave the area — within ~12–18s it taunts you by name, flashes a VFX, regains HP, examines at +2 stats; (2) retreat again — the +2 stacks; (3) kill it and wait out the respawn — base stats, no carried enrage; (4) a second player still fighting while the first retreats — enrage still fires; (5) dying to it fires nothing; (6) retreating from a non-registry high-CR mob does nothing. Note: <a href=\"#idea-heal-soul-fatigue\">soul-fatigue</a> ships separately right after.</div>"
+    notes: "<div>Kills the potion-attrition and tank-and-retreat cheese: every retreat makes the boss stronger and undoes a quarter of the progress, so the winning line is one sustained, properly-geared engagement. Scope is strictly the CR&gt;60 single-instance Roll-of-the-Fallen registry bosses; the enrage never persists onto a respawn. Design: <a href=\"https://homerslotr.com/manual/boss-updates#enrage\">boss-updates#enrage</a>.</div><div><br></div><div><b>Ships together with</b> <a href=\"#idea-heal-soul-fatigue\">soul-fatigue on Heal</a> — this is what removes fatigue's \"retreat and wait out the stacks\" escape hatch. Open design detail: how \"left combat\" is detected (heartbeat aggro-list scan vs. per-PC engaged flag).</div><div><br></div><div><b>Fixed 2026-07-13:</b> pure script on existing plumbing (new enr_inc.nss + one call from bst_ondamage.nss). Registry scoping is a cached query against respawndb's boss_registry, so it always matches the Roll of the Fallen. Left-combat detection is a hybrid: engagement rides the bestiary's OnDamaged wrapper (summons/pets resolve to the owning PC), disengagement is a boss-side 6s pseudo-heartbeat that only runs while someone is engaged — an engaged PC out of the area, beyond 40m, or logged out for ~12s has retreated. Dying is not retreating; logging out is. Each retreat: shout taunt naming the PC, +2 all six abilities (supernatural, undispellable, stacks per retreat, dies with the creature so it can never persist onto a respawn), instant heal of 25% missing HP with a buff VFX.</div><div><br></div><div><b>UAT:</b> (1) damage a registry boss, run &gt;40m or leave the area — within ~12–18s it taunts you by name, flashes a VFX, regains HP, examines at +2 stats; (2) retreat again — the +2 stacks; (3) kill it and wait out the respawn — base stats, no carried enrage; (4) a second player still fighting while the first retreats — enrage still fires; (5) dying to it fires nothing; (6) retreating from a non-registry high-CR mob does nothing. Note: <a href=\"#idea-heal-soul-fatigue\">soul-fatigue</a> ships separately right after.</div><div><br></div><div>Tested and working!</div>"
   - id: heal-soul-fatigue
     title: "Soul-fatigue stacks on the Heal spell and potions: the heal lands first, then 10% max-HP damage per prior stack, 3-minute decay"
     group: bosses
-    status: implemented
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
     commit: f63d978a374
-    notes: "<div>Turns reflexive full-heal spam into a timed resource: a heal from zero stacks is free, chain-healing gets progressively lethal (at 10 stacks the post-heal hit is 100% of max HP). Hook is the existing module override spellscript (stop_spellcheat via SetModuleOverrideSpellscript), which already sees potion activations. Design: <a href=\"https://homerslotr.com/manual/boss-updates#fatigue\">boss-updates#fatigue</a>.</div><div><br></div><div><b>Must ship together with</b> <a href=\"#idea-boss-enrage-on-retreat\">enrage-on-retreat</a> — alone this only lengthens fights (retreat, wait out the stacks, return); enrage is what makes the healing budget a real tactical constraint.</div><div><br></div><div><b>Fixed 2026-07-13:</b> hooked from the existing stop_spellcheat override spellscript (new fat_inc.nss + one call) so Heal casts AND Heal potion/item activations both count; Mass Heal covered too (mirrors the stock targeting). Order is exactly as designed: the real heal lands first, then magical damage of 10% max HP × the stacks held before that heal (can kill), then the new stack is added — a heal from zero stacks is free. Each stack decays on its own 180s timer (survives death; callbacks re-validate). PCs only, never DMs; undead-target heals exempt. Floating-text feedback on every stack gain / damage hit / decay so deaths are explainable. Accepted limitation (per brief): stacks are a local, so relog clears them — can graduate to SQLite later if wanted.</div><div><br></div><div><b>UAT:</b> (1) heal at zero stacks — free, '1 stack' floaty; (2) chain a second and third heal — 10% then 20% max-HP hits after the heal lands; (3) wait 3 min per stack — decay floaties, then free again; (4) Mass Heal on a party — each friendly non-undead PC in the sphere pays ~2s after the heal; NPCs/henchmen unaffected; (5) DM avatar and NPC self-heals take no stacks; counterspell-cheat kill still works (regression).</div>"
+    notes: "<div>Turns reflexive full-heal spam into a timed resource: a heal from zero stacks is free, chain-healing gets progressively lethal (at 10 stacks the post-heal hit is 100% of max HP). Hook is the existing module override spellscript (stop_spellcheat via SetModuleOverrideSpellscript), which already sees potion activations. Design: <a href=\"https://homerslotr.com/manual/boss-updates#fatigue\">boss-updates#fatigue</a>.</div><div><br></div><div><b>Must ship together with</b> <a href=\"#idea-boss-enrage-on-retreat\">enrage-on-retreat</a> — alone this only lengthens fights (retreat, wait out the stacks, return); enrage is what makes the healing budget a real tactical constraint.</div><div><br></div><div><b>Fixed 2026-07-13:</b> hooked from the existing stop_spellcheat override spellscript (new fat_inc.nss + one call) so Heal casts AND Heal potion/item activations both count; Mass Heal covered too (mirrors the stock targeting). Order is exactly as designed: the real heal lands first, then magical damage of 10% max HP × the stacks held before that heal (can kill), then the new stack is added — a heal from zero stacks is free. Each stack decays on its own 180s timer (survives death; callbacks re-validate). PCs only, never DMs; undead-target heals exempt. Floating-text feedback on every stack gain / damage hit / decay so deaths are explainable. Accepted limitation (per brief): stacks are a local, so relog clears them — can graduate to SQLite later if wanted.</div><div><br></div><div><b>UAT:</b> (1) heal at zero stacks — free, '1 stack' floaty; (2) chain a second and third heal — 10% then 20% max-HP hits after the heal lands; (3) wait 3 min per stack — decay floaties, then free again; (4) Mass Heal on a party — each friendly non-undead PC in the sphere pays ~2s after the heal; NPCs/henchmen unaffected; (5) DM avatar and NPC self-heals take no stacks; counterspell-cheat kill still works (regression).</div><div><br></div><div>Tested and NOT working -- Take no damage after successive heals (either from potions or spell cast), and no indicator (e.g. a server message) about soul fatigue/number of stacks. </div>"
   - id: encounter-density-reused-mobs
     title: "Encounter density: bump per-instance spawn counts 1 to 2 for creatures used by more than one encounter (cap 2, never solo boss encounters)"
     group: bosses
@@ -1326,10 +1326,10 @@ ideas:
     status: implemented
     type: Enhancement
     player: Tukwut
-    dupe_of: wiki-kill-counts
     date: "2026-07-14"
     commit: a42c452
     notes: "<div><b>Fixed 2026-07-14:</b> every creature detail page now shows a <b>Top Killers</b> leaderboard under its Kills section — the top 10 characters by total kills (Solo / Party / Total / Last Kill date), read from the bestiary kill database. Boss blueprint variants are merged so a character's kills aren't split across leveled copies, and renamed characters show their most recent name. Zero-kill creatures omit the section cleanly. Change lives in the wiki generator (nwn_manager commit a42c452); it appears on the live wiki at the next daily refresh. Only character names are shown — CD keys/UUIDs never render (verified by scanning all generated pages).</div><div><br></div><div><b>Scope note:</b> the merged idea's KD-ratio / total-deaths half (<a href=\"#idea-wiki-kill-counts\">wiki-kill-counts</a>) is not buildable from existing data — the bestiary DB tracks kills only, no player deaths; it would need new in-module death tracking first.</div><div><br></div><div><b>UAT (after the next daily wiki refresh):</b> open a popular creature page (e.g. Giant Spider) and confirm the Top Killers table matches expectations; spot-check a boss page and a never-killed creature (no section, no layout regression); confirm no CD keys appear anywhere.</div>"
+    dupe_of: wiki-kill-counts
   - id: discord-bot
     title: "Discord/wiki bot listing logged-in players and summarizing their gear stats (plus fun stats like unique creatures killed)"
     group: wiki-tools
@@ -1494,7 +1494,7 @@ ideas:
   - id: quest-cooldown-lib
     title: "Quest cooldown helper library (daily/weekly gating)"
     group: quests-areas
-    status: implemented
+    status: awarded
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-14"
