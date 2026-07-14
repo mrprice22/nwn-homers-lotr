@@ -608,10 +608,11 @@ ideas:
   - id: wiki-inaccessible-items-audit
     title: "Audit inaccessible_items.json for loot that should be droppable"
     group: wiki-tools
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "module-index/inaccessible_items.json lists ~2014 items players can't obtain. Most are correctly inaccessible (equipped commoner clothing / NPC garb with Dropable=0 on every carrier). Sweep the list for any genuine loot/reward items that should actually drop or be sold, and flag/fix those blueprints. Spun off from the wiki-missing-creature investigation, which confirmed the name-collapse bug did NOT wrongly mark loot inaccessible (item_carried_by reads all instances; accessibility is gated on Dropable/Pickpocketable, not wiki visibility)."
+    date: "2026-07-13"
+    notes: "<div>module-index/inaccessible_items.json lists ~2014 items players can't obtain. Most are correctly inaccessible (equipped commoner clothing / NPC garb with Dropable=0 on every carrier). Sweep the list for any genuine loot/reward items that should actually drop or be sold, and flag/fix those blueprints. Spun off from the wiki-missing-creature investigation, which confirmed the name-collapse bug did NOT wrongly mark loot inaccessible (item_carried_by reads all instances; accessibility is gated on Dropable/Pickpocketable, not wiki visibility).</div><div><br></div><div><b>Audited 2026-07-13 — zero flips needed, and that's the finding.</b> All 2,122 entries triaged by reason/base-type/carrier/cost/name, then every carried item hand-reviewed: 1,757 are unplaced orphans (out of scope), 150 creature claws/hides (never loot), 18 deliberately named UNDROPABLE/boss items, and all 108 high-value unique-carrier suspects are deliberate boss combat gear (multi-million-gp god items that would be instant contraband under the &gt;750k forge rule). No quest key, note, token or reward item is locked behind a missing Dropable flag. No module change shipped — nothing to verify in-game.</div><div><br></div><div><b>For the admin's eye:</b> four 0-gp event tokens exist as blueprints referenced by nothing (contestofcham001, ttv_deathtoken, rollplaytoken, tournamenttoken) — presumably DM-spawned event props, fine if intentional; top orphans by value are admin god-gear and should stay unplaced.</div>"
 
   # ---- SHIPPED: Forge & crafting -------------------------------------------
   - id: forge-zero-value-exploit
