@@ -153,6 +153,7 @@
             <li><a href="#millers-son">The Miller's Son</a></li>
             <li><a href="#millers-other-son">The Miller's Other Son</a></li>
             <li><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></li>
+            <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -440,6 +441,58 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   interior; the quest instead reuses five existing commoner instances at the adjacent Whitfurrow
   Inn (renamed in place, new conversations <code>q_frog_p1–p5</code>) with the cask lore keeping
   its Frogmorton origin. Zero new placements.</div>
+</div>
+
+<!-- HOBBIT POST -->
+<div class="quest-card" id="hobbit-post">
+  <h3>Hobbit Post <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>hobbit_post</code></span>
+    <span>Giver: Posco Whitfoot, post-master, <a href="../areas/shirehobbiton001.html">Hobbiton</a></span>
+    <span>Level range: all levels (daily, no combat)</span>
+    <span>Reward: 60 gp base + 40 gp speed bonus + 50 XP; misdelivered parcels pay 60 gp extra and a small loot item</span>
+  </div>
+  <p>Posco Whitfoot has founded the Hobbit Post and needs an honest pair of legs: one sealed
+  parcel per real day, delivered somewhere in the Shire for pay. The addressee rotates with the
+  calendar day across five recipients — <strong>Daddy Twofoot</strong> (Hobbiton),
+  <strong>Old Noakes</strong> (<a href="../areas/bywater.html">Bywater</a>), <strong>the Keeper of
+  the Green Dragon</strong> (<a href="../areas/greendragoninn.html">Green Dragon Inn</a>, door off
+  Hobbiton), and <strong>Salvia Brockhouse</strong> and <strong>Milo Burrows</strong> (both in the
+  <a href="../areas/whitfurrowinn.html">Whitfurrow Inn</a> common room). Pure low-pressure Shire
+  flavour; no combat.</p>
+
+  <strong>How to start:</strong> Talk to <strong>Posco Whitfoot</strong> in Hobbiton and take
+  today's parcel.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Posco reads you the address off the label (it rotates daily,
+      <code>GetCalendarDay() % 5</code>). Forgot where it's bound? Ask him again — he'll re-read
+      the label, or write a fresh one.</li>
+    <li>Carry the parcel to the named recipient and talk to them. <em>The Shire judges its post by
+      the freshness of the seal:</em> land it within <strong>5 real minutes</strong> of accepting
+      and the fee rises from 60 gp to 100 gp.</li>
+    <li><strong>Rarely (8%)</strong> Posco's label is wrong: the named recipient refuses the
+      parcel and points you at its true owner (another of the five), who pays 60 gp extra plus a
+      small bonus item for untangling the post.</li>
+    <li>Payment on delivery closes the day; the post-bag reopens at UTC midnight (Posco quotes the
+      exact time remaining).</li>
+  </ol>
+
+  <p>The parcel itself is plot-flagged and cursed — it can't be sold, dropped or traded, and
+  re-accepting from Posco replaces any parcel you're already carrying, so they can never pile up.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>hobbit-post</code>) — scripted and built,
+  pending in-game UAT. Second consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>): <code>QCD_IsDoneToday</code> gates the
+  offer and <code>QCD_Stamp</code> fires on payout; the speed bonus compares real-world epochs from
+  <code>QCD_Now()</code> stored on the parcel (<code>POST_T0</code>), not the game clock. All six
+  NPCs are existing placed instances — the postmaster and four recipients were renamed in place and
+  split into dedicated blueprints (<code>hobbit001_2/_3</code>, <code>nw_oldman_2_2</code>,
+  <code>comfemale002_5</code>, <code>commale002_4</code>) via
+  <code>bin/split-divergent-creatures.py</code> so respawns keep their identities; the Green Dragon
+  Inn keeper kept their name and simply gained gated parcel branches in
+  <code>greendragon1.dlg</code>. Zero new placements, no waypoints needed.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
