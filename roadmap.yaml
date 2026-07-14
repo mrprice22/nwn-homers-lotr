@@ -116,11 +116,12 @@ ideas:
   - id: epic-summon-unsummon
     title: "Epic Summons don't unsummon when dismissed"
     group: combat-classes
-    status: confirmed
+    status: implemented
+    commit: 278a891c10c
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
-    notes: "<div>Since the update where epic summons count as henchmen, </div><div>removing them from your party does not unsummon them; it leaves them standing where ever they were at the time.</div><div>(resting and then re-summoning any other epic summon replaces the original one at least)</div>"
+    notes: "<div>Since the update where epic summons count as henchmen, </div><div>removing them from your party does not unsummon them; it leaves them standing where ever they were at the time.</div><div>(resting and then re-summoning any other epic summon replaces the original one at least)</div><div><br></div><div><b>Fixed 2026-07-13:</b> the epic-as-henchman change (bdab134bd5a) put the Mummy Reaper / Dragon Knight on the henchman slot, but the party-kick flow only calls RemoveHenchman — it never destroys the creature and fires no module event, so the epic was left standing with stale tracking. The two epic blueprints now run a custom heartbeat (epic_summon_hb) that runs the stock henchman AI, then despawns the creature with the unsummon VFX if it has been orphaned (no master); the scripted dismiss/expire/replace paths also gained the unsummon VFX. Meaningwave companions and other henchmen are untouched.</div><div><br></div><div><b>UAT:</b> (1) summon an epic, kick it from the party — it should puff away within ~6s; (2) immediately cast the other epic — it spawns normally; (3) regressions: epic + normal animal summon still coexist, a second epic still replaces the first, duration expiry still despawns it, Meaningwave guide dismissal unchanged, and logging out with an epic active leaves nothing lingering.</div>"
   - id: hgll-skill-point-exploit
     title: "Legendary Level Skill Points Exploit"
     group: combat-classes
