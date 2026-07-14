@@ -162,7 +162,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-09"
-    notes: "Write plan to Incorporate many of the creatures in https://homerslotr.com/creatures/#absent"
+    notes: "<div>Write plan to Incorporate many of the creatures in https://homerslotr.com/creatures/#absent</div><div><br></div><div><b>Update 2026-07-13:</b> concrete placement plan written (see the <a href=\"https://homerslotr.com/manual/boss-updates#tier\">Endgame Difficulty design brief</a>) and split into two backlog slices: <a href=\"#idea-forbidden-realms-key-tier\">the Forbidden Realms Key tier</a> (Tombs of the Lost Souls housing the unspawned Weathertop court) and <a href=\"#idea-tier-areas-moria-nazgul\">opening Moria Deep Caverns + the Temple of Nazgûl</a> (Angmar, Thuringwethil, basilisks, Sewer Master and more).</div>"
   - id: higher-difficulty-ceiling-revamp
     title: "New end game bosses/higher difficulty ceiling"
     group: bosses
@@ -170,7 +170,7 @@ ideas:
     type: Enhancement
     player: Tukwut
     date: "2026-07-09"
-    notes: "<span>I would recommend some work on buffing or creating new bosses/content before significantly adding additional boosts to player power and viable classes. Sort of ran out of things to do and not logging the hours and hours per day anymore. Not sure if I am alone and everyone else is really excited about the upcoming improvements and will be excited to play to upgrade gear or make new characters.</span>"
+    notes: "<span>I would recommend some work on buffing or creating new bosses/content before significantly adding additional boosts to player power and viable classes. Sort of ran out of things to do and not logging the hours and hours per day anymore. Not sure if I am alone and everyone else is really excited about the upcoming improvements and will be excited to play to upgrade gear or make new characters.</span><div><br></div><div><b>Update 2026-07-13:</b> the design brief is written — <a href=\"https://homerslotr.com/manual/boss-updates\">Endgame Difficulty — Tactical, Not Spongy</a> — and broken out into concrete backlog items: <a href=\"#idea-boss-stat-tuning-pass\">the per-boss stat tuning pass</a> (in progress), <a href=\"#idea-boss-enrage-on-retreat\">enrage-on-retreat</a> + <a href=\"#idea-heal-soul-fatigue\">soul-fatigue on Heal</a> (up next, ship together), <a href=\"#idea-encounter-density-reused-mobs\">encounter density</a> and <a href=\"#idea-forbidden-realms-key-tier\">the Forbidden Realms Key tier</a> (soon), the <a href=\"#idea-wandering-adaptive-boss\">wandering adaptive boss</a>, <a href=\"#idea-elemental-swarm-waves\">elemental swarm waves</a> and <a href=\"#idea-tier-areas-moria-nazgul\">two new tier areas</a> (later), plus the <a href=\"#idea-clone-parent-boss\">clone/parent boss</a> and <a href=\"#idea-optin-curse-gem-loot\">opt-in curse</a> (planned).</div>"
   - id: standard-map-notes
     title: "Standard Map Notes for all area transitions"
     group: quests-areas
@@ -1168,6 +1168,88 @@ ideas:
     status: later
     type: Enhancement
     player: Tukwut
+
+  # ---- Endgame difficulty design brief (docs.manual/boss-updates.html) -----
+  - id: boss-stat-tuning-pass
+    title: "Per-boss stat tuning: close dumped saves, swap flat DR for % immunity gear, raise auto-hit AC into the ~85 gate window"
+    group: bosses
+    status: confirmed
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>First deliverable of <a href=\"#idea-higher-difficulty-ceiling-revamp\">New end game bosses/higher difficulty ceiling</a> — pure blueprint data edits, no HP inflation and no CR-label changes. Full recipe, player-power math, and per-boss tables in the <a href=\"https://homerslotr.com/manual/boss-updates#recipe\">Endgame Difficulty design brief</a>.</div><div><br></div><div><b>Priority A</b> (glaring single hole): Smaug (Ref +0), Summanus (Will +0), Gwathdor Lord (Will +5), Sauron the Abhorred (Fort +4, AC 65), Gandalf the Gray (Will +10, AC 63) — Witch King is the worked example. <b>Priority B</b> (auto-hit AC / missing immunity gear): Boromir, Denethor, Temple Mistress, Legolas, Theoden's Chosen.</div>"
+  - id: boss-enrage-on-retreat
+    title: "Enrage-on-retreat: registry bosses taunt, gain +2 all stats for that life, and heal 25% of missing HP when a player disengages"
+    group: bosses
+    status: wip
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Kills the potion-attrition and tank-and-retreat cheese: every retreat makes the boss stronger and undoes a quarter of the progress, so the winning line is one sustained, properly-geared engagement. Scope is strictly the CR&gt;60 single-instance Roll-of-the-Fallen registry bosses; the enrage never persists onto a respawn. Design: <a href=\"https://homerslotr.com/manual/boss-updates#enrage\">boss-updates#enrage</a>.</div><div><br></div><div><b>Ships together with</b> <a href=\"#idea-heal-soul-fatigue\">soul-fatigue on Heal</a> — this is what removes fatigue's \"retreat and wait out the stacks\" escape hatch. Open design detail: how \"left combat\" is detected (heartbeat aggro-list scan vs. per-PC engaged flag).</div>"
+  - id: heal-soul-fatigue
+    title: "Soul-fatigue stacks on the Heal spell and potions: the heal lands first, then 10% max-HP damage per prior stack, 3-minute decay"
+    group: bosses
+    status: wip
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Turns reflexive full-heal spam into a timed resource: a heal from zero stacks is free, chain-healing gets progressively lethal (at 10 stacks the post-heal hit is 100% of max HP). Hook is the existing module override spellscript (stop_spellcheat via SetModuleOverrideSpellscript), which already sees potion activations. Design: <a href=\"https://homerslotr.com/manual/boss-updates#fatigue\">boss-updates#fatigue</a>.</div><div><br></div><div><b>Must ship together with</b> <a href=\"#idea-boss-enrage-on-retreat\">enrage-on-retreat</a> — alone this only lengthens fights (retreat, wait out the stacks, return); enrage is what makes the healing budget a real tactical constraint.</div>"
+  - id: encounter-density-reused-mobs
+    title: "Encounter density: bump per-instance spawn counts 1 to 2 for creatures used by more than one encounter (cap 2, never solo boss encounters)"
+    group: bosses
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Thickens genuinely reused rank-and-file mobs (~144 of 382 encounter creatures qualify) while leaving one-off set-pieces alone. Must edit the placed encounter <i>instances</i> in the area .git.json files — the .ute templates are inert at runtime — and never touch the 19 solo (MaxCreatures == 1) encounters, which would silently drop a boss from the Roll of the Fallen tracker. Design: <a href=\"https://homerslotr.com/manual/boss-updates#density\">boss-updates#density</a>.</div><div><br></div><div>On-axis as a throughput multiplier on the healing economy (more incoming damage → more heals → faster <a href=\"#idea-heal-soul-fatigue\">soul-fatigue</a>), so it sequences after the two healing-economy levers land.</div>"
+  - id: forbidden-realms-key-tier
+    title: "Forbidden Realms Key tier: journal quest and a Númenor gate opening the orphaned Tombs of the Lost Souls as the Weathertop court's barrow"
+    group: bosses
+    status: soon
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>The Forbidden Realms Key already ships (pickpocket-only from Summanus) but is wired to nothing. Chain: acquire the key → journal quest (acquireditem_tag branch + retroactive OnClientEnter check for players who already stole it) → locked door in a Númenor hub keyed on tag ForbiddenRealmsKey → the Tombs of the Lost Souls (gravesofthelostk), a finished area with zero connections today, populated as the barrow-court of the unspawned Weathertop King/Queen/Archer blueprints. Design: <a href=\"https://homerslotr.com/manual/boss-updates#tier\">boss-updates#tier</a>.</div><div><br></div><div>Content anchor of the new tier and the first concrete slice of <a href=\"#idea-unlock-more-inacessible-creature\">Unlock Inacessible creatures</a>; apply the <a href=\"#idea-boss-stat-tuning-pass\">tuning recipe</a> to each court member on placement.</div>"
+  - id: tier-areas-moria-nazgul
+    title: "Open two finished-but-unreachable endgame areas: Moria Deep Caverns below the Balrog, and the Temple of Nazgûl off Dol Guldur"
+    group: bosses
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Rounds out the new tier with two existing areas that only need a link-in and named bosses: Moria Deep Caverns (area020, descent from the Abyss of Moria — naturally gated by the Balrog) and the Temple of Nazgûl (area010, linked from Dol Guldur, already contains 7 encounters). Candidate bosses are all currently unspawned: Angmar the Evocator (capstone), Thuringwethil, Shadow Lord of Dol Guldur, Morgrond Captain, the Mutated Basilisks, Sewer Master. Design: <a href=\"https://homerslotr.com/manual/boss-updates#tier-other\">boss-updates#tier-other</a>.</div><div><br></div><div>Second slice of <a href=\"#idea-unlock-more-inacessible-creature\">Unlock Inacessible creatures</a>; follows <a href=\"#idea-forbidden-realms-key-tier\">the Forbidden Realms Key tier</a>. Tune each boss on placement per <a href=\"#idea-boss-stat-tuning-pass\">the tuning pass</a>.</div>"
+  - id: wandering-adaptive-boss
+    title: "The Wandering One: a roaming boss that adaptively builds damage-type immunity as it is hit, punishing mono-damage parties"
+    group: bosses
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Two ideas fused: it roams the module (no fixed wiki area — players must hunt it) and it learns to resist whatever hits it, drawing from a shared 500% immunity pool in 5–10% increments per damage type, stealing from the least-recently-received type when the pool is empty — so a party that rotates damage types keeps it off-balance. Design + feasibility: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-borg\">boss-updates#gimmick-borg</a>.</div><div><br></div><div>Build notes: reuses the unused wandering.nss state machine; must set NO_LEASH=1 or leash_to_area snaps it home; OnDamaged juggles percentage-immunity item properties across its gear slots; still qualifies as a single-instance registry boss (board attribution \"roaming\").</div>"
+  - id: elemental-swarm-waves
+    title: "Elemental swarm arena: waves of 24 elementals trickle-spawned to surround the party, the element rotating each cleared wave"
+    group: bosses
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>An attrition arena, not a single boss: 4 spawns every 10 seconds over ~1 minute per wave, element rotating (fire → cold → acid → …) so players must re-gear resistances and swap tactics mid-fight. Reusable elemental blueprints exist; the timed trickle-wave controller is new script. These are trash adds, not registry bosses. Design: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-swarm\">boss-updates#gimmick-swarm</a>.</div><div><br></div><div>Honesty guardrail: keep waves short and lethal so each element rotation forces a real counter-swap — the surround also pressures the <a href=\"#idea-heal-soul-fatigue\">healing economy</a>.</div>"
+  - id: clone-parent-boss
+    title: "Clone/parent boss: a chance an existing boss fight is gate-crashed by the boss's 'Mom' — modest stat boost, better gear, two-front surprise"
+    group: bosses
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Turns a known fight into a surprise target-priority decision. Keep the parent's boost modest — a threat multiplier, not a second sponge. Its better drops must be real item blueprints registered via bin/gen-forge-legal.py so the Forge login sweep doesn't jail looters. Design: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-parent\">boss-updates#gimmick-parent</a>.</div>"
+  - id: optin-curse-gem-loot
+    title: "Opt-in curse: volunteer for extra damage taken and doubled soul-fatigue in exchange for better rarity-tiered socketed-gem drops"
+    group: bosses
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Difficulty as a player choice instead of a wall: take the curse (≈50% more damage taken and/or doubled <a href=\"#idea-heal-soul-fatigue\">soul-fatigue</a>) for a materially better reward roll. The reward vehicle rides on the gem-socketing system (<a href=\"#idea-Socket-system-for-weapons\">Socket system for weapons</a>) — the curse just bumps the gem rarity band / drop chance, no separate loot system. Design: <a href=\"https://homerslotr.com/manual/boss-updates#curse\">boss-updates#curse</a>.</div><div><br></div><div>Depends on both the healing-economy levers and the socket/gem system shipping first; chance-based loot itself is greenfield for the module.</div>"
 
   # ---- Progression, bestiary & achievements --------------------------------
   - id: achievements
