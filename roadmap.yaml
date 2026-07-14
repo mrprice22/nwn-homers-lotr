@@ -1541,11 +1541,12 @@ ideas:
   - id: ferny-return
     title: "Quest: Ferny's Return (Bree, prequel to Ferny's Ring)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T1 (L3). Prequel to the existing Ferny's Ring: expose a ruffian impostor in Bree, unlocking a discount branch. Journal tag ferny_return. All areas/NPCs exist — single-session build.</span>"
+    date: "2026-07-14"
+    commit: 333d7c482c3
+    notes: "<span>T1 (L3). Prequel to the existing Ferny's Ring: expose a ruffian impostor in Bree, unlocking a discount branch. Journal tag ferny_return. All areas/NPCs exist — single-session build.</span><div><br></div><div><b>Fixed 2026-07-14:</b> full quest shipped. A Guardian of Bree shares the rumor (new branch in b_guard_convo1); at Bill Ferny's house one of Sharkey's ruffians squats wearing Ferny's face (new fret_impostor blueprint, spawned by script at waypoint AP_ferny_return_1 — <b>admin must place that waypoint in billfernyshouse before the impostor appears</b>; everything no-ops gracefully until then). Player exposes him and either takes his 75 gp bribe from Ferny's stash or fights him; reporting back to any guard pays 200 gp + 250 XP + Ferny's Filching Gloves (Pick Pocket +2). Completion stamps a persistent per-character flag (campaign DB, relog-safe — the design doc's bare SetLocalInt wouldn't survive relogs) that unlocks a grateful greeting from Bill Ferny and a +100 gp bonus on both Ferny's Ring endings. Docs: card moved from Quest Ideas.html (burndown) into QuestGuide.html.</div><div><br></div><div><b>UAT:</b> (1) place waypoint AP_ferny_return_1 in billfernyshouse, deploy; (2) guard → accept rumor → journal stage 1; (3) enter Ferny's house → impostor present → bribe path (+75 gp, he leaves) or fight path (goes hostile, dies, stage 2); (4) report to a guard → 200 gp/250 XP/gloves, journal complete; (5) relog mid-quest at each stage — progress resumes; (6) Bill Ferny now greets you warmly and both Ferny's Ring endings pay +100 gp; (7) regression: without the prequel, Ferny's dialogue and Ferny's Ring rewards unchanged; guard greetings unchanged.</div>"
 
   - id: miller-other-son
     title: "Quest: The Miller's Other Son (Bree, sequel to The Miller's Son)"
