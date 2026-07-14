@@ -152,6 +152,7 @@
             <li><a href="#fernys-return">Ferny's Return</a></li>
             <li><a href="#millers-son">The Miller's Son</a></li>
             <li><a href="#millers-other-son">The Miller's Other Son</a></li>
+            <li><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -392,6 +393,53 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <code>millerson == 2</code> <em>or</em> the persistent <code>mos2/m1done</code> flag now stamped
   by <code>at_003.nss</code>; characters who finished The Miller's Son before this shipped can
   simply re-run the original (its state is session-local) to qualify.</div>
+</div>
+
+<!-- THE LAST DROP AT FROGMORTON INN -->
+<div class="quest-card" id="last-drop-frogmorton">
+  <h3>The Last Drop at Frogmorton Inn <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>frogmorton_ale</code></span>
+    <span>Giver: Rigrin, the <a href="../areas/whitfurrowinn.html">Whitfurrow Inn</a></span>
+    <span>Level range: 1+ (daily, pure social)</span>
+    <span>Reward: 25 gp + <em>Frogmorton Pint</em> (heals 4 hp, brief tipsy wobble)</span>
+  </div>
+  <p>The last cask of Frogmorton's famous harvest ale — the Floating Log's own autumn brew,
+  carted over from Frogmorton before the brewer died — sits in Rigrin's cellar, and five
+  patrons each claim the final drop. Rigrin judges the matter by <em>the custom of the cask</em>,
+  an old rule that turns with the month, and he'll pay a neutral party to hear the claimants out
+  and name the rightful drinker. No combat; pure Shire-tone dialogue.</p>
+
+  <strong>How to start:</strong> Ask <strong>Rigrin</strong> at the Whitfurrow Inn (one area over
+  from <a href="../areas/frogmorton001.html">Frogmorton</a>) what the common-room row is about.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Rigrin states this month's custom of the cask (e.g. <em>"the coin that bought the barrel
+      drains it"</em>) — twelve rules cycling through the year (<code>q_frog_rulec.nss</code>,
+      keyed on <code>GetCalendarMonth()</code>).</li>
+    <li>Chat with the five claimants in the common room — <strong>Marigold Bunce</strong> (brewed
+      it), <strong>Poppy Thistlewool</strong> (paid for it), <strong>Hob Broadbelt</strong>
+      (tapped it and drank first), <strong>Ned Puddifoot</strong> (hauled it from Frogmorton),
+      <strong>Daisy Goodbody</strong> (won it at darts) — and work out who the rule points at.</li>
+    <li>Give Rigrin your answer. <strong>One judgment per day:</strong> a right call pays 25 gp
+      plus a <em>Frogmorton Pint</em>; a wrong call gets you gently laughed out of the room —
+      either way the matter is settled until tomorrow.</li>
+  </ol>
+
+  <p>The <em>Frogmorton Pint</em> is a single-use drink: 4 hp back and a short, purely cosmetic
+  drunken stagger (<code>q_frog_pint.nss</code>). It cannot hurt you or anyone else.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>frogmorton-last-drop</code>) — scripted and
+  built, pending in-game UAT. This is the <strong>first consumer of the shared quest-cooldown
+  library</strong> (<code>quest_cd_inc.nss</code> / the <code>questcddb</code> campaign DB):
+  availability is gated by <code>QCD_IsDoneToday</code> (resets at UTC midnight, survives relogs
+  and reboots) and Rigrin's come-back-tomorrow line shows the real time remaining via
+  <code>QCD_FmtSpan</code> — so this quest doubles as UAT for the library. Venue note: the design
+  doc placed five hobbits in <code>frogmorton001</code>, but that area has no NPCs and no inn
+  interior; the quest instead reuses five existing commoner instances at the adjacent Whitfurrow
+  Inn (renamed in place, new conversations <code>q_frog_p1–p5</code>) with the cask lore keeping
+  its Frogmorton origin. Zero new placements.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
