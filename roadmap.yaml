@@ -1323,10 +1323,13 @@ ideas:
   - id: wiki-top-killers
     title: "On each creature page, show the top players/characters by kills"
     group: wiki-tools
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: Tukwut
     dupe_of: wiki-kill-counts
+    date: "2026-07-14"
+    commit: a42c452
+    notes: "<div><b>Fixed 2026-07-14:</b> every creature detail page now shows a <b>Top Killers</b> leaderboard under its Kills section — the top 10 characters by total kills (Solo / Party / Total / Last Kill date), read from the bestiary kill database. Boss blueprint variants are merged so a character's kills aren't split across leveled copies, and renamed characters show their most recent name. Zero-kill creatures omit the section cleanly. Change lives in the wiki generator (nwn_manager commit a42c452); it appears on the live wiki at the next daily refresh. Only character names are shown — CD keys/UUIDs never render (verified by scanning all generated pages).</div><div><br></div><div><b>Scope note:</b> the merged idea's KD-ratio / total-deaths half (<a href=\"#idea-wiki-kill-counts\">wiki-kill-counts</a>) is not buildable from existing data — the bestiary DB tracks kills only, no player deaths; it would need new in-module death tracking first.</div><div><br></div><div><b>UAT (after the next daily wiki refresh):</b> open a popular creature page (e.g. Giant Spider) and confirm the Top Killers table matches expectations; spot-check a boss page and a never-killed creature (no section, no layout regression); confirm no CD keys appear anywhere.</div>"
   - id: discord-bot
     title: "Discord/wiki bot listing logged-in players and summarizing their gear stats (plus fun stats like unique creatures killed)"
     group: wiki-tools
