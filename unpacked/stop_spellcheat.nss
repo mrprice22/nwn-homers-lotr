@@ -17,6 +17,7 @@
 //Save this in a script named stop_spellcheat
 
 #include "x2_inc_switches"
+#include "fat_inc"
 
 int i;
 
@@ -49,6 +50,11 @@ void ClearSpells()
 
 void main()
 {
+
+// Soul-fatigue on Heal / Mass Heal (incl. potion activations) — fat_inc.nss
+// (roadmap: heal-soul-fatigue). Runs before ClearSpells; the real heal impact
+// script still runs after this override returns, and fatigue is delayed past it.
+FAT_OnOverrideSpellCast();
 
 ClearSpells();
 
