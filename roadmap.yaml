@@ -1551,11 +1551,12 @@ ideas:
   - id: miller-other-son
     title: "Quest: The Miller's Other Son (Bree, sequel to The Miller's Son)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T1 (L8). Sequel to the existing Bree Miller's Son: Persuade DC18 / fight / let-be branch. Journal tag bree_miller_son2. Reuses existing Bree content.</span>"
+    date: "2026-07-14"
+    commit: 2632b54fdd0
+    notes: "<span>T1 (L8). Sequel to the existing Bree Miller's Son: Persuade DC18 / fight / let-be branch. Journal tag bree_miller_son2. Reuses existing Bree content.</span><div><br></div><div><b>Fixed 2026-07-14:</b> full quest shipped. Han the Bree Miller offers it only after The Miller's Son is complete (the first quest's turn-in now also stamps a persistent flag, so pre-existing finishers must re-run it once). Tolly the Peddler at Tharbad Bridge points the way for 10 gp or a kind word (optional leg); at the cult camp in Tharbad East, The Voice of the Red Eye (tag MillerCultLeader) holds the miller's son Dob — resolve by Persuade DC 18 (one attempt per character, ever; failure means a fight), by combat, or by walking away with the sad truth. Freed endings pay 500 gp + 500 XP + a Magic Bag; the walk-away ending pays 200 XP, and a change of heart (returning to kill the Voice) upgrades it. State is relog/reboot-safe (per-character campaign DB); all turn-ins re-run-guarded. <b>Both NPCs spawn at waypoints AP_miller-other-son_1 (tharbadbridge) and _2 (thardbadeast) — admin must place them before the NPCs appear</b>; everything no-ops gracefully until then. Docs: card moved from Quest Ideas.html (burndown) into QuestGuide.html.</div><div><br></div><div><b>UAT:</b> (1) place both AP waypoints, deploy; (2) gating — no offer from Han before finishing The Miller's Son, offer appears after (and survives relog); (3) persuade ending — high-Persuade character frees Dob, Persuade option never reappears afterward; (4) fight ending — failed roll or chosen fight, kill advances whole party in area; (5) walk-away ending — 200 XP sad truth, then optional change-of-heart upgrade; (6) no double payout on re-talk; (7) regression — The Miller's Son itself unchanged end-to-end.</div>"
 
   - id: frogmorton-last-drop
     title: "Quest: The Last Drop at Frogmorton Inn (Shire social daily)"
