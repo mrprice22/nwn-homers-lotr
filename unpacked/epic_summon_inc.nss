@@ -31,6 +31,10 @@
 const string EPIC_SUMMON_OBJ = "EPIC_SUMMON_OBJ";
 // Marker set on the epic creature itself.
 const string EPIC_SUMMON_TAG = "EPIC_SUMMON";
+// Local object on the epic creature pointing back at its master, so the
+// heartbeat orphan check (epic_summon_hb.nss) can clear the PC's tracking
+// local after the party/dismiss flow has already severed GetMaster().
+const string EPIC_SUMMON_OWNER = "EPIC_SUMMON_OWNER";
 
 // Remove oPC's current epic summon (if any) and clear the tracking local.
 void EpicSummon_Dismiss(object oPC)
@@ -40,6 +44,8 @@ void EpicSummon_Dismiss(object oPC)
     {
         RemoveHenchman(oPC, oOld);
         AssignCommand(oOld, ClearAllActions());
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_IMP_UNSUMMON), oOld);
         ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oOld);
     }
     DeleteLocalObject(oPC, EPIC_SUMMON_OBJ);
@@ -55,6 +61,8 @@ void EpicSummon_Expire(object oPC)
     if (GetLocalObject(oPC, EPIC_SUMMON_OBJ) != oSelf) return;
     RemoveHenchman(oPC, oSelf);
     DeleteLocalObject(oPC, EPIC_SUMMON_OBJ);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_UNSUMMON), oSelf);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDisappear(), oSelf);
 }
 
@@ -76,6 +84,7 @@ void EpicSummon_Cast(object oPC, string sResRef, location lLoc,
 
     AddHenchman(oPC, oEpic);
     SetLocalInt(oEpic, EPIC_SUMMON_TAG, 1);
+    SetLocalObject(oEpic, EPIC_SUMMON_OWNER, oPC);
     SetLocalObject(oPC, EPIC_SUMMON_OBJ, oEpic);
 
     ApplyEffectToObject(DURATION_TYPE_INSTANT,
