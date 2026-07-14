@@ -30,14 +30,24 @@ TIER 1 — CRITICAL BUG FIXES
       - (Completion still works: return Helm of the Warlord + Dwarf Head,
         take reward -> 2,000 XP + Elrond's Writ, entry 2.)
 
-[ ] Well of Souls — accept entry (was lost) + reward bump:
-      - Talk to the Gondor Scribe, accept. Journal "The Well of Souls" entry 1 appears.
-      - Kill Azagoth (Moria Byss / Balrog area), loot Azagoth's Head, return.
-      - Expect 4,000 XP (raised from 1,000) + Annuminas Key; entry 2.
+[ ] Well of Souls — giver now placed (2026-07-13) + reward bump:
+      - Gondor Scribe now stands in the Tower of the High Wizard: Ground Floor
+        (area011), near the two Gondorian Wizards.
+      - Cold start: talk to her WITHOUT the head, accept ("Alright, where is
+        this portal?"). Journal "The Well of Souls" entry 1 + Annuminas Key.
+      - Kill Azagoth (Ruins of Annuminas — NOT Moria/Balrog), loot Azagoth's
+        Head, return to the scribe.
+      - Expect 10,000 XP (raised from 4,000); head consumed; entry 2.
+      - Head-first path: arrive carrying the head with no prior accept — her
+        turn-in branch fires directly (10,000 XP + entry handling as above).
 
-[ ] Ruin of Annuminas — accept entry (was lost):
+[ ] Ruin of Annuminas — accept entry + new head turn-in (2026-07-13):
       - Talk to the old woman in Bree ("Hanee the Loon").
       - Journal "Ruin of Annuminas" entry 1 now appears.
+      - Return to Hanee carrying Azagoth's Head: loony branch fires first,
+        +5,000 XP, she KEEPS you holding the head, journal entry 2 (completed).
+      - Talk to her again: 5,000 XP does NOT repeat (hanee_head_reward flag);
+        plain greeting plays instead.
 
 ------------------------------------------------------------------------------
 TIER 2 — MISSING JOURNALS (working quests that had no log entry)
@@ -93,7 +103,8 @@ TIER 4 — BALANCE / REWARD BUMPS  (confirm new XP awards)
 [ ] Bill Ferny's Ring .... 500 XP (was 150), both endings (give/keep letter).
 [ ] The Miller's Son ..... 450 XP (was 150) on turn-in.
 [ ] Feeding Tharbad ...... 500 XP (was 200) + Book of the Cora on turn-in.
-[ ] The Well of Souls .... 4,000 XP (was 1,000) — covered in Tier 1 above.
+[ ] The Well of Souls .... 10,000 XP at the scribe (was 4,000) + 5,000 XP
+                           intermediate at Hanee — covered in Tier 1 above.
 
 ------------------------------------------------------------------------------
 REGRESSION SPOT-CHECKS

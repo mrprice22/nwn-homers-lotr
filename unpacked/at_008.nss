@@ -10,7 +10,7 @@
 void main()
 {
     // Give the speaker some XP
-    RewardPartyXP(4000, GetPCSpeaker());
+    RewardPartyXP(10000, GetPCSpeaker());
 
 
     // Remove items from the player's inventory
