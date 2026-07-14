@@ -23,6 +23,26 @@ The loop talks about tiers; `roadmap.yaml` talks about statuses. Mapping:
 | Merit awarded (done) | `awarded` — **never set by the agent** |
 | Not likely | `unlikely` — leave alone |
 
+## Context economy
+
+The loop is designed to survive context compaction and long runs. Two rules:
+
+- **Files are the only state.** Each iteration must be executable with zero memory of the
+  previous one: `roadmap.yaml`, `admin-action-required.md`, and git are the entire loop
+  state — never depend on conversation history for what's done or in flight. Keep
+  per-item exploration lean: use `module-index/` and `docs/` for lookups instead of
+  reading raw `unpacked/` JSON, and don't pull large files into context when a targeted
+  read will do.
+- **Fresh context per item — delegate implementation to a subagent.** The orchestrating
+  session runs the loop bookkeeping (select, rebalance, roadmap edits, commits, pushes)
+  and launches a `general-purpose` subagent (synchronous, `run_in_background: false`) to
+  do step 3 for each item. Each subagent starts with a clean context window — the
+  equivalent of `/clear` between items. The subagent's brief must include: the item's
+  `id`/`title`/`notes`, an instruction to read `CLAUDE.md` + `CLAUDE-autopilot.md` first,
+  the no-coordinate-picking and hard rules, and what to report back (see step 3). Small,
+  obviously-mechanical items (a typo fix, a single-value tweak) may be done inline by the
+  orchestrator instead — don't pay a subagent spin-up for a one-liner.
+
 ## The loop
 
 Each iteration works exactly **one** item, end to end:
@@ -51,6 +71,15 @@ commit (see "Roadmap commits" below) before starting work.
 is done — see "Stopping".
 
 ### 3. Implement
+
+**Run this step in a fresh subagent** (see "Context economy" above), except for trivial
+one-line items. The subagent implements, runs the test build (step 6), and makes the
+final code commit (step 7.1), then reports back: **outcome** (`shipped` /
+`design-question` / `too-big`), the **commit hash** (if shipped), a **summary for the
+item's `notes`** including testing/UAT notes, and any **admin-action-required entries**
+(waypoints, deploy steps, design questions). The orchestrator then does the roadmap
+bookkeeping (steps 4/5/7.2–7.4) from that report — it never trusts "done" without the
+subagent citing a passing build and a commit hash.
 
 Work the item following the existing docs ([CLAUDE-recipes.md](CLAUDE-recipes.md),
 [CLAUDE-gotchas.md](CLAUDE-gotchas.md), [CLAUDE-nwscript.md](CLAUDE-nwscript.md), etc.).
@@ -122,7 +151,8 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
 2. **Update the roadmap item** per CLAUDE-roadmap.md's agent rules:
    - `status: implemented` (never `awarded`)
    - `commit:` the hash from step 1
-   - `date:` today (`YYYY-MM-DD`)
+   - `date:` **always set to today's actual date** (`YYYY-MM-DD` — check the real current
+     date, don't guess or leave the original report date)
    - `notes`: append a `Fixed YYYY-MM-DD` line (what/why/how), **plus testing/UAT
      notes** — what the admin should verify in-game before promoting to `awarded`.
 3. **Roadmap commit** (same procedure for rebalance/escape-hatch commits):

@@ -10,12 +10,15 @@ you're signing up for (the runbook is authoritative — read it in full before s
 
 1. Pick one `confirmed` roadmap item (rebalance tiers per the runbook's quotas when
    `confirmed` is empty).
-2. Implement it — no coordinate-picking (use `AP_<item-id>_<n>` waypoints +
-   `admin-action-required.md`); escape hatches for design questions (→ `planned`) and
-   oversized items.
+2. Implement it **in a fresh `general-purpose` subagent** (fresh context per item; inline
+   only for trivial one-liners) — no coordinate-picking (use `AP_<item-id>_<n>` waypoints
+   + `admin-action-required.md`); escape hatches for design questions (→ `planned`) and
+   oversized items. Files (`roadmap.yaml`, `admin-action-required.md`, git) are the only
+   loop state — never conversation history.
 3. Test-build with **bare `nwn-manager repack`** (never the deploy wrappers).
-4. Ship: final code commit → roadmap item to `implemented` with `commit:`/`date:`/UAT
-   notes → `gen-roadmap.py` → commit yaml + Roadmap.html → push to origin/main.
+4. Ship: final code commit → roadmap item to `implemented` with `commit:`, `date:` set to
+   today's actual date, and UAT notes → `gen-roadmap.py` → commit yaml + Roadmap.html →
+   push to origin/main.
 5. Repeat until only `planned`/`unlikely` items remain or compute runs out, then write a
    session summary into `admin-action-required.md`.
 
