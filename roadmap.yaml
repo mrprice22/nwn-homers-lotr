@@ -1853,11 +1853,12 @@ ideas:
   - id: spider-silk-harvest
     title: "Quest: Spider Silk Harvest (Mirkwood, daily)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2 (L12+). Kill spiders for silk; a dynamic-pricing v2 can read a server silk_supply var later. Areas exist. Depends on cooldown helper.</span>"
+    date: "2026-07-14"
+    commit: 59bf6a071f0
+    notes: "<span>T2 (L12+). Kill spiders for silk; a dynamic-pricing v2 can read a server silk_supply var later. Areas exist. Depends on cooldown helper.</span><div><br></div><div><b>Fixed 2026-07-14:</b> shipped as a daily kill-collect, journal tag mirkwood_silk. Thranduil himself (the existing placed king in Thranduil's Hall — he had no conversation) commissions 6 bolts of spider silk from L12+ characters; the six module spider blueprints that fill every outdoor Mirkwood encounter now drop a stackable silkbolt (~75% per kill, only while the quest is active, capped at 6 carried, summon/companion kills credit the owner). Turn-in pays a flat 300 gp + 600 XP (the dynamic silk_supply pricing is explicitly deferred to a v2). Death hooks are bestiary-safe: bst_install chains whatever ScriptDeath it finds at spawn, so kill counts record first, then silk drops, then each spider family's original gold/XP death script re-runs. Zero new placements or waypoints; Thranduil's conversation set identically on blueprint + instance so his boss respawns keep it. Third consumer of the quest-cooldown library (item-free active flag via a second calendar key). Docs: card moved from Quest Ideas.html into QuestGuide.html.</div><div><br></div><div><b>UAT:</b> (1) L12+ PC talks to Thranduil → offer (sub-12 refused politely) → journal stage 1; (2) kill named Mirkwood spiders outdoors → \"(N of 6)\" floaties, no drops without accepting / from base-game nw_ spiders / past 6 carried; (3) bestiary kill messages and death gold/XP still fire on hooked spiders; (4) turn in 6 bolts → 300 gp + 600 XP, bolts consumed, journal ends; re-talk → come-back timer; next UTC day re-offers; (5) regression: Thranduil still fights/dies/respawns as a tracked boss and the respawn keeps the conversation.</div>"
 
   - id: lumber-ent-tugofwar
     title: "Quest pair: Lumber Runners (Evil) vs Ent-Watch (Good), Fangorn dailies"
