@@ -4,6 +4,12 @@
 // this creature (walking the summon/henchman master chain to the owning PC) so
 // bst_ondeath can tell Solo from Party kills and credit every contributor.
 // Always chains the creature's original OnDamaged handler.
+//
+// Also feeds the boss enrage-on-retreat system (enr_inc): registry bosses
+// mark each damaging PC as "engaged" here; ENR_OnBossDamaged no-ops for
+// everything else (cached one-query registry check).
+
+#include "enr_inc"
 
 void main()
 {
@@ -31,6 +37,9 @@ void main()
             SetLocalObject(oCre, "bst_ctrb_" + IntToString(nN), oDmg);
             SetLocalInt(oCre, "bst_ctrb_n", nN + 1);
         }
+
+        // Enrage-on-retreat: registry bosses track this PC as engaged.
+        ENR_OnBossDamaged(oCre, oDmg);
     }
 
     // Chain the creature's original OnDamaged handler, if any.
