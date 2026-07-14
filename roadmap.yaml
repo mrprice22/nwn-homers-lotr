@@ -1474,11 +1474,12 @@ ideas:
   - id: guilds-journal-never-delivered
     title: "Guilds server-info journal is never delivered to players"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Audit 2026-07-11: hgll_cliententer.nss delivers rules, website and the six mod_* server-info journals but never the 'guilds' category; only the dead-code mod_enter.nss references it (with a 'gguild' typo). The QuestGuide wrongly claimed this was fixed. Fix: add the missing guilds AddJournalQuestEntry (End=1) to hgll_cliententer.nss.</span>"
+    date: "2026-07-14"
+    commit: 4eb1a325521
+    notes: "<span>Audit 2026-07-11: hgll_cliententer.nss delivers rules, website and the six mod_* server-info journals but never the 'guilds' category; only the dead-code mod_enter.nss references it (with a 'gguild' typo). The QuestGuide wrongly claimed this was fixed. Fix: add the missing guilds AddJournalQuestEntry (End=1) to hgll_cliententer.nss.</span><div><br></div><div><b>Fixed 2026-07-14:</b> added AddJournalQuestEntry(\"guilds\", 1, ...) to the login delivery block in hgll_cliententer.nss, right alongside rules/website — idempotent, reaches existing characters on their next login. QuestGuide's Server Info section updated to show all nine journals delivered. <b>UAT:</b> log in with any character (new or existing) and confirm the Guild-creation-rules journal appears in the Completed section of the journal, alongside Server Rules and Website.</div>"
 
   - id: p000-duplicate-ferny-journal
     title: "Legacy p000 plot fires a duplicate Bill Ferny journal track"
