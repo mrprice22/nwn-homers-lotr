@@ -20,6 +20,7 @@
 #include "brd_db"
 #include "admin_db"
 #include "boost_db"
+#include "quest_cd_inc"
 
 
 void main()
@@ -86,5 +87,9 @@ Admin_InitDb();
 // Premium 2x gold/XP boost subscriptions (merit redemptions 201-204): ensure the
 // boostdb tables exist before any kill/quest reward reads them.
 Boost_InitDb();
+
+// Quest cooldowns (daily/weekly repeatable quests): ensure the quest_cd table
+// exists before any dialogue conditional reads it. See quest_cd_inc.nss.
+QCD_InitDb();
 
 }   //end of main
