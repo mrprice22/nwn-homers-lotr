@@ -96,6 +96,7 @@ void main()
     // characters too, not just first-time logins. mod_enter.nss (the old, never-
     // wired delivery, which also had a "gguild" tag typo) is bypassed entirely.
     AddJournalQuestEntry("rules",        1, oPC, FALSE, FALSE);
+    AddJournalQuestEntry("guilds",       1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("website",      1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("modcustoms",   1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("mod_progress", 1, oPC, FALSE, FALSE);

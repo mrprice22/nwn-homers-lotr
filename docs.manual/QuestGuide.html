@@ -197,8 +197,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   found this guide had drifted. Corrections applied below: two fully-scripted reward quests
   were undocumented and are now listed (<a href="#paths-of-the-dead">Paths of the Dead</a>,
   <a href="#glorfindel">Glorfindel's Curative</a>); the <strong>Guilds</strong> server-info
-  journal is <em>not</em> delivered (the earlier "fixed" claim was wrong — see
-  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
+  journal was <em>not</em> delivered (the earlier "fixed" claim was wrong; genuinely fixed on
+  2026-07-14 — see <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
   <em>unstartable</em> — no Gondor Scribe NPC was placed. (That gap has since been fixed on
   2026-07-13: the scribe is now placed and the quest is <span class="status-badge status-ok">Working</span> —
   see the card.) The six <code>mod_*</code> server-info
@@ -630,13 +630,13 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
 <!-- SERVER INFO -->
 <div class="quest-card" id="server-info">
-  <h3>Server Info Journals <span class="status-badge status-ok">Mostly Working</span> <span class="status-badge status-broke">Guilds Broken</span></h3>
+  <h3>Server Info Journals <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
     <span>Delivered on every login by <code>hgll_cliententer.nss</code></span>
     <span>All land in the player's <strong>Completed</strong> section (entry 1, <code>End=1</code>)</span>
   </div>
   <p>Several journal categories carry server meta-information and are handed to players automatically on login.
-  As of the 2026-07-11 audit, <code>hgll_cliententer.nss</code> delivers <strong>eight</strong> of them:</p>
+  <code>hgll_cliententer.nss</code> delivers all <strong>nine</strong> of them:</p>
 
   <table class="data reward-table">
     <thead><tr><th>Journal</th><th>Tag</th><th>Status</th></tr></thead>
@@ -649,19 +649,14 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       <tr><td>Appearance &amp; Crafting</td><td><code>mod_forge</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Custom Systems</td><td><code>mod_systems</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Good/Evil Factions</td><td><code>mod_factions</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-broke">Never delivered</span></td></tr>
+      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
     </tbody>
   </table>
 
-  <div class="warning-box">
-    <p><strong>Guilds is still broken (correction, 2026-07-11).</strong> An earlier version of this guide
-    claimed the <code>guilds</code> journal was fixed and wired into <code>hgll_cliententer.nss</code> — it was
-    not. The handler delivers <code>rules</code>, <code>website</code> and the six <code>mod_*</code> tags, but
-    <strong>never <code>guilds</code></strong>. The only reference to the guild journal is the dead-code
-    <code>mod_enter.nss</code>, which still carries the original <code>gguild</code> typo, so no player ever
-    receives it. Tracked as roadmap idea <code>guilds-journal-never-delivered</code>. Fix: add the missing
-    <code>AddJournalQuestEntry("guilds", 1, oPC, FALSE, FALSE)</code> to <code>hgll_cliententer.nss</code>.</p>
-  </div>
+  <div class="dm-note"><strong>Guilds fixed 2026-07-14</strong> (roadmap idea
+  <code>guilds-journal-never-delivered</code>): the <code>guilds</code> category was designed but never
+  delivered — only the dead-code <code>mod_enter.nss</code> referenced it (with a <code>gguild</code> typo).
+  <code>hgll_cliententer.nss</code> now delivers it on every login alongside the other eight.</div>
   <div class="dm-note">The old dead forum URL in the <code>website</code> entry has already been updated to the
   Discord invite (<em>https://discord.gg/VpAtSpe</em>) in <code>module.jrl.json</code> — that fix is done. Minor:
   the category's display <code>Name</code> is still literally "Website" while its content is now the Discord link.</div>
