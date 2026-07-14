@@ -1561,11 +1561,12 @@ ideas:
   - id: frogmorton-last-drop
     title: "Quest: The Last Drop at Frogmorton Inn (Shire social daily)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T1 daily. Pure social — a monthly-rotating correct answer, tiny reward, rich dialogue; reuses existing Shire hobbits. Depends on the quest-cooldown helper.</span>"
+    date: "2026-07-14"
+    commit: 6e70bf2344b
+    notes: "<span>T1 daily. Pure social — a monthly-rotating correct answer, tiny reward, rich dialogue; reuses existing Shire hobbits. Depends on the quest-cooldown helper.</span><div><br></div><div><b>Fixed 2026-07-14:</b> shipped as the quest-cooldown library's first consumer, journal tag frogmorton_ale. <b>Venue adaptation:</b> frogmorton001 turned out to have no inn interior and zero creatures, so the quest lives at the adjacent <b>Whitfurrow Inn</b> using its existing placed hobbits (zero new placements, live immediately — the cask lore still hails from Frogmorton). Rigrin the innkeeper poses the daily \"custom of the cask\" judgment; five commoners became named claimants (Marigold Bunce, Poppy Thistlewool, Hob Broadbelt, Ned Puddifoot, Daisy Goodbody), each with clue dialogue. The correct claimant rotates with the game-calendar month (12 rules). One judgment per day: a wrong answer is mocked and stamps the cooldown too (no brute-forcing); the right answer pays 25 gp + a Frogmorton Pint (single-use: 4 hp heal + comedic drunk stagger, no stat effects). Renamed instances were blueprint-split (comfemale002_2/3/4, commale002_2/3) so respawns keep names/conversations — caught by the build's respawn-divergence gate. Docs: card moved from Quest Ideas.html into QuestGuide.html.</div><div><br></div><div><b>UAT:</b> (1) at the Whitfurrow Inn, ask Rigrin about the cask, chat the five patrons, answer — right answer pays 25 gp + Pint (drink it: heal + stagger, consumed); (2) re-ask — come-back-tomorrow line with time to UTC midnight; relog — still blocked; next day — offer returns; (3) wrong answer — mockery, day stamped, no reward; (4) DM-shift the calendar month — rule text and winner change; (5) regression: Rigrin's shop still opens, the five named patrons respawn with names/conversations intact, other commoners unchanged. First real UAT of questcddb (database/questcddb.sqlite3 should appear and populate).</div>"
 
   - id: beorns-garden
     title: "Quest: Beorn's Garden (daily — wargs & honey)"
