@@ -1989,11 +1989,12 @@ ideas:
   - id: hobbit-post
     title: "Quest: Hobbit Post (Shire, daily deliveries)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T1 daily. Rotating delivery (GetCalendarDay % 5) with a speed bonus and a rare misdelivered-parcel drop; rich low-pressure dialogue. Depends on cooldown helper.</span>"
+    date: "2026-07-14"
+    commit: 765fb4e3546
+    notes: "<span>T1 daily. Rotating delivery (GetCalendarDay % 5) with a speed bonus and a rare misdelivered-parcel drop; rich low-pressure dialogue. Depends on cooldown helper.</span><div><br></div><div><b>Fixed 2026-07-14:</b> shipped, journal tag hobbit_post. Posco Whitfoot, Hobbiton's new post-master (a renamed existing hobbit instance — zero new placements), issues one sealed parcel per real day, addressed by game-calendar-day rotation to one of five existing NPCs: Daddy Twofoot (Hobbiton), Old Noakes (Bywater), the Green Dragon's Keeper, Salvia Brockhouse and Milo Burrows (Whitfurrow Inn). Pay 60 gp + 50 XP, +40 gp speed bonus for delivery within 5 real minutes (real-world epoch timing that survives relogs — the design's GetTimeSecond idea wasn't relog-safe), and an 8% misdelivery twist where the labelled recipient redirects you to the true owner for +60 gp and a random small item. The parcel is plot+cursed (can't drop/sell/trade) and carries its own day/timestamp state so calendar flips can't strand it; re-offers replace rather than duplicate. Second consumer of the quest-cooldown library. Renamed instances blueprint-split so respawns keep names (build gate verified). Design deviations: recipients kept within the reachable Shire (Bilbo's House unreachable, Maggot is a CR 436 boss), and the treasure_post chest became a random-loot payout script. Docs: card moved from Quest Ideas.html into QuestGuide.html.</div><div><br></div><div><b>UAT:</b> (1) accept from Posco in Hobbiton, deliver to the named recipient — 60 gp + 50 XP, +40 gp if under 5 minutes; (2) re-ask — come-back line with time to UTC midnight, resets next UTC day; (3) day rotation — addressee changes with the game calendar day, only that recipient accepts; (4) misdelivery (8%) — refusal + redirect, true owner pays extra + random item; (5) duplication guard — re-talking to Posco replaces the parcel, payout destroys it, no double pay; (6) regression — Green Dragon room rental still works parcel-free, renamed NPCs keep names after respawn, Frogmorton quest untouched.</div>"
 
   - id: riddle-game
     title: "Quest: The Riddle Game (weekly, vs Gollum)"
