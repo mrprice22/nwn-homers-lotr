@@ -154,6 +154,7 @@
             <li><a href="#millers-other-son">The Miller's Other Son</a></li>
             <li><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></li>
             <li><a href="#hobbit-post">Hobbit Post</a></li>
+            <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -493,6 +494,62 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <code>bin/split-divergent-creatures.py</code> so respawns keep their identities; the Green Dragon
   Inn keeper kept their name and simply gained gated parcel branches in
   <code>greendragon1.dlg</code>. Zero new placements, no waypoints needed.</div>
+</div>
+
+<!-- SPIDER SILK HARVEST -->
+<div class="quest-card" id="spider-silk-harvest">
+  <h3>Spider Silk Harvest <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>mirkwood_silk</code></span>
+    <span>Giver: Thranduil, King of Eryn Lasgalen, <a href="../areas/thranduilshall.html">Thranduil's Hall</a> (through the <a href="../areas/woodoflegolas.html">Wood of Legolas</a>, off <a href="../areas/mirkwoodnorth.html">Mirkwood: North</a>)</span>
+    <span>Level range: 12+ (daily kill-collect)</span>
+    <span>Reward: 300 gp + 600 XP per day</span>
+  </div>
+  <p>The great spiders choke Thranduil's wood, but their silk is stronger than steel wire and his
+  weavers prize it. Once per real day the Elvenking pays a flat bounty for <strong>six bolts of
+  spider silk</strong> cut from the spiders of Mirkwood. The silk comes from the wood's
+  <em>named</em> horrors — <strong>Giant Spider</strong>, <strong>Spider-Queen</strong>,
+  <strong>Lava Climber</strong>, <strong>Death Weeper</strong>, <strong>Black Spear Spider</strong>
+  and <strong>Sword Spider</strong> — which fill the encounters of every outdoor Mirkwood area
+  (<a href="../areas/mirkwoodwest.html">West</a>, <a href="../areas/mirkwoodnorth.html">North</a>,
+  <a href="../areas/mirkwoodeast.html">East</a>, <a href="../areas/mirkwoodcentral.html">Central</a>,
+  <a href="../areas/mirkwoodcentrale.html">Central East</a> and
+  <a href="../areas/mirkwoodcentrals.html">Central South</a>). The common base-game spiders and
+  ettercaps mixed into the same encounters spin nothing worth carding.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Thranduil</strong> on his throne in Thranduil's
+  Hall and accept the day's harvest (he turns away hunters below level 12).<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the harvest from Thranduil — the journal opens and the day's hunt goes live.</li>
+    <li>Kill the named spiders anywhere beneath Mirkwood's boughs. Each qualifying kill has a
+      <strong>75% chance</strong> to cut a <em>Bolt of Spider Silk</em> straight into your pack
+      (kills by your summons and companions credit you, same rule as the bestiary). Drops stop at
+      six bolts carried — silk cannot be hoarded past a day's need.</li>
+    <li>Return to Thranduil with six bolts and turn them in: <strong>300 gp + 600 XP</strong>,
+      bolts consumed, day closed.</li>
+    <li>The bounty reopens at UTC midnight; until then Thranduil quotes the exact time remaining.</li>
+  </ol>
+
+  <p>Bolts drop only while your own hunt is active (accepted today, not yet paid), so a party
+  member without the quest gets nothing and there is no stockpiling across days. Spare bolts are
+  worth a few coppers as vendor trash at most.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>spider-silk-harvest</code>) — scripted and
+  built, pending in-game UAT. Third consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>): the active flag is itself a calendar
+  stamp (<code>mirkwood_silk_acc</code>), so the hunt state survives relogs and restarts with no
+  state item. Silk drops chain through the blueprint OnDeath slot
+  (<code>q_silk_d1/d2/d3</code> on the six module spider blueprints), which the bestiary wrapper
+  stores and chains at spawn, and each wrapper re-chains the family's original reward script
+  (<code>gpondeath</code> / <code>350ondeathtopart</code> / <code>sb_creaturekill</code>) — kill
+  counts, gold and XP all still fire. The giver is the existing placed Thranduil
+  (<code>thranduil_2</code>, also a Roll-of-the-Fallen boss — the new <code>q_silk</code>
+  conversation is set identically on blueprint and instance, so respawns keep it). Zero new
+  placements, no waypoints needed. The Quest Ideas dynamic-pricing variant (server-wide
+  <code>silk_supply</code> moving the price) is deferred to a possible v2; v1 pays a flat
+  bounty.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
