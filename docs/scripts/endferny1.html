@@ -79,6 +79,14 @@ void main()
     // Set the variables
     SetLocalInt(GetPCSpeaker(), &quot;thugtest&quot;, 2);
 
+    // Ferny&#x27;s Return prequel bonus: Ferny pays half again to the one who
+    // cleared the Sharkey squatter out of his house (see q_fret_end.nss).
+    if (GetCampaignInt(&quot;fret&quot;, &quot;done&quot;, GetPCSpeaker()))
+    {
+        GiveGoldToCreature(GetPCSpeaker(), 100);
+        SendMessageToPC(GetPCSpeaker(),
+            &quot;Ferny counts out extra coin -- payment for clearing the rat out of his house.&quot;);
+    }
 }
 </code></pre>
   </main>

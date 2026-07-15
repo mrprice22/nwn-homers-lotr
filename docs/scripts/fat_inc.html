@@ -72,7 +72,8 @@
 // stacks is therefore completely free: full heal, 1 stack, no damage.
 //
 // Hook: stop_spellcheat.nss (the SetModuleOverrideSpellscript script installed
-// by on_module_load.nss) calls FAT_OnOverrideSpellCast() on every cast. The
+// by onmoduleload.nss, the real Mod_OnModLoad) calls FAT_OnOverrideSpellCast()
+// on every cast (via x2_inc_spellhook&#x27;s X2RunUserDefinedSpellScript). The
 // override script runs at spell impact, immediately BEFORE the spell&#x27;s own
 // impact script; our DelayCommand therefore lands after the heal has resolved.
 //

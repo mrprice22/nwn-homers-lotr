@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_brn_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_brn_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>9</dd>
+<dt>PC replies</dt><dd>13</dd>
+<dt>NumWords</dt><dd>460</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/grimbeorntheo001.html">Grimbeorn the Old Lord of the Beornings</a> <code>grimbeorntheo001</code> — in <a href="../areas/beorn.html">Beorn</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/grimbeorntheo001.html">Grimbeorn the Old Lord of the Beornings</a> — in <a href="../areas/beorn.html">Beorn</a></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_brn_c4</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_brn_pay</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_brn_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_brn_c1</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_brn_c2</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_brn_c3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_brn_clow</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/beorn-garden.html">Beorn&#x27;s Garden</a></td><td><code>beorn_garden</code></td><td>1, 2</td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6370&gt;</code></td><td><a href="../scripts/q_brn_c1.html">q_brn_c1</a></td></tr>
+<tr><td><code>&lt;CUSTOM6371&gt;</code></td><td><a href="../scripts/q_brn_c2.html">q_brn_c2</a></td></tr>
+<tr><td><code>&lt;CUSTOM6372&gt;</code></td><td><a href="../scripts/q_brn_c2.html">q_brn_c2</a></td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_brn_c1</code>)</small> — *Grimbeorn sets down a honey-pot the size of a cauldron* The day&#x27;s work is done …</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_brn_c2</code>)</small> — *He counts on fingers thick as axe-hafts* How fares my father&#x27;s garden? I make i…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_brn_c3</code>)</small> — *Grimbeorn the Old looks up from a broken hive-board, and his eyes are not entir…</li>
+<li><a href="#e7">entry #7</a> <small class="muted">(if <code>q_brn_clow</code>)</small> — *Grimbeorn looks you over the way a farmer weighs a spring lamb* No. These wargs…</li>
+<li><a href="#e8">entry #8</a> — *The Lord of the Beornings watches you in silence, wide as a door and patient as…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_brn_c1</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*Grimbeorn sets down a honey-pot the size of a cauldron* The day&#x27;s work is done and paid, friend. The pelts are salted and the combs are in the press -- let the bees have their peace till the morrow. Come back in <span class="custom-token" title="SetCustomToken(6370, ...) called in: q_brn_c1">&lt;CUSTOM6370&gt;<sup class="token-setters">[<a href="../scripts/q_brn_c1.html">q_brn_c1</a>]</sup></span>.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Until tomorrow, Lord of the Beornings.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_brn_c2</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*He counts on fingers thick as axe-hafts* How fares my father&#x27;s garden? I make it <span class="custom-token" title="SetCustomToken(6371, ...) called in: q_brn_c2">&lt;CUSTOM6371&gt;<sup class="token-setters">[<a href="../scripts/q_brn_c2.html">q_brn_c2</a>]</sup></span> warg pelts of the six, and <span class="custom-token" title="SetCustomToken(6372, ...) called in: q_brn_c2">&lt;CUSTOM6372&gt;<sup class="token-setters">[<a href="../scripts/q_brn_c2.html">q_brn_c2</a>]</sup></span> hives of the three drawn. Break a hive open and the raiders will come to you -- they cannot help themselves.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>q_brn_pay</code></span> <small class="muted">(if <code>q_brn_c4</code>)</small> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">The wargs are skinned and the honey is drawn. Six pelts, three combs.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*He turns the pelts over once with a paw-broad hand, then nods* Fair work, and the honey besides. *he counts gold into your palm and adds a wrapped comb from the stores* My father kept this garden with his own hands; it is good to see it kept still. The wargs will be back tomorrow -- they always are.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Until tomorrow, Grimbeorn.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Still working the meadow. The bees are winning.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_brn_c3</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">*Grimbeorn the Old looks up from a broken hive-board, and his eyes are not entirely a man&#x27;s* Wargs in the bee-meadows -- a whole raiding pack of them, drunk on my father&#x27;s honey and bolder every night. I have hives to mend and no hands to spare. Draw the honey from the three great hives about the homestead and the Carrock, kill six of the raiders the broken hives call in, and I will pay you from Beorn&#x27;s own stores. Once each day, no more.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_brn_start</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">I will tend the garden. Wargs and honey both.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*He grunts approval* Good. The hives stand in hollow stumps -- one here in the garden, two up on the Carrock heights. Crack one open and keep your blade loose: the wargs come running at the smell of broken comb. Six pelts and three combs, then find me here.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">Blade loose and boots laced. I&#x27;m off.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Where do the hives stand?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*He jerks a thumb at the meadow and the great rock beyond* Three hives: one in the garden here, two on the Carrock -- the lesser height and the greater. The honey is yours to cut; the bees will forgive you by winter. But every broken hive sings to the wargs like a dinner-horn, so the killing and the harvesting are one job, not two. Six pelts, three combs, and gold from the stores when it is done.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>q_brn_start</code></span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">Then I&#x27;ll take the work. The garden will be tended.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*He is already reaching for the next hive-board* Go then. Mind the bees, mind the wargs, and leave the deer alone -- they are my father&#x27;s guests.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text">The deer are safe from me. The wargs are not.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text">I will think on it.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Bees and wargs are not my trade. Good day.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <small class="muted">(if <code>q_brn_clow</code>)</small> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*Grimbeorn looks you over the way a farmer weighs a spring lamb* No. These wargs have dragged down grown Beornings, and I will not send a green blade to feed them. Put twelve seasons of fighting behind you, then come ask me again about the garden.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
+<div class="dlg-text">As you say, Grimbeorn.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">*The Lord of the Beornings watches you in silence, wide as a door and patient as winter* Eat your fill at my board, stranger, and trouble nothing in the garden.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #12</span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
+<div class="dlg-text">My thanks for the welcome.</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*Grimbeorn sets down a honey-pot the size of a cauldron* The day&#x27;s work is done and paid, friend. The pelts are salted and the combs are in the press -- let the bees have their peace till the morrow. Come back in <span class="custom-token" title="SetCustomToken(6370, ...) called in: q_brn_c1">&lt;CUSTOM6370&gt;<sup class="token-setters">[<a href="../scripts/q_brn_c1.html">q_brn_c1</a>]</sup></span>.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Until tomorrow, Lord of the Beornings.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*He counts on fingers thick as axe-hafts* How fares my father&#x27;s garden? I make it <span class="custom-token" title="SetCustomToken(6371, ...) called in: q_brn_c2">&lt;CUSTOM6371&gt;<sup class="token-setters">[<a href="../scripts/q_brn_c2.html">q_brn_c2</a>]</sup></span> warg pelts of the six, and <span class="custom-token" title="SetCustomToken(6372, ...) called in: q_brn_c2">&lt;CUSTOM6372&gt;<sup class="token-setters">[<a href="../scripts/q_brn_c2.html">q_brn_c2</a>]</sup></span> hives of the three drawn. Break a hive open and the raiders will come to you -- they cannot help themselves.</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“The wargs are skinned and the honey is drawn. Six pelts, three combs.”</span> <small class="muted">(if <code>q_brn_c4</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Still working the meadow. The bees are winning.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*He turns the pelts over once with a paw-broad hand, then nods* Fair work, and the honey besides. *he counts gold into your palm and adds a wrapped comb from the stores* My father kept this garden with his own hands; it is good to see it kept still. The wargs will be back tomorrow -- they always are.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Until tomorrow, Grimbeorn.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">*Grimbeorn the Old looks up from a broken hive-board, and his eyes are not entirely a man&#x27;s* Wargs in the bee-meadows -- a whole raiding pack of them, drunk on my father&#x27;s honey and bolder every night. I have hives to mend and no hands to spare. Draw the honey from the three great hives about the homestead and the Carrock, kill six of the raiders the broken hives call in, and I will pay you from Beorn&#x27;s own stores. Once each day, no more.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I will tend the garden. Wargs and honey both.”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Where do the hives stand?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Bees and wargs are not my trade. Good day.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*He grunts approval* Good. The hives stand in hollow stumps -- one here in the garden, two up on the Carrock heights. Crack one open and keep your blade loose: the wargs come running at the smell of broken comb. Six pelts and three combs, then find me here.</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Blade loose and boots laced. I&#x27;m off.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*He jerks a thumb at the meadow and the great rock beyond* Three hives: one in the garden here, two on the Carrock -- the lesser height and the greater. The honey is yours to cut; the bees will forgive you by winter. But every broken hive sings to the wargs like a dinner-horn, so the killing and the harvesting are one job, not two. Six pelts, three combs, and gold from the stores when it is done.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Then I&#x27;ll take the work. The garden will be tended.”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“I will think on it.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*He is already reaching for the next hive-board* Go then. Mind the bees, mind the wargs, and leave the deer alone -- they are my father&#x27;s guests.</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“The deer are safe from me. The wargs are not.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*Grimbeorn looks you over the way a farmer weighs a spring lamb* No. These wargs have dragged down grown Beornings, and I will not send a green blade to feed them. Put twelve seasons of fighting behind you, then come ask me again about the garden.</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“As you say, Grimbeorn.”</span></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*The Lord of the Beornings watches you in silence, wide as a door and patient as winter* Eat your fill at my board, stranger, and trouble nothing in the garden.</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“My thanks for the welcome.”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Until tomorrow, Lord of the Beornings.</div></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>q_brn_pay</code></span></div><div class="dlg-text">The wargs are skinned and the honey is drawn. Six pelts, three combs.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“*He turns the pelts over once with a paw-broad hand, then nods* Fair work, and t…”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Still working the meadow. The bees are winning.</div></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Until tomorrow, Grimbeorn.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_brn_start</code></span></div><div class="dlg-text">I will tend the garden. Wargs and honey both.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*He grunts approval* Good. The hives stand in hollow stumps -- one here in the g…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Where do the hives stand?</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*He jerks a thumb at the meadow and the great rock beyond* Three hives: one in t…”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Bees and wargs are not my trade. Good day.</div></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Blade loose and boots laced. I&#x27;m off.</div></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>q_brn_start</code></span></div><div class="dlg-text">Then I&#x27;ll take the work. The garden will be tended.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“*He is already reaching for the next hive-board* Go then. Mind the bees, mind th…”</span></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">I will think on it.</div></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">The deer are safe from me. The wargs are not.</div></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">As you say, Grimbeorn.</div></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">My thanks for the welcome.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

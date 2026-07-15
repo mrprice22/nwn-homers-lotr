@@ -55,9 +55,9 @@
   <main>
 <h1>Conversation: <code>store041</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>1</dd>
-<dt>PC replies</dt><dd>2</dd>
-<dt>NumWords</dt><dd>23</dd>
+<dt>NPC lines</dt><dd>6</dd>
+<dt>PC replies</dt><dd>15</dd>
+<dt>NumWords</dt><dd>415</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code></code></dd>
 </dl>
@@ -66,7 +66,21 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/rigrin_2.html">Rigrin Took</a> — in <a href="../areas/whitfurrowinn.html">Whitfurrow Inn</a></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>openstore041</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_frog_win</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_lose</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>openstore041</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_cdc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_rulec</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_pick1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_winc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_pick2</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_pick3</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_pick4</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_frog_pick5</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/frogmorton-ale.html">The Last Drop at Frogmorton Inn</a></td><td><code>frogmorton_ale</code></td><td>1, 2</td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6330&gt;</code></td><td><a href="../scripts/q_frog_rulec.html">q_frog_rulec</a></td></tr>
+<tr><td><code>&lt;CUSTOM6331&gt;</code></td><td><a href="../scripts/q_frog_cdc.html">q_frog_cdc</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a> — Welcome to my shop. Would you like to see my wares?</li>
 </ul>
@@ -82,6 +96,113 @@
 <div class="dlg-text">Yes. I&#x27;d like to see what you have for sale.</div>
 </details>
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_frog_start</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">The whole common room&#x27;s at war over some barrel. What&#x27;s all that about?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_frog_cdc</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">Heh -- you already played judge today, and the room&#x27;s only just quieted down. The custom of the cask allows one judgment a day, and no appeals. Come back in <span class="custom-token" title="SetCustomToken(6331, ...) called in: q_frog_cdc">&lt;CUSTOM6331&gt;<sup class="token-setters">[<a href="../scripts/q_frog_cdc.html">q_frog_cdc</a>]</sup></span> or so, and there&#x27;ll be fresh arguing for you.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Fair enough. Tomorrow, then.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_frog_rulec</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">Aye -- the last drop of the Frogmorton harvest cask. The Floating Log&#x27;s own autumn brew, and the last barrel of it anywhere, now the brewer&#x27;s gone. Five of them out there, each certain the final drop is theirs by right. Me, I judge it by the old custom of the cask, and the custom this month runs: &#x27;<span class="custom-token" title="SetCustomToken(6330, ...) called in: q_frog_rulec">&lt;CUSTOM6330&gt;<sup class="token-setters">[<a href="../scripts/q_frog_rulec.html">q_frog_rulec</a>]</sup></span>&#x27;. Have a word with the claimants if you like -- then tell me, who gets the last drop?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text">Remind me -- who&#x27;s claiming it?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">There&#x27;s Marigold Bunce, the brewer&#x27;s widow; Poppy Thistlewool, who paid coin for the barrel; Hob Broadbelt, who tapped it and drank first; Ned Puddifoot, who carted it here from Frogmorton; and Daisy Goodbody, who won some wager over it at darts. All five underfoot, all five thirsty, and only one drop of ale between them.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
+<div class="dlg-text">I&#x27;m ready to name the drinker.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“Aye -- the last drop of the Frogmorton harvest cask. The Floating Log&#x27;s own autu…”</span> <small class="muted">(if <code>q_frog_rulec</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #12</span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
+<div class="dlg-text">I&#x27;ll go hear them out.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_frog_pick1</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">Marigold Bunce -- she stirred the mash for that brew.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>q_frog_win</code></span> <small class="muted">(if <code>q_frog_winc</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*Rigrin holds the mug up to the light, weighs the room for a long moment, and pours the last drop exactly where you said* ...Right you are, by the custom! There -- settled, and not a chair thrown. Here&#x27;s a bit of coin from the pool for the judging, and a pint of my own brewing besides. Mind yourself -- it&#x27;s got a kick to it.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
+<div class="dlg-text">A pleasure keeping the peace.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>q_frog_lose</code></span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month, and now the whole room knows it. *the arguing redoubles behind you* Ah well -- the drop keeps another day, but you&#x27;ve had your judging. Come back tomorrow: the custom turns with the month, and the argument never stops.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
+<div class="dlg-text">I&#x27;ll study up on cask law.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_frog_pick2</code></span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Poppy Thistlewool -- her coin bought the cask.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_frog_pick3</code></span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Hob Broadbelt -- he tapped the cask and supped first.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>q_frog_pick4</code></span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">Ned Puddifoot -- he bore the barrel here from Frogmorton.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>q_frog_pick5</code></span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">Daisy Goodbody -- she won it fair at darts.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text">Let me have a word with the claimants first.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
 <div class="dlg-text">No, thanks.</div>
 </details>
@@ -89,10 +210,28 @@
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome to my shop. Would you like to see my wares?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Yes. I&#x27;d like to see what you have for sale.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“No, thanks.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome to my shop. Would you like to see my wares?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Yes. I&#x27;d like to see what you have for sale.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“The whole common room&#x27;s at war over some barrel. What&#x27;s all that about?”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“No, thanks.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Heh -- you already played judge today, and the room&#x27;s only just quieted down. The custom of the cask allows one judgment a day, and no appeals. Come back in <span class="custom-token" title="SetCustomToken(6331, ...) called in: q_frog_cdc">&lt;CUSTOM6331&gt;<sup class="token-setters">[<a href="../scripts/q_frog_cdc.html">q_frog_cdc</a>]</sup></span> or so, and there&#x27;ll be fresh arguing for you.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Fair enough. Tomorrow, then.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Aye -- the last drop of the Frogmorton harvest cask. The Floating Log&#x27;s own autumn brew, and the last barrel of it anywhere, now the brewer&#x27;s gone. Five of them out there, each certain the final drop is theirs by right. Me, I judge it by the old custom of the cask, and the custom this month runs: &#x27;<span class="custom-token" title="SetCustomToken(6330, ...) called in: q_frog_rulec">&lt;CUSTOM6330&gt;<sup class="token-setters">[<a href="../scripts/q_frog_rulec.html">q_frog_rulec</a>]</sup></span>&#x27;. Have a word with the claimants if you like -- then tell me, who gets the last drop?</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Remind me -- who&#x27;s claiming it?”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Marigold Bunce -- she stirred the mash for that brew.”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Poppy Thistlewool -- her coin bought the cask.”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Hob Broadbelt -- he tapped the cask and supped first.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Ned Puddifoot -- he bore the barrel here from Frogmorton.”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Daisy Goodbody -- she won it fair at darts.”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Let me have a word with the claimants first.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">There&#x27;s Marigold Bunce, the brewer&#x27;s widow; Poppy Thistlewool, who paid coin for the barrel; Hob Broadbelt, who tapped it and drank first; Ned Puddifoot, who carted it here from Frogmorton; and Daisy Goodbody, who won some wager over it at darts. All five underfoot, all five thirsty, and only one drop of ale between them.</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“I&#x27;m ready to name the drinker.”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“I&#x27;ll go hear them out.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>q_frog_win</code></span></div><div class="dlg-text">*Rigrin holds the mug up to the light, weighs the room for a long moment, and pours the last drop exactly where you said* ...Right you are, by the custom! There -- settled, and not a chair thrown. Here&#x27;s a bit of coin from the pool for the judging, and a pint of my own brewing besides. Mind yourself -- it&#x27;s got a kick to it.</div><ul class="dlg-links"><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“A pleasure keeping the peace.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>q_frog_lose</code></span></div><div class="dlg-text">*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month, and now the whole room knows it. *the arguing redoubles behind you* Ah well -- the drop keeps another day, but you&#x27;ve had your judging. Come back tomorrow: the custom turns with the month, and the argument never stops.</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“I&#x27;ll study up on cask law.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>openstore041</code></span></div><div class="dlg-text">Yes. I&#x27;d like to see what you have for sale.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">No, thanks.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_frog_start</code></span></div><div class="dlg-text">The whole common room&#x27;s at war over some barrel. What&#x27;s all that about?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Heh -- you already played judge today, and the room&#x27;s only just quieted down. Th…”</span> <small class="muted">(if <code>q_frog_cdc</code>)</small></li><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Aye -- the last drop of the Frogmorton harvest cask. The Floating Log&#x27;s own autu…”</span> <small class="muted">(if <code>q_frog_rulec</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Fair enough. Tomorrow, then.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_frog_pick1</code></span></div><div class="dlg-text">Marigold Bunce -- she stirred the mash for that brew.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_frog_pick2</code></span></div><div class="dlg-text">Poppy Thistlewool -- her coin bought the cask.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_frog_pick3</code></span></div><div class="dlg-text">Hob Broadbelt -- he tapped the cask and supped first.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>q_frog_pick4</code></span></div><div class="dlg-text">Ned Puddifoot -- he bore the barrel here from Frogmorton.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>q_frog_pick5</code></span></div><div class="dlg-text">Daisy Goodbody -- she won it fair at darts.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*Rigrin holds the mug up to the light, weighs the room for a long moment, and po…”</span> <small class="muted">(if <code>q_frog_winc</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*Rigrin sucks his teeth* No... no, that&#x27;s not where the custom points this month…”</span></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Remind me -- who&#x27;s claiming it?</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“There&#x27;s Marigold Bunce, the brewer&#x27;s widow; Poppy Thistlewool, who paid coin for…”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Let me have a word with the claimants first.</div></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">I&#x27;m ready to name the drinker.</div><ul class="dlg-links"><li><a href="#e2">→ child</a> <span class="dlg-link-preview">“Aye -- the last drop of the Frogmorton harvest cask. The Floating Log&#x27;s own autu…”</span> <small class="muted">(if <code>q_frog_rulec</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">I&#x27;ll go hear them out.</div></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">A pleasure keeping the peace.</div></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">I&#x27;ll study up on cask law.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_post_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_post_inc</code></h1><pre class="nss-source"><code>// q_post_inc.nss — Hobbit Post shared helpers (roadmap: hobbit-post)
+//
+// T1 daily delivery quest, journal tag &quot;hobbit_post&quot;. Posco Whitfoot, the
+// Hobbiton post-master, hands out one sealed parcel per real day; the
+// addressee rotates with the game calendar (GetCalendarDay() % 5 + 1):
+//
+//   1  Daddy Twofoot                 Hobbiton (same area as Posco)
+//   2  Old Noakes                    Bywater
+//   3  the Keeper of the Green Dragon  Green Dragon Inn (door off Hobbiton)
+//   4  Salvia Brockhouse             Whitfurrow Inn
+//   5  Milo Burrows                  Whitfurrow Inn
+//
+// State lives entirely on the parcel item (tag QP_TAG, blueprint
+// q_post_parcel — plot + cursed, so it can&#x27;t be sold, dropped or traded):
+//   POST_DAY  int 1..5 — the addressee on the label (baked at accept time,
+//                        so a calendar flip mid-delivery can&#x27;t strand it)
+//   POST_MIS  int 0/1  — misdelivery: the label is wrong; the labelled
+//                        recipient refuses and points at the true one,
+//                        QP_TrueRec(label) = (label % 5) + 1, who pays extra
+//   POST_T0   int      — real-world accept epoch (QCD_Now); the speed bonus
+//                        pays if delivery lands within QP_FAST_SECS of it
+//
+// Daily gating is quest_cd_inc&#x27;s calendar reset: QCD_IsDoneToday gates the
+// offer, QCD_Stamp fires in QP_Pay on delivery. Custom tokens 6340 (name),
+// 6341 (place), 6342 (time to reset) are set by the StartingConditionals.
+//
+// Rewards (QP_Pay): 60 gp base, +40 gp if fast, +60 gp and a small random
+// parcel-loot item if misdelivered, +50 XP always.
+
+#include &quot;quest_cd_inc&quot;
+
+const string QP_TAG       = &quot;q_post_parcel&quot;;   // item tag AND blueprint resref
+const string QP_QUEST     = &quot;hobbit_post&quot;;     // questcddb key + journal tag
+const int    QP_FAST_SECS = 300;               // speed-bonus window (5 real min)
+const int    QP_MIS_PCT   = 8;                 // % chance the label is wrong
+const int    QP_GOLD_BASE = 60;
+const int    QP_GOLD_FAST = 40;
+const int    QP_GOLD_MIS  = 60;
+const int    QP_XP        = 50;
+
+// Today&#x27;s addressee index, 1..5.
+int QP_TodayIdx()
+{
+    return (GetCalendarDay() % 5) + 1;
+}
+
+// Who a mislabelled parcel really belongs to.
+int QP_TrueRec(int nLabel)
+{
+    return (nLabel % 5) + 1;
+}
+
+string QP_Name(int n)
+{
+    switch (n)
+    {
+        case 1: return &quot;Daddy Twofoot&quot;;
+        case 2: return &quot;Old Noakes&quot;;
+        case 3: return &quot;the Keeper of the Green Dragon&quot;;
+        case 4: return &quot;Salvia Brockhouse&quot;;
+        case 5: return &quot;Milo Burrows&quot;;
+    }
+    return &quot;somebody in the Shire&quot;;
+}
+
+string QP_Place(int n)
+{
+    switch (n)
+    {
+        case 1: return &quot;here in Hobbiton, under the Hill&quot;;
+        case 2: return &quot;out along the Bywater road&quot;;
+        case 3: return &quot;behind the bar of the Green Dragon Inn&quot;;
+        case 4: return &quot;in the common room of the Whitfurrow Inn&quot;;
+        case 5: return &quot;in the common room of the Whitfurrow Inn&quot;;
+    }
+    return &quot;somewhere in the Shire&quot;;
+}
+
+// The parcel the PC is carrying, or OBJECT_INVALID.
+object QP_Parcel(object oPC)
+{
+    return GetItemPossessedBy(oPC, QP_TAG);
+}
+
+// Label on the carried parcel (1..5), or 0 when no parcel.
+int QP_Label(object oPC)
+{
+    object oParcel = QP_Parcel(oPC);
+    if (!GetIsObjectValid(oParcel)) return 0;
+    return GetLocalInt(oParcel, &quot;POST_DAY&quot;);
+}
+
+// TRUE when the carried parcel is mislabelled.
+int QP_Mis(object oPC)
+{
+    object oParcel = QP_Parcel(oPC);
+    return GetIsObjectValid(oParcel) &amp;&amp; GetLocalInt(oParcel, &quot;POST_MIS&quot;);
+}
+
+// --- Recipient StartingConditional cores (r = recipient index 1..5) ---
+
+// Normal delivery: parcel labelled for r and the label is honest.
+int QP_CanAccept(object oPC, int r)
+{
+    return QP_Label(oPC) == r &amp;&amp; !QP_Mis(oPC);
+}
+
+// Mislabelled: parcel says r, but it isn&#x27;t theirs. Sets tokens 6340/6341 to
+// the TRUE recipient so the refusal line can point the player onward.
+int QP_IsMislabel(object oPC, int r)
+{
+    if (QP_Label(oPC) != r || !QP_Mis(oPC)) return FALSE;
+    int nTrue = QP_TrueRec(r);
+    SetCustomToken(6340, QP_Name(nTrue));
+    SetCustomToken(6341, QP_Place(nTrue));
+    return TRUE;
+}
+
+// True recipient of a mislabelled parcel.
+int QP_IsTrue(object oPC, int r)
+{
+    int nLabel = QP_Label(oPC);
+    return nLabel &gt; 0 &amp;&amp; QP_Mis(oPC) &amp;&amp; QP_TrueRec(nLabel) == r;
+}
+
+// --- Payout — ActionTaken on every accepting entry (normal + true-recipient).
+// Guarded so it can never pay twice in a day or without a parcel in hand.
+void QP_Pay(object oPC)
+{
+    object oParcel = QP_Parcel(oPC);
+    if (!GetIsObjectValid(oParcel)) return;
+
+    int bMis = GetLocalInt(oParcel, &quot;POST_MIS&quot;);
+    int nT0  = GetLocalInt(oParcel, &quot;POST_T0&quot;);
+    DestroyObject(oParcel);
+
+    if (QCD_IsDoneToday(oPC, QP_QUEST)) return;
+    QCD_Stamp(oPC, QP_QUEST);
+
+    int nElapsed = QCD_Now() - nT0;
+    int bFast = (nT0 &gt; 0 &amp;&amp; nElapsed &gt;= 0 &amp;&amp; nElapsed &lt;= QP_FAST_SECS);
+
+    int nGold = QP_GOLD_BASE;
+    if (bFast) nGold += QP_GOLD_FAST;
+    if (bMis)  nGold += QP_GOLD_MIS;
+
+    GiveGoldToCreature(oPC, nGold);
+    GiveXPToCreature(oPC, QP_XP);
+    AddJournalQuestEntry(QP_QUEST, 2, oPC, FALSE, FALSE, TRUE);
+
+    if (bFast)
+        FloatingTextStringOnCreature(
+            &quot;Swift delivery! The seal was still warm -- bonus pay.&quot;, oPC, FALSE);
+
+    // Misdelivered parcels turn up with a little something extra inside.
+    if (bMis)
+    {
+        switch (d3())
+        {
+            case 1: CreateItemOnObject(&quot;frogpint&quot;, oPC, 1);         break;
+            case 2: CreateItemOnObject(&quot;nw_it_mpotion003&quot;, oPC, 1); break;
+            case 3: CreateItemOnObject(&quot;nw_it_mpotion021&quot;, oPC, 1); break;
+        }
+        FloatingTextStringOnCreature(
+            &quot;The rightful owner tips you for untangling the post.&quot;, oPC, FALSE);
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

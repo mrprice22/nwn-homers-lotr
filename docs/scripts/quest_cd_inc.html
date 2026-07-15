@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script quest_cd_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>quest_cd_inc</code></h1><pre class="nss-source"><code>// quest_cd_inc.nss — Quest cooldown helpers (daily/weekly gating)
+//
+// Campaign DB: &quot;questcddb&quot; (SQLite, file database/questcddb.sqlite3 on the
+// server — never part of the .mod). One row per (character, quest): when the
+// quest was last completed, in real-world unix-epoch seconds.
+//
+// Schema:  quest_cd(uuid, quest, cdkey, char_name, stamped_at, times_done,
+//                   PRIMARY KEY (uuid, quest))
+//          Character identity is GetObjectUUID (persists in the .bic, same
+//          key the bestiary uses); cdkey/char_name are stored for out-of-band
+//          inspection with sqlite3 only — lookups never use them.
+//
+// This is the shared gate for every Daily/Weekly repeatable quest. Time is
+// real-world wall-clock (SQLite strftime(&#x27;%s&#x27;,&#x27;now&#x27;)), NOT the game calendar,
+// so cooldowns survive reboots, relogs and module time changes.
+//
+// Two gating styles:
+//   * Rolling window  — &quot;once per 24 real hours from completion&quot;:
+//         QCD_IsOnCooldown(oPC, &quot;ferny_return&quot;, QCD_DAY)
+//   * Calendar reset  — &quot;resets at UTC midnight / start of ISO week&quot;:
+//         QCD_IsDoneToday(oPC, &quot;hobbit_post&quot;)
+//         QCD_IsDoneThisWeek(oPC, &quot;riddle_gollum&quot;)
+//
+// ------------------------------------------------------------
+// Usage — typical daily quest dialogue:
+//
+//   // StartingConditional on the &quot;I have another job for you&quot; NPC line:
+//   #include &quot;quest_cd_inc&quot;
+//   int StartingConditional()
+//   {
+//       return !QCD_IsOnCooldown(GetPCSpeaker(), &quot;ferny_return&quot;, QCD_DAY);
+//   }
+//
+//   // StartingConditional on the &quot;come back later&quot; line (tell them when):
+//   #include &quot;quest_cd_inc&quot;
+//   int StartingConditional()
+//   {
+//       object oPC = GetPCSpeaker();
+//       if (!QCD_IsOnCooldown(oPC, &quot;ferny_return&quot;, QCD_DAY)) return FALSE;
+//       SetCustomToken(6320, QCD_FmtSpan(QCD_SecondsRemaining(oPC, &quot;ferny_return&quot;, QCD_DAY)));
+//       return TRUE;   // dialogue text: &quot;Come back in &lt;CUSTOM6320&gt;.&quot;
+//   }
+//
+//   // Reward action script, after handing out the loot:
+//   QCD_Stamp(oPC, &quot;ferny_return&quot;);
+//
+// Weekly quest: same calls with QCD_WEEK (rolling) or QCD_IsDoneThisWeek
+// (calendar). QCD_InitDb() is called from onmoduleload.nss — new consumers
+// need no setup beyond the #include.
+
+const string QCD_DB   = &quot;questcddb&quot;;
+const int    QCD_HOUR = 3600;
+const int    QCD_DAY  = 86400;      // rolling daily window
+const int    QCD_WEEK = 604800;     // rolling weekly window
+
+// ------------------------------------------------------------
+// Schema — idempotent; called once from onmoduleload.nss.
+
+void QCD_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;CREATE TABLE IF NOT EXISTS quest_cd (&quot; +
+        &quot;uuid TEXT NOT NULL,&quot; +
+        &quot;quest TEXT NOT NULL,&quot; +
+        &quot;cdkey TEXT,&quot; +
+        &quot;char_name TEXT,&quot; +
+        &quot;stamped_at INTEGER NOT NULL,&quot; +      // unix epoch of last completion
+        &quot;times_done INTEGER NOT NULL DEFAULT 1,&quot; +
+        &quot;PRIMARY KEY (uuid, quest))&quot;);
+    SqlStep(q);
+}
+
+// ------------------------------------------------------------
+// Small helpers
+
+// Real-world &quot;now&quot; as unix-epoch seconds (from SQLite, not the game clock).
+int QCD_Now()
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// Friendly span for dialogue tokens, e.g. &quot;1d 3h&quot;, &quot;5h 12m&quot;, &quot;9m&quot;.
+string QCD_FmtSpan(int nSec)
+{
+    if (nSec &lt; 0) nSec = 0;
+    int nDays  = nSec / 86400;
+    int nHours = (nSec % 86400) / 3600;
+    int nMins  = (nSec % 3600) / 60;
+    if (nDays &gt; 0)  return IntToString(nDays)  + &quot;d &quot; + IntToString(nHours) + &quot;h&quot;;
+    if (nHours &gt; 0) return IntToString(nHours) + &quot;h &quot; + IntToString(nMins)  + &quot;m&quot;;
+    return IntToString(nMins) + &quot;m&quot;;
+}
+
+// ------------------------------------------------------------
+// Core API
+
+// Unix epoch of oPC&#x27;s last completion of sQuest, or 0 if never done.
+int QCD_LastStamp(object oPC, string sQuest)
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT stamped_at FROM quest_cd WHERE uuid=@u AND quest=@q&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@q&quot;, sQuest);
+    if (!SqlStep(q)) return 0;
+    return SqlGetInt(q, 0);
+}
+
+// Record that oPC completed sQuest just now (upsert; bumps times_done).
+// Call from the quest&#x27;s reward/turn-in script.
+void QCD_Stamp(object oPC, string sQuest)
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;INSERT INTO quest_cd(uuid,quest,cdkey,char_name,stamped_at,times_done)&quot; +
+        &quot; VALUES(@u,@q,@k,@n,CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER),1)&quot; +
+        &quot; ON CONFLICT(uuid,quest) DO UPDATE SET&quot; +
+        &quot; stamped_at=excluded.stamped_at,&quot; +
+        &quot; times_done=times_done+1,&quot; +
+        &quot; cdkey=excluded.cdkey,&quot; +
+        &quot; char_name=excluded.char_name&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@q&quot;, sQuest);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@n&quot;, GetName(oPC));
+    SqlStep(q);
+}
+
+// Seconds until the rolling nCooldownSec window elapses, or 0 when the quest
+// is available (never done, or window expired). Feed through QCD_FmtSpan for
+// &quot;come back in ...&quot; dialogue text.
+int QCD_SecondsRemaining(object oPC, string sQuest, int nCooldownSec)
+{
+    int nLast = QCD_LastStamp(oPC, sQuest);
+    if (nLast == 0) return 0;
+    int nLeft = (nLast + nCooldownSec) - QCD_Now();
+    return (nLeft &gt; 0) ? nLeft : 0;
+}
+
+// TRUE while oPC is still inside the rolling cooldown window for sQuest.
+// Use QCD_DAY / QCD_WEEK for the standard daily/weekly windows.
+int QCD_IsOnCooldown(object oPC, string sQuest, int nCooldownSec)
+{
+    return QCD_SecondsRemaining(oPC, sQuest, nCooldownSec) &gt; 0;
+}
+
+// ------------------------------------------------------------
+// Calendar-style resets (all UTC, computed in SQLite so there is no
+// game-clock drift). &quot;Done today&quot; flips back to available at UTC midnight;
+// &quot;done this week&quot; at the start of the next ISO-style week (%Y-%W).
+
+// TRUE if oPC already completed sQuest today (UTC calendar day).
+int QCD_IsDoneToday(object oPC, string sQuest)
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT 1 FROM quest_cd WHERE uuid=@u AND quest=@q&quot; +
+        &quot; AND date(stamped_at,&#x27;unixepoch&#x27;) = date(&#x27;now&#x27;)&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@q&quot;, sQuest);
+    return SqlStep(q);
+}
+
+// TRUE if oPC already completed sQuest this calendar week (UTC, %Y-%W).
+int QCD_IsDoneThisWeek(object oPC, string sQuest)
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT 1 FROM quest_cd WHERE uuid=@u AND quest=@q&quot; +
+        &quot; AND strftime(&#x27;%Y-%W&#x27;, stamped_at,&#x27;unixepoch&#x27;) = strftime(&#x27;%Y-%W&#x27;,&#x27;now&#x27;)&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@q&quot;, sQuest);
+    return SqlStep(q);
+}
+
+// ------------------------------------------------------------
+// Admin / testing
+
+// Forget oPC&#x27;s cooldown for sQuest (DM reset; also handy in UAT).
+void QCD_Clear(object oPC, string sQuest)
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;DELETE FROM quest_cd WHERE uuid=@u AND quest=@q&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@q&quot;, sQuest);
+    SqlStep(q);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

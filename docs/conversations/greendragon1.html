@@ -55,9 +55,9 @@
   <main>
 <h1>Conversation: <code>greendragon1</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>5</dd>
-<dt>PC replies</dt><dd>6</dd>
-<dt>NumWords</dt><dd>110</dd>
+<dt>NPC lines</dt><dd>8</dd>
+<dt>PC replies</dt><dd>9</dd>
+<dt>NumWords</dt><dd>255</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
@@ -69,13 +69,53 @@
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>gdragoni1</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>gdragoni2</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>givegdkey2</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>givegdkey1</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>givegdkey1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_post_pay</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_post_c3t</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_post_c3m</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_post_c3a</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/hobbit-post.html">Hobbit Post</a></td><td><code>hobbit_post</code></td><td>2</td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6340&gt;</code></td><td><a href="../scripts/q_post_inc.html">q_post_inc</a>, <a href="../scripts/q_post_pmc2.html">q_post_pmc2</a>, <a href="../scripts/q_post_pmc3.html">q_post_pmc3</a></td></tr>
+<tr><td><code>&lt;CUSTOM6341&gt;</code></td><td><a href="../scripts/q_post_inc.html">q_post_inc</a>, <a href="../scripts/q_post_pmc2.html">q_post_pmc2</a>, <a href="../scripts/q_post_pmc3.html">q_post_pmc3</a></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_post_c3t</code>)</small> — *The keeper&#x27;s eyebrows go up* Well I never -- that&#x27;s OUR seal under someone else…</li>
+<li><a href="#e6">entry #6</a> <small class="muted">(if <code>q_post_c3m</code>)</small> — *The keeper reads the label twice and shakes their head* We&#x27;ve ordered nothing f…</li>
+<li><a href="#e7">entry #7</a> <small class="muted">(if <code>q_post_c3a</code>)</small> — *The keeper of the Green Dragon breaks the seal on the spot* The hop order, and …</li>
 <li><a href="#e0">entry #0</a> — Welcome  to the Green Dragon Inn. How may I serve you?</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>q_post_pay</code></span> <small class="muted">(if <code>q_post_c3t</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*The keeper&#x27;s eyebrows go up* Well I never -- that&#x27;s OUR seal under someone else&#x27;s label! That parcel has been drinking in the wrong inns, by the look of it. Set it on the bar, friend; you&#x27;ve earned the fee and a bit extra for the detour.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Set it on the bar it is. Good day to you.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <small class="muted">(if <code>q_post_c3m</code>)</small> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*The keeper reads the label twice and shakes their head* We&#x27;ve ordered nothing from Hobbiton this month, and that&#x27;s not our brewer&#x27;s hand on the label neither. Posco&#x27;s post has gone crooked again -- that parcel wants <span class="custom-token" title="SetCustomToken(6340, ...) called in: q_post_inc, q_post_pmc2, q_post_pmc3">&lt;CUSTOM6340&gt;<sup class="token-setters">[<a href="../scripts/q_post_inc.html">q_post_inc</a>, <a href="../scripts/q_post_pmc2.html">q_post_pmc2</a>, <a href="../scripts/q_post_pmc3.html">q_post_pmc3</a>]</sup></span>, <span class="custom-token" title="SetCustomToken(6341, ...) called in: q_post_inc, q_post_pmc2, q_post_pmc3">&lt;CUSTOM6341&gt;<sup class="token-setters">[<a href="../scripts/q_post_inc.html">q_post_inc</a>, <a href="../scripts/q_post_pmc2.html">q_post_pmc2</a>, <a href="../scripts/q_post_pmc3.html">q_post_pmc3</a>]</sup></span>.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">I&#x27;ll see it to the right hands. Good day.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <span class="dlg-action">→ <code>q_post_pay</code></span> <small class="muted">(if <code>q_post_c3a</code>)</small> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*The keeper of the Green Dragon breaks the seal on the spot* The hop order, and about time! You&#x27;ve the thanks of every thirsty hobbit in Bywater, and the post-fee besides.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">Just the delivery -- good day to you.</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
 <div class="dlg-text">Welcome &lt;Sir/Madam&gt; to the Green Dragon Inn. How may I serve you?</div>
@@ -141,6 +181,9 @@
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span> <span class="dlg-action">→ <code>givegdkey2</code></span></div><div class="dlg-text">Here you go &lt;Sir/Madam&gt;. Have a nice stay.</div></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span> <span class="dlg-action">→ <code>givegdkey1</code></span></div><div class="dlg-text">Here you go &lt;Sir/Madam&gt;. Have a nice stay.</div></div>
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">Then please proceed to your right, and make yourself comfortable!</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“I shall do just that.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span> <span class="dlg-action">→ <code>q_post_pay</code></span></div><div class="dlg-text">*The keeper&#x27;s eyebrows go up* Well I never -- that&#x27;s OUR seal under someone else&#x27;s label! That parcel has been drinking in the wrong inns, by the look of it. Set it on the bar, friend; you&#x27;ve earned the fee and a bit extra for the detour.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Set it on the bar it is. Good day to you.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*The keeper reads the label twice and shakes their head* We&#x27;ve ordered nothing from Hobbiton this month, and that&#x27;s not our brewer&#x27;s hand on the label neither. Posco&#x27;s post has gone crooked again -- that parcel wants <span class="custom-token" title="SetCustomToken(6340, ...) called in: q_post_inc, q_post_pmc2, q_post_pmc3">&lt;CUSTOM6340&gt;<sup class="token-setters">[<a href="../scripts/q_post_inc.html">q_post_inc</a>, <a href="../scripts/q_post_pmc2.html">q_post_pmc2</a>, <a href="../scripts/q_post_pmc3.html">q_post_pmc3</a>]</sup></span>, <span class="custom-token" title="SetCustomToken(6341, ...) called in: q_post_inc, q_post_pmc2, q_post_pmc3">&lt;CUSTOM6341&gt;<sup class="token-setters">[<a href="../scripts/q_post_inc.html">q_post_inc</a>, <a href="../scripts/q_post_pmc2.html">q_post_pmc2</a>, <a href="../scripts/q_post_pmc3.html">q_post_pmc3</a>]</sup></span>.</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“I&#x27;ll see it to the right hands. Good day.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span> <span class="dlg-action">→ <code>q_post_pay</code></span></div><div class="dlg-text">*The keeper of the Green Dragon breaks the seal on the spot* The hop order, and about time! You&#x27;ve the thanks of every thirsty hobbit in Bywater, and the post-fee besides.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Just the delivery -- good day to you.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">I would like to rent a room at your inn.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Very well. We offer two room sizes. A larger one with storage room costs 200 gol…”</span></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Nothing, thank you.</div></div>
@@ -148,6 +191,9 @@
 <div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">The larger room with storage space costing 200 gp, please.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Here you go . Have a nice stay.”</span></li></ul></div>
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Can I have some healing refreshments?</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“Then please proceed to your right, and make yourself comfortable!”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">I shall do just that.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Set it on the bar it is. Good day to you.</div></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">I&#x27;ll see it to the right hands. Good day.</div></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Just the delivery -- good day to you.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

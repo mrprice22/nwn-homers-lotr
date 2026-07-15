@@ -55,9 +55,9 @@
   <main>
 <h1>Conversation: <code>b_miller_convo1</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>9</dd>
-<dt>PC replies</dt><dd>13</dd>
-<dt>NumWords</dt><dd>359</dd>
+<dt>NPC lines</dt><dd>15</dd>
+<dt>PC replies</dt><dd>22</dd>
+<dt>NumWords</dt><dd>736</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
@@ -68,13 +68,27 @@
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>sc_031</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>at_001</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>at_002</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_spawn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_oc1</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_oc2</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_oc3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_end1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_end2</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>millerson</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>at_003</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_repc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_st1c</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mos2_offerc</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>checkmiller</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>sc_043</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/shimpentletter.html">Shimpent Letter</a></li></ul>
-<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/bree-millers-son.html">Bree Millers Son</a></td><td><code>bree millers son</code></td><td>1, 2</td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/bree-millers-son.html">Bree Millers Son</a></td><td><code>bree millers son</code></td><td>1, 2</td></tr>
+<tr><td><a href="../quests/bree-miller-son2.html">The Miller&#x27;s Other Son</a></td><td><code>bree_miller_son2</code></td><td>1, 6, 7</td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
+<li><a href="#e12">entry #12</a> <small class="muted">(if <code>q_mos2_repc</code>)</small> — You&#x27;re back! *The Miller goes still, flour drifting from his hands.* Your face -…</li>
+<li><a href="#e11">entry #11</a> <small class="muted">(if <code>q_mos2_st1c</code>)</small> — Any word of my Dob?</li>
+<li><a href="#e9">entry #9</a> <small class="muted">(if <code>q_mos2_offerc</code>)</small> — You again, . *The Miller wipes his hands on his apron, and his eyes are old.* I …</li>
 <li><a href="#e5">entry #5</a> <small class="muted">(if <code>checkmiller</code>)</small> — Hello again, . Any word on my Son and the shipment of Ale?</li>
 <li><a href="#e4">entry #4</a> <small class="muted">(if <code>sc_043</code>)</small> — Thank you again for finding my boy, and the shipment. I don&#x27;t know how the missu…</li>
 <li><a href="#e0">entry #0</a> — Hey there. I&#x27;ve seen you around town, perhaps you could help me.</li>
@@ -82,6 +96,87 @@
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #12</span> <small class="muted">(if <code>q_mos2_repc</code>)</small> <a class="dlg-anchor" href="#e12" title="jump to flat entry #12">¶</a></summary>
+<div class="dlg-text">You&#x27;re back! *The Miller goes still, flour drifting from his hands.* Your face -- tell me. Tell me of my son.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #17</span> <small class="muted">(if <code>q_mos2_oc1</code>)</small> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
+<div class="dlg-text">Steady, Han -- it&#x27;s good news. Dob lives, and he&#x27;s on the road home. I talked the cult into letting him walk away.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #13</span> <span class="dlg-action">→ <code>q_mos2_end1</code></span> <a class="dlg-anchor" href="#e13" title="jump to flat entry #13">¶</a></summary>
+<div class="dlg-text">Home! *He grips the doorframe like a man in a gale, laughing and weeping at once.* The ale money&#x27;s yours -- all of it -- and take the trading pack besides; it was to be Dob&#x27;s, and he&#x27;ll not need it where he&#x27;s staying: home. You&#x27;ve given an old miller back his family, &lt;FirstName&gt;. There&#x27;ll be a keg with your name on it come harvest.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #20</span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
+<div class="dlg-text">Keep the mill turning, Han.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #18</span> <small class="muted">(if <code>q_mos2_oc2</code>)</small> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
+<div class="dlg-text">Dob is coming home, Han. The men who held him won&#x27;t hold anyone again -- their &#x27;Voice&#x27; is silenced for good.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e13">entry #13</a> <span class="dlg-link-preview">“Home! *He grips the doorframe like a man in a gale, laughing and weeping at once…”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #19</span> <small class="muted">(if <code>q_mos2_oc3</code>)</small> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
+<div class="dlg-text">I found him, Han. He&#x27;s alive. But he&#x27;s... chosen them -- the Red Eye crowd east of Tharbad. I couldn&#x27;t bring him back. You deserved the truth from my own mouth, at least.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #14</span> <span class="dlg-action">→ <code>q_mos2_end2</code></span> <a class="dlg-anchor" href="#e14" title="jump to flat entry #14">¶</a></summary>
+<div class="dlg-text">*He is quiet a long while. The mill wheel turns and turns behind him.* Alive, and lost. That&#x27;s a colder grief than the grave, friend... but truth is a kindness too, in its way, and you carried it all the long road home. Thank ye for that much.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #21</span> <a class="dlg-anchor" href="#r21" title="jump to flat reply #21">¶</a></summary>
+<div class="dlg-text">Be well, Miller.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #11</span> <span class="dlg-action">→ <code>q_mos2_spawn</code></span> <small class="muted">(if <code>q_mos2_st1c</code>)</small> <a class="dlg-anchor" href="#e11" title="jump to flat entry #11">¶</a></summary>
+<div class="dlg-text">Any word of my Dob?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #16</span> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
+<div class="dlg-text">Not yet. I&#x27;m still searching the Tharbad road.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <small class="muted">(if <code>q_mos2_offerc</code>)</small> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">You again, &lt;FirstName&gt;. *The Miller wipes his hands on his apron, and his eyes are old.* I owe you truth for truth: the boy you found on the Greenway weren&#x27;t my only son. His brother Dob took the grieving hardest of us all -- fell in with a crowd of &#x27;traders&#x27; working the Tharbad road, and now folk whisper they&#x27;re no traders at all. Cultists, they say. Of the Red Eye. Find my Dob. Bring him home to me -- or bring me the truth of him, whatever it weighs.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>q_mos2_start</code></span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
+<div class="dlg-text">I&#x27;ll find him, Miller. The truth or the boy -- you&#x27;ll have one of them.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #10</span> <a class="dlg-anchor" href="#e10" title="jump to flat entry #10">¶</a></summary>
+<div class="dlg-text">Bless you. Ask along the road -- peddlers and bridge-folk see everything that walks the Greenway. Start at Tharbad Bridge, and go careful. I&#x27;ll not bury two sons.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #15</span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
+<div class="dlg-text">Good bye for now.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
+<div class="dlg-text">I&#x27;ve griefs of my own to mind. No.</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>checkmiller</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
 <div class="dlg-text">Hello again, &lt;FirstName&gt;. Any word on my Son and the shipment of Ale?</div>
@@ -212,6 +307,12 @@
 <div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span> <span class="dlg-action">→ <code>at_001</code></span></div><div class="dlg-text">My poor son! *Sobs* Ahh my son!</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“*Comfort the Miller*”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Pull yourself together man you got no backbone.”</span></li></ul></div>
 <div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">Hmph. *Looks at your Sternly*</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Common Folk!”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Ah there, I might have been a little stern, but think of your wife now. She will…”</span></li></ul></div>
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span> <span class="dlg-action">→ <code>at_002</code></span></div><div class="dlg-text">Thank you for all your hard work and toil. I owe ya. I have some gold tucked away. It was going to buy my son a trip to Gondor, he&#x27;d always wanted to see the White City. You take it. It seems right to me that you should carry it now.</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Thank you for your generosity. Have faith good Miller. Fare Well.”</span></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">You again, &lt;FirstName&gt;. *The Miller wipes his hands on his apron, and his eyes are old.* I owe you truth for truth: the boy you found on the Greenway weren&#x27;t my only son. His brother Dob took the grieving hardest of us all -- fell in with a crowd of &#x27;traders&#x27; working the Tharbad road, and now folk whisper they&#x27;re no traders at all. Cultists, they say. Of the Red Eye. Find my Dob. Bring him home to me -- or bring me the truth of him, whatever it weighs.</div><ul class="dlg-links"><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“I&#x27;ll find him, Miller. The truth or the boy -- you&#x27;ll have one of them.”</span></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“I&#x27;ve griefs of my own to mind. No.”</span></li></ul></div>
+<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">Bless you. Ask along the road -- peddlers and bridge-folk see everything that walks the Greenway. Start at Tharbad Bridge, and go careful. I&#x27;ll not bury two sons.</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Good bye for now.”</span></li></ul></div>
+<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span> <span class="dlg-action">→ <code>q_mos2_spawn</code></span></div><div class="dlg-text">Any word of my Dob?</div><ul class="dlg-links"><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“Not yet. I&#x27;m still searching the Tharbad road.”</span></li></ul></div>
+<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">You&#x27;re back! *The Miller goes still, flour drifting from his hands.* Your face -- tell me. Tell me of my son.</div><ul class="dlg-links"><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“Steady, Han -- it&#x27;s good news. Dob lives, and he&#x27;s on the road home. I talked th…”</span> <small class="muted">(if <code>q_mos2_oc1</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“Dob is coming home, Han. The men who held him won&#x27;t hold anyone again -- their &#x27;…”</span> <small class="muted">(if <code>q_mos2_oc2</code>)</small></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“I found him, Han. He&#x27;s alive. But he&#x27;s... chosen them -- the Red Eye crowd east…”</span> <small class="muted">(if <code>q_mos2_oc3</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span> <span class="dlg-action">→ <code>q_mos2_end1</code></span></div><div class="dlg-text">Home! *He grips the doorframe like a man in a gale, laughing and weeping at once.* The ale money&#x27;s yours -- all of it -- and take the trading pack besides; it was to be Dob&#x27;s, and he&#x27;ll not need it where he&#x27;s staying: home. You&#x27;ve given an old miller back his family, &lt;FirstName&gt;. There&#x27;ll be a keg with your name on it come harvest.</div><ul class="dlg-links"><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“Keep the mill turning, Han.”</span></li></ul></div>
+<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span> <span class="dlg-action">→ <code>q_mos2_end2</code></span></div><div class="dlg-text">*He is quiet a long while. The mill wheel turns and turns behind him.* Alive, and lost. That&#x27;s a colder grief than the grave, friend... but truth is a kindness too, in its way, and you carried it all the long road home. Thank ye for that much.</div><ul class="dlg-links"><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“Be well, Miller.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">I dont do chores.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">What do you require Miller?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“I recently sent out a big&#x27;old shipment of Ale to Tharbad. Its been several month…”</span></li></ul></div>
@@ -226,6 +327,15 @@
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">*Comfort the Miller*</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Thank you for all your hard work and toil. I owe ya. I have some gold tucked awa…”</span></li></ul></div>
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span> <span class="dlg-action">→ <code>at_003</code></span></div><div class="dlg-text">Thank you for your generosity. Have faith good Miller. Fare Well.</div></div>
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">No not yet. I will keep searching.</div></div>
+<div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>q_mos2_start</code></span></div><div class="dlg-text">I&#x27;ll find him, Miller. The truth or the boy -- you&#x27;ll have one of them.</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“Bless you. Ask along the road -- peddlers and bridge-folk see everything that wa…”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">I&#x27;ve griefs of my own to mind. No.</div></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">Good bye for now.</div></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">Not yet. I&#x27;m still searching the Tharbad road.</div></div>
+<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">Steady, Han -- it&#x27;s good news. Dob lives, and he&#x27;s on the road home. I talked the cult into letting him walk away.</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“Home! *He grips the doorframe like a man in a gale, laughing and weeping at once…”</span></li></ul></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">Dob is coming home, Han. The men who held him won&#x27;t hold anyone again -- their &#x27;Voice&#x27; is silenced for good.</div><ul class="dlg-links"><li><a href="#e13">→ child</a> <span class="dlg-link-preview">“Home! *He grips the doorframe like a man in a gale, laughing and weeping at once…”</span></li></ul></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">I found him, Han. He&#x27;s alive. But he&#x27;s... chosen them -- the Red Eye crowd east of Tharbad. I couldn&#x27;t bring him back. You deserved the truth from my own mouth, at least.</div><ul class="dlg-links"><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“*He is quiet a long while. The mill wheel turns and turns behind him.* Alive, an…”</span></li></ul></div>
+<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">Keep the mill turning, Han.</div></div>
+<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">Be well, Miller.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

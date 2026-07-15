@@ -55,9 +55,9 @@
   <main>
 <h1>Conversation: <code>b_guard_convo1</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>2</dd>
-<dt>PC replies</dt><dd>1</dd>
-<dt>NumWords</dt><dd>60</dd>
+<dt>NPC lines</dt><dd>7</dd>
+<dt>PC replies</dt><dd>8</dd>
+<dt>NumWords</dt><dd>320</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
@@ -69,8 +69,20 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/breelocal001.html">Guardian Of Bree</a> — in <a href="../areas/bree.html">Bree</a></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>check_night</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_fret_rumorc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_spawn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_foughtc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_bribedc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_end</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_repc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_st1c</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>check_night</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/fret_glove.html">Ferny&#x27;s Filching Gloves</a></li></ul>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/ferny-return.html">Ferny&#x27;s Return</a></td><td><code>ferny_return</code></td><td>1, 3</td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_fret_repc</code>)</small> — Back from Ferny&#x27;s house, are ye? Out with it then -- what did ye find?</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_fret_st1c</code>)</small> — Still on the Ferny business, are ye? Folk say the skulker&#x27;s yet about the old ho…</li>
 <li><a href="#e1">entry #1</a> <small class="muted">(if <code>check_night</code>)</small> — What are you doing outside wandering about? It&#x27;s dangerous out at night, ya neve…</li>
 <li><a href="#e0">entry #0</a> — Greetings, Welcome to Bree. If your looking for a place to stay I would hurry al…</li>
 </ul>
@@ -78,8 +90,75 @@
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_fret_repc</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">Back from Ferny&#x27;s house, are ye? Out with it then -- what did ye find?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_fret_end</code></span> <small class="muted">(if <code>q_fret_foughtc</code>)</small> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">An impostor -- one of Sharkey&#x27;s ruffians wearing Ferny&#x27;s name. He drew steel when I named him. He won&#x27;t trouble Bree again.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">Well done, stranger. Bree owes ye a debt. Here&#x27;s a bit o&#x27; coin from the watch purse -- and these gloves came off a cutpurse we pinched last spring. Reckon they&#x27;ll serve ye better than they&#x27;d serve him.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">Glad to help.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_fret_end</code></span> <small class="muted">(if <code>q_fret_bribedc</code>)</small> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Just a squatter. We came to an... understanding. He&#x27;s leaving Bree, and he won&#x27;t be back.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“Well done, stranger. Bree owes ye a debt. Here&#x27;s a bit o&#x27; coin from the watch pu…”</span></div>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>q_fret_spawn</code></span> <small class="muted">(if <code>q_fret_st1c</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">Still on the Ferny business, are ye? Folk say the skulker&#x27;s yet about the old house. Best knock while he&#x27;s still there to answer.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">I&#x27;m on my way.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>check_night</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
 <div class="dlg-text">What are you doing outside wandering about? It&#x27;s dangerous out at night, ya never know what might be lurking in the shadows.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <small class="muted">(if <code>q_fret_rumorc</code>)</small> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">Anything strange in town a traveller should know of?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">Aye, now ye mention it. Bill Ferny&#x27;s been seen skulking about his old house down the way -- but Ferny himself&#x27;s been in the market all the while, plain as day. A man can&#x27;t skulk in two places at once, can he? The watch is stretched thin as it is. If ye&#x27;ve a mind, go knock on that door and see who answers.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_fret_start</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">I&#x27;ll go and have a look at Ferny&#x27;s house.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">Mind yerself, stranger. Whoever&#x27;s wearing Ferny&#x27;s name won&#x27;t thank ye for the visit.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Sounds like watch business, not mine.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
 </details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
@@ -89,14 +168,27 @@
 <summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
 <div class="dlg-text">Thanks for the advice.</div>
 </details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r1">reply #1</a> <span class="dlg-link-preview">“Anything strange in town a traveller should know of?”</span> <small class="muted">(if <code>q_fret_rumorc</code>)</small></div>
 </div>
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Greetings, Welcome to Bree. If your looking for a place to stay I would hurry along to the Prancing Pony. Be wary not to be outside after nightfall. It isn&#x27;t to safe these days.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Thanks for the advice.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">What are you doing outside wandering about? It&#x27;s dangerous out at night, ya never know what might be lurking in the shadows.</div></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Greetings, Welcome to Bree. If your looking for a place to stay I would hurry along to the Prancing Pony. Be wary not to be outside after nightfall. It isn&#x27;t to safe these days.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Thanks for the advice.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Anything strange in town a traveller should know of?”</span> <small class="muted">(if <code>q_fret_rumorc</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">What are you doing outside wandering about? It&#x27;s dangerous out at night, ya never know what might be lurking in the shadows.</div><ul class="dlg-links"><li><a href="#r1">→ child</a> <span class="dlg-link-preview">“Anything strange in town a traveller should know of?”</span> <small class="muted">(if <code>q_fret_rumorc</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Aye, now ye mention it. Bill Ferny&#x27;s been seen skulking about his old house down the way -- but Ferny himself&#x27;s been in the market all the while, plain as day. A man can&#x27;t skulk in two places at once, can he? The watch is stretched thin as it is. If ye&#x27;ve a mind, go knock on that door and see who answers.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“I&#x27;ll go and have a look at Ferny&#x27;s house.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Sounds like watch business, not mine.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Mind yerself, stranger. Whoever&#x27;s wearing Ferny&#x27;s name won&#x27;t thank ye for the visit.</div></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span> <span class="dlg-action">→ <code>q_fret_spawn</code></span></div><div class="dlg-text">Still on the Ferny business, are ye? Folk say the skulker&#x27;s yet about the old house. Best knock while he&#x27;s still there to answer.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I&#x27;m on my way.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Back from Ferny&#x27;s house, are ye? Out with it then -- what did ye find?</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“An impostor -- one of Sharkey&#x27;s ruffians wearing Ferny&#x27;s name. He drew steel whe…”</span> <small class="muted">(if <code>q_fret_foughtc</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Just a squatter. We came to an... understanding. He&#x27;s leaving Bree, and he won&#x27;t…”</span> <small class="muted">(if <code>q_fret_bribedc</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">Well done, stranger. Bree owes ye a debt. Here&#x27;s a bit o&#x27; coin from the watch purse -- and these gloves came off a cutpurse we pinched last spring. Reckon they&#x27;ll serve ye better than they&#x27;d serve him.</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Glad to help.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Thanks for the advice.</div></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Anything strange in town a traveller should know of?</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“Aye, now ye mention it. Bill Ferny&#x27;s been seen skulking about his old house down…”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_fret_start</code></span></div><div class="dlg-text">I&#x27;ll go and have a look at Ferny&#x27;s house.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Mind yerself, stranger. Whoever&#x27;s wearing Ferny&#x27;s name won&#x27;t thank ye for the vi…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Sounds like watch business, not mine.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I&#x27;m on my way.</div></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_fret_end</code></span></div><div class="dlg-text">An impostor -- one of Sharkey&#x27;s ruffians wearing Ferny&#x27;s name. He drew steel when I named him. He won&#x27;t trouble Bree again.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Well done, stranger. Bree owes ye a debt. Here&#x27;s a bit o&#x27; coin from the watch pu…”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_fret_end</code></span></div><div class="dlg-text">Just a squatter. We came to an... understanding. He&#x27;s leaving Bree, and he won&#x27;t be back.</div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“Well done, stranger. Bree owes ye a debt. Here&#x27;s a bit o&#x27; coin from the watch pu…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Glad to help.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

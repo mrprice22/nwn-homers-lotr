@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_frog_rulec</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_frog_rulec</code></h1><pre class="nss-source"><code>// The Last Drop at Frogmorton Inn (roadmap: frogmorton-last-drop)
+// StartingConditional on Rigrin&#x27;s puzzle entry: always TRUE (the done-today
+// branch is checked first in the dialogue), sets token 6330 to this month&#x27;s
+// &quot;custom of the cask&quot;. The rule hints at an attribute of exactly one of the
+// five claimants; the correct claimant is ((month-1) % 5) + 1:
+//   1 Marigold Bunce (brewed it)   2 Poppy Thistlewool (paid for it)
+//   3 Hob Broadbelt (tapped it)    4 Ned Puddifoot (hauled it)
+//   5 Daisy Goodbody (won it at darts)
+// Keep this mapping in sync with q_frog_winc.nss.
+
+int StartingConditional()
+{
+    string sRule;
+    switch (GetCalendarMonth())
+    {
+        case 1:  sRule = &quot;The hand that stirred the mash pours the last of it.&quot;; break;
+        case 2:  sRule = &quot;The coin that bought the barrel drains it.&quot;; break;
+        case 3:  sRule = &quot;Who opened the cask must be the one to close it.&quot;; break;
+        case 4:  sRule = &quot;The back that bore the barrel gets the bottom of it.&quot;; break;
+        case 5:  sRule = &quot;The dregs go to the steadiest hand at the dartboard.&quot;; break;
+        case 6:  sRule = &quot;The brewer&#x27;s own kin want for nothing while the brew lasts.&quot;; break;
+        case 7:  sRule = &quot;The last drop follows the purse that paid for the first.&quot;; break;
+        case 8:  sRule = &quot;First to sup, last to sup.&quot;; break;
+        case 9:  sRule = &quot;The carter keeps what the cart didn&#x27;t spill.&quot;; break;
+        case 10: sRule = &quot;What was staked on the wager goes to the winner of it.&quot;; break;
+        case 11: sRule = &quot;The widow of the brewhouse is never left dry.&quot;; break;
+        default: sRule = &quot;Let the buyer have the bottom of the bargain.&quot;; break; // month 12
+    }
+    SetCustomToken(6330, sRule);
+    return TRUE;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

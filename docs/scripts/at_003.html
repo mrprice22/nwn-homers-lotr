@@ -70,6 +70,10 @@ void main()
 	// Set the variables
 	SetLocalInt(GetPCSpeaker(), &quot;millerson&quot;, 2);
 
+	// Persistent mirror of &quot;Bree Millers Son complete&quot; for the sequel quest
+	// The Miller&#x27;s Other Son (roadmap: miller-other-son) -- the local int
+	// above does not survive a relog, this campaign flag does.
+	SetCampaignInt(&quot;mos2&quot;, &quot;m1done&quot;, 1, GetPCSpeaker());
 }
 </code></pre>
   </main>

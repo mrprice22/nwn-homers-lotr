@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_rid_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_rid_inc</code></h1><pre class="nss-source"><code>// q_rid_inc.nss — The Riddle Game shared helpers (roadmap: riddle-game)
+//
+// T1 weekly dialogue minigame, journal tag &quot;riddle_game&quot;. A whispering
+// wretch (q_rid_wretch — strongly implied to be, but never named, Gollum)
+// squats in Bree Cave and plays the old game: seven riddles, answered by
+// dialogue choice. Five or more right of seven wins a prize from its hoard;
+// fewer wins nothing but taunting. One attempt per calendar week
+// (quest_cd_inc QCD_IsDoneThisWeek — resets at the start of the ISO week,
+// UTC, matching the &quot;weekly&quot; intent; win or lose, the week is stamped).
+//
+// The wretch is script-spawned at waypoint AP_riddlegame_1 (Bree Cave) by
+// q_rid_spawn, fired from the area&#x27;s OnEnter wrapper q_rid_enter. It no-ops
+// gracefully until the admin places the waypoint, and never double-spawns.
+// The placed CR-1029 Gollum boss (gollum.utc, Roll of the Fallen) is a
+// completely separate blueprint and is untouched.
+//
+// Weekly riddle set: the bank holds QRID_COUNT riddles; each ISO week a
+// deterministic seed (strftime(&#x27;%Y%W&#x27;) as an integer, so the whole server
+// shares one weekly set) picks QRID_ASKED distinct riddles via a
+// stride-through-the-bank walk (offset + k*step mod 16, step odd so it is
+// coprime with 16), and rotates the displayed answer order per riddle so
+// the correct letter moves around. A mid-game relog just clears the session
+// locals — the game restarts from riddle one (same weekly set); the weekly
+// stamp is only written when the seventh answer lands.
+//
+// Session state (locals on the PC, cleared/reset by q_rid_begin):
+//   Q_RID_ACTIVE  1 while a game is running
+//   Q_RID_SEED    the week seed captured at game start
+//   Q_RID_IDX     riddles answered so far (0..7)
+//   Q_RID_SCORE   correct answers so far
+//   Q_RID_SLOT    which displayed option (1..4) is correct for the shown riddle
+//   Q_RID_LAST    1 if the most recent answer was correct
+//   Q_RID_RESULT  set at game end: 1 = won, 2 = lost
+//
+// Custom tokens (registered per-display by the StartingConditionals):
+//   6360 time until the week turns    6361 riddle number / final score
+//   6362 riddle verse                 6363-6366 answer options 1-4
+//   6367 right-answer quip            6368 wrong-answer taunt
+
+#include &quot;quest_cd_inc&quot;
+
+const string QRID_QUEST  = &quot;riddle_game&quot;;  // questcddb key + journal tag
+const int    QRID_COUNT  = 16;             // riddles in the bank
+const int    QRID_ASKED  = 7;              // riddles per game
+const int    QRID_TO_WIN = 5;              // correct answers needed
+const int    QRID_XP     = 250;            // XP on a win
+const int    QRID_QUIPS  = 5;              // right/wrong flavor lines each
+
+// ------------------------------------------------------------
+// Weekly seed and week-turn countdown (both from SQLite so there is no
+// game-clock drift; %Y%W matches QCD_IsDoneThisWeek&#x27;s %Y-%W week).
+
+int QRID_WeekSeed()
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT CAST(strftime(&#x27;%Y%W&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// Seconds until the next ISO week begins (Monday 00:00 UTC). &#x27;weekday 1&#x27;
+// after &#x27;+1 day&#x27; always lands on the NEXT Monday, even on a Monday.
+int QRID_SecsToNextWeek()
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT CAST(strftime(&#x27;%s&#x27;, date(&#x27;now&#x27;,&#x27;+1 day&#x27;,&#x27;weekday 1&#x27;)) AS INTEGER)&quot;
+        + &quot; - CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// Bank index of the k-th riddle (k = 0..6) of the week seeded nSeed.
+// step is odd, hence coprime with 16, so the 7 indices are distinct.
+int QRID_RiddleAt(int nSeed, int k)
+{
+    int nOff  = nSeed % QRID_COUNT;
+    int nStep = 2 * ((nSeed / QRID_COUNT) % 8) + 1;
+    return (nOff + k * nStep) % QRID_COUNT;
+}
+
+// ------------------------------------------------------------
+// The riddle bank. Classic Hobbit-style riddles (the old chestnuts
+// reworded, plus originals in the same voice). QRID_Opt(i, 0) is always
+// the correct answer; 1..3 are distractors. Display order is rotated at
+// show time so the correct letter varies.
+
+string QRID_Verse(int i)
+{
+    switch (i)
+    {
+        case 0: return &quot;Thirty white ponies stand on a hill of red: first they champ, then they stamp, then they stand still instead.&quot;;
+        case 1: return &quot;It cannot be seen and cannot be felt, cannot be heard and cannot be smelt. It lies behind the stars and under the hills; every empty hole it fills.&quot;;
+        case 2: return &quot;No hinge has it, nor key, nor lid, yet inside it a golden treasure is hid.&quot;;
+        case 3: return &quot;It devours all things: bird and beast, tree and flower; it gnaws iron and bites steel, and grinds the tall mountains down to meal.&quot;;
+        case 4: return &quot;It lives without breathing, cold as the grave; never thirsty, yet always drinking; clad all in mail that never clinks.&quot;;
+        case 5: return &quot;Without a voice it cries, without wings it flutters; without teeth it bites, without a mouth it mutters.&quot;;
+        case 6: return &quot;Its roots no eye has ever seen; it stands taller than the tallest trees. Up and up and up it goes, and yet it never grows.&quot;;
+        case 7: return &quot;An eye set in a blue face beheld an eye in a green face. &#x27;That eye is like this eye,&#x27; said the first, &#x27;only set in a low place, and not in a high place.&#x27;&quot;;
+        case 8: return &quot;Round it is, yet never whole; lighter than a whisper, heavier than a hill of gold. Most itself upon a finger, most dangerous in a pocket.&quot;;
+        case 9: return &quot;All day it follows at your heel like a faithful hound; at evening it grows monstrous tall; it dies the moment the candle does.&quot;;
+        case 10: return &quot;It belongs to you and to no one else, precious -- yet other people use it far more often than you do.&quot;;
+        case 11: return &quot;Tall when it is young, short when it is old; all its life it wears a crown of fire, and one small breath is its death.&quot;;
+        case 12: return &quot;It runs but never walks, it murmurs but never talks; it has a bed but never sleeps, it has a mouth but never eats.&quot;;
+        case 13: return &quot;Speak its name aloud, even once, and it is gone.&quot;;
+        case 14: return &quot;You make them with every step and carry them on every road, yet you always leave every one of them behind you.&quot;;
+        case 15: return &quot;It is always coming but never arrives; and when at last you meet it, it has already changed its name.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string QRID_Opt(int i, int j)
+{
+    switch (i * 4 + j)
+    {
+        // 0 — teeth
+        case 0:  return &quot;Teeth in a mouth.&quot;;
+        case 1:  return &quot;The horses of the Rohirrim.&quot;;
+        case 2:  return &quot;Millstones grinding.&quot;;
+        case 3:  return &quot;Dwarves at supper.&quot;;
+        // 1 — the dark
+        case 4:  return &quot;The dark.&quot;;
+        case 5:  return &quot;A wraith.&quot;;
+        case 6:  return &quot;The cold wind off the mountains.&quot;;
+        case 7:  return &quot;Fear.&quot;;
+        // 2 — an egg
+        case 8:  return &quot;An egg.&quot;;
+        case 9:  return &quot;A dragon&#x27;s hoard.&quot;;
+        case 10: return &quot;A barrow-mound.&quot;;
+        case 11: return &quot;A casket of mithril.&quot;;
+        // 3 — time
+        case 12: return &quot;Time.&quot;;
+        case 13: return &quot;A dragon.&quot;;
+        case 14: return &quot;The Great Enemy.&quot;;
+        case 15: return &quot;Rust.&quot;;
+        // 4 — a fish
+        case 16: return &quot;A fish.&quot;;
+        case 17: return &quot;A barrow-wight.&quot;;
+        case 18: return &quot;An icicle.&quot;;
+        case 19: return &quot;A drowned knight.&quot;;
+        // 5 — the wind
+        case 20: return &quot;The wind.&quot;;
+        case 21: return &quot;A ghost.&quot;;
+        case 22: return &quot;A guilty conscience.&quot;;
+        case 23: return &quot;A swarm of midges.&quot;;
+        // 6 — a mountain
+        case 24: return &quot;A mountain.&quot;;
+        case 25: return &quot;A mallorn of the Golden Wood.&quot;;
+        case 26: return &quot;A tower of Gondor.&quot;;
+        case 27: return &quot;An Ent.&quot;;
+        // 7 — sun on the daisies
+        case 28: return &quot;The sun shining on the daisies.&quot;;
+        case 29: return &quot;The moon mirrored in a pool.&quot;;
+        case 30: return &quot;A dragon eyeing an emerald.&quot;;
+        case 31: return &quot;Two elves staring at one another.&quot;;
+        // 8 — a ring
+        case 32: return &quot;A ring.&quot;;
+        case 33: return &quot;A gold coin.&quot;;
+        case 34: return &quot;A crown.&quot;;
+        case 35: return &quot;A promise.&quot;;
+        // 9 — a shadow
+        case 36: return &quot;Your shadow.&quot;;
+        case 37: return &quot;A hungry dog.&quot;;
+        case 38: return &quot;Regret.&quot;;
+        case 39: return &quot;A Black Rider.&quot;;
+        // 10 — your name
+        case 40: return &quot;Your name.&quot;;
+        case 41: return &quot;Your gold.&quot;;
+        case 42: return &quot;Your pipe.&quot;;
+        case 43: return &quot;Your grave.&quot;;
+        // 11 — a candle
+        case 44: return &quot;A candle.&quot;;
+        case 45: return &quot;A king.&quot;;
+        case 46: return &quot;A pine tree.&quot;;
+        case 47: return &quot;A dragon on its hoard.&quot;;
+        // 12 — a river
+        case 48: return &quot;A river.&quot;;
+        case 49: return &quot;A serpent.&quot;;
+        case 50: return &quot;An orc-scout.&quot;;
+        case 51: return &quot;A rumor.&quot;;
+        // 13 — silence
+        case 52: return &quot;Silence.&quot;;
+        case 53: return &quot;A secret.&quot;;
+        case 54: return &quot;The dark.&quot;;
+        case 55: return &quot;A promise.&quot;;
+        // 14 — footprints
+        case 56: return &quot;Footprints.&quot;;
+        case 57: return &quot;Memories.&quot;;
+        case 58: return &quot;Debts.&quot;;
+        case 59: return &quot;Ponies.&quot;;
+        // 15 — tomorrow
+        case 60: return &quot;Tomorrow.&quot;;
+        case 61: return &quot;The post.&quot;;
+        case 62: return &quot;Winter.&quot;;
+        case 63: return &quot;Death.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------
+// Gollum-ism flavor pools for the between-riddle patter.
+
+string QRID_RightQuip(int k)
+{
+    switch (k % QRID_QUIPS)
+    {
+        case 0: return &quot;Yesss... it knows that one. Everyone knows that one, precious. The next is harder, oh yes, much harder. Gollum.&quot;;
+        case 1: return &quot;*It hisses and bites its long fingers.* Right, right! Clever fat one with its clever answers. We hates it, precious, we hates it forever!&quot;;
+        case 2: return &quot;Gollum! Lucky guess, lucky guess! Luck runs out, precious, it always runs out. Sss...&quot;;
+        case 3: return &quot;*Its pale eyes narrow to slits.* Correct... Someone told it! Someone whispered, yes! No matter, no matter. The next one has teeth.&quot;;
+        case 4: return &quot;Right again, curse it and splash it! Old riddles, worn riddles, too easy for sneaky pocketses. The next one comes from deep under the roots, precious.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string QRID_WrongTaunt(int k)
+{
+    switch (k % QRID_QUIPS)
+    {
+        case 0: return &quot;*It rocks back and forth, choking with wet laughter.* Wrong! Wrong! It doesn&#x27;t know, precious, it doesn&#x27;t know! Gollum, gollum!&quot;;
+        case 1: return &quot;Sss, stupid! Even the fishes know that one, and fishes don&#x27;t talk. *It grins with too many teeth.* Next riddle, yes?&quot;;
+        case 2: return &quot;*It drums its long fingers on the stone, delighted.* No, no, NO. Not even close, precious. The dark eats another point, yes it does.&quot;;
+        case 3: return &quot;Wrong answers taste the sweetest, gollum! It guesses like a troll at a tea party. Shall we go on? Oh yes, we shall.&quot;;
+        case 4: return &quot;*It whispers to itself.* It missed, precious, it missed... maybe it isn&#x27;t so clever after all, no, not clever at all. On we goes.&quot;;
+    }
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------
+// Reward on a win: 100-300 gp, QRID_XP, and one random minor treasure from
+// the hoard (all existing blueprints, verified; nothing above trinket tier
+// — the game is T1 and open to level 1).
+
+void QRID_PayOut(object oPC)
+{
+    GiveGoldToCreature(oPC, 100 + Random(201));
+    GiveXPToCreature(oPC, QRID_XP);
+
+    string sPrize;
+    switch (d8())
+    {
+        case 1: sPrize = &quot;nw_it_mpotion003&quot;; break; // Potion of Cure Critical Wounds
+        case 2: sPrize = &quot;nw_it_mring009&quot;;   break; // Ring of Cyan
+        case 3: sPrize = &quot;nw_it_mring010&quot;;   break; // Ring of Crimson
+        case 4: sPrize = &quot;nw_it_mring011&quot;;   break; // Ring of Jade
+        case 5: sPrize = &quot;nw_it_gem013&quot;;     break; // Alexandrite
+        case 6: sPrize = &quot;nw_it_mring001&quot;;   break; // Ring of Protection +1
+        case 7: sPrize = &quot;nw_it_mring013&quot;;   break; // Ring of Scholars
+        default: sPrize = &quot;nw_it_mring006&quot;;  break; // Ring of Clear Thought +1
+    }
+    CreateItemOnObject(sPrize, oPC, 1);
+}
+
+// ------------------------------------------------------------
+// Core answer handler, shared by q_rid_a1..a4. nSlot = the displayed
+// option (1..4) the player chose. On the seventh answer the game is
+// finalized right here — stamp, journal, payout — so escape-closing the
+// dialogue on the result line can never dodge the weekly stamp or lose a
+// paid-out prize.
+
+void QRID_Answer(object oPC, int nSlot)
+{
+    if (!GetLocalInt(oPC, &quot;Q_RID_ACTIVE&quot;)) return;
+    int nIdx = GetLocalInt(oPC, &quot;Q_RID_IDX&quot;);
+    if (nIdx &gt;= QRID_ASKED) return;
+
+    int nRight = (nSlot == GetLocalInt(oPC, &quot;Q_RID_SLOT&quot;));
+    SetLocalInt(oPC, &quot;Q_RID_LAST&quot;, nRight);
+    if (nRight)
+        SetLocalInt(oPC, &quot;Q_RID_SCORE&quot;, GetLocalInt(oPC, &quot;Q_RID_SCORE&quot;) + 1);
+
+    nIdx++;
+    SetLocalInt(oPC, &quot;Q_RID_IDX&quot;, nIdx);
+    if (nIdx &lt; QRID_ASKED) return;
+
+    // Seventh answer — game over. One attempt per week, win or lose.
+    DeleteLocalInt(oPC, &quot;Q_RID_ACTIVE&quot;);
+    int nScore = GetLocalInt(oPC, &quot;Q_RID_SCORE&quot;);
+    int nWon   = (nScore &gt;= QRID_TO_WIN);
+    SetLocalInt(oPC, &quot;Q_RID_RESULT&quot;, nWon ? 1 : 2);
+
+    if (QCD_IsDoneThisWeek(oPC, QRID_QUEST)) return; // paranoid double-pay guard
+    QCD_Stamp(oPC, QRID_QUEST);
+    AddJournalQuestEntry(QRID_QUEST, 2, oPC, FALSE, FALSE, TRUE);
+    if (nWon)
+        QRID_PayOut(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

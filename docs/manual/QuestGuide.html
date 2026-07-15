@@ -204,6 +204,7 @@
             <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
+            <li><a href="#beorns-garden">Beorn's Garden</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -251,8 +252,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   found this guide had drifted. Corrections applied below: two fully-scripted reward quests
   were undocumented and are now listed (<a href="#paths-of-the-dead">Paths of the Dead</a>,
   <a href="#glorfindel">Glorfindel's Curative</a>); the <strong>Guilds</strong> server-info
-  journal was <em>not</em> delivered (the earlier "fixed" claim was wrong; genuinely fixed on
-  2026-07-14 — see <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
+  journal is <em>not</em> delivered (deliberately — the guild system is retired; see
+  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
   <em>unstartable</em> — no Gondor Scribe NPC was placed. (That gap has since been fixed on
   2026-07-13: the scribe is now placed and the quest is <span class="status-badge status-ok">Working</span> —
   see the card.) The six <code>mod_*</code> server-info
@@ -434,8 +435,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <div class="dm-note">Added 2026-07-14 (roadmap <code>miller-other-son</code>) — scripted and
   built, pending in-game UAT. <strong>Admin action required:</strong> the two quest NPCs spawn at
-  waypoints <code>AP_miller-other-son_1</code> (peddler, <code>tharbadbridge</code>) and
-  <code>AP_miller-other-son_2</code> (cult leader, <code>thardbadeast</code>), which must be
+  waypoints <code>AP_millerotherson_1</code> (peddler, <code>tharbadbridge</code>) and
+  <code>AP_millerotherson_2</code> (cult leader, <code>thardbadeast</code>), which must be
   placed in the toolset (see <code>admin-action-required.md</code>). Until then the quest can be
   accepted but the road stands empty — Han's reminder line and the peddler's greeting re-run the
   spawn check, so no player state is ever stranded. Quest state lives per character in the
@@ -642,12 +643,62 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-weekly via
   <code>QCD_IsDoneThisWeek</code>. The wretch (<code>q_rid_wretch</code>) is a plot, non-hostile
   clone of the Gollum blueprint — strongly implied to be, never named — script-spawned at waypoint
-  <code>AP_riddle-game_1</code> from the Bree Cave OnEnter wrapper (<code>q_rid_enter</code>);
+  <code>AP_riddlegame_1</code> from the Bree Cave OnEnter wrapper (<code>q_rid_enter</code>);
   <strong>the waypoint must be placed in the toolset before the wretch appears</strong> (scripts
   no-op gracefully until then; see admin-action-required.md). The placed CR-1029 Gollum boss and
   its Roll-of-the-Fallen tracking are untouched. One generic riddle dialogue node serves the whole
   bank via custom tokens 6360&ndash;6368; the 16-riddle bank, weekly seeded selection
   (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
+</div>
+
+<!-- BEORN'S GARDEN -->
+<div class="quest-card" id="beorns-garden">
+  <h3>Beorn's Garden <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>beorn_garden</code></span>
+    <span>Giver: Grimbeorn the Old, Lord of the Beornings, at <a href="../areas/beorn.html">Beorn</a>'s homestead (off the Old Forest Road)</span>
+    <span>Level range: 12+ (daily)</span>
+    <span>Reward: 250&ndash;450 gp + 700 XP + <em>Beorn's Honeycomb</em> (sometimes two, or a Cure Serious draught besides)</span>
+  </div>
+  <p>A warg pack has been raiding the bee-meadows below the Carrock, and Grimbeorn has hives to mend
+  and no hands to spare. The day's work has two halves that feed each other: <strong>harvest the
+  three great honey hives</strong> (hollow stumps — one in Beorn's garden, one on each Carrock
+  height) and <strong>skin six warg pelts</strong> from the raiders. There are no wargs standing
+  about waiting to be farmed — <strong>cracking a hive open is what calls the pack in</strong>: each
+  harvest spawns two Garden-Raiding Wargs (CR 6) right at the stump.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Grimbeorn the Old</strong> at the homestead;
+  level 12+ required, once per real day per character.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the garden work — the journal opens and the hives become harvestable for you.</li>
+    <li>Use each of the three Honey Hives once (per-hive, per-day — floaty text counts "N of 3").
+      Each harvest spawns a warg pack at the hive.</li>
+    <li>Kill wargs while the quest is active; the killing blow's party owner skins a pelt per warg
+      ("N of 6"). Short on pelts with all hives drawn? <strong>Rattle any emptied hive</strong> to
+      call another pack — the day can always be finished (spawns are capped per area so hives
+      can't be clicked into a flood).</li>
+    <li>Return to Grimbeorn with 6 pelts and 3 combs drawn: he takes the pelts and pays
+      250&ndash;450 gp, 700 XP and honeycomb from Beorn's stores (d100: always one comb; 61+ a
+      second comb; 86+ a Cure Serious Wounds potion instead of the second comb).</li>
+    <li>The day resets at UTC midnight; until then Grimbeorn quotes the exact time remaining.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>beorns-garden</code>) — scripted and built,
+  pending in-game UAT. Fifth consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-daily via
+  <code>QCD_IsDoneToday</code>; the active flag and the per-hive harvest locks are item-free
+  calendar stamps (<code>beorn_garden_acc</code>, <code>beorn_garden_h1..3</code>), so state
+  survives relogs and restarts. The hives (<code>q_brn_hive</code>, tag <code>HoneyHive</code>, CEP
+  stump) are script-spawned by <code>q_brn_spawn</code> from the beorn/carrok/carrokgreater
+  OnEnter wrappers — <strong>the three waypoints <code>AP_beornsgarden_1/2/3</code> must be placed
+  in the toolset before any hive appears</strong> (scripts no-op gracefully until then; see
+  admin-action-required.md). Wargs (<code>q_brn_warg</code>) are quest-spawned only — no standing
+  encounters were touched — and their OnDeath wrapper <code>q_brn_wd</code> chains
+  <code>nw_c2_default7</code>, staying bestiary-safe under <code>bst_install</code>. Grimbeorn's
+  new conversation (<code>q_brn_conv</code>) was set on blueprint and placed instance both;
+  progress tokens 6370&ndash;6372.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
@@ -998,7 +1049,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <span>All land in the player's <strong>Completed</strong> section (entry 1, <code>End=1</code>)</span>
   </div>
   <p>Several journal categories carry server meta-information and are handed to players automatically on login.
-  <code>hgll_cliententer.nss</code> delivers all <strong>nine</strong> of them:</p>
+  <code>hgll_cliententer.nss</code> delivers <strong>eight</strong> of them (the retired
+  <code>guilds</code> category is deliberately withheld):</p>
 
   <table class="data reward-table">
     <thead><tr><th>Journal</th><th>Tag</th><th>Status</th></tr></thead>
@@ -1011,14 +1063,16 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       <tr><td>Appearance &amp; Crafting</td><td><code>mod_forge</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Custom Systems</td><td><code>mod_systems</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Good/Evil Factions</td><td><code>mod_factions</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-stub">Retired — not delivered</span></td></tr>
     </tbody>
   </table>
 
-  <div class="dm-note"><strong>Guilds fixed 2026-07-14</strong> (roadmap idea
-  <code>guilds-journal-never-delivered</code>): the <code>guilds</code> category was designed but never
-  delivered — only the dead-code <code>mod_enter.nss</code> referenced it (with a <code>gguild</code> typo).
-  <code>hgll_cliententer.nss</code> now delivers it on every login alongside the other eight.</div>
+  <div class="dm-note"><strong>Guilds retired on purpose (2026-07-15)</strong> (roadmap idea
+  <code>guilds-journal-never-delivered</code>): delivery of the <code>guilds</code> category was briefly
+  added on 2026-07-14, then removed at the admin's direction — the guild system is
+  retired/suspended, so the journal is deliberately withheld. The category remains in
+  <code>module.jrl.json</code> and can be re-enabled with one line in
+  <code>hgll_cliententer.nss</code> if guilds return.</div>
   <div class="dm-note">The old dead forum URL in the <code>website</code> entry has already been updated to the
   Discord invite (<em>https://discord.gg/VpAtSpe</em>) in <code>module.jrl.json</code> — that fix is done. Minor:
   the category's display <code>Name</code> is still literally "Website" while its content is now the Discord link.</div>
@@ -1185,9 +1239,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <p><strong>Partly fixed (corrected 2026-07-11):</strong> <code>AddJournalQuestEntry</code> calls for
   <code>rules</code>, <code>website</code> and the six <code>mod_*</code> journals were added directly to
   <code>hgll_cliententer.nss</code>, the real OnClientEnter handler, and run idempotently on every login so all
-  characters receive them in their Completed section. However, <strong>the <code>guilds</code> journal was
-  <em>not</em> included</strong> — it is still never delivered (the dead-code <code>gguild</code> typo in
-  <code>mod_enter.nss</code> was bypassed but never replaced). See the
+  characters receive them in their Completed section. The <code>guilds</code> journal is <em>not</em>
+  included — deliberately, as of 2026-07-15: the guild system is retired/suspended, so its
+  journal is withheld on purpose. See the
   <a href="#server-info">Server Info Journals</a> card. The forum URL in the <code>website</code> entry has since
   been refreshed to the community Discord.</p>
 </div>

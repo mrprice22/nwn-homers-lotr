@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_brn_use</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_brn_use</code></h1><pre class="nss-source"><code>// q_brn_use — Beorn&#x27;s Garden hive OnUsed (roadmap: beorns-garden)
+// Harvest a honey hive: once per PC per hive per day (questcddb calendar
+// key beorn_garden_h&lt;idx&gt; — relog/restart-safe). Every harvest angers the
+// hive&#x27;s raiders and spawns a warg pack at the hive&#x27;s own location. If the
+// honey leg is done but pelts still run short, re-using a harvested hive
+// rattles it and calls another pack, so the day can always be finished
+// (spawns stay capped per-area in BRN_SpawnWargs).
+#include &quot;q_brn_inc&quot;
+
+void main()
+{
+    object oHive = OBJECT_SELF;
+    object oPC   = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    if (!BRN_IsActive(oPC))
+    {
+        FloatingTextStringOnCreature(
+            &quot;The hive hums with bees. Grimbeorn the Old would not thank you &quot;
+            + &quot;for meddling uninvited.&quot;, oPC, FALSE);
+        return;
+    }
+
+    int nIdx = GetLocalInt(oHive, &quot;q_brn_idx&quot;);
+    string sKey = BRN_HIVE_KEY + IntToString(nIdx);
+
+    if (!QCD_IsDoneToday(oPC, sKey))
+    {
+        QCD_Stamp(oPC, sKey);
+        FloatingTextStringOnCreature(&quot;You cut a dripping comb from the hive (&quot;
+            + IntToString(BRN_CountHoney(oPC)) + &quot; of &quot;
+            + IntToString(BRN_NEED_HONEY) + &quot;).&quot;, oPC, FALSE);
+        if (BRN_SpawnWargs(oHive) &gt; 0)
+            FloatingTextStringOnCreature(
+                &quot;Wargs burst from the brush, drawn by the broken hive!&quot;,
+                oPC, FALSE);
+        return;
+    }
+
+    // Already harvested this hive today.
+    if (BRN_CountHoney(oPC) &gt;= BRN_NEED_HONEY
+        &amp;&amp; BRN_CountPelts(oPC) &lt; BRN_NEED_PELTS)
+    {
+        if (BRN_SpawnWargs(oHive) &gt; 0)
+            FloatingTextStringOnCreature(
+                &quot;You rattle the emptied hive -- and the wargs come running.&quot;,
+                oPC, FALSE);
+        else
+            FloatingTextStringOnCreature(
+                &quot;The wargs already prowling nearby must fall first.&quot;,
+                oPC, FALSE);
+        return;
+    }
+
+    FloatingTextStringOnCreature(
+        &quot;You have already drawn this hive&#x27;s honey today.&quot;, oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

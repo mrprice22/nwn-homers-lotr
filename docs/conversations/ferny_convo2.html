@@ -55,9 +55,9 @@
   <main>
 <h1>Conversation: <code>ferny_convo2</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>9</dd>
+<dt>NPC lines</dt><dd>10</dd>
 <dt>PC replies</dt><dd>15</dd>
-<dt>NumWords</dt><dd>418</dd>
+<dt>NumWords</dt><dd>488</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
@@ -73,13 +73,15 @@
 <tr><td><code>aquirering</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>sc_044</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>thugtest</code></td><td>active</td><td>✓</td><td></td></tr>
-<tr><td><code>sc_009</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>sc_009</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_fret_discc</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/ringofsharkey.html">Ring of Sharkey</a></li><li><a href="../items/sharkeysorders.html">Sharkey&#x27;s Orders</a></li></ul>
 <h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/ferny-s-ring.html">Ferny&#x27;s Ring</a></td><td><code>ferny&#x27;s ring</code></td><td>1, 2, 4</td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e7">entry #7</a> <small class="muted">(if <code>sc_044</code>)</small> — Hey you get my ring back yet?</li>
 <li><a href="#e5">entry #5</a> <small class="muted">(if <code>thugtest</code>)</small> — Hey what gives, ya didnt get your reward?</li>
 <li><a href="#e4">entry #4</a> <small class="muted">(if <code>sc_009</code>)</small> — I&#x27;ll be no more trouble to ya. Sorry for the misunderstanding, could happen to a…</li>
+<li><a href="#e9">entry #9</a> <small class="muted">(if <code>q_fret_discc</code>)</small> — Well, well -- if it aint the one what turfed that Sharkey rat out o&#x27; my house. F…</li>
 <li><a href="#e0">entry #0</a> — You look like the adventuresome type, aint ya. I got a little job for ya. Not th…</li>
 </ul>
 <h2>Conversation flow</h2>
@@ -149,8 +151,8 @@
 <div class="dlg-text">I&#x27;ll be no more trouble to ya. Sorry for the misunderstanding, could happen to anyone.</div>
 </details>
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">You look like the adventuresome type, aint ya. I got a little job for ya. Not the most pleasant work. But hey it pays. Ya interested?</div>
+<summary><span class="dlg-id">entry #9</span> <small class="muted">(if <code>q_fret_discc</code>)</small> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">Well, well -- if it aint the one what turfed that Sharkey rat out o&#x27; my house. Ferny don&#x27;t forget a favor, whatever folk say o&#x27; me. Now it happens I got a job needs doing -- my ring&#x27;s been swiped -- and for you I&#x27;ll pay half again what I&#x27;d pay a stranger. Care to hear it?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
@@ -213,6 +215,14 @@
 </details>
 </div>
 </details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">You look like the adventuresome type, aint ya. I got a little job for ya. Not the most pleasant work. But hey it pays. Ya interested?</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r1">reply #1</a> <span class="dlg-link-preview">“Lets hear it.”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r0">reply #0</a> <span class="dlg-link-preview">“No I don&#x27;t think that type of work would interest me.”</span></div>
+</div>
+</details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">You look like the adventuresome type, aint ya. I got a little job for ya. Not the most pleasant work. But hey it pays. Ya interested?</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Lets hear it.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“No I don&#x27;t think that type of work would interest me.”</span></li></ul></div>
@@ -224,6 +234,7 @@
 <div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">No need to be to hasty there &lt;Master/Mistress&gt;. I&#x27;m sure O&#x27;l Ferny can compensate you for your additional troubles. And for handing over that note.</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“I like your change of tune. I&#x27;ll give you the note for a proper reward.”</span></li></ul></div>
 <div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">Hey you get my ring back yet?</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Here ya go Ferny. Say what about a reward for my hard labors?”</span> <small class="muted">(if <code>fernyaquire</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Not so fast old man, what about a reward?”</span> <small class="muted">(if <code>fernyaquire</code>)</small></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“No not yet. I&#x27;ll go check that cave you mentioned.”</span></li></ul></div>
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Alright, Alright, Your rewards in my house. The doors open jus go inside and there a chest in plain sight, It&#x27;s all yours. If Sharkey ever found out I lost my ring thered be trouble to pay. Now don&#x27;t you go mentioning this to anybody. Or there might be trouble comin after you.</div><ul class="dlg-links"><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Thanks I&#x27;ll just go help myself.”</span></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">Well, well -- if it aint the one what turfed that Sharkey rat out o&#x27; my house. Ferny don&#x27;t forget a favor, whatever folk say o&#x27; me. Now it happens I got a job needs doing -- my ring&#x27;s been swiped -- and for you I&#x27;ll pay half again what I&#x27;d pay a stranger. Care to hear it?</div><ul class="dlg-links"><li><a href="#r1">→ child</a> <span class="dlg-link-preview">“Lets hear it.”</span></li><li><a href="#r0">→ child</a> <span class="dlg-link-preview">“No I don&#x27;t think that type of work would interest me.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">No I don&#x27;t think that type of work would interest me.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Lets hear it.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“One of the blokes who works for me decided he don&#x27;t wanna play by my rules no mo…”</span></li></ul></div>
