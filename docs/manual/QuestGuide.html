@@ -49,7 +49,6 @@
 <a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../manual/TESTING-item-tag-dedup.html">Testing guide — Item Tag Dedup</a>
 <a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
     </nav>
   </header>
@@ -198,7 +197,13 @@
         <li><a href="#active">Active Quests</a>
           <ol>
             <li><a href="#ferrys-ring">Bill Ferny's Ring</a></li>
+            <li><a href="#fernys-return">Ferny's Return</a></li>
             <li><a href="#millers-son">The Miller's Son</a></li>
+            <li><a href="#millers-other-son">The Miller's Other Son</a></li>
+            <li><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></li>
+            <li><a href="#hobbit-post">Hobbit Post</a></li>
+            <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
+            <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -246,8 +251,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   found this guide had drifted. Corrections applied below: two fully-scripted reward quests
   were undocumented and are now listed (<a href="#paths-of-the-dead">Paths of the Dead</a>,
   <a href="#glorfindel">Glorfindel's Curative</a>); the <strong>Guilds</strong> server-info
-  journal is <em>not</em> delivered (the earlier "fixed" claim was wrong — see
-  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
+  journal was <em>not</em> delivered (the earlier "fixed" claim was wrong; genuinely fixed on
+  2026-07-14 — see <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
   <em>unstartable</em> — no Gondor Scribe NPC was placed. (That gap has since been fixed on
   2026-07-13: the scribe is now placed and the quest is <span class="status-badge status-ok">Working</span> —
   see the card.) The six <code>mod_*</code> server-info
@@ -307,6 +312,54 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   for the same plot. Tracked as roadmap idea <code>p000-duplicate-ferny-journal</code>.</div>
 </div>
 
+<!-- FERNY'S RETURN -->
+<div class="quest-card" id="fernys-return">
+  <h3>Ferny's Return <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>ferny_return</code></span>
+    <span>Giver: Guardian of Bree, Bree</span>
+    <span>Level range: ~3 (one-off)</span>
+    <span>Reward: 200 gp + 250 XP + <em>Ferny's Filching Gloves</em> (Pick Pocket +2)</span>
+  </div>
+  <p>A prequel to <a href="#ferrys-ring">Bill Ferny's Ring</a>. Bill Ferny has been seen skulking
+  around his old house — but Ferny himself has been standing in the market all the while. Someone
+  is wearing Ferny's name, and the Bree watch is stretched too thin to find out who.</p>
+
+  <strong>How to start:</strong> Ask any <strong>Guardian of Bree</strong> (the town guards,
+  conversation <code>b_guard_convo1.dlg</code>) if anything strange is going on in town.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the guard's request — <code>q_fret_start.nss</code> sets entry 1 and spawns the
+      impostor in <a href="../areas/billfernyshouse.html">Bill Ferny's house</a>.</li>
+    <li>Confront the "Bill Ferny" squatting there (<code>fret_impostor</code>, conversation
+      <code>fret_imp.dlg</code>) and call his bluff. He is one of Sharkey's ruffians, and he
+      offers a choice:
+      <ul>
+        <li><strong>Take his bribe</strong> — 75 gp from Ferny's own stash, and he slips out of
+          Bree (<code>q_fret_bribe.nss</code>); or</li>
+        <li><strong>Refuse and fight</strong> — he turns hostile (<code>q_fret_fight.nss</code>;
+          stage advances on his death via <code>q_fret_death.nss</code>).</li>
+      </ul>
+    </li>
+    <li>Report back to any Guardian of Bree for the payout (<code>q_fret_end.nss</code>) — the
+      report line differs by outcome, but both complete the quest.</li>
+  </ol>
+
+  <strong>Prequel bonus:</strong> completing this quest permanently unlocks a grateful greeting
+  from Bill Ferny and a <em>half-again</em> payout on the <a href="#ferrys-ring">Ferny's Ring</a>
+  turn-in (+100 gp on either ending, via <code>endferny1.nss</code> / <code>aquirering.nss</code>).
+  The flag persists across relogs and reboots (campaign DB <code>fret</code>).<br><br>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>ferny-return</code>) — scripted and built,
+  pending in-game UAT. <strong>Admin action required:</strong> the impostor spawns at waypoint
+  <code>AP_ferny_return_1</code>, which must be placed in <code>billfernyshouse</code> in the
+  toolset (see <code>admin-action-required.md</code>). Until then the quest can be accepted but
+  the house stands empty — the guard's stage-1 reminder line re-runs the spawn check on every
+  conversation, so no player state is ever stranded. Quest state lives per character in the
+  <code>fret</code> campaign DB (stages 0–3 + outcome), not in session-local ints.</div>
+</div>
+
 <!-- MILLER'S SON -->
 <div class="quest-card" id="millers-son">
   <h3>The Miller's Son <span class="status-badge status-ok">Working</span></h3>
@@ -334,7 +387,267 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>You delivered the sad news. The Miller grieves; his wife and his ale are small comfort.</li>
   </ol>
 
-  <div class="dm-note">Conversation in <code>b_miller_convo1.dlg.json</code>. Completion script <code>at_003.nss</code> (now 450 XP). The shipment scene is scripted on the South Greenway.</div>
+  <div class="dm-note">Conversation in <code>b_miller_convo1.dlg.json</code>. Completion script <code>at_003.nss</code> (now 450 XP). The shipment scene is scripted on the South Greenway.
+  Completing this quest now also stamps a persistent flag (campaign DB <code>mos2</code>) that unlocks the sequel below.</div>
+</div>
+
+<!-- MILLER'S OTHER SON -->
+<div class="quest-card" id="millers-other-son">
+  <h3>The Miller's Other Son <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>bree_miller_son2</code></span>
+    <span>Giver: Han the Bree Miller, Bree</span>
+    <span>Level range: ~8 (one-off)</span>
+    <span>Reward: 500 gp + 500 XP + <em>Magic Bag</em> (good endings) / 200 XP (sad truth)</span>
+  </div>
+  <p>A sequel to <a href="#millers-son">The Miller's Son</a> — offered only after that quest is
+  complete. Han's <em>other</em> son, Dob, took his brother's death hard and fell in with a
+  "trading crowd" on the road to Tharbad. The traders turned out to be cultists of the Red Eye,
+  and their leader — a man they call <strong>the Voice</strong> — keeps the boy close.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Han the Bree Miller</strong> in
+  <a href="../areas/bree.html">Bree</a> after completing The Miller's Son.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept Han's plea — <code>q_mos2_start.nss</code> sets entry 1 and spawns the quest NPCs.</li>
+    <li>(Optional) Talk to <strong>Tolly the Peddler</strong> at
+      <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> (<code>mos2_ped.dlg</code>) — a
+      coin (10 gp) or a kind word buys directions to the cult camp (journal entry 2).</li>
+    <li>Confront <strong>the Voice of the Red Eye</strong> in
+      <a href="../areas/thardbadeast.html">Tharbad (East)</a> (<code>mos2_cult.dlg</code>).
+      Three resolutions:
+      <ul>
+        <li><strong>Persuade</strong> (DC 18: d20 + Persuade rank, <em>one attempt per
+          character, ever</em> — <code>q_mos2_persu.nss</code>): he releases Dob peacefully.
+          On a failed roll he attacks;</li>
+        <li><strong>Fight</strong> — he turns hostile (<code>q_mos2_fight.nss</code>); his death
+          frees the boy (<code>q_mos2_death.nss</code>, advances all party members in the area);</li>
+        <li><strong>Walk away</strong> — leave Dob to the cult (<code>q_mos2_leave.nss</code>).
+          You can still change your mind and fight him later.</li>
+      </ul>
+    </li>
+    <li>Report back to Han — outcome-specific lines. Freed endings pay 500 gp + 500 XP + a
+      <em>Magic Bag</em> ("Dob's trading pack", <code>q_mos2_end1.nss</code>); the sad truth pays
+      200 XP (<code>q_mos2_end2.nss</code>).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>miller-other-son</code>) — scripted and
+  built, pending in-game UAT. <strong>Admin action required:</strong> the two quest NPCs spawn at
+  waypoints <code>AP_miller-other-son_1</code> (peddler, <code>tharbadbridge</code>) and
+  <code>AP_miller-other-son_2</code> (cult leader, <code>thardbadeast</code>), which must be
+  placed in the toolset (see <code>admin-action-required.md</code>). Until then the quest can be
+  accepted but the road stands empty — Han's reminder line and the peddler's greeting re-run the
+  spawn check, so no player state is ever stranded. Quest state lives per character in the
+  <code>mos2</code> campaign DB (stages 0–3 + outcome + the spent Persuade attempt), not in
+  session-local ints. Gating on the original quest uses the session-local
+  <code>millerson == 2</code> <em>or</em> the persistent <code>mos2/m1done</code> flag now stamped
+  by <code>at_003.nss</code>; characters who finished The Miller's Son before this shipped can
+  simply re-run the original (its state is session-local) to qualify.</div>
+</div>
+
+<!-- THE LAST DROP AT FROGMORTON INN -->
+<div class="quest-card" id="last-drop-frogmorton">
+  <h3>The Last Drop at Frogmorton Inn <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>frogmorton_ale</code></span>
+    <span>Giver: Rigrin, the <a href="../areas/whitfurrowinn.html">Whitfurrow Inn</a></span>
+    <span>Level range: 1+ (daily, pure social)</span>
+    <span>Reward: 25 gp + <em>Frogmorton Pint</em> (heals 4 hp, brief tipsy wobble)</span>
+  </div>
+  <p>The last cask of Frogmorton's famous harvest ale — the Floating Log's own autumn brew,
+  carted over from Frogmorton before the brewer died — sits in Rigrin's cellar, and five
+  patrons each claim the final drop. Rigrin judges the matter by <em>the custom of the cask</em>,
+  an old rule that turns with the month, and he'll pay a neutral party to hear the claimants out
+  and name the rightful drinker. No combat; pure Shire-tone dialogue.</p>
+
+  <strong>How to start:</strong> Ask <strong>Rigrin</strong> at the Whitfurrow Inn (one area over
+  from <a href="../areas/frogmorton001.html">Frogmorton</a>) what the common-room row is about.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Rigrin states this month's custom of the cask (e.g. <em>"the coin that bought the barrel
+      drains it"</em>) — twelve rules cycling through the year (<code>q_frog_rulec.nss</code>,
+      keyed on <code>GetCalendarMonth()</code>).</li>
+    <li>Chat with the five claimants in the common room — <strong>Marigold Bunce</strong> (brewed
+      it), <strong>Poppy Thistlewool</strong> (paid for it), <strong>Hob Broadbelt</strong>
+      (tapped it and drank first), <strong>Ned Puddifoot</strong> (hauled it from Frogmorton),
+      <strong>Daisy Goodbody</strong> (won it at darts) — and work out who the rule points at.</li>
+    <li>Give Rigrin your answer. <strong>One judgment per day:</strong> a right call pays 25 gp
+      plus a <em>Frogmorton Pint</em>; a wrong call gets you gently laughed out of the room —
+      either way the matter is settled until tomorrow.</li>
+  </ol>
+
+  <p>The <em>Frogmorton Pint</em> is a single-use drink: 4 hp back and a short, purely cosmetic
+  drunken stagger (<code>q_frog_pint.nss</code>). It cannot hurt you or anyone else.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>frogmorton-last-drop</code>) — scripted and
+  built, pending in-game UAT. This is the <strong>first consumer of the shared quest-cooldown
+  library</strong> (<code>quest_cd_inc.nss</code> / the <code>questcddb</code> campaign DB):
+  availability is gated by <code>QCD_IsDoneToday</code> (resets at UTC midnight, survives relogs
+  and reboots) and Rigrin's come-back-tomorrow line shows the real time remaining via
+  <code>QCD_FmtSpan</code> — so this quest doubles as UAT for the library. Venue note: the design
+  doc placed five hobbits in <code>frogmorton001</code>, but that area has no NPCs and no inn
+  interior; the quest instead reuses five existing commoner instances at the adjacent Whitfurrow
+  Inn (renamed in place, new conversations <code>q_frog_p1–p5</code>) with the cask lore keeping
+  its Frogmorton origin. Zero new placements.</div>
+</div>
+
+<!-- HOBBIT POST -->
+<div class="quest-card" id="hobbit-post">
+  <h3>Hobbit Post <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>hobbit_post</code></span>
+    <span>Giver: Posco Whitfoot, post-master, <a href="../areas/shirehobbiton001.html">Hobbiton</a></span>
+    <span>Level range: all levels (daily, no combat)</span>
+    <span>Reward: 60 gp base + 40 gp speed bonus + 50 XP; misdelivered parcels pay 60 gp extra and a small loot item</span>
+  </div>
+  <p>Posco Whitfoot has founded the Hobbit Post and needs an honest pair of legs: one sealed
+  parcel per real day, delivered somewhere in the Shire for pay. The addressee rotates with the
+  calendar day across five recipients — <strong>Daddy Twofoot</strong> (Hobbiton),
+  <strong>Old Noakes</strong> (<a href="../areas/bywater.html">Bywater</a>), <strong>the Keeper of
+  the Green Dragon</strong> (<a href="../areas/greendragoninn.html">Green Dragon Inn</a>, door off
+  Hobbiton), and <strong>Salvia Brockhouse</strong> and <strong>Milo Burrows</strong> (both in the
+  <a href="../areas/whitfurrowinn.html">Whitfurrow Inn</a> common room). Pure low-pressure Shire
+  flavour; no combat.</p>
+
+  <strong>How to start:</strong> Talk to <strong>Posco Whitfoot</strong> in Hobbiton and take
+  today's parcel.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Posco reads you the address off the label (it rotates daily,
+      <code>GetCalendarDay() % 5</code>). Forgot where it's bound? Ask him again — he'll re-read
+      the label, or write a fresh one.</li>
+    <li>Carry the parcel to the named recipient and talk to them. <em>The Shire judges its post by
+      the freshness of the seal:</em> land it within <strong>5 real minutes</strong> of accepting
+      and the fee rises from 60 gp to 100 gp.</li>
+    <li><strong>Rarely (8%)</strong> Posco's label is wrong: the named recipient refuses the
+      parcel and points you at its true owner (another of the five), who pays 60 gp extra plus a
+      small bonus item for untangling the post.</li>
+    <li>Payment on delivery closes the day; the post-bag reopens at UTC midnight (Posco quotes the
+      exact time remaining).</li>
+  </ol>
+
+  <p>The parcel itself is plot-flagged and cursed — it can't be sold, dropped or traded, and
+  re-accepting from Posco replaces any parcel you're already carrying, so they can never pile up.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>hobbit-post</code>) — scripted and built,
+  pending in-game UAT. Second consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>): <code>QCD_IsDoneToday</code> gates the
+  offer and <code>QCD_Stamp</code> fires on payout; the speed bonus compares real-world epochs from
+  <code>QCD_Now()</code> stored on the parcel (<code>POST_T0</code>), not the game clock. All six
+  NPCs are existing placed instances — the postmaster and four recipients were renamed in place and
+  split into dedicated blueprints (<code>hobbit001_2/_3</code>, <code>nw_oldman_2_2</code>,
+  <code>comfemale002_5</code>, <code>commale002_4</code>) via
+  <code>bin/split-divergent-creatures.py</code> so respawns keep their identities; the Green Dragon
+  Inn keeper kept their name and simply gained gated parcel branches in
+  <code>greendragon1.dlg</code>. Zero new placements, no waypoints needed.</div>
+</div>
+
+<!-- SPIDER SILK HARVEST -->
+<div class="quest-card" id="spider-silk-harvest">
+  <h3>Spider Silk Harvest <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>mirkwood_silk</code></span>
+    <span>Giver: Thranduil, King of Eryn Lasgalen, <a href="../areas/thranduilshall.html">Thranduil's Hall</a> (through the <a href="../areas/woodoflegolas.html">Wood of Legolas</a>, off <a href="../areas/mirkwoodnorth.html">Mirkwood: North</a>)</span>
+    <span>Level range: 12+ (daily kill-collect)</span>
+    <span>Reward: 300 gp + 600 XP per day</span>
+  </div>
+  <p>The great spiders choke Thranduil's wood, but their silk is stronger than steel wire and his
+  weavers prize it. Once per real day the Elvenking pays a flat bounty for <strong>six bolts of
+  spider silk</strong> cut from the spiders of Mirkwood. The silk comes from the wood's
+  <em>named</em> horrors — <strong>Giant Spider</strong>, <strong>Spider-Queen</strong>,
+  <strong>Lava Climber</strong>, <strong>Death Weeper</strong>, <strong>Black Spear Spider</strong>
+  and <strong>Sword Spider</strong> — which fill the encounters of every outdoor Mirkwood area
+  (<a href="../areas/mirkwoodwest.html">West</a>, <a href="../areas/mirkwoodnorth.html">North</a>,
+  <a href="../areas/mirkwoodeast.html">East</a>, <a href="../areas/mirkwoodcentral.html">Central</a>,
+  <a href="../areas/mirkwoodcentrale.html">Central East</a> and
+  <a href="../areas/mirkwoodcentrals.html">Central South</a>). The common base-game spiders and
+  ettercaps mixed into the same encounters spin nothing worth carding.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Thranduil</strong> on his throne in Thranduil's
+  Hall and accept the day's harvest (he turns away hunters below level 12).<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the harvest from Thranduil — the journal opens and the day's hunt goes live.</li>
+    <li>Kill the named spiders anywhere beneath Mirkwood's boughs. Each qualifying kill has a
+      <strong>75% chance</strong> to cut a <em>Bolt of Spider Silk</em> straight into your pack
+      (kills by your summons and companions credit you, same rule as the bestiary). Drops stop at
+      six bolts carried — silk cannot be hoarded past a day's need.</li>
+    <li>Return to Thranduil with six bolts and turn them in: <strong>300 gp + 600 XP</strong>,
+      bolts consumed, day closed.</li>
+    <li>The bounty reopens at UTC midnight; until then Thranduil quotes the exact time remaining.</li>
+  </ol>
+
+  <p>Bolts drop only while your own hunt is active (accepted today, not yet paid), so a party
+  member without the quest gets nothing and there is no stockpiling across days. Spare bolts are
+  worth a few coppers as vendor trash at most.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>spider-silk-harvest</code>) — scripted and
+  built, pending in-game UAT. Third consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>): the active flag is itself a calendar
+  stamp (<code>mirkwood_silk_acc</code>), so the hunt state survives relogs and restarts with no
+  state item. Silk drops chain through the blueprint OnDeath slot
+  (<code>q_silk_d1/d2/d3</code> on the six module spider blueprints), which the bestiary wrapper
+  stores and chains at spawn, and each wrapper re-chains the family's original reward script
+  (<code>gpondeath</code> / <code>350ondeathtopart</code> / <code>sb_creaturekill</code>) — kill
+  counts, gold and XP all still fire. The giver is the existing placed Thranduil
+  (<code>thranduil_2</code>, also a Roll-of-the-Fallen boss — the new <code>q_silk</code>
+  conversation is set identically on blueprint and instance, so respawns keep it). Zero new
+  placements, no waypoints needed. The Quest Ideas dynamic-pricing variant (server-wide
+  <code>silk_supply</code> moving the price) is deferred to a possible v2; v1 pays a flat
+  bounty.</div>
+</div>
+
+<!-- THE RIDDLE GAME -->
+<div class="quest-card" id="riddle-game">
+  <h3>The Riddle Game <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>riddle_game</code></span>
+    <span>Giver: the Whispering Wretch, <a href="../areas/breecave.html">Bree Cave</a> (down the cave mouth off <a href="../areas/bree.html">Bree</a>)</span>
+    <span>Level range: 1+ (weekly dialogue minigame — no combat)</span>
+    <span>Reward on a win: 100&ndash;300 gp + 250 XP + one random trinket from the hoard</span>
+  </div>
+  <p>Something pale and whispering squats at the water's edge in the cave beneath Bree-hill, and it
+  wants to play the old game: <strong>seven riddles</strong>, asked in the classic Hobbit style and
+  answered by picking one of four answers. Guess <strong>five or more of the seven</strong> rightly
+  and it grudgingly surrenders a present from its little hoard; guess fewer and you get nothing but
+  wet chuckling. It plays <strong>once per real week per character</strong>, win or lose — the
+  riddles "must ripen".</p>
+
+  <strong>How to start:</strong> Enter Bree Cave and speak to the <strong>Whispering Wretch</strong>;
+  accept the challenge. Open to all levels.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the game — the journal opens and the wretch asks riddle one of seven.</li>
+    <li>Answer each riddle from the four choices. The wretch heckles you between riddles either
+      way; the running score is kept for you.</li>
+    <li>After the seventh answer the game resolves on the spot: <strong>5+ right</strong> pays
+      100&ndash;300 gp, 250 XP and one random minor treasure (a lesser ring, a gem or a potent
+      potion); fewer pays nothing.</li>
+    <li>The game reopens when the calendar week turns (Monday 00:00 UTC); until then the wretch
+      quotes the exact time remaining.</li>
+  </ol>
+
+  <p>The riddle set changes <strong>weekly</strong> — everyone on the server gets the same seven
+  riddles in a given week, drawn from a larger bank, and the answer order shuffles per riddle.
+  Walking away (or relogging) mid-game forfeits nothing: the week is only spent when the seventh
+  answer lands, and the wretch will restart the same week's game from riddle one.</p>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>riddle-game</code>) — scripted and built,
+  pending in-game UAT. Fourth consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-weekly via
+  <code>QCD_IsDoneThisWeek</code>. The wretch (<code>q_rid_wretch</code>) is a plot, non-hostile
+  clone of the Gollum blueprint — strongly implied to be, never named — script-spawned at waypoint
+  <code>AP_riddle-game_1</code> from the Bree Cave OnEnter wrapper (<code>q_rid_enter</code>);
+  <strong>the waypoint must be placed in the toolset before the wretch appears</strong> (scripts
+  no-op gracefully until then; see admin-action-required.md). The placed CR-1029 Gollum boss and
+  its Roll-of-the-Fallen tracking are untouched. One generic riddle dialogue node serves the whole
+  bank via custom tokens 6360&ndash;6368; the 16-riddle bank, weekly seeded selection
+  (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
@@ -679,13 +992,13 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
 <!-- SERVER INFO -->
 <div class="quest-card" id="server-info">
-  <h3>Server Info Journals <span class="status-badge status-ok">Mostly Working</span> <span class="status-badge status-broke">Guilds Broken</span></h3>
+  <h3>Server Info Journals <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
     <span>Delivered on every login by <code>hgll_cliententer.nss</code></span>
     <span>All land in the player's <strong>Completed</strong> section (entry 1, <code>End=1</code>)</span>
   </div>
   <p>Several journal categories carry server meta-information and are handed to players automatically on login.
-  As of the 2026-07-11 audit, <code>hgll_cliententer.nss</code> delivers <strong>eight</strong> of them:</p>
+  <code>hgll_cliententer.nss</code> delivers all <strong>nine</strong> of them:</p>
 
   <table class="data reward-table">
     <thead><tr><th>Journal</th><th>Tag</th><th>Status</th></tr></thead>
@@ -698,19 +1011,14 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       <tr><td>Appearance &amp; Crafting</td><td><code>mod_forge</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Custom Systems</td><td><code>mod_systems</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Good/Evil Factions</td><td><code>mod_factions</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-broke">Never delivered</span></td></tr>
+      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
     </tbody>
   </table>
 
-  <div class="warning-box">
-    <p><strong>Guilds is still broken (correction, 2026-07-11).</strong> An earlier version of this guide
-    claimed the <code>guilds</code> journal was fixed and wired into <code>hgll_cliententer.nss</code> — it was
-    not. The handler delivers <code>rules</code>, <code>website</code> and the six <code>mod_*</code> tags, but
-    <strong>never <code>guilds</code></strong>. The only reference to the guild journal is the dead-code
-    <code>mod_enter.nss</code>, which still carries the original <code>gguild</code> typo, so no player ever
-    receives it. Tracked as roadmap idea <code>guilds-journal-never-delivered</code>. Fix: add the missing
-    <code>AddJournalQuestEntry("guilds", 1, oPC, FALSE, FALSE)</code> to <code>hgll_cliententer.nss</code>.</p>
-  </div>
+  <div class="dm-note"><strong>Guilds fixed 2026-07-14</strong> (roadmap idea
+  <code>guilds-journal-never-delivered</code>): the <code>guilds</code> category was designed but never
+  delivered — only the dead-code <code>mod_enter.nss</code> referenced it (with a <code>gguild</code> typo).
+  <code>hgll_cliententer.nss</code> now delivers it on every login alongside the other eight.</div>
   <div class="dm-note">The old dead forum URL in the <code>website</code> entry has already been updated to the
   Discord invite (<em>https://discord.gg/VpAtSpe</em>) in <code>module.jrl.json</code> — that fix is done. Minor:
   the category's display <code>Name</code> is still literally "Website" while its content is now the Discord link.</div>
