@@ -156,6 +156,7 @@
             <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
+            <li><a href="#beorns-garden">Beorn's Garden</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -600,6 +601,56 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   its Roll-of-the-Fallen tracking are untouched. One generic riddle dialogue node serves the whole
   bank via custom tokens 6360&ndash;6368; the 16-riddle bank, weekly seeded selection
   (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
+</div>
+
+<!-- BEORN'S GARDEN -->
+<div class="quest-card" id="beorns-garden">
+  <h3>Beorn's Garden <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>beorn_garden</code></span>
+    <span>Giver: Grimbeorn the Old, Lord of the Beornings, at <a href="../areas/beorn.html">Beorn</a>'s homestead (off the Old Forest Road)</span>
+    <span>Level range: 12+ (daily)</span>
+    <span>Reward: 250&ndash;450 gp + 700 XP + <em>Beorn's Honeycomb</em> (sometimes two, or a Cure Serious draught besides)</span>
+  </div>
+  <p>A warg pack has been raiding the bee-meadows below the Carrock, and Grimbeorn has hives to mend
+  and no hands to spare. The day's work has two halves that feed each other: <strong>harvest the
+  three great honey hives</strong> (hollow stumps — one in Beorn's garden, one on each Carrock
+  height) and <strong>skin six warg pelts</strong> from the raiders. There are no wargs standing
+  about waiting to be farmed — <strong>cracking a hive open is what calls the pack in</strong>: each
+  harvest spawns two Garden-Raiding Wargs (CR 6) right at the stump.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Grimbeorn the Old</strong> at the homestead;
+  level 12+ required, once per real day per character.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the garden work — the journal opens and the hives become harvestable for you.</li>
+    <li>Use each of the three Honey Hives once (per-hive, per-day — floaty text counts "N of 3").
+      Each harvest spawns a warg pack at the hive.</li>
+    <li>Kill wargs while the quest is active; the killing blow's party owner skins a pelt per warg
+      ("N of 6"). Short on pelts with all hives drawn? <strong>Rattle any emptied hive</strong> to
+      call another pack — the day can always be finished (spawns are capped per area so hives
+      can't be clicked into a flood).</li>
+    <li>Return to Grimbeorn with 6 pelts and 3 combs drawn: he takes the pelts and pays
+      250&ndash;450 gp, 700 XP and honeycomb from Beorn's stores (d100: always one comb; 61+ a
+      second comb; 86+ a Cure Serious Wounds potion instead of the second comb).</li>
+    <li>The day resets at UTC midnight; until then Grimbeorn quotes the exact time remaining.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-14 (roadmap <code>beorns-garden</code>) — scripted and built,
+  pending in-game UAT. Fifth consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-daily via
+  <code>QCD_IsDoneToday</code>; the active flag and the per-hive harvest locks are item-free
+  calendar stamps (<code>beorn_garden_acc</code>, <code>beorn_garden_h1..3</code>), so state
+  survives relogs and restarts. The hives (<code>q_brn_hive</code>, tag <code>HoneyHive</code>, CEP
+  stump) are script-spawned by <code>q_brn_spawn</code> from the beorn/carrok/carrokgreater
+  OnEnter wrappers — <strong>the three waypoints <code>AP_beornsgarden_1/2/3</code> must be placed
+  in the toolset before any hive appears</strong> (scripts no-op gracefully until then; see
+  admin-action-required.md). Wargs (<code>q_brn_warg</code>) are quest-spawned only — no standing
+  encounters were touched — and their OnDeath wrapper <code>q_brn_wd</code> chains
+  <code>nw_c2_default7</code>, staying bestiary-safe under <code>bst_install</code>. Grimbeorn's
+  new conversation (<code>q_brn_conv</code>) was set on blueprint and placed instance both;
+  progress tokens 6370&ndash;6372.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
