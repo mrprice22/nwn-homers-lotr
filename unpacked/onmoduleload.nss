@@ -37,6 +37,16 @@ NWNX_Administration_SetPlayOption(NWNX_ADMINISTRATION_OPTION_USE_MAX_HITPOINTS, 
 // Enable tag-based scripting for item events (e.g. Rod of Fast Buffing)
 SetModuleSwitch(MODULE_SWITCH_ENABLE_TAGBASED_SCRIPTS, TRUE);
 
+// Module override spellscript: run stop_spellcheat before every spell impact
+// script (counterspell anti-cheat + soul-fatigue on Heal/Mass Heal via
+// fat_inc.nss, roadmap: heal-soul-fatigue). This MUST be installed here — the
+// old on_module_load.nss that carried these lines was never wired to
+// Mod_OnModLoad (the hook is this script, onmoduleload), so the override
+// never ran. x2_inc_spellhook's X2RunUserDefinedSpellScript() only fires when
+// the module local X2_S_UD_SPELLSCRIPT is set.
+SetModuleSwitch(MODULE_VAR_OVERRIDE_SPELLSCRIPT, TRUE);
+SetModuleOverrideSpellscript("stop_spellcheat");
+
 // Spawn Meaningwave NPCs at their designated waypoints
 ExecuteScript("mw_spawn", GetModule());
 
