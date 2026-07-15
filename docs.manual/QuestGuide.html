@@ -204,8 +204,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   found this guide had drifted. Corrections applied below: two fully-scripted reward quests
   were undocumented and are now listed (<a href="#paths-of-the-dead">Paths of the Dead</a>,
   <a href="#glorfindel">Glorfindel's Curative</a>); the <strong>Guilds</strong> server-info
-  journal was <em>not</em> delivered (the earlier "fixed" claim was wrong; genuinely fixed on
-  2026-07-14 — see <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
+  journal is <em>not</em> delivered (deliberately — the guild system is retired; see
+  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
   <em>unstartable</em> — no Gondor Scribe NPC was placed. (That gap has since been fixed on
   2026-07-13: the scribe is now placed and the quest is <span class="status-badge status-ok">Working</span> —
   see the card.) The six <code>mod_*</code> server-info
@@ -1001,7 +1001,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <span>All land in the player's <strong>Completed</strong> section (entry 1, <code>End=1</code>)</span>
   </div>
   <p>Several journal categories carry server meta-information and are handed to players automatically on login.
-  <code>hgll_cliententer.nss</code> delivers all <strong>nine</strong> of them:</p>
+  <code>hgll_cliententer.nss</code> delivers <strong>eight</strong> of them (the retired
+  <code>guilds</code> category is deliberately withheld):</p>
 
   <table class="data reward-table">
     <thead><tr><th>Journal</th><th>Tag</th><th>Status</th></tr></thead>
@@ -1014,14 +1015,16 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       <tr><td>Appearance &amp; Crafting</td><td><code>mod_forge</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Custom Systems</td><td><code>mod_systems</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
       <tr><td>Good/Evil Factions</td><td><code>mod_factions</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
+      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-stub">Retired — not delivered</span></td></tr>
     </tbody>
   </table>
 
-  <div class="dm-note"><strong>Guilds fixed 2026-07-14</strong> (roadmap idea
-  <code>guilds-journal-never-delivered</code>): the <code>guilds</code> category was designed but never
-  delivered — only the dead-code <code>mod_enter.nss</code> referenced it (with a <code>gguild</code> typo).
-  <code>hgll_cliententer.nss</code> now delivers it on every login alongside the other eight.</div>
+  <div class="dm-note"><strong>Guilds retired on purpose (2026-07-15)</strong> (roadmap idea
+  <code>guilds-journal-never-delivered</code>): delivery of the <code>guilds</code> category was briefly
+  added on 2026-07-14, then removed at the admin's direction — the guild system is
+  retired/suspended, so the journal is deliberately withheld. The category remains in
+  <code>module.jrl.json</code> and can be re-enabled with one line in
+  <code>hgll_cliententer.nss</code> if guilds return.</div>
   <div class="dm-note">The old dead forum URL in the <code>website</code> entry has already been updated to the
   Discord invite (<em>https://discord.gg/VpAtSpe</em>) in <code>module.jrl.json</code> — that fix is done. Minor:
   the category's display <code>Name</code> is still literally "Website" while its content is now the Discord link.</div>
@@ -1188,9 +1191,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <p><strong>Partly fixed (corrected 2026-07-11):</strong> <code>AddJournalQuestEntry</code> calls for
   <code>rules</code>, <code>website</code> and the six <code>mod_*</code> journals were added directly to
   <code>hgll_cliententer.nss</code>, the real OnClientEnter handler, and run idempotently on every login so all
-  characters receive them in their Completed section. However, <strong>the <code>guilds</code> journal was
-  <em>not</em> included</strong> — it is still never delivered (the dead-code <code>gguild</code> typo in
-  <code>mod_enter.nss</code> was bypassed but never replaced). See the
+  characters receive them in their Completed section. The <code>guilds</code> journal is <em>not</em>
+  included — deliberately, as of 2026-07-15: the guild system is retired/suspended, so its
+  journal is withheld on purpose. See the
   <a href="#server-info">Server Info Journals</a> card. The forum URL in the <code>website</code> entry has since
   been refreshed to the community Discord.</p>
 </div>

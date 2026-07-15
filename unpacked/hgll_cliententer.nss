@@ -96,7 +96,8 @@ void main()
     // characters too, not just first-time logins. mod_enter.nss (the old, never-
     // wired delivery, which also had a "gguild" tag typo) is bypassed entirely.
     AddJournalQuestEntry("rules",        1, oPC, FALSE, FALSE);
-    AddJournalQuestEntry("guilds",       1, oPC, FALSE, FALSE);
+    // "guilds" is deliberately NOT delivered: the guild system is retired/
+    // suspended (admin call, 2026-07-15). Re-add it here if guilds return.
     AddJournalQuestEntry("website",      1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("modcustoms",   1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("mod_progress", 1, oPC, FALSE, FALSE);
