@@ -1571,12 +1571,12 @@ ideas:
   - id: beorns-garden
     title: "Quest: Beorn's Garden (daily — wargs & honey)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    commit: c0df409fb2b
-    notes: "<span>T2 daily (L12+). Kill 6 wargs and clear 3 honey hives; randomized treasure_beorn reward. Depends on the quest-cooldown helper.</span>"
+    date: "2026-07-15"
+    commit: 774687ab289
+    notes: "<span>T2 daily (L12+). Kill 6 wargs and clear 3 honey hives; randomized treasure_beorn reward. Depends on the quest-cooldown helper.</span><div><br></div><div><b>Fixed 2026-07-15:</b> shipped, journal tag beorn_garden. Grimbeorn the Old (existing placed NPC at Beorn's homestead, previously conversation-less) commissions L12+ characters daily: harvest the three honey hives and drive off the garden-raiding wargs (6 pelts). Scouting found no wargs living near the Carrock, so the kill leg comes from the hives themselves: each harvest spawns a pack of 2 Garden-Raiding Wargs (new CR-6 blueprint) at that hive, with a rattle-the-empty-hive re-spawn if pelts run short (capped at 4 live wargs/area) so the day is always completable. Hives are CEP hollow-stump placeables spawned at waypoints <b>AP_beornsgarden_1 (beorn) / _2 (carrok) / _3 (carrokgreater) — admin must place all three</b>; everything no-ops gracefully until then. Per-hive harvests are per-character per-day (questcddb calendar keys, relog-safe); pelts only drop while active, capped at 6. Turn-in: 250-450 gp + 700 XP + Beorn's Honeycomb (new Cure Moderate consumable; 40% chance of a bonus comb or a Cure Serious potion instead). Warg deaths are bestiary-safe (bst_install chains the blueprint death script). Fifth consumer of the quest-cooldown library. Docs: card moved from Quest Ideas.html into QuestGuide.html.</div><div><br></div><div><b>UAT:</b> (1) place the three waypoints, deploy; (2) sub-12 PC refused, L12+ offered → journal stage 1; (3) enter each area → one stump hive at each waypoint, no duplicates on re-entry; (4) use a hive → comb floaty + 2 wargs spawn; same hive again today → already-drawn message; kills only drop pelts while active/under 6; (5) bestiary records Garden-Raiding Warg kills; (6) empty hives + short pelts → rattle re-spawns a pack, stops at the cap; (7) turn-in with 6 pelts + 3 combs → gold/XP/honeycomb (drink it: Cure Moderate), journal ends, come-back timer until UTC midnight then re-offers; (8) regression: Grimbeorn still fights/respawns as a tracked boss with the conversation intact; Beornings/deer unaffected.</div>"
 
   - id: twentieth-plot-mazarbul
     title: "Quest: The Twentieth Plot of Mazarbul (Moria crypt)"
