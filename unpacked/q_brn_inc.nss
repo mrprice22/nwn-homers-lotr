@@ -14,7 +14,7 @@
 //     nw_c2_default7; bestiary-safe: bst_install stores q_brn_wd as
 //     bst_orig_death at spawn and bst_ondeath chains it after recording).
 //   * Honey  — harvest BRN_NEED_HONEY hives. Hive placeables (q_brn_hive,
-//     tag HoneyHive) are script-spawned at waypoints AP_beorns-garden_1/2/3
+//     tag HoneyHive) are script-spawned at waypoints AP_beornsgarden_1/2/3
 //     by q_brn_spawn from the beorn/carrok/carrokgreater OnEnter wrappers
 //     (q_brn_ent1/q_brn_ent2); each no-ops gracefully until the admin
 //     places the waypoint. Per-PC per-hive per-day gating lives in
@@ -42,7 +42,7 @@ const string BRN_WARG_RES  = "q_brn_warg";        // warg blueprint resref
 const string BRN_WARG_TAG  = "BeornGardenWarg";
 const string BRN_HIVE_RES  = "q_brn_hive";        // hive blueprint resref
 const string BRN_HIVE_TAG  = "HoneyHive";
-const string BRN_WP_PREFIX = "AP_beorns-garden_"; // + 1..3 (admin-placed)
+const string BRN_WP_PREFIX = "AP_beornsgarden_"; // + 1..3 (admin-placed)
 
 const int BRN_NEED_PELTS   = 6;
 const int BRN_NEED_HONEY   = 3;

@@ -88,7 +88,9 @@ Two autopilot-specific rules:
 - **No coordinate-picking.** Never choose positions/locations in a `.git.json` for *new*
   content — placement is the admin's call in the toolset. Instead:
   - Script against a waypoint: `GetWaypointByTag("AP_<item-id>_<n>")` (tag convention:
-    `AP_` + the roadmap item id, abbreviated if needed to respect tag limits, + an index).
+    `AP_` + the roadmap item id **with hyphens stripped** (toolset tags drop them — a
+    2026-07-14 mismatch left two quests spawning nothing), abbreviated if needed to
+    respect tag limits, + an index, e.g. `AP_riddlegame_1` for item `riddle-game`).
   - Log a **Toolset action** in `admin-action-required.md` (see format below) telling the
     admin to create/place a waypoint with that tag, with a suggested area and purpose.
   - Code defensively: if the waypoint doesn't exist yet, the feature should no-op

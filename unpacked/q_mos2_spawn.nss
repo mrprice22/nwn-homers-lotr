@@ -5,15 +5,15 @@
 //
 // No-ops gracefully until the admin places the waypoints in the toolset
 // (see admin-action-required.md), and never double-spawns:
-//   AP_miller-other-son_1 (tharbadbridge)  -> Tolly the Peddler
-//   AP_miller-other-son_2 (thardbadeast)   -> the cult leader
+//   AP_millerotherson_1 (tharbadbridge)  -> Tolly the Peddler
+//   AP_millerotherson_2 (thardbadeast)   -> the cult leader
 void main()
 {
-    object oWP = GetWaypointByTag("AP_miller-other-son_1");
+    object oWP = GetWaypointByTag("AP_millerotherson_1");
     if (GetIsObjectValid(oWP) && !GetIsObjectValid(GetObjectByTag("mos2_peddler")))
         CreateObject(OBJECT_TYPE_CREATURE, "mos2_peddler", GetLocation(oWP));
 
-    oWP = GetWaypointByTag("AP_miller-other-son_2");
+    oWP = GetWaypointByTag("AP_millerotherson_2");
     if (GetIsObjectValid(oWP) && !GetIsObjectValid(GetObjectByTag("MillerCultLeader")))
         CreateObject(OBJECT_TYPE_CREATURE, "mos2_leader", GetLocation(oWP));
 }

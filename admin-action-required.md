@@ -10,24 +10,33 @@ _Appended by autopilot; delete entries as you complete them._
   ambush encounter trigger) — spawn point for the `fret_impostor` ruffian in the new
   Ferny's Return quest. Until it exists the quest can be accepted but the house stands
   empty (scripts no-op gracefully; the guard's reminder line re-checks on every talk).
-- [x] **miller-other-son** (2026-07-14): create waypoint tag `AP_miller-other-son_1` in
+- [x] **miller-other-son** (2026-07-14): create waypoint tag `AP_millerotherson_1` in
   `tharbadbridge` (on or near the bridge road, clear of the refugee crowd) — spawn point for
   `mos2_peddler` (Tolly the Peddler), the optional signpost NPC in the new The Miller's Other
   Son quest. Scripts no-op gracefully until it exists; Han's reminder line and the peddler's
   own greeting re-run the spawn check on every talk.
-- [x] **miller-other-son** (2026-07-14): create waypoint tag `AP_miller-other-son_2` in
+- [x] **miller-other-son** (2026-07-14): create waypoint tag `AP_millerotherson_2` in
   `thardbadeast` (in the ruins east of the bridge, a reasonable walk from the area transition
   so the "cult camp" reads as a destination) — spawn point for `mos2_leader` (The Voice of the
   Red Eye, tag `MillerCultLeader`), the quest's finale NPC. He spawns non-hostile (talk first,
   Persuade/fight/walk-away resolutions) and only turns hostile by script.
 
-- [x] **riddle-game** (2026-07-14): create waypoint tag `AP_riddle-game_1` in
+- [x] **riddle-game** (2026-07-14): create waypoint tag `AP_riddlegame_1` in
   `breecave` (Bree Cave — near the water's edge or a shadowy corner, clear of the
   existing spawns and the cave-mouth transition) — spawn point for `q_rid_wretch`
   (the Whispering Wretch), the weekly Riddle Game NPC. Spawned by `q_rid_spawn`
   from the area's OnEnter wrapper whenever a PC walks in; scripts no-op gracefully
   until the waypoint exists and never double-spawn. The placed Gollum boss is a
   separate blueprint and is unaffected.
+
+## Notes
+- **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
+  hyphen-less tags (`AP_riddlegame_1`, `AP_millerotherson_1/2`) while the scripts
+  originally looked for the hyphenated item ids (`AP_riddle-game_1`, …) — that's why the
+  wretch and Tolly never spawned. All scripts/blueprints now use your placed tags, so your
+  placements stand as-is; `AP_ferny_return_1` always matched. Beorn's Garden (WIP) was
+  renamed ahead of time to `AP_beornsgarden_1/2/3`. Autopilot's tag convention is now
+  hyphen-less going forward.
 
 ## Design questions
 - [ ] **unlock-more-inacessible-creature** (2026-07-13): the item's original ask ("write plan

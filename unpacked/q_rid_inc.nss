@@ -8,7 +8,7 @@
 // (quest_cd_inc QCD_IsDoneThisWeek — resets at the start of the ISO week,
 // UTC, matching the "weekly" intent; win or lose, the week is stamped).
 //
-// The wretch is script-spawned at waypoint AP_riddle-game_1 (Bree Cave) by
+// The wretch is script-spawned at waypoint AP_riddlegame_1 (Bree Cave) by
 // q_rid_spawn, fired from the area's OnEnter wrapper q_rid_enter. It no-ops
 // gracefully until the admin places the waypoint, and never double-spawns.
 // The placed CR-1029 Gollum boss (gollum.utc, Roll of the Fallen) is a
