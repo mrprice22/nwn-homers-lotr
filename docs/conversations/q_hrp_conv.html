@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_hrp_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_hrp_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>9</dd>
+<dt>PC replies</dt><dd>11</dd>
+<dt>NumWords</dt><dd>391</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_hrp_contact.html">Della Heathertoes</a> <code>q_hrp_contact</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_hrp_c_lore</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hrp_solve</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hrp_c_g1</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hrp_c_g2</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hrp_c_g3</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/pc-harper.html">The Cipher in the Inn</a></td><td><code>pc_harper</code></td><td>2</td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_hrp_c_g1</code>)</small> — *A road-worn woman in a fern-green cloak nurses a small beer at the corner table…</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_hrp_c_g2</code>)</small> — *She does not look up* You still carry the keeper&#x27;s word, cousin. Words are for …</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_hrp_c_g3</code>)</small> — *Her collar shifts; beneath it sits a small grey pin, twin to your own* Walk unr…</li>
+<li><a href="#e3">entry #3</a> — *A road-worn woman in a fern-green cloak looks up briefly, then back to her smal…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_hrp_c_g1</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*A road-worn woman in a fern-green cloak nurses a small beer at the corner table. As you settle across from her she slides a scrap of paper over the wood, without once looking up* Cold on the West Road this season. Colder still for those who cannot read the signs. *On the scrap, in a careful hand:* DAOR TSEW EHT SEHCTAW YERG EHT</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <small class="muted">(if <code>q_hrp_c_lore</code>)</small> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">*You read it at a glance* &#x27;The Grey watches the West Road.&#x27; Each word written tail-first, the line walked from its far end — the old road-cant of Arthedain.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*Her eyes come up for the first time, and there is nothing sleepy in them* Quick eyes. The keeper chooses better than he used to.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">And the word you would trust me with?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <span class="dlg-action">→ <code>q_hrp_solve</code></span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">*She leans close, as if remarking on the beer* Tell the keeper: &#x27;The road remembers.&#x27; He will know whose hand it came from. And word of you goes out tonight — north to Loriel, who sings in Rivendell&#x27;s hall, and south to the Lady&#x27;s watcher under the mallorns. Three of us will know your face before the moon turns. That is how it begins, cousin.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">&#x27;The road remembers.&#x27; I will carry it.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">These are letters tumbled together. Teach me the trick of it.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*quietly, into her cup* No song is sung the way it is written. Turn each word tail-first, then walk the whole line from its far end. Now — what does the scrap say?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">It says: &#x27;The Grey watches the West Road.&#x27;</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*She takes the scrap back and feeds it to the candle* So he does. Slowly learned is soundly kept.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“And the word you would trust me with?”</span></div>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">It says: &#x27;The road is grey, and watched.&#x27;</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*A small shake of the head* Near — and a message half-read is a friend half-buried. Tail-first, from the far end. Walk it again.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r2">reply #2</a> <span class="dlg-link-preview">“It says: &#x27;The Grey watches the West Road.&#x27;”</span></div>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r3">reply #3</a> <span class="dlg-link-preview">“It says: &#x27;The road is grey, and watched.&#x27;”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">It says: &#x27;Watch the grey West — the road hears.&#x27;</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“*A small shake of the head* Near — and a message half-read is a friend half-buri…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r4">reply #4</a> <span class="dlg-link-preview">“It says: &#x27;Watch the grey West — the road hears.&#x27;”</span></div>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Another time.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_hrp_c_g2</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*She does not look up* You still carry the keeper&#x27;s word, cousin. Words are for delivering — the Well is not so far.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">I am on my way.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_hrp_c_g3</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*Her collar shifts; beneath it sits a small grey pin, twin to your own* Walk unremarked, cousin. The road remembers.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text">The road remembers. Farewell.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">*A road-worn woman in a fern-green cloak looks up briefly, then back to her small beer* A traveller, resting her feet. Nothing more.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text">As you were, then.</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*A road-worn woman in a fern-green cloak nurses a small beer at the corner table. As you settle across from her she slides a scrap of paper over the wood, without once looking up* Cold on the West Road this season. Colder still for those who cannot read the signs. *On the scrap, in a careful hand:* DAOR TSEW EHT SEHCTAW YERG EHT</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“*You read it at a glance* &#x27;The Grey watches the West Road.&#x27; Each word written ta…”</span> <small class="muted">(if <code>q_hrp_c_lore</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“These are letters tumbled together. Teach me the trick of it.”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Another time.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*She does not look up* You still carry the keeper&#x27;s word, cousin. Words are for delivering — the Well is not so far.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“I am on my way.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*Her collar shifts; beneath it sits a small grey pin, twin to your own* Walk unremarked, cousin. The road remembers.</div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“The road remembers. Farewell.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">*A road-worn woman in a fern-green cloak looks up briefly, then back to her small beer* A traveller, resting her feet. Nothing more.</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“As you were, then.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*Her eyes come up for the first time, and there is nothing sleepy in them* Quick eyes. The keeper chooses better than he used to.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“And the word you would trust me with?”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*quietly, into her cup* No song is sung the way it is written. Turn each word tail-first, then walk the whole line from its far end. Now — what does the scrap say?</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“It says: &#x27;The Grey watches the West Road.&#x27;”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“It says: &#x27;The road is grey, and watched.&#x27;”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“It says: &#x27;Watch the grey West — the road hears.&#x27;”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*She takes the scrap back and feeds it to the candle* So he does. Slowly learned is soundly kept.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“And the word you would trust me with?”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*A small shake of the head* Near — and a message half-read is a friend half-buried. Tail-first, from the far end. Walk it again.</div><ul class="dlg-links"><li><a href="#r2">→ child</a> <span class="dlg-link-preview">“It says: &#x27;The Grey watches the West Road.&#x27;”</span></li><li><a href="#r3">→ child</a> <span class="dlg-link-preview">“It says: &#x27;The road is grey, and watched.&#x27;”</span></li><li><a href="#r4">→ child</a> <span class="dlg-link-preview">“It says: &#x27;Watch the grey West — the road hears.&#x27;”</span></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span> <span class="dlg-action">→ <code>q_hrp_solve</code></span></div><div class="dlg-text">*She leans close, as if remarking on the beer* Tell the keeper: &#x27;The road remembers.&#x27; He will know whose hand it came from. And word of you goes out tonight — north to Loriel, who sings in Rivendell&#x27;s hall, and south to the Lady&#x27;s watcher under the mallorns. Three of us will know your face before the moon turns. That is how it begins, cousin.</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“&#x27;The road remembers.&#x27; I will carry it.”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">*You read it at a glance* &#x27;The Grey watches the West Road.&#x27; Each word written tail-first, the line walked from its far end — the old road-cant of Arthedain.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*Her eyes come up for the first time, and there is nothing sleepy in them* Quick…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">These are letters tumbled together. Teach me the trick of it.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*quietly, into her cup* No song is sung the way it is written. Turn each word ta…”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">It says: &#x27;The Grey watches the West Road.&#x27;</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“*She takes the scrap back and feeds it to the candle* So he does. Slowly learned…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">It says: &#x27;The road is grey, and watched.&#x27;</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*A small shake of the head* Near — and a message half-read is a friend half-buri…”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">It says: &#x27;Watch the grey West — the road hears.&#x27;</div><ul class="dlg-links"><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“*A small shake of the head* Near — and a message half-read is a friend half-buri…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Another time.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">And the word you would trust me with?</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*She leans close, as if remarking on the beer* Tell the keeper: &#x27;The road rememb…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">&#x27;The road remembers.&#x27; I will carry it.</div></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">I am on my way.</div></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">The road remembers. Farewell.</div></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">As you were, then.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

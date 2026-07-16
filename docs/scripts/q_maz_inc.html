@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_maz_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_maz_inc</code></h1><pre class="nss-source"><code>// q_maz_inc.nss — The Twentieth Plot of Mazarbul shared helpers
+// (roadmap: twentieth-plot-mazarbul)
+//
+// T2 one-off (level 18+), journal tag &quot;mazarbul_20&quot;. Frar the Restless — a
+// shade of Balin&#x27;s colony haunting the Chamber of Records — begs the PC to
+// finish the colony&#x27;s last labor: a hidden codicil to the Book of Mazarbul
+// names twenty crypt-plots that must be kept sealed. Nineteen hold; the
+// twentieth&#x27;s seal-braziers were never lit. Light the three braziers
+// (Chamber of Records + Balin&#x27;s Tomb), face the wraith that rises to smother
+// the third flame, then return to Frar for the Seal of the Twentieth.
+//
+// Quest state is per-character and persistent (campaign DB MAZ_DB, same
+// scheme as Ferny&#x27;s Return &quot;fret&quot;): &quot;stage&quot; 0 none / 1 accepted / 2 braziers
+// done, wraith up / 3 wraith slain / 4 done, plus per-brazier keys
+// &quot;seal_1..3&quot; — relog- and restart-safe, no farmable local state. One-off:
+// stage 4 never resets.
+//
+// Everything is script-spawned at admin-placed waypoints (autopilot
+// no-coordinate-picking rule) and no-ops gracefully until they exist:
+//   AP_mazarbul20_1 — Frar&#x27;s shade (chamberofrecords)
+//   AP_mazarbul20_2 — brazier 1   (chamberofrecords)
+//   AP_mazarbul20_3 — brazier 2   (balinstomb)
+//   AP_mazarbul20_4 — brazier 3   (balinstomb)
+//   AP_mazarbul20_5 — optional wraith arena spot; if absent the wraith
+//                     rises at the brazier that completed the seal.
+// Spawning runs from the chamberofrecords/balinstomb OnEnter wrappers
+// (q_maz_ent1/q_maz_ent2), double-spawn guarded.
+//
+// Completability guard: at stage 2, using any brazier re-summons the wraith
+// if none is alive (someone else killed it, or the PC died and relogged),
+// so the fight can always be re-staged.
+
+const string MAZ_DB        = &quot;maz20&quot;;           // campaign DB name
+const string MAZ_QUEST     = &quot;mazarbul_20&quot;;     // journal tag
+const string MAZ_GHOST_RES = &quot;q_maz_ghost&quot;;
+const string MAZ_GHOST_TAG = &quot;maz_ghost&quot;;
+const string MAZ_WRAITH_RES = &quot;q_maz_wraith&quot;;
+const string MAZ_WRAITH_TAG = &quot;maz_wraith&quot;;
+const string MAZ_BRAZ_RES  = &quot;q_maz_braz&quot;;
+const string MAZ_BRAZ_TAG  = &quot;maz_brazier&quot;;
+const string MAZ_WP_PREFIX = &quot;AP_mazarbul20_&quot;;  // + 1..5 (admin-placed)
+
+const int MAZ_BRAZIERS = 3;
+const int MAZ_MIN_LVL  = 18;
+const int MAZ_GOLD     = 1200;
+const int MAZ_XP       = 2000;
+
+// Persistent quest stage for oPC (0 none / 1 accepted / 2 wraith / 3 slain /
+// 4 done).
+int MAZ_GetStage(object oPC)
+{
+    return GetCampaignInt(MAZ_DB, &quot;stage&quot;, oPC);
+}
+
+void MAZ_SetStage(object oPC, int nStage)
+{
+    SetCampaignInt(MAZ_DB, &quot;stage&quot;, nStage, oPC);
+}
+
+// TRUE if oPC has lit brazier nIdx (1..3).
+int MAZ_HasSeal(object oPC, int nIdx)
+{
+    return GetCampaignInt(MAZ_DB, &quot;seal_&quot; + IntToString(nIdx), oPC);
+}
+
+void MAZ_SetSeal(object oPC, int nIdx)
+{
+    SetCampaignInt(MAZ_DB, &quot;seal_&quot; + IntToString(nIdx), 1, oPC);
+}
+
+// Braziers oPC has lit (0..3).
+int MAZ_CountSeals(object oPC)
+{
+    int n = 0;
+    int i;
+    for (i = 1; i &lt;= MAZ_BRAZIERS; i++)
+    {
+        if (MAZ_HasSeal(oPC, i)) n++;
+    }
+    return n;
+}
+
+// Walk the master chain to the owning PC (summons/companions/henchmen credit
+// their master, same rule as the bestiary); OBJECT_INVALID for non-PC kills.
+object MAZ_OwningPC(object o)
+{
+    while (GetIsObjectValid(GetMaster(o))) o = GetMaster(o);
+    if (GetIsPC(o) &amp;&amp; !GetIsDM(o)) return o;
+    return OBJECT_INVALID;
+}
+
+// TRUE if a living Wraith of the Twentieth Plot stands anywhere.
+int MAZ_WraithAlive()
+{
+    int n = 0;
+    object o = GetObjectByTag(MAZ_WRAITH_TAG, n);
+    while (GetIsObjectValid(o))
+    {
+        if (!GetIsDead(o)) return TRUE;
+        o = GetObjectByTag(MAZ_WRAITH_TAG, ++n);
+    }
+    return FALSE;
+}
+
+// TRUE if a brazier with local index nIdx already stands anywhere
+// (double-spawn guard for MAZ_SpawnAll).
+int MAZ_BrazierExists(int nIdx)
+{
+    int n = 0;
+    object o = GetObjectByTag(MAZ_BRAZ_TAG, n);
+    while (GetIsObjectValid(o))
+    {
+        if (GetLocalInt(o, &quot;q_maz_idx&quot;) == nIdx) return TRUE;
+        o = GetObjectByTag(MAZ_BRAZ_TAG, ++n);
+    }
+    return FALSE;
+}
+
+// Spawn the ghost and all missing braziers at their admin-placed waypoints.
+// Graceful no-op for any waypoint not placed yet; never double-spawns.
+void MAZ_SpawnAll()
+{
+    object oWP = GetWaypointByTag(MAZ_WP_PREFIX + &quot;1&quot;);
+    if (GetIsObjectValid(oWP)
+        &amp;&amp; !GetIsObjectValid(GetObjectByTag(MAZ_GHOST_TAG)))
+        CreateObject(OBJECT_TYPE_CREATURE, MAZ_GHOST_RES, GetLocation(oWP));
+
+    int i;
+    for (i = 1; i &lt;= MAZ_BRAZIERS; i++)
+    {
+        oWP = GetWaypointByTag(MAZ_WP_PREFIX + IntToString(i + 1));
+        if (!GetIsObjectValid(oWP)) continue;
+        if (MAZ_BrazierExists(i)) continue;
+        object oBraz = CreateObject(OBJECT_TYPE_PLACEABLE, MAZ_BRAZ_RES,
+                                    GetLocation(oWP));
+        SetLocalInt(oBraz, &quot;q_maz_idx&quot;, i);
+    }
+}
+
+// Raise the wraith. Prefers the optional arena waypoint AP_mazarbul20_5;
+// falls back to oFallback&#x27;s own location (the brazier that completed the
+// seal — no coordinate picking). Single-spawn guarded.
+void MAZ_SpawnWraith(object oFallback)
+{
+    if (MAZ_WraithAlive()) return;
+
+    location lLoc = GetLocation(oFallback);
+    object oWP = GetWaypointByTag(MAZ_WP_PREFIX + &quot;5&quot;);
+    if (GetIsObjectValid(oWP)) lLoc = GetLocation(oWP);
+
+    object oWraith = CreateObject(OBJECT_TYPE_CREATURE, MAZ_WRAITH_RES, lLoc);
+    ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+                          EffectVisualEffect(VFX_FNF_SUMMON_UNDEAD),
+                          GetLocation(oWraith));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script prsg_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>prsg_inc</code></h1><pre class="nss-source"><code>// prsg_inc.nss — Prestige-order hub shared helpers (roadmap: prestige-trainer-hub)
+//
+// The hub: Halmir the Grey, Keeper of the Old Orders (prsg_trainer, tag
+// PrestigeTrainer), stands in the Well of Eru and brokers introductions to
+// the twelve &quot;old orders&quot; — the prestige classes, framed in-fiction as
+// orders/disciplines. He is script-spawned at the admin-placed waypoint
+// AP_prestigehub_1 by prsg_spawn (fired from the thewelloferu OnEnter
+// wrapper prsg_enter, which chains the area&#x27;s previous OnEnter
+// welloferuenter); everything no-ops gracefully until the waypoint exists
+// and never double-spawns.
+//
+// The gating framework the twelve future prestige quests reuse:
+//   * PRSG_MeetsLevel(oPC, nMin)  — total character level gate (hub lines).
+//   * PRSG_HasClass(oPC, nClass) — 1+ level in the prestige class (quest
+//     givers: pass a CLASS_TYPE_* constant).
+//   * PRSG_LVL_* constants        — the per-order minimum-level table.
+//   * The hub dialogue (prsg_conv) shows one line per order, each behind a
+//     per-order StartingConditional (prsg_c_harper .. prsg_c_shift) that
+//     checks that order&#x27;s minimum level — plus dwarf race for the Dwarven
+//     Defenders. Non-qualifying orders are hidden entirely.
+//
+// Campaign-DB idiom for the future prestige quests (mirrors the fret /
+// mos2 / maz20 pattern — per-character, persistent, relog- and
+// restart-safe, no farmable local state):
+//   * One shared DB PRSG_DB (&quot;prestigedb&quot;), keyed per character via the
+//     oPC parameter of Get/SetCampaignInt.
+//   * Per-order stage int under &quot;&lt;order&gt;_stage&quot; (use the short order keys:
+//     harper, pdk, pale, shadow, archer, rdd, assn, wm, bg, divch, dwdef,
+//     shift) — 0 none / 1 accepted / ... / N done; one-offs never reset
+//     their final stage. Read/write via PRSG_GetStage / PRSG_SetStage.
+//   * Extra per-order keys (kill counts, trial flags) go in the same DB as
+//     &quot;&lt;order&gt;_&lt;what&gt;&quot; so a whole order can be audited in one place.
+//
+// Custom token 6381 (PRSG_TOKEN_LIST) carries the &quot;orders that would hear
+// your name&quot; summary line; set by prsg_c_sum just before the line shows.
+
+const string PRSG_DB          = &quot;prestigedb&quot;;      // shared campaign DB
+const string PRSG_TRAINER_RES = &quot;prsg_trainer&quot;;    // hub NPC blueprint
+const string PRSG_TRAINER_TAG = &quot;PrestigeTrainer&quot;;
+const string PRSG_WP_TAG      = &quot;AP_prestigehub_1&quot;; // admin-placed waypoint
+const int    PRSG_TOKEN_LIST  = 6381;              // qualifying-orders token
+
+// Minimum total character level per order (the hub&#x27;s gating table).
+const int PRSG_LVL_HARPER  = 6;   // Harper Scout
+const int PRSG_LVL_PDK     = 6;   // Knight of Westernesse (Purple Dragon Knight)
+const int PRSG_LVL_PALE    = 11;  // Pale Master
+const int PRSG_LVL_SHADOW  = 11;  // Shadowdancer
+const int PRSG_LVL_ARCHER  = 12;  // Arcane Archer
+const int PRSG_LVL_RDD     = 12;  // Red Dragon Disciple
+const int PRSG_LVL_ASSN    = 13;  // Assassin
+const int PRSG_LVL_WM      = 13;  // Weapon Master
+const int PRSG_LVL_BG      = 14;  // Blackguard
+const int PRSG_LVL_DIVCH   = 14;  // Divine Champion
+const int PRSG_LVL_DWDEF   = 14;  // Dwarven Defender (Dwarf only)
+const int PRSG_LVL_SHIFT   = 16;  // Shifter
+
+// TRUE if oPC&#x27;s total character level is at least nMin.
+int PRSG_MeetsLevel(object oPC, int nMin)
+{
+    return GetHitDice(oPC) &gt;= nMin;
+}
+
+// TRUE if oPC already has 1+ level in nClass (a CLASS_TYPE_* constant).
+// The twelve prestige quests gate their giver lines on this.
+int PRSG_HasClass(object oPC, int nClass)
+{
+    return GetLevelByClass(nClass, oPC) &gt; 0;
+}
+
+// The Dwarven Defenders take only dwarves of proven years.
+int PRSG_QualifiesDwarvenDef(object oPC)
+{
+    return PRSG_MeetsLevel(oPC, PRSG_LVL_DWDEF)
+        &amp;&amp; GetRacialType(oPC) == RACIAL_TYPE_DWARF;
+}
+
+// Persistent per-order quest stage for oPC (see the header idiom).
+int PRSG_GetStage(object oPC, string sOrder)
+{
+    return GetCampaignInt(PRSG_DB, sOrder + &quot;_stage&quot;, oPC);
+}
+
+void PRSG_SetStage(object oPC, string sOrder, int nStage)
+{
+    SetCampaignInt(PRSG_DB, sOrder + &quot;_stage&quot;, nStage, oPC);
+}
+
+// Comma-list helper for PRSG_QualifyList.
+string PRSG_AppendOrder(string sList, string sOrder)
+{
+    if (sList == &quot;&quot;) return sOrder;
+    return sList + &quot;, &quot; + sOrder;
+}
+
+// Human-readable list of every order that would hear oPC&#x27;s name as they
+// stand today (the hub&#x27;s summary line, token PRSG_TOKEN_LIST).
+string PRSG_QualifyList(object oPC)
+{
+    string s = &quot;&quot;;
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_HARPER)) s = PRSG_AppendOrder(s, &quot;the Harper Scouts&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_PDK))    s = PRSG_AppendOrder(s, &quot;the Knights of Westernesse&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_PALE))   s = PRSG_AppendOrder(s, &quot;the Pale Masters&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_SHADOW)) s = PRSG_AppendOrder(s, &quot;the Shadowdancers&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_ARCHER)) s = PRSG_AppendOrder(s, &quot;the Arcane Archers&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_RDD))    s = PRSG_AppendOrder(s, &quot;the Red Dragon Disciples&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_ASSN))   s = PRSG_AppendOrder(s, &quot;the Assassins&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_WM))     s = PRSG_AppendOrder(s, &quot;the Weapon Masters&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_BG))     s = PRSG_AppendOrder(s, &quot;the Blackguards&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_DIVCH))  s = PRSG_AppendOrder(s, &quot;the Divine Champions&quot;);
+    if (PRSG_QualifiesDwarvenDef(oPC))         s = PRSG_AppendOrder(s, &quot;the Dwarven Defenders&quot;);
+    if (PRSG_MeetsLevel(oPC, PRSG_LVL_SHIFT))  s = PRSG_AppendOrder(s, &quot;the Shifters&quot;);
+
+    if (s == &quot;&quot;)
+        s = &quot;none yet — the orders look for proven hands; the first would &quot;
+            + &quot;hear your name at your sixth level&quot;;
+    return s;
+}
+
+// Spawn Halmir at the admin-placed waypoint. Graceful no-op until the
+// waypoint exists; never double-spawns (module-wide tag guard).
+void PRSG_SpawnTrainer()
+{
+    if (GetIsObjectValid(GetObjectByTag(PRSG_TRAINER_TAG))) return;
+
+    object oWP = GetWaypointByTag(PRSG_WP_TAG);
+    if (!GetIsObjectValid(oWP)) return;
+
+    CreateObject(OBJECT_TYPE_CREATURE, PRSG_TRAINER_RES, GetLocation(oWP));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

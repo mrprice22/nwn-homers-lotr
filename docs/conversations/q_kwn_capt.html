@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_kwn_capt</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_kwn_capt</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>7</dd>
+<dt>PC replies</dt><dd>8</dd>
+<dt>NumWords</dt><dd>330</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/gondorianguar005.html">Wart Gondorian Gate Captain</a> <code>gondorianguar005</code> — in <a href="../areas/minastirithgates.html">Minas Tirith: Gates</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/gondorianguar005.html">Wart Gondorian Gate Captain</a> — in <a href="../areas/minastirithgates.html">Minas Tirith: Gates</a></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_kwn_muster</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_kwn_banner</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_kwn_c_rep</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_kwn_c_mus</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_kwn_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_kwn_c_snt</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_kwn_c_aft</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/pc-pdk.html">The Banner of the West</a></td><td><code>pc_pdk</code></td><td>2, 4</td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_kwn_c_rep</code>)</small> — *The Gate Captain looks you over the way a mason looks over stone* A knight, is …</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_kwn_c_mus</code>)</small> — Three spears, ser knight — the gate-watch will hear you out. See they hear a com…</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_kwn_c_rdy</code>)</small> — *A guardsman murmurs at his shoulder, and the captain almost smiles* Three spear…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_kwn_c_snt</code>)</small> — The detail waits at the old banner-stone on the Pelennor, ser. The stone, and yo…</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_kwn_c_aft</code>)</small> — *He glances south over the wall, where a fleck of white worries the wind* It fli…</li>
+<li><a href="#e6">entry #6</a> — The Gate is watched, traveller. State your business or move along.</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_kwn_c_rep</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*The Gate Captain looks you over the way a mason looks over stone* A knight, is it. The Keeper&#x27;s grey mark is on you, or I am no judge of dust. Say your errand.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_kwn_muster</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Halmir the Grey sends me. The banner of the West is to fly over the Pelennor again — by my hand.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">Then earn the hand it needs. No standard of the City moves without spears around it, and no knight commands spears he has not mustered himself. Three of my gate-watch, ser — name the banner-detail to them plain, and when three stand to your word, come back to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">It will be done.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">Another time, captain.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_kwn_c_mus</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">Three spears, ser knight — the gate-watch will hear you out. See they hear a commander and not a messenger, or the count stays where it stands.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">They will hear a commander.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_kwn_c_rdy</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*A guardsman murmurs at his shoulder, and the captain almost smiles* Three spears answer you, and none of them soft ones. Very well. The standard of the West is released to your detail — they carry it out to the old banner-stone by the Rammas, on the Pelennor. Yours is the last part, and the whole of it: set it in the stone with your own hand.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>q_kwn_banner</code></span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">The banner will fly before the sun turns, captain.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_kwn_c_snt</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">The detail waits at the old banner-stone on the Pelennor, ser. The stone, and your hand — that is all that remains.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">I am for the field.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_kwn_c_aft</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*He glances south over the wall, where a fleck of white worries the wind* It flies, ser knight. The Gate is glad of it — gladder than it will say.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">While it flies, the West stands. Fair watch, captain.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">The Gate is watched, traveller. State your business or move along.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">No business, captain. Fair watch.</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*The Gate Captain looks you over the way a mason looks over stone* A knight, is it. The Keeper&#x27;s grey mark is on you, or I am no judge of dust. Say your errand.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Halmir the Grey sends me. The banner of the West is to fly over the Pelennor aga…”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Another time, captain.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Three spears, ser knight — the gate-watch will hear you out. See they hear a commander and not a messenger, or the count stays where it stands.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“They will hear a commander.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*A guardsman murmurs at his shoulder, and the captain almost smiles* Three spears answer you, and none of them soft ones. Very well. The standard of the West is released to your detail — they carry it out to the old banner-stone by the Rammas, on the Pelennor. Yours is the last part, and the whole of it: set it in the stone with your own hand.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“The banner will fly before the sun turns, captain.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">The detail waits at the old banner-stone on the Pelennor, ser. The stone, and your hand — that is all that remains.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I am for the field.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*He glances south over the wall, where a fleck of white worries the wind* It flies, ser knight. The Gate is glad of it — gladder than it will say.</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“While it flies, the West stands. Fair watch, captain.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Then earn the hand it needs. No standard of the City moves without spears around it, and no knight commands spears he has not mustered himself. Three of my gate-watch, ser — name the banner-detail to them plain, and when three stand to your word, come back to me.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“It will be done.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">The Gate is watched, traveller. State your business or move along.</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“No business, captain. Fair watch.”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_kwn_muster</code></span></div><div class="dlg-text">Halmir the Grey sends me. The banner of the West is to fly over the Pelennor again — by my hand.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Then earn the hand it needs. No standard of the City moves without spears around…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Another time, captain.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">They will hear a commander.</div></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span> <span class="dlg-action">→ <code>q_kwn_banner</code></span></div><div class="dlg-text">The banner will fly before the sun turns, captain.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I am for the field.</div></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">While it flies, the West stands. Fair watch, captain.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">It will be done.</div></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">No business, captain. Fair watch.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

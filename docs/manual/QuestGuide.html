@@ -205,12 +205,16 @@
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
+            <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
             <li><a href="#kalrist-tiger">Kallrist Tiger Hunt</a></li>
             <li><a href="#paths-of-the-dead">Paths of the Dead</a></li>
             <li><a href="#glorfindel">Glorfindel's Curative</a></li>
+            <li><a href="#prestige-hub">Prestige-Order Hub</a></li>
+            <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
+            <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -701,6 +705,57 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   progress tokens 6370&ndash;6372.</div>
 </div>
 
+<!-- THE TWENTIETH PLOT OF MAZARBUL -->
+<div class="quest-card" id="twentieth-plot">
+  <h3>The Twentieth Plot of Mazarbul <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>mazarbul_20</code></span>
+    <span>Giver: Frár the Restless, a shade of Balin's colony, in the <a href="../areas/chamberofrecords.html">Chamber of Records</a> (Moria)</span>
+    <span>Level range: 18+ (one-off)</span>
+    <span>Reward: 1200 gp + 2000 XP + <em>Seal of the Twentieth</em> (Damage Reduction +1/Soak 5, Damage Resistance: Negative 10/-)</span>
+  </div>
+  <p>A hidden codicil to the Book of Mazarbul names twenty burial plots whose seal-fires keep the
+  dead of Moria at rest. Nineteen were lit before the colony fell — the twentieth never was, and
+  what lies beneath it does not lie still. Frár, a restless dwarf-shade among the toppled
+  record-stones, asks you to finish his colony's last labor: <strong>light the three crypt-seal
+  braziers</strong> (one in the Chamber of Records, two in Balin's Tomb), then <strong>destroy the
+  wraith</strong> that rises to smother the third flame.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Frár the Restless</strong> in the Chamber of
+  Records; level 18+ required, once per character (one-off — the seal, once set, holds).<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept Frár's charge — the journal opens and the seal-braziers will take your flame.</li>
+    <li>Use each of the three Crypt-Seal Braziers once (per-character, persistent — floaty text
+      counts "N of 3"; each lighting also grants a short ward against grave-chill, Negative
+      resist 5/- for 5 minutes).</li>
+    <li>The third brazier raises the <strong>Wraith of the Twentieth Plot</strong> (CR 21).
+      Destroy it — the killing blow's party credits every party member in the area who is at the
+      wraith stage. If the wraith is slain while you are absent (or you fall and return), stir any
+      brazier's flame to re-summon it, so the fight can always be re-staged.</li>
+    <li>Return to Frár: 1200 gp, 2000 XP and the <em>Seal of the Twentieth</em>. The quest closes
+      for good.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-15 (roadmap <code>twentieth-plot-mazarbul</code>) — scripted
+  and built, pending in-game UAT. Per-character persistent state in the <code>maz20</code>
+  campaign DB (stage + <code>seal_1..3</code>), same one-off scheme as Ferny's Return, so
+  progress survives relogs and restarts and the reward can never be re-earned. Everything is
+  script-spawned: Frár (<code>q_maz_ghost</code>, a Plot dwarf commoner with a permanent ghostly
+  visage) and the braziers (<code>q_maz_braz</code>, CEP dungeon brazier, OnUsed
+  <code>q_maz_use</code>) come from the chamberofrecords/balinstomb OnEnter wrappers
+  (<code>q_maz_ent1/2</code>, chaining the areas' previous scripts) — <strong>the waypoints
+  <code>AP_mazarbul20_1</code> (ghost) and <code>AP_mazarbul20_2/3/4</code> (braziers) must be
+  placed in the toolset before anything appears</strong> (scripts no-op gracefully until then;
+  optional <code>AP_mazarbul20_5</code> sets a wraith arena spot, otherwise it rises at the
+  third-lit brazier — see admin-action-required.md). The wraith (<code>q_maz_wraith</code>) is a
+  detuned clone of the Witch King's wraith (CR 21 / 420 hp), single-spawn guarded, OnDeath
+  wrapper <code>q_maz_wd</code> chains <code>nw_c2_default7</code> (bestiary-safe). Elrond and
+  his "Elrond's Request" thread were deliberately left untouched — the ghost is the sole quest
+  giver. Progress token 6380.</div>
+</div>
+
 <!-- FEEDING THARBAD -->
 <div class="quest-card" id="feeding-tharbad">
   <h3>Feeding Tharbad <span class="status-badge status-ok">Working</span></h3>
@@ -915,6 +970,151 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <div class="dm-note">Fully scripted and wired — giver placed in Rivendell (<code>thevalleyofriven.git.json</code>).
   Undocumented before the 2026-07-11 audit; wiki page at <a href="../quests/glorfindel-potion.html">Glorfindel's Curative</a>.</div>
+</div>
+
+<!-- PRESTIGE-ORDER HUB -->
+<div class="quest-card" id="prestige-hub">
+  <h3>Prestige-Order Hub (Halmir the Grey) <span class="status-badge status-awol">Framework Shipped</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: none yet (no quest to track until the first prestige quest ships)</span>
+    <span>NPC: Halmir the Grey, Keeper of the Old Orders, at the <a href="../areas/thewelloferu.html">Well of Eru</a></span>
+    <span>Level range: any (order lines unlock at L6/11/12/13/14/16)</span>
+    <span>Reward: none yet — the hub foreshadows the twelve prestige-class quests</span>
+  </div>
+  <p>An old man in a grey cloak keeps <strong>the rolls of the twelve old orders</strong> — the
+  prestige classes, framed in-fiction as surviving disciplines of the elder days (Harper Scouts,
+  Knights of Westernesse, Pale Masters, Shadowdancers, Arcane Archers, Red Dragon Disciples,
+  Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
+  <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
+  character currently qualifies for. Each qualifying order also gets its own dialogue branch with
+  an evocative pitch. <strong>Two orders' trials are now live</strong> — the Harper Scouts' initiation,
+  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, and the
+  Knights of Westernesse's proving, <a href="#knight-west">The Banner of the West</a>, on his
+  Westernesse branch; the other ten branches still end with the masters "not yet having sent word"
+  and ship later, one roadmap item each, all hosted on this NPC.</p>
+
+  <strong>What he does today:</strong>
+  <ol>
+    <li>Order lines appear only when you meet that order's minimum character level
+      (Harper Scout / Knight of Westernesse 6+, Pale Master / Shadowdancer 11+, Arcane Archer /
+      Red Dragon Disciple 12+, Assassin / Weapon Master 13+, Blackguard / Divine Champion /
+      Dwarven Defender 14+, Shifter 16+). The Dwarven Defenders additionally require a dwarf.</li>
+    <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
+      says none would hear your name yet.</li>
+    <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
+      The first two — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a> and the
+      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a> — are live;
+      ten orders remain.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
+  built, pending in-game UAT. Halmir (<code>prsg_trainer</code>, tag <code>PrestigeTrainer</code>;
+  plot, immortal, commoner faction) is script-spawned by <code>prsg_spawn</code> from the Well of
+  Eru OnEnter wrapper <code>prsg_enter</code> (which chains the area's previous
+  <code>welloferuenter</code> — starter XP, donations chest, forge scan, leash — unchanged).
+  <strong>The waypoint <code>AP_prestigehub_1</code> must be placed in <code>thewelloferu</code>
+  before he appears</strong> (scripts no-op gracefully until then; see admin-action-required.md).
+  The shared gating framework the twelve future quests reuse lives in <code>prsg_inc.nss</code>:
+  <code>PRSG_MeetsLevel</code>, <code>PRSG_HasClass</code>, the <code>PRSG_LVL_*</code> table, the
+  per-order conditionals <code>prsg_c_*</code>, and a documented <code>prestigedb</code>
+  campaign-DB stage idiom (<code>PRSG_GetStage</code>/<code>PRSG_SetStage</code>).</div>
+</div>
+
+<!-- HARPER SCOUT — THE CIPHER IN THE INN -->
+<div class="quest-card" id="harper-scout">
+  <h3>The Cipher in the Inn (Harper Scout initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_harper</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Harper branch)</span>
+    <span>Requires: 1+ Harper Scout level (the hub line itself shows at character level 6+)</span>
+    <span>Reward: 750&nbsp;XP + <em>Harper Pin</em> (<code>q_hrp_pin</code> — Listen +3, Spot +3, Lore +3)</span>
+  </div>
+  <p>The first of the twelve prestige-order trials. Ask Halmir of the <strong>Harper Scouts</strong>:
+  if you already walk their roads (1+ Harper Scout level), he sends you to a friend who keeps the
+  corner table at the <strong>Prancing Pony</strong> in Bree — Della Heathertoes, a traveller in a
+  fern-green cloak. She tests you with a line of old road-cant, each word written tail-first:
+  <em>DAOR TSEW EHT SEHCTAW YERG EHT</em>. A learned character (<strong>Lore rank 8+</strong>) reads
+  it at a glance; anyone else gets her hint and picks the true reading from three (wrong picks loop
+  back to the hint — wordier, never a dead end). Read it true and she trusts you with the
+  counter-word; carry it back to Halmir and he enters your name on the rolls, with the pin to prove
+  it. One-off per character; word of your induction is "sent" to the Harper watchers in Rivendell
+  and Lothlórien in dialogue.</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Harper Scouts, accept the errand — <code>q_hrp_start</code> sets
+      stage 1 / journal 1 (non-Harpers instead get a "learn the first discipline" pointer line).</li>
+    <li>Sit with Della at the Prancing Pony (<code>q_hrp_conv</code>); solve the cipher via the Lore
+      shortcut or the hint path — <code>q_hrp_solve</code> sets stage 2 / journal 2.</li>
+    <li>Return to Halmir and say the word — <code>q_hrp_finish</code> awards the XP and the pin,
+      journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-15 (roadmap <code>harper-scout-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>harper</code>, stages 0–3; see <code>q_hrp_inc.nss</code>). Della
+  (<code>q_hrp_contact</code>, tag <code>HarperContact</code>; plot, commoner faction) is
+  script-spawned by <code>q_hrp_spawn</code> from the Prancing Pony OnEnter wrapper
+  <code>q_hrp_ent1</code> (which chains the previous <code>leash_to_area</code>).
+  <strong>The waypoint <code>AP_harperscout_1</code> must be placed in
+  <code>theprancingpo001</code> before she appears</strong> (scripts no-op gracefully until then;
+  accepting the errand also re-runs the spawn check — see admin-action-required.md). The design
+  card's Rivendell/Lothlórien contacts were folded into dialogue to keep the quest compact.</div>
+</div>
+
+<!-- KNIGHT OF WESTERNESSE — THE BANNER OF THE WEST -->
+<div class="quest-card" id="knight-west">
+  <h3>The Banner of the West (Knight of Westernesse initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_pdk</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Westernesse branch)</span>
+    <span>Requires: 1+ Knight of Westernesse level (Purple Dragon Knight; the hub line itself shows at character level 6+)</span>
+    <span>Reward: 750&nbsp;XP + <em>Banner of the West</em> (<code>q_kwn_shield</code> — tower shield, AC +3, saves vs. fear +3)</span>
+  </div>
+  <p>The second of the twelve prestige-order trials. Ask Halmir of the <strong>Knights of
+  Westernesse</strong>: if you already ride in their line (1+ Knight of Westernesse level), he sends
+  you to <strong>Wart, the Gate Captain</strong> at the
+  <a href="../areas/minastirithgates.html">Gates of Minas Tirith</a>. The captain sets a command
+  exercise: no standard of the City moves without spears around it, so <strong>muster three of his
+  gate-watch guardsmen</strong> to the banner-detail — speak to the Gondorian Guardsmen along the
+  Gates and name it to them plain (each spear rallied is counted to your permanent command tally).
+  With three mustered, the captain releases the standard; ride out to the <strong>old banner-stone
+  by the Rammas</strong> on the <a href="../areas/thepelennorfield.html">Pelennor Fields</a> and set
+  the banner in the stone with your own hand, then carry word back to Halmir for the knighthood.
+  One-off per character.</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Knights of Westernesse, accept the proving —
+      <code>q_kwn_start</code> sets stage 1 / journal 1 (non-knights instead get a "banner-knights
+      are made, not wished" pointer line).</li>
+    <li>Report to the Gate Captain (<code>q_kwn_capt</code>) — <code>q_kwn_muster</code> sets
+      stage 2 / journal 2.</li>
+    <li>Rally three gate-watch guardsmen (<code>q_kwn_guard</code>; each post counts once,
+      persistently) — the third rally (<code>q_kwn_rally</code>) sets stage 3 / journal 3.</li>
+    <li>Return to the captain for the standard — <code>q_kwn_banner</code> sets stage 4 /
+      journal 4.</li>
+    <li>Use the Banner-Stone of the Rammas on the Pelennor — <code>q_kwn_plant</code> sets
+      stage 5 / journal 5.</li>
+    <li>Return to Halmir — <code>q_kwn_finish</code> awards the XP and the shield, journal End
+      (stage 6, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>knight-westernesse-quest</code>) — scripted
+  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>pdk</code>, stages 0–6; muster tally under
+  <code>pdk_command</code>/<code>pdk_post_*</code> — see <code>q_kwn_inc.nss</code>). The Gate
+  Captain and the gate-watch guardsmen are <strong>existing placed NPCs, reused</strong>
+  (<code>gondorianguar005</code>/<code>gondorianguar001</code> at the Gates; instances carry post
+  indexes 1–7, seven posts for a three-post muster so a few dead guards can't strand the quest until
+  reboot). Only the banner-stone (<code>q_kwn_stone</code>, tag <code>kwn_bannerstone</code>) is
+  new, script-spawned by <code>q_kwn_spawn</code> from the Pelennor OnEnter wrapper
+  <code>q_kwn_ent1</code> (which chains the previous <code>d_cleartrash</code>).
+  <strong>The waypoint <code>AP_knightwest_1</code> must be placed in
+  <code>thepelennorfield</code> before the stone appears</strong> (scripts no-op gracefully until
+  then; accepting the proving and taking the standard both re-run the spawn check — see
+  admin-action-required.md). The design card's escort-across-the-field ("each guardsman who
+  survives adds +1 command") was compacted to the muster count — no henchman AI, same fiction.</div>
 </div>
 
 <hr>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_maz_use</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_maz_use</code></h1><pre class="nss-source"><code>// q_maz_use — seal-brazier OnUsed (roadmap: twentieth-plot-mazarbul)
+// Light a crypt-seal brazier: once per PC per brazier, persistent (campaign
+// DB &quot;maz20&quot; keys seal_1..3 — relog/restart-safe). Lighting grants a short
+// ward against grave-chill (minor negative-energy resistance, pure flavor).
+// The third seal completes the rite and raises the Wraith of the Twentieth
+// Plot. Completability guard: at stage 2 a brazier re-summons the wraith if
+// none is alive (someone else landed the kill, or the PC fell and returned),
+// so the fight can always be re-staged. Single-spawn guarded throughout.
+#include &quot;q_maz_inc&quot;
+
+void main()
+{
+    object oBraz = OBJECT_SELF;
+    object oPC   = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    int nStage = MAZ_GetStage(oPC);
+
+    if (nStage == 0)
+    {
+        FloatingTextStringOnCreature(
+            &quot;The brazier is cold and will not take a flame. The restless &quot;
+            + &quot;shade in the Chamber of Records knows its purpose.&quot;, oPC, FALSE);
+        return;
+    }
+
+    if (nStage == 1)
+    {
+        int nIdx = GetLocalInt(oBraz, &quot;q_maz_idx&quot;);
+        if (MAZ_HasSeal(oPC, nIdx))
+        {
+            FloatingTextStringOnCreature(
+                &quot;This seal-brazier already burns for you.&quot;, oPC, FALSE);
+            return;
+        }
+
+        MAZ_SetSeal(oPC, nIdx);
+        int nSeals = MAZ_CountSeals(oPC);
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_IMP_HEAD_HOLY), oPC);
+        // Grave-chill ward: minor, temporary, flavor only.
+        ApplyEffectToObject(DURATION_TYPE_TEMPORARY,
+            SupernaturalEffect(EffectDamageResistance(DAMAGE_TYPE_NEGATIVE, 5)),
+            oPC, 300.0);
+        FloatingTextStringOnCreature(&quot;The seal-brazier flares with pale fire (&quot;
+            + IntToString(nSeals) + &quot; of &quot;
+            + IntToString(MAZ_BRAZIERS) + &quot;).&quot;, oPC, FALSE);
+
+        if (nSeals &gt;= MAZ_BRAZIERS)
+        {
+            MAZ_SetStage(oPC, 2);
+            AddJournalQuestEntry(MAZ_QUEST, 2, oPC, FALSE, FALSE);
+            FloatingTextStringOnCreature(
+                &quot;The third seal is set -- and something shrieks in the deep!&quot;,
+                oPC, FALSE);
+            MAZ_SpawnWraith(oBraz);
+        }
+        return;
+    }
+
+    if (nStage == 2)
+    {
+        if (!MAZ_WraithAlive())
+        {
+            MAZ_SpawnWraith(oBraz);
+            FloatingTextStringOnCreature(
+                &quot;The flame gutters -- the wraith returns to smother it!&quot;,
+                oPC, FALSE);
+        }
+        else
+        {
+            FloatingTextStringOnCreature(
+                &quot;The wraith already walks -- destroy it!&quot;, oPC, FALSE);
+        }
+        return;
+    }
+
+    FloatingTextStringOnCreature(
+        &quot;The seal-fires burn steady over the twentieth plot.&quot;, oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

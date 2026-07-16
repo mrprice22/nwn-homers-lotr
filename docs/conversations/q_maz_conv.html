@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_maz_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_maz_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>8</dd>
+<dt>PC replies</dt><dd>9</dd>
+<dt>NumWords</dt><dd>406</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_maz_ghost.html">Frár the Restless</a> <code>q_maz_ghost</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_maz_end</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_maz_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_maz_c4</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_maz_c3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_maz_c2</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_maz_c1</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_maz_clow</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/q_maz_seal.html">Seal of the Twentieth</a></li></ul>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/mazarbul-20.html">The Twentieth Plot of Mazarbul</a></td><td><code>mazarbul_20</code></td><td>1, 4</td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6380&gt;</code></td><td><a href="../scripts/q_maz_c1.html">q_maz_c1</a></td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_maz_c4</code>)</small> — *The shade is faint now, and quiet* The twentieth plot lies sealed, friend of Du…</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_maz_c3</code>)</small> — *The shade stands straighter than any living dwarf* The fires burn. The wraith i…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_maz_c2</code>)</small> — The third fire burns — and it has come, as it came for us! Destroy the wraith! I…</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_maz_c1</code>)</small> — The seal-fires wait.  of 3 burn for you — one stands here among the records, two…</li>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_maz_clow</code>)</small> — *The shade looks through you, mournful* No. The thing beneath the twentieth plot…</li>
+<li><a href="#e6">entry #6</a> — *A dwarf stands among the toppled record-stones, pale as lamp-smoke, a torn page…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_maz_c4</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*The shade is faint now, and quiet* The twentieth plot lies sealed, friend of Durin&#x27;s folk. Frár remembers.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Rest well, Frár of Balin&#x27;s folk.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_maz_c3</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*The shade stands straighter than any living dwarf* The fires burn. The wraith is unmade. The twentieth plot of Mazarbul is sealed, and my watch — our watch — is ended at last.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>q_maz_end</code></span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">It is done. The wraith is destroyed, and the twentieth plot is sealed.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*He presses a heavy signet into your palm; it is grave-cold, and then it is not* The warden&#x27;s seal, and what gold the colony still owes its friends. Baruk Khazâd! Go in honor, friend of Durin&#x27;s folk.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Rest now, son of Durin&#x27;s folk.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_maz_c2</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">The third fire burns — and it has come, as it came for us! Destroy the wraith! If it slips from your sight, stir any seal-brazier&#x27;s flame and it will return to smother it.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">It will be destroyed.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_maz_c1</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">The seal-fires wait. <span class="custom-token" title="SetCustomToken(6380, ...) called in: q_maz_c1">&lt;CUSTOM6380&gt;<sup class="token-setters">[<a href="../scripts/q_maz_c1.html">q_maz_c1</a>]</sup></span> of 3 burn for you — one stands here among the records, two flank Balin&#x27;s tomb. Light them all, and stand ready for what rises with the third.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">I will see it done.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_maz_clow</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*The shade looks through you, mournful* No. The thing beneath the twentieth plot unmade better warriors than you, and I will not write another name in the Book. Return when you are stronger — the wraith is no foe for the untried.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">I will return when I am stronger.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*A dwarf stands among the toppled record-stones, pale as lamp-smoke, a torn page clutched in his fist* Stranger — hear me. I am Frár, of Balin&#x27;s colony. We wrote it in the Book of Mazarbul: twenty plots for our dead, twenty seal-fires to keep them. Nineteen were lit before the drums came up from the deep. The twentieth never was — and what lies beneath it does not lie still. Light the three seal-braziers — one in this chamber, two in Balin&#x27;s Tomb — and face what rises. Do this, and the warden&#x27;s seal is yours.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_maz_start</code></span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">I will light the seal-braziers, master dwarf.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*The shade bows low* The braziers stand cold where we left them: one here among the records, two flanking the tomb of Balin son of Fundin. Touch flame to all three. When the third burns, the thing that broke our watch will come to smother it — destroy it, and return to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">It will be done.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">The dead of Moria are no business of mine.</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*The shade is faint now, and quiet* The twentieth plot lies sealed, friend of Durin&#x27;s folk. Frár remembers.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Rest well, Frár of Balin&#x27;s folk.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*The shade stands straighter than any living dwarf* The fires burn. The wraith is unmade. The twentieth plot of Mazarbul is sealed, and my watch — our watch — is ended at last.</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“It is done. The wraith is destroyed, and the twentieth plot is sealed.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*He presses a heavy signet into your palm; it is grave-cold, and then it is not* The warden&#x27;s seal, and what gold the colony still owes its friends. Baruk Khazâd! Go in honor, friend of Durin&#x27;s folk.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Rest now, son of Durin&#x27;s folk.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">The third fire burns — and it has come, as it came for us! Destroy the wraith! If it slips from your sight, stir any seal-brazier&#x27;s flame and it will return to smother it.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“It will be destroyed.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">The seal-fires wait. <span class="custom-token" title="SetCustomToken(6380, ...) called in: q_maz_c1">&lt;CUSTOM6380&gt;<sup class="token-setters">[<a href="../scripts/q_maz_c1.html">q_maz_c1</a>]</sup></span> of 3 burn for you — one stands here among the records, two flank Balin&#x27;s tomb. Light them all, and stand ready for what rises with the third.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“I will see it done.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*The shade looks through you, mournful* No. The thing beneath the twentieth plot unmade better warriors than you, and I will not write another name in the Book. Return when you are stronger — the wraith is no foe for the untried.</div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“I will return when I am stronger.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*A dwarf stands among the toppled record-stones, pale as lamp-smoke, a torn page clutched in his fist* Stranger — hear me. I am Frár, of Balin&#x27;s colony. We wrote it in the Book of Mazarbul: twenty plots for our dead, twenty seal-fires to keep them. Nineteen were lit before the drums came up from the deep. The twentieth never was — and what lies beneath it does not lie still. Light the three seal-braziers — one in this chamber, two in Balin&#x27;s Tomb — and face what rises. Do this, and the warden&#x27;s seal is yours.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“I will light the seal-braziers, master dwarf.”</span></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“The dead of Moria are no business of mine.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*The shade bows low* The braziers stand cold where we left them: one here among the records, two flanking the tomb of Balin son of Fundin. Touch flame to all three. When the third burns, the thing that broke our watch will come to smother it — destroy it, and return to me.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“It will be done.”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Rest well, Frár of Balin&#x27;s folk.</div></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>q_maz_end</code></span></div><div class="dlg-text">It is done. The wraith is destroyed, and the twentieth plot is sealed.</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“*He presses a heavy signet into your palm; it is grave-cold, and then it is not*…”</span></li></ul></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Rest now, son of Durin&#x27;s folk.</div></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">It will be destroyed.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">I will see it done.</div></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">I will return when I am stronger.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_maz_start</code></span></div><div class="dlg-text">I will light the seal-braziers, master dwarf.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*The shade bows low* The braziers stand cold where we left them: one here among…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">The dead of Moria are no business of mine.</div></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">It will be done.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
