@@ -74,6 +74,15 @@ _Appended by autopilot; delete entries as you complete them._
   hub NPC. Spawned by `prsg_spawn` from the area's OnEnter wrapper (`prsg_enter`);
   scripts no-op gracefully until the waypoint exists and never double-spawn. All twelve
   future prestige quests will hang their giver dialogues on this NPC.
+- [ ] **harper-scout-quest** (2026-07-15): create waypoint tag `AP_harperscout_1` in
+  `theprancingpo001` (The Prancing Pony ground floor — at or beside a corner table, clear
+  of Barliman, the merit NPC and the door) — spawn point for `q_hrp_contact` (Della
+  Heathertoes, tag `HarperContact`, the Harper cipher contact; plot, non-hostile).
+  Spawned by `q_hrp_spawn` from the inn's OnEnter wrapper `q_hrp_ent1` (chains the
+  previous `leash_to_area`) and re-checked when a PC accepts the errand from Halmir;
+  scripts no-op gracefully until the waypoint exists and never double-spawn. Until it
+  exists the errand can be accepted but not advanced. Note the quest offer also requires
+  Halmir's own waypoint `AP_prestigehub_1` (entry above).
 
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry

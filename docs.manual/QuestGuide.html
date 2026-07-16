@@ -165,6 +165,7 @@
             <li><a href="#paths-of-the-dead">Paths of the Dead</a></li>
             <li><a href="#glorfindel">Glorfindel's Curative</a></li>
             <li><a href="#prestige-hub">Prestige-Order Hub</a></li>
+            <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -937,8 +938,10 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
   <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
   character currently qualifies for. Each qualifying order also gets its own dialogue branch with
-  an evocative pitch; every branch ends with the masters "not yet having sent word" — the twelve
-  trials ship later, one roadmap item each, all hosted on this NPC.</p>
+  an evocative pitch. <strong>One order's trial is now live</strong> — the Harper Scouts' initiation,
+  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch; the other
+  eleven branches still end with the masters "not yet having sent word" and ship later, one roadmap
+  item each, all hosted on this NPC.</p>
 
   <strong>What he does today:</strong>
   <ol>
@@ -948,7 +951,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       Dwarven Defender 14+, Shifter 16+). The Dwarven Defenders additionally require a dwarf.</li>
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
-    <li>No journal entry and no rewards yet — the quests themselves are separate roadmap items.</li>
+    <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
+      The first, the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, is live;
+      eleven orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -962,6 +967,48 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <code>PRSG_MeetsLevel</code>, <code>PRSG_HasClass</code>, the <code>PRSG_LVL_*</code> table, the
   per-order conditionals <code>prsg_c_*</code>, and a documented <code>prestigedb</code>
   campaign-DB stage idiom (<code>PRSG_GetStage</code>/<code>PRSG_SetStage</code>).</div>
+</div>
+
+<!-- HARPER SCOUT — THE CIPHER IN THE INN -->
+<div class="quest-card" id="harper-scout">
+  <h3>The Cipher in the Inn (Harper Scout initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_harper</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Harper branch)</span>
+    <span>Requires: 1+ Harper Scout level (the hub line itself shows at character level 6+)</span>
+    <span>Reward: 750&nbsp;XP + <em>Harper Pin</em> (<code>q_hrp_pin</code> — Listen +3, Spot +3, Lore +3)</span>
+  </div>
+  <p>The first of the twelve prestige-order trials. Ask Halmir of the <strong>Harper Scouts</strong>:
+  if you already walk their roads (1+ Harper Scout level), he sends you to a friend who keeps the
+  corner table at the <strong>Prancing Pony</strong> in Bree — Della Heathertoes, a traveller in a
+  fern-green cloak. She tests you with a line of old road-cant, each word written tail-first:
+  <em>DAOR TSEW EHT SEHCTAW YERG EHT</em>. A learned character (<strong>Lore rank 8+</strong>) reads
+  it at a glance; anyone else gets her hint and picks the true reading from three (wrong picks loop
+  back to the hint — wordier, never a dead end). Read it true and she trusts you with the
+  counter-word; carry it back to Halmir and he enters your name on the rolls, with the pin to prove
+  it. One-off per character; word of your induction is "sent" to the Harper watchers in Rivendell
+  and Lothlórien in dialogue.</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Harper Scouts, accept the errand — <code>q_hrp_start</code> sets
+      stage 1 / journal 1 (non-Harpers instead get a "learn the first discipline" pointer line).</li>
+    <li>Sit with Della at the Prancing Pony (<code>q_hrp_conv</code>); solve the cipher via the Lore
+      shortcut or the hint path — <code>q_hrp_solve</code> sets stage 2 / journal 2.</li>
+    <li>Return to Halmir and say the word — <code>q_hrp_finish</code> awards the XP and the pin,
+      journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-15 (roadmap <code>harper-scout-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>harper</code>, stages 0–3; see <code>q_hrp_inc.nss</code>). Della
+  (<code>q_hrp_contact</code>, tag <code>HarperContact</code>; plot, commoner faction) is
+  script-spawned by <code>q_hrp_spawn</code> from the Prancing Pony OnEnter wrapper
+  <code>q_hrp_ent1</code> (which chains the previous <code>leash_to_area</code>).
+  <strong>The waypoint <code>AP_harperscout_1</code> must be placed in
+  <code>theprancingpo001</code> before she appears</strong> (scripts no-op gracefully until then;
+  accepting the errand also re-runs the spawn check — see admin-action-required.md). The design
+  card's Rivendell/Lothlórien contacts were folded into dialogue to keep the quest compact.</div>
 </div>
 
 <hr>

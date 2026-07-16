@@ -1,0 +1,76 @@
+// q_hrp_inc.nss — Harper Scout initiation "The Cipher in the Inn"
+// (roadmap: harper-scout-quest)
+//
+// The first of the twelve prestige-order quests hung on Halmir the Grey
+// (the prestige hub, prsg_inc.nss). T1 one-off, journal tag "pc_harper".
+//
+// Flow: Halmir's Harper branch (prsg_conv) offers the errand to a PC with
+// 1+ Harper Scout level (the roadmap/design gate — the hub line itself is
+// visible from total level 6). The PC finds Halmir's contact at the corner
+// table of the Prancing Pony in Bree — Della Heathertoes, a traveller in a
+// fern-green cloak — who tests them with a line of road-cant (each word
+// written tail-first). A Lore check (rank 8+) reads it at a glance; anyone
+// else gets a hint and picks the true reading from three (wrong picks loop
+// back — wordier, never a dead end). She trusts the PC with the
+// counter-word; carrying it back to Halmir completes the induction: the
+// Harper Pin plus a little XP. The card's Rivendell/Lothlorien contacts are
+// folded into her dialogue (word of the new Harper is *sent* north) to keep
+// the quest T1-compact — one contact, one waypoint.
+//
+// Quest state is per-character and persistent via the prestige hub's
+// campaign-DB stage idiom (prestigedb, order key "harper" — see
+// prsg_inc.nss): 0 none / 1 accepted / 2 cipher solved / 3 done. One-off:
+// stage 3 never resets.
+//
+// The contact is script-spawned at the admin-placed waypoint
+// AP_harperscout_1 (theprancingpo001) by q_hrp_spawn, fired from the
+// Prancing Pony OnEnter wrapper q_hrp_ent1 (which chains the previous
+// OnEnter, leash_to_area) and re-checked when the quest is accepted.
+// Graceful no-op until the waypoint exists; never double-spawns.
+
+#include "prsg_inc"
+
+const string QHRP_ORDER       = "harper";           // prestigedb stage key
+const string QHRP_QUEST       = "pc_harper";        // journal category tag
+const string QHRP_CONTACT_RES = "q_hrp_contact";
+const string QHRP_CONTACT_TAG = "HarperContact";
+const string QHRP_WP_TAG      = "AP_harperscout_1"; // admin-placed waypoint
+const string QHRP_PIN_RES     = "q_hrp_pin";
+
+const int QHRP_XP      = 750;  // induction XP (L6-tier)
+const int QHRP_LORE_DC = 8;    // Lore rank that reads the cipher at a glance
+
+// Stages (see header).
+const int QHRP_STAGE_NONE     = 0;
+const int QHRP_STAGE_ACCEPTED = 1;
+const int QHRP_STAGE_SOLVED   = 2;
+const int QHRP_STAGE_DONE     = 3;
+
+int QHRP_GetStage(object oPC)
+{
+    return PRSG_GetStage(oPC, QHRP_ORDER);
+}
+
+void QHRP_SetStage(object oPC, int nStage)
+{
+    PRSG_SetStage(oPC, QHRP_ORDER, nStage);
+}
+
+// TRUE if oPC has taken up the Harpers' discipline (1+ Harper Scout level)
+// — the design gate for being counted on the rolls.
+int QHRP_IsHarper(object oPC)
+{
+    return PRSG_HasClass(oPC, CLASS_TYPE_HARPER);
+}
+
+// Spawn Della at the admin-placed waypoint. Graceful no-op until the
+// waypoint exists; never double-spawns (module-wide tag guard).
+void QHRP_SpawnContact()
+{
+    if (GetIsObjectValid(GetObjectByTag(QHRP_CONTACT_TAG))) return;
+
+    object oWP = GetWaypointByTag(QHRP_WP_TAG);
+    if (!GetIsObjectValid(oWP)) return;
+
+    CreateObject(OBJECT_TYPE_CREATURE, QHRP_CONTACT_RES, GetLocation(oWP));
+}
