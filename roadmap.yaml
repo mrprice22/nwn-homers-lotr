@@ -1650,11 +1650,12 @@ ideas:
   - id: knight-westernesse-quest
     title: "Prestige quest: Knight of Westernesse (L6+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T1. Compact single quest from the prestige hub, gated on 1+ Knight of Westernesse level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 15357fe512b
+    notes: "<span>T1. Compact single quest from the prestige hub, gated on 1+ Knight of Westernesse level; modest +3-tier item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> shipped as <b>The Banner of the West</b>, journal tag pc_pdk — the hub's second live order (offer requires 1+ Knight of Westernesse level via the framework; non-knights get an in-fiction pointer). Halmir sends the knight to <b>Wart, the Gondorian Gate Captain</b> at the Minas Tirith Gates (existing placed NPC, previously conversation-less), who orders a muster: rally three of the seven placed gate guardsmen, receive the standard, and plant it at the <b>Banner-Stone</b> on the Pelennor Fields (placeable spawned at waypoint <b>AP_knightwest_1 — admin must place it</b>). Return to Halmir for 750 XP + the <b>Banner of the West</b> tower shield (AC +3, saves vs fear +3). Notes: the design's guardsofconstant/bishobofconstant turned out to be Sauron's Mount Doom guards, so the Gondorian gate garrison is used instead; the guardsmen needed the split-blueprint pattern (they share a blueprint with ten Minas Tirith city placements) so respawns keep the dialog — divergence gate verified. The card's escort mechanic was compacted to the muster exercise (same fiction, same pdk_command counter, no henchman AI at T1 scope). One-off, relog-safe (prestigedb pdk stages, hardened guards). Docs: card moved from Quest Ideas.html into QuestGuide.html; hub card now two orders live, ten pending.</div><div><br></div><div><b>UAT:</b> (1) place AP_knightwest_1 in thepelennorfield, deploy; (2) hub gating — non-knight L6+ gets the pointer, PDK level 1+ gets the offer; (3) full flow: Wart → rally 3 gate posts (floaty count; 4th post says already-mustered) → standard released → plant at the Banner-Stone → Halmir pays XP + shield, journal ends, epilogue-only after; (4) relog mid-quest resumes (rally tally persists); (5) regression: Harper branch + ten placeholders unchanged, Minas Tirith city guards unchanged, gate guardsmen respawn identically, Pelennor OnEnter still clears trash/leashes.</div>"
 
   - id: pale-master-quest
     title: "Prestige quest: Pale Master (L11+)"
