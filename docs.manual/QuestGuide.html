@@ -172,6 +172,7 @@
             <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer)</a></li>
             <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple)</a></li>
             <li><a href="#assassin">The Quiet Knives (Assassin)</a></li>
+            <li><a href="#weapon-master">The Sworn Blade (Weapon Master)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -961,13 +962,14 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first seven — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first eight — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
       <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
       <a href="#arcane-archer">The Warden's Mark</a>, the Red Dragon Disciples'
-      <a href="#red-dragon">The Old Wyrm's Fire</a>, and the Assassins'
-      <a href="#assassin">The Quiet Knives</a> — are live; five orders remain.</li>
+      <a href="#red-dragon">The Old Wyrm's Fire</a>, the Assassins'
+      <a href="#assassin">The Quiet Knives</a>, and the Weapon Masters'
+      <a href="#weapon-master">The Sworn Blade</a> — are live; four orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1308,6 +1310,58 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   deliberately avoid the Shadowdancer boots' Hide / Move Silently / Tumble. The turn-in is a
   <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the writ
   in hand, so the reward can't be re-earned.</div>
+</div>
+
+<hr>
+
+<div class="quest-card" id="weapon-master">
+  <h3>The Sworn Blade (Weapon Master initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_weaponmaster</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Weapon Masters branch)</span>
+    <span>Requires: 1+ Weapon Master level (the hub line itself shows at character level 13+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Buckle of the Sworn Blade</em> (<code>q_wpm_belt</code> — Discipline +3, Parry +3, Saving Throws vs. Fear +3)</span>
+  </div>
+  <p>The eighth of the twelve prestige-order trials. Ask Halmir of the <strong>Weapon
+  Masters</strong>: if your hand is already sworn to its weapon (1+ Weapon Master level), he names
+  the proving. Below the white walls of <a href="../areas/minastirith.html">Minas Tirith</a> the
+  Guard keeps its training row — scarred practice posts that have taken the cuts of every
+  swordmaster Gondor ever raised. <strong>Strike the first post with the weapon your soul is
+  sworn to</strong> — a main-hand weapon whose <em>Weapon of Choice</em> feat you actually have.
+  Bare hands or a borrowed blade fail the attempt with a flavor message ("this is not the weapon
+  your soul is sworn to"); draw the chosen blade and strike again. No dice — the feat is the whole
+  test, deterministic and retryable. The cut frees the <em>Notch of the Proven Blade</em> (plot +
+  cursed — it can't be dropped, sold, or handed off), which goes back to Halmir for the induction.
+  One-off per character; if the notch is somehow lost, striking the post again re-gives it (never
+  duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Weapon Masters, accept the trial — <code>q_wpm_start</code>
+      sets stage 1 / journal 1 (non–Weapon Masters instead get a "one weapon, chosen and kept"
+      pointer line).</li>
+    <li>Use the first practice post in Minas Tirith with your Weapon of Choice equipped in the
+      main hand — <code>q_wpm_dummy</code> (the post's OnUsed) reads the weapon's
+      <code>WeaponOfChoiceFeat</code> from <code>baseitems.2da</code> and checks
+      <code>GetHasFeat</code>; sworn, it gives the <em>Notch of the Proven Blade</em> and sets
+      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the notch — <code>q_wpm_finish</code> consumes it, awards the XP and
+      the buckle, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>weapon-master-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>wm</code>, stages 0–3; see <code>q_wpm_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the first of the
+  three existing Combat Dummy placeables in <code>minastirith</code> (instance of
+  <code>plc_cmbtdummy</code>), retagged <code>WMTrialPost</code> and flipped usable + plot
+  (it was Static/non-usable with no scripts, so nothing is chained; no script referenced the old
+  shared <code>Combat Dummy</code> tag, and the other two dummies keep it). The sworn-blade check
+  covers every melee base item with a Weapon of Choice feat, stock and CEP alike, via the
+  <code>baseitems.2da</code> lookup — ranged weapons and non-weapons read as blank and fail. The
+  reward's picks (Discipline / Parry / saves vs. fear) fit the order and avoid all sibling
+  rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only
+  fires from stage 2 with the notch in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
