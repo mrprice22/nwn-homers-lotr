@@ -47,6 +47,25 @@ The loop is designed to survive context compaction and long runs. Two rules:
 
 Each iteration works exactly **one** item, end to end:
 
+### 0. Reconcile
+
+Before picking anything, check for a previous run cut off mid-item (reboot, crash, ran
+out of compute). Read `autopilot-wip.md` (repo root) and run `git status --porcelain`.
+
+- **`id: none` and a clean tree** → nothing to reconcile, go to step 1 as normal.
+- **`stage: shipping` with a `commit:` hash, but `roadmap.yaml` doesn't yet show that
+  item as `implemented` with that hash** → the code already shipped; a reboot just hit
+  between 7.1 and 7.3. Don't redo the implementation — resume directly at step 7.2 using
+  the recorded hash, then continue the loop normally.
+- **`stage: implementing`/`test-build` for a named item** (or the tree is dirty and the
+  marker names an item) → an item was interrupted mid-work. Treat this as *resuming that
+  item*, not picking a new one: inspect what's on disk and either finish it cleanly
+  (→ step 6 → step 7) or, if the state is unclear or unsalvageable, apply the step 5
+  "too big" escape hatch — append a dated note explaining the interruption and either
+  continue it next iteration or fall into the design-question path (step 4). Same
+  git-safety rules as always apply: `git status` before anything destructive, never
+  `reset --hard`/`clean -f` without confirming first.
+
 ### 1. Select
 
 Re-read `roadmap.yaml` fresh (the admin or the roadmap-editor may have changed it since
@@ -80,6 +99,17 @@ item's `notes`** including testing/UAT notes, and any **admin-action-required en
 (waypoints, deploy steps, design questions). The orchestrator then does the roadmap
 bookkeeping (steps 4/5/7.2–7.4) from that report — it never trusts "done" without the
 subagent citing a passing build and a commit hash.
+
+**Keep `autopilot-wip.md` live while working.** At the very start of the item, overwrite
+it with the item's `id`, `started` timestamp, and `stage: implementing`. As you create or
+edit files for this item, append their repo-relative paths (space-separated) to its
+`files:` line — this is the manifest the session-boundary safety net (below) is allowed
+to touch; it never blanket-adds the whole tree. Keep `notes:` a current one-line summary
+of what's in flight (e.g. `"placed waypoint AP_x_1, mid-writing forge_inc.nss, build not
+yet run"`) — this is the closest thing to human-readable handoff if the session is cut
+off. Update `stage` to `test-build` before step 6 and `shipping` (with the `commit:`
+hash) right after step 7.1's commit succeeds; reset the whole file to `id: none` after
+step 7.3's roadmap commit lands.
 
 Work the item following the existing docs ([CLAUDE-recipes.md](CLAUDE-recipes.md),
 [CLAUDE-gotchas.md](CLAUDE-gotchas.md), [CLAUDE-nwscript.md](CLAUDE-nwscript.md), etc.).
@@ -174,6 +204,7 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
    auto-committer ("Auto Wiki Activity Refresh") may snapshot the working tree mid-work,
    and the hash recorded in the roadmap must be the real completion commit. Message
    format: `<Item title or short name>: <what changed> (roadmap: <item-id>)`.
+   Immediately after, update `autopilot-wip.md`: `stage: shipping`, `commit:` this hash.
 2. **Update the roadmap item** per CLAUDE-roadmap.md's agent rules:
    - `status: implemented` (never `awarded`)
    - `commit:` the hash from step 1
@@ -184,6 +215,9 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
 3. **Roadmap commit** (same procedure for rebalance/escape-hatch commits):
    `python3 bin/gen-roadmap.py --check`, then `python3 bin/gen-roadmap.py`, commit
    `roadmap.yaml` + `docs.manual/Roadmap.html` together. Do **not** run the wiki refresh.
+   Reset `autopilot-wip.md` to `id: none` (clear `started`/`stage`/`commit`/`files`/
+   `notes`) — it's gitignored (local machine state only, see "Session-boundary safety
+   net"), so this reset is just a plain file write, not part of any commit.
 4. **Push** to `origin/main` after each shipped item so nothing sits unpushed.
 
 ### 8. Loop
@@ -191,6 +225,29 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
 Go back to step 1. Between iterations, self-pace with ScheduleWakeup if running under
 `/autopilot` (most work is synchronous, so iterations usually chain directly; use a long
 fallback wakeup ~1800s only when waiting on something).
+
+## Session-boundary safety net
+
+`autopilot-wip.md` (repo root, machine-maintained — see step 3, **gitignored**: it's
+local-machine state, not something that needs to travel with the repo) is the mechanical
+backup for a session that gets cut off with no chance to clean up (killed process, host
+reboot, context limit hit mid-turn). Claude Code exposes no signal to the model for
+"you're about to run out of context" — compaction is transparent — but it does fire two
+hook events we use as a dumb, reliable last resort:
+
+- **`PreCompact`** — fires just before context compaction. The nearest thing to a "98%"
+  warning that actually exists.
+- **`SessionEnd`** — fires when the session terminates.
+
+Both are wired in `.claude/settings.json` to `bin/autopilot-safety-commit <event-name>`.
+That script **only** acts when `autopilot-wip.md` shows an active item (`id:` not `none`)
+**and** its `files:` line names paths that actually changed — it stages exactly those
+paths and nothing else, then commits. It is a no-op during ordinary interactive sessions,
+and it never runs a blanket `git add -A` (tested empirically: that would have swept in
+unrelated untracked work sitting in the tree at the time, not just the current item's
+files). It can't write rich handoff notes — that needs model judgment — so the live
+`notes:` line kept during step 3 is the real handoff; the hook's job is only to make sure
+nothing in the manifest is lost to an uncommitted tree.
 
 ## `admin-action-required.md` (repo root)
 

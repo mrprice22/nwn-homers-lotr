@@ -8,6 +8,8 @@ description: Run the unattended roadmap autopilot loop — pick roadmap.yaml ite
 Read **CLAUDE-autopilot.md** (repo root) and execute its loop exactly. Summary of what
 you're signing up for (the runbook is authoritative — read it in full before starting):
 
+0. **Reconcile first**: check `autopilot-wip.md` + `git status` for a previous run cut
+   off mid-item before picking anything new (see the runbook's step 0).
 1. Pick one `confirmed` roadmap item (rebalance tiers per the runbook's quotas when
    `confirmed` is empty).
 2. Implement it **in a fresh `general-purpose` subagent** (fresh context per item; inline
