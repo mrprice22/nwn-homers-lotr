@@ -1670,11 +1670,12 @@ ideas:
   - id: shadowdancer-quest
     title: "Prestige quest: Shadowdancer initiation (L11+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Compact quest with a torch-suppression fail condition, gated on 1+ Shadowdancer level. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: e0c41dd
+    notes: "<span>T2. Compact quest with a torch-suppression fail condition, gated on 1+ Shadowdancer level. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Unlit Deep\" — Shadowdancer initiation, fourth prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ Shadowdancer level; others get a pointer line. Flow: accept from Halmir → use the existing DeepWell beside Balin's Tomb <b>without any light</b> — carrying a torch or any light-property item in any slot, or an active Light/Continual Flame effect, fails the attempt with a flavor message (retry allowed; the well's original splash-sound script still chains for everyone) → receive the Skein of the Unlit Deep (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Boots of the Unlit Road (Hide +3, Move Silently +3, Tumble +3). State in prestigedb (order key <code>shadow</code>, one-off); journal <code>pc_shadowdancer</code>. No new placements or waypoints. QuestGuide.html updated (hub now four live orders).</div><div><br></div><div><b>UAT:</b> (1) non-SD L11+ PC sees only the pointer line; (2) SD PC accepts, journal 1, stage survives relog; (3) at the DeepWell: lit → fail message and nothing granted, unlit → skein + journal 2; well still plays its sounds for uninvolved PCs; (4) turn-in consumes skein, grants XP + boots, ends journal; epilogue only afterwards, no second reward.</div>"
 
   - id: arcane-archer-quest
     title: "Prestige quest: Arcane Archer (L12+)"
