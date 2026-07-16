@@ -166,6 +166,7 @@
             <li><a href="#glorfindel">Glorfindel's Curative</a></li>
             <li><a href="#prestige-hub">Prestige-Order Hub</a></li>
             <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
+            <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -938,10 +939,11 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
   <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
   character currently qualifies for. Each qualifying order also gets its own dialogue branch with
-  an evocative pitch. <strong>One order's trial is now live</strong> — the Harper Scouts' initiation,
-  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch; the other
-  eleven branches still end with the masters "not yet having sent word" and ship later, one roadmap
-  item each, all hosted on this NPC.</p>
+  an evocative pitch. <strong>Two orders' trials are now live</strong> — the Harper Scouts' initiation,
+  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, and the
+  Knights of Westernesse's proving, <a href="#knight-west">The Banner of the West</a>, on his
+  Westernesse branch; the other ten branches still end with the masters "not yet having sent word"
+  and ship later, one roadmap item each, all hosted on this NPC.</p>
 
   <strong>What he does today:</strong>
   <ol>
@@ -952,8 +954,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first, the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, is live;
-      eleven orders remain.</li>
+      The first two — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a> and the
+      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a> — are live;
+      ten orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1009,6 +1012,61 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <code>theprancingpo001</code> before she appears</strong> (scripts no-op gracefully until then;
   accepting the errand also re-runs the spawn check — see admin-action-required.md). The design
   card's Rivendell/Lothlórien contacts were folded into dialogue to keep the quest compact.</div>
+</div>
+
+<!-- KNIGHT OF WESTERNESSE — THE BANNER OF THE WEST -->
+<div class="quest-card" id="knight-west">
+  <h3>The Banner of the West (Knight of Westernesse initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_pdk</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Westernesse branch)</span>
+    <span>Requires: 1+ Knight of Westernesse level (Purple Dragon Knight; the hub line itself shows at character level 6+)</span>
+    <span>Reward: 750&nbsp;XP + <em>Banner of the West</em> (<code>q_kwn_shield</code> — tower shield, AC +3, saves vs. fear +3)</span>
+  </div>
+  <p>The second of the twelve prestige-order trials. Ask Halmir of the <strong>Knights of
+  Westernesse</strong>: if you already ride in their line (1+ Knight of Westernesse level), he sends
+  you to <strong>Wart, the Gate Captain</strong> at the
+  <a href="../areas/minastirithgates.html">Gates of Minas Tirith</a>. The captain sets a command
+  exercise: no standard of the City moves without spears around it, so <strong>muster three of his
+  gate-watch guardsmen</strong> to the banner-detail — speak to the Gondorian Guardsmen along the
+  Gates and name it to them plain (each spear rallied is counted to your permanent command tally).
+  With three mustered, the captain releases the standard; ride out to the <strong>old banner-stone
+  by the Rammas</strong> on the <a href="../areas/thepelennorfield.html">Pelennor Fields</a> and set
+  the banner in the stone with your own hand, then carry word back to Halmir for the knighthood.
+  One-off per character.</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Knights of Westernesse, accept the proving —
+      <code>q_kwn_start</code> sets stage 1 / journal 1 (non-knights instead get a "banner-knights
+      are made, not wished" pointer line).</li>
+    <li>Report to the Gate Captain (<code>q_kwn_capt</code>) — <code>q_kwn_muster</code> sets
+      stage 2 / journal 2.</li>
+    <li>Rally three gate-watch guardsmen (<code>q_kwn_guard</code>; each post counts once,
+      persistently) — the third rally (<code>q_kwn_rally</code>) sets stage 3 / journal 3.</li>
+    <li>Return to the captain for the standard — <code>q_kwn_banner</code> sets stage 4 /
+      journal 4.</li>
+    <li>Use the Banner-Stone of the Rammas on the Pelennor — <code>q_kwn_plant</code> sets
+      stage 5 / journal 5.</li>
+    <li>Return to Halmir — <code>q_kwn_finish</code> awards the XP and the shield, journal End
+      (stage 6, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>knight-westernesse-quest</code>) — scripted
+  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>pdk</code>, stages 0–6; muster tally under
+  <code>pdk_command</code>/<code>pdk_post_*</code> — see <code>q_kwn_inc.nss</code>). The Gate
+  Captain and the gate-watch guardsmen are <strong>existing placed NPCs, reused</strong>
+  (<code>gondorianguar005</code>/<code>gondorianguar001</code> at the Gates; instances carry post
+  indexes 1–7, seven posts for a three-post muster so a few dead guards can't strand the quest until
+  reboot). Only the banner-stone (<code>q_kwn_stone</code>, tag <code>kwn_bannerstone</code>) is
+  new, script-spawned by <code>q_kwn_spawn</code> from the Pelennor OnEnter wrapper
+  <code>q_kwn_ent1</code> (which chains the previous <code>d_cleartrash</code>).
+  <strong>The waypoint <code>AP_knightwest_1</code> must be placed in
+  <code>thepelennorfield</code> before the stone appears</strong> (scripts no-op gracefully until
+  then; accepting the proving and taking the standard both re-run the spawn check — see
+  admin-action-required.md). The design card's escort-across-the-field ("each guardsman who
+  survives adds +1 command") was compacted to the muster count — no henchman AI, same fiction.</div>
 </div>
 
 <hr>

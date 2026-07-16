@@ -2,7 +2,7 @@
   "__data_type": "UTC ",
   "Appearance_Head": {
     "type": "byte",
-    "value": 38
+    "value": 1
   },
   "Appearance_Type": {
     "type": "word",
@@ -86,11 +86,11 @@
   },
   "Cha": {
     "type": "byte",
-    "value": 40
+    "value": 30
   },
   "ChallengeRating": {
     "type": "float",
-    "value": 341.0
+    "value": 80.0
   },
   "ClassList": {
     "type": "list",
@@ -103,57 +103,46 @@
         },
         "ClassLevel": {
           "type": "short",
-          "value": 60
-        }
-      },
-      {
-        "__struct_id": 2,
-        "Class": {
-          "type": "int",
-          "value": 33
-        },
-        "ClassLevel": {
-          "type": "short",
-          "value": 20
+          "value": 32
         }
       }
     ]
   },
   "Color_Hair": {
     "type": "byte",
-    "value": 51
+    "value": 1
   },
   "Color_Skin": {
     "type": "byte",
-    "value": 2
+    "value": 1
   },
   "Color_Tattoo1": {
     "type": "byte",
-    "value": 164
+    "value": 1
   },
   "Color_Tattoo2": {
     "type": "byte",
-    "value": 62
+    "value": 1
   },
   "Comment": {
     "type": "cexostring",
-    "value": ""
+    "value": "Gate-watch Gondorian Guardsman for the Knight of Westernesse proving (roadmap: knight-westernesse-quest). Dedicated split blueprint of gondorianguar001 (per bin/split-divergent-creatures.py's pattern) so the seven placed gate-watch instances at minastirithgates keep the banner-detail conversation (q_kwn_guard) across se_respawn respawns. Same tag ms_minas2, same stats. The rally post index (local int q_kwn_post 1..7) lives on the placed instances and is restored at reboot; a respawned guard loses it until then, which is why there are seven posts for a three-post muster."
   },
   "Con": {
     "type": "byte",
-    "value": 100
+    "value": 40
   },
   "Conversation": {
     "type": "resref",
-    "value": "q_kwn_capt"
+    "value": "q_kwn_guard"
   },
   "CRAdjust": {
     "type": "int",
-    "value": 100
+    "value": 14
   },
   "CurrentHitPoints": {
     "type": "short",
-    "value": 2870
+    "value": 888
   },
   "DecayTime": {
     "type": "dword",
@@ -169,15 +158,26 @@
   },
   "Dex": {
     "type": "byte",
-    "value": 50
+    "value": 40
   },
   "Disarmable": {
     "type": "byte",
-    "value": 1
+    "value": 0
   },
   "Equip_ItemList": {
     "type": "list",
     "value": [
+      {
+        "__struct_id": 1,
+        "Dropable": {
+          "type": "byte",
+          "value": 1
+        },
+        "EquippedRes": {
+          "type": "resref",
+          "value": "gondorianhelm"
+        }
+      },
       {
         "__struct_id": 2,
         "Dropable": {
@@ -186,7 +186,7 @@
         },
         "EquippedRes": {
           "type": "resref",
-          "value": "gondorianplat002"
+          "value": "gondorianplate"
         }
       },
       {
@@ -197,43 +197,25 @@
         },
         "EquippedRes": {
           "type": "resref",
-          "value": "gondorianlong003"
+          "value": "gondorianlongswo"
         }
       },
       {
         "__struct_id": 32,
-        "EquippedRes": {
-          "type": "resref",
-          "value": "shieldofgondo001"
-        }
-      },
-      {
-        "__struct_id": 64,
         "Dropable": {
           "type": "byte",
           "value": 1
         },
         "EquippedRes": {
           "type": "resref",
-          "value": "maarcl030"
-        }
-      },
-      {
-        "__struct_id": 1024,
-        "Dropable": {
-          "type": "byte",
-          "value": 1
-        },
-        "EquippedRes": {
-          "type": "resref",
-          "value": "nightsmoke"
+          "value": "shieldofgondor"
         }
       },
       {
         "__struct_id": 131072,
         "EquippedRes": {
           "type": "resref",
-          "value": "celebornsgarb003"
+          "value": "celebornsgarb002"
         }
       }
     ]
@@ -298,34 +280,6 @@
         "__struct_id": 1,
         "Feat": {
           "type": "word",
-          "value": 636
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 983
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 674
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 391
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
           "value": 14
         }
       },
@@ -354,28 +308,7 @@
         "__struct_id": 1,
         "Feat": {
           "type": "word",
-          "value": 248
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
           "value": 26
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 224
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 726
         }
       },
       {
@@ -397,20 +330,6 @@
         "Feat": {
           "type": "word",
           "value": 258
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 427
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 426
         }
       },
       {
@@ -439,13 +358,6 @@
         "Feat": {
           "type": "word",
           "value": 106
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Feat": {
-          "type": "word",
-          "value": 928
         }
       },
       {
@@ -488,12 +400,12 @@
   "FirstName": {
     "type": "cexolocstring",
     "value": {
-      "0": "Wart"
+      "0": "Gondorian Guardsman"
     }
   },
   "fortbonus": {
     "type": "short",
-    "value": 18
+    "value": 0
   },
   "Gender": {
     "type": "byte",
@@ -505,7 +417,7 @@
   },
   "HitPoints": {
     "type": "short",
-    "value": 2870
+    "value": 888
   },
   "Int": {
     "type": "byte",
@@ -523,80 +435,10 @@
     "type": "byte",
     "value": 0
   },
-  "ItemList": {
-    "type": "list",
-    "value": [
-      {
-        "__struct_id": 0,
-        "Dropable": {
-          "type": "byte",
-          "value": 1
-        },
-        "InventoryRes": {
-          "type": "resref",
-          "value": "it_mpotion030"
-        },
-        "Pickpocketable": {
-          "type": "byte",
-          "value": 1
-        },
-        "Repos_PosX": {
-          "type": "word",
-          "value": 0
-        },
-        "Repos_Posy": {
-          "type": "word",
-          "value": 0
-        }
-      },
-      {
-        "__struct_id": 1,
-        "Dropable": {
-          "type": "byte",
-          "value": 1
-        },
-        "InventoryRes": {
-          "type": "resref",
-          "value": "it_mpotion031"
-        },
-        "Pickpocketable": {
-          "type": "byte",
-          "value": 1
-        },
-        "Repos_PosX": {
-          "type": "word",
-          "value": 1
-        },
-        "Repos_Posy": {
-          "type": "word",
-          "value": 0
-        }
-      },
-      {
-        "__struct_id": 2,
-        "Dropable": {
-          "type": "byte",
-          "value": 1
-        },
-        "InventoryRes": {
-          "type": "resref",
-          "value": "it_mring007"
-        },
-        "Repos_PosX": {
-          "type": "word",
-          "value": 2
-        },
-        "Repos_Posy": {
-          "type": "word",
-          "value": 0
-        }
-      }
-    ]
-  },
   "LastName": {
     "type": "cexolocstring",
     "value": {
-      "0": "Gondorian Gate Captain"
+      "0": ""
     }
   },
   "LawfulChaotic": {
@@ -609,15 +451,15 @@
   },
   "MaxHitPoints": {
     "type": "short",
-    "value": 6550
+    "value": 1400
   },
   "NaturalAC": {
     "type": "byte",
-    "value": 0
+    "value": 20
   },
   "NoPermDeath": {
     "type": "byte",
-    "value": 0
+    "value": 1
   },
   "PaletteID": {
     "type": "byte",
@@ -637,7 +479,7 @@
   },
   "PortraitId": {
     "type": "word",
-    "value": 95
+    "value": 104
   },
   "Race": {
     "type": "byte",
@@ -645,59 +487,59 @@
   },
   "refbonus": {
     "type": "short",
-    "value": 39
+    "value": 0
   },
   "ScriptAttacked": {
     "type": "resref",
-    "value": "nw_c2_default5"
+    "value": "x2_def_attacked"
   },
   "ScriptDamaged": {
     "type": "resref",
-    "value": "nw_c2_default6"
+    "value": "x2_def_ondamage"
   },
   "ScriptDeath": {
     "type": "resref",
-    "value": "wartdeath"
+    "value": "staticspawn"
   },
   "ScriptDialogue": {
     "type": "resref",
-    "value": "nw_c2_default4"
+    "value": "x2_def_onconv"
   },
   "ScriptDisturbed": {
     "type": "resref",
-    "value": "nw_c2_default8"
+    "value": "x2_def_ondisturb"
   },
   "ScriptEndRound": {
     "type": "resref",
-    "value": "nw_c2_default3"
+    "value": "x2_def_endcombat"
   },
   "ScriptHeartbeat": {
     "type": "resref",
-    "value": "nw_c2_default1"
+    "value": "x2_def_heartbeat"
   },
   "ScriptOnBlocked": {
     "type": "resref",
-    "value": "nw_c2_defaulte"
+    "value": "x2_def_onblocked"
   },
   "ScriptOnNotice": {
     "type": "resref",
-    "value": "nw_c2_default2"
+    "value": "x2_def_percept"
   },
   "ScriptRested": {
     "type": "resref",
-    "value": "nw_c2_defaulta"
+    "value": "x2_def_rested"
   },
   "ScriptSpawn": {
     "type": "resref",
-    "value": "nw_c2_default9"
+    "value": "x2_def_spawn"
   },
   "ScriptSpellAt": {
     "type": "resref",
-    "value": "nw_c2_defaultb"
+    "value": "x2_def_spellcast"
   },
   "ScriptUserDefine": {
     "type": "resref",
-    "value": "nw_c2_defaultd"
+    "value": "x2_def_userdef"
   },
   "SkillList": {
     "type": "list",
@@ -895,7 +737,7 @@
   },
   "SoundSetFile": {
     "type": "word",
-    "value": 177
+    "value": 156
   },
   "SpecAbilityList": {
     "type": "list",
@@ -903,11 +745,11 @@
   },
   "StartingPackage": {
     "type": "byte",
-    "value": 112
+    "value": 4
   },
   "Str": {
     "type": "byte",
-    "value": 90
+    "value": 40
   },
   "Subrace": {
     "type": "cexostring",
@@ -915,7 +757,7 @@
   },
   "Tag": {
     "type": "cexostring",
-    "value": "ms_minas22122"
+    "value": "ms_minas2"
   },
   "Tail": {
     "type": "byte",
@@ -927,7 +769,7 @@
   },
   "TemplateResRef": {
     "type": "resref",
-    "value": "gondorianguar005"
+    "value": "q_kwn_gguard"
   },
   "WalkRate": {
     "type": "int",
@@ -935,7 +777,7 @@
   },
   "willbonus": {
     "type": "short",
-    "value": 19
+    "value": 0
   },
   "Wings": {
     "type": "byte",
@@ -943,6 +785,6 @@
   },
   "Wis": {
     "type": "byte",
-    "value": 50
+    "value": 30
   }
 }

@@ -84,6 +84,18 @@ _Appended by autopilot; delete entries as you complete them._
   exists the errand can be accepted but not advanced. Note the quest offer also requires
   Halmir's own waypoint `AP_prestigehub_1` (entry above).
 
+- [ ] **knight-westernesse-quest** (2026-07-16): create waypoint tag `AP_knightwest_1` in
+  `thepelennorfield` (The Pelennor Fields — somewhere open and reachable, suggest near the
+  road or the Rammas side of the field, clear of the Rohirrim encounter spawns) — spawn
+  point for `q_kwn_stone` (the Banner-Stone of the Rammas, tag `kwn_bannerstone`; plot,
+  usable placeable, flag appearance). Spawned by `q_kwn_spawn` from the field's OnEnter
+  wrapper `q_kwn_ent1` (chains the previous `d_cleartrash`) and re-checked when the
+  proving is accepted and when the Gate Captain releases the standard; scripts no-op
+  gracefully until the waypoint exists and never double-spawn. Until it exists the quest
+  can be advanced to stage 4 (standard released) but not finished. The quest's NPCs are
+  all existing placed guardsmen at `minastirithgates` (no waypoint needed for them); the
+  quest offer also requires Halmir's own waypoint `AP_prestigehub_1` (entry above).
+
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
   hyphen-less tags (`AP_riddlegame_1`, `AP_millerotherson_1/2`) while the scripts
