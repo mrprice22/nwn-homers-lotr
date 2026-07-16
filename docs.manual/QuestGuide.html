@@ -170,6 +170,7 @@
             <li><a href="#pale-master">The Twenty-First Tomb (Pale Master)</a></li>
             <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer)</a></li>
             <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer)</a></li>
+            <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -959,11 +960,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first five — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first six — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
-      <a href="#shadowdancer">The Unlit Deep</a>, and the Arcane Archers'
-      <a href="#arcane-archer">The Warden's Mark</a> — are live; seven orders remain.</li>
+      <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
+      <a href="#arcane-archer">The Warden's Mark</a>, and the Red Dragon Disciples'
+      <a href="#red-dragon">The Old Wyrm's Fire</a> — are live; six orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1205,6 +1207,55 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   requires a longbow/shortbow in the weapon hand and any item in the arrow slot; crossbows and
   slings don't count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish
   only fires from stage 2 with the shaft in hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- RED DRAGON DISCIPLE — THE OLD WYRM'S FIRE -->
+<div class="quest-card" id="red-dragon">
+  <h3>The Old Wyrm's Fire (Red Dragon Disciple initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_dragondisciple</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Red Dragon Disciples branch)</span>
+    <span>Requires: 1+ Red Dragon Disciple level (the hub line itself shows at character level 12+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Wyrmblood Amulet</em> (<code>q_rdd_amulet</code> — Spellcraft +3, Intimidate +3, Saving Throws vs. Fire +3)</span>
+  </div>
+  <p>The sixth of the twelve prestige-order trials. Ask Halmir of the <strong>Red Dragon
+  Disciples</strong>: if the wyrm's fire is already awake in your veins (1+ Red Dragon Disciple
+  level), he names the trial — in the great hall of the
+  <a href="../areas/lonelymountainma.html">Lonely Mountain</a> stands the <strong>Forge of
+  Durin</strong>, and under its banked coals an ember of the old wyrm's fire — the fire that
+  ruined Dale — still glows. Rake it out bare-handed. The coals yield the ember <strong>only to
+  an unwarded hand — using the forge with any elemental ward active (Endure Elements, Resist
+  Elements, Protection from Elements, Energy Buffer, or Elemental Shield) fails the
+  attempt</strong> with a flavor message; let the ward lapse or dispel it and try again ("the
+  blood must feel the flame"). The ember (plot + cursed — it can't be dropped, sold, or handed
+  off) goes back to Halmir for the induction. One-off per character; if the ember is somehow
+  lost, drawing at the forge again re-gives it (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Red Dragon Disciples, accept the trial —
+      <code>q_rdd_start</code> sets stage 1 / journal 1 (non-Disciples instead get a "one is not
+      led to that inheritance — one is born to it, or wakes it" pointer line).</li>
+    <li>Use the Forge of Durin in the Lonely Mountain's main hall with no elemental-ward spell
+      effect active — <code>q_rdd_forge</code> checks via <code>GetHasSpellEffect</code>
+      (deterministic, no dice); unwarded, it gives the <em>Ember of the Old Wyrm</em> and sets
+      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the ember — <code>q_rdd_finish</code> consumes it, awards the XP and
+      the amulet, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>red-dragon-disciple-quest</code>) — scripted
+  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>rdd</code>, stages 0–3; see <code>q_rdd_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing
+  "The Forge of Durin" anvil placeable in <code>lonelymountainma</code>, retagged
+  <code>DurinForge</code> (it was already usable; OnUsed <code>q_rdd_forge</code> added — it
+  previously had no OnUsed, so nothing is chained; no script referenced its old
+  <code>Anvil</code> tag). The unwarded check (<code>QRDD_BloodIsWarded</code>) covers the five
+  standard elemental-ward spells only — item-borne permanent fire resistance can't be detected by
+  script and deliberately doesn't count. The turn-in is a <code>GetItemPossessedBy</code> reagent
+  check; the finish only fires from stage 2 with the ember in hand, so the reward can't be
+  re-earned.</div>
 </div>
 
 <hr>
