@@ -1695,11 +1695,12 @@ ideas:
   - id: red-dragon-disciple-quest
     title: "Prestige quest: Red Dragon Disciple (L12+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Compact single quest, gated on 1+ Red Dragon Disciple level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 1ee4a3d
+    notes: "<span>T2. Compact single quest, gated on 1+ Red Dragon Disciple level; modest +3-tier item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Old Wyrm's Fire\" — Red Dragon Disciple initiation, sixth prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ RDD level; others get a pointer line. Flow: accept from Halmir → use the existing Forge of Durin anvil in the Lonely Mountain Main Hall (retagged, OnUsed added — no new placements) <b>with no elemental ward active</b> — Endure/Resist/Protection from Elements, Energy Buffer, or Elemental Shield fails the attempt with a \"the blood must feel the flame\" retry message → receive the Ember of the Old Wyrm (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Wyrmblood Amulet (Spellcraft +3, Intimidate +3, Saves vs. Fire +3 — no AB/damage, forge-cap-safe). State in prestigedb (order key <code>rdd</code>, one-off); journal <code>pc_dragondisciple</code>. QuestGuide.html updated (hub now six live orders / six remaining).</div><div><br></div><div><b>UAT:</b> (1) non-RDD L12+ PC sees only the pointer line; (2) RDD PC accepts, journal 1; (3) at the Forge of Durin: any elemental ward active → fail message, unwarded → ember + journal 2; (4) turn-in consumes ember, grants XP + amulet, ends journal; epilogue only afterwards, no second reward; (5) regression — nothing else in the Lonely Mountain hall broke from the anvil retag (no script referenced the old generic Anvil tag).</div>"
 
   - id: assassin-quest
     title: "Prestige quest: Assassin contract (L13+)"
