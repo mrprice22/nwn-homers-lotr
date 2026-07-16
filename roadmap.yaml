@@ -1349,9 +1349,12 @@ ideas:
   - id: item-rename
     title: "Let players rename their weapons (e.g. a chisel item)"
     group: items-gear
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "Piskan (Alec Cain)"
+    date: "2026-07-16"
+    commit: f10e0d8
+    notes: "<div><b>Fixed 2026-07-16:</b> added the <b>Engraver's Chisel</b> (tag <code>WeaponChisel</code>) — sold at the Well Mart in the Well of Eru for 25,000 gp (infinite stock; priced against the Bag of Holding 35k / Rod of Fast Buffing 10k). Flow: equip the weapon in your main hand, activate the chisel, then speak the new name in chat — the name is applied with SetName, the line is suppressed so nobody else sees it, and the chisel is consumed only on a successful rename. Name rules: non-empty, ≤40 chars, no &lt; or &gt; (blocks color codes/token markup); say \"cancel\" to abort without spending the chisel. The name persists on the item through the character vault — no DB. Renaming doesn't change the forge fingerprint, so renamed weapons stay forge-legal. Customizations.html got a Weapon Renaming section. Implemented by chaining the existing OnActivateItem (dmfi_activate) and OnPlayerChat (code_redeem) handlers — Code: redemption is untouched.</div><div><br></div><div><b>UAT:</b> (1) buy a chisel at the Well Mart (25,000 gp, Miscellaneous panel); (2) activate with no weapon equipped → refusal; (3) with a weapon equipped, chat a name → weapon renamed, chisel gone, other players don't see the line; (4) \"cancel\" / 41+ chars / a &lt;b&gt;-style name → refused, chisel kept; (5) Code: redemption still works; (6) relog → name persists.</div>"
   - id: item-morph-type
     title: "Change an item's type/subtype while keeping its properties (e.g. bastard sword -> kama)"
     group: items-gear
