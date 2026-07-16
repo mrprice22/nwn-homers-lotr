@@ -461,6 +461,15 @@ forces; keep the parent's stat boost modest so it's a threat multiplier, not a s
   <p class="tier-sub">More bodies where a mob is genuinely reused — tactical <em>because</em> it feeds the healing economy.</p>
 </div>
 
+<div class="tip-box">
+  <p><strong class="done">Status: shipped 2026-07-15</strong> (roadmap: <code>encounter-density-reused-mobs</code>).
+  Applied exactly as specified below, on the placed <code>.git.json</code> instances: 32 encounter instances
+  across 9 areas had their per-instance spawn count (<code>RecCreatures</code>) bumped 1 → 2 (nothing raised
+  above 2, nothing already ≥ 2 touched), thickening 23 genuinely reused creatures. Every solo
+  (<code>MaxCreatures == 1</code>) encounter — 61 placed instances in total, including all 9 registry boss
+  encounters — was left untouched, and the Roll-of-the-Fallen build gate still verifies 78 bosses unchanged.</p>
+</div>
+
 <div class="loot-box">
   <strong>Why density is on-axis (not just atmosphere)</strong>
   On its own, "more bodies" is a tax — it raises incoming damage for everyone equally, which is just a longer
