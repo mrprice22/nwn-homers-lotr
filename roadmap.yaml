@@ -1640,11 +1640,12 @@ ideas:
   - id: harper-scout-quest
     title: "Prestige quest: Harper Scout (L6+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T1. Compact single quest from the prestige hub, gated on 1+ Harper Scout level; grants a modest +3-tier class item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 8543f22d6df
+    notes: "<span>T1. Compact single quest from the prestige hub, gated on 1+ Harper Scout level; grants a modest +3-tier class item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> shipped as <b>The Cipher in the Inn</b>, journal tag pc_harper — the first live order at Halmir's prestige hub. Offer requires 1+ Harper Scout level (per this note and the design card; non-Harper L6+ characters get an in-fiction pointer line instead of a dead placeholder). Halmir sends the scout to <b>Della Heathertoes</b> at the Prancing Pony (plot NPC in a fern-green Lothlórien cloak, script-spawned at waypoint <b>AP_harperscout_1 — admin must place it</b>, inn behavior otherwise untouched); she slides over a reversed-word cipher — Lore 8+ reads it at a glance, lower Lore works through a three-candidate hint loop that can never dead-end. Returning to Halmir with the counter-word pays 750 XP + the <b>Harper Pin</b> (amulet: Listen/Spot/Lore +3, no combat stats). The card's Rivendell/Lothlórien contacts are folded into dialogue lore to keep it T1-compact (two fewer waypoints). One-off, relog-safe via the prestigedb stage idiom; all turn-ins stage-guarded. Docs: card moved from Quest Ideas.html into QuestGuide.html; hub card now reads one order live, eleven pending.</div><div><br></div><div><b>UAT:</b> (1) place AP_harperscout_1 in theprancingpo001 (AP_prestigehub_1 also required), deploy; (2) non-Harper L6+ at Halmir → pointer line, no offer; (3) Harper Scout → accept (journal 1) → Della: Lore ≥8 shortcut vs hint-loop path → counter-word (journal 2) → Halmir → 750 XP + pin, journal ends, epilogue-only after; (4) relog mid-quest resumes; no second pin; (5) regression: Halmir's other eleven branches + summary line unchanged, Prancing Pony leash unchanged, Della brushes off non-questers.</div>"
 
   - id: knight-westernesse-quest
     title: "Prestige quest: Knight of Westernesse (L6+)"
