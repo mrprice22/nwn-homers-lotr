@@ -169,6 +169,7 @@
             <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
             <li><a href="#pale-master">The Twenty-First Tomb (Pale Master)</a></li>
             <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer)</a></li>
+            <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -958,10 +959,11 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first four — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first five — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
-      Masters' <a href="#pale-master">The Twenty-First Tomb</a>, and the Shadowdancers'
-      <a href="#shadowdancer">The Unlit Deep</a> — are live; eight orders remain.</li>
+      Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
+      <a href="#shadowdancer">The Unlit Deep</a>, and the Arcane Archers'
+      <a href="#arcane-archer">The Warden's Mark</a> — are live; seven orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1157,6 +1159,52 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   all equipment slots plus Light/Continual Flame creature effects; darkvision/ultravision sheds no
   light and does not count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
   finish only fires from stage 2 with the skein in hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- ARCANE ARCHER — THE WARDEN'S MARK -->
+<div class="quest-card" id="arcane-archer">
+  <h3>The Warden's Mark (Arcane Archer initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_arcanearcher</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Arcane Archers branch)</span>
+    <span>Requires: 1+ Arcane Archer level (the hub line itself shows at character level 12+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Bracers of the Grey Fletching</em> (<code>q_arc_bracer</code> — Concentration +3, Spot +3, Listen +3)</span>
+  </div>
+  <p>The fifth of the twelve prestige-order trials. Ask Halmir of the <strong>Arcane
+  Archers</strong>: if you have already bent the bow to the art (1+ Arcane Archer level), he names
+  the trial — on the proving ground of <a href="../areas/rivendell.html">Rivendell</a> stands the
+  oldest target the wardens ever set, and deep in its gold ring a grey-fletched shaft loosed by a
+  warden of the Galadhrim in an elder year. Draw it. The mark yields the shaft <strong>only to a
+  hand that comes as an archer comes — a longbow or shortbow equipped and arrows in the
+  quiver</strong>; come any other way and the trial fails that attempt (a flavor message, nothing
+  granted, retry as soon as you've strung the bow). The shaft (plot + cursed — it can't be dropped,
+  sold, or handed off) goes back to Halmir for the induction. One-off per character; if the shaft
+  is somehow lost, drawing at the mark again re-gives it (never duplicates — the turn-in consumes
+  it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Arcane Archers, accept the trial — <code>q_arc_start</code>
+      sets stage 1 / journal 1 (non-Arcane-Archers instead get a "one is not talked onto that
+      page — one is shot onto it" pointer line).</li>
+    <li>Use the old Archery Target on Rivendell's training ground with a longbow or shortbow
+      equipped and arrows in the quiver slot — <code>q_arc_target</code> checks both
+      (deterministic, no dice); as an archer, it gives the <em>Warden's Shaft</em> and sets
+      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the shaft — <code>q_arc_finish</code> consumes it, awards the XP and
+      the bracers, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>arcane-archer-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>archer</code>, stages 0–3; see <code>q_arc_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is one of the two
+  existing archery-target placeables in <code>rivendell</code>, retagged <code>WardenMark</code>
+  and flipped usable (Static 0, Useable 1, OnUsed <code>q_arc_target</code>; it previously had no
+  OnUsed, so nothing is chained). The come-as-an-archer check (<code>QARC_ComesAsArcher</code>)
+  requires a longbow/shortbow in the weapon hand and any item in the arrow slot; crossbows and
+  slings don't count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish
+  only fires from stage 2 with the shaft in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
