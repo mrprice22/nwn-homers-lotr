@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script chisel_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>chisel_inc</code></h1><pre class="nss-source"><code>// chisel_inc.nss -- Engraver&#x27;s Chisel weapon-rename system (roadmap: item-rename).
+//
+// Flow:
+//   1. Player activates the Engraver&#x27;s Chisel (tag &quot;WeaponChisel&quot;, Cast Spell:
+//      Unique Power Self Only). dmfi_activate (module OnActivateItem) dispatches
+//      to chisel_start, which calls Chisel_Begin(): snapshots the equipped
+//      main-hand item on the PC and sets a pending flag.
+//   2. The PC&#x27;s next chat line is intercepted by code_redeem (module
+//      OnPlayerChat) via Chisel_HandleChat(): the line is validated, applied
+//      with SetName(), one chisel is consumed, and the line is suppressed so
+//      the new name is never broadcast.
+//
+// The new name persists on the item itself (server vault saves the renamed
+// item with the character) -- no database needed.
+//
+// Validation rules: name must be non-empty after trimming, at most
+// CHISEL_MAX_LEN characters, and must not contain &#x27;&lt;&#x27; or &#x27;&gt;&#x27; (blocks color
+// codes and &lt;CUSTOMxxxx&gt; token markup). &quot;cancel&quot; aborts without spending
+// the chisel. A failed validation also leaves the chisel unspent -- the
+// player just activates it again to retry.
+
+const string CHISEL_TAG     = &quot;WeaponChisel&quot;;
+const string CHISEL_PENDING = &quot;CHISEL_RENAME_PENDING&quot;;
+const string CHISEL_TARGET  = &quot;CHISEL_RENAME_TARGET&quot;;
+const int    CHISEL_MAX_LEN = 40;
+
+// Strip leading/trailing spaces.
+string Chisel_Trim(string s)
+{
+    while (GetStringLength(s) &gt; 0 &amp;&amp; GetSubString(s, 0, 1) == &quot; &quot;)
+        s = GetSubString(s, 1, GetStringLength(s) - 1);
+    while (GetStringLength(s) &gt; 0 &amp;&amp;
+           GetSubString(s, GetStringLength(s) - 1, 1) == &quot; &quot;)
+        s = GetSubString(s, 0, GetStringLength(s) - 1);
+    return s;
+}
+
+// Called when the chisel is activated. Snapshots the main-hand item and
+// flags the PC so their next chat line becomes the new name.
+void Chisel_Begin(object oPC)
+{
+    object oWeapon = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oPC);
+    if (!GetIsObjectValid(oWeapon))
+    {
+        FloatingTextStringOnCreature(
+            &quot;You must have a weapon equipped in your main hand to engrave it.&quot;,
+            oPC, FALSE);
+        return;
+    }
+    SetLocalInt(oPC, CHISEL_PENDING, TRUE);
+    SetLocalObject(oPC, CHISEL_TARGET, oWeapon);
+    SendMessageToPC(oPC,
+        &quot;Engraver&#x27;s Chisel: speak the new name for &#x27;&quot; + GetName(oWeapon) +
+        &quot;&#x27; in chat (max &quot; + IntToString(CHISEL_MAX_LEN) +
+        &quot; characters, no &lt; or &gt;). Say &#x27;cancel&#x27; to stop.&quot;);
+    FloatingTextStringOnCreature(
+        &quot;Speak the new name for &quot; + GetName(oWeapon) + &quot; (or &#x27;cancel&#x27;).&quot;,
+        oPC, FALSE);
+}
+
+// Called from the module OnPlayerChat handler (code_redeem) BEFORE any other
+// processing. Returns TRUE when this chat line was a pending rename input and
+// has been fully handled -- the caller must then suppress the line
+// (SetPCChatMessage(&quot;&quot;)) and return.
+int Chisel_HandleChat(object oPC, string sMsg)
+{
+    if (!GetLocalInt(oPC, CHISEL_PENDING))
+        return FALSE;
+
+    // One-shot: whatever happens below, this line consumes the pending state.
+    DeleteLocalInt(oPC, CHISEL_PENDING);
+    object oWeapon = GetLocalObject(oPC, CHISEL_TARGET);
+    DeleteLocalObject(oPC, CHISEL_TARGET);
+
+    string sName = Chisel_Trim(sMsg);
+    if (sName == &quot;&quot; || GetStringLowerCase(sName) == &quot;cancel&quot;)
+    {
+        SendMessageToPC(oPC, &quot;Engraving cancelled. The chisel is unspent.&quot;);
+        return TRUE;
+    }
+    if (GetStringLength(sName) &gt; CHISEL_MAX_LEN)
+    {
+        SendMessageToPC(oPC,
+            &quot;Engraving failed: name too long (max &quot; +
+            IntToString(CHISEL_MAX_LEN) +
+            &quot; characters). Use the chisel again to retry.&quot;);
+        return TRUE;
+    }
+    if (FindSubString(sName, &quot;&lt;&quot;) != -1 || FindSubString(sName, &quot;&gt;&quot;) != -1)
+    {
+        SendMessageToPC(oPC,
+            &quot;Engraving failed: the characters &lt; and &gt; are not allowed. &quot; +
+            &quot;Use the chisel again to retry.&quot;);
+        return TRUE;
+    }
+    if (!GetIsObjectValid(oWeapon) || GetItemPossessor(oWeapon) != oPC)
+    {
+        SendMessageToPC(oPC,
+            &quot;Engraving failed: you no longer carry the item you targeted. &quot; +
+            &quot;Use the chisel again to retry.&quot;);
+        return TRUE;
+    }
+    object oChisel = GetItemPossessedBy(oPC, CHISEL_TAG);
+    if (!GetIsObjectValid(oChisel))
+    {
+        SendMessageToPC(oPC,
+            &quot;Engraving failed: you no longer carry an Engraver&#x27;s Chisel.&quot;);
+        return TRUE;
+    }
+
+    string sOld = GetName(oWeapon);
+    SetName(oWeapon, sName);
+    DestroyObject(oChisel);
+    SendMessageToPC(oPC,
+        &quot;&#x27;&quot; + sOld + &quot;&#x27; is now engraved as &#x27;&quot; + sName +
+        &quot;&#x27;. The chisel is spent.&quot;);
+    FloatingTextStringOnCreature(&quot;Engraved: &quot; + sName, oPC, FALSE);
+    return TRUE;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

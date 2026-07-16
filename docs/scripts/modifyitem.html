@@ -40,16 +40,17 @@
       <a href="../quests/index.html">Quests</a>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
-<a href="../manual/Customizations.html">Customizations</a>
-<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
-<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
-<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
     </nav>
   </header>
   <main>
@@ -105,7 +106,10 @@ void main()
             + &quot;again in a moment.&quot;);
         return;
         }
-    if (iProjected &gt; FORGE_LEGAL_MAX_VALUE + iBonus)
+    // The backstop is the UNIFORM legal ceiling (base + top boss-tier bonus,
+    // see ForgeLegalMaxValue) + Appraise; the player&#x27;s own boss-tier
+    // entitlement is already enforced by the per-forge cap iMax below.
+    if (iProjected &gt; ForgeLegalMaxValue() + iBonus)
         {
         SpeakString(&quot;No forge in these lands may bind so much worth into one &quot;
             + &quot;piece — that lies beyond what the law allows. I&#x27;ll not do it.&quot;);
@@ -127,10 +131,13 @@ void main()
         &amp;&amp; !ForgePropMatchesExisting(oItem, ipNew))
         {
         int iProps = ForgeCountProps(oItem);
-        if (iProps &gt;= FORGE_LEGAL_MAX_PROPS)
+        // Uniform legal backstop (ForgeLegalMaxProps, includes the top
+        // boss-tier +1 slot); the per-forge/per-player cap iMaxProps below is
+        // what actually limits characters who haven&#x27;t earned the extra slot.
+        if (iProps &gt;= ForgeLegalMaxProps())
             {
             SpeakString(&quot;No forge may bind more than &quot;
-                + IntToString(FORGE_LEGAL_MAX_PROPS) + &quot; enchantments into one &quot;
+                + IntToString(ForgeLegalMaxProps()) + &quot; enchantments into one &quot;
                 + &quot;piece — that is the limit of the law. Have me strike one from &quot;
                 + &quot;it first.&quot;);
             return;
@@ -180,9 +187,9 @@ void main()
         // on the item so the contraband scan / Warden never jail it later, even
         // if the bearer&#x27;s Appraise changes or the item is traded. Keep the
         // highest ceiling ever applied.
-        if (iProjected &gt; FORGE_LEGAL_MAX_VALUE)
+        if (iProjected &gt; ForgeLegalMaxValue())
             {
-            int iCeil = FORGE_LEGAL_MAX_VALUE + iBonus;
+            int iCeil = ForgeLegalMaxValue() + iBonus;
             if (iCeil &gt; GetLocalInt(oItem, FORGE_CEIL))
                 SetLocalInt(oItem, FORGE_CEIL, iCeil);
             }

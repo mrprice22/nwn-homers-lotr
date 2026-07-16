@@ -40,16 +40,17 @@
       <a href="../quests/index.html">Quests</a>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
-<a href="../manual/Customizations.html">Customizations</a>
-<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
-<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
-<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
     </nav>
   </header>
   <main>
@@ -215,6 +216,10 @@
             <li><a href="#prestige-hub">Prestige-Order Hub</a></li>
             <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
             <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
+            <li><a href="#pale-master">The Twenty-First Tomb (Pale Master)</a></li>
+            <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer)</a></li>
+            <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer)</a></li>
+            <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -987,11 +992,13 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
   <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
   character currently qualifies for. Each qualifying order also gets its own dialogue branch with
-  an evocative pitch. <strong>Two orders' trials are now live</strong> — the Harper Scouts' initiation,
-  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, and the
+  an evocative pitch. <strong>Four orders' trials are now live</strong> — the Harper Scouts' initiation,
+  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, the
   Knights of Westernesse's proving, <a href="#knight-west">The Banner of the West</a>, on his
-  Westernesse branch; the other ten branches still end with the masters "not yet having sent word"
-  and ship later, one roadmap item each, all hosted on this NPC.</p>
+  Westernesse branch, the Pale Masters' rite, <a href="#pale-master">The Twenty-First Tomb</a>,
+  on his Pale-Masters branch, and the Shadowdancers' trial, <a href="#shadowdancer">The Unlit
+  Deep</a>, on his Shadowdancers branch; the other eight branches still end with the masters "not
+  yet having sent word" and ship later, one roadmap item each, all hosted on this NPC.</p>
 
   <strong>What he does today:</strong>
   <ol>
@@ -1002,9 +1009,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first two — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a> and the
-      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a> — are live;
-      ten orders remain.</li>
+      The first six — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
+      Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
+      <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
+      <a href="#arcane-archer">The Warden's Mark</a>, and the Red Dragon Disciples'
+      <a href="#red-dragon">The Old Wyrm's Fire</a> — are live; six orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1115,6 +1125,186 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   then; accepting the proving and taking the standard both re-run the spawn check — see
   admin-action-required.md). The design card's escort-across-the-field ("each guardsman who
   survives adds +1 command") was compacted to the muster count — no henchman AI, same fiction.</div>
+</div>
+
+<!-- PALE MASTER — THE TWENTY-FIRST TOMB -->
+<div class="quest-card" id="pale-master">
+  <h3>The Twenty-First Tomb (Pale Master initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_palemaster</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Pale-Masters branch)</span>
+    <span>Requires: 1+ Pale Master level (the hub line itself shows at character level 11+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Talisman of the Twenty-First Tomb</em> (<code>q_pal_talis</code> — Lore +3, Spellcraft +3, saves vs. death +3)</span>
+  </div>
+  <p>The third of the twelve prestige-order trials. Ask Halmir of the <strong>Pale Masters</strong>:
+  if you already read the pale page (1+ Pale Master level), he sets the rite — beneath the
+  <a href="../areas/breecryptlowerle.html">Bree Crypt's lower level</a> the old families sleep under
+  carved names, but one sarcophagus bears none: the twenty-first tomb. Open it with your own hands,
+  take a measure of the <em>pale grave-dust</em> within (plot + cursed — it can't be dropped, sold,
+  or handed off), and carry it back to Halmir unspilled for the induction. One-off per character;
+  if the dust is somehow lost, opening the tomb again re-gives it (never duplicates — the turn-in
+  consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Pale Masters, accept the errand — <code>q_pal_start</code> sets
+      stage 1 / journal 1 (non-Pale-Masters instead get a "one arrives at that page" pointer line).</li>
+    <li>Open the unmarked sarcophagus in the Bree Crypt Lower Level — <code>q_pal_tomb</code> gives
+      the dust and sets stage 2 / journal 2.</li>
+    <li>Return to Halmir with the dust — <code>q_pal_finish</code> consumes it, awards the XP and
+      the talisman, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>pale-master-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>pale</code>, stages 0–3; see <code>q_pal_inc.nss</code>). <strong>No
+  new placements and no admin waypoint</strong>: the twenty-first tomb is an existing placed
+  sarcophagus in <code>breecryptlowerle</code> ("Coffin", tag <code>NW_VAMPIRE_SHAD</code>) whose
+  instance OnOpen now runs <code>q_pal_tomb</code>, which chains the instance's previous treasure
+  script <code>nw_o2_classhig</code> unchanged. The turn-in is a
+  <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the dust in
+  hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- SHADOWDANCER — THE UNLIT DEEP -->
+<div class="quest-card" id="shadowdancer">
+  <h3>The Unlit Deep (Shadowdancer initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_shadowdancer</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shadowdancers branch)</span>
+    <span>Requires: 1+ Shadowdancer level (the hub line itself shows at character level 11+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Boots of the Unlit Road</em> (<code>q_shd_boots</code> — Hide +3, Move Silently +3, Tumble +3)</span>
+  </div>
+  <p>The fourth of the twelve prestige-order trials. Ask Halmir of the <strong>Shadowdancers</strong>:
+  if you already walk where light does not follow (1+ Shadowdancer level), he names the trial — deep
+  in Moria, beside <a href="../areas/balinstomb.html">Balin's tomb</a>, stands the <strong>Deep
+  Well</strong> no plumb-line ever fathomed. Stand at its lip <strong>bearing no light at
+  all</strong> — no torch, no glowing (light-property) gear, no active <em>Light</em> or
+  <em>Continual Flame</em> — and the deep leaves the <em>Skein of the Unlit Deep</em> in your hand
+  (plot + cursed — it can't be dropped, sold, or handed off). <strong>Come to the well carrying
+  light and the trial fails that attempt</strong>: a flavor message, nothing granted, retry as soon
+  as you've doused it. Carry the skein back to Halmir for the induction. One-off per character; if
+  the skein is somehow lost, standing at the well unlit again re-gives it (never duplicates — the
+  turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Shadowdancers, accept the trial — <code>q_shd_start</code> sets
+      stage 1 / journal 1 (non-Shadowdancers instead get a "no one is taught to step where light
+      does not follow" pointer line).</li>
+    <li>Use the Deep Well beside Balin's tomb with no light source — <code>q_shd_well</code> checks
+      every equipped item (torch base type or Light item property) and active Light/Continual Flame
+      effects; unlit, it gives the skein and sets stage 2 / journal 2 (lit, it fails the attempt
+      with a retry message).</li>
+    <li>Return to Halmir with the skein — <code>q_shd_finish</code> consumes it, awards the XP and
+      the boots, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>shadowdancer-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>shadow</code>, stages 0–3; see <code>q_shd_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing placed
+  well in <code>balinstomb</code> ("DeepWell", tag <code>DeepWell</code>) whose instance OnUsed now
+  runs <code>q_shd_well</code>, which chains the instance's previous sound-flavor script
+  <code>balintmb_dpwell</code> unchanged. The light check (<code>QSHD_CarriesLight</code>) covers
+  all equipment slots plus Light/Continual Flame creature effects; darkvision/ultravision sheds no
+  light and does not count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
+  finish only fires from stage 2 with the skein in hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- ARCANE ARCHER — THE WARDEN'S MARK -->
+<div class="quest-card" id="arcane-archer">
+  <h3>The Warden's Mark (Arcane Archer initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_arcanearcher</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Arcane Archers branch)</span>
+    <span>Requires: 1+ Arcane Archer level (the hub line itself shows at character level 12+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Bracers of the Grey Fletching</em> (<code>q_arc_bracer</code> — Concentration +3, Spot +3, Listen +3)</span>
+  </div>
+  <p>The fifth of the twelve prestige-order trials. Ask Halmir of the <strong>Arcane
+  Archers</strong>: if you have already bent the bow to the art (1+ Arcane Archer level), he names
+  the trial — on the proving ground of <a href="../areas/rivendell.html">Rivendell</a> stands the
+  oldest target the wardens ever set, and deep in its gold ring a grey-fletched shaft loosed by a
+  warden of the Galadhrim in an elder year. Draw it. The mark yields the shaft <strong>only to a
+  hand that comes as an archer comes — a longbow or shortbow equipped and arrows in the
+  quiver</strong>; come any other way and the trial fails that attempt (a flavor message, nothing
+  granted, retry as soon as you've strung the bow). The shaft (plot + cursed — it can't be dropped,
+  sold, or handed off) goes back to Halmir for the induction. One-off per character; if the shaft
+  is somehow lost, drawing at the mark again re-gives it (never duplicates — the turn-in consumes
+  it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Arcane Archers, accept the trial — <code>q_arc_start</code>
+      sets stage 1 / journal 1 (non-Arcane-Archers instead get a "one is not talked onto that
+      page — one is shot onto it" pointer line).</li>
+    <li>Use the old Archery Target on Rivendell's training ground with a longbow or shortbow
+      equipped and arrows in the quiver slot — <code>q_arc_target</code> checks both
+      (deterministic, no dice); as an archer, it gives the <em>Warden's Shaft</em> and sets
+      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the shaft — <code>q_arc_finish</code> consumes it, awards the XP and
+      the bracers, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>arcane-archer-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>archer</code>, stages 0–3; see <code>q_arc_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is one of the two
+  existing archery-target placeables in <code>rivendell</code>, retagged <code>WardenMark</code>
+  and flipped usable (Static 0, Useable 1, OnUsed <code>q_arc_target</code>; it previously had no
+  OnUsed, so nothing is chained). The come-as-an-archer check (<code>QARC_ComesAsArcher</code>)
+  requires a longbow/shortbow in the weapon hand and any item in the arrow slot; crossbows and
+  slings don't count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish
+  only fires from stage 2 with the shaft in hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- RED DRAGON DISCIPLE — THE OLD WYRM'S FIRE -->
+<div class="quest-card" id="red-dragon">
+  <h3>The Old Wyrm's Fire (Red Dragon Disciple initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_dragondisciple</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Red Dragon Disciples branch)</span>
+    <span>Requires: 1+ Red Dragon Disciple level (the hub line itself shows at character level 12+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Wyrmblood Amulet</em> (<code>q_rdd_amulet</code> — Spellcraft +3, Intimidate +3, Saving Throws vs. Fire +3)</span>
+  </div>
+  <p>The sixth of the twelve prestige-order trials. Ask Halmir of the <strong>Red Dragon
+  Disciples</strong>: if the wyrm's fire is already awake in your veins (1+ Red Dragon Disciple
+  level), he names the trial — in the great hall of the
+  <a href="../areas/lonelymountainma.html">Lonely Mountain</a> stands the <strong>Forge of
+  Durin</strong>, and under its banked coals an ember of the old wyrm's fire — the fire that
+  ruined Dale — still glows. Rake it out bare-handed. The coals yield the ember <strong>only to
+  an unwarded hand — using the forge with any elemental ward active (Endure Elements, Resist
+  Elements, Protection from Elements, Energy Buffer, or Elemental Shield) fails the
+  attempt</strong> with a flavor message; let the ward lapse or dispel it and try again ("the
+  blood must feel the flame"). The ember (plot + cursed — it can't be dropped, sold, or handed
+  off) goes back to Halmir for the induction. One-off per character; if the ember is somehow
+  lost, drawing at the forge again re-gives it (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Red Dragon Disciples, accept the trial —
+      <code>q_rdd_start</code> sets stage 1 / journal 1 (non-Disciples instead get a "one is not
+      led to that inheritance — one is born to it, or wakes it" pointer line).</li>
+    <li>Use the Forge of Durin in the Lonely Mountain's main hall with no elemental-ward spell
+      effect active — <code>q_rdd_forge</code> checks via <code>GetHasSpellEffect</code>
+      (deterministic, no dice); unwarded, it gives the <em>Ember of the Old Wyrm</em> and sets
+      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the ember — <code>q_rdd_finish</code> consumes it, awards the XP and
+      the amulet, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>red-dragon-disciple-quest</code>) — scripted
+  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>rdd</code>, stages 0–3; see <code>q_rdd_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing
+  "The Forge of Durin" anvil placeable in <code>lonelymountainma</code>, retagged
+  <code>DurinForge</code> (it was already usable; OnUsed <code>q_rdd_forge</code> added — it
+  previously had no OnUsed, so nothing is chained; no script referenced its old
+  <code>Anvil</code> tag). The unwarded check (<code>QRDD_BloodIsWarded</code>) covers the five
+  standard elemental-ward spells only — item-borne permanent fire resistance can't be detected by
+  script and deliberately doesn't count. The turn-in is a <code>GetItemPossessedBy</code> reagent
+  check; the finish only fires from stage 2 with the ember in hand, so the reward can't be
+  re-earned.</div>
 </div>
 
 <hr>

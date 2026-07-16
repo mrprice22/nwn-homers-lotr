@@ -40,16 +40,17 @@
       <a href="../quests/index.html">Quests</a>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
-<a href="../manual/Customizations.html">Customizations</a>
-<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
-<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
-<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
     </nav>
   </header>
   <main>
@@ -61,6 +62,8 @@
 //   1. Add a case to GetCodeExpiration() with its YYYY-MM-DD expiration.
 //   2. Add a matching case to ApplyCodeBenefit() that grants the reward.
 // Codes are matched case-insensitively.
+
+#include &quot;chisel_inc&quot;
 
 const string CODE_DB     = &quot;coderedeem&quot;;
 const string CODE_PREFIX = &quot;code:&quot;;
@@ -162,6 +165,16 @@ void main()
     if (!GetIsPC(oPC) &amp;&amp; !GetIsDM(oPC)) return;
 
     string sMsg = GetPCChatMessage();
+
+    // Engraver&#x27;s Chisel weapon rename: if this PC has a rename pending, this
+    // chat line is the new item name -- consume it and never broadcast it.
+    // See chisel_inc.nss (dispatched from dmfi_activate / chisel_start).
+    if (Chisel_HandleChat(oPC, sMsg))
+    {
+        SetPCChatMessage(&quot;&quot;);
+        return;
+    }
+
     int iPrefixLen = GetStringLength(CODE_PREFIX);
     if (GetStringLength(sMsg) &lt; iPrefixLen) return;
     if (GetStringLowerCase(GetSubString(sMsg, 0, iPrefixLen)) != CODE_PREFIX)

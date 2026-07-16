@@ -40,23 +40,24 @@
       <a href="../quests/index.html">Quests</a>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
-<a href="../manual/Customizations.html">Customizations</a>
-<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
-<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
-<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
     </nav>
   </header>
   <main>
 <h1>Conversation: <code>prsg_conv</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>26</dd>
-<dt>PC replies</dt><dd>41</dd>
+<dt>NPC lines</dt><dd>50</dd>
+<dt>PC replies</dt><dd>69</dd>
 <dt>NumWords</dt><dd>1218</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code></code></dd>
@@ -81,8 +82,20 @@
 <tr><td><code>q_hrp_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_pal_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_pal_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shd_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shd_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_arc_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_arc_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rdd_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rdd_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_pal_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shd_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_arc_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rdd_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>prsg_c_sum</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_c_st2</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -90,11 +103,31 @@
 <tr><td><code>q_kwn_c_st6</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_c_st5</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_pal_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_pal_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_pal_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shd_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shd_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shd_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_arc_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_arc_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_arc_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rdd_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rdd_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rdd_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_start</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>q_kwn_start</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>q_kwn_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_pal_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shd_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_arc_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rdd_start</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/q_hrp_pin.html">Harper Pin</a></li></ul>
 <h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/pc-pdk.html">The Banner of the West</a></td><td><code>pc_pdk</code></td><td>1, 6</td></tr>
-<tr><td><a href="../quests/pc-harper.html">The Cipher in the Inn</a></td><td><code>pc_harper</code></td><td>1, 3</td></tr></tbody></table>
+<tr><td><a href="../quests/pc-harper.html">The Cipher in the Inn</a></td><td><code>pc_harper</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-dragondisciple.html">The Old Wyrm&#x27;s Fire</a></td><td><code>pc_dragondisciple</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-palemaster.html">The Twenty-First Tomb</a></td><td><code>pc_palemaster</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-shadowdancer.html">The Unlit Deep</a></td><td><code>pc_shadowdancer</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-arcanearcher.html">The Warden&#x27;s Mark</a></td><td><code>pc_arcanearcher</code></td><td>1, 3</td></tr></tbody></table>
 <h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6381&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
 <li><a href="#e0">entry #0</a> — *An old man in a road-worn grey cloak looks up from a long roll of parchment* I …</li>
@@ -303,8 +336,75 @@
 <div class="dlg-text">Speak to me of the Pale Masters.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #31</span> <small class="muted">(if <code>q_pal_c_st3</code>)</small> <a class="dlg-anchor" href="#e31" title="jump to flat entry #31">¶</a></summary>
+<div class="dlg-text">*He does not open the bottom page* Your name lies where you left it, near the bottom of the roll, and the masters do not cross it out. Walk the pale road carefully, scholar of the sealed crypt -- it walks back.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #47</span> <a class="dlg-anchor" href="#r47" title="jump to flat reply #47">¶</a></summary>
+<div class="dlg-text">The dead keep their counsel, and I mine. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #29</span> <small class="muted">(if <code>q_pal_c_rdy</code>)</small> <a class="dlg-anchor" href="#e29" title="jump to flat entry #29">¶</a></summary>
+<div class="dlg-text">*He looks up before you have spoken, and his nostrils narrow at something in the air* You carry grave-dust -- old, and pale, and no kin of the road&#x27;s. Give it here, and let the roll be witness.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #46</span> <a class="dlg-anchor" href="#r46" title="jump to flat reply #46">¶</a></summary>
+<div class="dlg-text">It is here, keeper -- dust of the twenty-first tomb, unspilled.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #30</span> <span class="dlg-action">→ <code>q_pal_finish</code></span> <a class="dlg-anchor" href="#e30" title="jump to flat entry #30">¶</a></summary>
+<div class="dlg-text">*He takes the dust without letting it touch his skin, and from beneath the roll draws a talisman of grey bone on a leather cord* Then be counted among the Pale Masters, scholar of the sealed crypt. The dust goes where the masters keep such things; the talisman stays with you. Wear it, and the dead will know you have knocked, and been answered.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r47">reply #47</a> <span class="dlg-link-preview">“The dead keep their counsel, and I mine. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #28</span> <small class="muted">(if <code>q_pal_c_prog</code>)</small> <a class="dlg-anchor" href="#e28" title="jump to flat entry #28">¶</a></summary>
+<div class="dlg-text">*He does not look up from the roll* The lower vault keeps its count: twenty carved names, and one lid that bears none. Open the twenty-first with your own hands, and bring me its pale dust unspilled.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #45</span> <a class="dlg-anchor" href="#r45" title="jump to flat reply #45">¶</a></summary>
+<div class="dlg-text">The vault keeps it yet. I am about it.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #4</span> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
 <div class="dlg-text">*His voice drops* Scholars of the sealed crypt, and of the arts best left within it. I keep their page at the bottom of the roll, and gladly. Their rite is not yet assembled — the masters have not sent word, and I confess I do not hurry them. Return, if you must, when the candles are found.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #41</span> <small class="muted">(if <code>q_pal_c_off</code>)</small> <a class="dlg-anchor" href="#r41" title="jump to flat reply #41">¶</a></summary>
+<div class="dlg-text">I have read the pale page already, keeper. How may I be counted among the Pale Masters?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #26</span> <a class="dlg-anchor" href="#e26" title="jump to flat entry #26">¶</a></summary>
+<div class="dlg-text">*He draws the bottom page of the roll into the light, and lowers his voice* Then hear the errand, and speak of it to no one above ground. Beneath the Bree Crypt lies a lower vault where the old families sleep under carved names. Count the tombs: twenty bear names, and one does not. Open the twenty-first with your own hands, take a measure of the pale dust within, and carry it back to me unspilled. Do this, and the masters will count you.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #43</span> <span class="dlg-action">→ <code>q_pal_start</code></span> <a class="dlg-anchor" href="#r43" title="jump to flat reply #43">¶</a></summary>
+<div class="dlg-text">I will open the twenty-first tomb.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #44</span> <a class="dlg-anchor" href="#r44" title="jump to flat reply #44">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #42</span> <small class="muted">(if <code>q_pal_c_noh</code>)</small> <a class="dlg-anchor" href="#r42" title="jump to flat reply #42">¶</a></summary>
+<div class="dlg-text">How does one come to read that page?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #27</span> <a class="dlg-anchor" href="#e27" title="jump to flat entry #27">¶</a></summary>
+<div class="dlg-text">*He does not lift the page from the bottom of the roll* One is not led to that page -- one arrives at it. The arts of the sealed crypt are learned beside the dead, not from me. Take the pale road&#x27;s first step, and your name will already be waiting near the bottom of the roll. Then ask me again.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #17</span> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
@@ -314,13 +414,85 @@
 </details>
 </div>
 </details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r17">reply #17</a> <span class="dlg-link-preview">“I will return when the candles are found.”</span></div>
+</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <small class="muted">(if <code>prsg_c_shadow</code>)</small> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">Speak to me of the Shadowdancers.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #37</span> <small class="muted">(if <code>q_shd_c_st3</code>)</small> <a class="dlg-anchor" href="#e37" title="jump to flat entry #37">¶</a></summary>
+<div class="dlg-text">*He does not look at the dim page, and it does not need him to* Your name is written there in a hand no candle can read, walker of the unlit road. The dancers keep no rolls above ground -- but the dark remembers its own.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #54</span> <a class="dlg-anchor" href="#r54" title="jump to flat reply #54">¶</a></summary>
+<div class="dlg-text">The dark keeps its own counsel, and I mine. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #35</span> <small class="muted">(if <code>q_shd_c_rdy</code>)</small> <a class="dlg-anchor" href="#e35" title="jump to flat entry #35">¶</a></summary>
+<div class="dlg-text">*He does not look up, but the candle beside him leans as though something passed it* You walk in with more shadow than you left with. Show me what the deep gave, and let the roll be witness.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #53</span> <a class="dlg-anchor" href="#r53" title="jump to flat reply #53">¶</a></summary>
+<div class="dlg-text">It is here, keeper -- a skein of the unlit deep, drawn up in darkness.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #36</span> <span class="dlg-action">→ <code>q_shd_finish</code></span> <a class="dlg-anchor" href="#e36" title="jump to flat entry #36">¶</a></summary>
+<div class="dlg-text">*He takes the skein without looking at it directly, and from beneath the roll draws a pair of soft boots soled in something that makes no sound on the floorboards* Then be counted among the Shadowdancers, walker of the unlit road. The skein goes where the masters keep such things; the boots stay with you. Wear them, and the dark will remember you crossed it unaided -- and let you cross again.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r54">reply #54</a> <span class="dlg-link-preview">“The dark keeps its own counsel, and I mine. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #34</span> <small class="muted">(if <code>q_shd_c_prog</code>)</small> <a class="dlg-anchor" href="#e34" title="jump to flat entry #34">¶</a></summary>
+<div class="dlg-text">*He glances at the dim page* The well beside Balin&#x27;s tomb keeps its count of the dark. Stand at its lip bearing no light -- no torch, no glowing blade, no conjured flame -- and bring me what the deep leaves in your hand.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #52</span> <a class="dlg-anchor" href="#r52" title="jump to flat reply #52">¶</a></summary>
+<div class="dlg-text">The deep keeps it yet. I am about it.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
-<div class="dlg-text">Those who step where light does not follow. They ask one thing only: cross the dark unaided, and come out the other side still yourself. Their proving-ground is not yet chosen — no word from the masters, the trial is not ready. Return when the shadows lengthen.</div>
+<div class="dlg-text">Those who step where light does not follow. They ask one thing only: cross the dark unaided, and come out the other side still yourself. Their proving-ground lies far under stone, and I name it only to those who already walk unlit.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #48</span> <small class="muted">(if <code>q_shd_c_off</code>)</small> <a class="dlg-anchor" href="#r48" title="jump to flat reply #48">¶</a></summary>
+<div class="dlg-text">I walk already where light does not follow, keeper. How may I be counted among the Shadowdancers?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #32</span> <a class="dlg-anchor" href="#e32" title="jump to flat entry #32">¶</a></summary>
+<div class="dlg-text">*He turns the roll to a page that seems dimmer than the rest, and his voice goes quiet as a closed door* Then hear the trial. Under the mountains in Khazad-dum, beside Balin&#x27;s tomb, the dwarves cut a well that no plumb-line ever found the bottom of. Go down through Moria&#x27;s dark and stand at its lip bearing no light at all -- no torch, no glowing blade, no conjured flame. What the unlit deep leaves in your hand, carry back to me. But mind: come to the well carrying light, and the dark will close its hand and give you nothing.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>q_shd_start</code></span> <a class="dlg-anchor" href="#r50" title="jump to flat reply #50">¶</a></summary>
+<div class="dlg-text">I will stand at the well unlit.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #51</span> <a class="dlg-anchor" href="#r51" title="jump to flat reply #51">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #49</span> <small class="muted">(if <code>q_shd_c_noh</code>)</small> <a class="dlg-anchor" href="#r49" title="jump to flat reply #49">¶</a></summary>
+<div class="dlg-text">How does one come to walk that road?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #33</span> <a class="dlg-anchor" href="#e33" title="jump to flat entry #33">¶</a></summary>
+<div class="dlg-text">*He does not turn to that page* No one is taught to step where light does not follow -- one night you simply do not come out of the shadow, and the shadow does not mind. Take the first step of that road yourself, and the dancers will already know your gait. Then ask me again.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #18</span> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
@@ -330,18 +502,95 @@
 </details>
 </div>
 </details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r18">reply #18</a> <span class="dlg-link-preview">“I will wait for the dark.”</span></div>
+</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #5</span> <small class="muted">(if <code>prsg_c_archer</code>)</small> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
 <div class="dlg-text">Speak to me of the Arcane Archers.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #43</span> <small class="muted">(if <code>q_arc_c_st3</code>)</small> <a class="dlg-anchor" href="#e43" title="jump to flat entry #43">¶</a></summary>
+<div class="dlg-text">*He taps the grey feather at the corner of the page* Your name stands on the wardens&#x27; page, Arcane Archer, and the old mark on the proving ground stands empty — which of the two says more, I leave to you.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #61</span> <a class="dlg-anchor" href="#r61" title="jump to flat reply #61">¶</a></summary>
+<div class="dlg-text">The string remembers the note, and I the string. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #41</span> <small class="muted">(if <code>q_arc_c_rdy</code>)</small> <a class="dlg-anchor" href="#e41" title="jump to flat entry #41">¶</a></summary>
+<div class="dlg-text">*He looks up before you have spoken, his eye going to your quiver as though it heard something there* You carry a note the wind did not play. Show me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #60</span> <a class="dlg-anchor" href="#r60" title="jump to flat reply #60">¶</a></summary>
+<div class="dlg-text">It is here, keeper — the warden&#x27;s shaft, drawn from the old mark bow in hand.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #42</span> <span class="dlg-action">→ <code>q_arc_finish</code></span> <a class="dlg-anchor" href="#e42" title="jump to flat entry #42">¶</a></summary>
+<div class="dlg-text">*He takes the shaft in both hands and listens to it a moment, the way other men read* Loosed by a warden of the Lady&#x27;s wood, and drawn again by a hand the mark knew for its own. Your name goes on the grey-feathered page. *From beneath the roll he draws a pair of grey leather bracers, a single feather stitched in silver at each wrist* Wear these, Arcane Archer — and may the eye find the far thing, and the arrow agree.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r61">reply #61</a> <span class="dlg-link-preview">“The string remembers the note, and I the string. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #40</span> <small class="muted">(if <code>q_arc_c_prog</code>)</small> <a class="dlg-anchor" href="#e40" title="jump to flat entry #40">¶</a></summary>
+<div class="dlg-text">*He touches the grey feather at the page&#x27;s corner* The old target on Rivendell&#x27;s proving ground keeps the warden&#x27;s shaft yet. Come to the mark as an archer comes — bow in hand, arrow nocked, quiver full — and draw it, and bring it to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #59</span> <a class="dlg-anchor" href="#r59" title="jump to flat reply #59">¶</a></summary>
+<div class="dlg-text">The mark keeps it yet. I am about it.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
-<div class="dlg-text">The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wardens set their own markers, in their own season. Those markers are not yet planted — the trial is not ready. Return when the leaves turn.</div>
+<div class="dlg-text">The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wardens have sent their word at last — and their mark is an old one. It stands not in the Golden Wood but on the proving ground of Imladris: a target older than the house around it, and deep in its gold ring a grey-fletched shaft a warden loosed in an elder year. *He glances at your hands, as if weighing what they have drawn*</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #55</span> <small class="muted">(if <code>q_arc_c_off</code>)</small> <a class="dlg-anchor" href="#r55" title="jump to flat reply #55">¶</a></summary>
+<div class="dlg-text">I have bent the bow to the art already, keeper. How may I be counted among the Arcane Archers?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #38</span> <a class="dlg-anchor" href="#e38" title="jump to flat entry #38">¶</a></summary>
+<div class="dlg-text">*He turns the roll to a page fletched at its corner with a sliver of grey feather* Then hear the trial. On the proving ground of Rivendell stands the oldest target the wardens ever set, and in its gold ring their grey-fletched shaft — loosed in an elder year, that no weather has touched and no hand has drawn. Draw it. It will not come for prying fingers or pommel-taps: the mark yields only to a hand that comes as an archer comes — bow in hand, arrow nocked, quiver full. Bring the shaft to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #57</span> <span class="dlg-action">→ <code>q_arc_start</code></span> <a class="dlg-anchor" href="#r57" title="jump to flat reply #57">¶</a></summary>
+<div class="dlg-text">I will draw the warden&#x27;s shaft.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #58</span> <a class="dlg-anchor" href="#r58" title="jump to flat reply #58">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #56</span> <small class="muted">(if <code>q_arc_c_noh</code>)</small> <a class="dlg-anchor" href="#r56" title="jump to flat reply #56">¶</a></summary>
+<div class="dlg-text">How does one come to that craft?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #39</span> <a class="dlg-anchor" href="#e39" title="jump to flat entry #39">¶</a></summary>
+<div class="dlg-text">*He does not turn the page* One is not talked onto that page — one is shot onto it. Learn the enchanter&#x27;s art and the bowman&#x27;s both, until arrow and art are one motion — the discipline the orders call the Arcane Archer — and ask me again. The mark has waited an elder age; it will wait for you.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #19</span> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
-<div class="dlg-text">I will await the Lady&#x27;s markers.</div>
+<div class="dlg-text">The mark can wait. Another day, keeper.</div>
 </details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r19">reply #19</a> <span class="dlg-link-preview">“The mark can wait. Another day, keeper.”</span></div>
 </div>
 </details>
 </div>
@@ -351,13 +600,85 @@
 <div class="dlg-text">Speak to me of the Red Dragon Disciples.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #49</span> <small class="muted">(if <code>q_rdd_c_st3</code>)</small> <a class="dlg-anchor" href="#e49" title="jump to flat entry #49">¶</a></summary>
+<div class="dlg-text">*He taps the scorched corner of the page* Your name stands on the wyrm&#x27;s page, Red Dragon Disciple, and Durin&#x27;s coals burn a little lower -- what you took from them you carry now in your own veins.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #68</span> <a class="dlg-anchor" href="#r68" title="jump to flat reply #68">¶</a></summary>
+<div class="dlg-text">The fire remembers its own, and I the fire. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #47</span> <small class="muted">(if <code>q_rdd_c_rdy</code>)</small> <a class="dlg-anchor" href="#e47" title="jump to flat entry #47">¶</a></summary>
+<div class="dlg-text">*He looks up before you have spoken, and holds his hands to you as a man holds them to a hearth* You carry a warmth the road did not give you. Show me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #67</span> <a class="dlg-anchor" href="#r67" title="jump to flat reply #67">¶</a></summary>
+<div class="dlg-text">It is here, keeper -- an ember of the old wyrm&#x27;s fire, drawn from Durin&#x27;s coals with a bare hand.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #48</span> <span class="dlg-action">→ <code>q_rdd_finish</code></span> <a class="dlg-anchor" href="#e48" title="jump to flat entry #48">¶</a></summary>
+<div class="dlg-text">*He takes the ember in his bare palm without flinching, and for a moment the light of it moves under the skin of his fingers like a slow heartbeat* Drawn bare-handed from Durin&#x27;s coals, and it did not burn you -- the fire has named you kin, and I only write what the fire has signed. Your name goes on the scorched page. *From beneath the roll he draws an amulet, a drop of deep red on a plain iron chain, warm as a held coal* Wear this, Red Dragon Disciple -- and may the fire you carry stay yours to command.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r68">reply #68</a> <span class="dlg-link-preview">“The fire remembers its own, and I the fire. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #46</span> <small class="muted">(if <code>q_rdd_c_prog</code>)</small> <a class="dlg-anchor" href="#e46" title="jump to flat entry #46">¶</a></summary>
+<div class="dlg-text">*He touches the scorched corner of the page* The Forge of Durin keeps the wyrm&#x27;s ember yet, under the banked coals of Erebor&#x27;s great hall. Shed every ward against the elements and reach in with a bare hand -- the blood must feel the flame -- and bring the ember to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #66</span> <a class="dlg-anchor" href="#r66" title="jump to flat reply #66">¶</a></summary>
+<div class="dlg-text">The coals keep it yet. I am about it.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
-<div class="dlg-text">The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in their own veins. A perilous inheritance, and its price is set in the North. No word has come down from the Mountain — the trial is not ready. Return when the old fire stirs.</div>
+<div class="dlg-text">The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in their own veins. A perilous inheritance, and its price is set in the North -- but word has come down from the Mountain at last: the old fire stirs. In the great hall of Erebor stands the Forge of Durin, and under its banked coals sleeps an ember of the wyrm&#x27;s own breath, that no dwarf has dared to rake out. *He watches you the way men watch a lamp they suspect of being lit*</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #62</span> <small class="muted">(if <code>q_rdd_c_off</code>)</small> <a class="dlg-anchor" href="#r62" title="jump to flat reply #62">¶</a></summary>
+<div class="dlg-text">The wyrm&#x27;s fire is awake in my veins already, keeper. How may I be counted among the Red Dragon Disciples?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #44</span> <a class="dlg-anchor" href="#e44" title="jump to flat entry #44">¶</a></summary>
+<div class="dlg-text">*He turns the roll to a page scorched at its corner, though the scorch is older than the paper* Then hear the trial. In the great hall of the Lonely Mountain stands the Forge of Durin, and under its banked coals an ember of the old wyrm&#x27;s fire -- the fire that ruined Dale -- still glows, and has not gone out in all the years since. Rake it out and bring it to me. But mark this: the fire gives itself only to its own kin. Come to the coals wrapped in any ward against the elements and the ember will sink away from your hand. Shed every such ward and reach in bare -- the blood must feel the flame.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #64</span> <span class="dlg-action">→ <code>q_rdd_start</code></span> <a class="dlg-anchor" href="#r64" title="jump to flat reply #64">¶</a></summary>
+<div class="dlg-text">I will draw the ember bare-handed.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #65</span> <a class="dlg-anchor" href="#r65" title="jump to flat reply #65">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #63</span> <small class="muted">(if <code>q_rdd_c_noh</code>)</small> <a class="dlg-anchor" href="#r63" title="jump to flat reply #63">¶</a></summary>
+<div class="dlg-text">How does one come to that inheritance?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #45</span> <a class="dlg-anchor" href="#e45" title="jump to flat entry #45">¶</a></summary>
+<div class="dlg-text">*He does not turn the page* One is not led to that inheritance -- one is born to it, or wakes it. The wyrm&#x27;s fire sleeps in some few bloodlines, and it answers only to those who court it -- the discipline the orders call the Red Dragon Disciple. Wake what sleeps in your own veins, and ask me again. The ember has burned an age already; it will burn a while longer.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #20</span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
 <div class="dlg-text">I will listen for word from the Mountain.</div>
 </details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r20">reply #20</a> <span class="dlg-link-preview">“I will listen for word from the Mountain.”</span></div>
 </div>
 </details>
 </div>
@@ -470,10 +791,10 @@
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*He runs a finger down the roll* As you stand today, these would hear your name: <span class="custom-token custom-token-unknown" title="SetCustomToken(6381, ...) — no setter found in static analysis">&lt;CUSTOM6381&gt;</span>. When an order makes its trial ready, word will reach me here at the well — the masters have not yet sent word for any, but the day comes. Return, and often.</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Then I will return. Keep your rolls well, Halmir.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">The quiet watchers of the North — song-keepers and cipher-readers who walk the roads of Eriador unremarked and forget nothing. They have marked you already; they mark everyone. *He folds the roll and studies you a moment*</div><ul class="dlg-links"><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“I already walk their roads, keeper. How may I be counted among them?”</span> <small class="muted">(if <code>q_hrp_c_off</code>)</small></li><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“How does one come to walk with them?”</span> <small class="muted">(if <code>q_hrp_c_noh</code>)</small></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Then I will listen for it. Farewell.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Banner-knights in the old Númenórean line — captains who hold other men steady when the field turns. Theirs is a trial of command on open ground, not of the sword alone. But no summons has come from the White City yet — the trial is not ready. Return when the banners move.</div><ul class="dlg-links"><li><a href="#r34">→ reply #34</a> <span class="dlg-link-preview">“I ride in their line already, keeper. How may I be counted among the banner-knig…”</span> <small class="muted">(if <code>q_kwn_c_off</code>)</small></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“How does one come to ride under that banner?”</span> <small class="muted">(if <code>q_kwn_c_noh</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“I will await the summons.”</span></li></ul></div>
-<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*His voice drops* Scholars of the sealed crypt, and of the arts best left within it. I keep their page at the bottom of the roll, and gladly. Their rite is not yet assembled — the masters have not sent word, and I confess I do not hurry them. Return, if you must, when the candles are found.</div><ul class="dlg-links"><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“I will return when the candles are found.”</span></li></ul></div>
-<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Those who step where light does not follow. They ask one thing only: cross the dark unaided, and come out the other side still yourself. Their proving-ground is not yet chosen — no word from the masters, the trial is not ready. Return when the shadows lengthen.</div><ul class="dlg-links"><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“I will wait for the dark.”</span></li></ul></div>
-<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wardens set their own markers, in their own season. Those markers are not yet planted — the trial is not ready. Return when the leaves turn.</div><ul class="dlg-links"><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“I will await the Lady&#x27;s markers.”</span></li></ul></div>
-<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in their own veins. A perilous inheritance, and its price is set in the North. No word has come down from the Mountain — the trial is not ready. Return when the old fire stirs.</div><ul class="dlg-links"><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“I will listen for word from the Mountain.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*His voice drops* Scholars of the sealed crypt, and of the arts best left within it. I keep their page at the bottom of the roll, and gladly. Their rite is not yet assembled — the masters have not sent word, and I confess I do not hurry them. Return, if you must, when the candles are found.</div><ul class="dlg-links"><li><a href="#r41">→ reply #41</a> <span class="dlg-link-preview">“I have read the pale page already, keeper. How may I be counted among the Pale M…”</span> <small class="muted">(if <code>q_pal_c_off</code>)</small></li><li><a href="#r42">→ reply #42</a> <span class="dlg-link-preview">“How does one come to read that page?”</span> <small class="muted">(if <code>q_pal_c_noh</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“I will return when the candles are found.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Those who step where light does not follow. They ask one thing only: cross the dark unaided, and come out the other side still yourself. Their proving-ground lies far under stone, and I name it only to those who already walk unlit.</div><ul class="dlg-links"><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“I walk already where light does not follow, keeper. How may I be counted among t…”</span> <small class="muted">(if <code>q_shd_c_off</code>)</small></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“How does one come to walk that road?”</span> <small class="muted">(if <code>q_shd_c_noh</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“I will wait for the dark.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wardens have sent their word at last — and their mark is an old one. It stands not in the Golden Wood but on the proving ground of Imladris: a target older than the house around it, and deep in its gold ring a grey-fletched shaft a warden loosed in an elder year. *He glances at your hands, as if weighing what they have drawn*</div><ul class="dlg-links"><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“I have bent the bow to the art already, keeper. How may I be counted among the A…”</span> <small class="muted">(if <code>q_arc_c_off</code>)</small></li><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“How does one come to that craft?”</span> <small class="muted">(if <code>q_arc_c_noh</code>)</small></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“The mark can wait. Another day, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in their own veins. A perilous inheritance, and its price is set in the North -- but word has come down from the Mountain at last: the old fire stirs. In the great hall of Erebor stands the Forge of Durin, and under its banked coals sleeps an ember of the wyrm&#x27;s own breath, that no dwarf has dared to rake out. *He watches you the way men watch a lamp they suspect of being lit*</div><ul class="dlg-links"><li><a href="#r62">→ reply #62</a> <span class="dlg-link-preview">“The wyrm&#x27;s fire is awake in my veins already, keeper. How may I be counted among…”</span> <small class="muted">(if <code>q_rdd_c_off</code>)</small></li><li><a href="#r63">→ reply #63</a> <span class="dlg-link-preview">“How does one come to that inheritance?”</span> <small class="muted">(if <code>q_rdd_c_noh</code>)</small></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“I will listen for word from the Mountain.”</span></li></ul></div>
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledger, not I — I merely know where the page would go. Their contract is unwritten as yet; no word has come, and the trial is not ready. Return by a moonless night, if you keep to this path.</div><ul class="dlg-links"><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“I was never here.”</span></li></ul></div>
 <div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">Those wedded to a single weapon until it is less a tool than a limb. Their proving is done before a crowd, bout by bout, blade by borrowed blade. The arena has not yet posted the challenge — the trial is not ready. Return when the sands are raked.</div><ul class="dlg-links"><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“I will watch the arena boards.”</span></li></ul></div>
 <div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">*He is silent a moment* The Black Captain&#x27;s sworn. I keep their page because a keeper keeps every page, not because I commend it — the marks they bear are not lightly taken, nor ever put off. No summons has come from the Guildhouse — the trial is not ready. Return, if your feet still carry you that way.</div><ul class="dlg-links"><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“My feet know their own road. Farewell.”</span></li></ul></div>
@@ -492,14 +813,38 @@
 <div class="dlg-node entry" id="e23"><div class="dlg-head"><span class="dlg-id">entry #23</span></div><div class="dlg-text">*He looks up sharply -- something in the wind of the thing seems to have reached him already* Does it fly?</div><ul class="dlg-links"><li><a href="#r38">→ reply #38</a> <span class="dlg-link-preview">“It flies, keeper. The banner of the West stands over the Pelennor -- set by my h…”</span></li></ul></div>
 <div class="dlg-node entry" id="e24"><div class="dlg-head"><span class="dlg-id">entry #24</span></div><div class="dlg-text">*He taps the roll* The rolls keep your name, knight of Westernesse. Hold the line as the old line held it -- that is the whole of the order, and always was.</div><ul class="dlg-links"><li><a href="#r39">→ child</a> <span class="dlg-link-preview">“While it flies, the West stands. Farewell, keeper.”</span></li></ul></div>
 <div class="dlg-node entry" id="e25"><div class="dlg-head"><span class="dlg-id">entry #25</span> <span class="dlg-action">→ <code>q_kwn_finish</code></span></div><div class="dlg-text">*Halmir rises -- the first time you have seen him stand -- and from behind his pack he draws a tall shield, white-faced, the Tree beneath seven stars* Then kneel a soldier and rise a Knight of Westernesse. This carried the out-wall&#x27;s standard once; it will stand behind yours now. The rolls keep your name -- and the field keeps your banner.</div><ul class="dlg-links"><li><a href="#r39">→ reply #39</a> <span class="dlg-link-preview">“While it flies, the West stands. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e26"><div class="dlg-head"><span class="dlg-id">entry #26</span></div><div class="dlg-text">*He draws the bottom page of the roll into the light, and lowers his voice* Then hear the errand, and speak of it to no one above ground. Beneath the Bree Crypt lies a lower vault where the old families sleep under carved names. Count the tombs: twenty bear names, and one does not. Open the twenty-first with your own hands, take a measure of the pale dust within, and carry it back to me unspilled. Do this, and the masters will count you.</div><ul class="dlg-links"><li><a href="#r43">→ reply #43</a> <span class="dlg-link-preview">“I will open the twenty-first tomb.”</span></li><li><a href="#r44">→ reply #44</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e27"><div class="dlg-head"><span class="dlg-id">entry #27</span></div><div class="dlg-text">*He does not lift the page from the bottom of the roll* One is not led to that page -- one arrives at it. The arts of the sealed crypt are learned beside the dead, not from me. Take the pale road&#x27;s first step, and your name will already be waiting near the bottom of the roll. Then ask me again.</div><ul class="dlg-links"><li><a href="#r17">→ child</a> <span class="dlg-link-preview">“I will return when the candles are found.”</span></li></ul></div>
+<div class="dlg-node entry" id="e28"><div class="dlg-head"><span class="dlg-id">entry #28</span></div><div class="dlg-text">*He does not look up from the roll* The lower vault keeps its count: twenty carved names, and one lid that bears none. Open the twenty-first with your own hands, and bring me its pale dust unspilled.</div><ul class="dlg-links"><li><a href="#r45">→ reply #45</a> <span class="dlg-link-preview">“The vault keeps it yet. I am about it.”</span></li></ul></div>
+<div class="dlg-node entry" id="e29"><div class="dlg-head"><span class="dlg-id">entry #29</span></div><div class="dlg-text">*He looks up before you have spoken, and his nostrils narrow at something in the air* You carry grave-dust -- old, and pale, and no kin of the road&#x27;s. Give it here, and let the roll be witness.</div><ul class="dlg-links"><li><a href="#r46">→ reply #46</a> <span class="dlg-link-preview">“It is here, keeper -- dust of the twenty-first tomb, unspilled.”</span></li></ul></div>
+<div class="dlg-node entry" id="e30"><div class="dlg-head"><span class="dlg-id">entry #30</span> <span class="dlg-action">→ <code>q_pal_finish</code></span></div><div class="dlg-text">*He takes the dust without letting it touch his skin, and from beneath the roll draws a talisman of grey bone on a leather cord* Then be counted among the Pale Masters, scholar of the sealed crypt. The dust goes where the masters keep such things; the talisman stays with you. Wear it, and the dead will know you have knocked, and been answered.</div><ul class="dlg-links"><li><a href="#r47">→ reply #47</a> <span class="dlg-link-preview">“The dead keep their counsel, and I mine. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e31"><div class="dlg-head"><span class="dlg-id">entry #31</span></div><div class="dlg-text">*He does not open the bottom page* Your name lies where you left it, near the bottom of the roll, and the masters do not cross it out. Walk the pale road carefully, scholar of the sealed crypt -- it walks back.</div><ul class="dlg-links"><li><a href="#r47">→ child</a> <span class="dlg-link-preview">“The dead keep their counsel, and I mine. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e32"><div class="dlg-head"><span class="dlg-id">entry #32</span></div><div class="dlg-text">*He turns the roll to a page that seems dimmer than the rest, and his voice goes quiet as a closed door* Then hear the trial. Under the mountains in Khazad-dum, beside Balin&#x27;s tomb, the dwarves cut a well that no plumb-line ever found the bottom of. Go down through Moria&#x27;s dark and stand at its lip bearing no light at all -- no torch, no glowing blade, no conjured flame. What the unlit deep leaves in your hand, carry back to me. But mind: come to the well carrying light, and the dark will close its hand and give you nothing.</div><ul class="dlg-links"><li><a href="#r50">→ reply #50</a> <span class="dlg-link-preview">“I will stand at the well unlit.”</span></li><li><a href="#r51">→ reply #51</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e33"><div class="dlg-head"><span class="dlg-id">entry #33</span></div><div class="dlg-text">*He does not turn to that page* No one is taught to step where light does not follow -- one night you simply do not come out of the shadow, and the shadow does not mind. Take the first step of that road yourself, and the dancers will already know your gait. Then ask me again.</div><ul class="dlg-links"><li><a href="#r18">→ child</a> <span class="dlg-link-preview">“I will wait for the dark.”</span></li></ul></div>
+<div class="dlg-node entry" id="e34"><div class="dlg-head"><span class="dlg-id">entry #34</span></div><div class="dlg-text">*He glances at the dim page* The well beside Balin&#x27;s tomb keeps its count of the dark. Stand at its lip bearing no light -- no torch, no glowing blade, no conjured flame -- and bring me what the deep leaves in your hand.</div><ul class="dlg-links"><li><a href="#r52">→ reply #52</a> <span class="dlg-link-preview">“The deep keeps it yet. I am about it.”</span></li></ul></div>
+<div class="dlg-node entry" id="e35"><div class="dlg-head"><span class="dlg-id">entry #35</span></div><div class="dlg-text">*He does not look up, but the candle beside him leans as though something passed it* You walk in with more shadow than you left with. Show me what the deep gave, and let the roll be witness.</div><ul class="dlg-links"><li><a href="#r53">→ reply #53</a> <span class="dlg-link-preview">“It is here, keeper -- a skein of the unlit deep, drawn up in darkness.”</span></li></ul></div>
+<div class="dlg-node entry" id="e36"><div class="dlg-head"><span class="dlg-id">entry #36</span> <span class="dlg-action">→ <code>q_shd_finish</code></span></div><div class="dlg-text">*He takes the skein without looking at it directly, and from beneath the roll draws a pair of soft boots soled in something that makes no sound on the floorboards* Then be counted among the Shadowdancers, walker of the unlit road. The skein goes where the masters keep such things; the boots stay with you. Wear them, and the dark will remember you crossed it unaided -- and let you cross again.</div><ul class="dlg-links"><li><a href="#r54">→ reply #54</a> <span class="dlg-link-preview">“The dark keeps its own counsel, and I mine. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e37"><div class="dlg-head"><span class="dlg-id">entry #37</span></div><div class="dlg-text">*He does not look at the dim page, and it does not need him to* Your name is written there in a hand no candle can read, walker of the unlit road. The dancers keep no rolls above ground -- but the dark remembers its own.</div><ul class="dlg-links"><li><a href="#r54">→ child</a> <span class="dlg-link-preview">“The dark keeps its own counsel, and I mine. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e38"><div class="dlg-head"><span class="dlg-id">entry #38</span></div><div class="dlg-text">*He turns the roll to a page fletched at its corner with a sliver of grey feather* Then hear the trial. On the proving ground of Rivendell stands the oldest target the wardens ever set, and in its gold ring their grey-fletched shaft — loosed in an elder year, that no weather has touched and no hand has drawn. Draw it. It will not come for prying fingers or pommel-taps: the mark yields only to a hand that comes as an archer comes — bow in hand, arrow nocked, quiver full. Bring the shaft to me.</div><ul class="dlg-links"><li><a href="#r57">→ reply #57</a> <span class="dlg-link-preview">“I will draw the warden&#x27;s shaft.”</span></li><li><a href="#r58">→ reply #58</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e39"><div class="dlg-head"><span class="dlg-id">entry #39</span></div><div class="dlg-text">*He does not turn the page* One is not talked onto that page — one is shot onto it. Learn the enchanter&#x27;s art and the bowman&#x27;s both, until arrow and art are one motion — the discipline the orders call the Arcane Archer — and ask me again. The mark has waited an elder age; it will wait for you.</div><ul class="dlg-links"><li><a href="#r19">→ child</a> <span class="dlg-link-preview">“The mark can wait. Another day, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e40"><div class="dlg-head"><span class="dlg-id">entry #40</span></div><div class="dlg-text">*He touches the grey feather at the page&#x27;s corner* The old target on Rivendell&#x27;s proving ground keeps the warden&#x27;s shaft yet. Come to the mark as an archer comes — bow in hand, arrow nocked, quiver full — and draw it, and bring it to me.</div><ul class="dlg-links"><li><a href="#r59">→ reply #59</a> <span class="dlg-link-preview">“The mark keeps it yet. I am about it.”</span></li></ul></div>
+<div class="dlg-node entry" id="e41"><div class="dlg-head"><span class="dlg-id">entry #41</span></div><div class="dlg-text">*He looks up before you have spoken, his eye going to your quiver as though it heard something there* You carry a note the wind did not play. Show me.</div><ul class="dlg-links"><li><a href="#r60">→ reply #60</a> <span class="dlg-link-preview">“It is here, keeper — the warden&#x27;s shaft, drawn from the old mark bow in hand.”</span></li></ul></div>
+<div class="dlg-node entry" id="e42"><div class="dlg-head"><span class="dlg-id">entry #42</span> <span class="dlg-action">→ <code>q_arc_finish</code></span></div><div class="dlg-text">*He takes the shaft in both hands and listens to it a moment, the way other men read* Loosed by a warden of the Lady&#x27;s wood, and drawn again by a hand the mark knew for its own. Your name goes on the grey-feathered page. *From beneath the roll he draws a pair of grey leather bracers, a single feather stitched in silver at each wrist* Wear these, Arcane Archer — and may the eye find the far thing, and the arrow agree.</div><ul class="dlg-links"><li><a href="#r61">→ reply #61</a> <span class="dlg-link-preview">“The string remembers the note, and I the string. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e43"><div class="dlg-head"><span class="dlg-id">entry #43</span></div><div class="dlg-text">*He taps the grey feather at the corner of the page* Your name stands on the wardens&#x27; page, Arcane Archer, and the old mark on the proving ground stands empty — which of the two says more, I leave to you.</div><ul class="dlg-links"><li><a href="#r61">→ child</a> <span class="dlg-link-preview">“The string remembers the note, and I the string. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e44"><div class="dlg-head"><span class="dlg-id">entry #44</span></div><div class="dlg-text">*He turns the roll to a page scorched at its corner, though the scorch is older than the paper* Then hear the trial. In the great hall of the Lonely Mountain stands the Forge of Durin, and under its banked coals an ember of the old wyrm&#x27;s fire -- the fire that ruined Dale -- still glows, and has not gone out in all the years since. Rake it out and bring it to me. But mark this: the fire gives itself only to its own kin. Come to the coals wrapped in any ward against the elements and the ember will sink away from your hand. Shed every such ward and reach in bare -- the blood must feel the flame.</div><ul class="dlg-links"><li><a href="#r64">→ reply #64</a> <span class="dlg-link-preview">“I will draw the ember bare-handed.”</span></li><li><a href="#r65">→ reply #65</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e45"><div class="dlg-head"><span class="dlg-id">entry #45</span></div><div class="dlg-text">*He does not turn the page* One is not led to that inheritance -- one is born to it, or wakes it. The wyrm&#x27;s fire sleeps in some few bloodlines, and it answers only to those who court it -- the discipline the orders call the Red Dragon Disciple. Wake what sleeps in your own veins, and ask me again. The ember has burned an age already; it will burn a while longer.</div><ul class="dlg-links"><li><a href="#r20">→ child</a> <span class="dlg-link-preview">“I will listen for word from the Mountain.”</span></li></ul></div>
+<div class="dlg-node entry" id="e46"><div class="dlg-head"><span class="dlg-id">entry #46</span></div><div class="dlg-text">*He touches the scorched corner of the page* The Forge of Durin keeps the wyrm&#x27;s ember yet, under the banked coals of Erebor&#x27;s great hall. Shed every ward against the elements and reach in with a bare hand -- the blood must feel the flame -- and bring the ember to me.</div><ul class="dlg-links"><li><a href="#r66">→ reply #66</a> <span class="dlg-link-preview">“The coals keep it yet. I am about it.”</span></li></ul></div>
+<div class="dlg-node entry" id="e47"><div class="dlg-head"><span class="dlg-id">entry #47</span></div><div class="dlg-text">*He looks up before you have spoken, and holds his hands to you as a man holds them to a hearth* You carry a warmth the road did not give you. Show me.</div><ul class="dlg-links"><li><a href="#r67">→ reply #67</a> <span class="dlg-link-preview">“It is here, keeper -- an ember of the old wyrm&#x27;s fire, drawn from Durin&#x27;s coals…”</span></li></ul></div>
+<div class="dlg-node entry" id="e48"><div class="dlg-head"><span class="dlg-id">entry #48</span> <span class="dlg-action">→ <code>q_rdd_finish</code></span></div><div class="dlg-text">*He takes the ember in his bare palm without flinching, and for a moment the light of it moves under the skin of his fingers like a slow heartbeat* Drawn bare-handed from Durin&#x27;s coals, and it did not burn you -- the fire has named you kin, and I only write what the fire has signed. Your name goes on the scorched page. *From beneath the roll he draws an amulet, a drop of deep red on a plain iron chain, warm as a held coal* Wear this, Red Dragon Disciple -- and may the fire you carry stay yours to command.</div><ul class="dlg-links"><li><a href="#r68">→ reply #68</a> <span class="dlg-link-preview">“The fire remembers its own, and I the fire. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e49"><div class="dlg-head"><span class="dlg-id">entry #49</span></div><div class="dlg-text">*He taps the scorched corner of the page* Your name stands on the wyrm&#x27;s page, Red Dragon Disciple, and Durin&#x27;s coals burn a little lower -- what you took from them you carry now in your own veins.</div><ul class="dlg-links"><li><a href="#r68">→ child</a> <span class="dlg-link-preview">“The fire remembers its own, and I the fire. Farewell, keeper.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Which of the old orders would hear my name as I stand?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“*He runs a finger down the roll* As you stand today, these would hear your name:…”</span> <small class="muted">(if <code>prsg_c_sum</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Speak to me of the Harper Scouts.</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“*He does not look up, but the corner of his mouth moves* The rolls keep your nam…”</span> <small class="muted">(if <code>q_hrp_c_st3</code>)</small></li><li><a href="#e17">→ entry #17</a> <span class="dlg-link-preview">“*He sets down the roll* You carry road-dust — and something better, unless I mis…”</span> <small class="muted">(if <code>q_hrp_c_st2</code>)</small></li><li><a href="#e16">→ entry #16</a> <span class="dlg-link-preview">“*He glances up from the roll* The corner table at the Prancing Pony, in Bree. A…”</span> <small class="muted">(if <code>q_hrp_c_st1</code>)</small></li><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“The quiet watchers of the North — song-keepers and cipher-readers who walk the r…”</span></li></ul></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Speak to me of the Knights of Westernesse.</div><ul class="dlg-links"><li><a href="#e24">→ entry #24</a> <span class="dlg-link-preview">“*He taps the roll* The rolls keep your name, knight of Westernesse. Hold the lin…”</span> <small class="muted">(if <code>q_kwn_c_st6</code>)</small></li><li><a href="#e23">→ entry #23</a> <span class="dlg-link-preview">“*He looks up sharply -- something in the wind of the thing seems to have reached…”</span> <small class="muted">(if <code>q_kwn_c_st5</code>)</small></li><li><a href="#e22">→ entry #22</a> <span class="dlg-link-preview">“*He does not look up from the roll* The Gate Captain has your errand, and the fi…”</span> <small class="muted">(if <code>q_kwn_c_prog</code>)</small></li><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Banner-knights in the old Númenórean line — captains who hold other men steady w…”</span></li></ul></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Speak to me of the Pale Masters.</div><ul class="dlg-links"><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*His voice drops* Scholars of the sealed crypt, and of the arts best left within…”</span></li></ul></div>
-<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Speak to me of the Shadowdancers.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Those who step where light does not follow. They ask one thing only: cross the d…”</span></li></ul></div>
-<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Speak to me of the Arcane Archers.</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wa…”</span></li></ul></div>
-<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Speak to me of the Red Dragon Disciples.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in t…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Speak to me of the Pale Masters.</div><ul class="dlg-links"><li><a href="#e31">→ entry #31</a> <span class="dlg-link-preview">“*He does not open the bottom page* Your name lies where you left it, near the bo…”</span> <small class="muted">(if <code>q_pal_c_st3</code>)</small></li><li><a href="#e29">→ entry #29</a> <span class="dlg-link-preview">“*He looks up before you have spoken, and his nostrils narrow at something in the…”</span> <small class="muted">(if <code>q_pal_c_rdy</code>)</small></li><li><a href="#e28">→ entry #28</a> <span class="dlg-link-preview">“*He does not look up from the roll* The lower vault keeps its count: twenty carv…”</span> <small class="muted">(if <code>q_pal_c_prog</code>)</small></li><li><a href="#e4">→ entry #4</a> <span class="dlg-link-preview">“*His voice drops* Scholars of the sealed crypt, and of the arts best left within…”</span></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Speak to me of the Shadowdancers.</div><ul class="dlg-links"><li><a href="#e37">→ entry #37</a> <span class="dlg-link-preview">“*He does not look at the dim page, and it does not need him to* Your name is wri…”</span> <small class="muted">(if <code>q_shd_c_st3</code>)</small></li><li><a href="#e35">→ entry #35</a> <span class="dlg-link-preview">“*He does not look up, but the candle beside him leans as though something passed…”</span> <small class="muted">(if <code>q_shd_c_rdy</code>)</small></li><li><a href="#e34">→ entry #34</a> <span class="dlg-link-preview">“*He glances at the dim page* The well beside Balin&#x27;s tomb keeps its count of the…”</span> <small class="muted">(if <code>q_shd_c_prog</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Those who step where light does not follow. They ask one thing only: cross the d…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Speak to me of the Arcane Archers.</div><ul class="dlg-links"><li><a href="#e43">→ entry #43</a> <span class="dlg-link-preview">“*He taps the grey feather at the corner of the page* Your name stands on the war…”</span> <small class="muted">(if <code>q_arc_c_st3</code>)</small></li><li><a href="#e41">→ entry #41</a> <span class="dlg-link-preview">“*He looks up before you have spoken, his eye going to your quiver as though it h…”</span> <small class="muted">(if <code>q_arc_c_rdy</code>)</small></li><li><a href="#e40">→ entry #40</a> <span class="dlg-link-preview">“*He touches the grey feather at the page&#x27;s corner* The old target on Rivendell&#x27;s…”</span> <small class="muted">(if <code>q_arc_c_prog</code>)</small></li><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wa…”</span></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Speak to me of the Red Dragon Disciples.</div><ul class="dlg-links"><li><a href="#e49">→ entry #49</a> <span class="dlg-link-preview">“*He taps the scorched corner of the page* Your name stands on the wyrm&#x27;s page, R…”</span> <small class="muted">(if <code>q_rdd_c_st3</code>)</small></li><li><a href="#e47">→ entry #47</a> <span class="dlg-link-preview">“*He looks up before you have spoken, and holds his hands to you as a man holds t…”</span> <small class="muted">(if <code>q_rdd_c_rdy</code>)</small></li><li><a href="#e46">→ entry #46</a> <span class="dlg-link-preview">“*He touches the scorched corner of the page* The Forge of Durin keeps the wyrm&#x27;s…”</span> <small class="muted">(if <code>q_rdd_c_prog</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in t…”</span></li></ul></div>
 <div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Speak to me of the Assassins.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledge…”</span></li></ul></div>
 <div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Speak to me of the Weapon Masters.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“Those wedded to a single weapon until it is less a tool than a limb. Their provi…”</span></li></ul></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Speak to me of the Blackguards.</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“*He is silent a moment* The Black Captain&#x27;s sworn. I keep their page because a k…”</span></li></ul></div>
@@ -512,7 +857,7 @@
 <div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">I will await the summons.</div></div>
 <div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">I will return when the candles are found.</div></div>
 <div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">I will wait for the dark.</div></div>
-<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">I will await the Lady&#x27;s markers.</div></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">The mark can wait. Another day, keeper.</div></div>
 <div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">I will listen for word from the Mountain.</div></div>
 <div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">I was never here.</div></div>
 <div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">I will watch the arena boards.</div></div>
@@ -534,6 +879,34 @@
 <div class="dlg-node reply" id="r38"><div class="dlg-head"><span class="dlg-id">reply #38</span></div><div class="dlg-text">It flies, keeper. The banner of the West stands over the Pelennor -- set by my hand.</div><ul class="dlg-links"><li><a href="#e25">→ entry #25</a> <span class="dlg-link-preview">“*Halmir rises -- the first time you have seen him stand -- and from behind his p…”</span></li></ul></div>
 <div class="dlg-node reply" id="r39"><div class="dlg-head"><span class="dlg-id">reply #39</span></div><div class="dlg-text">While it flies, the West stands. Farewell, keeper.</div></div>
 <div class="dlg-node reply" id="r40"><div class="dlg-head"><span class="dlg-id">reply #40</span></div><div class="dlg-text">How does one come to ride under that banner?</div><ul class="dlg-links"><li><a href="#e21">→ entry #21</a> <span class="dlg-link-preview">“Banner-knights are made, not wished. Take up the discipline of the old Numenorea…”</span></li></ul></div>
+<div class="dlg-node reply" id="r41"><div class="dlg-head"><span class="dlg-id">reply #41</span></div><div class="dlg-text">I have read the pale page already, keeper. How may I be counted among the Pale Masters?</div><ul class="dlg-links"><li><a href="#e26">→ entry #26</a> <span class="dlg-link-preview">“*He draws the bottom page of the roll into the light, and lowers his voice* Then…”</span></li></ul></div>
+<div class="dlg-node reply" id="r42"><div class="dlg-head"><span class="dlg-id">reply #42</span></div><div class="dlg-text">How does one come to read that page?</div><ul class="dlg-links"><li><a href="#e27">→ entry #27</a> <span class="dlg-link-preview">“*He does not lift the page from the bottom of the roll* One is not led to that p…”</span></li></ul></div>
+<div class="dlg-node reply" id="r43"><div class="dlg-head"><span class="dlg-id">reply #43</span> <span class="dlg-action">→ <code>q_pal_start</code></span></div><div class="dlg-text">I will open the twenty-first tomb.</div></div>
+<div class="dlg-node reply" id="r44"><div class="dlg-head"><span class="dlg-id">reply #44</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r45"><div class="dlg-head"><span class="dlg-id">reply #45</span></div><div class="dlg-text">The vault keeps it yet. I am about it.</div></div>
+<div class="dlg-node reply" id="r46"><div class="dlg-head"><span class="dlg-id">reply #46</span></div><div class="dlg-text">It is here, keeper -- dust of the twenty-first tomb, unspilled.</div><ul class="dlg-links"><li><a href="#e30">→ entry #30</a> <span class="dlg-link-preview">“*He takes the dust without letting it touch his skin, and from beneath the roll…”</span></li></ul></div>
+<div class="dlg-node reply" id="r47"><div class="dlg-head"><span class="dlg-id">reply #47</span></div><div class="dlg-text">The dead keep their counsel, and I mine. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r48"><div class="dlg-head"><span class="dlg-id">reply #48</span></div><div class="dlg-text">I walk already where light does not follow, keeper. How may I be counted among the Shadowdancers?</div><ul class="dlg-links"><li><a href="#e32">→ entry #32</a> <span class="dlg-link-preview">“*He turns the roll to a page that seems dimmer than the rest, and his voice goes…”</span></li></ul></div>
+<div class="dlg-node reply" id="r49"><div class="dlg-head"><span class="dlg-id">reply #49</span></div><div class="dlg-text">How does one come to walk that road?</div><ul class="dlg-links"><li><a href="#e33">→ entry #33</a> <span class="dlg-link-preview">“*He does not turn to that page* No one is taught to step where light does not fo…”</span></li></ul></div>
+<div class="dlg-node reply" id="r50"><div class="dlg-head"><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>q_shd_start</code></span></div><div class="dlg-text">I will stand at the well unlit.</div></div>
+<div class="dlg-node reply" id="r51"><div class="dlg-head"><span class="dlg-id">reply #51</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r52"><div class="dlg-head"><span class="dlg-id">reply #52</span></div><div class="dlg-text">The deep keeps it yet. I am about it.</div></div>
+<div class="dlg-node reply" id="r53"><div class="dlg-head"><span class="dlg-id">reply #53</span></div><div class="dlg-text">It is here, keeper -- a skein of the unlit deep, drawn up in darkness.</div><ul class="dlg-links"><li><a href="#e36">→ entry #36</a> <span class="dlg-link-preview">“*He takes the skein without looking at it directly, and from beneath the roll dr…”</span></li></ul></div>
+<div class="dlg-node reply" id="r54"><div class="dlg-head"><span class="dlg-id">reply #54</span></div><div class="dlg-text">The dark keeps its own counsel, and I mine. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r55"><div class="dlg-head"><span class="dlg-id">reply #55</span></div><div class="dlg-text">I have bent the bow to the art already, keeper. How may I be counted among the Arcane Archers?</div><ul class="dlg-links"><li><a href="#e38">→ entry #38</a> <span class="dlg-link-preview">“*He turns the roll to a page fletched at its corner with a sliver of grey feathe…”</span></li></ul></div>
+<div class="dlg-node reply" id="r56"><div class="dlg-head"><span class="dlg-id">reply #56</span></div><div class="dlg-text">How does one come to that craft?</div><ul class="dlg-links"><li><a href="#e39">→ entry #39</a> <span class="dlg-link-preview">“*He does not turn the page* One is not talked onto that page — one is shot onto…”</span></li></ul></div>
+<div class="dlg-node reply" id="r57"><div class="dlg-head"><span class="dlg-id">reply #57</span> <span class="dlg-action">→ <code>q_arc_start</code></span></div><div class="dlg-text">I will draw the warden&#x27;s shaft.</div></div>
+<div class="dlg-node reply" id="r58"><div class="dlg-head"><span class="dlg-id">reply #58</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r59"><div class="dlg-head"><span class="dlg-id">reply #59</span></div><div class="dlg-text">The mark keeps it yet. I am about it.</div></div>
+<div class="dlg-node reply" id="r60"><div class="dlg-head"><span class="dlg-id">reply #60</span></div><div class="dlg-text">It is here, keeper — the warden&#x27;s shaft, drawn from the old mark bow in hand.</div><ul class="dlg-links"><li><a href="#e42">→ entry #42</a> <span class="dlg-link-preview">“*He takes the shaft in both hands and listens to it a moment, the way other men…”</span></li></ul></div>
+<div class="dlg-node reply" id="r61"><div class="dlg-head"><span class="dlg-id">reply #61</span></div><div class="dlg-text">The string remembers the note, and I the string. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r62"><div class="dlg-head"><span class="dlg-id">reply #62</span></div><div class="dlg-text">The wyrm&#x27;s fire is awake in my veins already, keeper. How may I be counted among the Red Dragon Disciples?</div><ul class="dlg-links"><li><a href="#e44">→ entry #44</a> <span class="dlg-link-preview">“*He turns the roll to a page scorched at its corner, though the scorch is older…”</span></li></ul></div>
+<div class="dlg-node reply" id="r63"><div class="dlg-head"><span class="dlg-id">reply #63</span></div><div class="dlg-text">How does one come to that inheritance?</div><ul class="dlg-links"><li><a href="#e45">→ entry #45</a> <span class="dlg-link-preview">“*He does not turn the page* One is not led to that inheritance -- one is born to…”</span></li></ul></div>
+<div class="dlg-node reply" id="r64"><div class="dlg-head"><span class="dlg-id">reply #64</span> <span class="dlg-action">→ <code>q_rdd_start</code></span></div><div class="dlg-text">I will draw the ember bare-handed.</div></div>
+<div class="dlg-node reply" id="r65"><div class="dlg-head"><span class="dlg-id">reply #65</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r66"><div class="dlg-head"><span class="dlg-id">reply #66</span></div><div class="dlg-text">The coals keep it yet. I am about it.</div></div>
+<div class="dlg-node reply" id="r67"><div class="dlg-head"><span class="dlg-id">reply #67</span></div><div class="dlg-text">It is here, keeper -- an ember of the old wyrm&#x27;s fire, drawn from Durin&#x27;s coals with a bare hand.</div><ul class="dlg-links"><li><a href="#e48">→ entry #48</a> <span class="dlg-link-preview">“*He takes the ember in his bare palm without flinching, and for a moment the lig…”</span></li></ul></div>
+<div class="dlg-node reply" id="r68"><div class="dlg-head"><span class="dlg-id">reply #68</span></div><div class="dlg-text">The fire remembers its own, and I the fire. Farewell, keeper.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

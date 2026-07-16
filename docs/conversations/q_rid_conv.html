@@ -40,16 +40,17 @@
       <a href="../quests/index.html">Quests</a>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
-<a href="../manual/Customizations.html">Customizations</a>
-<a href="../manual/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
-<a href="../manual/LegendaryFeats.html">Legendary Feats</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
-<a href="../manual/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../manual/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
     </nav>
   </header>
   <main>
@@ -66,6 +67,7 @@
 </ul>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_rid_begin</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rid_c_show</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rid_a1</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rid_c_win</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rid_c_lose</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -103,7 +105,7 @@
 <div class="dlg-text">Go on, then. Ask.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_rid_c_show</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
 <div class="dlg-text">Riddle <span class="custom-token" title="SetCustomToken(6361, ...) called in: q_rid_c_lose, q_rid_c_show, q_rid_c_win">&lt;CUSTOM6361&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_lose.html">q_rid_c_lose</a>, <a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>, <a href="../scripts/q_rid_c_win.html">q_rid_c_win</a>]</sup></span> of seven, precious. Listen, listen:
 
 <span class="custom-token" title="SetCustomToken(6362, ...) called in: q_rid_c_show">&lt;CUSTOM6362&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>]</sup></span></div>
@@ -140,7 +142,7 @@
 <summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
 <div class="dlg-text">Next riddle.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span> <small class="muted">(if <code>q_rid_c_show</code>)</small></div>
 </div>
 </details>
 </div>
@@ -153,7 +155,7 @@
 <summary><span class="dlg-id">reply #9</span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
 <div class="dlg-text">Bah. Ask the next.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span> <small class="muted">(if <code>q_rid_c_show</code>)</small></div>
 </div>
 </details>
 </div>
@@ -214,7 +216,7 @@
 <summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_rid_begin</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
 <div class="dlg-text">I&#x27;ll play your game, creature. Ask your riddles.</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span> <small class="muted">(if <code>q_rid_c_show</code>)</small></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -236,16 +238,16 @@
 <div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*It writhes on its rock, hissing and spitting.* It wins, it WINS! <span class="custom-token" title="SetCustomToken(6361, ...) called in: q_rid_c_lose, q_rid_c_show, q_rid_c_win">&lt;CUSTOM6361&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_lose.html">q_rid_c_lose</a>, <a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>, <a href="../scripts/q_rid_c_win.html">q_rid_c_win</a>]</sup></span> of seven, curse it and crush it! Sss... a bargain is a bargain, precious, even in the dark. Take it then -- take the present and choke on it! *It flings your prize at you and hunches jealously over the rest of its little hoard.* The game is done. Come back when the week turns, if it dares. Gollum, gollum.</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“A pleasure doing business, wretch. Until the week turns.”</span></li></ul></div>
 <div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*It capers on its rock, hugging itself with glee.* It loses, it loses! Only <span class="custom-token" title="SetCustomToken(6361, ...) called in: q_rid_c_lose, q_rid_c_show, q_rid_c_win">&lt;CUSTOM6361&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_lose.html">q_rid_c_lose</a>, <a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>, <a href="../scripts/q_rid_c_win.html">q_rid_c_win</a>]</sup></span> of seven, stupid lost thing! No present, no precious, nothing for it but the long cold walk back up into the nasty light. Gollum! *It settles back into the dark, still chuckling wetly.* Come back when the week turns and we plays again. We likes winning, yes we does, precious. We likes it very much.</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Enjoy your cave, wretch. I&#x27;ll be back for your hoard.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
-<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_rid_begin</code></span></div><div class="dlg-text">I&#x27;ll play your game, creature. Ask your riddles.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span></li></ul></div>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_rid_begin</code></span></div><div class="dlg-text">I&#x27;ll play your game, creature. Ask your riddles.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span> <small class="muted">(if <code>q_rid_c_show</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Another time. Stay in your dark.</div></div>
 <div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Keep your riddles, then. Farewell.</div></div>
-<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Go on, then. Ask.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Go on, then. Ask.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span> <small class="muted">(if <code>q_rid_c_show</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_rid_a1</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6363, ...) — no setter found in static analysis">&lt;CUSTOM6363&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“*It writhes on its rock, hissing and spitting.* It wins, it WINS!  of seven, cur…”</span> <small class="muted">(if <code>q_rid_c_win</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*It capers on its rock, hugging itself with glee.* It loses, it loses! Only  of…”</span> <small class="muted">(if <code>q_rid_c_lose</code>)</small></li><li><a href="#e4">→ entry #4</a> <small class="muted">(if <code>q_rid_c_right</code>)</small></li><li><a href="#e5">→ entry #5</a> <small class="muted">(if <code>q_rid_c_wrong</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_rid_a2</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6364, ...) — no setter found in static analysis">&lt;CUSTOM6364&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“*It writhes on its rock, hissing and spitting.* It wins, it WINS!  of seven, cur…”</span> <small class="muted">(if <code>q_rid_c_win</code>)</small></li><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“*It capers on its rock, hugging itself with glee.* It loses, it loses! Only  of…”</span> <small class="muted">(if <code>q_rid_c_lose</code>)</small></li><li><a href="#e4">→ child</a> <small class="muted">(if <code>q_rid_c_right</code>)</small></li><li><a href="#e5">→ child</a> <small class="muted">(if <code>q_rid_c_wrong</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_rid_a3</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6365, ...) — no setter found in static analysis">&lt;CUSTOM6365&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“*It writhes on its rock, hissing and spitting.* It wins, it WINS!  of seven, cur…”</span> <small class="muted">(if <code>q_rid_c_win</code>)</small></li><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“*It capers on its rock, hugging itself with glee.* It loses, it loses! Only  of…”</span> <small class="muted">(if <code>q_rid_c_lose</code>)</small></li><li><a href="#e4">→ child</a> <small class="muted">(if <code>q_rid_c_right</code>)</small></li><li><a href="#e5">→ child</a> <small class="muted">(if <code>q_rid_c_wrong</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>q_rid_a4</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6366, ...) — no setter found in static analysis">&lt;CUSTOM6366&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“*It writhes on its rock, hissing and spitting.* It wins, it WINS!  of seven, cur…”</span> <small class="muted">(if <code>q_rid_c_win</code>)</small></li><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“*It capers on its rock, hugging itself with glee.* It loses, it loses! Only  of…”</span> <small class="muted">(if <code>q_rid_c_lose</code>)</small></li><li><a href="#e4">→ child</a> <small class="muted">(if <code>q_rid_c_right</code>)</small></li><li><a href="#e5">→ child</a> <small class="muted">(if <code>q_rid_c_wrong</code>)</small></li></ul></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Next riddle.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span></li></ul></div>
-<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Bah. Ask the next.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Next riddle.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span> <small class="muted">(if <code>q_rid_c_show</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Bah. Ask the next.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Riddle  of seven, precious. Listen, listen:”</span> <small class="muted">(if <code>q_rid_c_show</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">A pleasure doing business, wretch. Until the week turns.</div></div>
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">Enjoy your cave, wretch. I&#x27;ll be back for your hoard.</div></div>
   </main>
