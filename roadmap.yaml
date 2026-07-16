@@ -1685,11 +1685,12 @@ ideas:
   - id: arcane-archer-quest
     title: "Prestige quest: Arcane Archer (L12+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Compact single quest, gated on 1+ Arcane Archer level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 09e2f74
+    notes: "<span>T2. Compact single quest, gated on 1+ Arcane Archer level; modest +3-tier item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Warden's Mark\" — Arcane Archer initiation, fifth prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ Arcane Archer level; others get a pointer line. Flow: accept from Halmir → draw at the ancient Archery Target on Rivendell's training ground (existing placeable reused — retagged and made usable, no new placements) <b>with a long/shortbow equipped and arrows in the quiver</b> — come unarmed-for-archery and the attempt fails with a retry message → receive The Warden's Shaft (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Bracers of the Grey Fletching (Concentration +3, Spot +3, Listen +3 — deliberately no AB/damage so forge caps are untouched). State in prestigedb (order key <code>archer</code>, one-off); journal <code>pc_arcanearcher</code>. QuestGuide.html updated (hub now five live orders).</div><div><br></div><div><b>UAT:</b> (1) non-AA L12+ PC sees only the pointer line; (2) AA PC accepts, journal 1; (3) at the Rivendell target: no bow / empty quiver → fail message, bow + arrows → shaft + journal 2; the second (untouched) target stays non-usable; (4) turn-in consumes shaft, grants XP + bracers, ends journal; epilogue only afterwards, no second reward; shaft undroppable/unsellable and re-given at the target if lost.</div>"
 
   - id: red-dragon-disciple-quest
     title: "Prestige quest: Red Dragon Disciple (L12+)"
