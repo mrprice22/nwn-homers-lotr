@@ -50,7 +50,10 @@ void main()
             + "again in a moment.");
         return;
         }
-    if (iProjected > FORGE_LEGAL_MAX_VALUE + iBonus)
+    // The backstop is the UNIFORM legal ceiling (base + top boss-tier bonus,
+    // see ForgeLegalMaxValue) + Appraise; the player's own boss-tier
+    // entitlement is already enforced by the per-forge cap iMax below.
+    if (iProjected > ForgeLegalMaxValue() + iBonus)
         {
         SpeakString("No forge in these lands may bind so much worth into one "
             + "piece — that lies beyond what the law allows. I'll not do it.");
@@ -72,10 +75,13 @@ void main()
         && !ForgePropMatchesExisting(oItem, ipNew))
         {
         int iProps = ForgeCountProps(oItem);
-        if (iProps >= FORGE_LEGAL_MAX_PROPS)
+        // Uniform legal backstop (ForgeLegalMaxProps, includes the top
+        // boss-tier +1 slot); the per-forge/per-player cap iMaxProps below is
+        // what actually limits characters who haven't earned the extra slot.
+        if (iProps >= ForgeLegalMaxProps())
             {
             SpeakString("No forge may bind more than "
-                + IntToString(FORGE_LEGAL_MAX_PROPS) + " enchantments into one "
+                + IntToString(ForgeLegalMaxProps()) + " enchantments into one "
                 + "piece — that is the limit of the law. Have me strike one from "
                 + "it first.");
             return;
@@ -125,9 +131,9 @@ void main()
         // on the item so the contraband scan / Warden never jail it later, even
         // if the bearer's Appraise changes or the item is traded. Keep the
         // highest ceiling ever applied.
-        if (iProjected > FORGE_LEGAL_MAX_VALUE)
+        if (iProjected > ForgeLegalMaxValue())
             {
-            int iCeil = FORGE_LEGAL_MAX_VALUE + iBonus;
+            int iCeil = ForgeLegalMaxValue() + iBonus;
             if (iCeil > GetLocalInt(oItem, FORGE_CEIL))
                 SetLocalInt(oItem, FORGE_CEIL, iCeil);
             }

@@ -38,6 +38,135 @@ int ForgeAppraiseBonus(object oPC)
 {
     return AppraiseBonusScaled(oPC, FORGE_APPRAISE_MAX_BONUS);
 }
+
+// ---------------------------------------------------------------------------
+// Boss-kill progressive forge bonuses (roadmap: forge-limits-progressive).
+//
+// A character earns a personal bonus to the forge caps by slaying DISTINCT
+// bosses from the Roll of the Fallen registry (respawndb boss_registry, the
+// CR>60 single-instance bosses — see CLAUDE-boss-tracker.md). Kills are read
+// from the bestiary (bestiarydb kills, per-character GetObjectUUID, solo OR
+// party credit both count). Distinct bosses — not raw kills — so the reward
+// tracks progression, not farming one boss.
+//
+// TIER TABLE (tune here; every threshold/percent lives in these constants):
+//   >= FORGE_BOSS_TIER1_KILLS (10) distinct bosses  ->  +5% forge value cap
+//   >= FORGE_BOSS_TIER2_KILLS (25)                  -> +10%
+//   >= FORGE_BOSS_TIER3_KILLS (50)                  -> +15%
+//   ALL tracked bosses (registry count, 78 today)   -> +20% and +1 property
+//                       slot at the TOP-tier forges only (Moria / Kallrist,
+//                       i.e. forges whose prop cap is FORGE_LEGAL_MAX_PROPS).
+//
+// The percent applies to the forge's own FORGE_MAX_VALUE area cap (before the
+// Appraise bonus is added), so lower-tier forges give proportionally smaller
+// rewards. Personal bonuses apply ONLY AT FORGE TIME (what YOU may build).
+//
+// TRANSFERABILITY: the contraband/legality ceiling everywhere (login scan,
+// Well of Eru, Forge Warden, staged disenchant lawfulness) is the MAXIMUM
+// ACHIEVABLE cap — ForgeLegalMaxValue()/ForgeLegalMaxProps() below, i.e.
+// base + the top-tier bonus, uniformly for every character. So an item forged
+// by a decorated boss-slayer can be traded to a fresh character without the
+// recipient ever being jailed for holding it. Raising the ceiling only ever
+// LOOSENS the law, so existing FORGE_CLEAN stamps stay valid (no
+// FORGE_CLEAN_VER bump needed).
+const int FORGE_BOSS_TIER1_KILLS = 10;
+const int FORGE_BOSS_TIER1_PCT   = 5;
+const int FORGE_BOSS_TIER2_KILLS = 25;
+const int FORGE_BOSS_TIER2_PCT   = 10;
+const int FORGE_BOSS_TIER3_KILLS = 50;
+const int FORGE_BOSS_TIER3_PCT   = 15;
+// Top tier: ALL currently-tracked bosses (dynamic registry count).
+const int FORGE_BOSS_TOP_PCT     = 20;
+
+// Global legal value ceiling INCLUDING the top boss-tier bonus. Any character
+// could lawfully hold an item forged at the top personal cap, so every
+// contraband/legality check must judge against this, never a holder's
+// personal cap. 750,000 + 20% = 900,000 gp today.
+int ForgeLegalMaxValue()
+{
+    return FORGE_LEGAL_MAX_VALUE
+        + FORGE_LEGAL_MAX_VALUE / 100 * FORGE_BOSS_TOP_PCT;
+}
+
+// Global legal property-count ceiling INCLUDING the top boss-tier +1 slot
+// (earned at the top forges by slaying every tracked boss). 7 today.
+int ForgeLegalMaxProps()
+{
+    return FORGE_LEGAL_MAX_PROPS + 1;
+}
+
+// Quoted, comma-separated list of every tracked boss resref (registry +
+// aliases) for SQL IN(...) clauses, e.g. "'gollum','witchking',...". Resrefs
+// are filenames (alphanumeric), so inlining them into SQL text is safe.
+// Cached on the module: brd_db reseeds the registry only on module load.
+// Returns "" when the respawndb registry is unavailable (feature no-ops).
+string ForgeBossRegistryList()
+{
+    object oMod = GetModule();
+    string sList = GetLocalString(oMod, "FORGE_BOSS_LIST");
+    if (sList != "")
+        return sList;
+    sqlquery q = SqlPrepareQueryCampaign("respawndb",
+        "SELECT group_concat('''' || resref || '''') FROM"
+        + " (SELECT resref FROM boss_registry"
+        + "  UNION SELECT resref FROM boss_alias)");
+    if (SqlStep(q))
+    {
+        sList = SqlGetString(q, 0);
+        SetLocalString(oMod, "FORGE_BOSS_LIST", sList);
+    }
+    return sList;
+}
+
+// How many bosses the registry tracks (the top-tier threshold). Cached on the
+// module for the same reason as the list above. 0 when unavailable.
+int ForgeBossTotalTracked()
+{
+    object oMod = GetModule();
+    int nTotal = GetLocalInt(oMod, "FORGE_BOSS_TOTAL");
+    if (nTotal > 0)
+        return nTotal;
+    sqlquery q = SqlPrepareQueryCampaign("respawndb",
+        "SELECT COUNT(*) FROM boss_registry");
+    if (SqlStep(q))
+    {
+        nTotal = SqlGetInt(q, 0);
+        SetLocalInt(oMod, "FORGE_BOSS_TOTAL", nTotal);
+    }
+    return nTotal;
+}
+
+// Distinct tracked bosses this character has slain (solo or party credit),
+// per the bestiarydb kill records. Bestiary kills are stored by CANONICAL
+// resref, so match both the raw registry resrefs and their bestiary-canonical
+// translations. 0 on any missing DB/table (graceful no-op).
+int ForgeBossDistinctKills(object oPC)
+{
+    string sList = ForgeBossRegistryList();
+    if (sList == "")
+        return 0;
+    sqlquery q = SqlPrepareQueryCampaign("bestiarydb",
+        "SELECT COUNT(DISTINCT resref) FROM kills WHERE uuid=@u"
+        + " AND (resref IN (" + sList + ")"
+        + " OR resref IN (SELECT canonical FROM resref_alias"
+        + "               WHERE resref IN (" + sList + ")))");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    if (SqlStep(q))
+        return SqlGetInt(q, 0);
+    return 0;
+}
+
+// Percent bonus to the forge value cap for nKills distinct boss kills out of
+// nTotal tracked. The single tunable mapping from progress to reward.
+int ForgeBossBonusPct(int nKills, int nTotal)
+{
+    if (nTotal > 0 && nKills >= nTotal)
+        return FORGE_BOSS_TOP_PCT;
+    if (nKills >= FORGE_BOSS_TIER3_KILLS) return FORGE_BOSS_TIER3_PCT;
+    if (nKills >= FORGE_BOSS_TIER2_KILLS) return FORGE_BOSS_TIER2_PCT;
+    if (nKills >= FORGE_BOSS_TIER1_KILLS) return FORGE_BOSS_TIER1_PCT;
+    return 0;
+}
 const string FORGE_VAULT_TAG = "FORGE_VAULT";
 const int FORGE_DIS_SLOTS = 8;
 
@@ -320,17 +449,54 @@ int ForgeRefreshAnvilContext(object oPC)
 
     // Per-forge ceilings read from the anvil's area. Uncapped forges were removed
     // June 2026, so a missing/zero cap falls back to the global legal ceiling
-    // rather than the old "no" placeholder. A high Appraise raises the ceiling
-    // for this player (take-20, up to +500k at an Appraise check of 65).
+    // rather than the old "no" placeholder. Boss-kill progress raises the
+    // area's base cap by a percent (see the tier table above), then a high
+    // Appraise raises the ceiling further (take-20, up to +500k at an
+    // Appraise check of 65).
+    int nBossKills = ForgeBossDistinctKills(oPC);
+    int nBossTotal = ForgeBossTotalTracked();
+    int nBossPct   = ForgeBossBonusPct(nBossKills, nBossTotal);
     int iMaxValue = GetLocalInt(GetArea(oAnvil), "FORGE_MAX_VALUE");
     if (iMaxValue <= 0)
         iMaxValue = FORGE_LEGAL_MAX_VALUE;
+    iMaxValue += iMaxValue / 100 * nBossPct;
     iMaxValue += ForgeAppraiseBonus(oPC);
     SetLocalInt(oPC, "MODIFY_MAX", iMaxValue);
     int iMaxProps = GetLocalInt(GetArea(oAnvil), "FORGE_MAX_PROPS");
     if (iMaxProps <= 0)
         iMaxProps = FORGE_LEGAL_MAX_PROPS;
+    // Top boss tier (every tracked boss slain) earns one extra property slot,
+    // but only at the top-tier forges (prop cap already at the legal max).
+    int bBossPropSlot = (nBossPct >= FORGE_BOSS_TOP_PCT
+                         && iMaxProps >= FORGE_LEGAL_MAX_PROPS);
+    if (bBossPropSlot)
+        iMaxProps++;
     SetLocalInt(oPC, "MODIFY_MAX_PROPS", iMaxProps);
+
+    // Tell the player their boss-progress bonus once per session (re-told when
+    // the distinct-kill count changes, e.g. after slaying a new boss).
+    if (GetLocalInt(oPC, "FORGE_BOSS_TOLD") != nBossKills + 1)
+    {
+        SetLocalInt(oPC, "FORGE_BOSS_TOLD", nBossKills + 1);
+        string sBoss;
+        if (nBossPct > 0)
+        {
+            sBoss = "Boss-slayer's edge: " + IntToString(nBossKills) + " of "
+                + IntToString(nBossTotal) + " bosses of the Roll of the Fallen "
+                + "slain — +" + IntToString(nBossPct)
+                + "% to this forge's value cap";
+            if (bBossPropSlot)
+                sBoss += " and one extra enchantment slot";
+            sBoss += ".";
+        }
+        else if (nBossTotal > 0)
+            sBoss = "Forge lore: slay " + IntToString(FORGE_BOSS_TIER1_KILLS)
+                + " different bosses of the Roll of the Fallen to earn a forge "
+                + "cap bonus (" + IntToString(nBossKills) + " of "
+                + IntToString(nBossTotal) + " so far).";
+        if (sBoss != "")
+            FloatingTextStringOnCreature(sBoss, oPC, FALSE);
+    }
 
     SetCustomToken(100, GetName(oItem));
     SetCustomToken(102, ForgeBaseWord(GetBaseItemType(oItem)));
@@ -512,11 +678,14 @@ int ForgeItemDeviatesFromBlueprint(object oItem)
 }
 
 // Tri-state legality verdict. Illegal = exceeds the global legal ceiling
-// (6 properties / 750,000 gp) AND was tampered with (deviates from its stock
-// blueprint). Stock drops above the ceiling stay legal. Returns INDETERMINATE
-// when no valuation is possible — callers must neither jail nor mark such items
-// clean. The single source of truth for legality (ForgeIsItemIllegal and the
-// login scan both go through here).
+// (ForgeLegalMaxProps() properties / ForgeLegalMaxValue() gp — the MAXIMUM
+// ACHIEVABLE forge caps including the top boss-kill bonus, so items forged by
+// a decorated boss-slayer stay legal in ANY character's hands) AND was
+// tampered with (deviates from its stock blueprint). Stock drops above the
+// ceiling stay legal. Returns INDETERMINATE when no valuation is possible —
+// callers must neither jail nor mark such items clean. The single source of
+// truth for legality (ForgeIsItemIllegal and the login scan both go through
+// here).
 int ForgeItemLegality(object oItem)
 {
     if (!GetIsObjectValid(oItem))
@@ -529,11 +698,11 @@ int ForgeItemLegality(object oItem)
     // A forge stamps FORGE_CEIL on an item it lawfully enchanted above the
     // default ceiling because the forger's Appraise allowed it; honor that
     // higher per-item ceiling for everyone (legality is intrinsic to the item).
-    int nValueCeil = FORGE_LEGAL_MAX_VALUE;
+    int nValueCeil = ForgeLegalMaxValue();
     int nStamp = GetLocalInt(oItem, FORGE_CEIL);
     if (nStamp > nValueCeil)
         nValueCeil = nStamp;
-    if (ForgeCountProps(oItem) <= FORGE_LEGAL_MAX_PROPS
+    if (ForgeCountProps(oItem) <= ForgeLegalMaxProps()
         && nValue <= nValueCeil)
         return FORGE_LEG_LEGAL;
     if (!ForgeItemDeviatesFromBlueprint(oItem))
@@ -683,21 +852,21 @@ string ForgeLegalStatus(object oItem)
     int nValue = ForgeItemValue(oItem, TRUE); // per-unit: matches the ForgeIsItemIllegal gate
     // Honor any Appraise-extended ceiling stamped on the item (see FORGE_CEIL),
     // so a lawfully high-value piece reads as within the law, not contraband.
-    int nValueCeil = FORGE_LEGAL_MAX_VALUE;
+    int nValueCeil = ForgeLegalMaxValue();
     int nStamp = GetLocalInt(oItem, FORGE_CEIL);
     if (nStamp > nValueCeil)
         nValueCeil = nStamp;
-    int bProps = nProps > FORGE_LEGAL_MAX_PROPS;
+    int bProps = nProps > ForgeLegalMaxProps();
     int bValue = nValue > nValueCeil;
     if (!bProps && !bValue)
         return "It is within the law now: " + IntToString(nProps)
-            + " enchantments of the " + IntToString(FORGE_LEGAL_MAX_PROPS)
+            + " enchantments of the " + IntToString(ForgeLegalMaxProps())
             + " allowed, and a worth of " + ForgeGold(nValue)
             + " gold under the lawful " + ForgeGold(nValueCeil) + ".";
     string s = "";
     if (bProps)
         s += "It still bears " + IntToString(nProps) + " enchantments where the "
-            + "law allows but " + IntToString(FORGE_LEGAL_MAX_PROPS) + ".";
+            + "law allows but " + IntToString(ForgeLegalMaxProps()) + ".";
     if (bValue)
     {
         if (s != "") s += " And i";
@@ -742,12 +911,13 @@ void ForgeDisenchantSetup(object oPC, object oTarget)
 // scripts above.
 
 // Effective per-item legality ceiling for oPC working oItem: the global cap
+// (max-achievable, incl. the top boss-tier bonus — see ForgeLegalMaxValue)
 // raised by the player's live Appraise headroom, never below a FORGE_CEIL the
 // item already carries. Mirrors the max() ForgeItemLegality uses, plus the live
 // Appraise bonus (what this smith may allow this player).
 int ForgeEffectiveCeil(object oPC, object oItem)
 {
-    int nCeil = FORGE_LEGAL_MAX_VALUE + ForgeAppraiseBonus(oPC);
+    int nCeil = ForgeLegalMaxValue() + ForgeAppraiseBonus(oPC);
     int nStamp = GetLocalInt(oItem, FORGE_CEIL);
     if (nStamp > nCeil)
         nCeil = nStamp;
@@ -865,19 +1035,20 @@ string ForgeProjectedStatus(object oPC, object oItem)
     else
         s = "With your plan struck, the " + GetName(oItem) + " would be worth "
             + ForgeGold(nVal) + " gold";
-    if (nVal <= nCeil && nProps <= FORGE_LEGAL_MAX_PROPS)
+    if (nVal <= nCeil && nProps <= ForgeLegalMaxProps())
         return s + " — within the lawful " + ForgeGold(nCeil) + ".";
     if (nVal > nCeil)
         s += ", still " + ForgeGold(nVal - nCeil) + " over the lawful "
             + ForgeGold(nCeil);
-    if (nProps > FORGE_LEGAL_MAX_PROPS)
+    if (nProps > ForgeLegalMaxProps())
         s += ", and bears " + IntToString(nProps) + " enchantments where the law "
-            + "allows but " + IntToString(FORGE_LEGAL_MAX_PROPS);
+            + "allows but " + IntToString(ForgeLegalMaxProps());
     return s + ". Strike more to bring it within the law.";
 }
 
 // TRUE when the plan is non-empty AND the projected result is lawful (worth
-// within ForgeEffectiveCeil and at most FORGE_LEGAL_MAX_PROPS properties).
+// within ForgeEffectiveCeil and at most ForgeLegalMaxProps() properties —
+// the uniform legal ceiling, so a committed plan can never mint contraband).
 // Drives the commit reply's Active gate (forge_stg_ok).
 int ForgeStagePlanIsLawful(object oPC, object oItem)
 {
@@ -888,7 +1059,7 @@ int ForgeStagePlanIsLawful(object oPC, object oItem)
         return FALSE;
     if (nVal > ForgeEffectiveCeil(oPC, oItem))
         return FALSE;
-    return ForgeProjectedPropCount(oPC, oItem) <= FORGE_LEGAL_MAX_PROPS;
+    return ForgeProjectedPropCount(oPC, oItem) <= ForgeLegalMaxProps();
 }
 
 // Prime the staged anvil disenchant menu for the CURRENT page (FORGE_STG_PAGE):
@@ -971,7 +1142,9 @@ void ForgeStampLawful(object oPC, object oItem)
 {
     if (!GetIsObjectValid(oItem))
         return;
-    int nCeil = FORGE_LEGAL_MAX_VALUE + ForgeAppraiseBonus(oPC);
+    // Stamp the max-achievable global ceiling + this player's Appraise, so a
+    // boss-tier + Appraise forger's lawful work stays legal for any holder.
+    int nCeil = ForgeLegalMaxValue() + ForgeAppraiseBonus(oPC);
     if (nCeil > GetLocalInt(oItem, FORGE_CEIL))
         SetLocalInt(oItem, FORGE_CEIL, nCeil);
     if (ForgeItemLegality(oItem) == FORGE_LEG_LEGAL)
