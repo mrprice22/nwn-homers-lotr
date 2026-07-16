@@ -171,6 +171,7 @@
             <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer)</a></li>
             <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer)</a></li>
             <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple)</a></li>
+            <li><a href="#assassin">The Quiet Knives (Assassin)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -960,12 +961,13 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first six — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first seven — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
       <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
-      <a href="#arcane-archer">The Warden's Mark</a>, and the Red Dragon Disciples'
-      <a href="#red-dragon">The Old Wyrm's Fire</a> — are live; six orders remain.</li>
+      <a href="#arcane-archer">The Warden's Mark</a>, the Red Dragon Disciples'
+      <a href="#red-dragon">The Old Wyrm's Fire</a>, and the Assassins'
+      <a href="#assassin">The Quiet Knives</a> — are live; five orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1256,6 +1258,56 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   script and deliberately doesn't count. The turn-in is a <code>GetItemPossessedBy</code> reagent
   check; the finish only fires from stage 2 with the ember in hand, so the reward can't be
   re-earned.</div>
+</div>
+
+<!-- ASSASSIN — THE QUIET KNIVES -->
+<div class="quest-card" id="assassin">
+  <h3>The Quiet Knives (Assassin initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_assassin</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Assassins branch)</span>
+    <span>Requires: 1+ Assassin level (the hub line itself shows at character level 13+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Gloves of the Quiet Hand</em> (<code>q_asn_gloves</code> — Pick Pocket +3, Open Lock +3, Saving Throws vs. Poison +3)</span>
+  </div>
+  <p>The seventh of the twelve prestige-order trials, and the only one that is not won in the
+  open. Ask Halmir of the <strong>Assassins</strong>: if the knives already know your hand (1+
+  Assassin level), he names the trial — and it is not a killing. A <strong>sealed writ</strong>
+  waits at one of the order's dead drops: the old wine barrel standing against the houses of
+  <a href="../areas/bree.html">Bree</a>. Lift it as the quiet knives would — <strong>open the
+  barrel while in stealth mode; opening it out of stealth fails the attempt</strong> with a
+  flavor message ("a dead drop yields nothing to a hand any eye could mark"); slip into shadow
+  and reach again. No skill roll is made — the toggled mode is the whole test, deterministic, no
+  dice. The writ (plot + cursed — it can't be dropped, sold, or handed off, and it must come back
+  <em>sealed</em>) goes to Halmir for the induction, where the name inside turns out to be the
+  PC's own. One-off per character; if the writ is somehow lost, lifting at the drop again
+  re-gives it (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Assassins, accept the trial — <code>q_asn_start</code> sets
+      stage 1 / journal 1 (non-Assassins instead get a "one is not counted — one is uncounted"
+      pointer line).</li>
+    <li>Open the old wine barrel in Bree while in stealth mode — <code>q_asn_drop</code> (the
+      barrel's OnOpen) checks <code>GetActionMode(ACTION_MODE_STEALTH)</code>; unseen, it gives
+      <em>The Sealed Writ</em> and sets stage 2 / journal 2 (otherwise it fails the attempt with
+      a retry message).</li>
+    <li>Return to Halmir with the writ — <code>q_asn_finish</code> consumes it, awards the XP and
+      the gloves, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>assassin-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>assn</code>, stages 0–3; see <code>q_asn_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing wine
+  barrel placeable in <code>bree</code> (instance of <code>barrel001</code>), retagged
+  <code>AsnDeadDrop</code> (it was already usable and Plot — unbashable — with no previous
+  OnOpen/OnUsed, so nothing is chained; no script referenced its old shared
+  <code>WineBarrel</code> tag). The unseen check is the stealth-mode <em>toggle</em>
+  (<code>QASN_IsUnseen</code>), not a Hide roll — even a first-level Assassin who remembers to
+  walk in shadow passes. The reward's skill picks (Pick Pocket / Open Lock / saves vs. poison)
+  deliberately avoid the Shadowdancer boots' Hide / Move Silently / Tumble. The turn-in is a
+  <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the writ
+  in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
