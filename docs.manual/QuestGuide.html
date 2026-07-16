@@ -168,6 +168,7 @@
             <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
             <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
             <li><a href="#pale-master">The Twenty-First Tomb (Pale Master)</a></li>
+            <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -940,12 +941,13 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
   <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
   character currently qualifies for. Each qualifying order also gets its own dialogue branch with
-  an evocative pitch. <strong>Three orders' trials are now live</strong> — the Harper Scouts' initiation,
+  an evocative pitch. <strong>Four orders' trials are now live</strong> — the Harper Scouts' initiation,
   <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, the
   Knights of Westernesse's proving, <a href="#knight-west">The Banner of the West</a>, on his
-  Westernesse branch, and the Pale Masters' rite, <a href="#pale-master">The Twenty-First Tomb</a>,
-  on his Pale-Masters branch; the other nine branches still end with the masters "not yet having
-  sent word" and ship later, one roadmap item each, all hosted on this NPC.</p>
+  Westernesse branch, the Pale Masters' rite, <a href="#pale-master">The Twenty-First Tomb</a>,
+  on his Pale-Masters branch, and the Shadowdancers' trial, <a href="#shadowdancer">The Unlit
+  Deep</a>, on his Shadowdancers branch; the other eight branches still end with the masters "not
+  yet having sent word" and ship later, one roadmap item each, all hosted on this NPC.</p>
 
   <strong>What he does today:</strong>
   <ol>
@@ -956,9 +958,10 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first three — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
-      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, and the Pale
-      Masters' <a href="#pale-master">The Twenty-First Tomb</a> — are live; nine orders remain.</li>
+      The first four — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
+      Masters' <a href="#pale-master">The Twenty-First Tomb</a>, and the Shadowdancers'
+      <a href="#shadowdancer">The Unlit Deep</a> — are live; eight orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1108,6 +1111,52 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   script <code>nw_o2_classhig</code> unchanged. The turn-in is a
   <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the dust in
   hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- SHADOWDANCER — THE UNLIT DEEP -->
+<div class="quest-card" id="shadowdancer">
+  <h3>The Unlit Deep (Shadowdancer initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_shadowdancer</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shadowdancers branch)</span>
+    <span>Requires: 1+ Shadowdancer level (the hub line itself shows at character level 11+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Boots of the Unlit Road</em> (<code>q_shd_boots</code> — Hide +3, Move Silently +3, Tumble +3)</span>
+  </div>
+  <p>The fourth of the twelve prestige-order trials. Ask Halmir of the <strong>Shadowdancers</strong>:
+  if you already walk where light does not follow (1+ Shadowdancer level), he names the trial — deep
+  in Moria, beside <a href="../areas/balinstomb.html">Balin's tomb</a>, stands the <strong>Deep
+  Well</strong> no plumb-line ever fathomed. Stand at its lip <strong>bearing no light at
+  all</strong> — no torch, no glowing (light-property) gear, no active <em>Light</em> or
+  <em>Continual Flame</em> — and the deep leaves the <em>Skein of the Unlit Deep</em> in your hand
+  (plot + cursed — it can't be dropped, sold, or handed off). <strong>Come to the well carrying
+  light and the trial fails that attempt</strong>: a flavor message, nothing granted, retry as soon
+  as you've doused it. Carry the skein back to Halmir for the induction. One-off per character; if
+  the skein is somehow lost, standing at the well unlit again re-gives it (never duplicates — the
+  turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Shadowdancers, accept the trial — <code>q_shd_start</code> sets
+      stage 1 / journal 1 (non-Shadowdancers instead get a "no one is taught to step where light
+      does not follow" pointer line).</li>
+    <li>Use the Deep Well beside Balin's tomb with no light source — <code>q_shd_well</code> checks
+      every equipped item (torch base type or Light item property) and active Light/Continual Flame
+      effects; unlit, it gives the skein and sets stage 2 / journal 2 (lit, it fails the attempt
+      with a retry message).</li>
+    <li>Return to Halmir with the skein — <code>q_shd_finish</code> consumes it, awards the XP and
+      the boots, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>shadowdancer-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>shadow</code>, stages 0–3; see <code>q_shd_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing placed
+  well in <code>balinstomb</code> ("DeepWell", tag <code>DeepWell</code>) whose instance OnUsed now
+  runs <code>q_shd_well</code>, which chains the instance's previous sound-flavor script
+  <code>balintmb_dpwell</code> unchanged. The light check (<code>QSHD_CarriesLight</code>) covers
+  all equipment slots plus Light/Continual Flame creature effects; darkvision/ultravision sheds no
+  light and does not count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
+  finish only fires from stage 2 with the skein in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
