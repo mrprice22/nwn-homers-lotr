@@ -167,6 +167,7 @@
             <li><a href="#prestige-hub">Prestige-Order Hub</a></li>
             <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
             <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
+            <li><a href="#pale-master">The Twenty-First Tomb (Pale Master)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -939,11 +940,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
   <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
   character currently qualifies for. Each qualifying order also gets its own dialogue branch with
-  an evocative pitch. <strong>Two orders' trials are now live</strong> — the Harper Scouts' initiation,
-  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, and the
+  an evocative pitch. <strong>Three orders' trials are now live</strong> — the Harper Scouts' initiation,
+  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, the
   Knights of Westernesse's proving, <a href="#knight-west">The Banner of the West</a>, on his
-  Westernesse branch; the other ten branches still end with the masters "not yet having sent word"
-  and ship later, one roadmap item each, all hosted on this NPC.</p>
+  Westernesse branch, and the Pale Masters' rite, <a href="#pale-master">The Twenty-First Tomb</a>,
+  on his Pale-Masters branch; the other nine branches still end with the masters "not yet having
+  sent word" and ship later, one roadmap item each, all hosted on this NPC.</p>
 
   <strong>What he does today:</strong>
   <ol>
@@ -954,9 +956,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first two — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a> and the
-      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a> — are live;
-      ten orders remain.</li>
+      The first three — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, and the Pale
+      Masters' <a href="#pale-master">The Twenty-First Tomb</a> — are live; nine orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1067,6 +1069,45 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   then; accepting the proving and taking the standard both re-run the spawn check — see
   admin-action-required.md). The design card's escort-across-the-field ("each guardsman who
   survives adds +1 command") was compacted to the muster count — no henchman AI, same fiction.</div>
+</div>
+
+<!-- PALE MASTER — THE TWENTY-FIRST TOMB -->
+<div class="quest-card" id="pale-master">
+  <h3>The Twenty-First Tomb (Pale Master initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_palemaster</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Pale-Masters branch)</span>
+    <span>Requires: 1+ Pale Master level (the hub line itself shows at character level 11+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Talisman of the Twenty-First Tomb</em> (<code>q_pal_talis</code> — Lore +3, Spellcraft +3, saves vs. death +3)</span>
+  </div>
+  <p>The third of the twelve prestige-order trials. Ask Halmir of the <strong>Pale Masters</strong>:
+  if you already read the pale page (1+ Pale Master level), he sets the rite — beneath the
+  <a href="../areas/breecryptlowerle.html">Bree Crypt's lower level</a> the old families sleep under
+  carved names, but one sarcophagus bears none: the twenty-first tomb. Open it with your own hands,
+  take a measure of the <em>pale grave-dust</em> within (plot + cursed — it can't be dropped, sold,
+  or handed off), and carry it back to Halmir unspilled for the induction. One-off per character;
+  if the dust is somehow lost, opening the tomb again re-gives it (never duplicates — the turn-in
+  consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Pale Masters, accept the errand — <code>q_pal_start</code> sets
+      stage 1 / journal 1 (non-Pale-Masters instead get a "one arrives at that page" pointer line).</li>
+    <li>Open the unmarked sarcophagus in the Bree Crypt Lower Level — <code>q_pal_tomb</code> gives
+      the dust and sets stage 2 / journal 2.</li>
+    <li>Return to Halmir with the dust — <code>q_pal_finish</code> consumes it, awards the XP and
+      the talisman, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>pale-master-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>pale</code>, stages 0–3; see <code>q_pal_inc.nss</code>). <strong>No
+  new placements and no admin waypoint</strong>: the twenty-first tomb is an existing placed
+  sarcophagus in <code>breecryptlowerle</code> ("Coffin", tag <code>NW_VAMPIRE_SHAD</code>) whose
+  instance OnOpen now runs <code>q_pal_tomb</code>, which chains the instance's previous treasure
+  script <code>nw_o2_classhig</code> unchanged. The turn-in is a
+  <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the dust in
+  hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
