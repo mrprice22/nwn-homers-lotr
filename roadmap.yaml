@@ -1328,9 +1328,9 @@ ideas:
     status: implemented
     type: Enhancement
     player: Tukwut
-    date: "2026-07-14"
-    commit: a42c452
-    notes: "<div><b>Fixed 2026-07-14:</b> every creature detail page now shows a <b>Top Killers</b> leaderboard under its Kills section — the top 10 characters by total kills (Solo / Party / Total / Last Kill date), read from the bestiary kill database. Boss blueprint variants are merged so a character's kills aren't split across leveled copies, and renamed characters show their most recent name. Zero-kill creatures omit the section cleanly. Change lives in the wiki generator (nwn_manager commit a42c452); it appears on the live wiki at the next daily refresh. Only character names are shown — CD keys/UUIDs never render (verified by scanning all generated pages).</div><div><br></div><div><b>Scope note:</b> the merged idea's KD-ratio / total-deaths half (<a href=\"#idea-wiki-kill-counts\">wiki-kill-counts</a>) is not buildable from existing data — the bestiary DB tracks kills only, no player deaths; it would need new in-module death tracking first.</div><div><br></div><div><b>UAT (after the next daily wiki refresh):</b> open a popular creature page (e.g. Giant Spider) and confirm the Top Killers table matches expectations; spot-check a boss page and a never-killed creature (no section, no layout regression); confirm no CD keys appear anywhere.</div>"
+    date: "2026-07-16"
+    commit: a42c452, 5ac31d8
+    notes: "<div><b>Fixed 2026-07-14:</b> every creature detail page now shows a <b>Top Killers</b> leaderboard under its Kills section — the top 10 characters by total kills (Solo / Party / Total / Last Kill date), read from the bestiary kill database. Boss blueprint variants are merged so a character's kills aren't split across leveled copies, and renamed characters show their most recent name. Zero-kill creatures omit the section cleanly. Change lives in the wiki generator (nwn_manager commit a42c452); it appears on the live wiki at the next daily refresh. Only character names are shown — CD keys/UUIDs never render (verified by scanning all generated pages).</div><div><br></div><div><b>Scope note:</b> the merged idea's KD-ratio / total-deaths half (<a href=\"#idea-wiki-kill-counts\">wiki-kill-counts</a>) is not buildable from existing data — the bestiary DB tracks kills only, no player deaths; it would need new in-module death tracking first.</div>"
     dupe_of: wiki-kill-counts
   - id: discord-bot
     title: "Discord/wiki bot listing logged-in players and summarizing their gear stats (plus fun stats like unique creatures killed)"
@@ -1660,11 +1660,12 @@ ideas:
   - id: pale-master-quest
     title: "Prestige quest: Pale Master (L11+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Compact single quest, gated on 1+ Pale Master level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 6c4d105
+    notes: "<span>T2. Compact single quest, gated on 1+ Pale Master level; modest +3-tier item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Twenty-First Tomb\" — Pale Master initiation, third prestige-order trial on Halmir the Grey (Well of Eru). Gated on 1+ Pale Master level (hub line visible at L11+). Flow: accept from Halmir's Pale-Masters branch → open the unmarked sarcophagus in the Bree Crypt Lower Level (existing placed Coffin reused; its OnOpen chains the old treasure script, so normal loot still drops) → receive Pale Grave-Dust (plot+cursed reagent, re-given if lost) → return to Halmir for 1000 XP + Talisman of the Twenty-First Tomb (Lore +3, Spellcraft +3, saves vs. death +3). State in prestigedb (order key <code>pale</code>, one-off); journal <code>pc_palemaster</code>. No new placements or waypoints — rides the already-pending <code>AP_prestigehub_1</code> waypoint from the prestige hub item. Code in commits 30f3e1b + 6c4d105.</div><div><br></div><div><b>UAT:</b> (1) non-PM L11+ PC sees the branch but only gets the pointer line, no quest; (2) PC with 1+ PM level can accept, journal entry 1, stage survives relog; (3) opening the Coffin in breecryptlowerle still gives treasure, plus dust + journal 2 when on the quest; dust can't be dropped/sold; (4) turn-in consumes dust, grants XP + talisman, ends journal; epilogue only on re-talk, no second reward.</div>"
 
   - id: shadowdancer-quest
     title: "Prestige quest: Shadowdancer initiation (L11+)"
