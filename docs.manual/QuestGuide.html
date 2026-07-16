@@ -164,6 +164,7 @@
             <li><a href="#kalrist-tiger">Kallrist Tiger Hunt</a></li>
             <li><a href="#paths-of-the-dead">Paths of the Dead</a></li>
             <li><a href="#glorfindel">Glorfindel's Curative</a></li>
+            <li><a href="#prestige-hub">Prestige-Order Hub</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -919,6 +920,48 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <div class="dm-note">Fully scripted and wired — giver placed in Rivendell (<code>thevalleyofriven.git.json</code>).
   Undocumented before the 2026-07-11 audit; wiki page at <a href="../quests/glorfindel-potion.html">Glorfindel's Curative</a>.</div>
+</div>
+
+<!-- PRESTIGE-ORDER HUB -->
+<div class="quest-card" id="prestige-hub">
+  <h3>Prestige-Order Hub (Halmir the Grey) <span class="status-badge status-awol">Framework Shipped</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: none yet (no quest to track until the first prestige quest ships)</span>
+    <span>NPC: Halmir the Grey, Keeper of the Old Orders, at the <a href="../areas/thewelloferu.html">Well of Eru</a></span>
+    <span>Level range: any (order lines unlock at L6/11/12/13/14/16)</span>
+    <span>Reward: none yet — the hub foreshadows the twelve prestige-class quests</span>
+  </div>
+  <p>An old man in a grey cloak keeps <strong>the rolls of the twelve old orders</strong> — the
+  prestige classes, framed in-fiction as surviving disciplines of the elder days (Harper Scouts,
+  Knights of Westernesse, Pale Masters, Shadowdancers, Arcane Archers, Red Dragon Disciples,
+  Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
+  <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
+  character currently qualifies for. Each qualifying order also gets its own dialogue branch with
+  an evocative pitch; every branch ends with the masters "not yet having sent word" — the twelve
+  trials ship later, one roadmap item each, all hosted on this NPC.</p>
+
+  <strong>What he does today:</strong>
+  <ol>
+    <li>Order lines appear only when you meet that order's minimum character level
+      (Harper Scout / Knight of Westernesse 6+, Pale Master / Shadowdancer 11+, Arcane Archer /
+      Red Dragon Disciple 12+, Assassin / Weapon Master 13+, Blackguard / Divine Champion /
+      Dwarven Defender 14+, Shifter 16+). The Dwarven Defenders additionally require a dwarf.</li>
+    <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
+      says none would hear your name yet.</li>
+    <li>No journal entry and no rewards yet — the quests themselves are separate roadmap items.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
+  built, pending in-game UAT. Halmir (<code>prsg_trainer</code>, tag <code>PrestigeTrainer</code>;
+  plot, immortal, commoner faction) is script-spawned by <code>prsg_spawn</code> from the Well of
+  Eru OnEnter wrapper <code>prsg_enter</code> (which chains the area's previous
+  <code>welloferuenter</code> — starter XP, donations chest, forge scan, leash — unchanged).
+  <strong>The waypoint <code>AP_prestigehub_1</code> must be placed in <code>thewelloferu</code>
+  before he appears</strong> (scripts no-op gracefully until then; see admin-action-required.md).
+  The shared gating framework the twelve future quests reuse lives in <code>prsg_inc.nss</code>:
+  <code>PRSG_MeetsLevel</code>, <code>PRSG_HasClass</code>, the <code>PRSG_LVL_*</code> table, the
+  per-order conditionals <code>prsg_c_*</code>, and a documented <code>prestigedb</code>
+  campaign-DB stage idiom (<code>PRSG_GetStage</code>/<code>PRSG_SetStage</code>).</div>
 </div>
 
 <hr>

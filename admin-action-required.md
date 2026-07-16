@@ -67,6 +67,13 @@ _Appended by autopilot; delete entries as you complete them._
   `AP_mazarbul20_5` anywhere with fighting room (suggest the open floor of `balinstomb`) —
   a dedicated arena spot for the Wraith of the Twentieth Plot (CR 21). If you skip this one
   the wraith simply rises at whichever brazier completed the seal, which also works.
+- [ ] **prestige-trainer-hub** (2026-07-15): create waypoint tag `AP_prestigehub_1` in
+  `thewelloferu` (somewhere prominent near the well itself, clear of the Well-Mart, the
+  Donations Chest, the guardians and the Recent Updates board) — spawn point for
+  `prsg_trainer` (Halmir the Grey, Keeper of the Old Orders), the prestige-class quest
+  hub NPC. Spawned by `prsg_spawn` from the area's OnEnter wrapper (`prsg_enter`);
+  scripts no-op gracefully until the waypoint exists and never double-spawn. All twelve
+  future prestige quests will hang their giver dialogues on this NPC.
 
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
