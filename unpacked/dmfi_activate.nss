@@ -69,6 +69,13 @@ void main()
       AssignCommand(oActivator, ActionStartConversation(oActivator, "bst_book", TRUE));
       return;
    }
+   if(GetTag(oItem)=="WeaponChisel")
+   {
+      // Engraver's Chisel: rename the equipped main-hand weapon. The flow
+      // finishes in code_redeem (OnPlayerChat). See chisel_inc.nss.
+      ExecuteScript("chisel_start", oActivator);
+      return;
+   }
    if(GetTag(oItem)=="HornFellBeast")
    {
       // Sound the Horn of the Fell Beast: summon the crypt companion

@@ -7,6 +7,8 @@
 //   2. Add a matching case to ApplyCodeBenefit() that grants the reward.
 // Codes are matched case-insensitively.
 
+#include "chisel_inc"
+
 const string CODE_DB     = "coderedeem";
 const string CODE_PREFIX = "code:";
 
@@ -107,6 +109,16 @@ void main()
     if (!GetIsPC(oPC) && !GetIsDM(oPC)) return;
 
     string sMsg = GetPCChatMessage();
+
+    // Engraver's Chisel weapon rename: if this PC has a rename pending, this
+    // chat line is the new item name -- consume it and never broadcast it.
+    // See chisel_inc.nss (dispatched from dmfi_activate / chisel_start).
+    if (Chisel_HandleChat(oPC, sMsg))
+    {
+        SetPCChatMessage("");
+        return;
+    }
+
     int iPrefixLen = GetStringLength(CODE_PREFIX);
     if (GetStringLength(sMsg) < iPrefixLen) return;
     if (GetStringLowerCase(GetSubString(sMsg, 0, iPrefixLen)) != CODE_PREFIX)
