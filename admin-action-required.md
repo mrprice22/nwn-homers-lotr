@@ -45,6 +45,29 @@ _Appended by autopilot; delete entries as you complete them._
   quest can be accepted but only the placed hives can be harvested (the turn-in needs all
   three, so place all of them).
 
+- [ ] **twentieth-plot-mazarbul** (2026-07-15): create waypoint tag `AP_mazarbul20_1` in
+  `chamberofrecords` (Chamber of Records Wlkwy — among the record-stones, clear of the four
+  orc encounter spawns and the two exits) — spawn point for `q_maz_ghost` (Frár the
+  Restless, the quest-giving dwarf shade; Plot, non-hostile). Spawned by `q_maz_spawn` from
+  the area OnEnter wrapper; scripts no-op gracefully until the waypoint exists and never
+  double-spawn.
+- [ ] **twentieth-plot-mazarbul** (2026-07-15): create waypoint tag `AP_mazarbul20_2` in
+  `chamberofrecords` (near the ghost but a few steps away, reachable on foot) — spawn point
+  for crypt-seal brazier 1 (`q_maz_braz`, CEP "Brazier, Dungeon" placeable, usable). Same
+  spawner/no-op behavior.
+- [ ] **twentieth-plot-mazarbul** (2026-07-15): create waypoint tag `AP_mazarbul20_3` in
+  `balinstomb` (Balin's Tomb — flanking the tomb, clear of the standing CR-134 encounter
+  trigger so lighting a brazier doesn't pull the Mutant Terror) — spawn point for crypt-seal
+  brazier 2. Same spawner/no-op behavior.
+- [ ] **twentieth-plot-mazarbul** (2026-07-15): create waypoint tag `AP_mazarbul20_4` in
+  `balinstomb` (the tomb's other flank, likewise clear of the encounter trigger) — spawn
+  point for crypt-seal brazier 3. Until all four waypoints above exist the quest can be
+  accepted but not finished (all three braziers are required), so place all of them.
+- [ ] **twentieth-plot-mazarbul** (2026-07-15, *optional*): create waypoint tag
+  `AP_mazarbul20_5` anywhere with fighting room (suggest the open floor of `balinstomb`) —
+  a dedicated arena spot for the Wraith of the Twentieth Plot (CR 21). If you skip this one
+  the wraith simply rises at whichever brazier completed the seal, which also works.
+
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
   hyphen-less tags (`AP_riddlegame_1`, `AP_millerotherson_1/2`) while the scripts

@@ -157,6 +157,7 @@
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
+            <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
@@ -651,6 +652,57 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <code>nw_c2_default7</code>, staying bestiary-safe under <code>bst_install</code>. Grimbeorn's
   new conversation (<code>q_brn_conv</code>) was set on blueprint and placed instance both;
   progress tokens 6370&ndash;6372.</div>
+</div>
+
+<!-- THE TWENTIETH PLOT OF MAZARBUL -->
+<div class="quest-card" id="twentieth-plot">
+  <h3>The Twentieth Plot of Mazarbul <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>mazarbul_20</code></span>
+    <span>Giver: Frár the Restless, a shade of Balin's colony, in the <a href="../areas/chamberofrecords.html">Chamber of Records</a> (Moria)</span>
+    <span>Level range: 18+ (one-off)</span>
+    <span>Reward: 1200 gp + 2000 XP + <em>Seal of the Twentieth</em> (Damage Reduction +1/Soak 5, Damage Resistance: Negative 10/-)</span>
+  </div>
+  <p>A hidden codicil to the Book of Mazarbul names twenty burial plots whose seal-fires keep the
+  dead of Moria at rest. Nineteen were lit before the colony fell — the twentieth never was, and
+  what lies beneath it does not lie still. Frár, a restless dwarf-shade among the toppled
+  record-stones, asks you to finish his colony's last labor: <strong>light the three crypt-seal
+  braziers</strong> (one in the Chamber of Records, two in Balin's Tomb), then <strong>destroy the
+  wraith</strong> that rises to smother the third flame.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Frár the Restless</strong> in the Chamber of
+  Records; level 18+ required, once per character (one-off — the seal, once set, holds).<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept Frár's charge — the journal opens and the seal-braziers will take your flame.</li>
+    <li>Use each of the three Crypt-Seal Braziers once (per-character, persistent — floaty text
+      counts "N of 3"; each lighting also grants a short ward against grave-chill, Negative
+      resist 5/- for 5 minutes).</li>
+    <li>The third brazier raises the <strong>Wraith of the Twentieth Plot</strong> (CR 21).
+      Destroy it — the killing blow's party credits every party member in the area who is at the
+      wraith stage. If the wraith is slain while you are absent (or you fall and return), stir any
+      brazier's flame to re-summon it, so the fight can always be re-staged.</li>
+    <li>Return to Frár: 1200 gp, 2000 XP and the <em>Seal of the Twentieth</em>. The quest closes
+      for good.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-15 (roadmap <code>twentieth-plot-mazarbul</code>) — scripted
+  and built, pending in-game UAT. Per-character persistent state in the <code>maz20</code>
+  campaign DB (stage + <code>seal_1..3</code>), same one-off scheme as Ferny's Return, so
+  progress survives relogs and restarts and the reward can never be re-earned. Everything is
+  script-spawned: Frár (<code>q_maz_ghost</code>, a Plot dwarf commoner with a permanent ghostly
+  visage) and the braziers (<code>q_maz_braz</code>, CEP dungeon brazier, OnUsed
+  <code>q_maz_use</code>) come from the chamberofrecords/balinstomb OnEnter wrappers
+  (<code>q_maz_ent1/2</code>, chaining the areas' previous scripts) — <strong>the waypoints
+  <code>AP_mazarbul20_1</code> (ghost) and <code>AP_mazarbul20_2/3/4</code> (braziers) must be
+  placed in the toolset before anything appears</strong> (scripts no-op gracefully until then;
+  optional <code>AP_mazarbul20_5</code> sets a wraith arena spot, otherwise it rises at the
+  third-lit brazier — see admin-action-required.md). The wraith (<code>q_maz_wraith</code>) is a
+  detuned clone of the Witch King's wraith (CR 21 / 420 hp), single-spawn guarded, OnDeath
+  wrapper <code>q_maz_wd</code> chains <code>nw_c2_default7</code> (bestiary-safe). Elrond and
+  his "Elrond's Request" thread were deliberately left untouched — the ghost is the sole quest
+  giver. Progress token 6380.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
