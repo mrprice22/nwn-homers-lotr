@@ -173,6 +173,7 @@
             <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple)</a></li>
             <li><a href="#assassin">The Quiet Knives (Assassin)</a></li>
             <li><a href="#weapon-master">The Sworn Blade (Weapon Master)</a></li>
+            <li><a href="#divine-champion">The Shield of Others (Divine Champion)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -962,14 +963,15 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first eight — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first nine — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
       <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
       <a href="#arcane-archer">The Warden's Mark</a>, the Red Dragon Disciples'
       <a href="#red-dragon">The Old Wyrm's Fire</a>, the Assassins'
-      <a href="#assassin">The Quiet Knives</a>, and the Weapon Masters'
-      <a href="#weapon-master">The Sworn Blade</a> — are live; four orders remain.</li>
+      <a href="#assassin">The Quiet Knives</a>, the Weapon Masters'
+      <a href="#weapon-master">The Sworn Blade</a>, and the Divine Champions'
+      <a href="#divine-champion">The Shield of Others</a> — are live; three orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1362,6 +1364,60 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   reward's picks (Discipline / Parry / saves vs. fear) fit the order and avoid all sibling
   rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only
   fires from stage 2 with the notch in hand, so the reward can't be re-earned.</div>
+</div>
+
+<hr>
+
+<div class="quest-card" id="divine-champion">
+  <h3>The Shield of Others (Divine Champion initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_divinechampion</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Divine Champions branch)</span>
+    <span>Requires: 1+ Divine Champion level (the hub line itself shows at character level 14+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Mantle of the Westward Vow</em> (<code>q_dvc_mantle</code> — Heal +3, Persuade +3, Saving Throws vs. Divine +3)</span>
+  </div>
+  <p>The ninth of the twelve prestige-order trials. Ask Halmir of the <strong>Divine
+  Champions</strong>: if your sword is already vowed before the White Tree (1+ Divine Champion
+  level), he names the vigil. In the <a href="../areas/minastirithtemp.html">temple of Minas
+  Tirith</a> stands the <em>Altar of the Istari</em>, its stone polished by the hands of the
+  faithful. <strong>Use the altar with a shield borne on your off-hand arm</strong> — small,
+  large, or tower — because the champion's vow is not to strike harder but to stand between.
+  A bare arm, or anything but a shield in the off-hand (a second blade, a torch), fails the
+  attempt with a flavor message ("a thing that takes, not a thing that stands between"); take up
+  a shield and keep the vigil again. No dice — the shield is the whole test, deterministic and
+  retryable. The kept vigil kindles the <em>Oath-Light of the West</em> (plot + cursed — it
+  can't be dropped, sold, or handed off), which goes back to Halmir for the induction. One-off
+  per character; if the light is somehow lost, keeping the vigil again re-gives it (never
+  duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Divine Champions, accept the vigil — <code>q_dvc_start</code>
+      sets stage 1 / journal 1 (non-Champions instead get a "vowed onto the page, sword raised
+      before the White Tree" pointer line).</li>
+    <li>Use the Altar of the Istari in the Minas Tirith temple with a shield equipped in the
+      off-hand — <code>q_dvc_altar</code> (the altar's OnUsed) checks
+      <code>GetItemInSlot(INVENTORY_SLOT_LEFTHAND)</code> against the three shield base items;
+      shield borne, it gives the <em>Oath-Light of the West</em> and sets stage 2 / journal 2
+      (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the oath-light — <code>q_dvc_finish</code> consumes it, awards the
+      XP and the mantle, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>divine-champion-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>divch</code>, stages 0–3; see <code>q_dvc_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing Altar
+  of the Istari placeable in <code>minastirithtemp</code> (instance of <code>plc_altrgood</code>),
+  retagged <code>DvcVigilAltar</code> with <code>q_dvc_altar</code> on its OnUsed (it was already
+  usable + plot with no scripts, so nothing is chained; no script referenced the old tag
+  <code>AltarShrineGood</code>). The shield check covers small/large/tower shields
+  (<code>BASE_ITEM_SMALLSHIELD</code>/<code>LARGESHIELD</code>/<code>TOWERSHIELD</code> = 14/56/57,
+  verified in <code>ovr/nwscript.nss</code>). The reward's picks (Heal / Persuade / saves vs.
+  divine — <code>IP_CONST_SAVEVS_DIVINE</code> = 6; no vs-evil save constant exists) fit the
+  order and avoid all sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code>
+  reagent check; the finish only fires from stage 2 with the light in hand, so the reward can't
+  be re-earned.</div>
 </div>
 
 <hr>
