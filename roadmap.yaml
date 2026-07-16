@@ -1715,11 +1715,12 @@ ideas:
   - id: weapon-master-quest
     title: "Prestige quest: Weapon Master (L13+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Arena quest with a gear-swap gimmick, gated on 1+ Weapon Master level. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 62695e7
+    notes: "<span>T2. Arena quest with a gear-swap gimmick, gated on 1+ Weapon Master level. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Sworn Blade\" — Weapon Master initiation, eighth prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ Weapon Master level; others get a pointer line. The gear-swap gimmick became a <b>Weapon-of-Choice proof</b>: strike the first Combat Dummy in Minas Tirith (existing placeable reused — retagged and made usable; the other two dummies untouched) <b>with your Weapon of Choice equipped</b> — bare hands or any weapon whose Weapon-of-Choice feat you lack fails with distinct retry messages (deterministic baseitems.2da WeaponOfChoiceFeat + GetHasFeat check, covers CEP weapons) → receive the Notch of the Proven Blade (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Buckle of the Sworn Blade (Discipline +3, Parry +3, Saves vs. Fear +3 — no AB/damage, forge-cap-safe). State in prestigedb (order key <code>wm</code>, one-off); journal <code>pc_weaponmaster</code>. QuestGuide.html updated (hub now eight live orders / four remaining).</div><div><br></div><div><b>UAT:</b> (1) non-WM L13+ PC sees only the pointer line; (2) WM PC accepts, journal 1; (3) at the Minas Tirith dummy (west end of the row): bare hands → fail, non-WoC weapon → different fail, Weapon of Choice → notch + journal 2; (4) turn-in consumes notch, grants XP + buckle, ends journal; epilogue only afterwards; (5) regression — the retagged dummy renders/clicks correctly and the other two dummies are unchanged.</div>"
 
   - id: blackguard-quest
     title: "Prestige quest: Blackguard's fall (L14+)"
