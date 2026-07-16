@@ -1705,11 +1705,12 @@ ideas:
   - id: assassin-quest
     title: "Prestige quest: Assassin contract (L13+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Compact single quest, gated on 1+ Assassin level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: b31d0cc
+    notes: "<span>T2. Compact single quest, gated on 1+ Assassin level; modest +3-tier item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Quiet Knives\" — Assassin initiation, seventh prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ Assassin level; others get a pointer line. Flow: accept from Halmir → lift a dead drop from the wine barrel in Bree (existing placed barrel reused — retagged, OnOpen added; it's plot so unbashable) <b>while in stealth mode</b> — opening it unstealthed fails with a retry message (deterministic ACTION_MODE_STEALTH toggle check, no dice) → receive The Sealed Writ (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Gloves of the Quiet Hand (Pick Pocket +3, Open Lock +3, Saves vs. Poison +3 — no AB/damage, forge-cap-safe, differentiated from the Shadowdancer boots). State in prestigedb (order key <code>assn</code>, one-off); journal <code>pc_assassin</code>. QuestGuide.html updated (hub now seven live orders / five remaining).</div><div><br></div><div><b>UAT:</b> (1) non-Assassin L13+ PC sees only the pointer line; (2) Assassin PC accepts, journal 1; (3) at the Bree wine barrel: unstealthed → fail message, stealthed → writ + journal 2; (4) writ can't be dropped/sold; (5) turn-in consumes writ, grants XP + gloves, ends journal; epilogue only afterwards, no second reward; (6) a non-quest PC opening the barrel sees nothing unusual.</div>"
 
   - id: weapon-master-quest
     title: "Prestige quest: Weapon Master (L13+)"
