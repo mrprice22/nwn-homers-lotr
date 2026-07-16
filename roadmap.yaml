@@ -1506,11 +1506,12 @@ ideas:
   - id: prestige-trainer-hub
     title: "Prestige-class quest trainer hub near the Well of Eru"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>A single Prestige-Trainer hub NPC plus a shared prestige-gating dialogue framework (per-line class-level check). Prerequisite for all twelve prestige-class quests. T1-T3.</span>"
+    date: "2026-07-15"
+    commit: 453879bc93b
+    notes: "<span>A single Prestige-Trainer hub NPC plus a shared prestige-gating dialogue framework (per-line class-level check). Prerequisite for all twelve prestige-class quests. T1-T3.</span><div><br></div><div><b>Fixed 2026-07-15:</b> shipped <b>Halmir the Grey, Keeper of the Old Orders</b> — a plot/immortal loremaster script-spawned in the Well of Eru (<b>admin must place waypoint AP_prestigehub_1</b>; the OnEnter wrapper chains the existing welloferuenter so starter XP / donations chest / forge scan / leash are untouched). His dialogue shows only the orders the character qualifies for (twelve StartingConditional branches on the L6/L11/L12/L13/L14/L16 table, Dwarven Defender also race-gated) plus a token-driven summary line; each order ends in an in-fiction \"the trial is not yet ready\" foreshadowing line until its quest ships. The reusable framework (prsg_inc.nss) gives the twelve future prestige quests PRSG_MeetsLevel/HasClass/QualifiesDwarvenDef, the per-order minimum-level table, and a shared prestigedb campaign-DB stage idiom, all documented in the include header. No journal category yet (nothing trackable until the first quest ships). Token 6381 reserved. Docs: QuestGuide gained a Prestige-Order Hub card; Quest Ideas marks the framework shipped, quest cards stay.</div><div><br></div><div><b>UAT:</b> (1) place AP_prestigehub_1 in thewelloferu, deploy → Halmir appears once, no duplicate on re-entry; (2) regression: Well of Eru entry still fires starter XP/bestiary grant/donations chest/contraband scan; (3) gating: L1 sees no orders (\"none yet\"), L6 sees Harper + Westernesse, L14 human sees 10 (no Dwarven Defenders), L14 dwarf sees it, L16+ sees all twelve; (4) summary line matches the visible branches.</div>"
 
   - id: faction-scaffolding
     title: "Faction scaffolding: new reputation factions + matrix for faction quests"
