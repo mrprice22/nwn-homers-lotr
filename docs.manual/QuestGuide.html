@@ -175,6 +175,7 @@
             <li><a href="#weapon-master">The Sworn Blade (Weapon Master)</a></li>
             <li><a href="#divine-champion">The Shield of Others (Divine Champion)</a></li>
             <li><a href="#dwarven-defender">The Unbroken Stone (Dwarven Defender)</a></li>
+            <li><a href="#shifter">The Second Skin (Shifter)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -964,7 +965,7 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first ten — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first eleven — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
       <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
@@ -972,8 +973,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       <a href="#red-dragon">The Old Wyrm's Fire</a>, the Assassins'
       <a href="#assassin">The Quiet Knives</a>, the Weapon Masters'
       <a href="#weapon-master">The Sworn Blade</a>, the Divine Champions'
-      <a href="#divine-champion">The Shield of Others</a>, and the Dwarven Defenders'
-      <a href="#dwarven-defender">The Unbroken Stone</a> — are live; two orders remain.</li>
+      <a href="#divine-champion">The Shield of Others</a>, the Dwarven Defenders'
+      <a href="#dwarven-defender">The Unbroken Stone</a>, and the Shifters'
+      <a href="#shifter">The Second Skin</a> — are live; one order remains.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1475,6 +1477,58 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   15, for the drums in the deep; no vs-traps save constant exists) fit the order and avoid all
   sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
   finish only fires from stage 2 with the shard in hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- SHIFTER — THE SECOND SKIN -->
+<div class="quest-card" id="shifter">
+  <h3>The Second Skin (Shifter initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_shifter</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shifters branch)</span>
+    <span>Requires: 1+ Shifter level (the hub line itself shows at character level 16+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Charm of the Carrock</em> (<code>q_shf_charm</code> — Animal Empathy +3, Search +3, Saving Throws vs. Mind-Affecting +3; an amulet on purpose — neck-slot properties ride through most polymorph shapes, so it stays live in the forms a Shifter fights in)</span>
+  </div>
+  <p>The eleventh of the twelve prestige-order trials. Ask Halmir of the
+  <strong>Shifters</strong>: if you have already worn another shape (1+ Shifter level), he names
+  the trial. At <a href="../areas/beorn.html">Beorn's steading</a> in the shadow of the Carrock
+  lies a still pool where the master of the house drinks on four legs as often as two.
+  <strong>Use the pool while wild-shaped or polymorphed</strong> — any shape but your own: the
+  check is for an active polymorph effect on your character, and shifter shapes, druid wild
+  shape, and polymorph spells all qualify. Look in wearing the face you were born with and the
+  pool shows you nothing but yourself ("come wearing another skin, and look again"); no dice —
+  the borrowed shape is the whole test, deterministic and retryable. The kept trial earns the
+  <em>Tuft of the First Skin</em> (plot + cursed — it can't be dropped, sold, or handed off),
+  which goes back to Halmir for the induction. One-off per character; if the tuft is somehow
+  lost, looking into the pool again re-gives it (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Shifters, accept the trial — <code>q_shf_start</code> sets
+      stage 1 / journal 1 (non-Shifters instead get a "no one is written there who has not
+      already worn another shape" pointer line).</li>
+    <li>Use the still pool at Beorn's steading while shape-shifted — <code>q_shf_pool</code>
+      (the pool's OnUsed) loops your active effects for <code>EFFECT_TYPE_POLYMORPH</code> (the
+      module's proven detection idiom from the DM wand's un-polymorph routine); kept rightly, it
+      gives the <em>Tuft of the First Skin</em> and sets stage 2 / journal 2 (in true form it
+      fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the tuft — <code>q_shf_finish</code> consumes it, awards the XP
+      and the charm, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>shifter-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>shift</code>, stages 0–3; see <code>q_shf_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing pool
+  placeable at Beorn's homestead (instance 36 of <code>zep_pool003</code> in
+  <code>beorn</code>), retagged <code>ShfBeornPool</code> and made usable/dynamic/plot with
+  <code>q_shf_pool</code> on its OnUsed (it had no scripts, so nothing is chained; no script
+  referenced the generic old tag <code>ZEP_POOL003</code>). The class gate is
+  <code>CLASS_TYPE_SHIFTER</code> = 35 (verified in <code>ovr/nwscript.nss</code>). The
+  reward's picks (Animal Empathy / Search / saves vs. mind-affecting —
+  <code>IP_CONST_SAVEVS_MINDAFFECTING</code> = 11, "keep your own name inside another skin"; no
+  vs-polymorph save constant exists) fit the order and avoid all sibling rewards' skills. The
+  turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2
+  with the tuft in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
