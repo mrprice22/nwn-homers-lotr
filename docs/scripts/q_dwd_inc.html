@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_dwd_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_dwd_inc</code></h1><pre class="nss-source"><code>// q_dwd_inc.nss -- Dwarven Defender initiation &quot;The Unbroken Stone&quot;
+// (roadmap: dwarven-defender-quest)
+//
+// The tenth of the twelve prestige-order quests hung on Halmir the Grey
+// (the prestige hub, prsg_inc.nss). Compact one-off, journal tag
+// &quot;pc_dwarvendefender&quot;.
+//
+// Flow: Halmir&#x27;s Dwarven Defenders branch (prsg_conv) offers the stand to
+// a PC with 1+ Dwarven Defender level who is of Durin&#x27;s folk
+// (CLASS_TYPE_DWARVEN_DEFENDER = 36 and RACIAL_TYPE_DWARF = 0, both
+// verified in ovr/nwscript.nss -- the class is dwarf-only in NWN anyway,
+// but the race check is kept defensively per the roadmap item; the hub
+// line itself is already race+level gated by the existing prsg_c_dwdef /
+// PRSG_QualifiesDwarvenDef, L14+ dwarves only). The trial: in Balin&#x27;s
+// Tomb in Moria stands the headstone &quot;Here lies Balin, son of Fundin,
+// Lord of Moria&quot; (existing placed instance 86 in balinstomb.git.json --
+// already usable + plot with no scripts; retagged DwdBalinStone, its
+// OnUsed now runs q_dwd_stone; no script referenced the generic old tag
+// &quot;Headstone&quot;, and the sibling shadowdancer quest&#x27;s hook in the same area
+// is the DeepWell, instance 52 -- untouched). Stand at the tomb as
+// Balin&#x27;s guard stood: come clad in the war-weight of Khazad -- heavy
+// armor, base AC 6 or more (splint / half-plate / full plate) -- and use
+// the stone. QDWD_IsStoneClad reads the armor&#x27;s BASE AC from
+// parts_chest.2da via the torso model (the module&#x27;s established idiom,
+// zep_cr_canca.nss), so enhancement bonuses on light armor cannot fake
+// the weight. Leathers, robes or a bare chest fail with a flavor
+// message, nothing granted, retry allowed. Deterministic: no dice. Carry
+// the shard the stone gives back to Halmir; the induction consumes it
+// and awards the Warhelm of Durin&#x27;s Watch plus XP.
+//
+// Quest state is per-character and persistent via the prestige hub&#x27;s
+// campaign-DB stage idiom (prestigedb, order key &quot;dwdef&quot; -- see
+// prsg_inc.nss): 0 none / 1 accepted / 2 shard in hand / 3 done.
+// One-off: stage 3 never resets. If the shard is somehow lost at stage
+// 2, keeping the stand again re-gives it (graceful, not farmable: the
+// item is plot + cursed and only the finish consumes it).
+//
+// No new placements and no admin waypoint: the headstone already stands
+// in Balin&#x27;s Tomb (placed instance 86 in balinstomb.git.json).
+
+#include &quot;prsg_inc&quot;
+
+const string QDWD_ORDER     = &quot;dwdef&quot;;               // prestigedb stage key
+const string QDWD_QUEST     = &quot;pc_dwarvendefender&quot;;  // journal category tag
+const string QDWD_SHARD_RES = &quot;q_dwd_shard&quot;;         // reagent blueprint
+const string QDWD_SHARD_TAG = &quot;UnbrokenShard&quot;;
+const string QDWD_HELM_RES  = &quot;q_dwd_helm&quot;;          // reward blueprint
+const string QDWD_HELM_TAG  = &quot;DurinsWatchHelm&quot;;
+
+const int QDWD_XP = 1000;  // induction XP (L14-tier order)
+
+// Heavy armor threshold: base AC 6+ is splint mail / half-plate / full
+// plate (banded also lands at 6 -- war-weight either way).
+const int QDWD_HEAVY_AC = 6;
+
+// Stages (see header).
+const int QDWD_STAGE_NONE     = 0;
+const int QDWD_STAGE_ACCEPTED = 1;
+const int QDWD_STAGE_SHARD    = 2;
+const int QDWD_STAGE_DONE     = 3;
+
+int QDWD_GetStage(object oPC)
+{
+    return PRSG_GetStage(oPC, QDWD_ORDER);
+}
+
+void QDWD_SetStage(object oPC, int nStage)
+{
+    PRSG_SetStage(oPC, QDWD_ORDER, nStage);
+}
+
+// TRUE if oPC has already taken the Defender&#x27;s stand (1+ Dwarven
+// Defender level, CLASS_TYPE_DWARVEN_DEFENDER = 36) AND is of Durin&#x27;s
+// folk (RACIAL_TYPE_DWARF = 0) -- the design gate. The race clause is
+// defensive: the class is dwarf-only in NWN, but the roadmap item asks
+// for dwarves only, so both are checked.
+int QDWD_IsDwarvenDefender(object oPC)
+{
+    return PRSG_HasClass(oPC, CLASS_TYPE_DWARVEN_DEFENDER)
+        &amp;&amp; GetRacialType(oPC) == RACIAL_TYPE_DWARF;
+}
+
+// The turn-in reagent check: does oPC carry the shard?
+int QDWD_HasShard(object oPC)
+{
+    return GetIsObjectValid(GetItemPossessedBy(oPC, QDWD_SHARD_TAG));
+}
+
+// The war-weight condition: TRUE while oPC wears heavy armor -- a chest
+// item whose BASE armor class (parts_chest.2da ACBONUS for the torso
+// model, the module&#x27;s established base-AC idiom from zep_cr_canca.nss)
+// is QDWD_HEAVY_AC or more: splint / banded / half-plate / full plate.
+// Reading the 2DA instead of GetItemACValue means enchantment bonuses on
+// leathers cannot fake the weight; a CEP torso model beyond the 2DA
+// range reads as 0 and fails (retry in standard heavy iron).
+// Deterministic, no dice.
+int QDWD_IsStoneClad(object oPC)
+{
+    object oChest = GetItemInSlot(INVENTORY_SLOT_CHEST, oPC);
+    if (!GetIsObjectValid(oChest)) return FALSE;
+    if (GetBaseItemType(oChest) != BASE_ITEM_ARMOR) return FALSE;
+
+    int nBaseAC = StringToInt(Get2DAString(&quot;parts_chest&quot;, &quot;ACBONUS&quot;,
+        GetItemAppearance(oChest, ITEM_APPR_TYPE_ARMOR_MODEL,
+                          ITEM_APPR_ARMOR_MODEL_TORSO)));
+    return nBaseAC &gt;= QDWD_HEAVY_AC;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

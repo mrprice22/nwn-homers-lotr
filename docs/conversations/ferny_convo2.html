@@ -56,8 +56,8 @@
   <main>
 <h1>Conversation: <code>ferny_convo2</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>10</dd>
-<dt>PC replies</dt><dd>15</dd>
+<dt>NPC lines</dt><dd>16</dd>
+<dt>PC replies</dt><dd>24</dd>
 <dt>NumWords</dt><dd>488</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
@@ -68,26 +68,141 @@
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>sc_002</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>fernyaquire</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sow_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sow_pay</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>at_014</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>endferny1</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>at_072</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>aquirering</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sow_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sow_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>sc_044</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>thugtest</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>sc_009</code></td><td>active</td><td>✓</td><td></td></tr>
-<tr><td><code>q_fret_discc</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>q_fret_discc</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sow_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sow_c_cd</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/ringofsharkey.html">Ring of Sharkey</a></li><li><a href="../items/sharkeysorders.html">Sharkey&#x27;s Orders</a></li></ul>
-<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/ferny-s-ring.html">Ferny&#x27;s Ring</a></td><td><code>ferny&#x27;s ring</code></td><td>1, 2, 4</td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/ferny-s-ring.html">Ferny&#x27;s Ring</a></td><td><code>ferny&#x27;s ring</code></td><td>1, 2, 4</td></tr>
+<tr><td><a href="../quests/sowing-discord.html">Sowing Discord in Bree</a></td><td><code>sowing_discord</code></td><td>1, 3</td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6390&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
+<li><a href="#e13">entry #13</a> <small class="muted">(if <code>q_sow_c_rdy</code>)</small> — Heh heh heh. I heard it from here -- half the Pony cryin&#x27; &#x27;informer!&#x27; and the ot…</li>
+<li><a href="#e12">entry #12</a> <small class="muted">(if <code>q_sow_c_prog</code>)</small> — You still carryin&#x27; my paper? Letters don&#x27;t read themselves from inside your coat…</li>
 <li><a href="#e7">entry #7</a> <small class="muted">(if <code>sc_044</code>)</small> — Hey you get my ring back yet?</li>
 <li><a href="#e5">entry #5</a> <small class="muted">(if <code>thugtest</code>)</small> — Hey what gives, ya didnt get your reward?</li>
 <li><a href="#e4">entry #4</a> <small class="muted">(if <code>sc_009</code>)</small> — I&#x27;ll be no more trouble to ya. Sorry for the misunderstanding, could happen to a…</li>
 <li><a href="#e9">entry #9</a> <small class="muted">(if <code>q_fret_discc</code>)</small> — Well, well -- if it aint the one what turfed that Sharkey rat out o&#x27; my house. F…</li>
+<li><a href="#e10">entry #10</a> <small class="muted">(if <code>q_sow_c_off</code>)</small> — Psst. Keep your voice down and look like we&#x27;re talkin&#x27; about the weather. I got …</li>
+<li><a href="#e15">entry #15</a> <small class="muted">(if <code>q_sow_c_cd</code>)</small> — Not now, not now. The Pony&#x27;s still crawlin&#x27; with the Watch after the last batch …</li>
 <li><a href="#e0">entry #0</a> — You look like the adventuresome type, aint ya. I got a little job for ya. Not th…</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #13</span> <small class="muted">(if <code>q_sow_c_rdy</code>)</small> <a class="dlg-anchor" href="#e13" title="jump to flat entry #13">¶</a></summary>
+<div class="dlg-text">Heh heh heh. I heard it from here -- half the Pony cryin&#x27; &#x27;informer!&#x27; and the other half cryin&#x27; it back, and the Sheriff himself stormin&#x27; about like his boots was afire. That your doing, was it?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #20</span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
+<div class="dlg-text">Done. Three letters, three tables -- and the Watch came running right on cue.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #14</span> <span class="dlg-action">→ <code>q_sow_pay</code></span> <a class="dlg-anchor" href="#e14" title="jump to flat entry #14">¶</a></summary>
+<div class="dlg-text">That&#x27;s my kind of evenin&#x27;. Here -- morgul-silver, good weight, and don&#x27;t you go askin&#x27; whose face is stamped on it. Spend it somewhere far from the Pony for a day or two. And if anybody asks, you never talked to O&#x27;l Ferny.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #21</span> <a class="dlg-anchor" href="#r21" title="jump to flat reply #21">¶</a></summary>
+<div class="dlg-text">Pleasure doing business, Ferny. [Leave]</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #12</span> <small class="muted">(if <code>q_sow_c_prog</code>)</small> <a class="dlg-anchor" href="#e12" title="jump to flat entry #12">¶</a></summary>
+<div class="dlg-text">You still carryin&#x27; my paper? Letters don&#x27;t read themselves from inside your coat pocket. Under the tables at the Pony -- different tables, mind -- movin&#x27; in shadow, no eye on your hand. Then come back for your silver.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #18</span> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
+<div class="dlg-text">They&#x27;ll be placed. Don&#x27;t fret.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #19</span> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
+<div class="dlg-text">So about that other business of yours...</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">You look like the adventuresome type, aint ya. I got a little job for ya. Not the most pleasant work. But hey it pays. Ya interested?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">Lets hear it.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">One of the blokes who works for me decided he don&#x27;t wanna play by my rules no more. He swiped a ring of mine and took off. My um &#x27;friends&#x27; tracked him down and scarred him off into the hill here behind me house.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Thats not very nice. You should have really let him go if he wanted to.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">Well aint very nice o him to swipe my ring wasit! You best leave the thinking to me and just listen to what old Ferny tells ya.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text">I think I had better find work else where. Good Day.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Alright, what happened then.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">My &#x27;friends&#x27; went off after him and none of em have come back. I need that ring back bad before er um... I just need the ring back. Theres a cave in da hills behind me. Thats were they all disapeared to. Go fetch my ring and then we&#x27;ll talk.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>at_014</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">I&#x27;ll go find the ring and return it to you as soon as I am able.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">I think you better hire more &#x27;friends&#x27; to go find your ring</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">And then what happened...</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“My &#x27;friends&#x27; went off after him and none of em have come back. I need that ring…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">No I don&#x27;t think that type of work would interest me.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #7</span> <small class="muted">(if <code>sc_044</code>)</small> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
 <div class="dlg-text">Hey you get my ring back yet?</div>
@@ -155,75 +270,54 @@
 <summary><span class="dlg-id">entry #9</span> <small class="muted">(if <code>q_fret_discc</code>)</small> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
 <div class="dlg-text">Well, well -- if it aint the one what turfed that Sharkey rat out o&#x27; my house. Ferny don&#x27;t forget a favor, whatever folk say o&#x27; me. Now it happens I got a job needs doing -- my ring&#x27;s been swiped -- and for you I&#x27;ll pay half again what I&#x27;d pay a stranger. Care to hear it?</div>
 <div class="dlg-tree-children">
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
-<div class="dlg-text">Lets hear it.</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">One of the blokes who works for me decided he don&#x27;t wanna play by my rules no more. He swiped a ring of mine and took off. My um &#x27;friends&#x27; tracked him down and scarred him off into the hill here behind me house.</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
-<div class="dlg-text">Thats not very nice. You should have really let him go if he wanted to.</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #3</span> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
-<div class="dlg-text">Well aint very nice o him to swipe my ring wasit! You best leave the thinking to me and just listen to what old Ferny tells ya.</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #7</span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
-<div class="dlg-text">I think I had better find work else where. Good Day.</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
-<div class="dlg-text">Alright, what happened then.</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
-<div class="dlg-text">My &#x27;friends&#x27; went off after him and none of em have come back. I need that ring back bad before er um... I just need the ring back. Theres a cave in da hills behind me. Thats were they all disapeared to. Go fetch my ring and then we&#x27;ll talk.</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>at_014</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
-<div class="dlg-text">I&#x27;ll go find the ring and return it to you as soon as I am able.</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
-<div class="dlg-text">I think you better hire more &#x27;friends&#x27; to go find your ring</div>
-</details>
-</div>
-</details>
-</div>
-</details>
-</div>
-</details>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
-<div class="dlg-text">And then what happened...</div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“My &#x27;friends&#x27; went off after him and none of em have come back. I need that ring…”</span></div>
-</div>
-</details>
-</div>
-</details>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
-<div class="dlg-text">No I don&#x27;t think that type of work would interest me.</div>
-</details>
-</div>
-</details>
-<details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">You look like the adventuresome type, aint ya. I got a little job for ya. Not the most pleasant work. But hey it pays. Ya interested?</div>
-<div class="dlg-tree-children">
 <div class="dlg-tree-ref reply-ref">↩ <a href="#r1">reply #1</a> <span class="dlg-link-preview">“Lets hear it.”</span></div>
 <div class="dlg-tree-ref reply-ref">↩ <a href="#r0">reply #0</a> <span class="dlg-link-preview">“No I don&#x27;t think that type of work would interest me.”</span></div>
 </div>
 </details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #10</span> <small class="muted">(if <code>q_sow_c_off</code>)</small> <a class="dlg-anchor" href="#e10" title="jump to flat entry #10">¶</a></summary>
+<div class="dlg-text">Psst. Keep your voice down and look like we&#x27;re talkin&#x27; about the weather. I got paper needs deliverin&#x27; -- three letters, fine respectable hands, none of &#x27;em mine. They go UNDER three different tables at the Prancing Pony, quiet-like, in shadow, no eye markin&#x27; your hand while you do it. Folk find &#x27;em, folk read &#x27;em, folk stop trustin&#x27; their neighbors. There&#x27;s morgul-silver in it for ya once the squealin&#x27; starts.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #15</span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
+<div class="dlg-text">Give me the letters, Ferny. Three tables, three letters -- and no eye on my hand.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #11</span> <span class="dlg-action">→ <code>q_sow_start</code></span> <a class="dlg-anchor" href="#e11" title="jump to flat entry #11">¶</a></summary>
+<div class="dlg-text">Heh. Knew you had the stomach for it. Remember: move in shadow when you tuck each one under, and a DIFFERENT table every time -- one nest o&#x27; letters helps nobody. When the Watch comes stompin&#x27; into the Pony and the shoutin&#x27; starts, you slip out quiet and come see O&#x27;l Ferny about your pay.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #17</span> <a class="dlg-anchor" href="#r17" title="jump to flat reply #17">¶</a></summary>
+<div class="dlg-text">The letters will find their tables. [Leave]</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #16</span> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
+<div class="dlg-text">Plant your own poison. I&#x27;m not interested.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #15</span> <small class="muted">(if <code>q_sow_c_cd</code>)</small> <a class="dlg-anchor" href="#e15" title="jump to flat entry #15">¶</a></summary>
+<div class="dlg-text">Not now, not now. The Pony&#x27;s still crawlin&#x27; with the Watch after the last batch o&#x27; letters. Let the pot simmer down -- come back in <span class="custom-token custom-token-unknown" title="SetCustomToken(6390, ...) — no setter found in static analysis">&lt;CUSTOM6390&gt;</span> and Ferny might have more paper needin&#x27; plantin&#x27;.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #22</span> <a class="dlg-anchor" href="#r22" title="jump to flat reply #22">¶</a></summary>
+<div class="dlg-text">I&#x27;ll come back when it&#x27;s quieter. [Leave]</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #23</span> <a class="dlg-anchor" href="#r23" title="jump to flat reply #23">¶</a></summary>
+<div class="dlg-text">So about that other business of yours...</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“You look like the adventuresome type, aint ya. I got a little job for ya. Not th…”</span></div>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“You look like the adventuresome type, aint ya. I got a little job for ya. Not th…”</span></div>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
 <div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">You look like the adventuresome type, aint ya. I got a little job for ya. Not the most pleasant work. But hey it pays. Ya interested?</div><ul class="dlg-links"><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Lets hear it.”</span></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“No I don&#x27;t think that type of work would interest me.”</span></li></ul></div>
@@ -236,6 +330,12 @@
 <div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">Hey you get my ring back yet?</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Here ya go Ferny. Say what about a reward for my hard labors?”</span> <small class="muted">(if <code>fernyaquire</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Not so fast old man, what about a reward?”</span> <small class="muted">(if <code>fernyaquire</code>)</small></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“No not yet. I&#x27;ll go check that cave you mentioned.”</span></li></ul></div>
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Alright, Alright, Your rewards in my house. The doors open jus go inside and there a chest in plain sight, It&#x27;s all yours. If Sharkey ever found out I lost my ring thered be trouble to pay. Now don&#x27;t you go mentioning this to anybody. Or there might be trouble comin after you.</div><ul class="dlg-links"><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Thanks I&#x27;ll just go help myself.”</span></li></ul></div>
 <div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">Well, well -- if it aint the one what turfed that Sharkey rat out o&#x27; my house. Ferny don&#x27;t forget a favor, whatever folk say o&#x27; me. Now it happens I got a job needs doing -- my ring&#x27;s been swiped -- and for you I&#x27;ll pay half again what I&#x27;d pay a stranger. Care to hear it?</div><ul class="dlg-links"><li><a href="#r1">→ child</a> <span class="dlg-link-preview">“Lets hear it.”</span></li><li><a href="#r0">→ child</a> <span class="dlg-link-preview">“No I don&#x27;t think that type of work would interest me.”</span></li></ul></div>
+<div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">Psst. Keep your voice down and look like we&#x27;re talkin&#x27; about the weather. I got paper needs deliverin&#x27; -- three letters, fine respectable hands, none of &#x27;em mine. They go UNDER three different tables at the Prancing Pony, quiet-like, in shadow, no eye markin&#x27; your hand while you do it. Folk find &#x27;em, folk read &#x27;em, folk stop trustin&#x27; their neighbors. There&#x27;s morgul-silver in it for ya once the squealin&#x27; starts.</div><ul class="dlg-links"><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Give me the letters, Ferny. Three tables, three letters -- and no eye on my hand…”</span></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“Plant your own poison. I&#x27;m not interested.”</span></li></ul></div>
+<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span> <span class="dlg-action">→ <code>q_sow_start</code></span></div><div class="dlg-text">Heh. Knew you had the stomach for it. Remember: move in shadow when you tuck each one under, and a DIFFERENT table every time -- one nest o&#x27; letters helps nobody. When the Watch comes stompin&#x27; into the Pony and the shoutin&#x27; starts, you slip out quiet and come see O&#x27;l Ferny about your pay.</div><ul class="dlg-links"><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“The letters will find their tables. [Leave]”</span></li></ul></div>
+<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">You still carryin&#x27; my paper? Letters don&#x27;t read themselves from inside your coat pocket. Under the tables at the Pony -- different tables, mind -- movin&#x27; in shadow, no eye on your hand. Then come back for your silver.</div><ul class="dlg-links"><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“They&#x27;ll be placed. Don&#x27;t fret.”</span></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“So about that other business of yours...”</span></li></ul></div>
+<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">Heh heh heh. I heard it from here -- half the Pony cryin&#x27; &#x27;informer!&#x27; and the other half cryin&#x27; it back, and the Sheriff himself stormin&#x27; about like his boots was afire. That your doing, was it?</div><ul class="dlg-links"><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“Done. Three letters, three tables -- and the Watch came running right on cue.”</span></li></ul></div>
+<div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span> <span class="dlg-action">→ <code>q_sow_pay</code></span></div><div class="dlg-text">That&#x27;s my kind of evenin&#x27;. Here -- morgul-silver, good weight, and don&#x27;t you go askin&#x27; whose face is stamped on it. Spend it somewhere far from the Pony for a day or two. And if anybody asks, you never talked to O&#x27;l Ferny.</div><ul class="dlg-links"><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“Pleasure doing business, Ferny. [Leave]”</span></li></ul></div>
+<div class="dlg-node entry" id="e15"><div class="dlg-head"><span class="dlg-id">entry #15</span></div><div class="dlg-text">Not now, not now. The Pony&#x27;s still crawlin&#x27; with the Watch after the last batch o&#x27; letters. Let the pot simmer down -- come back in <span class="custom-token custom-token-unknown" title="SetCustomToken(6390, ...) — no setter found in static analysis">&lt;CUSTOM6390&gt;</span> and Ferny might have more paper needin&#x27; plantin&#x27;.</div><ul class="dlg-links"><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“I&#x27;ll come back when it&#x27;s quieter. [Leave]”</span></li><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“So about that other business of yours...”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">No I don&#x27;t think that type of work would interest me.</div></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Lets hear it.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“One of the blokes who works for me decided he don&#x27;t wanna play by my rules no mo…”</span></li></ul></div>
@@ -252,6 +352,15 @@
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>at_072</code></span></div><div class="dlg-text">Not so fast old man, what about a reward?</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Alright, Alright, Your rewards in my house. The doors open jus go inside and the…”</span></li></ul></div>
 <div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>aquirering</code></span></div><div class="dlg-text">Thanks I&#x27;ll just go help myself.</div></div>
 <div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>at_072</code></span></div><div class="dlg-text">Here ya go Ferny. Say what about a reward for my hard labors?</div><ul class="dlg-links"><li><a href="#e8">→ child</a> <span class="dlg-link-preview">“Alright, Alright, Your rewards in my house. The doors open jus go inside and the…”</span></li></ul></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">Give me the letters, Ferny. Three tables, three letters -- and no eye on my hand.</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Heh. Knew you had the stomach for it. Remember: move in shadow when you tuck eac…”</span></li></ul></div>
+<div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span></div><div class="dlg-text">Plant your own poison. I&#x27;m not interested.</div></div>
+<div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span></div><div class="dlg-text">The letters will find their tables. [Leave]</div></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span></div><div class="dlg-text">They&#x27;ll be placed. Don&#x27;t fret.</div></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">So about that other business of yours...</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“You look like the adventuresome type, aint ya. I got a little job for ya. Not th…”</span></li></ul></div>
+<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">Done. Three letters, three tables -- and the Watch came running right on cue.</div><ul class="dlg-links"><li><a href="#e14">→ entry #14</a> <span class="dlg-link-preview">“That&#x27;s my kind of evenin&#x27;. Here -- morgul-silver, good weight, and don&#x27;t you go…”</span></li></ul></div>
+<div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">Pleasure doing business, Ferny. [Leave]</div></div>
+<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">I&#x27;ll come back when it&#x27;s quieter. [Leave]</div></div>
+<div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span></div><div class="dlg-text">So about that other business of yours...</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“You look like the adventuresome type, aint ya. I got a little job for ya. Not th…”</span></li></ul></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

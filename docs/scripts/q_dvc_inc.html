@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_dvc_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_dvc_inc</code></h1><pre class="nss-source"><code>// q_dvc_inc.nss -- Divine Champion initiation &quot;The Shield of Others&quot;
+// (roadmap: divine-champion-quest)
+//
+// The ninth of the twelve prestige-order quests hung on Halmir the Grey
+// (the prestige hub, prsg_inc.nss). Compact one-off, journal tag
+// &quot;pc_divinechampion&quot;.
+//
+// Flow: Halmir&#x27;s Divine Champions branch (prsg_conv) offers the vigil to
+// a PC with 1+ Divine Champion level (CLASS_TYPE_DIVINE_CHAMPION = 32,
+// verified in ovr/nwscript.nss -- the design gate; the hub line itself is
+// visible from total level 14, existing prsg_c_divch). The trial: in the
+// temple of Minas Tirith stands the Altar of the Istari (existing placed
+// instance 0 in minastirithtemp.git.json -- already usable + plot with no
+// scripts; retagged DvcVigilAltar, its OnUsed now runs q_dvc_altar; no
+// code referenced the old tag &quot;AltarShrineGood&quot;). Keep the vigil as the
+// order keeps it: use the altar with a shield borne on the off-hand
+// (QDVC_IsShieldBorne -- GetItemInSlot(INVENTORY_SLOT_LEFTHAND) is a
+// small/large/tower shield, BASE_ITEM_SMALLSHIELD 14 / LARGESHIELD 56 /
+// TOWERSHIELD 57, all verified in ovr/nwscript.nss), because the
+// champion&#x27;s vow is not to strike harder but to stand between. A bare arm
+// or a second blade where the shield should ride fails with a flavor
+// message, nothing granted, retry allowed. Deterministic: no dice. Carry
+// the oath-light the vigil kindles back to Halmir; the induction consumes
+// it and awards the Mantle of the Westward Vow plus XP.
+//
+// Quest state is per-character and persistent via the prestige hub&#x27;s
+// campaign-DB stage idiom (prestigedb, order key &quot;divch&quot; -- see
+// prsg_inc.nss): 0 none / 1 accepted / 2 oath-light in hand / 3 done.
+// One-off: stage 3 never resets. If the light is somehow lost at stage 2,
+// keeping the vigil again re-gives it (graceful, not farmable: the item
+// is plot + cursed and only the finish consumes it).
+//
+// No new placements and no admin waypoint: the altar already stands in
+// the Minas Tirith temple (placed instance 0 in minastirithtemp.git.json).
+
+#include &quot;prsg_inc&quot;
+
+const string QDVC_ORDER     = &quot;divch&quot;;              // prestigedb stage key
+const string QDVC_QUEST     = &quot;pc_divinechampion&quot;;  // journal category tag
+const string QDVC_LIGHT_RES = &quot;q_dvc_light&quot;;        // reagent blueprint
+const string QDVC_LIGHT_TAG = &quot;OathLight&quot;;
+const string QDVC_CLOAK_RES = &quot;q_dvc_mantle&quot;;       // reward blueprint
+const string QDVC_CLOAK_TAG = &quot;WestwardMantle&quot;;
+
+const int QDVC_XP = 1000;  // induction XP (L14-tier order)
+
+// Stages (see header).
+const int QDVC_STAGE_NONE     = 0;
+const int QDVC_STAGE_ACCEPTED = 1;
+const int QDVC_STAGE_LIGHT    = 2;
+const int QDVC_STAGE_DONE     = 3;
+
+int QDVC_GetStage(object oPC)
+{
+    return PRSG_GetStage(oPC, QDVC_ORDER);
+}
+
+void QDVC_SetStage(object oPC, int nStage)
+{
+    PRSG_SetStage(oPC, QDVC_ORDER, nStage);
+}
+
+// TRUE if oPC&#x27;s sword is already vowed (1+ Divine Champion level) -- the
+// design gate for the vigil.
+int QDVC_IsDivineChampion(object oPC)
+{
+    return PRSG_HasClass(oPC, CLASS_TYPE_DIVINE_CHAMPION);
+}
+
+// The turn-in reagent check: does oPC carry the oath-light?
+int QDVC_HasLight(object oPC)
+{
+    return GetIsObjectValid(GetItemPossessedBy(oPC, QDVC_LIGHT_TAG));
+}
+
+// The stand-between condition: TRUE while oPC bears a shield on the
+// off-hand arm -- small, large or tower (BASE_ITEM_SMALLSHIELD = 14,
+// BASE_ITEM_LARGESHIELD = 56, BASE_ITEM_TOWERSHIELD = 57, verified in
+// ovr/nwscript.nss). Deterministic, no dice: a champion with shield borne
+// always passes; a bare arm, a second blade, a torch never do.
+int QDVC_IsShieldBorne(object oPC)
+{
+    object oOff = GetItemInSlot(INVENTORY_SLOT_LEFTHAND, oPC);
+    if (!GetIsObjectValid(oOff)) return FALSE;
+
+    int nBase = GetBaseItemType(oOff);
+    return nBase == BASE_ITEM_SMALLSHIELD
+        || nBase == BASE_ITEM_LARGESHIELD
+        || nBase == BASE_ITEM_TOWERSHIELD;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

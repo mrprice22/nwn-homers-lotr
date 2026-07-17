@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_shf_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_shf_inc</code></h1><pre class="nss-source"><code>// q_shf_inc.nss -- Shifter initiation &quot;The Second Skin&quot;
+// (roadmap: shifter-quest)
+//
+// The eleventh of the twelve prestige-order quests hung on Halmir the
+// Grey (the prestige hub, prsg_inc.nss). Compact one-off, journal tag
+// &quot;pc_shifter&quot;.
+//
+// Flow: Halmir&#x27;s Shifters branch (prsg_conv) offers the trial to a PC
+// with 1+ Shifter level (CLASS_TYPE_SHIFTER = 35, verified in
+// ovr/nwscript.nss; the hub line itself is already gated L16+ by the
+// existing prsg_c_shift / PRSG_LVL_SHIFT). The trial: at Beorn&#x27;s
+// steading in the shadow of the Carrock lies a still pool where the
+// master of the house drinks on four legs as often as two (existing
+// placed instance 36 in beorn.git.json -- the zep_pool003 pool,
+// retagged ShfBeornPool, made usable/dynamic/plot, its OnUsed now runs
+// q_shf_pool; no script referenced the generic old tag &quot;ZEP_POOL003&quot;).
+// Look into the pool WEARING ANOTHER SKIN -- the roadmap-mandated
+// form-lock condition: the attempt succeeds only while a polymorph
+// effect is on the PC (wild shape, shifter shapes, any polymorph --
+// QSHF_IsShifted loops the PC&#x27;s effects for EFFECT_TYPE_POLYMORPH, the
+// module&#x27;s proven detection idiom from dmfi_dmw_inc.nss&#x27;s
+// dmwand_Untoad). Come in your true form and the attempt fails with a
+// flavor message, nothing granted, retry allowed (&quot;come wearing another
+// skin, and look again&quot;). Deterministic: no dice. Carry the tuft the
+// pool gives back to Halmir; the induction consumes it and awards the
+// Charm of the Carrock plus XP.
+//
+// Quest state is per-character and persistent via the prestige hub&#x27;s
+// campaign-DB stage idiom (prestigedb, order key &quot;shift&quot; -- see
+// prsg_inc.nss): 0 none / 1 accepted / 2 tuft in hand / 3 done.
+// One-off: stage 3 never resets. If the tuft is somehow lost at stage
+// 2, looking into the pool again re-gives it (graceful, not farmable:
+// the item is plot + cursed and only the finish consumes it).
+//
+// No new placements and no admin waypoint: the pool already stands at
+// Beorn&#x27;s homestead (placed instance 36 in beorn.git.json).
+
+#include &quot;prsg_inc&quot;
+
+const string QSHF_ORDER     = &quot;shift&quot;;        // prestigedb stage key
+const string QSHF_QUEST     = &quot;pc_shifter&quot;;   // journal category tag
+const string QSHF_TUFT_RES  = &quot;q_shf_tuft&quot;;   // reagent blueprint
+const string QSHF_TUFT_TAG  = &quot;FirstSkinTuft&quot;;
+const string QSHF_CHARM_RES = &quot;q_shf_charm&quot;;  // reward blueprint
+const string QSHF_CHARM_TAG = &quot;CarrockCharm&quot;;
+
+const int QSHF_XP = 1000;  // induction XP (L16-tier order)
+
+// Stages (see header).
+const int QSHF_STAGE_NONE     = 0;
+const int QSHF_STAGE_ACCEPTED = 1;
+const int QSHF_STAGE_TUFT     = 2;
+const int QSHF_STAGE_DONE     = 3;
+
+// TRUE if oPC has already worn another shape and come back whole
+// (1+ Shifter level, CLASS_TYPE_SHIFTER = 35) -- the design gate.
+int QSHF_IsShifter(object oPC)
+{
+    return PRSG_HasClass(oPC, CLASS_TYPE_SHIFTER);
+}
+
+// The turn-in reagent check: does oPC carry the tuft?
+int QSHF_HasTuft(object oPC)
+{
+    return GetIsObjectValid(GetItemPossessedBy(oPC, QSHF_TUFT_TAG));
+}
+
+// The form-lock condition: TRUE while oPC wears another skin -- any
+// polymorph effect is active on them (shifter shapes, druid wild shape,
+// polymorph spells: all apply EffectPolymorph). Detection is the
+// module&#x27;s proven idiom (dmfi_dmw_inc.nss, dmwand_Untoad): loop the
+// PC&#x27;s effects for EFFECT_TYPE_POLYMORPH. Deterministic, no dice.
+int QSHF_IsShifted(object oPC)
+{
+    effect e = GetFirstEffect(oPC);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_POLYMORPH) return TRUE;
+        e = GetNextEffect(oPC);
+    }
+    return FALSE;
+}
+
+int QSHF_GetStage(object oPC)
+{
+    return PRSG_GetStage(oPC, QSHF_ORDER);
+}
+
+void QSHF_SetStage(object oPC, int nStage)
+{
+    PRSG_SetStage(oPC, QSHF_ORDER, nStage);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

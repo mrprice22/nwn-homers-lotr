@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_asn_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_asn_inc</code></h1><pre class="nss-source"><code>// q_asn_inc.nss -- Assassin initiation &quot;The Quiet Knives&quot;
+// (roadmap: assassin-quest)
+//
+// The seventh of the twelve prestige-order quests hung on Halmir the Grey
+// (the prestige hub, prsg_inc.nss). Compact one-off, journal tag
+// &quot;pc_assassin&quot;.
+//
+// Flow: Halmir&#x27;s Assassins branch (prsg_conv) offers the trial to a PC
+// with 1+ Assassin level (CLASS_TYPE_ASSASSIN = 30, verified in
+// ovr/nwscript.nss -- the design gate; the hub line itself is visible
+// from total level 13, existing prsg_c_assn). The trial is not a killing:
+// a sealed writ has been left at one of the order&#x27;s dead drops -- the old
+// wine barrel standing against the houses of Bree (existing placed
+// instance in bree.git.json, reused -- retagged AsnDeadDrop, its OnOpen
+// now runs q_asn_drop; it had no previous OnOpen/OnUsed, so there is
+// nothing to chain, and it is Plot so it cannot be bashed away). The drop
+// yields the writ only to a hand no eye marks: open the barrel while NOT
+// in stealth mode (QASN_IsUnseen, GetActionMode/ACTION_MODE_STEALTH --
+// both verified in ovr/nwscript.nss) and the attempt fails with a flavor
+// message, nothing granted, retry allowed -- slip into shadow and reach
+// again. Deterministic: no dice. Carry the writ back to Halmir sealed;
+// the induction burns it (the name inside is the PC&#x27;s own), awards the
+// Gloves of the Quiet Hand plus XP.
+//
+// Quest state is per-character and persistent via the prestige hub&#x27;s
+// campaign-DB stage idiom (prestigedb, order key &quot;assn&quot; -- see
+// prsg_inc.nss): 0 none / 1 accepted / 2 writ in hand / 3 done.
+// One-off: stage 3 never resets. If the writ is somehow lost at stage 2,
+// lifting at the drop again re-gives it (graceful, not farmable: the item
+// is plot + cursed and only the finish consumes it).
+//
+// No new placements and no admin waypoint: the wine barrel already stands
+// in Bree (placed instance 112 of blueprint barrel001 in bree.git.json;
+// the old shared tag &quot;WineBarrel&quot; was referenced by no script).
+
+#include &quot;prsg_inc&quot;
+
+const string QASN_ORDER      = &quot;assn&quot;;           // prestigedb stage key
+const string QASN_QUEST      = &quot;pc_assassin&quot;;    // journal category tag
+const string QASN_WRIT_RES   = &quot;q_asn_writ&quot;;     // reagent blueprint
+const string QASN_WRIT_TAG   = &quot;SealedWrit&quot;;
+const string QASN_GLOVES_RES = &quot;q_asn_gloves&quot;;   // reward blueprint
+const string QASN_GLOVES_TAG = &quot;QuietHandGloves&quot;;
+
+const int QASN_XP = 1000;  // induction XP (L13-tier order)
+
+// Stages (see header).
+const int QASN_STAGE_NONE     = 0;
+const int QASN_STAGE_ACCEPTED = 1;
+const int QASN_STAGE_WRIT     = 2;
+const int QASN_STAGE_DONE     = 3;
+
+int QASN_GetStage(object oPC)
+{
+    return PRSG_GetStage(oPC, QASN_ORDER);
+}
+
+void QASN_SetStage(object oPC, int nStage)
+{
+    PRSG_SetStage(oPC, QASN_ORDER, nStage);
+}
+
+// TRUE if oPC already walks with the quiet knives (1+ Assassin level) --
+// the design gate for the trial.
+int QASN_IsAssassin(object oPC)
+{
+    return PRSG_HasClass(oPC, CLASS_TYPE_ASSASSIN);
+}
+
+// The turn-in reagent check: does oPC carry the writ?
+int QASN_HasWrit(object oPC)
+{
+    return GetIsObjectValid(GetItemPossessedBy(oPC, QASN_WRIT_TAG));
+}
+
+// The no-eye-marks-the-hand condition: TRUE while oPC moves in stealth
+// mode (the toggled mode, GetActionMode -- deterministic, no dice; no
+// skill roll is made, so even a first-level Assassin who remembers to
+// walk in shadow passes, and a legend who forgets does not).
+int QASN_IsUnseen(object oPC)
+{
+    return GetActionMode(oPC, ACTION_MODE_STEALTH);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

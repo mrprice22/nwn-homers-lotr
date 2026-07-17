@@ -56,8 +56,8 @@
   <main>
 <h1>Conversation: <code>prsg_conv</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>50</dd>
-<dt>PC replies</dt><dd>69</dd>
+<dt>NPC lines</dt><dd>80</dd>
+<dt>PC replies</dt><dd>104</dd>
 <dt>NumWords</dt><dd>1218</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code></code></dd>
@@ -90,12 +90,27 @@
 <tr><td><code>q_arc_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rdd_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rdd_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_asn_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_asn_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wpm_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wpm_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dvc_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dvc_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dwd_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dwd_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shf_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shf_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_pal_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_shd_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_arc_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rdd_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_asn_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wpm_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dvc_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dwd_finish</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shf_finish</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>prsg_c_sum</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_c_st2</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -115,17 +130,42 @@
 <tr><td><code>q_rdd_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rdd_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rdd_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_asn_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_asn_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_asn_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wpm_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wpm_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wpm_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dvc_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dvc_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dvc_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dwd_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dwd_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dwd_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shf_c_st3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shf_c_rdy</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shf_c_prog</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_start</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_start</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_pal_start</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_shd_start</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_arc_start</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>q_rdd_start</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>q_rdd_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_asn_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wpm_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dvc_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_dwd_start</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_shf_start</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/q_hrp_pin.html">Harper Pin</a></li></ul>
 <h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/pc-pdk.html">The Banner of the West</a></td><td><code>pc_pdk</code></td><td>1, 6</td></tr>
 <tr><td><a href="../quests/pc-harper.html">The Cipher in the Inn</a></td><td><code>pc_harper</code></td><td>1, 3</td></tr>
 <tr><td><a href="../quests/pc-dragondisciple.html">The Old Wyrm&#x27;s Fire</a></td><td><code>pc_dragondisciple</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-assassin.html">The Quiet Knives</a></td><td><code>pc_assassin</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-shifter.html">The Second Skin</a></td><td><code>pc_shifter</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-divinechampion.html">The Shield of Others</a></td><td><code>pc_divinechampion</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-weaponmaster.html">The Sworn Blade</a></td><td><code>pc_weaponmaster</code></td><td>1, 3</td></tr>
 <tr><td><a href="../quests/pc-palemaster.html">The Twenty-First Tomb</a></td><td><code>pc_palemaster</code></td><td>1, 3</td></tr>
+<tr><td><a href="../quests/pc-dwarvendefender.html">The Unbroken Stone</a></td><td><code>pc_dwarvendefender</code></td><td>1, 3</td></tr>
 <tr><td><a href="../quests/pc-shadowdancer.html">The Unlit Deep</a></td><td><code>pc_shadowdancer</code></td><td>1, 3</td></tr>
 <tr><td><a href="../quests/pc-arcanearcher.html">The Warden&#x27;s Mark</a></td><td><code>pc_arcanearcher</code></td><td>1, 3</td></tr></tbody></table>
 <h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6381&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
@@ -688,8 +728,75 @@
 <div class="dlg-text">Speak to me of the Assassins.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #55</span> <small class="muted">(if <code>q_asn_c_st3</code>)</small> <a class="dlg-anchor" href="#e55" title="jump to flat entry #55">¶</a></summary>
+<div class="dlg-text">*He does not mark your coming, and the blank page stays blank -- which is, among the quiet knives, the whole of an honor roll* Walk uncounted, Assassin.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #75</span> <a class="dlg-anchor" href="#r75" title="jump to flat reply #75">¶</a></summary>
+<div class="dlg-text">No one was ever here. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #53</span> <small class="muted">(if <code>q_asn_c_rdy</code>)</small> <a class="dlg-anchor" href="#e53" title="jump to flat entry #53">¶</a></summary>
+<div class="dlg-text">*He looks up -- not because he heard you come, but because he did not* You have it, then. Sealed and unread, or we have nothing to say to one another.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #74</span> <a class="dlg-anchor" href="#r74" title="jump to flat reply #74">¶</a></summary>
+<div class="dlg-text">It is here, keeper -- sealed and unread, lifted with no eye upon me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #54</span> <span class="dlg-action">→ <code>q_asn_finish</code></span> <a class="dlg-anchor" href="#e54" title="jump to flat entry #54">¶</a></summary>
+<div class="dlg-text">*He breaks the black wax himself, reads the single name written there, and holds the writ to the candle until it is ash -- and only then speaks* The name on the writ was your own. You collected your own death unseen, and now it is removed: the quiet knives buy each of their own out of the ledger exactly once. *From beneath the roll he draws a pair of thin grey gloves* Wear these, and be no one, anywhere. The rolls keep your name, Assassin -- on the page no one will ever read.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r75">reply #75</a> <span class="dlg-link-preview">“No one was ever here. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #52</span> <small class="muted">(if <code>q_asn_c_prog</code>)</small> <a class="dlg-anchor" href="#e52" title="jump to flat entry #52">¶</a></summary>
+<div class="dlg-text">*He glances at the blank page* The drop keeps its writ yet -- the old wine barrel against the houses of Bree. Shadow first, then the hand: come to it with any eye able to mark you and it will be only a barrel.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #73</span> <a class="dlg-anchor" href="#r73" title="jump to flat reply #73">¶</a></summary>
+<div class="dlg-text">The barrel keeps it yet. I am about it.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
-<div class="dlg-text">*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledger, not I — I merely know where the page would go. Their contract is unwritten as yet; no word has come, and the trial is not ready. Return by a moonless night, if you keep to this path.</div>
+<div class="dlg-text">*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledger, not I -- I keep only the blank page where their page would go, and blank it stays. They sign nothing, swear nothing, and are seen by no one; a name goes to them sealed, and the name is removed. That is the whole of their craft, and the whole of what I may say of it aloud.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #69</span> <small class="muted">(if <code>q_asn_c_off</code>)</small> <a class="dlg-anchor" href="#r69" title="jump to flat reply #69">¶</a></summary>
+<div class="dlg-text">The knives already know my hand, keeper. How may I be counted among them?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #50</span> <a class="dlg-anchor" href="#e50" title="jump to flat entry #50">¶</a></summary>
+<div class="dlg-text">*He turns the roll to the blank page, and his voice drops to something below a whisper* Then hear their trial, and mark it well: it is not a killing. Any brawler can kill. A sealed writ waits at one of their dead drops -- the old wine barrel standing against the houses of Bree. Go to it as the quiet knives go: in shadow, unseen, every step a held breath. If any eye could mark you when you reach for it, the drop will stay empty -- try again from the dark. Bring the writ to me sealed and unread. Especially unread.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #71</span> <span class="dlg-action">→ <code>q_asn_start</code></span> <a class="dlg-anchor" href="#r71" title="jump to flat reply #71">¶</a></summary>
+<div class="dlg-text">I will lift the writ unseen.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #72</span> <a class="dlg-anchor" href="#r72" title="jump to flat reply #72">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #70</span> <small class="muted">(if <code>q_asn_c_noh</code>)</small> <a class="dlg-anchor" href="#r70" title="jump to flat reply #70">¶</a></summary>
+<div class="dlg-text">How does one come to be counted among the quiet knives?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #51</span> <a class="dlg-anchor" href="#e51" title="jump to flat entry #51">¶</a></summary>
+<div class="dlg-text">*He does not look up* One is not counted among them -- one is uncounted, which is harder. First learn the discipline itself: a level of the Assassins&#x27; craft, the step that makes no sound and the knife that leaves no name. Carry that, and ask me again -- on a moonless night, if you can manage it.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #21</span> <a class="dlg-anchor" href="#r21" title="jump to flat reply #21">¶</a></summary>
@@ -699,18 +806,95 @@
 </details>
 </div>
 </details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r21">reply #21</a> <span class="dlg-link-preview">“I was never here.”</span></div>
+</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #8</span> <small class="muted">(if <code>prsg_c_wm</code>)</small> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
 <div class="dlg-text">Speak to me of the Weapon Masters.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #61</span> <small class="muted">(if <code>q_wpm_c_st3</code>)</small> <a class="dlg-anchor" href="#e61" title="jump to flat entry #61">¶</a></summary>
+<div class="dlg-text">*He does not need the roll for you any longer* The notch is entered, and the Weapon Masters keep short rolls — a name cut there is not cut again. Carry the one blade well.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #82</span> <a class="dlg-anchor" href="#r82" title="jump to flat reply #82">¶</a></summary>
+<div class="dlg-text">One blade, one life. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #59</span> <small class="muted">(if <code>q_wpm_c_rdy</code>)</small> <a class="dlg-anchor" href="#e59" title="jump to flat entry #59">¶</a></summary>
+<div class="dlg-text">*He turns to the short page without being asked* You carry fresh-cut oak — I can smell the sap from here. Show me the notch.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #81</span> <a class="dlg-anchor" href="#r81" title="jump to flat reply #81">¶</a></summary>
+<div class="dlg-text">Here, keeper — one cut, one blade, the one my hand is sworn to.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #60</span> <span class="dlg-action">→ <code>q_wpm_finish</code></span> <a class="dlg-anchor" href="#e60" title="jump to flat entry #60">¶</a></summary>
+<div class="dlg-text">*He turns the chip once in his fingers, reading the grain as another man reads a letter, and sets it on the roll* One stroke, clean through seasoned oak, and no second mark beside it — the post does not lie about the hand that struck it. The Weapon Masters count you among them: one blade, one life. Wear this — the yards of Gondor buckle it on those whose blade needs no second.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r82">reply #82</a> <span class="dlg-link-preview">“One blade, one life. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #58</span> <small class="muted">(if <code>q_wpm_c_prog</code>)</small> <a class="dlg-anchor" href="#e58" title="jump to flat entry #58">¶</a></summary>
+<div class="dlg-text">*He glances at the short page* The training row keeps its wood yet. One cut, with the one blade — the posts below Minas Tirith will know your hand when it comes honestly, and not before.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #80</span> <a class="dlg-anchor" href="#r80" title="jump to flat reply #80">¶</a></summary>
+<div class="dlg-text">The notch will be cut, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
-<div class="dlg-text">Those wedded to a single weapon until it is less a tool than a limb. Their proving is done before a crowd, bout by bout, blade by borrowed blade. The arena has not yet posted the challenge — the trial is not ready. Return when the sands are raked.</div>
+<div class="dlg-text">*He finds the page without looking* Those wedded to a single weapon until it is less a tool than a limb — one blade, one life, the discipline the orders call the Weapon Master. Their roll is the shortest I keep; most hands want too many things.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #76</span> <small class="muted">(if <code>q_wpm_c_off</code>)</small> <a class="dlg-anchor" href="#r76" title="jump to flat reply #76">¶</a></summary>
+<div class="dlg-text">My hand is already sworn to its weapon, keeper. How may I be counted among them?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #56</span> <a class="dlg-anchor" href="#e56" title="jump to flat entry #56">¶</a></summary>
+<div class="dlg-text">*He sets down the quill* Then hear the proving. Below the white walls of Minas Tirith the Guard keeps its training row — scarred practice posts that have taken the cuts of every swordmaster Gondor ever raised. Go to the first post and cut your notch — with the weapon your soul is sworn to, and no other. Come to the wood bare-handed, or behind a borrowed blade, and it will show you up as it has shown up prouder men. Bring me the notch you cut.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #78</span> <span class="dlg-action">→ <code>q_wpm_start</code></span> <a class="dlg-anchor" href="#r78" title="jump to flat reply #78">¶</a></summary>
+<div class="dlg-text">I will cut my notch with no blade but my own.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #79</span> <a class="dlg-anchor" href="#r79" title="jump to flat reply #79">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #77</span> <small class="muted">(if <code>q_wpm_c_noh</code>)</small> <a class="dlg-anchor" href="#r77" title="jump to flat reply #77">¶</a></summary>
+<div class="dlg-text">How does one come to be counted among the Weapon Masters?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #57</span> <a class="dlg-anchor" href="#e57" title="jump to flat entry #57">¶</a></summary>
+<div class="dlg-text">*He taps the short page* One weapon, chosen and kept, until dodging, feinting and striking with it are one thought — the discipline the orders call the Weapon Master. Swear your hand to a single blade and ask me again. The posts below Minas Tirith have stood an age; they will stand for you.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #22</span> <a class="dlg-anchor" href="#r22" title="jump to flat reply #22">¶</a></summary>
-<div class="dlg-text">I will watch the arena boards.</div>
+<div class="dlg-text">I have heard enough, keeper.</div>
 </details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r22">reply #22</a> <span class="dlg-link-preview">“I have heard enough, keeper.”</span></div>
 </div>
 </details>
 </div>
@@ -736,8 +920,75 @@
 <div class="dlg-text">Speak to me of the Divine Champions.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #67</span> <small class="muted">(if <code>q_dvc_c_st3</code>)</small> <a class="dlg-anchor" href="#e67" title="jump to flat entry #67">¶</a></summary>
+<div class="dlg-text">*He does not need the roll for you any longer* The vow is entered and renewed, and the Champions&#x27; page reads well by candlelight. Stand between, as you swore.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #89</span> <a class="dlg-anchor" href="#r89" title="jump to flat reply #89">¶</a></summary>
+<div class="dlg-text">The shield of others. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #65</span> <small class="muted">(if <code>q_dvc_c_rdy</code>)</small> <a class="dlg-anchor" href="#e65" title="jump to flat entry #65">¶</a></summary>
+<div class="dlg-text">*He looks up, and the candle beside him steadies* You carry a light that is not lamplight -- I can see it under the road-dust. Show me the oath-light.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #88</span> <a class="dlg-anchor" href="#r88" title="jump to flat reply #88">¶</a></summary>
+<div class="dlg-text">It is here, keeper -- an oath-light, kindled shield on arm.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #66</span> <span class="dlg-action">→ <code>q_dvc_finish</code></span> <a class="dlg-anchor" href="#e66" title="jump to flat entry #66">¶</a></summary>
+<div class="dlg-text">*He takes the light in both hands, and for a moment the grey of his cloak remembers being white* Kindled with the shield borne, and nothing in the hand that takes -- the altar does not lend its light to men who came for themselves. The Divine Champions count you among them: the shield of others, sworn before the White Tree. Wear this -- the chaplains lay it on those who stand between.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r89">reply #89</a> <span class="dlg-link-preview">“The shield of others. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #64</span> <small class="muted">(if <code>q_dvc_c_prog</code>)</small> <a class="dlg-anchor" href="#e64" title="jump to flat entry #64">¶</a></summary>
+<div class="dlg-text">*He glances toward the candle* The altar keeps its light yet. Shield on arm, champion -- the vigil is kept standing between, and no other way.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #87</span> <a class="dlg-anchor" href="#r87" title="jump to flat reply #87">¶</a></summary>
+<div class="dlg-text">The vigil will be kept, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #11</span> <a class="dlg-anchor" href="#e11" title="jump to flat entry #11">¶</a></summary>
-<div class="dlg-text">Champions vowed before the White Tree, sword-arms of the faith of the West. Their vow is renewed, not granted — it must be earned twice over. The chaplains have not yet called for vows — the trial is not ready. Return when the Tree flowers.</div>
+<div class="dlg-text">Champions vowed before the White Tree, sword-arms of the faith of the West. Their vow is renewed, not granted -- it must be earned twice over, once at the Tree and once at the altar. I keep their page near the top of the roll, where the light falls.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #83</span> <small class="muted">(if <code>q_dvc_c_off</code>)</small> <a class="dlg-anchor" href="#r83" title="jump to flat reply #83">¶</a></summary>
+<div class="dlg-text">My sword is already vowed before the White Tree, keeper. How may I be counted among the Champions?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #62</span> <a class="dlg-anchor" href="#e62" title="jump to flat entry #62">¶</a></summary>
+<div class="dlg-text">*He turns to a page that smells of oil and candle-smoke* Then hear the vow&#x27;s renewing. In the temple of Minas Tirith stands the Altar of the Istari -- polished stone, and the faithful&#x27;s hands did the polishing. Keep the vigil there as the order keeps it: come to the altar bearing a shield on your arm, for the champion&#x27;s vow is not to strike harder but to stand between. Come with the arm bare, or with a second blade where the shield should ride, and the altar will keep its light from you, as it has kept it from prouder men. Kept rightly, the vigil kindles an oath-light. Bring it to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #85</span> <span class="dlg-action">→ <code>q_dvc_start</code></span> <a class="dlg-anchor" href="#r85" title="jump to flat reply #85">¶</a></summary>
+<div class="dlg-text">I will stand the vigil as the shield.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #86</span> <a class="dlg-anchor" href="#r86" title="jump to flat reply #86">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #84</span> <small class="muted">(if <code>q_dvc_c_noh</code>)</small> <a class="dlg-anchor" href="#r84" title="jump to flat reply #84">¶</a></summary>
+<div class="dlg-text">How does one come to stand among the Divine Champions?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #63</span> <a class="dlg-anchor" href="#e63" title="jump to flat entry #63">¶</a></summary>
+<div class="dlg-text">*He does not turn the page* One is not appointed to that page -- one is vowed onto it, sword raised before the White Tree. Take the champion&#x27;s vow and ask me again; the altar in Minas Tirith has out-waited longer lives than yours.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #24</span> <a class="dlg-anchor" href="#r24" title="jump to flat reply #24">¶</a></summary>
@@ -747,13 +998,85 @@
 </details>
 </div>
 </details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r24">reply #24</a> <span class="dlg-link-preview">“I will await the call to vows.”</span></div>
+</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #11</span> <small class="muted">(if <code>prsg_c_dwdef</code>)</small> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
 <div class="dlg-text">Speak to me of the Dwarven Defenders.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #73</span> <small class="muted">(if <code>q_dwd_c_st3</code>)</small> <a class="dlg-anchor" href="#e73" title="jump to flat entry #73">¶</a></summary>
+<div class="dlg-text">*He does not need the roll for you any longer* The Defenders&#x27; page carries your name, cut deep, the way Durin&#x27;s folk cut what they mean to keep. Hold the ground you swore, and let the drums find you standing.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #96</span> <a class="dlg-anchor" href="#r96" title="jump to flat reply #96">¶</a></summary>
+<div class="dlg-text">Baruk Khazâd. The stone does not yield. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #71</span> <small class="muted">(if <code>q_dwd_c_rdy</code>)</small> <a class="dlg-anchor" href="#e71" title="jump to flat entry #71">¶</a></summary>
+<div class="dlg-text">*He looks up before you speak, as if something of the mountain came in the door with you* You carry a weight that is not iron. Show me the shard.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #95</span> <a class="dlg-anchor" href="#r95" title="jump to flat reply #95">¶</a></summary>
+<div class="dlg-text">It is here, keeper — a shard of Balin&#x27;s stone, given to iron-clad hands.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #72</span> <span class="dlg-action">→ <code>q_dwd_finish</code></span> <a class="dlg-anchor" href="#e72" title="jump to flat entry #72">¶</a></summary>
+<div class="dlg-text">*He takes the shard and sets it on the roll, where it sits like a mountain on a map* Unbroken, from an unbroken stone — the tomb does not give this to leather or to cloth. The Dwarven Defenders count you among them: the last hold of Khazad, the feet that are not moved. Wear this — forged for the heads that would not bow.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r96">reply #96</a> <span class="dlg-link-preview">“Baruk Khazâd. The stone does not yield. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #70</span> <small class="muted">(if <code>q_dwd_c_prog</code>)</small> <a class="dlg-anchor" href="#e70" title="jump to flat entry #70">¶</a></summary>
+<div class="dlg-text">*He glances at the roll without opening it* Balin&#x27;s stone keeps its shard yet. Heavy iron, Defender — splint or plate on your shoulders when your hand touches the tomb. Stone knows stone, and no other way.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #94</span> <a class="dlg-anchor" href="#r94" title="jump to flat reply #94">¶</a></summary>
+<div class="dlg-text">The stand will be kept, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #12</span> <a class="dlg-anchor" href="#e12" title="jump to flat entry #12">¶</a></summary>
-<div class="dlg-text">The last hold of Khazad — dwarves who plant their feet and are not moved, though the deep itself come up against them. Only Durin&#x27;s folk of proven years are written on this page. The veterans have not yet named a gate to hold — the trial is not ready. Return when the drums are heard.</div>
+<div class="dlg-text">The last hold of Khazad — dwarves who plant their feet and are not moved, though the deep itself come up against them. Only Durin&#x27;s folk of proven years are written on this page. Their trial is no march and no errand: it is a standing — iron on the shoulders, stone at the back, and no step given.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #90</span> <small class="muted">(if <code>q_dwd_c_off</code>)</small> <a class="dlg-anchor" href="#r90" title="jump to flat reply #90">¶</a></summary>
+<div class="dlg-text">I am of Durin&#x27;s folk, keeper, and the Defender&#x27;s stand is already mine. How may I be counted among them?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #68</span> <a class="dlg-anchor" href="#e68" title="jump to flat entry #68">¶</a></summary>
+<div class="dlg-text">*He unrolls the page until the candlelight finds a name cut twice — once in ink, once in grief* Then hear where the Defenders&#x27; stand is taken. Go down to Moria, to Balin&#x27;s Tomb, where Balin son of Fundin lies under one stone that was not broken. Stand at his grave as his guard stood — clad in the war-weight of Khazad, heavy iron, splint or plate on your shoulders — and lay your hand on the stone. Come in traveler&#x27;s leathers or a wizard&#x27;s cloth and the stone will not know you, as it has refused lighter feet than yours. Kept rightly, the stand earns a shard of the unbroken stone. Bring it to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #92</span> <span class="dlg-action">→ <code>q_dwd_start</code></span> <a class="dlg-anchor" href="#r92" title="jump to flat reply #92">¶</a></summary>
+<div class="dlg-text">I will stand at Balin&#x27;s tomb in the iron of Khazad. Baruk Khazâd.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #93</span> <a class="dlg-anchor" href="#r93" title="jump to flat reply #93">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #91</span> <small class="muted">(if <code>q_dwd_c_noh</code>)</small> <a class="dlg-anchor" href="#r91" title="jump to flat reply #91">¶</a></summary>
+<div class="dlg-text">How does one come to be written on the Defenders&#x27; page?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #69</span> <a class="dlg-anchor" href="#e69" title="jump to flat entry #69">¶</a></summary>
+<div class="dlg-text">*He lays a flat hand on the page, the way a door is barred* Only Durin&#x27;s folk are written here, and only those who have taken the Defender&#x27;s stand — feet planted, shield up, the last hold of Khazad. Take that discipline and ask me again; Balin&#x27;s stone has out-waited longer patience than yours.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #25</span> <a class="dlg-anchor" href="#r25" title="jump to flat reply #25">¶</a></summary>
@@ -763,18 +1086,95 @@
 </details>
 </div>
 </details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r25">reply #25</a> <span class="dlg-link-preview">“Baruk Khazâd. I will listen for the drums.”</span></div>
+</div>
+</details>
+</div>
+</details>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #12</span> <small class="muted">(if <code>prsg_c_shift</code>)</small> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
 <div class="dlg-text">Speak to me of the Shifters.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #79</span> <small class="muted">(if <code>q_shf_c_st3</code>)</small> <a class="dlg-anchor" href="#e79" title="jump to flat entry #79">¶</a></summary>
+<div class="dlg-text">*He does not need the roll for you any longer* The skin-changers&#x27; page keeps your name in both its hands — ink and paw-print. Wear what shapes you will, and come back wearing your own name.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #103</span> <a class="dlg-anchor" href="#r103" title="jump to flat reply #103">¶</a></summary>
+<div class="dlg-text">Another shape, my own name. Farewell, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #77</span> <small class="muted">(if <code>q_shf_c_rdy</code>)</small> <a class="dlg-anchor" href="#e77" title="jump to flat entry #77">¶</a></summary>
+<div class="dlg-text">*He looks up, and for a moment seems unsure which of your faces he is speaking to* You carry a smell of bear and river-water. Show me the tuft.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #102</span> <a class="dlg-anchor" href="#r102" title="jump to flat reply #102">¶</a></summary>
+<div class="dlg-text">It is here, keeper — a tuft of the first skin, given to a borrowed eye.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #78</span> <span class="dlg-action">→ <code>q_shf_finish</code></span> <a class="dlg-anchor" href="#e78" title="jump to flat entry #78">¶</a></summary>
+<div class="dlg-text">*He takes the tuft, and it stirs in his palm as though it remembered being worn* From the first skin, given only to a borrowed eye — the pool does not part with this for any face that was born, only for one that was put on. The Shifters count you among them: those who wear another shape and keep their own name inside it. Wear this — it knows every skin you will ever put on, and rides through the change when heavier gear will not.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r103">reply #103</a> <span class="dlg-link-preview">“Another shape, my own name. Farewell, keeper.”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #76</span> <small class="muted">(if <code>q_shf_c_prog</code>)</small> <a class="dlg-anchor" href="#e76" title="jump to flat entry #76">¶</a></summary>
+<div class="dlg-text">*He glances at the half-paw-print page* Beorn&#x27;s pool keeps its tuft yet. Another skin over your own when you look into the water, Shifter — the pool gives nothing to the face you were born with.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #101</span> <a class="dlg-anchor" href="#r101" title="jump to flat reply #101">¶</a></summary>
+<div class="dlg-text">The pool will be looked into, keeper.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #13</span> <a class="dlg-anchor" href="#e13" title="jump to flat entry #13">¶</a></summary>
-<div class="dlg-text">The skin-changers&#x27; discipline — older than any roll I keep. To wear another shape, and keep your own name inside it. The elder at the Carrock takes students when it suits him, which is seldom. He has sent no word — the trial is not ready. Return when the bees swarm.</div>
+<div class="dlg-text">The skin-changers&#x27; discipline — older than any roll I keep. To wear another shape, and keep your own name inside it. Beorn&#x27;s folk under the Carrock keep its oldest lesson yet, and their page on my roll is written in a hand that is half a paw-print.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #97</span> <small class="muted">(if <code>q_shf_c_off</code>)</small> <a class="dlg-anchor" href="#r97" title="jump to flat reply #97">¶</a></summary>
+<div class="dlg-text">The wild shape is already mine, keeper. How may I be counted among the Shifters?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #74</span> <a class="dlg-anchor" href="#e74" title="jump to flat entry #74">¶</a></summary>
+<div class="dlg-text">*He turns the roll to a page written in a hand that is half a paw-print* Then hear where the skin is tried. North of the forest, at Beorn&#x27;s steading in the shadow of the Carrock, there is a still pool where the master of the house drinks on four legs as often as two. Go there wearing another skin — wild-shaped, another face over your own; the borrowed shape is the trial, not the road — and look into the water. Come in the face you were born with and the pool will show you nothing but yourself, as it has refused truer faces than yours. Looked into rightly, the water gives up a tuft of the first skin. Bring it to me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #99</span> <span class="dlg-action">→ <code>q_shf_start</code></span> <a class="dlg-anchor" href="#r99" title="jump to flat reply #99">¶</a></summary>
+<div class="dlg-text">I will look into the pool wearing another skin.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #100</span> <a class="dlg-anchor" href="#r100" title="jump to flat reply #100">¶</a></summary>
+<div class="dlg-text">Not yet, keeper.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #98</span> <small class="muted">(if <code>q_shf_c_noh</code>)</small> <a class="dlg-anchor" href="#r98" title="jump to flat reply #98">¶</a></summary>
+<div class="dlg-text">How does one come to be written on the skin-changers&#x27; page?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #75</span> <a class="dlg-anchor" href="#e75" title="jump to flat entry #75">¶</a></summary>
+<div class="dlg-text">*He does not turn to that page* No one is written there who has not already worn another shape and come back whole, their own name still inside it. Take the skin-changer&#x27;s discipline — the Shifters&#x27; first wild shape — and ask me again; the pool has mirrored longer patience than yours.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #26</span> <a class="dlg-anchor" href="#r26" title="jump to flat reply #26">¶</a></summary>
 <div class="dlg-text">I will await the elder&#x27;s word.</div>
 </details>
+</div>
+</details>
+</div>
+</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r26">reply #26</a> <span class="dlg-link-preview">“I will await the elder&#x27;s word.”</span></div>
 </div>
 </details>
 </div>
@@ -795,12 +1195,12 @@
 <div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">Those who step where light does not follow. They ask one thing only: cross the dark unaided, and come out the other side still yourself. Their proving-ground lies far under stone, and I name it only to those who already walk unlit.</div><ul class="dlg-links"><li><a href="#r48">→ reply #48</a> <span class="dlg-link-preview">“I walk already where light does not follow, keeper. How may I be counted among t…”</span> <small class="muted">(if <code>q_shd_c_off</code>)</small></li><li><a href="#r49">→ reply #49</a> <span class="dlg-link-preview">“How does one come to walk that road?”</span> <small class="muted">(if <code>q_shd_c_noh</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“I will wait for the dark.”</span></li></ul></div>
 <div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wardens have sent their word at last — and their mark is an old one. It stands not in the Golden Wood but on the proving ground of Imladris: a target older than the house around it, and deep in its gold ring a grey-fletched shaft a warden loosed in an elder year. *He glances at your hands, as if weighing what they have drawn*</div><ul class="dlg-links"><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“I have bent the bow to the art already, keeper. How may I be counted among the A…”</span> <small class="muted">(if <code>q_arc_c_off</code>)</small></li><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“How does one come to that craft?”</span> <small class="muted">(if <code>q_arc_c_noh</code>)</small></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“The mark can wait. Another day, keeper.”</span></li></ul></div>
 <div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in their own veins. A perilous inheritance, and its price is set in the North -- but word has come down from the Mountain at last: the old fire stirs. In the great hall of Erebor stands the Forge of Durin, and under its banked coals sleeps an ember of the wyrm&#x27;s own breath, that no dwarf has dared to rake out. *He watches you the way men watch a lamp they suspect of being lit*</div><ul class="dlg-links"><li><a href="#r62">→ reply #62</a> <span class="dlg-link-preview">“The wyrm&#x27;s fire is awake in my veins already, keeper. How may I be counted among…”</span> <small class="muted">(if <code>q_rdd_c_off</code>)</small></li><li><a href="#r63">→ reply #63</a> <span class="dlg-link-preview">“How does one come to that inheritance?”</span> <small class="muted">(if <code>q_rdd_c_noh</code>)</small></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“I will listen for word from the Mountain.”</span></li></ul></div>
-<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledger, not I — I merely know where the page would go. Their contract is unwritten as yet; no word has come, and the trial is not ready. Return by a moonless night, if you keep to this path.</div><ul class="dlg-links"><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“I was never here.”</span></li></ul></div>
-<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">Those wedded to a single weapon until it is less a tool than a limb. Their proving is done before a crowd, bout by bout, blade by borrowed blade. The arena has not yet posted the challenge — the trial is not ready. Return when the sands are raked.</div><ul class="dlg-links"><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“I will watch the arena boards.”</span></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledger, not I -- I keep only the blank page where their page would go, and blank it stays. They sign nothing, swear nothing, and are seen by no one; a name goes to them sealed, and the name is removed. That is the whole of their craft, and the whole of what I may say of it aloud.</div><ul class="dlg-links"><li><a href="#r69">→ reply #69</a> <span class="dlg-link-preview">“The knives already know my hand, keeper. How may I be counted among them?”</span> <small class="muted">(if <code>q_asn_c_off</code>)</small></li><li><a href="#r70">→ reply #70</a> <span class="dlg-link-preview">“How does one come to be counted among the quiet knives?”</span> <small class="muted">(if <code>q_asn_c_noh</code>)</small></li><li><a href="#r21">→ reply #21</a> <span class="dlg-link-preview">“I was never here.”</span></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">*He finds the page without looking* Those wedded to a single weapon until it is less a tool than a limb — one blade, one life, the discipline the orders call the Weapon Master. Their roll is the shortest I keep; most hands want too many things.</div><ul class="dlg-links"><li><a href="#r76">→ reply #76</a> <span class="dlg-link-preview">“My hand is already sworn to its weapon, keeper. How may I be counted among them?”</span> <small class="muted">(if <code>q_wpm_c_off</code>)</small></li><li><a href="#r77">→ reply #77</a> <span class="dlg-link-preview">“How does one come to be counted among the Weapon Masters?”</span> <small class="muted">(if <code>q_wpm_c_noh</code>)</small></li><li><a href="#r22">→ reply #22</a> <span class="dlg-link-preview">“I have heard enough, keeper.”</span></li></ul></div>
 <div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span></div><div class="dlg-text">*He is silent a moment* The Black Captain&#x27;s sworn. I keep their page because a keeper keeps every page, not because I commend it — the marks they bear are not lightly taken, nor ever put off. No summons has come from the Guildhouse — the trial is not ready. Return, if your feet still carry you that way.</div><ul class="dlg-links"><li><a href="#r23">→ reply #23</a> <span class="dlg-link-preview">“My feet know their own road. Farewell.”</span></li></ul></div>
-<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">Champions vowed before the White Tree, sword-arms of the faith of the West. Their vow is renewed, not granted — it must be earned twice over. The chaplains have not yet called for vows — the trial is not ready. Return when the Tree flowers.</div><ul class="dlg-links"><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“I will await the call to vows.”</span></li></ul></div>
-<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">The last hold of Khazad — dwarves who plant their feet and are not moved, though the deep itself come up against them. Only Durin&#x27;s folk of proven years are written on this page. The veterans have not yet named a gate to hold — the trial is not ready. Return when the drums are heard.</div><ul class="dlg-links"><li><a href="#r25">→ reply #25</a> <span class="dlg-link-preview">“Baruk Khazâd. I will listen for the drums.”</span></li></ul></div>
-<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">The skin-changers&#x27; discipline — older than any roll I keep. To wear another shape, and keep your own name inside it. The elder at the Carrock takes students when it suits him, which is seldom. He has sent no word — the trial is not ready. Return when the bees swarm.</div><ul class="dlg-links"><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“I will await the elder&#x27;s word.”</span></li></ul></div>
+<div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">Champions vowed before the White Tree, sword-arms of the faith of the West. Their vow is renewed, not granted -- it must be earned twice over, once at the Tree and once at the altar. I keep their page near the top of the roll, where the light falls.</div><ul class="dlg-links"><li><a href="#r83">→ reply #83</a> <span class="dlg-link-preview">“My sword is already vowed before the White Tree, keeper. How may I be counted am…”</span> <small class="muted">(if <code>q_dvc_c_off</code>)</small></li><li><a href="#r84">→ reply #84</a> <span class="dlg-link-preview">“How does one come to stand among the Divine Champions?”</span> <small class="muted">(if <code>q_dvc_c_noh</code>)</small></li><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“I will await the call to vows.”</span></li></ul></div>
+<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">The last hold of Khazad — dwarves who plant their feet and are not moved, though the deep itself come up against them. Only Durin&#x27;s folk of proven years are written on this page. Their trial is no march and no errand: it is a standing — iron on the shoulders, stone at the back, and no step given.</div><ul class="dlg-links"><li><a href="#r90">→ reply #90</a> <span class="dlg-link-preview">“I am of Durin&#x27;s folk, keeper, and the Defender&#x27;s stand is already mine. How may…”</span> <small class="muted">(if <code>q_dwd_c_off</code>)</small></li><li><a href="#r91">→ reply #91</a> <span class="dlg-link-preview">“How does one come to be written on the Defenders&#x27; page?”</span> <small class="muted">(if <code>q_dwd_c_noh</code>)</small></li><li><a href="#r25">→ reply #25</a> <span class="dlg-link-preview">“Baruk Khazâd. I will listen for the drums.”</span></li></ul></div>
+<div class="dlg-node entry" id="e13"><div class="dlg-head"><span class="dlg-id">entry #13</span></div><div class="dlg-text">The skin-changers&#x27; discipline — older than any roll I keep. To wear another shape, and keep your own name inside it. Beorn&#x27;s folk under the Carrock keep its oldest lesson yet, and their page on my roll is written in a hand that is half a paw-print.</div><ul class="dlg-links"><li><a href="#r97">→ reply #97</a> <span class="dlg-link-preview">“The wild shape is already mine, keeper. How may I be counted among the Shifters?”</span> <small class="muted">(if <code>q_shf_c_off</code>)</small></li><li><a href="#r98">→ reply #98</a> <span class="dlg-link-preview">“How does one come to be written on the skin-changers&#x27; page?”</span> <small class="muted">(if <code>q_shf_c_noh</code>)</small></li><li><a href="#r26">→ reply #26</a> <span class="dlg-link-preview">“I will await the elder&#x27;s word.”</span></li></ul></div>
 <div class="dlg-node entry" id="e14"><div class="dlg-head"><span class="dlg-id">entry #14</span></div><div class="dlg-text">*He lowers his voice, though no one stands near* Then hear the first errand. A friend of mine keeps the corner table at the Prancing Pony in Bree — a traveller in a fern-green cloak; no name you need yet. Sit with her. Offer her nothing but patience, and she will hand you the rest. Bring me back the word she trusts you with, and the rolls will carry your name.</div><ul class="dlg-links"><li><a href="#r29">→ reply #29</a> <span class="dlg-link-preview">“I will find her.”</span></li><li><a href="#r30">→ reply #30</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
 <div class="dlg-node entry" id="e15"><div class="dlg-head"><span class="dlg-id">entry #15</span></div><div class="dlg-text">The orders take no one by wishing. Learn the first discipline of the scouts — the woodscraft, the listening, the letters — and when you can call yourself Harper in more than hope, come back to me. *He taps the roll* The page keeps.</div><ul class="dlg-links"><li><a href="#r15">→ child</a> <span class="dlg-link-preview">“Then I will listen for it. Farewell.”</span></li></ul></div>
 <div class="dlg-node entry" id="e16"><div class="dlg-head"><span class="dlg-id">entry #16</span></div><div class="dlg-text">*He glances up from the roll* The corner table at the Prancing Pony, in Bree. A fern-green cloak, and patience. The word will find you, if you sit still enough to hear it.</div><ul class="dlg-links"><li><a href="#r31">→ reply #31</a> <span class="dlg-link-preview">“I am on the road.”</span></li></ul></div>
@@ -837,6 +1237,36 @@
 <div class="dlg-node entry" id="e47"><div class="dlg-head"><span class="dlg-id">entry #47</span></div><div class="dlg-text">*He looks up before you have spoken, and holds his hands to you as a man holds them to a hearth* You carry a warmth the road did not give you. Show me.</div><ul class="dlg-links"><li><a href="#r67">→ reply #67</a> <span class="dlg-link-preview">“It is here, keeper -- an ember of the old wyrm&#x27;s fire, drawn from Durin&#x27;s coals…”</span></li></ul></div>
 <div class="dlg-node entry" id="e48"><div class="dlg-head"><span class="dlg-id">entry #48</span> <span class="dlg-action">→ <code>q_rdd_finish</code></span></div><div class="dlg-text">*He takes the ember in his bare palm without flinching, and for a moment the light of it moves under the skin of his fingers like a slow heartbeat* Drawn bare-handed from Durin&#x27;s coals, and it did not burn you -- the fire has named you kin, and I only write what the fire has signed. Your name goes on the scorched page. *From beneath the roll he draws an amulet, a drop of deep red on a plain iron chain, warm as a held coal* Wear this, Red Dragon Disciple -- and may the fire you carry stay yours to command.</div><ul class="dlg-links"><li><a href="#r68">→ reply #68</a> <span class="dlg-link-preview">“The fire remembers its own, and I the fire. Farewell, keeper.”</span></li></ul></div>
 <div class="dlg-node entry" id="e49"><div class="dlg-head"><span class="dlg-id">entry #49</span></div><div class="dlg-text">*He taps the scorched corner of the page* Your name stands on the wyrm&#x27;s page, Red Dragon Disciple, and Durin&#x27;s coals burn a little lower -- what you took from them you carry now in your own veins.</div><ul class="dlg-links"><li><a href="#r68">→ child</a> <span class="dlg-link-preview">“The fire remembers its own, and I the fire. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e50"><div class="dlg-head"><span class="dlg-id">entry #50</span></div><div class="dlg-text">*He turns the roll to the blank page, and his voice drops to something below a whisper* Then hear their trial, and mark it well: it is not a killing. Any brawler can kill. A sealed writ waits at one of their dead drops -- the old wine barrel standing against the houses of Bree. Go to it as the quiet knives go: in shadow, unseen, every step a held breath. If any eye could mark you when you reach for it, the drop will stay empty -- try again from the dark. Bring the writ to me sealed and unread. Especially unread.</div><ul class="dlg-links"><li><a href="#r71">→ reply #71</a> <span class="dlg-link-preview">“I will lift the writ unseen.”</span></li><li><a href="#r72">→ reply #72</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e51"><div class="dlg-head"><span class="dlg-id">entry #51</span></div><div class="dlg-text">*He does not look up* One is not counted among them -- one is uncounted, which is harder. First learn the discipline itself: a level of the Assassins&#x27; craft, the step that makes no sound and the knife that leaves no name. Carry that, and ask me again -- on a moonless night, if you can manage it.</div><ul class="dlg-links"><li><a href="#r21">→ child</a> <span class="dlg-link-preview">“I was never here.”</span></li></ul></div>
+<div class="dlg-node entry" id="e52"><div class="dlg-head"><span class="dlg-id">entry #52</span></div><div class="dlg-text">*He glances at the blank page* The drop keeps its writ yet -- the old wine barrel against the houses of Bree. Shadow first, then the hand: come to it with any eye able to mark you and it will be only a barrel.</div><ul class="dlg-links"><li><a href="#r73">→ reply #73</a> <span class="dlg-link-preview">“The barrel keeps it yet. I am about it.”</span></li></ul></div>
+<div class="dlg-node entry" id="e53"><div class="dlg-head"><span class="dlg-id">entry #53</span></div><div class="dlg-text">*He looks up -- not because he heard you come, but because he did not* You have it, then. Sealed and unread, or we have nothing to say to one another.</div><ul class="dlg-links"><li><a href="#r74">→ reply #74</a> <span class="dlg-link-preview">“It is here, keeper -- sealed and unread, lifted with no eye upon me.”</span></li></ul></div>
+<div class="dlg-node entry" id="e54"><div class="dlg-head"><span class="dlg-id">entry #54</span> <span class="dlg-action">→ <code>q_asn_finish</code></span></div><div class="dlg-text">*He breaks the black wax himself, reads the single name written there, and holds the writ to the candle until it is ash -- and only then speaks* The name on the writ was your own. You collected your own death unseen, and now it is removed: the quiet knives buy each of their own out of the ledger exactly once. *From beneath the roll he draws a pair of thin grey gloves* Wear these, and be no one, anywhere. The rolls keep your name, Assassin -- on the page no one will ever read.</div><ul class="dlg-links"><li><a href="#r75">→ reply #75</a> <span class="dlg-link-preview">“No one was ever here. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e55"><div class="dlg-head"><span class="dlg-id">entry #55</span></div><div class="dlg-text">*He does not mark your coming, and the blank page stays blank -- which is, among the quiet knives, the whole of an honor roll* Walk uncounted, Assassin.</div><ul class="dlg-links"><li><a href="#r75">→ child</a> <span class="dlg-link-preview">“No one was ever here. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e56"><div class="dlg-head"><span class="dlg-id">entry #56</span></div><div class="dlg-text">*He sets down the quill* Then hear the proving. Below the white walls of Minas Tirith the Guard keeps its training row — scarred practice posts that have taken the cuts of every swordmaster Gondor ever raised. Go to the first post and cut your notch — with the weapon your soul is sworn to, and no other. Come to the wood bare-handed, or behind a borrowed blade, and it will show you up as it has shown up prouder men. Bring me the notch you cut.</div><ul class="dlg-links"><li><a href="#r78">→ reply #78</a> <span class="dlg-link-preview">“I will cut my notch with no blade but my own.”</span></li><li><a href="#r79">→ reply #79</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e57"><div class="dlg-head"><span class="dlg-id">entry #57</span></div><div class="dlg-text">*He taps the short page* One weapon, chosen and kept, until dodging, feinting and striking with it are one thought — the discipline the orders call the Weapon Master. Swear your hand to a single blade and ask me again. The posts below Minas Tirith have stood an age; they will stand for you.</div><ul class="dlg-links"><li><a href="#r22">→ child</a> <span class="dlg-link-preview">“I have heard enough, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e58"><div class="dlg-head"><span class="dlg-id">entry #58</span></div><div class="dlg-text">*He glances at the short page* The training row keeps its wood yet. One cut, with the one blade — the posts below Minas Tirith will know your hand when it comes honestly, and not before.</div><ul class="dlg-links"><li><a href="#r80">→ reply #80</a> <span class="dlg-link-preview">“The notch will be cut, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e59"><div class="dlg-head"><span class="dlg-id">entry #59</span></div><div class="dlg-text">*He turns to the short page without being asked* You carry fresh-cut oak — I can smell the sap from here. Show me the notch.</div><ul class="dlg-links"><li><a href="#r81">→ reply #81</a> <span class="dlg-link-preview">“Here, keeper — one cut, one blade, the one my hand is sworn to.”</span></li></ul></div>
+<div class="dlg-node entry" id="e60"><div class="dlg-head"><span class="dlg-id">entry #60</span> <span class="dlg-action">→ <code>q_wpm_finish</code></span></div><div class="dlg-text">*He turns the chip once in his fingers, reading the grain as another man reads a letter, and sets it on the roll* One stroke, clean through seasoned oak, and no second mark beside it — the post does not lie about the hand that struck it. The Weapon Masters count you among them: one blade, one life. Wear this — the yards of Gondor buckle it on those whose blade needs no second.</div><ul class="dlg-links"><li><a href="#r82">→ reply #82</a> <span class="dlg-link-preview">“One blade, one life. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e61"><div class="dlg-head"><span class="dlg-id">entry #61</span></div><div class="dlg-text">*He does not need the roll for you any longer* The notch is entered, and the Weapon Masters keep short rolls — a name cut there is not cut again. Carry the one blade well.</div><ul class="dlg-links"><li><a href="#r82">→ child</a> <span class="dlg-link-preview">“One blade, one life. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e62"><div class="dlg-head"><span class="dlg-id">entry #62</span></div><div class="dlg-text">*He turns to a page that smells of oil and candle-smoke* Then hear the vow&#x27;s renewing. In the temple of Minas Tirith stands the Altar of the Istari -- polished stone, and the faithful&#x27;s hands did the polishing. Keep the vigil there as the order keeps it: come to the altar bearing a shield on your arm, for the champion&#x27;s vow is not to strike harder but to stand between. Come with the arm bare, or with a second blade where the shield should ride, and the altar will keep its light from you, as it has kept it from prouder men. Kept rightly, the vigil kindles an oath-light. Bring it to me.</div><ul class="dlg-links"><li><a href="#r85">→ reply #85</a> <span class="dlg-link-preview">“I will stand the vigil as the shield.”</span></li><li><a href="#r86">→ reply #86</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e63"><div class="dlg-head"><span class="dlg-id">entry #63</span></div><div class="dlg-text">*He does not turn the page* One is not appointed to that page -- one is vowed onto it, sword raised before the White Tree. Take the champion&#x27;s vow and ask me again; the altar in Minas Tirith has out-waited longer lives than yours.</div><ul class="dlg-links"><li><a href="#r24">→ child</a> <span class="dlg-link-preview">“I will await the call to vows.”</span></li></ul></div>
+<div class="dlg-node entry" id="e64"><div class="dlg-head"><span class="dlg-id">entry #64</span></div><div class="dlg-text">*He glances toward the candle* The altar keeps its light yet. Shield on arm, champion -- the vigil is kept standing between, and no other way.</div><ul class="dlg-links"><li><a href="#r87">→ reply #87</a> <span class="dlg-link-preview">“The vigil will be kept, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e65"><div class="dlg-head"><span class="dlg-id">entry #65</span></div><div class="dlg-text">*He looks up, and the candle beside him steadies* You carry a light that is not lamplight -- I can see it under the road-dust. Show me the oath-light.</div><ul class="dlg-links"><li><a href="#r88">→ reply #88</a> <span class="dlg-link-preview">“It is here, keeper -- an oath-light, kindled shield on arm.”</span></li></ul></div>
+<div class="dlg-node entry" id="e66"><div class="dlg-head"><span class="dlg-id">entry #66</span> <span class="dlg-action">→ <code>q_dvc_finish</code></span></div><div class="dlg-text">*He takes the light in both hands, and for a moment the grey of his cloak remembers being white* Kindled with the shield borne, and nothing in the hand that takes -- the altar does not lend its light to men who came for themselves. The Divine Champions count you among them: the shield of others, sworn before the White Tree. Wear this -- the chaplains lay it on those who stand between.</div><ul class="dlg-links"><li><a href="#r89">→ reply #89</a> <span class="dlg-link-preview">“The shield of others. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e67"><div class="dlg-head"><span class="dlg-id">entry #67</span></div><div class="dlg-text">*He does not need the roll for you any longer* The vow is entered and renewed, and the Champions&#x27; page reads well by candlelight. Stand between, as you swore.</div><ul class="dlg-links"><li><a href="#r89">→ child</a> <span class="dlg-link-preview">“The shield of others. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e68"><div class="dlg-head"><span class="dlg-id">entry #68</span></div><div class="dlg-text">*He unrolls the page until the candlelight finds a name cut twice — once in ink, once in grief* Then hear where the Defenders&#x27; stand is taken. Go down to Moria, to Balin&#x27;s Tomb, where Balin son of Fundin lies under one stone that was not broken. Stand at his grave as his guard stood — clad in the war-weight of Khazad, heavy iron, splint or plate on your shoulders — and lay your hand on the stone. Come in traveler&#x27;s leathers or a wizard&#x27;s cloth and the stone will not know you, as it has refused lighter feet than yours. Kept rightly, the stand earns a shard of the unbroken stone. Bring it to me.</div><ul class="dlg-links"><li><a href="#r92">→ reply #92</a> <span class="dlg-link-preview">“I will stand at Balin&#x27;s tomb in the iron of Khazad. Baruk Khazâd.”</span></li><li><a href="#r93">→ reply #93</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e69"><div class="dlg-head"><span class="dlg-id">entry #69</span></div><div class="dlg-text">*He lays a flat hand on the page, the way a door is barred* Only Durin&#x27;s folk are written here, and only those who have taken the Defender&#x27;s stand — feet planted, shield up, the last hold of Khazad. Take that discipline and ask me again; Balin&#x27;s stone has out-waited longer patience than yours.</div><ul class="dlg-links"><li><a href="#r25">→ child</a> <span class="dlg-link-preview">“Baruk Khazâd. I will listen for the drums.”</span></li></ul></div>
+<div class="dlg-node entry" id="e70"><div class="dlg-head"><span class="dlg-id">entry #70</span></div><div class="dlg-text">*He glances at the roll without opening it* Balin&#x27;s stone keeps its shard yet. Heavy iron, Defender — splint or plate on your shoulders when your hand touches the tomb. Stone knows stone, and no other way.</div><ul class="dlg-links"><li><a href="#r94">→ reply #94</a> <span class="dlg-link-preview">“The stand will be kept, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e71"><div class="dlg-head"><span class="dlg-id">entry #71</span></div><div class="dlg-text">*He looks up before you speak, as if something of the mountain came in the door with you* You carry a weight that is not iron. Show me the shard.</div><ul class="dlg-links"><li><a href="#r95">→ reply #95</a> <span class="dlg-link-preview">“It is here, keeper — a shard of Balin&#x27;s stone, given to iron-clad hands.”</span></li></ul></div>
+<div class="dlg-node entry" id="e72"><div class="dlg-head"><span class="dlg-id">entry #72</span> <span class="dlg-action">→ <code>q_dwd_finish</code></span></div><div class="dlg-text">*He takes the shard and sets it on the roll, where it sits like a mountain on a map* Unbroken, from an unbroken stone — the tomb does not give this to leather or to cloth. The Dwarven Defenders count you among them: the last hold of Khazad, the feet that are not moved. Wear this — forged for the heads that would not bow.</div><ul class="dlg-links"><li><a href="#r96">→ reply #96</a> <span class="dlg-link-preview">“Baruk Khazâd. The stone does not yield. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e73"><div class="dlg-head"><span class="dlg-id">entry #73</span></div><div class="dlg-text">*He does not need the roll for you any longer* The Defenders&#x27; page carries your name, cut deep, the way Durin&#x27;s folk cut what they mean to keep. Hold the ground you swore, and let the drums find you standing.</div><ul class="dlg-links"><li><a href="#r96">→ child</a> <span class="dlg-link-preview">“Baruk Khazâd. The stone does not yield. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e74"><div class="dlg-head"><span class="dlg-id">entry #74</span></div><div class="dlg-text">*He turns the roll to a page written in a hand that is half a paw-print* Then hear where the skin is tried. North of the forest, at Beorn&#x27;s steading in the shadow of the Carrock, there is a still pool where the master of the house drinks on four legs as often as two. Go there wearing another skin — wild-shaped, another face over your own; the borrowed shape is the trial, not the road — and look into the water. Come in the face you were born with and the pool will show you nothing but yourself, as it has refused truer faces than yours. Looked into rightly, the water gives up a tuft of the first skin. Bring it to me.</div><ul class="dlg-links"><li><a href="#r99">→ reply #99</a> <span class="dlg-link-preview">“I will look into the pool wearing another skin.”</span></li><li><a href="#r100">→ reply #100</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e75"><div class="dlg-head"><span class="dlg-id">entry #75</span></div><div class="dlg-text">*He does not turn to that page* No one is written there who has not already worn another shape and come back whole, their own name still inside it. Take the skin-changer&#x27;s discipline — the Shifters&#x27; first wild shape — and ask me again; the pool has mirrored longer patience than yours.</div><ul class="dlg-links"><li><a href="#r26">→ child</a> <span class="dlg-link-preview">“I will await the elder&#x27;s word.”</span></li></ul></div>
+<div class="dlg-node entry" id="e76"><div class="dlg-head"><span class="dlg-id">entry #76</span></div><div class="dlg-text">*He glances at the half-paw-print page* Beorn&#x27;s pool keeps its tuft yet. Another skin over your own when you look into the water, Shifter — the pool gives nothing to the face you were born with.</div><ul class="dlg-links"><li><a href="#r101">→ reply #101</a> <span class="dlg-link-preview">“The pool will be looked into, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e77"><div class="dlg-head"><span class="dlg-id">entry #77</span></div><div class="dlg-text">*He looks up, and for a moment seems unsure which of your faces he is speaking to* You carry a smell of bear and river-water. Show me the tuft.</div><ul class="dlg-links"><li><a href="#r102">→ reply #102</a> <span class="dlg-link-preview">“It is here, keeper — a tuft of the first skin, given to a borrowed eye.”</span></li></ul></div>
+<div class="dlg-node entry" id="e78"><div class="dlg-head"><span class="dlg-id">entry #78</span> <span class="dlg-action">→ <code>q_shf_finish</code></span></div><div class="dlg-text">*He takes the tuft, and it stirs in his palm as though it remembered being worn* From the first skin, given only to a borrowed eye — the pool does not part with this for any face that was born, only for one that was put on. The Shifters count you among them: those who wear another shape and keep their own name inside it. Wear this — it knows every skin you will ever put on, and rides through the change when heavier gear will not.</div><ul class="dlg-links"><li><a href="#r103">→ reply #103</a> <span class="dlg-link-preview">“Another shape, my own name. Farewell, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e79"><div class="dlg-head"><span class="dlg-id">entry #79</span></div><div class="dlg-text">*He does not need the roll for you any longer* The skin-changers&#x27; page keeps your name in both its hands — ink and paw-print. Wear what shapes you will, and come back wearing your own name.</div><ul class="dlg-links"><li><a href="#r103">→ child</a> <span class="dlg-link-preview">“Another shape, my own name. Farewell, keeper.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Which of the old orders would hear my name as I stand?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“*He runs a finger down the roll* As you stand today, these would hear your name:…”</span> <small class="muted">(if <code>prsg_c_sum</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Speak to me of the Harper Scouts.</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“*He does not look up, but the corner of his mouth moves* The rolls keep your nam…”</span> <small class="muted">(if <code>q_hrp_c_st3</code>)</small></li><li><a href="#e17">→ entry #17</a> <span class="dlg-link-preview">“*He sets down the roll* You carry road-dust — and something better, unless I mis…”</span> <small class="muted">(if <code>q_hrp_c_st2</code>)</small></li><li><a href="#e16">→ entry #16</a> <span class="dlg-link-preview">“*He glances up from the roll* The corner table at the Prancing Pony, in Bree. A…”</span> <small class="muted">(if <code>q_hrp_c_st1</code>)</small></li><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“The quiet watchers of the North — song-keepers and cipher-readers who walk the r…”</span></li></ul></div>
@@ -845,12 +1275,12 @@
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Speak to me of the Shadowdancers.</div><ul class="dlg-links"><li><a href="#e37">→ entry #37</a> <span class="dlg-link-preview">“*He does not look at the dim page, and it does not need him to* Your name is wri…”</span> <small class="muted">(if <code>q_shd_c_st3</code>)</small></li><li><a href="#e35">→ entry #35</a> <span class="dlg-link-preview">“*He does not look up, but the candle beside him leans as though something passed…”</span> <small class="muted">(if <code>q_shd_c_rdy</code>)</small></li><li><a href="#e34">→ entry #34</a> <span class="dlg-link-preview">“*He glances at the dim page* The well beside Balin&#x27;s tomb keeps its count of the…”</span> <small class="muted">(if <code>q_shd_c_prog</code>)</small></li><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“Those who step where light does not follow. They ask one thing only: cross the d…”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Speak to me of the Arcane Archers.</div><ul class="dlg-links"><li><a href="#e43">→ entry #43</a> <span class="dlg-link-preview">“*He taps the grey feather at the corner of the page* Your name stands on the war…”</span> <small class="muted">(if <code>q_arc_c_st3</code>)</small></li><li><a href="#e41">→ entry #41</a> <span class="dlg-link-preview">“*He looks up before you have spoken, his eye going to your quiver as though it h…”</span> <small class="muted">(if <code>q_arc_c_rdy</code>)</small></li><li><a href="#e40">→ entry #40</a> <span class="dlg-link-preview">“*He touches the grey feather at the page&#x27;s corner* The old target on Rivendell&#x27;s…”</span> <small class="muted">(if <code>q_arc_c_prog</code>)</small></li><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“The bowcraft of the Galadhrim, where arrow and art are one motion. The Lady&#x27;s wa…”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Speak to me of the Red Dragon Disciples.</div><ul class="dlg-links"><li><a href="#e49">→ entry #49</a> <span class="dlg-link-preview">“*He taps the scorched corner of the page* Your name stands on the wyrm&#x27;s page, R…”</span> <small class="muted">(if <code>q_rdd_c_st3</code>)</small></li><li><a href="#e47">→ entry #47</a> <span class="dlg-link-preview">“*He looks up before you have spoken, and holds his hands to you as a man holds t…”</span> <small class="muted">(if <code>q_rdd_c_rdy</code>)</small></li><li><a href="#e46">→ entry #46</a> <span class="dlg-link-preview">“*He touches the scorched corner of the page* The Forge of Durin keeps the wyrm&#x27;s…”</span> <small class="muted">(if <code>q_rdd_c_prog</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“The dragon-blooded, who court the fire that ruined Dale to wake what sleeps in t…”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Speak to me of the Assassins.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledge…”</span></li></ul></div>
-<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Speak to me of the Weapon Masters.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“Those wedded to a single weapon until it is less a tool than a limb. Their provi…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Speak to me of the Assassins.</div><ul class="dlg-links"><li><a href="#e55">→ entry #55</a> <span class="dlg-link-preview">“*He does not mark your coming, and the blank page stays blank -- which is, among…”</span> <small class="muted">(if <code>q_asn_c_st3</code>)</small></li><li><a href="#e53">→ entry #53</a> <span class="dlg-link-preview">“*He looks up -- not because he heard you come, but because he did not* You have…”</span> <small class="muted">(if <code>q_asn_c_rdy</code>)</small></li><li><a href="#e52">→ entry #52</a> <span class="dlg-link-preview">“*He glances at the blank page* The drop keeps its writ yet -- the old wine barre…”</span> <small class="muted">(if <code>q_asn_c_prog</code>)</small></li><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*He does not look up from the roll* The quiet knives. Carn Dûm keeps their ledge…”</span></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Speak to me of the Weapon Masters.</div><ul class="dlg-links"><li><a href="#e61">→ entry #61</a> <span class="dlg-link-preview">“*He does not need the roll for you any longer* The notch is entered, and the Wea…”</span> <small class="muted">(if <code>q_wpm_c_st3</code>)</small></li><li><a href="#e59">→ entry #59</a> <span class="dlg-link-preview">“*He turns to the short page without being asked* You carry fresh-cut oak — I can…”</span> <small class="muted">(if <code>q_wpm_c_rdy</code>)</small></li><li><a href="#e58">→ entry #58</a> <span class="dlg-link-preview">“*He glances at the short page* The training row keeps its wood yet. One cut, wit…”</span> <small class="muted">(if <code>q_wpm_c_prog</code>)</small></li><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“*He finds the page without looking* Those wedded to a single weapon until it is…”</span></li></ul></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Speak to me of the Blackguards.</div><ul class="dlg-links"><li><a href="#e10">→ entry #10</a> <span class="dlg-link-preview">“*He is silent a moment* The Black Captain&#x27;s sworn. I keep their page because a k…”</span></li></ul></div>
-<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Speak to me of the Divine Champions.</div><ul class="dlg-links"><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Champions vowed before the White Tree, sword-arms of the faith of the West. Thei…”</span></li></ul></div>
-<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">Speak to me of the Dwarven Defenders.</div><ul class="dlg-links"><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“The last hold of Khazad — dwarves who plant their feet and are not moved, though…”</span></li></ul></div>
-<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Speak to me of the Shifters.</div><ul class="dlg-links"><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“The skin-changers&#x27; discipline — older than any roll I keep. To wear another shap…”</span></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">Speak to me of the Divine Champions.</div><ul class="dlg-links"><li><a href="#e67">→ entry #67</a> <span class="dlg-link-preview">“*He does not need the roll for you any longer* The vow is entered and renewed, a…”</span> <small class="muted">(if <code>q_dvc_c_st3</code>)</small></li><li><a href="#e65">→ entry #65</a> <span class="dlg-link-preview">“*He looks up, and the candle beside him steadies* You carry a light that is not…”</span> <small class="muted">(if <code>q_dvc_c_rdy</code>)</small></li><li><a href="#e64">→ entry #64</a> <span class="dlg-link-preview">“*He glances toward the candle* The altar keeps its light yet. Shield on arm, cha…”</span> <small class="muted">(if <code>q_dvc_c_prog</code>)</small></li><li><a href="#e11">→ entry #11</a> <span class="dlg-link-preview">“Champions vowed before the White Tree, sword-arms of the faith of the West. Thei…”</span></li></ul></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">Speak to me of the Dwarven Defenders.</div><ul class="dlg-links"><li><a href="#e73">→ entry #73</a> <span class="dlg-link-preview">“*He does not need the roll for you any longer* The Defenders&#x27; page carries your…”</span> <small class="muted">(if <code>q_dwd_c_st3</code>)</small></li><li><a href="#e71">→ entry #71</a> <span class="dlg-link-preview">“*He looks up before you speak, as if something of the mountain came in the door…”</span> <small class="muted">(if <code>q_dwd_c_rdy</code>)</small></li><li><a href="#e70">→ entry #70</a> <span class="dlg-link-preview">“*He glances at the roll without opening it* Balin&#x27;s stone keeps its shard yet. H…”</span> <small class="muted">(if <code>q_dwd_c_prog</code>)</small></li><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“The last hold of Khazad — dwarves who plant their feet and are not moved, though…”</span></li></ul></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text">Speak to me of the Shifters.</div><ul class="dlg-links"><li><a href="#e79">→ entry #79</a> <span class="dlg-link-preview">“*He does not need the roll for you any longer* The skin-changers&#x27; page keeps you…”</span> <small class="muted">(if <code>q_shf_c_st3</code>)</small></li><li><a href="#e77">→ entry #77</a> <span class="dlg-link-preview">“*He looks up, and for a moment seems unsure which of your faces he is speaking t…”</span> <small class="muted">(if <code>q_shf_c_rdy</code>)</small></li><li><a href="#e76">→ entry #76</a> <span class="dlg-link-preview">“*He glances at the half-paw-print page* Beorn&#x27;s pool keeps its tuft yet. Another…”</span> <small class="muted">(if <code>q_shf_c_prog</code>)</small></li><li><a href="#e13">→ entry #13</a> <span class="dlg-link-preview">“The skin-changers&#x27; discipline — older than any roll I keep. To wear another shap…”</span></li></ul></div>
 <div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span></div><div class="dlg-text">Another time, keeper.</div></div>
 <div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">Then I will return. Keep your rolls well, Halmir.</div></div>
 <div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span></div><div class="dlg-text">Then I will listen for it. Farewell.</div></div>
@@ -860,7 +1290,7 @@
 <div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span></div><div class="dlg-text">The mark can wait. Another day, keeper.</div></div>
 <div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span></div><div class="dlg-text">I will listen for word from the Mountain.</div></div>
 <div class="dlg-node reply" id="r21"><div class="dlg-head"><span class="dlg-id">reply #21</span></div><div class="dlg-text">I was never here.</div></div>
-<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">I will watch the arena boards.</div></div>
+<div class="dlg-node reply" id="r22"><div class="dlg-head"><span class="dlg-id">reply #22</span></div><div class="dlg-text">I have heard enough, keeper.</div></div>
 <div class="dlg-node reply" id="r23"><div class="dlg-head"><span class="dlg-id">reply #23</span></div><div class="dlg-text">My feet know their own road. Farewell.</div></div>
 <div class="dlg-node reply" id="r24"><div class="dlg-head"><span class="dlg-id">reply #24</span></div><div class="dlg-text">I will await the call to vows.</div></div>
 <div class="dlg-node reply" id="r25"><div class="dlg-head"><span class="dlg-id">reply #25</span></div><div class="dlg-text">Baruk Khazâd. I will listen for the drums.</div></div>
@@ -907,6 +1337,41 @@
 <div class="dlg-node reply" id="r66"><div class="dlg-head"><span class="dlg-id">reply #66</span></div><div class="dlg-text">The coals keep it yet. I am about it.</div></div>
 <div class="dlg-node reply" id="r67"><div class="dlg-head"><span class="dlg-id">reply #67</span></div><div class="dlg-text">It is here, keeper -- an ember of the old wyrm&#x27;s fire, drawn from Durin&#x27;s coals with a bare hand.</div><ul class="dlg-links"><li><a href="#e48">→ entry #48</a> <span class="dlg-link-preview">“*He takes the ember in his bare palm without flinching, and for a moment the lig…”</span></li></ul></div>
 <div class="dlg-node reply" id="r68"><div class="dlg-head"><span class="dlg-id">reply #68</span></div><div class="dlg-text">The fire remembers its own, and I the fire. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r69"><div class="dlg-head"><span class="dlg-id">reply #69</span></div><div class="dlg-text">The knives already know my hand, keeper. How may I be counted among them?</div><ul class="dlg-links"><li><a href="#e50">→ entry #50</a> <span class="dlg-link-preview">“*He turns the roll to the blank page, and his voice drops to something below a w…”</span></li></ul></div>
+<div class="dlg-node reply" id="r70"><div class="dlg-head"><span class="dlg-id">reply #70</span></div><div class="dlg-text">How does one come to be counted among the quiet knives?</div><ul class="dlg-links"><li><a href="#e51">→ entry #51</a> <span class="dlg-link-preview">“*He does not look up* One is not counted among them -- one is uncounted, which i…”</span></li></ul></div>
+<div class="dlg-node reply" id="r71"><div class="dlg-head"><span class="dlg-id">reply #71</span> <span class="dlg-action">→ <code>q_asn_start</code></span></div><div class="dlg-text">I will lift the writ unseen.</div></div>
+<div class="dlg-node reply" id="r72"><div class="dlg-head"><span class="dlg-id">reply #72</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r73"><div class="dlg-head"><span class="dlg-id">reply #73</span></div><div class="dlg-text">The barrel keeps it yet. I am about it.</div></div>
+<div class="dlg-node reply" id="r74"><div class="dlg-head"><span class="dlg-id">reply #74</span></div><div class="dlg-text">It is here, keeper -- sealed and unread, lifted with no eye upon me.</div><ul class="dlg-links"><li><a href="#e54">→ entry #54</a> <span class="dlg-link-preview">“*He breaks the black wax himself, reads the single name written there, and holds…”</span></li></ul></div>
+<div class="dlg-node reply" id="r75"><div class="dlg-head"><span class="dlg-id">reply #75</span></div><div class="dlg-text">No one was ever here. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r76"><div class="dlg-head"><span class="dlg-id">reply #76</span></div><div class="dlg-text">My hand is already sworn to its weapon, keeper. How may I be counted among them?</div><ul class="dlg-links"><li><a href="#e56">→ entry #56</a> <span class="dlg-link-preview">“*He sets down the quill* Then hear the proving. Below the white walls of Minas T…”</span></li></ul></div>
+<div class="dlg-node reply" id="r77"><div class="dlg-head"><span class="dlg-id">reply #77</span></div><div class="dlg-text">How does one come to be counted among the Weapon Masters?</div><ul class="dlg-links"><li><a href="#e57">→ entry #57</a> <span class="dlg-link-preview">“*He taps the short page* One weapon, chosen and kept, until dodging, feinting an…”</span></li></ul></div>
+<div class="dlg-node reply" id="r78"><div class="dlg-head"><span class="dlg-id">reply #78</span> <span class="dlg-action">→ <code>q_wpm_start</code></span></div><div class="dlg-text">I will cut my notch with no blade but my own.</div></div>
+<div class="dlg-node reply" id="r79"><div class="dlg-head"><span class="dlg-id">reply #79</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r80"><div class="dlg-head"><span class="dlg-id">reply #80</span></div><div class="dlg-text">The notch will be cut, keeper.</div></div>
+<div class="dlg-node reply" id="r81"><div class="dlg-head"><span class="dlg-id">reply #81</span></div><div class="dlg-text">Here, keeper — one cut, one blade, the one my hand is sworn to.</div><ul class="dlg-links"><li><a href="#e60">→ entry #60</a> <span class="dlg-link-preview">“*He turns the chip once in his fingers, reading the grain as another man reads a…”</span></li></ul></div>
+<div class="dlg-node reply" id="r82"><div class="dlg-head"><span class="dlg-id">reply #82</span></div><div class="dlg-text">One blade, one life. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r83"><div class="dlg-head"><span class="dlg-id">reply #83</span></div><div class="dlg-text">My sword is already vowed before the White Tree, keeper. How may I be counted among the Champions?</div><ul class="dlg-links"><li><a href="#e62">→ entry #62</a> <span class="dlg-link-preview">“*He turns to a page that smells of oil and candle-smoke* Then hear the vow&#x27;s ren…”</span></li></ul></div>
+<div class="dlg-node reply" id="r84"><div class="dlg-head"><span class="dlg-id">reply #84</span></div><div class="dlg-text">How does one come to stand among the Divine Champions?</div><ul class="dlg-links"><li><a href="#e63">→ entry #63</a> <span class="dlg-link-preview">“*He does not turn the page* One is not appointed to that page -- one is vowed on…”</span></li></ul></div>
+<div class="dlg-node reply" id="r85"><div class="dlg-head"><span class="dlg-id">reply #85</span> <span class="dlg-action">→ <code>q_dvc_start</code></span></div><div class="dlg-text">I will stand the vigil as the shield.</div></div>
+<div class="dlg-node reply" id="r86"><div class="dlg-head"><span class="dlg-id">reply #86</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r87"><div class="dlg-head"><span class="dlg-id">reply #87</span></div><div class="dlg-text">The vigil will be kept, keeper.</div></div>
+<div class="dlg-node reply" id="r88"><div class="dlg-head"><span class="dlg-id">reply #88</span></div><div class="dlg-text">It is here, keeper -- an oath-light, kindled shield on arm.</div><ul class="dlg-links"><li><a href="#e66">→ entry #66</a> <span class="dlg-link-preview">“*He takes the light in both hands, and for a moment the grey of his cloak rememb…”</span></li></ul></div>
+<div class="dlg-node reply" id="r89"><div class="dlg-head"><span class="dlg-id">reply #89</span></div><div class="dlg-text">The shield of others. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r90"><div class="dlg-head"><span class="dlg-id">reply #90</span></div><div class="dlg-text">I am of Durin&#x27;s folk, keeper, and the Defender&#x27;s stand is already mine. How may I be counted among them?</div><ul class="dlg-links"><li><a href="#e68">→ entry #68</a> <span class="dlg-link-preview">“*He unrolls the page until the candlelight finds a name cut twice — once in ink,…”</span></li></ul></div>
+<div class="dlg-node reply" id="r91"><div class="dlg-head"><span class="dlg-id">reply #91</span></div><div class="dlg-text">How does one come to be written on the Defenders&#x27; page?</div><ul class="dlg-links"><li><a href="#e69">→ entry #69</a> <span class="dlg-link-preview">“*He lays a flat hand on the page, the way a door is barred* Only Durin&#x27;s folk ar…”</span></li></ul></div>
+<div class="dlg-node reply" id="r92"><div class="dlg-head"><span class="dlg-id">reply #92</span> <span class="dlg-action">→ <code>q_dwd_start</code></span></div><div class="dlg-text">I will stand at Balin&#x27;s tomb in the iron of Khazad. Baruk Khazâd.</div></div>
+<div class="dlg-node reply" id="r93"><div class="dlg-head"><span class="dlg-id">reply #93</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r94"><div class="dlg-head"><span class="dlg-id">reply #94</span></div><div class="dlg-text">The stand will be kept, keeper.</div></div>
+<div class="dlg-node reply" id="r95"><div class="dlg-head"><span class="dlg-id">reply #95</span></div><div class="dlg-text">It is here, keeper — a shard of Balin&#x27;s stone, given to iron-clad hands.</div><ul class="dlg-links"><li><a href="#e72">→ entry #72</a> <span class="dlg-link-preview">“*He takes the shard and sets it on the roll, where it sits like a mountain on a…”</span></li></ul></div>
+<div class="dlg-node reply" id="r96"><div class="dlg-head"><span class="dlg-id">reply #96</span></div><div class="dlg-text">Baruk Khazâd. The stone does not yield. Farewell, keeper.</div></div>
+<div class="dlg-node reply" id="r97"><div class="dlg-head"><span class="dlg-id">reply #97</span></div><div class="dlg-text">The wild shape is already mine, keeper. How may I be counted among the Shifters?</div><ul class="dlg-links"><li><a href="#e74">→ entry #74</a> <span class="dlg-link-preview">“*He turns the roll to a page written in a hand that is half a paw-print* Then he…”</span></li></ul></div>
+<div class="dlg-node reply" id="r98"><div class="dlg-head"><span class="dlg-id">reply #98</span></div><div class="dlg-text">How does one come to be written on the skin-changers&#x27; page?</div><ul class="dlg-links"><li><a href="#e75">→ entry #75</a> <span class="dlg-link-preview">“*He does not turn to that page* No one is written there who has not already worn…”</span></li></ul></div>
+<div class="dlg-node reply" id="r99"><div class="dlg-head"><span class="dlg-id">reply #99</span> <span class="dlg-action">→ <code>q_shf_start</code></span></div><div class="dlg-text">I will look into the pool wearing another skin.</div></div>
+<div class="dlg-node reply" id="r100"><div class="dlg-head"><span class="dlg-id">reply #100</span></div><div class="dlg-text">Not yet, keeper.</div></div>
+<div class="dlg-node reply" id="r101"><div class="dlg-head"><span class="dlg-id">reply #101</span></div><div class="dlg-text">The pool will be looked into, keeper.</div></div>
+<div class="dlg-node reply" id="r102"><div class="dlg-head"><span class="dlg-id">reply #102</span></div><div class="dlg-text">It is here, keeper — a tuft of the first skin, given to a borrowed eye.</div><ul class="dlg-links"><li><a href="#e78">→ entry #78</a> <span class="dlg-link-preview">“*He takes the tuft, and it stirs in his palm as though it remembered being worn*…”</span></li></ul></div>
+<div class="dlg-node reply" id="r103"><div class="dlg-head"><span class="dlg-id">reply #103</span></div><div class="dlg-text">Another shape, my own name. Farewell, keeper.</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

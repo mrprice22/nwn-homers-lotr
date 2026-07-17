@@ -205,6 +205,7 @@
             <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
+            <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
             <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
@@ -220,6 +221,11 @@
             <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer)</a></li>
             <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer)</a></li>
             <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple)</a></li>
+            <li><a href="#assassin">The Quiet Knives (Assassin)</a></li>
+            <li><a href="#weapon-master">The Sworn Blade (Weapon Master)</a></li>
+            <li><a href="#divine-champion">The Shield of Others (Divine Champion)</a></li>
+            <li><a href="#dwarven-defender">The Unbroken Stone (Dwarven Defender)</a></li>
+            <li><a href="#shifter">The Second Skin (Shifter)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -660,6 +666,60 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
 </div>
 
+<!-- SOWING DISCORD IN BREE -->
+<div class="quest-card" id="sowing-discord">
+  <h3>Sowing Discord in Bree <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>sowing_discord</code></span>
+    <span>Giver: Bill Ferny, <a href="../areas/bree.html">Bree</a> (the market — same Ferny as his ring quest)</span>
+    <span>Level range: 15+ (daily; not offered to Good-aligned characters)</span>
+    <span>Reward: 500&ndash;800 gp "morgul-silver" + 500 XP; first completion also pays the
+      <em>Morgul-Weave Cloak</em> (Bluff +3, Hide +3, Saves vs Fear +3)</span>
+  </div>
+  <p>Ferny has paper that needs delivering: <strong>three forged letters</strong> — poison-pen
+  accusations in fine respectable handwriting, none of it his — to be planted <strong>under three
+  different tables in the Prancing Pony</strong>. The catch is the same one every dirty job in Bree
+  has: <strong>no eye may mark your hand</strong>. Each letter must be slipped into place while you
+  move in <strong>stealth mode</strong>; come at a table openly and the plant simply fails (nothing
+  is lost — step into shadow and try again). Naturally, Good-aligned characters never hear the
+  offer at all.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Bill Ferny</strong> in Bree at total level 15+
+  with a non-Good alignment. He whispers the job when he has nothing else pending with you.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Take the three Forged Letters (plot items — they can't be dropped or sold).</li>
+    <li>In the <a href="../areas/theprancingpo001.html">Prancing Pony</a>, enter stealth mode and
+      use a table to tuck a letter under it. Three <strong>different</strong> tables — a table
+      already holding your letter refuses a second.</li>
+    <li>The moment the third letter lands, the letters start working. About twenty seconds later
+      the <strong>Sheriff of Bree</strong> (CR 16) storms in with a Guardian of Bree at his heel,
+      right at the last table you touched — and they come for <em>you</em>, and only you. Fight or
+      run; the quest doesn't care which, and the rest of the taproom stays out of it.</li>
+    <li>Return to Ferny for 500&ndash;800 gp and 500 XP. The first completion ever also pays the
+      Morgul-Weave Cloak; repeats are gold and XP only.</li>
+  </ol>
+
+  <p>The job resets on a <strong>rolling 24-hour cooldown</strong> from each payout — Ferny quotes
+  the exact time remaining if you come back early. Progress is carried entirely by the letters and
+  the campaign database, so relogging (or a server reboot) mid-job loses nothing.</p>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>sowing-discord-bree</code>) — scripted and
+  built, pending in-game UAT. Fifth consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), rolling daily via
+  <code>QCD_IsOnCooldown(QCD_DAY)</code>; "ready to turn in" is a second stamp key
+  (<code>sowing_discord_plant</code>). Giver branches ride the existing
+  <code>ferny_convo2.dlg</code>; plant targets are three existing Pony table instances retagged
+  <code>SowDrop1..3</code> (made usable, OnUsed <code>q_sow_plant</code>) — no new placements, no
+  waypoints. The stealth test is the deterministic <code>GetActionMode</code> check shared with the
+  Quiet Knives dead drop. The sheriff (<code>q_sow_sherf</code>, a fighter-16 clone of the Guardian
+  of Bree) spawns at the last table via <code>DelayCommand</code> and attacks only the planter
+  (temporary enemy — no faction brawl). <strong>No reputation changes yet</strong>: faction-rep
+  integration deliberately waits on the faction-scaffolding roadmap item. Logic lives in
+  <code>q_sow_inc.nss</code>; cooldown token 6390.</div>
+</div>
+
 <!-- BEORN'S GARDEN -->
 <div class="quest-card" id="beorns-garden">
   <h3>Beorn's Garden <span class="status-badge status-ok">Working</span></h3>
@@ -1009,12 +1069,17 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first six — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first eleven — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
       <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
-      <a href="#arcane-archer">The Warden's Mark</a>, and the Red Dragon Disciples'
-      <a href="#red-dragon">The Old Wyrm's Fire</a> — are live; six orders remain.</li>
+      <a href="#arcane-archer">The Warden's Mark</a>, the Red Dragon Disciples'
+      <a href="#red-dragon">The Old Wyrm's Fire</a>, the Assassins'
+      <a href="#assassin">The Quiet Knives</a>, the Weapon Masters'
+      <a href="#weapon-master">The Sworn Blade</a>, the Divine Champions'
+      <a href="#divine-champion">The Shield of Others</a>, the Dwarven Defenders'
+      <a href="#dwarven-defender">The Unbroken Stone</a>, and the Shifters'
+      <a href="#shifter">The Second Skin</a> — are live; one order remains.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1305,6 +1370,269 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   script and deliberately doesn't count. The turn-in is a <code>GetItemPossessedBy</code> reagent
   check; the finish only fires from stage 2 with the ember in hand, so the reward can't be
   re-earned.</div>
+</div>
+
+<!-- ASSASSIN — THE QUIET KNIVES -->
+<div class="quest-card" id="assassin">
+  <h3>The Quiet Knives (Assassin initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_assassin</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Assassins branch)</span>
+    <span>Requires: 1+ Assassin level (the hub line itself shows at character level 13+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Gloves of the Quiet Hand</em> (<code>q_asn_gloves</code> — Pick Pocket +3, Open Lock +3, Saving Throws vs. Poison +3)</span>
+  </div>
+  <p>The seventh of the twelve prestige-order trials, and the only one that is not won in the
+  open. Ask Halmir of the <strong>Assassins</strong>: if the knives already know your hand (1+
+  Assassin level), he names the trial — and it is not a killing. A <strong>sealed writ</strong>
+  waits at one of the order's dead drops: the old wine barrel standing against the houses of
+  <a href="../areas/bree.html">Bree</a>. Lift it as the quiet knives would — <strong>open the
+  barrel while in stealth mode; opening it out of stealth fails the attempt</strong> with a
+  flavor message ("a dead drop yields nothing to a hand any eye could mark"); slip into shadow
+  and reach again. No skill roll is made — the toggled mode is the whole test, deterministic, no
+  dice. The writ (plot + cursed — it can't be dropped, sold, or handed off, and it must come back
+  <em>sealed</em>) goes to Halmir for the induction, where the name inside turns out to be the
+  PC's own. One-off per character; if the writ is somehow lost, lifting at the drop again
+  re-gives it (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Assassins, accept the trial — <code>q_asn_start</code> sets
+      stage 1 / journal 1 (non-Assassins instead get a "one is not counted — one is uncounted"
+      pointer line).</li>
+    <li>Open the old wine barrel in Bree while in stealth mode — <code>q_asn_drop</code> (the
+      barrel's OnOpen) checks <code>GetActionMode(ACTION_MODE_STEALTH)</code>; unseen, it gives
+      <em>The Sealed Writ</em> and sets stage 2 / journal 2 (otherwise it fails the attempt with
+      a retry message).</li>
+    <li>Return to Halmir with the writ — <code>q_asn_finish</code> consumes it, awards the XP and
+      the gloves, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>assassin-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>assn</code>, stages 0–3; see <code>q_asn_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing wine
+  barrel placeable in <code>bree</code> (instance of <code>barrel001</code>), retagged
+  <code>AsnDeadDrop</code> (it was already usable and Plot — unbashable — with no previous
+  OnOpen/OnUsed, so nothing is chained; no script referenced its old shared
+  <code>WineBarrel</code> tag). The unseen check is the stealth-mode <em>toggle</em>
+  (<code>QASN_IsUnseen</code>), not a Hide roll — even a first-level Assassin who remembers to
+  walk in shadow passes. The reward's skill picks (Pick Pocket / Open Lock / saves vs. poison)
+  deliberately avoid the Shadowdancer boots' Hide / Move Silently / Tumble. The turn-in is a
+  <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the writ
+  in hand, so the reward can't be re-earned.</div>
+</div>
+
+<hr>
+
+<div class="quest-card" id="weapon-master">
+  <h3>The Sworn Blade (Weapon Master initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_weaponmaster</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Weapon Masters branch)</span>
+    <span>Requires: 1+ Weapon Master level (the hub line itself shows at character level 13+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Buckle of the Sworn Blade</em> (<code>q_wpm_belt</code> — Discipline +3, Parry +3, Saving Throws vs. Fear +3)</span>
+  </div>
+  <p>The eighth of the twelve prestige-order trials. Ask Halmir of the <strong>Weapon
+  Masters</strong>: if your hand is already sworn to its weapon (1+ Weapon Master level), he names
+  the proving. Below the white walls of <a href="../areas/minastirith.html">Minas Tirith</a> the
+  Guard keeps its training row — scarred practice posts that have taken the cuts of every
+  swordmaster Gondor ever raised. <strong>Strike the first post with the weapon your soul is
+  sworn to</strong> — a main-hand weapon whose <em>Weapon of Choice</em> feat you actually have.
+  Bare hands or a borrowed blade fail the attempt with a flavor message ("this is not the weapon
+  your soul is sworn to"); draw the chosen blade and strike again. No dice — the feat is the whole
+  test, deterministic and retryable. The cut frees the <em>Notch of the Proven Blade</em> (plot +
+  cursed — it can't be dropped, sold, or handed off), which goes back to Halmir for the induction.
+  One-off per character; if the notch is somehow lost, striking the post again re-gives it (never
+  duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Weapon Masters, accept the trial — <code>q_wpm_start</code>
+      sets stage 1 / journal 1 (non–Weapon Masters instead get a "one weapon, chosen and kept"
+      pointer line).</li>
+    <li>Use the first practice post in Minas Tirith with your Weapon of Choice equipped in the
+      main hand — <code>q_wpm_dummy</code> (the post's OnUsed) reads the weapon's
+      <code>WeaponOfChoiceFeat</code> from <code>baseitems.2da</code> and checks
+      <code>GetHasFeat</code>; sworn, it gives the <em>Notch of the Proven Blade</em> and sets
+      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the notch — <code>q_wpm_finish</code> consumes it, awards the XP and
+      the buckle, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>weapon-master-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>wm</code>, stages 0–3; see <code>q_wpm_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the first of the
+  three existing Combat Dummy placeables in <code>minastirith</code> (instance of
+  <code>plc_cmbtdummy</code>), retagged <code>WMTrialPost</code> and flipped usable + plot
+  (it was Static/non-usable with no scripts, so nothing is chained; no script referenced the old
+  shared <code>Combat Dummy</code> tag, and the other two dummies keep it). The sworn-blade check
+  covers every melee base item with a Weapon of Choice feat, stock and CEP alike, via the
+  <code>baseitems.2da</code> lookup — ranged weapons and non-weapons read as blank and fail. The
+  reward's picks (Discipline / Parry / saves vs. fear) fit the order and avoid all sibling
+  rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only
+  fires from stage 2 with the notch in hand, so the reward can't be re-earned.</div>
+</div>
+
+<hr>
+
+<div class="quest-card" id="divine-champion">
+  <h3>The Shield of Others (Divine Champion initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_divinechampion</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Divine Champions branch)</span>
+    <span>Requires: 1+ Divine Champion level (the hub line itself shows at character level 14+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Mantle of the Westward Vow</em> (<code>q_dvc_mantle</code> — Heal +3, Persuade +3, Saving Throws vs. Divine +3)</span>
+  </div>
+  <p>The ninth of the twelve prestige-order trials. Ask Halmir of the <strong>Divine
+  Champions</strong>: if your sword is already vowed before the White Tree (1+ Divine Champion
+  level), he names the vigil. In the <a href="../areas/minastirithtemp.html">temple of Minas
+  Tirith</a> stands the <em>Altar of the Istari</em>, its stone polished by the hands of the
+  faithful. <strong>Use the altar with a shield borne on your off-hand arm</strong> — small,
+  large, or tower — because the champion's vow is not to strike harder but to stand between.
+  A bare arm, or anything but a shield in the off-hand (a second blade, a torch), fails the
+  attempt with a flavor message ("a thing that takes, not a thing that stands between"); take up
+  a shield and keep the vigil again. No dice — the shield is the whole test, deterministic and
+  retryable. The kept vigil kindles the <em>Oath-Light of the West</em> (plot + cursed — it
+  can't be dropped, sold, or handed off), which goes back to Halmir for the induction. One-off
+  per character; if the light is somehow lost, keeping the vigil again re-gives it (never
+  duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Divine Champions, accept the vigil — <code>q_dvc_start</code>
+      sets stage 1 / journal 1 (non-Champions instead get a "vowed onto the page, sword raised
+      before the White Tree" pointer line).</li>
+    <li>Use the Altar of the Istari in the Minas Tirith temple with a shield equipped in the
+      off-hand — <code>q_dvc_altar</code> (the altar's OnUsed) checks
+      <code>GetItemInSlot(INVENTORY_SLOT_LEFTHAND)</code> against the three shield base items;
+      shield borne, it gives the <em>Oath-Light of the West</em> and sets stage 2 / journal 2
+      (otherwise it fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the oath-light — <code>q_dvc_finish</code> consumes it, awards the
+      XP and the mantle, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>divine-champion-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>divch</code>, stages 0–3; see <code>q_dvc_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing Altar
+  of the Istari placeable in <code>minastirithtemp</code> (instance of <code>plc_altrgood</code>),
+  retagged <code>DvcVigilAltar</code> with <code>q_dvc_altar</code> on its OnUsed (it was already
+  usable + plot with no scripts, so nothing is chained; no script referenced the old tag
+  <code>AltarShrineGood</code>). The shield check covers small/large/tower shields
+  (<code>BASE_ITEM_SMALLSHIELD</code>/<code>LARGESHIELD</code>/<code>TOWERSHIELD</code> = 14/56/57,
+  verified in <code>ovr/nwscript.nss</code>). The reward's picks (Heal / Persuade / saves vs.
+  divine — <code>IP_CONST_SAVEVS_DIVINE</code> = 6; no vs-evil save constant exists) fit the
+  order and avoid all sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code>
+  reagent check; the finish only fires from stage 2 with the light in hand, so the reward can't
+  be re-earned.</div>
+</div>
+
+<!-- DWARVEN DEFENDER — THE UNBROKEN STONE -->
+<div class="quest-card" id="dwarven-defender">
+  <h3>The Unbroken Stone (Dwarven Defender initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_dwarvendefender</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Dwarven Defenders branch)</span>
+    <span>Requires: 1+ Dwarven Defender level and dwarf race (the hub line itself shows only to dwarves of character level 14+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Warhelm of Durin's Watch</em> (<code>q_dwd_helm</code> — Craft Armor +3, Taunt +3, Saving Throws vs. Sonic +3)</span>
+  </div>
+  <p>The tenth of the twelve prestige-order trials, and the only one closed to all but Durin's
+  folk. Ask Halmir of the <strong>Dwarven Defenders</strong>: if you have already taken the
+  Defender's stand (1+ Dwarven Defender level — and you are a dwarf, which the class requires
+  anyway), he names the trial. In <a href="../areas/balinstomb.html">Balin's Tomb</a> in Moria
+  lies Balin son of Fundin under a stone that was not broken. <strong>Use the headstone while
+  wearing heavy armor</strong> — base AC 6 or better: splint, banded, half-plate, or full plate —
+  because Balin's guard stood there in the war-weight of Khazad, and stone knows stone. Come in
+  leathers, robes, or light mail and the stone will not know you ("come clad as they came, and
+  stand again"); no dice — the weight of your armor is the whole test, deterministic and
+  retryable, and enhancement bonuses on light armor can't fake it (the check reads the armor's
+  <em>base</em> AC). The kept stand earns the <em>Shard of the Unbroken Stone</em> (plot +
+  cursed — it can't be dropped, sold, or handed off), which goes back to Halmir for the
+  induction. One-off per character; if the shard is somehow lost, standing again re-gives it
+  (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Dwarven Defenders, accept the stand — <code>q_dwd_start</code>
+      sets stage 1 / journal 1 (non-Defenders instead get an "only Durin's folk, and only those
+      who have taken the Defender's stand" pointer line).</li>
+    <li>Use Balin's headstone in Balin's Tomb wearing heavy armor — <code>q_dwd_stone</code> (the
+      headstone's OnUsed) reads the chest armor's base AC from <code>parts_chest.2da</code> (the
+      module's <code>zep_cr_canca</code> idiom) and requires 6+; kept rightly, it gives the
+      <em>Shard of the Unbroken Stone</em> and sets stage 2 / journal 2 (otherwise it fails the
+      attempt with a retry message).</li>
+    <li>Return to Halmir with the shard — <code>q_dwd_finish</code> consumes it, awards the XP
+      and the warhelm, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>dwarven-defender-quest</code>) — scripted
+  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>dwdef</code>, stages 0–3; see <code>q_dwd_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing Balin
+  headstone placeable in <code>balinstomb</code> (instance 86 of <code>plc_headstone</code>),
+  retagged <code>DwdBalinStone</code> with <code>q_dwd_stone</code> on its OnUsed (it was already
+  usable + plot with no scripts, so nothing is chained; no script referenced the generic old tag
+  <code>Headstone</code>, and the Shadowdancers' hook in the same area — the DeepWell, instance
+  52 — is untouched). The race gate is checked defensively in <code>q_dwd_c_off</code> alongside
+  the class (<code>CLASS_TYPE_DWARVEN_DEFENDER</code> = 36, <code>RACIAL_TYPE_DWARF</code> = 0,
+  both verified in <code>ovr/nwscript.nss</code>), though the class is dwarf-only in NWN. The
+  reward's picks (Craft Armor / Taunt / saves vs. sonic — <code>IP_CONST_SAVEVS_SONIC</code> =
+  15, for the drums in the deep; no vs-traps save constant exists) fit the order and avoid all
+  sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
+  finish only fires from stage 2 with the shard in hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- SHIFTER — THE SECOND SKIN -->
+<div class="quest-card" id="shifter">
+  <h3>The Second Skin (Shifter initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_shifter</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shifters branch)</span>
+    <span>Requires: 1+ Shifter level (the hub line itself shows at character level 16+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Charm of the Carrock</em> (<code>q_shf_charm</code> — Animal Empathy +3, Search +3, Saving Throws vs. Mind-Affecting +3; an amulet on purpose — neck-slot properties ride through most polymorph shapes, so it stays live in the forms a Shifter fights in)</span>
+  </div>
+  <p>The eleventh of the twelve prestige-order trials. Ask Halmir of the
+  <strong>Shifters</strong>: if you have already worn another shape (1+ Shifter level), he names
+  the trial. At <a href="../areas/beorn.html">Beorn's steading</a> in the shadow of the Carrock
+  lies a still pool where the master of the house drinks on four legs as often as two.
+  <strong>Use the pool while wild-shaped or polymorphed</strong> — any shape but your own: the
+  check is for an active polymorph effect on your character, and shifter shapes, druid wild
+  shape, and polymorph spells all qualify. Look in wearing the face you were born with and the
+  pool shows you nothing but yourself ("come wearing another skin, and look again"); no dice —
+  the borrowed shape is the whole test, deterministic and retryable. The kept trial earns the
+  <em>Tuft of the First Skin</em> (plot + cursed — it can't be dropped, sold, or handed off),
+  which goes back to Halmir for the induction. One-off per character; if the tuft is somehow
+  lost, looking into the pool again re-gives it (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Shifters, accept the trial — <code>q_shf_start</code> sets
+      stage 1 / journal 1 (non-Shifters instead get a "no one is written there who has not
+      already worn another shape" pointer line).</li>
+    <li>Use the still pool at Beorn's steading while shape-shifted — <code>q_shf_pool</code>
+      (the pool's OnUsed) loops your active effects for <code>EFFECT_TYPE_POLYMORPH</code> (the
+      module's proven detection idiom from the DM wand's un-polymorph routine); kept rightly, it
+      gives the <em>Tuft of the First Skin</em> and sets stage 2 / journal 2 (in true form it
+      fails the attempt with a retry message).</li>
+    <li>Return to Halmir with the tuft — <code>q_shf_finish</code> consumes it, awards the XP
+      and the charm, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>shifter-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>shift</code>, stages 0–3; see <code>q_shf_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing pool
+  placeable at Beorn's homestead (instance 36 of <code>zep_pool003</code> in
+  <code>beorn</code>), retagged <code>ShfBeornPool</code> and made usable/dynamic/plot with
+  <code>q_shf_pool</code> on its OnUsed (it had no scripts, so nothing is chained; no script
+  referenced the generic old tag <code>ZEP_POOL003</code>). The class gate is
+  <code>CLASS_TYPE_SHIFTER</code> = 35 (verified in <code>ovr/nwscript.nss</code>). The
+  reward's picks (Animal Empathy / Search / saves vs. mind-affecting —
+  <code>IP_CONST_SAVEVS_MINDAFFECTING</code> = 11, "keep your own name inside another skin"; no
+  vs-polymorph save constant exists) fit the order and avoid all sibling rewards' skills. The
+  turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2
+  with the tuft in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>

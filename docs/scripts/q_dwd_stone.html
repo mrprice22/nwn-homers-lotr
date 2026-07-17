@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_dwd_stone</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_dwd_stone</code></h1><pre class="nss-source"><code>// q_dwd_stone -- the Dwarven Defenders&#x27; standing-stone (roadmap:
+// dwarven-defender-quest). OnUsed of the headstone of Balin, son of
+// Fundin, in Balin&#x27;s Tomb (balinstomb.git.json, existing placed instance
+// 86 reused -- retagged DwdBalinStone; it was already usable + plot with
+// no scripts, so there is nothing to chain, and no script referenced the
+// generic old tag &quot;Headstone&quot;. The shadowdancer quest&#x27;s hook in the same
+// area is the DeepWell, instance 52 -- untouched). Runs the war-weight
+// stand for a PC on the trial:
+//
+//   * The war-weight fail condition: come to the tomb in leathers,
+//     robes, light mail or a bare chest (QDWD_IsStoneClad -- the chest
+//     armor&#x27;s BASE AC from parts_chest.2da must be 6+, i.e. splint /
+//     banded / half-plate / full plate; enhancement bonuses cannot fake
+//     it), and the attempt fails with a flavor message; nothing is
+//     granted. Retry allowed -- put on heavy iron and stand again.
+//     Deterministic: the weight is the test, no dice.
+//   * Heavy iron at stage 1: gives the shard, stage 1 -&gt; 2 + journal 2.
+//     At stage 2 with the shard lost, re-gives it (never duplicates --
+//     GetItemPossessedBy guard; the item is plot + cursed and only the
+//     finish consumes it).
+//
+// Does nothing for PCs not on the trial -- to everyone else it is just
+// Balin&#x27;s carefully chiseled headstone.
+#include &quot;q_dwd_inc&quot;
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    int nStage = QDWD_GetStage(oPC);
+    if (nStage &lt; QDWD_STAGE_ACCEPTED || nStage &gt; QDWD_STAGE_SHARD) return;
+    if (QDWD_HasShard(oPC)) return;
+
+    // The fail condition: no war-weight on the shoulders. The stone does
+    // not know a defender in traveler&#x27;s leathers.
+    if (!QDWD_IsStoneClad(oPC))
+    {
+        FloatingTextStringOnCreature(
+            &quot;You set your hand on Balin&#x27;s stone, and the stone does not &quot;
+            + &quot;know you. His guard stood here in the war-weight of Khazad &quot;
+            + &quot;-- splint and plate, iron enough to be a wall. Come clad as &quot;
+            + &quot;they came, and stand again.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    CreateItemOnObject(QDWD_SHARD_RES, oPC, 1);
+
+    if (nStage == QDWD_STAGE_ACCEPTED)
+    {
+        QDWD_SetStage(oPC, QDWD_STAGE_SHARD);
+        AddJournalQuestEntry(QDWD_QUEST, 2, oPC, FALSE, FALSE);
+    }
+
+    FloatingTextStringOnCreature(
+        &quot;The stand is kept: iron on your shoulders, your feet planted &quot;
+        + &quot;where his guard planted theirs. Under your palm the unbroken &quot;
+        + &quot;stone parts with a single shard, clean-edged and heavier than &quot;
+        + &quot;it should be, and the tomb is quiet again. Carry it to Halmir.&quot;,
+        oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

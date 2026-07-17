@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_wpm_dummy</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_wpm_dummy</code></h1><pre class="nss-source"><code>// q_wpm_dummy -- the Weapon Masters&#x27; proving post (roadmap:
+// weapon-master-quest). OnUsed of the first practice post in the Guard&#x27;s
+// training row below the walls of Minas Tirith (minastirith.git.json,
+// existing placed instance 6 of plc_cmbtdummy reused -- retagged
+// WMTrialPost and made usable; it was Static with no scripts, so there is
+// nothing to chain, and no code referenced the old shared &quot;Combat Dummy&quot;
+// tag). Runs the sworn-blade trial for a PC on the rite:
+//
+//   * The one-blade-one-life fail condition: strike bare-handed, or with
+//     any weapon whose Weapon of Choice feat the PC does not have
+//     (QWPM_IsSwornBlade -- baseitems.2da WeaponOfChoiceFeat via
+//     Get2DAString + GetHasFeat), and the attempt fails with a flavor
+//     message; nothing is granted. Retry allowed -- draw the sworn weapon
+//     and strike again. Deterministic: the feat is the test, no dice.
+//   * Sworn blade in hand at stage 1: gives the notch, stage 1 -&gt; 2 +
+//     journal 2. At stage 2 with the notch lost, re-gives it (never
+//     duplicates -- GetItemPossessedBy guard; the item is plot + cursed
+//     and only the finish consumes it).
+//
+// Does nothing for PCs not on the rite -- to everyone else it is just a
+// scarred practice post.
+#include &quot;q_wpm_inc&quot;
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    int nStage = QWPM_GetStage(oPC);
+    if (nStage &lt; QWPM_STAGE_ACCEPTED || nStage &gt; QWPM_STAGE_NOTCH) return;
+    if (QWPM_HasNotch(oPC)) return;
+
+    object oWeapon = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oPC);
+
+    // The fail conditions: bare hands, or a blade the hand is not sworn
+    // to. The post has out-stood prouder men.
+    if (!GetIsObjectValid(oWeapon))
+    {
+        FloatingTextStringOnCreature(
+            &quot;You square up to the post bare-handed. The scarred wood has &quot;
+            + &quot;out-stood a thousand borrowed blades and it will out-stand &quot;
+            + &quot;your fists: the trial asks for the one weapon your soul is &quot;
+            + &quot;sworn to. Draw it and strike again.&quot;,
+            oPC, FALSE);
+        return;
+    }
+    if (!QWPM_IsSwornBlade(oPC))
+    {
+        FloatingTextStringOnCreature(
+            &quot;The blow lands, and the post barely marks. This is not the &quot;
+            + &quot;weapon your soul is sworn to -- the trial asks for your &quot;
+            + &quot;chosen blade, the one the Weapon Masters would know your &quot;
+            + &quot;hand by. Draw it and strike again.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    CreateItemOnObject(QWPM_NOTCH_RES, oPC, 1);
+
+    if (nStage == QWPM_STAGE_ACCEPTED)
+    {
+        QWPM_SetStage(oPC, QWPM_STAGE_NOTCH);
+        AddJournalQuestEntry(QWPM_QUEST, 2, oPC, FALSE, FALSE);
+    }
+
+    FloatingTextStringOnCreature(
+        &quot;One stroke, and the seasoned oak opens along the grain -- your &quot;
+        + &quot;sworn blade cuts where a century of masters cut before, and a &quot;
+        + &quot;notch of scarred wood comes away in your hand. Carry it to &quot;
+        + &quot;Halmir.&quot;,
+        oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

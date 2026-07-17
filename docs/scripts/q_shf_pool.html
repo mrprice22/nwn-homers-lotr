@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_shf_pool</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_shf_pool</code></h1><pre class="nss-source"><code>// q_shf_pool -- the Shifters&#x27; still pool (roadmap: shifter-quest).
+// OnUsed of the pool at Beorn&#x27;s steading (beorn.git.json, existing
+// placed instance 36 reused -- the zep_pool003 pool, retagged
+// ShfBeornPool and made usable/dynamic/plot; it had no scripts, so
+// there is nothing to chain, and no script referenced the generic old
+// tag &quot;ZEP_POOL003&quot;). Runs the second-skin trial for a PC on it:
+//
+//   * The form-lock fail condition: look into the pool in your true
+//     form (QSHF_IsShifted FALSE -- no EFFECT_TYPE_POLYMORPH on the PC;
+//     the module&#x27;s proven detection idiom from dmfi_dmw_inc.nss), and
+//     the attempt fails with a flavor message; nothing is granted.
+//     Retry allowed -- take a wild shape and look again.
+//     Deterministic: the borrowed shape is the test, no dice.
+//   * Another skin at stage 1: gives the tuft, stage 1 -&gt; 2 + journal 2.
+//     At stage 2 with the tuft lost, re-gives it (never duplicates --
+//     GetItemPossessedBy guard; the item is plot + cursed and only the
+//     finish consumes it).
+//
+// Does nothing for PCs not on the trial -- to everyone else it is just
+// the pool Beorn&#x27;s cattle drink from.
+#include &quot;q_shf_inc&quot;
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    int nStage = QSHF_GetStage(oPC);
+    if (nStage &lt; QSHF_STAGE_ACCEPTED || nStage &gt; QSHF_STAGE_TUFT) return;
+    if (QSHF_HasTuft(oPC)) return;
+
+    // The fail condition: the face you were born with. The pool shows
+    // a true form nothing but itself.
+    if (!QSHF_IsShifted(oPC))
+    {
+        FloatingTextStringOnCreature(
+            &quot;You lean over the still water, and the pool shows you only &quot;
+            + &quot;the face you were born with -- and gives up nothing to it. &quot;
+            + &quot;The skin-changers&#x27; trial is taken in another shape. Come &quot;
+            + &quot;wearing another skin, and look again.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    CreateItemOnObject(QSHF_TUFT_RES, oPC, 1);
+
+    if (nStage == QSHF_STAGE_ACCEPTED)
+    {
+        QSHF_SetStage(oPC, QSHF_STAGE_TUFT);
+        AddJournalQuestEntry(QSHF_QUEST, 2, oPC, FALSE, FALSE);
+    }
+
+    FloatingTextStringOnCreature(
+        &quot;The trial is kept: a borrowed face looks back from the water, &quot;
+        + &quot;and beside it -- for a moment -- another watcher, old and vast &quot;
+        + &quot;and patient. From the reeds at the pool&#x27;s rim the water lets &quot;
+        + &quot;go a tuft of coarse dark hair, warm as though it remembered &quot;
+        + &quot;being worn. Carry it to Halmir.&quot;,
+        oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

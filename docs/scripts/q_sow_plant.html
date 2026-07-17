@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_sow_plant</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_sow_plant</code></h1><pre class="nss-source"><code>// q_sow_plant -- OnUsed of the three Prancing Pony tables retagged
+// SowDrop1..3 (existing placed instances in theprancingpo001.git.json,
+// made usable for this quest). Plants one forged letter under OBJECT_SELF
+// for a PC on the Sowing Discord job:
+//
+//   * Not carrying a letter: silent no-op -- to everyone else this is
+//     just a table.
+//   * Not in stealth mode (QSOW_IsUnseen -- the toggled mode, the same
+//     deterministic test as the Quiet Knives dead drop): fail with a
+//     retry message, nothing consumed. Step into shadow and try again.
+//   * This table already holds this PC&#x27;s letter (per-PC local int keyed
+//     by UUID on the placeable): refused -- find a DIFFERENT table.
+//   * Otherwise: one letter slides under the tabletop. On the third, the
+//     plant stamp is written, the journal advances, and the Sheriff of
+//     Bree is QSOW_SHERIFF_DELAY seconds away.
+//
+// (roadmap: sowing-discord-bree)
+#include &quot;q_sow_inc&quot;
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    object oLetter = GetItemPossessedBy(oPC, QSOW_LETTER_TAG);
+    if (!GetIsObjectValid(oLetter)) return;   // not on the job: just a table
+
+    if (!QSOW_IsUnseen(oPC))
+    {
+        FloatingTextStringOnCreature(
+            &quot;Half the taproom could mark your hand sliding under that &quot;
+            + &quot;tabletop. Ferny was clear: unseen, or not at all. Slip into &quot;
+            + &quot;shadow, move quietly, and try the table again.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    string sMark = &quot;Q_SOW_&quot; + GetObjectUUID(oPC);
+    if (GetLocalInt(OBJECT_SELF, sMark))
+    {
+        FloatingTextStringOnCreature(
+            &quot;Your letter is already wedged under this table. A second one &quot;
+            + &quot;here helps nobody -- pick a different table.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    SetPlotFlag(oLetter, FALSE);   // plot items resist DestroyObject
+    DestroyObject(oLetter);
+    SetLocalInt(OBJECT_SELF, sMark, 1);
+
+    int nLeft = QSOW_LettersHeld(oPC) - 1;   // the destroyed one still counts this frame
+    if (nLeft &gt; 0)
+    {
+        FloatingTextStringOnCreature(
+            &quot;Unseen, the forged letter slides beneath the tabletop, one &quot;
+            + &quot;corner left showing -- enough for the wrong pair of eyes. &quot;
+            + IntToString(nLeft) + &quot; letter&quot;
+            + (nLeft == 1 ? &quot;&quot; : &quot;s&quot;) + &quot; to go.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    // Third letter placed -- the forgeries start working.
+    QCD_Stamp(oPC, QSOW_PLANT);
+    AddJournalQuestEntry(QSOW_QUEST, 2, oPC, FALSE, FALSE, TRUE);
+    FloatingTextStringOnCreature(
+        &quot;The last forged letter settles under the tabletop. Somewhere &quot;
+        + &quot;behind you a chair scrapes and a voice goes low and ugly. The &quot;
+        + &quot;seed is sown -- it might be wise not to be standing here when &quot;
+        + &quot;the law arrives.&quot;,
+        oPC, FALSE);
+
+    DelayCommand(QSOW_SHERIFF_DELAY,
+        QSOW_SheriffArrives(GetLocation(OBJECT_SELF), oPC));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

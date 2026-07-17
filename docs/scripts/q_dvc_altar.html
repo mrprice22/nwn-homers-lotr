@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_dvc_altar</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_dvc_altar</code></h1><pre class="nss-source"><code>// q_dvc_altar -- the Divine Champions&#x27; vigil altar (roadmap:
+// divine-champion-quest). OnUsed of the Altar of the Istari in the temple
+// of Minas Tirith (minastirithtemp.git.json, existing placed instance 0
+// reused -- retagged DvcVigilAltar; it was already usable + plot with no
+// scripts, so there is nothing to chain, and no code referenced the old
+// tag &quot;AltarShrineGood&quot;). Runs the stand-between vigil for a PC on the
+// rite:
+//
+//   * The stand-between fail condition: come to the altar with the
+//     off-hand arm bare, or with anything but a shield riding it
+//     (QDVC_IsShieldBorne -- GetItemInSlot(INVENTORY_SLOT_LEFTHAND) must
+//     be a small/large/tower shield), and the attempt fails with a flavor
+//     message; nothing is granted. Retry allowed -- take up a shield and
+//     keep the vigil again. Deterministic: the shield is the test,
+//     no dice.
+//   * Shield borne at stage 1: gives the oath-light, stage 1 -&gt; 2 +
+//     journal 2. At stage 2 with the light lost, re-gives it (never
+//     duplicates -- GetItemPossessedBy guard; the item is plot + cursed
+//     and only the finish consumes it).
+//
+// Does nothing for PCs not on the rite -- to everyone else it is just the
+// temple&#x27;s polished altar.
+#include &quot;q_dvc_inc&quot;
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    int nStage = QDVC_GetStage(oPC);
+    if (nStage &lt; QDVC_STAGE_ACCEPTED || nStage &gt; QDVC_STAGE_LIGHT) return;
+    if (QDVC_HasLight(oPC)) return;
+
+    // The fail conditions: a bare arm, or something that takes where the
+    // shield should ride. The altar keeps its light from both.
+    object oOff = GetItemInSlot(INVENTORY_SLOT_LEFTHAND, oPC);
+    if (!GetIsObjectValid(oOff))
+    {
+        FloatingTextStringOnCreature(
+            &quot;You lay your hand on the polished stone, and the altar keeps &quot;
+            + &quot;its light. The champion&#x27;s vow is not to strike harder -- it &quot;
+            + &quot;is to stand between. Take up a shield and keep the vigil as &quot;
+            + &quot;the order keeps it.&quot;,
+            oPC, FALSE);
+        return;
+    }
+    if (!QDVC_IsShieldBorne(oPC))
+    {
+        FloatingTextStringOnCreature(
+            &quot;The altar&#x27;s gleam goes flat where your shadow falls. &quot;
+            + &quot;Something rides your arm where the shield should -- a thing &quot;
+            + &quot;that takes, not a thing that stands between. Bear a shield &quot;
+            + &quot;and keep the vigil again.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    CreateItemOnObject(QDVC_LIGHT_RES, oPC, 1);
+
+    if (nStage == QDVC_STAGE_ACCEPTED)
+    {
+        QDVC_SetStage(oPC, QDVC_STAGE_LIGHT);
+        AddJournalQuestEntry(QDVC_QUEST, 2, oPC, FALSE, FALSE);
+    }
+
+    FloatingTextStringOnCreature(
+        &quot;The vigil is kept: shield on arm, and nothing in your keeping &quot;
+        + &quot;that takes. Warmth gathers over the polished stone, and a small &quot;
+        + &quot;flame comes away with your palm -- an oath-light, weightless &quot;
+        + &quot;and steady, that does not gutter. Carry it to Halmir.&quot;,
+        oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

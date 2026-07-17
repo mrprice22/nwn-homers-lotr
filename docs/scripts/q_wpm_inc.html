@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_wpm_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_wpm_inc</code></h1><pre class="nss-source"><code>// q_wpm_inc.nss -- Weapon Master initiation &quot;The Sworn Blade&quot;
+// (roadmap: weapon-master-quest)
+//
+// The eighth of the twelve prestige-order quests hung on Halmir the Grey
+// (the prestige hub, prsg_inc.nss). Compact one-off, journal tag
+// &quot;pc_weaponmaster&quot;.
+//
+// Flow: Halmir&#x27;s Weapon Masters branch (prsg_conv) offers the trial to a
+// PC with 1+ Weapon Master level (CLASS_TYPE_WEAPON_MASTER = 33, verified
+// in ovr/nwscript.nss -- the design gate; the hub line itself is visible
+// from total level 13, existing prsg_c_wm). The trial: below the walls of
+// Minas Tirith the Guard keeps its training row -- three scarred practice
+// posts (existing Combat Dummy placeables in minastirith.git.json; the
+// first instance is reused -- retagged WMTrialPost, made usable, its
+// OnUsed now runs q_wpm_dummy; it had no previous scripts and no code
+// referenced the old shared &quot;Combat Dummy&quot; tag). Strike the post with the
+// weapon your soul is sworn to: the main-hand weapon must be one whose
+// Weapon of Choice feat the PC actually has (QWPM_IsSwornBlade --
+// baseitems.2da column &quot;WeaponOfChoiceFeat&quot; via Get2DAString, feat checked
+// with GetHasFeat; every Weapon Master has Weapon of Choice in exactly the
+// weapons they mastered, and ranged/exotic non-WoC rows are **** in the
+// 2da so they read as empty and fail). Bare hands or a borrowed blade fail
+// with a flavor message, nothing granted, retry allowed. Deterministic:
+// no dice. Carry the notch the cut frees from the post back to Halmir;
+// the induction consumes it and awards the Buckle of the Sworn Blade
+// plus XP.
+//
+// Quest state is per-character and persistent via the prestige hub&#x27;s
+// campaign-DB stage idiom (prestigedb, order key &quot;wm&quot; -- see
+// prsg_inc.nss): 0 none / 1 accepted / 2 notch in hand / 3 done.
+// One-off: stage 3 never resets. If the notch is somehow lost at stage 2,
+// striking the post again re-gives it (graceful, not farmable: the item
+// is plot + cursed and only the finish consumes it).
+//
+// No new placements and no admin waypoint: the practice post already
+// stands in Minas Tirith (placed instance 6 of blueprint plc_cmbtdummy in
+// minastirith.git.json).
+
+#include &quot;prsg_inc&quot;
+
+const string QWPM_ORDER     = &quot;wm&quot;;               // prestigedb stage key
+const string QWPM_QUEST     = &quot;pc_weaponmaster&quot;;  // journal category tag
+const string QWPM_NOTCH_RES = &quot;q_wpm_notch&quot;;      // reagent blueprint
+const string QWPM_NOTCH_TAG = &quot;ProvenNotch&quot;;
+const string QWPM_BELT_RES  = &quot;q_wpm_belt&quot;;       // reward blueprint
+const string QWPM_BELT_TAG  = &quot;SwornBladeBuckle&quot;;
+
+const int QWPM_XP = 1000;  // induction XP (L13-tier order)
+
+// Stages (see header).
+const int QWPM_STAGE_NONE     = 0;
+const int QWPM_STAGE_ACCEPTED = 1;
+const int QWPM_STAGE_NOTCH    = 2;
+const int QWPM_STAGE_DONE     = 3;
+
+int QWPM_GetStage(object oPC)
+{
+    return PRSG_GetStage(oPC, QWPM_ORDER);
+}
+
+void QWPM_SetStage(object oPC, int nStage)
+{
+    PRSG_SetStage(oPC, QWPM_ORDER, nStage);
+}
+
+// TRUE if oPC&#x27;s hand is already sworn (1+ Weapon Master level) -- the
+// design gate for the trial.
+int QWPM_IsWeaponMaster(object oPC)
+{
+    return PRSG_HasClass(oPC, CLASS_TYPE_WEAPON_MASTER);
+}
+
+// The turn-in reagent check: does oPC carry the notch?
+int QWPM_HasNotch(object oPC)
+{
+    return GetIsObjectValid(GetItemPossessedBy(oPC, QWPM_NOTCH_TAG));
+}
+
+// The Weapon of Choice feat for oItem&#x27;s base type, or -1 when none exists
+// (empty main hand, ranged weapons, armor, torches... -- every row that is
+// **** in baseitems.2da&#x27;s WeaponOfChoiceFeat column reads back as &quot;&quot; from
+// Get2DAString). Column name verified against the game&#x27;s baseitems.2da.
+int QWPM_SwornWeaponFeat(object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return -1;
+
+    string sFeat = Get2DAString(&quot;baseitems&quot;, &quot;WeaponOfChoiceFeat&quot;,
+                                GetBaseItemType(oItem));
+    if (sFeat == &quot;&quot;) return -1;
+
+    return StringToInt(sFeat);
+}
+
+// The one-blade-one-life condition: TRUE while oPC&#x27;s main hand holds a
+// weapon whose Weapon of Choice feat they actually have -- the weapon
+// their soul is sworn to. Deterministic, no dice: a Weapon Master with
+// their chosen blade drawn always passes; bare hands, a borrowed blade or
+// a bow never do.
+int QWPM_IsSwornBlade(object oPC)
+{
+    int nFeat = QWPM_SwornWeaponFeat(
+        GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oPC));
+    return nFeat &gt;= 0 &amp;&amp; GetHasFeat(nFeat, oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
