@@ -75,15 +75,17 @@ void main()
         && !ForgePropMatchesExisting(oItem, ipNew))
         {
         int iProps = ForgeCountProps(oItem);
-        // Uniform legal backstop (ForgeLegalMaxProps, includes the top
-        // boss-tier +1 slot); the per-forge/per-player cap iMaxProps below is
-        // what actually limits characters who haven't earned the extra slot.
-        if (iProps >= ForgeLegalMaxProps())
+        // Uniform legal backstop (ForgeItemMaxProps = ForgeLegalMaxProps, incl.
+        // the top boss-tier +1 slot, PLUS any Runes of Expansion bound into this
+        // specific item); the per-forge/per-player cap iMaxProps below is what
+        // actually limits characters who haven't earned the extra slots.
+        int iItemMaxProps = ForgeItemMaxProps(oItem);
+        if (iProps >= iItemMaxProps)
             {
             SpeakString("No forge may bind more than "
-                + IntToString(ForgeLegalMaxProps()) + " enchantments into one "
-                + "piece — that is the limit of the law. Have me strike one from "
-                + "it first.");
+                + IntToString(iItemMaxProps) + " enchantments into one "
+                + "piece — that is the limit of the law for this item. Have me "
+                + "strike one from it first.");
             return;
             }
         if (iMaxProps > 0 && iProps >= iMaxProps)

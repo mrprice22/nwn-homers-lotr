@@ -155,6 +155,17 @@ _Appended by autopilot; delete entries as you complete them._
   apply to the sibling anvil/altar retags — worth spot-checking those too). No other action
   needed — this quest adds no waypoint.
 
+- [ ] **item-slot-tokens** (2026-07-17): _loot placement — no waypoint._ The **Rune of
+  Expansion** consumable (blueprint resref `slot_token`, tag `SlotToken`) is fully wired and
+  testable but is **not placed in any loot table yet** — deliberately, because drop-source and
+  rarity are your taste. Decide **which boss(es) drop it and at what rarity**, then add
+  `slot_token` to their loot via the toolset / the module's loot system. To test the mechanic
+  meanwhile: DM-spawn `slot_token`, activate it, target an item in your pack, then work that
+  item at a forge — it should allow one extra enchantment slot per rune bound (up to 3).
+  The hard ceiling is **`FORGE_TOKEN_MAX_SLOTS = 3`** in `unpacked/forge_inc.nss` — retune
+  there if +3 is too generous/stingy (a fully-runed item at a top-tier forge can reach 10
+  enchantments). No CR>60 boss was modified.
+
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
   hyphen-less tags (`AP_riddlegame_1`, `AP_millerotherson_1/2`) while the scripts
