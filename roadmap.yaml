@@ -1734,11 +1734,12 @@ ideas:
   - id: divine-champion-quest
     title: "Prestige quest: Divine Champion (L14+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Compact single quest, gated on 1+ Divine Champion level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 43e2030
+    notes: "<span>T2. Compact single quest, gated on 1+ Divine Champion level; modest +3-tier item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Shield of Others\" — Divine Champion initiation, ninth prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ Divine Champion level; others get a pointer line. Flow: accept from Halmir → keep the vigil at the Altar of the Istari in the Minas Tirith temple (existing placeable reused — retagged, OnUsed added; nothing referenced the old tag) <b>with a shield on your off-hand arm</b> (small/large/tower) — an empty arm or a non-shield off-hand fails with distinct retry messages (deterministic, no dice) → receive the Oath-Light of the West (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Mantle of the Westward Vow (Heal +3, Persuade +3, Saves vs. Divine +3 — no AB/damage, forge-cap-safe, skills distinct from all sibling rewards). State in prestigedb (order key <code>divch</code>, one-off); journal <code>pc_divinechampion</code>. QuestGuide.html updated (hub now nine live orders / three remaining).</div><div><br></div><div><b>UAT:</b> (1) non-DC L14+ PC sees only the pointer line; (2) DC PC accepts, journal 1; (3) at the temple altar: empty off-hand → fail, torch/off-hand weapon → different fail, any shield → Oath-Light + journal 2; (4) light can't be dropped/sold; (5) turn-in consumes it, grants XP + mantle, ends journal; epilogue only afterwards; (6) a non-quest PC using the altar gets nothing unusual.</div>"
 
   - id: dwarven-defender-quest
     title: "Prestige quest: Dwarven Defender (L14+, Dwarf only)"
