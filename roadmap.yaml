@@ -1754,11 +1754,12 @@ ideas:
   - id: shifter-quest
     title: "Prestige quest: Shifter (L16+)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Compact quest with a form-lock fail condition, gated on 1+ Shifter level. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 0f6c6b3
+    notes: "<span>T2. Compact quest with a form-lock fail condition, gated on 1+ Shifter level. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Second Skin\" — Shifter initiation, eleventh prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ Shifter level; others get a pointer line. Flow: accept from Halmir → look into the still pool at Beorn's steading (existing placeable reused — retagged and made usable; nothing referenced the old tag) <b>while shape-shifted</b> — the form-lock check requires an active polymorph effect (any shifter shape, druid wild shape, or polymorph spell counts; deterministic effect-loop, no dice), true form fails with a \"come wearing another skin\" retry message → receive the Tuft of the First Skin (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Charm of the Carrock (deliberately an <b>amulet</b> so it stays active through polymorph item-merge rules: Animal Empathy +3, Search +3, Saves vs. Mind-Affecting +3 — no AB/damage, forge-cap-safe, skills distinct from all sibling rewards). State in prestigedb (order key <code>shift</code>, one-off); journal <code>pc_shifter</code>. QuestGuide.html updated (hub now eleven live orders / one remaining — Blackguard).</div><div><br></div><div><b>UAT:</b> (1) non-Shifter L16+ PC sees only the pointer line; (2) Shifter PC accepts, journal 1; (3) at Beorn's pool: true form → fail message, any wild/shifter shape → tuft + journal 2 (druid wild shape passing is intended); (4) turn-in consumes tuft, grants XP + amulet, ends journal; epilogue only afterwards; (5) visual check — the pool still renders correctly (its Static flag was flipped to make it clickable).</div>"
 
   # ---- Faction quests (all depend on faction scaffolding) ------------------
   - id: palantir-watch
