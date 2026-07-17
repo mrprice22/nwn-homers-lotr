@@ -1866,11 +1866,12 @@ ideas:
   - id: pass-the-pass
     title: "Quest: Pass the Pass (Misty Mountains, daily escort)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2 (L10+). Escort a caravan; difficulty-selectable, reward scales as nDiff*200; Stone-Giant clone at high tier. Areas exist. Depends on cooldown helper.</span>"
+    date: "2026-07-17"
+    commit: a7e41257c07
+    notes: "<span>T2 (L10+). Escort a caravan; difficulty-selectable, reward scales as nDiff*200; Stone-Giant clone at high tier. Areas exist. Depends on cooldown helper.</span><div><br></div><div><b>Fixed 2026-07-17:</b> shipped a bounded difficulty-selectable daily escort in the Misty Mountains, modeled on the canonical daily-quest skeleton (concerning-hobbits / hobbit-post). Baldor the Caravan-Master (giver, spawns in foothillsofthemi) hires the PC to cross the High Pass to Wilrun the Quartermaster (turn-in, spawns in mistymountainsb). The player picks Easy/Normal/Hard at dialogue; reward scales as nDiff*200 gold + nDiff*150 XP (200/400/600 gp, 150/300/450 XP). On accept a difficulty-scaled ambush spawns mid-pass (mistymountainsa) from existing goblin/warg blueprints; the Hard tier adds a Stone-Giant of the High Pass (q_pass_gnt, a plot-safe CR-25 clone of the ordinary mgiant - NOT a boss, registry gate still 78/78). Escort AI deliberately avoided per the too-big risk: no walking companion, no hard fail-state - reaching the far side is the objective, the ambush is the danger. Daily-gated via the shared quest_cd_inc/questcddb library (QCD_IsDoneToday gates the offer, QCD_Stamp on turn-in); naturally rate-limited (one accept/day, no re-accept while an escort is active). Both area OnEnter hooks wrapped (q_pass_enter preserves the original d_cleartrash then runs q_pass_spawn). Journal in module.jrl.json; logic in q_pass_inc.nss. Build passed all gates (6/6 smoke, dialog-integrity 0 failing, 10 scripts compiled, boss-registry 78/78).</div><div><br></div><div><b>Blocked in-game until the admin places waypoints</b> - giver and quartermaster are script-spawn-only; all scripts no-op gracefully until placement. Required: AP_passthepass_1 in foothillsofthemi (Baldor, blocks accept) and AP_passthepass_3 in mistymountainsb (Wilrun, blocks pay) - place these two together. Optional: AP_passthepass_2 in mistymountainsa (mid-pass ambush spawn; quest is completable without it, just no ambush).</div><div><br></div><div><b>UAT (after waypoints placed + deploy/restart):</b> (1) Baldor offers three tiers; (2) accepting opens the journal and (if AP_passthepass_2 placed) spawns the tier-scaled ambush, Hard adds the Stone-Giant; (3) Wilrun pays nDiff*200 gp + nDiff*150 XP and closes the journal; (4) re-talk Baldor same day - countdown line, re-offers next UTC day; (5) sanity-check reward balance for a T2 L10+ daily. DM can reset with QCD_Clear.</div>"
 
   - id: spider-silk-harvest
     title: "Quest: Spider Silk Harvest (Mirkwood, daily)"
