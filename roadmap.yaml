@@ -1819,11 +1819,12 @@ ideas:
   - id: sowing-discord-bree
     title: "Faction quest (Evil): Sowing Discord in Bree (daily)"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2 (L15+). Plant forged letters in Prancing Pony placeables under Stealth/Bluff; the sheriff arrives after N heartbeats. Morgul-silver + cloak reward. All Bree areas exist. Depends on cooldown helper (and faction scaffolding for rep).</span>"
+    date: "2026-07-16"
+    commit: b807a82
+    notes: "<span>T2 (L15+). Plant forged letters in Prancing Pony placeables under Stealth/Bluff; the sheriff arrives after N heartbeats. Morgul-silver + cloak reward. All Bree areas exist. Depends on cooldown helper (and faction scaffolding for rep).</span><div><br></div><div><b>Fixed 2026-07-16:</b> daily evil job given by <b>Bill Ferny</b> in Bree (branch grafted onto his existing conversation — his ring quest and other greetings are untouched). Gate: total level 15+ and not Good-aligned (Good PCs simply never hear the whisper). Flow: accept → 3 Forged Letters (plot+cursed) → plant each under a <b>different</b> table in the Prancing Pony <b>while in stealth mode</b> (deterministic mode check, fail-retry; a table can't take a second letter) → ~18s after the third plant the Sheriff of Bree (CR-16) and a deputy spawn at that table and attack <b>only the planter</b> (temporary-enemy, no taproom faction war) → return to Ferny for 500–800 gp morgul-silver + 500 XP; <b>first completion also awards the Morgul-Weave Cloak</b> (Bluff +3, Hide +3, Saves vs. Fear +3 — no AB/damage, forge-cap-safe). Rolling daily cooldown via the shared quest-cooldown helper (fifth consumer); progress is fully persistent per character UUID (survives relog/reboot, self-heals if letters are lost). Journal <code>sowing_discord</code>. No new placements — three existing inn tables retagged/hooked; sheriff spawns at runtime at an existing table's location. <b>No reputation changes yet</b> — rep integration deliberately deferred until the faction scaffolding item ships. QuestGuide.html updated.</div><div><br></div><div><b>UAT:</b> (1) non-Good L15+ PC gets the offer; Good or L&lt;15 must not; (2) unstealthed plant → fail message, stealthed → plants, same table twice → refused; (3) third plant → journal advances, sheriff+deputy spawn ~18s later and attack only the planter; (4) turn-in pays gold/XP + cloak first time only; re-talk shows the cooldown greeting with time remaining, and the \"other business\" reply still reaches his ring-quest dialogue; (5) relog mid-job (with letters, and after planting before payout) — both resume correctly.</div>"
 
   - id: sarumans-voice
     title: "Faction quest (Evil): Saruman's Voice (social, no combat)"
