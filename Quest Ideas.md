@@ -292,10 +292,6 @@ for fast delivery. Random loot: a `treasure_post` UTI chest opened on completion
 **The Riddle Game** — `breecave.are.json` or `darkcavern.are.json`. Gollum UTC reusable. Track correct
 answers via `SetLocalInt`; ≥ 5/7 = win. Random reward via `treasure_riddle` chest.
 
-**Concerning Hobbits** — `shirehobbiton001`, `shirebilbohouse`, `bagend001`. No instancing: single "Bag End"
-interior, `OnEnter` checks `GetCampaignInt(GetModule(),"bagend_owner_id")` and kicks others. Seasonal
-answer: `GetCalendarMonth() / 3` indexes the branch.
-
 **Bombadil's Errand** — `oldforest001`. Bombadil: author new UTC. "Forest rearranges":
 `SetTransitionTarget`-rewrite on area heartbeat pointing transitions to varying destinations.
 Abilities suppressed: `EffectCutsceneDominated` or strip equipment (same pattern as Monk capstone).

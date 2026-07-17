@@ -112,6 +112,15 @@ _Appended by autopilot; delete entries as you complete them._
   all existing placed guardsmen at `minastirithgates` (no waypoint needed for them); the
   quest offer also requires Halmir's own waypoint `AP_prestigehub_1` (entry above).
 
+- [ ] **concerning-hobbits** (2026-07-17): create waypoint tag `AP_concerninghobbits_1` in
+  `shirehobbiton001` (Hobbiton — somewhere sensible near the village green / the Ivy Bush,
+  clear of the existing hobbit NPCs and Gandalf) — spawn point for `q_hob_odo` (Odo Proudfoot,
+  the genealogist quiz-giver). Spawned by `q_hob_spawn` from the area OnEnter wrapper
+  `q_hob_enter` whenever a PC enters; scripts no-op gracefully until the waypoint exists and
+  never double-spawn. Until placed, the "Concerning Hobbits" daily quiz is invisible in-game.
+  <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
+       q_hob_spawn.nss: AP_concerninghobbits_1 -->
+
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
   hyphen-less tags (`AP_riddlegame_1`, `AP_millerotherson_1/2`) while the scripts
@@ -122,6 +131,17 @@ _Appended by autopilot; delete entries as you complete them._
   hyphen-less going forward.
 
 ## Design questions
+- [ ] **concerning-hobbits** (2026-07-17): the original idea called for the reward to be
+  **Bag End housing access** via an owner-check workaround (single shared Bag End interior,
+  `OnEnter` kicks non-owners) rather than instancing. That is design-sensitive and was NOT
+  wired — it needs your calls: which door/interior gates the reward (`bagend001` vs
+  `shirebilbohouse` back room / FancyDoor), whether winning grants a persistent housing
+  entry (and in which table — the player-houses `housing:` system, or a bespoke campaign
+  flag), and the owner-check/eviction semantics for a shared interior. The quest **ships
+  now with a concrete gold/XP/pipe-weed reward instead** (working, waypoint-gated). If you
+  want the housing unlock, decide the above and it can be added as a follow-up win-hook in
+  `q_hob_inc.nss` (`QHOB_PayOut`). Answer here; no roadmap reactivation needed — the quiz is
+  already shipped.
 - [ ] **unlock-more-inacessible-creature** (2026-07-13): the item's original ask ("write plan
   to incorporate the absent creatures") is done — the plan is in the Endgame Difficulty design
   brief and split into two backlog slices (`forbidden-realms-key-tier`, `tier-areas-moria-nazgul`).

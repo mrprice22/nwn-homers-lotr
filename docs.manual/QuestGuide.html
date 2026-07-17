@@ -156,6 +156,7 @@
             <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
+            <li><a href="#concerning-hobbits">Concerning Hobbits</a></li>
             <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
             <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
@@ -615,6 +616,58 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   its Roll-of-the-Fallen tracking are untouched. One generic riddle dialogue node serves the whole
   bank via custom tokens 6360&ndash;6368; the 16-riddle bank, weekly seeded selection
   (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
+</div>
+
+<!-- CONCERNING HOBBITS -->
+<div class="quest-card" id="concerning-hobbits">
+  <h3>Concerning Hobbits <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>concern_hob</code></span>
+    <span>Giver: Odo Proudfoot, <a href="../areas/shirehobbiton001.html">Hobbiton</a></span>
+    <span>Level range: 5+ (daily dialogue trivia — no combat)</span>
+    <span>Reward on a win: 40&ndash;100 gp + 100 XP + a pouch of pipe-weed (a Greater Ring of
+      Scholars for a perfect 5/5)</span>
+  </div>
+  <p>Odo Proudfoot, keeper of the Hobbiton family-books, is forever settling a dispute at the Ivy
+  Bush over who is cousin to whom. He puts <strong>five questions of Shire lineage</strong> to you
+  &mdash; Bagginses, Boffins, Tooks, Brandybucks and all &mdash; answered by picking one of four
+  choices. Answer <strong>four or more of the five</strong> rightly and he counts you a friend of
+  the family-books and pays you from the family stores; fewer and you go home to study. He puts the
+  questions <strong>once per day per character</strong>, win or lose.</p>
+
+  <strong>How to start:</strong> Find <strong>Odo Proudfoot</strong> in Hobbiton and take up his
+  challenge. Aimed at level 5+.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the challenge &mdash; the journal opens and Odo asks question one of five.</li>
+    <li>Answer each question from the four choices. Odo confirms or corrects you between questions;
+      the running score is kept for you.</li>
+    <li>After the fifth answer the game resolves on the spot: <strong>4+ right</strong> pays
+      40&ndash;100 gp, 100 XP and a keepsake (a pouch of pipe-weed, upgraded to a Greater Ring of
+      Scholars on a perfect 5/5); fewer pays nothing.</li>
+    <li>The dispute reopens at the turn of the day (00:00 UTC); until then Odo quotes the time
+      remaining.</li>
+  </ol>
+
+  <p><strong>The correct answer rotates by season.</strong> The set of five questions and the order
+  of their answers are seeded from the in-game calendar season, so the whole server shares one
+  seasonal dispute and the winning choice moves each season &mdash; you can't just memorise
+  &ldquo;always pick the second one.&rdquo; Walking away (or relogging) mid-game forfeits nothing:
+  the day is only spent when the fifth answer lands.</p>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>concerning-hobbits</code>) &mdash; scripted
+  and built, pending in-game UAT. Consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-daily via
+  <code>QCD_IsDoneToday</code>. Odo (<code>q_hob_odo</code>) is a friendly commoner script-spawned
+  at waypoint <code>AP_concerninghobbits_1</code> from the Hobbiton OnEnter wrapper
+  (<code>q_hob_enter</code>); <strong>the waypoint must be placed in the toolset before Odo
+  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). One generic
+  question dialogue node serves the whole bank via custom tokens 6420&ndash;6428; the 16-question
+  bank, season-seeded selection (<code>GetCalendarYear()*4 + season</code> stride walk) and reward
+  table live in <code>q_hob_inc.nss</code>. The &ldquo;Bag End housing access&rdquo; reward from the
+  original idea is deferred to the admin as a design question &mdash; this ships the working quiz
+  with a concrete gold/XP/keepsake payout instead.</div>
 </div>
 
 <!-- SOWING DISCORD IN BREE -->
