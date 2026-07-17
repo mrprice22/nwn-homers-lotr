@@ -145,6 +145,16 @@ _Appended by autopilot; delete entries as you complete them._
   place `_1` and `_3` together (`_2` is optional flavour/danger).
   <!-- literal in q_pass_spawn.nss: AP_passthepass_3 -->
 
+- [ ] **blackguard-quest** (2026-07-17): _conditional, verify-then-maybe-fix (no new placement)._
+  The Blackguard fall-rite reuses the existing torture-rack in `baraddurkeep` (instance 94 of
+  `plc_torture1`, retagged `BkgFallAltar`, `Static:0` + `OnUsed q_bkg_altar`) — the same
+  retag shape as the shipped Red-Dragon-Disciple anvil and Divine-Champion altar. If the CEP
+  `plc_torture1` base is not useable-by-default, the rack won't be clickable and the quest
+  can't progress. **Verify in-game that the rack is clickable;** if not, add a single
+  `Useable: {type:byte, value:1}` field to that instance (the same one-line fix would then
+  apply to the sibling anvil/altar retags — worth spot-checking those too). No other action
+  needed — this quest adds no waypoint.
+
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
   hyphen-less tags (`AP_riddlegame_1`, `AP_millerotherson_1/2`) while the scripts
