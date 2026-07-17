@@ -212,6 +212,22 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
      date, don't guess or leave the original report date)
    - `notes`: append a `Fixed YYYY-MM-DD` line (what/why/how), **plus testing/UAT
      notes** — what the admin should verify in-game before promoting to `awarded`.
+   - **Wiring due-diligence — do this BEFORE marking `implemented`.** A clean build
+     proves nothing *runs*: an orphaned script (attached to no event hook/NPC/conversation)
+     or one that looks up a mismatched tag compiles fine and silently does nothing — this
+     has already shipped ~15 invisible "done" quests here. Verify end-to-end:
+     1. every new `.nss` is actually invoked from somewhere — a `module.ifo.json` event
+        hook, an NPC/placeable/trigger event-script field, a conversation `Active`/`Script`,
+        `ExecuteScript`, or a module override (grep the resref to prove a caller exists);
+     2. every new `.dlg` is referenced by some blueprint's `Conversation` field;
+     3. every `GetWaypointByTag`/`GetObjectByTag` string literal exactly matches a real
+        `Tag` (or the tag in its `admin-action-required.md` entry) **and is hyphen-less**
+        (see the tag convention in "No coordinate-picking" above);
+     4. for a waypoint-gated item that is **invisible in-game until the admin places the
+        waypoint** (the giver NPC/placeable is script-spawn-only), say so explicitly in the
+        UAT note — e.g. `"blocked in-game until AP_prestigehub_1 is placed"` — so it is not
+        mistaken for working during UAT. (Server-side-dependent items are different: the
+        code IS wired in the module, so they ship `implemented` per the rule below.)
 3. **Roadmap commit** (same procedure for rebalance/escape-hatch commits):
    `python3 bin/gen-roadmap.py --check`, then `python3 bin/gen-roadmap.py`, commit
    `roadmap.yaml` + `docs.manual/Roadmap.html` together. Do **not** run the wiki refresh.
@@ -266,6 +282,11 @@ _Appended by autopilot; delete entries as you complete them._
 ## Toolset / placement actions
 - [ ] **<roadmap-item-id>** (YYYY-MM-DD): create waypoint tag `AP_<...>` in
   <suggested area> — <purpose>. Also: <env flip / Anvil deploy / restart step, if any>.
+  <!-- The tag here MUST be hyphen-less and byte-for-byte identical to the string the
+       script looks up (item `riddle-game` → `AP_riddlegame_1`, never `AP_riddle-game_1`).
+       A mismatch = the waypoint is placed but never found = feature dead on arrival. -->
+- [ ] **<blocks N items>**: when one waypoint gates many quests (e.g. a quest-hub NPC),
+  say so and order it first — the admin should place the highest-leverage one first.
 
 ## Design questions
 - [ ] **<roadmap-item-id>** (YYYY-MM-DD): <the blocking question(s)>. Item moved to

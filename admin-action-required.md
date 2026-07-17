@@ -5,6 +5,22 @@ _Appended by autopilot; delete entries as you complete them._
 ## Session summaries
 
 ## Toolset / placement actions
+
+> ⚠️ **Placement priority — these unblock quests that are currently marked `implemented`
+> but are INVISIBLE in-game until the waypoint exists (the giver NPC is script-spawned at
+> the waypoint).** Place in this order for the most unblocking per placement:
+>
+> 1. **`AP_prestigehub_1` in `thewelloferu`** — ⚠️ highest leverage: spawns Halmir the
+>    Grey, the prestige-class hub. Unblocks the **entire prestige quest line (~12 items)**
+>    AND gates the offers for harper-scout and knight-westernesse. Place this first.
+> 2. **`AP_harperscout_1` in `theprancingpo001`** — harper-scout-quest (also needs #1).
+> 3. **`AP_knightwest_1` in `thepelennorfield`** — knight-westernesse-quest (also needs #1).
+> 4. **`AP_mazarbul20_1..4`** (`chamberofrecords` / `balinstomb`) — twentieth-plot-mazarbul
+>    (can't even be accepted without `_1`; needs all four to finish; `_5` optional).
+> 5. **`AP_beornsgarden_1/2/3`** (`beorn` / `carrok` / `carrokgreater`) — beorns-garden.
+>
+> Full per-waypoint detail (suggested spot + purpose) is in the entries below.
+
 - [x] **ferny-return** (2026-07-14): create waypoint tag `AP_ferny_return_1` in
   `billfernyshouse` (somewhere in the main room, clear of the door and the existing
   ambush encounter trigger) — spawn point for the `fret_impostor` ruffian in the new

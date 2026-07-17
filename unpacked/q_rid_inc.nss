@@ -194,6 +194,33 @@ string QRID_Opt(int i, int j)
     return "";
 }
 
+// Set the answer-option custom token (6363..6366) for one displayed slot
+// (nSlot = 1..4) of the riddle the PC is currently on, and return its text.
+//
+// This is called from a per-reply StartingConditional (q_rid_c_o1..o4), one
+// SetCustomToken per call, immediately before that reply is rendered. The
+// earlier design set all four tokens in a single loop inside q_rid_c_show;
+// in-engine only the first-written token survived to the reply list, so the
+// three distractor replies rendered empty text and NWN suppressed them —
+// leaving only the correct answer. Setting each slot's token from its own
+// reply conditional matches how the entry tokens (6361/6362) reliably resolve.
+//
+// Slot/rotation mapping mirrors q_rid_c_show: displayed slot index s (0-based)
+// holds data option j where (j + nRot) % 4 == s, i.e. j = (s - nRot + 4) % 4.
+// So the correct option (j == 0) lands on slot nRot, i.e. Q_RID_SLOT = nRot+1.
+string QRID_ShowOpt(object oPC, int nSlot)
+{
+    int nSeed = GetLocalInt(oPC, "Q_RID_SEED");
+    int nIdx  = GetLocalInt(oPC, "Q_RID_IDX");
+    int nRid  = QRID_RiddleAt(nSeed, nIdx);
+    int nRot  = (nSeed + nIdx) % 4;
+    int s     = nSlot - 1;                 // 0-based displayed slot
+    int j     = (s - nRot + 4) % 4;        // which data option lands here
+    string sOpt = QRID_Opt(nRid, j);
+    SetCustomToken(6363 + s, sOpt);
+    return sOpt;
+}
+
 // ------------------------------------------------------------
 // Gollum-ism flavor pools for the between-riddle patter.
 

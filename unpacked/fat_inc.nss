@@ -75,13 +75,31 @@ void FAT_ApplyToPC(object oPC)
         int nDmg = GetMaxHitPoints(oPC) * FAT_PCT * nPrior / 100;
         if (nDmg > 0)
         {
-            // Magical/energy so it can't be resisted away — the cost is the
-            // whole point. Yes, this can kill outright.
+            // Remove the HP directly rather than via EffectDamage. This is the
+            // crux of the fix: EVERY EffectDamage damage type — including
+            // DAMAGE_TYPE_MAGICAL — can be soaked by damage resistance,
+            // immunity %, or DR, and geared PCs reduced the old magical hit to
+            // zero. A soul-fatigue hit is a scripted cost, not an attack, so we
+            // subtract HP straight off the creature: nothing can resist or be
+            // immune to it.
             ApplyEffectToObject(DURATION_TYPE_INSTANT,
                 EffectVisualEffect(VFX_IMP_NEGATIVE_ENERGY), oPC);
-            ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                EffectDamage(nDmg, DAMAGE_TYPE_MAGICAL, DAMAGE_POWER_ENERGY),
-                oPC);
+
+            int nCur = GetCurrentHitPoints(oPC);
+            int nNew = nCur - nDmg;
+            if (nNew < 1)
+            {
+                // Lethal. Base-game SetCurrentHitPoints floors at 1 and never
+                // kills, so force death explicitly. (A PC with outright death
+                // immunity would survive at 1 HP — a rare, accepted corner.)
+                SetCurrentHitPoints(oPC, 1);
+                ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                    EffectDeath(FALSE, FALSE), oPC);
+            }
+            else
+            {
+                SetCurrentHitPoints(oPC, nNew);
+            }
             FloatingTextStringOnCreature("Soul-fatigue tears at you for "
                 + IntToString(nDmg) + " damage ("
                 + IntToString(nPrior) + " stack" + (nPrior == 1 ? "" : "s")

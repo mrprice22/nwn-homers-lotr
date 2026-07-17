@@ -13,8 +13,10 @@ you're signing up for (the runbook is authoritative — read it in full before s
 1. Pick one `confirmed` roadmap item (rebalance tiers per the runbook's quotas when
    `confirmed` is empty).
 2. Implement it **in a fresh `general-purpose` subagent** (fresh context per item; inline
-   only for trivial one-liners) — no coordinate-picking (use `AP_<item-id>_<n>` waypoints
-   + `admin-action-required.md`); escape hatches for design questions (→ `planned`) and
+   only for trivial one-liners) — no coordinate-picking (use hyphen-stripped
+   `AP_<item-id>_<n>` waypoints — item `riddle-game` → tag `AP_riddlegame_1`, **never**
+   `AP_riddle-game_1`; the script literal and the `admin-action-required.md` entry must
+   match exactly — + `admin-action-required.md`); escape hatches for design questions (→ `planned`) and
    oversized items. Files (`roadmap.yaml`, `admin-action-required.md`, git) are the only
    loop state — never conversation history.
 3. Test-build with **bare `nwn-manager repack`** (never the deploy wrappers).
