@@ -38,13 +38,13 @@
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../quests/index.html">Quests</a>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
-<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
@@ -131,13 +131,31 @@ void FAT_ApplyToPC(object oPC)
         int nDmg = GetMaxHitPoints(oPC) * FAT_PCT * nPrior / 100;
         if (nDmg &gt; 0)
         {
-            // Magical/energy so it can&#x27;t be resisted away — the cost is the
-            // whole point. Yes, this can kill outright.
+            // Remove the HP directly rather than via EffectDamage. This is the
+            // crux of the fix: EVERY EffectDamage damage type — including
+            // DAMAGE_TYPE_MAGICAL — can be soaked by damage resistance,
+            // immunity %, or DR, and geared PCs reduced the old magical hit to
+            // zero. A soul-fatigue hit is a scripted cost, not an attack, so we
+            // subtract HP straight off the creature: nothing can resist or be
+            // immune to it.
             ApplyEffectToObject(DURATION_TYPE_INSTANT,
                 EffectVisualEffect(VFX_IMP_NEGATIVE_ENERGY), oPC);
-            ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                EffectDamage(nDmg, DAMAGE_TYPE_MAGICAL, DAMAGE_POWER_ENERGY),
-                oPC);
+
+            int nCur = GetCurrentHitPoints(oPC);
+            int nNew = nCur - nDmg;
+            if (nNew &lt; 1)
+            {
+                // Lethal. Base-game SetCurrentHitPoints floors at 1 and never
+                // kills, so force death explicitly. (A PC with outright death
+                // immunity would survive at 1 HP — a rare, accepted corner.)
+                SetCurrentHitPoints(oPC, 1);
+                ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                    EffectDeath(FALSE, FALSE), oPC);
+            }
+            else
+            {
+                SetCurrentHitPoints(oPC, nNew);
+            }
             FloatingTextStringOnCreature(&quot;Soul-fatigue tears at you for &quot;
                 + IntToString(nDmg) + &quot; damage (&quot;
                 + IntToString(nPrior) + &quot; stack&quot; + (nPrior == 1 ? &quot;&quot; : &quot;s&quot;)

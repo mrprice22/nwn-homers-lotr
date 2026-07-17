@@ -38,13 +38,13 @@
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../quests/index.html">Quests</a>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
-<a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
@@ -66,7 +66,11 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/q_rid_wretch.html">Whispering Wretch</a> <code>q_rid_wretch</code></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_rid_begin</code></td><td>action</td><td>✓</td><td></td></tr>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_rid_c_o1</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rid_c_o2</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rid_c_o3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rid_c_o4</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rid_begin</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rid_c_show</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rid_a1</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_rid_c_win</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -111,7 +115,7 @@
 <span class="custom-token" title="SetCustomToken(6362, ...) called in: q_rid_c_show">&lt;CUSTOM6362&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_rid_a1</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_rid_a1</code></span> <small class="muted">(if <code>q_rid_c_o1</code>)</small> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6363, ...) — no setter found in static analysis">&lt;CUSTOM6363&gt;</span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
@@ -163,7 +167,7 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_rid_a2</code></span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_rid_a2</code></span> <small class="muted">(if <code>q_rid_c_o2</code>)</small> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
 <div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6364, ...) — no setter found in static analysis">&lt;CUSTOM6364&gt;</span></div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“*It writhes on its rock, hissing and spitting.* It wins, it WINS!  of seven, cur…”</span> <small class="muted">(if <code>q_rid_c_win</code>)</small></div>
@@ -173,7 +177,7 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_rid_a3</code></span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_rid_a3</code></span> <small class="muted">(if <code>q_rid_c_o3</code>)</small> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
 <div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6365, ...) — no setter found in static analysis">&lt;CUSTOM6365&gt;</span></div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“*It writhes on its rock, hissing and spitting.* It wins, it WINS!  of seven, cur…”</span> <small class="muted">(if <code>q_rid_c_win</code>)</small></div>
@@ -183,7 +187,7 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>q_rid_a4</code></span> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>q_rid_a4</code></span> <small class="muted">(if <code>q_rid_c_o4</code>)</small> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
 <div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6366, ...) — no setter found in static analysis">&lt;CUSTOM6366&gt;</span></div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“*It writhes on its rock, hissing and spitting.* It wins, it WINS!  of seven, cur…”</span> <small class="muted">(if <code>q_rid_c_win</code>)</small></div>
@@ -232,7 +236,7 @@
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">Sss, it came back to us, precious! Good, good. The game is not finished, no -- seven we promised and seven it gets, not one less. *It rubs its long hands together.* Where were we? Yes, yes... listen close now.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Go on, then. Ask.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Riddle <span class="custom-token" title="SetCustomToken(6361, ...) called in: q_rid_c_lose, q_rid_c_show, q_rid_c_win">&lt;CUSTOM6361&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_lose.html">q_rid_c_lose</a>, <a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>, <a href="../scripts/q_rid_c_win.html">q_rid_c_win</a>]</sup></span> of seven, precious. Listen, listen:
 
-<span class="custom-token" title="SetCustomToken(6362, ...) called in: q_rid_c_show">&lt;CUSTOM6362&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a></li><li><a href="#r5">→ reply #5</a></li><li><a href="#r6">→ reply #6</a></li><li><a href="#r7">→ reply #7</a></li></ul></div>
+<span class="custom-token" title="SetCustomToken(6362, ...) called in: q_rid_c_show">&lt;CUSTOM6362&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <small class="muted">(if <code>q_rid_c_o1</code>)</small></li><li><a href="#r5">→ reply #5</a> <small class="muted">(if <code>q_rid_c_o2</code>)</small></li><li><a href="#r6">→ reply #6</a> <small class="muted">(if <code>q_rid_c_o3</code>)</small></li><li><a href="#r7">→ reply #7</a> <small class="muted">(if <code>q_rid_c_o4</code>)</small></li></ul></div>
 <div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(6367, ...) called in: q_rid_c_right">&lt;CUSTOM6367&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_right.html">q_rid_c_right</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Next riddle.”</span></li></ul></div>
 <div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(6368, ...) called in: q_rid_c_wrong">&lt;CUSTOM6368&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_wrong.html">q_rid_c_wrong</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Bah. Ask the next.”</span></li></ul></div>
 <div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*It writhes on its rock, hissing and spitting.* It wins, it WINS! <span class="custom-token" title="SetCustomToken(6361, ...) called in: q_rid_c_lose, q_rid_c_show, q_rid_c_win">&lt;CUSTOM6361&gt;<sup class="token-setters">[<a href="../scripts/q_rid_c_lose.html">q_rid_c_lose</a>, <a href="../scripts/q_rid_c_show.html">q_rid_c_show</a>, <a href="../scripts/q_rid_c_win.html">q_rid_c_win</a>]</sup></span> of seven, curse it and crush it! Sss... a bargain is a bargain, precious, even in the dark. Take it then -- take the present and choke on it! *It flings your prize at you and hunches jealously over the rest of its little hoard.* The game is done. Come back when the week turns, if it dares. Gollum, gollum.</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“A pleasure doing business, wretch. Until the week turns.”</span></li></ul></div>
