@@ -156,6 +156,7 @@
             <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
+            <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
             <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
@@ -614,6 +615,60 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   its Roll-of-the-Fallen tracking are untouched. One generic riddle dialogue node serves the whole
   bank via custom tokens 6360&ndash;6368; the 16-riddle bank, weekly seeded selection
   (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
+</div>
+
+<!-- SOWING DISCORD IN BREE -->
+<div class="quest-card" id="sowing-discord">
+  <h3>Sowing Discord in Bree <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>sowing_discord</code></span>
+    <span>Giver: Bill Ferny, <a href="../areas/bree.html">Bree</a> (the market — same Ferny as his ring quest)</span>
+    <span>Level range: 15+ (daily; not offered to Good-aligned characters)</span>
+    <span>Reward: 500&ndash;800 gp "morgul-silver" + 500 XP; first completion also pays the
+      <em>Morgul-Weave Cloak</em> (Bluff +3, Hide +3, Saves vs Fear +3)</span>
+  </div>
+  <p>Ferny has paper that needs delivering: <strong>three forged letters</strong> — poison-pen
+  accusations in fine respectable handwriting, none of it his — to be planted <strong>under three
+  different tables in the Prancing Pony</strong>. The catch is the same one every dirty job in Bree
+  has: <strong>no eye may mark your hand</strong>. Each letter must be slipped into place while you
+  move in <strong>stealth mode</strong>; come at a table openly and the plant simply fails (nothing
+  is lost — step into shadow and try again). Naturally, Good-aligned characters never hear the
+  offer at all.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Bill Ferny</strong> in Bree at total level 15+
+  with a non-Good alignment. He whispers the job when he has nothing else pending with you.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Take the three Forged Letters (plot items — they can't be dropped or sold).</li>
+    <li>In the <a href="../areas/theprancingpo001.html">Prancing Pony</a>, enter stealth mode and
+      use a table to tuck a letter under it. Three <strong>different</strong> tables — a table
+      already holding your letter refuses a second.</li>
+    <li>The moment the third letter lands, the letters start working. About twenty seconds later
+      the <strong>Sheriff of Bree</strong> (CR 16) storms in with a Guardian of Bree at his heel,
+      right at the last table you touched — and they come for <em>you</em>, and only you. Fight or
+      run; the quest doesn't care which, and the rest of the taproom stays out of it.</li>
+    <li>Return to Ferny for 500&ndash;800 gp and 500 XP. The first completion ever also pays the
+      Morgul-Weave Cloak; repeats are gold and XP only.</li>
+  </ol>
+
+  <p>The job resets on a <strong>rolling 24-hour cooldown</strong> from each payout — Ferny quotes
+  the exact time remaining if you come back early. Progress is carried entirely by the letters and
+  the campaign database, so relogging (or a server reboot) mid-job loses nothing.</p>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>sowing-discord-bree</code>) — scripted and
+  built, pending in-game UAT. Fifth consumer of the shared quest-cooldown library
+  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), rolling daily via
+  <code>QCD_IsOnCooldown(QCD_DAY)</code>; "ready to turn in" is a second stamp key
+  (<code>sowing_discord_plant</code>). Giver branches ride the existing
+  <code>ferny_convo2.dlg</code>; plant targets are three existing Pony table instances retagged
+  <code>SowDrop1..3</code> (made usable, OnUsed <code>q_sow_plant</code>) — no new placements, no
+  waypoints. The stealth test is the deterministic <code>GetActionMode</code> check shared with the
+  Quiet Knives dead drop. The sheriff (<code>q_sow_sherf</code>, a fighter-16 clone of the Guardian
+  of Bree) spawns at the last table via <code>DelayCommand</code> and attacks only the planter
+  (temporary enemy — no faction brawl). <strong>No reputation changes yet</strong>: faction-rep
+  integration deliberately waits on the faction-scaffolding roadmap item. Logic lives in
+  <code>q_sow_inc.nss</code>; cooldown token 6390.</div>
 </div>
 
 <!-- BEORN'S GARDEN -->
