@@ -174,6 +174,7 @@
             <li><a href="#assassin">The Quiet Knives (Assassin)</a></li>
             <li><a href="#weapon-master">The Sworn Blade (Weapon Master)</a></li>
             <li><a href="#divine-champion">The Shield of Others (Divine Champion)</a></li>
+            <li><a href="#dwarven-defender">The Unbroken Stone (Dwarven Defender)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -963,15 +964,16 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first nine — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      The first ten — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
       <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
       <a href="#arcane-archer">The Warden's Mark</a>, the Red Dragon Disciples'
       <a href="#red-dragon">The Old Wyrm's Fire</a>, the Assassins'
       <a href="#assassin">The Quiet Knives</a>, the Weapon Masters'
-      <a href="#weapon-master">The Sworn Blade</a>, and the Divine Champions'
-      <a href="#divine-champion">The Shield of Others</a> — are live; three orders remain.</li>
+      <a href="#weapon-master">The Sworn Blade</a>, the Divine Champions'
+      <a href="#divine-champion">The Shield of Others</a>, and the Dwarven Defenders'
+      <a href="#dwarven-defender">The Unbroken Stone</a> — are live; two orders remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1418,6 +1420,61 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   order and avoid all sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code>
   reagent check; the finish only fires from stage 2 with the light in hand, so the reward can't
   be re-earned.</div>
+</div>
+
+<!-- DWARVEN DEFENDER — THE UNBROKEN STONE -->
+<div class="quest-card" id="dwarven-defender">
+  <h3>The Unbroken Stone (Dwarven Defender initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_dwarvendefender</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Dwarven Defenders branch)</span>
+    <span>Requires: 1+ Dwarven Defender level and dwarf race (the hub line itself shows only to dwarves of character level 14+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Warhelm of Durin's Watch</em> (<code>q_dwd_helm</code> — Craft Armor +3, Taunt +3, Saving Throws vs. Sonic +3)</span>
+  </div>
+  <p>The tenth of the twelve prestige-order trials, and the only one closed to all but Durin's
+  folk. Ask Halmir of the <strong>Dwarven Defenders</strong>: if you have already taken the
+  Defender's stand (1+ Dwarven Defender level — and you are a dwarf, which the class requires
+  anyway), he names the trial. In <a href="../areas/balinstomb.html">Balin's Tomb</a> in Moria
+  lies Balin son of Fundin under a stone that was not broken. <strong>Use the headstone while
+  wearing heavy armor</strong> — base AC 6 or better: splint, banded, half-plate, or full plate —
+  because Balin's guard stood there in the war-weight of Khazad, and stone knows stone. Come in
+  leathers, robes, or light mail and the stone will not know you ("come clad as they came, and
+  stand again"); no dice — the weight of your armor is the whole test, deterministic and
+  retryable, and enhancement bonuses on light armor can't fake it (the check reads the armor's
+  <em>base</em> AC). The kept stand earns the <em>Shard of the Unbroken Stone</em> (plot +
+  cursed — it can't be dropped, sold, or handed off), which goes back to Halmir for the
+  induction. One-off per character; if the shard is somehow lost, standing again re-gives it
+  (never duplicates — the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Dwarven Defenders, accept the stand — <code>q_dwd_start</code>
+      sets stage 1 / journal 1 (non-Defenders instead get an "only Durin's folk, and only those
+      who have taken the Defender's stand" pointer line).</li>
+    <li>Use Balin's headstone in Balin's Tomb wearing heavy armor — <code>q_dwd_stone</code> (the
+      headstone's OnUsed) reads the chest armor's base AC from <code>parts_chest.2da</code> (the
+      module's <code>zep_cr_canca</code> idiom) and requires 6+; kept rightly, it gives the
+      <em>Shard of the Unbroken Stone</em> and sets stage 2 / journal 2 (otherwise it fails the
+      attempt with a retry message).</li>
+    <li>Return to Halmir with the shard — <code>q_dwd_finish</code> consumes it, awards the XP
+      and the warhelm, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-16 (roadmap <code>dwarven-defender-quest</code>) — scripted
+  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>dwdef</code>, stages 0–3; see <code>q_dwd_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing Balin
+  headstone placeable in <code>balinstomb</code> (instance 86 of <code>plc_headstone</code>),
+  retagged <code>DwdBalinStone</code> with <code>q_dwd_stone</code> on its OnUsed (it was already
+  usable + plot with no scripts, so nothing is chained; no script referenced the generic old tag
+  <code>Headstone</code>, and the Shadowdancers' hook in the same area — the DeepWell, instance
+  52 — is untouched). The race gate is checked defensively in <code>q_dwd_c_off</code> alongside
+  the class (<code>CLASS_TYPE_DWARVEN_DEFENDER</code> = 36, <code>RACIAL_TYPE_DWARF</code> = 0,
+  both verified in <code>ovr/nwscript.nss</code>), though the class is dwarf-only in NWN. The
+  reward's picks (Craft Armor / Taunt / saves vs. sonic — <code>IP_CONST_SAVEVS_SONIC</code> =
+  15, for the drums in the deep; no vs-traps save constant exists) fit the order and avoid all
+  sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
+  finish only fires from stage 2 with the shard in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
