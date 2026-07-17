@@ -179,6 +179,7 @@
             <li><a href="#divine-champion">The Shield of Others (Divine Champion)</a></li>
             <li><a href="#dwarven-defender">The Unbroken Stone (Dwarven Defender)</a></li>
             <li><a href="#shifter">The Second Skin (Shifter)</a></li>
+            <li><a href="#blackguard">The Fall (Blackguard)</a></li>
           </ol>
         </li>
         <li><a href="#meaningwave">MeaningWave Quests</a></li>
@@ -1125,7 +1126,7 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
       says none would hear your name yet.</li>
     <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      The first eleven — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
+      All twelve — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
       Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
       Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
       <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
@@ -1134,8 +1135,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       <a href="#assassin">The Quiet Knives</a>, the Weapon Masters'
       <a href="#weapon-master">The Sworn Blade</a>, the Divine Champions'
       <a href="#divine-champion">The Shield of Others</a>, the Dwarven Defenders'
-      <a href="#dwarven-defender">The Unbroken Stone</a>, and the Shifters'
-      <a href="#shifter">The Second Skin</a> — are live; one order remains.</li>
+      <a href="#dwarven-defender">The Unbroken Stone</a>, the Shifters'
+      <a href="#shifter">The Second Skin</a>, and the Blackguards'
+      <a href="#blackguard">The Fall</a> — are now live; none remain.</li>
   </ol>
 
   <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
@@ -1689,6 +1691,60 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   vs-polymorph save constant exists) fit the order and avoid all sibling rewards' skills. The
   turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2
   with the tuft in hand, so the reward can't be re-earned.</div>
+</div>
+
+<!-- BLACKGUARD — THE FALL -->
+<div class="quest-card" id="blackguard">
+  <h3>The Fall (Blackguard initiation) <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pc_blackguard</code></span>
+    <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Blackguards branch)</span>
+    <span>Requires: 1+ Blackguard level (the hub line itself shows at character level 14+)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Sigil of the Fallen</em> (<code>q_bkg_sigil</code> — Bluff +3, Use Magic Device +3, Saving Throws vs. Negative +3)</span>
+  </div>
+  <p>The twelfth and last of the prestige-order trials, and the only one whose signature is a
+  <strong>permanent alignment shift</strong> — the fall itself. Ask Halmir of the
+  <strong>Blackguards</strong>: if you have already broken a bright oath for a darker one (1+
+  Blackguard level), he tells you how the fall is written. In the <a href="../areas/baraddurkeep.html">Keep
+  of Barad-Dûr</a>, the Dark Tower itself, the instruments of cruelty still stand. <strong>Lay your
+  hand on the torture-rack and swear the Black Oath — but come to it bleeding</strong>: the oath
+  takes blood freely given or nothing at all (the check is simply that you are below full health;
+  the Dark Tower is thick with foes, so an aspirant reaches the rack wounded as a matter of course).
+  Swearing it drives your alignment hard toward evil, once and for good, and brands a token of cold
+  iron into your hand. No dice — the wound is the whole test, deterministic and retryable. Carry the
+  <em>Brand of the Fall</em> (plot + cursed — it can't be dropped, sold, or handed off) back to
+  Halmir for the induction. One-off per character; if the brand is somehow lost, keeping the rite
+  again re-gives it <em>without</em> shifting your alignment a second time (the turn-in consumes it).</p>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Speak to Halmir, choose the Blackguards, accept the rite — <code>q_bkg_start</code> sets
+      stage 1 / journal 1 (non-Blackguards instead get a "one is not appointed to that page — one
+      falls to it" pointer line).</li>
+    <li>Use the torture-rack in the Keep of Barad-Dûr while wounded — <code>q_bkg_altar</code>
+      (the rack's OnUsed) checks that you are below full health; sworn rightly it drives your
+      alignment toward evil (<code>AdjustAlignment</code>, once only), gives the <em>Brand of the
+      Fall</em> and sets stage 2 / journal 2 (at full health it fails the attempt with a retry
+      message).</li>
+    <li>Return to Halmir with the brand — <code>q_bkg_finish</code> consumes it, awards the XP and
+      the sigil, journal End (stage 3, never resets).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>blackguard-quest</code>) — scripted and
+  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
+  campaign DB (order key <code>blackg</code>, stages 0–3; see <code>q_bkg_inc.nss</code>).
+  <strong>No new placements and no admin waypoint</strong>: the objective is the existing unique
+  torture-rack placeable in the Keep of Barad-Dûr (instance 94 of <code>plc_torture1</code> in
+  <code>baraddurkeep</code>), retagged <code>BkgFallAltar</code> and made usable/dynamic with
+  <code>q_bkg_altar</code> on its OnUsed (it was static with no scripts, so nothing is chained; no
+  script referenced the generic old tag <code>Torture Equipment</code>). The class gate is
+  <code>CLASS_TYPE_BLACKGUARD</code> = 31 (verified in <code>ovr/nwscript.nss</code>); the
+  permanent shift is <code>AdjustAlignment(oPC, ALIGNMENT_EVIL, 50, FALSE)</code> — the
+  <code>FALSE</code> keeps it to the swearer, not the party — applied only on the stage 1→2
+  transition so it can never be farmed. The reward's picks (Bluff / Use Magic Device / saves vs.
+  Negative — <code>IP_CONST_SAVEVS_NEGATIVE</code> = 12) fit the order and avoid all sibling
+  rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only
+  fires from stage 2 with the brand in hand, so the reward can't be re-earned.</div>
 </div>
 
 <hr>
