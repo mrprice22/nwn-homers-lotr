@@ -1744,11 +1744,12 @@ ideas:
   - id: dwarven-defender-quest
     title: "Prestige quest: Dwarven Defender (L14+, Dwarf only)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>T2. Dwarf-only compact quest, gated on 1+ Dwarven Defender level; modest +3-tier item. Depends on the prestige trainer hub.</span>"
+    date: "2026-07-16"
+    commit: 73b8446
+    notes: "<span>T2. Dwarf-only compact quest, gated on 1+ Dwarven Defender level; modest +3-tier item. Depends on the prestige trainer hub.</span><div><br></div><div><b>Fixed 2026-07-16:</b> \"The Unbroken Stone\" — Dwarven Defender initiation, tenth prestige-order trial on Halmir the Grey (Well of Eru). Offer requires 1+ Dwarven Defender level and dwarf race (both checked defensively); others get a pointer line. Flow: accept from Halmir → stand before Balin's headstone in Balin's Tomb (existing placeable reused — retagged, OnUsed added; the Shadowdancer quest's DeepWell in the same area untouched) <b>wearing heavy armor</b> — chest base AC ≥ 6 read from the armor's torso model, so enhancement bonuses can't fake it; lighter armor fails with a retry message → receive the Shard of the Unbroken Stone (plot+cursed, re-given if lost) → return to Halmir for 1000 XP + Warhelm of Durin's Watch (Craft Armor +3, Taunt +3, Saves vs. Sonic +3 — \"drums in the deep\"; no AB/damage, forge-cap-safe, skills distinct from all sibling rewards). State in prestigedb (order key <code>dwdef</code>, one-off); journal <code>pc_dwarvendefender</code>. QuestGuide.html updated (hub now ten live orders / two remaining).</div><div><br></div><div><b>UAT:</b> (1) non-dwarf or non-DD PC sees only the pointer line; (2) DD dwarf accepts, journal 1; (3) at Balin's headstone: leather → fail message, full plate/splint → shard + journal 2; (4) turn-in consumes shard, grants XP + helm, ends journal; epilogue only afterwards, no re-reward; (5) regression — the Shadowdancer DeepWell trial in the same area still works.</div>"
 
   - id: shifter-quest
     title: "Prestige quest: Shifter (L16+)"
