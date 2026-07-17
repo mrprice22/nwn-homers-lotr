@@ -204,10 +204,6 @@ authoring conventions, and the module compatibility audit.
 > `goblingatemines`. Server-wide buff: `SetCampaignInt("homerlotr","goblin_civil_war_until", <ts + 7*86400>)`;
 > area `OnEnter` checks value and halves Hostile spawn count when active.
 
-**Pass the Pass** *(Daily, Lvl 10+)*
-> Areas: `mistymountainsa`, `mistymountainsb`, `foothillsofthemi`. Difficulty selection in opening dialogue;
-> gold reward = `nDiff * 200`. Stone-Giant: clone Hill Giant UTC with appearance row 158 (Stone Giant, if CEP exposes it).
-
 **Mithril Seam** *(Weekly, Lvl 28+)*
 > Areas: `theabyssofmoria`, `thebalrogofmoria`. Single-UTP "first-takes-it": `OnUsed` creates item on user
 > and sets `SetCampaignInt(... "mithril_claimed_week_<weekNo>", 1)`, then destroys placeable. Weekly reset

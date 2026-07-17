@@ -157,6 +157,7 @@
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#concerning-hobbits">Concerning Hobbits</a></li>
+            <li><a href="#pass-the-pass">Pass the Pass</a></li>
             <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
             <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
@@ -668,6 +669,57 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   table live in <code>q_hob_inc.nss</code>. The &ldquo;Bag End housing access&rdquo; reward from the
   original idea is deferred to the admin as a design question &mdash; this ships the working quiz
   with a concrete gold/XP/keepsake payout instead.</div>
+</div>
+
+<!-- PASS THE PASS -->
+<div class="quest-card" id="pass-the-pass">
+  <h3>Pass the Pass <span class="status-badge status-warn">Needs waypoints</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>pass_pass</code></span>
+    <span>Giver: Baldor the Caravan-Master, <a href="../areas/foothillsofthemi.html">Foothills of the Misty Mountains</a> (western foot of the High Pass)</span>
+    <span>Turn-in: Wilrun the Quartermaster, <a href="../areas/mistymountainsb.html">The Misty Mountains</a> (eastern waystation)</span>
+    <span>Level range: 10+ (daily escort, combat)</span>
+    <span>Reward: <code>nDiff &times; 200</code> gp and <code>nDiff &times; 150</code> XP (200/400/600 gp, 150/300/450 XP)</span>
+  </div>
+  <p>Baldor runs a mule-train over the High Pass and pays swords to see it safely across to the
+  eastern waystation. You <strong>choose the risk yourself at dialogue</strong>, and the pay scales
+  with it: <strong>Easy</strong> (a goblin rabble), <strong>Normal</strong> (goblin soldiers led by a
+  brute), or <strong>Hard</strong>, where a <strong>Stone-Giant of the High Pass</strong>
+  (<code>q_pass_gnt</code>, a plot-safe CR-25 clone of the ordinary Misty Mountains giant) comes down
+  off the crags to smash the caravan. One escort per real calendar day.</p>
+
+  <p>This is a <strong>bounded escort</strong> — there is no walking companion to babysit. When you
+  accept, a difficulty-scaled ambush spawns mid-pass in the first Misty Mountains area and the
+  journal opens; you fight your way east and report to Wilrun at the waystation for your pay. Reaching
+  the far side is the whole objective, and the ambush is the danger rather than a hard fail-state.</p>
+
+  <strong>How to start:</strong> Talk to <strong>Baldor the Caravan-Master</strong> at the western
+  foot of the pass (Foothills of the Misty Mountains) and pick your difficulty.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept from Baldor and choose Easy, Normal or Hard. The journal opens and the ambush spawns
+      ahead of you on the pass.</li>
+    <li>Cross the Misty Mountains eastward, fighting through the warband (and the Stone-Giant on
+      Hard).</li>
+    <li>Talk to <strong>Wilrun the Quartermaster</strong> at the eastern waystation to close the run
+      and collect <code>nDiff &times; 200</code> gp plus <code>nDiff &times; 150</code> XP.</li>
+    <li>Payment closes the day; Baldor's hire reopens at UTC midnight (he quotes the exact time
+      remaining).</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>pass-the-pass</code>) &mdash; scripted and
+  built, <strong>blocked in-game until three waypoints are placed in the toolset</strong> (scripts
+  no-op gracefully until then; see admin-action-required.md). Consumer of the shared quest-cooldown
+  library (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-daily via
+  <code>QCD_IsDoneToday</code>/<code>QCD_Stamp</code>. Giver <code>q_pass_capt</code> (Foothills) and
+  quartermaster <code>q_pass_qm</code> (mistymountainsb) are plot/immortal commoners script-spawned
+  at <code>AP_passthepass_1</code> and <code>AP_passthepass_3</code> from the shared OnEnter wrapper
+  <code>q_pass_enter</code> (which preserves the areas' original <code>d_cleartrash</code>). The
+  ambush spawns at <code>AP_passthepass_2</code> in <code>mistymountainsa</code>, composition scaled
+  by difficulty in <code>q_pass_inc.nss</code> (<code>QPASS_SpawnAmbush</code>), using existing
+  goblin/warg blueprints plus the new Stone-Giant clone. Rate-limited naturally: a PC can only accept
+  once/day and cannot re-accept while an escort is active.</div>
 </div>
 
 <!-- SOWING DISCORD IN BREE -->

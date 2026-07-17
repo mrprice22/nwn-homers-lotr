@@ -121,6 +121,30 @@ _Appended by autopilot; delete entries as you complete them._
   <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
        q_hob_spawn.nss: AP_concerninghobbits_1 -->
 
+- [ ] **pass-the-pass** (2026-07-17): create waypoint tag `AP_passthepass_1` in
+  `foothillsofthemi` (Foothills of the Misty Mountains — at the western foot of the pass,
+  somewhere sensible on the road/entrance side, clear of the area transitions) — spawn point
+  for `q_pass_capt` (Baldor the Caravan-Master, the quest giver; plot/immortal commoner).
+  Spawned by `q_pass_spawn` from the shared OnEnter wrapper `q_pass_enter` (which preserves
+  the area's original `d_cleartrash`) whenever a PC enters; no-ops gracefully until placed.
+  Until placed, the "Pass the Pass" daily escort is invisible in-game.
+  <!-- hyphen-less, byte-for-byte identical to the GetWaypointByTag literal in
+       q_pass_spawn.nss: AP_passthepass_1 -->
+- [ ] **pass-the-pass** (2026-07-17): create waypoint tag `AP_passthepass_2` in
+  `mistymountainsa` (The Misty Mountains, first/mid pass area — on the through-route the PC
+  walks east, with room for a warband + a giant to spawn and fight, clear of the standing
+  giant encounters so the ambush doesn't pull them) — spawn point for the difficulty-scaled
+  ambush (`QPASS_SpawnAmbush` in `q_pass_inc.nss`). No-ops gracefully until placed (the quest
+  is still completable without it — no ambush, just walk across).
+  <!-- literal in q_pass_inc.nss: AP_passthepass_2 -->
+- [ ] **pass-the-pass** (2026-07-17): create waypoint tag `AP_passthepass_3` in
+  `mistymountainsb` (The Misty Mountains, eastern waystation side — near the eastern
+  transition, a sensible "far side" spot) — spawn point for `q_pass_qm` (Wilrun the
+  Quartermaster, the turn-in NPC; plot/immortal commoner). Same spawner/no-op behavior as
+  `AP_passthepass_1`. Until placed, the escort can be accepted but not turned in for pay, so
+  place `_1` and `_3` together (`_2` is optional flavour/danger).
+  <!-- literal in q_pass_spawn.nss: AP_passthepass_3 -->
+
 ## Notes
 - **2026-07-15 waypoint tag fix (no action needed):** the waypoints you placed carry
   hyphen-less tags (`AP_riddlegame_1`, `AP_millerotherson_1/2`) while the scripts
