@@ -2276,11 +2276,12 @@ ideas:
   - id: cleric-line-early
     title: "Cleric line I — Flame of Anor (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Cleric line.</span>"
+    date: "2026-07-17"
+    commit: 522abd5e0b4
+    notes: "<span>Early nodes (L1/8/15) of the Cleric line.</span><div><br></div><div><b>Fixed 2026-07-17:</b> shipped the early nodes (L1/L8/L15) of the Cleric line, <b>The Flame of Anor</b>, cloned from the clean wizard-line-early template (q_clr_* names). Giver <b>Aldamir, Keeper of the Flame</b> (q_clr_keep, plot/immortal) tends the Secret Fire in the Temple of Illuvatar (templeofilluvata) and offers the calling only to Clerics (GetLevelByClass(CLASS_TYPE_CLERIC)&gt;=1, value 2 verified); non-clerics get a flavour blessing. Three-node one-off arc, per-character state in campaign DB clrlinedb key flame_stage (0-&gt;3, advance-only). <b>Node 1 (L1):</b> take up the tending -&gt; journal clr_anor opens + Acolyte's Censer-Amulet (+1 WIS, Cleric-only). <b>Node 2 (L8):</b> entrusted the Reliquary of the Kindled Ember (plot). <b>Node 3 (L15):</b> ember kindled into the Mace of the Kindled Flame (+2 enhancement / +1 WIS light mace, Cleric-only), reliquary consumed, journal End. Reward properties use verified stock encodings (Use-Limitation:Class subtype 2 = Cleric, confirmed against 42 existing cleric-restricted items). Journal category clr_anor (@group 'Class Lines' @order 6). Wired end-to-end: Temple OnEnter wrapped q_clr_enter (chains the existing leash_to_area) -&gt; q_clr_spawn; conversation q_clr_conv on the giver; DLG follows the reply-gate rule (action scripts only in target Script fields, verified no action script in any Active block). Build passed all gates (6/6 smoke, dialog-integrity 0 failing, boss-registry 78/78). No capstone built (deferred to cleric-line-mid/later).</div><div><br></div><div><b>Blocked in-game until the admin places waypoint AP_clericlineearly_1 in templeofilluvata</b> - Aldamir is script-spawn-only and no-ops gracefully until then.</div><div><br></div><div><b>UAT (after waypoint placed + deploy/restart):</b> (1) a Cleric in the Temple sees Aldamir's offer, a non-cleric gets only the flavour blessing; (2) accept -&gt; journal opens + cleric-restricted Censer-Amulet; (3) L8/L15 gates hold; (4) at L8 the reliquary is granted, at L15 consumed and the Mace granted, journal advances 1-&gt;2-&gt;3(End); (5) amulet/mace unusable by non-clerics; (6) regression: Temple leash still fires from the wrapped OnEnter.</div>"
 
   - id: cleric-line-mid
     title: "Cleric line II — Flame of Anor (L22-38)"
