@@ -145,6 +145,8 @@ authoring conventions, and the module compatibility audit.
 > "Terrain passive regen": OnEquip reads area tag prefix; applies `EffectRegenerate` matching biome.
 
 ### Ranger — The Uncrowned Path
+> **Early nodes (L1/8/15) SHIPPED 2026-07-18** as `ranger-line-early` — Halbarad at `rangerwaystation`,
+> journal `rng_path`. See QuestGuide-DM-Notes.md. Notes below remain live for the mid/endgame chunks.
 > Areas: `bree`, `weatherhills`, `mirkwoodwest`, `mirkwoodcentral`, `mirkwoodeast`, `rangerwaystation`,
 > `hennethannun`, `hennethannun002`, `dunharrow`, `forgottenking`, `harad`, `roadtoharad`,
 > `thepelennorfield`. Aragorn: `aragornsonofarat` for handout.

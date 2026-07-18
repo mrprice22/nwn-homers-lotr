@@ -220,6 +220,27 @@ Both files should be updated in the same commit whenever a quest ships or change
 - **Items:** Enhancement / Ability WIS bonus + Use Limitation: Class Cleric, subtype 2.
 - **UAT:** scripted and built, pending in-game UAT.
 
+### The Uncrowned Path — Ranger line I
+
+- **Journal tag:** `rng_path` (`@group 'Class Lines'`, `@order 7`)
+- **Roadmap:** `ranger-line-early` (added 2026-07-18)
+- **State:** `rnglinedb` campaign DB (key `path_stage`, 0–3; see `q_rng_inc.nss`).
+- **Gates:** `GetLevelByClass(CLASS_TYPE_RANGER) >= 1`; L8/L15 total character level.
+- **Scripts:** `q_rng_oath`, `q_rng_tok`, `q_rng_rtn`; StartingConditionals `q_rng_c_off`,
+  `q_rng_c_s1w`, `q_rng_c_s1r`, `q_rng_c_s2w`, `q_rng_c_s2r`, `q_rng_c_dn`.
+- **Blueprints:** Halbarad (`q_rng_keep`, conversation `q_rng_conv`) script-spawned by `q_rng_spawn`
+  from the Ranger Waystation OnEnter wrapper `q_rng_enter` (chains the area's existing
+  `leash_to_area` handler).
+- **Waypoints:** `AP_rangerlineearly_1` in `rangerwaystation`. **Halbarad is spawn-only — the whole
+  line is invisible in-game until this waypoint is placed.**
+- **Items:** `q_rng_broc` (amulet, +1 DEX), `q_rng_star` (plot token), `q_rng_bow` (longbow,
+  BaseItem 8, Enhancement +2 / +1 DEX). All use Use Limitation: Class Ranger, subtype 7.
+- **History:** an interrupted autopilot run (commit `0b71d6908a4`) landed the scripts and the three
+  UTIs only — no giver, conversation, journal category or area wiring, so nothing was reachable. The
+  bow was also authored as BaseItem 6 (heavy crossbow) despite its name; corrected to 8 (longbow)
+  with matching 3-part model.
+- **UAT:** scripted and built, pending waypoint placement and in-game UAT.
+
 ### Pass the Pass
 
 - **Journal tag:** `pass_pass`
