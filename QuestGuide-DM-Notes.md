@@ -241,6 +241,29 @@ Both files should be updated in the same commit whenever a quest ships or change
   with matching 3-part model.
 - **UAT:** scripted and built, pending waypoint placement and in-game UAT.
 
+### The Breathing of the World — Druid line I
+
+- **Journal tag:** `drd_breath` (`@group 'Class Lines'`, `@order 8`)
+- **Roadmap:** `druid-line-early` (added 2026-07-18)
+- **State:** `drdlinedb` campaign DB (key `breath_stage`, 0–3; see `q_drd_inc.nss`).
+- **Gates:** `GetLevelByClass(CLASS_TYPE_DRUID) >= 1`; L8/L15 total character level.
+- **Scripts:** `q_drd_oath`, `q_drd_tok`, `q_drd_rtn`; StartingConditionals `q_drd_c_off`,
+  `q_drd_c_s1w`, `q_drd_c_s1r`, `q_drd_c_s2w`, `q_drd_c_s2r`, `q_drd_c_dn`.
+- **Blueprints:** Naldor the Green (`q_drd_keep`, Druid 30, plot/immortal, conversation `q_drd_conv`)
+  script-spawned by `q_drd_spawn` from the Rhosgobel OnEnter wrapper `q_drd_enter` (chains the area's
+  existing `leash_to_area` handler).
+- **Waypoints:** `AP_druidlineearly_1` in `rhosgobel`. **Naldor is spawn-only — the whole line is
+  invisible in-game until this waypoint is placed.**
+- **Items:** `q_drd_amul` (amulet, BaseItem 19, +1 WIS), `q_drd_seed` (plot token, BaseItem 24),
+  `q_drd_staf` (quarterstaff, BaseItem 45, Enhancement +2 / +1 WIS). All use Use Limitation: Class
+  Druid, subtype 3 (verified against the 43 existing subtype-3 items; consistent with the confirmed
+  Cleric 2 / Ranger 7 rows of `iprp_classes`).
+- **Notes:** structurally cloned from the shipped `ranger-line-early` template (`q_rng_*`). Radagast
+  himself is left alone — he already exists as a shopkeeper (`radagastthebrown`, `radagastshops.dlg`);
+  Naldor is authored as his pupil so the two do not collide. The design brief's Tom Bombadil / Old Man
+  Willow authoring is untouched and remains available for the mid/endgame chunks.
+- **UAT:** scripted and built, pending waypoint placement and in-game UAT.
+
 ### Pass the Pass
 
 - **Journal tag:** `pass_pass`

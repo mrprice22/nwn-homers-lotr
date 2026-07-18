@@ -136,6 +136,8 @@ authoring conventions, and the module compatibility audit.
 > Dual swords: two UTIs, Enhancement +5 + typed bonuses each; Use Limitation: Rogue.
 
 ### Druid — The Breathing of the World
+> **Early nodes (L1/8/15) SHIPPED 2026-07-18** as `druid-line-early` — Naldor the Green at `rhosgobel`,
+> journal `drd_breath`. See QuestGuide-DM-Notes.md. Notes below remain live for the mid/endgame chunks.
 > Areas: `oldforest001`, `fangornforest`, `fangornoutskirts`, `rhosgobel`, `rhosgobeltower`,
 > `dolguldur`, `pathtohelmsdeep`, `helmsdeep001`, `minastirith`, `sharkeysmill`, `sharkeyschamber`,
 > `mountdoom`, `mountdoom002`.
