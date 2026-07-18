@@ -12,6 +12,7 @@
 #include "forge_inc"
 #include "tele_db"
 #include "boost_db"
+#include "q_frk_inc"
 
 // Death amulet check + persistent state restore. Delayed so the engine's
 // own post-login passes (inventory hydration, spellbook sync, "fresh PC"
@@ -105,6 +106,12 @@ void main()
     AddJournalQuestEntry("mod_forge",    1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("mod_systems",  1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("mod_factions", 1, oPC, FALSE, FALSE);
+
+    // The Forbidden Realms: characters who stole the Forbidden Realms Key from
+    // Summanus before the tier shipped never saw an OnAcquireItem for it, so
+    // catch them up here. Idempotent and a no-op without the key; delayed so
+    // the inventory is hydrated before we scan it.
+    DelayCommand(7.0, FRK_LoginCheck(oPC));
 
     DelayCommand(1.0, HgllPostEnter(oPC));
 

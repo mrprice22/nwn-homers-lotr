@@ -1,6 +1,7 @@
 #include "nw_i0_plotwizard"
 #include "bdm_include"
 #include "inc_partyloot"
+#include "q_frk_inc"
 void main()
 {
     // PLOT WIZARD MANAGED CODE BEGINS
@@ -33,6 +34,12 @@ void main()
                 AddJournalQuestEntry("glorfindel_potion", nCount + 1, oPC, FALSE, FALSE);
         }
     }
+
+    // The Forbidden Realms: the Forbidden Realms Key finally opens something.
+    // Coming by it at all (stolen from Summanus, looted, or traded) starts the
+    // quest that leads to the sealed barrow-gate in Noirinan. See q_frk_inc.
+    if (sTag == FRK_KEYTAG)
+        FRK_OnKeyAcquired(GetModuleItemAcquiredBy());
 
     // Paths of the Dead: acquiring the Flame of the West (Tag "narsil") by
     // looting it -- rather than receiving it honourably from Aragorn -- records

@@ -778,6 +778,65 @@ Both files should be updated in the same commit whenever a quest ships or change
 - **History:** `mod_enter.nss` was dead code, never wired to any event — which is why players never
   received these entries at all before the fix.
 
+### The Forbidden Realms (roadmap: `forbidden-realms-key-tier`)
+
+Public page: `QuestGuide.html#forbidden-realms`. Journal category **`frk_tombs`**, "The Forbidden
+Realms" (`@group 'Lord of the Rings'`, `@order 90`), entries 1 / 2 / 3 / 10 (10 has `End=1`).
+
+Gives the long-orphaned **Forbidden Realms Key** (`forbiddenrealmsk.uti`, Tag `ForbiddenRealmsKey`,
+carried by Summanus in `falseheaven` = "Númenor: Noirinan") a door, and opens **`gravesofthelostk`**
+("Tombs of the Lost Souls") — an area that had *zero* connections of any kind before this.
+
+| Piece | Resref |
+|---|---|
+| Include (all logic + constants) | `q_frk_inc.nss` |
+| Noirinan OnEnter wrapper (chains `ent`) | `q_frk_enter.nss` — set as `falseheaven.are` `OnEnter` |
+| Tombs OnEnter wrapper (chains `leash_to_area`) | `q_frk_tomb.nss` — set as `gravesofthelostk.are` `OnEnter` |
+| Gate placeable OnUsed | `q_frk_gate.nss` |
+| Gate placeable blueprint | `q_frk_gate.utp` (from `zep_doors012`, Plot, Useable, no inventory) |
+| Court OnDeath | `q_frk_death.nss` — chains `x2_def_ondeath`; set as `ScriptDeath` on the three court blueprints |
+| Key acquisition hook | `acquireditem_tag.nss` → `FRK_OnKeyAcquired` |
+| Retroactive login catch-up | `hgll_cliententer.nss` → `DelayCommand(7.0, FRK_LoginCheck(oPC))` |
+
+**Persistence** — campaign DB `forbiddendb`, per character (`oPC`-keyed):
+`frk_stage` 0 none / 1 key acquired / 2 gate opened / 3 tomb entered; `frk_king`, `frk_queen`,
+`frk_archer` set to 1 on each kill. Stage only advances (`FRK_SetStage` refuses to go backwards).
+
+**Barrow-court blueprints** (all previously in `unspawned_creatures.json`; constants at the top of
+`q_frk_inc.nss`, one line each to swap for a different CR variant):
+
+| Member | Resref | CR | Other variants available |
+|---|---|---|---|
+| Weathertop King | `weathertopkin003` | 454 | `weathertopking` 367, `weathertopkin002` 443, `weathertopkin004` **1514** (outlier) |
+| Weathertop Queen | `weathertopque003` | 594 | `weathertopque002` 559 |
+| Weathertop Archer | `weathertoparc002` | 337 | `weathertoparcher` 277, `weathertoparc001` 198 |
+
+**Waypoints — all admin toolset work, tracked in the roadmap item's `manual_steps`.** Everything
+no-ops gracefully until they exist (no gate spawns, no court spawns, quest sits at entry 1):
+
+| Tag | Area | Purpose |
+|---|---|---|
+| `AP_forbiddenrealmskeytier_1` | `falseheaven` | the sealed barrow-gate placeable spawns here |
+| `AP_forbiddenrealmskeytier_2` | `gravesofthelostk` | arrival point **and** the return gate |
+| `AP_forbiddenrealmskeytier_3` | `gravesofthelostk` | Weathertop King |
+| `AP_forbiddenrealmskeytier_4` | `gravesofthelostk` | Weathertop Queen |
+| `AP_forbiddenrealmskeytier_5` | `gravesofthelostk` | Weathertop Archer |
+
+**Design notes / open points:**
+
+- One gate blueprint serves both ends; direction is the local string `FRK_DEST` set at spawn time.
+  Outbound (`_1` → `_2`) demands the key; the return leg never does, so losing the key inside does
+  not entomb a player.
+- Spawn guards are **area-scoped by resref**, not module-wide by tag — the court tags
+  (`WeathertopKing` etc.) are shared with placed variants at Weathertop itself.
+- **The court re-forms** whenever a PC enters the tomb and that member is not currently standing
+  there — i.e. it respawns once cleared and left. Whether an end-game barrow-court *should* be
+  farmable this way is an open admin call; changing it is a guard swap in `FRK_SpawnCourtMember`.
+- Script-spawned creatures are **not** in `bin/gen-boss-registry.py`'s placed-instance registry, so
+  the court does not appear on the Roll of the Fallen board. If the board should track them they
+  need real placed instances instead.
+- No new loot was authored — the court drops whatever is on the blueprints.
+
 ### Unjournaled quests
 
 Several quest scripts called `AddJournalQuestEntry` with tags that had no matching journal category.
