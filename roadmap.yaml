@@ -2928,11 +2928,36 @@ ideas:
   - id: paladin-line-early
     title: "Paladin line I — Oathsworn to the West (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Paladin line.</span>"
+    date: "2026-07-18"
+    commit: 6d6c89d5231
+    notes: "<div><b>Oathsworn to the West</b> — the first three chapters (Paladin 1, 8, 15) of the Paladin class line. Hallas the Oathkeeper, an old knight of the Citadel who has outlived most of the men he swore beside, keeps his post in the Keep of Minas Tirith and still watches an eastern sky that has shown him nothing for years. He takes the <b>oath of the West</b> from any paladin who comes to it — not for Gondor's sake, he says, but so that there is one more person in the world who has said the thing out loud in front of a witness: the <b>Token of the White Tree</b> at Paladin 1, the Sealed Oath of Fealty at Paladin 8, and the <b>Sword of the Oathsworn</b> at Paladin 15. The level gates count Paladin levels only. Details: <a href=\"QuestGuide.html#oathsworn-west\">Quest Guide → Oathsworn to the West</a>.</div>"
+    impl_notes: "<div>Journal category pld_oath (@group 'Class Lines' @order 9). Giver q_pld_keep (Hallas the Oathkeeper, Paladin 30, plot/immortal, Lawful Good) in area005 (Minas Tirith: Keep); offer gated on GetLevelByClass(CLASS_TYPE_PALADIN) &gt;= 1, non-paladins get a flavour brush-off. Structurally cloned from the shipped druid-line-early template.</div><div><br></div><div>Prefix is q_pld_ rather than q_pal_ — <b>q_pal_* was already taken</b> by the Pale Master prestige quest (\"The Twenty-First Tomb\"). Worth noting for any future Paladin-line chunk.</div><div><br></div><div>Three-node one-off arc; per-character state in the pldlinedb campaign DB (key oath_stage 0-&gt;3, advance-only, so rewards are not farmable). <b>All three level gates use GetLevelByClass(CLASS_TYPE_PALADIN)</b> (&gt;=1 / &gt;=8 / &gt;=15), not GetHitDice — a deliberate tightening over the cleric/ranger/druid lines, whose L8/L15 nodes count total character level and can therefore be reached with levels taken outside the class. Follow-up: consider retrofitting those three lines to match.</div><div><br></div><div>Rewards q_pld_amul (+1 CHA amulet, BaseItem 19), q_pld_seal (plot token, BaseItem 24), q_pld_swrd (BaseItem 1 long sword, Enhancement +2 / +1 CHA, models 114/121/111). Use-Limitation:Class subtype 6 = Paladin, the same iprp_classes row order as the verified Cleric 2 / Druid 3 / Ranger 7 rows; class id 6 additionally cross-checked against creature003 (Denethor), which carries a real Paladin class entry.</div><div><br></div><div>area005 OnEnter wrapped q_pld_enter (chains the area's existing leash_to_area) -&gt; q_pld_spawn; conversation q_pld_conv, StartingConditionals q_pld_c_off/s1w/s1r/s2w/s2r/dn, reply scripts q_pld_oath/tok/rtn. DLG follows the reply-gate rule (verified programmatically). Wiring due-diligence passed: every new .nss has a proven caller, q_pld_conv is referenced by q_pld_keep's Conversation field, and the AP_paladinlineearly_1 literal is hyphen-less and byte-identical across script and manual_steps. Build passed all gates (7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors).</div><div><br></div><div>No existing Minas Tirith NPC was reused — Denethor, the Gondorian guardsmen and the Temple/Arcane shopkeepers all carry their own conversations or stores — so Hallas is authored fresh. No capstone built; the brief's Eowyn/Theoden/Witch-king material, plus its open mounted-charge and smite-scaling problems, is deferred to paladin-line-mid/endgame.</div>"
+    manual_steps:
+      - step: "Place waypoint AP_paladinlineearly_1 in area005 (Minas Tirith: Keep) — suggested spot is the parapet/wall side of the hall, facing east. Hallas the Oathkeeper is script-spawn-only and no-ops gracefully until then — the entire quest line is invisible in-game until this is placed."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "UAT gating: a Paladin in the Keep sees Hallas's offer of the oath of the West; a non-paladin gets only the civil word on the wall."
+        status: open
+        step_h: 64
+      - step: "UAT node 1: swear the oath -> journal pld_oath opens at entry 1 and the Token of the White Tree (+1 CHA) is received and is Paladin-only."
+        status: open
+        step_h: 64
+      - step: "UAT node 2: at Paladin 8 return -> journal entry 2, Sealed Oath of Fealty received as a plot item; below Paladin 8 Hallas gives the come-back-grown line instead."
+        status: open
+        step_h: 64
+      - step: "UAT node 3: at Paladin 15 return -> journal entry 3 (quest closes), seal consumed, Sword of the Oathsworn (+2 / +1 CHA long sword) received and Paladin-only."
+        status: open
+        step_h: 64
+      - step: "UAT multiclass gate: a character with 5 Paladin levels and 20 levels elsewhere is held at the come-back-grown line — the gates must count Paladin levels only, not total level."
+        status: open
+        step_h: 64
+      - step: "UAT persistence/no-farm: relog after each node and re-speak to Hallas — stages must persist via pldlinedb and never re-award an item."
+        status: open
+        step_h: 64
 
   - id: paladin-line-mid
     title: "Paladin line II — Oathsworn to the West (L22-38)"
