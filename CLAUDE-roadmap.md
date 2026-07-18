@@ -41,30 +41,80 @@ Each entry under `ideas:` is one backlog item:
 | `id` | yes | Stable unique key, lowercase-hyphen (e.g. `forge-zero-value-exploit`). Referenced by `dupe_of`. |
 | `title` | yes | The public one-line description shown on the page. This **is** the description. |
 | `group` | yes | Must match a `groups[].id` (`forge`, `combat-classes`, `bosses`, …). |
-| `status` | yes | One of the eight workflow values below. |
+| `status` | yes | One of the ten workflow values below. |
+| `type` | yes | `Defect`, `Enhancement`, or `Exploit`. Sets the merit value of a shipped item (1 / 2 / 3). |
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
 | `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. **When you ship an item, set this to today.** |
 | `commit` | no | git commit hash (short or full, e.g. `f1e0b114d7d`) of the change that shipped the item. **Add this when you ship.** Used to derive `date` for shipped items when `date` is absent. |
 | `notes` | no | Extra detail beyond the title. May contain **rich-text HTML** (bold/italic/lists/font color, and cross-idea links `<a href="#idea-<id>">`) — authored via the editor's Rich text / HTML tabs, rendered as-is on the public page. |
 | `notes_h` | no | Editor-only: remembered pixel height of that idea's Notes box. Written by the GUI when you resize; ignored by `gen-roadmap.py`. |
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
+| `design_questions` | no | **Internal — never player-visible.** List of `{question, status, answer}`; `status` is `open` or `answered`. See below. |
+| `manual_steps` | no | **Internal — never player-visible.** List of strings: toolset work only the admin can do (waypoint placement, loot placement). See below. |
 
 **Statuses** (workflow order): `awarded` (shipped, merit awarded) · `implemented`
-(shipped, in testing) · `confirmed` (actively being worked) · `wip` (queued, "Up Next") ·
-`soon` (one tier deeper) · `later` (further out still) · `planned` (under consideration) ·
-`unlikely` (logged but not likely to be implemented).
+(shipped, in testing) · `manual` (needs manual finishing — code done, admin toolset work
+outstanding) · `design` (needs design input — blocked on an admin decision) · `confirmed`
+(actively being worked) · `wip` (queued, "Up Next") · `soon` (one tier deeper) · `later`
+(further out still) · `planned` (under consideration) · `unlikely` (logged but not likely
+to be implemented).
 The badge labels live in `STATUS` in `bin/gen-roadmap.py` — the editor reads them from
 there so the two never drift, and the roadmap board orders tiers by their `rank`.
+
+### Pipeline flow
+
+```
+planned → later → soon → wip → confirmed → manual → implemented → awarded
+                                    ⇅
+                                  design
+```
+
+`design` branches off `confirmed` and returns to it once every question is answered.
+`manual` sits between `confirmed` and `implemented`.
+
+### The two internal fields
+
+`notes` is and stays the **player-facing** summary. Design questions and manual-work
+instructions must **never** go there — they belong exclusively in `design_questions` and
+`manual_steps`, which `gen-roadmap.py` deliberately does not render.
+
+```yaml
+  - id: merchant-reputation-gating
+    title: "Merchant reputation gating"
+    group: economy
+    status: design
+    type: Enhancement
+    notes: "Player-facing summary here."
+    design_questions:
+      - question: "Should the merchant refuse the quest if reputation < 0, or just charge more?"
+        status: open
+        answer: null
+    manual_steps:
+      - "Place spawn waypoint at Docks_02"
+```
+
+The admin answers questions and flips statuses; the agent only ever *adds* questions and
+steps. Validation (`bin/roadmap-editor.py`, `validate_internal_fields`) enforces the shapes
+and requires `status: design` to carry at least one `open` question — otherwise nothing
+could ever unblock it.
 
 ### Agent rules when editing `roadmap.yaml`
 
 These are hard rules — follow them exactly:
 
-- **Shipping an item → `status: implemented`, never `awarded`.** When you finish the code
-  for an item, move it to `implemented` (shipped, in testing). **Never** set `awarded` (or
-  otherwise mark an item "done") — that step credits Merit to the player and is the admin's
-  call. Leave it at `implemented` and let the user promote it manually after they verify
-  in-game.
+- **Shipping an item → `status: manual` by default, `implemented` only when certain, never
+  `awarded`.** When you finish the code for an item, it lands in `manual` (needs manual
+  finishing) with the outstanding toolset work listed in `manual_steps`. Set `implemented`
+  **only if you can confirm zero manual toolset steps remain** — if you are uncertain,
+  choose `manual`. **Never** set `awarded` (or otherwise mark an item "done") — that step
+  credits Merit to the player and is the admin's call.
+- **Blocked on a design decision → `status: design`.** If an item needs a call only the
+  admin can make (mechanics, balance, lore, pricing, UX), set `status: design` and append
+  the question(s) to `design_questions` with `status: open` and `answer: null`. **Do not**
+  demote the item to `planned`, and **leave all partial work and progress notes intact**.
+- **Resuming a `design` item is all-or-nothing.** Only resume implementation once **every**
+  entry in that item's `design_questions` has `status: answered`. Never resume partially on
+  a subset of answered questions — wait for all of them.
 - **Always record the commit hash.** When you ship an item, put the git commit hash of the
   fix in the `commit:` field (short or full, e.g. `commit: f1e0b114d7d`). Commit the code
   first, then write its hash into the item.

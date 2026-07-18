@@ -15,6 +15,8 @@ The loop talks about tiers; `roadmap.yaml` talks about statuses. Mapping:
 | Loop term | `roadmap.yaml` status |
 |---|---|
 | In progress | `confirmed` |
+| Needs design input | `design` — blocked on an admin decision; branches off `confirmed` and returns to it |
+| Needs manual finishing | `manual` — code done, admin toolset work outstanding; the **default landing state** after implementation |
 | Up next | `wip` |
 | Soon | `soon` |
 | Later | `later` |
@@ -28,7 +30,7 @@ The loop talks about tiers; `roadmap.yaml` talks about statuses. Mapping:
 The loop is designed to survive context compaction and long runs. Two rules:
 
 - **Files are the only state.** Each iteration must be executable with zero memory of the
-  previous one: `roadmap.yaml`, `admin-action-required.md`, and git are the entire loop
+  previous one: `roadmap.yaml` and git are the entire loop
   state — never depend on conversation history for what's done or in flight. Keep
   per-item exploration lean: use `module-index/` and `docs/` for lookups instead of
   reading raw `unpacked/` JSON, and don't pull large files into context when a targeted
@@ -95,8 +97,8 @@ is done — see "Stopping".
 one-line items. The subagent implements, runs the test build (step 6), and makes the
 final code commit (step 7.1), then reports back: **outcome** (`shipped` /
 `design-question` / `too-big`), the **commit hash** (if shipped), a **summary for the
-item's `notes`** including testing/UAT notes, and any **admin-action-required entries**
-(waypoints, deploy steps, design questions). The orchestrator then does the roadmap
+item's `notes`** including testing/UAT notes, any **`manual_steps`** (waypoints, deploy
+steps), and any **`design_questions`**. The orchestrator then does the roadmap
 bookkeeping (steps 4/5/7.2–7.4) from that report — it never trusts "done" without the
 subagent citing a passing build and a commit hash.
 
@@ -121,8 +123,9 @@ Two autopilot-specific rules:
     `AP_` + the roadmap item id **with hyphens stripped** (toolset tags drop them — a
     2026-07-14 mismatch left two quests spawning nothing), abbreviated if needed to
     respect tag limits, + an index, e.g. `AP_riddlegame_1` for item `riddle-game`).
-  - Log a **Toolset action** in `admin-action-required.md` (see format below) telling the
-    admin to create/place a waypoint with that tag, with a suggested area and purpose.
+  - Add a **`manual_steps`** entry on the roadmap item telling the admin to create/place a
+    waypoint with that tag, with a suggested area and purpose, and say what stays broken
+    in-game until it exists.
   - Code defensively: if the waypoint doesn't exist yet, the feature should no-op
     gracefully, not error — the build ships before the waypoint is placed.
   - *Exceptions* (these are fine): pins managed by `bin/gen-map-notes.py`, edits to
@@ -130,9 +133,8 @@ Two autopilot-specific rules:
     same area (e.g. swapping a creature at a spot that's already occupied).
 - **Server-side-dependent items.** If the item needs a server.env / NWNX flag flip, an
   Anvil C# plugin build + DLL deploy, or a server restart to take effect: implement the
-  repo-safe part fully, log the server-side step as a Toolset/admin action in
-  `admin-action-required.md`, and still ship the item as `implemented`. The admin
-  completes the deploy step later.
+  repo-safe part fully, record the server-side step as a `manual_steps` entry, and ship
+  the item as `manual`. The admin completes the deploy step later and promotes it.
 
 ### 3b. Keep `docs.manual/` in sync
 
@@ -154,7 +156,7 @@ system you just changed, and update it **in the same code commit** (step 7.1). E
   **Never** put a `dm-note`, a waypoint tag, a roadmap id, or an "admin action required" line in
   the public page — and never badge a quest as needing a waypoint there; use `Working` (the only
   other badge is `In Development`, for content that is genuinely unbuilt), and track the placement
-  in `admin-action-required.md`. Both files go in the same code commit.
+  in the item's `manual_steps`.
 - **`Customizations.html` especially** must track changes to player-facing customization
   systems (merit shop, housing, forge, gem socketing pointers, etc.) — if the item
   touches one of those, update the relevant section.
@@ -171,11 +173,17 @@ system you just changed, and update it **in the same code commit** (step 7.1). E
 If the item turns out to be under-specified, needs an admin decision (mechanics, balance,
 lore, pricing, UX), or can't be done without choices only the admin should make:
 
-1. Write the blocking question(s) into the **Design questions** section of
-   `admin-action-required.md`, referencing the item id.
-2. Append the same question(s) to the item's `notes` (keep the original text intact).
-3. Move the item to `planned` (under consideration).
+1. Set the item's `status: design`. **Never demote it to `planned`** — that loses the
+   pipeline position and hides the blocker.
+2. Append the blocking question(s) to the item's `design_questions` list, each with
+   `status: open` and `answer: null`. Put them **only** there — `notes` is player-facing.
+3. **Leave all partial work and progress notes intact.** Commit whatever partial work is
+   safe to commit (it must still build).
 4. Commit the roadmap change, then go back to step 1 and pick the next item.
+
+**Resuming a `design` item is all-or-nothing:** only pick it back up once **every** entry
+in its `design_questions` has `status: answered`. If even one is still `open`, skip it and
+choose another item — never resume partially on a subset of answered questions.
 
 ### 5. Escape hatch: too big
 
@@ -183,8 +191,8 @@ If the item is legitimate but can't be finished this iteration: append a dated p
 summary to the item's `notes`, leave it `confirmed`, commit whatever partial work is safe
 to commit (it must still build — run step 6 on partial work too), and continue it next
 iteration. Don't let one oversized item stall the whole loop for many iterations — after
-~2 stalled iterations, treat it as a design question (step 4) with a note explaining the
-scope problem.
+~2 stalled iterations, treat it as a design question (step 4), with the scope problem
+written up as the `design_questions` entry.
 
 ### 6. Test build
 
@@ -215,7 +223,11 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
    format: `<Item title or short name>: <what changed> (roadmap: <item-id>)`.
    Immediately after, update `autopilot-wip.md`: `stage: shipping`, `commit:` this hash.
 2. **Update the roadmap item** per CLAUDE-roadmap.md's agent rules:
-   - `status: implemented` (never `awarded`)
+   - `status: manual` **by default**, with every outstanding admin toolset step written
+     into `manual_steps` (one string per step: waypoint tag + area + suggested spot +
+     what spawns there + what breaks until it's placed). Set `status: implemented`
+     **only if you can confirm with certainty that zero manual toolset steps remain** —
+     when uncertain, choose `manual`. Never `awarded`.
    - `commit:` the hash from step 1
    - `date:` **always set to today's actual date** (`YYYY-MM-DD` — check the real current
      date, don't guess or leave the original report date)
@@ -230,7 +242,7 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
         `ExecuteScript`, or a module override (grep the resref to prove a caller exists);
      2. every new `.dlg` is referenced by some blueprint's `Conversation` field;
      3. every `GetWaypointByTag`/`GetObjectByTag` string literal exactly matches a real
-        `Tag` (or the tag in its `admin-action-required.md` entry) **and is hyphen-less**
+        `Tag` (or the tag in its `manual_steps` entry) **and is hyphen-less**
         (see the tag convention in "No coordinate-picking" above);
      4. for a waypoint-gated item that is **invisible in-game until the admin places the
         waypoint** (the giver NPC/placeable is script-spawn-only), say so explicitly in the
@@ -274,35 +286,24 @@ files). It can't write rich handoff notes — that needs model judgment — so t
 `notes:` line kept during step 3 is the real handoff; the hook's job is only to make sure
 nothing in the manifest is lost to an uncommitted tree.
 
-## `admin-action-required.md` (repo root)
+## Admin hand-off: `design_questions` and `manual_steps`
 
-Created and maintained by the loop; the **admin deletes entries** as they're completed —
-the agent only appends (and may update its own still-pending entries). Format:
+There is **no `admin-action-required.md`** — it was retired. Everything the admin needs to
+act on lives in the two internal fields on the roadmap item itself, so the admin can filter
+`status: design` and `status: manual` from the website service instead of reading a file.
 
-```markdown
-# Admin actions required
+- **`manual_steps`** — toolset/deploy work only the admin can do. One string per step:
+  waypoint tag + area + suggested spot + what spawns there + what stays broken until it is
+  placed. The tag MUST be hyphen-less and byte-for-byte identical to the string the script
+  looks up (item `riddle-game` → `AP_riddlegame_1`, never `AP_riddle-game_1`) — a mismatch
+  means the waypoint is placed but never found, i.e. the feature is dead on arrival. When
+  one waypoint gates many quests (e.g. a quest-hub NPC), say so and put it first, so the
+  admin places the highest-leverage one first.
+- **`design_questions`** — blocking questions, each `{question, status: open, answer: null}`.
 
-_Appended by autopilot; delete entries as you complete them._
-
-## Session summaries
-- **YYYY-MM-DD**: shipped <n> items (<ids>), moved <n> to under-consideration (<ids>),
-  <n> pending actions below.
-
-## Toolset / placement actions
-- [ ] **<roadmap-item-id>** (YYYY-MM-DD): create waypoint tag `AP_<...>` in
-  <suggested area> — <purpose>. Also: <env flip / Anvil deploy / restart step, if any>.
-  <!-- The tag here MUST be hyphen-less and byte-for-byte identical to the string the
-       script looks up (item `riddle-game` → `AP_riddlegame_1`, never `AP_riddle-game_1`).
-       A mismatch = the waypoint is placed but never found = feature dead on arrival. -->
-- [ ] **<blocks N items>**: when one waypoint gates many quests (e.g. a quest-hub NPC),
-  say so and order it first — the admin should place the highest-leverage one first.
-
-## Design questions
-- [ ] **<roadmap-item-id>** (YYYY-MM-DD): <the blocking question(s)>. Item moved to
-  under-consideration; answer and drag it back to a working lane to reactivate.
-```
-
-Every entry references the roadmap item `id` so the two stay linked.
+Never put either kind of content in `notes` — that field is player-facing. The agent only
+ever *appends* to these lists; the admin answers questions, does the work, and flips the
+status.
 
 ## Hard rules — never do these
 
@@ -315,7 +316,7 @@ Every entry references the roadmap item `id` so the two stay linked.
 - **Never publish the wiki**: `bin/refresh-homers-lotr-wiki` is allowed only as local
   validation for a wiki item; leave `docs/`/`module-index/` for the daily cycle.
 - **Never create new `ideas:` entries** in `roadmap.yaml` — even for follow-up work you
-  discover. Note follow-ups in the current item's `notes` or `admin-action-required.md`
+  discover. Note follow-ups in the current item's `notes` or `manual_steps`
   instead.
 - **Never edit the `meta:`/`redemption:`/`housing:` blocks** of `roadmap.yaml`.
 - **Never hard-code CD keys or secrets** anywhere under `unpacked/` (see CLAUDE.md — a
@@ -331,7 +332,7 @@ Stop when:
   `confirmed`/`wip`/`soon`/`later`), or
 - compute/time runs out.
 
-On stop: make sure the working tree is committed and pushed, then write a session summary
-line into `admin-action-required.md` (items shipped, items moved to under-consideration,
-count of pending admin actions) and commit that too. If running under `/autopilot`
+On stop: make sure the working tree is committed and pushed, then report the session
+summary (items shipped, items moved to `design`/`manual`, count of pending admin actions)
+in your final message — it is not written to any file. If running under `/autopilot`
 dynamic pacing, end the loop (ScheduleWakeup `stop: true`).

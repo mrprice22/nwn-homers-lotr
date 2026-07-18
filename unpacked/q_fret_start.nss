@@ -11,7 +11,7 @@ void main()
     }
 
     // Spawn the impostor in billfernyshouse. No-ops gracefully until the
-    // admin places waypoint AP_ferny_return_1 (see admin-action-required.md),
+    // admin places waypoint AP_ferny_return_1 (see the roadmap item manual_steps),
     // and never double-spawns.
     object oWP = GetWaypointByTag("AP_ferny_return_1");
     if (GetIsObjectValid(oWP) && !GetIsObjectValid(GetObjectByTag("fret_impostor")))

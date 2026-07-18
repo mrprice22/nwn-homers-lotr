@@ -3,7 +3,7 @@
 // q_pass_enter for both foothillsofthemi (giver) and mistymountainsb
 // (quartermaster). GetWaypointByTag is global, so either area's OnEnter spawns
 // whichever NPCs have a placed waypoint. No-ops until the admin places the
-// waypoints (see admin-action-required.md) and never double-spawns.
+// waypoints (see the roadmap item manual_steps) and never double-spawns.
 void main()
 {
     object oW1 = GetWaypointByTag("AP_passthepass_1");

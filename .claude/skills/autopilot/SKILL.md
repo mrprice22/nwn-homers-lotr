@@ -15,16 +15,17 @@ you're signing up for (the runbook is authoritative — read it in full before s
 2. Implement it **in a fresh `general-purpose` subagent** (fresh context per item; inline
    only for trivial one-liners) — no coordinate-picking (use hyphen-stripped
    `AP_<item-id>_<n>` waypoints — item `riddle-game` → tag `AP_riddlegame_1`, **never**
-   `AP_riddle-game_1`; the script literal and the `admin-action-required.md` entry must
-   match exactly — + `admin-action-required.md`); escape hatches for design questions (→ `planned`) and
-   oversized items. Files (`roadmap.yaml`, `admin-action-required.md`, git) are the only
-   loop state — never conversation history.
+   `AP_riddle-game_1`; the script literal and the item's `manual_steps` entry must match
+   exactly); escape hatches for design questions (→ `design` + `design_questions`, never
+   `planned`) and oversized items. Files (`roadmap.yaml`, git) are the only loop state —
+   never conversation history.
 3. Test-build with **bare `nwn-manager repack`** (never the deploy wrappers).
-4. Ship: final code commit → roadmap item to `implemented` with `commit:`, `date:` set to
+4. Ship: final code commit → roadmap item to `manual` (with `manual_steps`) — or
+   `implemented` only if zero manual toolset steps remain — with `commit:`, `date:` set to
    today's actual date, and UAT notes → `gen-roadmap.py` → commit yaml + Roadmap.html →
    push to origin/main.
-5. Repeat until only `planned`/`unlikely` items remain or compute runs out, then write a
-   session summary into `admin-action-required.md`.
+5. Repeat until only `planned`/`unlikely` items remain or compute runs out, then report a
+   session summary in your final message.
 
 Honor every **hard rule** in the runbook: never `awarded`, never deploy to / restart the
 live server, never publish the wiki, never invent new `ideas:` entries.

@@ -2,7 +2,7 @@
 // (Re)spawn helper for the whispering wretch in Bree Cave. Fired from the
 // area's OnEnter wrapper (q_rid_enter), so the wretch is always waiting by
 // the time a player crosses the cave. No-ops gracefully until the admin
-// places waypoint AP_riddlegame_1 in breecave (see admin-action-required.md)
+// places waypoint AP_riddlegame_1 in breecave (see the roadmap item manual_steps)
 // and never double-spawns. The placed Gollum boss is a separate blueprint.
 void main()
 {

@@ -13,7 +13,7 @@ Two files, one split:
   where, what you do, what you get. Quest cards carry only `Working` or `In Development` badges.
   Never put a `dm-note`, an `AP_*` waypoint tag, a script resref, a roadmap id, or an "admin action
   required" line on this page — and never badge a quest as "needs waypoint"; placement debt is
-  tracked in `admin-action-required.md`, not in player docs.
+  tracked in the roadmap item's `manual_steps` field, not in player docs.
 - **`QuestGuide-DM-Notes.md` (this file)** — the implementation half. Section order and quest names
   mirror the public page so the two can be read side by side.
 

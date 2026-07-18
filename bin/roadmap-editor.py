@@ -56,7 +56,11 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 # Field order each idea is serialized in. Only `id/title/group/status` are
 # required; the rest are emitted only when present.
 FIELD_ORDER = ["id", "title", "group", "status", "type", "player", "date",
-               "commit", "notes", "notes_h", "dupe_of"]
+               "commit", "notes", "notes_h", "dupe_of",
+               "design_questions", "manual_steps"]
+# Internal list fields — admin-only, never rendered on the public board. The
+# editor round-trips them verbatim rather than editing them.
+LIST_FIELDS = {"design_questions", "manual_steps"}
 # Fields always rendered as YAML double-quoted scalars.
 QUOTED_FIELDS = {"title", "notes", "date"}
 # Players that aren't real people but are valid credits.
@@ -362,6 +366,26 @@ def emit_scalar(field: str, value) -> str:
     return s
 
 
+def emit_list_field(field: str, val: list) -> list[str]:
+    """Emit an internal list field as a YAML block sequence under `field:`.
+
+    manual_steps is a list of strings; design_questions a list of
+    {question, status, answer} mappings. Both are internal (never rendered on
+    the public board) — see CLAUDE-roadmap.md.
+    """
+    lines = [f"    {field}:"]
+    for item in val:
+        if isinstance(item, dict):
+            lines.append(f'      - question: {dquote(str(item.get("question", "")))}')
+            lines.append(f'        status: {item.get("status", "open")}')
+            answer = item.get("answer")
+            lines.append("        answer: null" if answer in (None, "")
+                         else f"        answer: {dquote(str(answer))}")
+        else:
+            lines.append(f"      - {dquote(str(item))}")
+    return lines
+
+
 def serialize_ideas(ideas: list[dict], prefixes: dict, trailing: list[str]) -> str:
     out: list[str] = []
     for idea in ideas:
@@ -371,7 +395,14 @@ def serialize_ideas(ideas: list[dict], prefixes: dict, trailing: list[str]) -> s
         first = True
         for field in FIELD_ORDER:
             val = idea.get(field)
-            if val in (None, ""):
+            if val is None or val == "" or val == []:
+                continue
+            if field in LIST_FIELDS:
+                # id is always emitted first, so a list field is never the
+                # `- ` line; assert that rather than silently mis-indenting.
+                if first:
+                    raise ValueError(f"'{iid}': {field} cannot be the first field")
+                out.extend(emit_list_field(field, val))
                 continue
             scalar = emit_scalar(field, val)
             if first:
@@ -457,6 +488,38 @@ def write_document(ideas: list[dict], groups: list[dict] | None = None,
         raise
 
 
+def validate_internal_fields(ideas) -> list[str]:
+    """Shape checks for the admin-only design_questions / manual_steps fields."""
+    errs: list[str] = []
+    for idea in ideas or []:
+        iid = idea.get("id", "?")
+        steps = idea.get("manual_steps")
+        if steps is not None:
+            if not isinstance(steps, list):
+                errs.append(f"'{iid}': manual_steps must be a list")
+            elif any(not isinstance(s, str) or not s.strip() for s in steps):
+                errs.append(f"'{iid}': manual_steps entries must be non-empty strings")
+        qs = idea.get("design_questions")
+        if qs is not None:
+            if not isinstance(qs, list):
+                errs.append(f"'{iid}': design_questions must be a list")
+            else:
+                for q in qs:
+                    if not isinstance(q, dict) or not str(q.get("question", "")).strip():
+                        errs.append(f"'{iid}': each design_question needs a 'question'")
+                    elif q.get("status") not in ("open", "answered"):
+                        errs.append(f"'{iid}': design_question status must be "
+                                    f"open|answered, got {q.get('status')!r}")
+        # A design-blocked item must say what it's blocked on, or nothing can
+        # ever unblock it — the autopilot resume gate reads these.
+        if idea.get("status") == "design":
+            if not any(isinstance(q, dict) and q.get("status") == "open"
+                       for q in (qs or [])):
+                errs.append(f"'{iid}': status 'design' needs at least one "
+                            f"design_question with status 'open'")
+    return errs
+
+
 def extra_validate(groups, players) -> list[str]:
     """Structural checks for the editor-managed groups/players blocks."""
     errs: list[str] = []
@@ -494,7 +557,7 @@ def validate_document(ideas, groups=None, players=None) -> tuple[list[str], list
     buf = io.StringIO()
     with redirect_stderr(buf):
         errors = GEN.validate(data)
-    errors = list(errors) + extra_validate(groups, players)
+    errors = list(errors) + extra_validate(groups, players) + validate_internal_fields(ideas)
     warnings = [ln.strip() for ln in buf.getvalue().splitlines() if ln.strip()]
     return errors, warnings
 
@@ -949,7 +1012,7 @@ let view = 'board';          // 'list' | 'board' — Board is the default view
 let showCardDropdown = false; // per-card status <select> on board cards (off by default)
 // Board lanes, left→right = pipeline flow. Labels come from DATA.vocab.statuses
 // (sourced from gen-roadmap.py STATUS) so they never drift.
-const BOARD_LANES = ['planned','later','soon','wip','confirmed',
+const BOARD_LANES = ['planned','later','soon','wip','confirmed','design','manual',
                      'implemented','awarded','unlikely'];
 // Sentinel filter value: match rows whose field is empty/unset.
 const BLANK = '__BLANK__';
@@ -1544,6 +1607,7 @@ function readForm(){
   const raw = notesTab==='html' ? html.value : rich.innerHTML;
   const notes = normalizeNotes(raw);
   const notes_h = Math.round(notesVisibleEl().offsetHeight);
+  const cur = DATA.ideas[sel];
   return {
     id: $('#f_id').value.trim(),
     title: $('#f_title').value.trim(),
@@ -1556,11 +1620,15 @@ function readForm(){
     notes: notes,
     notes_h: (notes && notes_h && notes_h!==NOTES_DEFAULT_H) ? notes_h : '',
     dupe_of: $('#f_dupe').value,
+    // Internal admin-only fields: no form inputs, carried through verbatim so
+    // a GUI save never drops them (they are answered/cleared by hand in YAML).
+    design_questions: cur?.design_questions ?? null,
+    manual_steps: cur?.manual_steps ?? null,
   };
 }
 
 function pruneEmpty(o){
-  const r={}; for (const k of ['id','title','group','status','type','player','date','commit','notes','notes_h','dupe_of'])
+  const r={}; for (const k of ['id','title','group','status','type','player','date','commit','notes','notes_h','dupe_of','design_questions','manual_steps'])
     if (o[k]!=='' && o[k]!=null) r[k]=o[k];
   return r;
 }

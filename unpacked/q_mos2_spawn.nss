@@ -4,7 +4,7 @@
 // after another player dealt with them or the server rebooted.
 //
 // No-ops gracefully until the admin places the waypoints in the toolset
-// (see admin-action-required.md), and never double-spawns:
+// (see the roadmap item manual_steps), and never double-spawns:
 //   AP_millerotherson_1 (tharbadbridge)  -> Tolly the Peddler
 //   AP_millerotherson_2 (thardbadeast)   -> the cult leader
 void main()

@@ -29,7 +29,7 @@
 // Aldamir is script-spawned at the admin-placed waypoint AP_clericlineearly_1
 // (Temple of Illuvatar, templeofilluvata) by q_clr_spawn, fired from the area
 // OnEnter wrapper q_clr_enter. Everything no-ops gracefully until the waypoint
-// exists (see admin-action-required.md) and never double-spawns.
+// exists (see the roadmap item manual_steps) and never double-spawns.
 // All engine calls used here are base NWScript builtins -- no framework include.
 
 const string CLR_DB       = "clrlinedb";      // shared campaign DB

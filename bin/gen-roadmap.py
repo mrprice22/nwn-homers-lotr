@@ -38,11 +38,13 @@ STATUS = {
     "awarded":     {"label": "Shipped · Merit awarded", "cls": "shipped",  "board": "shipped", "rank": 0},
     "implemented": {"label": "Shipped · in testing",     "cls": "testing",  "board": "shipped", "rank": 1},
     "confirmed":   {"label": "In progress",                  "cls": "active",   "board": "roadmap", "rank": 0},
-    "wip":         {"label": "Up next",                      "cls": "queued",   "board": "roadmap", "rank": 1},
-    "soon":        {"label": "Soon",                         "cls": "soon",     "board": "roadmap", "rank": 2},
-    "later":       {"label": "Later",                        "cls": "later",    "board": "roadmap", "rank": 3},
-    "planned":     {"label": "Under consideration",          "cls": "planned",  "board": "roadmap", "rank": 4},
-    "unlikely":    {"label": "Not likely to implement",      "cls": "unlikely", "board": "roadmap", "rank": 5},
+    "manual":      {"label": "Needs manual finishing",       "cls": "manual",   "board": "roadmap", "rank": 1},
+    "design":      {"label": "Needs design input",           "cls": "design",   "board": "roadmap", "rank": 2},
+    "wip":         {"label": "Up next",                      "cls": "queued",   "board": "roadmap", "rank": 3},
+    "soon":        {"label": "Soon",                         "cls": "soon",     "board": "roadmap", "rank": 4},
+    "later":       {"label": "Later",                        "cls": "later",    "board": "roadmap", "rank": 5},
+    "planned":     {"label": "Under consideration",          "cls": "planned",  "board": "roadmap", "rank": 6},
+    "unlikely":    {"label": "Not likely to implement",      "cls": "unlikely", "board": "roadmap", "rank": 7},
 }
 
 # Idea kind -> (badge label, css modifier). The merit value of a *shipped*
@@ -271,6 +273,8 @@ def render_roadmap_board(groups, ideas) -> str:
 # likely to implement") is intentionally omitted here — those still show in By Category.
 ROADMAP_SUBSECTIONS = [
     ("confirmed", "In Progress"),
+    ("manual",    "Needs Manual Finishing"),
+    ("design",    "Needs Design Input"),
     ("wip",       "Up Next"),
     ("soon",      "Coming Soon"),
     ("later",     "Coming Later"),
@@ -422,6 +426,8 @@ STYLE = """  <style>
     .rm-shipped { background: rgba(40,90,50,0.16); border-color: #3a7d44; }
     .rm-testing { background: rgba(40,90,50,0.10); border-color: #3a7d44; }
     .rm-active  { background: rgba(30,90,160,0.16); border-color: #2e6fb0; }
+    .rm-manual  { background: rgba(70,110,140,0.16); border-color: #4a7a9b; }
+    .rm-design  { background: rgba(200,150,30,0.18); border-color: #b8860b; }
     .rm-queued  { background: rgba(107,58,28,0.14); border-color: var(--accent); }
     .rm-soon    { background: rgba(107,58,28,0.09); border-color: var(--accent-soft); }
     .rm-later   { background: rgba(120,120,120,0.18); border-color: var(--accent-soft); }
