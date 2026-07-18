@@ -2771,11 +2771,36 @@ ideas:
   - id: druid-line-early
     title: "Druid line I — The Breathing of the World (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Druid line. Needs Tom Bombadil + Old Man Willow NPC authoring.</span>"
+    date: "2026-07-18"
+    commit: ca197e41e9f
+    notes: "<div><b>The Breathing of the World</b> — the first three chapters (L1, L8, L15) of the Druid class line. Naldor the Green, an old Woodman of the vales of Anduin and a pupil of Radagast, keeps the trees about Rhosgobel and teaches the <b>Green Listening</b> — the craft of hearing the slow turning of leaf and root and beast that most folk never hear a note of: the <b>Amulet of the Green Listening</b> at L1, the Seed of the Elder Wood at L8, and the <b>Staff of the Breathing World</b> at L15. Details: <a href=\"QuestGuide.html#breathing-world\">Quest Guide → The Breathing of the World</a>.</div>"
+    impl_notes: "<div>Journal category drd_breath (@group 'Class Lines' @order 8). Giver q_drd_keep (Naldor the Green, Druid 30, plot/immortal) in rhosgobel; offer gated on GetLevelByClass(CLASS_TYPE_DRUID) &gt;= 1, non-druids get a flavour brush-off. Structurally cloned from the shipped ranger-line-early template.</div><div><br></div><div>Three-node one-off arc; per-character state in the drdlinedb campaign DB (key breath_stage 0-&gt;3, advance-only, so rewards are not farmable). Rewards q_drd_amul (+1 WIS amulet, BaseItem 19), q_drd_seed (plot token, BaseItem 24), q_drd_staf (BaseItem 45 quarterstaff, Enhancement +2 / +1 WIS). Use-Limitation:Class subtype 3 = Druid, consistent with the previously verified Cleric 2 / Ranger 7 rows of iprp_classes; staff model parts copied from the existing Ancient Mallorn Staff.</div><div><br></div><div>Rhosgobel OnEnter wrapped q_drd_enter (chains the area's existing leash_to_area) -&gt; q_drd_spawn; conversation q_drd_conv, StartingConditionals q_drd_c_off/s1w/s1r/s2w/s2r/dn, reply scripts q_drd_oath/tok/rtn. DLG follows the reply-gate rule (verified programmatically: Active fields hold only StartingConditionals, action scripts only in Reply Script fields). Build passed all gates (7/7 smoke tests, dialog integrity, 12 scripts compiled / 0 errors).</div><div><br></div><div>Radagast was deliberately not reused as the giver — he already exists as a shopkeeper blueprint with its own store dialog — so Naldor is authored as his pupil. No capstone built; deferred to druid-line-mid/endgame, where the brief's Tom Bombadil and Old Man Willow authoring remains available.</div>"
+    manual_steps:
+      - step: "Place waypoint AP_druidlineearly_1 in rhosgobel. Naldor the Green is script-spawn-only and no-ops gracefully until then — the entire quest line is invisible in-game until this is placed."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "UAT gating: a Druid at Rhosgobel sees Naldor's offer of the Green Listening; a non-druid gets only the civil word about the wood."
+        status: open
+        step_h: 64
+      - step: "UAT node 1: accept -> journal drd_breath opens + the druid-restricted Amulet of the Green Listening."
+        status: open
+        step_h: 64
+      - step: "UAT level gates: below L8 and below L15 Naldor turns you away."
+        status: open
+        step_h: 64
+      - step: "UAT nodes 2-3: at L8 the Seed of the Elder Wood is granted; at L15 it is consumed and the Staff of the Breathing World granted; journal advances 1->2->3(End)."
+        status: open
+        step_h: 64
+      - step: "UAT restrictions: the amulet and the staff are unusable by non-druids."
+        status: open
+        step_h: 64
+      - step: "UAT regression: the Rhosgobel leash still fires from the wrapped OnEnter (creatures stay pinned to the area)."
+        status: open
+        step_h: 64
 
   - id: druid-line-mid
     title: "Druid line II — The Breathing of the World (L22-38)"
