@@ -181,9 +181,10 @@ lore, pricing, UX), or can't be done without choices only the admin should make:
    safe to commit (it must still build).
 4. Commit the roadmap change, then go back to step 1 and pick the next item.
 
-**Resuming a `design` item is all-or-nothing:** only pick it back up once **every** entry
-in its `design_questions` has `status: answered`. If even one is still `open`, skip it and
-choose another item — never resume partially on a subset of answered questions.
+**Resuming a blocked item is all-or-nothing:** only pick it back up once **every** entry in
+its `design_questions` has `status: answered` **and** every `manual_steps` entry with
+`blocker: true` has `status: done`. If even one is still outstanding, skip it and choose
+another item — never resume partially.
 
 ### 5. Escape hatch: too big
 
@@ -292,18 +293,32 @@ There is **no `admin-action-required.md`** — it was retired. Everything the ad
 act on lives in the two internal fields on the roadmap item itself, so the admin can filter
 `status: design` and `status: manual` from the website service instead of reading a file.
 
-- **`manual_steps`** — toolset/deploy work only the admin can do. One string per step:
-  waypoint tag + area + suggested spot + what spawns there + what stays broken until it is
-  placed. The tag MUST be hyphen-less and byte-for-byte identical to the string the script
-  looks up (item `riddle-game` → `AP_riddlegame_1`, never `AP_riddle-game_1`) — a mismatch
-  means the waypoint is placed but never found, i.e. the feature is dead on arrival. When
-  one waypoint gates many quests (e.g. a quest-hub NPC), say so and put it first, so the
-  admin places the highest-leverage one first.
+- **`manual_steps`** — toolset/deploy work only the admin can do, **plus the UAT script**.
+  Each entry is `{step, status, blocker}`:
+  - `status` is `open` | `wip` | `done`; new steps are always `open`.
+  - `blocker: true` marks work the item genuinely cannot ship without — a missing waypoint
+    that makes the quest unreachable. A UAT check is **not** a blocker. Omit the flag when
+    false. Never write "Blocker:" into the step text or into `notes`; set the flag.
+  - For a waypoint step give tag + area + suggested spot + what spawns there + what stays
+    broken until it is placed. The tag MUST be hyphen-less and byte-for-byte identical to
+    the string the script looks up (item `riddle-game` → `AP_riddlegame_1`, never
+    `AP_riddle-game_1`) — a mismatch means the waypoint is placed but never found, i.e. the
+    feature is dead on arrival. When one waypoint gates many quests (e.g. a quest-hub NPC),
+    say so and put it first, so the admin places the highest-leverage one first.
+  - Write the UAT script here too, **one step per check**, not as a paragraph in `notes`.
 - **`design_questions`** — blocking questions, each `{question, status: open, answer: null}`.
+- **`impl_notes`** — the technical record: root cause, scripts/resrefs/DB tables touched,
+  design deviations, gates that passed. This is where everything that used to be written as
+  a `<b>Fixed YYYY-MM-DD:</b>` block in `notes` now goes.
 
-Never put either kind of content in `notes` — that field is player-facing. The agent only
-ever *appends* to these lists; the admin answers questions, does the work, and flips the
-status.
+`notes` is the **player-facing release note** and nothing else — a few sentences in
+release-note voice, linking to `QuestGuide.html#<anchor>` or `Customizations.html#<anchor>`
+for detail. Never put a UAT script, a resref, a script name or a design question in it. The
+agent only ever *appends* to the internal lists; the admin answers questions, does the work,
+and flips the statuses.
+
+Note the save-time gate: an item in `implemented` / `awarded` with an unfinished blocker
+step is a **validation error**. If blocking work remains, the item belongs in `manual`.
 
 ## Hard rules — never do these
 
@@ -316,7 +331,7 @@ status.
 - **Never publish the wiki**: `bin/refresh-homers-lotr-wiki` is allowed only as local
   validation for a wiki item; leave `docs/`/`module-index/` for the daily cycle.
 - **Never create new `ideas:` entries** in `roadmap.yaml` — even for follow-up work you
-  discover. Note follow-ups in the current item's `notes` or `manual_steps`
+  discover. Note follow-ups in the current item's `manual_steps` or `impl_notes`
   instead.
 - **Never edit the `meta:`/`redemption:`/`housing:` blocks** of `roadmap.yaml`.
 - **Never hard-code CD keys or secrets** anywhere under `unpacked/` (see CLAUDE.md — a

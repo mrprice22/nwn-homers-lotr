@@ -14,6 +14,7 @@ Stdlib only — no `bleach`/`lxml` dependency.
 """
 from __future__ import annotations
 
+import re
 from html import escape
 from html.parser import HTMLParser
 
@@ -35,12 +36,21 @@ ALLOWED_ATTRS = {
 
 _SAFE_URL_SCHEMES = ("http://", "https://", "mailto:")
 
+# A sibling manual page, optionally with an anchor — e.g. "QuestGuide.html#gloison".
+# Roadmap.html is copied into docs/manual/ alongside the other manual pages, so a
+# bare filename resolves correctly both there and in docs.manual/. Deliberately
+# no path separators: '/' would allow protocol-relative "//evil.com", and '..'
+# would escape the manual directory.
+_REL_PAGE = re.compile(r"^[A-Za-z0-9._-]+\.html(#[\w-]+)?$")
+
 
 def _safe_href(value: str) -> str | None:
     v = (value or "").strip()
     if v.startswith("#"):
         return v
     if v.lower().startswith(_SAFE_URL_SCHEMES):
+        return v
+    if ".." not in v and _REL_PAGE.match(v):
         return v
     return None
 

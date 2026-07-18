@@ -46,11 +46,13 @@ Each entry under `ideas:` is one backlog item:
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
 | `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. **When you ship an item, set this to today.** |
 | `commit` | no | git commit hash (short or full, e.g. `f1e0b114d7d`) of the change that shipped the item. **Add this when you ship.** Used to derive `date` for shipped items when `date` is absent. |
-| `notes` | no | Extra detail beyond the title. May contain **rich-text HTML** (bold/italic/lists/font color, and cross-idea links `<a href="#idea-<id>">`) — authored via the editor's Rich text / HTML tabs, rendered as-is on the public page. |
+| `notes` | no | **The player-facing release note.** Treat it as a production summary: what changed, from the player's point of view, in a few sentences. May contain **rich-text HTML** (bold/italic/lists/font color, cross-idea links `<a href="#idea-<id>">`, and links to a manual page such as `<a href="QuestGuide.html#gloison">`) — authored via the editor's Rich text / HTML tabs, rendered as-is on the public page. Prefer linking to the Quest Guide or Customizations for detail over spelling it out here. |
 | `notes_h` | no | Editor-only: remembered pixel height of that idea's Notes box. Written by the GUI when you resize; ignored by `gen-roadmap.py`. |
+| `impl_notes` | no | **Internal — never player-visible.** The builder's record: root cause, scripts and resrefs touched, DB tables, design deviations. Rich-text HTML, same whitelist as `notes`. This is where the technical half of a fix goes. |
+| `impl_notes_h` | no | Editor-only: remembered pixel height of the Implementation notes box. |
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
 | `design_questions` | no | **Internal — never player-visible.** List of `{question, status, answer}`; `status` is `open` or `answered`. See below. |
-| `manual_steps` | no | **Internal — never player-visible.** List of strings: toolset work only the admin can do (waypoint placement, loot placement). See below. |
+| `manual_steps` | no | **Internal — never player-visible.** List of `{step, status, blocker}`: toolset work only the admin can do (waypoint placement, loot placement) and UAT scripts. See below. |
 
 **Statuses** (workflow order): `awarded` (shipped, merit awarded) · `implemented`
 (shipped, in testing) · `manual` (needs manual finishing — code done, admin toolset work
@@ -72,11 +74,18 @@ planned → later → soon → wip → confirmed → manual → implemented → 
 `design` branches off `confirmed` and returns to it once every question is answered.
 `manual` sits between `confirmed` and `implemented`.
 
-### The two internal fields
+### The internal fields
 
-`notes` is and stays the **player-facing** summary. Design questions and manual-work
-instructions must **never** go there — they belong exclusively in `design_questions` and
-`manual_steps`, which `gen-roadmap.py` deliberately does not render.
+`notes` is and stays the **player-facing release note**. Nothing else belongs there:
+
+| Content | Field |
+|---------|-------|
+| What the player will notice, in release-note voice | `notes` |
+| Root cause, scripts, resrefs, DB tables, design deviations | `impl_notes` |
+| UAT scripts, waypoint/loot placement, admin to-dos | `manual_steps` |
+| A call only the admin can make | `design_questions` |
+
+`gen-roadmap.py` renders `notes` and deliberately renders none of the others.
 
 ```yaml
   - id: merchant-reputation-gating
@@ -84,19 +93,40 @@ instructions must **never** go there — they belong exclusively in `design_ques
     group: economy
     status: design
     type: Enhancement
-    notes: "Player-facing summary here."
+    notes: "Player-facing release note. See <a href=\"QuestGuide.html#docks\">Quest Guide</a>."
+    impl_notes: "merchant_rep_inc.nss; reputation read from repdb, cached per-area."
     design_questions:
       - question: "Should the merchant refuse the quest if reputation < 0, or just charge more?"
         status: open
         answer: null
     manual_steps:
-      - "Place spawn waypoint at Docks_02"
+      - step: "Place spawn waypoint at Docks_02"
+        status: open        # open | wip | done
+        blocker: true       # omit when false
 ```
 
-The admin answers questions and flips statuses; the agent only ever *adds* questions and
-steps. Validation (`bin/roadmap-editor.py`, `validate_internal_fields`) enforces the shapes
-and requires `status: design` to carry at least one `open` question — otherwise nothing
-could ever unblock it.
+**Manual-step states** are `open` → `wip` (started) → `done` (terminal). A step marked
+`blocker: true` is one the item genuinely cannot ship without — a missing waypoint that
+makes a quest unreachable, say, as opposed to a UAT check. Blockers sort first in the
+editor and carry a warning border. Do not write "Blocker:" into `notes` or into the step
+text; set the flag.
+
+**Heights.** Every vertically-resizable box in the editor persists its pixel height in the
+YAML — `notes_h`, `impl_notes_h`, and per-sub-item `step_h`, `question_h`, `answer_h` —
+written only when resized away from the default, and ignored by `gen-roadmap.py`.
+
+**Legacy form.** `manual_steps` was originally a plain list of strings. Those still parse
+and are upgraded to `{step, status: open, blocker: false}` on the next save, so no
+migration is needed.
+
+The admin answers questions, flips step states and flips statuses; the agent only ever
+*adds* questions and steps. Validation (`bin/roadmap-editor.py`,
+`validate_internal_fields`) enforces the shapes and two gates:
+
+- `status: design` must carry at least one `open` question — otherwise nothing could ever
+  unblock it.
+- `status: implemented` / `awarded` must have **no** unfinished blocker step. An item with
+  outstanding blocking work belongs in `manual`, which is exactly what that status means.
 
 ### Agent rules when editing `roadmap.yaml`
 
@@ -115,6 +145,11 @@ These are hard rules — follow them exactly:
 - **Resuming a `design` item is all-or-nothing.** Only resume implementation once **every**
   entry in that item's `design_questions` has `status: answered`. Never resume partially on
   a subset of answered questions — wait for all of them.
+- **Write to the right field.** Player-facing release note → `notes`. Technical record
+  (root cause, scripts, resrefs, DB tables, deviations) → `impl_notes`. UAT scripts and
+  admin toolset work → `manual_steps`, one step per check, with `blocker: true` only for
+  work the item genuinely cannot ship without. **Never** put a UAT script, a resref or a
+  "Blocker:" line into `notes`.
 - **Always record the commit hash.** When you ship an item, put the git commit hash of the
   fix in the `commit:` field (short or full, e.g. `commit: f1e0b114d7d`). Commit the code
   first, then write its hash into the item.

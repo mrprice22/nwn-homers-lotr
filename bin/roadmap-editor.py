@@ -56,13 +56,20 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 # Field order each idea is serialized in. Only `id/title/group/status` are
 # required; the rest are emitted only when present.
 FIELD_ORDER = ["id", "title", "group", "status", "type", "player", "date",
-               "commit", "notes", "notes_h", "dupe_of",
-               "design_questions", "manual_steps"]
-# Internal list fields — admin-only, never rendered on the public board. The
-# editor round-trips them verbatim rather than editing them.
+               "commit", "notes", "notes_h", "impl_notes", "impl_notes_h",
+               "dupe_of", "design_questions", "manual_steps"]
+# Internal fields — admin-only, never rendered on the public board. `notes` is
+# the player-facing release note; everything here is the builder's own record.
 LIST_FIELDS = {"design_questions", "manual_steps"}
+INTERNAL_FIELDS = LIST_FIELDS | {"impl_notes", "impl_notes_h"}
 # Fields always rendered as YAML double-quoted scalars.
-QUOTED_FIELDS = {"title", "notes", "date"}
+QUOTED_FIELDS = {"title", "notes", "impl_notes", "date"}
+# Workflow states for a manual step. `done` is terminal; only a non-done step
+# with blocker=True gates the autopilot (see CLAUDE-autopilot.md).
+STEP_STATUS = ("open", "wip", "done")
+# Persisted pixel heights of the vertically-resizable text boxes. Each is
+# emitted only when the box was resized away from its default.
+HEIGHT_KEYS = ("notes_h", "impl_notes_h", "step_h", "question_h", "answer_h")
 # Players that aren't real people but are valid credits.
 RESERVED_PLAYERS = ["community"]
 
@@ -366,23 +373,63 @@ def emit_scalar(field: str, value) -> str:
     return s
 
 
+def _emit_heights(item: dict, keys) -> list[str]:
+    """Emit the persisted textarea heights present on a hand-off sub-item."""
+    out = []
+    for key in keys:
+        val = item.get(key)
+        if isinstance(val, int) and val > 0:
+            out.append(f"        {key}: {val}")
+    return out
+
+
+def normalize_step(item) -> dict:
+    """Coerce one manual_steps entry to the canonical mapping form.
+
+    The field was originally a plain list of strings. Those still parse, and
+    upgrade to {step, status: open} on the next save — so old YAML written by
+    hand (or by an older autopilot run) keeps working with no migration pass.
+    """
+    if not isinstance(item, dict):
+        return {"step": str(item), "status": "open", "blocker": False}
+    out = {
+        "step": str(item.get("step", "")),
+        "status": item.get("status", "open"),
+        "blocker": bool(item.get("blocker", False)),
+    }
+    if isinstance(item.get("step_h"), int):
+        out["step_h"] = item["step_h"]
+    return out
+
+
+def normalize_steps(val) -> list:
+    return [normalize_step(s) for s in val] if isinstance(val, list) else val
+
+
 def emit_list_field(field: str, val: list) -> list[str]:
     """Emit an internal list field as a YAML block sequence under `field:`.
 
-    manual_steps is a list of strings; design_questions a list of
-    {question, status, answer} mappings. Both are internal (never rendered on
-    the public board) — see CLAUDE-roadmap.md.
+    manual_steps is a list of {step, status, blocker} mappings; design_questions
+    a list of {question, status, answer}. Both carry optional `*_h` textarea
+    heights. Both are internal (never rendered on the public board) — see
+    CLAUDE-roadmap.md.
     """
     lines = [f"    {field}:"]
     for item in val:
-        if isinstance(item, dict):
-            lines.append(f'      - question: {dquote(str(item.get("question", "")))}')
-            lines.append(f'        status: {item.get("status", "open")}')
-            answer = item.get("answer")
-            lines.append("        answer: null" if answer in (None, "")
-                         else f"        answer: {dquote(str(answer))}")
-        else:
-            lines.append(f"      - {dquote(str(item))}")
+        if field == "manual_steps":
+            item = normalize_step(item)
+            lines.append(f'      - step: {dquote(item["step"])}')
+            lines.append(f'        status: {item["status"]}')
+            if item["blocker"]:
+                lines.append("        blocker: true")
+            lines.extend(_emit_heights(item, ("step_h",)))
+            continue
+        lines.append(f'      - question: {dquote(str(item.get("question", "")))}')
+        lines.append(f'        status: {item.get("status", "open")}')
+        answer = item.get("answer")
+        lines.append("        answer: null" if answer in (None, "")
+                     else f"        answer: {dquote(str(answer))}")
+        lines.extend(_emit_heights(item, ("question_h", "answer_h")))
     return lines
 
 
@@ -497,8 +544,23 @@ def validate_internal_fields(ideas) -> list[str]:
         if steps is not None:
             if not isinstance(steps, list):
                 errs.append(f"'{iid}': manual_steps must be a list")
-            elif any(not isinstance(s, str) or not s.strip() for s in steps):
-                errs.append(f"'{iid}': manual_steps entries must be non-empty strings")
+            else:
+                for s in steps:
+                    # A bare string is the legacy form — valid, upgraded on save.
+                    if isinstance(s, str):
+                        if not s.strip():
+                            errs.append(f"'{iid}': manual_steps entries must be "
+                                        f"non-empty")
+                        continue
+                    if not isinstance(s, dict) or not str(s.get("step", "")).strip():
+                        errs.append(f"'{iid}': each manual_step needs a 'step'")
+                    elif s.get("status") not in STEP_STATUS:
+                        errs.append(f"'{iid}': manual_step status must be "
+                                    f"{'|'.join(STEP_STATUS)}, got "
+                                    f"{s.get('status')!r}")
+                    elif not isinstance(s.get("blocker", False), bool):
+                        errs.append(f"'{iid}': manual_step blocker must be "
+                                    f"true/false")
         qs = idea.get("design_questions")
         if qs is not None:
             if not isinstance(qs, list):
@@ -517,7 +579,46 @@ def validate_internal_fields(ideas) -> list[str]:
                        for q in (qs or [])):
                 errs.append(f"'{iid}': status 'design' needs at least one "
                             f"design_question with status 'open'")
+        # An item can't be on the shipped board while a blocking manual step is
+        # still outstanding — that's exactly what status 'manual' is for.
+        if idea.get("status") in ("implemented", "awarded"):
+            n = len(open_blockers(idea))
+            if n:
+                errs.append(f"'{iid}': status '{idea['status']}' with {n} "
+                            f"unfinished blocker manual_step(s) — finish them "
+                            f"or set status 'manual'")
+        errs.extend(_height_errors(iid, idea))
     return errs
+
+
+def _height_errors(iid: str, idea: dict) -> list[str]:
+    """Persisted textarea heights must be positive ints wherever they appear."""
+    errs = []
+    items = [idea] + list(idea.get("design_questions") or []) \
+                   + [s for s in (idea.get("manual_steps") or [])
+                      if isinstance(s, dict)]
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        for key in HEIGHT_KEYS:
+            val = item.get(key)
+            if val is not None and (not isinstance(val, int)
+                                    or isinstance(val, bool) or val <= 0):
+                errs.append(f"'{iid}': {key} must be a positive integer, "
+                            f"got {val!r}")
+    return errs
+
+
+def open_blockers(idea: dict) -> list[dict]:
+    """Manual steps flagged as blockers that aren't done yet.
+
+    Shared by the save-time gate, the editor's hand-off badge, and the autopilot
+    resume rule — see CLAUDE-autopilot.md. Legacy bare-string steps are never
+    blockers (the flag didn't exist when they were written).
+    """
+    return [s for s in (idea.get("manual_steps") or [])
+            if isinstance(s, dict) and s.get("blocker")
+            and s.get("status") != "done"]
 
 
 def extra_validate(groups, players) -> list[str]:
@@ -737,11 +838,27 @@ class Handler(BaseHTTPRequestHandler):
                     except (TypeError, ValueError):
                         pass
         for it in ideas:
-            if str(it.get("notes_h", "")).strip() != "":
-                try:
-                    it["notes_h"] = int(float(it["notes_h"]))
-                except (TypeError, ValueError):
-                    it.pop("notes_h", None)
+            # Heights arrive as JS numbers/strings; coerce to int, and drop the
+            # key entirely rather than persisting junk that would fail validation.
+            # Must run BEFORE normalize_steps, which keeps step_h only when it is
+            # already an int and would otherwise discard the browser's float.
+            for holder in ([it] + list(it.get("design_questions") or [])
+                           + [s for s in (it.get("manual_steps") or [])
+                              if isinstance(s, dict)]):
+                for key in HEIGHT_KEYS:
+                    if key not in holder:
+                        continue
+                    if str(holder.get(key, "")).strip() == "":
+                        holder.pop(key, None)
+                        continue
+                    try:
+                        holder[key] = int(float(holder[key]))
+                    except (TypeError, ValueError):
+                        holder.pop(key, None)
+            if it.get("manual_steps"):
+                it["manual_steps"] = normalize_steps(it["manual_steps"])
+            if it.get("impl_notes"):
+                it["impl_notes"] = sanitize_notes(it["impl_notes"])
             # Strip any pasted chrome (e.g. Discord DOM) down to the whitelist
             # so the YAML — and every regenerate/publish from it — stays clean.
             if it.get("notes"):
@@ -900,6 +1017,14 @@ PAGE = r"""<!doctype html>
   .ho-badge { display:inline-block; padding:0 6px; border-radius:999px;
     border:1px solid var(--line); font-size:11px; font-weight:600; }
   .ho-gate { color:var(--warn); margin-top:6px; }
+  /* An unfinished blocker step holds the item back, like an open question. */
+  .ho-item.ho-block { border-left:3px solid var(--err); }
+  .ho-flag { display:flex; align-items:center; gap:4px; font-size:12px;
+    color:var(--mut); white-space:nowrap; }
+  .ho-flag input { width:auto; margin:0; }
+  .ho-item textarea, #f_impl_notes { resize:vertical; }
+  #f_impl_notes { min-height:96px; height:96px; font-family:monospace;
+    font-size:12px; width:100%; }
   .filters { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
   .filters select { padding:5px 7px; font-size:12px; }
   .filters .full { grid-column:1 / -1; }
@@ -1264,7 +1389,8 @@ function select(i){
     </div>
     <label>id (stable key; lowercase-hyphen)</label>
     <input id="f_id" value="${esc(it.id||'')}">
-    <label>Notes (extra detail, optional)</label>
+    <label>Notes <span class="small">&mdash; player-facing release note, shown on
+      the public roadmap. Keep it high level; link to a manual page for detail.</span></label>
     <div class="tabs">
       <button type="button" class="tab active" id="tab_rich" data-tab="rich">Rich text</button>
       <button type="button" class="tab" id="tab_html" data-tab="html">HTML</button>
@@ -1288,6 +1414,11 @@ function select(i){
       <textarea id="f_notes_html" style="display:none"></textarea>
     </div>
     <div id="handoff"></div>
+    <div class="ho-panel">
+      <label>Implementation notes <span class="small">(internal &mdash; never shown
+        on the public roadmap). HTML source; resrefs, scripts, DB tables, why.</span></label>
+      <textarea id="f_impl_notes" placeholder="What was actually built, and where."></textarea>
+    </div>
     <div class="bar">
       <button class="primary" id="save">Save</button>
       <button id="regen">Save &amp; regenerate HTML</button>
@@ -1305,6 +1436,7 @@ function select(i){
   bindPlayerHint();
   initNotes(it);
   initHandoff(it);
+  initImplNotes(it);
   renderMerit(it.player||'');
   renderMeritIngame(it.player||'');
   $('#f_player').addEventListener('input', e=>{
@@ -1618,23 +1750,67 @@ function bindPlayerHint(){
   inp.oninput = check; check();
 }
 
+// ---- Implementation notes (internal) --------------------------------------
+// Plain HTML source rather than the WYSIWYG widget above: this field holds
+// resrefs, script names and DB tables, which read better as monospace source.
+// Sanitized by the same whitelist on save, and never rendered publicly.
+const IMPL_DEFAULT_H = 96;
+
+function initImplNotes(it){
+  const ta = $('#f_impl_notes'); if(!ta) return;
+  ta.value = it.impl_notes || '';
+  ta.style.height = ((it.impl_notes_h && it.impl_notes_h>0)
+    ? it.impl_notes_h : IMPL_DEFAULT_H) + 'px';
+}
+
 // ---- Admin hand-off panel: design_questions + manual_steps -----------------
 // These are the admin's to-do surface (the retired admin-action-required.md).
 // They are internal: never rendered on the public board, edited only here.
 let HO = {design_questions: [], manual_steps: []};
 
+const HO_DEFAULT_H = 48;           // px; the old rows="2"
+const STEP_LABEL = {open:'Open', wip:'In progress', done:'Complete'};
+
+// A blocker step that isn't Complete holds the item back, exactly as an open
+// design question does. Mirrors open_blockers() in the Python half.
+function isOpenBlocker(s){ return !!s.blocker && s.status!=='done'; }
+
+function hpx(v){ return ((v && v>0) ? v : HO_DEFAULT_H) + 'px'; }
+
 function initHandoff(it){
   HO = {
     design_questions: (it.design_questions||[]).map(q=>({
-      question: q.question||'', status: q.status||'open', answer: q.answer??null})),
-    manual_steps: (it.manual_steps||[]).slice(),
+      question: q.question||'', status: q.status||'open', answer: q.answer??null,
+      question_h: q.question_h||null, answer_h: q.answer_h||null})),
+    // Legacy bare-string steps upgrade to the mapping form on load.
+    manual_steps: (it.manual_steps||[]).map(s=>
+      (typeof s === 'string')
+        ? {step:s, status:'open', blocker:false, step_h:null}
+        : {step:s.step||'', status:s.status||'open', blocker:!!s.blocker,
+           step_h:s.step_h||null}),
   };
   renderHandoff();
 }
 
+// Capture the live textarea heights back into HO before anything that destroys
+// the DOM (a re-render) or reads the model (a save) — otherwise a resize is lost.
+function syncHandoffHeights(){
+  const el = $('#handoff'); if(!el) return;
+  const grab = (sel, key) => el.querySelectorAll(sel).forEach(t=>{
+    const list = key==='step_h' ? HO.manual_steps : HO.design_questions;
+    const item = list[+t.dataset.i]; if(!item) return;
+    const h = Math.round(t.offsetHeight);
+    item[key] = (h && h!==HO_DEFAULT_H) ? h : null;
+  });
+  grab('.ho-qt','question_h'); grab('.ho-qa','answer_h'); grab('.ho-st','step_h');
+}
+
 function renderHandoff(){
   const el = $('#handoff'); if(!el) return;
+  syncHandoffHeights();
   const open = HO.design_questions.filter(q=>q.status==='open').length;
+  const blocked = HO.manual_steps.filter(isOpenBlocker).length;
+  const todo = HO.manual_steps.filter(s=>s.status!=='done').length;
   const qs = HO.design_questions.map((q,i)=>`
     <div class="ho-item ${q.status==='open'?'ho-open':'ho-done'}">
       <div class="ho-row">
@@ -1645,19 +1821,35 @@ function renderHandoff(){
         <button type="button" class="ho-del" data-kind="q" data-i="${i}"
                 title="Delete this question">&times;</button>
       </div>
-      <textarea class="ho-qt" data-i="${i}" rows="2"
+      <textarea class="ho-qt" data-i="${i}" style="height:${hpx(q.question_h)}"
                 placeholder="The blocking question">${esc(q.question)}</textarea>
-      <textarea class="ho-qa" data-i="${i}" rows="2"
+      <textarea class="ho-qa" data-i="${i}" style="height:${hpx(q.answer_h)}"
                 placeholder="Your answer (fill in, then set Answered)">${esc(q.answer||'')}</textarea>
     </div>`).join('');
-  const ms = HO.manual_steps.map((s,i)=>`
-    <div class="ho-item">
+  // Blockers first, then anything unfinished, then completed steps.
+  const order = HO.manual_steps
+    .map((s,i)=>[i,s])
+    .sort((a,b)=>(isOpenBlocker(b[1])-isOpenBlocker(a[1]))
+              || ((a[1].status==='done')-(b[1].status==='done')));
+  const ms = order.map(([i,s])=>`
+    <div class="ho-item ${isOpenBlocker(s)?'ho-block':(s.status==='done'?'ho-done':'')}">
       <div class="ho-row">
+        <select class="ho-ss" data-i="${i}">
+          ${Object.entries(STEP_LABEL).map(([v,l])=>
+            `<option value="${v}"${s.status===v?' selected':''}>${l}</option>`).join('')}
+        </select>
+        <label class="ho-flag" title="Holds the item back until Complete">
+          <input type="checkbox" class="ho-sb" data-i="${i}"${s.blocker?' checked':''}>
+          Blocker</label>
         <button type="button" class="ho-del" data-kind="s" data-i="${i}"
-                title="Done — remove this step">&check;</button>
-        <textarea class="ho-st" data-i="${i}" rows="2">${esc(s)}</textarea>
+                title="Delete this step">&times;</button>
       </div>
+      <textarea class="ho-st" data-i="${i}"
+                style="height:${hpx(s.step_h)}">${esc(s.step)}</textarea>
     </div>`).join('');
+  const gates = [];
+  if(open) gates.push(`${open} unanswered design question${open>1?'s':''}`);
+  if(blocked) gates.push(`${blocked} unfinished blocker step${blocked>1?'s':''}`);
   el.innerHTML = `
     <div class="ho-panel">
       <div class="ho-head">Admin hand-off <span class="small">(internal — never shown
@@ -1666,26 +1858,33 @@ function renderHandoff(){
       ${qs||'<p class="small">None.</p>'}
       <button type="button" id="ho_addq">+ Add question</button>
       <label style="margin-top:10px">Manual steps
-        ${HO.manual_steps.length?`<span class="ho-badge">${HO.manual_steps.length}</span>`:''}</label>
+        ${todo?`<span class="ho-badge">${todo} to do</span>`:''}
+        ${blocked?`<span class="ho-badge">${blocked} blocking</span>`:''}</label>
       ${ms||'<p class="small">None.</p>'}
       <button type="button" id="ho_adds">+ Add step</button>
-      ${open?`<p class="small ho-gate">Autopilot will not resume this item until every
-        question is Answered.</p>`:''}
+      ${gates.length?`<p class="small ho-gate">Autopilot will not resume this item:
+        ${gates.join(' and ')}.</p>`:''}
     </div>`;
   $('#ho_addq').onclick = ()=>{
     HO.design_questions.push({question:'', status:'open', answer:null}); renderHandoff(); };
-  $('#ho_adds').onclick = ()=>{ HO.manual_steps.push(''); renderHandoff(); };
+  $('#ho_adds').onclick = ()=>{
+    HO.manual_steps.push({step:'', status:'open', blocker:false}); renderHandoff(); };
   el.querySelectorAll('.ho-qs').forEach(s=>s.onchange = e=>{
     HO.design_questions[+e.target.dataset.i].status = e.target.value; renderHandoff(); });
+  el.querySelectorAll('.ho-ss').forEach(s=>s.onchange = e=>{
+    HO.manual_steps[+e.target.dataset.i].status = e.target.value; renderHandoff(); });
+  el.querySelectorAll('.ho-sb').forEach(c=>c.onchange = e=>{
+    HO.manual_steps[+e.target.dataset.i].blocker = e.target.checked; renderHandoff(); });
   // Mutate in place on input; do NOT re-render (it would steal focus mid-typing).
   el.querySelectorAll('.ho-qt').forEach(t=>t.oninput = e=>{
     HO.design_questions[+e.target.dataset.i].question = e.target.value; });
   el.querySelectorAll('.ho-qa').forEach(t=>t.oninput = e=>{
     HO.design_questions[+e.target.dataset.i].answer = e.target.value; });
   el.querySelectorAll('.ho-st').forEach(t=>t.oninput = e=>{
-    HO.manual_steps[+e.target.dataset.i] = e.target.value; });
+    HO.manual_steps[+e.target.dataset.i].step = e.target.value; });
   el.querySelectorAll('.ho-del').forEach(b=>b.onclick = e=>{
     const i = +e.target.dataset.i;
+    syncHandoffHeights();
     if(e.target.dataset.kind==='q') HO.design_questions.splice(i,1);
     else HO.manual_steps.splice(i,1);
     renderHandoff(); });
@@ -1693,11 +1892,16 @@ function renderHandoff(){
 
 // Drop blanks so an empty row never trips validation, and normalize answer.
 function handoffOut(){
+  syncHandoffHeights();
+  const keepH = (o,src,keys)=>{ keys.forEach(k=>{ if(src[k]) o[k]=src[k]; }); return o; };
   const qs = HO.design_questions
     .filter(q=>(q.question||'').trim())
-    .map(q=>({question:q.question.trim(), status:q.status,
-              answer:(q.answer||'').trim()||null}));
-  const ms = HO.manual_steps.map(s=>s.trim()).filter(Boolean);
+    .map(q=>keepH({question:q.question.trim(), status:q.status,
+                   answer:(q.answer||'').trim()||null}, q, ['question_h','answer_h']));
+  const ms = HO.manual_steps
+    .filter(s=>(s.step||'').trim())
+    .map(s=>keepH({step:s.step.trim(), status:s.status, blocker:!!s.blocker},
+                  s, ['step_h']));
   return {design_questions: qs.length?qs:null, manual_steps: ms.length?ms:null};
 }
 
@@ -1707,6 +1911,9 @@ function readForm(){
   const raw = notesTab==='html' ? html.value : rich.innerHTML;
   const notes = normalizeNotes(raw);
   const notes_h = Math.round(notesVisibleEl().offsetHeight);
+  const implEl = $('#f_impl_notes');
+  const impl = normalizeNotes(implEl ? implEl.value : '');
+  const impl_h = implEl ? Math.round(implEl.offsetHeight) : 0;
   const ho = handoffOut();
   return {
     id: $('#f_id').value.trim(),
@@ -1719,6 +1926,8 @@ function readForm(){
     commit: $('#f_commit').value.trim(),
     notes: notes,
     notes_h: (notes && notes_h && notes_h!==NOTES_DEFAULT_H) ? notes_h : '',
+    impl_notes: impl,
+    impl_notes_h: (impl && impl_h && impl_h!==IMPL_DEFAULT_H) ? impl_h : '',
     dupe_of: $('#f_dupe').value,
     // Internal admin-only fields, edited in the hand-off panel below Notes.
     design_questions: ho.design_questions,
@@ -1727,7 +1936,7 @@ function readForm(){
 }
 
 function pruneEmpty(o){
-  const r={}; for (const k of ['id','title','group','status','type','player','date','commit','notes','notes_h','dupe_of','design_questions','manual_steps'])
+  const r={}; for (const k of ['id','title','group','status','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'])
     if (o[k]!=='' && o[k]!=null) r[k]=o[k];
   return r;
 }
