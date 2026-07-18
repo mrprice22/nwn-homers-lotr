@@ -180,6 +180,17 @@ _Appended by autopilot; delete entries as you complete them._
   <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
        q_wiz_inc.nss / q_wiz_spawn.nss: AP_wizardlineearly_1 -->
 
+- [ ] **cleric-line-early** (2026-07-17): create waypoint tag `AP_clericlineearly_1` in
+  `templeofilluvata` (Temple of Illuvatar — somewhere sensible by the altar / the Secret Fire,
+  clear of the entrance and any existing NPCs) — spawn point for `q_clr_keep` (Aldamir, Keeper of
+  the Flame, the Cleric class-line I giver; plot/immortal keeper). Spawned by `q_clr_spawn` from
+  the Temple of Illuvatar OnEnter wrapper `q_clr_enter` (which chains the area's existing
+  `leash_to_area` handler); scripts no-op gracefully until the waypoint exists and never
+  double-spawn. Until placed, "The Flame of Anor" (Cleric line I, nodes L1/8/15) is invisible
+  in-game. Cleric-only offer; non-clerics get a flavour blessing.
+  <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
+       q_clr_inc.nss / q_clr_spawn.nss: AP_clericlineearly_1 -->
+
 - [ ] **blackguard-quest** (2026-07-17): _conditional, verify-then-maybe-fix (no new placement)._
   The Blackguard fall-rite reuses the existing torture-rack in `baraddurkeep` (instance 94 of
   `plc_torture1`, retagged `BkgFallAltar`, `Static:0` + `OnUsed q_bkg_altar`) — the same

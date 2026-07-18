@@ -160,6 +160,7 @@
             <li><a href="#unbroken-shield">The Unbroken Shield (Fighter line I)</a></li>
             <li><a href="#long-shadow">The Long Shadow (Rogue line I)</a></li>
             <li><a href="#colour-of-power">The Colour of Power (Wizard line I)</a></li>
+            <li><a href="#flame-of-anor">The Flame of Anor (Cleric line I)</a></li>
             <li><a href="#pass-the-pass">Pass the Pass</a></li>
             <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
@@ -823,6 +824,56 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
   properties use verified stock encodings (Enhancement / Ability&nbsp;INT bonus +
   Use&nbsp;Limitation:&nbsp;Class Wizard, subtype&nbsp;10); no CR&gt;60 boss was touched.</div>
+</div>
+
+<!-- THE FLAME OF ANOR — CLERIC LINE I -->
+<div class="quest-card" id="flame-of-anor">
+  <h3>The Flame of Anor &mdash; Cleric line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>clr_anor</code></span>
+    <span>Giver: Aldamir, Keeper of the Flame, <a href="../areas/templeofilluvata.html">Temple of Illuvatar</a></span>
+    <span>Requires: 1+ Cleric level (non-clerics get only a flavour blessing)</span>
+    <span>Reward: Acolyte's Censer-Amulet (<code>q_clr_amul</code>, +1 WIS, Cleric-only) at the start,
+      and the Mace of the Kindled Flame (<code>q_clr_mace</code>, +2 / +1 WIS light mace, Cleric-only)
+      at the end</span>
+  </div>
+  <p>The first, early chunk of the <strong>Cleric class line</strong>. Aldamir, Keeper of the Flame, tends
+  the Secret Fire in the Temple of Illuvatar &mdash; <strong>the Flame of Anor</strong>, a splinter of the
+  sacred fire the faithful set against the Shadow. He offers any cleric its tending. The arc is a one-off,
+  three-node progression gated by level: take up the tending at level&nbsp;1, receive the Reliquary of the
+  Kindled Ember to keep and carry abroad at level&nbsp;8, and bring it home to be kindled into a mace at
+  level&nbsp;15. (The greater consecrations &mdash; the aura of Narya and gifts beyond it &mdash; are
+  <em>later</em> content, foreshadowed here but not part of this early line.)</p>
+
+  <strong>How to start:</strong> Speak to <strong>Aldamir, Keeper of the Flame</strong> in the Temple of
+  Illuvatar as a character with at least one Cleric level, and take up the tending.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li><strong>Node 1 (level 1):</strong> Take up the tending &mdash; <code>q_clr_oath</code> opens the
+      journal and gives the <em>Acolyte's Censer-Amulet</em> (+1 WIS, Cleric-only). Aldamir sends you off to
+      grow to level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Aldamir entrusts you with the <em>Reliquary of the
+      Kindled Ember</em> (<code>q_clr_ember</code>, a plot item) to keep and carry until level&nbsp;15
+      &mdash; <code>q_clr_tok</code> advances the journal.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the reliquary back; he kindles its ember into the
+      <em>Mace of the Kindled Flame</em> (+2 / +1 WIS light mace, Cleric-only) &mdash; <code>q_clr_rtn</code>
+      consumes the reliquary, gives the mace and closes the journal (End). The greater consecrations are
+      foreshadowed for a later chunk.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>cleric-line-early</code>) &mdash; scripted and
+  built, pending in-game UAT. One-off state is per-character in the <code>clrlinedb</code> campaign
+  DB (key <code>flame_stage</code>, 0&ndash;3; see <code>q_clr_inc.nss</code>); the stage only
+  advances, so rewards are not farmable. The Cleric gate is
+  <code>GetLevelByClass(CLASS_TYPE_CLERIC) &ge; 1</code>; the L8/L15 gates are total character level.
+  Aldamir (<code>q_clr_keep</code>, plot/immortal keeper) is script-spawned by
+  <code>q_clr_spawn</code> from the Temple of Illuvatar OnEnter wrapper <code>q_clr_enter</code> (which
+  chains the area's existing <code>leash_to_area</code> handler). <strong>The waypoint
+  <code>AP_clericlineearly_1</code> must be placed in <code>templeofilluvata</code> before Aldamir
+  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
+  properties use verified stock encodings (Enhancement / Ability&nbsp;WIS bonus +
+  Use&nbsp;Limitation:&nbsp;Class Cleric, subtype&nbsp;2); no CR&gt;60 boss was touched.</div>
 </div>
 
 <!-- PASS THE PASS -->
