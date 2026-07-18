@@ -264,6 +264,35 @@ Both files should be updated in the same commit whenever a quest ships or change
   Willow authoring is untouched and remains available for the mid/endgame chunks.
 - **UAT:** scripted and built, pending waypoint placement and in-game UAT.
 
+### Oathsworn to the West — Paladin line I
+
+- **Journal tag:** `pld_oath` (`@group 'Class Lines'`, `@order 9`)
+- **Roadmap:** `paladin-line-early` (added 2026-07-18)
+- **State:** `pldlinedb` campaign DB (key `oath_stage`, 0–3; see `q_pld_inc.nss`).
+- **Gates:** `GetLevelByClass(CLASS_TYPE_PALADIN)` for **all three** nodes (>= 1 / >= 8 / >= 15) —
+  unlike the earlier class lines, the L8/L15 gates are Paladin **class** levels, not total hit dice,
+  so a multiclass cannot buy the rewards with levels taken elsewhere.
+- **Scripts:** `q_pld_oath`, `q_pld_tok`, `q_pld_rtn`; StartingConditionals `q_pld_c_off`,
+  `q_pld_c_s1w`, `q_pld_c_s1r`, `q_pld_c_s2w`, `q_pld_c_s2r`, `q_pld_c_dn`.
+- **Blueprints:** Hallas the Oathkeeper (`q_pld_keep`, Paladin 30, plot/immortal, LG, conversation
+  `q_pld_conv`) script-spawned by `q_pld_spawn` from the Minas Tirith: Keep OnEnter wrapper
+  `q_pld_enter` (chains the area's existing `leash_to_area` handler on `area005`).
+- **Waypoints:** `AP_paladinlineearly_1` in `area005` (Minas Tirith: Keep). **Hallas is spawn-only —
+  the whole line is invisible in-game until this waypoint is placed.**
+- **Items:** `q_pld_amul` (amulet, BaseItem 19, +1 CHA), `q_pld_seal` (plot token, BaseItem 24),
+  `q_pld_swrd` (long sword, BaseItem 1, Enhancement +2 / +1 CHA, model 114/121/111). All use
+  Use Limitation: Class Paladin, subtype 6 — the same `iprp_classes` row order as the confirmed
+  Cleric 2 / Druid 3 / Ranger 7 entries; class id 6 also cross-checked against `creature003`
+  (Denethor), which carries a real Paladin class entry.
+- **Note on prefix:** `q_pal_*` was already taken by the Pale Master prestige quest
+  ("The Twenty-First Tomb"), so this line uses `q_pld_*`.
+- **Notes:** structurally cloned from the shipped `druid-line-early` template (`q_drd_*`). No existing
+  Minas Tirith NPC was reused — Denethor, the Gondorian guardsmen and the Temple/Arcane shopkeepers all
+  have their own conversations or stores — so Hallas is authored fresh. The design brief's Eowyn /
+  Theoden / Witch-king material and the mounted-charge and smite-scaling problems are untouched and
+  remain open for the mid/endgame chunks.
+- **UAT:** scripted and built, pending waypoint placement and in-game UAT.
+
 ### Pass the Pass
 
 - **Journal tag:** `pass_pass`

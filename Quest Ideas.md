@@ -165,6 +165,9 @@ authoring conventions, and the module compatibility audit.
 > "Aura +2 saves all" (Narya): stock only covers specific subtypes. Generic +2 needs OnEquip persistent AoE script.
 
 ### Paladin — Oath-Sworn to the West
+> **Early nodes (L1/8/15) SHIPPED 2026-07-18** as `paladin-line-early` — Hallas the Oathkeeper at
+> `area005` (Minas Tirith: Keep), journal `pld_oath`. See QuestGuide-DM-Notes.md. Notes below remain
+> live for the mid/endgame chunks.
 > Areas: `minastirith`, `minastirithgates`, `edoras`, `theodenshall`, `dunharrow`, `helmsdeep001`,
 > `thepelennorfield`, `osgilbridge`. Eowyn: `eowyntheshieldma.utc.json`. Theoden: `theoden002.utc.json`.
 > Witch King: `witchking.utc.json`.
