@@ -157,6 +157,7 @@
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#concerning-hobbits">Concerning Hobbits</a></li>
+            <li><a href="#unbroken-shield">The Unbroken Shield (Fighter line I)</a></li>
             <li><a href="#pass-the-pass">Pass the Pass</a></li>
             <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
@@ -670,6 +671,55 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   table live in <code>q_hob_inc.nss</code>. The &ldquo;Bag End housing access&rdquo; reward from the
   original idea is deferred to the admin as a design question &mdash; this ships the working quiz
   with a concrete gold/XP/keepsake payout instead.</div>
+</div>
+
+<!-- THE UNBROKEN SHIELD — FIGHTER LINE I -->
+<div class="quest-card" id="unbroken-shield">
+  <h3>The Unbroken Shield &mdash; Fighter line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>ftr_shield</code></span>
+    <span>Giver: Hallas the Shieldwarden, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
+    <span>Requires: 1+ Fighter level (non-fighters get only a flavour greeting)</span>
+    <span>Reward: Warden's Buckler (<code>q_ftr_buckl</code>, small shield +1, Fighter-only) at the oath,
+      and the Warden's Reforged Blade (<code>q_ftr_blade</code>, longsword +2, Fighter-only) at the end</span>
+  </div>
+  <p>The first, early chunk of the <strong>Fighter class line</strong>. Hallas the Shieldwarden, a grey
+  veteran of Gondor's Guard who keeps a corner of the Prancing Pony, offers any fighter the old
+  <strong>oath of the Unbroken Shield</strong> &mdash; to hold the line when it would break, and to
+  stand for those who cannot. The arc is a one-off, three-node progression gated by level: swear the
+  oath at level&nbsp;1, take up a fallen captain's broken blade at level&nbsp;8, and bring it back to be
+  reforged whole at level&nbsp;15. (The heroic finale &mdash; the Aeglos Reborn spear and the Osgiliath
+  wave-defence &mdash; is later-tier content, not part of this early line.)</p>
+
+  <strong>How to start:</strong> Speak to <strong>Hallas the Shieldwarden</strong> in the Prancing Pony
+  as a character with at least one Fighter level, and swear the oath.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li><strong>Node 1 (level 1):</strong> Swear the oath &mdash; <code>q_ftr_oath</code> opens the
+      journal and gives the <em>Warden's Buckler</em> (+1 AC, Fighter-only). Hallas sends you off to grow
+      to level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Hallas entrusts you with the <em>Notched Captain's
+      Shard</em> (<code>q_ftr_shard</code>, a plot item) to bear until level&nbsp;15 &mdash;
+      <code>q_ftr_shrd</code> advances the journal.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the shard back; his smith reforges it into the
+      <em>Warden's Reforged Blade</em> (longsword +2, Fighter-only) &mdash; <code>q_ftr_forge</code>
+      consumes the shard, gives the blade and closes the journal (End). The line's later, harder oaths
+      are foreshadowed for a future chunk.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>fighter-line-early</code>) &mdash; scripted and
+  built, pending in-game UAT. One-off state is per-character in the <code>fighterlinedb</code> campaign
+  DB (key <code>ubshield_stage</code>, 0&ndash;3; see <code>q_ftr_inc.nss</code>); the stage only
+  advances, so rewards are not farmable. The Fighter gate is
+  <code>GetLevelByClass(CLASS_TYPE_FIGHTER) &ge; 1</code>; the L8/L15 gates are total character level.
+  Hallas (<code>q_ftr_hallas</code>, plot/immortal human veteran) is script-spawned by
+  <code>q_ftr_spawn</code> from the Prancing Pony OnEnter wrapper <code>q_ftr_enter</code> (which chains
+  the existing <code>q_hrp_ent1</code> &mdash; leash + Harper contact). <strong>The waypoint
+  <code>AP_fighterlineearly_1</code> must be placed in <code>theprancingpo001</code> before Hallas
+  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
+  properties use verified stock encodings (Enhancement/AC bonus + Use&nbsp;Limitation:&nbsp;Class Fighter);
+  no CR&gt;60 boss was touched.</div>
 </div>
 
 <!-- PASS THE PASS -->

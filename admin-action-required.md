@@ -145,6 +145,18 @@ _Appended by autopilot; delete entries as you complete them._
   place `_1` and `_3` together (`_2` is optional flavour/danger).
   <!-- literal in q_pass_spawn.nss: AP_passthepass_3 -->
 
+- [ ] **fighter-line-early** (2026-07-17): create waypoint tag `AP_fighterlineearly_1` in
+  `theprancingpo001` (The Prancing Pony ground floor — at or beside a corner table, clear of
+  Barliman, the merit NPC, the Harper contact spot and the door) — spawn point for
+  `q_ftr_hallas` (Hallas the Shieldwarden, the Fighter class-line I giver; plot/immortal
+  human veteran). Spawned by `q_ftr_spawn` from the inn's OnEnter wrapper `q_ftr_enter`
+  (which chains the existing `q_hrp_ent1` — leash + Harper contact); scripts no-op gracefully
+  until the waypoint exists and never double-spawn. Until placed, "The Unbroken Shield"
+  (Fighter line I, nodes L1/8/15) is invisible in-game. Fighter-only offer; non-fighters get
+  a flavour greeting.
+  <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
+       q_ftr_inc.nss / q_ftr_spawn.nss: AP_fighterlineearly_1 -->
+
 - [ ] **blackguard-quest** (2026-07-17): _conditional, verify-then-maybe-fix (no new placement)._
   The Blackguard fall-rite reuses the existing torture-rack in `baraddurkeep` (instance 94 of
   `plc_torture1`, retagged `BkgFallAltar`, `Static:0` + `OnUsed q_bkg_altar`) — the same
