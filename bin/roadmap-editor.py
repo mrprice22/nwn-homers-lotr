@@ -976,13 +976,13 @@ PAGE = r"""<!doctype html>
                      min-width:30px; }
   .rt-tools .sep { width:1px; align-self:stretch; background:var(--line); margin:0 3px; }
   .rt-tools input[type=color] { width:30px; height:26px; padding:1px; cursor:pointer; }
-  #f_notes_rich { min-height:128px; height:128px; overflow:auto; resize:vertical;
-                  padding:7px 9px; background:var(--bg); color:var(--ink);
-                  border:1px solid var(--line); border-radius:6px; outline:none; }
-  #f_notes_rich:focus { border-color:var(--accent); }
-  #f_notes_rich ul, #f_notes_rich ol { margin:0.3em 0; padding-left:1.5em; }
-  #f_notes_rich a { color:var(--accent); }
-  #f_notes_html { min-height:128px; height:128px; font-family:monospace; font-size:12px; }
+  .rt-rich { min-height:96px; overflow:auto; resize:vertical;
+             padding:7px 9px; background:var(--bg); color:var(--ink);
+             border:1px solid var(--line); border-radius:6px; outline:none; }
+  .rt-rich:focus { border-color:var(--accent); }
+  .rt-rich ul, .rt-rich ol { margin:0.3em 0; padding-left:1.5em; }
+  .rt-rich a { color:var(--accent); }
+  .rt-html { min-height:96px; font-family:monospace; font-size:12px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
   button { padding:8px 13px; border:1px solid var(--line); border-radius:6px;
            background:var(--panel); color:var(--ink); cursor:pointer; font:inherit; }
@@ -1022,9 +1022,7 @@ PAGE = r"""<!doctype html>
   .ho-flag { display:flex; align-items:center; gap:4px; font-size:12px;
     color:var(--mut); white-space:nowrap; }
   .ho-flag input { width:auto; margin:0; }
-  .ho-item textarea, #f_impl_notes { resize:vertical; }
-  #f_impl_notes { min-height:96px; height:96px; font-family:monospace;
-    font-size:12px; width:100%; }
+  .ho-item textarea { resize:vertical; }
   .filters { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
   .filters select { padding:5px 7px; font-size:12px; }
   .filters .full { grid-column:1 / -1; }
@@ -1391,33 +1389,12 @@ function select(i){
     <input id="f_id" value="${esc(it.id||'')}">
     <label>Notes <span class="small">&mdash; player-facing release note, shown on
       the public roadmap. Keep it high level; link to a manual page for detail.</span></label>
-    <div class="tabs">
-      <button type="button" class="tab active" id="tab_rich" data-tab="rich">Rich text</button>
-      <button type="button" class="tab" id="tab_html" data-tab="html">HTML</button>
-    </div>
-    <div class="rt-wrap">
-      <div class="rt-tools" id="rt_tools">
-        <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
-        <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
-        <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
-        <span class="sep"></span>
-        <button type="button" data-cmd="insertUnorderedList" title="Bullet list">&bull; List</button>
-        <button type="button" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
-        <span class="sep"></span>
-        <input type="color" id="rt_color" value="#6ea8fe" title="Font color">
-        <span class="sep"></span>
-        <button type="button" id="rt_link" title="Link to another idea">&#128279; Idea</button>
-        <button type="button" id="rt_extlink" title="Insert web link">&#128279; URL</button>
-        <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
-      </div>
-      <div id="f_notes_rich" contenteditable="true"></div>
-      <textarea id="f_notes_html" style="display:none"></textarea>
-    </div>
+    ${rtWidget('notes')}
     <div id="handoff"></div>
     <div class="ho-panel">
       <label>Implementation notes <span class="small">(internal &mdash; never shown
-        on the public roadmap). HTML source; resrefs, scripts, DB tables, why.</span></label>
-      <textarea id="f_impl_notes" placeholder="What was actually built, and where."></textarea>
+        on the public roadmap). Resrefs, scripts, DB tables, why.</span></label>
+      ${rtWidget('impl')}
     </div>
     <div class="bar">
       <button class="primary" id="save">Save</button>
@@ -1434,9 +1411,9 @@ function select(i){
     <div id="merit"></div>
     <div id="merit_ingame"></div>`;
   bindPlayerHint();
-  initNotes(it);
+  initEditor('notes', it.notes, it.notes_h, NOTES_DEFAULT_H);
   initHandoff(it);
-  initImplNotes(it);
+  initEditor('impl', it.impl_notes, it.impl_notes_h, IMPL_DEFAULT_H);
   renderMerit(it.player||'');
   renderMeritIngame(it.player||'');
   $('#f_player').addEventListener('input', e=>{
@@ -1542,13 +1519,40 @@ function renderMeritIngame(name){
     });
 }
 
-// ---- rich-text notes widget ---------------------------------------------
+// ---- rich-text editor widget ---------------------------------------------
+// One factory, instantiated per field ('notes' = player-facing release note,
+// 'impl' = internal implementation notes). Each instance owns its own tabs,
+// toolbar, contenteditable pane and HTML-source textarea, all id-prefixed.
 const NOTES_DEFAULT_H = 128;       // px; double the old textarea min-height
-let notesTab = 'rich';             // which view is active for the current idea
+const IMPL_DEFAULT_H = 96;
 let savedRange = null;             // selection saved before opening the link picker
+let RT = {};                       // prefix -> editor instance
+let rtActive = null;               // editor a modal (link picker) is inserting into
 
-function notesVisibleEl(){
-  return notesTab==='html' ? $('#f_notes_html') : $('#f_notes_rich');
+// Markup for one editor; ids are `<prefix>_tab_rich`, `<prefix>_rich`, etc.
+function rtWidget(p){
+  return `<div class="tabs">
+      <button type="button" class="tab active" id="${p}_tab_rich">Rich text</button>
+      <button type="button" class="tab" id="${p}_tab_html">HTML</button>
+    </div>
+    <div class="rt-wrap">
+      <div class="rt-tools" id="${p}_tools">
+        <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+        <span class="sep"></span>
+        <button type="button" data-cmd="insertUnorderedList" title="Bullet list">&bull; List</button>
+        <button type="button" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+        <span class="sep"></span>
+        <input type="color" id="${p}_color" value="#6ea8fe" title="Font color">
+        <span class="sep"></span>
+        <button type="button" id="${p}_link" title="Link to another idea">&#128279; Idea</button>
+        <button type="button" id="${p}_extlink" title="Insert web link">&#128279; URL</button>
+        <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
+      </div>
+      <div class="rt-rich" id="${p}_rich" contenteditable="true"></div>
+      <textarea class="rt-html" id="${p}_html" style="display:none"></textarea>
+    </div>`;
 }
 
 // Treat an editor that holds no real text and no block/inline content as empty,
@@ -1560,32 +1564,40 @@ function normalizeNotes(html){
   return (html||'').trim();
 }
 
-function initNotes(it){
-  const rich=$('#f_notes_rich'), html=$('#f_notes_html');
-  notesTab='rich';
-  rich.innerHTML = it.notes || '';
-  html.value = it.notes || '';
-  const h = (it.notes_h && it.notes_h>0) ? it.notes_h : NOTES_DEFAULT_H;
+// Build (or rebuild, after the form re-renders) one editor over `value`.
+function initEditor(p, value, savedH, defaultH){
+  const rich=$('#'+p+'_rich'), html=$('#'+p+'_html');
+  const ed = RT[p] = {
+    prefix:p, rich, html, tab:'rich', defaultH,
+    visible(){ return this.tab==='html' ? this.html : this.rich; },
+    value(){ return normalizeNotes(this.tab==='html'
+      ? this.html.value : this.rich.innerHTML); },
+    height(){ return Math.round(this.visible().offsetHeight); },
+  };
+  rich.innerHTML = value || '';
+  html.value = value || '';
+  const h = (savedH && savedH>0) ? savedH : defaultH;
   rich.style.height = h+'px'; html.style.height = h+'px';
   rich.style.display=''; html.style.display='none';
-  $('#tab_rich').classList.add('active'); $('#tab_html').classList.remove('active');
+  $('#'+p+'_tab_rich').classList.add('active');
+  $('#'+p+'_tab_html').classList.remove('active');
 
-  $('#tab_rich').onclick=()=>switchNotes('rich');
-  $('#tab_html').onclick=()=>switchNotes('html');
-  $('#rt_tools').querySelectorAll('button[data-cmd]').forEach(b=>{
+  $('#'+p+'_tab_rich').onclick=()=>switchNotes(ed,'rich');
+  $('#'+p+'_tab_html').onclick=()=>switchNotes(ed,'html');
+  $('#'+p+'_tools').querySelectorAll('button[data-cmd]').forEach(b=>{
     b.onmousedown=e=>e.preventDefault();            // keep the editor's selection
     b.onclick=()=>{ rich.focus(); document.execCommand(b.dataset.cmd, false, null); };
   });
-  const col=$('#rt_color');
+  const col=$('#'+p+'_color');
   col.onmousedown=()=>{ saveRange(); };
   col.oninput=()=>{ rich.focus(); restoreRange();
     document.execCommand('foreColor', false, col.value); };
-  const lb=$('#rt_link');
+  const lb=$('#'+p+'_link');
   lb.onmousedown=e=>{ e.preventDefault(); saveRange(); };
-  lb.onclick=openIdeaLink;
-  const xb=$('#rt_extlink');
+  lb.onclick=()=>{ rtActive=ed; openIdeaLink(); };
+  const xb=$('#'+p+'_extlink');
   xb.onmousedown=e=>{ e.preventDefault(); saveRange(); };
-  xb.onclick=openExtLink;
+  xb.onclick=()=>{ rtActive=ed; openExtLink(); };
 
   // Strip pasted chrome (e.g. Discord's whole message DOM) to the same whitelist
   // the Python sanitizer enforces, so it never enters the editor in the first
@@ -1635,18 +1647,18 @@ function cleanPastedHTML(html){
   return walk(tmpl.content);
 }
 
-function switchNotes(to){
-  const rich=$('#f_notes_rich'), html=$('#f_notes_html');
-  if (to===notesTab) return;
-  const curH = notesVisibleEl().offsetHeight;
+function switchNotes(ed, to){
+  const {rich, html, prefix:p} = ed;
+  if (to===ed.tab) return;
+  const curH = ed.visible().offsetHeight;
   if (to==='html'){ html.value = rich.innerHTML; }
   else { rich.innerHTML = html.value; }
-  notesTab=to;
+  ed.tab=to;
   rich.style.display = to==='rich'?'':'none';
   html.style.display = to==='html'?'':'none';
-  notesVisibleEl().style.height = curH+'px';        // carry the height across views
-  $('#tab_rich').classList.toggle('active', to==='rich');
-  $('#tab_html').classList.toggle('active', to==='html');
+  ed.visible().style.height = curH+'px';            // carry the height across views
+  $('#'+p+'_tab_rich').classList.toggle('active', to==='rich');
+  $('#'+p+'_tab_html').classList.toggle('active', to==='html');
 }
 
 function saveRange(){
@@ -1678,15 +1690,7 @@ function openIdeaLink(){
     const label = (sel0 && sel0.trim()) ? sel0 : t;
     const link = `<a href="#idea-${id}">${esc(label)}</a>`;
     closeModal();
-    if (notesTab==='html'){
-      const ta=$('#f_notes_html');
-      const a=ta.selectionStart, b=ta.selectionEnd;
-      ta.value = ta.value.slice(0,a) + link + ta.value.slice(b);
-      ta.focus(); ta.selectionStart=ta.selectionEnd=a+link.length;
-    } else {
-      $('#f_notes_rich').focus(); restoreRange();
-      document.execCommand('insertHTML', false, link);
-    }
+    insertIntoNotes(link);
   };
   $('#ilink_close').onclick=closeModal;
   const filt=$('#ilink_f');
@@ -1697,15 +1701,17 @@ function openIdeaLink(){
     r.onclick=()=>apply(r.dataset.id));
 }
 
-// Insert raw HTML at the saved caret in whichever notes tab is active.
+// Insert raw HTML at the saved caret, in the editor whose toolbar opened the
+// modal and in whichever of its two tabs is active.
 function insertIntoNotes(html){
-  if (notesTab==='html'){
-    const ta=$('#f_notes_html');
+  const ed = rtActive || RT.notes; if (!ed) return;
+  if (ed.tab==='html'){
+    const ta=ed.html;
     const a=ta.selectionStart, b=ta.selectionEnd;
     ta.value = ta.value.slice(0,a) + html + ta.value.slice(b);
     ta.focus(); ta.selectionStart=ta.selectionEnd=a+html.length;
   } else {
-    $('#f_notes_rich').focus(); restoreRange();
+    ed.rich.focus(); restoreRange();
     document.execCommand('insertHTML', false, html);
   }
 }
@@ -1748,19 +1754,6 @@ function bindPlayerHint(){
       ? `“${v}” is not a known submitter — typo? (saving will still work)` : '';
   };
   inp.oninput = check; check();
-}
-
-// ---- Implementation notes (internal) --------------------------------------
-// Plain HTML source rather than the WYSIWYG widget above: this field holds
-// resrefs, script names and DB tables, which read better as monospace source.
-// Sanitized by the same whitelist on save, and never rendered publicly.
-const IMPL_DEFAULT_H = 96;
-
-function initImplNotes(it){
-  const ta = $('#f_impl_notes'); if(!ta) return;
-  ta.value = it.impl_notes || '';
-  ta.style.height = ((it.impl_notes_h && it.impl_notes_h>0)
-    ? it.impl_notes_h : IMPL_DEFAULT_H) + 'px';
 }
 
 // ---- Admin hand-off panel: design_questions + manual_steps -----------------
@@ -1906,14 +1899,11 @@ function handoffOut(){
 }
 
 function readForm(){
-  // Canonical notes = the active view's content; keep the views in sync first.
-  const rich=$('#f_notes_rich'), html=$('#f_notes_html');
-  const raw = notesTab==='html' ? html.value : rich.innerHTML;
-  const notes = normalizeNotes(raw);
-  const notes_h = Math.round(notesVisibleEl().offsetHeight);
-  const implEl = $('#f_impl_notes');
-  const impl = normalizeNotes(implEl ? implEl.value : '');
-  const impl_h = implEl ? Math.round(implEl.offsetHeight) : 0;
+  // Canonical value of each editor = whichever of its two views is active.
+  const notes = RT.notes ? RT.notes.value() : '';
+  const notes_h = RT.notes ? RT.notes.height() : 0;
+  const impl = RT.impl ? RT.impl.value() : '';
+  const impl_h = RT.impl ? RT.impl.height() : 0;
   const ho = handoffOut();
   return {
     id: $('#f_id').value.trim(),
