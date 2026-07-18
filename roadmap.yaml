@@ -2980,11 +2980,45 @@ ideas:
   - id: bard-line-early
     title: "Bard line I — Tales That Live Forever (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Bard line.</span>"
+    date: "2026-07-18"
+    commit: 82f97f86ded
+    notes: "<div>Bards now have the first chapter of their own class line. <b>Lindir of the Hall of Fire</b> keeps the Rivendell Upper Halls, where the singing never entirely stops, and will take any bard as a student. He teaches one thing free of charge — a song only ever sung by the one who made it dies with them — and hands over a six-hundred-year-old lay that breaks off in the middle of a line, for you to finish. Rewards at Bard 1 and Bard 15: the Chorister&rsquo;s Torc and the Rapier of the Deathless Song. Full walkthrough: <a href=\"QuestGuide.html#tales-forever\">Tales That Live Forever</a>.</div>"
+    impl_notes: "<div>Structurally cloned from the shipped monk-line-early template. Prefix q_bard_ chosen deliberately over q_brd_ — the boss-respawn tracker already owns the bare brd_* namespace (brd_db, brd_open_*, brd_vis_*, brd_sign.dlg), and q_brd_* next to it in a flat single-directory source tree is a grep trap; every q_bard_* resref still fits the 16-char limit. No pre-existing bard work was found.</div><div><br></div><div>Giver q_bard_mstr (Lindir, Bard 30, elf, plot/immortal, conv q_bard_conv) script-spawned by q_bard_spawn from the rivendellupperha OnEnter wrapper q_bard_enter, which chains the area's existing mw_riv_enter (preserving leash_to_area, d_cleartrash and the Meaningwave Peterson spawn). Spawn no-ops until AP_bardlineearly_1 exists and is tag-guarded against double-spawn.</div><div><br></div><div>Reward scripts q_bard_lrn/stn/rtn (Reply Script fields only); StartingConditionals q_bard_c_off/s1w/s1r/s2w/s2r/dn (Active fields only). All three gates use GetLevelByClass(CLASS_TYPE_BARD) &ge; 1/8/15 — the tightened paladin/monk rule, not GetHitDice. State in bardlinedb (song_stage 0-3), stage-only-advances so rewards are unfarmable.</div><div><br></div><div>Items q_bard_torc (amulet, BaseItem 19, +1 CHA), q_bard_lay (plot token, BaseItem 24), q_bard_rap (rapier, BaseItem 51, model 141, Enh +2 / +1 CHA) — all Use Limitation: Class Bard, <b>subtype 1</b>, verified against cloakofthebard.uti.json rather than guessed, consistent with Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category bard_lay (@group 'Class Lines', @order 11). Gates: 7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors.</div>"
+    manual_steps:
+      - step: "Place a waypoint tagged AP_bardlineearly_1 in Rivendell Upper Halls (rivendellupperha) — somewhere by the fire / seating, out of the main walking line. Lindir of the Hall of Fire spawns there on area entry. He is spawn-only: the entire Bard line is invisible and unreachable in-game until this waypoint exists."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "UAT: enter Rivendell Upper Halls on any character and confirm Lindir spawns once at the waypoint and does not duplicate on re-entry."
+        status: open
+        step_h: 64
+      - step: "UAT: speak to Lindir on a non-bard — confirm the fire-side greeting with only a farewell option, and no journal entry or item."
+        status: open
+        step_h: 64
+      - step: "UAT: on a Bard 1, take the lesson — confirm journal 'Tales That Live Forever' stage 1 and receipt of the Chorister's Torc, and that a non-bard cannot equip it."
+        status: open
+        step_h: 64
+      - step: "UAT: re-speak below Bard 8 — confirm the brush-off and that no second torc is given."
+        status: open
+        step_h: 64
+      - step: "UAT: at Bard 8, confirm The Unfinished Lay is given once and journal advances to stage 2."
+        status: open
+        step_h: 64
+      - step: "UAT: at Bard 15, confirm the Rapier of the Deathless Song is given, the Unfinished Lay is consumed, and the journal closes at stage 3."
+        status: open
+        step_h: 64
+      - step: "UAT: confirm the line does not repeat after completion — re-speaking gives only the epilogue — and that state survives a relog (bardlinedb)."
+        status: open
+        step_h: 64
+      - step: "UAT: confirm a multiclass with high total level but low Bard level is still gated (e.g. Bard 3 / Fighter 20 cannot get node 2)."
+        status: open
+        step_h: 64
+      - step: "UAT: confirm the Rivendell Upper Halls OnEnter chain still works after the wrapper swap — Meaningwave's Peterson still spawns and area leashing still applies."
+        status: open
+        step_h: 64
 
   - id: bard-line-mid
     title: "Bard line II — Tales That Live Forever (L22-38)"
