@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_mnk_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_mnk_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>10</dd>
+<dt>PC replies</dt><dd>7</dd>
+<dt>NumWords</dt><dd>592</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_mnk_mstr.html">Orovan the Windless</a> <code>q_mnk_mstr</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_mnk_lrn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_stn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_rtn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_c_dn</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_c_s2r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_c_s2w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_c_s1r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_c_s1w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_mnk_c_off</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/mnk-hand.html">The Empty Hand</a></td><td><code>mnk_hand</code></td><td>1, 2, 3</td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_mnk_c_dn</code>)</small> — *Orovan sits with his hands open on his knees.* The first thing is done and you …</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_mnk_c_s2r</code>)</small> — *He holds out a hand without opening his eyes.* You did not mention it. Good. *H…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_mnk_c_s2w</code>)</small> — *Orovan glances at your belt, where the stone is, and closes his eye again.* You…</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_mnk_c_s1r</code>)</small> — *He turns a grey pebble over once and sets it on the rock between you.* You have…</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_mnk_c_s1w</code>)</small> — *Orovan opens one eye.* Still holding a good deal, I see. That is allowed. It is…</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_mnk_c_off</code>)</small> — *The man on the summit does not look up. His hands stay open on his knees.* Ther…</li>
+<li><a href="#e6">entry #6</a> — *He inclines his head a fraction and says nothing else. Somewhere below, the win…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_mnk_c_dn</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*Orovan sits with his hands open on his knees.* The first thing is done and you are none the wiser, which is correct. The unbreathing form, the still point, the open palm that stops a blade -- those are all later, and I will not be hurried up a mountain. Sit if you like. The wind drops after noon.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">The wind on you, Orovan.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_mnk_c_s2r</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*He holds out a hand without opening his eyes.* You did not mention it. Good. *He takes the stone, weighs it, and does not give it back.* Then that part is finished. There is a kama on the rock behind you; it has been there since you first came up. Bring it here.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_mnk_rtn</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">*Say nothing, and hold out the stone.*</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">*The kama is plain, dark-hafted, and the stone is set flush into the butt of the handle where the hand will never feel it.* Now it is a tool and you are a person, and neither of you is remarkable. That is the whole of the first lesson. Go down before the light goes.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Not yet. I will come back up.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_mnk_c_s2w</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">*Orovan glances at your belt, where the stone is, and closes his eye again.* You still know exactly which pocket it is in. Come back when you have forgotten.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“The wind on you, Orovan.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_mnk_c_s1r</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*He turns a grey pebble over once and sets it on the rock between you.* You have put enough down that I can hand you something without it being cruel. Take this. It is a stone out of the river. It means nothing and it is worth nothing, and I want you to carry it until you stop noticing you are carrying it. Then bring it up here.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_mnk_stn</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">I will carry it and not think about it.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">*He puts the pebble into your palm and closes your fingers over it himself.* Do not look after it. Do not lose it on purpose either; that is the same mistake wearing a different coat.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Not today. Keep it for me.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_mnk_c_s1w</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*Orovan opens one eye.* Still holding a good deal, I see. That is allowed. It is only that you cannot use a hand that is already full, and one day you will want the hand. Come back when you are lighter.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“The wind on you, Orovan.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_mnk_c_off</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*The man on the summit does not look up. His hands stay open on his knees.* There is water in the skin by your foot, and the wind will drop after noon. *A pause.* You climbed quickly. You are carrying a great deal.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_mnk_lrn</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Then show me how to set it down.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*He has you set down everything you are holding on the bare rock, and then everything you are holding that is not in your hands, which takes rather longer. At the end of it he gives you a plain cord with nothing on it.* Wear that. When you find yourself wondering what it is for, you will have the answer.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">I have a road to walk. Peace to you.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*He inclines his head a fraction and says nothing else. Somewhere below, the wind moves through the last of the trees.*</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“The wind on you, Orovan.”</span></div>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*The man on the summit does not look up. His hands stay open on his knees.* There is water in the skin by your foot, and the wind will drop after noon. *A pause.* You climbed quickly. You are carrying a great deal.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Then show me how to set it down.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I have a road to walk. Peace to you.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*Orovan opens one eye.* Still holding a good deal, I see. That is allowed. It is only that you cannot use a hand that is already full, and one day you will want the hand. Come back when you are lighter.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“The wind on you, Orovan.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*He turns a grey pebble over once and sets it on the rock between you.* You have put enough down that I can hand you something without it being cruel. Take this. It is a stone out of the river. It means nothing and it is worth nothing, and I want you to carry it until you stop noticing you are carrying it. Then bring it up here.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“I will carry it and not think about it.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Not today. Keep it for me.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">*Orovan glances at your belt, where the stone is, and closes his eye again.* You still know exactly which pocket it is in. Come back when you have forgotten.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“The wind on you, Orovan.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*He holds out a hand without opening his eyes.* You did not mention it. Good. *He takes the stone, weighs it, and does not give it back.* Then that part is finished. There is a kama on the rock behind you; it has been there since you first came up. Bring it here.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“*Say nothing, and hold out the stone.*”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Not yet. I will come back up.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*Orovan sits with his hands open on his knees.* The first thing is done and you are none the wiser, which is correct. The unbreathing form, the still point, the open palm that stops a blade -- those are all later, and I will not be hurried up a mountain. Sit if you like. The wind drops after noon.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“The wind on you, Orovan.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*He inclines his head a fraction and says nothing else. Somewhere below, the wind moves through the last of the trees.*</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“The wind on you, Orovan.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*He has you set down everything you are holding on the bare rock, and then everything you are holding that is not in your hands, which takes rather longer. At the end of it he gives you a plain cord with nothing on it.* Wear that. When you find yourself wondering what it is for, you will have the answer.</div></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*He puts the pebble into your palm and closes your fingers over it himself.* Do not look after it. Do not lose it on purpose either; that is the same mistake wearing a different coat.</div></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">*The kama is plain, dark-hafted, and the stone is set flush into the butt of the handle where the hand will never feel it.* Now it is a tool and you are a person, and neither of you is remarkable. That is the whole of the first lesson. Go down before the light goes.</div></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_mnk_lrn</code></span></div><div class="dlg-text">Then show me how to set it down.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*He has you set down everything you are holding on the bare rock, and then every…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I have a road to walk. Peace to you.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_mnk_stn</code></span></div><div class="dlg-text">I will carry it and not think about it.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*He puts the pebble into your palm and closes your fingers over it himself.* Do…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Not today. Keep it for me.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_mnk_rtn</code></span></div><div class="dlg-text">*Say nothing, and hold out the stone.*</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“*The kama is plain, dark-hafted, and the stone is set flush into the butt of the…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Not yet. I will come back up.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">The wind on you, Orovan.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

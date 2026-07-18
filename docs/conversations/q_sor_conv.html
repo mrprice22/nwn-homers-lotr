@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_sor_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_sor_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>10</dd>
+<dt>PC replies</dt><dd>7</dd>
+<dt>NumWords</dt><dd>1054</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_sor_mstr.html">Erendis of the Drowned House</a> <code>q_sor_mstr</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_sor_lrn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_stn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_rtn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_c_dn</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_c_s2r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_c_s2w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_c_s1r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_c_s1w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_sor_c_off</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/sor-blood.html">Blood of Elder Days</a></td><td><code>sor_blood</code></td><td>1, 2, 3</td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_sor_c_dn</code>)</small> — *She hands the staff over and steps back to look at you holding it, head on one …</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_sor_c_s2r</code>)</small> — *She is up before you have finished crossing the grass, which she has never done…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_sor_c_s2w</code>)</small> — *She glances at the pocket where you are keeping the glass and goes back to feed…</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_sor_c_s1r</code>)</small> — *She digs in a pocket and comes up with a scrap of pale green glass, worn round …</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_sor_c_s1w</code>)</small> — *She looks up from the fire, recognises you, and does not get up.* Back already.…</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_sor_c_off</code>)</small> — *The woman at the fire looks up without any surprise at all, the way people do w…</li>
+<li><a href="#e6">entry #6</a> — *The woman at the fire nods you toward a dry piece of masonry.* Sit, warm yourse…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_sor_c_dn</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*She hands the staff over and steps back to look at you holding it, head on one side.* That is the first part done. There is more -- the speech that dragons answer to, the sceptre they drowned with Armenelos, the unbinding -- and none of it is mine to give you today.
+
+Go and be an inconvenience to somebody. You are very well suited to it.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Keep your fire, Erendis.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_sor_c_s2r</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*She is up before you have finished crossing the grass, which she has never done, and she takes both your hands and turns them over and looks at them rather than at your face.* Say it.
+
+Do not tidy it up for me. I have heard four hundred years of tidied versions and they are worth nothing. Say the actual price, in the actual words, while you are still angry about it. That is the whole of the lesson, and it only works once.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_sor_rtn</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">*Tell her the price, in the words you would use while angry.*</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">*You say it. She does not comfort you, which is a mercy; she listens all the way to the end and then nods once, takes the glass out of your hand, and sets it into the head of a black lebethron staff she has evidently had ready for some time.*
+
+That is the price paid and admitted. The staff is not lending you anything -- it is only that you have stopped arguing. Take it.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Not yet. It has not cost me anything I would say out loud.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_sor_c_s2w</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">*She glances at the pocket where you are keeping the glass and goes back to feeding the fire.* Still cheap, then. Good. Nobody sensible hurries that part.
+
+Go on. It will find you.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Keep your fire, Erendis.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_sor_c_s1r</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*She digs in a pocket and comes up with a scrap of pale green glass, worn round at every edge, and holds it out on a flat palm.* This came off a window in Armenelos. It has been in the sea for an Age and in my pocket for ninety years and it has never once done anything.
+
+That is why you are getting it. It is not a charm. It is a bill that has not been presented. Keep it on you, and go on with what you were doing, and one day the blood will cost you something -- a friend, a door shut in your face, a thing you did that you cannot put down. Everyone of our sort pays it. The ones who go bad are the ones who never noticed they had.
+
+When it costs you, come back and say out loud what it was.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_sor_stn</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Give it to me. I will bring it back when it costs.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">*She closes your fingers round the glass and does not let go for a second longer than is comfortable.* Do not lose it, and do not stare at it either. It is not going to glow.
+
+When the bill comes, bring it back.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Not yet. Keep it in your pocket a while longer.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_sor_c_s1w</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*She looks up from the fire, recognises you, and does not get up.* Back already. It has not cost you anything yet, then -- you would be walking differently.
+
+There is no exercise I can set you for this part. Go and be a sorcerer in front of people until it costs you something. Eight levels deeper into the blood than you are now, near enough, and you will have paid something you did not agree to. Come back to me then.
+
+I will still be here. The lake is slow.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Keep your fire, Erendis.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_sor_c_off</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*The woman at the fire looks up without any surprise at all, the way people do when they have been watching you cross open ground for ten minutes.* Sit down if you like. It is a public fire, more or less.
+
+You have the look. I do not mean the robes. There is a pressure that comes off people whose power was not given to them by anybody -- no order, no god, no teacher who could take it away again if you disappointed him. It simply woke up in you one day like a second heartbeat, and you have been carrying it since and mostly pretending it is under control.
+
+I am Erendis. My people drowned. What is left of them is standing in front of me being polite.
+
+*She turns her hand over so the grey ring catches the fire.* I cannot teach you a spell -- nobody taught me one, that is the whole difficulty of our sort. So I will give you the only piece of it that hands on. Stop fighting it. Not indulge it; stop *fighting* it. Half of what a young sorcerer calls losing control is the blood shoving back against a hand held over its mouth. Take the hand away and it goes quiet and does as it is told, which is more frightening and a great deal safer.
+
+Come to the fire and let me say what you are out loud. It will be the first time anyone has.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_sor_lrn</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Then name it. I am done pretending it is under control.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*She stands up, puts a hand flat on your breastbone, and says your name and one other word in Adunaic, quite quietly, the way you would read a label.* There. That is what you are. It is not a sentence and it is not a gift, it is a fact about you, like your height.
+
+*She works a plain grey ring off her own hand and drops it into yours.* Not an heirloom. I keep a box of them. It only means somebody knew and did not run.
+
+Go and be eight levels deeper into it than you are, and I will still be here. The lake is slow.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">Another day, lady. There is a road on me.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*The woman at the fire nods you toward a dry piece of masonry.* Sit, warm yourself, it costs nothing. I am Erendis, and this heap of stones was the capital of the world once, which nobody believes until they are standing in it.
+
+No, I do not tell fortunes. I sit with sorcerers. If you are not one, you are welcome to the fire and to the story of how Numenor went under, which is long and has no moral in it whatsoever.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Keep your fire, Erendis.”</span></div>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*The woman at the fire looks up without any surprise at all, the way people do when they have been watching you cross open ground for ten minutes.* Sit down if you like. It is a public fire, more or less.
+
+You have the look. I do not mean the robes. There is a pressure that comes off people whose power was not given to them by anybody -- no order, no god, no teacher who could take it away again if you disappointed him. It simply woke up in you one day like a second heartbeat, and you have been carrying it since and mostly pretending it is under control.
+
+I am Erendis. My people drowned. What is left of them is standing in front of me being polite.
+
+*She turns her hand over so the grey ring catches the fire.* I cannot teach you a spell -- nobody taught me one, that is the whole difficulty of our sort. So I will give you the only piece of it that hands on. Stop fighting it. Not indulge it; stop *fighting* it. Half of what a young sorcerer calls losing control is the blood shoving back against a hand held over its mouth. Take the hand away and it goes quiet and does as it is told, which is more frightening and a great deal safer.
+
+Come to the fire and let me say what you are out loud. It will be the first time anyone has.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Then name it. I am done pretending it is under control.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Another day, lady. There is a road on me.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*She looks up from the fire, recognises you, and does not get up.* Back already. It has not cost you anything yet, then -- you would be walking differently.
+
+There is no exercise I can set you for this part. Go and be a sorcerer in front of people until it costs you something. Eight levels deeper into the blood than you are now, near enough, and you will have paid something you did not agree to. Come back to me then.
+
+I will still be here. The lake is slow.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Keep your fire, Erendis.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*She digs in a pocket and comes up with a scrap of pale green glass, worn round at every edge, and holds it out on a flat palm.* This came off a window in Armenelos. It has been in the sea for an Age and in my pocket for ninety years and it has never once done anything.
+
+That is why you are getting it. It is not a charm. It is a bill that has not been presented. Keep it on you, and go on with what you were doing, and one day the blood will cost you something -- a friend, a door shut in your face, a thing you did that you cannot put down. Everyone of our sort pays it. The ones who go bad are the ones who never noticed they had.
+
+When it costs you, come back and say out loud what it was.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Give it to me. I will bring it back when it costs.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Not yet. Keep it in your pocket a while longer.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">*She glances at the pocket where you are keeping the glass and goes back to feeding the fire.* Still cheap, then. Good. Nobody sensible hurries that part.
+
+Go on. It will find you.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Keep your fire, Erendis.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*She is up before you have finished crossing the grass, which she has never done, and she takes both your hands and turns them over and looks at them rather than at your face.* Say it.
+
+Do not tidy it up for me. I have heard four hundred years of tidied versions and they are worth nothing. Say the actual price, in the actual words, while you are still angry about it. That is the whole of the lesson, and it only works once.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“*Tell her the price, in the words you would use while angry.*”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Not yet. It has not cost me anything I would say out loud.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*She hands the staff over and steps back to look at you holding it, head on one side.* That is the first part done. There is more -- the speech that dragons answer to, the sceptre they drowned with Armenelos, the unbinding -- and none of it is mine to give you today.
+
+Go and be an inconvenience to somebody. You are very well suited to it.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Keep your fire, Erendis.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*The woman at the fire nods you toward a dry piece of masonry.* Sit, warm yourself, it costs nothing. I am Erendis, and this heap of stones was the capital of the world once, which nobody believes until they are standing in it.
+
+No, I do not tell fortunes. I sit with sorcerers. If you are not one, you are welcome to the fire and to the story of how Numenor went under, which is long and has no moral in it whatsoever.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Keep your fire, Erendis.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*She stands up, puts a hand flat on your breastbone, and says your name and one other word in Adunaic, quite quietly, the way you would read a label.* There. That is what you are. It is not a sentence and it is not a gift, it is a fact about you, like your height.
+
+*She works a plain grey ring off her own hand and drops it into yours.* Not an heirloom. I keep a box of them. It only means somebody knew and did not run.
+
+Go and be eight levels deeper into it than you are, and I will still be here. The lake is slow.</div></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*She closes your fingers round the glass and does not let go for a second longer than is comfortable.* Do not lose it, and do not stare at it either. It is not going to glow.
+
+When the bill comes, bring it back.</div></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">*You say it. She does not comfort you, which is a mercy; she listens all the way to the end and then nods once, takes the glass out of your hand, and sets it into the head of a black lebethron staff she has evidently had ready for some time.*
+
+That is the price paid and admitted. The staff is not lending you anything -- it is only that you have stopped arguing. Take it.</div></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_sor_lrn</code></span></div><div class="dlg-text">Then name it. I am done pretending it is under control.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*She stands up, puts a hand flat on your breastbone, and says your name and one…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Another day, lady. There is a road on me.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_sor_stn</code></span></div><div class="dlg-text">Give it to me. I will bring it back when it costs.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*She closes your fingers round the glass and does not let go for a second longer…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Not yet. Keep it in your pocket a while longer.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_sor_rtn</code></span></div><div class="dlg-text">*Tell her the price, in the words you would use while angry.*</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“*You say it. She does not comfort you, which is a mercy; she listens all the way…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Not yet. It has not cost me anything I would say out loud.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Keep your fire, Erendis.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

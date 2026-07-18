@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_frk_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_frk_inc</code></h1><pre class="nss-source"><code>// q_frk_inc.nss -- &quot;The Forbidden Realms&quot; (roadmap: forbidden-realms-key-tier)
+//
+// The Forbidden Realms Key has always been stealable from Summanus in
+// Numenor: Noirinan (falseheaven) but opened nothing. This gives it a door.
+//
+// The chain:
+//   * Acquire the key (Tag &quot;ForbiddenRealmsKey&quot;, any route -- pickpocket,
+//     loot, trade). acquireditem_tag fires FRK_OnKeyAcquired: journal entry 1.
+//     Characters who stole it before this shipped are caught retroactively by
+//     FRK_LoginCheck, called from hgll_cliententer.
+//   * In Noirinan a sealed barrow-gate (placeable q_frk_gate) stands at the
+//     admin-placed waypoint AP_forbiddenrealmskeytier_1. Using it without the
+//     key does nothing but describe the seal; with the key it opens and jumps
+//     the user to AP_forbiddenrealmskeytier_2 -- journal entry 2, then 3.
+//   * That waypoint is in gravesofthelostk (Tombs of the Lost Souls), an area
+//     with no connections at all today. Its OnEnter wrapper (q_frk_tomb)
+//     script-spawns the barrow-court -- the Weathertop King, Queen and Archer,
+//     three of the module&#x27;s unspawned blueprints -- at waypoints _3/_4/_5, and
+//     spawns a return gate at _2 so the tomb is not a one-way trip.
+//   * Killing a court member runs q_frk_death, which records the kill; all
+//     three down completes the journal (entry 10, End).
+//
+// Persistence: campaign DB &quot;forbiddendb&quot;, per character (oPC-keyed
+// Get/SetCampaignInt), mirroring the fighterlinedb / prestige idiom.
+//   &quot;frk_stage&quot;  0 none / 1 key acquired / 2 gate opened / 3 tombs entered
+//   &quot;frk_king&quot;, &quot;frk_queen&quot;, &quot;frk_archer&quot;  1 once that court member is killed
+//
+// EVERYTHING here no-ops gracefully while the waypoints are unplaced: no gate
+// spawns, no court spawns, and the quest simply sits at entry 1. See the
+// roadmap item&#x27;s manual_steps for the five waypoints.
+//
+// All calls are base NWScript builtins -- no framework include.
+
+const string FRK_DB      = &quot;forbiddendb&quot;;
+const string FRK_STAGE   = &quot;frk_stage&quot;;
+const string FRK_QUEST   = &quot;frk_tombs&quot;;              // journal category Tag
+const string FRK_KEYTAG  = &quot;ForbiddenRealmsKey&quot;;     // item Tag on the key
+
+// Admin-placed waypoints (tag = AP_ + roadmap id with hyphens stripped + index)
+const string FRK_WP_GATE  = &quot;AP_forbiddenrealmskeytier_1&quot;;  // Noirinan, the seal
+const string FRK_WP_TOMB  = &quot;AP_forbiddenrealmskeytier_2&quot;;  // Tombs, arrival + exit
+const string FRK_WP_KING  = &quot;AP_forbiddenrealmskeytier_3&quot;;
+const string FRK_WP_QUEEN = &quot;AP_forbiddenrealmskeytier_4&quot;;
+const string FRK_WP_ARCH  = &quot;AP_forbiddenrealmskeytier_5&quot;;
+
+// Barrow-court blueprints (all previously unspawned). Swapping a member for a
+// different CR variant is a one-line change here -- see the roadmap item.
+const string FRK_RR_KING   = &quot;weathertopkin003&quot;;   // Weathertop King,   CR 454
+const string FRK_RR_QUEEN  = &quot;weathertopque003&quot;;   // Weathertop Queen,  CR 594
+const string FRK_RR_ARCHER = &quot;weathertoparc002&quot;;   // Weathertop Archer, CR 337
+
+const string FRK_GATE_RR   = &quot;q_frk_gate&quot;;         // gate placeable blueprint
+const string FRK_GATE_DEST = &quot;FRK_DEST&quot;;           // local string: dest WP tag
+
+// ------------------------------------------------------------
+// Stage accessors (persistent, per character). The stage only advances.
+
+int FRK_GetStage(object oPC)
+{
+    return GetCampaignInt(FRK_DB, FRK_STAGE, oPC);
+}
+
+void FRK_SetStage(object oPC, int nStage)
+{
+    if (GetCampaignInt(FRK_DB, FRK_STAGE, oPC) &gt;= nStage) return;
+    SetCampaignInt(FRK_DB, FRK_STAGE, nStage, oPC);
+}
+
+int FRK_HasKey(object oPC)
+{
+    return GetIsObjectValid(GetItemPossessedBy(oPC, FRK_KEYTAG));
+}
+
+// ------------------------------------------------------------
+// Stage 1: the key is in hand. Called from acquireditem_tag (fresh pickup) and
+// from FRK_LoginCheck (characters who already had it before this shipped).
+
+void FRK_OnKeyAcquired(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+    if (FRK_GetStage(oPC) &gt;= 1) return;
+
+    FRK_SetStage(oPC, 1);
+    AddJournalQuestEntry(FRK_QUEST, 1, oPC, FALSE, FALSE, TRUE);
+}
+
+// Retroactive catch-up on login: anyone already carrying the key gets the
+// quest. Idempotent -- FRK_OnKeyAcquired bails once the stage is set.
+void FRK_LoginCheck(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+    if (FRK_GetStage(oPC) &gt;= 1) return;
+    if (!FRK_HasKey(oPC)) return;
+
+    FRK_OnKeyAcquired(oPC);
+}
+
+// ------------------------------------------------------------
+// Gate spawning. One blueprint serves both ends of the passage; which way it
+// leads is a local string set at spawn time, so there is no second blueprint
+// to keep in sync.
+
+// TRUE if a gate is already standing at oWP&#x27;s area near enough to count. We
+// guard per-waypoint rather than by module-wide tag, because both gates share
+// the blueprint&#x27;s tag.
+int FRK_GateExistsAt(object oWP)
+{
+    object oArea = GetArea(oWP);
+    object oObj  = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oObj))
+    {
+        if (GetObjectType(oObj) == OBJECT_TYPE_PLACEABLE
+            &amp;&amp; GetResRef(oObj) == FRK_GATE_RR)
+            return TRUE;
+        oObj = GetNextObjectInArea(oArea);
+    }
+    return FALSE;
+}
+
+// Spawn the gate at sWP leading to sDest. No-ops if sWP is not placed yet or a
+// gate is already standing there.
+void FRK_SpawnGate(string sWP, string sDest)
+{
+    object oWP = GetWaypointByTag(sWP);
+    if (!GetIsObjectValid(oWP)) return;
+    if (FRK_GateExistsAt(oWP)) return;
+
+    object oGate = CreateObject(OBJECT_TYPE_PLACEABLE, FRK_GATE_RR,
+                                GetLocation(oWP));
+    if (GetIsObjectValid(oGate))
+        SetLocalString(oGate, FRK_GATE_DEST, sDest);
+}
+
+// ------------------------------------------------------------
+// Using a gate. Outbound (Noirinan -&gt; Tombs) demands the key; the return gate
+// inside the tombs never does, so a player who loses the key is not entombed.
+
+void FRK_UseGate(object oGate, object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+
+    string sDest = GetLocalString(oGate, FRK_GATE_DEST);
+    if (sDest == &quot;&quot;) return;
+
+    object oWP = GetWaypointByTag(sDest);
+    if (!GetIsObjectValid(oWP)) return;
+
+    int bOutbound = (sDest == FRK_WP_TOMB);
+
+    if (bOutbound &amp;&amp; !FRK_HasKey(oPC))
+    {
+        SendMessageToPC(oPC, &quot;The barrow-gate is sealed. Seven marks are cut &quot;
+            + &quot;into the stone, and no hand of yours will move it without the &quot;
+            + &quot;key that answers them.&quot;);
+        return;
+    }
+
+    if (bOutbound)
+    {
+        FRK_SetStage(oPC, 2);
+        AddJournalQuestEntry(FRK_QUEST, 2, oPC, FALSE, FALSE, TRUE);
+        SendMessageToPC(oPC, &quot;The Forbidden Realms Key turns in a lock you &quot;
+            + &quot;cannot see, and the seal gives way.&quot;);
+    }
+
+    AssignCommand(oPC, ActionJumpToLocation(GetLocation(oWP)));
+}
+
+// ------------------------------------------------------------
+// Tomb arrival: stage 3 + journal entry 3, once per character.
+
+void FRK_OnTombEntered(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+    if (FRK_GetStage(oPC) &gt;= 3) return;
+
+    FRK_SetStage(oPC, 3);
+    AddJournalQuestEntry(FRK_QUEST, 3, oPC, FALSE, FALSE, TRUE);
+}
+
+// ------------------------------------------------------------
+// Court spawning. Each member is spawned only if no creature of that blueprint
+// is currently standing in the tombs, so the court re-forms once it has been
+// cleared and the area has emptied -- and never doubles up on a party trickling
+// in one player at a time.
+
+int FRK_CourtMemberPresent(object oArea, string sResRef)
+{
+    object oObj = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oObj))
+    {
+        if (GetObjectType(oObj) == OBJECT_TYPE_CREATURE
+            &amp;&amp; GetResRef(oObj) == sResRef
+            &amp;&amp; !GetIsDead(oObj))
+            return TRUE;
+        oObj = GetNextObjectInArea(oArea);
+    }
+    return FALSE;
+}
+
+void FRK_SpawnCourtMember(object oArea, string sWP, string sResRef)
+{
+    object oWP = GetWaypointByTag(sWP);
+    if (!GetIsObjectValid(oWP)) return;
+    if (GetArea(oWP) != oArea) return;
+    if (FRK_CourtMemberPresent(oArea, sResRef)) return;
+
+    CreateObject(OBJECT_TYPE_CREATURE, sResRef, GetLocation(oWP));
+}
+
+// Spawn the whole court in oArea (the Tombs). Graceful no-op per member while
+// its waypoint is unplaced, so a partially placed tomb still works.
+void FRK_SpawnCourt(object oArea)
+{
+    FRK_SpawnCourtMember(oArea, FRK_WP_KING,  FRK_RR_KING);
+    FRK_SpawnCourtMember(oArea, FRK_WP_QUEEN, FRK_RR_QUEEN);
+    FRK_SpawnCourtMember(oArea, FRK_WP_ARCH,  FRK_RR_ARCHER);
+}
+
+// ------------------------------------------------------------
+// Kill bookkeeping. Called from q_frk_death with the killer&#x27;s party; the
+// journal completes when one character has all three recorded.
+
+void FRK_RecordKill(object oPC, string sKey)
+{
+    if (!GetIsPC(oPC)) return;
+    if (FRK_GetStage(oPC) &lt; 1) return;    // never touched the quest
+
+    SetCampaignInt(FRK_DB, sKey, 1, oPC);
+
+    if (GetCampaignInt(FRK_DB, &quot;frk_king&quot;,   oPC) == 1
+        &amp;&amp; GetCampaignInt(FRK_DB, &quot;frk_queen&quot;,  oPC) == 1
+        &amp;&amp; GetCampaignInt(FRK_DB, &quot;frk_archer&quot;, oPC) == 1)
+    {
+        AddJournalQuestEntry(FRK_QUEST, 10, oPC, FALSE, FALSE, TRUE);
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

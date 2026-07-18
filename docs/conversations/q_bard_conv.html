@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_bard_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_bard_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>10</dd>
+<dt>PC replies</dt><dd>7</dd>
+<dt>NumWords</dt><dd>592</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_bard_mstr.html">Lindir of the Hall of Fire</a> <code>q_bard_mstr</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_bard_lrn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_stn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_rtn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_c_dn</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_c_s2r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_c_s2w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_c_s1r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_c_s1w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_bard_c_off</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/bard-lay.html">Tales That Live Forever</a></td><td><code>bard_lay</code></td><td>1, 2, 3</td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_bard_c_dn</code>)</small> — *He tips the harp toward you in something that is not quite a bow.* The Lay is o…</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_bard_c_s2r</code>)</small> — *Lindir stops playing halfway through a phrase, which he never does, and holds o…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_bard_c_s2w</code>)</small> — *He glances at where you are carrying the vellum and goes back to tuning.* Still…</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_bard_c_s1r</code>)</small> — *He takes a folded leaf of vellum out of the harp case and holds it flat on his …</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_bard_c_s1w</code>)</small> — *Lindir sets his hand flat on the strings to stop them.* You have the torc on. G…</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_bard_c_off</code>)</small> — *The elf on the bench turns the harp on its side and looks at you properly.* You…</li>
+<li><a href="#e6">entry #6</a> — *The elf on the bench looks up and smiles as though you had been part of the con…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_bard_c_dn</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*He tips the harp toward you in something that is not quite a bow.* The Lay is out of my keeping and going about on a sword-edge, which is a stranger fate than I intended for it and a better one. Sing it badly in bad inns; that is how a thing survives. There are longer roads in this craft — the naming-songs, the lament that stops a fight, the making of a true name that a thing cannot refuse — but those are for a later evening than this one.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Sing well, Lindir.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_bard_c_s2r</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*Lindir stops playing halfway through a phrase, which he never does, and holds out his hand palm up without looking at you.* Say it. Not the whole of it. Only the line that goes where the line is missing.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_bard_rtn</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">*Say the line.*</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">*You give him the line. Lindir is quiet for a long moment, and then laughs once, delighted and slightly outraged, the way a man laughs at being beaten at a game he invented. He takes the vellum, the whole Lay, ending and all, down to the smithy of Rivendell, and what comes back up is not a page.* There. It goes about the world on an edge now, and it will not need either of us again.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Not yet. The line has not come to me.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_bard_c_s2w</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">*He glances at where you are carrying the vellum and goes back to tuning.* Still folded, I see, and still short a line. That is not a failure. An ending you have gone looking for is worth nothing at all — it has to come and find you. Fifteen levels of the craft, and something in you will have happened. Bring it back then.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Sing well, Lindir.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_bard_c_s1r</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*He takes a folded leaf of vellum out of the harp case and holds it flat on his knee.* This is the Lay of the Second Spring. It ends in the middle of a line, and it has ended there for six hundred years, because the elf who was writing it went to the Havens and did not think the ending was his to put on. I have been waiting for somebody it was going to happen to.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_bard_stn</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Give it to me. I will bring you back the line.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">*He folds the vellum once more and presses it into your hand, and does not let go of it immediately.* Do not write on it. Do not show it to anybody clever. Carry it, and let it be unfinished at you until you cannot stand it.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Not yet. Keep it by the fire a while longer.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_bard_c_s1w</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*Lindir sets his hand flat on the strings to stop them.* You have the torc on. Good. But nothing has happened to you yet that belongs in the Lay — I would hear it in how you say your own name. Go and let the world happen to you a while, and come back to me when you are eight songs deeper into the craft.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Sing well, Lindir.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_bard_c_off</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*The elf on the bench turns the harp on its side and looks at you properly.* You sing. No — don&#x27;t be modest at me, I have had six hundred years of modest. Then here is the only thing about it worth knowing, and I will give it to you free: a song that is only ever sung by the one who made it dies with them. It is not yours. It was never going to be yours. Your entire job is to hand it on in a state fit to be handed on again.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_bard_lrn</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Then teach me the phrase, and I will hand it on.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*He has you sing the opening phrase back to him eleven times, and stops you each time for a reason he does not explain, and the twelfth time says nothing at all, which turns out to be the lesson. Afterwards he puts a thin silver torc about your neck with the same phrase cut into it.* Now it is in two places. That is one more than it was.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">Another evening, master singer. There is a road on me.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*The elf on the bench looks up and smiles as though you had been part of the conversation all along.* You have come in during the third verse, which is the best part and the hardest to explain. Sit if you like. There is water, and there will be more singing.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Sing well, Lindir.”</span></div>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*The elf on the bench turns the harp on its side and looks at you properly.* You sing. No — don&#x27;t be modest at me, I have had six hundred years of modest. Then here is the only thing about it worth knowing, and I will give it to you free: a song that is only ever sung by the one who made it dies with them. It is not yours. It was never going to be yours. Your entire job is to hand it on in a state fit to be handed on again.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Then teach me the phrase, and I will hand it on.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Another evening, master singer. There is a road on me.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*Lindir sets his hand flat on the strings to stop them.* You have the torc on. Good. But nothing has happened to you yet that belongs in the Lay — I would hear it in how you say your own name. Go and let the world happen to you a while, and come back to me when you are eight songs deeper into the craft.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Sing well, Lindir.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*He takes a folded leaf of vellum out of the harp case and holds it flat on his knee.* This is the Lay of the Second Spring. It ends in the middle of a line, and it has ended there for six hundred years, because the elf who was writing it went to the Havens and did not think the ending was his to put on. I have been waiting for somebody it was going to happen to.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Give it to me. I will bring you back the line.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Not yet. Keep it by the fire a while longer.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">*He glances at where you are carrying the vellum and goes back to tuning.* Still folded, I see, and still short a line. That is not a failure. An ending you have gone looking for is worth nothing at all — it has to come and find you. Fifteen levels of the craft, and something in you will have happened. Bring it back then.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Sing well, Lindir.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*Lindir stops playing halfway through a phrase, which he never does, and holds out his hand palm up without looking at you.* Say it. Not the whole of it. Only the line that goes where the line is missing.</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“*Say the line.*”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Not yet. The line has not come to me.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*He tips the harp toward you in something that is not quite a bow.* The Lay is out of my keeping and going about on a sword-edge, which is a stranger fate than I intended for it and a better one. Sing it badly in bad inns; that is how a thing survives. There are longer roads in this craft — the naming-songs, the lament that stops a fight, the making of a true name that a thing cannot refuse — but those are for a later evening than this one.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Sing well, Lindir.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*The elf on the bench looks up and smiles as though you had been part of the conversation all along.* You have come in during the third verse, which is the best part and the hardest to explain. Sit if you like. There is water, and there will be more singing.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Sing well, Lindir.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*He has you sing the opening phrase back to him eleven times, and stops you each time for a reason he does not explain, and the twelfth time says nothing at all, which turns out to be the lesson. Afterwards he puts a thin silver torc about your neck with the same phrase cut into it.* Now it is in two places. That is one more than it was.</div></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*He folds the vellum once more and presses it into your hand, and does not let go of it immediately.* Do not write on it. Do not show it to anybody clever. Carry it, and let it be unfinished at you until you cannot stand it.</div></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">*You give him the line. Lindir is quiet for a long moment, and then laughs once, delighted and slightly outraged, the way a man laughs at being beaten at a game he invented. He takes the vellum, the whole Lay, ending and all, down to the smithy of Rivendell, and what comes back up is not a page.* There. It goes about the world on an edge now, and it will not need either of us again.</div></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_bard_lrn</code></span></div><div class="dlg-text">Then teach me the phrase, and I will hand it on.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*He has you sing the opening phrase back to him eleven times, and stops you each…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Another evening, master singer. There is a road on me.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_bard_stn</code></span></div><div class="dlg-text">Give it to me. I will bring you back the line.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*He folds the vellum once more and presses it into your hand, and does not let g…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Not yet. Keep it by the fire a while longer.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_bard_rtn</code></span></div><div class="dlg-text">*Say the line.*</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“*You give him the line. Lindir is quiet for a long moment, and then laughs once,…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Not yet. The line has not come to me.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Sing well, Lindir.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
