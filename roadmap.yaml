@@ -1349,6 +1349,49 @@ ideas:
       - step: "UAT: leave and re-enter the Tombs and confirm the court re-forms exactly once (no doubling when a party trickles in one player at a time)."
         status: open
         step_h: 64
+  - id: tier-areas-moria-nazgul
+    title: "Open two finished-but-unreachable endgame areas: Moria Deep Caverns below the Balrog, and the Temple of Nazgûl off Dol Guldur"
+    group: bosses
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Rounds out the new tier with two existing areas that only need a link-in and named bosses: Moria Deep Caverns (area020, descent from the Abyss of Moria — naturally gated by the Balrog) and the Temple of Nazgûl (area010, linked from Dol Guldur, already contains 7 encounters). Candidate bosses are all currently unspawned: Angmar the Evocator (capstone), Thuringwethil, Shadow Lord of Dol Guldur, Morgrond Captain, the Mutated Basilisks, Sewer Master. Design: <a href=\"https://homerslotr.com/manual/boss-updates#tier-other\">boss-updates#tier-other</a>.</div><div><br></div><div>Second slice of <a href=\"#idea-unlock-more-inacessible-creature\">Unlock Inacessible creatures</a>; follows <a href=\"#idea-forbidden-realms-key-tier\">the Forbidden Realms Key tier</a>. Tune each boss on placement per <a href=\"#idea-boss-stat-tuning-pass\">the tuning pass</a>.</div>"
+  - id: wandering-adaptive-boss
+    title: "The Wandering One: a roaming boss that adaptively builds damage-type immunity as it is hit, punishing mono-damage parties"
+    group: bosses
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div><b>The Wandering One</b> — a proposed boss with no fixed home: it roams the module, so players have to hunt it rather than look it up. It also learns, building resistance to whatever damage type you keep hitting it with and shedding resistance to types you have stopped using — so a party that rotates its damage keeps it off balance, and a mono-damage party grinds to a halt. Design and feasibility: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-borg\">boss-updates#gimmick-borg</a>.</div>"
+    impl_notes: "<div>Two ideas fused: roaming (no fixed wiki area) and adaptive immunity drawing from a shared 500% pool in 5-10% increments per damage type, stealing from the least-recently-received type when the pool is empty.</div><div><br></div><div>Build notes: reuses the unused wandering.nss state machine; must set NO_LEASH=1 or leash_to_area snaps it home; OnDamaged juggles percentage-immunity item properties across its gear slots; still qualifies as a single-instance registry boss (board attribution 'roaming').</div>"
+  - id: elemental-swarm-waves
+    title: "Elemental swarm arena: waves of 24 elementals trickle-spawned to surround the party, the element rotating each cleared wave"
+    group: bosses
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>An elemental swarm arena: not one boss but waves of two dozen elementals trickling in to surround the party, with the element rotating each time a wave is cleared — fire, then cold, then acid, and on. You cannot pre-gear for it; you have to re-resist and change tactics mid-fight. Design: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-swarm\">boss-updates#gimmick-swarm</a>.</div>"
+    impl_notes: "<div>4 spawns every 10 seconds over ~1 minute per wave, element rotating per cleared wave. Reusable elemental blueprints already exist; the timed trickle-wave controller is new script. These are trash adds, not registry bosses.</div><div><br></div><div>Honesty guardrail: keep waves short and lethal so each element rotation forces a real counter-swap — the surround also pressures the <a href=\"#idea-heal-soul-fatigue\">healing economy</a>.</div>"
+  - id: clone-parent-boss
+    title: "Clone/parent boss: a chance an existing boss fight is gate-crashed by the boss's 'Mom' — modest stat boost, better gear, two-front surprise"
+    group: bosses
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>A chance that a boss fight you thought you knew gets gate-crashed by the boss's <i>mother</i> — a modestly tougher version with better gear, arriving mid-fight and forcing a snap decision about which one to deal with first. A threat multiplier and a surprise, not a second damage sponge. Design: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-parent\">boss-updates#gimmick-parent</a>.</div>"
+    impl_notes: "<div>Keep the parent's boost modest. Its better drops must be real item blueprints registered via bin/gen-forge-legal.py so the Forge login sweep does not jail looters.</div>"
+  - id: optin-curse-gem-loot
+    title: "Opt-in curse: volunteer for extra damage taken and doubled soul-fatigue in exchange for better rarity-tiered socketed-gem drops"
+    group: bosses
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-13"
+    notes: "<div>Difficulty as a player choice instead of a wall: take the curse (≈50% more damage taken and/or doubled <a href=\"#idea-heal-soul-fatigue\">soul-fatigue</a>) for a materially better reward roll. The reward vehicle rides on the gem-socketing system (<a href=\"#idea-Socket-system-for-weapons\">Socket system for weapons</a>) — the curse just bumps the gem rarity band / drop chance, no separate loot system. Design: <a href=\"https://homerslotr.com/manual/boss-updates#curse\">boss-updates#curse</a>.</div><div><br></div><div>Depends on both the healing-economy levers and the socket/gem system shipping first; chance-based loot itself is greenfield for the module.</div>"
 
   # ---- Progression, bestiary & achievements --------------------------------
   - id: achievements
