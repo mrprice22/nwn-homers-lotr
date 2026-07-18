@@ -356,6 +356,45 @@ Both files should be updated in the same commit whenever a quest ships or change
   open for the mid/endgame chunks.
 - **UAT:** scripted and built, pending waypoint placement and in-game UAT.
 
+### Blood of Elder Days — Sorcerer line I
+
+- **Journal tag:** `sor_blood` (`@group 'Class Lines'`, `@order 12`)
+- **Roadmap:** `sorcerer-line-early` (added 2026-07-18)
+- **State:** `sorclinedb` campaign DB (key `blood_stage`, 0–3; see `q_sor_inc.nss`).
+- **Gates:** `GetLevelByClass(CLASS_TYPE_SORCERER)` for **all three** nodes (>= 1 / >= 8 / >= 15) —
+  matching the paladin/monk/bard tightened rule rather than the older lines' `GetHitDice`, so a
+  multiclass cannot buy the rewards with levels taken elsewhere.
+- **Scripts:** `q_sor_lrn`, `q_sor_stn`, `q_sor_rtn`; StartingConditionals `q_sor_c_off`,
+  `q_sor_c_s1w`, `q_sor_c_s1r`, `q_sor_c_s2w`, `q_sor_c_s2r`, `q_sor_c_dn`.
+- **Prefix:** `q_sor_`, checked free before use — nothing in `unpacked/` began `q_sor_` or `q_src_`,
+  and the pre-existing "sorcerer" names (`darksorcerer.utc`, `gwathsorcerer.utc`,
+  `orcsorcerer001.utc`, `beltofsorcerery.uti`, `darksorcererrobe.uti`, `carnsorcq.dlg`) share no stem
+  with it, so grep stays unambiguous. No half-built Sorcerer-line work existed. Every `q_sor_*`
+  resref fits the 16-character limit.
+- **Blueprints:** Erendis of the Drowned House (`q_sor_mstr`, Sorcerer 30, plot/immortal, human
+  female, conversation `q_sor_conv`) script-spawned by `q_sor_spawn` from the Ruins of Annuminas
+  OnEnter wrapper `q_sor_enter`, which chains the area's existing `d_cleartrash` handler on
+  `ruinsofannuminas`.
+- **Waypoints:** `AP_sorcererlineearly_1` in `ruinsofannuminas` (Ruins of Annuminas). **Erendis is
+  spawn-only — the whole line is invisible in-game until this waypoint is placed.**
+- **Items:** `q_sor_sig` (ring, BaseItem 52, model 116, +1 CHA), `q_sor_glas` (plot token,
+  BaseItem 24), `q_sor_stff` (quarterstaff, BaseItem 50, model 253, Enhancement +2 / +1 CHA). All use
+  Use Limitation: Class Sorcerer, **subtype 9** — verified against the module's own arcane-restricted
+  items (`sarumansrobes.uti`, `item053.uti` "Gandalf's Staff", `ashmlw006.uti` "Shield of the Mage",
+  each carrying the 9/10 Sorcerer+Wizard pair) rather than guessed, and consistent with the confirmed
+  Bard 1 / Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7 entries.
+- **Sorcerer-legal rewards:** a ring and a quarterstaff — both inside Sorcerer proficiency, so nothing
+  on the line ships unusable.
+- **No NPC reuse:** `ruinsofannuminas` carries no placed creatures at all and no store; Erendis is
+  authored fresh and owns neither.
+- **Area choice:** `ruinsofannuminas` is the area the design brief itself lists first for this line
+  (drowned-Numenorean bloodline flavour), is reachable in 3 hops from the Well of Eru
+  (Well → Bree → Old North Road → Ruins), and had no NPC/store to collide with.
+- **Notes:** structurally cloned from the shipped `bard-line-early` template (`q_bard_*`). The design
+  brief's Smaug, unlimited-casting sceptre, spell-DC and metamagic material is untouched and remains
+  open for the mid/endgame chunks.
+- **UAT:** scripted and built, pending waypoint placement and in-game UAT.
+
 ### Pass the Pass
 
 - **Journal tag:** `pass_pass`

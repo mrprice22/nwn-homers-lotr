@@ -199,6 +199,9 @@ authoring conventions, and the module compatibility audit.
 > "Stunning Fist DC +6": no stock property. Substitute `Ability Bonus: Wis +5` (Stunning Fist DCs off Wis).
 
 ### Sorcerer — Blood of the Elder Days
+> **Early nodes (L1/8/15) SHIPPED 2026-07-18** as `sorcerer-line-early` — Erendis of the Drowned House at
+> `ruinsofannuminas` (Ruins of Annuminas), journal `sor_blood`. See QuestGuide-DM-Notes.md. Notes below
+> remain live for the mid/endgame chunks.
 > Areas: `minastirith`, `cardolan`, `thenorthdowns001`, `ruinsofannuminas`, `theruinsofdale`,
 > `thelonelymountai`, `lonelymountainma`, `nazgulguildhouse`, `blackgatge`.
 > Smaug: no blueprint — check CEP for Red Wyrm appearance; "spirit" form uses fire elemental VFX.
