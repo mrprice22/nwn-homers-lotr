@@ -2138,11 +2138,12 @@ ideas:
   - id: fighter-line-early
     title: "Fighter line I — The Unbroken Shield (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Fighter line. One-tier chunk sized for a single session; class lines intentionally cross other quests' zones.</span>"
+    date: "2026-07-17"
+    commit: 747c4d624fe
+    notes: "<span>Early nodes (L1/8/15) of the Fighter line. One-tier chunk sized for a single session; class lines intentionally cross other quests' zones.</span><div><br></div><div><b>Fixed 2026-07-17:</b> shipped the early nodes (L1/L8/L15) of the Fighter line, <b>The Unbroken Shield</b>, as a self-contained one-off arc built on the canonical quest skeleton. Giver <b>Hallas the Shieldwarden</b> (q_ftr_hallas, plot/immortal Gondorian veteran) keeps a corner of the Prancing Pony and offers the oath only to Fighters (GetLevelByClass(CLASS_TYPE_FIGHTER)&gt;=1, value 4 verified); non-fighters get a flavour line. <b>Node 1 (L1):</b> swear the oath -&gt; journal opens + Warden's Buckler (small shield +1 AC, Use-Limitation:Fighter). <b>Node 2 (L8):</b> receive the Notched Captain's Shard (plot item - the dying-captain broken-blade hook from the brief). <b>Node 3 (L15):</b> the shard is reforged into the Warden's Reforged Blade (longsword +2, Fighter-only), shard consumed, journal End. Per-character one-off state in the fighterlinedb campaign DB (key ubshield_stage 0-&gt;3, advance-only so rewards aren't farmable). Journal category ftr_shield (@group 'Class Lines'). Reward properties use verified stock encodings. Wired end-to-end: Prancing Pony OnEnter wrapped q_ftr_enter (chains the existing q_hrp_ent1 so the leash + Harper contact are preserved) -&gt; q_ftr_spawn; conversation q_ftr_conv on the giver; 6 StartingConditionals + 3 reply scripts referenced in the DLG. Build passed all gates (6/6 smoke, dialog-integrity 0 failing, boss-registry 78/78, scripts compiled 0 errors). <b>Deliberately deferred to fighter-line-mid/later:</b> the Aeglos Reborn spear capstone and the Osgiliath wave-defence; the shard/blade are named generically to keep the Narsil lore for the finale.</div><div><br></div><div><b>Blocked in-game until the admin places waypoint AP_fighterlineearly_1 in theprancingpo001</b> - Hallas is script-spawn-only and the scripts no-op gracefully until then.</div><div><br></div><div><b>UAT (after waypoint placed + deploy/restart):</b> (1) a Fighter sees Hallas's oath offer, a non-fighter gets only the flavour line; (2) accept -&gt; journal ftr_shield opens + fighter-restricted Warden's Buckler; (3) the L8 and L15 gates hold (below-level shows a 'come back at N' line); (4) at L8 the shard is granted, at L15 it is consumed and the Reforged Blade granted, journal advances 1-&gt;2-&gt;3(End); (5) buckler/blade are unusable by non-fighters; (6) regression: the Prancing Pony leash + Harper-contact spawn (Della) still fire from the wrapped OnEnter.</div>"
 
   - id: fighter-line-mid
     title: "Fighter line II — The Unbroken Shield (L22-38)"
