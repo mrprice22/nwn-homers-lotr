@@ -3099,11 +3099,51 @@ ideas:
   - id: sorcerer-line-early
     title: "Sorcerer line I — Blood of Elder Days (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Sorcerer line.</span>"
+    date: "2026-07-18"
+    commit: 84cc01c65aa
+    notes: "<div>The <b>Sorcerer class line</b> opens with <b>Blood of Elder Days</b>. Among the Ruins of Annuminas, where the old Numenorean capital is going quietly back into the lake, Erendis of the Drowned House keeps a fire nobody laid. She is not a teacher of spells and says so &mdash; nobody taught her either &mdash; and the one thing she thinks can be handed on is how to stop fighting the blood that woke in you without asking. Three nodes gated on <b>Sorcerer</b> levels 1, 8 and 15: be named and take the Signet of the Drowned House, carry the Shard of Sea-Glass, and say out loud what the blood cost you &mdash; after which the shard is set into the Staff of Elder Days. Both rewards sit inside Sorcerer proficiency. Full walkthrough: <a href=\"QuestGuide.html#blood-elder-days\">Blood of Elder Days &mdash; Sorcerer line I</a>.</div>"
+    impl_notes: "<div>Structurally cloned from the shipped bard-line-early template (q_bard_* -&gt; q_sor_*). Prefix q_sor_ chosen after confirming it is free — nothing in unpacked/ began q_sor_ or q_src_, and the pre-existing 'sorcerer' blueprints share no stem with it. All resrefs fit the 16-char limit.</div><div><br></div><div>State: sorclinedb campaign DB, key blood_stage (0-3), per-character via Get/SetCampaignInt; stage only advances, so rewards are not farmable. <b>All three</b> gates use GetLevelByClass(CLASS_TYPE_SORCERER) (&ge;1/8/15), the tightened paladin/monk/bard rule, not GetHitDice.</div><div><br></div><div>Scripts: include q_sor_inc; reply scripts q_sor_lrn/stn/rtn; StartingConditionals q_sor_c_off/s1w/s1r/s2w/s2r/dn. DLG q_sor_conv obeys the reply-gate rule. Giver q_sor_mstr (Erendis of the Drowned House, Sorcerer 30, plot/immortal) is script-spawn-only via q_sor_spawn, fired from the ruinsofannuminas OnEnter wrapper q_sor_enter, which chains the area's existing d_cleartrash handler.</div><div><br></div><div>Items: q_sor_sig (ring, BaseItem 52, +1 CHA), q_sor_glas (plot token, BaseItem 24), q_sor_stff (quarterstaff, BaseItem 50, Enh +2 / +1 CHA). Use Limitation: Class Sorcerer <b>subtype 9</b>, verified against sarumansrobes.uti, item053.uti and ashmlw006.uti rather than guessed; consistent with Bard 1 / Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category sor_blood (@group 'Class Lines', @order 12). Gates: 7/7 smoke, dialog integrity 0 failing, 12 compiled / 0 errors.</div><div><br></div><div>Follow-up (not built, remains open in the design brief): the mid/endgame chunks — Smaug, the unlimited-casting sceptre, spell-DC and metamagic material.</div>"
+    manual_steps:
+      - step: "Place a waypoint tagged AP_sorcererlineearly_1 in ruinsofannuminas (Ruins of Annuminas) — suggested spot: on the grass among the fallen masonry near the lakeshore, somewhere a player crossing the ruins will walk past. Erendis of the Drowned House spawns there on area entry. She is spawn-only: the entire Sorcerer line is invisible and unreachable in-game until this waypoint exists."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "UAT: enter Ruins of Annuminas and confirm Erendis spawns exactly once at the waypoint, and does not duplicate on re-entry or after a server restart."
+        status: open
+        step_h: 64
+      - step: "UAT: confirm the area's existing trash-purge behaviour still runs on entry (the q_sor_enter wrapper chains d_cleartrash)."
+        status: open
+        step_h: 64
+      - step: "UAT: speak to Erendis on a non-Sorcerer character — expect the fire-and-story greeting only, with no lesson offered and no reward."
+        status: open
+        step_h: 64
+      - step: "UAT: on a Sorcerer 1, take the naming — journal Blood of Elder Days opens at entry 1 and the Signet of the Drowned House appears (+1 CHA, unusable by non-Sorcerers)."
+        status: open
+        step_h: 64
+      - step: "UAT: re-speak at Sorcerer 1-7 — expect the holding node, no second signet."
+        status: open
+        step_h: 64
+      - step: "UAT: at Sorcerer 8, return — journal entry 2 and the Shard of Sea-Glass (plot token) are granted exactly once."
+        status: open
+        step_h: 64
+      - step: "UAT: at Sorcerer 15, return and say the price — the shard is consumed, journal entry 3 closes the quest, and the Staff of Elder Days is granted (+2 / +1 CHA quarterstaff, Sorcerer-only)."
+        status: open
+        step_h: 64
+      - step: "UAT: drop the Shard of Sea-Glass before the level-15 turn-in and confirm the staff is still awarded (a lost shard must not brick the line)."
+        status: open
+        step_h: 64
+      - step: "UAT: re-speak after completion — expect the epilogue greeting only, with no repeat rewards."
+        status: open
+        step_h: 64
+      - step: "UAT: verify a multiclass (e.g. Sorcerer 5 / Fighter 10) is held at the Sorcerer-8 gate, confirming the gates count class levels rather than total hit dice."
+        status: open
+        step_h: 64
+      - step: "UAT: confirm the quest appears on the wiki Quests index under Class Lines at position 12 (after Bard) at the next scheduled refresh."
+        status: open
+        step_h: 64
 
   - id: sorcerer-line-mid
     title: "Sorcerer line II — Blood of Elder Days (L22-38)"
