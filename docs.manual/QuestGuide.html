@@ -79,11 +79,8 @@
       letter-spacing: 0.03em;
       text-transform: uppercase;
     }
-    .status-ok    { background: rgba(40,160,80,0.15);  color: #28a050; border: 1px solid rgba(40,160,80,0.3); }
-    .status-bug   { background: rgba(200,120,30,0.15); color: #c87820; border: 1px solid rgba(200,120,30,0.3); }
-    .status-broke { background: rgba(200,40,40,0.12);  color: #c83030; border: 1px solid rgba(200,40,40,0.25); }
-    .status-awol  { background: rgba(100,100,200,0.12); color: #6060c8; border: 1px solid rgba(100,100,200,0.25); }
-    .status-stub  { background: rgba(150,150,150,0.12); color: #888;    border: 1px solid rgba(150,150,150,0.25); }
+    .status-ok  { background: rgba(40,160,80,0.15);  color: #28a050; border: 1px solid rgba(40,160,80,0.3); }
+    .status-dev { background: rgba(100,100,200,0.12); color: #6060c8; border: 1px solid rgba(100,100,200,0.25); }
 
     .journal-entries {
       border-left: 3px solid var(--border);
@@ -114,17 +111,6 @@
     }
     .warning-box p { margin: 0.3em 0; }
 
-    .dm-note {
-      background: rgba(107,58,28,0.07);
-      border: 1px dashed var(--accent-soft);
-      border-radius: 4px;
-      padding: 0.6em 1em;
-      margin: 0.7em 0;
-      font-size: 0.88em;
-      color: var(--muted);
-    }
-    .dm-note::before { content: "DM Note — "; font-weight: bold; color: var(--accent); }
-
     .section-header {
       background: rgba(107,58,28,0.08);
       border-left: 4px solid var(--accent);
@@ -136,7 +122,10 @@
     .section-header .sub { font-size: 0.88em; color: var(--muted); margin: 0.2em 0 0; }
 
     .reward-table td, .reward-table th { font-size: 0.9em; vertical-align: top; }
-    .reward-table td:first-child { white-space: nowrap; }
+    .table-scroll { overflow-x: auto; }
+    .summary-table { width: 100%; }
+    .summary-table td, .summary-table th { font-size: 0.88em; vertical-align: top; }
+    .summary-table td:first-child { white-space: nowrap; }
 
     h2, h3 { scroll-margin-top: 1.5em; }
   </style>
@@ -146,9 +135,10 @@
     <nav class="toc" aria-label="Page contents">
       <h2>Contents</h2>
       <ol>
+        <li><a href="#quest-table">All Quests at a Glance</a></li>
         <li><a href="#active">Active Quests</a>
           <ol>
-            <li><a href="#ferrys-ring">Bill Ferny's Ring</a></li>
+            <li><a href="#fernys-ring">Bill Ferny's Ring</a></li>
             <li><a href="#fernys-return">Ferny's Return</a></li>
             <li><a href="#millers-son">The Miller's Son</a></li>
             <li><a href="#millers-other-son">The Miller's Other Son</a></li>
@@ -157,21 +147,23 @@
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#concerning-hobbits">Concerning Hobbits</a></li>
-            <li><a href="#unbroken-shield">The Unbroken Shield (Fighter line I)</a></li>
-            <li><a href="#long-shadow">The Long Shadow (Rogue line I)</a></li>
-            <li><a href="#colour-of-power">The Colour of Power (Wizard line I)</a></li>
-            <li><a href="#flame-of-anor">The Flame of Anor (Cleric line I)</a></li>
+            <li><a href="#unbroken-shield">The Unbroken Shield &mdash; Fighter line I</a></li>
+            <li><a href="#long-shadow">The Long Shadow &mdash; Rogue line I</a></li>
+            <li><a href="#colour-of-power">The Colour of Power &mdash; Wizard line I</a></li>
+            <li><a href="#flame-of-anor">The Flame of Anor &mdash; Cleric line I</a></li>
             <li><a href="#pass-the-pass">Pass the Pass</a></li>
             <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
             <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
             <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
             <li><a href="#elrond">Elrond's Request</a></li>
+            <li><a href="#annuminas">Ruin of Annuminas</a></li>
             <li><a href="#well-of-souls">The Well of Souls</a></li>
-            <li><a href="#kalrist-tiger">Kallrist Tiger Hunt</a></li>
+            <li><a href="#gloison">Gloison's Heirloom</a></li>
+            <li><a href="#kallrist-tiger">Kallrist Tiger Hunt</a></li>
             <li><a href="#paths-of-the-dead">Paths of the Dead</a></li>
             <li><a href="#glorfindel">Glorfindel's Curative</a></li>
-            <li><a href="#prestige-hub">Prestige-Order Hub</a></li>
+            <li><a href="#prestige-hub">Prestige-Order Hub (Halmir the Grey)</a></li>
             <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
             <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
             <li><a href="#pale-master">The Twenty-First Tomb (Pale Master)</a></li>
@@ -184,19 +176,14 @@
             <li><a href="#dwarven-defender">The Unbroken Stone (Dwarven Defender)</a></li>
             <li><a href="#shifter">The Second Skin (Shifter)</a></li>
             <li><a href="#blackguard">The Fall (Blackguard)</a></li>
-          </ol>
-        </li>
-        <li><a href="#meaningwave">MeaningWave Quests</a></li>
-        <li><a href="#broken">Broken / Unreachable</a>
-          <ol>
-            <li><a href="#gloison">Gloison's Heirloom</a></li>
-            <li><a href="#annuminas">Ruin of Annuminas</a></li>
             <li><a href="#server-info">Server Info Journals</a></li>
-            <li><a href="#unjournaled">Unjournaled Quests</a></li>
           </ol>
         </li>
-        <li><a href="#balance">Balance &amp; Reward Notes</a></li>
-        <li><a href="#player-reports">Investigating Reports</a></li>
+        <li><a href="#meaningwave">MeaningWave Quests</a>
+          <ol>
+            <li><a href="#path-of-meaning">The Path of Meaning</a></li>
+          </ol>
+        </li>
       </ol>
     </nav>
   </aside>
@@ -204,33 +191,76 @@
 
 <h1>Quest Guide — Homer's LOTR</h1>
 
-<p>This guide covers every quest and journal category in the module: what triggers them, how they
-progress, what they reward, and which ones are currently broken. A <span class="status-badge status-ok">Working</span> badge means
-the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</span> means it functions but has a tag mismatch or minor issue;
-<span class="status-badge status-broke">Broken</span> means it cannot be completed; <span class="status-badge status-awol">AWOL</span> means it once existed or was planned but has no placed content.</p>
+<p>This guide covers every quest in the module: who gives it, where to find them, what you have to do,
+and what you walk away with. Start with the summary table below, then jump to any quest's card for the
+full walkthrough.</p>
 
 <div class="tip-box">
-  <p><strong>Update (2026-05-28):</strong> The fixes described in this guide have been
-  <strong>implemented</strong> in the module source. The status badges below reflect the
-  post-fix state. Three earlier diagnoses in this guide were corrected during implementation:
-  <code>sc_001.nss</code> never blocked Gloison's conversation (its <code>Random(100) &gt;= 100</code>
-  branch can never fire, so it always returns TRUE); <code>hgll_cliententer.nss</code> had no
-  pre-existing first-login check to hang the server-info journals from; and the
-  <em>Book of the Cora</em> already carries useful properties. Changes still require an
-  in-game pass — see <a href="#player-reports">UAT</a>.</p>
+  <p><strong>Reading the badges.</strong>
+  <span class="status-badge status-ok">Working</span> means the quest is live and playable right now.
+  <span class="status-badge status-dev">In Development</span> means the content is scaffolded but not
+  yet finished — you may see the journal category without anything to do in it yet.</p>
+  <p><strong>Daily and weekly quests</strong> reset on the real-world clock at midnight UTC (weeklies at
+  Monday 00:00 UTC). Every repeatable quest-giver will quote you the exact time remaining if you come
+  back early, so you never have to guess.</p>
 </div>
 
-<div class="warning-box">
-  <p><strong>Update (2026-07-11) — audit pass:</strong> A re-audit against the live module
-  found this guide had drifted. Corrections applied below: two fully-scripted reward quests
-  were undocumented and are now listed (<a href="#paths-of-the-dead">Paths of the Dead</a>,
-  <a href="#glorfindel">Glorfindel's Curative</a>); the <strong>Guilds</strong> server-info
-  journal is <em>not</em> delivered (deliberately — the guild system is retired; see
-  <a href="#server-info">Server Info</a>); and <strong>The Well of Souls</strong> was found
-  <em>unstartable</em> — no Gondor Scribe NPC was placed. (That gap has since been fixed on
-  2026-07-13: the scribe is now placed and the quest is <span class="status-badge status-ok">Working</span> —
-  see the card.) The six <code>mod_*</code> server-info
-  journals that <em>are</em> delivered are now documented too.</p>
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="quest-table">
+  <h2>All Quests at a Glance</h2>
+  <p class="sub">Every quest in the module. Click a name for the full walkthrough.</p>
+</div>
+
+<div class="table-scroll">
+<table class="data summary-table">
+  <thead>
+    <tr><th>Quest</th><th>Level</th><th>Giver</th><th>Where</th><th>Reward</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="#fernys-ring">Bill Ferny's Ring</a></td><td>1–10</td><td>Bill Ferny</td><td>Bree</td><td>500 XP + 200 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#fernys-return">Ferny's Return</a></td><td>~3</td><td>Guardian of Bree</td><td>Bree</td><td>250 XP + 200 gp + Ferny's Filching Gloves</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#millers-son">The Miller's Son</a></td><td>1–10</td><td>Han the Bree Miller</td><td>Bree</td><td>450 XP</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#millers-other-son">The Miller's Other Son</a></td><td>~8</td><td>Han the Bree Miller</td><td>Bree</td><td>500 XP + 500 gp + Magic Bag</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></td><td>any <em>(daily)</em></td><td>Rigrin</td><td>Whitfurrow Inn</td><td>25 gp + Frogmorton Pint</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#hobbit-post">Hobbit Post</a></td><td>any <em>(daily)</em></td><td>Posco Whitfoot</td><td>Hobbiton</td><td>60–100 gp + 50 XP</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#spider-silk-harvest">Spider Silk Harvest</a></td><td>12+ <em>(daily)</em></td><td>Thranduil</td><td>Thranduil's Hall, Mirkwood</td><td>600 XP + 300 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#riddle-game">The Riddle Game</a></td><td>any <em>(weekly)</em></td><td>the Whispering Wretch</td><td>Bree Cave</td><td>250 XP + 100–300 gp + a trinket</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#concerning-hobbits">Concerning Hobbits</a></td><td>5+ <em>(daily)</em></td><td>Odo Proudfoot</td><td>Hobbiton</td><td>100 XP + 40–100 gp + pipe-weed</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#unbroken-shield">The Unbroken Shield</a> <em>(Fighter I)</em></td><td>1 / 8 / 15</td><td>Hallas the Shieldwarden</td><td>Prancing Pony, Bree</td><td>Warden's Buckler, then the Warden's Reforged Blade</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#long-shadow">The Long Shadow</a> <em>(Rogue I)</em></td><td>1 / 8 / 15</td><td>Fenn the Shade</td><td>Prancing Pony, Bree</td><td>Shadowmantle, then the Nightthorn</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#colour-of-power">The Colour of Power</a> <em>(Wizard I)</em></td><td>1 / 8 / 15</td><td>Findegil the Grey</td><td>Bag End, the Shire</td><td>Apprentice's Amulet, then the Staff of the Grey Study</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#flame-of-anor">The Flame of Anor</a> <em>(Cleric I)</em></td><td>1 / 8 / 15</td><td>Aldamir, Keeper of the Flame</td><td>Temple of Illuvatar</td><td>Acolyte's Censer-Amulet, then the Mace of the Kindled Flame</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#pass-the-pass">Pass the Pass</a></td><td>10+ <em>(daily)</em></td><td>Baldor the Caravan-Master</td><td>Foothills of the Misty Mountains</td><td>150–450 XP + 200–600 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#sowing-discord">Sowing Discord in Bree</a></td><td>15+ <em>(daily, non-Good)</em></td><td>Bill Ferny</td><td>Bree market</td><td>500 XP + 500–800 gp; Morgul-Weave Cloak once</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#beorns-garden">Beorn's Garden</a></td><td>12+ <em>(daily)</em></td><td>Grimbeorn the Old</td><td>Beorn's homestead</td><td>700 XP + 250–450 gp + Beorn's Honeycomb</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></td><td>18+</td><td>Frár the Restless</td><td>Chamber of Records, Moria</td><td>2,000 XP + 1,200 gp + Seal of the Twentieth</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#feeding-tharbad">Feeding Tharbad</a></td><td>5–15</td><td>Temple of Ilúvatar cleric</td><td>Tharbad</td><td>500 XP + Book of the Cora</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#elrond">Elrond's Request</a></td><td>15–30</td><td>Elrond</td><td>Rivendell</td><td>2,000 XP + Elrond's Writ</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#annuminas">Ruin of Annuminas</a></td><td>25+</td><td>Hanee the Loon</td><td>Bree</td><td>5,000 XP</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#well-of-souls">The Well of Souls</a></td><td>30–45</td><td>the Gondor Scribe</td><td>Tower of the High Wizard</td><td>10,000 XP + Annuminas Key</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#gloison">Gloison's Heirloom</a></td><td>high</td><td>Gloin, King Under the Mountain</td><td>Erebor</td><td>5,000 XP + 15,000 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#kallrist-tiger">Kallrist Tiger Hunt</a></td><td>10–20 <em>(repeatable)</em></td><td>Sald</td><td>Kallrist Island</td><td>200 gp per tiger heart</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#paths-of-the-dead">Paths of the Dead</a></td><td>end-game</td><td>Aragorn</td><td>Gates of Minas Tirith</td><td>Andúril, Flame of the West</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#glorfindel">Glorfindel's Curative</a></td><td>mid</td><td>Glorfindel</td><td>Rivendell</td><td>1,700 XP + Bracers of Glorfindel</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#prestige-hub">Prestige-Order Hub</a></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru</td><td>opens the twelve order trials below</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#harper-scout">The Cipher in the Inn</a> <em>(Harper Scout)</em></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru → Prancing Pony</td><td>750 XP + Harper Pin</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#knight-west">The Banner of the West</a> <em>(Knight of Westernesse)</em></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith</td><td>750 XP + Banner of the West</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#pale-master">The Twenty-First Tomb</a> <em>(Pale Master)</em></td><td>11+</td><td>Halmir the Grey</td><td>Well of Eru → Bree Crypt</td><td>1,000 XP + Talisman of the Twenty-First Tomb</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#shadowdancer">The Unlit Deep</a> <em>(Shadowdancer)</em></td><td>11+</td><td>Halmir the Grey</td><td>Well of Eru → Balin's Tomb</td><td>1,000 XP + Boots of the Unlit Road</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#arcane-archer">The Warden's Mark</a> <em>(Arcane Archer)</em></td><td>12+</td><td>Halmir the Grey</td><td>Well of Eru → Rivendell</td><td>1,000 XP + Bracers of the Grey Fletching</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#red-dragon">The Old Wyrm's Fire</a> <em>(Red Dragon Disciple)</em></td><td>12+</td><td>Halmir the Grey</td><td>Well of Eru → Lonely Mountain</td><td>1,000 XP + Wyrmblood Amulet</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#assassin">The Quiet Knives</a> <em>(Assassin)</em></td><td>13+</td><td>Halmir the Grey</td><td>Well of Eru → Bree</td><td>1,000 XP + Gloves of the Quiet Hand</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#weapon-master">The Sworn Blade</a> <em>(Weapon Master)</em></td><td>13+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith</td><td>1,000 XP + Buckle of the Sworn Blade</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#divine-champion">The Shield of Others</a> <em>(Divine Champion)</em></td><td>14+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith temple</td><td>1,000 XP + Mantle of the Westward Vow</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#dwarven-defender">The Unbroken Stone</a> <em>(Dwarven Defender)</em></td><td>14+ <em>(dwarves)</em></td><td>Halmir the Grey</td><td>Well of Eru → Balin's Tomb</td><td>1,000 XP + Warhelm of Durin's Watch</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#shifter">The Second Skin</a> <em>(Shifter)</em></td><td>16+</td><td>Halmir the Grey</td><td>Well of Eru → Beorn's steading</td><td>1,000 XP + Charm of the Carrock</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#blackguard">The Fall</a> <em>(Blackguard)</em></td><td>14+</td><td>Halmir the Grey</td><td>Well of Eru → Barad-Dûr</td><td>1,000 XP + Sigil of the Fallen</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#server-info">Server Info Journals</a></td><td>any</td><td>automatic on login</td><td>—</td><td>server rules and reference entries</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#path-of-meaning">The Path of Meaning</a> <em>(MeaningWave)</em></td><td>any</td><td>seven guides</td><td>across Middle-earth</td><td>5,500 XP total + the mixtape</td><td><span class="status-badge status-ok">Working</span></td></tr>
+  </tbody>
+</table>
 </div>
 
 <hr>
@@ -242,10 +272,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 </div>
 
 <!-- FERNY'S RING -->
-<div class="quest-card" id="ferrys-ring">
+<div class="quest-card" id="fernys-ring">
   <h3>Bill Ferny's Ring <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>Ferny's Ring</code></span>
     <span>Giver: Bill Ferny, Bree</span>
     <span>Level range: 1–10</span>
     <span>Reward: 500&nbsp;XP + 200&nbsp;gp (or 500&nbsp;XP + keep Sharkey's Orders)</span>
@@ -257,88 +286,71 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li>Accept Ferny's request — journal entry 1 is set.</li>
+    <li>Accept Ferny's request.</li>
     <li>Enter <a href="../areas/breecave.html">Bree Cave</a> and recover the <em>Ring of Sharkey</em> from the bandits (or a container).</li>
     <li>Return to Ferny. The ring's inscription reads <em>"Servant of Sharkey"</em> — suspicious.</li>
     <li>At Ferny's house you will face an ambush. Two choices after:
       <ul>
-        <li><strong>Give Ferny back his letter</strong> (Sharkey's Orders) — 150 XP + 200 gp. Journal entry 4.</li>
-        <li><strong>Keep the letter</strong> — 150 XP, no gold, but you retain an evidence item. Journal entry 3.</li>
+        <li><strong>Give Ferny back his letter</strong> (Sharkey's Orders) — 500 XP + 200 gp.</li>
+        <li><strong>Keep the letter</strong> — 500 XP, no gold, but you retain an evidence item.</li>
       </ul>
     </li>
   </ol>
 
+  <div class="tip-box">
+    <p>Do <a href="#fernys-return">Ferny's Return</a> first and Ferny pays you half again as much here
+    — an extra 100 gp on either ending.</p>
+  </div>
+
   <strong>Journal entries:</strong>
   <ol class="journal-entries">
     <li>You agreed to help Ferny recover his ring from a bandit who fled into a nearby cave.</li>
-    <li>You delivered the ring. The inscription "Servant of Sharkey" gives you pause. <em>(Note: this entry appears set via a separate branch — see DM note.)</em></li>
+    <li>You delivered the ring. The inscription "Servant of Sharkey" gives you pause.</li>
     <li>An ambush awaited at Ferny's house. You kept the letter about Sharkey.</li>
     <li>An ambush awaited at Ferny's house. You gave Ferny his letter back.</li>
   </ol>
-
-  <div class="dm-note">Journal entry 2 is defined in the journal but the DLG Quest field for it points to the correct tag.
-  The ring item (<code>RingofSharkey</code>) and Sharkey's Orders (<code>SharkeysOrders</code>) must be in
-  inventory when speaking to Ferny. The ambush trigger is in <code>ferny_convo2.dlg.json</code>.
-  XP: 500 via <code>endferny1.nss</code> (give letter) or <code>aquirering.nss</code> (keep letter) — raised from 150.
-  <br><br><strong>Known issue (2026-07-11):</strong> a legacy ported-campaign plot category <code>p000</code>
-  (struct 0, driven by <code>p000c001ondeath.nss</code> and the <code>p000q001-005</code> scripts) is still wired
-  in parallel with this custom <code>Ferny's Ring</code> chain, so a player can end up with two journal tracks
-  for the same plot. Tracked as roadmap idea <code>p000-duplicate-ferny-journal</code>.</div>
 </div>
 
 <!-- FERNY'S RETURN -->
 <div class="quest-card" id="fernys-return">
   <h3>Ferny's Return <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>ferny_return</code></span>
     <span>Giver: Guardian of Bree, Bree</span>
     <span>Level range: ~3 (one-off)</span>
-    <span>Reward: 200 gp + 250 XP + <em>Ferny's Filching Gloves</em> (Pick Pocket +2)</span>
+    <span>Reward: 250 XP + 200 gp + <em>Ferny's Filching Gloves</em> (Pick Pocket +2)</span>
   </div>
-  <p>A prequel to <a href="#ferrys-ring">Bill Ferny's Ring</a>. Bill Ferny has been seen skulking
+  <p>A prequel to <a href="#fernys-ring">Bill Ferny's Ring</a>. Bill Ferny has been seen skulking
   around his old house — but Ferny himself has been standing in the market all the while. Someone
   is wearing Ferny's name, and the Bree watch is stretched too thin to find out who.</p>
 
-  <strong>How to start:</strong> Ask any <strong>Guardian of Bree</strong> (the town guards,
-  conversation <code>b_guard_convo1.dlg</code>) if anything strange is going on in town.<br><br>
+  <strong>How to start:</strong> Ask any <strong>Guardian of Bree</strong> (the town guards) if
+  anything strange is going on in town.<br><br>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Accept the guard's request — <code>q_fret_start.nss</code> sets entry 1 and spawns the
-      impostor in <a href="../areas/billfernyshouse.html">Bill Ferny's house</a>.</li>
-    <li>Confront the "Bill Ferny" squatting there (<code>fret_impostor</code>, conversation
-      <code>fret_imp.dlg</code>) and call his bluff. He is one of Sharkey's ruffians, and he
-      offers a choice:
+    <li>Accept the guard's request. The impostor takes up residence in
+      <a href="../areas/billfernyshouse.html">Bill Ferny's house</a>.</li>
+    <li>Confront the "Bill Ferny" squatting there and call his bluff. He is one of Sharkey's
+      ruffians, and he offers a choice:
       <ul>
         <li><strong>Take his bribe</strong> — 75 gp from Ferny's own stash, and he slips out of
-          Bree (<code>q_fret_bribe.nss</code>); or</li>
-        <li><strong>Refuse and fight</strong> — he turns hostile (<code>q_fret_fight.nss</code>;
-          stage advances on his death via <code>q_fret_death.nss</code>).</li>
+          Bree; or</li>
+        <li><strong>Refuse and fight</strong> — he turns hostile.</li>
       </ul>
     </li>
-    <li>Report back to any Guardian of Bree for the payout (<code>q_fret_end.nss</code>) — the
-      report line differs by outcome, but both complete the quest.</li>
+    <li>Report back to any Guardian of Bree for the payout — the report line differs by outcome,
+      but both complete the quest.</li>
   </ol>
 
-  <strong>Prequel bonus:</strong> completing this quest permanently unlocks a grateful greeting
-  from Bill Ferny and a <em>half-again</em> payout on the <a href="#ferrys-ring">Ferny's Ring</a>
-  turn-in (+100 gp on either ending, via <code>endferny1.nss</code> / <code>aquirering.nss</code>).
-  The flag persists across relogs and reboots (campaign DB <code>fret</code>).<br><br>
-
-  <div class="dm-note">Added 2026-07-14 (roadmap <code>ferny-return</code>) — scripted and built,
-  pending in-game UAT. <strong>Admin action required:</strong> the impostor spawns at waypoint
-  <code>AP_ferny_return_1</code>, which must be placed in <code>billfernyshouse</code> in the
-  toolset (see <code>admin-action-required.md</code>). Until then the quest can be accepted but
-  the house stands empty — the guard's stage-1 reminder line re-runs the spawn check on every
-  conversation, so no player state is ever stranded. Quest state lives per character in the
-  <code>fret</code> campaign DB (stages 0–3 + outcome), not in session-local ints.</div>
+  <p><strong>Prequel bonus:</strong> completing this quest permanently unlocks a grateful greeting
+  from Bill Ferny and a <em>half-again</em> payout on the <a href="#fernys-ring">Ferny's Ring</a>
+  turn-in (+100 gp on either ending). The favour sticks across relogs and reboots.</p>
 </div>
 
 <!-- MILLER'S SON -->
 <div class="quest-card" id="millers-son">
   <h3>The Miller's Son <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>Bree Millers Son</code></span>
     <span>Giver: Han the Bree Miller, Bree</span>
     <span>Level range: 1–10</span>
     <span>Reward: 450&nbsp;XP</span>
@@ -350,9 +362,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li>Accept the Miller's request — journal entry 1 is set.</li>
+    <li>Accept the Miller's request.</li>
     <li>Travel south along the Greenway. You will find what happened to his son.</li>
-    <li>Return and deliver the grim news to the Miller — journal entry 2. 450 XP awarded via <code>at_003.nss</code> (raised from 150).</li>
+    <li>Return and deliver the grim news to the Miller — 450 XP.</li>
   </ol>
 
   <strong>Journal entries:</strong>
@@ -361,18 +373,18 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>You delivered the sad news. The Miller grieves; his wife and his ale are small comfort.</li>
   </ol>
 
-  <div class="dm-note">Conversation in <code>b_miller_convo1.dlg.json</code>. Completion script <code>at_003.nss</code> (now 450 XP). The shipment scene is scripted on the South Greenway.
-  Completing this quest now also stamps a persistent flag (campaign DB <code>mos2</code>) that unlocks the sequel below.</div>
+  <div class="tip-box">
+    <p>Finishing this unlocks the sequel, <a href="#millers-other-son">The Miller's Other Son</a>.</p>
+  </div>
 </div>
 
 <!-- MILLER'S OTHER SON -->
 <div class="quest-card" id="millers-other-son">
   <h3>The Miller's Other Son <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>bree_miller_son2</code></span>
     <span>Giver: Han the Bree Miller, Bree</span>
     <span>Level range: ~8 (one-off)</span>
-    <span>Reward: 500 gp + 500 XP + <em>Magic Bag</em> (good endings) / 200 XP (sad truth)</span>
+    <span>Reward: 500 XP + 500 gp + <em>Magic Bag</em> (good endings) / 200 XP (sad truth)</span>
   </div>
   <p>A sequel to <a href="#millers-son">The Miller's Son</a> — offered only after that quest is
   complete. Han's <em>other</em> son, Dob, took his brother's death hard and fell in with a
@@ -384,49 +396,32 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li>Accept Han's plea — <code>q_mos2_start.nss</code> sets entry 1 and spawns the quest NPCs.</li>
+    <li>Accept Han's plea.</li>
     <li>(Optional) Talk to <strong>Tolly the Peddler</strong> at
-      <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> (<code>mos2_ped.dlg</code>) — a
-      coin (10 gp) or a kind word buys directions to the cult camp (journal entry 2).</li>
+      <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> — a coin (10 gp) or a kind word buys
+      directions to the cult camp.</li>
     <li>Confront <strong>the Voice of the Red Eye</strong> in
-      <a href="../areas/thardbadeast.html">Tharbad (East)</a> (<code>mos2_cult.dlg</code>).
-      Three resolutions:
+      <a href="../areas/thardbadeast.html">Tharbad (East)</a>. Three resolutions:
       <ul>
-        <li><strong>Persuade</strong> (DC 18: d20 + Persuade rank, <em>one attempt per
-          character, ever</em> — <code>q_mos2_persu.nss</code>): he releases Dob peacefully.
-          On a failed roll he attacks;</li>
-        <li><strong>Fight</strong> — he turns hostile (<code>q_mos2_fight.nss</code>); his death
-          frees the boy (<code>q_mos2_death.nss</code>, advances all party members in the area);</li>
-        <li><strong>Walk away</strong> — leave Dob to the cult (<code>q_mos2_leave.nss</code>).
-          You can still change your mind and fight him later.</li>
+        <li><strong>Persuade</strong> (DC 18, <em>one attempt per character, ever</em>): he releases
+          Dob peacefully. On a failed roll he attacks;</li>
+        <li><strong>Fight</strong> — he turns hostile; his death frees the boy (and advances all
+          party members in the area);</li>
+        <li><strong>Walk away</strong> — leave Dob to the cult. You can still change your mind and
+          fight him later.</li>
       </ul>
     </li>
     <li>Report back to Han — outcome-specific lines. Freed endings pay 500 gp + 500 XP + a
-      <em>Magic Bag</em> ("Dob's trading pack", <code>q_mos2_end1.nss</code>); the sad truth pays
-      200 XP (<code>q_mos2_end2.nss</code>).</li>
+      <em>Magic Bag</em> ("Dob's trading pack"); the sad truth pays 200 XP.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-14 (roadmap <code>miller-other-son</code>) — scripted and
-  built, pending in-game UAT. <strong>Admin action required:</strong> the two quest NPCs spawn at
-  waypoints <code>AP_millerotherson_1</code> (peddler, <code>tharbadbridge</code>) and
-  <code>AP_millerotherson_2</code> (cult leader, <code>thardbadeast</code>), which must be
-  placed in the toolset (see <code>admin-action-required.md</code>). Until then the quest can be
-  accepted but the road stands empty — Han's reminder line and the peddler's greeting re-run the
-  spawn check, so no player state is ever stranded. Quest state lives per character in the
-  <code>mos2</code> campaign DB (stages 0–3 + outcome + the spent Persuade attempt), not in
-  session-local ints. Gating on the original quest uses the session-local
-  <code>millerson == 2</code> <em>or</em> the persistent <code>mos2/m1done</code> flag now stamped
-  by <code>at_003.nss</code>; characters who finished The Miller's Son before this shipped can
-  simply re-run the original (its state is session-local) to qualify.</div>
 </div>
 
 <!-- THE LAST DROP AT FROGMORTON INN -->
 <div class="quest-card" id="last-drop-frogmorton">
   <h3>The Last Drop at Frogmorton Inn <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>frogmorton_ale</code></span>
     <span>Giver: Rigrin, the <a href="../areas/whitfurrowinn.html">Whitfurrow Inn</a></span>
-    <span>Level range: 1+ (daily, pure social)</span>
+    <span>Level range: any (daily, pure social)</span>
     <span>Reward: 25 gp + <em>Frogmorton Pint</em> (heals 4 hp, brief tipsy wobble)</span>
   </div>
   <p>The last cask of Frogmorton's famous harvest ale — the Floating Log's own autumn brew,
@@ -441,8 +436,7 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <strong>Steps:</strong>
   <ol>
     <li>Rigrin states this month's custom of the cask (e.g. <em>"the coin that bought the barrel
-      drains it"</em>) — twelve rules cycling through the year (<code>q_frog_rulec.nss</code>,
-      keyed on <code>GetCalendarMonth()</code>).</li>
+      drains it"</em>) — twelve rules cycling through the year.</li>
     <li>Chat with the five claimants in the common room — <strong>Marigold Bunce</strong> (brewed
       it), <strong>Poppy Thistlewool</strong> (paid for it), <strong>Hob Broadbelt</strong>
       (tapped it and drank first), <strong>Ned Puddifoot</strong> (hauled it from Frogmorton),
@@ -453,25 +447,13 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   </ol>
 
   <p>The <em>Frogmorton Pint</em> is a single-use drink: 4 hp back and a short, purely cosmetic
-  drunken stagger (<code>q_frog_pint.nss</code>). It cannot hurt you or anyone else.</p>
-
-  <div class="dm-note">Added 2026-07-14 (roadmap <code>frogmorton-last-drop</code>) — scripted and
-  built, pending in-game UAT. This is the <strong>first consumer of the shared quest-cooldown
-  library</strong> (<code>quest_cd_inc.nss</code> / the <code>questcddb</code> campaign DB):
-  availability is gated by <code>QCD_IsDoneToday</code> (resets at UTC midnight, survives relogs
-  and reboots) and Rigrin's come-back-tomorrow line shows the real time remaining via
-  <code>QCD_FmtSpan</code> — so this quest doubles as UAT for the library. Venue note: the design
-  doc placed five hobbits in <code>frogmorton001</code>, but that area has no NPCs and no inn
-  interior; the quest instead reuses five existing commoner instances at the adjacent Whitfurrow
-  Inn (renamed in place, new conversations <code>q_frog_p1–p5</code>) with the cask lore keeping
-  its Frogmorton origin. Zero new placements.</div>
+  drunken stagger. It cannot hurt you or anyone else.</p>
 </div>
 
 <!-- HOBBIT POST -->
 <div class="quest-card" id="hobbit-post">
   <h3>Hobbit Post <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>hobbit_post</code></span>
     <span>Giver: Posco Whitfoot, post-master, <a href="../areas/shirehobbiton001.html">Hobbiton</a></span>
     <span>Level range: all levels (daily, no combat)</span>
     <span>Reward: 60 gp base + 40 gp speed bonus + 50 XP; misdelivered parcels pay 60 gp extra and a small loot item</span>
@@ -490,9 +472,8 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li>Posco reads you the address off the label (it rotates daily,
-      <code>GetCalendarDay() % 5</code>). Forgot where it's bound? Ask him again — he'll re-read
-      the label, or write a fresh one.</li>
+    <li>Posco reads you the address off the label (it rotates daily). Forgot where it's bound?
+      Ask him again — he'll re-read the label, or write a fresh one.</li>
     <li>Carry the parcel to the named recipient and talk to them. <em>The Shire judges its post by
       the freshness of the seal:</em> land it within <strong>5 real minutes</strong> of accepting
       and the fee rises from 60 gp to 100 gp.</li>
@@ -505,25 +486,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <p>The parcel itself is plot-flagged and cursed — it can't be sold, dropped or traded, and
   re-accepting from Posco replaces any parcel you're already carrying, so they can never pile up.</p>
-
-  <div class="dm-note">Added 2026-07-14 (roadmap <code>hobbit-post</code>) — scripted and built,
-  pending in-game UAT. Second consumer of the shared quest-cooldown library
-  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>): <code>QCD_IsDoneToday</code> gates the
-  offer and <code>QCD_Stamp</code> fires on payout; the speed bonus compares real-world epochs from
-  <code>QCD_Now()</code> stored on the parcel (<code>POST_T0</code>), not the game clock. All six
-  NPCs are existing placed instances — the postmaster and four recipients were renamed in place and
-  split into dedicated blueprints (<code>hobbit001_2/_3</code>, <code>nw_oldman_2_2</code>,
-  <code>comfemale002_5</code>, <code>commale002_4</code>) via
-  <code>bin/split-divergent-creatures.py</code> so respawns keep their identities; the Green Dragon
-  Inn keeper kept their name and simply gained gated parcel branches in
-  <code>greendragon1.dlg</code>. Zero new placements, no waypoints needed.</div>
 </div>
 
 <!-- SPIDER SILK HARVEST -->
 <div class="quest-card" id="spider-silk-harvest">
   <h3>Spider Silk Harvest <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>mirkwood_silk</code></span>
     <span>Giver: Thranduil, King of Eryn Lasgalen, <a href="../areas/thranduilshall.html">Thranduil's Hall</a> (through the <a href="../areas/woodoflegolas.html">Wood of Legolas</a>, off <a href="../areas/mirkwoodnorth.html">Mirkwood: North</a>)</span>
     <span>Level range: 12+ (daily kill-collect)</span>
     <span>Reward: 300 gp + 600 XP per day</span>
@@ -558,30 +526,14 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <p>Bolts drop only while your own hunt is active (accepted today, not yet paid), so a party
   member without the quest gets nothing and there is no stockpiling across days. Spare bolts are
   worth a few coppers as vendor trash at most.</p>
-
-  <div class="dm-note">Added 2026-07-14 (roadmap <code>spider-silk-harvest</code>) — scripted and
-  built, pending in-game UAT. Third consumer of the shared quest-cooldown library
-  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>): the active flag is itself a calendar
-  stamp (<code>mirkwood_silk_acc</code>), so the hunt state survives relogs and restarts with no
-  state item. Silk drops chain through the blueprint OnDeath slot
-  (<code>q_silk_d1/d2/d3</code> on the six module spider blueprints), which the bestiary wrapper
-  stores and chains at spawn, and each wrapper re-chains the family's original reward script
-  (<code>gpondeath</code> / <code>350ondeathtopart</code> / <code>sb_creaturekill</code>) — kill
-  counts, gold and XP all still fire. The giver is the existing placed Thranduil
-  (<code>thranduil_2</code>, also a Roll-of-the-Fallen boss — the new <code>q_silk</code>
-  conversation is set identically on blueprint and instance, so respawns keep it). Zero new
-  placements, no waypoints needed. The Quest Ideas dynamic-pricing variant (server-wide
-  <code>silk_supply</code> moving the price) is deferred to a possible v2; v1 pays a flat
-  bounty.</div>
 </div>
 
 <!-- THE RIDDLE GAME -->
 <div class="quest-card" id="riddle-game">
   <h3>The Riddle Game <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>riddle_game</code></span>
     <span>Giver: the Whispering Wretch, <a href="../areas/breecave.html">Bree Cave</a> (down the cave mouth off <a href="../areas/bree.html">Bree</a>)</span>
-    <span>Level range: 1+ (weekly dialogue minigame — no combat)</span>
+    <span>Level range: any (weekly dialogue minigame — no combat)</span>
     <span>Reward on a win: 100&ndash;300 gp + 250 XP + one random trinket from the hoard</span>
   </div>
   <p>Something pale and whispering squats at the water's edge in the cave beneath Bree-hill, and it
@@ -610,25 +562,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   riddles in a given week, drawn from a larger bank, and the answer order shuffles per riddle.
   Walking away (or relogging) mid-game forfeits nothing: the week is only spent when the seventh
   answer lands, and the wretch will restart the same week's game from riddle one.</p>
-
-  <div class="dm-note">Added 2026-07-14 (roadmap <code>riddle-game</code>) — scripted and built,
-  pending in-game UAT. Fourth consumer of the shared quest-cooldown library
-  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-weekly via
-  <code>QCD_IsDoneThisWeek</code>. The wretch (<code>q_rid_wretch</code>) is a plot, non-hostile
-  clone of the Gollum blueprint — strongly implied to be, never named — script-spawned at waypoint
-  <code>AP_riddlegame_1</code> from the Bree Cave OnEnter wrapper (<code>q_rid_enter</code>);
-  <strong>the waypoint must be placed in the toolset before the wretch appears</strong> (scripts
-  no-op gracefully until then; see admin-action-required.md). The placed CR-1029 Gollum boss and
-  its Roll-of-the-Fallen tracking are untouched. One generic riddle dialogue node serves the whole
-  bank via custom tokens 6360&ndash;6368; the 16-riddle bank, weekly seeded selection
-  (<code>%Y%W</code> stride walk) and reward table live in <code>q_rid_inc.nss</code>.</div>
 </div>
 
 <!-- CONCERNING HOBBITS -->
 <div class="quest-card" id="concerning-hobbits">
   <h3>Concerning Hobbits <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>concern_hob</code></span>
     <span>Giver: Odo Proudfoot, <a href="../areas/shirehobbiton001.html">Hobbiton</a></span>
     <span>Level range: 5+ (daily dialogue trivia — no combat)</span>
     <span>Reward on a win: 40&ndash;100 gp + 100 XP + a pouch of pipe-weed (a Greater Ring of
@@ -661,30 +600,16 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   seasonal dispute and the winning choice moves each season &mdash; you can't just memorise
   &ldquo;always pick the second one.&rdquo; Walking away (or relogging) mid-game forfeits nothing:
   the day is only spent when the fifth answer lands.</p>
-
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>concerning-hobbits</code>) &mdash; scripted
-  and built, pending in-game UAT. Consumer of the shared quest-cooldown library
-  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-daily via
-  <code>QCD_IsDoneToday</code>. Odo (<code>q_hob_odo</code>) is a friendly commoner script-spawned
-  at waypoint <code>AP_concerninghobbits_1</code> from the Hobbiton OnEnter wrapper
-  (<code>q_hob_enter</code>); <strong>the waypoint must be placed in the toolset before Odo
-  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). One generic
-  question dialogue node serves the whole bank via custom tokens 6420&ndash;6428; the 16-question
-  bank, season-seeded selection (<code>GetCalendarYear()*4 + season</code> stride walk) and reward
-  table live in <code>q_hob_inc.nss</code>. The &ldquo;Bag End housing access&rdquo; reward from the
-  original idea is deferred to the admin as a design question &mdash; this ships the working quiz
-  with a concrete gold/XP/keepsake payout instead.</div>
 </div>
 
 <!-- THE UNBROKEN SHIELD — FIGHTER LINE I -->
 <div class="quest-card" id="unbroken-shield">
-  <h3>The Unbroken Shield &mdash; Fighter line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <h3>The Unbroken Shield &mdash; Fighter line I <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>ftr_shield</code></span>
     <span>Giver: Hallas the Shieldwarden, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
     <span>Requires: 1+ Fighter level (non-fighters get only a flavour greeting)</span>
-    <span>Reward: Warden's Buckler (<code>q_ftr_buckl</code>, small shield +1, Fighter-only) at the oath,
-      and the Warden's Reforged Blade (<code>q_ftr_blade</code>, longsword +2, Fighter-only) at the end</span>
+    <span>Reward: Warden's Buckler (small shield +1, Fighter-only) at the oath, and the
+      Warden's Reforged Blade (longsword +2, Fighter-only) at the end</span>
   </div>
   <p>The first, early chunk of the <strong>Fighter class line</strong>. Hallas the Shieldwarden, a grey
   veteran of Gondor's Guard who keeps a corner of the Prancing Pony, offers any fighter the old
@@ -699,41 +624,26 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li><strong>Node 1 (level 1):</strong> Swear the oath &mdash; <code>q_ftr_oath</code> opens the
-      journal and gives the <em>Warden's Buckler</em> (+1 AC, Fighter-only). Hallas sends you off to grow
-      to level&nbsp;8.</li>
+    <li><strong>Node 1 (level 1):</strong> Swear the oath — the journal opens and you receive the
+      <em>Warden's Buckler</em> (+1 AC, Fighter-only). Hallas sends you off to grow to level&nbsp;8.</li>
     <li><strong>Node 2 (level 8):</strong> Return; Hallas entrusts you with the <em>Notched Captain's
-      Shard</em> (<code>q_ftr_shard</code>, a plot item) to bear until level&nbsp;15 &mdash;
-      <code>q_ftr_shrd</code> advances the journal.</li>
+      Shard</em> to bear until level&nbsp;15.</li>
     <li><strong>Node 3 (level 15):</strong> Bring the shard back; his smith reforges it into the
-      <em>Warden's Reforged Blade</em> (longsword +2, Fighter-only) &mdash; <code>q_ftr_forge</code>
-      consumes the shard, gives the blade and closes the journal (End). The line's later, harder oaths
-      are foreshadowed for a future chunk.</li>
+      <em>Warden's Reforged Blade</em> (longsword +2, Fighter-only) and the quest closes. The line's
+      later, harder oaths are foreshadowed for a future chunk.</li>
   </ol>
 
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>fighter-line-early</code>) &mdash; scripted and
-  built, pending in-game UAT. One-off state is per-character in the <code>fighterlinedb</code> campaign
-  DB (key <code>ubshield_stage</code>, 0&ndash;3; see <code>q_ftr_inc.nss</code>); the stage only
-  advances, so rewards are not farmable. The Fighter gate is
-  <code>GetLevelByClass(CLASS_TYPE_FIGHTER) &ge; 1</code>; the L8/L15 gates are total character level.
-  Hallas (<code>q_ftr_hallas</code>, plot/immortal human veteran) is script-spawned by
-  <code>q_ftr_spawn</code> from the Prancing Pony OnEnter wrapper <code>q_ftr_enter</code> (which chains
-  the existing <code>q_hrp_ent1</code> &mdash; leash + Harper contact). <strong>The waypoint
-  <code>AP_fighterlineearly_1</code> must be placed in <code>theprancingpo001</code> before Hallas
-  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
-  properties use verified stock encodings (Enhancement/AC bonus + Use&nbsp;Limitation:&nbsp;Class Fighter);
-  no CR&gt;60 boss was touched.</div>
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
 </div>
 
 <!-- THE LONG SHADOW — ROGUE LINE I -->
 <div class="quest-card" id="long-shadow">
-  <h3>The Long Shadow &mdash; Rogue line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <h3>The Long Shadow &mdash; Rogue line I <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>rog_shadow</code></span>
     <span>Giver: Fenn the Shade, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
     <span>Requires: 1+ Rogue level (non-rogues get only a flavour greeting)</span>
-    <span>Reward: Shadowmantle (<code>q_rog_cloak</code>, cloak +1 AC, Rogue-only) at the oath,
-      and the Nightthorn (<code>q_rog_blade</code>, short sword +2, Rogue-only) at the end</span>
+    <span>Reward: Shadowmantle (cloak +1 AC, Rogue-only) at the oath, and the Nightthorn
+      (short sword +2, Rogue-only) at the end</span>
   </div>
   <p>The first, early chunk of the <strong>Rogue class line</strong>. Fenn the Shade, a hooded Bree-lander
   who watches the Prancing Pony's doorways, runs <strong>the Long Shadow</strong> &mdash; a quiet net of
@@ -748,43 +658,26 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li><strong>Node 1 (level 1):</strong> Swear into the net &mdash; <code>q_rog_oath</code> opens the
-      journal and gives the <em>Shadowmantle</em> (cloak +1 AC, Rogue-only). Fenn sends you off to grow
-      to level&nbsp;8.</li>
+    <li><strong>Node 1 (level 1):</strong> Swear into the net — the journal opens and you receive the
+      <em>Shadowmantle</em> (cloak +1 AC, Rogue-only). Fenn sends you off to grow to level&nbsp;8.</li>
     <li><strong>Node 2 (level 8):</strong> Return; Fenn entrusts you with the <em>Long Shadow
-      Cipher-Token</em> (<code>q_rog_token</code>, a plot item) to carry unseen until level&nbsp;15 &mdash;
-      <code>q_rog_tok</code> advances the journal.</li>
+      Cipher-Token</em> to carry unseen until level&nbsp;15.</li>
     <li><strong>Node 3 (level 15):</strong> Bring the token back; his fence works its hidden steel core
-      into the <em>Nightthorn</em> (short sword +2, Rogue-only) &mdash; <code>q_rog_rtn</code> consumes the
-      token, gives the blade and closes the journal (End). The line's longer shadows are foreshadowed for a
-      future chunk.</li>
+      into the <em>Nightthorn</em> (short sword +2, Rogue-only) and the quest closes. The line's longer
+      shadows are foreshadowed for a future chunk.</li>
   </ol>
 
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>rogue-line-early</code>) &mdash; scripted and
-  built, pending in-game UAT. One-off state is per-character in the <code>roguelinedb</code> campaign
-  DB (key <code>shadow_stage</code>, 0&ndash;3; see <code>q_rog_inc.nss</code>); the stage only
-  advances, so rewards are not farmable. The Rogue gate is
-  <code>GetLevelByClass(CLASS_TYPE_ROGUE) &ge; 1</code>; the L8/L15 gates are total character level.
-  Fenn (<code>q_rog_fenn</code>, plot/immortal hooded rogue) is script-spawned by
-  <code>q_rog_spawn</code> from the Prancing Pony OnEnter wrapper <code>q_rog_enter</code> (which chains
-  the fighter-line wrapper <code>q_ftr_enter</code> &mdash; itself chaining <code>q_hrp_ent1</code>'s
-  leash + Harper contact and Hallas's spawn). <strong>The waypoint
-  <code>AP_roguelineearly_1</code> must be placed in <code>theprancingpo001</code> before Fenn
-  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
-  properties use verified stock encodings (Enhancement/AC bonus + Use&nbsp;Limitation:&nbsp;Class Rogue,
-  subtype&nbsp;8); no CR&gt;60 boss was touched.</div>
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
 </div>
 
 <!-- THE COLOUR OF POWER — WIZARD LINE I -->
 <div class="quest-card" id="colour-of-power">
-  <h3>The Colour of Power &mdash; Wizard line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <h3>The Colour of Power &mdash; Wizard line I <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>wiz_colour</code></span>
     <span>Giver: Findegil the Grey, <a href="../areas/bagend001.html">Bag End</a> (the Shire)</span>
     <span>Requires: 1+ Wizard level (non-wizards get only a flavour greeting)</span>
-    <span>Reward: Apprentice's Amulet (<code>q_wiz_amul</code>, +1 INT, Wizard-only) at the start,
-      and the Staff of the Grey Study (<code>q_wiz_staff</code>, +2 / +1 INT quarterstaff, Wizard-only)
-      at the end</span>
+    <span>Reward: Apprentice's Amulet (+1 INT, Wizard-only) at the start, and the Staff of the
+      Grey Study (+2 / +1 INT quarterstaff, Wizard-only) at the end</span>
   </div>
   <p>The first, early chunk of the <strong>Wizard class line</strong>. Findegil the Grey, a grey-robed
   loremaster who keeps a quiet study by the hearth of Bag End, teaches the deep lore few trouble to learn
@@ -800,42 +693,26 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li><strong>Node 1 (level 1):</strong> Take up the study &mdash; <code>q_wiz_oath</code> opens the
-      journal and gives the <em>Apprentice's Amulet</em> (+1 INT, Wizard-only). Findegil sends you off to
-      grow to level&nbsp;8.</li>
+    <li><strong>Node 1 (level 1):</strong> Take up the study — the journal opens and you receive the
+      <em>Apprentice's Amulet</em> (+1 INT, Wizard-only). Findegil sends you off to grow to level&nbsp;8.</li>
     <li><strong>Node 2 (level 8):</strong> Return; Findegil entrusts you with the <em>Loremaster's Tome
-      of the Grey Study</em> (<code>q_wiz_tome</code>, a plot item) to carry and study until level&nbsp;15
-      &mdash; <code>q_wiz_tok</code> advances the journal.</li>
+      of the Grey Study</em> to carry and study until level&nbsp;15.</li>
     <li><strong>Node 3 (level 15):</strong> Bring the tome back; he binds its lore into the <em>Staff of
-      the Grey Study</em> (+2 / +1 INT quarterstaff, Wizard-only) &mdash; <code>q_wiz_rtn</code> consumes
-      the tome, gives the staff and closes the journal (End). The choice of Colour is foreshadowed for the
-      endgame chunk.</li>
+      the Grey Study</em> (+2 / +1 INT quarterstaff, Wizard-only) and the quest closes. The choice of
+      Colour is foreshadowed for the endgame chunk.</li>
   </ol>
 
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>wizard-line-early</code>) &mdash; scripted and
-  built, pending in-game UAT. One-off state is per-character in the <code>wizlinedb</code> campaign
-  DB (key <code>colour_stage</code>, 0&ndash;3; see <code>q_wiz_inc.nss</code>); the stage only
-  advances, so rewards are not farmable. The Wizard gate is
-  <code>GetLevelByClass(CLASS_TYPE_WIZARD) &ge; 1</code>; the L8/L15 gates are total character level.
-  Findegil (<code>q_wiz_find</code>, plot/immortal grey wizard) is script-spawned by
-  <code>q_wiz_spawn</code> from the Bag End OnEnter wrapper <code>q_wiz_enter</code> (which chains the
-  area's existing <code>leash_to_area</code> handler). <strong>The waypoint
-  <code>AP_wizardlineearly_1</code> must be placed in <code>bagend001</code> before Findegil
-  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
-  properties use verified stock encodings (Enhancement / Ability&nbsp;INT bonus +
-  Use&nbsp;Limitation:&nbsp;Class Wizard, subtype&nbsp;10); no CR&gt;60 boss was touched.</div>
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
 </div>
 
 <!-- THE FLAME OF ANOR — CLERIC LINE I -->
 <div class="quest-card" id="flame-of-anor">
-  <h3>The Flame of Anor &mdash; Cleric line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <h3>The Flame of Anor &mdash; Cleric line I <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>clr_anor</code></span>
     <span>Giver: Aldamir, Keeper of the Flame, <a href="../areas/templeofilluvata.html">Temple of Illuvatar</a></span>
     <span>Requires: 1+ Cleric level (non-clerics get only a flavour blessing)</span>
-    <span>Reward: Acolyte's Censer-Amulet (<code>q_clr_amul</code>, +1 WIS, Cleric-only) at the start,
-      and the Mace of the Kindled Flame (<code>q_clr_mace</code>, +2 / +1 WIS light mace, Cleric-only)
-      at the end</span>
+    <span>Reward: Acolyte's Censer-Amulet (+1 WIS, Cleric-only) at the start, and the Mace of the
+      Kindled Flame (+2 / +1 WIS light mace, Cleric-only) at the end</span>
   </div>
   <p>The first, early chunk of the <strong>Cleric class line</strong>. Aldamir, Keeper of the Flame, tends
   the Secret Fire in the Temple of Illuvatar &mdash; <strong>the Flame of Anor</strong>, a splinter of the
@@ -850,48 +727,33 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li><strong>Node 1 (level 1):</strong> Take up the tending &mdash; <code>q_clr_oath</code> opens the
-      journal and gives the <em>Acolyte's Censer-Amulet</em> (+1 WIS, Cleric-only). Aldamir sends you off to
-      grow to level&nbsp;8.</li>
+    <li><strong>Node 1 (level 1):</strong> Take up the tending — the journal opens and you receive the
+      <em>Acolyte's Censer-Amulet</em> (+1 WIS, Cleric-only). Aldamir sends you off to grow to
+      level&nbsp;8.</li>
     <li><strong>Node 2 (level 8):</strong> Return; Aldamir entrusts you with the <em>Reliquary of the
-      Kindled Ember</em> (<code>q_clr_ember</code>, a plot item) to keep and carry until level&nbsp;15
-      &mdash; <code>q_clr_tok</code> advances the journal.</li>
+      Kindled Ember</em> to keep and carry until level&nbsp;15.</li>
     <li><strong>Node 3 (level 15):</strong> Bring the reliquary back; he kindles its ember into the
-      <em>Mace of the Kindled Flame</em> (+2 / +1 WIS light mace, Cleric-only) &mdash; <code>q_clr_rtn</code>
-      consumes the reliquary, gives the mace and closes the journal (End). The greater consecrations are
-      foreshadowed for a later chunk.</li>
+      <em>Mace of the Kindled Flame</em> (+2 / +1 WIS light mace, Cleric-only) and the quest closes. The
+      greater consecrations are foreshadowed for a later chunk.</li>
   </ol>
 
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>cleric-line-early</code>) &mdash; scripted and
-  built, pending in-game UAT. One-off state is per-character in the <code>clrlinedb</code> campaign
-  DB (key <code>flame_stage</code>, 0&ndash;3; see <code>q_clr_inc.nss</code>); the stage only
-  advances, so rewards are not farmable. The Cleric gate is
-  <code>GetLevelByClass(CLASS_TYPE_CLERIC) &ge; 1</code>; the L8/L15 gates are total character level.
-  Aldamir (<code>q_clr_keep</code>, plot/immortal keeper) is script-spawned by
-  <code>q_clr_spawn</code> from the Temple of Illuvatar OnEnter wrapper <code>q_clr_enter</code> (which
-  chains the area's existing <code>leash_to_area</code> handler). <strong>The waypoint
-  <code>AP_clericlineearly_1</code> must be placed in <code>templeofilluvata</code> before Aldamir
-  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
-  properties use verified stock encodings (Enhancement / Ability&nbsp;WIS bonus +
-  Use&nbsp;Limitation:&nbsp;Class Cleric, subtype&nbsp;2); no CR&gt;60 boss was touched.</div>
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
 </div>
 
 <!-- PASS THE PASS -->
 <div class="quest-card" id="pass-the-pass">
-  <h3>Pass the Pass <span class="status-badge status-warn">Needs waypoints</span></h3>
+  <h3>Pass the Pass <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pass_pass</code></span>
     <span>Giver: Baldor the Caravan-Master, <a href="../areas/foothillsofthemi.html">Foothills of the Misty Mountains</a> (western foot of the High Pass)</span>
     <span>Turn-in: Wilrun the Quartermaster, <a href="../areas/mistymountainsb.html">The Misty Mountains</a> (eastern waystation)</span>
     <span>Level range: 10+ (daily escort, combat)</span>
-    <span>Reward: <code>nDiff &times; 200</code> gp and <code>nDiff &times; 150</code> XP (200/400/600 gp, 150/300/450 XP)</span>
+    <span>Reward: 200/400/600 gp and 150/300/450 XP by difficulty</span>
   </div>
   <p>Baldor runs a mule-train over the High Pass and pays swords to see it safely across to the
   eastern waystation. You <strong>choose the risk yourself at dialogue</strong>, and the pay scales
   with it: <strong>Easy</strong> (a goblin rabble), <strong>Normal</strong> (goblin soldiers led by a
-  brute), or <strong>Hard</strong>, where a <strong>Stone-Giant of the High Pass</strong>
-  (<code>q_pass_gnt</code>, a plot-safe CR-25 clone of the ordinary Misty Mountains giant) comes down
-  off the crags to smash the caravan. One escort per real calendar day.</p>
+  brute), or <strong>Hard</strong>, where a <strong>Stone-Giant of the High Pass</strong> (CR 25)
+  comes down off the crags to smash the caravan. One escort per real calendar day.</p>
 
   <p>This is a <strong>bounded escort</strong> — there is no walking companion to babysit. When you
   accept, a difficulty-scaled ambush spawns mid-pass in the first Misty Mountains area and the
@@ -908,30 +770,16 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>Cross the Misty Mountains eastward, fighting through the warband (and the Stone-Giant on
       Hard).</li>
     <li>Talk to <strong>Wilrun the Quartermaster</strong> at the eastern waystation to close the run
-      and collect <code>nDiff &times; 200</code> gp plus <code>nDiff &times; 150</code> XP.</li>
+      and collect your pay.</li>
     <li>Payment closes the day; Baldor's hire reopens at UTC midnight (he quotes the exact time
       remaining).</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>pass-the-pass</code>) &mdash; scripted and
-  built, <strong>blocked in-game until three waypoints are placed in the toolset</strong> (scripts
-  no-op gracefully until then; see admin-action-required.md). Consumer of the shared quest-cooldown
-  library (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-daily via
-  <code>QCD_IsDoneToday</code>/<code>QCD_Stamp</code>. Giver <code>q_pass_capt</code> (Foothills) and
-  quartermaster <code>q_pass_qm</code> (mistymountainsb) are plot/immortal commoners script-spawned
-  at <code>AP_passthepass_1</code> and <code>AP_passthepass_3</code> from the shared OnEnter wrapper
-  <code>q_pass_enter</code> (which preserves the areas' original <code>d_cleartrash</code>). The
-  ambush spawns at <code>AP_passthepass_2</code> in <code>mistymountainsa</code>, composition scaled
-  by difficulty in <code>q_pass_inc.nss</code> (<code>QPASS_SpawnAmbush</code>), using existing
-  goblin/warg blueprints plus the new Stone-Giant clone. Rate-limited naturally: a PC can only accept
-  once/day and cannot re-accept while an escort is active.</div>
 </div>
 
 <!-- SOWING DISCORD IN BREE -->
 <div class="quest-card" id="sowing-discord">
   <h3>Sowing Discord in Bree <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>sowing_discord</code></span>
     <span>Giver: Bill Ferny, <a href="../areas/bree.html">Bree</a> (the market — same Ferny as his ring quest)</span>
     <span>Level range: 15+ (daily; not offered to Good-aligned characters)</span>
     <span>Reward: 500&ndash;800 gp "morgul-silver" + 500 XP; first completion also pays the
@@ -964,28 +812,13 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <p>The job resets on a <strong>rolling 24-hour cooldown</strong> from each payout — Ferny quotes
   the exact time remaining if you come back early. Progress is carried entirely by the letters and
-  the campaign database, so relogging (or a server reboot) mid-job loses nothing.</p>
-
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>sowing-discord-bree</code>) — scripted and
-  built, pending in-game UAT. Fifth consumer of the shared quest-cooldown library
-  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), rolling daily via
-  <code>QCD_IsOnCooldown(QCD_DAY)</code>; "ready to turn in" is a second stamp key
-  (<code>sowing_discord_plant</code>). Giver branches ride the existing
-  <code>ferny_convo2.dlg</code>; plant targets are three existing Pony table instances retagged
-  <code>SowDrop1..3</code> (made usable, OnUsed <code>q_sow_plant</code>) — no new placements, no
-  waypoints. The stealth test is the deterministic <code>GetActionMode</code> check shared with the
-  Quiet Knives dead drop. The sheriff (<code>q_sow_sherf</code>, a fighter-16 clone of the Guardian
-  of Bree) spawns at the last table via <code>DelayCommand</code> and attacks only the planter
-  (temporary enemy — no faction brawl). <strong>No reputation changes yet</strong>: faction-rep
-  integration deliberately waits on the faction-scaffolding roadmap item. Logic lives in
-  <code>q_sow_inc.nss</code>; cooldown token 6390.</div>
+  the server's records, so relogging (or a server reboot) mid-job loses nothing.</p>
 </div>
 
 <!-- BEORN'S GARDEN -->
 <div class="quest-card" id="beorns-garden">
   <h3>Beorn's Garden <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>beorn_garden</code></span>
     <span>Giver: Grimbeorn the Old, Lord of the Beornings, at <a href="../areas/beorn.html">Beorn</a>'s homestead (off the Old Forest Road)</span>
     <span>Level range: 12+ (daily)</span>
     <span>Reward: 250&ndash;450 gp + 700 XP + <em>Beorn's Honeycomb</em> (sometimes two, or a Cure Serious draught besides)</span>
@@ -1010,32 +843,16 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
       call another pack — the day can always be finished (spawns are capped per area so hives
       can't be clicked into a flood).</li>
     <li>Return to Grimbeorn with 6 pelts and 3 combs drawn: he takes the pelts and pays
-      250&ndash;450 gp, 700 XP and honeycomb from Beorn's stores (d100: always one comb; 61+ a
-      second comb; 86+ a Cure Serious Wounds potion instead of the second comb).</li>
+      250&ndash;450 gp, 700 XP and honeycomb from Beorn's stores (always one comb; sometimes a
+      second, or a Cure Serious Wounds potion instead of the second comb).</li>
     <li>The day resets at UTC midnight; until then Grimbeorn quotes the exact time remaining.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-14 (roadmap <code>beorns-garden</code>) — scripted and built,
-  pending in-game UAT. Fifth consumer of the shared quest-cooldown library
-  (<code>quest_cd_inc.nss</code> / <code>questcddb</code>), calendar-daily via
-  <code>QCD_IsDoneToday</code>; the active flag and the per-hive harvest locks are item-free
-  calendar stamps (<code>beorn_garden_acc</code>, <code>beorn_garden_h1..3</code>), so state
-  survives relogs and restarts. The hives (<code>q_brn_hive</code>, tag <code>HoneyHive</code>, CEP
-  stump) are script-spawned by <code>q_brn_spawn</code> from the beorn/carrok/carrokgreater
-  OnEnter wrappers — <strong>the three waypoints <code>AP_beornsgarden_1/2/3</code> must be placed
-  in the toolset before any hive appears</strong> (scripts no-op gracefully until then; see
-  admin-action-required.md). Wargs (<code>q_brn_warg</code>) are quest-spawned only — no standing
-  encounters were touched — and their OnDeath wrapper <code>q_brn_wd</code> chains
-  <code>nw_c2_default7</code>, staying bestiary-safe under <code>bst_install</code>. Grimbeorn's
-  new conversation (<code>q_brn_conv</code>) was set on blueprint and placed instance both;
-  progress tokens 6370&ndash;6372.</div>
 </div>
 
 <!-- THE TWENTIETH PLOT OF MAZARBUL -->
 <div class="quest-card" id="twentieth-plot">
   <h3>The Twentieth Plot of Mazarbul <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>mazarbul_20</code></span>
     <span>Giver: Frár the Restless, a shade of Balin's colony, in the <a href="../areas/chamberofrecords.html">Chamber of Records</a> (Moria)</span>
     <span>Level range: 18+ (one-off)</span>
     <span>Reward: 1200 gp + 2000 XP + <em>Seal of the Twentieth</em> (Damage Reduction +1/Soak 5, Damage Resistance: Negative 10/-)</span>
@@ -1063,30 +880,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>Return to Frár: 1200 gp, 2000 XP and the <em>Seal of the Twentieth</em>. The quest closes
       for good.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-15 (roadmap <code>twentieth-plot-mazarbul</code>) — scripted
-  and built, pending in-game UAT. Per-character persistent state in the <code>maz20</code>
-  campaign DB (stage + <code>seal_1..3</code>), same one-off scheme as Ferny's Return, so
-  progress survives relogs and restarts and the reward can never be re-earned. Everything is
-  script-spawned: Frár (<code>q_maz_ghost</code>, a Plot dwarf commoner with a permanent ghostly
-  visage) and the braziers (<code>q_maz_braz</code>, CEP dungeon brazier, OnUsed
-  <code>q_maz_use</code>) come from the chamberofrecords/balinstomb OnEnter wrappers
-  (<code>q_maz_ent1/2</code>, chaining the areas' previous scripts) — <strong>the waypoints
-  <code>AP_mazarbul20_1</code> (ghost) and <code>AP_mazarbul20_2/3/4</code> (braziers) must be
-  placed in the toolset before anything appears</strong> (scripts no-op gracefully until then;
-  optional <code>AP_mazarbul20_5</code> sets a wraith arena spot, otherwise it rises at the
-  third-lit brazier — see admin-action-required.md). The wraith (<code>q_maz_wraith</code>) is a
-  detuned clone of the Witch King's wraith (CR 21 / 420 hp), single-spawn guarded, OnDeath
-  wrapper <code>q_maz_wd</code> chains <code>nw_c2_default7</code> (bestiary-safe). Elrond and
-  his "Elrond's Request" thread were deliberately left untouched — the ghost is the sole quest
-  giver. Progress token 6380.</div>
 </div>
 
 <!-- FEEDING THARBAD -->
 <div class="quest-card" id="feeding-tharbad">
   <h3>Feeding Tharbad <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>Feeding Tharbad</code></span>
     <span>Giver: Temple of Ilúvatar cleric, Tharbad</span>
     <span>Level range: 5–15</span>
     <span>Reward: 500&nbsp;XP + <em>Book of the Cora</em></span>
@@ -1098,10 +897,10 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
 
   <strong>Steps:</strong>
   <ol>
-    <li>Agree to help — journal entry 1 set. Local variable <code>agreefeed = 1</code> is stored.</li>
+    <li>Agree to help.</li>
     <li>Buy venison from the general store.</li>
     <li>Travel to <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> and feed 20 refugees.</li>
-    <li>Return to the cleric — journal entry 2 set. 500 XP (raised from 200) and the Book of the Cora awarded.</li>
+    <li>Return to the cleric — 500 XP and the Book of the Cora awarded.</li>
   </ol>
 
   <strong>Journal entries:</strong>
@@ -1109,15 +908,12 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>You agreed to help the Temple feed hungry refugees at Tharbad Bridge — buy venison and feed 20 people.</li>
     <li>The refugees will not go hungry tonight. You gave selflessly for a noble cause.</li>
   </ol>
-
-  <div class="dm-note">Conversation in <code>clericq.dlg.json</code>. Completion via <code>at_046.nss</code> (now 500 XP). The reward item is <code>bookofthecora.uti.json</code> — <em>Book of the Cora</em> — which already carries 5 properties and a high gold value, so it is a meaningful reward as-is.</div>
 </div>
 
 <!-- ELROND'S REQUEST -->
 <div class="quest-card" id="elrond">
   <h3>Elrond's Request <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>Elrond's Request</code></span>
     <span>Giver: Elrond, Rivendell</span>
     <span>Level range: 15–30</span>
     <span>Reward: 2,000&nbsp;XP + <em>Elrond's Writ</em></span>
@@ -1127,15 +923,15 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   evidence of Balin's Expedition (the <strong>Dwarf Head</strong>). This is the module's main mid-game quest chain.</p>
 
   <strong>How to start:</strong> Speak to <strong>Elrond</strong> in <a href="../areas/rivendell.html">Rivendell</a> and accept
-  both tasks. Journal entry 1 is set via the DLG engine's built-in Quest field.<br><br>
+  both tasks.<br><br>
 
   <strong>Steps:</strong>
   <ol>
     <li>Kill <strong>Azog the Warlord</strong> (CR 14) in the <a href="../areas/theangmarmountai.html">Angmar Mountain</a> area and loot the <em>Helm of the Warlord</em>.</li>
     <li>Push into <a href="../areas/balinstomb.html">Balin's Tomb</a> in Moria and retrieve the <em>Dwarf Head</em> (evidence of Balin's expedition).</li>
-    <li>Return to Elrond with both items in your party's inventory. Script <code>sc_015</code> checks for both.</li>
-    <li>Agree to accept your reward — <code>at_026</code> destroys both items; <code>at_024</code> gives 2,000 XP and the
-    <em>Elrond's Writ</em> item. Journal entry 2 set.</li>
+    <li>Return to Elrond with both items in your party's inventory.</li>
+    <li>Agree to accept your reward — both items are consumed, and you gain 2,000 XP and
+      <em>Elrond's Writ</em>.</li>
   </ol>
 
   <strong>Journal entries:</strong>
@@ -1143,77 +939,99 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li>Elrond has given you two tasks: break the Uruk-hai siege of the Trollshaws and bring the Helm of Azog; venture into Moria and find sign of Balin's Expedition.</li>
     <li>Both tasks are complete. You now have a new place to call home.</li>
   </ol>
+</div>
 
-  <div class="warning-box">
-    <p><strong>Fixed (2026-05-28):</strong> The reply node in <code>elrondconv.dlg.json</code> that set the
-    bogus tag <code>Category000</code> (QuestEntry 1) now sets <code>Elrond's Request</code>. This was
-    the <em>quest-accept</em> entry — previously only entry 2 (completion) was ever written, so players
-    saw no journal entry on accepting. A dangling <code>at_023</code> action still sets a local variable
-    only (no quest effect); harmless.</p>
+<!-- RUIN OF ANNUMINAS -->
+<div class="quest-card" id="annuminas">
+  <h3>Ruin of Annuminas <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Giver: Hanee the Loon, an old woman in <a href="../areas/bree.html">Bree</a></span>
+    <span>Level range: 25+</span>
+    <span>Reward: 5,000&nbsp;XP (bring Azagoth's Head back to Hanee)</span>
   </div>
-  <div class="dm-note">The "existing journals got removed upon accepting the quest" report is a false diagnosis. No script in the module calls any journal-clearing function. What actually happened: the server-info journals (Rules, Website) are <em>never given to players at all</em> because <code>mod_enter.nss</code> is unwired (see Server Info section below). Players who noticed those journal entries gone were never receiving them in the first place. The Elrond quest is not the culprit. <strong>Fixed:</strong> server-info journal delivery is now wired into the OnClientEnter hook (<code>hgll_cliententer.nss</code>), so that symptom is gone — see the Server Info section below.</div>
+  <p>An old woman in Bree tells you to seek out the Ruins of Annuminas, an ancient Dúnedain realm to the
+  north. This is the first stage of a two-part arc: kill <strong>Azagoth</strong> in the ruins, bring
+  his head back to Hanee for <strong>5,000&nbsp;XP</strong> (she doesn't take it — she gleefully points you
+  to the wizards in Gondor), then deliver the head to the <a href="#well-of-souls">Gondor Scribe</a> in the
+  Tower of the High Wizard for a further <strong>10,000&nbsp;XP</strong>.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Hanee the Loon</strong> in Bree.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Hear Hanee out and head north to the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a>.</li>
+    <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) and loot <em>Azagoth's Head</em>.</li>
+    <li>Return to Hanee with the head still in hand for 5,000 XP — then carry it on to
+      <a href="#well-of-souls">The Well of Souls</a>.</li>
+  </ol>
 </div>
 
 <!-- WELL OF SOULS -->
 <div class="quest-card" id="well-of-souls">
   <h3>The Well of Souls <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>The Well of Souls</code></span>
-    <span>Giver: Gondor Scribe, Tower of the High Wizard: Ground Floor (<code>area011</code>)</span>
+    <span>Giver: the Gondor Scribe, Tower of the High Wizard: Ground Floor</span>
     <span>Level range: 30–45</span>
     <span>Reward: 10,000&nbsp;XP + <em>Annuminas Key</em></span>
   </div>
   <p>The Gondor Scribe asks you to face <strong>Azagoth</strong>, who threatens to open the Well of
   Souls — kill Azagoth in the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> (not Moria!)
-  and bring back his head to prove the deed is done.</p>
-
-  <div class="tip-box">
-    <p><strong>Fixed (2026-07-13).</strong> The quest-giver NPC had been designed but never created or
-    placed — the <code>gondorscribe</code> conversation, journal category, condition/action scripts and the
-    boss all existed, but no creature carried the conversation, so the quest was unstartable. The
-    <strong>Gondor Scribe</strong> is now placed in the Tower of the High Wizard: Ground Floor, next to the
-    Gondorian wizards, and the turn-in reward was raised from 4,000 to <strong>10,000 XP</strong>. The quest
-    is also now the second stage of the <a href="#annuminas">Ruin of Annuminas</a> arc (roadmap
-    <code>gondor-scribe</code>).</p>
-  </div>
+  and bring back his head to prove the deed is done. This is the second stage of the
+  <a href="#annuminas">Ruin of Annuminas</a> arc.</p>
 
   <strong>How to play:</strong>
   <ol>
     <li><strong>Hanee the Loon</strong> in <a href="../areas/bree.html">Bree</a> points you north to the
-    <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> (the <em>Ruin of Annuminas</em> journal).</li>
+    <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a>.</li>
     <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) in the Ruins of Annuminas and loot <em>Azagoth's Head</em>.</li>
     <li>Return to Hanee for an intermediate <strong>5,000&nbsp;XP</strong>; she keeps you holding the head and
     points you to the Gondor wizards.</li>
     <li>Take the head to the <strong>Gondor Scribe</strong> in the Tower of the High Wizard: Ground Floor —
-    she consumes the head, awards <strong>10,000&nbsp;XP</strong> and the <em>Annuminas Key</em>. Journal entry 2 set.</li>
+    she consumes the head and awards <strong>10,000&nbsp;XP</strong> and the <em>Annuminas Key</em>.</li>
     <li><em>Alternate start:</em> talk to the scribe <em>without</em> the head and she offers the quest directly
-    (journal entry 1 + the key up front), then kill Azagoth and return for the turn-in.</li>
+    (with the key up front), then kill Azagoth and return for the turn-in.</li>
   </ol>
+
+  <div class="tip-box">
+    <p>Take the scribe's offer <em>before</em> heading north if you want the Annuminas Key in hand for
+    the locked chests in the ruins. On the Hanee-first route you reach them before the key exists —
+    they can still be picked.</p>
+  </div>
 
   <strong>Journal entries:</strong>
   <ol class="journal-entries">
     <li>You agreed to face Azagoth and stop his entry into the Well of Souls. May fate guide your steps.</li>
     <li>Azagoth is dead and the Well of Souls is safe. Time for a drink at the Prancing Pony.</li>
   </ol>
+</div>
 
-  <div class="dm-note"><strong>Builder note (2026-07-13):</strong> the giver is
-  <code>gondorscribe.utc.json</code> (base <code>comfemale002</code>, Tag <code>GondorScribe</code>,
-  FactionID&nbsp;6, Plot), placed in <code>area011.git</code>/<code>.gic</code> beside the Gondorian wizards.
-  Hanee's intermediate reward is <code>sc_hanee_head.nss</code>/<code>at_hanee_head.nss</code>
-  (one-time 5,000&nbsp;XP, gated by the <code>hanee_head_reward</code> local on the PC; she does not take
-  the head); the scribe payout in <code>at_008.nss</code> is 10,000 XP. Note: the boss is
-  <strong>Azagoth</strong> in the Ruins of Annuminas — <em>not</em> Moria Byss and not the
-  Balrog of Moria (<code>azagoth001</code>, tag <code>TheBalrogofMoria</code>), which is a separate creature.
-  Open point: the Annuminas Key is only granted on the scribe's paths, so on the Hanee-first route the
-  four key-locked chests in the ruins are reached before the key exists (they remain pickable —
-  <code>KeyRequired=0</code>).</div>
+<!-- GLOISON -->
+<div class="quest-card" id="gloison">
+  <h3>Gloison's Heirloom <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Giver: Gloin King Under the Mountain, Erebor (Lonely Mountain: Main Hall)</span>
+    <span>Level range: high (Gerrey is CR 17)</span>
+    <span>Reward: 5,000&nbsp;XP + 15,000&nbsp;gp</span>
+  </div>
+  <p>Glóin asks you to recover his kinsman Gloisin's family heirloom — a coat of arms stolen by the brigand
+  <strong>Gerrey Halliams</strong>, who fled to the <a href="../areas/theruinsofdale.html">Ruins of Dale</a>.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Gloin</strong> in Erebor and accept the task.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the task from Gloin.</li>
+    <li>Travel to the Ruins of Dale and kill <strong>Gerrey Halliams</strong> (CR 17). He carries
+      <em>Gloison's Coat of Arms</em> as droppable loot.</li>
+    <li>Return to Gloin holding the heirloom — the turn-in only appears while you have it. He takes
+      it and pays 5,000 XP + 15,000 gp.</li>
+  </ol>
 </div>
 
 <!-- KALLRIST TIGER HUNT -->
-<div class="quest-card" id="kalrist-tiger">
+<div class="quest-card" id="kallrist-tiger">
   <h3>Kallrist Tiger Hunt <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>Kallrist Tiger Hunt</code></span>
     <span>Giver: Sald (potion merchant), Kallrist Island</span>
     <span>Level range: 10–20</span>
     <span>Reward: 200&nbsp;gp per Kallrist Tiger Heart</span>
@@ -1227,85 +1045,68 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <strong>Steps:</strong>
   <ol>
     <li>Hunt <strong>Kallrist Tigers</strong> across the island's nine areas. Each drops a <em>Kallrist Tiger Heart</em>.</li>
-    <li>Return to Sald with hearts in your inventory — he inspects via <code>sc_sald05</code>, destroys the heart, and pays 200 gp.</li>
+    <li>Return to Sald with hearts in your inventory — he inspects each one, takes it, and pays 200 gp.</li>
     <li>Repeat as desired — the open-ended journal entry stays in the log.</li>
   </ol>
-
-  <div class="warning-box">
-    <p><strong>Fixed (2026-05-28):</strong> A <code>Kallrist Tiger Hunt</code> journal category was added with an
-    open-ended (non-completing) entry, and <code>at_sald01.nss</code> (Sald's accept node) now sets it via
-    <code>AddJournalQuestEntry</code>. This was the quest the player reported as "AWOL" — it was always
-    functional, it just had zero journal presence.</p>
-  </div>
-  <div class="dm-note">The island has 9 areas: <code>kallristinner</code>, <code>kallristeastshor</code>, <code>kallristnorthsho</code>, <code>kallristsouthsho</code>, <code>kallristwestshor</code>, <code>kallristouterban</code>, <code>kallristdarkrim</code>, <code>kallristcryptlow</code>, <code>kallristcryptupp</code>. Tiger blueprint: <code>kallristtiger.utc.json</code> (CR 6, drops <code>kallristtigerhea</code>). A "ten hearts delivered" milestone entry (e.g. 500 XP) remains a possible future addition.</div>
 </div>
 
 <!-- PATHS OF THE DEAD -->
 <div class="quest-card" id="paths-of-the-dead">
   <h3>Paths of the Dead <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>paths_of_the_dead</code></span>
     <span>Giver: Aragorn, at the gates of Minas Tirith</span>
     <span>Level range: high (end-game)</span>
-    <span>Reward: <em>Andúril, Flame of the West</em> (<code>glamhring2</code>)</span>
+    <span>Reward: <em>Andúril, Flame of the West</em></span>
   </div>
   <p>Aragorn summons you to walk the <strong>Paths of the Dead</strong>: rouse the Oathbreakers under the mountain,
-  hold to the oath sworn of old, and turn the tide against the Witch-king. A full five-state quest chain and the
+  hold to the oath sworn of old, and turn the tide against the Witch-king. A full five-stage quest chain and the
   module's marquee reward — a copy of Andúril.</p>
 
-  <strong>How to start:</strong> Speak to <strong>Aragorn</strong> at the gates of Minas Tirith
-  (conversation <code>aragorn_potd.dlg</code>).<br><br>
+  <strong>How to start:</strong> Speak to <strong>Aragorn</strong> at the gates of Minas Tirith.<br><br>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Accept Aragorn's charge — <code>q_potd_start.nss</code> sets entry 10.</li>
-    <li>Seek the <strong>King of the Dead</strong> in the Dimholt / Dunharrow (<code>dunharrowking.nss</code> sets entry 1).</li>
-    <li>Fight through the Oathbreaker trials (<code>arag_ondeath.nss</code> advances to entry 30).</li>
-    <li>Claim the reward — <code>q_potd_reward.nss</code> creates <code>glamhring2</code> (Andúril) and sets entry 40.</li>
-    <li>The chain completes at entry 50 (<code>dunharrowdeath.nss</code>).</li>
+    <li>Accept Aragorn's charge.</li>
+    <li>Seek the <strong>King of the Dead</strong> in the Dimholt / Dunharrow.</li>
+    <li>Fight through the Oathbreaker trials.</li>
+    <li>Claim the reward — <em>Andúril, Flame of the West</em>.</li>
+    <li>The chain completes back at Dunharrow.</li>
   </ol>
 
-  <div class="dm-note">Fully scripted and wired — giver <code>aragorn_potd.dlg.json</code>, reward blueprint
-  <code>glamhring2.uti.json</code>. This quest was undocumented before the 2026-07-11 audit; wiki page at
-  <a href="../quests/paths-of-the-dead.html">Paths of the Dead</a>.</div>
+  <p>Full write-up: <a href="../quests/paths-of-the-dead.html">Paths of the Dead</a>.</p>
 </div>
 
 <!-- GLORFINDEL'S CURATIVE -->
 <div class="quest-card" id="glorfindel">
   <h3>Glorfindel's Curative <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>glorfindel_potion</code></span>
     <span>Giver: Glorfindel, <a href="../areas/rivendell.html">Rivendell</a></span>
     <span>Level range: mid</span>
-    <span>Reward: 1,700&nbsp;XP + <em>Bracers of Glorfindel</em> (<code>bracersofglorfin</code>)</span>
+    <span>Reward: 1,700&nbsp;XP + <em>Bracers of Glorfindel</em></span>
   </div>
   <p>Glorfindel of Rivendell asks you to gather the ingredients for a curative: <em>Athelas</em> from the
   foothills of the Misty Mountains, a graveside token from the <strong>Statue of Arathorn</strong> headstone in
   the Barrow Downs, and drake essence from the Caves of the Carrock.</p>
 
-  <strong>How to start:</strong> Speak to <strong>Glorfindel</strong> in <a href="../areas/rivendell.html">Rivendell</a>
-  (<code>glorfindel002.utc.json</code>).<br><br>
+  <strong>How to start:</strong> Speak to <strong>Glorfindel</strong> in <a href="../areas/rivendell.html">Rivendell</a>.<br><br>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Accept the task — <code>at_011.nss</code> sets entry 1.</li>
+    <li>Accept the task.</li>
     <li>Gather the three ingredients across the Misty-Mountain foothills, the Barrow Downs, and the Caves of the Carrock.</li>
-    <li>Return to Glorfindel — <code>glorrew.nss</code> awards 1,700 XP and the <em>Bracers of Glorfindel</em>
-    (<code>bracersofglorfin.uti.json</code>); entry 5 set.</li>
+    <li>Return to Glorfindel for 1,700 XP and the <em>Bracers of Glorfindel</em>.</li>
   </ol>
 
-  <div class="dm-note">Fully scripted and wired — giver placed in Rivendell (<code>thevalleyofriven.git.json</code>).
-  Undocumented before the 2026-07-11 audit; wiki page at <a href="../quests/glorfindel-potion.html">Glorfindel's Curative</a>.</div>
+  <p>Full write-up: <a href="../quests/glorfindel-potion.html">Glorfindel's Curative</a>.</p>
 </div>
 
 <!-- PRESTIGE-ORDER HUB -->
 <div class="quest-card" id="prestige-hub">
-  <h3>Prestige-Order Hub (Halmir the Grey) <span class="status-badge status-awol">Framework Shipped</span></h3>
+  <h3>Prestige-Order Hub (Halmir the Grey) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: none yet (no quest to track until the first prestige quest ships)</span>
     <span>NPC: Halmir the Grey, Keeper of the Old Orders, at the <a href="../areas/thewelloferu.html">Well of Eru</a></span>
-    <span>Level range: any (order lines unlock at L6/11/12/13/14/16)</span>
-    <span>Reward: none yet — the hub foreshadows the twelve prestige-class quests</span>
+    <span>Level range: order lines unlock at L6/11/12/13/14/16</span>
+    <span>Reward: opens all twelve prestige-order trials below</span>
   </div>
   <p>An old man in a grey cloak keeps <strong>the rolls of the twelve old orders</strong> — the
   prestige classes, framed in-fiction as surviving disciplines of the elder days (Harper Scouts,
@@ -1313,642 +1114,394 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   Assassins, Weapon Masters, Blackguards, Divine Champions, Dwarven Defenders, Shifters). Ask him
   <em>"Which of the old orders would hear my name as I stand?"</em> and he lists every order your
   character currently qualifies for. Each qualifying order also gets its own dialogue branch with
-  an evocative pitch. <strong>Four orders' trials are now live</strong> — the Harper Scouts' initiation,
-  <a href="#harper-scout">The Cipher in the Inn</a>, hangs on Halmir's Harper branch, the
-  Knights of Westernesse's proving, <a href="#knight-west">The Banner of the West</a>, on his
-  Westernesse branch, the Pale Masters' rite, <a href="#pale-master">The Twenty-First Tomb</a>,
-  on his Pale-Masters branch, and the Shadowdancers' trial, <a href="#shadowdancer">The Unlit
-  Deep</a>, on his Shadowdancers branch; the other eight branches still end with the masters "not
-  yet having sent word" and ship later, one roadmap item each, all hosted on this NPC.</p>
+  an evocative pitch — and, for all twelve, an initiation trial you can take on the spot.</p>
 
-  <strong>What he does today:</strong>
+  <strong>How it works:</strong>
   <ol>
     <li>Order lines appear only when you meet that order's minimum character level
       (Harper Scout / Knight of Westernesse 6+, Pale Master / Shadowdancer 11+, Arcane Archer /
       Red Dragon Disciple 12+, Assassin / Weapon Master 13+, Blackguard / Divine Champion /
       Dwarven Defender 14+, Shifter 16+). The Dwarven Defenders additionally require a dwarf.</li>
-    <li>The summary line (token 6381) lists all currently qualifying orders; below level 6 it
-      says none would hear your name yet.</li>
-    <li>No journal entry and no rewards on the hub itself — the quests are separate roadmap items.
-      All twelve — the Harper Scouts' <a href="#harper-scout">The Cipher in the Inn</a>, the
-      Knights of Westernesse's <a href="#knight-west">The Banner of the West</a>, the Pale
-      Masters' <a href="#pale-master">The Twenty-First Tomb</a>, the Shadowdancers'
-      <a href="#shadowdancer">The Unlit Deep</a>, the Arcane Archers'
-      <a href="#arcane-archer">The Warden's Mark</a>, the Red Dragon Disciples'
-      <a href="#red-dragon">The Old Wyrm's Fire</a>, the Assassins'
-      <a href="#assassin">The Quiet Knives</a>, the Weapon Masters'
-      <a href="#weapon-master">The Sworn Blade</a>, the Divine Champions'
-      <a href="#divine-champion">The Shield of Others</a>, the Dwarven Defenders'
-      <a href="#dwarven-defender">The Unbroken Stone</a>, the Shifters'
-      <a href="#shifter">The Second Skin</a>, and the Blackguards'
-      <a href="#blackguard">The Fall</a> — are now live; none remain.</li>
+    <li>Halmir's summary line lists all currently qualifying orders; below level 6 it says none
+      would hear your name yet.</li>
+    <li>Each order's trial additionally requires <strong>at least one level in that prestige
+      class</strong> — Halmir points the unqualified toward the discipline rather than the roll.</li>
+    <li>The hub itself has no journal entry and no reward; the twelve trials below carry those.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-15 (roadmap <code>prestige-trainer-hub</code>) — scripted and
-  built, pending in-game UAT. Halmir (<code>prsg_trainer</code>, tag <code>PrestigeTrainer</code>;
-  plot, immortal, commoner faction) is script-spawned by <code>prsg_spawn</code> from the Well of
-  Eru OnEnter wrapper <code>prsg_enter</code> (which chains the area's previous
-  <code>welloferuenter</code> — starter XP, donations chest, forge scan, leash — unchanged).
-  <strong>The waypoint <code>AP_prestigehub_1</code> must be placed in <code>thewelloferu</code>
-  before he appears</strong> (scripts no-op gracefully until then; see admin-action-required.md).
-  The shared gating framework the twelve future quests reuse lives in <code>prsg_inc.nss</code>:
-  <code>PRSG_MeetsLevel</code>, <code>PRSG_HasClass</code>, the <code>PRSG_LVL_*</code> table, the
-  per-order conditionals <code>prsg_c_*</code>, and a documented <code>prestigedb</code>
-  campaign-DB stage idiom (<code>PRSG_GetStage</code>/<code>PRSG_SetStage</code>).</div>
 </div>
 
 <!-- HARPER SCOUT — THE CIPHER IN THE INN -->
 <div class="quest-card" id="harper-scout">
   <h3>The Cipher in the Inn (Harper Scout initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_harper</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Harper branch)</span>
     <span>Requires: 1+ Harper Scout level (the hub line itself shows at character level 6+)</span>
-    <span>Reward: 750&nbsp;XP + <em>Harper Pin</em> (<code>q_hrp_pin</code> — Listen +3, Spot +3, Lore +3)</span>
+    <span>Reward: 750&nbsp;XP + <em>Harper Pin</em> (Listen +3, Spot +3, Lore +3)</span>
   </div>
   <p>The first of the twelve prestige-order trials. Ask Halmir of the <strong>Harper Scouts</strong>:
-  if you already walk their roads (1+ Harper Scout level), he sends you to a friend who keeps the
-  corner table at the <strong>Prancing Pony</strong> in Bree — Della Heathertoes, a traveller in a
-  fern-green cloak. She tests you with a line of old road-cant, each word written tail-first:
+  if you already walk their roads, he sends you to a friend who keeps the corner table at the
+  <strong>Prancing Pony</strong> in Bree — Della Heathertoes, a traveller in a fern-green cloak. She
+  tests you with a line of old road-cant, each word written tail-first:
   <em>DAOR TSEW EHT SEHCTAW YERG EHT</em>. A learned character (<strong>Lore rank 8+</strong>) reads
   it at a glance; anyone else gets her hint and picks the true reading from three (wrong picks loop
   back to the hint — wordier, never a dead end). Read it true and she trusts you with the
   counter-word; carry it back to Halmir and he enters your name on the rolls, with the pin to prove
-  it. One-off per character; word of your induction is "sent" to the Harper watchers in Rivendell
-  and Lothlórien in dialogue.</p>
+  it. One-off per character.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Harper Scouts, accept the errand — <code>q_hrp_start</code> sets
-      stage 1 / journal 1 (non-Harpers instead get a "learn the first discipline" pointer line).</li>
-    <li>Sit with Della at the Prancing Pony (<code>q_hrp_conv</code>); solve the cipher via the Lore
-      shortcut or the hint path — <code>q_hrp_solve</code> sets stage 2 / journal 2.</li>
-    <li>Return to Halmir and say the word — <code>q_hrp_finish</code> awards the XP and the pin,
-      journal End (stage 3, never resets).</li>
+    <li>Speak to Halmir, choose the Harper Scouts, accept the errand.</li>
+    <li>Sit with Della at the Prancing Pony; solve the cipher via the Lore shortcut or the hint path.</li>
+    <li>Return to Halmir and say the word — the XP and the pin are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-15 (roadmap <code>harper-scout-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>harper</code>, stages 0–3; see <code>q_hrp_inc.nss</code>). Della
-  (<code>q_hrp_contact</code>, tag <code>HarperContact</code>; plot, commoner faction) is
-  script-spawned by <code>q_hrp_spawn</code> from the Prancing Pony OnEnter wrapper
-  <code>q_hrp_ent1</code> (which chains the previous <code>leash_to_area</code>).
-  <strong>The waypoint <code>AP_harperscout_1</code> must be placed in
-  <code>theprancingpo001</code> before she appears</strong> (scripts no-op gracefully until then;
-  accepting the errand also re-runs the spawn check — see admin-action-required.md). The design
-  card's Rivendell/Lothlórien contacts were folded into dialogue to keep the quest compact.</div>
 </div>
 
 <!-- KNIGHT OF WESTERNESSE — THE BANNER OF THE WEST -->
 <div class="quest-card" id="knight-west">
   <h3>The Banner of the West (Knight of Westernesse initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_pdk</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Westernesse branch)</span>
     <span>Requires: 1+ Knight of Westernesse level (Purple Dragon Knight; the hub line itself shows at character level 6+)</span>
-    <span>Reward: 750&nbsp;XP + <em>Banner of the West</em> (<code>q_kwn_shield</code> — tower shield, AC +3, saves vs. fear +3)</span>
+    <span>Reward: 750&nbsp;XP + <em>Banner of the West</em> (tower shield, AC +3, saves vs. fear +3)</span>
   </div>
   <p>The second of the twelve prestige-order trials. Ask Halmir of the <strong>Knights of
-  Westernesse</strong>: if you already ride in their line (1+ Knight of Westernesse level), he sends
-  you to <strong>Wart, the Gate Captain</strong> at the
-  <a href="../areas/minastirithgates.html">Gates of Minas Tirith</a>. The captain sets a command
-  exercise: no standard of the City moves without spears around it, so <strong>muster three of his
-  gate-watch guardsmen</strong> to the banner-detail — speak to the Gondorian Guardsmen along the
-  Gates and name it to them plain (each spear rallied is counted to your permanent command tally).
-  With three mustered, the captain releases the standard; ride out to the <strong>old banner-stone
-  by the Rammas</strong> on the <a href="../areas/thepelennorfield.html">Pelennor Fields</a> and set
-  the banner in the stone with your own hand, then carry word back to Halmir for the knighthood.
-  One-off per character.</p>
+  Westernesse</strong>: if you already ride in their line, he sends you to <strong>Wart, the Gate
+  Captain</strong> at the <a href="../areas/minastirithgates.html">Gates of Minas Tirith</a>. The
+  captain sets a command exercise: no standard of the City moves without spears around it, so
+  <strong>muster three of his gate-watch guardsmen</strong> to the banner-detail — speak to the
+  Gondorian Guardsmen along the Gates and name it to them plain. With three mustered, the captain
+  releases the standard; ride out to the <strong>old banner-stone by the Rammas</strong> on the
+  <a href="../areas/thepelennorfield.html">Pelennor Fields</a> and set the banner in the stone with
+  your own hand, then carry word back to Halmir for the knighthood. One-off per character.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Knights of Westernesse, accept the proving —
-      <code>q_kwn_start</code> sets stage 1 / journal 1 (non-knights instead get a "banner-knights
-      are made, not wished" pointer line).</li>
-    <li>Report to the Gate Captain (<code>q_kwn_capt</code>) — <code>q_kwn_muster</code> sets
-      stage 2 / journal 2.</li>
-    <li>Rally three gate-watch guardsmen (<code>q_kwn_guard</code>; each post counts once,
-      persistently) — the third rally (<code>q_kwn_rally</code>) sets stage 3 / journal 3.</li>
-    <li>Return to the captain for the standard — <code>q_kwn_banner</code> sets stage 4 /
-      journal 4.</li>
-    <li>Use the Banner-Stone of the Rammas on the Pelennor — <code>q_kwn_plant</code> sets
-      stage 5 / journal 5.</li>
-    <li>Return to Halmir — <code>q_kwn_finish</code> awards the XP and the shield, journal End
-      (stage 6, never resets).</li>
+    <li>Speak to Halmir, choose the Knights of Westernesse, accept the proving.</li>
+    <li>Report to the Gate Captain at the Gates of Minas Tirith.</li>
+    <li>Rally three gate-watch guardsmen (each post counts once, and the tally sticks).</li>
+    <li>Return to the captain for the standard.</li>
+    <li>Use the Banner-Stone of the Rammas on the Pelennor.</li>
+    <li>Return to Halmir — the XP and the shield are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>knight-westernesse-quest</code>) — scripted
-  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>pdk</code>, stages 0–6; muster tally under
-  <code>pdk_command</code>/<code>pdk_post_*</code> — see <code>q_kwn_inc.nss</code>). The Gate
-  Captain and the gate-watch guardsmen are <strong>existing placed NPCs, reused</strong>
-  (<code>gondorianguar005</code>/<code>gondorianguar001</code> at the Gates; instances carry post
-  indexes 1–7, seven posts for a three-post muster so a few dead guards can't strand the quest until
-  reboot). Only the banner-stone (<code>q_kwn_stone</code>, tag <code>kwn_bannerstone</code>) is
-  new, script-spawned by <code>q_kwn_spawn</code> from the Pelennor OnEnter wrapper
-  <code>q_kwn_ent1</code> (which chains the previous <code>d_cleartrash</code>).
-  <strong>The waypoint <code>AP_knightwest_1</code> must be placed in
-  <code>thepelennorfield</code> before the stone appears</strong> (scripts no-op gracefully until
-  then; accepting the proving and taking the standard both re-run the spawn check — see
-  admin-action-required.md). The design card's escort-across-the-field ("each guardsman who
-  survives adds +1 command") was compacted to the muster count — no henchman AI, same fiction.</div>
 </div>
 
 <!-- PALE MASTER — THE TWENTY-FIRST TOMB -->
 <div class="quest-card" id="pale-master">
   <h3>The Twenty-First Tomb (Pale Master initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_palemaster</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Pale-Masters branch)</span>
     <span>Requires: 1+ Pale Master level (the hub line itself shows at character level 11+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Talisman of the Twenty-First Tomb</em> (<code>q_pal_talis</code> — Lore +3, Spellcraft +3, saves vs. death +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Talisman of the Twenty-First Tomb</em> (Lore +3, Spellcraft +3, saves vs. death +3)</span>
   </div>
   <p>The third of the twelve prestige-order trials. Ask Halmir of the <strong>Pale Masters</strong>:
-  if you already read the pale page (1+ Pale Master level), he sets the rite — beneath the
+  if you already read the pale page, he sets the rite — beneath the
   <a href="../areas/breecryptlowerle.html">Bree Crypt's lower level</a> the old families sleep under
   carved names, but one sarcophagus bears none: the twenty-first tomb. Open it with your own hands,
   take a measure of the <em>pale grave-dust</em> within (plot + cursed — it can't be dropped, sold,
   or handed off), and carry it back to Halmir unspilled for the induction. One-off per character;
-  if the dust is somehow lost, opening the tomb again re-gives it (never duplicates — the turn-in
-  consumes it).</p>
+  if the dust is somehow lost, opening the tomb again re-gives it.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Pale Masters, accept the errand — <code>q_pal_start</code> sets
-      stage 1 / journal 1 (non-Pale-Masters instead get a "one arrives at that page" pointer line).</li>
-    <li>Open the unmarked sarcophagus in the Bree Crypt Lower Level — <code>q_pal_tomb</code> gives
-      the dust and sets stage 2 / journal 2.</li>
-    <li>Return to Halmir with the dust — <code>q_pal_finish</code> consumes it, awards the XP and
-      the talisman, journal End (stage 3, never resets).</li>
+    <li>Speak to Halmir, choose the Pale Masters, accept the errand.</li>
+    <li>Open the unmarked sarcophagus in the Bree Crypt Lower Level and take the dust.</li>
+    <li>Return to Halmir with the dust — the XP and the talisman are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>pale-master-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>pale</code>, stages 0–3; see <code>q_pal_inc.nss</code>). <strong>No
-  new placements and no admin waypoint</strong>: the twenty-first tomb is an existing placed
-  sarcophagus in <code>breecryptlowerle</code> ("Coffin", tag <code>NW_VAMPIRE_SHAD</code>) whose
-  instance OnOpen now runs <code>q_pal_tomb</code>, which chains the instance's previous treasure
-  script <code>nw_o2_classhig</code> unchanged. The turn-in is a
-  <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the dust in
-  hand, so the reward can't be re-earned.</div>
 </div>
 
 <!-- SHADOWDANCER — THE UNLIT DEEP -->
 <div class="quest-card" id="shadowdancer">
   <h3>The Unlit Deep (Shadowdancer initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_shadowdancer</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shadowdancers branch)</span>
     <span>Requires: 1+ Shadowdancer level (the hub line itself shows at character level 11+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Boots of the Unlit Road</em> (<code>q_shd_boots</code> — Hide +3, Move Silently +3, Tumble +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Boots of the Unlit Road</em> (Hide +3, Move Silently +3, Tumble +3)</span>
   </div>
   <p>The fourth of the twelve prestige-order trials. Ask Halmir of the <strong>Shadowdancers</strong>:
-  if you already walk where light does not follow (1+ Shadowdancer level), he names the trial — deep
-  in Moria, beside <a href="../areas/balinstomb.html">Balin's tomb</a>, stands the <strong>Deep
-  Well</strong> no plumb-line ever fathomed. Stand at its lip <strong>bearing no light at
-  all</strong> — no torch, no glowing (light-property) gear, no active <em>Light</em> or
-  <em>Continual Flame</em> — and the deep leaves the <em>Skein of the Unlit Deep</em> in your hand
-  (plot + cursed — it can't be dropped, sold, or handed off). <strong>Come to the well carrying
-  light and the trial fails that attempt</strong>: a flavor message, nothing granted, retry as soon
-  as you've doused it. Carry the skein back to Halmir for the induction. One-off per character; if
-  the skein is somehow lost, standing at the well unlit again re-gives it (never duplicates — the
-  turn-in consumes it).</p>
+  if you already walk where light does not follow, he names the trial — deep in Moria, beside
+  <a href="../areas/balinstomb.html">Balin's tomb</a>, stands the <strong>Deep Well</strong> no
+  plumb-line ever fathomed. Stand at its lip <strong>bearing no light at all</strong> — no torch, no
+  glowing (light-property) gear, no active <em>Light</em> or <em>Continual Flame</em> — and the deep
+  leaves the <em>Skein of the Unlit Deep</em> in your hand (plot + cursed — it can't be dropped,
+  sold, or handed off). <strong>Come to the well carrying light and the trial fails that
+  attempt</strong>: a flavor message, nothing granted, retry as soon as you've doused it. Carry the
+  skein back to Halmir for the induction. One-off per character; if the skein is somehow lost,
+  standing at the well unlit again re-gives it.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Shadowdancers, accept the trial — <code>q_shd_start</code> sets
-      stage 1 / journal 1 (non-Shadowdancers instead get a "no one is taught to step where light
-      does not follow" pointer line).</li>
-    <li>Use the Deep Well beside Balin's tomb with no light source — <code>q_shd_well</code> checks
-      every equipped item (torch base type or Light item property) and active Light/Continual Flame
-      effects; unlit, it gives the skein and sets stage 2 / journal 2 (lit, it fails the attempt
-      with a retry message).</li>
-    <li>Return to Halmir with the skein — <code>q_shd_finish</code> consumes it, awards the XP and
-      the boots, journal End (stage 3, never resets).</li>
+    <li>Speak to Halmir, choose the Shadowdancers, accept the trial.</li>
+    <li>Use the Deep Well beside Balin's tomb with no light source at all — every equipped item and
+      active spell effect is checked. Darkvision and ultravision shed no light and don't count.</li>
+    <li>Return to Halmir with the skein — the XP and the boots are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>shadowdancer-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>shadow</code>, stages 0–3; see <code>q_shd_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the existing placed
-  well in <code>balinstomb</code> ("DeepWell", tag <code>DeepWell</code>) whose instance OnUsed now
-  runs <code>q_shd_well</code>, which chains the instance's previous sound-flavor script
-  <code>balintmb_dpwell</code> unchanged. The light check (<code>QSHD_CarriesLight</code>) covers
-  all equipment slots plus Light/Continual Flame creature effects; darkvision/ultravision sheds no
-  light and does not count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
-  finish only fires from stage 2 with the skein in hand, so the reward can't be re-earned.</div>
 </div>
 
 <!-- ARCANE ARCHER — THE WARDEN'S MARK -->
 <div class="quest-card" id="arcane-archer">
   <h3>The Warden's Mark (Arcane Archer initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_arcanearcher</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Arcane Archers branch)</span>
     <span>Requires: 1+ Arcane Archer level (the hub line itself shows at character level 12+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Bracers of the Grey Fletching</em> (<code>q_arc_bracer</code> — Concentration +3, Spot +3, Listen +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Bracers of the Grey Fletching</em> (Concentration +3, Spot +3, Listen +3)</span>
   </div>
   <p>The fifth of the twelve prestige-order trials. Ask Halmir of the <strong>Arcane
-  Archers</strong>: if you have already bent the bow to the art (1+ Arcane Archer level), he names
-  the trial — on the proving ground of <a href="../areas/rivendell.html">Rivendell</a> stands the
-  oldest target the wardens ever set, and deep in its gold ring a grey-fletched shaft loosed by a
-  warden of the Galadhrim in an elder year. Draw it. The mark yields the shaft <strong>only to a
-  hand that comes as an archer comes — a longbow or shortbow equipped and arrows in the
-  quiver</strong>; come any other way and the trial fails that attempt (a flavor message, nothing
-  granted, retry as soon as you've strung the bow). The shaft (plot + cursed — it can't be dropped,
-  sold, or handed off) goes back to Halmir for the induction. One-off per character; if the shaft
-  is somehow lost, drawing at the mark again re-gives it (never duplicates — the turn-in consumes
-  it).</p>
+  Archers</strong>: if you have already bent the bow to the art, he names the trial — on the proving
+  ground of <a href="../areas/rivendell.html">Rivendell</a> stands the oldest target the wardens ever
+  set, and deep in its gold ring a grey-fletched shaft loosed by a warden of the Galadhrim in an
+  elder year. Draw it. The mark yields the shaft <strong>only to a hand that comes as an archer
+  comes — a longbow or shortbow equipped and arrows in the quiver</strong>; come any other way and
+  the trial fails that attempt (a flavor message, nothing granted, retry as soon as you've strung the
+  bow). Crossbows and slings don't count. The shaft (plot + cursed) goes back to Halmir for the
+  induction. One-off per character; if the shaft is somehow lost, drawing at the mark again re-gives
+  it.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Arcane Archers, accept the trial — <code>q_arc_start</code>
-      sets stage 1 / journal 1 (non-Arcane-Archers instead get a "one is not talked onto that
-      page — one is shot onto it" pointer line).</li>
+    <li>Speak to Halmir, choose the Arcane Archers, accept the trial.</li>
     <li>Use the old Archery Target on Rivendell's training ground with a longbow or shortbow
-      equipped and arrows in the quiver slot — <code>q_arc_target</code> checks both
-      (deterministic, no dice); as an archer, it gives the <em>Warden's Shaft</em> and sets
-      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
-    <li>Return to Halmir with the shaft — <code>q_arc_finish</code> consumes it, awards the XP and
-      the bracers, journal End (stage 3, never resets).</li>
+      equipped and arrows in the quiver slot.</li>
+    <li>Return to Halmir with the shaft — the XP and the bracers are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>arcane-archer-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>archer</code>, stages 0–3; see <code>q_arc_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is one of the two
-  existing archery-target placeables in <code>rivendell</code>, retagged <code>WardenMark</code>
-  and flipped usable (Static 0, Useable 1, OnUsed <code>q_arc_target</code>; it previously had no
-  OnUsed, so nothing is chained). The come-as-an-archer check (<code>QARC_ComesAsArcher</code>)
-  requires a longbow/shortbow in the weapon hand and any item in the arrow slot; crossbows and
-  slings don't count. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish
-  only fires from stage 2 with the shaft in hand, so the reward can't be re-earned.</div>
 </div>
 
 <!-- RED DRAGON DISCIPLE — THE OLD WYRM'S FIRE -->
 <div class="quest-card" id="red-dragon">
   <h3>The Old Wyrm's Fire (Red Dragon Disciple initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_dragondisciple</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Red Dragon Disciples branch)</span>
     <span>Requires: 1+ Red Dragon Disciple level (the hub line itself shows at character level 12+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Wyrmblood Amulet</em> (<code>q_rdd_amulet</code> — Spellcraft +3, Intimidate +3, Saving Throws vs. Fire +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Wyrmblood Amulet</em> (Spellcraft +3, Intimidate +3, saves vs. Fire +3)</span>
   </div>
   <p>The sixth of the twelve prestige-order trials. Ask Halmir of the <strong>Red Dragon
-  Disciples</strong>: if the wyrm's fire is already awake in your veins (1+ Red Dragon Disciple
-  level), he names the trial — in the great hall of the
-  <a href="../areas/lonelymountainma.html">Lonely Mountain</a> stands the <strong>Forge of
-  Durin</strong>, and under its banked coals an ember of the old wyrm's fire — the fire that
-  ruined Dale — still glows. Rake it out bare-handed. The coals yield the ember <strong>only to
-  an unwarded hand — using the forge with any elemental ward active (Endure Elements, Resist
-  Elements, Protection from Elements, Energy Buffer, or Elemental Shield) fails the
-  attempt</strong> with a flavor message; let the ward lapse or dispel it and try again ("the
-  blood must feel the flame"). The ember (plot + cursed — it can't be dropped, sold, or handed
-  off) goes back to Halmir for the induction. One-off per character; if the ember is somehow
-  lost, drawing at the forge again re-gives it (never duplicates — the turn-in consumes it).</p>
+  Disciples</strong>: if the wyrm's fire is already awake in your veins, he names the trial — in the
+  great hall of the <a href="../areas/lonelymountainma.html">Lonely Mountain</a> stands the
+  <strong>Forge of Durin</strong>, and under its banked coals an ember of the old wyrm's fire — the
+  fire that ruined Dale — still glows. Rake it out bare-handed. The coals yield the ember
+  <strong>only to an unwarded hand — using the forge with any elemental ward active (Endure
+  Elements, Resist Elements, Protection from Elements, Energy Buffer, or Elemental Shield) fails the
+  attempt</strong> with a flavor message; let the ward lapse or dispel it and try again ("the blood
+  must feel the flame"). Item-borne permanent fire resistance doesn't count against you. The ember
+  (plot + cursed) goes back to Halmir for the induction. One-off per character.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Red Dragon Disciples, accept the trial —
-      <code>q_rdd_start</code> sets stage 1 / journal 1 (non-Disciples instead get a "one is not
-      led to that inheritance — one is born to it, or wakes it" pointer line).</li>
+    <li>Speak to Halmir, choose the Red Dragon Disciples, accept the trial.</li>
     <li>Use the Forge of Durin in the Lonely Mountain's main hall with no elemental-ward spell
-      effect active — <code>q_rdd_forge</code> checks via <code>GetHasSpellEffect</code>
-      (deterministic, no dice); unwarded, it gives the <em>Ember of the Old Wyrm</em> and sets
-      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
-    <li>Return to Halmir with the ember — <code>q_rdd_finish</code> consumes it, awards the XP and
-      the amulet, journal End (stage 3, never resets).</li>
+      active.</li>
+    <li>Return to Halmir with the ember — the XP and the amulet are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>red-dragon-disciple-quest</code>) — scripted
-  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>rdd</code>, stages 0–3; see <code>q_rdd_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the existing
-  "The Forge of Durin" anvil placeable in <code>lonelymountainma</code>, retagged
-  <code>DurinForge</code> (it was already usable; OnUsed <code>q_rdd_forge</code> added — it
-  previously had no OnUsed, so nothing is chained; no script referenced its old
-  <code>Anvil</code> tag). The unwarded check (<code>QRDD_BloodIsWarded</code>) covers the five
-  standard elemental-ward spells only — item-borne permanent fire resistance can't be detected by
-  script and deliberately doesn't count. The turn-in is a <code>GetItemPossessedBy</code> reagent
-  check; the finish only fires from stage 2 with the ember in hand, so the reward can't be
-  re-earned.</div>
 </div>
 
 <!-- ASSASSIN — THE QUIET KNIVES -->
 <div class="quest-card" id="assassin">
   <h3>The Quiet Knives (Assassin initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_assassin</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Assassins branch)</span>
     <span>Requires: 1+ Assassin level (the hub line itself shows at character level 13+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Gloves of the Quiet Hand</em> (<code>q_asn_gloves</code> — Pick Pocket +3, Open Lock +3, Saving Throws vs. Poison +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Gloves of the Quiet Hand</em> (Pick Pocket +3, Open Lock +3, saves vs. Poison +3)</span>
   </div>
   <p>The seventh of the twelve prestige-order trials, and the only one that is not won in the
-  open. Ask Halmir of the <strong>Assassins</strong>: if the knives already know your hand (1+
-  Assassin level), he names the trial — and it is not a killing. A <strong>sealed writ</strong>
-  waits at one of the order's dead drops: the old wine barrel standing against the houses of
+  open. Ask Halmir of the <strong>Assassins</strong>: if the knives already know your hand, he names
+  the trial — and it is not a killing. A <strong>sealed writ</strong> waits at one of the order's
+  dead drops: the old wine barrel standing against the houses of
   <a href="../areas/bree.html">Bree</a>. Lift it as the quiet knives would — <strong>open the
   barrel while in stealth mode; opening it out of stealth fails the attempt</strong> with a
   flavor message ("a dead drop yields nothing to a hand any eye could mark"); slip into shadow
-  and reach again. No skill roll is made — the toggled mode is the whole test, deterministic, no
-  dice. The writ (plot + cursed — it can't be dropped, sold, or handed off, and it must come back
-  <em>sealed</em>) goes to Halmir for the induction, where the name inside turns out to be the
-  PC's own. One-off per character; if the writ is somehow lost, lifting at the drop again
-  re-gives it (never duplicates — the turn-in consumes it).</p>
+  and reach again. No skill roll is made — the toggled mode is the whole test. The writ (plot +
+  cursed, and it must come back <em>sealed</em>) goes to Halmir for the induction, where the name
+  inside turns out to be your own. One-off per character.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Assassins, accept the trial — <code>q_asn_start</code> sets
-      stage 1 / journal 1 (non-Assassins instead get a "one is not counted — one is uncounted"
-      pointer line).</li>
-    <li>Open the old wine barrel in Bree while in stealth mode — <code>q_asn_drop</code> (the
-      barrel's OnOpen) checks <code>GetActionMode(ACTION_MODE_STEALTH)</code>; unseen, it gives
-      <em>The Sealed Writ</em> and sets stage 2 / journal 2 (otherwise it fails the attempt with
-      a retry message).</li>
-    <li>Return to Halmir with the writ — <code>q_asn_finish</code> consumes it, awards the XP and
-      the gloves, journal End (stage 3, never resets).</li>
+    <li>Speak to Halmir, choose the Assassins, accept the trial.</li>
+    <li>Open the old wine barrel in Bree while in stealth mode.</li>
+    <li>Return to Halmir with the writ — the XP and the gloves are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>assassin-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>assn</code>, stages 0–3; see <code>q_asn_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the existing wine
-  barrel placeable in <code>bree</code> (instance of <code>barrel001</code>), retagged
-  <code>AsnDeadDrop</code> (it was already usable and Plot — unbashable — with no previous
-  OnOpen/OnUsed, so nothing is chained; no script referenced its old shared
-  <code>WineBarrel</code> tag). The unseen check is the stealth-mode <em>toggle</em>
-  (<code>QASN_IsUnseen</code>), not a Hide roll — even a first-level Assassin who remembers to
-  walk in shadow passes. The reward's skill picks (Pick Pocket / Open Lock / saves vs. poison)
-  deliberately avoid the Shadowdancer boots' Hide / Move Silently / Tumble. The turn-in is a
-  <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2 with the writ
-  in hand, so the reward can't be re-earned.</div>
 </div>
 
-<hr>
-
+<!-- WEAPON MASTER — THE SWORN BLADE -->
 <div class="quest-card" id="weapon-master">
   <h3>The Sworn Blade (Weapon Master initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_weaponmaster</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Weapon Masters branch)</span>
     <span>Requires: 1+ Weapon Master level (the hub line itself shows at character level 13+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Buckle of the Sworn Blade</em> (<code>q_wpm_belt</code> — Discipline +3, Parry +3, Saving Throws vs. Fear +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Buckle of the Sworn Blade</em> (Discipline +3, Parry +3, saves vs. Fear +3)</span>
   </div>
   <p>The eighth of the twelve prestige-order trials. Ask Halmir of the <strong>Weapon
-  Masters</strong>: if your hand is already sworn to its weapon (1+ Weapon Master level), he names
-  the proving. Below the white walls of <a href="../areas/minastirith.html">Minas Tirith</a> the
-  Guard keeps its training row — scarred practice posts that have taken the cuts of every
-  swordmaster Gondor ever raised. <strong>Strike the first post with the weapon your soul is
-  sworn to</strong> — a main-hand weapon whose <em>Weapon of Choice</em> feat you actually have.
-  Bare hands or a borrowed blade fail the attempt with a flavor message ("this is not the weapon
-  your soul is sworn to"); draw the chosen blade and strike again. No dice — the feat is the whole
-  test, deterministic and retryable. The cut frees the <em>Notch of the Proven Blade</em> (plot +
-  cursed — it can't be dropped, sold, or handed off), which goes back to Halmir for the induction.
-  One-off per character; if the notch is somehow lost, striking the post again re-gives it (never
-  duplicates — the turn-in consumes it).</p>
+  Masters</strong>: if your hand is already sworn to its weapon, he names the proving. Below the
+  white walls of <a href="../areas/minastirith.html">Minas Tirith</a> the Guard keeps its training
+  row — scarred practice posts that have taken the cuts of every swordmaster Gondor ever raised.
+  <strong>Strike the first post with the weapon your soul is sworn to</strong> — a main-hand weapon
+  whose <em>Weapon of Choice</em> feat you actually have. Bare hands or a borrowed blade fail the
+  attempt with a flavor message ("this is not the weapon your soul is sworn to"); draw the chosen
+  blade and strike again. Any melee weapon with a Weapon of Choice feat qualifies; ranged weapons
+  don't. The cut frees the <em>Notch of the Proven Blade</em> (plot + cursed), which goes back to
+  Halmir for the induction. One-off per character.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Weapon Masters, accept the trial — <code>q_wpm_start</code>
-      sets stage 1 / journal 1 (non–Weapon Masters instead get a "one weapon, chosen and kept"
-      pointer line).</li>
+    <li>Speak to Halmir, choose the Weapon Masters, accept the trial.</li>
     <li>Use the first practice post in Minas Tirith with your Weapon of Choice equipped in the
-      main hand — <code>q_wpm_dummy</code> (the post's OnUsed) reads the weapon's
-      <code>WeaponOfChoiceFeat</code> from <code>baseitems.2da</code> and checks
-      <code>GetHasFeat</code>; sworn, it gives the <em>Notch of the Proven Blade</em> and sets
-      stage 2 / journal 2 (otherwise it fails the attempt with a retry message).</li>
-    <li>Return to Halmir with the notch — <code>q_wpm_finish</code> consumes it, awards the XP and
-      the buckle, journal End (stage 3, never resets).</li>
+      main hand.</li>
+    <li>Return to Halmir with the notch — the XP and the buckle are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>weapon-master-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>wm</code>, stages 0–3; see <code>q_wpm_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the first of the
-  three existing Combat Dummy placeables in <code>minastirith</code> (instance of
-  <code>plc_cmbtdummy</code>), retagged <code>WMTrialPost</code> and flipped usable + plot
-  (it was Static/non-usable with no scripts, so nothing is chained; no script referenced the old
-  shared <code>Combat Dummy</code> tag, and the other two dummies keep it). The sworn-blade check
-  covers every melee base item with a Weapon of Choice feat, stock and CEP alike, via the
-  <code>baseitems.2da</code> lookup — ranged weapons and non-weapons read as blank and fail. The
-  reward's picks (Discipline / Parry / saves vs. fear) fit the order and avoid all sibling
-  rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only
-  fires from stage 2 with the notch in hand, so the reward can't be re-earned.</div>
 </div>
 
-<hr>
-
+<!-- DIVINE CHAMPION — THE SHIELD OF OTHERS -->
 <div class="quest-card" id="divine-champion">
   <h3>The Shield of Others (Divine Champion initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_divinechampion</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Divine Champions branch)</span>
     <span>Requires: 1+ Divine Champion level (the hub line itself shows at character level 14+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Mantle of the Westward Vow</em> (<code>q_dvc_mantle</code> — Heal +3, Persuade +3, Saving Throws vs. Divine +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Mantle of the Westward Vow</em> (Heal +3, Persuade +3, saves vs. Divine +3)</span>
   </div>
   <p>The ninth of the twelve prestige-order trials. Ask Halmir of the <strong>Divine
-  Champions</strong>: if your sword is already vowed before the White Tree (1+ Divine Champion
-  level), he names the vigil. In the <a href="../areas/minastirithtemp.html">temple of Minas
-  Tirith</a> stands the <em>Altar of the Istari</em>, its stone polished by the hands of the
-  faithful. <strong>Use the altar with a shield borne on your off-hand arm</strong> — small,
-  large, or tower — because the champion's vow is not to strike harder but to stand between.
-  A bare arm, or anything but a shield in the off-hand (a second blade, a torch), fails the
-  attempt with a flavor message ("a thing that takes, not a thing that stands between"); take up
-  a shield and keep the vigil again. No dice — the shield is the whole test, deterministic and
-  retryable. The kept vigil kindles the <em>Oath-Light of the West</em> (plot + cursed — it
-  can't be dropped, sold, or handed off), which goes back to Halmir for the induction. One-off
-  per character; if the light is somehow lost, keeping the vigil again re-gives it (never
-  duplicates — the turn-in consumes it).</p>
+  Champions</strong>: if your sword is already vowed before the White Tree, he names the vigil. In
+  the <a href="../areas/minastirithtemp.html">temple of Minas Tirith</a> stands the <em>Altar of the
+  Istari</em>, its stone polished by the hands of the faithful. <strong>Use the altar with a shield
+  borne on your off-hand arm</strong> — small, large, or tower — because the champion's vow is not
+  to strike harder but to stand between. A bare arm, or anything but a shield in the off-hand (a
+  second blade, a torch), fails the attempt with a flavor message ("a thing that takes, not a thing
+  that stands between"); take up a shield and keep the vigil again. The kept vigil kindles the
+  <em>Oath-Light of the West</em> (plot + cursed), which goes back to Halmir for the induction.
+  One-off per character.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Divine Champions, accept the vigil — <code>q_dvc_start</code>
-      sets stage 1 / journal 1 (non-Champions instead get a "vowed onto the page, sword raised
-      before the White Tree" pointer line).</li>
+    <li>Speak to Halmir, choose the Divine Champions, accept the vigil.</li>
     <li>Use the Altar of the Istari in the Minas Tirith temple with a shield equipped in the
-      off-hand — <code>q_dvc_altar</code> (the altar's OnUsed) checks
-      <code>GetItemInSlot(INVENTORY_SLOT_LEFTHAND)</code> against the three shield base items;
-      shield borne, it gives the <em>Oath-Light of the West</em> and sets stage 2 / journal 2
-      (otherwise it fails the attempt with a retry message).</li>
-    <li>Return to Halmir with the oath-light — <code>q_dvc_finish</code> consumes it, awards the
-      XP and the mantle, journal End (stage 3, never resets).</li>
+      off-hand.</li>
+    <li>Return to Halmir with the oath-light — the XP and the mantle are yours, and the quest
+      closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>divine-champion-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>divch</code>, stages 0–3; see <code>q_dvc_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the existing Altar
-  of the Istari placeable in <code>minastirithtemp</code> (instance of <code>plc_altrgood</code>),
-  retagged <code>DvcVigilAltar</code> with <code>q_dvc_altar</code> on its OnUsed (it was already
-  usable + plot with no scripts, so nothing is chained; no script referenced the old tag
-  <code>AltarShrineGood</code>). The shield check covers small/large/tower shields
-  (<code>BASE_ITEM_SMALLSHIELD</code>/<code>LARGESHIELD</code>/<code>TOWERSHIELD</code> = 14/56/57,
-  verified in <code>ovr/nwscript.nss</code>). The reward's picks (Heal / Persuade / saves vs.
-  divine — <code>IP_CONST_SAVEVS_DIVINE</code> = 6; no vs-evil save constant exists) fit the
-  order and avoid all sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code>
-  reagent check; the finish only fires from stage 2 with the light in hand, so the reward can't
-  be re-earned.</div>
 </div>
 
 <!-- DWARVEN DEFENDER — THE UNBROKEN STONE -->
 <div class="quest-card" id="dwarven-defender">
   <h3>The Unbroken Stone (Dwarven Defender initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_dwarvendefender</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Dwarven Defenders branch)</span>
     <span>Requires: 1+ Dwarven Defender level and dwarf race (the hub line itself shows only to dwarves of character level 14+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Warhelm of Durin's Watch</em> (<code>q_dwd_helm</code> — Craft Armor +3, Taunt +3, Saving Throws vs. Sonic +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Warhelm of Durin's Watch</em> (Craft Armor +3, Taunt +3, saves vs. Sonic +3)</span>
   </div>
   <p>The tenth of the twelve prestige-order trials, and the only one closed to all but Durin's
   folk. Ask Halmir of the <strong>Dwarven Defenders</strong>: if you have already taken the
-  Defender's stand (1+ Dwarven Defender level — and you are a dwarf, which the class requires
-  anyway), he names the trial. In <a href="../areas/balinstomb.html">Balin's Tomb</a> in Moria
-  lies Balin son of Fundin under a stone that was not broken. <strong>Use the headstone while
+  Defender's stand, he names the trial. In <a href="../areas/balinstomb.html">Balin's Tomb</a> in
+  Moria lies Balin son of Fundin under a stone that was not broken. <strong>Use the headstone while
   wearing heavy armor</strong> — base AC 6 or better: splint, banded, half-plate, or full plate —
   because Balin's guard stood there in the war-weight of Khazad, and stone knows stone. Come in
   leathers, robes, or light mail and the stone will not know you ("come clad as they came, and
-  stand again"); no dice — the weight of your armor is the whole test, deterministic and
-  retryable, and enhancement bonuses on light armor can't fake it (the check reads the armor's
-  <em>base</em> AC). The kept stand earns the <em>Shard of the Unbroken Stone</em> (plot +
-  cursed — it can't be dropped, sold, or handed off), which goes back to Halmir for the
-  induction. One-off per character; if the shard is somehow lost, standing again re-gives it
-  (never duplicates — the turn-in consumes it).</p>
+  stand again"); enhancement bonuses on light armor can't fake it, since the stone reads the armor's
+  <em>base</em> AC. The kept stand earns the <em>Shard of the Unbroken Stone</em> (plot + cursed),
+  which goes back to Halmir for the induction. One-off per character.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Dwarven Defenders, accept the stand — <code>q_dwd_start</code>
-      sets stage 1 / journal 1 (non-Defenders instead get an "only Durin's folk, and only those
-      who have taken the Defender's stand" pointer line).</li>
-    <li>Use Balin's headstone in Balin's Tomb wearing heavy armor — <code>q_dwd_stone</code> (the
-      headstone's OnUsed) reads the chest armor's base AC from <code>parts_chest.2da</code> (the
-      module's <code>zep_cr_canca</code> idiom) and requires 6+; kept rightly, it gives the
-      <em>Shard of the Unbroken Stone</em> and sets stage 2 / journal 2 (otherwise it fails the
-      attempt with a retry message).</li>
-    <li>Return to Halmir with the shard — <code>q_dwd_finish</code> consumes it, awards the XP
-      and the warhelm, journal End (stage 3, never resets).</li>
+    <li>Speak to Halmir, choose the Dwarven Defenders, accept the stand.</li>
+    <li>Use Balin's headstone in Balin's Tomb wearing heavy armor.</li>
+    <li>Return to Halmir with the shard — the XP and the warhelm are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>dwarven-defender-quest</code>) — scripted
-  and built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>dwdef</code>, stages 0–3; see <code>q_dwd_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the existing Balin
-  headstone placeable in <code>balinstomb</code> (instance 86 of <code>plc_headstone</code>),
-  retagged <code>DwdBalinStone</code> with <code>q_dwd_stone</code> on its OnUsed (it was already
-  usable + plot with no scripts, so nothing is chained; no script referenced the generic old tag
-  <code>Headstone</code>, and the Shadowdancers' hook in the same area — the DeepWell, instance
-  52 — is untouched). The race gate is checked defensively in <code>q_dwd_c_off</code> alongside
-  the class (<code>CLASS_TYPE_DWARVEN_DEFENDER</code> = 36, <code>RACIAL_TYPE_DWARF</code> = 0,
-  both verified in <code>ovr/nwscript.nss</code>), though the class is dwarf-only in NWN. The
-  reward's picks (Craft Armor / Taunt / saves vs. sonic — <code>IP_CONST_SAVEVS_SONIC</code> =
-  15, for the drums in the deep; no vs-traps save constant exists) fit the order and avoid all
-  sibling rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the
-  finish only fires from stage 2 with the shard in hand, so the reward can't be re-earned.</div>
 </div>
 
 <!-- SHIFTER — THE SECOND SKIN -->
 <div class="quest-card" id="shifter">
   <h3>The Second Skin (Shifter initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_shifter</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shifters branch)</span>
     <span>Requires: 1+ Shifter level (the hub line itself shows at character level 16+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Charm of the Carrock</em> (<code>q_shf_charm</code> — Animal Empathy +3, Search +3, Saving Throws vs. Mind-Affecting +3; an amulet on purpose — neck-slot properties ride through most polymorph shapes, so it stays live in the forms a Shifter fights in)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Charm of the Carrock</em> (Animal Empathy +3, Search +3, saves vs. Mind-Affecting +3)</span>
   </div>
   <p>The eleventh of the twelve prestige-order trials. Ask Halmir of the
-  <strong>Shifters</strong>: if you have already worn another shape (1+ Shifter level), he names
-  the trial. At <a href="../areas/beorn.html">Beorn's steading</a> in the shadow of the Carrock
-  lies a still pool where the master of the house drinks on four legs as often as two.
-  <strong>Use the pool while wild-shaped or polymorphed</strong> — any shape but your own: the
-  check is for an active polymorph effect on your character, and shifter shapes, druid wild
-  shape, and polymorph spells all qualify. Look in wearing the face you were born with and the
-  pool shows you nothing but yourself ("come wearing another skin, and look again"); no dice —
-  the borrowed shape is the whole test, deterministic and retryable. The kept trial earns the
-  <em>Tuft of the First Skin</em> (plot + cursed — it can't be dropped, sold, or handed off),
-  which goes back to Halmir for the induction. One-off per character; if the tuft is somehow
-  lost, looking into the pool again re-gives it (never duplicates — the turn-in consumes it).</p>
+  <strong>Shifters</strong>: if you have already worn another shape, he names the trial. At
+  <a href="../areas/beorn.html">Beorn's steading</a> in the shadow of the Carrock lies a still pool
+  where the master of the house drinks on four legs as often as two. <strong>Use the pool while
+  wild-shaped or polymorphed</strong> — any shape but your own: shifter shapes, druid wild shape,
+  and polymorph spells all qualify. Look in wearing the face you were born with and the pool shows
+  you nothing but yourself ("come wearing another skin, and look again"). The kept trial earns the
+  <em>Tuft of the First Skin</em> (plot + cursed), which goes back to Halmir for the induction.
+  One-off per character.</p>
+
+  <p>The reward is an amulet on purpose — neck-slot properties ride through most polymorph shapes,
+  so it stays live in the forms a Shifter actually fights in.</p>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Shifters, accept the trial — <code>q_shf_start</code> sets
-      stage 1 / journal 1 (non-Shifters instead get a "no one is written there who has not
-      already worn another shape" pointer line).</li>
-    <li>Use the still pool at Beorn's steading while shape-shifted — <code>q_shf_pool</code>
-      (the pool's OnUsed) loops your active effects for <code>EFFECT_TYPE_POLYMORPH</code> (the
-      module's proven detection idiom from the DM wand's un-polymorph routine); kept rightly, it
-      gives the <em>Tuft of the First Skin</em> and sets stage 2 / journal 2 (in true form it
-      fails the attempt with a retry message).</li>
-    <li>Return to Halmir with the tuft — <code>q_shf_finish</code> consumes it, awards the XP
-      and the charm, journal End (stage 3, never resets).</li>
+    <li>Speak to Halmir, choose the Shifters, accept the trial.</li>
+    <li>Use the still pool at Beorn's steading while shape-shifted.</li>
+    <li>Return to Halmir with the tuft — the XP and the charm are yours, and the quest closes.</li>
   </ol>
-
-  <div class="dm-note">Added 2026-07-16 (roadmap <code>shifter-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>shift</code>, stages 0–3; see <code>q_shf_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the existing pool
-  placeable at Beorn's homestead (instance 36 of <code>zep_pool003</code> in
-  <code>beorn</code>), retagged <code>ShfBeornPool</code> and made usable/dynamic/plot with
-  <code>q_shf_pool</code> on its OnUsed (it had no scripts, so nothing is chained; no script
-  referenced the generic old tag <code>ZEP_POOL003</code>). The class gate is
-  <code>CLASS_TYPE_SHIFTER</code> = 35 (verified in <code>ovr/nwscript.nss</code>). The
-  reward's picks (Animal Empathy / Search / saves vs. mind-affecting —
-  <code>IP_CONST_SAVEVS_MINDAFFECTING</code> = 11, "keep your own name inside another skin"; no
-  vs-polymorph save constant exists) fit the order and avoid all sibling rewards' skills. The
-  turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only fires from stage 2
-  with the tuft in hand, so the reward can't be re-earned.</div>
 </div>
 
 <!-- BLACKGUARD — THE FALL -->
 <div class="quest-card" id="blackguard">
   <h3>The Fall (Blackguard initiation) <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>pc_blackguard</code></span>
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Blackguards branch)</span>
     <span>Requires: 1+ Blackguard level (the hub line itself shows at character level 14+)</span>
-    <span>Reward: 1000&nbsp;XP + <em>Sigil of the Fallen</em> (<code>q_bkg_sigil</code> — Bluff +3, Use Magic Device +3, Saving Throws vs. Negative +3)</span>
+    <span>Reward: 1000&nbsp;XP + <em>Sigil of the Fallen</em> (Bluff +3, Use Magic Device +3, saves vs. Negative +3)</span>
   </div>
   <p>The twelfth and last of the prestige-order trials, and the only one whose signature is a
   <strong>permanent alignment shift</strong> — the fall itself. Ask Halmir of the
-  <strong>Blackguards</strong>: if you have already broken a bright oath for a darker one (1+
-  Blackguard level), he tells you how the fall is written. In the <a href="../areas/baraddurkeep.html">Keep
-  of Barad-Dûr</a>, the Dark Tower itself, the instruments of cruelty still stand. <strong>Lay your
-  hand on the torture-rack and swear the Black Oath — but come to it bleeding</strong>: the oath
-  takes blood freely given or nothing at all (the check is simply that you are below full health;
-  the Dark Tower is thick with foes, so an aspirant reaches the rack wounded as a matter of course).
-  Swearing it drives your alignment hard toward evil, once and for good, and brands a token of cold
-  iron into your hand. No dice — the wound is the whole test, deterministic and retryable. Carry the
-  <em>Brand of the Fall</em> (plot + cursed — it can't be dropped, sold, or handed off) back to
-  Halmir for the induction. One-off per character; if the brand is somehow lost, keeping the rite
-  again re-gives it <em>without</em> shifting your alignment a second time (the turn-in consumes it).</p>
+  <strong>Blackguards</strong>: if you have already broken a bright oath for a darker one, he tells
+  you how the fall is written. In the <a href="../areas/baraddurkeep.html">Keep of Barad-Dûr</a>, the
+  Dark Tower itself, the instruments of cruelty still stand. <strong>Lay your hand on the
+  torture-rack and swear the Black Oath — but come to it bleeding</strong>: the oath takes blood
+  freely given or nothing at all (you simply have to be below full health; the Dark Tower is thick
+  with foes, so an aspirant reaches the rack wounded as a matter of course). Carry the <em>Brand of
+  the Fall</em> (plot + cursed) back to Halmir for the induction.</p>
+
+  <div class="warning-box">
+    <p><strong>This one changes your character permanently.</strong> Swearing the Black Oath drives
+    your alignment hard toward evil, once and for good. It affects only you, never your party, and
+    it can only ever happen once — if the brand is lost and you swear again, your alignment does not
+    move a second time.</p>
+  </div>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Speak to Halmir, choose the Blackguards, accept the rite — <code>q_bkg_start</code> sets
-      stage 1 / journal 1 (non-Blackguards instead get a "one is not appointed to that page — one
-      falls to it" pointer line).</li>
-    <li>Use the torture-rack in the Keep of Barad-Dûr while wounded — <code>q_bkg_altar</code>
-      (the rack's OnUsed) checks that you are below full health; sworn rightly it drives your
-      alignment toward evil (<code>AdjustAlignment</code>, once only), gives the <em>Brand of the
-      Fall</em> and sets stage 2 / journal 2 (at full health it fails the attempt with a retry
-      message).</li>
-    <li>Return to Halmir with the brand — <code>q_bkg_finish</code> consumes it, awards the XP and
-      the sigil, journal End (stage 3, never resets).</li>
+    <li>Speak to Halmir, choose the Blackguards, accept the rite.</li>
+    <li>Use the torture-rack in the Keep of Barad-Dûr while wounded.</li>
+    <li>Return to Halmir with the brand — the XP and the sigil are yours, and the quest closes.</li>
   </ol>
+</div>
 
-  <div class="dm-note">Added 2026-07-17 (roadmap <code>blackguard-quest</code>) — scripted and
-  built, pending in-game UAT. Quest state lives in the prestige hub's <code>prestigedb</code>
-  campaign DB (order key <code>blackg</code>, stages 0–3; see <code>q_bkg_inc.nss</code>).
-  <strong>No new placements and no admin waypoint</strong>: the objective is the existing unique
-  torture-rack placeable in the Keep of Barad-Dûr (instance 94 of <code>plc_torture1</code> in
-  <code>baraddurkeep</code>), retagged <code>BkgFallAltar</code> and made usable/dynamic with
-  <code>q_bkg_altar</code> on its OnUsed (it was static with no scripts, so nothing is chained; no
-  script referenced the generic old tag <code>Torture Equipment</code>). The class gate is
-  <code>CLASS_TYPE_BLACKGUARD</code> = 31 (verified in <code>ovr/nwscript.nss</code>); the
-  permanent shift is <code>AdjustAlignment(oPC, ALIGNMENT_EVIL, 50, FALSE)</code> — the
-  <code>FALSE</code> keeps it to the swearer, not the party — applied only on the stage 1→2
-  transition so it can never be farmed. The reward's picks (Bluff / Use Magic Device / saves vs.
-  Negative — <code>IP_CONST_SAVEVS_NEGATIVE</code> = 12) fit the order and avoid all sibling
-  rewards' skills. The turn-in is a <code>GetItemPossessedBy</code> reagent check; the finish only
-  fires from stage 2 with the brand in hand, so the reward can't be re-earned.</div>
+<!-- SERVER INFO -->
+<div class="quest-card" id="server-info">
+  <h3>Server Info Journals <span class="status-badge status-ok">Working</span></h3>
+  <div class="quest-meta">
+    <span>Delivered automatically on every login</span>
+    <span>They land in your journal's <strong>Completed</strong> section</span>
+  </div>
+  <p>Several journal categories carry server reference information and are handed to you
+  automatically when you log in — no quest-giver needed. Eight are delivered:</p>
+
+  <div class="table-scroll">
+  <table class="data reward-table">
+    <thead><tr><th>Journal</th><th>What it covers</th></tr></thead>
+    <tbody>
+      <tr><td>Server Rules</td><td>How to play here, and what will get you removed.</td></tr>
+      <tr><td>Website / Discord</td><td>The community Discord invite.</td></tr>
+      <tr><td>Spells &amp; Magic</td><td>Custom and modified spell behaviour.</td></tr>
+      <tr><td>Character Progression</td><td>Levelling, the legendary tiers, and how XP works.</td></tr>
+      <tr><td>Death &amp; Respawn</td><td>What happens when you fall, and where you come back.</td></tr>
+      <tr><td>Appearance &amp; Crafting</td><td>Appearance changes and the Forge of Wonders.</td></tr>
+      <tr><td>Custom Systems</td><td>The bestiary, boss tracker, merit shop and friends.</td></tr>
+      <tr><td>Good/Evil Factions</td><td>How alignment and faction standing are handled.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>If you ever want to re-read one, they stay in the Completed section of your journal
+  permanently.</p>
+</div>
+
+<div class="tip-box">
+  <p><strong>Also in the world, without journal tracking yet</strong>
+  <span class="status-badge status-dev">In Development</span> — a handful of older quest threads
+  (the Green Dragon Inn, the Oasis of Gwathdor, the Cursed Grave, and some remnants ported in from
+  the original campaign modules) are playable in places but only partly journalled. If you stumble
+  into one and the log stays quiet, that's why — they're on the list to be finished properly.</p>
 </div>
 
 <hr>
@@ -1959,10 +1512,9 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <p class="sub">Seven philosopher guides scattered across Middle-earth. Find them all to unlock the Hall of Legends. See the full <a href="../manual/MeaningWave.html">MeaningWave guide</a> for locations and challenge details.</p>
 </div>
 
-<div class="quest-card">
+<div class="quest-card" id="path-of-meaning">
   <h3>The Path of Meaning <span class="status-badge status-ok">Working</span></h3>
   <div class="quest-meta">
-    <span>Journal tag: <code>MW Path of Meaning</code></span>
     <span>Total XP: 3,500 (guides) + 2,000 (finale) = 5,500 XP</span>
     <span>Level range: any — guides span the whole world</span>
   </div>
@@ -1971,20 +1523,22 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   <strong>Hall of Legends</strong> inside the <a href="../areas/thewelloferu.html">Well of Eru</a>.</p>
 
   <strong>The seven guides (500 XP each on unlock):</strong>
+  <div class="table-scroll">
   <table class="data reward-table">
-    <thead><tr><th>Guide</th><th>Challenge</th><th>Journal tag</th><th>Status</th></tr></thead>
+    <thead><tr><th>Guide</th><th>Challenge</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>Jordan Peterson</td><td>Prove you understand responsibility and hierarchy</td><td><code>MW Jordan Peterson</code></td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Alan Watts</td><td>Answer questions about the play of the universe</td><td><code>MW Alan Watts</code></td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Joseph Campbell</td><td>Walk a hero's journey of your own</td><td><code>MW Joseph Campbell</code></td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Terence McKenna</td><td>Survive the visions</td><td><code>MW Terence McKenna</code></td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Jocko Willink</td><td>Complete his combat trial</td><td><code>MW Jocko Willink</code></td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Carl Jung</td><td>Face what stands behind you</td><td><code>MW Carl Jung</code></td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Marcus Aurelius</td><td>Speak about what is and is not in your power</td><td><code>MW Marcus Aurelius</code></td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Jordan Peterson</td><td>Prove you understand responsibility and hierarchy</td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Alan Watts</td><td>Answer questions about the play of the universe</td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Joseph Campbell</td><td>Walk a hero's journey of your own</td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Terence McKenna</td><td>Survive the visions</td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Jocko Willink</td><td>Complete his combat trial</td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Carl Jung</td><td>Face what stands behind you</td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Marcus Aurelius</td><td>Speak about what is and is not in your power</td><td><span class="status-badge status-ok">Working</span></td></tr>
     </tbody>
   </table>
+  </div>
 
-  <strong>The Path of Meaning journal entries (set by <code>mw_unlock_inc.nss</code>):</strong>
+  <strong>The Path of Meaning journal entries:</strong>
   <ol class="journal-entries">
     <li>A strange music whispers across Middle-earth. Seven legends are scattered across the world. Find them, prove yourself, and the Hall of Legends will open to you.</li>
     <li>One legend recognises you. Six remain.</li>
@@ -1997,287 +1551,11 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
     <li><em>(Finale)</em> Akira the Don passed you the mixtape. The path of meaning is walked, but the journey never ends.</li>
   </ol>
 
-  <div class="dm-note">Seven additional loyalty quest categories exist in the journal (<code>MW Jordan Peterson Loyalty</code> etc.) with placeholder text "Content forthcoming." No scripts reference these yet. They are scaffolded for future content — loyalty quests for each guide after you unlock them.</div>
-</div>
-
-<hr>
-
-<!-- ============================================================ -->
-<div class="section-header" id="broken">
-  <h2>Previously Broken / Unreachable</h2>
-  <p class="sub">These quests or journal categories were unreachable or silently broken in the data. As of 2026-05-28 the fixes below have been applied; each entry records what was wrong and what changed.</p>
-</div>
-
-<!-- GLOISON -->
-<div class="quest-card" id="gloison">
-  <h3>Gloison's Heirloom <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Journal tag: <code>Gloison's Heirloom</code></span>
-    <span>Giver: Gloin King Under the Mountain, Erebor (Lonely Mountain: Main Hall)</span>
-    <span>Level range: high (Gerrey is CR 17)</span>
-    <span>Reward: 5,000&nbsp;XP + 15,000&nbsp;gp</span>
+  <div class="tip-box">
+    <p><span class="status-badge status-dev">In Development</span> Each guide has a <em>loyalty</em>
+    quest scaffolded for a future update — follow-up tasks you can take on after you've unlocked
+    them. The journal categories exist already; the content is still being written.</p>
   </div>
-  <p>Glóin asks you to recover his kinsman Gloisin's family heirloom — a coat of arms stolen by the brigand
-  <strong>Gerrey Halliams</strong>, who fled to the <a href="../areas/theruinsofdale.html">Ruins of Dale</a>.</p>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li>Speak to <strong>Gloin</strong> in Erebor and accept the task — journal entry 1 set via the DLG Quest field.</li>
-    <li>Travel to the Ruins of Dale and kill <strong>Gerrey Halliams</strong> (CR 17). He carries the heirloom
-    (<code>item029</code>, <em>Gloison's Coat of Arms</em>, tag <code>GloisonsFamilyStone</code>) as a droppable.</li>
-    <li>Return to Gloin. The turn-in reply appears only while you hold the heirloom (gated by <code>sc_glsn_have</code>).
-    <code>at_glsn_rwd</code> consumes the item and awards 5,000 XP + 15,000 gp; journal entry 2 set.</li>
-  </ol>
-
-  <div class="warning-box">
-    <p><strong>Fixed (2026-05-28) — this was unbuilt scaffolding, not a simple bug.</strong> The earlier
-    diagnosis was wrong on several points:</p>
-    <ul>
-      <li><strong>Gerrey is the antagonist, not the giver.</strong> His blueprint is a hostile CR-17 mob
-      whose conversation (<code>gloisonscoat.dlg.json</code>) is just a combat bark. He was never placed — now
-      placed in the Ruins of Dale, carrying the heirloom as droppable loot.</li>
-      <li><strong><code>sc_001.nss</code> never blocked anything.</strong> <code>Random(100) &gt;= 100</code> can
-      never be true (0–99), so the conditional always returns TRUE. It needed no change.</li>
-      <li><strong>The heirloom item already existed</strong> (<code>item029.uti.json</code>) — nothing to create.</li>
-      <li><strong>The real gap was a quest-giver.</strong> The existing friendly dwarf <em>Gloin King Under the
-      Mountain</em> (uses <code>gloingreet.dlg.json</code>, placed in Erebor) was extended into the giver: offer
-      → accept (journal 1) and a heirloom turn-in (journal 2 + reward) via new scripts <code>sc_glsn_have</code>
-      and <code>at_glsn_rwd</code>.</li>
-    </ul>
-  </div>
-</div>
-
-<!-- ANNUMINAS -->
-<div class="quest-card" id="annuminas">
-  <h3>Ruin of Annuminas <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Journal tag: <code>Ruin of Annuminas</code></span>
-    <span>Giver: old woman in Bree ("Hanee the Loon")</span>
-    <span>Reward: 5,000&nbsp;XP (bring Azagoth's Head back to Hanee)</span>
-  </div>
-  <p>An old woman in Bree tells you to seek out the Ruins of Annuminas, an ancient Dúnedain realm to the
-  north. Since 2026-07-13 this is a proper two-stage arc: kill <strong>Azagoth</strong> in the ruins, bring
-  his head back to Hanee for <strong>5,000&nbsp;XP</strong> (she doesn't take it — she gleefully points you
-  to the wizards in Gondor), then deliver the head to the <a href="#well-of-souls">Gondor Scribe</a> in the
-  Tower of the High Wizard: Ground Floor for a further <strong>10,000&nbsp;XP</strong>.</p>
-
-  <div class="warning-box">
-    <p><strong>Fixed (2026-05-28):</strong> The old woman's dialogue (<code>b_oldwoman_con1.dlg.json</code>) set the
-    DLG Quest field to <code>annuminas</code> (entry 1) while the journal category is <code>Ruin of Annuminas</code>,
-    so the entry was silently dropped. The tag now matches and the journal entry is written.</p>
-    <p><strong>Extended (2026-07-13):</strong> was a lore pointer with no completion; now has a head turn-in
-    branch (one-time 5,000&nbsp;XP, journal entry 2 with <code>End=1</code>) that hands off to the Well of
-    Souls scribe.</p>
-  </div>
-  <div class="dm-note">The area (<code>ruinsofannuminas</code>) and its content already exist. The head-reaction
-  branch is <code>sc_hanee_head.nss</code>/<code>at_hanee_head.nss</code> at the top of Hanee's
-  <code>StartingList</code>; the 5,000&nbsp;XP is one-time per character (local int
-  <code>hanee_head_reward</code>).</div>
-</div>
-
-<!-- SERVER INFO -->
-<div class="quest-card" id="server-info">
-  <h3>Server Info Journals <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Delivered on every login by <code>hgll_cliententer.nss</code></span>
-    <span>All land in the player's <strong>Completed</strong> section (entry 1, <code>End=1</code>)</span>
-  </div>
-  <p>Several journal categories carry server meta-information and are handed to players automatically on login.
-  <code>hgll_cliententer.nss</code> delivers <strong>eight</strong> of them (the retired
-  <code>guilds</code> category is deliberately withheld):</p>
-
-  <table class="data reward-table">
-    <thead><tr><th>Journal</th><th>Tag</th><th>Status</th></tr></thead>
-    <tbody>
-      <tr><td>Server Rules</td><td><code>rules</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Website / Discord</td><td><code>website</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Spells &amp; Magic</td><td><code>modcustoms</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Character Progression</td><td><code>mod_progress</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Death &amp; Respawn</td><td><code>mod_death</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Appearance &amp; Crafting</td><td><code>mod_forge</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Custom Systems</td><td><code>mod_systems</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Good/Evil Factions</td><td><code>mod_factions</code></td><td><span class="status-badge status-ok">Delivered</span></td></tr>
-      <tr><td>Guild creation rules</td><td><code>guilds</code></td><td><span class="status-badge status-stub">Retired — not delivered</span></td></tr>
-    </tbody>
-  </table>
-
-  <div class="dm-note"><strong>Guilds retired on purpose (2026-07-15)</strong> (roadmap idea
-  <code>guilds-journal-never-delivered</code>): delivery of the <code>guilds</code> category was briefly
-  added on 2026-07-14, then removed at the admin's direction — the guild system is
-  retired/suspended, so the journal is deliberately withheld. The category remains in
-  <code>module.jrl.json</code> and can be re-enabled with one line in
-  <code>hgll_cliententer.nss</code> if guilds return.</div>
-  <div class="dm-note">The old dead forum URL in the <code>website</code> entry has already been updated to the
-  Discord invite (<em>https://discord.gg/VpAtSpe</em>) in <code>module.jrl.json</code> — that fix is done. Minor:
-  the category's display <code>Name</code> is still literally "Website" while its content is now the Discord link.</div>
-</div>
-
-<!-- UNJOURNALED -->
-<div class="quest-card" id="unjournaled">
-  <h3>Unjournaled Quests <span class="status-badge status-awol">Partial Content</span></h3>
-  <div class="quest-meta">
-    <span>Scripts reference journal tags that do not exist in <code>module.jrl.json</code></span>
-  </div>
-  <p>Several quest scripts call <code>AddJournalQuestEntry</code> with tags that have no matching journal
-  category. NWN silently ignores them, so the underlying quest logic may work but players see no journal entries.</p>
-
-  <table class="data reward-table">
-    <thead><tr><th>Quest name / Script</th><th>Missing tag</th><th>Status</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Green Dragon quest (<code>gdqc2.nss</code>, <code>gdrev1/2/3.nss</code>)</td>
-        <td><code>gdquest1</code></td>
-        <td><span class="status-badge status-ok">Journal added</span> Category "The Green Dragon Inn" added (entry 1 accept, entry 2 complete). Reward 500 XP + 1,000 gp via <code>gdrev1</code>.</td>
-      </tr>
-      <tr>
-        <td>Gwathdor quest (<code>gqstart.nss</code>)</td>
-        <td><code>gwathquest</code></td>
-        <td><span class="status-badge status-ok">Journal added</span> Category "The Oasis of Gwathdor" added (entry 1). Only a start state is scripted; no completion entry is set anywhere yet.</td>
-      </tr>
-      <tr>
-        <td>Cursed Grave undead (<code>b_undead_dest.nss</code>)</td>
-        <td><code>cursedgrave</code></td>
-        <td><span class="status-badge status-ok">Journal added</span> Category "The Cursed Grave" added with entry 2 (End=1) and category XP=250, so <code>GetJournalQuestExperience</code> now returns 250.</td>
-      </tr>
-      <tr>
-        <td>Ported campaign quests (m2/m3 plot scripts)</td>
-        <td><code>m2q2_Jax</code>, <code>M3Q04_*</code>, etc.</td>
-        <td>Campaign module content ported in; original journal categories not ported.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="dm-note">The Green Dragon, Gwathdor, and Cursed Grave quests now have matching journal categories in <code>module.jrl.json</code>. The m2/m3 ported-campaign remnants are intentionally left alone — they can be removed or wrapped into purpose-built persistent-world equivalents in a future pass.</div>
-</div>
-
-<hr>
-
-<!-- ============================================================ -->
-<div class="section-header" id="balance">
-  <h2>Balance &amp; Reward Notes</h2>
-  <p class="sub">Current XP and gold rewards mapped against expected player level — with recommendations.</p>
-</div>
-
-<table class="data reward-table">
-  <thead>
-    <tr>
-      <th>Quest</th>
-      <th>Level range</th>
-      <th>Current reward</th>
-      <th>Assessment</th>
-      <th>Suggested reward</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Bill Ferny's Ring</td>
-      <td>1–10</td>
-      <td>500 XP + 200 gp <em>(was 150)</em></td>
-      <td>Raised to 500 XP. A small unique (e.g. a <em>Ferny's Grudge</em> dagger) remains an optional future addition.</td>
-      <td>500 XP + 200 gp ✓ applied</td>
-    </tr>
-    <tr>
-      <td>The Miller's Son</td>
-      <td>1–10</td>
-      <td>450 XP <em>(was 150)</em></td>
-      <td>Raised to 450 XP. An optional <em>Bree Miller's Favour</em> token remains a future idea.</td>
-      <td>450 XP ✓ applied</td>
-    </tr>
-    <tr>
-      <td>Feeding Tharbad</td>
-      <td>5–15</td>
-      <td>500 XP + Book of the Cora <em>(was 200)</em></td>
-      <td>Raised to 500 XP. The Book already carries useful properties, so no item change was needed.</td>
-      <td>500 XP ✓ applied</td>
-    </tr>
-    <tr>
-      <td>Elrond's Request</td>
-      <td>15–30</td>
-      <td>2,000 XP + Elrond's Writ</td>
-      <td>Reasonable for a two-part quest chain that requires entering Moria. Verify Elrond's Writ has a tangible use.</td>
-      <td>Keep 2,000 XP. Ensure <em>Elrond's Writ</em> unlocks something meaningful — e.g. access to Rivendell's inner vault store, or a permanent +1 to saves as an alignment reward via <code>SetLocalInt</code>.</td>
-    </tr>
-    <tr>
-      <td>The Well of Souls</td>
-      <td>30–45</td>
-      <td>4,000 XP + Annuminas Key <em>(was 1,000)</em></td>
-      <td>Resolved. The old 1,000 XP was trivial for a Moria-deep boss; raised to 4,000 XP, addressing the "chicken feed" complaint.</td>
-      <td>4,000 XP ✓ applied. A named soul-themed item drop remains a future idea.</td>
-    </tr>
-    <tr>
-      <td>Kallrist Tiger Hunt</td>
-      <td>10–20</td>
-      <td>200 gp/heart, repeatable</td>
-      <td>Fair rate for CR 6 enemies. The journal-presence problem is now resolved (open-ended category added).</td>
-      <td>Journal category ✓ added. A one-time 10-hearts-delivered milestone (500 XP + a unique item from Sald) remains an optional future addition.</td>
-    </tr>
-    <tr>
-      <td>MeaningWave (per guide)</td>
-      <td>any</td>
-      <td>500 XP per guide, 2,000 XP finale</td>
-      <td>Good. The spread across the game's levels means it never feels too easy or too hard. Finale reward (the mixtape item) is thematic.</td>
-      <td>Keep as-is. When loyalty quests are implemented, 1,000–1,500 XP per loyalty task would be appropriate given they are mid-to-late game content.</td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="tip-box">
-  <p><strong>General balancing principle:</strong> NWN1 EE characters gain roughly 1,000–3,000 XP per level in the early tiers from combat alone. A quest reward should represent a meaningful bump — roughly half a level's worth of combat XP at the quest's target tier. Early quests (levels 1–10) should give 400–800 XP; mid quests (15–30) should give 1,500–3,000 XP; end-game quests 3,000–8,000 XP.</p>
-  <p><strong>Item rewards:</strong> Most quests give XP and gold only. Adding a unique named item to each quest — even a minor one — significantly increases perceived value and gives players something to talk about. Items don't need to be powerful; they need to be memorable.</p>
-</div>
-
-<hr>
-
-<!-- ============================================================ -->
-<div class="section-header" id="player-reports">
-  <h2>Investigating Player Reports</h2>
-  <p class="sub">Three historical bug reports, traced to their roots.</p>
-</div>
-
-<div class="quest-card">
-  <h3>"The Kallrist Island tiger quest is AWOL"</h3>
-  <p><strong>Verdict: Quest existed but had no journal tracking — now resolved.</strong></p>
-  <p>The Kallrist Tiger Hunt was always fully functional — NPC Sald, the tiger creatures, the <em>Kallrist Tiger
-  Heart</em> item, and the 200 gp payout all work. Players never saw it in their quest log because there was no
-  journal category. <strong>Fixed:</strong> a <code>Kallrist Tiger Hunt</code> category was added and wired into
-  Sald's accept node (<code>at_sald01.nss</code>), so the hunt now shows in the journal.</p>
-</div>
-
-<div class="quest-card">
-  <h3>"The demon north of Bree quest is broken — gave 1,000 XP, chicken feed by the time you can kill it"</h3>
-  <p><strong>Verdict: No demon exists near Bree today. The 1,000 XP report points to the Well of Souls.</strong></p>
-  <p>A thorough search of all creature placements in and around <a href="../areas/bree.html">Bree</a> and the surrounding
-  north areas finds no demon creature. The 1,000 XP reward described matches <code>at_008.nss</code> — the
-  <strong>Gondor Scribe's</strong> payout for bringing Azagoth's Head (Well of Souls quest completion). Azagoth
-  spawns in the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> north of Bree (via an encounter),
-  not in Moria. Either:</p>
-  <ul>
-    <li>A demon NPC was placed near Bree by a DM in the past and later removed from the GIT, or</li>
-    <li>The player was describing the Azagoth / Well of Souls payout.</li>
-  </ul>
-  <p>Either way, the 1,000 XP complaint was valid — the <code>at_008.nss</code> payout was raised to 4,000 XP
-  (and is slated for 10,000). Note, however, that the quest is <strong>currently unstartable</strong> because no
-  Gondor Scribe is placed — see <a href="#well-of-souls">The Well of Souls</a>.</p>
-</div>
-
-<div class="quest-card">
-  <h3>"Elrond's quest is fixed, but existing journals (server updates) got removed when accepting it"</h3>
-  <p><strong>Verdict: Elrond's scripts never clear any journal entries. The server-info journals were simply never given.</strong></p>
-  <p>No script in the module calls <code>RemoveJournalQuestEntry</code> or any equivalent function. The
-  Elrond quest sets entries via the DLG engine's built-in Quest field, which only <em>adds</em> entries and
-  cannot remove existing ones.</p>
-  <p>The real problem: <code>mod_enter.nss</code> (which contained the server rules/guilds/website journal delivery)
-  was dead code, not wired to any event, so players never received those entries. Before and after speaking to
-  Elrond, the server-info journals were absent — because they were never given. The timing coincidence made it
-  look like Elrond's quest was clearing them.</p>
-  <p><strong>Partly fixed (corrected 2026-07-11):</strong> <code>AddJournalQuestEntry</code> calls for
-  <code>rules</code>, <code>website</code> and the six <code>mod_*</code> journals were added directly to
-  <code>hgll_cliententer.nss</code>, the real OnClientEnter handler, and run idempotently on every login so all
-  characters receive them in their Completed section. The <code>guilds</code> journal is <em>not</em>
-  included — deliberately, as of 2026-07-15: the guild system is retired/suspended, so its
-  journal is withheld on purpose. See the
-  <a href="#server-info">Server Info Journals</a> card. The forum URL in the <code>website</code> entry has since
-  been refreshed to the community Discord.</p>
 </div>
 
   </div><!-- .mw-content -->

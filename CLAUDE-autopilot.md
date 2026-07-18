@@ -146,6 +146,15 @@ system you just changed, and update it **in the same code commit** (step 7.1). E
   finished quest into `QuestGuide.html` (where it's found, how it works, rewards — match
   the page's existing structure). The goal is to retire `Quest Ideas.html` entirely as
   its contents ship; it is the only manual page meant to shrink.
+- **`QuestGuide.html` is player-facing; `QuestGuide-DM-Notes.md` is the admin half.** When a quest
+  ships or changes, write the player-facing walkthrough (giver, where, steps, reward) into
+  `docs.manual/QuestGuide.html` **and** add a row to its summary table — and put everything
+  internal (script resrefs, blueprint/dialog filenames, campaign-DB names and keys, `AP_*`
+  waypoint tags, roadmap item ids, open points, UAT steps) into `QuestGuide-DM-Notes.md` instead.
+  **Never** put a `dm-note`, a waypoint tag, a roadmap id, or an "admin action required" line in
+  the public page — and never badge a quest as needing a waypoint there; use `Working` (the only
+  other badge is `In Development`, for content that is genuinely unbuilt), and track the placement
+  in `admin-action-required.md`. Both files go in the same code commit.
 - **`Customizations.html` especially** must track changes to player-facing customization
   systems (merit shop, housing, forge, gem socketing pointers, etc.) — if the item
   touches one of those, update the relevant section.

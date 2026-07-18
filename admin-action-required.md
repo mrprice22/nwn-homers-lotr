@@ -45,17 +45,17 @@ _Appended by autopilot; delete entries as you complete them._
   until the waypoint exists and never double-spawn. The placed Gollum boss is a
   separate blueprint and is unaffected.
 
-- [ ] **beorns-garden** (2026-07-15): create waypoint tag `AP_beornsgarden_1` in
+- [x] **beorns-garden** (2026-07-15): create waypoint tag `AP_beornsgarden_1` in
   `beorn` (Beorn's homestead — somewhere in the open garden/meadow ground, clear of
   Grimbeorn, the Beornings and the deer, with room for a warg pack to spawn and fight) —
   spawn point for honey hive 1 (`q_brn_hive`, a CEP hollow-stump placeable). Hives are
   spawned by `q_brn_spawn` from the area OnEnter wrappers; scripts no-op gracefully until
   the waypoint exists and never double-spawn.
-- [ ] **beorns-garden** (2026-07-15): create waypoint tag `AP_beornsgarden_2` in
+- [x] **beorns-garden** (2026-07-15): create waypoint tag `AP_beornsgarden_2` in
   `carrok` (Carrok — off the road, clear of the frost-giant encounter spawn points so the
   hive fight doesn't pull giants) — spawn point for honey hive 2. Same spawner/no-op
   behavior as hive 1.
-- [ ] **beorns-garden** (2026-07-15): create waypoint tag `AP_beornsgarden_3` in
+- [x] **beorns-garden** (2026-07-15): create waypoint tag `AP_beornsgarden_3` in
   `carrokgreater` (Carrok: Greater — likewise clear of the standing encounters) — spawn
   point for honey hive 3. Same spawner/no-op behavior. Until all three waypoints exist the
   quest can be accepted but only the placed hives can be harvested (the turn-in needs all

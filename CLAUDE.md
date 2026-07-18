@@ -203,6 +203,7 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
 - [CLAUDE-roadmap.md](CLAUDE-roadmap.md) — Roadmap / merit-tracking backlog: `roadmap.yaml` schema, refresh process, and the `bin/roadmap-editor.py` GUI + systemd service
 - [CLAUDE-boss-tracker.md](CLAUDE-boss-tracker.md) — Boss respawn tracker ("Roll of the Fallen" board in the Well of Eru): how to add/remove a boss in `brd_db.nss`, the single-instance rule, respawn-time invariants (encounter instance `ResetTime` vs registry), and the `tests/check_boss_registry.py` build gate
 - [CLAUDE-autopilot.md](CLAUDE-autopilot.md) — Autopilot runbook: the unattended roadmap loop (`/autopilot` skill) — item selection + tier rebalancing quotas, waypoint-instead-of-placement rule, `admin-action-required.md`, test-build/ship/commit procedure, hard never-rules
+- [QuestGuide-DM-Notes.md](QuestGuide-DM-Notes.md) — admin half of the quest guide: per-quest scripts, blueprints, campaign DBs, `AP_*` waypoints, roadmap ids, open points and UAT notes. The public `docs.manual/QuestGuide.html` carries none of that — keep the split when editing either.
 - [CLAUDE-merit.md](CLAUDE-merit.md) — Merit award + redemption system: `meritdb` schema (earned vs escrowed `merit_spent`), the `merit_redeem.nss` catalogue, how to add/graduate a redemption option, custom-token ranges, and the Barliman NPC + DM EmoteWand flow
 
 ## Useful references
