@@ -169,6 +169,17 @@ _Appended by autopilot; delete entries as you complete them._
   <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
        q_rog_inc.nss / q_rog_spawn.nss: AP_roguelineearly_1 -->
 
+- [ ] **wizard-line-early** (2026-07-17): create waypoint tag `AP_wizardlineearly_1` in
+  `bagend001` (Bag End — somewhere sensible by the hearth / the study, clear of the door and
+  any existing NPCs) — spawn point for `q_wiz_find` (Findegil the Grey, the Wizard class-line I
+  giver; plot/immortal grey wizard). Spawned by `q_wiz_spawn` from the Bag End OnEnter wrapper
+  `q_wiz_enter` (which chains the area's existing `leash_to_area` handler); scripts no-op
+  gracefully until the waypoint exists and never double-spawn. Until placed, "The Colour of
+  Power" (Wizard line I, nodes L1/8/15) is invisible in-game. Wizard-only offer; non-wizards get
+  a flavour greeting.
+  <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
+       q_wiz_inc.nss / q_wiz_spawn.nss: AP_wizardlineearly_1 -->
+
 - [ ] **blackguard-quest** (2026-07-17): _conditional, verify-then-maybe-fix (no new placement)._
   The Blackguard fall-rite reuses the existing torture-rack in `baraddurkeep` (instance 94 of
   `plc_torture1`, retagged `BkgFallAltar`, `Static:0` + `OnUsed q_bkg_altar`) — the same

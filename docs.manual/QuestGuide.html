@@ -159,6 +159,7 @@
             <li><a href="#concerning-hobbits">Concerning Hobbits</a></li>
             <li><a href="#unbroken-shield">The Unbroken Shield (Fighter line I)</a></li>
             <li><a href="#long-shadow">The Long Shadow (Rogue line I)</a></li>
+            <li><a href="#colour-of-power">The Colour of Power (Wizard line I)</a></li>
             <li><a href="#pass-the-pass">Pass the Pass</a></li>
             <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
@@ -771,6 +772,57 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
   properties use verified stock encodings (Enhancement/AC bonus + Use&nbsp;Limitation:&nbsp;Class Rogue,
   subtype&nbsp;8); no CR&gt;60 boss was touched.</div>
+</div>
+
+<!-- THE COLOUR OF POWER — WIZARD LINE I -->
+<div class="quest-card" id="colour-of-power">
+  <h3>The Colour of Power &mdash; Wizard line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>wiz_colour</code></span>
+    <span>Giver: Findegil the Grey, <a href="../areas/bagend001.html">Bag End</a> (the Shire)</span>
+    <span>Requires: 1+ Wizard level (non-wizards get only a flavour greeting)</span>
+    <span>Reward: Apprentice's Amulet (<code>q_wiz_amul</code>, +1 INT, Wizard-only) at the start,
+      and the Staff of the Grey Study (<code>q_wiz_staff</code>, +2 / +1 INT quarterstaff, Wizard-only)
+      at the end</span>
+  </div>
+  <p>The first, early chunk of the <strong>Wizard class line</strong>. Findegil the Grey, a grey-robed
+  loremaster who keeps a quiet study by the hearth of Bag End, teaches the deep lore few trouble to learn
+  truly &mdash; <strong>the Colour of Power</strong>, by which the Istari came to wear their hues. He offers
+  any wizard the study. The arc is a one-off, three-node progression gated by level: take up the study at
+  level&nbsp;1, receive the Loremaster's Tome to carry and study abroad at level&nbsp;8, and bring it home
+  to be bound into a staff at level&nbsp;15. (The actual choice of Colour &mdash; White, Brown or the Many
+  Colours &mdash; and its caster-level capstone is <em>endgame</em> content, foreshadowed here but not part
+  of this early line.)</p>
+
+  <strong>How to start:</strong> Speak to <strong>Findegil the Grey</strong> in Bag End as a
+  character with at least one Wizard level, and take up the study.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li><strong>Node 1 (level 1):</strong> Take up the study &mdash; <code>q_wiz_oath</code> opens the
+      journal and gives the <em>Apprentice's Amulet</em> (+1 INT, Wizard-only). Findegil sends you off to
+      grow to level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Findegil entrusts you with the <em>Loremaster's Tome
+      of the Grey Study</em> (<code>q_wiz_tome</code>, a plot item) to carry and study until level&nbsp;15
+      &mdash; <code>q_wiz_tok</code> advances the journal.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the tome back; he binds its lore into the <em>Staff of
+      the Grey Study</em> (+2 / +1 INT quarterstaff, Wizard-only) &mdash; <code>q_wiz_rtn</code> consumes
+      the tome, gives the staff and closes the journal (End). The choice of Colour is foreshadowed for the
+      endgame chunk.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>wizard-line-early</code>) &mdash; scripted and
+  built, pending in-game UAT. One-off state is per-character in the <code>wizlinedb</code> campaign
+  DB (key <code>colour_stage</code>, 0&ndash;3; see <code>q_wiz_inc.nss</code>); the stage only
+  advances, so rewards are not farmable. The Wizard gate is
+  <code>GetLevelByClass(CLASS_TYPE_WIZARD) &ge; 1</code>; the L8/L15 gates are total character level.
+  Findegil (<code>q_wiz_find</code>, plot/immortal grey wizard) is script-spawned by
+  <code>q_wiz_spawn</code> from the Bag End OnEnter wrapper <code>q_wiz_enter</code> (which chains the
+  area's existing <code>leash_to_area</code> handler). <strong>The waypoint
+  <code>AP_wizardlineearly_1</code> must be placed in <code>bagend001</code> before Findegil
+  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
+  properties use verified stock encodings (Enhancement / Ability&nbsp;INT bonus +
+  Use&nbsp;Limitation:&nbsp;Class Wizard, subtype&nbsp;10); no CR&gt;60 boss was touched.</div>
 </div>
 
 <!-- PASS THE PASS -->
