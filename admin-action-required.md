@@ -157,6 +157,18 @@ _Appended by autopilot; delete entries as you complete them._
   <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
        q_ftr_inc.nss / q_ftr_spawn.nss: AP_fighterlineearly_1 -->
 
+- [ ] **rogue-line-early** (2026-07-17): create waypoint tag `AP_roguelineearly_1` in
+  `theprancingpo001` (The Prancing Pony ground floor — in or beside a doorway/shadowed corner,
+  clear of Barliman, the merit NPC, the Harper contact spot, Hallas's corner and the door) —
+  spawn point for `q_rog_fenn` (Fenn the Shade, the Rogue class-line I giver; plot/immortal
+  hooded rogue). Spawned by `q_rog_spawn` from the inn's OnEnter wrapper `q_rog_enter` (which
+  chains the fighter-line wrapper `q_ftr_enter`, itself chaining `q_hrp_ent1` — leash + Harper
+  contact — and Hallas's spawn); scripts no-op gracefully until the waypoint exists and never
+  double-spawn. Until placed, "The Long Shadow" (Rogue line I, nodes L1/8/15) is invisible
+  in-game. Rogue-only offer; non-rogues get a flavour greeting.
+  <!-- Tag is hyphen-less and byte-for-byte identical to the GetWaypointByTag literal in
+       q_rog_inc.nss / q_rog_spawn.nss: AP_roguelineearly_1 -->
+
 - [ ] **blackguard-quest** (2026-07-17): _conditional, verify-then-maybe-fix (no new placement)._
   The Blackguard fall-rite reuses the existing torture-rack in `baraddurkeep` (instance 94 of
   `plc_torture1`, retagged `BkgFallAltar`, `Static:0` + `OnUsed q_bkg_altar`) — the same

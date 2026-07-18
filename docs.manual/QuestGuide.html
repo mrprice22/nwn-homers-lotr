@@ -158,6 +158,7 @@
             <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#concerning-hobbits">Concerning Hobbits</a></li>
             <li><a href="#unbroken-shield">The Unbroken Shield (Fighter line I)</a></li>
+            <li><a href="#long-shadow">The Long Shadow (Rogue line I)</a></li>
             <li><a href="#pass-the-pass">Pass the Pass</a></li>
             <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
             <li><a href="#beorns-garden">Beorn's Garden</a></li>
@@ -720,6 +721,56 @@ the quest is fully scripted; <span class="status-badge status-bug">Minor Bug</sp
   appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
   properties use verified stock encodings (Enhancement/AC bonus + Use&nbsp;Limitation:&nbsp;Class Fighter);
   no CR&gt;60 boss was touched.</div>
+</div>
+
+<!-- THE LONG SHADOW — ROGUE LINE I -->
+<div class="quest-card" id="long-shadow">
+  <h3>The Long Shadow &mdash; Rogue line I <span class="status-badge status-warn">Needs waypoint</span></h3>
+  <div class="quest-meta">
+    <span>Journal tag: <code>rog_shadow</code></span>
+    <span>Giver: Fenn the Shade, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
+    <span>Requires: 1+ Rogue level (non-rogues get only a flavour greeting)</span>
+    <span>Reward: Shadowmantle (<code>q_rog_cloak</code>, cloak +1 AC, Rogue-only) at the oath,
+      and the Nightthorn (<code>q_rog_blade</code>, short sword +2, Rogue-only) at the end</span>
+  </div>
+  <p>The first, early chunk of the <strong>Rogue class line</strong>. Fenn the Shade, a hooded Bree-lander
+  who watches the Prancing Pony's doorways, runs <strong>the Long Shadow</strong> &mdash; a quiet net of
+  thieves and watchers who count the Enemy's spies so honest folk need not. He offers any rogue a place in
+  the net. The arc is a one-off, three-node progression gated by level: swear into the net at level&nbsp;1,
+  take up a cipher-token to carry unseen at level&nbsp;8, and bring it home to be worked into a blade at
+  level&nbsp;15. (The capstone &mdash; Shelob's lair, Cirith Ungol and the twin blades &mdash; is
+  later-tier content, not part of this early line.)</p>
+
+  <strong>How to start:</strong> Speak to <strong>Fenn the Shade</strong> in the Prancing Pony as a
+  character with at least one Rogue level, and swear into the net.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li><strong>Node 1 (level 1):</strong> Swear into the net &mdash; <code>q_rog_oath</code> opens the
+      journal and gives the <em>Shadowmantle</em> (cloak +1 AC, Rogue-only). Fenn sends you off to grow
+      to level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Fenn entrusts you with the <em>Long Shadow
+      Cipher-Token</em> (<code>q_rog_token</code>, a plot item) to carry unseen until level&nbsp;15 &mdash;
+      <code>q_rog_tok</code> advances the journal.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the token back; his fence works its hidden steel core
+      into the <em>Nightthorn</em> (short sword +2, Rogue-only) &mdash; <code>q_rog_rtn</code> consumes the
+      token, gives the blade and closes the journal (End). The line's longer shadows are foreshadowed for a
+      future chunk.</li>
+  </ol>
+
+  <div class="dm-note">Added 2026-07-17 (roadmap <code>rogue-line-early</code>) &mdash; scripted and
+  built, pending in-game UAT. One-off state is per-character in the <code>roguelinedb</code> campaign
+  DB (key <code>shadow_stage</code>, 0&ndash;3; see <code>q_rog_inc.nss</code>); the stage only
+  advances, so rewards are not farmable. The Rogue gate is
+  <code>GetLevelByClass(CLASS_TYPE_ROGUE) &ge; 1</code>; the L8/L15 gates are total character level.
+  Fenn (<code>q_rog_fenn</code>, plot/immortal hooded rogue) is script-spawned by
+  <code>q_rog_spawn</code> from the Prancing Pony OnEnter wrapper <code>q_rog_enter</code> (which chains
+  the fighter-line wrapper <code>q_ftr_enter</code> &mdash; itself chaining <code>q_hrp_ent1</code>'s
+  leash + Harper contact and Hallas's spawn). <strong>The waypoint
+  <code>AP_roguelineearly_1</code> must be placed in <code>theprancingpo001</code> before Fenn
+  appears</strong> (scripts no-op gracefully until then; see admin-action-required.md). Reward-item
+  properties use verified stock encodings (Enhancement/AC bonus + Use&nbsp;Limitation:&nbsp;Class Rogue,
+  subtype&nbsp;8); no CR&gt;60 boss was touched.</div>
 </div>
 
 <!-- PASS THE PASS -->
