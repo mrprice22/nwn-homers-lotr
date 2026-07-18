@@ -3007,11 +3007,42 @@ ideas:
   - id: monk-line-early
     title: "Monk line I — The Empty Hand (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Monk line.</span>"
+    date: "2026-07-18"
+    commit: cb60ebee521
+    notes: "<div>The <b>Monk class line</b> opens with <b>The Empty Hand</b>. Orovan the Windless keeps the bare summit of Emyn Arnen, above the last of the trees, and teaches exactly one thing to those already on that road: a hand which is holding something cannot be used for anything else. Three nodes gated on <i>Monk</i> level — be taken as a student at 1, receive the Unspoken Stone at 8, and bring it back at 15 to have it set into the haft of the Kama of the Windless Peak. Every reward is monk-legal, so nothing on this line costs you your AC bonus or your flurry of blows. See <a href=\"QuestGuide.html#empty-hand\">the quest guide</a>.</div>"
+    impl_notes: "<div>Early chunk (L1/8/15) of the Monk line, structurally cloned from the shipped paladin-line-early template (q_pld_* -&gt; q_mnk_*). Giver Orovan the Windless (q_mnk_mstr, Monk 30, plot/immortal, Lawful Neutral, conversation q_mnk_conv), script-spawned at AP_monklineearly_1 by q_mnk_spawn, fired from the emynarnen OnEnter wrapper q_mnk_enter (chains the area's existing leash_to_area). emynarnen held zero creatures, so no existing NPC was displaced.</div><div><br></div><div>Per-character state in the mnklinedb campaign DB, key hand_stage 0-3, advance-only so rewards cannot be farmed. All three gates use GetLevelByClass(CLASS_TYPE_MONK) &gt;= 1/8/15 — matching the paladin line's tightened rule, not the older lines' GetHitDice. Reply scripts q_mnk_lrn/stn/rtn; StartingConditionals q_mnk_c_off/s1w/s1r/s2w/s2r/dn. DLG rule verified programmatically: conditionals only in Active, reward scripts only in reply Script fields.</div><div><br></div><div>Items q_mnk_cord (amulet, BaseItem 19, +1 WIS), q_mnk_stne (plot token, BaseItem 24), q_mnk_kama (kama, BaseItem 40, Enhancement +2 / +1 WIS) — all monk-legal (no armour/shield/non-monk weapon); Use Limitation: Class Monk subtype 5, verified against epicmonkrobe.uti.json rather than guessed. Journal category mnk_hand (@group 'Class Lines', @order 10). Gates passed: 7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors.</div>"
+    manual_steps:
+      - step: "Place a waypoint tagged AP_monklineearly_1 in emynarnen (Emyn Arnen: Peak) — on the bare summit rock, ideally facing outward over Anduin. Orovan the Windless spawns there on area entry. He is spawn-only: until this waypoint exists the entire Monk line is invisible and unreachable in-game."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "UAT: enter Emyn Arnen: Peak and confirm Orovan the Windless spawns exactly once (re-enter the area a few times — he must not duplicate)."
+        status: open
+        step_h: 64
+      - step: "UAT: speak to him on a non-monk character and confirm you get only the civil greeting with no quest offer."
+        status: open
+        step_h: 64
+      - step: "UAT: on a Monk 1 character, take the lesson — journal 'The Empty Hand' opens under Class Lines, and the Cord of the Empty Hand appears (equippable, +1 WIS, refused by non-monks)."
+        status: open
+        step_h: 64
+      - step: "UAT: re-speak below Monk 8 and confirm the come-back-lighter brush-off, with no second cord handed out."
+        status: open
+        step_h: 64
+      - step: "UAT: at Monk 8 collect the Unspoken Stone; confirm journal entry 2 and that re-speaking does not mint a second stone."
+        status: open
+        step_h: 64
+      - step: "UAT: at Monk 15 return the stone — confirm the stone is consumed, journal entry 3 closes the quest, and the Kama of the Windless Peak is granted, equips as a monk weapon, and works with flurry of blows."
+        status: open
+        step_h: 64
+      - step: "UAT: verify the level gates count Monk levels only — a Monk 1 / Fighter 20 multiclass must still be treated as Monk 1 at the second node."
+        status: open
+        step_h: 64
+      - step: "UAT: relog after each node and confirm mnklinedb persistence holds the stage (rewards must not be re-obtainable)."
+        status: open
+        step_h: 64
 
   - id: monk-line-mid
     title: "Monk line II — The Empty Hand (L22-38)"
