@@ -1298,55 +1298,57 @@ ideas:
   - id: forbidden-realms-key-tier
     title: "Forbidden Realms Key tier: journal quest and a Númenor gate opening the orphaned Tombs of the Lost Souls as the Weathertop court's barrow"
     group: bosses
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-13"
-    notes: "<div>The Forbidden Realms Key can already be stolen from Summanus, but right now it opens nothing. This would give it a purpose: a journal quest that triggers when you acquire the key, leading to a sealed Númenor gate and, beyond it, the <b>Tombs of the Lost Souls</b> — a finished area currently unreachable, to be populated as the barrow-court of the Weathertop King, Queen and Archer. The content anchor for a whole new tier. Design: <a href=\"https://homerslotr.com/manual/boss-updates#tier\">boss-updates#tier</a>.</div>"
-    impl_notes: "<div>Chain: acquire key -&gt; journal quest (acquireditem_tag branch + a retroactive OnClientEnter check for players who already stole it) -&gt; locked door in a Numenor hub keyed on tag ForbiddenRealmsKey -&gt; gravesofthelostk, which has zero connections today, populated from the unspawned Weathertop King/Queen/Archer blueprints.</div><div><br></div><div>First concrete slice of <a href=\"#idea-unlock-more-inacessible-creature\">Unlock Inacessible creatures</a>; apply the <a href=\"#idea-boss-stat-tuning-pass\">tuning recipe</a> to each court member on placement.</div>"
-  - id: tier-areas-moria-nazgul
-    title: "Open two finished-but-unreachable endgame areas: Moria Deep Caverns below the Balrog, and the Temple of Nazgûl off Dol Guldur"
-    group: bosses
-    status: later
-    type: Enhancement
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-13"
-    notes: "<div>Rounds out the new tier with two existing areas that only need a link-in and named bosses: Moria Deep Caverns (area020, descent from the Abyss of Moria — naturally gated by the Balrog) and the Temple of Nazgûl (area010, linked from Dol Guldur, already contains 7 encounters). Candidate bosses are all currently unspawned: Angmar the Evocator (capstone), Thuringwethil, Shadow Lord of Dol Guldur, Morgrond Captain, the Mutated Basilisks, Sewer Master. Design: <a href=\"https://homerslotr.com/manual/boss-updates#tier-other\">boss-updates#tier-other</a>.</div><div><br></div><div>Second slice of <a href=\"#idea-unlock-more-inacessible-creature\">Unlock Inacessible creatures</a>; follows <a href=\"#idea-forbidden-realms-key-tier\">the Forbidden Realms Key tier</a>. Tune each boss on placement per <a href=\"#idea-boss-stat-tuning-pass\">the tuning pass</a>.</div>"
-  - id: wandering-adaptive-boss
-    title: "The Wandering One: a roaming boss that adaptively builds damage-type immunity as it is hit, punishing mono-damage parties"
-    group: bosses
-    status: later
-    type: Enhancement
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-13"
-    notes: "<div><b>The Wandering One</b> — a proposed boss with no fixed home: it roams the module, so players have to hunt it rather than look it up. It also learns, building resistance to whatever damage type you keep hitting it with and shedding resistance to types you have stopped using — so a party that rotates its damage keeps it off balance, and a mono-damage party grinds to a halt. Design and feasibility: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-borg\">boss-updates#gimmick-borg</a>.</div>"
-    impl_notes: "<div>Two ideas fused: roaming (no fixed wiki area) and adaptive immunity drawing from a shared 500% pool in 5-10% increments per damage type, stealing from the least-recently-received type when the pool is empty.</div><div><br></div><div>Build notes: reuses the unused wandering.nss state machine; must set NO_LEASH=1 or leash_to_area snaps it home; OnDamaged juggles percentage-immunity item properties across its gear slots; still qualifies as a single-instance registry boss (board attribution 'roaming').</div>"
-  - id: elemental-swarm-waves
-    title: "Elemental swarm arena: waves of 24 elementals trickle-spawned to surround the party, the element rotating each cleared wave"
-    group: bosses
-    status: later
-    type: Enhancement
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-13"
-    notes: "<div>An elemental swarm arena: not one boss but waves of two dozen elementals trickling in to surround the party, with the element rotating each time a wave is cleared — fire, then cold, then acid, and on. You cannot pre-gear for it; you have to re-resist and change tactics mid-fight. Design: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-swarm\">boss-updates#gimmick-swarm</a>.</div>"
-    impl_notes: "<div>4 spawns every 10 seconds over ~1 minute per wave, element rotating per cleared wave. Reusable elemental blueprints already exist; the timed trickle-wave controller is new script. These are trash adds, not registry bosses.</div><div><br></div><div>Honesty guardrail: keep waves short and lethal so each element rotation forces a real counter-swap — the surround also pressures the <a href=\"#idea-heal-soul-fatigue\">healing economy</a>.</div>"
-  - id: clone-parent-boss
-    title: "Clone/parent boss: a chance an existing boss fight is gate-crashed by the boss's 'Mom' — modest stat boost, better gear, two-front surprise"
-    group: bosses
-    status: planned
-    type: Enhancement
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-13"
-    notes: "<div>A chance that a boss fight you thought you knew gets gate-crashed by the boss's <i>mother</i> — a modestly tougher version with better gear, arriving mid-fight and forcing a snap decision about which one to deal with first. A threat multiplier and a surprise, not a second damage sponge. Design: <a href=\"https://homerslotr.com/manual/boss-updates#gimmick-parent\">boss-updates#gimmick-parent</a>.</div>"
-    impl_notes: "<div>Keep the parent's boost modest. Its better drops must be real item blueprints registered via bin/gen-forge-legal.py so the Forge login sweep does not jail looters.</div>"
-  - id: optin-curse-gem-loot
-    title: "Opt-in curse: volunteer for extra damage taken and doubled soul-fatigue in exchange for better rarity-tiered socketed-gem drops"
-    group: bosses
-    status: planned
-    type: Enhancement
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-13"
-    notes: "<div>Difficulty as a player choice instead of a wall: take the curse (≈50% more damage taken and/or doubled <a href=\"#idea-heal-soul-fatigue\">soul-fatigue</a>) for a materially better reward roll. The reward vehicle rides on the gem-socketing system (<a href=\"#idea-Socket-system-for-weapons\">Socket system for weapons</a>) — the curse just bumps the gem rarity band / drop chance, no separate loot system. Design: <a href=\"https://homerslotr.com/manual/boss-updates#curse\">boss-updates#curse</a>.</div><div><br></div><div>Depends on both the healing-economy levers and the socket/gem system shipping first; chance-based loot itself is greenfield for the module.</div>"
+    date: "2026-07-18"
+    commit: 6b2999e550b
+    notes: "<div>The Forbidden Realms Key has been stealable from Summanus for as long as anyone can remember, and until now it opened precisely nothing. It opens something now. Come by the key and a journal opens telling you what the seven marks cut into its ward actually are — grave-wards. The stone that answers it is a sealed slab in Númenor: Noirinan, and beyond it lie the <b>Tombs of the Lost Souls</b>: not a ruin but a court, whose lords have not gone quiet. The Weathertop King, his Queen and their Archer still hold their places. Bring a party. Full walkthrough: <a href=\"QuestGuide.html#forbidden-realms\">QuestGuide → The Forbidden Realms</a>.</div>"
+    impl_notes: "<div>Opens gravesofthelostk, which had zero connections of any kind, and spawns three previously-unspawned blueprints. New: q_frk_inc.nss (all logic), q_frk_enter/q_frk_tomb (OnEnter wrappers on falseheaven/gravesofthelostk, chaining ent and leash_to_area), q_frk_gate.utp + q_frk_gate.nss (one gate blueprint serving both ends; direction via local string FRK_DEST; the return leg deliberately does not demand the key so a lost key cannot entomb a player), q_frk_death.nss (ScriptDeath on weathertopkin003/que003/arc002, chaining x2_def_ondeath, party-credited). Journal category frk_tombs (@group 'Lord of the Rings', @order 90), entries 1/2/3/10. Hooks: acquireditem_tag on Tag ForbiddenRealmsKey, plus a retroactive FRK_LoginCheck in hgll_cliententer for characters who stole the key before this shipped. Persistence: campaign DB forbiddendb, per character (frk_stage 0-3, advance-only).</div><div><br></div><div>Court picked as the highest non-outlier CR variant of each: King weathertopkin003 (454, rejecting the CR-1514 kin004), Queen weathertopque003 (594), Archer weathertoparc002 (337) — one-line constants at the top of q_frk_inc.nss. Spawn guards are area-scoped by resref, not module-wide by tag, because the court tags are shared with the placed Weathertop variants. Script-spawned creatures are not in gen-boss-registry.py's placed-instance registry, so the court does not appear on the Roll of the Fallen. No new loot was authored — the court drops whatever is on the blueprints, which may be thin for an end-game tier. Gates passed: 7/7 smoke tests, check_boss_registry unchanged at 78, dialog integrity clean. Admin half documented in QuestGuide-DM-Notes.md.</div>"
+    design_questions:
+      - question: "Should the barrow-court respawn? It currently re-forms whenever a PC enters and that member is not standing — so the fight is farmable, though the journal completes only once. One guard swap in FRK_SpawnCourtMember makes it a once-per-server or once-per-character kill instead."
+        status: open
+        answer: null
+      - question: "Should the court appear on the Roll of the Fallen board? Script-spawned creatures are invisible to the boss registry; tracking them needs real placed instances (toolset work) instead of waypoint spawns."
+        status: open
+        answer: null
+      - question: "Are the CR picks right? The highest non-outlier variant of each was taken (King 454 / Queen 594 / Archer 337), skipping the CR-1514 King. Related: no new loot was authored for the tier."
+        status: open
+        answer: null
+    manual_steps:
+      - step: "Place waypoint AP_forbiddenrealmskeytier_1 in falseheaven (Númenor: Noirinan) — suggested against a hillside/wall near where Summanus walks. The sealed barrow-gate placeable spawns here. Until it exists the quest opens but has no door and the tier is unreachable."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "Place waypoint AP_forbiddenrealmskeytier_2 in gravesofthelostk (Tombs of the Lost Souls), just inside the entrance. It is both the arrival point and where the return gate spawns. Until it exists the gate in Noirinan refuses to fire."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "Place waypoints AP_forbiddenrealmskeytier_3 / _4 / _5 in gravesofthelostk for the Weathertop King, Queen and Archer respectively — spread them across the barrow so the court is not a single pull. Each spawns independently; a missing one simply means that member never appears."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "UAT: on a test character, pickpocket or spawn the Forbidden Realms Key and confirm journal 'The Forbidden Realms' entry 1 appears immediately."
+        status: open
+        step_h: 64
+      - step: "UAT: log in a character that already carried the key from before this build and confirm entry 1 arrives ~7s after login."
+        status: open
+        step_h: 64
+      - step: "UAT: use the gate in Noirinan without the key — expect the seven-marks refusal message and no teleport."
+        status: open
+        step_h: 64
+      - step: "UAT: use it with the key — expect entry 2, the seal-gives-way message, and arrival in the Tombs with entry 3."
+        status: open
+        step_h: 64
+      - step: "UAT: use the return gate inside the Tombs while NOT carrying the key and confirm it still returns you to Noirinan."
+        status: open
+        step_h: 64
+      - step: "UAT: kill all three court members with a party present and confirm every party member in the area gets journal entry 10 (Completed)."
+        status: open
+        step_h: 64
+      - step: "UAT: leave and re-enter the Tombs and confirm the court re-forms exactly once (no doubling when a party trickles in one player at a time)."
+        status: open
+        step_h: 64
 
   # ---- Progression, bestiary & achievements --------------------------------
   - id: achievements
