@@ -177,6 +177,9 @@ authoring conventions, and the module compatibility audit.
 > capped at 30 via local count.
 
 ### Bard — Tales That Live Forever
+> **Early nodes (L1/8/15) SHIPPED 2026-07-18** as `bard-line-early` — Lindir of the Hall of Fire at
+> `rivendellupperha` (Rivendell Upper Halls), journal `bard_lay`. See QuestGuide-DM-Notes.md. Notes below
+> remain live for the mid/endgame chunks.
 > Areas: `shirebilbohouse`, `bagend001`, `lothlorien`, `morialevel1cente`, `dunland`, `dunlandwarparty`,
 > `mountdoom`. Bilbo: `bilbobaggins.utc.json`. Galadriel: `galadriel.utc.json`.
 > Eregion: not in module — substitute `ruinsofannuminas`.

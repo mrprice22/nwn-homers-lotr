@@ -322,6 +322,40 @@ Both files should be updated in the same commit whenever a quest ships or change
   untouched and remains open for the mid/endgame chunks.
 - **UAT:** scripted and built, pending waypoint placement and in-game UAT.
 
+### Tales That Live Forever — Bard line I
+
+- **Journal tag:** `bard_lay` (`@group 'Class Lines'`, `@order 11`)
+- **Roadmap:** `bard-line-early` (added 2026-07-18)
+- **State:** `bardlinedb` campaign DB (key `song_stage`, 0–3; see `q_bard_inc.nss`).
+- **Gates:** `GetLevelByClass(CLASS_TYPE_BARD)` for **all three** nodes (>= 1 / >= 8 / >= 15) —
+  matching the paladin/monk tightened rule rather than the older lines' `GetHitDice`, so a
+  multiclass cannot buy the rewards with levels taken elsewhere.
+- **Scripts:** `q_bard_lrn`, `q_bard_stn`, `q_bard_rtn`; StartingConditionals `q_bard_c_off`,
+  `q_bard_c_s1w`, `q_bard_c_s1r`, `q_bard_c_s2w`, `q_bard_c_s2r`, `q_bard_c_dn`.
+- **Prefix:** `q_bard_`, **not** the obvious `q_brd_` — the boss-respawn tracker already owns the
+  bare `brd_*` namespace (`brd_db`, `brd_open_*`, `brd_vis_*`, `brd_sign.dlg`; see
+  CLAUDE-boss-tracker.md) and `q_brd_*` next to it in a flat source tree is a grep trap. Every
+  `q_bard_*` resref still fits the 16-character limit.
+- **Blueprints:** Lindir of the Hall of Fire (`q_bard_mstr`, Bard 30, plot/immortal, elf,
+  conversation `q_bard_conv`) script-spawned by `q_bard_spawn` from the Rivendell Upper Halls
+  OnEnter wrapper `q_bard_enter`, which chains the area's existing `mw_riv_enter` handler
+  (leash_to_area + `d_cleartrash` + the Meaningwave Peterson spawn) on `rivendellupperha`.
+- **Waypoints:** `AP_bardlineearly_1` in `rivendellupperha` (Rivendell Upper Halls). **Lindir is
+  spawn-only — the whole line is invisible in-game until this waypoint is placed.**
+- **Items:** `q_bard_torc` (amulet, BaseItem 19, +1 CHA), `q_bard_lay` (plot token, BaseItem 24),
+  `q_bard_rap` (rapier, BaseItem 51, model 141, Enhancement +2 / +1 CHA). All use Use Limitation:
+  Class Bard, **subtype 1** — verified against `cloakofthebard.uti.json`, which carries the same
+  `iprp_classes` row as its only class restriction, and consistent with the confirmed Cleric 2 /
+  Druid 3 / Monk 5 / Paladin 6 / Ranger 7 entries.
+- **Bard-legal rewards:** an amulet and a rapier — both inside Bard proficiency, so nothing on the
+  line ships unusable.
+- **No NPC reuse:** `rivendellupperha` holds `elrond001_2`, `creature005`, `forestguardianof` and
+  three `greaterelvenw001`; none was touched. Lindir is authored fresh and owns no store.
+- **Notes:** structurally cloned from the shipped `monk-line-early` template (`q_mnk_*`). The design
+  brief's timed-dialogue, Bilbo/Galadriel and doubled-Bardic-Music material is untouched and remains
+  open for the mid/endgame chunks.
+- **UAT:** scripted and built, pending waypoint placement and in-game UAT.
+
 ### Pass the Pass
 
 - **Journal tag:** `pass_pass`
