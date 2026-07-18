@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_pass_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_pass_inc</code></h1><pre class="nss-source"><code>// q_pass_inc.nss — &quot;Pass the Pass&quot; Misty Mountains escort (roadmap: pass-the-pass)
+//
+// T2 (L10+) daily escort quest, journal tag &quot;pass_pass&quot;. A caravan-master
+// waits at the western foot of the High Pass (Foothills of the Misty
+// Mountains) and hires the PC to see his wagons across to the eastern
+// waystation (the far Misty Mountains ledge). The PC picks a difficulty at
+// dialogue; the reward scales as nDiff * QPASS_GOLD_PER gold plus nDiff *
+// QPASS_XP_PER XP. On the hardest run a Stone-Giant (q_pass_gnt, a plot-safe
+// CR-25 clone of the ordinary Misty Mountains giant &quot;mgiant&quot;) ambushes the
+// caravan mid-pass. One escort per real calendar day (quest_cd_inc:
+// QCD_IsDoneToday gates the offer, QCD_Stamp fires on turn-in).
+//
+// BOUNDED (no walking-companion escort AI): accept at the giver, an ambush
+// scaled by difficulty spawns at waypoint AP_passthepass_2 mid-pass, and the
+// quartermaster on the far side pays out when reached. Reaching the far side
+// is the whole objective; the ambush is the danger, not a hard fail-state.
+//
+// Waypoint tags (hyphen-less roadmap id; MUST match the admin-action entries):
+//   AP_passthepass_1  giver spawn        (Foothills of the Misty Mountains)
+//   AP_passthepass_2  ambush spawn       (The Misty Mountains, mistymountainsa)
+//   AP_passthepass_3  quartermaster spawn(The Misty Mountains, mistymountainsb)
+// Everything no-ops gracefully until the admin places the waypoints, so the
+// module ships and compiles before any placement exists.
+//
+// Session state (locals on the PC, set at accept, cleared at turn-in):
+//   QPASS_ACTIVE  1 while an escort is in progress (blocks re-accept, gates turn-in)
+//   QPASS_DIFF    the chosen difficulty 1..3 (drives payout + ambush composition)
+//
+// Custom token: 6395 = &quot;come back tomorrow&quot; countdown on the giver.
+
+#include &quot;quest_cd_inc&quot;
+
+const string QPASS_QUEST    = &quot;pass_pass&quot;;  // questcddb key + journal tag
+const int    QPASS_GOLD_PER = 200;          // gold reward = nDiff * this
+const int    QPASS_XP_PER   = 150;          // xp   reward = nDiff * this
+const int    QPASS_MAXDIFF  = 3;            // hardest tier (Stone-Giant ambush)
+
+// ------------------------------------------------------------
+// Small accessors.
+
+int QPASS_Diff(object oPC)   { return GetLocalInt(oPC, &quot;QPASS_DIFF&quot;); }
+int QPASS_Active(object oPC) { return GetLocalInt(oPC, &quot;QPASS_ACTIVE&quot;); }
+
+// Seconds until the next UTC midnight (when QCD_IsDoneToday flips back). From
+// SQLite so there is no game-clock drift, matching QCD_IsDoneToday&#x27;s date().
+int QPASS_SecsToTomorrow()
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT CAST(strftime(&#x27;%s&#x27;, date(&#x27;now&#x27;,&#x27;+1 day&#x27;)) AS INTEGER)&quot;
+        + &quot; - CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// ------------------------------------------------------------
+// Ambush. Spawns a difficulty-scaled warband at AP_passthepass_2 (mid-pass).
+// No-ops when the waypoint is unplaced. Rate is limited naturally: a PC can
+// only accept once per day and cannot re-accept while an escort is active, so
+// each player triggers at most one ambush per day.
+
+void QPASS_Mob(string sResRef, location lLoc)
+{
+    object oM = CreateObject(OBJECT_TYPE_CREATURE, sResRef, lLoc);
+    if (GetIsObjectValid(oM))
+        SetLocalInt(oM, &quot;QPASS_AMBUSH&quot;, 1);   // tag for later cleanup/inspection
+}
+
+void QPASS_SpawnAmbush(int nDiff)
+{
+    object oWP = GetWaypointByTag(&quot;AP_passthepass_2&quot;);
+    if (!GetIsObjectValid(oWP)) return;       // no-op until the admin places it
+    location lLoc = GetLocation(oWP);
+
+    int i;
+    if (nDiff &lt;= 1)
+    {
+        // Easy: a rabble of goblin-kin.
+        for (i = 0; i &lt; 3; i++) QPASS_Mob(&quot;bugbeara001&quot;, lLoc);
+    }
+    else if (nDiff == 2)
+    {
+        // Normal: goblin soldiers led by a bigger brute.
+        for (i = 0; i &lt; 3; i++) QPASS_Mob(&quot;bugchiefa001&quot;, lLoc);
+        QPASS_Mob(&quot;bugbearboss001&quot;, lLoc);
+    }
+    else
+    {
+        // Hard: soldiers, wargs, and a Stone-Giant of the High Pass.
+        for (i = 0; i &lt; 4; i++) QPASS_Mob(&quot;bugchiefa001&quot;, lLoc);
+        for (i = 0; i &lt; 2; i++) QPASS_Mob(&quot;q_brn_warg&quot;, lLoc);
+        QPASS_Mob(&quot;q_pass_gnt&quot;, lLoc);
+    }
+}
+
+// ------------------------------------------------------------
+// Accept (ActionTaken from the difficulty replies q_pass_d1/d2/d3).
+
+void QPASS_Begin(object oPC, int nDiff)
+{
+    if (QCD_IsDoneToday(oPC, QPASS_QUEST)) return;  // already ran today
+    if (QPASS_Active(oPC)) return;                  // already escorting
+    if (nDiff &lt; 1) nDiff = 1;
+    if (nDiff &gt; QPASS_MAXDIFF) nDiff = QPASS_MAXDIFF;
+
+    SetLocalInt(oPC, &quot;QPASS_ACTIVE&quot;, 1);
+    SetLocalInt(oPC, &quot;QPASS_DIFF&quot;, nDiff);
+    AddJournalQuestEntry(QPASS_QUEST, 1, oPC, FALSE, FALSE, TRUE);
+    QPASS_SpawnAmbush(nDiff);
+
+    FloatingTextStringOnCreature(
+        &quot;The caravan sets out. Cross the high pass to the eastern waystation.&quot;,
+        oPC, FALSE);
+}
+
+// ------------------------------------------------------------
+// Turn-in (ActionTaken from the quartermaster&#x27;s accepting reply q_pass_pay).
+// Guarded so it can never pay twice in a day or without an active escort.
+
+void QPASS_TurnIn(object oPC)
+{
+    if (!QPASS_Active(oPC)) return;
+    int nDiff = QPASS_Diff(oPC);
+    if (nDiff &lt; 1) nDiff = 1;
+
+    DeleteLocalInt(oPC, &quot;QPASS_ACTIVE&quot;);
+    DeleteLocalInt(oPC, &quot;QPASS_DIFF&quot;);
+
+    if (QCD_IsDoneToday(oPC, QPASS_QUEST)) return;  // paranoid double-pay guard
+    QCD_Stamp(oPC, QPASS_QUEST);
+
+    GiveGoldToCreature(oPC, nDiff * QPASS_GOLD_PER);
+    GiveXPToCreature(oPC, nDiff * QPASS_XP_PER);
+    AddJournalQuestEntry(QPASS_QUEST, 2, oPC, FALSE, FALSE, TRUE);
+    FloatingTextStringOnCreature(
+        &quot;The caravan is safe across the pass. The quartermaster counts out your pay.&quot;,
+        oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

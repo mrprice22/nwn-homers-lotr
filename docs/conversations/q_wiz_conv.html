@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_wiz_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_wiz_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>10</dd>
+<dt>PC replies</dt><dd>7</dd>
+<dt>NumWords</dt><dd>650</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_wiz_find.html">Findegil the Grey</a> <code>q_wiz_find</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_wiz_oath</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_tok</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_rtn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_c_dn</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_c_s2r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_c_s2w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_c_s1r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_c_s1w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_wiz_c_off</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/wiz-colour.html">The Colour of Power</a></td><td><code>wiz_colour</code></td><td>1, 2, 3</td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_wiz_c_dn</code>)</small> — *Findegil inclines his head.* Into the study, and lore enough to carry -- you ha…</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_wiz_c_s2r</code>)</small> — *He takes the grey book back and turns its pages with quiet satisfaction.* Fifte…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_wiz_c_s2w</code>)</small> — *Findegil glances at the grey book you carry.* Not yet. That study is not done d…</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_wiz_c_s1r</code>)</small> — *He draws a slim grey book from the shelf and weighs it in both hands.* This is …</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_wiz_c_s1w</code>)</small> — *Findegil marks his place with a grey finger.* Studying, are you -- good; but lo…</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_wiz_c_off</code>)</small> — *The grey-robed old man looks up from his books and studies you a long moment, a…</li>
+<li><a href="#e6">entry #6</a> — *The old man gives you a courteous nod over his books.* Well met. I keep to my s…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_wiz_c_dn</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*Findegil inclines his head.* Into the study, and lore enough to carry -- you have walked the first of the wizard&#x27;s road, and walked it true. There are colours yet to choose, when your power comes into its full: White, or Brown, or the Many Colours. But that is a choice for a far greater day. Keep to the Art, my friend.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Fare you well, Findegil.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_wiz_c_s2r</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*He takes the grey book back and turns its pages with quiet satisfaction.* Fifteen levels, and the lore is set deep in you now -- I knew the spark. A tome is a beginning; a wizard should carry his study in his hand. Let me bind what you have learned into a staff for you. Shall it be done?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_wiz_rtn</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">Bind it into a staff. I am ready.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">*The staff is bound and finished: tall grey ash, its head wound with quiet lore.* There -- the Staff of the Grey Study. No colour set upon it yet; White, Brown, the Many Colours -- those are for a far greater day, when your power comes into its full. You have walked the first of the wizard&#x27;s road. Keep to the Art, my friend.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Not yet. I will return.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_wiz_c_s2w</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">*Findegil glances at the grey book you carry.* Not yet. That study is not done deepening in you, nor you in it. Come back when you have fifteen levels behind you, and we shall see what the lore has made of you.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Fare you well, Findegil.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_wiz_c_s1r</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*He draws a slim grey book from the shelf and weighs it in both hands.* This is the Loremaster&#x27;s Tome -- my own study of the Colour of Power, close-written over long years. Much of it you cannot yet read. *He sets it before you.* Carry it into the wide world; study as you walk, let the Art deepen in you, and bring it back to me when you have grown, at the fifteenth level. Will you bear it?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_wiz_tok</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Give me the tome. I will study as I walk.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">*He sets the grey book gently in your pack himself.* Carry it well, and carry it close. Lore keeps faith with the mind that never set it down -- come back at fifteen and we shall see it made into something to carry in the hand.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Later, Findegil. Keep it safe for now.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_wiz_c_s1w</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*Findegil marks his place with a grey finger.* Studying, are you -- good; but lore is proved in leagues walked, not pages turned by the fire. Go and ply the Art; grow deep in it. Come back to me when you have eight levels of the wizard&#x27;s craft behind you, and I will trust you with something that matters.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Fare you well, Findegil.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_wiz_c_off</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*The grey-robed old man looks up from his books and studies you a long moment, as though reading a page.* Findegil, I am called -- the Grey, when folk trouble to add a colour. I keep this quiet study of a craft few trouble to learn truly: the Colour of Power, the deep lore by which the Istari came to wear their hues. There is the true spark in you, unless my old eyes fail. Will you take up the study, and let me set your feet on the first of the wizard&#x27;s road?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_wiz_oath</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">There is the spark in me. I will take up the study.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*Findegil presses a plain grey amulet into your hand.* Taken up, then. The Apprentice&#x27;s Amulet -- wear it, and let it steady your young mind to the Art. Go and grow deep; come back at your eighth level and I will trust you with the real work.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">I keep to no master&#x27;s study. Good day.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*The old man gives you a courteous nod over his books.* Well met. I keep to my study and my own counsel -- the deep lore is no light thing, and no business of folk who do not carry the spark. Go safely.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Fare you well, Findegil.”</span></div>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*The grey-robed old man looks up from his books and studies you a long moment, as though reading a page.* Findegil, I am called -- the Grey, when folk trouble to add a colour. I keep this quiet study of a craft few trouble to learn truly: the Colour of Power, the deep lore by which the Istari came to wear their hues. There is the true spark in you, unless my old eyes fail. Will you take up the study, and let me set your feet on the first of the wizard&#x27;s road?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“There is the spark in me. I will take up the study.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I keep to no master&#x27;s study. Good day.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*Findegil marks his place with a grey finger.* Studying, are you -- good; but lore is proved in leagues walked, not pages turned by the fire. Go and ply the Art; grow deep in it. Come back to me when you have eight levels of the wizard&#x27;s craft behind you, and I will trust you with something that matters.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Fare you well, Findegil.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*He draws a slim grey book from the shelf and weighs it in both hands.* This is the Loremaster&#x27;s Tome -- my own study of the Colour of Power, close-written over long years. Much of it you cannot yet read. *He sets it before you.* Carry it into the wide world; study as you walk, let the Art deepen in you, and bring it back to me when you have grown, at the fifteenth level. Will you bear it?</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Give me the tome. I will study as I walk.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Later, Findegil. Keep it safe for now.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">*Findegil glances at the grey book you carry.* Not yet. That study is not done deepening in you, nor you in it. Come back when you have fifteen levels behind you, and we shall see what the lore has made of you.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Fare you well, Findegil.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*He takes the grey book back and turns its pages with quiet satisfaction.* Fifteen levels, and the lore is set deep in you now -- I knew the spark. A tome is a beginning; a wizard should carry his study in his hand. Let me bind what you have learned into a staff for you. Shall it be done?</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Bind it into a staff. I am ready.”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Not yet. I will return.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*Findegil inclines his head.* Into the study, and lore enough to carry -- you have walked the first of the wizard&#x27;s road, and walked it true. There are colours yet to choose, when your power comes into its full: White, or Brown, or the Many Colours. But that is a choice for a far greater day. Keep to the Art, my friend.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Fare you well, Findegil.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*The old man gives you a courteous nod over his books.* Well met. I keep to my study and my own counsel -- the deep lore is no light thing, and no business of folk who do not carry the spark. Go safely.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Fare you well, Findegil.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*Findegil presses a plain grey amulet into your hand.* Taken up, then. The Apprentice&#x27;s Amulet -- wear it, and let it steady your young mind to the Art. Go and grow deep; come back at your eighth level and I will trust you with the real work.</div></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*He sets the grey book gently in your pack himself.* Carry it well, and carry it close. Lore keeps faith with the mind that never set it down -- come back at fifteen and we shall see it made into something to carry in the hand.</div></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">*The staff is bound and finished: tall grey ash, its head wound with quiet lore.* There -- the Staff of the Grey Study. No colour set upon it yet; White, Brown, the Many Colours -- those are for a far greater day, when your power comes into its full. You have walked the first of the wizard&#x27;s road. Keep to the Art, my friend.</div></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_wiz_oath</code></span></div><div class="dlg-text">There is the spark in me. I will take up the study.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*Findegil presses a plain grey amulet into your hand.* Taken up, then. The Appre…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I keep to no master&#x27;s study. Good day.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_wiz_tok</code></span></div><div class="dlg-text">Give me the tome. I will study as I walk.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*He sets the grey book gently in your pack himself.* Carry it well, and carry it…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Later, Findegil. Keep it safe for now.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_wiz_rtn</code></span></div><div class="dlg-text">Bind it into a staff. I am ready.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“*The staff is bound and finished: tall grey ash, its head wound with quiet lore.…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Not yet. I will return.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Fare you well, Findegil.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

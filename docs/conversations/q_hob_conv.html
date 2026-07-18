@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_hob_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_hob_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>8</dd>
+<dt>PC replies</dt><dd>12</dd>
+<dt>NumWords</dt><dd>431</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_hob_odo.html">Odo Proudfoot</a> <code>q_hob_odo</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_hob_c_o1</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_o2</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_o3</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_o4</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_begin</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_show</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_a1</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_win</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_lose</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_right</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_wrong</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_a2</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_a3</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_a4</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_mid</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_day</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/concern-hob.html">Concerning Hobbits</a></td><td><code>concern_hob</code></td><td>1, 2</td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6420&gt;</code></td><td><a href="../scripts/q_hob_c_day.html">q_hob_c_day</a></td></tr>
+<tr><td><code>&lt;CUSTOM6421&gt;</code></td><td><a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a></td></tr>
+<tr><td><code>&lt;CUSTOM6422&gt;</code></td><td><a href="../scripts/q_hob_c_show.html">q_hob_c_show</a></td></tr>
+<tr><td><code>&lt;CUSTOM6423&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM6424&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM6425&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM6426&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>&lt;CUSTOM6427&gt;</code></td><td><a href="../scripts/q_hob_c_right.html">q_hob_c_right</a></td></tr>
+<tr><td><code>&lt;CUSTOM6428&gt;</code></td><td><a href="../scripts/q_hob_c_wrong.html">q_hob_c_wrong</a></td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_hob_c_mid</code>)</small> — *Odo taps the scroll.* Now, where were we -- ah yes, the matter under dispute. L…</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_hob_c_day</code>)</small> — *He waves his quill.* We settled all this already today, my friend -- you&#x27;ve had…</li>
+<li><a href="#e0">entry #0</a> — *A stout, silver-whiskered hobbit looks up from a great unrolled scroll of names…</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_hob_c_mid</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*Odo taps the scroll.* Now, where were we -- ah yes, the matter under dispute. Let us go on.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Go on, ask the next.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_hob_c_show</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">Question <span class="custom-token" title="SetCustomToken(6421, ...) called in: q_hob_c_lose, q_hob_c_show, q_hob_c_win">&lt;CUSTOM6421&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a>]</sup></span> of five, then. Mind your Bagginses from your Boffins:
+
+<span class="custom-token" title="SetCustomToken(6422, ...) called in: q_hob_c_show">&lt;CUSTOM6422&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>]</sup></span></div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_hob_a1</code></span> <small class="muted">(if <code>q_hob_c_o1</code>)</small> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6423, ...) — no setter found in static analysis">&lt;CUSTOM6423&gt;</span></div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <small class="muted">(if <code>q_hob_c_win</code>)</small> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*Odo beams and dusts sand across the page.* <span class="custom-token" title="SetCustomToken(6421, ...) called in: q_hob_c_lose, q_hob_c_show, q_hob_c_win">&lt;CUSTOM6421&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a>]</sup></span> of five right! A proper student of the Shire, you are. There -- a little something from the family stores, with old Odo&#x27;s thanks. Come back tomorrow and we&#x27;ll settle the next season&#x27;s dispute.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #10</span> <a class="dlg-anchor" href="#r10" title="jump to flat reply #10">¶</a></summary>
+<div class="dlg-text">A pleasure, Master Proudfoot. Until tomorrow.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*Odo sighs and shakes his head.* Only <span class="custom-token" title="SetCustomToken(6421, ...) called in: q_hob_c_lose, q_hob_c_show, q_hob_c_win">&lt;CUSTOM6421&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a>]</sup></span> of five, I&#x27;m afraid. That&#x27;ll not settle any argument at the Ivy Bush! Study your family-trees and come back tomorrow -- the dispute keeps, it always does. Good day to you.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #11</span> <a class="dlg-anchor" href="#r11" title="jump to flat reply #11">¶</a></summary>
+<div class="dlg-text">I&#x27;ll study up. Good day, Master Proudfoot.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_hob_c_right</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(6427, ...) called in: q_hob_c_right">&lt;CUSTOM6427&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_right.html">q_hob_c_right</a>]</sup></span></div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #8</span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
+<div class="dlg-text">Next question.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></div>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_hob_c_wrong</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(6428, ...) called in: q_hob_c_wrong">&lt;CUSTOM6428&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_wrong.html">q_hob_c_wrong</a>]</sup></span></div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #9</span> <a class="dlg-anchor" href="#r9" title="jump to flat reply #9">¶</a></summary>
+<div class="dlg-text">Ah well. Ask the next.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_hob_a2</code></span> <small class="muted">(if <code>q_hob_c_o2</code>)</small> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6424, ...) — no setter found in static analysis">&lt;CUSTOM6424&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“*Odo beams and dusts sand across the page.*  of five right! A proper student of…”</span> <small class="muted">(if <code>q_hob_c_win</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“*Odo sighs and shakes his head.* Only  of five, I&#x27;m afraid. That&#x27;ll not settle a…”</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <small class="muted">(if <code>q_hob_c_right</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <small class="muted">(if <code>q_hob_c_wrong</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_hob_a3</code></span> <small class="muted">(if <code>q_hob_c_o3</code>)</small> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6425, ...) — no setter found in static analysis">&lt;CUSTOM6425&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“*Odo beams and dusts sand across the page.*  of five right! A proper student of…”</span> <small class="muted">(if <code>q_hob_c_win</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“*Odo sighs and shakes his head.* Only  of five, I&#x27;m afraid. That&#x27;ll not settle a…”</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <small class="muted">(if <code>q_hob_c_right</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <small class="muted">(if <code>q_hob_c_wrong</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>q_hob_a4</code></span> <small class="muted">(if <code>q_hob_c_o4</code>)</small> <a class="dlg-anchor" href="#r7" title="jump to flat reply #7">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6426, ...) — no setter found in static analysis">&lt;CUSTOM6426&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a> <span class="dlg-link-preview">“*Odo beams and dusts sand across the page.*  of five right! A proper student of…”</span> <small class="muted">(if <code>q_hob_c_win</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e7">entry #7</a> <span class="dlg-link-preview">“*Odo sighs and shakes his head.* Only  of five, I&#x27;m afraid. That&#x27;ll not settle a…”</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e4">entry #4</a> <small class="muted">(if <code>q_hob_c_right</code>)</small></div>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <small class="muted">(if <code>q_hob_c_wrong</code>)</small></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_hob_c_day</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*He waves his quill.* We settled all this already today, my friend -- you&#x27;ve had your five and I&#x27;ve marked my book. Come back tomorrow, <span class="custom-token" title="SetCustomToken(6420, ...) called in: q_hob_c_day">&lt;CUSTOM6420&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_day.html">q_hob_c_day</a>]</sup></span> from now, and I&#x27;ll have a fresh dispute for you. The families never do stop marrying and squabbling, bless them.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Keep your scrolls, then. Farewell.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*A stout, silver-whiskered hobbit looks up from a great unrolled scroll of names, quill behind his ear.* Ah -- a fresh pair of eyes! Odo Proudfoot, at your service, and keeper of the Hobbiton family-books. There is a dispute afoot, you see: the Ivy Bush is fair split over who is cousin to whom, and the argument shifts with every season like the wind off the Hill. I&#x27;ll put five questions of Shire lineage to you -- answer four rightly and I&#x27;ll count you a friend of the family-books and see you rewarded. Will you match wits with an old genealogist?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_hob_begin</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">I&#x27;ll match wits with you, Master Proudfoot. Ask away.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">Family-trees aren&#x27;t my trade. Good day.</div>
+</details>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*A stout, silver-whiskered hobbit looks up from a great unrolled scroll of names, quill behind his ear.* Ah -- a fresh pair of eyes! Odo Proudfoot, at your service, and keeper of the Hobbiton family-books. There is a dispute afoot, you see: the Ivy Bush is fair split over who is cousin to whom, and the argument shifts with every season like the wind off the Hill. I&#x27;ll put five questions of Shire lineage to you -- answer four rightly and I&#x27;ll count you a friend of the family-books and see you rewarded. Will you match wits with an old genealogist?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I&#x27;ll match wits with you, Master Proudfoot. Ask away.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Family-trees aren&#x27;t my trade. Good day.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*He waves his quill.* We settled all this already today, my friend -- you&#x27;ve had your five and I&#x27;ve marked my book. Come back tomorrow, <span class="custom-token" title="SetCustomToken(6420, ...) called in: q_hob_c_day">&lt;CUSTOM6420&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_day.html">q_hob_c_day</a>]</sup></span> from now, and I&#x27;ll have a fresh dispute for you. The families never do stop marrying and squabbling, bless them.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Keep your scrolls, then. Farewell.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*Odo taps the scroll.* Now, where were we -- ah yes, the matter under dispute. Let us go on.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Go on, ask the next.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Question <span class="custom-token" title="SetCustomToken(6421, ...) called in: q_hob_c_lose, q_hob_c_show, q_hob_c_win">&lt;CUSTOM6421&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a>]</sup></span> of five, then. Mind your Bagginses from your Boffins:
+
+<span class="custom-token" title="SetCustomToken(6422, ...) called in: q_hob_c_show">&lt;CUSTOM6422&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <small class="muted">(if <code>q_hob_c_o1</code>)</small></li><li><a href="#r5">→ reply #5</a> <small class="muted">(if <code>q_hob_c_o2</code>)</small></li><li><a href="#r6">→ reply #6</a> <small class="muted">(if <code>q_hob_c_o3</code>)</small></li><li><a href="#r7">→ reply #7</a> <small class="muted">(if <code>q_hob_c_o4</code>)</small></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(6427, ...) called in: q_hob_c_right">&lt;CUSTOM6427&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_right.html">q_hob_c_right</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Next question.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(6428, ...) called in: q_hob_c_wrong">&lt;CUSTOM6428&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_wrong.html">q_hob_c_wrong</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Ah well. Ask the next.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*Odo beams and dusts sand across the page.* <span class="custom-token" title="SetCustomToken(6421, ...) called in: q_hob_c_lose, q_hob_c_show, q_hob_c_win">&lt;CUSTOM6421&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a>]</sup></span> of five right! A proper student of the Shire, you are. There -- a little something from the family stores, with old Odo&#x27;s thanks. Come back tomorrow and we&#x27;ll settle the next season&#x27;s dispute.</div><ul class="dlg-links"><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“A pleasure, Master Proudfoot. Until tomorrow.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*Odo sighs and shakes his head.* Only <span class="custom-token" title="SetCustomToken(6421, ...) called in: q_hob_c_lose, q_hob_c_show, q_hob_c_win">&lt;CUSTOM6421&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a>]</sup></span> of five, I&#x27;m afraid. That&#x27;ll not settle any argument at the Ivy Bush! Study your family-trees and come back tomorrow -- the dispute keeps, it always does. Good day to you.</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“I&#x27;ll study up. Good day, Master Proudfoot.”</span></li></ul></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_hob_begin</code></span></div><div class="dlg-text">I&#x27;ll match wits with you, Master Proudfoot. Ask away.</div><ul class="dlg-links"><li><a href="#e3">→ entry #3</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Family-trees aren&#x27;t my trade. Good day.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span></div><div class="dlg-text">Keep your scrolls, then. Farewell.</div></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Go on, ask the next.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_hob_a1</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6423, ...) — no setter found in static analysis">&lt;CUSTOM6423&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“*Odo beams and dusts sand across the page.*  of five right! A proper student of…”</span> <small class="muted">(if <code>q_hob_c_win</code>)</small></li><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*Odo sighs and shakes his head.* Only  of five, I&#x27;m afraid. That&#x27;ll not settle a…”</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small></li><li><a href="#e4">→ entry #4</a> <small class="muted">(if <code>q_hob_c_right</code>)</small></li><li><a href="#e5">→ entry #5</a> <small class="muted">(if <code>q_hob_c_wrong</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span> <span class="dlg-action">→ <code>q_hob_a2</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6424, ...) — no setter found in static analysis">&lt;CUSTOM6424&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“*Odo beams and dusts sand across the page.*  of five right! A proper student of…”</span> <small class="muted">(if <code>q_hob_c_win</code>)</small></li><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“*Odo sighs and shakes his head.* Only  of five, I&#x27;m afraid. That&#x27;ll not settle a…”</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small></li><li><a href="#e4">→ child</a> <small class="muted">(if <code>q_hob_c_right</code>)</small></li><li><a href="#e5">→ child</a> <small class="muted">(if <code>q_hob_c_wrong</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span> <span class="dlg-action">→ <code>q_hob_a3</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6425, ...) — no setter found in static analysis">&lt;CUSTOM6425&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“*Odo beams and dusts sand across the page.*  of five right! A proper student of…”</span> <small class="muted">(if <code>q_hob_c_win</code>)</small></li><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“*Odo sighs and shakes his head.* Only  of five, I&#x27;m afraid. That&#x27;ll not settle a…”</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small></li><li><a href="#e4">→ child</a> <small class="muted">(if <code>q_hob_c_right</code>)</small></li><li><a href="#e5">→ child</a> <small class="muted">(if <code>q_hob_c_wrong</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span> <span class="dlg-action">→ <code>q_hob_a4</code></span></div><div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(6426, ...) — no setter found in static analysis">&lt;CUSTOM6426&gt;</span></div><ul class="dlg-links"><li><a href="#e6">→ child</a> <span class="dlg-link-preview">“*Odo beams and dusts sand across the page.*  of five right! A proper student of…”</span> <small class="muted">(if <code>q_hob_c_win</code>)</small></li><li><a href="#e7">→ child</a> <span class="dlg-link-preview">“*Odo sighs and shakes his head.* Only  of five, I&#x27;m afraid. That&#x27;ll not settle a…”</span> <small class="muted">(if <code>q_hob_c_lose</code>)</small></li><li><a href="#e4">→ child</a> <small class="muted">(if <code>q_hob_c_right</code>)</small></li><li><a href="#e5">→ child</a> <small class="muted">(if <code>q_hob_c_wrong</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span></div><div class="dlg-text">Next question.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Ah well. Ask the next.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></li></ul></div>
+<div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">A pleasure, Master Proudfoot. Until tomorrow.</div></div>
+<div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">I&#x27;ll study up. Good day, Master Proudfoot.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

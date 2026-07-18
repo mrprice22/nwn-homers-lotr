@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script slot_token</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>slot_token</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: slot_token -- Rune of Expansion (item tag SlotToken).
+//::
+//:: A consumable that binds +1 forge property slot into ONE targeted item,
+//:: raising how many enchantments the forge (and the contraband/legality law)
+//:: will allow on THAT item by one, up to FORGE_TOKEN_MAX_SLOTS runes.
+//::
+//:: Dispatched from dmfi_activate&#x27;s OnActivateItem branch, which stamps the
+//:: activated rune and its target onto the activator before ExecuteScript:
+//::   SLOT_TOKEN_ITEM   = GetItemActivated()        (the rune)
+//::   SLOT_TOKEN_TARGET = GetItemActivatedTarget()  (the item to expand)
+//:: OBJECT_SELF is the activator (oActivator).
+//::
+//:: The earned count lives on the target as item-local int FORGE_EXTRA_SLOTS
+//:: (persists with the item in the .bic, exactly like FORGE_CEIL), so the
+//:: entitlement is intrinsic to the item and travels with it when traded.
+//:: See forge_inc.nss (ForgeItemExtraSlots / ForgeItemMaxProps) for how the
+//:: forge and the legality scan read it. Drop-source/rarity is an admin
+//:: decision (see admin-action-required.md).  roadmap: item-slot-tokens
+//:://////////////////////////////////////////////
+
+#include &quot;forge_inc&quot;
+
+void main()
+{
+    object oPC     = OBJECT_SELF;
+    object oTarget = GetLocalObject(oPC, &quot;SLOT_TOKEN_TARGET&quot;);
+    object oToken  = GetLocalObject(oPC, &quot;SLOT_TOKEN_ITEM&quot;);
+    DeleteLocalObject(oPC, &quot;SLOT_TOKEN_TARGET&quot;);
+    DeleteLocalObject(oPC, &quot;SLOT_TOKEN_ITEM&quot;);
+
+    if (!GetIsPC(oPC))
+        return;
+
+    // Must target an item...
+    if (!GetIsObjectValid(oTarget)
+        || GetObjectType(oTarget) != OBJECT_TYPE_ITEM)
+    {
+        FloatingTextStringOnCreature(&quot;Point the rune at an item in your pack to &quot;
+            + &quot;bind its power into it.&quot;, oPC, FALSE);
+        return;
+    }
+    // ...that you actually carry...
+    if (GetItemPossessor(oTarget) != oPC)
+    {
+        FloatingTextStringOnCreature(&quot;You may only expand an item you carry.&quot;,
+            oPC, FALSE);
+        return;
+    }
+    // ...and not the rune itself.
+    if (oTarget == oToken)
+    {
+        FloatingTextStringOnCreature(&quot;The rune cannot be bound into itself.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    // Already fully expanded? Do not consume the rune.
+    int nCur = ForgeItemExtraSlots(oTarget);
+    if (nCur &gt;= FORGE_TOKEN_MAX_SLOTS)
+    {
+        FloatingTextStringOnCreature(&quot;The &quot; + GetName(oTarget) + &quot; already holds &quot;
+            + &quot;all the expansion it can bear (&quot; + IntToString(FORGE_TOKEN_MAX_SLOTS)
+            + &quot; extra slots). The rune stays whole.&quot;, oPC, FALSE);
+        return;
+    }
+
+    // Consume exactly one rune (decrement a stack, else destroy the item).
+    if (GetIsObjectValid(oToken))
+    {
+        if (GetItemStackSize(oToken) &gt; 1)
+            SetItemStackSize(oToken, GetItemStackSize(oToken) - 1);
+        else
+            DestroyObject(oToken);
+    }
+
+    // Bind the extra slot into the target. FORGE_EXTRA_SLOTS is read by the
+    // forge (modifyitem via ForgeItemMaxProps) and the legality law alike, so
+    // the item is never jailed for the extra enchantment it may now hold.
+    int nNew = nCur + 1;
+    SetLocalInt(oTarget, FORGE_EXTRA_SLOTS, nNew);
+    // Footprint of what is lawful changed (only loosens) -- drop any stale
+    // &quot;clean&quot; stamp so the next contraband scan re-reads the item cleanly.
+    DeleteLocalInt(oTarget, &quot;FORGE_CLEAN&quot;);
+
+    FloatingTextStringOnCreature(&quot;The rune sinks into the &quot; + GetName(oTarget)
+        + &quot;, widening its lattice. A forge may now bind &quot; + IntToString(nNew)
+        + &quot; enchantment&quot; + (nNew == 1 ? &quot;&quot; : &quot;s&quot;) + &quot; into it beyond the common &quot;
+        + &quot;limit (&quot; + IntToString(nNew) + &quot; of &quot; + IntToString(FORGE_TOKEN_MAX_SLOTS)
+        + &quot; runes bound).&quot;, oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

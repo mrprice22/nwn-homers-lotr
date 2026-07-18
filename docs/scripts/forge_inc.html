@@ -38,10 +38,10 @@
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../quests/index.html">Quests</a>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../activity.html">Player Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
@@ -149,6 +149,51 @@ int ForgeLegalMaxValue()
 int ForgeLegalMaxProps()
 {
     return FORGE_LEGAL_MAX_PROPS + 1;
+}
+
+// ---------------------------------------------------------------------------
+// Per-item property-slot expansion tokens (roadmap: item-slot-tokens).
+//
+// A consumable &quot;Rune of Expansion&quot; (item tag SlotToken, handler slot_token.nss,
+// dispatched from dmfi_activate&#x27;s OnActivateItem branch) can be bound into ONE
+// specific item to raise the number of enchantment slots the forge will fill on
+// THAT item by +1 per rune, up to FORGE_TOKEN_MAX_SLOTS. The earned count is
+// stored as the item-local int FORGE_EXTRA_SLOTS — it persists with the item in
+// the player&#x27;s .bic exactly like FORGE_CEIL, so the entitlement is INTRINSIC to
+// the item and travels with it when traded; it cannot be earned on one item and
+// moved to another.
+//
+// FORGE_TOKEN_MAX_SLOTS is the single admin-tunable hard ceiling on how far
+// tokens may push one item above the uniform legal prop cap. With today&#x27;s values
+// a fully-runed item may bear ForgeLegalMaxProps() (7) + 3 = 10 permanent
+// enchantments. Retune here.
+//
+// Like FORGE_CEIL, an expansion stamp only ever LOOSENS the law for the item that
+// carries it, so existing FORGE_CLEAN stamps stay valid and FORGE_CLEAN_VER does
+// NOT need a bump when this ships.
+const string FORGE_EXTRA_SLOTS  = &quot;FORGE_EXTRA_SLOTS&quot;;
+const int    FORGE_TOKEN_MAX_SLOTS = 3;
+
+// Token-granted extra property slots stamped on oItem, clamped to the hard
+// ceiling (defensive against any out-of-range local).
+int ForgeItemExtraSlots(object oItem)
+{
+    int n = GetLocalInt(oItem, FORGE_EXTRA_SLOTS);
+    if (n &lt; 0) n = 0;
+    if (n &gt; FORGE_TOKEN_MAX_SLOTS) n = FORGE_TOKEN_MAX_SLOTS;
+    return n;
+}
+
+// Per-item permanent-property ceiling: the uniform legal max (ForgeLegalMaxProps,
+// incl. the top boss-tier +1 slot) plus any token-granted extra slots intrinsic
+// to the item. SINGLE SOURCE OF TRUTH for &quot;how many enchantments may THIS item
+// lawfully bear&quot; — used by BOTH the forge enforcement (modifyitem) and the
+// contraband/legality scan (ForgeItemLegality / ForgeLegalStatus / the staged
+// disenchant), so an item lawfully expanded with runes is never jailed for the
+// extra slots.
+int ForgeItemMaxProps(object oItem)
+{
+    return ForgeLegalMaxProps() + ForgeItemExtraSlots(oItem);
 }
 
 // Quoted, comma-separated list of every tracked boss resref (registry +
@@ -527,6 +572,9 @@ int ForgeRefreshAnvilContext(object oPC)
                          &amp;&amp; iMaxProps &gt;= FORGE_LEGAL_MAX_PROPS);
     if (bBossPropSlot)
         iMaxProps++;
+    // Runes of Expansion bound into THIS item raise its slot cap by +1 each
+    // (up to FORGE_TOKEN_MAX_SLOTS), so the forge will fill the extra slots.
+    iMaxProps += ForgeItemExtraSlots(oItem);
     SetLocalInt(oPC, &quot;MODIFY_MAX_PROPS&quot;, iMaxProps);
 
     // Tell the player their boss-progress bonus once per session (re-told when
@@ -758,7 +806,7 @@ int ForgeItemLegality(object oItem)
     int nStamp = GetLocalInt(oItem, FORGE_CEIL);
     if (nStamp &gt; nValueCeil)
         nValueCeil = nStamp;
-    if (ForgeCountProps(oItem) &lt;= ForgeLegalMaxProps()
+    if (ForgeCountProps(oItem) &lt;= ForgeItemMaxProps(oItem)
         &amp;&amp; nValue &lt;= nValueCeil)
         return FORGE_LEG_LEGAL;
     if (!ForgeItemDeviatesFromBlueprint(oItem))
@@ -912,17 +960,19 @@ string ForgeLegalStatus(object oItem)
     int nStamp = GetLocalInt(oItem, FORGE_CEIL);
     if (nStamp &gt; nValueCeil)
         nValueCeil = nStamp;
-    int bProps = nProps &gt; ForgeLegalMaxProps();
+    // Per-item prop ceiling honors any bound Runes of Expansion (FORGE_EXTRA_SLOTS).
+    int nMaxProps = ForgeItemMaxProps(oItem);
+    int bProps = nProps &gt; nMaxProps;
     int bValue = nValue &gt; nValueCeil;
     if (!bProps &amp;&amp; !bValue)
         return &quot;It is within the law now: &quot; + IntToString(nProps)
-            + &quot; enchantments of the &quot; + IntToString(ForgeLegalMaxProps())
+            + &quot; enchantments of the &quot; + IntToString(nMaxProps)
             + &quot; allowed, and a worth of &quot; + ForgeGold(nValue)
             + &quot; gold under the lawful &quot; + ForgeGold(nValueCeil) + &quot;.&quot;;
     string s = &quot;&quot;;
     if (bProps)
         s += &quot;It still bears &quot; + IntToString(nProps) + &quot; enchantments where the &quot;
-            + &quot;law allows but &quot; + IntToString(ForgeLegalMaxProps()) + &quot;.&quot;;
+            + &quot;law allows but &quot; + IntToString(nMaxProps) + &quot;.&quot;;
     if (bValue)
     {
         if (s != &quot;&quot;) s += &quot; And i&quot;;
@@ -1084,6 +1134,7 @@ string ForgeProjectedStatus(object oPC, object oItem)
         return &quot;I cannot weigh that piece just now.&quot;;
     int nCeil = ForgeEffectiveCeil(oPC, oItem);
     int nProps = ForgeProjectedPropCount(oPC, oItem);
+    int nMaxProps = ForgeItemMaxProps(oItem); // honors bound Runes of Expansion
     string s;
     if (!ForgeStageAnyBit(oPC))
         s = &quot;As it stands the &quot; + GetName(oItem) + &quot; is worth &quot;
@@ -1091,14 +1142,14 @@ string ForgeProjectedStatus(object oPC, object oItem)
     else
         s = &quot;With your plan struck, the &quot; + GetName(oItem) + &quot; would be worth &quot;
             + ForgeGold(nVal) + &quot; gold&quot;;
-    if (nVal &lt;= nCeil &amp;&amp; nProps &lt;= ForgeLegalMaxProps())
+    if (nVal &lt;= nCeil &amp;&amp; nProps &lt;= nMaxProps)
         return s + &quot; — within the lawful &quot; + ForgeGold(nCeil) + &quot;.&quot;;
     if (nVal &gt; nCeil)
         s += &quot;, still &quot; + ForgeGold(nVal - nCeil) + &quot; over the lawful &quot;
             + ForgeGold(nCeil);
-    if (nProps &gt; ForgeLegalMaxProps())
+    if (nProps &gt; nMaxProps)
         s += &quot;, and bears &quot; + IntToString(nProps) + &quot; enchantments where the law &quot;
-            + &quot;allows but &quot; + IntToString(ForgeLegalMaxProps());
+            + &quot;allows but &quot; + IntToString(nMaxProps);
     return s + &quot;. Strike more to bring it within the law.&quot;;
 }
 
@@ -1115,7 +1166,7 @@ int ForgeStagePlanIsLawful(object oPC, object oItem)
         return FALSE;
     if (nVal &gt; ForgeEffectiveCeil(oPC, oItem))
         return FALSE;
-    return ForgeProjectedPropCount(oPC, oItem) &lt;= ForgeLegalMaxProps();
+    return ForgeProjectedPropCount(oPC, oItem) &lt;= ForgeItemMaxProps(oItem);
 }
 
 // Prime the staged anvil disenchant menu for the CURRENT page (FORGE_STG_PAGE):

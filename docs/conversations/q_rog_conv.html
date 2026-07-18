@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Conversation q_rog_conv</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Conversation: <code>q_rog_conv</code></h1>
+<dl class="meta">
+<dt>NPC lines</dt><dd>10</dd>
+<dt>PC replies</dt><dd>7</dd>
+<dt>NumWords</dt><dd>650</dd>
+<dt>OnEnd</dt><dd><code></code></dd>
+<dt>OnAbort</dt><dd><code></code></dd>
+</dl>
+<h2>Triggered by</h2><ul class="dlg-callers">
+<li><span class="badge">creature</span> NPC <a href="../creatures/q_rog_fenn.html">Fenn the Shade</a> <code>q_rog_fenn</code></li>
+</ul>
+<h2>Scripts referenced</h2>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_rog_oath</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_tok</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_rtn</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_c_dn</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_c_s2r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_c_s2w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_c_s1r</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_c_s1w</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_rog_c_off</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/rog-shadow.html">The Long Shadow</a></td><td><code>rog_shadow</code></td><td>1, 2, 3</td></tr></tbody></table>
+<h2>Starting entries</h2><ul>
+<li><a href="#e5">entry #5</a> <small class="muted">(if <code>q_rog_c_dn</code>)</small> — *Fenn lifts his cup a hair in salute.* Into the net, and the blade to show for i…</li>
+<li><a href="#e4">entry #4</a> <small class="muted">(if <code>q_rog_c_s2r</code>)</small> — *He weighs the token in his palm and almost smiles.* Fifteen levels, and it came…</li>
+<li><a href="#e3">entry #3</a> <small class="muted">(if <code>q_rog_c_s2w</code>)</small> — *Fenn glances at where the token rides hidden on you.* Not yet. That cipher&#x27;s wa…</li>
+<li><a href="#e2">entry #2</a> <small class="muted">(if <code>q_rog_c_s1r</code>)</small> — *He turns a small black token over in his fingers, then stills.* There&#x27;s a watch…</li>
+<li><a href="#e1">entry #1</a> <small class="muted">(if <code>q_rog_c_s1w</code>)</small> — *Fenn&#x27;s eyes flick to the door and back.* Sworn, are you -- good. But the net is…</li>
+<li><a href="#e0">entry #0</a> <small class="muted">(if <code>q_rog_c_off</code>)</small> — *A hooded man in a doorway&#x27;s shadow marks you with a glance and does not look aw…</li>
+<li><a href="#e6">entry #6</a> — *The hooded man gives you the barest nod.* Well met. I keep to my corner and my …</li>
+</ul>
+<h2>Conversation flow</h2>
+<p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
+<div class="dlg-tree">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <small class="muted">(if <code>q_rog_c_dn</code>)</small> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">*Fenn lifts his cup a hair in salute.* Into the net, and the blade to show for it -- you&#x27;ve walked the first of the quiet road, and walked it clean. There are longer shadows yet, when the East and the spider&#x27;s country come calling. But that&#x27;s a tale for a darker night. Keep to the shadow, friend.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">Fare you well, Fenn.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #4</span> <small class="muted">(if <code>q_rog_c_s2r</code>)</small> <a class="dlg-anchor" href="#e4" title="jump to flat entry #4">¶</a></summary>
+<div class="dlg-text">*He weighs the token in his palm and almost smiles.* Fifteen levels, and it came home unseen -- I knew my eye. There&#x27;s good steel hidden in the core of the thing; a waste to leave it a coin. I&#x27;ve a fence two doors down who owes me a favour and asks no questions. Let him work it into a blade for you. Shall it be done?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_rog_rtn</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
+<div class="dlg-text">Work it into a blade. I&#x27;m ready.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text">*A night later the fence&#x27;s work is done: a slim, blacked blade that throws back no light.* There -- the Nightthorn. No relic of the Elder Days, mind; only patient steel for a patient hand. It won&#x27;t glint at the wrong moment. You&#x27;ve walked the first of the quiet road -- keep to the shadow, friend.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #5</span> <a class="dlg-anchor" href="#r5" title="jump to flat reply #5">¶</a></summary>
+<div class="dlg-text">Not yet. I&#x27;ll return.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #3</span> <small class="muted">(if <code>q_rog_c_s2w</code>)</small> <a class="dlg-anchor" href="#e3" title="jump to flat entry #3">¶</a></summary>
+<div class="dlg-text">*Fenn glances at where the token rides hidden on you.* Not yet. That cipher&#x27;s walked long roads and it isn&#x27;t done walking. Come back when you&#x27;ve fifteen levels behind you, and we&#x27;ll see what&#x27;s inside it.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Fare you well, Fenn.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #2</span> <small class="muted">(if <code>q_rog_c_s1r</code>)</small> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
+<div class="dlg-text">*He turns a small black token over in his fingers, then stills.* There&#x27;s a watchword the Long Shadow passes hand to hand -- a cipher only our folk can read. One of ours went quiet on the East Road and this is all that came back. *He sets it on the table between you.* Carry it unseen through the wide world -- no guard&#x27;s eye on it, no questions asked -- and bring it back to me when you&#x27;ve grown into the craft. Five levels more, to fifteen. Will you bear it?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_rog_tok</code></span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
+<div class="dlg-text">Give me the token. I&#x27;ll carry it unseen.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">*He palms the token into your pack himself, so smooth you barely feel it.* Carry it well, and carry it quiet. Steel keeps faith with the hand that never dropped it -- come back at fifteen and we&#x27;ll see it made into something with an edge.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">Later, Fenn. Keep it safe for now.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <small class="muted">(if <code>q_rog_c_s1w</code>)</small> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">*Fenn&#x27;s eyes flick to the door and back.* Sworn, are you -- good. But the net is proved in leagues walked unseen, not words. Go and ply the trade; grow sharp. Come back to me when you&#x27;ve eight levels of the rogue&#x27;s craft behind you, and I&#x27;ll trust you with something that matters.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Fare you well, Fenn.”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #0</span> <small class="muted">(if <code>q_rog_c_off</code>)</small> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
+<div class="dlg-text">*A hooded man in a doorway&#x27;s shadow marks you with a glance and does not look away.* Fenn, folk call me -- when they call me anything. I keep an eye on the road for those who&#x27;d rather the road did not notice them. There&#x27;s a net of us, quiet folk who watch the watchers -- the Long Shadow, we name it, for we count the Enemy&#x27;s spies so honest men need not. You move light on your feet. Care to swear into the net, and let me set you on the quiet road?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_rog_oath</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">I&#x27;ll keep to the shadow. I swear it.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #7</span> <a class="dlg-anchor" href="#e7" title="jump to flat entry #7">¶</a></summary>
+<div class="dlg-text">*Fenn presses a folded ash-grey cloak into your hands, quick and unshowy.* Sworn, then. The Shadowmantle -- wear it, and learn to be where no one&#x27;s looking. Go and grow sharp; come back at your eighth level and I&#x27;ll trust you with the real work.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
+<div class="dlg-text">I keep to no one&#x27;s net. Good day.</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text">*The hooded man gives you the barest nod.* Well met. I keep to my corner and my own counsel -- watching&#x27;s a quiet trade, and no business of folk who don&#x27;t share it. Go safely.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“Fare you well, Fenn.”</span></div>
+</div>
+</details>
+</div>
+<h2>NPC lines (entries) — flat index</h2>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*A hooded man in a doorway&#x27;s shadow marks you with a glance and does not look away.* Fenn, folk call me -- when they call me anything. I keep an eye on the road for those who&#x27;d rather the road did not notice them. There&#x27;s a net of us, quiet folk who watch the watchers -- the Long Shadow, we name it, for we count the Enemy&#x27;s spies so honest men need not. You move light on your feet. Care to swear into the net, and let me set you on the quiet road?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I&#x27;ll keep to the shadow. I swear it.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“I keep to no one&#x27;s net. Good day.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*Fenn&#x27;s eyes flick to the door and back.* Sworn, are you -- good. But the net is proved in leagues walked unseen, not words. Go and ply the trade; grow sharp. Come back to me when you&#x27;ve eight levels of the rogue&#x27;s craft behind you, and I&#x27;ll trust you with something that matters.</div><ul class="dlg-links"><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Fare you well, Fenn.”</span></li></ul></div>
+<div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*He turns a small black token over in his fingers, then stills.* There&#x27;s a watchword the Long Shadow passes hand to hand -- a cipher only our folk can read. One of ours went quiet on the East Road and this is all that came back. *He sets it on the table between you.* Carry it unseen through the wide world -- no guard&#x27;s eye on it, no questions asked -- and bring it back to me when you&#x27;ve grown into the craft. Five levels more, to fifteen. Will you bear it?</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Give me the token. I&#x27;ll carry it unseen.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Later, Fenn. Keep it safe for now.”</span></li></ul></div>
+<div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">*Fenn glances at where the token rides hidden on you.* Not yet. That cipher&#x27;s walked long roads and it isn&#x27;t done walking. Come back when you&#x27;ve fifteen levels behind you, and we&#x27;ll see what&#x27;s inside it.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Fare you well, Fenn.”</span></li></ul></div>
+<div class="dlg-node entry" id="e4"><div class="dlg-head"><span class="dlg-id">entry #4</span></div><div class="dlg-text">*He weighs the token in his palm and almost smiles.* Fifteen levels, and it came home unseen -- I knew my eye. There&#x27;s good steel hidden in the core of the thing; a waste to leave it a coin. I&#x27;ve a fence two doors down who owes me a favour and asks no questions. Let him work it into a blade for you. Shall it be done?</div><ul class="dlg-links"><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Work it into a blade. I&#x27;m ready.”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Not yet. I&#x27;ll return.”</span></li></ul></div>
+<div class="dlg-node entry" id="e5"><div class="dlg-head"><span class="dlg-id">entry #5</span></div><div class="dlg-text">*Fenn lifts his cup a hair in salute.* Into the net, and the blade to show for it -- you&#x27;ve walked the first of the quiet road, and walked it clean. There are longer shadows yet, when the East and the spider&#x27;s country come calling. But that&#x27;s a tale for a darker night. Keep to the shadow, friend.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Fare you well, Fenn.”</span></li></ul></div>
+<div class="dlg-node entry" id="e6"><div class="dlg-head"><span class="dlg-id">entry #6</span></div><div class="dlg-text">*The hooded man gives you the barest nod.* Well met. I keep to my corner and my own counsel -- watching&#x27;s a quiet trade, and no business of folk who don&#x27;t share it. Go safely.</div><ul class="dlg-links"><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“Fare you well, Fenn.”</span></li></ul></div>
+<div class="dlg-node entry" id="e7"><div class="dlg-head"><span class="dlg-id">entry #7</span></div><div class="dlg-text">*Fenn presses a folded ash-grey cloak into your hands, quick and unshowy.* Sworn, then. The Shadowmantle -- wear it, and learn to be where no one&#x27;s looking. Go and grow sharp; come back at your eighth level and I&#x27;ll trust you with the real work.</div></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">*He palms the token into your pack himself, so smooth you barely feel it.* Carry it well, and carry it quiet. Steel keeps faith with the hand that never dropped it -- come back at fifteen and we&#x27;ll see it made into something with an edge.</div></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">*A night later the fence&#x27;s work is done: a slim, blacked blade that throws back no light.* There -- the Nightthorn. No relic of the Elder Days, mind; only patient steel for a patient hand. It won&#x27;t glint at the wrong moment. You&#x27;ve walked the first of the quiet road -- keep to the shadow, friend.</div></div>
+<h2>PC replies — flat index</h2>
+<div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>q_rog_oath</code></span></div><div class="dlg-text">I&#x27;ll keep to the shadow. I swear it.</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“*Fenn presses a folded ash-grey cloak into your hands, quick and unshowy.* Sworn…”</span></li></ul></div>
+<div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">I keep to no one&#x27;s net. Good day.</div></div>
+<div class="dlg-node reply" id="r2"><div class="dlg-head"><span class="dlg-id">reply #2</span> <span class="dlg-action">→ <code>q_rog_tok</code></span></div><div class="dlg-text">Give me the token. I&#x27;ll carry it unseen.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“*He palms the token into your pack himself, so smooth you barely feel it.* Carry…”</span></li></ul></div>
+<div class="dlg-node reply" id="r3"><div class="dlg-head"><span class="dlg-id">reply #3</span></div><div class="dlg-text">Later, Fenn. Keep it safe for now.</div></div>
+<div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>q_rog_rtn</code></span></div><div class="dlg-text">Work it into a blade. I&#x27;m ready.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a> <span class="dlg-link-preview">“*A night later the fence&#x27;s work is done: a slim, blacked blade that throws back…”</span></li></ul></div>
+<div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Not yet. I&#x27;ll return.</div></div>
+<div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Fare you well, Fenn.</div></div>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

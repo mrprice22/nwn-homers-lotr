@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_bkg_altar</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <a href="../quests/index.html">Quests</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<a href="../manual/QuestGuide.html">Quest Guide</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_bkg_altar</code></h1><pre class="nss-source"><code>// q_bkg_altar -- the Blackguards&#x27; fall-rite (roadmap: blackguard-quest).
+// OnUsed of the torture-rack in the Keep of Barad-Dur
+// (baraddurkeep.git.json, existing placed instance 94 of plc_torture1
+// reused -- retagged BkgFallAltar, made usable; it was Static with no
+// scripts, so there is nothing to chain, and no code referenced the old
+// tag &quot;Torture Equipment&quot;). Runs the Black Oath for a PC on the rite:
+//
+//   * The oath&#x27;s condition: come to the rack bleeding (QBKG_ComesBleeding
+//     -- GetCurrentHitPoints &lt; GetMaxHitPoints, &quot;blood freely given&quot;).
+//     Come whole and the rite fails with a flavor message; nothing
+//     granted, nothing shifted. Retry allowed -- take a wound and swear
+//     again. Deterministic: the wound is the test, no dice.
+//   * Bleeding at stage 1: THIS is the fall. The rite drives the PC&#x27;s
+//     alignment hard toward evil ONCE (AdjustAlignment, ALIGNMENT_EVIL,
+//     bAllPartyMembers = FALSE so only the swearer falls), brands the
+//     black iron token into the hand, and moves stage 1 -&gt; 2 + journal 2.
+//   * At stage 2 with the brand lost, re-gives the brand but does NOT
+//     shift again (the fall already happened; never duplicates -- the item
+//     is plot + cursed and only the finish consumes it).
+//
+// Does nothing for PCs not on the rite -- to everyone else it is just the
+// Dark Tower&#x27;s cold iron.
+#include &quot;q_bkg_inc&quot;
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    int nStage = QBKG_GetStage(oPC);
+    if (nStage &lt; QBKG_STAGE_ACCEPTED || nStage &gt; QBKG_STAGE_BRAND) return;
+    if (QBKG_HasBrand(oPC)) return;
+
+    // The oath takes blood freely given, or nothing.
+    if (!QBKG_ComesBleeding(oPC))
+    {
+        FloatingTextStringOnCreature(
+            &quot;You lay a whole hand on the cold iron, and the rack gives &quot;
+            + &quot;nothing back. The Black Oath is not sworn clean-handed -- it &quot;
+            + &quot;takes blood freely given. Come to it bearing a fresh wound &quot;
+            + &quot;and swear again.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    CreateItemOnObject(QBKG_BRAND_RES, oPC, 1);
+
+    if (nStage == QBKG_STAGE_ACCEPTED)
+    {
+        // The fall -- applied exactly once, on this transition only.
+        AdjustAlignment(oPC, ALIGNMENT_EVIL, QBKG_FALL_SHIFT, FALSE);
+        QBKG_SetStage(oPC, QBKG_STAGE_BRAND);
+        AddJournalQuestEntry(QBKG_QUEST, 2, oPC, FALSE, FALSE);
+
+        FloatingTextStringOnCreature(
+            &quot;Your blood falls on the black iron, and the iron drinks it. &quot;
+            + &quot;Something in you turns and does not turn back -- the fall the &quot;
+            + &quot;Black Captain&#x27;s book is written to remember. A brand of cold &quot;
+            + &quot;iron cools in your palm. Carry it to Halmir.&quot;,
+            oPC, FALSE);
+        return;
+    }
+
+    // Stage 2, brand was lost -- re-give it, but the fall is already spent.
+    FloatingTextStringOnCreature(
+        &quot;The rack burns you another brand of cold iron -- the oath was &quot;
+        + &quot;already sworn, and asks nothing more of you. Carry it to Halmir.&quot;,
+        oPC, FALSE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

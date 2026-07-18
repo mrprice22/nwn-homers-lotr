@@ -38,10 +38,10 @@
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../quests/index.html">Quests</a>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../activity.html">Player Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
@@ -131,15 +131,17 @@ void main()
         &amp;&amp; !ForgePropMatchesExisting(oItem, ipNew))
         {
         int iProps = ForgeCountProps(oItem);
-        // Uniform legal backstop (ForgeLegalMaxProps, includes the top
-        // boss-tier +1 slot); the per-forge/per-player cap iMaxProps below is
-        // what actually limits characters who haven&#x27;t earned the extra slot.
-        if (iProps &gt;= ForgeLegalMaxProps())
+        // Uniform legal backstop (ForgeItemMaxProps = ForgeLegalMaxProps, incl.
+        // the top boss-tier +1 slot, PLUS any Runes of Expansion bound into this
+        // specific item); the per-forge/per-player cap iMaxProps below is what
+        // actually limits characters who haven&#x27;t earned the extra slots.
+        int iItemMaxProps = ForgeItemMaxProps(oItem);
+        if (iProps &gt;= iItemMaxProps)
             {
             SpeakString(&quot;No forge may bind more than &quot;
-                + IntToString(ForgeLegalMaxProps()) + &quot; enchantments into one &quot;
-                + &quot;piece — that is the limit of the law. Have me strike one from &quot;
-                + &quot;it first.&quot;);
+                + IntToString(iItemMaxProps) + &quot; enchantments into one &quot;
+                + &quot;piece — that is the limit of the law for this item. Have me &quot;
+                + &quot;strike one from it first.&quot;);
             return;
             }
         if (iMaxProps &gt; 0 &amp;&amp; iProps &gt;= iMaxProps)

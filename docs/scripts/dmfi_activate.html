@@ -38,10 +38,10 @@
       <a href="../conversations/index.html">Conversations</a>
       <a href="../factions.html">Factions</a>
       <a href="../quests/index.html">Quests</a>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
-<a href="../activity.html">Player Activity</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../manual/Customizations.html">Customizations</a>
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <a href="../manual/QuestGuide.html">Quest Guide</a>
@@ -137,6 +137,16 @@ void main()
       // Sound the Horn of the Fell Beast: summon the crypt companion
       // (per-character, once per real hour). See horn_summon.nss.
       ExecuteScript(&quot;horn_summon&quot;, oActivator);
+      return;
+   }
+   if(GetTag(oItem)==&quot;SlotToken&quot;)
+   {
+      // Rune of Expansion: bind +1 forge property slot into the TARGETED item.
+      // Pass the rune and its target to slot_token.nss (the OnActivateItem
+      // event getters are only valid here). See forge_inc.nss FORGE_EXTRA_SLOTS.
+      SetLocalObject(oActivator, &quot;SLOT_TOKEN_ITEM&quot;, oItem);
+      SetLocalObject(oActivator, &quot;SLOT_TOKEN_TARGET&quot;, GetItemActivatedTarget());
+      ExecuteScript(&quot;slot_token&quot;, oActivator);
       return;
    }
     //object oItem=GetItemActivated();
