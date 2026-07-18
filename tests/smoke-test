@@ -62,4 +62,12 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: manual nav menus…"
+if python3 "$HERE/check_manual_menus.py"; then
+  echo "ok: manual nav menus"
+else
+  echo "fail: manual nav menus"
+  rc=1
+fi
+
 exit $rc

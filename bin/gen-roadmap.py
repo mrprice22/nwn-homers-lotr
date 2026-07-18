@@ -571,7 +571,7 @@ def build_html(data: dict) -> str:
   <!-- Literal '&' is intentional: the wiki build re-extracts this <title> via
        regex and HTML-escapes it; pre-escaping here would double-escape. -->
   <!-- @menu 'Activity' -->
-  <!-- @order 1 -->
+  <!-- @order 0 -->
   <!-- The wiki build regex-scans the raw file text for these directives to
        decide which nav dropdown the page lands in (Activity, not the default
        Documents). They MUST live in this template: this whole file is
