@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-18 06:45 CDT"
+  as_of: "2026-07-18 08:43 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -2637,20 +2637,28 @@ ideas:
       - step: "Place waypoint AP_fighterlineearly_1 in theprancingpo001. Hallas is script-spawn-only and the scripts no-op gracefully until then, so the line is unreachable without it."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT the Active-field fix specifically: confirm the swear-oath, receive-shard and reforge replies are now selectable (they were hidden before commit 01b242056d0)."
         status: open
+        step_h: 64
       - step: "UAT gating: a Fighter sees Hallas's oath offer; a non-fighter gets only the flavour line."
         status: open
+        step_h: 64
       - step: "UAT node 1: accept -> journal ftr_shield opens + the fighter-restricted Warden's Buckler."
         status: open
+        step_h: 64
       - step: "UAT level gates: the L8 and L15 gates hold (below-level shows a 'come back at N' line)."
         status: open
+        step_h: 64
       - step: "UAT nodes 2-3: at L8 the shard is granted; at L15 it is consumed and the Reforged Blade granted; journal advances 1->2->3(End)."
         status: open
+        step_h: 64
       - step: "UAT restrictions: buckler and blade are unusable by non-fighters."
         status: open
+        step_h: 64
       - step: "UAT regression: the Prancing Pony leash and the Harper-contact spawn (Della) still fire from the wrapped OnEnter."
         status: open
+        step_h: 64
 
   - id: fighter-line-mid
     title: "Fighter line II — The Unbroken Shield (L22-38)"
@@ -2824,22 +2832,30 @@ ideas:
     commit: 522abd5e0b4
     notes: "<div><b>The Flame of Anor</b> — the first three chapters (L1, L8, L15) of the Cleric class line. Aldamir, Keeper of the Flame, tends the Secret Fire in the Temple of Illúvatar and calls only those who serve: the <b>Acolyte's Censer-Amulet</b> at L1, the Reliquary of the Kindled Ember at L8, and the <b>Mace of the Kindled Flame</b> at L15. Details: <a href=\"QuestGuide.html#flame-of-anor\">Quest Guide → The Flame of Anor</a>.</div>"
     impl_notes: "<div>Journal category clr_anor (@group 'Class Lines' @order 6). Giver q_clr_keep, plot/immortal, in templeofilluvata; offer gated on GetLevelByClass(CLASS_TYPE_CLERIC) &gt;= 1 (value 2 verified), non-clerics get a flavour blessing. Cloned from the clean wizard-line-early template (q_clr_* names).</div><div><br></div><div>Three-node one-off arc; per-character state in the clrlinedb campaign DB (key flame_stage 0-&gt;3, advance-only). Reward properties use verified stock encodings (Use-Limitation:Class subtype 2 = Cleric, confirmed against 42 existing cleric-restricted items).</div><div><br></div><div>Temple OnEnter wrapped q_clr_enter (chains the existing leash_to_area) -&gt; q_clr_spawn; conversation q_clr_conv. DLG follows the reply-gate rule (action scripts only in target Script fields, verified no action script in any Active block). Build passed all gates. No capstone built — deferred to cleric-line-mid/later.</div>"
+    impl_notes_h: 210
     manual_steps:
       - step: "Place waypoint AP_clericlineearly_1 in templeofilluvata. Aldamir is script-spawn-only and no-ops gracefully until then."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT gating: a Cleric in the Temple sees Aldamir's offer; a non-cleric gets only the flavour blessing."
         status: open
+        step_h: 64
       - step: "UAT node 1: accept -> journal clr_anor opens + the cleric-restricted Censer-Amulet."
         status: open
+        step_h: 64
       - step: "UAT level gates: L8 and L15 gates hold."
         status: open
+        step_h: 64
       - step: "UAT nodes 2-3: at L8 the reliquary is granted; at L15 it is consumed and the Mace granted; journal advances 1->2->3(End)."
         status: open
+        step_h: 64
       - step: "UAT restrictions: amulet and mace are unusable by non-clerics."
         status: open
+        step_h: 64
       - step: "UAT regression: the Temple leash still fires from the wrapped OnEnter."
         status: open
+        step_h: 64
 
   - id: cleric-line-mid
     title: "Cleric line II — Flame of Anor (L22-38)"
