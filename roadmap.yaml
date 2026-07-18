@@ -1637,16 +1637,30 @@ ideas:
   - id: p000-duplicate-ferny-journal
     title: "Legacy p000 plot fires a duplicate Bill Ferny journal track"
     group: quests-areas
-    status: confirmed
+    status: implemented
     type: Defect
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<div>A leftover journal track from the original ported campaign runs in parallel with the custom Ferny's Ring quest chain, so a player can end up with two journal entries covering the same plot. One of the two needs to be retired.</div>"
-    impl_notes: "<div>Audit 2026-07-11: the ported-campaign p000 journal category (struct 0) is still wired — p000c001ondeath.nss and the p000q001-005 scripts — alongside the custom 'Ferny's Ring' chain.</div>"
+    date: "2026-07-18"
+    commit: f58f865d4fb
+    notes: "<div>Tidied up the quest journal around Bree: a leftover placeholder quest from the module's original imported campaign was sitting alongside the Bill Ferny quests and could make the Ferny plot look like it ran twice. It has been retired from the quest list. The two real Bree quests are unaffected — <b>Ferny's Ring</b> and <b>Ferny's Return</b> are separate quests and both play exactly as before. See <a href=\"QuestGuide.html#ferny-s-ring\">Ferny's Ring</a>.</div>"
+    impl_notes: "<div><b>Root cause:</b> journal category p000 is the stock BioWare plot-wizard template 'Assassination (no proof required)' (entries are TLK strrefs 8621/3726/3729, literal [Villain]/[Plot Giver] text) left over from the ported campaign. Its Comment carried @group 'Lord of the Rings', so the wiki rendered it beside Ferny's Ring and Ferny's Return and it read as a duplicate Ferny track.</div><div><br></div><div><b>Proved dead before changing anything:</b> the only AddJournalQuestEntry(\"p000\") in the module is p000c001ondeath.nss, wired as ScriptDeath on nw_bandit030 (tag ct_Villain_AsnNP); the plot giver is nw_innkeeper023 (tag ct_PlotGiver_AsnNP, conversation p000c000ct_plotg). Neither resref nor tag appears in any .git.json or .ute.json; both are listed in module-index/unspawned_creatures.json. So the track could never fire in-game — the defect was wiki presentation, not gameplay.</div><div><br></div><div><b>Change:</b> single edit to unpacked/module.jrl.json, category index 0 — Comment @group 'Lord of the Rings' replaced with @hidden plus a builder note. Suppress-not-delete per CLAUDE.md; category, entries and all p000* scripts/blueprints remain, so revert is one line.</div><div><br></div><div><b>Not duplicates:</b> 'Ferny's Ring' (journal driven from ferny_convo2.dlg.json) and 'ferny_return' (driven from q_fret_start/bribe/death/end.nss) are distinct quests — ring recovery vs. the later Sharkey impostor — and neither references p000. Both untouched.</div><div><br></div><div><b>Gates:</b> bare nwn-manager repack, 7/7 smoke tests green (incl. dialog integrity, boss registry, spawn-leash, manual nav menus).</div>"
     design_questions:
       - question: "Retire the legacy p000 journal category, or retire the custom 'Ferny's Ring' category? Both cover the same plot and one has to go."
         status: open
-        answer: null
+        answer: "Neither — the premise was wrong. The two Ferny quests are distinct (Ring = cave/ring/ambush; Return = the later impostor plot) and both stay. The thing to retire was journal category p000, a stock BioWare plot-wizard template whose creatures are placed nowhere, so it could never fire; it is now @hidden. Flip to answered to confirm."
+    manual_steps:
+      - step: "UAT: after the next wiki refresh, confirm the Quests index no longer lists 'Assassination (no proof required)' (tag p000) under Lord of the Rings, and that docs/quests/p000.html is gone."
+        status: open
+        step_h: 64
+      - step: "UAT: on a character mid-way through Ferny's Ring, confirm the journal still shows Ferny's Ring entries 1-4 normally and no placeholder [Villain]/[Plot Giver] entry appears."
+        status: open
+        step_h: 64
+      - step: "UAT: run Ferny's Return (Guardian of Bree -> impostor in Ferny's house -> report back) and confirm entries 1-3 still fire and it closes out; it shares the group heading that was edited."
+        status: open
+        step_h: 64
+      - step: "Optional cleanup, not required for this fix: the unreachable p000 content (nw_innkeeper023, nw_bandit030, p000c000ct_plotg.dlg, p000*.nss) can be deleted from unpacked/ if you want the leftovers gone rather than just hidden."
+        status: open
+        step_h: 64
 
   # ---- Quest infrastructure (build first; unblocks many) -------------------
   - id: quest-cooldown-lib
