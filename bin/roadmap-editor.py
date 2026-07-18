@@ -885,6 +885,21 @@ PAGE = r"""<!doctype html>
                border:1px solid #6b5e2c; }
   .hint { color:var(--warn); font-size:12px; margin-top:3px; min-height:14px; }
   .small { color:var(--mut); font-size:12px; }
+
+  /* Admin hand-off panel (design_questions / manual_steps) — internal only. */
+  .ho-panel { border:1px solid var(--line); border-radius:6px; padding:10px;
+    margin-top:12px; }
+  .ho-head { font-weight:600; margin-bottom:8px; }
+  .ho-item { border:1px solid var(--line); border-radius:5px; padding:6px;
+    margin-bottom:6px; }
+  .ho-item.ho-open { border-left:3px solid var(--warn); }
+  .ho-item.ho-done { opacity:0.72; }
+  .ho-row { display:flex; gap:6px; align-items:flex-start; }
+  .ho-row textarea { flex:1; }
+  .ho-del { flex:0 0 auto; line-height:1; padding:4px 8px; }
+  .ho-badge { display:inline-block; padding:0 6px; border-radius:999px;
+    border:1px solid var(--line); font-size:11px; font-weight:600; }
+  .ho-gate { color:var(--warn); margin-top:6px; }
   .filters { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
   .filters select { padding:5px 7px; font-size:12px; }
   .filters .full { grid-column:1 / -1; }
@@ -1272,6 +1287,7 @@ function select(i){
       <div id="f_notes_rich" contenteditable="true"></div>
       <textarea id="f_notes_html" style="display:none"></textarea>
     </div>
+    <div id="handoff"></div>
     <div class="bar">
       <button class="primary" id="save">Save</button>
       <button id="regen">Save &amp; regenerate HTML</button>
@@ -1288,6 +1304,7 @@ function select(i){
     <div id="merit_ingame"></div>`;
   bindPlayerHint();
   initNotes(it);
+  initHandoff(it);
   renderMerit(it.player||'');
   renderMeritIngame(it.player||'');
   $('#f_player').addEventListener('input', e=>{
@@ -1601,13 +1618,96 @@ function bindPlayerHint(){
   inp.oninput = check; check();
 }
 
+// ---- Admin hand-off panel: design_questions + manual_steps -----------------
+// These are the admin's to-do surface (the retired admin-action-required.md).
+// They are internal: never rendered on the public board, edited only here.
+let HO = {design_questions: [], manual_steps: []};
+
+function initHandoff(it){
+  HO = {
+    design_questions: (it.design_questions||[]).map(q=>({
+      question: q.question||'', status: q.status||'open', answer: q.answer??null})),
+    manual_steps: (it.manual_steps||[]).slice(),
+  };
+  renderHandoff();
+}
+
+function renderHandoff(){
+  const el = $('#handoff'); if(!el) return;
+  const open = HO.design_questions.filter(q=>q.status==='open').length;
+  const qs = HO.design_questions.map((q,i)=>`
+    <div class="ho-item ${q.status==='open'?'ho-open':'ho-done'}">
+      <div class="ho-row">
+        <select class="ho-qs" data-i="${i}">
+          <option value="open"${q.status==='open'?' selected':''}>Open</option>
+          <option value="answered"${q.status==='answered'?' selected':''}>Answered</option>
+        </select>
+        <button type="button" class="ho-del" data-kind="q" data-i="${i}"
+                title="Delete this question">&times;</button>
+      </div>
+      <textarea class="ho-qt" data-i="${i}" rows="2"
+                placeholder="The blocking question">${esc(q.question)}</textarea>
+      <textarea class="ho-qa" data-i="${i}" rows="2"
+                placeholder="Your answer (fill in, then set Answered)">${esc(q.answer||'')}</textarea>
+    </div>`).join('');
+  const ms = HO.manual_steps.map((s,i)=>`
+    <div class="ho-item">
+      <div class="ho-row">
+        <button type="button" class="ho-del" data-kind="s" data-i="${i}"
+                title="Done — remove this step">&check;</button>
+        <textarea class="ho-st" data-i="${i}" rows="2">${esc(s)}</textarea>
+      </div>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="ho-panel">
+      <div class="ho-head">Admin hand-off <span class="small">(internal — never shown
+        on the public roadmap)</span></div>
+      <label>Design questions ${open?`<span class="ho-badge">${open} open</span>`:''}</label>
+      ${qs||'<p class="small">None.</p>'}
+      <button type="button" id="ho_addq">+ Add question</button>
+      <label style="margin-top:10px">Manual steps
+        ${HO.manual_steps.length?`<span class="ho-badge">${HO.manual_steps.length}</span>`:''}</label>
+      ${ms||'<p class="small">None.</p>'}
+      <button type="button" id="ho_adds">+ Add step</button>
+      ${open?`<p class="small ho-gate">Autopilot will not resume this item until every
+        question is Answered.</p>`:''}
+    </div>`;
+  $('#ho_addq').onclick = ()=>{
+    HO.design_questions.push({question:'', status:'open', answer:null}); renderHandoff(); };
+  $('#ho_adds').onclick = ()=>{ HO.manual_steps.push(''); renderHandoff(); };
+  el.querySelectorAll('.ho-qs').forEach(s=>s.onchange = e=>{
+    HO.design_questions[+e.target.dataset.i].status = e.target.value; renderHandoff(); });
+  // Mutate in place on input; do NOT re-render (it would steal focus mid-typing).
+  el.querySelectorAll('.ho-qt').forEach(t=>t.oninput = e=>{
+    HO.design_questions[+e.target.dataset.i].question = e.target.value; });
+  el.querySelectorAll('.ho-qa').forEach(t=>t.oninput = e=>{
+    HO.design_questions[+e.target.dataset.i].answer = e.target.value; });
+  el.querySelectorAll('.ho-st').forEach(t=>t.oninput = e=>{
+    HO.manual_steps[+e.target.dataset.i] = e.target.value; });
+  el.querySelectorAll('.ho-del').forEach(b=>b.onclick = e=>{
+    const i = +e.target.dataset.i;
+    if(e.target.dataset.kind==='q') HO.design_questions.splice(i,1);
+    else HO.manual_steps.splice(i,1);
+    renderHandoff(); });
+}
+
+// Drop blanks so an empty row never trips validation, and normalize answer.
+function handoffOut(){
+  const qs = HO.design_questions
+    .filter(q=>(q.question||'').trim())
+    .map(q=>({question:q.question.trim(), status:q.status,
+              answer:(q.answer||'').trim()||null}));
+  const ms = HO.manual_steps.map(s=>s.trim()).filter(Boolean);
+  return {design_questions: qs.length?qs:null, manual_steps: ms.length?ms:null};
+}
+
 function readForm(){
   // Canonical notes = the active view's content; keep the views in sync first.
   const rich=$('#f_notes_rich'), html=$('#f_notes_html');
   const raw = notesTab==='html' ? html.value : rich.innerHTML;
   const notes = normalizeNotes(raw);
   const notes_h = Math.round(notesVisibleEl().offsetHeight);
-  const cur = DATA.ideas[sel];
+  const ho = handoffOut();
   return {
     id: $('#f_id').value.trim(),
     title: $('#f_title').value.trim(),
@@ -1620,10 +1720,9 @@ function readForm(){
     notes: notes,
     notes_h: (notes && notes_h && notes_h!==NOTES_DEFAULT_H) ? notes_h : '',
     dupe_of: $('#f_dupe').value,
-    // Internal admin-only fields: no form inputs, carried through verbatim so
-    // a GUI save never drops them (they are answered/cleared by hand in YAML).
-    design_questions: cur?.design_questions ?? null,
-    manual_steps: cur?.manual_steps ?? null,
+    // Internal admin-only fields, edited in the hand-off panel below Notes.
+    design_questions: ho.design_questions,
+    manual_steps: ho.manual_steps,
   };
 }
 
