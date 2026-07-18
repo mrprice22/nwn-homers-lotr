@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8">
   <title>Quest Guide</title>
+  <!-- @menu 'Quests' -->
+  <!-- @order 1 -->
+  <!-- The wiki build regex-scans the raw file text for these directives: they
+       put this page in the "Quests" nav dropdown alongside Journal Entries,
+       instead of the default Documents dropdown. -->
   <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
@@ -70,17 +75,6 @@
       margin-bottom: 0.8em;
     }
     .quest-meta span { white-space: nowrap; }
-    .status-badge {
-      display: inline-block;
-      border-radius: 3px;
-      padding: 0.1em 0.55em;
-      font-size: 0.8em;
-      font-weight: bold;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-    .status-ok  { background: rgba(40,160,80,0.15);  color: #28a050; border: 1px solid rgba(40,160,80,0.3); }
-    .status-dev { background: rgba(100,100,200,0.12); color: #6060c8; border: 1px solid rgba(100,100,200,0.25); }
 
     .journal-entries {
       border-left: 3px solid var(--border);
@@ -136,46 +130,72 @@
       <h2>Contents</h2>
       <ol>
         <li><a href="#quest-table">All Quests at a Glance</a></li>
-        <li><a href="#active">Active Quests</a>
+        <li><a href="#low">Low-Level Quests</a>
           <ol>
             <li><a href="#fernys-ring">Bill Ferny's Ring</a></li>
             <li><a href="#fernys-return">Ferny's Return</a></li>
             <li><a href="#millers-son">The Miller's Son</a></li>
             <li><a href="#millers-other-son">The Miller's Other Son</a></li>
+          </ol>
+        </li>
+        <li><a href="#mid">Mid-Level Quests</a>
+          <ol>
+            <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
+            <li><a href="#glorfindel">Glorfindel's Curative</a></li>
+            <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
+            <li><a href="#elrond">Elrond's Request</a></li>
+          </ol>
+        </li>
+        <li><a href="#high">High-Level Quests</a>
+          <ol>
+            <li><a href="#annuminas">Ruin of Annuminas</a></li>
+            <li><a href="#well-of-souls">The Well of Souls</a></li>
+            <li><a href="#gloison">Gloison's Heirloom</a></li>
+            <li><a href="#paths-of-the-dead">Paths of the Dead</a></li>
+          </ol>
+        </li>
+        <li><a href="#legendary">Legendary Quests</a>
+        </li>
+        <li><a href="#recurring">Recurring Quests</a>
+          <ol>
             <li><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></li>
             <li><a href="#hobbit-post">Hobbit Post</a></li>
             <li><a href="#spider-silk-harvest">Spider Silk Harvest</a></li>
             <li><a href="#riddle-game">The Riddle Game</a></li>
             <li><a href="#concerning-hobbits">Concerning Hobbits</a></li>
+            <li><a href="#pass-the-pass">Pass the Pass</a></li>
+            <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
+            <li><a href="#beorns-garden">Beorn's Garden</a></li>
+            <li><a href="#kallrist-tiger">Kallrist Tiger Hunt</a></li>
+          </ol>
+        </li>
+        <li><a href="#class-lines">Class Quest Lines</a>
+          <ol>
             <li><a href="#unbroken-shield">The Unbroken Shield &mdash; Fighter line I</a></li>
             <li><a href="#long-shadow">The Long Shadow &mdash; Rogue line I</a></li>
             <li><a href="#colour-of-power">The Colour of Power &mdash; Wizard line I</a></li>
             <li><a href="#flame-of-anor">The Flame of Anor &mdash; Cleric line I</a></li>
-            <li><a href="#pass-the-pass">Pass the Pass</a></li>
-            <li><a href="#sowing-discord">Sowing Discord in Bree</a></li>
-            <li><a href="#beorns-garden">Beorn's Garden</a></li>
-            <li><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></li>
-            <li><a href="#feeding-tharbad">Feeding Tharbad</a></li>
-            <li><a href="#elrond">Elrond's Request</a></li>
-            <li><a href="#annuminas">Ruin of Annuminas</a></li>
-            <li><a href="#well-of-souls">The Well of Souls</a></li>
-            <li><a href="#gloison">Gloison's Heirloom</a></li>
-            <li><a href="#kallrist-tiger">Kallrist Tiger Hunt</a></li>
-            <li><a href="#paths-of-the-dead">Paths of the Dead</a></li>
-            <li><a href="#glorfindel">Glorfindel's Curative</a></li>
+          </ol>
+        </li>
+        <li><a href="#prestige">Prestige Order Trials</a>
+          <ol>
             <li><a href="#prestige-hub">Prestige-Order Hub (Halmir the Grey)</a></li>
-            <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout)</a></li>
-            <li><a href="#knight-west">The Banner of the West (Knight of Westernesse)</a></li>
-            <li><a href="#pale-master">The Twenty-First Tomb (Pale Master)</a></li>
-            <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer)</a></li>
-            <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer)</a></li>
-            <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple)</a></li>
-            <li><a href="#assassin">The Quiet Knives (Assassin)</a></li>
-            <li><a href="#weapon-master">The Sworn Blade (Weapon Master)</a></li>
-            <li><a href="#divine-champion">The Shield of Others (Divine Champion)</a></li>
-            <li><a href="#dwarven-defender">The Unbroken Stone (Dwarven Defender)</a></li>
-            <li><a href="#shifter">The Second Skin (Shifter)</a></li>
-            <li><a href="#blackguard">The Fall (Blackguard)</a></li>
+            <li><a href="#harper-scout">The Cipher in the Inn (Harper Scout initiation)</a></li>
+            <li><a href="#knight-west">The Banner of the West (Knight of Westernesse initiation)</a></li>
+            <li><a href="#pale-master">The Twenty-First Tomb (Pale Master initiation)</a></li>
+            <li><a href="#shadowdancer">The Unlit Deep (Shadowdancer initiation)</a></li>
+            <li><a href="#arcane-archer">The Warden's Mark (Arcane Archer initiation)</a></li>
+            <li><a href="#red-dragon">The Old Wyrm's Fire (Red Dragon Disciple initiation)</a></li>
+            <li><a href="#assassin">The Quiet Knives (Assassin initiation)</a></li>
+            <li><a href="#weapon-master">The Sworn Blade (Weapon Master initiation)</a></li>
+            <li><a href="#divine-champion">The Shield of Others (Divine Champion initiation)</a></li>
+            <li><a href="#dwarven-defender">The Unbroken Stone (Dwarven Defender initiation)</a></li>
+            <li><a href="#shifter">The Second Skin (Shifter initiation)</a></li>
+            <li><a href="#blackguard">The Fall (Blackguard initiation)</a></li>
+          </ol>
+        </li>
+        <li><a href="#always">Always Available</a>
+          <ol>
             <li><a href="#server-info">Server Info Journals</a></li>
           </ol>
         </li>
@@ -195,11 +215,11 @@
 and what you walk away with. Start with the summary table below, then jump to any quest's card for the
 full walkthrough.</p>
 
-<div class="tip-box">
-  <p><strong>Reading the badges.</strong>
-  <span class="status-badge status-ok">Working</span> means the quest is live and playable right now.
-  <span class="status-badge status-dev">In Development</span> means the content is scaffolded but not
-  yet finished — you may see the journal category without anything to do in it yet.</p>
+<div class="warning-box">
+  <p><strong>A note on what's finished.</strong> Everything listed here is live in the module, but a
+  few quests are still being polished and one or two may not be fully implemented yet. Anything
+  outstanding is tracked publicly on the
+  <a href="../manual/Roadmap.html#roadmap-manual">Roadmap, under <strong>Needs Manual Finishing</strong></a>.</p>
   <p><strong>Daily and weekly quests</strong> reset on the real-world clock at midnight UTC (weeklies at
   Monday 00:00 UTC). Every repeatable quest-giver will quote you the exact time remaining if you come
   back early, so you never have to guess.</p>
@@ -216,49 +236,49 @@ full walkthrough.</p>
 <div class="table-scroll">
 <table class="data summary-table">
   <thead>
-    <tr><th>Quest</th><th>Level</th><th>Giver</th><th>Where</th><th>Reward</th><th>Status</th></tr>
+    <tr><th>Quest</th><th>Level</th><th>Giver</th><th>Where</th><th>Reward</th></tr>
   </thead>
   <tbody>
-    <tr><td><a href="#fernys-ring">Bill Ferny's Ring</a></td><td>1–10</td><td>Bill Ferny</td><td>Bree</td><td>500 XP + 200 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#fernys-return">Ferny's Return</a></td><td>~3</td><td>Guardian of Bree</td><td>Bree</td><td>250 XP + 200 gp + Ferny's Filching Gloves</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#millers-son">The Miller's Son</a></td><td>1–10</td><td>Han the Bree Miller</td><td>Bree</td><td>450 XP</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#millers-other-son">The Miller's Other Son</a></td><td>~8</td><td>Han the Bree Miller</td><td>Bree</td><td>500 XP + 500 gp + Magic Bag</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></td><td>any <em>(daily)</em></td><td>Rigrin</td><td>Whitfurrow Inn</td><td>25 gp + Frogmorton Pint</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#hobbit-post">Hobbit Post</a></td><td>any <em>(daily)</em></td><td>Posco Whitfoot</td><td>Hobbiton</td><td>60–100 gp + 50 XP</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#spider-silk-harvest">Spider Silk Harvest</a></td><td>12+ <em>(daily)</em></td><td>Thranduil</td><td>Thranduil's Hall, Mirkwood</td><td>600 XP + 300 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#riddle-game">The Riddle Game</a></td><td>any <em>(weekly)</em></td><td>the Whispering Wretch</td><td>Bree Cave</td><td>250 XP + 100–300 gp + a trinket</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#concerning-hobbits">Concerning Hobbits</a></td><td>5+ <em>(daily)</em></td><td>Odo Proudfoot</td><td>Hobbiton</td><td>100 XP + 40–100 gp + pipe-weed</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#unbroken-shield">The Unbroken Shield</a> <em>(Fighter I)</em></td><td>1 / 8 / 15</td><td>Hallas the Shieldwarden</td><td>Prancing Pony, Bree</td><td>Warden's Buckler, then the Warden's Reforged Blade</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#long-shadow">The Long Shadow</a> <em>(Rogue I)</em></td><td>1 / 8 / 15</td><td>Fenn the Shade</td><td>Prancing Pony, Bree</td><td>Shadowmantle, then the Nightthorn</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#colour-of-power">The Colour of Power</a> <em>(Wizard I)</em></td><td>1 / 8 / 15</td><td>Findegil the Grey</td><td>Bag End, the Shire</td><td>Apprentice's Amulet, then the Staff of the Grey Study</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#flame-of-anor">The Flame of Anor</a> <em>(Cleric I)</em></td><td>1 / 8 / 15</td><td>Aldamir, Keeper of the Flame</td><td>Temple of Illuvatar</td><td>Acolyte's Censer-Amulet, then the Mace of the Kindled Flame</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#pass-the-pass">Pass the Pass</a></td><td>10+ <em>(daily)</em></td><td>Baldor the Caravan-Master</td><td>Foothills of the Misty Mountains</td><td>150–450 XP + 200–600 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#sowing-discord">Sowing Discord in Bree</a></td><td>15+ <em>(daily, non-Good)</em></td><td>Bill Ferny</td><td>Bree market</td><td>500 XP + 500–800 gp; Morgul-Weave Cloak once</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#beorns-garden">Beorn's Garden</a></td><td>12+ <em>(daily)</em></td><td>Grimbeorn the Old</td><td>Beorn's homestead</td><td>700 XP + 250–450 gp + Beorn's Honeycomb</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></td><td>18+</td><td>Frár the Restless</td><td>Chamber of Records, Moria</td><td>2,000 XP + 1,200 gp + Seal of the Twentieth</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#feeding-tharbad">Feeding Tharbad</a></td><td>5–15</td><td>Temple of Ilúvatar cleric</td><td>Tharbad</td><td>500 XP + Book of the Cora</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#elrond">Elrond's Request</a></td><td>15–30</td><td>Elrond</td><td>Rivendell</td><td>2,000 XP + Elrond's Writ</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#annuminas">Ruin of Annuminas</a></td><td>25+</td><td>Hanee the Loon</td><td>Bree</td><td>5,000 XP</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#well-of-souls">The Well of Souls</a></td><td>30–45</td><td>the Gondor Scribe</td><td>Tower of the High Wizard</td><td>10,000 XP + Annuminas Key</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#gloison">Gloison's Heirloom</a></td><td>high</td><td>Gloin, King Under the Mountain</td><td>Erebor</td><td>5,000 XP + 15,000 gp</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#kallrist-tiger">Kallrist Tiger Hunt</a></td><td>10–20 <em>(repeatable)</em></td><td>Sald</td><td>Kallrist Island</td><td>200 gp per tiger heart</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#paths-of-the-dead">Paths of the Dead</a></td><td>end-game</td><td>Aragorn</td><td>Gates of Minas Tirith</td><td>Andúril, Flame of the West</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#glorfindel">Glorfindel's Curative</a></td><td>mid</td><td>Glorfindel</td><td>Rivendell</td><td>1,700 XP + Bracers of Glorfindel</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#prestige-hub">Prestige-Order Hub</a></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru</td><td>opens the twelve order trials below</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#harper-scout">The Cipher in the Inn</a> <em>(Harper Scout)</em></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru → Prancing Pony</td><td>750 XP + Harper Pin</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#knight-west">The Banner of the West</a> <em>(Knight of Westernesse)</em></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith</td><td>750 XP + Banner of the West</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#pale-master">The Twenty-First Tomb</a> <em>(Pale Master)</em></td><td>11+</td><td>Halmir the Grey</td><td>Well of Eru → Bree Crypt</td><td>1,000 XP + Talisman of the Twenty-First Tomb</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#shadowdancer">The Unlit Deep</a> <em>(Shadowdancer)</em></td><td>11+</td><td>Halmir the Grey</td><td>Well of Eru → Balin's Tomb</td><td>1,000 XP + Boots of the Unlit Road</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#arcane-archer">The Warden's Mark</a> <em>(Arcane Archer)</em></td><td>12+</td><td>Halmir the Grey</td><td>Well of Eru → Rivendell</td><td>1,000 XP + Bracers of the Grey Fletching</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#red-dragon">The Old Wyrm's Fire</a> <em>(Red Dragon Disciple)</em></td><td>12+</td><td>Halmir the Grey</td><td>Well of Eru → Lonely Mountain</td><td>1,000 XP + Wyrmblood Amulet</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#assassin">The Quiet Knives</a> <em>(Assassin)</em></td><td>13+</td><td>Halmir the Grey</td><td>Well of Eru → Bree</td><td>1,000 XP + Gloves of the Quiet Hand</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#weapon-master">The Sworn Blade</a> <em>(Weapon Master)</em></td><td>13+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith</td><td>1,000 XP + Buckle of the Sworn Blade</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#divine-champion">The Shield of Others</a> <em>(Divine Champion)</em></td><td>14+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith temple</td><td>1,000 XP + Mantle of the Westward Vow</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#dwarven-defender">The Unbroken Stone</a> <em>(Dwarven Defender)</em></td><td>14+ <em>(dwarves)</em></td><td>Halmir the Grey</td><td>Well of Eru → Balin's Tomb</td><td>1,000 XP + Warhelm of Durin's Watch</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#shifter">The Second Skin</a> <em>(Shifter)</em></td><td>16+</td><td>Halmir the Grey</td><td>Well of Eru → Beorn's steading</td><td>1,000 XP + Charm of the Carrock</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#blackguard">The Fall</a> <em>(Blackguard)</em></td><td>14+</td><td>Halmir the Grey</td><td>Well of Eru → Barad-Dûr</td><td>1,000 XP + Sigil of the Fallen</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#server-info">Server Info Journals</a></td><td>any</td><td>automatic on login</td><td>—</td><td>server rules and reference entries</td><td><span class="status-badge status-ok">Working</span></td></tr>
-    <tr><td><a href="#path-of-meaning">The Path of Meaning</a> <em>(MeaningWave)</em></td><td>any</td><td>seven guides</td><td>across Middle-earth</td><td>5,500 XP total + the mixtape</td><td><span class="status-badge status-ok">Working</span></td></tr>
+    <tr><td><a href="#fernys-ring">Bill Ferny's Ring</a></td><td>1–10</td><td>Bill Ferny</td><td>Bree</td><td>500 XP + 200 gp</td></tr>
+    <tr><td><a href="#fernys-return">Ferny's Return</a></td><td>~3</td><td>Guardian of Bree</td><td>Bree</td><td>250 XP + 200 gp + Ferny's Filching Gloves</td></tr>
+    <tr><td><a href="#millers-son">The Miller's Son</a></td><td>1–10</td><td>Han the Bree Miller</td><td>Bree</td><td>450 XP</td></tr>
+    <tr><td><a href="#millers-other-son">The Miller's Other Son</a></td><td>~8</td><td>Han the Bree Miller</td><td>Bree</td><td>500 XP + 500 gp + Magic Bag</td></tr>
+    <tr><td><a href="#last-drop-frogmorton">The Last Drop at Frogmorton Inn</a></td><td>any <em>(daily)</em></td><td>Rigrin</td><td>Whitfurrow Inn</td><td>25 gp + Frogmorton Pint</td></tr>
+    <tr><td><a href="#hobbit-post">Hobbit Post</a></td><td>any <em>(daily)</em></td><td>Posco Whitfoot</td><td>Hobbiton</td><td>60–100 gp + 50 XP</td></tr>
+    <tr><td><a href="#spider-silk-harvest">Spider Silk Harvest</a></td><td>12+ <em>(daily)</em></td><td>Thranduil</td><td>Thranduil's Hall, Mirkwood</td><td>600 XP + 300 gp</td></tr>
+    <tr><td><a href="#riddle-game">The Riddle Game</a></td><td>any <em>(weekly)</em></td><td>the Whispering Wretch</td><td>Bree Cave</td><td>250 XP + 100–300 gp + a trinket</td></tr>
+    <tr><td><a href="#concerning-hobbits">Concerning Hobbits</a></td><td>5+ <em>(daily)</em></td><td>Odo Proudfoot</td><td>Hobbiton</td><td>100 XP + 40–100 gp + pipe-weed</td></tr>
+    <tr><td><a href="#unbroken-shield">The Unbroken Shield</a> <em>(Fighter I)</em></td><td>1 / 8 / 15</td><td>Hallas the Shieldwarden</td><td>Prancing Pony, Bree</td><td>Warden's Buckler, then the Warden's Reforged Blade</td></tr>
+    <tr><td><a href="#long-shadow">The Long Shadow</a> <em>(Rogue I)</em></td><td>1 / 8 / 15</td><td>Fenn the Shade</td><td>Prancing Pony, Bree</td><td>Shadowmantle, then the Nightthorn</td></tr>
+    <tr><td><a href="#colour-of-power">The Colour of Power</a> <em>(Wizard I)</em></td><td>1 / 8 / 15</td><td>Findegil the Grey</td><td>Bag End, the Shire</td><td>Apprentice's Amulet, then the Staff of the Grey Study</td></tr>
+    <tr><td><a href="#flame-of-anor">The Flame of Anor</a> <em>(Cleric I)</em></td><td>1 / 8 / 15</td><td>Aldamir, Keeper of the Flame</td><td>Temple of Illuvatar</td><td>Acolyte's Censer-Amulet, then the Mace of the Kindled Flame</td></tr>
+    <tr><td><a href="#pass-the-pass">Pass the Pass</a></td><td>10+ <em>(daily)</em></td><td>Baldor the Caravan-Master</td><td>Foothills of the Misty Mountains</td><td>150–450 XP + 200–600 gp</td></tr>
+    <tr><td><a href="#sowing-discord">Sowing Discord in Bree</a></td><td>15+ <em>(daily, non-Good)</em></td><td>Bill Ferny</td><td>Bree market</td><td>500 XP + 500–800 gp; Morgul-Weave Cloak once</td></tr>
+    <tr><td><a href="#beorns-garden">Beorn's Garden</a></td><td>12+ <em>(daily)</em></td><td>Grimbeorn the Old</td><td>Beorn's homestead</td><td>700 XP + 250–450 gp + Beorn's Honeycomb</td></tr>
+    <tr><td><a href="#twentieth-plot">The Twentieth Plot of Mazarbul</a></td><td>18+</td><td>Frár the Restless</td><td>Chamber of Records, Moria</td><td>2,000 XP + 1,200 gp + Seal of the Twentieth</td></tr>
+    <tr><td><a href="#feeding-tharbad">Feeding Tharbad</a></td><td>5–15</td><td>Temple of Ilúvatar cleric</td><td>Tharbad</td><td>500 XP + Book of the Cora</td></tr>
+    <tr><td><a href="#elrond">Elrond's Request</a></td><td>15–30</td><td>Elrond</td><td>Rivendell</td><td>2,000 XP + Elrond's Writ</td></tr>
+    <tr><td><a href="#annuminas">Ruin of Annuminas</a></td><td>25+</td><td>Hanee the Loon</td><td>Bree</td><td>5,000 XP</td></tr>
+    <tr><td><a href="#well-of-souls">The Well of Souls</a></td><td>30–45</td><td>the Gondor Scribe</td><td>Tower of the High Wizard</td><td>10,000 XP + Annuminas Key</td></tr>
+    <tr><td><a href="#gloison">Gloison's Heirloom</a></td><td>high</td><td>Gloin, King Under the Mountain</td><td>Erebor</td><td>5,000 XP + 15,000 gp</td></tr>
+    <tr><td><a href="#kallrist-tiger">Kallrist Tiger Hunt</a></td><td>10–20 <em>(repeatable)</em></td><td>Sald</td><td>Kallrist Island</td><td>200 gp per tiger heart</td></tr>
+    <tr><td><a href="#paths-of-the-dead">Paths of the Dead</a></td><td>end-game</td><td>Aragorn</td><td>Gates of Minas Tirith</td><td>Andúril, Flame of the West</td></tr>
+    <tr><td><a href="#glorfindel">Glorfindel's Curative</a></td><td>mid</td><td>Glorfindel</td><td>Rivendell</td><td>1,700 XP + Bracers of Glorfindel</td></tr>
+    <tr><td><a href="#prestige-hub">Prestige-Order Hub</a></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru</td><td>opens the twelve order trials below</td></tr>
+    <tr><td><a href="#harper-scout">The Cipher in the Inn</a> <em>(Harper Scout)</em></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru → Prancing Pony</td><td>750 XP + Harper Pin</td></tr>
+    <tr><td><a href="#knight-west">The Banner of the West</a> <em>(Knight of Westernesse)</em></td><td>6+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith</td><td>750 XP + Banner of the West</td></tr>
+    <tr><td><a href="#pale-master">The Twenty-First Tomb</a> <em>(Pale Master)</em></td><td>11+</td><td>Halmir the Grey</td><td>Well of Eru → Bree Crypt</td><td>1,000 XP + Talisman of the Twenty-First Tomb</td></tr>
+    <tr><td><a href="#shadowdancer">The Unlit Deep</a> <em>(Shadowdancer)</em></td><td>11+</td><td>Halmir the Grey</td><td>Well of Eru → Balin's Tomb</td><td>1,000 XP + Boots of the Unlit Road</td></tr>
+    <tr><td><a href="#arcane-archer">The Warden's Mark</a> <em>(Arcane Archer)</em></td><td>12+</td><td>Halmir the Grey</td><td>Well of Eru → Rivendell</td><td>1,000 XP + Bracers of the Grey Fletching</td></tr>
+    <tr><td><a href="#red-dragon">The Old Wyrm's Fire</a> <em>(Red Dragon Disciple)</em></td><td>12+</td><td>Halmir the Grey</td><td>Well of Eru → Lonely Mountain</td><td>1,000 XP + Wyrmblood Amulet</td></tr>
+    <tr><td><a href="#assassin">The Quiet Knives</a> <em>(Assassin)</em></td><td>13+</td><td>Halmir the Grey</td><td>Well of Eru → Bree</td><td>1,000 XP + Gloves of the Quiet Hand</td></tr>
+    <tr><td><a href="#weapon-master">The Sworn Blade</a> <em>(Weapon Master)</em></td><td>13+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith</td><td>1,000 XP + Buckle of the Sworn Blade</td></tr>
+    <tr><td><a href="#divine-champion">The Shield of Others</a> <em>(Divine Champion)</em></td><td>14+</td><td>Halmir the Grey</td><td>Well of Eru → Minas Tirith temple</td><td>1,000 XP + Mantle of the Westward Vow</td></tr>
+    <tr><td><a href="#dwarven-defender">The Unbroken Stone</a> <em>(Dwarven Defender)</em></td><td>14+ <em>(dwarves)</em></td><td>Halmir the Grey</td><td>Well of Eru → Balin's Tomb</td><td>1,000 XP + Warhelm of Durin's Watch</td></tr>
+    <tr><td><a href="#shifter">The Second Skin</a> <em>(Shifter)</em></td><td>16+</td><td>Halmir the Grey</td><td>Well of Eru → Beorn's steading</td><td>1,000 XP + Charm of the Carrock</td></tr>
+    <tr><td><a href="#blackguard">The Fall</a> <em>(Blackguard)</em></td><td>14+</td><td>Halmir the Grey</td><td>Well of Eru → Barad-Dûr</td><td>1,000 XP + Sigil of the Fallen</td></tr>
+    <tr><td><a href="#server-info">Server Info Journals</a></td><td>any</td><td>automatic on login</td><td>—</td><td>server rules and reference entries</td></tr>
+    <tr><td><a href="#path-of-meaning">The Path of Meaning</a> <em>(MeaningWave)</em></td><td>any</td><td>seven guides</td><td>across Middle-earth</td><td>5,500 XP total + the mixtape</td></tr>
   </tbody>
 </table>
 </div>
@@ -266,14 +286,14 @@ full walkthrough.</p>
 <hr>
 
 <!-- ============================================================ -->
-<div class="section-header" id="active">
-  <h2>Active Quests</h2>
-  <p class="sub">Quests that can be started and completed by players today.</p>
+<div class="section-header" id="low">
+  <h2>Low-Level Quests</h2>
+  <p class="sub">One-off adventures for characters finding their feet.</p>
 </div>
 
 <!-- FERNY'S RING -->
 <div class="quest-card" id="fernys-ring">
-  <h3>Bill Ferny's Ring <span class="status-badge status-ok">Working</span></h3>
+  <h3>Bill Ferny's Ring</h3>
   <div class="quest-meta">
     <span>Giver: Bill Ferny, Bree</span>
     <span>Level range: 1–10</span>
@@ -313,7 +333,7 @@ full walkthrough.</p>
 
 <!-- FERNY'S RETURN -->
 <div class="quest-card" id="fernys-return">
-  <h3>Ferny's Return <span class="status-badge status-ok">Working</span></h3>
+  <h3>Ferny's Return</h3>
   <div class="quest-meta">
     <span>Giver: Guardian of Bree, Bree</span>
     <span>Level range: ~3 (one-off)</span>
@@ -349,7 +369,7 @@ full walkthrough.</p>
 
 <!-- MILLER'S SON -->
 <div class="quest-card" id="millers-son">
-  <h3>The Miller's Son <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Miller's Son</h3>
   <div class="quest-meta">
     <span>Giver: Han the Bree Miller, Bree</span>
     <span>Level range: 1–10</span>
@@ -380,7 +400,7 @@ full walkthrough.</p>
 
 <!-- MILLER'S OTHER SON -->
 <div class="quest-card" id="millers-other-son">
-  <h3>The Miller's Other Son <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Miller's Other Son</h3>
   <div class="quest-meta">
     <span>Giver: Han the Bree Miller, Bree</span>
     <span>Level range: ~8 (one-off)</span>
@@ -416,9 +436,270 @@ full walkthrough.</p>
   </ol>
 </div>
 
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="mid">
+  <h2>Mid-Level Quests</h2>
+  <p class="sub">Longer journeys for seasoned adventurers.</p>
+</div>
+
+<!-- FEEDING THARBAD -->
+<div class="quest-card" id="feeding-tharbad">
+  <h3>Feeding Tharbad</h3>
+  <div class="quest-meta">
+    <span>Giver: Temple of Ilúvatar cleric, Tharbad</span>
+    <span>Level range: 5–15</span>
+    <span>Reward: 500&nbsp;XP + <em>Book of the Cora</em></span>
+  </div>
+  <p>The Temple of Ilúvatar in Tharbad is struggling to feed hungry refugees at the bridge. They ask you to
+  purchase venison from a local store and hand it out to 20 refugees at the bridge.</p>
+
+  <strong>How to start:</strong> Speak to the <strong>Temple of Ilúvatar cleric</strong> in Tharbad.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Agree to help.</li>
+    <li>Buy venison from the general store.</li>
+    <li>Travel to <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> and feed 20 refugees.</li>
+    <li>Return to the cleric — 500 XP and the Book of the Cora awarded.</li>
+  </ol>
+
+  <strong>Journal entries:</strong>
+  <ol class="journal-entries">
+    <li>You agreed to help the Temple feed hungry refugees at Tharbad Bridge — buy venison and feed 20 people.</li>
+    <li>The refugees will not go hungry tonight. You gave selflessly for a noble cause.</li>
+  </ol>
+</div>
+
+<!-- GLORFINDEL'S CURATIVE -->
+<div class="quest-card" id="glorfindel">
+  <h3>Glorfindel's Curative</h3>
+  <div class="quest-meta">
+    <span>Giver: Glorfindel, <a href="../areas/rivendell.html">Rivendell</a></span>
+    <span>Level range: mid</span>
+    <span>Reward: 1,700&nbsp;XP + <em>Bracers of Glorfindel</em></span>
+  </div>
+  <p>Glorfindel of Rivendell asks you to gather the ingredients for a curative: <em>Athelas</em> from the
+  foothills of the Misty Mountains, a graveside token from the <strong>Statue of Arathorn</strong> headstone in
+  the Barrow Downs, and drake essence from the Caves of the Carrock.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Glorfindel</strong> in <a href="../areas/rivendell.html">Rivendell</a>.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the task.</li>
+    <li>Gather the three ingredients across the Misty-Mountain foothills, the Barrow Downs, and the Caves of the Carrock.</li>
+    <li>Return to Glorfindel for 1,700 XP and the <em>Bracers of Glorfindel</em>.</li>
+  </ol>
+
+  <p>Full write-up: <a href="../quests/glorfindel-potion.html">Glorfindel's Curative</a>.</p>
+</div>
+
+<!-- THE TWENTIETH PLOT OF MAZARBUL -->
+<div class="quest-card" id="twentieth-plot">
+  <h3>The Twentieth Plot of Mazarbul</h3>
+  <div class="quest-meta">
+    <span>Giver: Frár the Restless, a shade of Balin's colony, in the <a href="../areas/chamberofrecords.html">Chamber of Records</a> (Moria)</span>
+    <span>Level range: 18+ (one-off)</span>
+    <span>Reward: 1200 gp + 2000 XP + <em>Seal of the Twentieth</em> (Damage Reduction +1/Soak 5, Damage Resistance: Negative 10/-)</span>
+  </div>
+  <p>A hidden codicil to the Book of Mazarbul names twenty burial plots whose seal-fires keep the
+  dead of Moria at rest. Nineteen were lit before the colony fell — the twentieth never was, and
+  what lies beneath it does not lie still. Frár, a restless dwarf-shade among the toppled
+  record-stones, asks you to finish his colony's last labor: <strong>light the three crypt-seal
+  braziers</strong> (one in the Chamber of Records, two in Balin's Tomb), then <strong>destroy the
+  wraith</strong> that rises to smother the third flame.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Frár the Restless</strong> in the Chamber of
+  Records; level 18+ required, once per character (one-off — the seal, once set, holds).<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept Frár's charge — the journal opens and the seal-braziers will take your flame.</li>
+    <li>Use each of the three Crypt-Seal Braziers once (per-character, persistent — floaty text
+      counts "N of 3"; each lighting also grants a short ward against grave-chill, Negative
+      resist 5/- for 5 minutes).</li>
+    <li>The third brazier raises the <strong>Wraith of the Twentieth Plot</strong> (CR 21).
+      Destroy it — the killing blow's party credits every party member in the area who is at the
+      wraith stage. If the wraith is slain while you are absent (or you fall and return), stir any
+      brazier's flame to re-summon it, so the fight can always be re-staged.</li>
+    <li>Return to Frár: 1200 gp, 2000 XP and the <em>Seal of the Twentieth</em>. The quest closes
+      for good.</li>
+  </ol>
+</div>
+
+<!-- ELROND'S REQUEST -->
+<div class="quest-card" id="elrond">
+  <h3>Elrond's Request</h3>
+  <div class="quest-meta">
+    <span>Giver: Elrond, Rivendell</span>
+    <span>Level range: 15–30</span>
+    <span>Reward: 2,000&nbsp;XP + <em>Elrond's Writ</em></span>
+  </div>
+  <p>Elrond of <a href="../areas/rivendell.html">Rivendell</a> charges you with two tasks: break the Uruk-hai siege of the
+  Troll Halls and retrieve the <strong>Helm of Azog the Warlord</strong>, then venture into Moria and find
+  evidence of Balin's Expedition (the <strong>Dwarf Head</strong>). This is the module's main mid-game quest chain.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Elrond</strong> in <a href="../areas/rivendell.html">Rivendell</a> and accept
+  both tasks.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Kill <strong>Azog the Warlord</strong> (CR 14) in the <a href="../areas/theangmarmountai.html">Angmar Mountain</a> area and loot the <em>Helm of the Warlord</em>.</li>
+    <li>Push into <a href="../areas/balinstomb.html">Balin's Tomb</a> in Moria and retrieve the <em>Dwarf Head</em> (evidence of Balin's expedition).</li>
+    <li>Return to Elrond with both items in your party's inventory.</li>
+    <li>Agree to accept your reward — both items are consumed, and you gain 2,000 XP and
+      <em>Elrond's Writ</em>.</li>
+  </ol>
+
+  <strong>Journal entries:</strong>
+  <ol class="journal-entries">
+    <li>Elrond has given you two tasks: break the Uruk-hai siege of the Trollshaws and bring the Helm of Azog; venture into Moria and find sign of Balin's Expedition.</li>
+    <li>Both tasks are complete. You now have a new place to call home.</li>
+  </ol>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="high">
+  <h2>High-Level Quests</h2>
+  <p class="sub">The great deeds, for characters at the height of their power.</p>
+</div>
+
+<!-- RUIN OF ANNUMINAS -->
+<div class="quest-card" id="annuminas">
+  <h3>Ruin of Annuminas</h3>
+  <div class="quest-meta">
+    <span>Giver: Hanee the Loon, an old woman in <a href="../areas/bree.html">Bree</a></span>
+    <span>Level range: 25+</span>
+    <span>Reward: 5,000&nbsp;XP (bring Azagoth's Head back to Hanee)</span>
+  </div>
+  <p>An old woman in Bree tells you to seek out the Ruins of Annuminas, an ancient Dúnedain realm to the
+  north. This is the first stage of a two-part arc: kill <strong>Azagoth</strong> in the ruins, bring
+  his head back to Hanee for <strong>5,000&nbsp;XP</strong> (she doesn't take it — she gleefully points you
+  to the wizards in Gondor), then deliver the head to the <a href="#well-of-souls">Gondor Scribe</a> in the
+  Tower of the High Wizard for a further <strong>10,000&nbsp;XP</strong>.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Hanee the Loon</strong> in Bree.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Hear Hanee out and head north to the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a>.</li>
+    <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) and loot <em>Azagoth's Head</em>.</li>
+    <li>Return to Hanee with the head still in hand for 5,000 XP — then carry it on to
+      <a href="#well-of-souls">The Well of Souls</a>.</li>
+  </ol>
+</div>
+
+<!-- WELL OF SOULS -->
+<div class="quest-card" id="well-of-souls">
+  <h3>The Well of Souls</h3>
+  <div class="quest-meta">
+    <span>Giver: the Gondor Scribe, Tower of the High Wizard: Ground Floor</span>
+    <span>Level range: 30–45</span>
+    <span>Reward: 10,000&nbsp;XP + <em>Annuminas Key</em></span>
+  </div>
+  <p>The Gondor Scribe asks you to face <strong>Azagoth</strong>, who threatens to open the Well of
+  Souls — kill Azagoth in the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> (not Moria!)
+  and bring back his head to prove the deed is done. This is the second stage of the
+  <a href="#annuminas">Ruin of Annuminas</a> arc.</p>
+
+  <strong>How to play:</strong>
+  <ol>
+    <li><strong>Hanee the Loon</strong> in <a href="../areas/bree.html">Bree</a> points you north to the
+    <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a>.</li>
+    <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) in the Ruins of Annuminas and loot <em>Azagoth's Head</em>.</li>
+    <li>Return to Hanee for an intermediate <strong>5,000&nbsp;XP</strong>; she keeps you holding the head and
+    points you to the Gondor wizards.</li>
+    <li>Take the head to the <strong>Gondor Scribe</strong> in the Tower of the High Wizard: Ground Floor —
+    she consumes the head and awards <strong>10,000&nbsp;XP</strong> and the <em>Annuminas Key</em>.</li>
+    <li><em>Alternate start:</em> talk to the scribe <em>without</em> the head and she offers the quest directly
+    (with the key up front), then kill Azagoth and return for the turn-in.</li>
+  </ol>
+
+  <div class="tip-box">
+    <p>Take the scribe's offer <em>before</em> heading north if you want the Annuminas Key in hand for
+    the locked chests in the ruins. On the Hanee-first route you reach them before the key exists —
+    they can still be picked.</p>
+  </div>
+
+  <strong>Journal entries:</strong>
+  <ol class="journal-entries">
+    <li>You agreed to face Azagoth and stop his entry into the Well of Souls. May fate guide your steps.</li>
+    <li>Azagoth is dead and the Well of Souls is safe. Time for a drink at the Prancing Pony.</li>
+  </ol>
+</div>
+
+<!-- GLOISON -->
+<div class="quest-card" id="gloison">
+  <h3>Gloison's Heirloom</h3>
+  <div class="quest-meta">
+    <span>Giver: Gloin King Under the Mountain, Erebor (Lonely Mountain: Main Hall)</span>
+    <span>Level range: high (Gerrey is CR 17)</span>
+    <span>Reward: 5,000&nbsp;XP + 15,000&nbsp;gp</span>
+  </div>
+  <p>Glóin asks you to recover his kinsman Gloisin's family heirloom — a coat of arms stolen by the brigand
+  <strong>Gerrey Halliams</strong>, who fled to the <a href="../areas/theruinsofdale.html">Ruins of Dale</a>.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Gloin</strong> in Erebor and accept the task.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept the task from Gloin.</li>
+    <li>Travel to the Ruins of Dale and kill <strong>Gerrey Halliams</strong> (CR 17). He carries
+      <em>Gloison's Coat of Arms</em> as droppable loot.</li>
+    <li>Return to Gloin holding the heirloom — the turn-in only appears while you have it. He takes
+      it and pays 5,000 XP + 15,000 gp.</li>
+  </ol>
+</div>
+
+<!-- PATHS OF THE DEAD -->
+<div class="quest-card" id="paths-of-the-dead">
+  <h3>Paths of the Dead</h3>
+  <div class="quest-meta">
+    <span>Giver: Aragorn, at the gates of Minas Tirith</span>
+    <span>Level range: high (end-game)</span>
+    <span>Reward: <em>Andúril, Flame of the West</em></span>
+  </div>
+  <p>Aragorn summons you to walk the <strong>Paths of the Dead</strong>: rouse the Oathbreakers under the mountain,
+  hold to the oath sworn of old, and turn the tide against the Witch-king. A full five-stage quest chain and the
+  module's marquee reward — a copy of Andúril.</p>
+
+  <strong>How to start:</strong> Speak to <strong>Aragorn</strong> at the gates of Minas Tirith.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li>Accept Aragorn's charge.</li>
+    <li>Seek the <strong>King of the Dead</strong> in the Dimholt / Dunharrow.</li>
+    <li>Fight through the Oathbreaker trials.</li>
+    <li>Claim the reward — <em>Andúril, Flame of the West</em>.</li>
+    <li>The chain completes back at Dunharrow.</li>
+  </ol>
+
+  <p>Full write-up: <a href="../quests/paths-of-the-dead.html">Paths of the Dead</a>.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="legendary">
+  <h2>Legendary Quests</h2>
+  <p class="sub">Nothing here yet &mdash; legendary-tier quest lines are on the <a href="../manual/Roadmap.html">Roadmap</a>.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="recurring">
+  <h2>Recurring Quests</h2>
+  <p class="sub">Daily, weekly and repeatable work. Every giver will quote you the time remaining if you come back early.</p>
+</div>
+
 <!-- THE LAST DROP AT FROGMORTON INN -->
 <div class="quest-card" id="last-drop-frogmorton">
-  <h3>The Last Drop at Frogmorton Inn <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Last Drop at Frogmorton Inn</h3>
   <div class="quest-meta">
     <span>Giver: Rigrin, the <a href="../areas/whitfurrowinn.html">Whitfurrow Inn</a></span>
     <span>Level range: any (daily, pure social)</span>
@@ -452,7 +733,7 @@ full walkthrough.</p>
 
 <!-- HOBBIT POST -->
 <div class="quest-card" id="hobbit-post">
-  <h3>Hobbit Post <span class="status-badge status-ok">Working</span></h3>
+  <h3>Hobbit Post</h3>
   <div class="quest-meta">
     <span>Giver: Posco Whitfoot, post-master, <a href="../areas/shirehobbiton001.html">Hobbiton</a></span>
     <span>Level range: all levels (daily, no combat)</span>
@@ -490,7 +771,7 @@ full walkthrough.</p>
 
 <!-- SPIDER SILK HARVEST -->
 <div class="quest-card" id="spider-silk-harvest">
-  <h3>Spider Silk Harvest <span class="status-badge status-ok">Working</span></h3>
+  <h3>Spider Silk Harvest</h3>
   <div class="quest-meta">
     <span>Giver: Thranduil, King of Eryn Lasgalen, <a href="../areas/thranduilshall.html">Thranduil's Hall</a> (through the <a href="../areas/woodoflegolas.html">Wood of Legolas</a>, off <a href="../areas/mirkwoodnorth.html">Mirkwood: North</a>)</span>
     <span>Level range: 12+ (daily kill-collect)</span>
@@ -530,7 +811,7 @@ full walkthrough.</p>
 
 <!-- THE RIDDLE GAME -->
 <div class="quest-card" id="riddle-game">
-  <h3>The Riddle Game <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Riddle Game</h3>
   <div class="quest-meta">
     <span>Giver: the Whispering Wretch, <a href="../areas/breecave.html">Bree Cave</a> (down the cave mouth off <a href="../areas/bree.html">Bree</a>)</span>
     <span>Level range: any (weekly dialogue minigame — no combat)</span>
@@ -566,7 +847,7 @@ full walkthrough.</p>
 
 <!-- CONCERNING HOBBITS -->
 <div class="quest-card" id="concerning-hobbits">
-  <h3>Concerning Hobbits <span class="status-badge status-ok">Working</span></h3>
+  <h3>Concerning Hobbits</h3>
   <div class="quest-meta">
     <span>Giver: Odo Proudfoot, <a href="../areas/shirehobbiton001.html">Hobbiton</a></span>
     <span>Level range: 5+ (daily dialogue trivia — no combat)</span>
@@ -602,147 +883,9 @@ full walkthrough.</p>
   the day is only spent when the fifth answer lands.</p>
 </div>
 
-<!-- THE UNBROKEN SHIELD — FIGHTER LINE I -->
-<div class="quest-card" id="unbroken-shield">
-  <h3>The Unbroken Shield &mdash; Fighter line I <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Hallas the Shieldwarden, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
-    <span>Requires: 1+ Fighter level (non-fighters get only a flavour greeting)</span>
-    <span>Reward: Warden's Buckler (small shield +1, Fighter-only) at the oath, and the
-      Warden's Reforged Blade (longsword +2, Fighter-only) at the end</span>
-  </div>
-  <p>The first, early chunk of the <strong>Fighter class line</strong>. Hallas the Shieldwarden, a grey
-  veteran of Gondor's Guard who keeps a corner of the Prancing Pony, offers any fighter the old
-  <strong>oath of the Unbroken Shield</strong> &mdash; to hold the line when it would break, and to
-  stand for those who cannot. The arc is a one-off, three-node progression gated by level: swear the
-  oath at level&nbsp;1, take up a fallen captain's broken blade at level&nbsp;8, and bring it back to be
-  reforged whole at level&nbsp;15. (The heroic finale &mdash; the Aeglos Reborn spear and the Osgiliath
-  wave-defence &mdash; is later-tier content, not part of this early line.)</p>
-
-  <strong>How to start:</strong> Speak to <strong>Hallas the Shieldwarden</strong> in the Prancing Pony
-  as a character with at least one Fighter level, and swear the oath.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li><strong>Node 1 (level 1):</strong> Swear the oath — the journal opens and you receive the
-      <em>Warden's Buckler</em> (+1 AC, Fighter-only). Hallas sends you off to grow to level&nbsp;8.</li>
-    <li><strong>Node 2 (level 8):</strong> Return; Hallas entrusts you with the <em>Notched Captain's
-      Shard</em> to bear until level&nbsp;15.</li>
-    <li><strong>Node 3 (level 15):</strong> Bring the shard back; his smith reforges it into the
-      <em>Warden's Reforged Blade</em> (longsword +2, Fighter-only) and the quest closes. The line's
-      later, harder oaths are foreshadowed for a future chunk.</li>
-  </ol>
-
-  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
-</div>
-
-<!-- THE LONG SHADOW — ROGUE LINE I -->
-<div class="quest-card" id="long-shadow">
-  <h3>The Long Shadow &mdash; Rogue line I <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Fenn the Shade, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
-    <span>Requires: 1+ Rogue level (non-rogues get only a flavour greeting)</span>
-    <span>Reward: Shadowmantle (cloak +1 AC, Rogue-only) at the oath, and the Nightthorn
-      (short sword +2, Rogue-only) at the end</span>
-  </div>
-  <p>The first, early chunk of the <strong>Rogue class line</strong>. Fenn the Shade, a hooded Bree-lander
-  who watches the Prancing Pony's doorways, runs <strong>the Long Shadow</strong> &mdash; a quiet net of
-  thieves and watchers who count the Enemy's spies so honest folk need not. He offers any rogue a place in
-  the net. The arc is a one-off, three-node progression gated by level: swear into the net at level&nbsp;1,
-  take up a cipher-token to carry unseen at level&nbsp;8, and bring it home to be worked into a blade at
-  level&nbsp;15. (The capstone &mdash; Shelob's lair, Cirith Ungol and the twin blades &mdash; is
-  later-tier content, not part of this early line.)</p>
-
-  <strong>How to start:</strong> Speak to <strong>Fenn the Shade</strong> in the Prancing Pony as a
-  character with at least one Rogue level, and swear into the net.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li><strong>Node 1 (level 1):</strong> Swear into the net — the journal opens and you receive the
-      <em>Shadowmantle</em> (cloak +1 AC, Rogue-only). Fenn sends you off to grow to level&nbsp;8.</li>
-    <li><strong>Node 2 (level 8):</strong> Return; Fenn entrusts you with the <em>Long Shadow
-      Cipher-Token</em> to carry unseen until level&nbsp;15.</li>
-    <li><strong>Node 3 (level 15):</strong> Bring the token back; his fence works its hidden steel core
-      into the <em>Nightthorn</em> (short sword +2, Rogue-only) and the quest closes. The line's longer
-      shadows are foreshadowed for a future chunk.</li>
-  </ol>
-
-  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
-</div>
-
-<!-- THE COLOUR OF POWER — WIZARD LINE I -->
-<div class="quest-card" id="colour-of-power">
-  <h3>The Colour of Power &mdash; Wizard line I <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Findegil the Grey, <a href="../areas/bagend001.html">Bag End</a> (the Shire)</span>
-    <span>Requires: 1+ Wizard level (non-wizards get only a flavour greeting)</span>
-    <span>Reward: Apprentice's Amulet (+1 INT, Wizard-only) at the start, and the Staff of the
-      Grey Study (+2 / +1 INT quarterstaff, Wizard-only) at the end</span>
-  </div>
-  <p>The first, early chunk of the <strong>Wizard class line</strong>. Findegil the Grey, a grey-robed
-  loremaster who keeps a quiet study by the hearth of Bag End, teaches the deep lore few trouble to learn
-  truly &mdash; <strong>the Colour of Power</strong>, by which the Istari came to wear their hues. He offers
-  any wizard the study. The arc is a one-off, three-node progression gated by level: take up the study at
-  level&nbsp;1, receive the Loremaster's Tome to carry and study abroad at level&nbsp;8, and bring it home
-  to be bound into a staff at level&nbsp;15. (The actual choice of Colour &mdash; White, Brown or the Many
-  Colours &mdash; and its caster-level capstone is <em>endgame</em> content, foreshadowed here but not part
-  of this early line.)</p>
-
-  <strong>How to start:</strong> Speak to <strong>Findegil the Grey</strong> in Bag End as a
-  character with at least one Wizard level, and take up the study.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li><strong>Node 1 (level 1):</strong> Take up the study — the journal opens and you receive the
-      <em>Apprentice's Amulet</em> (+1 INT, Wizard-only). Findegil sends you off to grow to level&nbsp;8.</li>
-    <li><strong>Node 2 (level 8):</strong> Return; Findegil entrusts you with the <em>Loremaster's Tome
-      of the Grey Study</em> to carry and study until level&nbsp;15.</li>
-    <li><strong>Node 3 (level 15):</strong> Bring the tome back; he binds its lore into the <em>Staff of
-      the Grey Study</em> (+2 / +1 INT quarterstaff, Wizard-only) and the quest closes. The choice of
-      Colour is foreshadowed for the endgame chunk.</li>
-  </ol>
-
-  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
-</div>
-
-<!-- THE FLAME OF ANOR — CLERIC LINE I -->
-<div class="quest-card" id="flame-of-anor">
-  <h3>The Flame of Anor &mdash; Cleric line I <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Aldamir, Keeper of the Flame, <a href="../areas/templeofilluvata.html">Temple of Illuvatar</a></span>
-    <span>Requires: 1+ Cleric level (non-clerics get only a flavour blessing)</span>
-    <span>Reward: Acolyte's Censer-Amulet (+1 WIS, Cleric-only) at the start, and the Mace of the
-      Kindled Flame (+2 / +1 WIS light mace, Cleric-only) at the end</span>
-  </div>
-  <p>The first, early chunk of the <strong>Cleric class line</strong>. Aldamir, Keeper of the Flame, tends
-  the Secret Fire in the Temple of Illuvatar &mdash; <strong>the Flame of Anor</strong>, a splinter of the
-  sacred fire the faithful set against the Shadow. He offers any cleric its tending. The arc is a one-off,
-  three-node progression gated by level: take up the tending at level&nbsp;1, receive the Reliquary of the
-  Kindled Ember to keep and carry abroad at level&nbsp;8, and bring it home to be kindled into a mace at
-  level&nbsp;15. (The greater consecrations &mdash; the aura of Narya and gifts beyond it &mdash; are
-  <em>later</em> content, foreshadowed here but not part of this early line.)</p>
-
-  <strong>How to start:</strong> Speak to <strong>Aldamir, Keeper of the Flame</strong> in the Temple of
-  Illuvatar as a character with at least one Cleric level, and take up the tending.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li><strong>Node 1 (level 1):</strong> Take up the tending — the journal opens and you receive the
-      <em>Acolyte's Censer-Amulet</em> (+1 WIS, Cleric-only). Aldamir sends you off to grow to
-      level&nbsp;8.</li>
-    <li><strong>Node 2 (level 8):</strong> Return; Aldamir entrusts you with the <em>Reliquary of the
-      Kindled Ember</em> to keep and carry until level&nbsp;15.</li>
-    <li><strong>Node 3 (level 15):</strong> Bring the reliquary back; he kindles its ember into the
-      <em>Mace of the Kindled Flame</em> (+2 / +1 WIS light mace, Cleric-only) and the quest closes. The
-      greater consecrations are foreshadowed for a later chunk.</li>
-  </ol>
-
-  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
-</div>
-
 <!-- PASS THE PASS -->
 <div class="quest-card" id="pass-the-pass">
-  <h3>Pass the Pass <span class="status-badge status-ok">Working</span></h3>
+  <h3>Pass the Pass</h3>
   <div class="quest-meta">
     <span>Giver: Baldor the Caravan-Master, <a href="../areas/foothillsofthemi.html">Foothills of the Misty Mountains</a> (western foot of the High Pass)</span>
     <span>Turn-in: Wilrun the Quartermaster, <a href="../areas/mistymountainsb.html">The Misty Mountains</a> (eastern waystation)</span>
@@ -778,7 +921,7 @@ full walkthrough.</p>
 
 <!-- SOWING DISCORD IN BREE -->
 <div class="quest-card" id="sowing-discord">
-  <h3>Sowing Discord in Bree <span class="status-badge status-ok">Working</span></h3>
+  <h3>Sowing Discord in Bree</h3>
   <div class="quest-meta">
     <span>Giver: Bill Ferny, <a href="../areas/bree.html">Bree</a> (the market — same Ferny as his ring quest)</span>
     <span>Level range: 15+ (daily; not offered to Good-aligned characters)</span>
@@ -817,7 +960,7 @@ full walkthrough.</p>
 
 <!-- BEORN'S GARDEN -->
 <div class="quest-card" id="beorns-garden">
-  <h3>Beorn's Garden <span class="status-badge status-ok">Working</span></h3>
+  <h3>Beorn's Garden</h3>
   <div class="quest-meta">
     <span>Giver: Grimbeorn the Old, Lord of the Beornings, at <a href="../areas/beorn.html">Beorn</a>'s homestead (off the Old Forest Road)</span>
     <span>Level range: 12+ (daily)</span>
@@ -849,188 +992,9 @@ full walkthrough.</p>
   </ol>
 </div>
 
-<!-- THE TWENTIETH PLOT OF MAZARBUL -->
-<div class="quest-card" id="twentieth-plot">
-  <h3>The Twentieth Plot of Mazarbul <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Frár the Restless, a shade of Balin's colony, in the <a href="../areas/chamberofrecords.html">Chamber of Records</a> (Moria)</span>
-    <span>Level range: 18+ (one-off)</span>
-    <span>Reward: 1200 gp + 2000 XP + <em>Seal of the Twentieth</em> (Damage Reduction +1/Soak 5, Damage Resistance: Negative 10/-)</span>
-  </div>
-  <p>A hidden codicil to the Book of Mazarbul names twenty burial plots whose seal-fires keep the
-  dead of Moria at rest. Nineteen were lit before the colony fell — the twentieth never was, and
-  what lies beneath it does not lie still. Frár, a restless dwarf-shade among the toppled
-  record-stones, asks you to finish his colony's last labor: <strong>light the three crypt-seal
-  braziers</strong> (one in the Chamber of Records, two in Balin's Tomb), then <strong>destroy the
-  wraith</strong> that rises to smother the third flame.</p>
-
-  <strong>How to start:</strong> Speak to <strong>Frár the Restless</strong> in the Chamber of
-  Records; level 18+ required, once per character (one-off — the seal, once set, holds).<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li>Accept Frár's charge — the journal opens and the seal-braziers will take your flame.</li>
-    <li>Use each of the three Crypt-Seal Braziers once (per-character, persistent — floaty text
-      counts "N of 3"; each lighting also grants a short ward against grave-chill, Negative
-      resist 5/- for 5 minutes).</li>
-    <li>The third brazier raises the <strong>Wraith of the Twentieth Plot</strong> (CR 21).
-      Destroy it — the killing blow's party credits every party member in the area who is at the
-      wraith stage. If the wraith is slain while you are absent (or you fall and return), stir any
-      brazier's flame to re-summon it, so the fight can always be re-staged.</li>
-    <li>Return to Frár: 1200 gp, 2000 XP and the <em>Seal of the Twentieth</em>. The quest closes
-      for good.</li>
-  </ol>
-</div>
-
-<!-- FEEDING THARBAD -->
-<div class="quest-card" id="feeding-tharbad">
-  <h3>Feeding Tharbad <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Temple of Ilúvatar cleric, Tharbad</span>
-    <span>Level range: 5–15</span>
-    <span>Reward: 500&nbsp;XP + <em>Book of the Cora</em></span>
-  </div>
-  <p>The Temple of Ilúvatar in Tharbad is struggling to feed hungry refugees at the bridge. They ask you to
-  purchase venison from a local store and hand it out to 20 refugees at the bridge.</p>
-
-  <strong>How to start:</strong> Speak to the <strong>Temple of Ilúvatar cleric</strong> in Tharbad.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li>Agree to help.</li>
-    <li>Buy venison from the general store.</li>
-    <li>Travel to <a href="../areas/tharbadbridge.html">Tharbad Bridge</a> and feed 20 refugees.</li>
-    <li>Return to the cleric — 500 XP and the Book of the Cora awarded.</li>
-  </ol>
-
-  <strong>Journal entries:</strong>
-  <ol class="journal-entries">
-    <li>You agreed to help the Temple feed hungry refugees at Tharbad Bridge — buy venison and feed 20 people.</li>
-    <li>The refugees will not go hungry tonight. You gave selflessly for a noble cause.</li>
-  </ol>
-</div>
-
-<!-- ELROND'S REQUEST -->
-<div class="quest-card" id="elrond">
-  <h3>Elrond's Request <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Elrond, Rivendell</span>
-    <span>Level range: 15–30</span>
-    <span>Reward: 2,000&nbsp;XP + <em>Elrond's Writ</em></span>
-  </div>
-  <p>Elrond of <a href="../areas/rivendell.html">Rivendell</a> charges you with two tasks: break the Uruk-hai siege of the
-  Troll Halls and retrieve the <strong>Helm of Azog the Warlord</strong>, then venture into Moria and find
-  evidence of Balin's Expedition (the <strong>Dwarf Head</strong>). This is the module's main mid-game quest chain.</p>
-
-  <strong>How to start:</strong> Speak to <strong>Elrond</strong> in <a href="../areas/rivendell.html">Rivendell</a> and accept
-  both tasks.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li>Kill <strong>Azog the Warlord</strong> (CR 14) in the <a href="../areas/theangmarmountai.html">Angmar Mountain</a> area and loot the <em>Helm of the Warlord</em>.</li>
-    <li>Push into <a href="../areas/balinstomb.html">Balin's Tomb</a> in Moria and retrieve the <em>Dwarf Head</em> (evidence of Balin's expedition).</li>
-    <li>Return to Elrond with both items in your party's inventory.</li>
-    <li>Agree to accept your reward — both items are consumed, and you gain 2,000 XP and
-      <em>Elrond's Writ</em>.</li>
-  </ol>
-
-  <strong>Journal entries:</strong>
-  <ol class="journal-entries">
-    <li>Elrond has given you two tasks: break the Uruk-hai siege of the Trollshaws and bring the Helm of Azog; venture into Moria and find sign of Balin's Expedition.</li>
-    <li>Both tasks are complete. You now have a new place to call home.</li>
-  </ol>
-</div>
-
-<!-- RUIN OF ANNUMINAS -->
-<div class="quest-card" id="annuminas">
-  <h3>Ruin of Annuminas <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Hanee the Loon, an old woman in <a href="../areas/bree.html">Bree</a></span>
-    <span>Level range: 25+</span>
-    <span>Reward: 5,000&nbsp;XP (bring Azagoth's Head back to Hanee)</span>
-  </div>
-  <p>An old woman in Bree tells you to seek out the Ruins of Annuminas, an ancient Dúnedain realm to the
-  north. This is the first stage of a two-part arc: kill <strong>Azagoth</strong> in the ruins, bring
-  his head back to Hanee for <strong>5,000&nbsp;XP</strong> (she doesn't take it — she gleefully points you
-  to the wizards in Gondor), then deliver the head to the <a href="#well-of-souls">Gondor Scribe</a> in the
-  Tower of the High Wizard for a further <strong>10,000&nbsp;XP</strong>.</p>
-
-  <strong>How to start:</strong> Speak to <strong>Hanee the Loon</strong> in Bree.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li>Hear Hanee out and head north to the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a>.</li>
-    <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) and loot <em>Azagoth's Head</em>.</li>
-    <li>Return to Hanee with the head still in hand for 5,000 XP — then carry it on to
-      <a href="#well-of-souls">The Well of Souls</a>.</li>
-  </ol>
-</div>
-
-<!-- WELL OF SOULS -->
-<div class="quest-card" id="well-of-souls">
-  <h3>The Well of Souls <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: the Gondor Scribe, Tower of the High Wizard: Ground Floor</span>
-    <span>Level range: 30–45</span>
-    <span>Reward: 10,000&nbsp;XP + <em>Annuminas Key</em></span>
-  </div>
-  <p>The Gondor Scribe asks you to face <strong>Azagoth</strong>, who threatens to open the Well of
-  Souls — kill Azagoth in the <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a> (not Moria!)
-  and bring back his head to prove the deed is done. This is the second stage of the
-  <a href="#annuminas">Ruin of Annuminas</a> arc.</p>
-
-  <strong>How to play:</strong>
-  <ol>
-    <li><strong>Hanee the Loon</strong> in <a href="../areas/bree.html">Bree</a> points you north to the
-    <a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a>.</li>
-    <li>Find and kill <strong>Azagoth</strong> (CR&nbsp;37) in the Ruins of Annuminas and loot <em>Azagoth's Head</em>.</li>
-    <li>Return to Hanee for an intermediate <strong>5,000&nbsp;XP</strong>; she keeps you holding the head and
-    points you to the Gondor wizards.</li>
-    <li>Take the head to the <strong>Gondor Scribe</strong> in the Tower of the High Wizard: Ground Floor —
-    she consumes the head and awards <strong>10,000&nbsp;XP</strong> and the <em>Annuminas Key</em>.</li>
-    <li><em>Alternate start:</em> talk to the scribe <em>without</em> the head and she offers the quest directly
-    (with the key up front), then kill Azagoth and return for the turn-in.</li>
-  </ol>
-
-  <div class="tip-box">
-    <p>Take the scribe's offer <em>before</em> heading north if you want the Annuminas Key in hand for
-    the locked chests in the ruins. On the Hanee-first route you reach them before the key exists —
-    they can still be picked.</p>
-  </div>
-
-  <strong>Journal entries:</strong>
-  <ol class="journal-entries">
-    <li>You agreed to face Azagoth and stop his entry into the Well of Souls. May fate guide your steps.</li>
-    <li>Azagoth is dead and the Well of Souls is safe. Time for a drink at the Prancing Pony.</li>
-  </ol>
-</div>
-
-<!-- GLOISON -->
-<div class="quest-card" id="gloison">
-  <h3>Gloison's Heirloom <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Gloin King Under the Mountain, Erebor (Lonely Mountain: Main Hall)</span>
-    <span>Level range: high (Gerrey is CR 17)</span>
-    <span>Reward: 5,000&nbsp;XP + 15,000&nbsp;gp</span>
-  </div>
-  <p>Glóin asks you to recover his kinsman Gloisin's family heirloom — a coat of arms stolen by the brigand
-  <strong>Gerrey Halliams</strong>, who fled to the <a href="../areas/theruinsofdale.html">Ruins of Dale</a>.</p>
-
-  <strong>How to start:</strong> Speak to <strong>Gloin</strong> in Erebor and accept the task.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li>Accept the task from Gloin.</li>
-    <li>Travel to the Ruins of Dale and kill <strong>Gerrey Halliams</strong> (CR 17). He carries
-      <em>Gloison's Coat of Arms</em> as droppable loot.</li>
-    <li>Return to Gloin holding the heirloom — the turn-in only appears while you have it. He takes
-      it and pays 5,000 XP + 15,000 gp.</li>
-  </ol>
-</div>
-
 <!-- KALLRIST TIGER HUNT -->
 <div class="quest-card" id="kallrist-tiger">
-  <h3>Kallrist Tiger Hunt <span class="status-badge status-ok">Working</span></h3>
+  <h3>Kallrist Tiger Hunt</h3>
   <div class="quest-meta">
     <span>Giver: Sald (potion merchant), Kallrist Island</span>
     <span>Level range: 10–20</span>
@@ -1050,59 +1014,163 @@ full walkthrough.</p>
   </ol>
 </div>
 
-<!-- PATHS OF THE DEAD -->
-<div class="quest-card" id="paths-of-the-dead">
-  <h3>Paths of the Dead <span class="status-badge status-ok">Working</span></h3>
-  <div class="quest-meta">
-    <span>Giver: Aragorn, at the gates of Minas Tirith</span>
-    <span>Level range: high (end-game)</span>
-    <span>Reward: <em>Andúril, Flame of the West</em></span>
-  </div>
-  <p>Aragorn summons you to walk the <strong>Paths of the Dead</strong>: rouse the Oathbreakers under the mountain,
-  hold to the oath sworn of old, and turn the tide against the Witch-king. A full five-stage quest chain and the
-  module's marquee reward — a copy of Andúril.</p>
+<hr>
 
-  <strong>How to start:</strong> Speak to <strong>Aragorn</strong> at the gates of Minas Tirith.<br><br>
-
-  <strong>Steps:</strong>
-  <ol>
-    <li>Accept Aragorn's charge.</li>
-    <li>Seek the <strong>King of the Dead</strong> in the Dimholt / Dunharrow.</li>
-    <li>Fight through the Oathbreaker trials.</li>
-    <li>Claim the reward — <em>Andúril, Flame of the West</em>.</li>
-    <li>The chain completes back at Dunharrow.</li>
-  </ol>
-
-  <p>Full write-up: <a href="../quests/paths-of-the-dead.html">Paths of the Dead</a>.</p>
+<!-- ============================================================ -->
+<div class="section-header" id="class-lines">
+  <h2>Class Quest Lines</h2>
+  <p class="sub">Three-stage arcs (levels 1 / 8 / 15) open only to a single class.</p>
 </div>
 
-<!-- GLORFINDEL'S CURATIVE -->
-<div class="quest-card" id="glorfindel">
-  <h3>Glorfindel's Curative <span class="status-badge status-ok">Working</span></h3>
+<!-- THE UNBROKEN SHIELD — FIGHTER LINE I -->
+<div class="quest-card" id="unbroken-shield">
+  <h3>The Unbroken Shield &mdash; Fighter line I</h3>
   <div class="quest-meta">
-    <span>Giver: Glorfindel, <a href="../areas/rivendell.html">Rivendell</a></span>
-    <span>Level range: mid</span>
-    <span>Reward: 1,700&nbsp;XP + <em>Bracers of Glorfindel</em></span>
+    <span>Giver: Hallas the Shieldwarden, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
+    <span>Requires: 1+ Fighter level (non-fighters get only a flavour greeting)</span>
+    <span>Reward: Warden's Buckler (small shield +1, Fighter-only) at the oath, and the
+      Warden's Reforged Blade (longsword +2, Fighter-only) at the end</span>
   </div>
-  <p>Glorfindel of Rivendell asks you to gather the ingredients for a curative: <em>Athelas</em> from the
-  foothills of the Misty Mountains, a graveside token from the <strong>Statue of Arathorn</strong> headstone in
-  the Barrow Downs, and drake essence from the Caves of the Carrock.</p>
+  <p>The first, early chunk of the <strong>Fighter class line</strong>. Hallas the Shieldwarden, a grey
+  veteran of Gondor's Guard who keeps a corner of the Prancing Pony, offers any fighter the old
+  <strong>oath of the Unbroken Shield</strong> &mdash; to hold the line when it would break, and to
+  stand for those who cannot. The arc is a one-off, three-node progression gated by level: swear the
+  oath at level&nbsp;1, take up a fallen captain's broken blade at level&nbsp;8, and bring it back to be
+  reforged whole at level&nbsp;15. (The heroic finale &mdash; the Aeglos Reborn spear and the Osgiliath
+  wave-defence &mdash; is later-tier content, not part of this early line.)</p>
 
-  <strong>How to start:</strong> Speak to <strong>Glorfindel</strong> in <a href="../areas/rivendell.html">Rivendell</a>.<br><br>
+  <strong>How to start:</strong> Speak to <strong>Hallas the Shieldwarden</strong> in the Prancing Pony
+  as a character with at least one Fighter level, and swear the oath.<br><br>
 
   <strong>Steps:</strong>
   <ol>
-    <li>Accept the task.</li>
-    <li>Gather the three ingredients across the Misty-Mountain foothills, the Barrow Downs, and the Caves of the Carrock.</li>
-    <li>Return to Glorfindel for 1,700 XP and the <em>Bracers of Glorfindel</em>.</li>
+    <li><strong>Node 1 (level 1):</strong> Swear the oath — the journal opens and you receive the
+      <em>Warden's Buckler</em> (+1 AC, Fighter-only). Hallas sends you off to grow to level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Hallas entrusts you with the <em>Notched Captain's
+      Shard</em> to bear until level&nbsp;15.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the shard back; his smith reforges it into the
+      <em>Warden's Reforged Blade</em> (longsword +2, Fighter-only) and the quest closes. The line's
+      later, harder oaths are foreshadowed for a future chunk.</li>
   </ol>
 
-  <p>Full write-up: <a href="../quests/glorfindel-potion.html">Glorfindel's Curative</a>.</p>
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
+</div>
+
+<!-- THE LONG SHADOW — ROGUE LINE I -->
+<div class="quest-card" id="long-shadow">
+  <h3>The Long Shadow &mdash; Rogue line I</h3>
+  <div class="quest-meta">
+    <span>Giver: Fenn the Shade, <a href="../areas/theprancingpo001.html">Prancing Pony</a> (Bree)</span>
+    <span>Requires: 1+ Rogue level (non-rogues get only a flavour greeting)</span>
+    <span>Reward: Shadowmantle (cloak +1 AC, Rogue-only) at the oath, and the Nightthorn
+      (short sword +2, Rogue-only) at the end</span>
+  </div>
+  <p>The first, early chunk of the <strong>Rogue class line</strong>. Fenn the Shade, a hooded Bree-lander
+  who watches the Prancing Pony's doorways, runs <strong>the Long Shadow</strong> &mdash; a quiet net of
+  thieves and watchers who count the Enemy's spies so honest folk need not. He offers any rogue a place in
+  the net. The arc is a one-off, three-node progression gated by level: swear into the net at level&nbsp;1,
+  take up a cipher-token to carry unseen at level&nbsp;8, and bring it home to be worked into a blade at
+  level&nbsp;15. (The capstone &mdash; Shelob's lair, Cirith Ungol and the twin blades &mdash; is
+  later-tier content, not part of this early line.)</p>
+
+  <strong>How to start:</strong> Speak to <strong>Fenn the Shade</strong> in the Prancing Pony as a
+  character with at least one Rogue level, and swear into the net.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li><strong>Node 1 (level 1):</strong> Swear into the net — the journal opens and you receive the
+      <em>Shadowmantle</em> (cloak +1 AC, Rogue-only). Fenn sends you off to grow to level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Fenn entrusts you with the <em>Long Shadow
+      Cipher-Token</em> to carry unseen until level&nbsp;15.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the token back; his fence works its hidden steel core
+      into the <em>Nightthorn</em> (short sword +2, Rogue-only) and the quest closes. The line's longer
+      shadows are foreshadowed for a future chunk.</li>
+  </ol>
+
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
+</div>
+
+<!-- THE COLOUR OF POWER — WIZARD LINE I -->
+<div class="quest-card" id="colour-of-power">
+  <h3>The Colour of Power &mdash; Wizard line I</h3>
+  <div class="quest-meta">
+    <span>Giver: Findegil the Grey, <a href="../areas/bagend001.html">Bag End</a> (the Shire)</span>
+    <span>Requires: 1+ Wizard level (non-wizards get only a flavour greeting)</span>
+    <span>Reward: Apprentice's Amulet (+1 INT, Wizard-only) at the start, and the Staff of the
+      Grey Study (+2 / +1 INT quarterstaff, Wizard-only) at the end</span>
+  </div>
+  <p>The first, early chunk of the <strong>Wizard class line</strong>. Findegil the Grey, a grey-robed
+  loremaster who keeps a quiet study by the hearth of Bag End, teaches the deep lore few trouble to learn
+  truly &mdash; <strong>the Colour of Power</strong>, by which the Istari came to wear their hues. He offers
+  any wizard the study. The arc is a one-off, three-node progression gated by level: take up the study at
+  level&nbsp;1, receive the Loremaster's Tome to carry and study abroad at level&nbsp;8, and bring it home
+  to be bound into a staff at level&nbsp;15. (The actual choice of Colour &mdash; White, Brown or the Many
+  Colours &mdash; and its caster-level capstone is <em>endgame</em> content, foreshadowed here but not part
+  of this early line.)</p>
+
+  <strong>How to start:</strong> Speak to <strong>Findegil the Grey</strong> in Bag End as a
+  character with at least one Wizard level, and take up the study.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li><strong>Node 1 (level 1):</strong> Take up the study — the journal opens and you receive the
+      <em>Apprentice's Amulet</em> (+1 INT, Wizard-only). Findegil sends you off to grow to level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Findegil entrusts you with the <em>Loremaster's Tome
+      of the Grey Study</em> to carry and study until level&nbsp;15.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the tome back; he binds its lore into the <em>Staff of
+      the Grey Study</em> (+2 / +1 INT quarterstaff, Wizard-only) and the quest closes. The choice of
+      Colour is foreshadowed for the endgame chunk.</li>
+  </ol>
+
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
+</div>
+
+<!-- THE FLAME OF ANOR — CLERIC LINE I -->
+<div class="quest-card" id="flame-of-anor">
+  <h3>The Flame of Anor &mdash; Cleric line I</h3>
+  <div class="quest-meta">
+    <span>Giver: Aldamir, Keeper of the Flame, <a href="../areas/templeofilluvata.html">Temple of Illuvatar</a></span>
+    <span>Requires: 1+ Cleric level (non-clerics get only a flavour blessing)</span>
+    <span>Reward: Acolyte's Censer-Amulet (+1 WIS, Cleric-only) at the start, and the Mace of the
+      Kindled Flame (+2 / +1 WIS light mace, Cleric-only) at the end</span>
+  </div>
+  <p>The first, early chunk of the <strong>Cleric class line</strong>. Aldamir, Keeper of the Flame, tends
+  the Secret Fire in the Temple of Illuvatar &mdash; <strong>the Flame of Anor</strong>, a splinter of the
+  sacred fire the faithful set against the Shadow. He offers any cleric its tending. The arc is a one-off,
+  three-node progression gated by level: take up the tending at level&nbsp;1, receive the Reliquary of the
+  Kindled Ember to keep and carry abroad at level&nbsp;8, and bring it home to be kindled into a mace at
+  level&nbsp;15. (The greater consecrations &mdash; the aura of Narya and gifts beyond it &mdash; are
+  <em>later</em> content, foreshadowed here but not part of this early line.)</p>
+
+  <strong>How to start:</strong> Speak to <strong>Aldamir, Keeper of the Flame</strong> in the Temple of
+  Illuvatar as a character with at least one Cleric level, and take up the tending.<br><br>
+
+  <strong>Steps:</strong>
+  <ol>
+    <li><strong>Node 1 (level 1):</strong> Take up the tending — the journal opens and you receive the
+      <em>Acolyte's Censer-Amulet</em> (+1 WIS, Cleric-only). Aldamir sends you off to grow to
+      level&nbsp;8.</li>
+    <li><strong>Node 2 (level 8):</strong> Return; Aldamir entrusts you with the <em>Reliquary of the
+      Kindled Ember</em> to keep and carry until level&nbsp;15.</li>
+    <li><strong>Node 3 (level 15):</strong> Bring the reliquary back; he kindles its ember into the
+      <em>Mace of the Kindled Flame</em> (+2 / +1 WIS light mace, Cleric-only) and the quest closes. The
+      greater consecrations are foreshadowed for a later chunk.</li>
+  </ol>
+
+  <p>One-off per character — the stages only ever move forward, so the rewards can't be farmed.</p>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="prestige">
+  <h2>Prestige Order Trials</h2>
+  <p class="sub">Halmir the Grey in the Well of Eru opens the twelve order initiations.</p>
 </div>
 
 <!-- PRESTIGE-ORDER HUB -->
 <div class="quest-card" id="prestige-hub">
-  <h3>Prestige-Order Hub (Halmir the Grey) <span class="status-badge status-ok">Working</span></h3>
+  <h3>Prestige-Order Hub (Halmir the Grey)</h3>
   <div class="quest-meta">
     <span>NPC: Halmir the Grey, Keeper of the Old Orders, at the <a href="../areas/thewelloferu.html">Well of Eru</a></span>
     <span>Level range: order lines unlock at L6/11/12/13/14/16</span>
@@ -1132,7 +1200,7 @@ full walkthrough.</p>
 
 <!-- HARPER SCOUT — THE CIPHER IN THE INN -->
 <div class="quest-card" id="harper-scout">
-  <h3>The Cipher in the Inn (Harper Scout initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Cipher in the Inn (Harper Scout initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Harper branch)</span>
     <span>Requires: 1+ Harper Scout level (the hub line itself shows at character level 6+)</span>
@@ -1158,7 +1226,7 @@ full walkthrough.</p>
 
 <!-- KNIGHT OF WESTERNESSE — THE BANNER OF THE WEST -->
 <div class="quest-card" id="knight-west">
-  <h3>The Banner of the West (Knight of Westernesse initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Banner of the West (Knight of Westernesse initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Westernesse branch)</span>
     <span>Requires: 1+ Knight of Westernesse level (Purple Dragon Knight; the hub line itself shows at character level 6+)</span>
@@ -1187,7 +1255,7 @@ full walkthrough.</p>
 
 <!-- PALE MASTER — THE TWENTY-FIRST TOMB -->
 <div class="quest-card" id="pale-master">
-  <h3>The Twenty-First Tomb (Pale Master initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Twenty-First Tomb (Pale Master initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Pale-Masters branch)</span>
     <span>Requires: 1+ Pale Master level (the hub line itself shows at character level 11+)</span>
@@ -1211,7 +1279,7 @@ full walkthrough.</p>
 
 <!-- SHADOWDANCER — THE UNLIT DEEP -->
 <div class="quest-card" id="shadowdancer">
-  <h3>The Unlit Deep (Shadowdancer initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Unlit Deep (Shadowdancer initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shadowdancers branch)</span>
     <span>Requires: 1+ Shadowdancer level (the hub line itself shows at character level 11+)</span>
@@ -1239,7 +1307,7 @@ full walkthrough.</p>
 
 <!-- ARCANE ARCHER — THE WARDEN'S MARK -->
 <div class="quest-card" id="arcane-archer">
-  <h3>The Warden's Mark (Arcane Archer initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Warden's Mark (Arcane Archer initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Arcane Archers branch)</span>
     <span>Requires: 1+ Arcane Archer level (the hub line itself shows at character level 12+)</span>
@@ -1267,7 +1335,7 @@ full walkthrough.</p>
 
 <!-- RED DRAGON DISCIPLE — THE OLD WYRM'S FIRE -->
 <div class="quest-card" id="red-dragon">
-  <h3>The Old Wyrm's Fire (Red Dragon Disciple initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Old Wyrm's Fire (Red Dragon Disciple initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Red Dragon Disciples branch)</span>
     <span>Requires: 1+ Red Dragon Disciple level (the hub line itself shows at character level 12+)</span>
@@ -1295,7 +1363,7 @@ full walkthrough.</p>
 
 <!-- ASSASSIN — THE QUIET KNIVES -->
 <div class="quest-card" id="assassin">
-  <h3>The Quiet Knives (Assassin initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Quiet Knives (Assassin initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Assassins branch)</span>
     <span>Requires: 1+ Assassin level (the hub line itself shows at character level 13+)</span>
@@ -1322,7 +1390,7 @@ full walkthrough.</p>
 
 <!-- WEAPON MASTER — THE SWORN BLADE -->
 <div class="quest-card" id="weapon-master">
-  <h3>The Sworn Blade (Weapon Master initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Sworn Blade (Weapon Master initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Weapon Masters branch)</span>
     <span>Requires: 1+ Weapon Master level (the hub line itself shows at character level 13+)</span>
@@ -1350,7 +1418,7 @@ full walkthrough.</p>
 
 <!-- DIVINE CHAMPION — THE SHIELD OF OTHERS -->
 <div class="quest-card" id="divine-champion">
-  <h3>The Shield of Others (Divine Champion initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Shield of Others (Divine Champion initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Divine Champions branch)</span>
     <span>Requires: 1+ Divine Champion level (the hub line itself shows at character level 14+)</span>
@@ -1379,7 +1447,7 @@ full walkthrough.</p>
 
 <!-- DWARVEN DEFENDER — THE UNBROKEN STONE -->
 <div class="quest-card" id="dwarven-defender">
-  <h3>The Unbroken Stone (Dwarven Defender initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Unbroken Stone (Dwarven Defender initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Dwarven Defenders branch)</span>
     <span>Requires: 1+ Dwarven Defender level and dwarf race (the hub line itself shows only to dwarves of character level 14+)</span>
@@ -1406,7 +1474,7 @@ full walkthrough.</p>
 
 <!-- SHIFTER — THE SECOND SKIN -->
 <div class="quest-card" id="shifter">
-  <h3>The Second Skin (Shifter initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Second Skin (Shifter initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Shifters branch)</span>
     <span>Requires: 1+ Shifter level (the hub line itself shows at character level 16+)</span>
@@ -1435,7 +1503,7 @@ full walkthrough.</p>
 
 <!-- BLACKGUARD — THE FALL -->
 <div class="quest-card" id="blackguard">
-  <h3>The Fall (Blackguard initiation) <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Fall (Blackguard initiation)</h3>
   <div class="quest-meta">
     <span>Giver: Halmir the Grey, <a href="../areas/thewelloferu.html">Well of Eru</a> (Blackguards branch)</span>
     <span>Requires: 1+ Blackguard level (the hub line itself shows at character level 14+)</span>
@@ -1466,9 +1534,17 @@ full walkthrough.</p>
   </ol>
 </div>
 
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="always">
+  <h2>Always Available</h2>
+  <p class="sub">Handed to you automatically &mdash; no quest-giver needed.</p>
+</div>
+
 <!-- SERVER INFO -->
 <div class="quest-card" id="server-info">
-  <h3>Server Info Journals <span class="status-badge status-ok">Working</span></h3>
+  <h3>Server Info Journals</h3>
   <div class="quest-meta">
     <span>Delivered automatically on every login</span>
     <span>They land in your journal's <strong>Completed</strong> section</span>
@@ -1496,14 +1572,6 @@ full walkthrough.</p>
   permanently.</p>
 </div>
 
-<div class="tip-box">
-  <p><strong>Also in the world, without journal tracking yet</strong>
-  <span class="status-badge status-dev">In Development</span> — a handful of older quest threads
-  (the Green Dragon Inn, the Oasis of Gwathdor, the Cursed Grave, and some remnants ported in from
-  the original campaign modules) are playable in places but only partly journalled. If you stumble
-  into one and the log stays quiet, that's why — they're on the list to be finished properly.</p>
-</div>
-
 <hr>
 
 <!-- ============================================================ -->
@@ -1513,7 +1581,7 @@ full walkthrough.</p>
 </div>
 
 <div class="quest-card" id="path-of-meaning">
-  <h3>The Path of Meaning <span class="status-badge status-ok">Working</span></h3>
+  <h3>The Path of Meaning</h3>
   <div class="quest-meta">
     <span>Total XP: 3,500 (guides) + 2,000 (finale) = 5,500 XP</span>
     <span>Level range: any — guides span the whole world</span>
@@ -1525,15 +1593,15 @@ full walkthrough.</p>
   <strong>The seven guides (500 XP each on unlock):</strong>
   <div class="table-scroll">
   <table class="data reward-table">
-    <thead><tr><th>Guide</th><th>Challenge</th><th>Status</th></tr></thead>
+    <thead><tr><th>Guide</th><th>Challenge</th></tr></thead>
     <tbody>
-      <tr><td>Jordan Peterson</td><td>Prove you understand responsibility and hierarchy</td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Alan Watts</td><td>Answer questions about the play of the universe</td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Joseph Campbell</td><td>Walk a hero's journey of your own</td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Terence McKenna</td><td>Survive the visions</td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Jocko Willink</td><td>Complete his combat trial</td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Carl Jung</td><td>Face what stands behind you</td><td><span class="status-badge status-ok">Working</span></td></tr>
-      <tr><td>Marcus Aurelius</td><td>Speak about what is and is not in your power</td><td><span class="status-badge status-ok">Working</span></td></tr>
+      <tr><td>Jordan Peterson</td><td>Prove you understand responsibility and hierarchy</td></tr>
+      <tr><td>Alan Watts</td><td>Answer questions about the play of the universe</td></tr>
+      <tr><td>Joseph Campbell</td><td>Walk a hero's journey of your own</td></tr>
+      <tr><td>Terence McKenna</td><td>Survive the visions</td></tr>
+      <tr><td>Jocko Willink</td><td>Complete his combat trial</td></tr>
+      <tr><td>Carl Jung</td><td>Face what stands behind you</td></tr>
+      <tr><td>Marcus Aurelius</td><td>Speak about what is and is not in your power</td></tr>
     </tbody>
   </table>
   </div>
@@ -1550,12 +1618,6 @@ full walkthrough.</p>
     <li>All seven. Akira the Don awaits in the Hall of Legends — find the Wayshrine in the Well of Eru.</li>
     <li><em>(Finale)</em> Akira the Don passed you the mixtape. The path of meaning is walked, but the journey never ends.</li>
   </ol>
-
-  <div class="tip-box">
-    <p><span class="status-badge status-dev">In Development</span> Each guide has a <em>loyalty</em>
-    quest scaffolded for a future update — follow-up tasks you can take on after you've unlocked
-    them. The journal categories exist already; the content is still being written.</p>
-  </div>
 </div>
 
   </div><!-- .mw-content -->

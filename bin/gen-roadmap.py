@@ -570,6 +570,14 @@ def build_html(data: dict) -> str:
   <title>Roadmap & Player Ideas</title>
   <!-- Literal '&' is intentional: the wiki build re-extracts this <title> via
        regex and HTML-escapes it; pre-escaping here would double-escape. -->
+  <!-- @menu 'Activity' -->
+  <!-- @order 1 -->
+  <!-- The wiki build regex-scans the raw file text for these directives to
+       decide which nav dropdown the page lands in (Activity, not the default
+       Documents). They MUST live in this template: this whole file is
+       regenerated on every gen-roadmap.py run, so a hand-added directive in
+       docs.manual/Roadmap.html is wiped and the page silently falls back to
+       the Documents menu. -->
   <link rel="stylesheet" href="../assets/style.css">
 </head>
 {body}

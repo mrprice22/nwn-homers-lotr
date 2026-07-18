@@ -617,6 +617,23 @@ NWN silently ignores them, so the quest logic ran but players saw no journal ent
 
 ---
 
+## Unfinished / partly journalled threads
+
+Moved here from the public `docs.manual/QuestGuide.html` on 2026-07-18, when the guide dropped its
+status badges. The player-facing page now shows only developed/deployed content plus a single note
+pointing at the Roadmap's **Needs Manual Finishing** section — these two caveats live here instead:
+
+- **In the world, without journal tracking yet.** A handful of older quest threads (the Green Dragon
+  Inn, the Oasis of Gwathdor, the Cursed Grave, and some remnants ported in from the original
+  campaign modules) are playable in places but only partly journalled. A player who stumbles into one
+  will see nothing in their log. See the ported-quest table above for the per-thread status.
+- **MeaningWave loyalty quests.** Each of the seven guides has a loyalty quest scaffolded for a
+  future update — follow-up tasks available after the guide is unlocked. The journal categories exist
+  already; the content is still unwritten. Suggested reward when built: 1,000–1,500 XP per task (see
+  the balance table below).
+
+---
+
 ## Balance & reward notes
 
 Current XP and gold rewards mapped against expected player level — with recommendations.
