@@ -2798,11 +2798,36 @@ ideas:
   - id: ranger-line-early
     title: "Ranger line I — The Uncrowned Path (L1-15)"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>Early nodes (L1/8/15) of the Ranger line.</span>"
+    date: "2026-07-18"
+    commit: 2e444c20685
+    notes: "<div><b>The Uncrowned Path</b> — the first three chapters (L1, L8, L15) of the Ranger class line. Halbarad, Warden of the Grey Company, keeps a lonely watch at the Ranger Waystation for what is left of the Rangers of the North, and offers the grey vigil to those with the wandering in them: the <b>Brooch of the Grey Watch</b> at L1, the Star of the Dúnedain at L8, and the <b>Bow of the Uncrowned</b> at L15. Details: <a href=\"QuestGuide.html#uncrowned-path\">Quest Guide → The Uncrowned Path</a>.</div>"
+    impl_notes: "<div>Journal category rng_path (@group 'Class Lines' @order 7). Giver q_rng_keep (Halbarad, Ranger 30, plot/immortal) in rangerwaystation; offer gated on GetLevelByClass(CLASS_TYPE_RANGER) &gt;= 1, non-rangers get a flavour brush-off. Structurally cloned from the shipped cleric-line-early template.</div><div><br></div><div>Three-node one-off arc; per-character state in the rnglinedb campaign DB (key path_stage 0-&gt;3, advance-only). Rewards q_rng_broc (+1 DEX amulet), q_rng_star (plot token), q_rng_bow (BaseItem 8 longbow, Enhancement +2 / +1 DEX); Use-Limitation:Class subtype 7 = Ranger, verified against existing ranger-restricted items.</div><div><br></div><div>Waystation OnEnter wrapped q_rng_enter (chains the existing leash_to_area) -&gt; q_rng_spawn; conversation q_rng_conv, StartingConditionals q_rng_c_off/s1w/s1r/s2w/s2r/dn, reply scripts q_rng_oath/tok/rtn. DLG follows the reply-gate rule (verified no action script in any Active field). Build passed all gates (7/7 smoke tests, dialog integrity).</div><div><br></div><div>Resumed half-built prior work from 0b71d6908a4, which had shipped the q_rng_* scripts and reward UTIs with no giver, dialog, journal or area wiring — nothing was reachable. Also fixed q_rng_bow, authored as BaseItem 6 (heavy crossbow) despite its name, to 8 (longbow). Kept the pre-existing q_rng_ prefix rather than q_rgr_ to avoid orphaning 15 committed files. No capstone built — deferred to ranger-line-mid/endgame.</div>"
+    manual_steps:
+      - step: "Place waypoint AP_rangerlineearly_1 in rangerwaystation. Halbarad is script-spawn-only and no-ops gracefully until then — the entire quest line is invisible in-game until this is placed."
+        status: open
+        blocker: true
+        step_h: 64
+      - step: "UAT gating: a Ranger at the Waystation sees Halbarad's offer of the vigil; a non-ranger gets only the civil brush-off."
+        status: open
+        step_h: 64
+      - step: "UAT node 1: accept -> journal rng_path opens + the ranger-restricted Brooch of the Grey Watch."
+        status: open
+        step_h: 64
+      - step: "UAT level gates: below L8 and below L15 Halbarad turns you away."
+        status: open
+        step_h: 64
+      - step: "UAT nodes 2-3: at L8 the Star of the Dunedain is granted; at L15 it is consumed and the Bow of the Uncrowned granted; journal advances 1->2->3(End)."
+        status: open
+        step_h: 64
+      - step: "UAT restrictions: brooch and bow are unusable by non-rangers; confirm the bow equips as a longbow and its model renders."
+        status: open
+        step_h: 64
+      - step: "UAT regression: the Ranger Waystation leash still fires from the wrapped OnEnter."
+        status: open
+        step_h: 64
 
   - id: ranger-line-mid
     title: "Ranger line II — The Uncrowned Path (L22-38)"
