@@ -185,6 +185,9 @@ authoring conventions, and the module compatibility audit.
 > but the change is global to all bards. Alternative: UTI property `Bonus Feat: Lasting Inspiration` (CEP feat).
 
 ### Monk — The Empty Hand of the West
+> **Early nodes (L1/8/15) SHIPPED 2026-07-18** as `monk-line-early` — Orovan the Windless at
+> `emynarnen` (Emyn Arnen: Peak), journal `mnk_hand`. See QuestGuide-DM-Notes.md. Notes below remain
+> live for the mid/endgame chunks.
 > Areas: `mistymountainsa`, `mistymountainsb`, `weatherhills`, `thetrollshalls`, `lothlorien`,
 > `lothlorienflets`, `shelobslair`, `thebalrogofmoria`, `theabyssofmoria`, `mountdoom`,
 > `minastirith`, `theodenshall`. Balrog: `thebalrog.utc.json`.

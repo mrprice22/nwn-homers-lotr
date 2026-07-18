@@ -293,6 +293,35 @@ Both files should be updated in the same commit whenever a quest ships or change
   remain open for the mid/endgame chunks.
 - **UAT:** scripted and built, pending waypoint placement and in-game UAT.
 
+### The Empty Hand — Monk line I
+
+- **Journal tag:** `mnk_hand` (`@group 'Class Lines'`, `@order 10`)
+- **Roadmap:** `monk-line-early` (added 2026-07-18)
+- **State:** `mnklinedb` campaign DB (key `hand_stage`, 0–3; see `q_mnk_inc.nss`).
+- **Gates:** `GetLevelByClass(CLASS_TYPE_MONK)` for **all three** nodes (>= 1 / >= 8 / >= 15) —
+  matching the paladin line's tightened rule rather than the older lines' `GetHitDice`, so a
+  multiclass cannot buy the rewards with levels taken elsewhere.
+- **Scripts:** `q_mnk_lrn`, `q_mnk_stn`, `q_mnk_rtn`; StartingConditionals `q_mnk_c_off`,
+  `q_mnk_c_s1w`, `q_mnk_c_s1r`, `q_mnk_c_s2w`, `q_mnk_c_s2r`, `q_mnk_c_dn`.
+- **Blueprints:** Orovan the Windless (`q_mnk_mstr`, Monk 30, plot/immortal, Lawful Neutral,
+  conversation `q_mnk_conv`) script-spawned by `q_mnk_spawn` from the Emyn Arnen: Peak OnEnter
+  wrapper `q_mnk_enter` (chains the area's existing `leash_to_area` handler on `emynarnen`).
+- **Waypoints:** `AP_monklineearly_1` in `emynarnen` (Emyn Arnen: Peak). **Orovan is spawn-only —
+  the whole line is invisible in-game until this waypoint is placed.**
+- **Items:** `q_mnk_cord` (amulet, BaseItem 19, +1 WIS), `q_mnk_stne` (plot token, BaseItem 24),
+  `q_mnk_kama` (kama, BaseItem 40, Enhancement +2 / +1 WIS, model 13/13/13). All use Use
+  Limitation: Class Monk, **subtype 5** — verified against `epicmonkrobe.uti.json`, which carries
+  the same `iprp_classes` row, and consistent with the confirmed Cleric 2 / Druid 3 / Paladin 6 /
+  Ranger 7 entries.
+- **Monk-legal rewards:** deliberately an amulet and a kama — no armour, no shield, and no weapon
+  that would suppress the monk AC bonus or flurry of blows. The kama is a monk weapon.
+- **Notes:** structurally cloned from the shipped `paladin-line-early` template (`q_pld_*`). Prefix
+  `q_mnk_` was free (`q_mon_` and `q_mnk_` both unused). No existing NPC was reused — `emynarnen`
+  held no creatures at all, so Orovan is authored fresh and does not collide with any store or
+  conversation. The design brief's gear-suppression, unarmed-+15 and Stunning-Fist material is
+  untouched and remains open for the mid/endgame chunks.
+- **UAT:** scripted and built, pending waypoint placement and in-game UAT.
+
 ### Pass the Pass
 
 - **Journal tag:** `pass_pass`
