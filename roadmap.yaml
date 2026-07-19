@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-18 08:43 CDT"
+  as_of: "2026-07-19 09:04 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -105,6 +105,14 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: palette-mapping
+    title: "WIKI: Document Item and Creature locations within in-game palette"
+    group: wiki-tools
+    status: confirmed
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-19"
+    notes: "<div>As a DM/admin, it's hard to find a known creatures, items, or placeables  in the hundreds of categories/submenus within the in-game  palette. </div><div>I want to be able to search within the roadmap/merit backlog editor internal website/tool for those items and have it tell me where to find those results within the toolset palette. </div><div>Don't auto refresh as part of rebuild or wiki publish; keep as a one off script that can be triggered/refreshed as a button within the internal website editor. </div>"
   - id: hgll-banked-skillpoints-lost
     title: "HGLL pre level 41 skill points banked do not carry over"
     group: combat-classes
@@ -1308,13 +1316,19 @@ ideas:
     design_questions:
       - question: "Should the barrow-court respawn? It currently re-forms whenever a PC enters and that member is not standing — so the fight is farmable, though the journal completes only once. One guard swap in FRK_SpawnCourtMember makes it a once-per-server or once-per-character kill instead."
         status: open
-        answer: null
+        answer: "15 min respawn? hm.."
+        question_h: 64
+        answer_h: 64
       - question: "Should the court appear on the Roll of the Fallen board? Script-spawned creatures are invisible to the boss registry; tracking them needs real placed instances (toolset work) instead of waypoint spawns."
         status: open
         answer: null
+        question_h: 64
+        answer_h: 64
       - question: "Are the CR picks right? The highest non-outlier variant of each was taken (King 454 / Queen 594 / Archer 337), skipping the CR-1514 King. Related: no new loot was authored for the tier."
         status: open
         answer: null
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "Place waypoint AP_forbiddenrealmskeytier_1 in falseheaven (Númenor: Noirinan) — suggested against a hillside/wall near where Summanus walks. The sealed barrow-gate placeable spawns here. Until it exists the quest opens but has no door and the tier is unreachable."
         status: open
@@ -1419,22 +1433,30 @@ ideas:
     impl_notes: "<div>Item tag SlotToken, resref slot_token; hard cap FORGE_TOKEN_MAX_SLOTS = 3, a single admin-tunable constant in forge_inc.nss.</div><div><br></div><div>The rune is a targeted Unique-Power widget (Cast Spell prop 15, subtype 329 — the same activation the module's dmfi widgets use). On activation the module OnActivateItem handler (dmfi_activate) branches on the SlotToken tag and ExecuteScripts slot_token.nss, which stores the earned count as the item-local int FORGE_EXTRA_SLOTS on the targeted item (persists with the item in the .bic, exactly like the existing FORGE_CEIL) and consumes one rune.</div><div><br></div><div>forge_inc.nss now exposes a single ceiling helper <b>ForgeItemMaxProps(oItem) = ForgeLegalMaxProps() + ForgeItemExtraSlots(oItem)</b>, and every place the prop-count ceiling is enforced (modifyitem apply loop, the anvil legality/contraband scan, the projected-count guard) routes through it — so the extra slots are honored AND the item is never jailed as contraband for the extra enchantment it may now hold. Only the slot-COUNT ceiling changes; true-value pricing, the value cap and the disenchant staging invariants are untouched. Build passed all gates (6/6 smoke, dialog-integrity 0 failing, boss-registry 78/78, 58 scripts compiled 0 errors). No CR&gt;60 boss was modified.</div>"
     design_questions:
       - question: "Which boss(es) should drop the Rune of Expansion, and at what rarity? The mechanic ships fully wired and DM-testable but the rune is in no loot table yet, because drop source and rarity are a taste call."
-        status: open
-        answer: null
+        status: answered
+        answer: "Gandalf the Gray, Summanus, and Theoden's Chosen"
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "LOOT PLACEMENT: add slot_token to the chosen boss loot via the toolset / the module's loot system once the drop-source design question is answered. Until then the rune is unobtainable in normal play."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT: DM-spawn a Rune of Expansion (resref slot_token / tag SlotToken)."
         status: open
+        step_h: 64
       - step: "UAT binding: activate it and target a carried item &mdash; the item's allowed forge property count should rise by 1 (a forge capped at 4/5/6 now allows 5/6/7 on that item) and the rune should be consumed. Repeat up to 3 runes; the 4th must refuse without consuming."
         status: open
+        step_h: 64
       - step: "UAT legality: forge the newly-allowed extra property onto the item, then confirm the contraband/legality scan does NOT jail it."
         status: open
+        step_h: 64
       - step: "UAT regression: an un-attuned item still caps at the normal per-forge limit, and the forge value cap, pricing and disenchant behavior are unchanged."
         status: open
+        step_h: 64
       - step: "Retune FORGE_TOKEN_MAX_SLOTS in unpacked/forge_inc.nss if +3 proves too generous or too stingy (a fully-runed item at a top-tier forge can reach 10 enchantments)."
         status: open
+        step_h: 64
   - id: forge-limits-progressive
     title: "Tie forge limits to boss-kill progress (kill more bosses to earn a slight gear edge)"
     group: forge
@@ -1724,7 +1746,7 @@ ideas:
 
   - id: prestige-trainer-hub
     title: "Prestige-class quest trainer hub near the Well of Eru"
-    group: combat-classes
+    group: quests-areas
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -1736,12 +1758,16 @@ ideas:
       - step: "Place waypoint AP_prestigehub_1 in thewelloferu. Halmir is script-spawn-only and every prestige order depends on him, so nothing in the hub is reachable until this exists."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT: deploy and confirm Halmir appears exactly once, with no duplicate on re-entry."
         status: open
+        step_h: 64
       - step: "UAT regression: Well of Eru entry still fires starter XP, bestiary grant, donations chest and contraband scan."
         status: open
+        step_h: 64
       - step: "UAT gating: L1 sees no orders ('none yet'); L6 sees Harper + Westernesse; L14 human sees ten (no Dwarven Defender); L14 dwarf sees it; L16+ sees all twelve. Summary line matches the visible branches."
         status: open
+        step_h: 64
 
   - id: faction-scaffolding
     title: "Faction scaffolding: new reputation factions + matrix for faction quests"
@@ -1956,7 +1982,7 @@ ideas:
   # ---- Prestige-class quests (all gated on the prestige trainer hub) -------
   - id: harper-scout-quest
     title: "Prestige quest: Harper Scout (L6+)"
-    group: combat-classes
+    group: quests-areas
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -1968,18 +1994,23 @@ ideas:
       - step: "Place waypoint AP_harperscout_1 in theprancingpo001 (AP_prestigehub_1 is also required). Della is script-spawn-only; the quest is unreachable until both exist."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT: non-Harper L6+ character at Halmir gets the pointer line and no offer."
         status: open
+        step_h: 64
       - step: "UAT full flow: Harper Scout accepts (journal 1) -> Della, both the Lore >=8 shortcut and the hint-loop path -> counter-word (journal 2) -> Halmir pays 750 XP + pin, journal ends, epilogue-only afterwards."
         status: open
+        step_h: 64
       - step: "UAT persistence: relog mid-quest resumes; no second pin is ever granted."
         status: open
+        step_h: 64
       - step: "UAT regression: Halmir's other eleven branches and summary line unchanged; Prancing Pony leash unchanged; Della brushes off non-questers."
         status: open
+        step_h: 64
 
   - id: knight-westernesse-quest
     title: "Prestige quest: Knight of Westernesse (L6+)"
-    group: combat-classes
+    group: quests-areas
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -1991,18 +2022,23 @@ ideas:
       - step: "Place waypoint AP_knightwest_1 in thepelennorfield. The Banner-Stone is script-spawned; the quest cannot be completed until this exists."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT gating: non-knight L6+ gets the pointer; PDK level 1+ gets the offer."
         status: open
+        step_h: 64
       - step: "UAT full flow: Wart -> rally 3 gate posts (floaty count; a 4th post says already-mustered) -> standard released -> plant at the Banner-Stone -> Halmir pays XP + shield, journal ends, epilogue-only afterwards."
         status: open
+        step_h: 64
       - step: "UAT persistence: relog mid-quest resumes with the rally tally intact."
         status: open
+        step_h: 64
       - step: "UAT regression: Harper branch and the ten placeholders unchanged; Minas Tirith city guards unchanged; gate guardsmen respawn identically; Pelennor OnEnter still clears trash and leashes."
         status: open
+        step_h: 64
 
   - id: pale-master-quest
     title: "Prestige quest: Pale Master (L11+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2013,16 +2049,20 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-PM L11+ character sees the branch but gets only the pointer line, no quest."
         status: open
+        step_h: 64
       - step: "UAT: a character with 1+ PM level can accept; journal entry 1 appears and the stage survives relog."
         status: open
+        step_h: 64
       - step: "UAT: opening the Coffin in breecryptlowerle still gives treasure, plus dust + journal 2 when on the quest; the dust cannot be dropped or sold."
         status: open
+        step_h: 64
       - step: "UAT turn-in: dust consumed, XP + talisman granted, journal ends; epilogue only on re-talk, no second reward."
         status: open
+        step_h: 64
 
   - id: shadowdancer-quest
     title: "Prestige quest: Shadowdancer initiation (L11+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2033,16 +2073,20 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-SD L11+ character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: SD character accepts, journal 1, stage survives relog."
         status: open
+        step_h: 64
       - step: "UAT at the DeepWell: lit -> fail message and nothing granted; unlit -> skein + journal 2. The well still plays its sounds for uninvolved players."
         status: open
+        step_h: 64
       - step: "UAT turn-in: skein consumed, XP + boots granted, journal ends; epilogue only afterwards, no second reward."
         status: open
+        step_h: 64
 
   - id: arcane-archer-quest
     title: "Prestige quest: Arcane Archer (L12+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2053,16 +2097,20 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-AA L12+ character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: AA character accepts, journal 1."
         status: open
+        step_h: 64
       - step: "UAT at the Rivendell target: no bow or empty quiver -> fail message; bow + arrows -> shaft + journal 2. The second, untouched target stays non-usable."
         status: open
+        step_h: 64
       - step: "UAT turn-in: shaft consumed, XP + bracers granted, journal ends; epilogue only afterwards, no second reward. Shaft is undroppable/unsellable and re-given at the target if lost."
         status: open
+        step_h: 64
 
   - id: red-dragon-disciple-quest
     title: "Prestige quest: Red Dragon Disciple (L12+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2073,18 +2121,23 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-RDD L12+ character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: RDD character accepts, journal 1."
         status: open
+        step_h: 64
       - step: "UAT at the Forge of Durin: any elemental ward active -> fail message; unwarded -> ember + journal 2."
         status: open
+        step_h: 64
       - step: "UAT turn-in: ember consumed, XP + amulet granted, journal ends; epilogue only afterwards, no second reward."
         status: open
+        step_h: 64
       - step: "UAT regression: nothing else in the Lonely Mountain hall broke from the anvil retag (no script referenced the old generic Anvil tag)."
         status: open
+        step_h: 64
 
   - id: assassin-quest
     title: "Prestige quest: Assassin contract (L13+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2095,18 +2148,23 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-Assassin L13+ character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: Assassin character accepts, journal 1."
         status: open
+        step_h: 64
       - step: "UAT at the Bree wine barrel: unstealthed -> fail message; stealthed -> writ + journal 2. Writ cannot be dropped or sold."
         status: open
+        step_h: 64
       - step: "UAT turn-in: writ consumed, XP + gloves granted, journal ends; epilogue only afterwards, no second reward."
         status: open
+        step_h: 64
       - step: "UAT regression: a non-quest character opening the barrel sees nothing unusual."
         status: open
+        step_h: 64
 
   - id: weapon-master-quest
     title: "Prestige quest: Weapon Master (L13+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2117,45 +2175,57 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-WM L13+ character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: WM character accepts, journal 1."
         status: open
+        step_h: 64
       - step: "UAT at the Minas Tirith dummy (west end of the row): bare hands -> fail; non-WoC weapon -> a different fail; Weapon of Choice -> notch + journal 2."
         status: open
+        step_h: 64
       - step: "UAT turn-in: notch consumed, XP + buckle granted, journal ends; epilogue only afterwards."
         status: open
+        step_h: 64
       - step: "UAT regression: the retagged dummy renders and clicks correctly; the other two dummies are unchanged."
         status: open
+        step_h: 64
 
   - id: blackguard-quest
     title: "Prestige quest: Blackguard's fall (L14+)"
-    group: combat-classes
-    status: manual
+    group: quests-areas
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
     commit: c835e1eba3a
-    notes: "<div><b>The Fall</b> — the Blackguard initiation, and the twelfth and final order, completing Halmir's hub. Swear the Black Oath at the torture-rack in the Keep of Barad-dûr while wounded. <b>This one marks you: it shifts your alignment permanently toward evil</b>, once and only once. Pays 1,000 XP and the <b>Sigil of the Fallen</b> (Bluff +3, UMD +3, saves vs. negative +3). Details: <a href=\"QuestGuide.html#blackguard\">Quest Guide → Blackguard</a>.</div>"
+    notes: "<div><b>The Fall</b> — the Blackguard initiation, and the twelfth and final order, completing Halmir's hub. Swear the Black Oath at the torture-rack in the Keep of Barad-dûr while wounded. <b>This one marks you: it shifts your alignment permanently toward evil</b>, once and only once. Pays 1,000 XP and the <b>Sigil of the Fallen</b> (Bluff +3, UMD +3, saves vs. negative +3). Details: <a href=\"QuestGuide.html#blackguard\">Quest Guide → Blackguard</a>.</div><div><br></div><div><br></div><div>-- This module (normally) allows FREE alignment changes in bree appearance changing area, and free faction shifts to evil or good from well of eru</div><div>--&gt; update 'this one marks you' so that you can NO LONGER use the good teleporter in well of eru and no longer use the alignment adjuster</div>"
     impl_notes: "<div>Journal pc_blackguard; prestigedb key 'blackg', one-off, relog-safe. Cloned exactly from the Divine Champion skeleton (prsg_inc framework, prestigedb stage idiom). Offer requires 1+ Blackguard level (CLASS_TYPE_BLACKGUARD = 31); non-Blackguards at L14+ get the existing pointer line.</div><div><br></div><div>Uses existing placed instance 94 of plc_torture1 in the Keep of Barad-dûr, retagged BkgFallAltar with Static cleared and OnUsed q_bkg_altar added; it had no prior script or tag references so nothing was chained or broken. The wounded check is GetCurrentHitPoints &lt; max, deterministic, no dice.</div><div><br></div><div>The alignment shift is the order's signature mechanic: AdjustAlignment(oPC, ALIGNMENT_EVIL, 50, FALSE) applied on the stage 1-&gt;2 transition only, so it is non-farmable and the re-give-brand path never re-shifts. Brand of the Fall is plot+cursed. Reward skills distinct from the eleven siblings, no AB/damage so forge-cap-safe. No new waypoint or placement. Build passed all gates.</div>"
     manual_steps:
       - step: "Verify the Barad-dur rack is actually clickable in-game. The instance follows the shipped-sibling retag shape (Static:0 + OnUsed, no explicit Useable override, exactly like the RDD Forge-of-Durin anvil). If the CEP plc_torture1 base is not useable-by-default the rack will not be clickable and the quest cannot be completed &mdash; if so, add a single Useable:1 field to that instance, and note the same one-line fix would apply to the sibling anvil/altar retags."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT gating: non-Blackguard L14+ character at Halmir gets only the pointer line. (Halmir needs AP_prestigehub_1 placed to appear; this quest adds no new waypoint of its own.)"
         status: open
+        step_h: 64
       - step: "UAT: a character with 1+ Blackguard level accepts -> journal 1, stage survives relog."
         status: open
+        step_h: 64
       - step: "UAT at the rack: clean-handed click fails with the flavor message; a wounded click shifts alignment noticeably toward evil and grants the Brand + journal 2."
         status: open
+        step_h: 64
       - step: "UAT turn-in: Brand consumed, XP + Sigil granted, journal ends."
         status: open
+        step_h: 64
       - step: "UAT non-farmability: re-clicking the rack after the fall must NOT shift alignment again, and re-running Halmir must NOT re-award."
         status: open
+        step_h: 64
       - step: "UAT regression: the other eleven Halmir branches and the summary line are unchanged."
         status: open
+        step_h: 64
 
   - id: divine-champion-quest
     title: "Prestige quest: Divine Champion (L14+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2166,18 +2236,23 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-DC L14+ character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: DC character accepts, journal 1."
         status: open
+        step_h: 64
       - step: "UAT at the temple altar: empty off-hand -> fail; torch or off-hand weapon -> a different fail; any shield -> Oath-Light + journal 2. The light cannot be dropped or sold."
         status: open
+        step_h: 64
       - step: "UAT turn-in: light consumed, XP + mantle granted, journal ends; epilogue only afterwards."
         status: open
+        step_h: 64
       - step: "UAT regression: a non-quest character using the altar gets nothing unusual."
         status: open
+        step_h: 64
 
   - id: dwarven-defender-quest
     title: "Prestige quest: Dwarven Defender (L14+, Dwarf only)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2188,18 +2263,23 @@ ideas:
     manual_steps:
       - step: "UAT gating: a non-dwarf or non-DD character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: a DD dwarf accepts, journal 1."
         status: open
+        step_h: 64
       - step: "UAT at Balin's headstone: leather -> fail message; full plate or splint -> shard + journal 2."
         status: open
+        step_h: 64
       - step: "UAT turn-in: shard consumed, XP + helm granted, journal ends; epilogue only afterwards, no re-reward."
         status: open
+        step_h: 64
       - step: "UAT regression: the Shadowdancer DeepWell trial in the same area still works."
         status: open
+        step_h: 64
 
   - id: shifter-quest
     title: "Prestige quest: Shifter (L16+)"
-    group: combat-classes
+    group: quests-areas
     status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2210,14 +2290,19 @@ ideas:
     manual_steps:
       - step: "UAT gating: non-Shifter L16+ character sees only the pointer line."
         status: open
+        step_h: 64
       - step: "UAT: Shifter character accepts, journal 1."
         status: open
+        step_h: 64
       - step: "UAT at Beorn's pool: true form -> fail message; any wild or shifter shape -> tuft + journal 2 (druid wild shape passing is intended)."
         status: open
+        step_h: 64
       - step: "UAT turn-in: tuft consumed, XP + amulet granted, journal ends; epilogue only afterwards."
         status: open
+        step_h: 64
       - step: "UAT visual: the pool still renders correctly after its Static flag was flipped to make it clickable."
         status: open
+        step_h: 64
 
   # ---- Faction quests (all depend on faction scaffolding) ------------------
   - id: palantir-watch
@@ -2684,8 +2769,8 @@ ideas:
   # ---- Class questlines (per-tier chunks; capstone folds into endgame) -----
   - id: fighter-line-early
     title: "Fighter line I — The Unbroken Shield (L1-15)"
-    group: combat-classes
-    status: manual
+    group: quests-areas
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
@@ -2694,7 +2779,7 @@ ideas:
     impl_notes: "<div>Journal category ftr_shield (@group 'Class Lines'). Giver q_ftr_hallas, plot/immortal Gondorian veteran; offer gated on GetLevelByClass(CLASS_TYPE_FIGHTER) &gt;= 1 (value 4 verified), non-fighters get a flavour line.</div><div><br></div><div>Per-character one-off state in the fighterlinedb campaign DB (key ubshield_stage 0-&gt;3, advance-only so rewards are not farmable). Reward properties use verified stock encodings. Prancing Pony OnEnter wrapped q_ftr_enter (chains the existing q_hrp_ent1 so the leash and Harper contact are preserved) -&gt; q_ftr_spawn; conversation q_ftr_conv; 6 StartingConditionals + 3 reply scripts referenced in the DLG.</div><div><br></div><div><b>Follow-up fix 2026-07-17 (01b242056d0):</b> the three reward action scripts (q_ftr_oath/shrd/forge, void main()) had been wired into the reply-link <b>Active</b> (show-conditional) fields as well as the correct Script fields; as StartingConditionals they evaluate FALSE, which hid the swear-oath / receive-shard / reforge replies and made the quest unadvanceable in-game. The dialog-integrity gate does not catch semantic Active misuse. Blanked those three Active fields (matching the prsg_conv / rogue-line pattern); the scripts still fire from each target node's Script field. Caught while building the rogue-line-early sibling.</div><div><br></div><div><b>Deliberately deferred to fighter-line-mid/later:</b> the Aeglos Reborn spear capstone and the Osgiliath wave-defence; the shard and blade are named generically to keep the Narsil lore for the finale.</div>"
     manual_steps:
       - step: "Place waypoint AP_fighterlineearly_1 in theprancingpo001. Hallas is script-spawn-only and the scripts no-op gracefully until then, so the line is unreachable without it."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT the Active-field fix specifically: confirm the swear-oath, receive-shard and reforge replies are now selectable (they were hidden before commit 01b242056d0)."
@@ -2721,7 +2806,7 @@ ideas:
 
   - id: fighter-line-mid
     title: "Fighter line II — The Unbroken Shield (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2730,7 +2815,7 @@ ideas:
 
   - id: fighter-line-endgame
     title: "Fighter line III — The Unbroken Shield (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2739,7 +2824,7 @@ ideas:
 
   - id: wizard-line-early
     title: "Wizard line I — The Colour of Power (L1-15)"
-    group: combat-classes
+    group: quests-areas
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2751,22 +2836,29 @@ ideas:
       - step: "Place waypoint AP_wizardlineearly_1 in bagend001. Findegil is script-spawn-only and no-ops gracefully until then."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT gating: a Wizard entering Bag End sees Findegil's offer; a non-wizard gets only the flavour line."
         status: open
+        step_h: 64
       - step: "UAT node 1: accept -> journal opens + the wizard-restricted Apprentice's Amulet."
         status: open
+        step_h: 64
       - step: "UAT level gates: L8 and L15 gates hold."
         status: open
+        step_h: 64
       - step: "UAT nodes 2-3: at L8 the tome is granted; at L15 it is consumed and the Staff granted; journal advances 1->2->3(End)."
         status: open
+        step_h: 64
       - step: "UAT restrictions: amulet and staff are unusable by non-wizards."
         status: open
+        step_h: 64
       - step: "UAT regression: the Bag End leash still fires from the wrapped OnEnter."
         status: open
+        step_h: 64
 
   - id: wizard-line-mid
     title: "Wizard line II — The Colour of Power (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2775,7 +2867,7 @@ ideas:
 
   - id: wizard-line-endgame
     title: "Wizard line III — The Colour of Power (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2784,7 +2876,7 @@ ideas:
 
   - id: rogue-line-early
     title: "Rogue line I — The Long Shadow (L1-15)"
-    group: combat-classes
+    group: quests-areas
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2796,22 +2888,29 @@ ideas:
       - step: "Place waypoint AP_roguelineearly_1 in theprancingpo001. Fenn is script-spawn-only and no-ops gracefully until then."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT gating: a Rogue sees Fenn's oath offer; a non-rogue gets only the flavour line."
         status: open
+        step_h: 64
       - step: "UAT node 1: accept -> journal rog_shadow opens + the rogue-restricted Shadowmantle."
         status: open
+        step_h: 64
       - step: "UAT level gates: L8 and L15 gates hold (below-level shows a 'come back' line)."
         status: open
+        step_h: 64
       - step: "UAT nodes 2-3: at L8 the token is granted; at L15 it is consumed and Nightthorn granted; journal advances 1->2->3(End)."
         status: open
+        step_h: 64
       - step: "UAT restrictions: cloak and blade are unusable by non-rogues."
         status: open
+        step_h: 64
       - step: "UAT regression: Prancing Pony leash, Harper (Della) and Fighter-line (Hallas) spawns all still fire from the chained OnEnter."
         status: open
+        step_h: 64
 
   - id: rogue-line-mid
     title: "Rogue line II — The Long Shadow (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2820,7 +2919,7 @@ ideas:
 
   - id: rogue-line-endgame
     title: "Rogue line III — The Long Shadow (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2829,8 +2928,8 @@ ideas:
 
   - id: druid-line-early
     title: "Druid line I — The Breathing of the World (L1-15)"
-    group: combat-classes
-    status: manual
+    group: quests-areas
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
@@ -2839,7 +2938,7 @@ ideas:
     impl_notes: "<div>Journal category drd_breath (@group 'Class Lines' @order 8). Giver q_drd_keep (Naldor the Green, Druid 30, plot/immortal) in rhosgobel; offer gated on GetLevelByClass(CLASS_TYPE_DRUID) &gt;= 1, non-druids get a flavour brush-off. Structurally cloned from the shipped ranger-line-early template.</div><div><br></div><div>Three-node one-off arc; per-character state in the drdlinedb campaign DB (key breath_stage 0-&gt;3, advance-only, so rewards are not farmable). Rewards q_drd_amul (+1 WIS amulet, BaseItem 19), q_drd_seed (plot token, BaseItem 24), q_drd_staf (BaseItem 45 quarterstaff, Enhancement +2 / +1 WIS). Use-Limitation:Class subtype 3 = Druid, consistent with the previously verified Cleric 2 / Ranger 7 rows of iprp_classes; staff model parts copied from the existing Ancient Mallorn Staff.</div><div><br></div><div>Rhosgobel OnEnter wrapped q_drd_enter (chains the area's existing leash_to_area) -&gt; q_drd_spawn; conversation q_drd_conv, StartingConditionals q_drd_c_off/s1w/s1r/s2w/s2r/dn, reply scripts q_drd_oath/tok/rtn. DLG follows the reply-gate rule (verified programmatically: Active fields hold only StartingConditionals, action scripts only in Reply Script fields). Build passed all gates (7/7 smoke tests, dialog integrity, 12 scripts compiled / 0 errors).</div><div><br></div><div>Radagast was deliberately not reused as the giver — he already exists as a shopkeeper blueprint with its own store dialog — so Naldor is authored as his pupil. No capstone built; deferred to druid-line-mid/endgame, where the brief's Tom Bombadil and Old Man Willow authoring remains available.</div>"
     manual_steps:
       - step: "Place waypoint AP_druidlineearly_1 in rhosgobel. Naldor the Green is script-spawn-only and no-ops gracefully until then — the entire quest line is invisible in-game until this is placed."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT gating: a Druid at Rhosgobel sees Naldor's offer of the Green Listening; a non-druid gets only the civil word about the wood."
@@ -2863,7 +2962,7 @@ ideas:
 
   - id: druid-line-mid
     title: "Druid line II — The Breathing of the World (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2872,7 +2971,7 @@ ideas:
 
   - id: druid-line-endgame
     title: "Druid line III — The Breathing of the World (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2881,7 +2980,7 @@ ideas:
 
   - id: ranger-line-early
     title: "Ranger line I — The Uncrowned Path (L1-15)"
-    group: combat-classes
+    group: quests-areas
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2915,7 +3014,7 @@ ideas:
 
   - id: ranger-line-mid
     title: "Ranger line II — The Uncrowned Path (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2924,7 +3023,7 @@ ideas:
 
   - id: ranger-line-endgame
     title: "Ranger line III — The Uncrowned Path (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2933,8 +3032,8 @@ ideas:
 
   - id: cleric-line-early
     title: "Cleric line I — Flame of Anor (L1-15)"
-    group: combat-classes
-    status: manual
+    group: quests-areas
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
@@ -2944,7 +3043,7 @@ ideas:
     impl_notes_h: 210
     manual_steps:
       - step: "Place waypoint AP_clericlineearly_1 in templeofilluvata. Aldamir is script-spawn-only and no-ops gracefully until then."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT gating: a Cleric in the Temple sees Aldamir's offer; a non-cleric gets only the flavour blessing."
@@ -2968,7 +3067,7 @@ ideas:
 
   - id: cleric-line-mid
     title: "Cleric line II — Flame of Anor (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2977,7 +3076,7 @@ ideas:
 
   - id: cleric-line-endgame
     title: "Cleric line III — Flame of Anor (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -2986,13 +3085,13 @@ ideas:
 
   - id: paladin-line-early
     title: "Paladin line I — Oathsworn to the West (L1-15)"
-    group: combat-classes
-    status: manual
+    group: quests-areas
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
     commit: 6d6c89d5231
-    notes: "<div><b>Oathsworn to the West</b> — the first three chapters (Paladin 1, 8, 15) of the Paladin class line. Hallas the Oathkeeper, an old knight of the Citadel who has outlived most of the men he swore beside, keeps his post in the Keep of Minas Tirith and still watches an eastern sky that has shown him nothing for years. He takes the <b>oath of the West</b> from any paladin who comes to it — not for Gondor's sake, he says, but so that there is one more person in the world who has said the thing out loud in front of a witness: the <b>Token of the White Tree</b> at Paladin 1, the Sealed Oath of Fealty at Paladin 8, and the <b>Sword of the Oathsworn</b> at Paladin 15. The level gates count Paladin levels only. Details: <a href=\"QuestGuide.html#oathsworn-west\">Quest Guide → Oathsworn to the West</a>.</div>"
+    notes: "<div><b>Oathsworn to the West</b> — the first three chapters (Paladin 1, 8, 15) of the Paladin class line. Hallas the Oathkeeper, an old knight of the Citadel who has outlived most of the men he swore beside, keeps his post in the Keep of Minas Tirith and still watches an eastern sky that has shown him nothing for years. He takes the <b>oath of the West</b> from any paladin who comes to it — not for Gondor's sake, he says, but so that there is one more person in the world who has said the thing out loud in front of a witness: the <b>Token of the White Tree</b> at Paladin 1, the Sealed Oath of Fealty at Paladin 8, and the <b>Sword of the Oathsworn</b> at Paladin 15. The level gates count Paladin levels only. Details: <a href=\"QuestGuide.html#oathsworn-west\">Quest Guide → Oathsworn to the West</a>.</div><div><br></div><div>\n<div>-- This module (normally) allows FREE alignment changes in bree \nappearance changing area, and free faction shifts to evil or good from \nwell of eru</div><div>--&gt; Make this quest 'marks you' as part of taking the oath,  so that you can\n NO LONGER use the evil teleporter in well of eru and no longer use the \nalignment adjuster</div>\n\n<br></div>"
     impl_notes: "<div>Journal category pld_oath (@group 'Class Lines' @order 9). Giver q_pld_keep (Hallas the Oathkeeper, Paladin 30, plot/immortal, Lawful Good) in area005 (Minas Tirith: Keep); offer gated on GetLevelByClass(CLASS_TYPE_PALADIN) &gt;= 1, non-paladins get a flavour brush-off. Structurally cloned from the shipped druid-line-early template.</div><div><br></div><div>Prefix is q_pld_ rather than q_pal_ — <b>q_pal_* was already taken</b> by the Pale Master prestige quest (\"The Twenty-First Tomb\"). Worth noting for any future Paladin-line chunk.</div><div><br></div><div>Three-node one-off arc; per-character state in the pldlinedb campaign DB (key oath_stage 0-&gt;3, advance-only, so rewards are not farmable). <b>All three level gates use GetLevelByClass(CLASS_TYPE_PALADIN)</b> (&gt;=1 / &gt;=8 / &gt;=15), not GetHitDice — a deliberate tightening over the cleric/ranger/druid lines, whose L8/L15 nodes count total character level and can therefore be reached with levels taken outside the class. Follow-up: consider retrofitting those three lines to match.</div><div><br></div><div>Rewards q_pld_amul (+1 CHA amulet, BaseItem 19), q_pld_seal (plot token, BaseItem 24), q_pld_swrd (BaseItem 1 long sword, Enhancement +2 / +1 CHA, models 114/121/111). Use-Limitation:Class subtype 6 = Paladin, the same iprp_classes row order as the verified Cleric 2 / Druid 3 / Ranger 7 rows; class id 6 additionally cross-checked against creature003 (Denethor), which carries a real Paladin class entry.</div><div><br></div><div>area005 OnEnter wrapped q_pld_enter (chains the area's existing leash_to_area) -&gt; q_pld_spawn; conversation q_pld_conv, StartingConditionals q_pld_c_off/s1w/s1r/s2w/s2r/dn, reply scripts q_pld_oath/tok/rtn. DLG follows the reply-gate rule (verified programmatically). Wiring due-diligence passed: every new .nss has a proven caller, q_pld_conv is referenced by q_pld_keep's Conversation field, and the AP_paladinlineearly_1 literal is hyphen-less and byte-identical across script and manual_steps. Build passed all gates (7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors).</div><div><br></div><div>No existing Minas Tirith NPC was reused — Denethor, the Gondorian guardsmen and the Temple/Arcane shopkeepers all carry their own conversations or stores — so Hallas is authored fresh. No capstone built; the brief's Eowyn/Theoden/Witch-king material, plus its open mounted-charge and smite-scaling problems, is deferred to paladin-line-mid/endgame.</div>"
     manual_steps:
       - step: "Place waypoint AP_paladinlineearly_1 in area005 (Minas Tirith: Keep) — suggested spot is the parapet/wall side of the hall, facing east. Hallas the Oathkeeper is script-spawn-only and no-ops gracefully until then — the entire quest line is invisible in-game until this is placed."
@@ -3020,7 +3119,7 @@ ideas:
 
   - id: paladin-line-mid
     title: "Paladin line II — Oathsworn to the West (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -3029,7 +3128,7 @@ ideas:
 
   - id: paladin-line-endgame
     title: "Paladin line III — Oathsworn to the West (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -3038,17 +3137,17 @@ ideas:
 
   - id: bard-line-early
     title: "Bard line I — Tales That Live Forever (L1-15)"
-    group: combat-classes
-    status: manual
+    group: quests-areas
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
     commit: 82f97f86ded
-    notes: "<div>Bards now have the first chapter of their own class line. <b>Lindir of the Hall of Fire</b> keeps the Rivendell Upper Halls, where the singing never entirely stops, and will take any bard as a student. He teaches one thing free of charge — a song only ever sung by the one who made it dies with them — and hands over a six-hundred-year-old lay that breaks off in the middle of a line, for you to finish. Rewards at Bard 1 and Bard 15: the Chorister&rsquo;s Torc and the Rapier of the Deathless Song. Full walkthrough: <a href=\"QuestGuide.html#tales-forever\">Tales That Live Forever</a>.</div>"
-    impl_notes: "<div>Structurally cloned from the shipped monk-line-early template. Prefix q_bard_ chosen deliberately over q_brd_ — the boss-respawn tracker already owns the bare brd_* namespace (brd_db, brd_open_*, brd_vis_*, brd_sign.dlg), and q_brd_* next to it in a flat single-directory source tree is a grep trap; every q_bard_* resref still fits the 16-char limit. No pre-existing bard work was found.</div><div><br></div><div>Giver q_bard_mstr (Lindir, Bard 30, elf, plot/immortal, conv q_bard_conv) script-spawned by q_bard_spawn from the rivendellupperha OnEnter wrapper q_bard_enter, which chains the area's existing mw_riv_enter (preserving leash_to_area, d_cleartrash and the Meaningwave Peterson spawn). Spawn no-ops until AP_bardlineearly_1 exists and is tag-guarded against double-spawn.</div><div><br></div><div>Reward scripts q_bard_lrn/stn/rtn (Reply Script fields only); StartingConditionals q_bard_c_off/s1w/s1r/s2w/s2r/dn (Active fields only). All three gates use GetLevelByClass(CLASS_TYPE_BARD) &ge; 1/8/15 — the tightened paladin/monk rule, not GetHitDice. State in bardlinedb (song_stage 0-3), stage-only-advances so rewards are unfarmable.</div><div><br></div><div>Items q_bard_torc (amulet, BaseItem 19, +1 CHA), q_bard_lay (plot token, BaseItem 24), q_bard_rap (rapier, BaseItem 51, model 141, Enh +2 / +1 CHA) — all Use Limitation: Class Bard, <b>subtype 1</b>, verified against cloakofthebard.uti.json rather than guessed, consistent with Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category bard_lay (@group 'Class Lines', @order 11). Gates: 7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors.</div>"
+    notes: "<div>Bards now have the first chapter of their own class line. <b>Lindir of the Hall of Fire</b> keeps the Rivendell Upper Halls, where the singing never entirely stops, and will take any bard as a student. He teaches one thing free of charge — a song only ever sung by the one who made it dies with them — and hands over a six-hundred-year-old lay that breaks off in the middle of a line, for you to finish. Rewards at Bard 1 and Bard 15: the Chorister’s Torc and the Rapier of the Deathless Song. Full walkthrough: <a href=\"QuestGuide.html#tales-forever\">Tales That Live Forever</a>.</div>"
+    impl_notes: "<div>Structurally cloned from the shipped monk-line-early template. Prefix q_bard_ chosen deliberately over q_brd_ — the boss-respawn tracker already owns the bare brd_* namespace (brd_db, brd_open_*, brd_vis_*, brd_sign.dlg), and q_brd_* next to it in a flat single-directory source tree is a grep trap; every q_bard_* resref still fits the 16-char limit. No pre-existing bard work was found.</div><div><br></div><div>Giver q_bard_mstr (Lindir, Bard 30, elf, plot/immortal, conv q_bard_conv) script-spawned by q_bard_spawn from the rivendellupperha OnEnter wrapper q_bard_enter, which chains the area's existing mw_riv_enter (preserving leash_to_area, d_cleartrash and the Meaningwave Peterson spawn). Spawn no-ops until AP_bardlineearly_1 exists and is tag-guarded against double-spawn.</div><div><br></div><div>Reward scripts q_bard_lrn/stn/rtn (Reply Script fields only); StartingConditionals q_bard_c_off/s1w/s1r/s2w/s2r/dn (Active fields only). All three gates use GetLevelByClass(CLASS_TYPE_BARD) ≥ 1/8/15 — the tightened paladin/monk rule, not GetHitDice. State in bardlinedb (song_stage 0-3), stage-only-advances so rewards are unfarmable.</div><div><br></div><div>Items q_bard_torc (amulet, BaseItem 19, +1 CHA), q_bard_lay (plot token, BaseItem 24), q_bard_rap (rapier, BaseItem 51, model 141, Enh +2 / +1 CHA) — all Use Limitation: Class Bard, <b>subtype 1</b>, verified against cloakofthebard.uti.json rather than guessed, consistent with Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category bard_lay (@group 'Class Lines', @order 11). Gates: 7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors.</div>"
     manual_steps:
       - step: "Place a waypoint tagged AP_bardlineearly_1 in Rivendell Upper Halls (rivendellupperha) — somewhere by the fire / seating, out of the main walking line. Lindir of the Hall of Fire spawns there on area entry. He is spawn-only: the entire Bard line is invisible and unreachable in-game until this waypoint exists."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: enter Rivendell Upper Halls on any character and confirm Lindir spawns once at the waypoint and does not duplicate on re-entry."
@@ -3081,7 +3180,7 @@ ideas:
 
   - id: bard-line-mid
     title: "Bard line II — Tales That Live Forever (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -3090,7 +3189,7 @@ ideas:
 
   - id: bard-line-endgame
     title: "Bard line III — Tales That Live Forever (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -3099,17 +3198,17 @@ ideas:
 
   - id: monk-line-early
     title: "Monk line I — The Empty Hand (L1-15)"
-    group: combat-classes
-    status: manual
+    group: quests-areas
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
     commit: cb60ebee521
-    notes: "<div>The <b>Monk class line</b> opens with <b>The Empty Hand</b>. Orovan the Windless keeps the bare summit of Emyn Arnen, above the last of the trees, and teaches exactly one thing to those already on that road: a hand which is holding something cannot be used for anything else. Three nodes gated on <i>Monk</i> level — be taken as a student at 1, receive the Unspoken Stone at 8, and bring it back at 15 to have it set into the haft of the Kama of the Windless Peak. Every reward is monk-legal, so nothing on this line costs you your AC bonus or your flurry of blows. See <a href=\"QuestGuide.html#empty-hand\">the quest guide</a>.</div>"
+    notes: "<div>The <b>Monk class line</b> opens with <b>The Empty Hand</b>. Orovan the Windless keeps the bare summit of Emyn Arnen, above the last of the trees, and teaches exactly one thing to those already on that road: a hand which is holding something cannot be used for anything else. Three nodes gated on <i>Monk</i> level — be taken as a student at 1, receive the Unspoken Stone at 8, and bring it back at 15 to have it set into the haft of the Kama of the Windless Peak. Every reward is monk-legal, so nothing on this line costs you your AC bonus or your flurry of blows. See <a href=\"QuestGuide.html#empty-hand\">the quest guide</a>.</div><div><br></div><div>--&gt; WP AP_monklineearly_1 placed in \nemynarnen001, not in the emynarnen (PEAK) area, because the peak had too many combat encounters, and too far well of eru -- refactor docs, UAT tasks, and anything else as needed</div>"
     impl_notes: "<div>Early chunk (L1/8/15) of the Monk line, structurally cloned from the shipped paladin-line-early template (q_pld_* -&gt; q_mnk_*). Giver Orovan the Windless (q_mnk_mstr, Monk 30, plot/immortal, Lawful Neutral, conversation q_mnk_conv), script-spawned at AP_monklineearly_1 by q_mnk_spawn, fired from the emynarnen OnEnter wrapper q_mnk_enter (chains the area's existing leash_to_area). emynarnen held zero creatures, so no existing NPC was displaced.</div><div><br></div><div>Per-character state in the mnklinedb campaign DB, key hand_stage 0-3, advance-only so rewards cannot be farmed. All three gates use GetLevelByClass(CLASS_TYPE_MONK) &gt;= 1/8/15 — matching the paladin line's tightened rule, not the older lines' GetHitDice. Reply scripts q_mnk_lrn/stn/rtn; StartingConditionals q_mnk_c_off/s1w/s1r/s2w/s2r/dn. DLG rule verified programmatically: conditionals only in Active, reward scripts only in reply Script fields.</div><div><br></div><div>Items q_mnk_cord (amulet, BaseItem 19, +1 WIS), q_mnk_stne (plot token, BaseItem 24), q_mnk_kama (kama, BaseItem 40, Enhancement +2 / +1 WIS) — all monk-legal (no armour/shield/non-monk weapon); Use Limitation: Class Monk subtype 5, verified against epicmonkrobe.uti.json rather than guessed. Journal category mnk_hand (@group 'Class Lines', @order 10). Gates passed: 7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors.</div>"
     manual_steps:
       - step: "Place a waypoint tagged AP_monklineearly_1 in emynarnen (Emyn Arnen: Peak) — on the bare summit rock, ideally facing outward over Anduin. Orovan the Windless spawns there on area entry. He is spawn-only: until this waypoint exists the entire Monk line is invisible and unreachable in-game."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: enter Emyn Arnen: Peak and confirm Orovan the Windless spawns exactly once (re-enter the area a few times — he must not duplicate)."
@@ -3139,7 +3238,7 @@ ideas:
 
   - id: monk-line-mid
     title: "Monk line II — The Empty Hand (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -3148,7 +3247,7 @@ ideas:
 
   - id: monk-line-endgame
     title: "Monk line III — The Empty Hand (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -3157,14 +3256,14 @@ ideas:
 
   - id: sorcerer-line-early
     title: "Sorcerer line I — Blood of Elder Days (L1-15)"
-    group: combat-classes
+    group: quests-areas
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
     commit: 84cc01c65aa
-    notes: "<div>The <b>Sorcerer class line</b> opens with <b>Blood of Elder Days</b>. Among the Ruins of Annuminas, where the old Numenorean capital is going quietly back into the lake, Erendis of the Drowned House keeps a fire nobody laid. She is not a teacher of spells and says so &mdash; nobody taught her either &mdash; and the one thing she thinks can be handed on is how to stop fighting the blood that woke in you without asking. Three nodes gated on <b>Sorcerer</b> levels 1, 8 and 15: be named and take the Signet of the Drowned House, carry the Shard of Sea-Glass, and say out loud what the blood cost you &mdash; after which the shard is set into the Staff of Elder Days. Both rewards sit inside Sorcerer proficiency. Full walkthrough: <a href=\"QuestGuide.html#blood-elder-days\">Blood of Elder Days &mdash; Sorcerer line I</a>.</div>"
-    impl_notes: "<div>Structurally cloned from the shipped bard-line-early template (q_bard_* -&gt; q_sor_*). Prefix q_sor_ chosen after confirming it is free — nothing in unpacked/ began q_sor_ or q_src_, and the pre-existing 'sorcerer' blueprints share no stem with it. All resrefs fit the 16-char limit.</div><div><br></div><div>State: sorclinedb campaign DB, key blood_stage (0-3), per-character via Get/SetCampaignInt; stage only advances, so rewards are not farmable. <b>All three</b> gates use GetLevelByClass(CLASS_TYPE_SORCERER) (&ge;1/8/15), the tightened paladin/monk/bard rule, not GetHitDice.</div><div><br></div><div>Scripts: include q_sor_inc; reply scripts q_sor_lrn/stn/rtn; StartingConditionals q_sor_c_off/s1w/s1r/s2w/s2r/dn. DLG q_sor_conv obeys the reply-gate rule. Giver q_sor_mstr (Erendis of the Drowned House, Sorcerer 30, plot/immortal) is script-spawn-only via q_sor_spawn, fired from the ruinsofannuminas OnEnter wrapper q_sor_enter, which chains the area's existing d_cleartrash handler.</div><div><br></div><div>Items: q_sor_sig (ring, BaseItem 52, +1 CHA), q_sor_glas (plot token, BaseItem 24), q_sor_stff (quarterstaff, BaseItem 50, Enh +2 / +1 CHA). Use Limitation: Class Sorcerer <b>subtype 9</b>, verified against sarumansrobes.uti, item053.uti and ashmlw006.uti rather than guessed; consistent with Bard 1 / Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category sor_blood (@group 'Class Lines', @order 12). Gates: 7/7 smoke, dialog integrity 0 failing, 12 compiled / 0 errors.</div><div><br></div><div>Follow-up (not built, remains open in the design brief): the mid/endgame chunks — Smaug, the unlimited-casting sceptre, spell-DC and metamagic material.</div>"
+    notes: "<div>The <b>Sorcerer class line</b> opens with <b>Blood of Elder Days</b>. Among the Ruins of Annuminas, where the old Numenorean capital is going quietly back into the lake, Erendis of the Drowned House keeps a fire nobody laid. She is not a teacher of spells and says so — nobody taught her either — and the one thing she thinks can be handed on is how to stop fighting the blood that woke in you without asking. Three nodes gated on <b>Sorcerer</b> levels 1, 8 and 15: be named and take the Signet of the Drowned House, carry the Shard of Sea-Glass, and say out loud what the blood cost you — after which the shard is set into the Staff of Elder Days. Both rewards sit inside Sorcerer proficiency. Full walkthrough: <a href=\"QuestGuide.html#blood-elder-days\">Blood of Elder Days — Sorcerer line I</a>.</div>"
+    impl_notes: "<div>Structurally cloned from the shipped bard-line-early template (q_bard_* -&gt; q_sor_*). Prefix q_sor_ chosen after confirming it is free — nothing in unpacked/ began q_sor_ or q_src_, and the pre-existing 'sorcerer' blueprints share no stem with it. All resrefs fit the 16-char limit.</div><div><br></div><div>State: sorclinedb campaign DB, key blood_stage (0-3), per-character via Get/SetCampaignInt; stage only advances, so rewards are not farmable. <b>All three</b> gates use GetLevelByClass(CLASS_TYPE_SORCERER) (≥1/8/15), the tightened paladin/monk/bard rule, not GetHitDice.</div><div><br></div><div>Scripts: include q_sor_inc; reply scripts q_sor_lrn/stn/rtn; StartingConditionals q_sor_c_off/s1w/s1r/s2w/s2r/dn. DLG q_sor_conv obeys the reply-gate rule. Giver q_sor_mstr (Erendis of the Drowned House, Sorcerer 30, plot/immortal) is script-spawn-only via q_sor_spawn, fired from the ruinsofannuminas OnEnter wrapper q_sor_enter, which chains the area's existing d_cleartrash handler.</div><div><br></div><div>Items: q_sor_sig (ring, BaseItem 52, +1 CHA), q_sor_glas (plot token, BaseItem 24), q_sor_stff (quarterstaff, BaseItem 50, Enh +2 / +1 CHA). Use Limitation: Class Sorcerer <b>subtype 9</b>, verified against sarumansrobes.uti, item053.uti and ashmlw006.uti rather than guessed; consistent with Bard 1 / Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category sor_blood (@group 'Class Lines', @order 12). Gates: 7/7 smoke, dialog integrity 0 failing, 12 compiled / 0 errors.</div><div><br></div><div>Follow-up (not built, remains open in the design brief): the mid/endgame chunks — Smaug, the unlimited-casting sceptre, spell-DC and metamagic material.</div>"
     manual_steps:
       - step: "Place a waypoint tagged AP_sorcererlineearly_1 in ruinsofannuminas (Ruins of Annuminas) — suggested spot: on the grass among the fallen masonry near the lakeshore, somewhere a player crossing the ruins will walk past. Erendis of the Drowned House spawns there on area entry. She is spawn-only: the entire Sorcerer line is invisible and unreachable in-game until this waypoint exists."
         status: open
@@ -3206,7 +3305,7 @@ ideas:
 
   - id: sorcerer-line-mid
     title: "Sorcerer line II — Blood of Elder Days (L22-38)"
-    group: combat-classes
+    group: quests-areas
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -3215,7 +3314,7 @@ ideas:
 
   - id: sorcerer-line-endgame
     title: "Sorcerer line III — Blood of Elder Days (L46-60)"
-    group: combat-classes
+    group: quests-areas
     status: planned
     type: Enhancement
     player: "HomelessSon (Server Admin)"
