@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-19 09:04 CDT"
+  as_of: "2026-07-19 22:23 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -167,7 +167,7 @@ ideas:
   - id: gondor-scribe
     title: "Well of Souls Quest: No Gondor Scribe"
     group: quests-areas
-    status: implemented
+    status: confirmed
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-07-11"
@@ -176,15 +176,20 @@ ideas:
     impl_notes: "<div><b>Root cause:</b> the quest-giver NPC was designed but never created or placed. The gondorscribe conversation, journal category, condition/action scripts and the boss all existed, but no creature in the module carried the gondorscribe conversation, and ruinsofannuminas.git.json had zero static creatures. A 2026-05-28 pass only fixed a DLG Quest field name and missed the absent NPC.</div><div><br></div><div><b>Built:</b> new gondorscribe.utc.json (base comfemale002, Tag GondorScribe, Conversation gondorscribe, FactionID 6, Plot=1 so the quest-giver cannot be killed), placed in area011 near the wizards via bin/place-helper.py (clearance verified, __struct_id 4 hardcoded). New sc_hanee_head.nss (StartingConditional: has azagothshead and not hanee_head_reward) + at_hanee_head.nss (RewardPartyXP 5000, set flag, journal entry 2, keeps the head), wired into Hanee's conversation. Ruin of Annuminas journal entry 2 added (End 1). at_008.nss scribe reward bumped 4000 -&gt; 10000, head consumed. Cold-start path at the scribe unchanged (accept -&gt; journal + Annuminas Key). Full draft in QUEST_FIX_well_of_souls_plan.md.</div>"
     design_questions:
       - question: "On the Hanee-first route the Annuminas Key still only comes from the scribe, so the ruins' four key chests (KeyRequired=0, pickable) are reached before the key exists. Leave as-is, grant the key at Hanee's handoff, or set KeyRequired=1?"
-        status: open
-        answer: null
+        status: answered
+        answer: "Leave as is with key coming from scribe; set 2 of the chests to be keyRequired and unpickable -- add moderately high powered sorcerer gear in one and wizard gear in the other, a 3 pieces of +10 gear with some resistances, bonus spell slots, and relevant ability score boosts. The key should be destroyed on use, so player can only open 1 of the 2 locked chests. The scribe should offer an in game warning/explanation for why (something, something, magic) and the chests should be labeled with unique names and have unique descriptions that hint at what they are rewards for (sorcerer vs wizard). Move the original contents of the 2 chests we're locking with a key here to be split up among the other 2 chests that remain pickable so no net-loss of loot, only added loot for people who do the quest and come back with the key."
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "UAT Hanee-first path: accept from Hanee in Bree -> kill Azagoth in the Ruins of Annuminas -> back to Hanee (+5k XP, keeps head, no repeat on re-talk) -> Gondor Scribe in the Tower ground floor (+10k XP, head consumed, Well of Souls stage 2)."
         status: open
+        step_h: 64
       - step: "UAT cold-start path: a fresh character talks to the scribe -> accept grants journal + Annuminas Key; a later head turn-in pays 10k."
         status: open
+        step_h: 64
       - step: "UAT regression: Hanee's plain greeting is unchanged without the head, and the scribe is unkillable."
         status: open
+        step_h: 64
   - id: unlock-more-inacessible-creature
     title: "Unlock Inacessible creatures, beef up stats, give them areas to live in"
     group: bosses
@@ -1713,8 +1718,10 @@ ideas:
     impl_notes: "<div><b>Root cause:</b> journal category p000 is the stock BioWare plot-wizard template 'Assassination (no proof required)' (entries are TLK strrefs 8621/3726/3729, literal [Villain]/[Plot Giver] text) left over from the ported campaign. Its Comment carried @group 'Lord of the Rings', so the wiki rendered it beside Ferny's Ring and Ferny's Return and it read as a duplicate Ferny track.</div><div><br></div><div><b>Proved dead before changing anything:</b> the only AddJournalQuestEntry(\"p000\") in the module is p000c001ondeath.nss, wired as ScriptDeath on nw_bandit030 (tag ct_Villain_AsnNP); the plot giver is nw_innkeeper023 (tag ct_PlotGiver_AsnNP, conversation p000c000ct_plotg). Neither resref nor tag appears in any .git.json or .ute.json; both are listed in module-index/unspawned_creatures.json. So the track could never fire in-game — the defect was wiki presentation, not gameplay.</div><div><br></div><div><b>Change:</b> single edit to unpacked/module.jrl.json, category index 0 — Comment @group 'Lord of the Rings' replaced with @hidden plus a builder note. Suppress-not-delete per CLAUDE.md; category, entries and all p000* scripts/blueprints remain, so revert is one line.</div><div><br></div><div><b>Not duplicates:</b> 'Ferny's Ring' (journal driven from ferny_convo2.dlg.json) and 'ferny_return' (driven from q_fret_start/bribe/death/end.nss) are distinct quests — ring recovery vs. the later Sharkey impostor — and neither references p000. Both untouched.</div><div><br></div><div><b>Gates:</b> bare nwn-manager repack, 7/7 smoke tests green (incl. dialog integrity, boss registry, spawn-leash, manual nav menus).</div>"
     design_questions:
       - question: "Retire the legacy p000 journal category, or retire the custom 'Ferny's Ring' category? Both cover the same plot and one has to go."
-        status: open
+        status: answered
         answer: "Neither — the premise was wrong. The two Ferny quests are distinct (Ring = cave/ring/ambush; Return = the later impostor plot) and both stay. The thing to retire was journal category p000, a stock BioWare plot-wizard template whose creatures are placed nowhere, so it could never fire; it is now @hidden. Flip to answered to confirm."
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "UAT: after the next wiki refresh, confirm the Quests index no longer lists 'Assassination (no proof required)' (tag p000) under Lord of the Rings, and that docs/quests/p000.html is gone."
         status: open
