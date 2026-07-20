@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-19 22:23 CDT"
+  as_of: "2026-07-20 07:04 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -94,6 +94,7 @@ players:
   - Magyk
   - "Zambro (Xil)"
   - "Rajmund (Ray)"
+  - Szescian82
 
 # -----------------------------------------------------------------------------
 # How merit is earned and spent (Merit Redemption Shop + Player Housing price
@@ -105,6 +106,22 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: petrification-timeout-2
+    title: "Petrification timeout not working as expected"
+    group: combat-classes
+    status: confirmed
+    type: Defect
+    player: Szescian82
+    date: "2026-07-20"
+    notes: "<ol><li>Original implementation of <a href=\"#idea-petrification-timeout\">petrification-timeout</a> is not working; player reports being stuck as petrified for 2 hrs without death/respawn option)</li><li>Original chat messages were planned to be sent over server/combat log chat but those can be hard to notice when in combat and being attacked -- add floating text above the afflicted character that repeats original intended messages for extra visibility</li></ol>"
+  - id: mw-questgiver-ignore-combat
+    title: "Meaningwave quest givers to ignore and be ignored in combat"
+    group: combat-classes
+    status: confirmed
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-20"
+    notes: "Meaningwave NPC quest givers (the ones that give the quizes) should never fight in combat or be attacked/targeted by other (even by opposite or hostile factions)"
   - id: palette-mapping
     title: "WIKI: Document Item and Creature locations within in-game palette"
     group: wiki-tools
@@ -2385,17 +2402,23 @@ ideas:
     commit: b807a82
     notes: "<div><b>Sowing Discord in Bree</b> — a new daily job for wicked characters (L15+, non-Good need apply). Bill Ferny hands you three forged letters to plant under the Prancing Pony's tables, unseen; when the third lands the Sheriff comes looking, and he comes looking for <i>you</i>. Pays 500-800 gp in morgul-silver and 500 XP, and the first run also earns the <b>Morgul-Weave Cloak</b>. Details: <a href=\"QuestGuide.html#sowing-discord\">Quest Guide → Sowing Discord</a>.</div>"
     impl_notes: "<div>Journal sowing_discord. Fifth consumer of the shared quest-cooldown helper (rolling daily). Branch grafted onto Bill Ferny's existing conversation — his ring quest and other greetings untouched. Gate: total level 15+ and not Good-aligned; Good characters simply never hear the whisper.</div><div><br></div><div>Three Forged Letters (plot+cursed) must each be planted under a <b>different</b> table while in stealth mode (deterministic mode check, fail-retry; a table cannot take a second letter). ~18s after the third plant the Sheriff of Bree (CR-16) and a deputy spawn at that table and attack <b>only the planter</b> via temporary-enemy, so there is no taproom faction war.</div><div><br></div><div>Progress is fully persistent per character UUID (survives relog/reboot, self-heals if letters are lost). No new placements: three existing inn tables retagged and hooked; the sheriff spawns at runtime at an existing table's location. Cloak is skills/saves only, forge-cap-safe. <b>No reputation changes yet</b> — rep integration deliberately deferred until the faction scaffolding item ships.</div>"
+    impl_notes_h: 186
     manual_steps:
       - step: "UAT gating: a non-Good L15+ character gets the offer; a Good character or one below L15 must not."
         status: open
+        step_h: 64
       - step: "UAT stealth: an unstealthed plant gives the fail message; stealthed plants work; the same table twice is refused."
         status: open
+        step_h: 64
       - step: "UAT ambush: the third plant advances the journal, and the sheriff + deputy spawn ~18s later and attack only the planter."
         status: open
+        step_h: 64
       - step: "UAT turn-in: pays gold/XP, plus the cloak on the first completion only. Re-talk shows the cooldown greeting with time remaining, and the 'other business' reply still reaches his ring-quest dialogue."
         status: open
+        step_h: 64
       - step: "UAT persistence: relog mid-job both with letters in hand and after planting but before payout &mdash; both must resume correctly."
         status: open
+        step_h: 64
 
   - id: sarumans-voice
     title: "Faction quest (Evil): Saruman's Voice (social, no combat)"
@@ -2795,38 +2818,38 @@ ideas:
   - id: fighter-line-early
     title: "Fighter line I — The Unbroken Shield (L1-15)"
     group: quests-areas
-    status: implemented
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
     commit: 747c4d624fe, 01b242056d0
-    notes: "<div><b>The Unbroken Shield</b> — the first three chapters (L1, L8, L15) of the Fighter class line. Hallas the Shieldwarden keeps a corner of the Prancing Pony and takes the oath of only those who fight for a living: swear it for the <b>Warden's Buckler</b>, come back at L8 for a dead captain's notched shard, and at L15 see the shard reforged into the <b>Warden's Reforged Blade</b>. Details: <a href=\"QuestGuide.html#unbroken-shield\">Quest Guide → The Unbroken Shield</a>.</div>"
+    notes: "<div><b>The Unbroken Shield</b> — the first three chapters (L1, L8, L15) of the Fighter class line. Hallas the Shieldwarden keeps a corner of the Prancing Pony and takes the oath of only those who fight for a living: swear it for the <b>Warden's Buckler</b>, come back at L8 for a dead captain's notched shard, and at L15 see the shard reforged into the <b>Warden's Reforged Blade</b>. Details: <a href=\"QuestGuide.html#unbroken-shield\">Quest Guide → The Unbroken Shield</a>.</div><div><br></div><div>UAT Fail: Why is Hallas spawned in naked and unarmored ( no shield, as a shield warden?)</div>"
     impl_notes: "<div>Journal category ftr_shield (@group 'Class Lines'). Giver q_ftr_hallas, plot/immortal Gondorian veteran; offer gated on GetLevelByClass(CLASS_TYPE_FIGHTER) &gt;= 1 (value 4 verified), non-fighters get a flavour line.</div><div><br></div><div>Per-character one-off state in the fighterlinedb campaign DB (key ubshield_stage 0-&gt;3, advance-only so rewards are not farmable). Reward properties use verified stock encodings. Prancing Pony OnEnter wrapped q_ftr_enter (chains the existing q_hrp_ent1 so the leash and Harper contact are preserved) -&gt; q_ftr_spawn; conversation q_ftr_conv; 6 StartingConditionals + 3 reply scripts referenced in the DLG.</div><div><br></div><div><b>Follow-up fix 2026-07-17 (01b242056d0):</b> the three reward action scripts (q_ftr_oath/shrd/forge, void main()) had been wired into the reply-link <b>Active</b> (show-conditional) fields as well as the correct Script fields; as StartingConditionals they evaluate FALSE, which hid the swear-oath / receive-shard / reforge replies and made the quest unadvanceable in-game. The dialog-integrity gate does not catch semantic Active misuse. Blanked those three Active fields (matching the prsg_conv / rogue-line pattern); the scripts still fire from each target node's Script field. Caught while building the rogue-line-early sibling.</div><div><br></div><div><b>Deliberately deferred to fighter-line-mid/later:</b> the Aeglos Reborn spear capstone and the Osgiliath wave-defence; the shard and blade are named generically to keep the Narsil lore for the finale.</div>"
     manual_steps:
       - step: "Place waypoint AP_fighterlineearly_1 in theprancingpo001. Hallas is script-spawn-only and the scripts no-op gracefully until then, so the line is unreachable without it."
         status: done
         blocker: true
         step_h: 64
-      - step: "UAT the Active-field fix specifically: confirm the swear-oath, receive-shard and reforge replies are now selectable (they were hidden before commit 01b242056d0)."
-        status: open
+      - step: "UAT the Active-field fix specifically: confirm the swear-oath, receive-shard and reforge replies are now selectable (they were hidden before commit 01b242056d0).\n\nResult: What shard? What reforge replies?"
+        status: wip
         step_h: 64
       - step: "UAT gating: a Fighter sees Hallas's oath offer; a non-fighter gets only the flavour line."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT node 1: accept -> journal ftr_shield opens + the fighter-restricted Warden's Buckler."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT level gates: the L8 and L15 gates hold (below-level shows a 'come back at N' line)."
-        status: open
+        status: done
         step_h: 64
-      - step: "UAT nodes 2-3: at L8 the shard is granted; at L15 it is consumed and the Reforged Blade granted; journal advances 1->2->3(End)."
-        status: open
-        step_h: 64
+      - step: "UAT nodes 2-3: at L8 the shard is granted; at L15 it is consumed and the Reforged Blade granted; journal advances 1->2->3(End).\n\nResult: at level 8 was able to get the shard -- it should have a property to deal reduced damage (-1) but then also have bleeding 1, and +3 attack bonus"
+        status: wip
+        step_h: 92
       - step: "UAT restrictions: buckler and blade are unusable by non-fighters."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT regression: the Prancing Pony leash and the Harper-contact spawn (Della) still fire from the wrapped OnEnter."
-        status: open
+        status: done
         step_h: 64
 
   - id: fighter-line-mid
@@ -2902,35 +2925,36 @@ ideas:
   - id: rogue-line-early
     title: "Rogue line I — The Long Shadow (L1-15)"
     group: quests-areas
-    status: implemented
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
     commit: c8d85dc109b
-    notes: "<div><b>The Long Shadow</b> — the first three chapters (L1, L8, L15) of the Rogue class line. Fenn the Shade runs a net of Bree-land watchers out of the Prancing Pony and swears in only those who know how to go unseen: the <b>Shadowmantle</b> at L1, a cipher-token at L8, and <b>Nightthorn</b> at L15. Details: <a href=\"QuestGuide.html#long-shadow\">Quest Guide → The Long Shadow</a>.</div>"
+    notes: "<div><b>The Long Shadow</b> — the first three chapters (L1, L8, L15) of the Rogue class line. Fenn the Shade runs a net of Bree-land watchers out of the Prancing Pony and swears in only those who know how to go unseen: the <b>Shadowmantle</b> at L1, a cipher-token at L8, and <b>Nightthorn</b> at L15. Details: <a href=\"QuestGuide.html#long-shadow\">Quest Guide → The Long Shadow</a>.</div><div><br></div><div>UAT: Fenn also spawns in naked and looks identical to the Shield Warden from fighter quest line also in bree tavern..</div><div>UAT: Dialogue when level 8 says 5 levels more, to 15.. but 5+8 = 13 not 15.. and a character might be level 9, or 10, etc. when coming back so just drop the \"5 levels more\" bit, and state desired/intended level requirement: check similar verbiage on the other class quest givers</div>"
     impl_notes: "<div>Journal category rog_shadow (@group 'Class Lines' @order 2). Giver q_rog_fenn, plot/immortal hooded rogue; offer gated on GetLevelByClass(CLASS_TYPE_ROGUE) &gt;= 1 (value 8 verified), non-rogues get a flavour line. Cloned structurally from fighter-line-early.</div><div><br></div><div>Three level-gated one-off nodes; per-character state in the roguelinedb campaign DB (key shadow_stage 0-&gt;3, advance-only). Reward properties use verified stock encodings (Use-Limitation:Class subtype 8 = Rogue).</div><div><br></div><div>Prancing Pony OnEnter wrapped q_rog_enter (chains the existing q_ftr_enter -&gt; q_hrp_ent1, preserving leash + Harper contact + Hallas's spawn) -&gt; q_rog_spawn; conversation q_rog_conv, reply-link Actives left blank, avoiding the fighter-line bug fixed in the same session. Build passed all gates. Capstone (Shelob / Cirith Ungol / dual-swords finale) deliberately deferred to rogue-line-mid/later.</div>"
+    impl_notes_h: 167
     manual_steps:
       - step: "Place waypoint AP_roguelineearly_1 in theprancingpo001. Fenn is script-spawn-only and no-ops gracefully until then."
         status: done
         blocker: true
         step_h: 64
-      - step: "UAT gating: a Rogue sees Fenn's oath offer; a non-rogue gets only the flavour line."
-        status: open
+      - step: "UAT gating: a Rogue sees Fenn's oath offer; a non-rogue gets only the flavour line.\n\n(Non-rogue path tested and working)\n(Rogue path working)"
+        status: done
         step_h: 64
       - step: "UAT node 1: accept -> journal rog_shadow opens + the rogue-restricted Shadowmantle."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT level gates: L8 and L15 gates hold (below-level shows a 'come back' line)."
-        status: open
+        status: done
         step_h: 64
-      - step: "UAT nodes 2-3: at L8 the token is granted; at L15 it is consumed and Nightthorn granted; journal advances 1->2->3(End)."
-        status: open
+      - step: "UAT nodes 2-3: at L8 the token is granted; at L15 it is consumed and Nightthorn granted; journal advances 1->2->3(End).\n\nUAT result: token granted at level 8.."
+        status: wip
         step_h: 64
-      - step: "UAT restrictions: cloak and blade are unusable by non-rogues."
-        status: open
+      - step: "UAT restrictions: cloak and blade are unusable by non-rogues.\n(Cloak confirmed)"
+        status: wip
         step_h: 64
       - step: "UAT regression: Prancing Pony leash, Harper (Della) and Fighter-line (Hallas) spawns all still fire from the chained OnEnter."
-        status: open
+        status: done
         step_h: 64
 
   - id: rogue-line-mid
@@ -3163,7 +3187,7 @@ ideas:
   - id: bard-line-early
     title: "Bard line I — Tales That Live Forever (L1-15)"
     group: quests-areas
-    status: implemented
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
@@ -3175,8 +3199,8 @@ ideas:
         status: done
         blocker: true
         step_h: 64
-      - step: "UAT: enter Rivendell Upper Halls on any character and confirm Lindir spawns once at the waypoint and does not duplicate on re-entry."
-        status: open
+      - step: "UAT: enter Rivendell Upper Halls on any character and confirm Lindir spawns once at the waypoint and does not duplicate on re-entry.\nFAILED: Lindir did not spawn"
+        status: wip
         step_h: 64
       - step: "UAT: speak to Lindir on a non-bard — confirm the fire-side greeting with only a farewell option, and no journal entry or item."
         status: open
