@@ -1747,7 +1747,7 @@ ideas:
   - id: prestige-trainer-hub
     title: "Prestige-class quest trainer hub near the Well of Eru"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-15"
@@ -1756,7 +1756,7 @@ ideas:
     impl_notes: "<div>Halmir (plot/immortal loremaster) is script-spawned in the Well of Eru; the OnEnter wrapper chains the existing welloferuenter so starter XP, donations chest, forge scan and leash are untouched. Twelve StartingConditional branches on the L6/L11/L12/L13/L14/L16 table, Dwarven Defender additionally race-gated, plus a token-driven summary line.</div><div><br></div><div>Reusable framework in prsg_inc.nss: PRSG_MeetsLevel / HasClass / QualifiesDwarvenDef, the per-order minimum-level table, and the shared prestigedb campaign-DB stage idiom, documented in the include header. No journal category (nothing trackable until a quest ships). Token 6381 reserved. Docs: QuestGuide gained a Prestige-Order Hub card.</div>"
     manual_steps:
       - step: "Place waypoint AP_prestigehub_1 in thewelloferu. Halmir is script-spawn-only and every prestige order depends on him, so nothing in the hub is reachable until this exists."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: deploy and confirm Halmir appears exactly once, with no duplicate on re-entry."
@@ -1905,7 +1905,7 @@ ideas:
   - id: twentieth-plot-mazarbul
     title: "Quest: The Twentieth Plot of Mazarbul (Moria crypt)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-15"
@@ -1914,25 +1914,34 @@ ideas:
     impl_notes: "<div>Journal tag mazarbul_20. Frár is a ghostly-visage dwarf, plot, in the Chamber of Records. Three crypt-seal braziers (one in the Chamber of Records, two flanking Balin's Tomb); each grants a brief negative-energy ward. The Wraith is CR 21.</div><div><br></div><div>Party-aware kill credit; if the wraith dies unwitnessed, any brazier re-summons it. State is per-character campaign DB, relog-safe, genuinely one-off — no re-runs.</div><div><br></div><div>Elrond deliberately NOT wired in: his live Elrond's Request conversation stays untouched, and the lore tie is kept in the wiki card instead. Waypoints AP_mazarbul20_1-4 (ghost + three braziers) with _5 optional (wraith arena); until placed, the areas behave exactly as before. Existing leash/Meaningwave OnEnter scripts chained, not replaced. Docs: card moved from Quest Ideas.html into QuestGuide.html.</div>"
     manual_steps:
       - step: "Place waypoint AP_mazarbul20_1 in chamberofrecords &mdash; spawn point for the q_maz_ghost quest-giver Frar the Restless. Without it the quest cannot be started."
-        status: open
+        status: done
         blocker: true
+        step_h: 64
       - step: "Place waypoints AP_mazarbul20_2, _3 and _4 for the three crypt-seal braziers (one in chamberofrecords, two flanking Balin's Tomb). Without all three the quest cannot be completed."
-        status: open
+        status: done
         blocker: true
+        step_h: 64
       - step: "OPTIONAL: place waypoint AP_mazarbul20_5 anywhere with fighting room &mdash; the wraith arena. The quest is completable without it."
-        status: open
+        status: done
+        step_h: 64
       - step: "UAT spawning: enter the areas -> Frar and the braziers appear, no duplicates on re-entry."
         status: open
+        step_h: 64
       - step: "UAT gating: sub-18 refused; accept at 18+ -> stage 1; touching braziers before accepting gives a cold-brazier floaty."
         status: open
+        step_h: 64
       - step: "UAT seal sequence: light all three in any order &mdash; counts persist across relog, lit braziers refuse re-lighting, and the third seal raises the wraith."
         status: open
+        step_h: 64
       - step: "UAT kill credit: kill the wraith (a party member in the area also advances) -> stage 3."
         status: open
+        step_h: 64
       - step: "UAT turn-in: 1,200 gp / 2,000 XP / ring, journal ends, epilogue-only on re-talk, and no re-run after relog."
         status: open
+        step_h: 64
       - step: "UAT regression: Elrond's Request untouched; Chamber leash and Balin's Tomb Meaningwave spawn still work; Moria encounters unaffected."
         status: open
+        step_h: 64
 
   - id: tharbad-bridge-watcher
     title: "Quest: The Watcher of Tharbad Bridge"
@@ -1983,7 +1992,7 @@ ideas:
   - id: harper-scout-quest
     title: "Prestige quest: Harper Scout (L6+)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-16"
@@ -1992,7 +2001,7 @@ ideas:
     impl_notes: "<div>Journal tag pc_harper. Offer requires 1+ Harper Scout level; non-Harper L6+ characters get an in-fiction pointer line rather than a dead placeholder.</div><div><br></div><div>Della Heathertoes is a plot NPC in a fern-green Lothlórien cloak, script-spawned at AP_harperscout_1; inn behavior otherwise untouched. Reversed-word cipher: Lore 8+ shortcuts, lower Lore enters a three-candidate hint loop that can never dead-end. One-off, relog-safe via the prestigedb stage idiom; all turn-ins stage-guarded.</div><div><br></div><div>Scope: the design card's Rivendell/Lothlórien contacts were folded into dialogue lore to keep it T1-compact (two fewer waypoints). Docs: card moved from Quest Ideas.html into QuestGuide.html.</div>"
     manual_steps:
       - step: "Place waypoint AP_harperscout_1 in theprancingpo001 (AP_prestigehub_1 is also required). Della is script-spawn-only; the quest is unreachable until both exist."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: non-Harper L6+ character at Halmir gets the pointer line and no offer."
@@ -2011,7 +2020,7 @@ ideas:
   - id: knight-westernesse-quest
     title: "Prestige quest: Knight of Westernesse (L6+)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-16"
@@ -2020,7 +2029,7 @@ ideas:
     impl_notes: "<div>Journal tag pc_pdk. Offer requires 1+ Knight of Westernesse level via the prsg_inc framework; non-knights get an in-fiction pointer.</div><div><br></div><div>Wart, the Gondorian Gate Captain is an existing placed NPC that was previously conversation-less. Rally three of the seven placed gate guardsmen (pdk_command counter), then plant the standard at the Banner-Stone placeable spawned at AP_knightwest_1.</div><div><br></div><div>Deviations from the design card: guardsofconstant / bishobofconstant turned out to be Sauron's Mount Doom guards, so the Gondorian gate garrison is used instead. The guardsmen needed the split-blueprint pattern (they share a blueprint with ten Minas Tirith city placements) so respawns keep the dialog — divergence gate verified. The escort mechanic was compacted to the muster exercise: same fiction, same counter, no henchman AI at T1 scope. One-off, relog-safe (prestigedb pdk stages, hardened guards).</div>"
     manual_steps:
       - step: "Place waypoint AP_knightwest_1 in thepelennorfield. The Banner-Stone is script-spawned; the quest cannot be completed until this exists."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT gating: non-knight L6+ gets the pointer; PDK level 1+ gets the offer."
@@ -2421,7 +2430,7 @@ ideas:
   - id: pass-the-pass
     title: "Quest: Pass the Pass (Misty Mountains, daily escort)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
@@ -2430,23 +2439,32 @@ ideas:
     impl_notes: "<div>Journal in module.jrl.json; logic in q_pass_inc.nss. Modeled on the canonical daily-quest skeleton (concerning-hobbits / hobbit-post). Baldor spawns in foothillsofthemi, Wilrun the Quartermaster in mistymountainsb; reward scales as nDiff*200 gold + nDiff*150 XP.</div><div><br></div><div>On accept a difficulty-scaled ambush spawns mid-pass in mistymountainsa from existing goblin/warg blueprints; the Hard tier adds q_pass_gnt, a plot-safe CR-25 clone of the ordinary mgiant — deliberately NOT a boss, registry gate still 78/78.</div><div><br></div><div><b>Escort AI deliberately avoided</b> per the too-big risk: no walking companion and no hard fail-state — reaching the far side is the objective, the ambush is the danger. Daily-gated via quest_cd_inc/questcddb (QCD_IsDoneToday gates the offer, QCD_Stamp on turn-in); naturally rate-limited to one accept per day with no re-accept while an escort is active. Both area OnEnter hooks wrapped (q_pass_enter preserves the original d_cleartrash then runs q_pass_spawn). Build passed all gates.</div>"
     manual_steps:
       - step: "Place waypoint AP_passthepass_1 in foothillsofthemi (Baldor, the giver). He is script-spawn-only, so the quest cannot be accepted until this exists. Place it together with _3."
-        status: open
+        status: done
         blocker: true
+        step_h: 64
       - step: "Place waypoint AP_passthepass_3 in mistymountainsb (Wilrun the Quartermaster, the turn-in). Script-spawn-only, so the quest cannot be paid out until this exists."
-        status: open
+        status: done
         blocker: true
+        step_h: 64
       - step: "OPTIONAL: place waypoint AP_passthepass_2 in mistymountainsa for the mid-pass ambush spawn. The quest is completable without it, just with no ambush."
-        status: open
+        status: done
+        blocker: true
+        step_h: 64
       - step: "UAT: Baldor offers three difficulty tiers."
         status: open
+        step_h: 64
       - step: "UAT: accepting opens the journal and (if AP_passthepass_2 is placed) spawns the tier-scaled ambush; Hard adds the Stone-Giant."
         status: open
+        step_h: 64
       - step: "UAT turn-in: Wilrun pays nDiff*200 gp + nDiff*150 XP and closes the journal."
         status: open
+        step_h: 64
       - step: "UAT cooldown: re-talk Baldor the same day -> countdown line; re-offers the next UTC day. DM can reset with QCD_Clear."
         status: open
+        step_h: 64
       - step: "Sanity-check the reward balance for a T2 L10+ daily and retune nDiff*200 / nDiff*150 if it feels off."
         status: open
+        step_h: 64
 
   - id: spider-silk-harvest
     title: "Quest: Spider Silk Harvest (Mirkwood, daily)"
@@ -2825,7 +2843,7 @@ ideas:
   - id: wizard-line-early
     title: "Wizard line I — The Colour of Power (L1-15)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
@@ -2834,7 +2852,7 @@ ideas:
     impl_notes: "<div>Journal wiz_colour. Giver q_wiz_find, plot/immortal grey wizard in bagend001; offer gated on GetLevelByClass(CLASS_TYPE_WIZARD) &gt;= 1 (value 10 verified), non-wizards get a flavour line. Cloned from the clean rogue-line-early template (q_wiz_* names).</div><div><br></div><div>Three-node one-off arc; per-character state in the wizlinedb campaign DB (key colour_stage 0-&gt;3, advance-only). Reward properties use verified stock encodings (Use-Limitation:Class subtype 10 = Wizard).</div><div><br></div><div>Bag End OnEnter wrapped q_wiz_enter (chains the existing leash_to_area) -&gt; q_wiz_spawn; conversation q_wiz_conv. The DLG follows the reply-gate rule — action scripts only in target Script fields, verified no action script in any Active block, so the fighter-line bug was NOT repeated. Build passed all gates.</div><div><br></div><div><b>Deferred to wizard-line-endgame:</b> the colour choice (White / Many-Colours / Brown via wizard_colour) and the +2 caster-level capstone — Findegil only foreshadows them here.</div>"
     manual_steps:
       - step: "Place waypoint AP_wizardlineearly_1 in bagend001. Findegil is script-spawn-only and no-ops gracefully until then."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT gating: a Wizard entering Bag End sees Findegil's offer; a non-wizard gets only the flavour line."
@@ -2877,7 +2895,7 @@ ideas:
   - id: rogue-line-early
     title: "Rogue line I — The Long Shadow (L1-15)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
@@ -2886,7 +2904,7 @@ ideas:
     impl_notes: "<div>Journal category rog_shadow (@group 'Class Lines' @order 2). Giver q_rog_fenn, plot/immortal hooded rogue; offer gated on GetLevelByClass(CLASS_TYPE_ROGUE) &gt;= 1 (value 8 verified), non-rogues get a flavour line. Cloned structurally from fighter-line-early.</div><div><br></div><div>Three level-gated one-off nodes; per-character state in the roguelinedb campaign DB (key shadow_stage 0-&gt;3, advance-only). Reward properties use verified stock encodings (Use-Limitation:Class subtype 8 = Rogue).</div><div><br></div><div>Prancing Pony OnEnter wrapped q_rog_enter (chains the existing q_ftr_enter -&gt; q_hrp_ent1, preserving leash + Harper contact + Hallas's spawn) -&gt; q_rog_spawn; conversation q_rog_conv, reply-link Actives left blank, avoiding the fighter-line bug fixed in the same session. Build passed all gates. Capstone (Shelob / Cirith Ungol / dual-swords finale) deliberately deferred to rogue-line-mid/later.</div>"
     manual_steps:
       - step: "Place waypoint AP_roguelineearly_1 in theprancingpo001. Fenn is script-spawn-only and no-ops gracefully until then."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT gating: a Rogue sees Fenn's oath offer; a non-rogue gets only the flavour line."
@@ -2981,7 +2999,7 @@ ideas:
   - id: ranger-line-early
     title: "Ranger line I — The Uncrowned Path (L1-15)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
@@ -2990,7 +3008,7 @@ ideas:
     impl_notes: "<div>Journal category rng_path (@group 'Class Lines' @order 7). Giver q_rng_keep (Halbarad, Ranger 30, plot/immortal) in rangerwaystation; offer gated on GetLevelByClass(CLASS_TYPE_RANGER) &gt;= 1, non-rangers get a flavour brush-off. Structurally cloned from the shipped cleric-line-early template.</div><div><br></div><div>Three-node one-off arc; per-character state in the rnglinedb campaign DB (key path_stage 0-&gt;3, advance-only). Rewards q_rng_broc (+1 DEX amulet), q_rng_star (plot token), q_rng_bow (BaseItem 8 longbow, Enhancement +2 / +1 DEX); Use-Limitation:Class subtype 7 = Ranger, verified against existing ranger-restricted items.</div><div><br></div><div>Waystation OnEnter wrapped q_rng_enter (chains the existing leash_to_area) -&gt; q_rng_spawn; conversation q_rng_conv, StartingConditionals q_rng_c_off/s1w/s1r/s2w/s2r/dn, reply scripts q_rng_oath/tok/rtn. DLG follows the reply-gate rule (verified no action script in any Active field). Build passed all gates (7/7 smoke tests, dialog integrity).</div><div><br></div><div>Resumed half-built prior work from 0b71d6908a4, which had shipped the q_rng_* scripts and reward UTIs with no giver, dialog, journal or area wiring — nothing was reachable. Also fixed q_rng_bow, authored as BaseItem 6 (heavy crossbow) despite its name, to 8 (longbow). Kept the pre-existing q_rng_ prefix rather than q_rgr_ to avoid orphaning 15 committed files. No capstone built — deferred to ranger-line-mid/endgame.</div>"
     manual_steps:
       - step: "Place waypoint AP_rangerlineearly_1 in rangerwaystation. Halbarad is script-spawn-only and no-ops gracefully until then — the entire quest line is invisible in-game until this is placed."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT gating: a Ranger at the Waystation sees Halbarad's offer of the vigil; a non-ranger gets only the civil brush-off."
@@ -3257,7 +3275,7 @@ ideas:
   - id: sorcerer-line-early
     title: "Sorcerer line I — Blood of Elder Days (L1-15)"
     group: quests-areas
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
@@ -3266,7 +3284,7 @@ ideas:
     impl_notes: "<div>Structurally cloned from the shipped bard-line-early template (q_bard_* -&gt; q_sor_*). Prefix q_sor_ chosen after confirming it is free — nothing in unpacked/ began q_sor_ or q_src_, and the pre-existing 'sorcerer' blueprints share no stem with it. All resrefs fit the 16-char limit.</div><div><br></div><div>State: sorclinedb campaign DB, key blood_stage (0-3), per-character via Get/SetCampaignInt; stage only advances, so rewards are not farmable. <b>All three</b> gates use GetLevelByClass(CLASS_TYPE_SORCERER) (≥1/8/15), the tightened paladin/monk/bard rule, not GetHitDice.</div><div><br></div><div>Scripts: include q_sor_inc; reply scripts q_sor_lrn/stn/rtn; StartingConditionals q_sor_c_off/s1w/s1r/s2w/s2r/dn. DLG q_sor_conv obeys the reply-gate rule. Giver q_sor_mstr (Erendis of the Drowned House, Sorcerer 30, plot/immortal) is script-spawn-only via q_sor_spawn, fired from the ruinsofannuminas OnEnter wrapper q_sor_enter, which chains the area's existing d_cleartrash handler.</div><div><br></div><div>Items: q_sor_sig (ring, BaseItem 52, +1 CHA), q_sor_glas (plot token, BaseItem 24), q_sor_stff (quarterstaff, BaseItem 50, Enh +2 / +1 CHA). Use Limitation: Class Sorcerer <b>subtype 9</b>, verified against sarumansrobes.uti, item053.uti and ashmlw006.uti rather than guessed; consistent with Bard 1 / Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category sor_blood (@group 'Class Lines', @order 12). Gates: 7/7 smoke, dialog integrity 0 failing, 12 compiled / 0 errors.</div><div><br></div><div>Follow-up (not built, remains open in the design brief): the mid/endgame chunks — Smaug, the unlimited-casting sceptre, spell-DC and metamagic material.</div>"
     manual_steps:
       - step: "Place a waypoint tagged AP_sorcererlineearly_1 in ruinsofannuminas (Ruins of Annuminas) — suggested spot: on the grass among the fallen masonry near the lakeshore, somewhere a player crossing the ruins will walk past. Erendis of the Drowned House spawns there on area entry. She is spawn-only: the entire Sorcerer line is invisible and unreachable in-game until this waypoint exists."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: enter Ruins of Annuminas and confirm Erendis spawns exactly once at the waypoint, and does not duplicate on re-entry or after a server restart."
