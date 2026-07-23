@@ -2660,15 +2660,22 @@ ideas:
     notes: "<span>T3 (L18). Assassinate the successor and plant a false document to trigger a server-wide 7-day halved-orc-spawn buff. Areas exist. Depends on world-state tick logic.</span>"
 
   - id: mithril-seam
-    title: "Quest: The Mithril Seam (Misty Mountains, weekly race)"
+    title: "The Mithril Seam"
     group: quests-areas
-    status: wip
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
+    date: "2026-07-23"
     notes: "<div><b>The Mithril Seam</b> — a proposed T3 weekly race (L28+) in the Misty Mountains. One seam, one claim, first to reach it takes it, and it does not come back until the next week. Server-wide competition rather than a personal daily.</div>"
-    impl_notes: "<div>Weekly SetCampaignInt claim flag. Areas exist. Depends on the quest-cooldown helper plus <a href=\"#idea-world-state-tick-logic\">world-state tick logic</a>.</div>"
-
+    impl_notes: "<div><b>Infra-gated on the shared world-state helper</b> (see lumber-ent-tugofwar's proposal). A weekly SERVER-WIDE single-claim race is not a per-character cooldown - quest_cd_inc.nss (QCD_IsDoneThisWeek) is per-PC, so it cannot express 'one seam, first to claim, gone until next week for EVERYONE'. That needs a shared world-state key (e.g. mithril_seam_claimed + claim owner + week stamp) reset weekly by the WS_Tick. Build once the world-state helper is approved.</div>"
+    design_questions:
+      - question: "SERVER-WIDE WEEKLY CLAIM (depends on the world-state helper proposed on lumber-ent-tugofwar). Proposed: a single seam node in the Misty Mountains; the first L28+ character to mine/claim it in a given ISO week sets world-state mithril_seam_owner=<pckey> + mithril_seam_week=<isoweek> and receives the reward; everyone else sees it depleted until WS_Tick rolls the week over. Approve this model? And WHAT is the reward for winning the weekly race (a mithril ingot / crafting mat, a unique item, gold/XP)? - that reward is a balance/design call for you."
+        status: open
+        answer: null
+    manual_steps:
+      - step: "Blocked until the world-state helper (worldstate_inc.nss + worldstatedb + WS_Tick) is approved and built. Then: place the seam node (AP_ waypoint / usable placeable) in the Misty Mountains area, wire OnUsed to the weekly-claim check, and grant the approved reward. Re-promote once world-state ships."
+        status: open
+        blocker: true
   - id: claim-the-deeps
     title: "Quest: Claim the Deeps (Moria, daily faction-control)"
     group: quests-areas
@@ -2688,14 +2695,25 @@ ideas:
     notes: "<span>T3 (L22+). Alignment-mirrored (two journal tags, same layout, opposite objective). Areas exist. Depends on cooldown helper.</span>"
 
   - id: thirteenth-ent
-    title: "Quest: The Thirteenth Ent (Fangorn)"
+    title: "The Thirteenth Ent"
     group: quests-areas
-    status: wip
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
+    date: "2026-07-23"
     notes: "<span>T4 (L32). Restore a tree-still Ent via a Druid/Bard/Lore branch; permanent +1 STR/CON draught reward. Areas exist.</span>"
-
+    impl_notes: "<div>Self-contained (no faction/world-state dependency; areas exist). Mechanically buildable once the branch content + reward are approved: a giver NPC (Ent) with a conversation offering three solution paths gated on skill/class, a persistent per-character completion stamp (quest_cd_inc or a simple advance-only flag), and a reward item. The creative/balance decisions below are the admin's call.</div>"
+    design_questions:
+      - question: "THREE-BRANCH SOLUTION (approve/tweak the content). The quest restores a 'tree-still' Ent via a Druid / Bard / Lore branch. Proposed shape: DRUID branch - a skill/class-gated dialogue + cast (or a component gathered nearby) that channels growth into the Ent; BARD branch - perform/Perform-gated to sing the Ent awake (Entish is song); LORE branch - Lore/Knowledge check to recall the Ent's true name and speak it. Each branch reaches the same restoration but with different flavour. Approve these three, or change the gating skills/classes? What Perform/Lore/skill DCs (suggest scaling to L32: e.g. Lore/Perform DC ~40)?"
+        status: open
+        answer: null
+      - question: "REWARD (power decision). Proposed: a one-time 'Draught of the Ent' consumable granting a PERMANENT +1 STR and +1 CON (as asked). Permanent stat boosts are strong end-game power creep - confirm +1 STR / +1 CON permanent is intended, or would you prefer a smaller/temporary buff, a once-per-character cap only, or a non-stat reward? (It must be non-farmable: advance-only per-character stamp so the draught can be earned once.)"
+        status: open
+        answer: null
+    manual_steps:
+      - step: "On approval: build the Ent giver NPC + conversation (3 branches) + the draught item + a per-character once-only completion stamp; place the giver via an AP_ waypoint in the existing Fangorn/Ent area (name the exact area at build time). Then re-promote to confirmed. New NPC + item -> appearance/equip UAT and palette filing."
+        status: open
+        blocker: false
   - id: twentyfirst-hall
     title: "Quest: The Twenty-First Hall (Moria, party dungeon)"
     group: quests-areas
