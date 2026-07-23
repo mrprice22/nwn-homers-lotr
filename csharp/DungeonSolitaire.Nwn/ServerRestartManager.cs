@@ -59,6 +59,7 @@ internal sealed class ServerRestartManager
     private string _emptyMsg = "";
     private double _emptyIdleSeconds;            // how long we've been empty while armed
     private DateTime _lastReminder = DateTime.MinValue;
+    private int _lastOnlineCount = -1;           // last logged population (avoids per-tick spam)
 
     public ServerRestartManager()
     {
@@ -194,6 +195,7 @@ internal sealed class ServerRestartManager
         {
             _emptyArmed = false;
             _emptyIdleSeconds = 0;
+            _lastOnlineCount = -1;
             string cancelMsg = "[Server] The pending reboot has been cancelled by the admin.";
             Broadcast(cancelMsg, ColorConstants.Green);
             Shout(cancelMsg);
@@ -206,7 +208,21 @@ internal sealed class ServerRestartManager
     {
         if (!_emptyArmed) return false;
 
-        int online = NwModule.Instance.Players.Count(p => p.IsValid);
+        List<NwPlayer> players = OnlinePlayers();
+        int online = players.Count;
+
+        // Log the population only when it changes, so the log records exactly what
+        // the reboot decision saw (names included) without spamming every 15s tick.
+        if (online != _lastOnlineCount)
+        {
+            if (online == 0)
+                Log.Info("[ServerRestart] armed; server now empty — grace timer starting.");
+            else
+                Log.Info($"[ServerRestart] armed; {online} player(s) online: "
+                         + $"{string.Join(", ", players.Select(p => p.PlayerName))} — reboot held.");
+            _lastOnlineCount = online;
+        }
+
         if (online == 0)
         {
             _emptyIdleSeconds += Tick.TotalSeconds;
@@ -215,6 +231,7 @@ internal sealed class ServerRestartManager
                 await FireEmptyReboot();
                 return true;
             }
+            Log.Info($"[ServerRestart] armed & empty for {_emptyIdleSeconds:F0}s / {EmptyGraceSeconds:F0}s grace.");
             return false;
         }
 
@@ -284,11 +301,15 @@ internal sealed class ServerRestartManager
         catch (Exception ex) { Log.Error(ex, "[ServerRestart] ShutdownServer failed"); }
     }
 
+    // Single source of truth for "who is connected". Every path (reboot decision,
+    // broadcast, shout) uses this so their notions of "online" can never drift apart.
+    private static List<NwPlayer> OnlinePlayers() =>
+        NwModule.Instance.Players.Where(p => p.IsValid).ToList();
+
     private static void Broadcast(string message, Color color)
     {
-        foreach (NwPlayer p in NwModule.Instance.Players)
-            if (p.IsValid)
-                p.SendServerMessage(message, color);
+        foreach (NwPlayer p in OnlinePlayers())
+            p.SendServerMessage(message, color);
         Log.Info($"[ServerRestart] broadcast: {message}");
     }
 
@@ -299,14 +320,28 @@ internal sealed class ServerRestartManager
     // guarantees the area is active and the shout fires immediately.
     private static async void Shout(string message)
     {
-        NwCreature? anchor = NwModule.Instance.Players
-            .Where(p => p.IsValid && p.ControlledCreature?.Area != null)
-            .Select(p => p.ControlledCreature)
-            .FirstOrDefault();
+        List<NwPlayer> online = OnlinePlayers();
+
+        // Anchor the herald on any player whose creature is in a loaded area. Prefer
+        // LoginCreature (stays non-null through possession / familiar control) and
+        // fall back to ControlledCreature. This is a *separate*, stricter test than
+        // "is anyone online" — a connected player who is momentarily un-anchorable
+        // (mid-area-transition, cutscene, still loading) has no area to shout in.
+        NwCreature? anchor = online
+            .Select(p => p.LoginCreature ?? p.ControlledCreature)
+            .FirstOrDefault(c => c?.Area != null);
 
         if (anchor == null)
         {
-            Log.Info("[ServerRestart] No players online — shout skipped.");
+            // Distinguish "genuinely empty" from "online but nobody anchorable" — the
+            // old code logged "No players online" in both cases, which read as a
+            // player-detection failure when players were in fact connected (and the
+            // broadcast had already reached them).
+            if (online.Count == 0)
+                Log.Info("[ServerRestart] No players online — shout skipped.");
+            else
+                Log.Info($"[ServerRestart] {online.Count} player(s) online but none in a loaded "
+                         + "area — herald shout skipped (broadcast still sent).");
             return;
         }
 
