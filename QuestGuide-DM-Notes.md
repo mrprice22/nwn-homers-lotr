@@ -513,9 +513,35 @@ Both files should be updated in the same commit whenever a quest ships or change
   payout in `at_008.nss` is 10,000 XP.
 - **Disambiguation:** the boss is **Azagoth** in the Ruins of Annuminas — *not* Moria Byss and not
   the Balrog of Moria (`azagoth001`, tag `TheBalrogofMoria`), which is a separate creature.
-- **Open point:** the Annuminas Key is only granted on the scribe's paths, so on the Hanee-first
-  route the four key-locked chests in the ruins are reached before the key exists (they remain
-  pickable — `KeyRequired=0`).
+- **Annuminas chests (2026-07-23, roadmap `gondor-scribe` follow-up):** of the four `Chest1`
+  placeables in `ruinsofannuminas.git` (Tag `Chest1`, `KeyName=AnnuminasKey`), the first two in
+  Placeable-List order (list idx 7 @ X71.23/Y50.06 and idx 8 @ X76.24/Y49.98) are now **key-locked
+  and unpickable** (`KeyRequired=1`, `AutoRemoveKey=1`, `Locked=1`), their procedural loot scripts
+  cleared (`OnOpen`/`OnClosed` emptied — they no longer run `chest_respawner`/`chest_relock`), and
+  they carry a **static caster-gear ItemList** instead:
+  - idx 7 = *Sorcerer's Warded Coffer* → `sorc_robe_annu`, `sorc_amul_annu`, `sorc_ring_annu`
+    (CHA, Sorcerer bonus spell slots L6–L9, Fire/Cold/Electrical resist 15/-, AC).
+  - idx 8 = *Wizard's Sealed Reliquary* → `wiz_robe_annu`, `wiz_amul_annu`, `wiz_ring_annu`
+    (INT, Wizard bonus spell slots L6–L9, Acid/Sonic/Cold/Electrical resist 15/-, AC).
+  - The 6 blueprints clone their property encodings + base-item shells from real module items
+    (`epicmagerobe` robe/armor 16, `amuletofadaption` amulet 19, `aegisoftorment` ring 52). Palette:
+    robes → *Armor > Clothing*, amulets → *Miscellaneous > Jewelry > Amulets*, rings →
+    *Miscellaneous > Jewelry > Rings*.
+  - The other two chests (idx 9, 10) are **unchanged** (pickable, `KeyRequired=0`, still generate
+    `GenerateMediumTreasure` on open). Because all four chests always minted *procedural* medium
+    treasure (no static loot ever existed), there was nothing to physically redistribute — the two
+    pickable chests already reproduce the same medium-treasure rolls, so the caster gear is pure
+    net-gain and no loot was lost.
+- **Key economy / anti-farm:** `annuminaskey` (Tag `AnnuminasKey`) is `StackSize=1`, granted only by
+  `at_007` (scribe accept node). `at_007` now guards against stockpiling: it gives at most one key per
+  login (`annu_key_given` local int on the PC) and never a second while one is held. `AutoRemoveKey`
+  destroys the key when a warded chest is unlocked, enforcing "one key = one warded chest."
+  **Residual (relog) vector, admin decision:** the accept node (StartingList entry 0) still shows
+  whenever the PC lacks `azagothshead` and `azagothdead != 1`, so a determined player could open one
+  warded chest, **relog** (which clears the `annu_key_given` local int), re-accept for a fresh key, and
+  open the second warded chest. Fully closing this needs a *persistent* flag (a campaign-DB row keyed
+  by CD key/UUID, or advancing the quest so entry 0 no longer fires) rather than a session local int —
+  left as an admin call since it changes the quest's key economy.
 
 ### Gloison's Heirloom
 
