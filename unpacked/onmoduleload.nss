@@ -21,6 +21,7 @@
 #include "admin_db"
 #include "boost_db"
 #include "quest_cd_inc"
+#include "faction_db"
 
 
 void main()
@@ -101,5 +102,10 @@ Boost_InitDb();
 // Quest cooldowns (daily/weekly repeatable quests): ensure the quest_cd table
 // exists before any dialogue conditional reads it. See quest_cd_inc.nss.
 QCD_InitDb();
+
+// Faction allegiance (Good/Evil, persisted per-character): ensure the
+// faction_standing table exists before any adjuster write or login re-apply.
+// See faction_db.nss (roadmap: faction-scaffolding).
+Faction_InitDb();
 
 }   //end of main

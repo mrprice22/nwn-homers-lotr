@@ -1,9 +1,14 @@
+// eiladjust — OnUsed on the EVIL light-shaft placeable (Well of Eru, Homeless
+// castle, House of Despair; blueprint solred.utp) and the EVIL node of
+// factaduster.dlg. Takes the Evil allegiance: persist it to factiondb (which
+// also applies the live reputation against the Goodfaction/Evilfaction anchors
+// — Good becomes hostile on sight) and play the evil VFX.
+#include "faction_db"
+
 void main()
 {
     object oPC = GetLastUsedBy();
-    AdjustReputation(oPC, GetObjectByTag("Goodfaction"), -100);
-    AdjustReputation(oPC, GetObjectByTag("Evilfaction"), 1000);
-    AdjustReputation(oPC, GetObjectByTag("Neutralfaction"), -100);
+    Faction_SetAllegiance(oPC, "Evil");
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_LOS_EVIL_20), oPC);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_HEAD_EVIL), oPC);
 }

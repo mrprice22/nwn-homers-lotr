@@ -13,6 +13,7 @@
 #include "tele_db"
 #include "boost_db"
 #include "q_frk_inc"
+#include "faction_db"
 
 // Death amulet check + persistent state restore. Delayed so the engine's
 // own post-login passes (inventory hydration, spellbook sync, "fresh PC"
@@ -83,6 +84,14 @@ void main()
     // Rest-menu teleport unlocks (merit redemptions 101-107): ensure the
     // saved-slot / return-state tables exist.
     Tele_InitDb();
+
+    // Faction allegiance re-apply (roadmap: faction-scaffolding): restore the
+    // Good/Evil allegiance this character chose (and thus the hostile-on-sight
+    // reputation against the enemy side) from factiondb. No-op for characters
+    // that never picked a side. Delayed so the anchor NPCs and the PC's
+    // reputation tables are settled before we AdjustReputation.
+    Faction_InitDb();
+    DelayCommand(4.5, Faction_ApplyLive(oPC));
 
     // Premium 2x gold/XP boosts (merit redemptions 201-204): ensure the tables
     // exist, then report any active/pending server + personal subscriptions —
