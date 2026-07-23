@@ -174,11 +174,18 @@ ideas:
   - id: palette-mapping
     title: "WIKI: Document Item and Creature locations within in-game palette"
     group: wiki-tools
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-19"
-    notes: "<div>As a DM/admin, it's hard to find a known creatures, items, or placeables  in the hundreds of categories/submenus within the in-game  palette. </div><div>I want to be able to search within the roadmap/merit backlog editor internal website/tool for those items and have it tell me where to find those results within the toolset palette. </div><div>Don't auto refresh as part of rebuild or wiki publish; keep as a one off script that can be triggered/refreshed as a button within the internal website editor. </div><div><br></div><div>Update autopilot and claude.md to refresh this the palette when creating new items or creatures, and to include category/subcategory/etc in any created manual actions in the roadmap.yml</div>"
+    date: "2026-07-23"
+    commit: 88780c7d597
+    fix: "Added a Palette Finder to the internal roadmap/merit editor: search any creature/item/placeable/etc. by name or resref and it reports the exact toolset-palette location (Top > Sub > category). Backed by bin/gen-palette-map.py (a standalone, on-demand script — never run by the wiki/rebuild) with a Refresh button in the editor. CLAUDE.md and CLAUDE-autopilot.md were updated so new blueprints are filed by PaletteID and manual-action steps include the palette category path."
+    impl_notes: "<div>Shipped across <code>88780c7d597</code> (Palette Finder: <code>bin/gen-palette-map.py</code> builds <code>module-index/palette_map.json</code> — resref &rarr; {name, type, palette path, in_palette, custom_palette} across all 9 palettes; editor gets a <code>Palette Finder</code> button, <code>/api/palette</code> search and <code>/api/palette/refresh</code> endpoints, results table with palette location + custom/standard flag) and <code>0aa18ad6d08</code> (place blueprints at their <code>PaletteID</code> home to match the toolset, with the custom/standard bucket flag). The map is standalone/on-demand only — explicitly NOT wired into the wiki build or any publish. CLAUDE.md documents the palette_map.json lookup + the <code>file-palette-orphans.py</code> / <code>check_palette_coverage</code> gate, and CLAUDE-autopilot.md step 3 requires filing new blueprints by PaletteID and naming the palette category path in <code>manual_steps</code>. No new work needed at flip time; this record retroactively marks the already-shipped feature as implemented.</div>"
+    manual_steps:
+      - step: "UAT: open the roadmap/merit editor, click Palette Finder, click Refresh palette map, then search a known blueprint (e.g. a creature resref) and confirm it reports a sensible Top > Sub > category path."
+        status: open
+        blocker: false
+    notes: "<div>The internal backlog editor now has a <b>Palette Finder</b>: search a creature, item, or placeable by name or resref and it tells you exactly where to find it in the in-game toolset palette (the full <code>Top &gt; Sub &gt; category</code> path), so you no longer have to hunt through hundreds of palette folders. The map is rebuilt on demand from a button; it never runs as part of a rebuild or wiki publish.</div>"
   - id: hgll-banked-skillpoints-lost
     title: "HGLL pre level 41 skill points banked do not carry over"
     group: combat-classes
