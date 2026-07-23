@@ -45,6 +45,11 @@ import yaml
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
 GEN_PATH = REPO / "bin" / "gen-roadmap.py"
+# Palette Finder: standalone map of blueprint -> toolset-palette location. Built
+# on demand by bin/gen-palette-map.py (the "Refresh palette map" button); never
+# part of the wiki build. module-index/ is gitignored, so it may not exist yet.
+PALETTE_GEN_PATH = REPO / "bin" / "gen-palette-map.py"
+PALETTE_MAP_PATH = REPO / "module-index" / "palette_map.json"
 SERVER_ENV = REPO / "server.env"
 # Published copy of the roadmap inside the generated wiki (docs/). Created by a
 # full `nwn-manager wiki` build; Publish to Wiki swaps just its <main> body.
@@ -673,6 +678,45 @@ def regenerate() -> tuple[bool, str]:
 
 
 # --------------------------------------------------------------------------
+# Palette Finder — search where a blueprint lives in the toolset palette.
+# Backed by module-index/palette_map.json (bin/gen-palette-map.py). Standalone:
+# the Refresh button reruns that generator; it never touches the wiki or git.
+# --------------------------------------------------------------------------
+def load_palette_map() -> dict:
+    """{'built': <iso or None>, 'entries': [...]} — empty if not built yet."""
+    if not PALETTE_MAP_PATH.exists():
+        return {"built": None, "entries": []}
+    try:
+        doc = json.loads(PALETTE_MAP_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"built": None, "entries": []}
+    return {"built": doc.get("generated"), "entries": doc.get("entries", [])}
+
+
+def search_palette(query: str, limit: int = 100) -> dict:
+    data = load_palette_map()
+    entries = data["entries"]
+    q = (query or "").strip().lower()
+    if q:
+        hits = [e for e in entries
+                if q in e.get("name", "").lower()
+                or q in e.get("resref", "").lower()]
+    else:
+        hits = []
+    return {"built": data["built"], "total": len(entries),
+            "matched": len(hits), "results": hits[:limit]}
+
+
+def refresh_palette_map() -> tuple[bool, str]:
+    proc = subprocess.run(
+        [sys.executable, str(PALETTE_GEN_PATH)],
+        cwd=str(REPO), capture_output=True, text=True,
+    )
+    output = (proc.stdout + proc.stderr).strip()
+    return proc.returncode == 0, output
+
+
+# --------------------------------------------------------------------------
 # "as of" timestamp — stamped on regenerate/publish in server-local time
 # --------------------------------------------------------------------------
 def server_tz() -> str:
@@ -802,6 +846,10 @@ class Handler(BaseHTTPRequestHandler):
             self._json(merit_for_player(player))
         elif self.path == "/api/pending":
             self._json(pending_requests())
+        elif self.path.startswith("/api/palette"):
+            q = urllib.parse.urlparse(self.path).query
+            term = urllib.parse.parse_qs(q).get("q", [""])[0]
+            self._json(search_palette(term))
         else:
             self._send(404, b"not found", "text/plain")
 
@@ -810,6 +858,14 @@ class Handler(BaseHTTPRequestHandler):
         return json.loads(self.rfile.read(n) or b"{}")
 
     def do_POST(self):
+        # Palette-map refresh needs no body/validation: rerun the standalone
+        # generator and hand back its summary. Never touches the roadmap or git.
+        if self.path == "/api/palette/refresh":
+            ok, output = refresh_palette_map()
+            return self._json({"ok": ok, "output": output,
+                               "built": load_palette_map()["built"],
+                               "message": ("Palette map rebuilt."
+                                           if ok else "Palette map refresh FAILED.")})
         try:
             payload = self._read_body()
         except Exception as e:
@@ -1070,6 +1126,20 @@ PAGE = r"""<!doctype html>
   .extlinks { display:flex; gap:12px; margin:2px 0 8px; }
   .extlinks a { color:var(--accent); font-size:12px; text-decoration:none; }
   .extlinks a:hover { text-decoration:underline; }
+  /* palette finder */
+  .pf-bar { display:flex; gap:8px; align-items:center; margin:6px 0; }
+  .pf-bar input { flex:1; }
+  #pf_results { max-height:52vh; overflow:auto; margin-top:8px; }
+  #pf_results table { width:100%; border-collapse:collapse; font-size:12px; }
+  #pf_results th, #pf_results td { text-align:left; padding:4px 8px;
+    border-bottom:1px solid var(--line); vertical-align:top; }
+  #pf_results th { position:sticky; top:0; background:var(--bg2,#161c24);
+    color:var(--muted); font-weight:600; }
+  #pf_results .pf-path { color:var(--accent); }
+  #pf_results .pf-orphan { color:var(--muted); font-style:italic; }
+  #pf_results .pf-type { color:var(--muted); text-transform:capitalize; }
+  #pf_results .pf-rr { color:var(--muted); font-family:monospace; }
+  .pf-meta { font-size:11px; color:var(--muted); margin-left:auto; }
   /* view toggle */
   .viewtoggle { display:flex; gap:4px; margin:0 0 8px; }
   .viewtoggle button { padding:4px 12px; font-size:12px; width:auto; }
@@ -1131,6 +1201,7 @@ PAGE = r"""<!doctype html>
       <button id="mgroups" class="linkbtn">Manage groups</button>
       <button id="mplayers" class="linkbtn">Manage players</button>
       <button id="mpending" class="linkbtn">Pending Merit Requests</button>
+      <button id="mpalette" class="linkbtn">Palette Finder</button>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
@@ -2034,6 +2105,65 @@ function modalHTML(html){ $('#modalbox').innerHTML=html; $('#modal').classList.a
 function closeModal(){ $('#modal').classList.remove('show'); }
 $('#modal').onclick = e=>{ if(e.target.id==='modal') closeModal(); };
 
+// Palette Finder: search where a blueprint lives in the toolset palette.
+let pfTimer=null;
+function openPalette(){
+  modalHTML(`<h2>Palette Finder</h2>
+    <p class="small">Search a creature/item/placeable by name (or resref) and see
+      where it lives in the in-game toolset palette. The map is built by
+      <code>bin/gen-palette-map.py</code> — a standalone script, not the wiki
+      build. Click <b>Refresh</b> after adding or moving blueprints.</p>
+    <div class="pf-bar">
+      <input id="pf_q" placeholder="search name or resref…" autocomplete="off">
+      <button id="pf_refresh">Refresh palette map</button>
+    </div>
+    <div class="pf-bar" style="margin-top:0;">
+      <span class="pf-meta" id="pf_meta"></span>
+    </div>
+    <div id="pf_results"></div>
+    <div class="bar"><span class="spacer"></span><button id="pf_close">Close</button></div>`);
+  $('#pf_close').onclick=closeModal;
+  const q=$('#pf_q');
+  q.oninput=()=>{ clearTimeout(pfTimer); pfTimer=setTimeout(pfSearch, 180); };
+  $('#pf_refresh').onclick=async()=>{
+    const b=$('#pf_refresh'); b.disabled=true; const old=b.textContent;
+    b.textContent='Refreshing…';
+    try{
+      const r=await fetch('/api/palette/refresh',{method:'POST'});
+      const res=await r.json();
+      banner(res.ok?'ok':'bad', (res.message||'') + (res.output?'\n\n'+res.output:''));
+      pfSearch();
+    } finally { b.disabled=false; b.textContent=old; }
+  };
+  q.focus();
+  pfSearch();
+}
+async function pfSearch(){
+  const term=$('#pf_q') ? $('#pf_q').value.trim() : '';
+  const r=await fetch('/api/palette?q='+encodeURIComponent(term));
+  const d=await r.json();
+  const meta=$('#pf_meta'), box=$('#pf_results');
+  if(!meta||!box) return;
+  if(!d.built){
+    meta.textContent='Palette map not built yet — click "Refresh palette map".';
+    box.innerHTML=''; return;
+  }
+  meta.textContent = (term
+      ? d.matched+' match'+(d.matched===1?'':'es')+' of '+d.total
+      : d.total+' blueprints indexed')
+    + ' · built '+ (d.built||'').replace('T',' ');
+  if(!term){ box.innerHTML='<p class="small">Type to search…</p>'; return; }
+  if(!d.results.length){ box.innerHTML='<p class="small">No matches.</p>'; return; }
+  box.innerHTML='<table><thead><tr><th>Name</th><th>Type</th>'
+    +'<th>Palette location</th><th>ResRef</th></tr></thead><tbody>'
+    + d.results.map(e=>'<tr><td>'+esc(e.name)+'</td>'
+        +'<td class="pf-type">'+esc(e.type)+'</td>'
+        +'<td class="'+(e.in_palette===false?'pf-orphan':'pf-path')+'">'
+          +esc(e.palette||'—')+'</td>'
+        +'<td class="pf-rr">'+esc(e.resref)+'</td></tr>').join('')
+    + '</tbody></table>';
+}
+
 function openGroups(){
   const rows = DATA.vocab.groups.map((g,i)=>`
     <div class="mrow" data-i="${i}">
@@ -2170,6 +2300,7 @@ $('#f_showawarded').onchange=render;
 $('#mgroups').onclick=openGroups;
 $('#mplayers').onclick=openPlayers;
 $('#mpending').onclick=openPending;
+$('#mpalette').onclick=openPalette;
 $('#filter').oninput = render;
 $('#view_list').onclick=()=>setView('list');
 $('#view_board').onclick=()=>setView('board');

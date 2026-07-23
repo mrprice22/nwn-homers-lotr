@@ -135,6 +135,13 @@ Two autopilot-specific rules:
   Anvil C# plugin build + DLL deploy, or a server restart to take effect: implement the
   repo-safe part fully, record the server-side step as a `manual_steps` entry, and ship
   the item as `manual`. The admin completes the deploy step later and promotes it.
+- **New blueprints → refresh the palette map + name the palette path.** If the item
+  creates a new item/creature/placeable blueprint, run `python3 bin/gen-palette-map.py`
+  after adding it (standalone, gitignored output — **not** a wiki refresh) so the Palette
+  Finder can locate it. And whenever a `manual_steps` entry asks the admin to place or
+  find a blueprint in the toolset, **include its palette category/subcategory path** (the
+  `Top > Sub > …` value from `palette_map.json`) so the admin isn't hunting through
+  hundreds of palette folders.
 
 ### 3b. Keep `docs.manual/` in sync
 
