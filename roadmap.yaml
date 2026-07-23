@@ -156,11 +156,21 @@ ideas:
   - id: mw-questgiver-ignore-combat
     title: "Meaningwave quest givers to ignore and be ignored in combat"
     group: combat-classes
-    status: confirmed
+    status: implemented
     type: Defect
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-20"
-    notes: "Meaningwave NPC quest givers (the ones that give the quizes) should never fight in combat or be attacked/targeted by other (even by opposite or hostile factions)"
+    date: "2026-07-23"
+    commit: bfa48e426304a70c239e7481d89eb24c7765b6b4
+    fix: "Made the 8 wandering MeaningWave quiz-givers fully non-combatant: a shared OnSpawn script sets them immortal/plot and applies a permanent supernatural Sanctuary(100) so nothing ever targets them, and their combat event scripts are repointed to a no-op so they never retaliate. The caster-duel companion variants are untouched."
+    notes: "<div>The wandering <b>MeaningWave quiz-givers</b> (Peterson, Campbell, Jung, Aurelius, Akira, Jocko, McKenna, Watts) are now fully peaceful. They never fight, and no creature &mdash; not even hostile monsters roaming their areas &mdash; will target or attack them, so you can take their quizzes undisturbed even in the middle of a fight.</div>"
+    impl_notes: "<div><b>Root cause:</b> the 8 spawned quiz-giver blueprints (<code>mw_*_w</code> + <code>mw_akira</code>) used the stock <code>x2_def_*</code> combat scripts, so they retaliated when hit, and being on the Merchant faction (FactionID 3) they were still valid enemy targets for the Hostile faction. Plot/Immortal only prevented death, not targeting or fighting.</div><div><b>Fix:</b> new <code>mw_qg_spawn.nss</code> (OnSpawn) runs <code>ExecuteScript(\"x2_def_spawn\")</code> to preserve ambient/walk behaviour, then <code>SetImmortal</code>+<code>SetPlotFlag</code>, then applies a permanent supernatural <code>EffectSanctuary(100)</code> &mdash; an unbeatable DC so nothing selects them as a target regardless of faction, and it never breaks since they take no hostile action. New <code>mw_qg_noop.nss</code> (empty) is wired to <code>ScriptAttacked</code>, <code>ScriptDamaged</code>, <code>ScriptEndRound</code>, <code>ScriptOnNotice</code>, <code>ScriptSpellAt</code> so they never retaliate or initiate. Edited the 8 blueprints to repoint those 5 combat events + <code>ScriptSpawn</code> and reassert <code>Plot=1</code>/<code>IsImmortal=1</code>. The non-<code>_w</code> caster-duel variants (<code>mw_peterson</code> etc., which use <code>mw_def_attacked</code>/MW_Style counterspell) were deliberately left combat-capable. All builtins verified against the game <code>nwscript.nss</code>; gates passed (script compilation, dialog-integrity, boss registry, palette coverage, reward-exploit, MeaningWave quiz banks, 10/10 smoke).</div>"
+    manual_steps:
+      - step: "UAT: pull a hostile creature adjacent to a spawned MeaningWave quiz-giver (e.g. Watts in Old Forest (oldforest001), or Jung in Crypts of the Lost (cryptsofthelosts)) and confirm the hostile ignores the NPC entirely and the NPC never fights back."
+        status: open
+        blocker: false
+      - step: "UAT: confirm the quiz-givers still wander/idle normally and their quiz conversation still opens when clicked."
+        status: open
+        blocker: false
   - id: palette-mapping
     title: "WIKI: Document Item and Creature locations within in-game palette"
     group: wiki-tools
