@@ -2632,11 +2632,23 @@ ideas:
   - id: lumber-ent-tugofwar
     title: "Quest pair: Lumber Runners (Evil) vs Ent-Watch (Good), Fangorn dailies"
     group: quests-areas
-    status: wip
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
+    date: "2026-07-23"
     notes: "<span>T2 (L15+). A linked server-state tug-of-war — a shared isengard_warmachine var scales the Helm's Deep event. Ship the pair together. Depends on cooldown helper + world-state tick logic.</span>"
+    impl_notes: "<div><b>Dependency audit (autopilot 2026-07-23):</b> the item's note 'Depends on cooldown helper + world-state tick logic' is now half-stale. The <b>quest-cooldown helper already exists</b> — <code>quest_cd_inc.nss</code> (QCD_IsOnCooldown / QCD_IsDoneToday / QCD_IsDoneThisWeek / QCD_Stamp, backed by the <code>questcddb</code> campaign DB, real wall-clock, survives reboots) — so carndum-ledger, faramir-watch and palantir-watch are NOT blocked on cooldowns, only on world-state. The genuinely-missing infra is a shared <b>world-state</b> layer: server-wide persistent variables (not per-character) that several players read/affect and that change over time. See the design question for the proposed shared helper; once approved it unblocks this pair plus claim-the-deeps (deeps_control), goblin-town-throne (7-day halved-orc-spawn buff), and the Helm's Deep scaling here.</div>"
+    design_questions:
+      - question: "SHARED WORLD-STATE HELPER (the real second infra unblocker; the cooldown helper already exists as quest_cd_inc.nss). Proposed: a thin include 'worldstate_inc.nss' over a 'worldstatedb' campaign DB — WS_GetInt(key)/WS_SetInt(key,val)/WS_Adjust(key,delta) for server-wide persistent globals (e.g. isengard_warmachine, deeps_control), plus an optional decay/reset registered per key and advanced by a single module-heartbeat tick (WS_Tick, ~1/min) so time-based effects (a 7-day buff expiring, a weekly reset, a tug-of-war var drifting back to centre) happen without each quest wiring its own timer. Values broadcast to interested areas via an event/local-var mirror on module load + on change. Approve this shape (campaign-DB globals + heartbeat tick + per-key decay), or do you prefer NWNX or pure GetCampaignInt/SetCampaignInt without a tick?"
+        status: open
+        answer: null
+      - question: "LUMBER/ENT TUG-OF-WAR MECHANIC (creative/balance, needs your call). Concept: a shared isengard_warmachine world-state var that both sides push — players felling trees / aiding Isengard raise it, players defending Fangorn / doing Ent objectives lower it — and its value scales the difficulty/rewards of the linked Helm's Deep event ('ship the pair together'). Open: what raises/lowers it and by how much per action, the min/max clamp, whether it decays toward centre over time (via WS_Tick), and what the Helm's Deep event does at each band. Proposed starting point: range 0-100, start 50, +/-5 per qualifying action, decay 1/hour toward 50, three difficulty bands (<=25 / 26-74 / >=75). Approve/tweak, and confirm the two areas (Fangorn + Helm's Deep) to wire."
+        status: open
+        answer: null
+    manual_steps:
+      - step: "On approval: build worldstate_inc.nss + worldstatedb + the WS_Tick heartbeat hook first (shared infra), then the tug-of-war quest scripts + the Helm's Deep scaling. Then re-promote to confirmed. The cooldown half needs nothing new (quest_cd_inc.nss exists)."
+        status: open
+        blocker: false
 
   - id: goblin-town-throne
     title: "Quest: The Goblin-Town Throne (Misty Mountains)"
