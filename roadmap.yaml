@@ -1877,11 +1877,26 @@ ideas:
   - id: faction-scaffolding
     title: "Faction scaffolding: new reputation factions + matrix for faction quests"
     group: quests-areas
-    status: confirmed
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-11"
-    notes: "<span>repute.fac.json ships only Good/Evil/Neutral. Add 10-15 named factions (Rohan, Mordor, Isengard, Lorien, etc.) plus the pairwise RepList matrix so faction quests can grant real standing instead of collapsing to Good/Evil. Unblocks the whole Faction Quests section.</span>"
+    date: "2026-07-23"
+    notes: "<span>repute.fac.json ships only the base NWN factions (PC/Hostile/Commoner/Merchant/Defender) plus Good/Evil/Neutral. Add 10-15 named Middle-earth factions plus the pairwise RepList matrix so faction quests can grant real standing instead of collapsing to Good/Evil. Unblocks the whole Faction Quests section.</span>"
+    impl_notes: "<div><b>Technical shape (confirmed against unpacked/repute.fac.json):</b> the file is a FactionList (currently 8 entries, indices 0-7: PC, Hostile, Commoner, Merchant, Defender, Evil, Good, Neutral) + a RepList of pairwise {FactionID1, FactionID2, FactionRep 0-100}. Adding a faction = append a FactionList struct (FactionName, FactionParentID, FactionGlobal:1 for a persistent module faction) and the pairwise RepList rows. Evil parents to Hostile(1), Good/Neutral parent to Defender(4) — new Enemy factions should parent Hostile(1), new Free-Peoples factions parent Defender(4), so unset pair reputations inherit sensibly. Rep rubric: 100=allied, 50=neutral, 0=hostile (engine treats &lt;11 as attack-on-sight). Build is mechanical once the roster + rubric below are approved; the reason this is parked rather than shipped is that downstream faction quests will hardcode these faction IDs/names, so the roster must be locked first to avoid churn.</div>"
+    design_questions:
+      - question: "PROPOSED FACTION ROSTER (approve, or add/remove/rename). 12 named module factions, FactionGlobal:1. FREE PEOPLES (parent Defender): (1) Rohan - Riders of the Mark; (2) Gondor; (3) Lothlorien (Galadhrim); (4) Rivendell (Imladris); (5) Fangorn (Ents); (6) Erebor (Dwarves). ENEMY (parent Hostile): (7) Mordor; (8) Isengard (Uruk-hai); (9) Angmar (Witch-King's host); (10) Dunland (Wild Men); (11) Goblins of the Misty Mountains; (12) Haradrim & Corsairs of Umbar. This roster covers every faction referenced by queued quests (Rohan/riders-of-the-mark + dead-marshes; Lothlorien/palantir + dead-marshes waystone; Isengard/lumber-ent-tugofwar + claim-the-deeps; Angmar/carndum-ledger; Goblins/goblin-town-throne). Good/Bad split, or do you want independent/neutral factions too (e.g. Bree-land, Dead Marshes wraiths)?"
+        status: open
+        answer: null
+      - question: "PROPOSED REPUTATION RUBRIC (approve or tweak the numbers). Within Free Peoples: 100 to each other. Within Enemy: 100 to each other. Free Peoples <-> Enemy: 0 (mutually attack-on-sight). Each named faction -> Commoner/Merchant/Defender/Good/Neutral: 50 (neutral) so they don't randomly aggro shopkeepers/guards; Enemy factions -> Good: 0. Named faction -> PC: START at 50 (neutral) for BOTH sides, so quests move standing in EITHER direction (do a Rohan quest -> Rohan rep rises toward 100; raid for Isengard -> Isengard rises but Rohan/Gondor fall toward 0 and their NPCs turn hostile). Alternative: start Enemy factions at 0->PC (hostile on sight, standing must be EARNED down) - which do you prefer for the enemy side: neutral-until-provoked (50) or hostile-on-sight (0)?"
+        status: open
+        answer: null
+      - question: "PC-STANDING PERSISTENCE (design choice with a gameplay consequence). NWN faction reputation toward the PC set via AdjustReputation is per-session on the creature's faction and does NOT persist across relog by itself. For faction quests to grant durable standing, standing should be stored per-character (CD-key/UUID) in a campaign DB (proposed: a 'factiondb' table keyed by pckey+faction_id -> standing) and re-applied on login via a small OnClientEnter hook that calls AdjustReputation/SetStandardFactionReputation to match the stored value. Approve this persistence approach (factiondb + login re-apply), or do you want standing to be session-only / journal-flag-based instead?"
+        status: open
+        answer: null
+    manual_steps:
+      - step: "Once the roster + rubric are approved: this becomes a mechanical build (append FactionList + RepList in repute.fac.json, add the factiondb persistence include + OnClientEnter re-apply if approved). No toolset placement needed for the scaffolding itself; individual faction quests then reference these faction names/IDs. Re-promote to confirmed after approval."
+        status: open
+        blocker: false
 
   - id: world-state-tick-logic
     title: "Living-world server-state tick logic (daily/weekly resets)"
