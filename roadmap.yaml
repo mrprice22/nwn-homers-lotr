@@ -1454,11 +1454,11 @@ ideas:
   - id: item-slot-tokens
     title: "Increase an item's property slots using boss-drop 'tokens' or a rare boss drop"
     group: forge
-    status: manual
+    status: implemented
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
-    date: "2026-07-17"
-    commit: c79fe8ab669
+    date: "2026-07-23"
+    commit: c79fe8ab669, 7688f1c5cb9
     notes: "<div>The <b>Rune of Expansion</b> is a new consumable that permanently raises a single item's forge property-slot ceiling by one, stacking up to three runes on the same item. Bind runes to a favourite piece and a forge that would only allow four, five or six enchantments will allow more — and the extra enchantment is fully legal, so the item will never be seized as contraband. <b>Not yet obtainable:</b> the rune is not in any loot table while its drop source and rarity are decided. Details: <a href=\"Customizations.html#forge\">Customizations → Forge of Wonders</a>.</div>"
     impl_notes: "<div>Item tag SlotToken, resref slot_token; hard cap FORGE_TOKEN_MAX_SLOTS = 3, a single admin-tunable constant in forge_inc.nss.</div><div><br></div><div>The rune is a targeted Unique-Power widget (Cast Spell prop 15, subtype 329 — the same activation the module's dmfi widgets use). On activation the module OnActivateItem handler (dmfi_activate) branches on the SlotToken tag and ExecuteScripts slot_token.nss, which stores the earned count as the item-local int FORGE_EXTRA_SLOTS on the targeted item (persists with the item in the .bic, exactly like the existing FORGE_CEIL) and consumes one rune.</div><div><br></div><div>forge_inc.nss now exposes a single ceiling helper <b>ForgeItemMaxProps(oItem) = ForgeLegalMaxProps() + ForgeItemExtraSlots(oItem)</b>, and every place the prop-count ceiling is enforced (modifyitem apply loop, the anvil legality/contraband scan, the projected-count guard) routes through it — so the extra slots are honored AND the item is never jailed as contraband for the extra enchantment it may now hold. Only the slot-COUNT ceiling changes; true-value pricing, the value cap and the disenchant staging invariants are untouched. Build passed all gates (6/6 smoke, dialog-integrity 0 failing, boss-registry 78/78, 58 scripts compiled 0 errors). No CR&gt;60 boss was modified.</div>"
     design_questions:
@@ -1469,7 +1469,7 @@ ideas:
         answer_h: 64
     manual_steps:
       - step: "LOOT PLACEMENT: add slot_token to the chosen boss loot via the toolset / the module's loot system once the drop-source design question is answered. Until then the rune is unobtainable in normal play."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: DM-spawn a Rune of Expansion (resref slot_token / tag SlotToken)."
