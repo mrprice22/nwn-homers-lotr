@@ -1890,26 +1890,32 @@ ideas:
         step_h: 64
 
   - id: faction-scaffolding
-    title: "Faction scaffolding: new reputation factions + matrix for faction quests"
+    title: "Faction scaffolding: persist Good/Evil allegiance + let quests move standing"
     group: quests-areas
-    status: design
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
-    notes: "<span>repute.fac.json ships only the base NWN factions (PC/Hostile/Commoner/Merchant/Defender) plus Good/Evil/Neutral. Add 10-15 named Middle-earth factions plus the pairwise RepList matrix so faction quests can grant real standing instead of collapsing to Good/Evil. Unblocks the whole Faction Quests section.</span>"
-    impl_notes: "<div><b>Technical shape (confirmed against unpacked/repute.fac.json):</b> the file is a FactionList (currently 8 entries, indices 0-7: PC, Hostile, Commoner, Merchant, Defender, Evil, Good, Neutral) + a RepList of pairwise {FactionID1, FactionID2, FactionRep 0-100}. Adding a faction = append a FactionList struct (FactionName, FactionParentID, FactionGlobal:1 for a persistent module faction) and the pairwise RepList rows. Evil parents to Hostile(1), Good/Neutral parent to Defender(4) — new Enemy factions should parent Hostile(1), new Free-Peoples factions parent Defender(4), so unset pair reputations inherit sensibly. Rep rubric: 100=allied, 50=neutral, 0=hostile (engine treats &lt;11 as attack-on-sight). Build is mechanical once the roster + rubric below are approved; the reason this is parked rather than shipped is that downstream faction quests will hardcode these faction IDs/names, so the roster must be locked first to avoid churn.</div>"
+    notes: "<span>The module already runs a 2-faction Good/Evil allegiance system (Well of Eru teleporters call goodadjuster/eviladjuster to AdjustReputation the PC toward the Goodfaction/Evilfaction anchor NPCs), but it is session-only and faction quests cannot grant durable standing. Make that allegiance persist per-character and re-apply on login, so faction quests can move real Good/Evil standing. NOT tied to character alignment.</span>"
+    impl_notes: "<div><b>Scope pivoted 2026-07-23 (admin decision): NOT 10-15 named factions.</b> The admin wants to keep the existing 2-faction Good vs Evil model that the Well of Eru teleporters already use, decoupled from character alignment (a Neutral druid may pick either side's quests). Existing mechanic: anchor NPCs tagged <code>Goodfaction</code>/<code>Evilfaction</code>/<code>Neutralfaction</code> + scripts <code>goodadjuster</code>/<code>goodadjuster2</code>/<code>eviladjuster</code> call <code>AdjustReputation(oPC, GetObjectByTag(\"Goodfaction\"), 1000)</code> etc. The gap: <code>AdjustReputation</code> toward the PC is session-only, so allegiance resets on relog and quests can't bank standing. Build: (1) a <code>factiondb</code> campaign DB storing per-character (GetObjectUUID/CD-key) allegiance = Good|Evil|Neutral + a numeric standing; (2) a small include the adjusters/quests call to SET+persist allegiance (wrap the existing AdjustReputation calls so every teleport/quest write also stamps factiondb); (3) an OnClientEnter re-apply hook that reads factiondb and re-runs the AdjustReputation against the anchors so hostility survives relog/reboot. Enemy side is <b>hostile-on-sight</b> (the -100 adjust already drops the opposite faction below the attack threshold). Alignment is untouched.</div>"
     design_questions:
-      - question: "PROPOSED FACTION ROSTER (approve, or add/remove/rename). 12 named module factions, FactionGlobal:1. FREE PEOPLES (parent Defender): (1) Rohan - Riders of the Mark; (2) Gondor; (3) Lothlorien (Galadhrim); (4) Rivendell (Imladris); (5) Fangorn (Ents); (6) Erebor (Dwarves). ENEMY (parent Hostile): (7) Mordor; (8) Isengard (Uruk-hai); (9) Angmar (Witch-King's host); (10) Dunland (Wild Men); (11) Goblins of the Misty Mountains; (12) Haradrim & Corsairs of Umbar. This roster covers every faction referenced by queued quests (Rohan/riders-of-the-mark + dead-marshes; Lothlorien/palantir + dead-marshes waystone; Isengard/lumber-ent-tugofwar + claim-the-deeps; Angmar/carndum-ledger; Goblins/goblin-town-throne). Good/Bad split, or do you want independent/neutral factions too (e.g. Bree-land, Dead Marshes wraiths)?"
-        status: open
-        answer: null
-      - question: "PROPOSED REPUTATION RUBRIC (approve or tweak the numbers). Within Free Peoples: 100 to each other. Within Enemy: 100 to each other. Free Peoples <-> Enemy: 0 (mutually attack-on-sight). Each named faction -> Commoner/Merchant/Defender/Good/Neutral: 50 (neutral) so they don't randomly aggro shopkeepers/guards; Enemy factions -> Good: 0. Named faction -> PC: START at 50 (neutral) for BOTH sides, so quests move standing in EITHER direction (do a Rohan quest -> Rohan rep rises toward 100; raid for Isengard -> Isengard rises but Rohan/Gondor fall toward 0 and their NPCs turn hostile). Alternative: start Enemy factions at 0->PC (hostile on sight, standing must be EARNED down) - which do you prefer for the enemy side: neutral-until-provoked (50) or hostile-on-sight (0)?"
-        status: open
-        answer: null
-      - question: "PC-STANDING PERSISTENCE (design choice with a gameplay consequence). NWN faction reputation toward the PC set via AdjustReputation is per-session on the creature's faction and does NOT persist across relog by itself. For faction quests to grant durable standing, standing should be stored per-character (CD-key/UUID) in a campaign DB (proposed: a 'factiondb' table keyed by pckey+faction_id -> standing) and re-applied on login via a small OnClientEnter hook that calls AdjustReputation/SetStandardFactionReputation to match the stored value. Approve this persistence approach (factiondb + login re-apply), or do you want standing to be session-only / journal-flag-based instead?"
-        status: open
-        answer: null
+      - question: "FACTION ROSTER."
+        status: answered
+        answer: "Do NOT add 10-15 named factions. Keep just 2 (Good and Evil), aligning with how the Well of Eru teleporters already set faction hostility. This is NOT tied to character alignment, so e.g. druids stay Neutral (alignment) and can still pick either faction's quests."
+      - question: "Enemy default stance toward the PC."
+        status: answered
+        answer: "Hostile on sight (0) - the opposing faction attacks immediately; standing must be earned. (Already the effect of the existing -100 AdjustReputation.)"
+      - question: "Persistence of standing."
+        status: answered
+        answer: "Persist per-character in a factiondb campaign DB, re-applied on login, so allegiance/standing survives relog and reboot."
     manual_steps:
-      - step: "Once the roster + rubric are approved: this becomes a mechanical build (append FactionList + RepList in repute.fac.json, add the factiondb persistence include + OnClientEnter re-apply if approved). No toolset placement needed for the scaffolding itself; individual faction quests then reference these faction names/IDs. Re-promote to confirmed after approval."
+      - step: "UAT persistence: use a Well of Eru Good (or Evil) teleporter to take that allegiance, confirm the opposing faction's NPCs turn hostile, relog, and confirm the allegiance + hostility PERSIST (previously they reset). Then use the opposite teleporter and confirm the flip also persists."
+        status: open
+        blocker: false
+      - step: "UAT alignment independence: on a True-Neutral-alignment character, take a Good allegiance and confirm it works (allegiance is faction-based, not GetAlignment)."
+        status: open
+        blocker: false
+      - step: "Confirm the anchor NPCs tagged Goodfaction/Evilfaction/Neutralfaction exist and are placed (the whole system keys off them). Note their area(s) at build time."
         status: open
         blocker: false
 
@@ -2639,9 +2645,9 @@ ideas:
     notes: "<span>T2 (L15+). A linked server-state tug-of-war — a shared isengard_warmachine var scales the Helm's Deep event. Ship the pair together. Depends on cooldown helper + world-state tick logic.</span>"
     impl_notes: "<div><b>Dependency audit (autopilot 2026-07-23):</b> the item's note 'Depends on cooldown helper + world-state tick logic' is now half-stale. The <b>quest-cooldown helper already exists</b> — <code>quest_cd_inc.nss</code> (QCD_IsOnCooldown / QCD_IsDoneToday / QCD_IsDoneThisWeek / QCD_Stamp, backed by the <code>questcddb</code> campaign DB, real wall-clock, survives reboots) — so carndum-ledger, faramir-watch and palantir-watch are NOT blocked on cooldowns, only on world-state. The genuinely-missing infra is a shared <b>world-state</b> layer: server-wide persistent variables (not per-character) that several players read/affect and that change over time. See the design question for the proposed shared helper; once approved it unblocks this pair plus claim-the-deeps (deeps_control), goblin-town-throne (7-day halved-orc-spawn buff), and the Helm's Deep scaling here.</div>"
     design_questions:
-      - question: "SHARED WORLD-STATE HELPER (the real second infra unblocker; the cooldown helper already exists as quest_cd_inc.nss). Proposed: a thin include 'worldstate_inc.nss' over a 'worldstatedb' campaign DB — WS_GetInt(key)/WS_SetInt(key,val)/WS_Adjust(key,delta) for server-wide persistent globals (e.g. isengard_warmachine, deeps_control), plus an optional decay/reset registered per key and advanced by a single module-heartbeat tick (WS_Tick, ~1/min) so time-based effects (a 7-day buff expiring, a weekly reset, a tug-of-war var drifting back to centre) happen without each quest wiring its own timer. Values broadcast to interested areas via an event/local-var mirror on module load + on change. Approve this shape (campaign-DB globals + heartbeat tick + per-key decay), or do you prefer NWNX or pure GetCampaignInt/SetCampaignInt without a tick?"
-        status: open
-        answer: null
+      - question: "SHARED WORLD-STATE HELPER (the real second infra unblocker; the cooldown helper already exists as quest_cd_inc.nss). Proposed: a thin include 'worldstate_inc.nss' over a 'worldstatedb' campaign DB — WS_GetInt/WS_SetInt/WS_Adjust for server-wide persistent globals plus a ~1/min WS_Tick for per-key decay/weekly reset."
+        status: answered
+        answer: "Approved: Campaign DB + heartbeat tick + decay. Build worldstate_inc.nss + worldstatedb + WS_Tick as shared infra (autopilot is building this independently of the tug-of-war quest, which still needs its mechanic decision below)."
       - question: "LUMBER/ENT TUG-OF-WAR MECHANIC (creative/balance, needs your call). Concept: a shared isengard_warmachine world-state var that both sides push — players felling trees / aiding Isengard raise it, players defending Fangorn / doing Ent objectives lower it — and its value scales the difficulty/rewards of the linked Helm's Deep event ('ship the pair together'). Open: what raises/lowers it and by how much per action, the min/max clamp, whether it decays toward centre over time (via WS_Tick), and what the Helm's Deep event does at each band. Proposed starting point: range 0-100, start 50, +/-5 per qualifying action, decay 1/hour toward 50, three difficulty bands (<=25 / 26-74 / >=75). Approve/tweak, and confirm the two areas (Fangorn + Helm's Deep) to wire."
         status: open
         answer: null
