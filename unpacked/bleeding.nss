@@ -14,6 +14,11 @@
  *
  *************************************************************************/
 
+// Server-wide world-state decay/weekly rules are advanced from here. WS_Tick()
+// self-throttles to once per minute (via a timestamp in worldstatedb), so
+// calling it on every 6s heartbeat pulse is cheap. See worldstate_inc.nss.
+#include "worldstate_inc"
+
 /*
  * I like to put all the things I can "tweak" in one place.  You could put
  * each behavior into the function in which it's used, but it's far easier
@@ -194,6 +199,11 @@ void main()
 
         pc = GetNextPC();
     }
+
+    // Advance server-wide world-state rules (decay / weekly resets). Self-
+    // throttled to ~1/min inside WS_Tick(); a no-op on pulses in between and
+    // when no rules are registered.
+    WS_Tick();
 }
 
 

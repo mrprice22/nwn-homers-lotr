@@ -22,6 +22,7 @@
 #include "boost_db"
 #include "quest_cd_inc"
 #include "faction_db"
+#include "worldstate_inc"
 
 
 void main()
@@ -107,5 +108,11 @@ QCD_InitDb();
 // faction_standing table exists before any adjuster write or login re-apply.
 // See faction_db.nss (roadmap: faction-scaffolding).
 Faction_InitDb();
+
+// World-state globals (server-wide contested control / timed buffs / weekly
+// claims): ensure the world_state + world_state_rule tables exist before any
+// read or before the heartbeat's WS_Tick() applies a decay/weekly rule.
+// See worldstate_inc.nss (roadmap: lumber-ent-tugofwar).
+WS_InitDb();
 
 }   //end of main
