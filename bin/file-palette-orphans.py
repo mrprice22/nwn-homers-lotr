@@ -1,28 +1,37 @@
 #!/usr/bin/env python3
-"""File orphan blueprints into their matching toolset-palette category.
+"""File orphan blueprints into their PaletteID-correct toolset-palette category.
 
 Blueprints that exist in unpacked/ but were never filed into a custom palette
 category (`*palcus.itp.json`) don't appear in the NWN toolset's palette tree at
 all -- a DM can't find them to drag into an area (e.g. `slot_token`, the "Rune of
-Expansion"). This tool files every such orphan into the *correct existing*
-category, learned empirically from the blueprints already in the palette:
+Expansion"). This happens when blueprints are added out-of-band (git / nasher
+import) without a toolset "Save Module", which is what normally regenerates the
+palette.
 
-  * items      -> by BaseItem
-  * creatures  -> by Appearance_Type
-  * placeables -> by Appearance
+CRITICAL: the toolset places every blueprint by its **PaletteID** field -- the
+category whose `ID` byte equals the blueprint's `PaletteID` (with a base-item /
+appearance fallback when PaletteID is absent). It regenerates the whole custom
+palette from PaletteIDs on each save. So an entry hand-placed in a category that
+disagrees with the blueprint's PaletteID is transient -- the next toolset save
+relocates it (this is what made `slot_token` appear to "move"/"disappear"). This
+tool therefore files each orphan at its **PaletteID home**, matching what the
+toolset would do, so placements are stable across toolset saves.
 
-For each signal value we take the majority category among blueprints already
-filed under it, ignoring non-gameplay buckets (Plot Item / Tutorial / the CEP
-admin subtrees) so orphans land in real gameplay folders. Anything with no
-learnable signal falls back to the "Module Specific*" top-level category.
+Placement per orphan:
+  1. PaletteID set AND a category with that ID exists -> that category.
+  2. else fallback: learned base-item (items) / appearance (creatures/placeables)
+     category, else the "Module Specific*" top-level catch-all.
+
+APPEND-ONLY: existing entries are never moved or removed. This is essential --
+the palette also lists ~272 CEP hak blueprints that aren't in unpacked/;
+regenerating from scratch would delete them.
 
 The paired `tests/check_palette_coverage.py` smoke gate fails the repack until
 every blueprint is filed, so run this (`--apply`) after adding new blueprints.
+A toolset "Save Module" achieves the same re-filing.
 
 STANDALONE: never touches git or the wiki. Dry-run by default; pass --apply to
-rewrite the `.itp.json` files. Idempotent -- a blueprint already anywhere in a
-real category is left alone, and one filed properly later drops out of the
-fallback on the next run.
+rewrite the `.itp.json` files. Idempotent.
 """
 import argparse
 import importlib.util
@@ -79,12 +88,13 @@ def blueprint_signal(resref: str, ext: str, field: str):
         return None
 
 
-def index_tree(entries, path, tlk, path_index, present, root):
-    """Walk a palcus MAIN list, recording path->node and present resrefs.
+def index_tree(entries, path, tlk, path_index, id_index, present, root):
+    """Walk a palcus MAIN list, recording category indexes and present resrefs.
 
-    `path` is the list of category names from the root to this level. Leaf
-    (RESREF) nodes record their resref and the path of their *parent* category
-    plus the top-level root name that path descends from.
+    `path` is the list of category names from the root to this level.
+      * path_index: path-tuple -> category node (for the base-item fallback)
+      * id_index:   category ID byte -> (node, path-tuple) (for PaletteID lookup)
+      * present:    resref -> (parent-path-tuple, top-level root name)
     """
     for node in entries:
         if "RESREF" in node:
@@ -93,8 +103,12 @@ def index_tree(entries, path, tlk, path_index, present, root):
         if child and isinstance(child.get("value"), list):
             cat = GEN.node_category_name(node, tlk)
             croot = root if path else cat
+            cid = node.get("ID", {}).get("value")
             path_index[tuple(path + [cat])] = node
-            index_tree(child["value"], path + [cat], tlk, path_index, present, croot)
+            if isinstance(cid, int) and cid not in id_index:
+                id_index[cid] = (node, tuple(path + [cat]))
+            index_tree(child["value"], path + [cat], tlk,
+                       path_index, id_index, present, croot)
 
 
 def learn_categories(present, resref_ext, ext, field):
@@ -145,6 +159,21 @@ def leaf(resref: str, name: str) -> dict:
             "RESREF": {"type": "resref", "value": resref}}
 
 
+def insert_sorted(lst: list, new_leaf: dict):
+    """Insert a leaf name-sorted among a category LIST's existing RESREF leaves.
+
+    Sub-category nodes keep their positions; the leaf lands before the first
+    existing leaf with a greater display name, so a later toolset save (which
+    name-sorts) produces no reordering churn.
+    """
+    key = new_leaf["NAME"]["value"].lower()
+    for i, n in enumerate(lst):
+        if "RESREF" in n and n.get("NAME", {}).get("value", "").lower() > key:
+            lst.insert(i, new_leaf)
+            return
+    lst.append(new_leaf)
+
+
 def process(stem, typ, ext, tlk, names, apply, log):
     f = UNPACKED / f"{stem}.itp.json"
     if not f.exists():
@@ -153,8 +182,9 @@ def process(stem, typ, ext, tlk, names, apply, log):
     main_list = itp.get("MAIN", {}).get("value", [])
 
     path_index: dict[tuple, dict] = {}
+    id_index: dict[int, tuple] = {}
     present: dict[str, tuple] = {}
-    index_tree(main_list, [], tlk, path_index, present, "")
+    index_tree(main_list, [], tlk, path_index, id_index, present, "")
 
     # All blueprint resrefs of this type on disk.
     disk = {p.name[:-len(f".{ext}.json")] for p in UNPACKED.glob(f"*.{ext}.json")}
@@ -165,31 +195,36 @@ def process(stem, typ, ext, tlk, names, apply, log):
     field = SIGNAL_FIELD.get(typ)
     learned = learn_categories(present, disk, ext, field) if field else {}
 
-    filed_sig = filed_fb = 0
+    filed_pid = filed_fb = 0
     dist: Counter = Counter()
-    # `orphans` is sorted, so appends are deterministic across runs. We append
-    # (never reorder existing entries) to keep the diff minimal; the toolset
-    # displays each category name-sorted regardless of on-disk order.
     for resref in orphans:
         name = names.get(resref) or GEN.blueprint_name(resref, ext) or resref
+        pid = blueprint_signal(resref, ext, "PaletteID")
+        # 1) PaletteID home -- matches the toolset, so it won't be relocated.
+        if isinstance(pid, int) and pid in id_index:
+            node, tpath = id_index[pid]
+            insert_sorted(node["LIST"]["value"], leaf(resref, name))
+            dist[" > ".join(tpath)] += 1
+            filed_pid += 1
+            continue
+        # 2) Fallback: learned base-item/appearance category, else Module Specific*.
         target_path = None
         if field:
-            sig = blueprint_signal(resref, ext, field)
-            cats = learned.get(sig)
+            cats = learned.get(blueprint_signal(resref, ext, field))
             if cats:
                 target_path = cats.most_common(1)[0][0]
         if target_path and target_path in path_index:
-            path_index[target_path]["LIST"]["value"].append(leaf(resref, name))
-            dist[" > ".join(target_path)] += 1
-            filed_sig += 1
+            insert_sorted(path_index[target_path]["LIST"]["value"],
+                          leaf(resref, name))
+            dist[" > ".join(target_path) + " (fallback)"] += 1
         else:
-            ensure_fallback(main_list, path_index, FALLBACK_CAT).append(
-                leaf(resref, name))
+            insert_sorted(ensure_fallback(main_list, path_index, FALLBACK_CAT),
+                          leaf(resref, name))
             dist[FALLBACK_CAT + " (fallback)"] += 1
-            filed_fb += 1
+        filed_fb += 1
 
     log.append(f"  {typ}: filed {len(orphans)} "
-               f"({filed_sig} by {field or 'n/a'}, {filed_fb} fallback)")
+               f"({filed_pid} by PaletteID, {filed_fb} fallback)")
     for cat, n in dist.most_common(8):
         log.append(f"      {n:>4}  {cat}")
 
@@ -223,7 +258,7 @@ def main() -> int:
         total_fb += fb
 
     print(f"palette orphans: {total} to file "
-          f"({total - total_fb} categorized, {total_fb} fallback)")
+          f"({total - total_fb} by PaletteID, {total_fb} fallback)")
     for line in log:
         print(line)
     print("APPLIED — wrote .itp.json files" if args.apply

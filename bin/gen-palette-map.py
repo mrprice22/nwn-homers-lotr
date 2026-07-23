@@ -174,6 +174,16 @@ def blueprint_name(resref: str, ext: str) -> str:
     return ""
 
 
+# Top-level palette categories that are module/custom buckets (as opposed to the
+# standard Bioware/CEP category tree). Used to flag whether a blueprint sits in
+# the "custom palette" section. `Special` holds the Custom 1-5 slots.
+CUSTOM_ROOTS = {"Module Specific*", "CEP Specific*", "Special"}
+
+
+def is_custom_root(root: str) -> bool:
+    return root in CUSTOM_ROOTS or root.startswith("* CEP")
+
+
 def walk(entries: list, path: list[str], typ: str, ext: str,
          tlk: TlkResolver, names: dict[str, str], out: list[dict]):
     for node in entries:
@@ -183,12 +193,14 @@ def walk(entries: list, path: list[str], typ: str, ext: str,
                     or node_inline_name(node, tlk)
                     or blueprint_name(resref, ext)
                     or resref)
+            root = next((p for p in path if p), "")
             out.append({
                 "resref": resref,
                 "name": name,
                 "type": typ,
                 "palette": " > ".join(p for p in path if p),
                 "in_palette": True,
+                "custom_palette": is_custom_root(root),
             })
         child = node.get("LIST")
         if child and isinstance(child.get("value"), list):
@@ -218,6 +230,7 @@ def scan_orphans(seen: set[str], names: dict[str, str], out: list[dict]):
                 "type": typ,
                 "palette": NOT_IN_PALETTE,
                 "in_palette": False,
+                "custom_palette": False,
             })
 
 

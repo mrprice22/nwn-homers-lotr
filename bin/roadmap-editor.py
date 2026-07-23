@@ -1139,6 +1139,8 @@ PAGE = r"""<!doctype html>
   #pf_results .pf-orphan { color:var(--muted); font-style:italic; }
   #pf_results .pf-type { color:var(--muted); text-transform:capitalize; }
   #pf_results .pf-rr { color:var(--muted); font-family:monospace; }
+  #pf_results .pf-custom { color:var(--accent); font-weight:600; }
+  #pf_results .pf-std { color:var(--muted); }
   .pf-meta { font-size:11px; color:var(--muted); margin-left:auto; }
   /* view toggle */
   .viewtoggle { display:flex; gap:4px; margin:0 0 8px; }
@@ -2155,12 +2157,18 @@ async function pfSearch(){
   if(!term){ box.innerHTML='<p class="small">Type to search…</p>'; return; }
   if(!d.results.length){ box.innerHTML='<p class="small">No matches.</p>'; return; }
   box.innerHTML='<table><thead><tr><th>Name</th><th>Type</th>'
-    +'<th>Palette location</th><th>ResRef</th></tr></thead><tbody>'
-    + d.results.map(e=>'<tr><td>'+esc(e.name)+'</td>'
-        +'<td class="pf-type">'+esc(e.type)+'</td>'
-        +'<td class="'+(e.in_palette===false?'pf-orphan':'pf-path')+'">'
-          +esc(e.palette||'—')+'</td>'
-        +'<td class="pf-rr">'+esc(e.resref)+'</td></tr>').join('')
+    +'<th>Palette location</th><th>Section</th><th>ResRef</th></tr></thead><tbody>'
+    + d.results.map(e=>{
+        const sect = e.in_palette===false ? ''
+          : (e.custom_palette ? '<span class="pf-custom">Custom</span>'
+                              : '<span class="pf-std">Standard</span>');
+        return '<tr><td>'+esc(e.name)+'</td>'
+          +'<td class="pf-type">'+esc(e.type)+'</td>'
+          +'<td class="'+(e.in_palette===false?'pf-orphan':'pf-path')+'">'
+            +esc(e.palette||'—')+'</td>'
+          +'<td>'+sect+'</td>'
+          +'<td class="pf-rr">'+esc(e.resref)+'</td></tr>';
+      }).join('')
     + '</tbody></table>';
 }
 

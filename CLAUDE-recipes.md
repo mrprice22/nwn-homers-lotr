@@ -36,10 +36,11 @@
 4. To make the NPC spawnable from script: leave it as a blueprint and
    spawn with `CreateObject(OBJECT_TYPE_CREATURE, "myorc01", lLoc)`.
 5. File the new creature into the toolset palette:
-   `python3 bin/file-palette-orphans.py --apply` (appends it to the matching
-   `creaturepalcus.itp.json` category so DMs can place it; the
-   `check_palette_coverage` smoke gate aborts the repack until it's filed).
-   Standalone script — **do not** trigger a wiki refresh.
+   `python3 bin/file-palette-orphans.py --apply` (files it at its `PaletteID`
+   home in `creaturepalcus.itp.json` so DMs can place it — placement follows the
+   blueprint's `PaletteID`, matching the toolset; the `check_palette_coverage`
+   smoke gate aborts the repack until it's filed). Standalone — **not** a wiki
+   refresh.
 
 ## Add a new item
 
@@ -57,10 +58,10 @@
    the variant (otherwise legally obtaining it can jail the player). See
    "Forge legal-variant whitelist" in README.md.
 6. File the new item into the toolset palette:
-   `python3 bin/file-palette-orphans.py --apply` (appends it to the matching
-   `itempalcus.itp.json` category, chosen from its `BaseItem`; the
+   `python3 bin/file-palette-orphans.py --apply` (files it at its `PaletteID`
+   home in `itempalcus.itp.json`, matching the toolset; the
    `check_palette_coverage` smoke gate aborts the repack until it's filed).
-   Standalone script — **do not** trigger a wiki refresh.
+   Standalone — **not** a wiki refresh.
 
 ## Add a new area
 
