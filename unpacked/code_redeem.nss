@@ -20,6 +20,7 @@ string GetCodeExpiration(string sCodeLower)
     if (sCodeLower == "first100hours") return "2026-07-01";
     if (sCodeLower == "forgingahead") return "2026-07-15";
     if (sCodeLower == "amuletgift") return "2099-12-31";
+    if (sCodeLower == "slottoken") return "2026-08-06";
     return "";
 }
 
@@ -50,6 +51,11 @@ int ApplyCodeBenefit(string sCodeLower, object oPC)
     if (sCodeLower == "amuletgift")
     {
         CreateItemOnObject("amuletgift", oPC);
+        return TRUE;
+    }
+    if (sCodeLower == "slottoken")
+    {
+        CreateItemOnObject("slot_token", oPC);
         return TRUE;
     }
     return FALSE;
