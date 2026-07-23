@@ -70,4 +70,12 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: palette coverage…"
+if python3 "$HERE/check_palette_coverage.py"; then
+  echo "ok: palette coverage"
+else
+  echo "fail: palette coverage"
+  rc=1
+fi
+
 exit $rc

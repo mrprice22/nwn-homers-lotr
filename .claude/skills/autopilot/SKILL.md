@@ -18,9 +18,10 @@ you're signing up for (the runbook is authoritative — read it in full before s
    `AP_riddle-game_1`; the script literal and the item's `manual_steps` entry must match
    exactly); escape hatches for design questions (→ `design` + `design_questions`, never
    `planned`) and oversized items. After creating any new item/creature/placeable
-   blueprint, run `python3 bin/gen-palette-map.py` and put the palette category path in
-   its `manual_steps`. Files (`roadmap.yaml`, git) are the only loop state — never
-   conversation history.
+   blueprint, run `python3 bin/file-palette-orphans.py --apply` (files it into the toolset
+   palette — the `check_palette_coverage` gate aborts the repack otherwise) and put the
+   palette category path in its `manual_steps`. Files (`roadmap.yaml`, git) are the only
+   loop state — never conversation history.
 3. Test-build with **bare `nwn-manager repack`** (never the deploy wrappers).
 4. Ship: final code commit → roadmap item to `manual` (with `manual_steps`) — or
    `implemented` only if zero manual toolset steps remain — with `commit:`, `date:` set to
