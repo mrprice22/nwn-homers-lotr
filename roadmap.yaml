@@ -379,11 +379,24 @@ ideas:
   - id: Ammo-shortage
     title: "Ammo shortage -> ammo replication item?"
     group: items-gear
-    status: wip
+    status: design
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
-    date: "2026-07-03"
-    notes: "<div><span>If its possible to make an ammo replication item, as bosses don't drop a lot of ammo, also seems you can only buy 1 stack of ammo from numenor shop, and at 6m a pop thats gonna get expensive. That way you can at least copy ammo to have enough</span></div><div><span><br></span></div><div><span>DM Note: </span><span>its def technically possible, I just need to think about it some more.. like maybe an  ammo replicator as its own boss drop that works a limited number of times before it breaks or needs recharging somehow.. or maybe I just make all the bosses/mobs drop more arrow.. at the least feels like I could make more arrows for sale in that shop</span></div>"
+    date: "2026-07-23"
+    commit: 50ff0ff88a57e0ca6c52a5c3ffe7e0d817c41005
+    notes: "<div>The Númenórean armoury now sells ammunition in <b>unlimited supply</b>. Previously the shop stocked only a single 99-arrow (and 99-bullet) stack that could be bought once and then ran dry; Divine Arrows and Divine Bullets now restock endlessly, so ranged fighters can keep themselves supplied. (A dedicated ammo-replication item is still under consideration — see the dev notes.)</div>"
+    impl_notes: "<div><b>2026-07-23 (commit 50ff0ff):</b> the Númenor weapon/armour store <code>x2_storeweap003</code> (opened by the &ldquo;Numenorian Armorer&rdquo; in <b>Númenor: The Great Forge Of Númenor</b> / <code>heavensfoundry</code> — the forge area adjoining Noirinan/<code>falseheaven</code>, which itself has no store) sold <code>divinearrows</code> (base item 20 = ARROW) and <code>divinebullets</code> (base item 27 = BULLET) as <b>finite</b> 99-stacks (no <code>Infinite</code> flag) — buyable once, then gone. Added <code>&quot;Infinite&quot;:{byte:1}</code> to both StoreList entries in <code>heavensfoundry.git.json</code>, copied byte-for-byte from the same store's already-infinite items (e.g. <code>divinekatana</code>). No new blueprints, no script or price change. The store sells no bolt (base 25) ammo and there is no divine-tier bolt blueprint, so bolts + any pricing change were left as admin content/balance calls (see design question). Gates: 10/10 smoke, dialog-integrity + palette-coverage green.</div>"
+    design_questions:
+      - question: "Ammo-replication item (the original ask, still open per the admin's own DM note). The shop is now unlimited, which covers the immediate shortage, but the player also wanted a way to copy ammo. Proposed (admin's own two options): EITHER (A) an 'Ammo Replicator' boss-drop item that duplicates a stack a limited number of times before it breaks / needs recharging, OR (B) skip the item and instead raise ammo drop rates on bosses/mobs. Which (if either) do you want, and if (A), what recharge/charge mechanic and which boss drops it? If neither, the unlimited shop already resolves the shortage and this item can close."
+        status: open
+        answer: null
+      - question: "Cost + bolt coverage follow-ups (optional). Divine Arrows/Bullets stay at the store's MarkUp 350 (~6-7m each) — lower the MarkUp if the price is still a concern? And the store sells crossbows but no bolts; add a divine-tier bolt (base 25) ammo type so crossbow users are covered? Both are content/balance calls left untouched by the availability fix."
+        status: open
+        answer: null
+    manual_steps:
+      - step: "UAT: in Númenor: The Great Forge Of Númenor (heavensfoundry), open the Numenorian Armorer's store (x2_storeweap003) and confirm Divine Arrows and Divine Bullets can be bought repeatedly (more than one 99-stack) without the entry running out."
+        status: open
+        blocker: false
   - id: normal-and-epic-summons
     title: "Allow epic summons + normal summons out at same time"
     group: forge
