@@ -1002,55 +1002,12 @@ int ArcaneArcherCalculateBonus()
 }
 
 
-// --- LOTR deviation from stock BioWare behavior: bounded petrification timeout ---
-// Stock DoPetrification() can leave a PC petrified indefinitely: the
-// Core-Rules/Difficult branch only pops a GUI panel (no EffectDeath, no HP
-// change, no Mod_OnPlrDeath), and the Normal/Easy branch's temporary duration
-// scales with attacker Hit Dice, which is unbounded for this module's bosses.
-// Roadmap: petrification-timeout (Tukwut). Force resolution within
-// LOTR_PETRIFY_TIMEOUT seconds by killing the PC via the existing death
-// pipeline (ondeath020.nss) if they are still petrified and still alive,
-// sending escalating in-character warnings every LOTR_PETRIFY_WARN_INTERVAL
-// seconds along the way.
-const float LOTR_PETRIFY_TIMEOUT = 120.0;
-const float LOTR_PETRIFY_WARN_INTERVAL = 15.0;
-
-void LOTR_PetrifyTimeoutTick(object oTarget, float fElapsed)
-{
-    if (!GetIsObjectValid(oTarget)) return;
-    if (GetIsDead(oTarget)) return;
-
-    int bStillPetrified = FALSE;
-    effect e = GetFirstEffect(oTarget);
-    while (GetIsEffectValid(e))
-    {
-        if (GetEffectType(e) == EFFECT_TYPE_PETRIFY)
-        {
-            bStillPetrified = TRUE;
-            break;
-        }
-        e = GetNextEffect(oTarget);
-    }
-    if (!bStillPetrified) return; // cured (e.g. Stone to Flesh) - stop the chain
-
-    if (fElapsed >= LOTR_PETRIFY_TIMEOUT)
-    {
-        ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), oTarget);
-        return;
-    }
-
-    string sMsg;
-    if      (fElapsed < 30.0)  sMsg = "A cold, grey numbness creeps up from your feet as stone claims your flesh.";
-    else if (fElapsed < 45.0)  sMsg = "Your limbs have turned to unfeeling rock; you can no longer command them.";
-    else if (fElapsed < 60.0)  sMsg = "The stiffness climbs past your waist. Panic rises as your body stops answering you.";
-    else if (fElapsed < 75.0)  sMsg = "Your chest tightens under solid stone. Each breath is shallower than the last.";
-    else if (fElapsed < 90.0)  sMsg = "Your heartbeat slows, muffled beneath layers of stone. Terror is all that still moves in you.";
-    else if (fElapsed < 105.0) sMsg = "Darkness crowds the edges of your vision. You feel your heart give one last, straining beat.";
-    else                       sMsg = "Your thoughts are stone. Death is only a breath away.";
-    SendMessageToPC(oTarget, sMsg);
-
-    DelayCommand(LOTR_PETRIFY_WARN_INTERVAL, LOTR_PetrifyTimeoutTick(oTarget, fElapsed + LOTR_PETRIFY_WARN_INTERVAL));
-}
+// NOTE: The bounded petrification timeout (roadmap petrification-timeout /
+// petrification-timeout-2) is NOT implemented here. In-game petrification comes
+// from base-game precompiled gaze/flesh-to-stone scripts that inline the stock
+// DoPetrification below, so editing this include never affected it. The timeout
+// now lives as a source-independent watcher in the module heartbeat
+// (bleeding.nss, petrifyCheck) which fires regardless of what applied the effect.
 
 // *  This is a wrapper for how Petrify will work in Expansion Pack 1
 // * Scripts affected: flesh to stone, breath petrification, gaze petrification, touch petrification
@@ -1111,21 +1068,15 @@ void DoPetrification(int nPower, object oSource, object oTarget, int nSpellID, i
                     {
                         // * under hardcore rules or higher, this is an instant death
                         ApplyEffectToObject(DURATION_TYPE_PERMANENT, eLink, oTarget);
-                        // LOTR fix: PopUpDeathGUIPanel() alone does not kill the PC or fire
-                        // Mod_OnPlrDeath; start the escalating-warning/bounded-timeout chain
-                        // instead, which ends in a real death via the existing pipeline.
-                        DelayCommand(LOTR_PETRIFY_WARN_INTERVAL, LOTR_PetrifyTimeoutTick(oTarget, LOTR_PETRIFY_WARN_INTERVAL));
+                        DelayCommand(2.75, PopUpDeathGUIPanel(oTarget, FALSE , TRUE, 40579));
                         // if in hardcore, treat the player as an NPC
                         bIsPC = FALSE;
                         //fDifficulty = TurnsToSeconds(nPower); // One turn per hit-die
                     }
                     else
-                    {
                         ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLink, oTarget, fDifficulty);
-                        // LOTR fix: cap the effective duration for high-HD attackers with the
-                        // same escalating-warning/bounded-timeout chain.
-                        DelayCommand(LOTR_PETRIFY_WARN_INTERVAL, LOTR_PetrifyTimeoutTick(oTarget, LOTR_PETRIFY_WARN_INTERVAL));
-                    }
+                    // LOTR petrification timeout now lives in bleeding.nss
+                    // (petrifyCheck) so it fires regardless of source.
                 }
                 else
                 {
