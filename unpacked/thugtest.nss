@@ -7,10 +7,7 @@
 //:://////////////////////////////////////////////
 int StartingConditional()
 {
-
-	// Inspect local variables
-	if(!(GetLocalInt(GetPCSpeaker(), "thugtest") == 1))
-		return FALSE;
-
-	return TRUE;
+	// Ring chain reached stage 1 (ring turned in, orders not yet). Persistent
+	// "fret"/ring_stage replaces the old non-persistent LocalInt "thugtest".
+	return GetCampaignInt("fret", "ring_stage", GetPCSpeaker()) == 1;
 }

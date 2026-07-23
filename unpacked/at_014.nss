@@ -7,7 +7,7 @@
 //:://////////////////////////////////////////////
 void main()
 {
-	// Set the variables
-	SetLocalInt(GetPCSpeaker(), "queststart", 1);
-
+	// Ferny's Ring intro accepted. Persist on "fret"/ring_qstart (was the
+	// non-persistent LocalInt "queststart") so the intro state survives relog.
+	SetCampaignInt("fret", "ring_qstart", 1, GetPCSpeaker());
 }

@@ -7,10 +7,7 @@
 //:://////////////////////////////////////////////
 int StartingConditional()
 {
-
-	// Inspect local variables
-	if(!(GetLocalInt(GetPCSpeaker(), "queststart") == 1))
-		return FALSE;
-
-	return TRUE;
+	// Ferny's Ring intro accepted (qstart 1). Persistent "fret"/ring_qstart
+	// replaces the old non-persistent LocalInt "queststart".
+	return GetCampaignInt("fret", "ring_qstart", GetPCSpeaker()) == 1;
 }

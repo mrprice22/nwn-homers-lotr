@@ -9,8 +9,8 @@ void main()
         SetCampaignInt("fret", "stage", 2, oPC);
         SetCampaignInt("fret", "outcome", 2, oPC);
         AddJournalQuestEntry("ferny_return", 2, oPC, FALSE, FALSE);
+        GiveGoldToCreature(oPC, 75);
     }
-    GiveGoldToCreature(oPC, 75);
 
     // He keeps his word about one thing: he's gone.
     DestroyObject(OBJECT_SELF, 8.0);
