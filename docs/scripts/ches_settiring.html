@@ -54,16 +54,22 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>ches_settiring</code></h1><pre class="nss-source"><code>#include &quot;my_createring&quot;
+<h1>Script: <code>ches_settiring</code></h1><pre class="nss-source"><code>// ches_settiring.nss -- OnOpen of SettiRingChest (Numenor: Noirinan).
+// Mint one end-game ring, at most once per cooldown per chest (see
+// setti_loot_inc.nss and the numenor-chests roadmap item).
+#include &quot;setti_loot_inc&quot;
+#include &quot;my_createring&quot;
 
 void main()
 {
-    object oPC = GetLastOpenedBy();
-    object oContainer = OBJECT_SELF;
-    int nMaxLevel = 12;
+    object oPC    = GetLastOpenedBy();
+    object oChest = OBJECT_SELF;
 
-    CreateRing(oContainer,oPC,nMaxLevel);
+    if(!GetIsPC(oPC)) return;
+    if(!SettiReady(oChest)) return;   // still cooling down -&gt; opens empty
 
+    CreateRing(oChest, oPC, 60);
+    SettiMarkDrawn(oChest);
 }
 </code></pre>
   </main>

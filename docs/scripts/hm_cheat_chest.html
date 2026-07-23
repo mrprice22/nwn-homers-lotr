@@ -91,6 +91,10 @@ void main()
     if (GetItemPossessedBy(oPC, &quot;ElrondsWrit&quot;)       == OBJECT_INVALID) CreateItemOnObject(&quot;elrondswrit&quot;,      oPC);
     if (GetItemPossessedBy(oPC, &quot;Forgekey&quot;)          == OBJECT_INVALID) CreateItemOnObject(&quot;forgekey&quot;,         oPC);
 
+    // Rapid-testing supply: always hand out a fresh stack of 3 Runes of Expansion
+    // (consumable, so no possession guard — each use tops the tester back up to 3).
+    CreateItemOnObject(&quot;slot_token&quot;, oPC, 3);
+
     SendMessageToPC(oPC, &quot;Your items have been placed in your inventory.&quot;);
 }
 </code></pre>

@@ -139,16 +139,6 @@ void main()
       ExecuteScript(&quot;horn_summon&quot;, oActivator);
       return;
    }
-   if(GetTag(oItem)==&quot;SlotToken&quot;)
-   {
-      // Rune of Expansion: bind +1 forge property slot into the TARGETED item.
-      // Pass the rune and its target to slot_token.nss (the OnActivateItem
-      // event getters are only valid here). See forge_inc.nss FORGE_EXTRA_SLOTS.
-      SetLocalObject(oActivator, &quot;SLOT_TOKEN_ITEM&quot;, oItem);
-      SetLocalObject(oActivator, &quot;SLOT_TOKEN_TARGET&quot;, GetItemActivatedTarget());
-      ExecuteScript(&quot;slot_token&quot;, oActivator);
-      return;
-   }
     //object oItem=GetItemActivated();
     object oUser=GetItemActivator();
     object oOther=GetItemActivatedTarget();

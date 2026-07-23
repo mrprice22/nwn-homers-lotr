@@ -54,49 +54,40 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>my_createshield</code></h1><pre class="nss-source"><code>#include &quot;my_charfuncs&quot;
+<h1>Script: <code>my_createshield</code></h1><pre class="nss-source"><code>// my_createshield.nss -- loot for the Setti shield-coffer in Numenor: Noirinan.
+//
+// A near-end-game chest: mints one random end-game shield for the opener. The
+// old pool referenced sh_all_* blueprints that do not exist and was level-gated
+// to HD&lt;=12 (the HD 0-5 band was even Random(0)), so it was dead for the
+// level-40 characters who reach Noirinan. Fixed: a curated end-game shield pool,
+// cap raised at the call site (chest_settishld passes 60). See the
+// numenor-chests roadmap item.
+//
+// Selection vetted against module-index/inaccessible_items.json -- complete,
+// non-plot shields only; a mix of boss-dropped and source-less &quot;orphan&quot; shields
+// this chest gives a home to.
+
+#include &quot;my_charfuncs&quot;
 
 void CreateShield(object oContainer, object oPC, int nMaxLevel)
 {
-    int nHD;
-    int nRandom;
     string sItem;
 
     if(!GetIsPC(oPC) || (GetHitDice(oPC) &gt; nMaxLevel))
         return;
 
-    nHD = GetHitDice(oPC);
-
-    if(nHD &gt;= 0 &amp;&amp; nHD &lt;= 5)
+    switch(Random(6) + 1)
     {
-        nRandom = Random(0) +1;
-        switch(nRandom)
-        {
-
-        }
-    }
-    else if(nHD &gt;= 6 &amp;&amp; nHD &lt;= 10)
-    {
-        nRandom = Random(3) +1;
-        switch(nRandom)
-        {
-            case 1: sItem = &quot;sh_all_001&quot;; break;
-            case 2: sItem = &quot;sh_all_002&quot;; break;
-            case 3: sItem = &quot;sh_all_003&quot;; break;
-        }
-    }
-    else if(nHD &gt;= 11 &amp;&amp; nHD &lt;= 15)
-    {
-
-    }
-    else if(nHD &gt;= 16 &amp;&amp; nHD &lt;= 20)
-    {
-
+        case 1: sItem = &quot;shieldmaiden&quot;;     break; // Shieldmaiden (Eowyn)
+        case 2: sItem = &quot;148&quot;;              break; // Greater Shield of the Deep
+        case 3: sItem = &quot;shieldofthero002&quot;; break; // Shield of Elrond
+        case 4: sItem = &quot;shieldofboromir&quot;;  break; // Shield of Boromir
+        case 5: sItem = &quot;epicshield&quot;;       break; // Epic Shield (orphan)
+        case 6: sItem = &quot;shieldofithilien&quot;; break; // Elite Shield of Ithilien (orphan)
     }
 
-
-    CreateItemOnObject(sItem,oContainer,1);
-
+    if(sItem != &quot;&quot;)
+        CreateItemOnObject(sItem, oContainer, 1);
 }
 </code></pre>
   </main>

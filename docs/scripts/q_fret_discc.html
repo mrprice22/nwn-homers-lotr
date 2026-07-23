@@ -57,13 +57,17 @@
 <h1>Script: <code>q_fret_discc</code></h1><pre class="nss-source"><code>// Ferny&#x27;s Return -&gt; Ferny&#x27;s Ring bridge -- StartingConditional for Bill
 // Ferny&#x27;s grateful greeting. Shown when the character completed the prequel
 // (persistent &quot;fret&quot; campaign flag) and has not yet started or finished the
-// Ferny&#x27;s Ring chain this session (its own state is session-local ints).
+// Ferny&#x27;s Ring chain (its state is persisted in the same &quot;fret&quot; campaign DB:
+// ring_qstart / ring_stage).
 int StartingConditional()
 {
     object oPC = GetPCSpeaker();
     if (!GetCampaignInt(&quot;fret&quot;, &quot;done&quot;, oPC)) return FALSE;
-    if (GetLocalInt(oPC, &quot;queststart&quot;) != 0) return FALSE;
-    if (GetLocalInt(oPC, &quot;thugtest&quot;) != 0) return FALSE;
+    // Ring-chain state is now persistent (campaign DB &quot;fret&quot;) -- was the
+    // non-persistent LocalInts &quot;queststart&quot;/&quot;thugtest&quot;, which reset every
+    // relog and re-opened this greeting after each reboot.
+    if (GetCampaignInt(&quot;fret&quot;, &quot;ring_qstart&quot;, oPC) != 0) return FALSE;
+    if (GetCampaignInt(&quot;fret&quot;, &quot;ring_stage&quot;, oPC) != 0) return FALSE;
     return TRUE;
 }
 </code></pre>

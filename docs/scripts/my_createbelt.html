@@ -54,65 +54,40 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>my_createbelt</code></h1><pre class="nss-source"><code>#include &quot;my_charfuncs&quot;
+<h1>Script: <code>my_createbelt</code></h1><pre class="nss-source"><code>// my_createbelt.nss -- loot for the Setti belt-coffer in Numenor: Noirinan.
+//
+// A near-end-game chest: mints one random end-game belt for the opener. The old
+// pool (be_all_* / be_wizard_* ...) referenced blueprints that do not exist in
+// the module, so the chest minted nothing; it was also level-gated to HD&lt;=12,
+// excluding the level-40 characters who actually reach Noirinan. Both are fixed:
+// the pool is a curated set of real end-game belts and the cap is raised at the
+// call site (chest_settibelt passes 60). See the numenor-chests roadmap item.
+//
+// Selection is vetted against module-index/inaccessible_items.json: every entry
+// is a complete, non-plot belt -- either already dropped by a boss (a second
+// source is harmless) or a source-less &quot;orphan&quot; this chest gives a home to.
 
+#include &quot;my_charfuncs&quot;
 
 void CreateBelt(object oContainer, object oPC, int nMaxLevel)
 {
-    int nHD;
-    int nRandom;
     string sItem;
 
     if(!GetIsPC(oPC) || (GetHitDice(oPC) &gt; nMaxLevel))
         return;
 
-    nHD = GetHitDice(oPC);
-
-    if(nHD &gt;= 0 &amp;&amp; nHD &lt;= 5)
+    switch(Random(6) + 1)
     {
-        nRandom = Random(18) +1;
-        switch(nRandom)
-        {
-            case 1: sItem = &quot;be_all_001&quot;; break;
-            case 2: sItem = &quot;be_all_002&quot;; break;
-            case 3: sItem = &quot;be_all_003&quot;; break;
-            case 4: sItem = &quot;be_wizard_001&quot;; break;
-            case 5: sItem = &quot;be_wizard_002&quot;; break;
-            case 6: sItem = &quot;be_wizard_003&quot;; break;
-            case 7: sItem = &quot;be_sorc_001&quot;; break;
-            case 8: sItem = &quot;be_sorc_002&quot;; break;
-            case 9: sItem = &quot;be_sorc_003&quot;; break;
-            case 10: sItem = &quot;be_rogue_001&quot;; break;
-            case 11: sItem = &quot;be_rogue_002&quot;; break;
-            case 12: sItem = &quot;be_rogue_003&quot;; break;
-            case 13: sItem = &quot;be_fighter_001&quot;; break;
-            case 14: sItem = &quot;be_fighter_002&quot;; break;
-            case 15: sItem = &quot;be_fighter_003&quot;; break;
-            case 16: sItem = &quot;be_cleric_001&quot;; break;
-            case 17: sItem = &quot;be_cleric_002&quot;; break;
-            case 18: sItem = &quot;be_cleric_003&quot;; break;
-        }
-    }
-    else if(nHD &gt;= 6 &amp;&amp; nHD &lt;= 10)
-    {
-        nRandom = Random(3) +1;
-        switch(nRandom)
-        {
-            case 1: sItem = &quot;be_all_005&quot;; break;
-            case 2: sItem = &quot;be_all_006&quot;; break;
-            case 3: sItem = &quot;be_all_007&quot;; break;
-        }
-    }
-    else if(nHD &gt;= 11 &amp;&amp; nHD &lt;= 15)
-    {
-
-    }
-    else if(nHD &gt;= 16 &amp;&amp; nHD &lt;= 20)
-    {
-
+        case 1: sItem = &quot;beltofgreatness&quot;;  break; // Belt of Greatness (Balrog)
+        case 2: sItem = &quot;beltofsorcerery&quot;;  break; // Belt of Sorcerery (Gandalf)
+        case 3: sItem = &quot;beltofdarkwardin&quot;; break; // Belt of Dark Warding (Khamul)
+        case 4: sItem = &quot;item121&quot;;          break; // Sauron&#x27;s Chosen Belt
+        case 5: sItem = &quot;epicbelt&quot;;         break; // Epic Belt (orphan)
+        case 6: sItem = &quot;beltofpower002&quot;;   break; // Belt of Power (orphan)
     }
 
-    CreateItemOnObject(sItem,oContainer,1);
+    if(sItem != &quot;&quot;)
+        CreateItemOnObject(sItem, oContainer, 1);
 }
 </code></pre>
   </main>

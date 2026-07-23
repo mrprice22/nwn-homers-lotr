@@ -65,20 +65,28 @@
 
 void main()
 {
+    object oPC = GetPCSpeaker();
+
+    // Orders turn-in. Gate on the persistent ring_stage (campaign DB &quot;fret&quot;)
+    // so the reward can&#x27;t be lost to a mid-chain relog or re-earned after a
+    // reboot -- the old per-PC LocalInt &quot;thugtest&quot; was non-persistent.
+    if (GetCampaignInt(&quot;fret&quot;, &quot;ring_stage&quot;, oPC) != 1)
+        return;
+
     // Give the speaker some gold
-    RewardPartyGP(200, GetPCSpeaker());
+    RewardPartyGP(200, oPC);
 
     // Give the speaker some XP
-    RewardPartyXP(500, GetPCSpeaker());
+    RewardPartyXP(500, oPC);
 
 
     // Remove items from the player&#x27;s inventory
     object oItemToTake;
-    oItemToTake = GetItemPossessedBy(GetPCSpeaker(), &quot;SharkeysOrders&quot;);
+    oItemToTake = GetItemPossessedBy(oPC, &quot;SharkeysOrders&quot;);
     if(GetIsObjectValid(oItemToTake) != 0)
         DestroyObject(oItemToTake);
-    // Set the variables
-    SetLocalInt(GetPCSpeaker(), &quot;thugtest&quot;, 2);
+    // Advance the persistent ring-chain stage (was LocalInt &quot;thugtest&quot;)
+    SetCampaignInt(&quot;fret&quot;, &quot;ring_stage&quot;, 2, oPC);
 
     // Ferny&#x27;s Return prequel bonus: Ferny pays half again to the one who
     // cleared the Sharkey squatter out of his house (see q_fret_end.nss).

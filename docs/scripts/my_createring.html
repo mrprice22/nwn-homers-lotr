@@ -54,64 +54,39 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>my_createring</code></h1><pre class="nss-source"><code>#include &quot;my_charfuncs&quot;
+<h1>Script: <code>my_createring</code></h1><pre class="nss-source"><code>// my_createring.nss -- loot for the Setti ring-coffer in Numenor: Noirinan.
+//
+// A near-end-game chest: mints one random end-game ring for the opener. The old
+// pool referenced ri_all_* blueprints that do not exist and was level-gated to
+// HD&lt;=12, so it was dead for the level-40 characters who reach Noirinan. Fixed:
+// a curated end-game ring pool, cap raised at the call site (ches_settiring
+// passes 60). See the numenor-chests roadmap item.
+//
+// Selection vetted against module-index/inaccessible_items.json -- complete,
+// non-plot rings only; iconic/lore-locked uniques (The One Ring, Arwen&#x27;s ring)
+// and god/joke items are deliberately excluded.
 
+#include &quot;my_charfuncs&quot;
 
 void CreateRing(object oContainer, object oPC, int nMaxLevel)
 {
-    int nHD;
-    int nRandom;
     string sItem;
 
     if(!GetIsPC(oPC) || (GetHitDice(oPC) &gt; nMaxLevel))
         return;
 
-    nHD = GetHitDice(oPC);
-
-    if(nHD &gt;= 0 &amp;&amp; nHD &lt;= 5)
+    switch(Random(6) + 1)
     {
-        nRandom = Random(8) +1;
-        switch(nRandom)
-        {
-            case 1: sItem = &quot;ri_all_001&quot;; break;
-            case 2: sItem = &quot;ri_all_002&quot;; break;
-            case 3: sItem = &quot;ri_wizard_001&quot;; break;
-            case 4: sItem = &quot;ri_sorc_001&quot;; break;
-            case 5: sItem = &quot;ri_rogue_001&quot;; break;
-            case 6: sItem = &quot;ri_fighter_001&quot;; break;
-            case 7: sItem = &quot;ri_cleric_001&quot;; break;
-            case 8: sItem = &quot;nw_it_mring008&quot;; break;
-        }
-    }
-    else if(nHD &gt;= 6 &amp;&amp; nHD &lt;= 10)
-    {
-        nRandom = Random(12) +1;
-        switch(nRandom)
-        {
-            case 1: sItem = &quot;nw_it_mring014&quot;; break;
-            case 2: sItem = &quot;nw_it_mring018&quot;; break;
-            case 3: sItem = &quot;nw_it_mring032&quot;; break;
-            case 4: sItem = &quot;nw_it_mring012&quot;; break;
-            case 5: sItem = &quot;nw_it_novel001&quot;; break;
-            case 6: sItem = &quot;ri_all_004&quot;; break;
-            case 7: sItem = &quot;ri_all_005&quot;; break;
-            case 8: sItem = &quot;ri_all_006&quot;; break;
-            case 9: sItem = &quot;ri_all_007&quot;; break;
-            case 10: sItem = &quot;ri_all_008&quot;; break;
-            case 11: sItem = &quot;ri_all_009&quot;; break;
-            case 12: sItem = &quot;ri_all_010&quot;; break;
-        }
-    }
-    else if(nHD &gt;= 11 &amp;&amp; nHD &lt;= 15)
-    {
-
-    }
-    else if(nHD &gt;= 16 &amp;&amp; nHD &lt;= 20)
-    {
-
+        case 1: sItem = &quot;101&quot;;             break; // Lightstream Ring (Gwathdor Lord)
+        case 2: sItem = &quot;it_mring030&quot;;     break; // Ring of Fortitude +20
+        case 3: sItem = &quot;keeperring&quot;;      break; // The Keeper&#x27;s Ring
+        case 4: sItem = &quot;ringoftheshad001&quot;; break; // Ring of the Shadow Lord
+        case 5: sItem = &quot;054&quot;;             break; // Chosen&#x27;s Ring of the Dark
+        case 6: sItem = &quot;it_mring042&quot;;     break; // Ring of Regeneration +10 (orphan)
     }
 
-    CreateItemOnObject(sItem,oContainer,1);
+    if(sItem != &quot;&quot;)
+        CreateItemOnObject(sItem, oContainer, 1);
 }
 </code></pre>
   </main>

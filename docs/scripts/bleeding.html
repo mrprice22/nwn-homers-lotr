@@ -75,6 +75,73 @@
  * each behavior into the function in which it&#x27;s used, but it&#x27;s far easier
  * to find them this way.
  */
+// --- LOTR petrification timeout (roadmap petrification-timeout-2) ---
+// The original fix (commit 46aa7efaa1e) edited DoPetrification() in the module&#x27;s
+// x0_i0_spells.nss include, but in-game petrification comes from base-game
+// precompiled gaze/flesh-to-stone scripts that inline the STOCK DoPetrification,
+// so that edit never ran and PCs stayed petrified indefinitely. This central,
+// source-independent watcher runs off the module heartbeat instead: it works no
+// matter what applied the petrify. After PETRIFY_TIMEOUT seconds the PC is killed
+// via EffectDeath (routing through ondeath020 -&gt; death/respawn GUI), with
+// escalating warnings both in chat and as floating text every PETRIFY_WARN_BUCKET
+// seconds. The heartbeat fires every HB_INTERVAL seconds (standard module HB).
+const float HB_INTERVAL        = 6.0;
+const float PETRIFY_TIMEOUT    = 120.0;
+const int   PETRIFY_WARN_BUCKET = 15;
+
+int HasPetrify(object o)
+{
+    effect e = GetFirstEffect(o);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_PETRIFY) return TRUE;
+        e = GetNextEffect(o);
+    }
+    return FALSE;
+}
+
+void petrifyCheck(object pc)
+{
+    if (!HasPetrify(pc))
+    {
+        // Not petrified (never was, or cured e.g. via Stone-to-Flesh) - reset.
+        DeleteLocalInt(pc, &quot;PETRIFY_HB&quot;);
+        DeleteLocalInt(pc, &quot;PETRIFY_BUCKET&quot;);
+        return;
+    }
+    if (GetIsDead(pc)) return;
+
+    int nHB = GetLocalInt(pc, &quot;PETRIFY_HB&quot;) + 1;
+    SetLocalInt(pc, &quot;PETRIFY_HB&quot;, nHB);
+    float fElapsed = IntToFloat(nHB) * HB_INTERVAL;
+
+    if (fElapsed &gt;= PETRIFY_TIMEOUT)
+    {
+        ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), pc);
+        DeleteLocalInt(pc, &quot;PETRIFY_HB&quot;);
+        DeleteLocalInt(pc, &quot;PETRIFY_BUCKET&quot;);
+        return;
+    }
+
+    // Warn once per PETRIFY_WARN_BUCKET-second bucket (heartbeat is finer-grained).
+    int nBucket = FloatToInt(fElapsed) / PETRIFY_WARN_BUCKET;
+    if (nBucket == GetLocalInt(pc, &quot;PETRIFY_BUCKET&quot;)) return;
+    SetLocalInt(pc, &quot;PETRIFY_BUCKET&quot;, nBucket);
+
+    string sMsg;
+    if      (fElapsed &lt; 30.0)  sMsg = &quot;A cold, grey numbness creeps up from your feet as stone claims your flesh.&quot;;
+    else if (fElapsed &lt; 45.0)  sMsg = &quot;Your limbs have turned to unfeeling rock; you can no longer command them.&quot;;
+    else if (fElapsed &lt; 60.0)  sMsg = &quot;The stiffness climbs past your waist. Panic rises as your body stops answering you.&quot;;
+    else if (fElapsed &lt; 75.0)  sMsg = &quot;Your chest tightens under solid stone. Each breath is shallower than the last.&quot;;
+    else if (fElapsed &lt; 90.0)  sMsg = &quot;Your heartbeat slows, muffled beneath layers of stone. Terror is all that still moves in you.&quot;;
+    else if (fElapsed &lt; 105.0) sMsg = &quot;Darkness crowds the edges of your vision. You feel your heart give one last, straining beat.&quot;;
+    else                       sMsg = &quot;Your thoughts are stone. Death is only a breath away.&quot;;
+
+    SendMessageToPC(pc, sMsg);
+    FloatingTextStringOnCreature(sMsg, pc, FALSE);
+}
+
+
 void loadBehaviors()
 {
     /*
@@ -179,6 +246,7 @@ void main()
     while (GetIsObjectValid(pc))
     {
         bleedCheck(pc);
+        petrifyCheck(pc);
 
         pc = GetNextPC();
     }
