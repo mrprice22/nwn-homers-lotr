@@ -429,6 +429,16 @@ Stop when:
   `confirmed`/`wip`/`soon`/`later`), or
 - compute/time runs out.
 
+**Running out of `Defect`/`Exploit` items is NOT a stop condition.** If the active
+tiers still hold `Enhancement`s — even if they all look design-heavy — keep the loop
+flowing: rebalance (promote `wip`/`soon`/`later` up, §2), work each promoted item, and
+when one hits a creative / power-balance / reward / roster call, **park it in `design`
+with a `design_questions` entry that proposes a concrete answer** for the admin to
+approve or tweak (§4), then move on to the next. Don't halt just because the remaining
+work needs decisions — turn those decisions into decision-ready proposals. (The admin
+calls this the "under consideration" state; use `design`, never `planned`, so the item
+keeps its pipeline position and stays in the admin's review filter.)
+
 On stop: make sure the working tree is committed and pushed, then report the session
 summary (items shipped, items moved to `design`/`manual`, count of pending admin actions)
 in your final message — it is not written to any file. If running under `/autopilot`
