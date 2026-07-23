@@ -3255,10 +3255,10 @@ ideas:
   - id: bard-line-early
     title: "Bard line I — Tales That Live Forever (L1-15)"
     group: quests-areas
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-18"
+    date: "2026-07-23"
     commit: 82f97f86ded
     notes: "<div>Bards now have the first chapter of their own class line. <b>Lindir of the Hall of Fire</b> keeps the Rivendell Upper Halls, where the singing never entirely stops, and will take any bard as a student. He teaches one thing free of charge — a song only ever sung by the one who made it dies with them — and hands over a six-hundred-year-old lay that breaks off in the middle of a line, for you to finish. Rewards at Bard 1 and Bard 15: the Chorister’s Torc and the Rapier of the Deathless Song. Full walkthrough: <a href=\"QuestGuide.html#tales-forever\">Tales That Live Forever</a>.</div>"
     impl_notes: "<div>Structurally cloned from the shipped monk-line-early template. Prefix q_bard_ chosen deliberately over q_brd_ — the boss-respawn tracker already owns the bare brd_* namespace (brd_db, brd_open_*, brd_vis_*, brd_sign.dlg), and q_brd_* next to it in a flat single-directory source tree is a grep trap; every q_bard_* resref still fits the 16-char limit. No pre-existing bard work was found.</div><div><br></div><div>Giver q_bard_mstr (Lindir, Bard 30, elf, plot/immortal, conv q_bard_conv) script-spawned by q_bard_spawn from the rivendellupperha OnEnter wrapper q_bard_enter, which chains the area's existing mw_riv_enter (preserving leash_to_area, d_cleartrash and the Meaningwave Peterson spawn). Spawn no-ops until AP_bardlineearly_1 exists and is tag-guarded against double-spawn.</div><div><br></div><div>Reward scripts q_bard_lrn/stn/rtn (Reply Script fields only); StartingConditionals q_bard_c_off/s1w/s1r/s2w/s2r/dn (Active fields only). All three gates use GetLevelByClass(CLASS_TYPE_BARD) ≥ 1/8/15 — the tightened paladin/monk rule, not GetHitDice. State in bardlinedb (song_stage 0-3), stage-only-advances so rewards are unfarmable.</div><div><br></div><div>Items q_bard_torc (amulet, BaseItem 19, +1 CHA), q_bard_lay (plot token, BaseItem 24), q_bard_rap (rapier, BaseItem 51, model 141, Enh +2 / +1 CHA) — all Use Limitation: Class Bard, <b>subtype 1</b>, verified against cloakofthebard.uti.json rather than guessed, consistent with Cleric 2 / Druid 3 / Monk 5 / Paladin 6 / Ranger 7. Journal category bard_lay (@group 'Class Lines', @order 11). Gates: 7/7 smoke tests, dialog integrity 0 failing, 12 scripts compiled / 0 errors.</div>"
@@ -3267,9 +3267,15 @@ ideas:
         status: done
         blocker: true
         step_h: 64
-      - step: "UAT: enter Rivendell Upper Halls on any character and confirm Lindir spawns once at the waypoint and does not duplicate on re-entry.\nFAILED: Lindir did not spawn"
+      - step: "UAT: enter Rivendell Upper Halls on any character and confirm Lindir spawns once at the waypoint and does not duplicate on re-entry.\nFAILED: Lindir did not spawn.\n2026-07-23 DIAGNOSIS (autopilot): no code bug. q_bard_spawn/q_bard_inc/q_bard_enter + rivendellupperha OnEnter are byte-identical to the working monk sibling (Orovan @ AP_monklineearly_1), the tag literal AP_bardlineearly_1 is correct and hyphen-less, blueprint q_bard_mstr exists (Tag+resref match, appearance 1=Elf), the OnEnter=q_bard_enter chains mw_riv_enter then q_bard_spawn, and the double-spawn guard only fires after a successful spawn (no pre-placed instance). The failure is admin-side — see the two verification steps below."
         status: wip
         step_h: 64
+      - step: "Verify the placed waypoint's TAG in Rivendell Upper Halls (rivendellupperha) is byte-for-byte AP_bardlineearly_1 (lowercase, no hyphens, trailing _1). A common miss is tagging it AP_bard-line-early_1 / AP_bardline_1 / leaving the tag blank — any of those means GetWaypointByTag never finds it and Lindir never spawns (same failure mode as the 2026-07-14 mismatch). It is the Tag, not the ResRef, that the script looks up. Correct it in the toolset if it differs, then re-UAT."
+        status: open
+        blocker: true
+      - step: "If the tag is correct, confirm the live server is running a .mod built at or after commit 82f97f86ded — that commit repointed rivendellupperha's OnEnter from mw_riv_enter to q_bard_enter. A stale module still spawns Peterson (via mw_riv_enter) but never calls q_bard_spawn: exactly 'Peterson yes, Lindir no'. Rebuild/redeploy if stale."
+        status: open
+        blocker: false
       - step: "UAT: speak to Lindir on a non-bard — confirm the fire-side greeting with only a farewell option, and no journal entry or item."
         status: open
         step_h: 64
