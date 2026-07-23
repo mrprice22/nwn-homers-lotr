@@ -106,6 +106,14 @@ players:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: numenor-chests
+    title: "Fix the 3 chests in Númenor: Noirinan"
+    group: quests-areas
+    status: confirmed
+    type: Defect
+    player: Szescian82
+    date: "2026-07-22"
+    notes: "Szescian82 reports: There are 3 chests in  <span>Númenor: Noirinan</span> that in-game say they are locked with a DC of 122, but if a player has enough lock pick for that the game still says \n<span>“success not possible”</span>. <br><br><div>As an admin, In the toolset, I see these chests are locked with DC 255 and have keys I can't find in the toolset or with palette finder: SettiBeltKey, SettiRingKey, SettiShieldKey</div><div><br>Requirements:</div><div>1) introduce smoke test to find any locked containers with a key tag where an item with that key tag does not exist</div><div>2) write plan to fix for the 3 chests in this area, and confirm their scripts that generate loot onOpen should work</div><div>3) propose fix for any other missing keys failing the smoke test</div>"
   - id: petrification-timeout-2
     title: "Petrification timeout not working as expected"
     group: combat-classes
