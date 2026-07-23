@@ -140,6 +140,39 @@ int ForgeItemMaxProps(object oItem)
     return ForgeLegalMaxProps() + ForgeItemExtraSlots(oItem);
 }
 
+// ---------------------------------------------------------------------------
+// Rune-of-Expansion REAGENT flow (item tag SlotToken). The rune is no longer an
+// activated widget; a Forge of Wonders smith binds it into the item on the anvil
+// (see forge_exp_open/can/go.nss and the "Expand property slot" reply added to
+// the four smith dlgs). These pure helpers use only functions defined above.
+
+// The first Rune of Expansion the PC carries, or OBJECT_INVALID.
+object ForgeFindSlotToken(object oPC)
+{
+    return GetItemPossessedBy(oPC, "SlotToken");
+}
+
+// Can this item take another rune? (below the per-item hard cap)
+int ForgeItemCanExpand(object oItem)
+{
+    return GetIsObjectValid(oItem)
+        && ForgeItemExtraSlots(oItem) < FORGE_TOKEN_MAX_SLOTS;
+}
+
+// Bind one extra property slot into oItem (clamped) and drop its stale "clean"
+// stamp so the next contraband scan re-reads it. Only LOOSENS legality, so no
+// FORGE_CLEAN_VER bump. (This is the bind step formerly in slot_token.nss.)
+void ForgeBindExtraSlot(object oItem)
+{
+    int nNew = ForgeItemExtraSlots(oItem) + 1;
+    if (nNew > FORGE_TOKEN_MAX_SLOTS) nNew = FORGE_TOKEN_MAX_SLOTS;
+    SetLocalInt(oItem, FORGE_EXTRA_SLOTS, nNew);
+    DeleteLocalInt(oItem, "FORGE_CLEAN");
+}
+
+// (The spoken outcome for the expand action lives in ForgeExpandDo, below
+// ForgeRefreshAnvilContext — it needs the anvil context helper.)
+
 // Quoted, comma-separated list of every tracked boss resref (registry +
 // aliases) for SQL IN(...) clauses, e.g. "'gollum','witchking',...". Resrefs
 // are filenames (alphanumeric), so inlining them into SQL text is safe.
@@ -555,9 +588,58 @@ int ForgeRefreshAnvilContext(object oPC)
     int iHeadroom = iMaxValue - iWorth;
     if (iHeadroom < 0) iHeadroom = 0;
     SetCustomToken(106, ForgeGold(iHeadroom));
+    // Runes-bound count for the "Expand property slot (N/3 used)" menu label —
+    // primed here because this gate (isitemonanvil) runs immediately before the
+    // forge menu entry renders, so <CUSTOM6120> is set before the reply text.
+    SetCustomToken(6120, IntToString(ForgeItemExtraSlots(oItem)));
     ForgeLog("anvil-ctx: PC=" + GetName(oPC) + " item='" + GetName(oItem)
         + "' worth=" + IntToString(iWorth) + " cap=" + IntToString(iMaxValue));
     return TRUE;
+}
+
+// Action for the "Expand property slot" reply (forge_exp_go.nss). A direct,
+// one-tap forge service like the enchant options: the smith (OBJECT_SELF) speaks
+// the outcome and the conversation loops back to the menu. Consumes a rune ONLY
+// on a real bind, so a no-op (no item / maxed / no rune) never eats one.
+void ForgeExpandDo(object oPC)
+{
+    if (!ForgeRefreshAnvilContext(oPC))
+    {
+        SpeakString("Lay a single piece upon my anvil first, and I will see what "
+            + "can be done to widen it.");
+        return;
+    }
+    object oItem = GetLocalObject(oPC, "MODIFY_ITEM");
+    if (!ForgeItemCanExpand(oItem))
+    {
+        SpeakString("The " + GetName(oItem) + " already bears all "
+            + IntToString(FORGE_TOKEN_MAX_SLOTS) + " Runes of Expansion its weave "
+            + "can hold — I can widen it no further.");
+        return;
+    }
+    object oRune = ForgeFindSlotToken(oPC);
+    if (!GetIsObjectValid(oRune))
+    {
+        SpeakString("To widen the " + GetName(oItem) + " I must fold a Rune of "
+            + "Expansion into it as reagent, and you carry none. Bring one, keep it "
+            + "in your pack, and lay the piece on my anvil.");
+        return;
+    }
+    // Consume exactly one rune (decrement a stack, else destroy it), then bind.
+    if (GetItemStackSize(oRune) > 1)
+        SetItemStackSize(oRune, GetItemStackSize(oRune) - 1);
+    else
+        DestroyObject(oRune);
+    ForgeBindExtraSlot(oItem);
+    ForgeLog("expand: PC=" + GetName(oPC) + " item='" + GetName(oItem)
+        + "' now " + IntToString(ForgeItemExtraSlots(oItem)) + "/"
+        + IntToString(FORGE_TOKEN_MAX_SLOTS) + " runes bound");
+    // Re-read so MODIFY_MAX_PROPS and the label token 6120 reflect the new count.
+    ForgeRefreshAnvilContext(oPC);
+    SpeakString("It is done — the rune sinks into the " + GetName(oItem)
+        + ", and its lattice widens to bear one enchantment more ("
+        + IntToString(ForgeItemExtraSlots(oItem)) + " of "
+        + IntToString(FORGE_TOKEN_MAX_SLOTS) + " runes now bound).");
 }
 
 int ForgeCountProps(object oItem)
