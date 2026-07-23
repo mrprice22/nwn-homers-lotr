@@ -2886,20 +2886,20 @@ ideas:
   - id: fighter-line-early
     title: "Fighter line I — The Unbroken Shield (L1-15)"
     group: quests-areas
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-17"
-    commit: 747c4d624fe, 01b242056d0
+    date: "2026-07-23"
+    commit: 28a780855716c10986c7cfe4d2808ed996e8177e
     notes: "<div><b>The Unbroken Shield</b> — the first three chapters (L1, L8, L15) of the Fighter class line. Hallas the Shieldwarden keeps a corner of the Prancing Pony and takes the oath of only those who fight for a living: swear it for the <b>Warden's Buckler</b>, come back at L8 for a dead captain's notched shard, and at L15 see the shard reforged into the <b>Warden's Reforged Blade</b>. Details: <a href=\"QuestGuide.html#unbroken-shield\">Quest Guide → The Unbroken Shield</a>.</div><div><br></div><div>UAT Fail: Why is Hallas spawned in naked and unarmored ( no shield, as a shield warden?)</div>"
-    impl_notes: "<div>Journal category ftr_shield (@group 'Class Lines'). Giver q_ftr_hallas, plot/immortal Gondorian veteran; offer gated on GetLevelByClass(CLASS_TYPE_FIGHTER) &gt;= 1 (value 4 verified), non-fighters get a flavour line.</div><div><br></div><div>Per-character one-off state in the fighterlinedb campaign DB (key ubshield_stage 0-&gt;3, advance-only so rewards are not farmable). Reward properties use verified stock encodings. Prancing Pony OnEnter wrapped q_ftr_enter (chains the existing q_hrp_ent1 so the leash and Harper contact are preserved) -&gt; q_ftr_spawn; conversation q_ftr_conv; 6 StartingConditionals + 3 reply scripts referenced in the DLG.</div><div><br></div><div><b>Follow-up fix 2026-07-17 (01b242056d0):</b> the three reward action scripts (q_ftr_oath/shrd/forge, void main()) had been wired into the reply-link <b>Active</b> (show-conditional) fields as well as the correct Script fields; as StartingConditionals they evaluate FALSE, which hid the swear-oath / receive-shard / reforge replies and made the quest unadvanceable in-game. The dialog-integrity gate does not catch semantic Active misuse. Blanked those three Active fields (matching the prsg_conv / rogue-line pattern); the scripts still fire from each target node's Script field. Caught while building the rogue-line-early sibling.</div><div><br></div><div><b>Deliberately deferred to fighter-line-mid/later:</b> the Aeglos Reborn spear capstone and the Osgiliath wave-defence; the shard and blade are named generically to keep the Narsil lore for the finale.</div>"
+    impl_notes: "<div>Journal category ftr_shield (@group 'Class Lines'). Giver q_ftr_hallas, plot/immortal Gondorian veteran; offer gated on GetLevelByClass(CLASS_TYPE_FIGHTER) &gt;= 1 (value 4 verified), non-fighters get a flavour line.</div><div><br></div><div>Per-character one-off state in the fighterlinedb campaign DB (key ubshield_stage 0-&gt;3, advance-only so rewards are not farmable). Reward properties use verified stock encodings. Prancing Pony OnEnter wrapped q_ftr_enter (chains the existing q_hrp_ent1 so the leash and Harper contact are preserved) -&gt; q_ftr_spawn; conversation q_ftr_conv; 6 StartingConditionals + 3 reply scripts referenced in the DLG.</div><div><br></div><div><b>Follow-up fix 2026-07-17 (01b242056d0):</b> the three reward action scripts (q_ftr_oath/shrd/forge, void main()) had been wired into the reply-link <b>Active</b> (show-conditional) fields as well as the correct Script fields; as StartingConditionals they evaluate FALSE, which hid the swear-oath / receive-shard / reforge replies and made the quest unadvanceable in-game. The dialog-integrity gate does not catch semantic Active misuse. Blanked those three Active fields (matching the prsg_conv / rogue-line pattern); the scripts still fire from each target node's Script field. Caught while building the rogue-line-early sibling.</div><div><br></div><div><b>Deliberately deferred to fighter-line-mid/later:</b> the Aeglos Reborn spear capstone and the Osgiliath wave-defence; the shard and blade are named generically to keep the Narsil lore for the finale.</div><div><br></div><div><b>2026-07-23 UAT fixes (commits 3007f78, 28a7808):</b> (1) the L8 shard q_ftr_shard was a Plot longsword-token with an empty PropertiesList; per admin UAT it is now a usable fighter-only broken-blade dagger (BaseItem 1&rarr;22, dagger model 63/53/53) carrying +3 Attack Bonus (PN56/CT2/CV3), -1 Decreased Damage (PN21/CT20/CV1) and On-Hit: Wounding/bleeding (PN48/sub25/CT24/CV1), plus Use Limitation: Class Fighter (PN63/sub4) — all encodings cloned from real items (azuredgethrowing/rustedoutlongswo/3longswordofwoun). Tag q_ftr_shard unchanged so FTR_Reforge still consumes it at L15; anti-farm is the advance-only persistent stage guard. PaletteID 36&rarr;34. (2) Hallas q_ftr_hallas spawned unarmored because his Equip_ItemList held only plain clothing (clo32244) + creature fists; replaced with gondorianplate (chest slot 2), gondorianlongswo (right hand slot 16) and shieldofgondor (left hand slot 32), cloned slot-for-slot from gondorianguar001/conall/ds_beregond (all appearance 6). Added the proficiency feats he lacked (2 Heavy / 4 Medium / 32 Shield / 44 Exotic / 45 Martial / 46 Simple) so the Jasperre AI no longer strips the gear; he is Lootable:0 + Plot:1 so the loadout is not farmable. Gates green (10/10 smoke incl. check_reward_exploit + palette-coverage).</div>"
     manual_steps:
       - step: "Place waypoint AP_fighterlineearly_1 in theprancingpo001. Hallas is script-spawn-only and the scripts no-op gracefully until then, so the line is unreachable without it."
         status: done
         blocker: true
         step_h: 64
-      - step: "UAT the Active-field fix specifically: confirm the swear-oath, receive-shard and reforge replies are now selectable (they were hidden before commit 01b242056d0).\n\nResult: What shard? What reforge replies?"
-        status: wip
+      - step: "UAT the Active-field fix specifically: confirm the swear-oath, receive-shard and reforge replies are now selectable (they were hidden before commit 01b242056d0).\n\nResult: What shard? What reforge replies? -> RESOLVED 2026-07-23: the flow works end to end in later UAT (shard obtained at L8); the earlier confusion was a stale-module test before 01b242056d0."
+        status: done
         step_h: 64
       - step: "UAT gating: a Fighter sees Hallas's oath offer; a non-fighter gets only the flavour line."
         status: done
@@ -2910,8 +2910,8 @@ ideas:
       - step: "UAT level gates: the L8 and L15 gates hold (below-level shows a 'come back at N' line)."
         status: done
         step_h: 64
-      - step: "UAT nodes 2-3: at L8 the shard is granted; at L15 it is consumed and the Reforged Blade granted; journal advances 1->2->3(End).\n\nResult: at level 8 was able to get the shard -- it should have a property to deal reduced damage (-1) but then also have bleeding 1, and +3 attack bonus"
-        status: wip
+      - step: "UAT nodes 2-3: at L8 the shard is granted; at L15 it is consumed and the Reforged Blade granted; journal advances 1->2->3(End).\n\nResult: at level 8 was able to get the shard -- it should have a property to deal reduced damage (-1) but then also have bleeding 1, and +3 attack bonus -> DONE 2026-07-23 (commit 3007f78): shard now has exactly -1 damage, on-hit bleeding and +3 attack bonus."
+        status: done
         step_h: 92
       - step: "UAT restrictions: buckler and blade are unusable by non-fighters."
         status: done
@@ -2919,6 +2919,12 @@ ideas:
       - step: "UAT regression: the Prancing Pony leash and the Harper-contact spawn (Della) still fire from the wrapped OnEnter."
         status: done
         step_h: 64
+      - step: "UAT (shard weapon): at Fighter 8 take the shard from Hallas and confirm it is now an equippable fighter-only dagger with +3 attack bonus, -1 damage, and causes bleeding (On Hit: Wounding) on hit; confirm a non-fighter cannot equip it; at Fighter 15 confirm the reforge still consumes it and grants the Warden's Reforged Blade."
+        status: open
+        blocker: false
+      - step: "UAT appearance (Hallas): spawn q_ftr_hallas in The Prancing Pony (theprancingpo001) at AP_fighterlineearly_1 and confirm he now appears in Gondorian plate with a shield and a drawn longsword, the gear stays equipped (not stripped) after spawn, and players cannot loot/steal his armor, shield, or sword."
+        status: open
+        blocker: false
 
   - id: fighter-line-mid
     title: "Fighter line II — The Unbroken Shield (L22-38)"
