@@ -113,9 +113,31 @@ off. Update `stage` to `test-build` before step 6 and `shipping` (with the `comm
 hash) right after step 7.1's commit succeeds; reset the whole file to `id: none` after
 step 7.3's roadmap commit lands.
 
+**Caution posture — build mechanical, queue creative.** Autopilot's default is to
+*implement only what is well-specified and mechanical*, and to **hand every creative or
+balance judgment back to the admin** rather than deciding it itself. The whole reason this
+mode exists is to clear unambiguous work — not to invent content whose taste is the
+admin's call.
+
+- **Implement autonomously:** `Defect` and `Exploit` items; `Enhancement`s that are fully
+  scriptable with no open choices — the fix/mechanic is obvious from the item text and the
+  code.
+- **Do NOT decide; queue as a design question instead** (step 4 — `status: design`, add to
+  `design_questions`): new quest narrative or flavor, **reward amounts / reward type /
+  loot**, difficulty & balance tuning, pricing, NPC personality or lore, and anything where
+  a reasonable admin might pick differently than you would. When you queue one, **write your
+  suggested answer into the question text** so the admin can bulk-approve or adjust — e.g.
+  `"Proposed: reward = Ring of Barahir (+2 CON, 3000gp). Approve, or set a different reward?"`
+  with `status: open`, `answer: null`. Propose freely; **do not act** on the proposal until
+  the admin answers. (This is the only sanctioned way to "propose ideas": as questions/tasks
+  on the *existing* item — never as a new `ideas:` entry; see Hard rules.)
+
+When in doubt about whether something is a judgment call, it is — queue it. A shipped-but-
+bland quest is worse than one held for a one-line admin decision.
+
 Work the item following the existing docs ([CLAUDE-recipes.md](CLAUDE-recipes.md),
 [CLAUDE-gotchas.md](CLAUDE-gotchas.md), [CLAUDE-nwscript.md](CLAUDE-nwscript.md), etc.).
-Two autopilot-specific rules:
+Autopilot-specific rules:
 
 - **No coordinate-picking.** Never choose positions/locations in a `.git.json` for *new*
   content — placement is the admin's call in the toolset. Instead:
@@ -147,6 +169,38 @@ Two autopilot-specific rules:
   the toolset, **include its palette category path** (the `Top > Sub > …` value, from
   `bin/gen-palette-map.py` / `palette_map.json`) so the admin isn't hunting through
   hundreds of palette folders.
+- **New NPCs — unique appearance + gear-matching proficiency feats.** When the item
+  creates a new creature blueprint (`.utc.json`):
+  - **Give it a deliberately unique `Appearance_Type`.** Don't default to the appearance of
+    a nearby/related NPC — a wall of identical models is exactly the "bland/repetitive"
+    outcome to avoid. **Clone the value from a real creature** (never guess the numeric id —
+    a wrong value renders as the invisible-model fallback with no error; see
+    [CLAUDE-blueprints.md](CLAUDE-blueprints.md) "Appearance constants"), and pick one
+    *distinct* from the other NPCs the player meets in that area — cross-check
+    `module-index/creature_index.json` (`appearance_id`) for local collisions.
+  - **Match proficiency feats to the equipped gear.** Any NPC shipping with equipped
+    weapons/armor **must** carry the matching proficiency feats in its `FeatList`, or the
+    module's Jasperre AI **strips the gear at spawn** (the NPC appears unarmed/unarmored).
+    This bit the `fighter-line-early` and `rogue-line-early` UAT passes. Include Armor
+    Proficiency (Light/Medium/Heavy) + Shield Proficiency for the armor tier, and Weapon
+    Proficiency (Simple/Martial/Exotic) for the weapon. **Verify the feat ids against a real
+    `.utc.json` that already equips that gear** — copy them, don't recall the numbers. (See
+    [CLAUDE-recipes.md](CLAUDE-recipes.md) "Add a new NPC creature".)
+- **Reward-and-take safety — re-check possession at grant time.** Any script that grants a
+  reward **and** consumes/takes a player item is exposed to the *drop-item farm*: a player
+  reaches the reward reply holding the required item, **drops it while the conversation is
+  still open**, collects the reward, then picks the item back up — repeating forever. The
+  DLG StartingConditional is **not** enough (it passed before the drop). The action script
+  must **re-verify at grant time** that the player still has the item —
+  `GetItemPossessedBy(oPC, sTag)` + `GetIsObjectValid(...)` (or the `HasItem()` helper, a
+  stack re-count, or an advance-only persistent stage / daily cooldown) — and bail before
+  any reward if it's gone. Mirror the shape in `unpacked/q_arc_finish.nss`. The
+  `tests/check_reward_exploit.py` smoke gate flags reward-and-take scripts that lack this
+  guard and **aborts the repack** (step 6); a reviewed-safe exception carries an inline
+  `// reward-exploit-ok: <reason>` marker. Also add a non-farmability UAT check to
+  `manual_steps` (e.g. `"UAT: drop the token mid-conversation on the reward node — the
+  reward must NOT be granted"`). See also [CLAUDE-nwscript.md](CLAUDE-nwscript.md)
+  "Reward-and-take (anti-farm)".
 
 ### 3b. Keep `docs.manual/` in sync
 
@@ -317,6 +371,19 @@ act on lives in the two internal fields on the roadmap item itself, so the admin
     `AP_riddle-game_1`) — a mismatch means the waypoint is placed but never found, i.e. the
     feature is dead on arrival. When one waypoint gates many quests (e.g. a quest-hub NPC),
     say so and put it first, so the admin places the highest-leverage one first.
+  - **Name areas by their full toolset Name, then the resref in parens** — e.g.
+    `"Minas Tirith: The Keep (area005)"`, not just `area005`. The toolset's area list sorts
+    by **Name**, so a bare resref sends the admin hunting. Get the Name from
+    `module-index/area_index.json` (or the area's `.are.json` `Name` field). Do this in every
+    `manual_steps` and `design_questions` line that references an area. (Waypoint-tag string
+    literals stay hyphen-less and byte-identical — that rule is unchanged.)
+  - **Appearance/gear UAT for every new NPC or item blueprint.** Whenever the item creates a
+    new `.utc` (creature) or `.uti` (item), add a `manual_steps` UAT entry asking the admin
+    to log in and **visually verify how it looks** — one step per blueprint, `status: open`,
+    `blocker: false`. For NPCs, the check must also confirm the **gear stays equipped** (the
+    Jasperre-AI proficiency trap), e.g. `"UAT appearance: spawn <resref> in <Full Area Name
+    (resref)> and confirm the model looks right AND its weapon/armor stay equipped (not
+    stripped)."`
   - Write the UAT script here too, **one step per check**, not as a paragraph in `notes`.
 - **`design_questions`** — blocking questions, each `{question, status: open, answer: null}`.
 - **`impl_notes`** — the technical record: root cause, scripts/resrefs/DB tables touched,
@@ -343,8 +410,11 @@ step is a **validation error**. If blocking work remains, the item belongs in `m
 - **Never publish the wiki**: `bin/refresh-homers-lotr-wiki` is allowed only as local
   validation for a wiki item; leave `docs/`/`module-index/` for the daily cycle.
 - **Never create new `ideas:` entries** in `roadmap.yaml` — even for follow-up work you
-  discover. Note follow-ups in the current item's `manual_steps` or `impl_notes`
-  instead.
+  discover, and even when "proposing an idea." You *may* propose freely, but only **as
+  tasks/questions attached to an existing item**: a `design_question` (with your suggested
+  answer in the text) or a `manual_steps`/`impl_notes` note. Those queue for the admin's
+  bulk approval without minting a new backlog row. A brand-new `ideas:` entry is always the
+  admin's call — leave follow-ups you can't attach to a current item for them.
 - **Never edit the `meta:`/`redemption:`/`housing:` blocks** of `roadmap.yaml`.
 - **Never hard-code CD keys or secrets** anywhere under `unpacked/` (see CLAUDE.md — a
   gitignored file still gets packed into the `.mod`).

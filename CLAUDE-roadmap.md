@@ -157,9 +157,12 @@ These are hard rules — follow them exactly:
   when it actually shipped — don't leave the original report date.
 - **Never invent new ideas on your own. Always ask the user first** before adding a new
   `ideas:` entry. Editing/annotating existing items (status, notes, commit, date) is fine
-  without asking; creating a brand-new backlog row is not. When the user does ask for or
-  approve a new item, **default `player:` to `HomelessSon (Server Admin)`** unless they name
-  a different submitter.
+  without asking; creating a brand-new backlog row is not. You *may* still **propose**
+  decisions or implementations freely — but only **attached to an existing item**, as a
+  `design_questions` entry (put your suggested answer in the question text, `status: open`)
+  or a `manual_steps`/`impl_notes` note, which queues them for the admin's bulk approval
+  without minting a new row. When the user does ask for or approve a new item, **default
+  `player:` to `HomelessSon (Server Admin)`** unless they name a different submitter.
 - **Document the fix in `notes`.** Append a short "Fixed YYYY-MM-DD" line (rich HTML is
   fine) describing the root cause and what changed, so the public roadmap and future
   readers have the context. Keep the original report text intact above it.

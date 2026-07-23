@@ -131,3 +131,34 @@ The module does NOT use NWNX. Persistence is via:
 
 There is no SQL — `GetCampaignInt`-style functions persist to NWN's
 campaign database files in `database/<campaign>.bdb`.
+
+## Reward-and-take (anti-farm)
+
+Any script that **grants a reward and consumes a player item** must
+re-verify possession **at grant time**, inside the action script — not
+only in the conversation's StartingConditional. Otherwise it is open to
+the *drop-item farm*: the player reaches the reward reply holding the
+required item, **drops it while the conversation is still open**, takes
+the reward, then picks the item back up, and repeats forever. The
+StartingConditional already passed before the drop, so it protects
+nothing here.
+
+```nwscript
+object oProof = GetItemPossessedBy(oPC, "wk_proof");
+if (!GetIsObjectValid(oProof)) return;   // dropped mid-conversation → bail
+DestroyObject(oProof);
+GiveXPToCreature(oPC, 500);
+CreateItemOnObject("reward_item", oPC, 1);
+```
+
+Equivalent guards are fine: the `HasItem(oPC, tag)` helper (wraps
+`GetItemPossessedBy`), a stack re-count for multi-item turn-ins, or an
+advance-only persistent stage / daily cooldown (`GetCampaignInt` /
+`QCD_*`) that makes the reward one-shot regardless. Canonical example:
+`unpacked/q_arc_finish.nss`.
+
+The `tests/check_reward_exploit.py` smoke gate flags reward-and-take
+scripts that show none of these guards and **aborts the repack**. If a
+flagged script is genuinely safe (the reward is independent of the item,
+or the "take" destroys a non-inventory object), add an inline
+`// reward-exploit-ok: <reason>` marker to silence it.

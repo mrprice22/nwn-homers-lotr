@@ -20,6 +20,22 @@
 2. Copy a similar `.utc.json` to `myorc01.utc.json`. Edit
    `TemplateResRef`, `Tag`, `FirstName`/`LastName`, ability scores,
    `ClassList`, `Appearance_Type`, `Conversation`, scripts, equipment.
+   - **Unique appearance.** Give the NPC a deliberately distinct
+     `Appearance_Type` — don't reuse a neighbouring NPC's model by
+     default (identical models everywhere is the "bland" trap).
+     **Clone the numeric value from a real creature; never guess it**
+     (a wrong id renders as the invisible-model fallback with no
+     error). Check `module-index/creature_index.json` (`appearance_id`)
+     for what's already used nearby so you pick something different.
+   - **Proficiency feats must match the equipped gear.** If the NPC
+     ships with equipped weapons/armor, put the matching proficiency
+     feats in its `FeatList` — Armor Proficiency (Light/Medium/Heavy)
+     + Shield for the armor, Weapon Proficiency (Simple/Martial/Exotic)
+     for the weapon — or the module's **Jasperre AI unequips the gear
+     at spawn** (the NPC appears unarmed/unarmoured; this bit the
+     `fighter-line-early` / `rogue-line-early` UAT passes). Copy the
+     feat ids from a real `.utc.json` that already equips that gear
+     rather than recalling the numbers.
 3. To place an instance in an area, **copy a neighboring creature struct
    already in that area's `<area>.git.json` `Creature List`** and edit
    only the identity fields (`Tag`, `TemplateResRef`, `FirstName`, etc.)
@@ -41,6 +57,12 @@
    blueprint's `PaletteID`, matching the toolset; the `check_palette_coverage`
    smoke gate aborts the repack until it's filed). Standalone — **not** a wiki
    refresh.
+6. **Verify in-game (UAT).** Spawn the NPC and confirm the model looks
+   right **and** its weapon/armor stay equipped (not stripped by the AI
+   for a missing proficiency feat). Under autopilot, record this as a
+   `manual_steps` UAT entry naming the area by its **full toolset Name
+   plus resref** (e.g. `Bree: The Prancing Pony (theprancingpo001)`),
+   since the toolset sorts areas by Name.
 
 ## Add a new item
 

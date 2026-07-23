@@ -22,6 +22,19 @@ you're signing up for (the runbook is authoritative — read it in full before s
    palette — the `check_palette_coverage` gate aborts the repack otherwise) and put the
    palette category path in its `manual_steps`. Files (`roadmap.yaml`, git) are the only
    loop state — never conversation history.
+   - **Build mechanical, queue creative.** Autonomously implement only `Defect`/`Exploit`/
+     no-choice items; route reward amounts, balance, new-quest flavor, and NPC lore to a
+     `design_question` on the item (with your suggested answer in the text) — don't decide
+     them.
+   - **New NPCs:** give a **unique `Appearance_Type`** (clone, don't guess) and put the
+     **proficiency feats that match the equipped gear** in `FeatList`, or the Jasperre AI
+     strips it (`fighter-line-early` / `rogue-line-early` trap).
+   - **New NPC or item → add an appearance UAT `manual_steps` entry** (look right? gear
+     stays equipped?), naming any area by its **full toolset Name + resref** (the toolset
+     sorts areas by Name).
+   - **Reward-and-take scripts must re-check `GetItemPossessedBy`/`HasItem` at grant time**
+     (not just the DLG conditional) or players farm them by dropping the item mid-
+     conversation; the `check_reward_exploit.py` gate enforces this.
 3. Test-build with **bare `nwn-manager repack`** (never the deploy wrappers).
 4. Ship: final code commit → roadmap item to `manual` (with `manual_steps`) — or
    `implemented` only if zero manual toolset steps remain — with `commit:`, `date:` set to

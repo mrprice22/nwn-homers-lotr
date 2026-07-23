@@ -78,4 +78,12 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: reward turn-in exploit…"
+if python3 "$HERE/check_reward_exploit.py"; then
+  echo "ok: reward turn-in exploit"
+else
+  echo "fail: reward turn-in exploit"
+  rc=1
+fi
+
 exit $rc
