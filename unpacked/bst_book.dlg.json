@@ -82,6 +82,21 @@
               },
               "Index": {
                 "type": "dword",
+                "value": 15
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
+              "__struct_id": 3,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
                 "value": 2
               },
               "IsChild": {
@@ -102,7 +117,7 @@
         "Text": {
           "type": "cexolocstring",
           "value": {
-            "0": "You open the Bestiary of Middle-earth. Its pages record every beast you have faced. What would you like to review?"
+            "0": "You open the Bestiary of Middle-earth. Its pages record every beast you have faced.\n\n<CUSTOM5029>\n\nWhat would you like to review?"
           }
         }
       },
@@ -1167,7 +1182,7 @@
         },
         "Script": {
           "type": "resref",
-          "value": ""
+          "value": "bst_intro"
         },
         "Sound": {
           "type": "resref",
@@ -1177,6 +1192,63 @@
           "type": "cexolocstring",
           "value": {
             "0": "[Back to the index]"
+          }
+        }
+      },
+      {
+        "__struct_id": 15,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "R_BOSSES"
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": [
+            {
+              "__struct_id": 0,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
+                "value": 1
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            }
+          ]
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": "bst_open_boss"
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "Great foes I have yet to fell."
           }
         }
       }

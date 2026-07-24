@@ -155,8 +155,123 @@ int Bst_RegisterServerFirst(string sResref, float fCR, string sUuid, string sNam
 }
 
 // ------------------------------------------------------------
-// In-game bestiary menu (book conversation). Tokens 5030-5041.
-//   local int    "bst_mode"       0 = Creatures Slain, 1 = Not Yet Slain
+// Tracked bosses (browse mode 2 + the intro progress line)
+//
+// The boss set is the "Roll of the Fallen" registry in respawndb (the CR>60
+// single-instance bosses — see CLAUDE-boss-tracker.md), i.e. exactly the set
+// the forge's progressive bonus keys off: slay every one of them and the top
+// forges grant +20% value cap and one extra property slot (forge_inc.nss,
+// ForgeBossDistinctKills / ForgeBossBonusPct). Kept in this file rather than
+// #include "forge_inc" — that include drags in the whole forge/appraise/colour
+// stack, and bst_db is on the OnDeath hot path.
+
+// Quoted, comma-separated list of every tracked boss resref (registry +
+// aliases) for SQL IN(...). Resrefs are filenames (alphanumeric), so inlining
+// them into SQL text is safe. Returns "''" (an IN-list that matches nothing)
+// when respawndb is unavailable, so callers can splice it in unconditionally.
+// Cached on the module: brd_db reseeds the registry only on module load.
+string Bst_BossListSql()
+{
+    object oMod  = GetModule();
+    string sList = GetLocalString(oMod, "BST_BOSS_LIST");
+    if (sList != "") return sList;
+
+    sqlquery q = SqlPrepareQueryCampaign("respawndb",
+        "SELECT group_concat('''' || resref || '''') FROM" +
+        " (SELECT resref FROM boss_registry UNION SELECT resref FROM boss_alias)");
+    if (SqlStep(q)) sList = SqlGetString(q, 0);
+    if (sList == "") sList = "''";
+    SetLocalString(oMod, "BST_BOSS_LIST", sList);
+    return sList;
+}
+
+// Number of bosses the registry tracks. 0 when unavailable.
+int Bst_BossTotal()
+{
+    object oMod = GetModule();
+    int nTotal  = GetLocalInt(oMod, "BST_BOSS_TOTAL");
+    if (nTotal > 0) return nTotal;
+
+    sqlquery q = SqlPrepareQueryCampaign("respawndb", "SELECT COUNT(*) FROM boss_registry");
+    if (SqlStep(q))
+    {
+        nTotal = SqlGetInt(q, 0);
+        SetLocalInt(oMod, "BST_BOSS_TOTAL", nTotal);
+    }
+    return nTotal;
+}
+
+// Quoted list of the REGISTRY-side resrefs this character has already slain.
+// Bestiary kills are stored by canonical resref, so a registry resref counts as
+// slain when the kill row matches it directly or matches its bestiary canonical.
+// "''" when nothing has been slain.
+string Bst_BossSlainSql(object oPC)
+{
+    string sAll = Bst_BossListSql();
+
+    sqlquery q = SqlPrepareQueryCampaign(BST_DB,
+        "SELECT group_concat('''' || r || '''') FROM (" +
+        " SELECT resref AS r FROM kills WHERE uuid=@u AND resref IN (" + sAll + ")" +
+        " UNION" +
+        " SELECT a.resref AS r FROM resref_alias a JOIN kills k ON k.resref=a.canonical" +
+        "  WHERE k.uuid=@u AND a.resref IN (" + sAll + "))");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+
+    string sSlain;
+    if (SqlStep(q)) sSlain = SqlGetString(q, 0);
+    if (sSlain == "") sSlain = "''";
+    return sSlain;
+}
+
+// Distinct tracked bosses this character has slain. Deliberately the same
+// COUNT(DISTINCT) the forge uses, so the book's "x of y" and the forge's tier
+// message can never disagree; clamped to the registry total.
+int Bst_BossSlainCount(object oPC)
+{
+    string sAll = Bst_BossListSql();
+
+    sqlquery q = SqlPrepareQueryCampaign(BST_DB,
+        "SELECT COUNT(DISTINCT resref) FROM kills WHERE uuid=@u" +
+        " AND (resref IN (" + sAll + ")" +
+        " OR resref IN (SELECT canonical FROM resref_alias WHERE resref IN (" + sAll + ")))");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+
+    int nKills = 0;
+    if (SqlStep(q)) nKills = SqlGetInt(q, 0);
+
+    int nTotal = Bst_BossTotal();
+    if (nTotal > 0 && nKills > nTotal) nKills = nTotal;
+    return nKills;
+}
+
+// Token 5029 — the boss-progress line on the book's index page. Must be set
+// BEFORE the index entry is spoken (token substitution happens at display), so
+// it is driven from the item-activation script and the [Back to the index]
+// reply, not from the entry node's own action script.
+void Bst_BuildIntro(object oPC)
+{
+    int nTotal = Bst_BossTotal();
+    if (nTotal <= 0)
+    {
+        SetCustomToken(5029, "");
+        return;
+    }
+
+    int nSlain = Bst_BossSlainCount(oPC);
+    string sLine = "Great foes felled: " + IntToString(nSlain) + " of " + IntToString(nTotal) + ".";
+
+    if (nSlain >= nTotal)
+        sLine += " Not one remains — the great forges yield their final property slot to you.";
+    else
+        sLine += " Fell them all and the great forges will yield one more property slot.";
+
+    SetCustomToken(5029, sLine);
+}
+
+// ------------------------------------------------------------
+// In-game bestiary menu (book conversation). Tokens 5029-5041.
+//   local int    "bst_mode"       0 = Creatures Slain, 1 = Not Yet Slain,
+//                                 2 = Bosses Not Yet Slain
 //   local int    "bst_page_off"   row offset (multiples of 9)
 //   local int    "bst_page_total" total rows in the section (set here)
 //   local string "bst_slot_N_resref" canonical resref shown in slot N
@@ -168,9 +283,24 @@ void Bst_BuildPage(object oPC)
     int    nOff  = GetLocalInt(oPC, "bst_page_off");
     string sUuid = GetObjectUUID(oPC);
 
+    // Mode 2 reads the boss registry out of respawndb instead of the bestiary
+    // catalogue; the "already slain" set is spliced in as a literal IN-list
+    // because the two campaign DBs cannot be joined in one query.
+    string sSlain, sBossWhere;
+    if (nMode == 2)
+    {
+        sSlain     = Bst_BossSlainSql(oPC);
+        sBossWhere = " WHERE resref NOT IN (" + sSlain + ")" +
+                     " AND resref NOT IN (SELECT canonical FROM boss_alias" +
+                     "                    WHERE resref IN (" + sSlain + "))";
+    }
+
     // Section row count (for pagination + [Next >>] visibility).
     sqlquery qc;
-    if (nMode == 0)
+    if (nMode == 2)
+        qc = SqlPrepareQueryCampaign("respawndb",
+            "SELECT COUNT(*) FROM boss_registry" + sBossWhere);
+    else if (nMode == 0)
         qc = SqlPrepareQueryCampaign(BST_DB,
             "SELECT COUNT(*) FROM catalogue c" +
             " JOIN kills k ON k.resref=c.resref WHERE k.uuid=@u");
@@ -178,7 +308,7 @@ void Bst_BuildPage(object oPC)
         qc = SqlPrepareQueryCampaign(BST_DB,
             "SELECT COUNT(*) FROM catalogue c" +
             " WHERE c.resref NOT IN (SELECT resref FROM kills WHERE uuid=@u)");
-    SqlBindString(qc, "@u", sUuid);
+    if (nMode != 2) SqlBindString(qc, "@u", sUuid);
     int nTotal = 0;
     if (SqlStep(qc)) nTotal = SqlGetInt(qc, 0);
     SetLocalInt(oPC, "bst_page_total", nTotal);
@@ -186,7 +316,11 @@ void Bst_BuildPage(object oPC)
     int nPages = (nTotal + 8) / 9;
     if (nPages == 0) nPages = 1;
     int nPage = nOff / 9 + 1;
-    SetCustomToken(5040, nMode == 0 ? "Creatures Slain" : "Not Yet Slain");
+    string sHeading = "Not Yet Slain";
+    if (nMode == 0) sHeading = "Creatures Slain";
+    else if (nMode == 2) sHeading = "Bosses Not Yet Slain  (" +
+        IntToString(Bst_BossSlainCount(oPC)) + " of " + IntToString(Bst_BossTotal()) + " felled)";
+    SetCustomToken(5040, sHeading);
     SetCustomToken(5041, "Page " + IntToString(nPage) + " of " + IntToString(nPages));
 
     int i;
@@ -197,7 +331,11 @@ void Bst_BuildPage(object oPC)
     }
 
     sqlquery q;
-    if (nMode == 0)
+    if (nMode == 2)
+        q = SqlPrepareQueryCampaign("respawndb",
+            "SELECT resref, name, cr, area_name FROM boss_registry" + sBossWhere +
+            " ORDER BY cr DESC, name ASC LIMIT 9 OFFSET @off");
+    else if (nMode == 0)
         q = SqlPrepareQueryCampaign(BST_DB,
             "SELECT c.resref, c.name, c.cr, k.solo_kills, k.party_kills" +
             " FROM catalogue c JOIN kills k ON k.resref=c.resref" +
@@ -207,7 +345,7 @@ void Bst_BuildPage(object oPC)
             "SELECT c.resref, c.name, c.cr" +
             " FROM catalogue c WHERE c.resref NOT IN (SELECT resref FROM kills WHERE uuid=@u)" +
             " ORDER BY c.cr DESC, c.name ASC LIMIT 9 OFFSET @off");
-    SqlBindString(q, "@u", sUuid);
+    if (nMode != 2) SqlBindString(q, "@u", sUuid);
     SqlBindInt(q, "@off", nOff);
 
     i = 0;
@@ -220,7 +358,9 @@ void Bst_BuildPage(object oPC)
         SetLocalString(oPC, "bst_slot_" + IntToString(i) + "_resref", sResref);
 
         string sLabel;
-        if (nMode == 0)
+        if (nMode == 2)
+            sLabel = sName + "  (CR " + IntToString(nCR) + ")  - " + SqlGetString(q, 3);
+        else if (nMode == 0)
             sLabel = sName + "  (CR " + IntToString(nCR) + ")  [Solo:"
                    + IntToString(SqlGetInt(q, 3)) + " Party:"
                    + IntToString(SqlGetInt(q, 4)) + "]";
