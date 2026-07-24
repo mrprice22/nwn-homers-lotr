@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script ammorep_db</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>ammorep_db</code></h1><pre class="nss-source"><code>// ammorep_db.nss — persistence for the Quiver of Endless Flight (ammo replicator).
+//
+// The quiver is a boss drop (Legolas Greenleaf, Angmar) that can be used twice
+// before it crumbles. The remaining uses are NOT normal item charges — they live
+// in the campaign SQLite DB &quot;ammorepdb&quot;, keyed on the ITEM&#x27;s own UUID.
+//
+// Keying on the item (not the holder) is the point: a half-used quiver stays
+// half-used when it is dropped, traded, pickpocketed or left in a chest. The new
+// owner sees 1 use left, not a fresh 2. GetObjectUUID assigns on first read and
+// is serialised with the item, so the key survives inventory transfer, logout and
+// the character vault.
+//
+// Mirrors the style of dye_db.nss / brd_db.nss.
+
+const string AMMOREP_DB   = &quot;ammorepdb&quot;;
+const int    AMMOREP_USES = 2;     // uses per quiver before it crumbles
+const int    AMMOREP_GRANT = 500;  // units of the chosen ammo granted per use
+
+// Idempotent — called from onmoduleload.nss.
+void AmmoRep_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(AMMOREP_DB,
+        &quot;CREATE TABLE IF NOT EXISTS replicators (&quot; +
+        &quot;uuid TEXT PRIMARY KEY, uses_left INTEGER NOT NULL, first_used TEXT)&quot;);
+    SqlStep(q);
+}
+
+// Uses left on this quiver. An unregistered quiver (never used) has no row and
+// reports the full AMMOREP_USES.
+int AmmoRep_UsesLeft(object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return 0;
+
+    sqlquery q = SqlPrepareQueryCampaign(AMMOREP_DB,
+        &quot;SELECT uses_left FROM replicators WHERE uuid=@u LIMIT 1&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oItem));
+    if (!SqlStep(q)) return AMMOREP_USES;
+    return SqlGetInt(q, 0);
+}
+
+// Burn one use. Returns the number of uses REMAINING afterwards (0 = it crumbles).
+int AmmoRep_Consume(object oItem)
+{
+    int nLeft = AmmoRep_UsesLeft(oItem) - 1;
+    if (nLeft &lt; 0) nLeft = 0;
+
+    sqlquery q = SqlPrepareQueryCampaign(AMMOREP_DB,
+        &quot;INSERT INTO replicators(uuid, uses_left, first_used)&quot; +
+        &quot; VALUES(@u, @n, datetime(&#x27;now&#x27;))&quot; +
+        &quot; ON CONFLICT(uuid) DO UPDATE SET uses_left=excluded.uses_left&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oItem));
+    SqlBindInt(q, &quot;@n&quot;, nLeft);
+    SqlStep(q);
+
+    return nLeft;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

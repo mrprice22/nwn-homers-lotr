@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script ammorep_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>ammorep_inc</code></h1><pre class="nss-source"><code>// ammorep_inc.nss — Quiver of Endless Flight: inventory scan, menu cues, grant.
+//
+// Activating the quiver opens ammorep_conv, a flat menu listing the ammunition
+// stacks the player is carrying, richest first. Picking one grants AMMOREP_GRANT
+// more units of that exact ammo. Two uses per quiver, tracked in ammorep_db.nss.
+//
+// Menu plumbing follows the staged-forge pattern (forge_stg_*): the per-slot cues
+// are primed BEFORE the entry renders (here, in ammorep_open.nss, ahead of
+// ActionStartConversation), each slot has a StartingConditional (ammorep_c&lt;i&gt;)
+// and an Actions Taken (ammorep_p&lt;i&gt;).
+//
+// Custom tokens:
+//   6440-6447   slot labels (ammo name / stack / per-unit worth)
+//   6448        menu header (uses remaining, overflow note)
+
+#include &quot;ammorep_db&quot;
+
+const string AMMOREP_TAG   = &quot;ammoreplicator&quot;;
+const int    AMMOREP_SLOTS = 8;
+const int    AMMOREP_TOK   = 6440;  // .. 6447
+const int    AMMOREP_TOKHD = 6448;
+
+// Engine cap for a single ammo stack. Only used to bound the copy loop; the grant
+// itself reads the stack size back, so it is correct whether the cap is 99 or 999.
+const int    AMMOREP_MAXCOPIES = 24;
+
+string AmmoRep_SlotVar(int i) { return &quot;AMMOREP_SLOT_&quot; + IntToString(i); }
+string AmmoRep_ValVar(int i)  { return &quot;AMMOREP_VAL_&quot;  + IntToString(i); }
+
+int AmmoRep_IsAmmo(object oItem)
+{
+    int nBase = GetBaseItemType(oItem);
+    return (nBase == BASE_ITEM_ARROW
+         || nBase == BASE_ITEM_BOLT
+         || nBase == BASE_ITEM_BULLET);
+}
+
+// 1234567 -&gt; &quot;1,234,567&quot; (player-facing gold, same convention as ForgeGold).
+string AmmoRep_Gold(int n)
+{
+    if (n &lt; 0) return IntToString(n);
+    string sOut = &quot;&quot;;
+    string sIn  = IntToString(n);
+    int nLen = GetStringLength(sIn);
+    int i;
+    for (i = 0; i &lt; nLen; i++)
+    {
+        if (i &gt; 0 &amp;&amp; ((nLen - i) % 3) == 0) sOut += &quot;,&quot;;
+        sOut += GetSubString(sIn, i, 1);
+    }
+    return sOut;
+}
+
+// The quiver this player is carrying (OBJECT_INVALID if it is gone).
+object AmmoRep_GetQuiver(object oPC)
+{
+    return GetItemPossessedBy(oPC, AMMOREP_TAG);
+}
+
+void AmmoRep_ClearSlots(object oPC)
+{
+    int i;
+    for (i = 0; i &lt; AMMOREP_SLOTS; i++)
+    {
+        DeleteLocalObject(oPC, AmmoRep_SlotVar(i));
+        DeleteLocalInt(oPC, AmmoRep_ValVar(i));
+    }
+    DeleteLocalInt(oPC, &quot;AMMOREP_COUNT&quot;);
+}
+
+// Fill the slot locals + cue tokens with the player&#x27;s ammo stacks, sorted by
+// per-unit worth descending. GetGoldPieceValue is a WHOLE-STACK figure (see the
+// note on ForgeItemValue in forge_inc.nss), so it is divided by the stack size to
+// normalise. Only the richest AMMOREP_SLOTS stacks are shown.
+void AmmoRep_Scan(object oPC)
+{
+    AmmoRep_ClearSlots(oPC);
+
+    int nCount = 0;
+    int nSeen  = 0;
+
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        if (AmmoRep_IsAmmo(oItem))
+        {
+            nSeen++;
+
+            int nStack = GetItemStackSize(oItem);
+            if (nStack &lt; 1) nStack = 1;
+            int nUnit = GetGoldPieceValue(oItem) / nStack;
+
+            // Insertion sort, descending. Starting at AMMOREP_SLOTS lets a rich
+            // stack push the current last entry off the end.
+            int i = nCount;
+            if (i &gt; AMMOREP_SLOTS) i = AMMOREP_SLOTS;
+            while (i &gt; 0 &amp;&amp; GetLocalInt(oPC, AmmoRep_ValVar(i - 1)) &lt; nUnit)
+            {
+                if (i &lt; AMMOREP_SLOTS)
+                {
+                    SetLocalObject(oPC, AmmoRep_SlotVar(i),
+                                   GetLocalObject(oPC, AmmoRep_SlotVar(i - 1)));
+                    SetLocalInt(oPC, AmmoRep_ValVar(i),
+                                GetLocalInt(oPC, AmmoRep_ValVar(i - 1)));
+                }
+                i--;
+            }
+            if (i &lt; AMMOREP_SLOTS)
+            {
+                SetLocalObject(oPC, AmmoRep_SlotVar(i), oItem);
+                SetLocalInt(oPC, AmmoRep_ValVar(i), nUnit);
+                if (nCount &lt; AMMOREP_SLOTS) nCount++;
+            }
+        }
+        oItem = GetNextItemInInventory(oPC);
+    }
+
+    SetLocalInt(oPC, &quot;AMMOREP_COUNT&quot;, nCount);
+
+    int s;
+    for (s = 0; s &lt; AMMOREP_SLOTS; s++)
+    {
+        if (s &lt; nCount)
+        {
+            object oAmmo = GetLocalObject(oPC, AmmoRep_SlotVar(s));
+            int nShow = GetItemStackSize(oAmmo);
+            if (nShow &lt; 1) nShow = 1;
+            SetCustomToken(AMMOREP_TOK + s,
+                GetName(oAmmo) + &quot;  (x&quot; + IntToString(nShow) + &quot;, &quot;
+                + AmmoRep_Gold(GetLocalInt(oPC, AmmoRep_ValVar(s))) + &quot; gp each)&quot;);
+        }
+        else
+        {
+            SetCustomToken(AMMOREP_TOK + s, &quot;&quot;);
+        }
+    }
+
+    string sHdr = &quot;Uses remaining: &quot;
+                + IntToString(AmmoRep_UsesLeft(AmmoRep_GetQuiver(oPC)));
+    if (nSeen &gt; nCount)
+        sHdr += &quot;   (showing the &quot; + IntToString(nCount) + &quot; most valuable of &quot;
+              + IntToString(nSeen) + &quot; kinds you carry)&quot;;
+    SetCustomToken(AMMOREP_TOKHD, sHdr);
+}
+
+// Add nTotal units of oProto&#x27;s ammo to oPC. The source stack is grown first, so
+// any overflow copies are always made from a FULL stack and can never merge back
+// into a partial one and corrupt the tally. Returns the units actually delivered.
+int AmmoRep_Grant(object oPC, object oProto, int nTotal)
+{
+    int nStart = GetItemStackSize(oProto);
+    if (nStart &lt; 1) nStart = 1;
+
+    SetItemStackSize(oProto, nStart + nTotal);
+    int nDelivered = GetItemStackSize(oProto) - nStart;
+    int nRemaining = nTotal - nDelivered;
+
+    int nGuard = 0;
+    while (nRemaining &gt; 0 &amp;&amp; nGuard &lt; AMMOREP_MAXCOPIES)
+    {
+        nGuard++;
+        object oCopy = CopyItem(oProto, oPC, TRUE);
+        if (!GetIsObjectValid(oCopy)) break;
+
+        SetItemStackSize(oCopy, nRemaining);
+        int nGot = GetItemStackSize(oCopy);
+        if (nGot &lt; 1) { DestroyObject(oCopy); break; }
+
+        nDelivered += nGot;
+        nRemaining -= nGot;
+    }
+
+    return nDelivered;
+}
+
+// Menu slot nSlot was picked: replicate that ammo and burn one use of the quiver.
+void AmmoRep_Pick(object oPC, int nSlot)
+{
+    object oQuiver = AmmoRep_GetQuiver(oPC);
+    if (!GetIsObjectValid(oQuiver))
+    {
+        FloatingTextStringOnCreature(
+            &quot;The quiver must be in your possession to use it.&quot;, oPC, FALSE);
+        return;
+    }
+    if (AmmoRep_UsesLeft(oQuiver) &lt; 1)
+    {
+        DestroyObject(oQuiver);
+        FloatingTextStringOnCreature(&quot;The quiver is spent.&quot;, oPC, FALSE);
+        return;
+    }
+
+    // Re-check the chosen stack: it could have been dropped or sold between the
+    // menu opening and the click.
+    object oAmmo = GetLocalObject(oPC, AmmoRep_SlotVar(nSlot));
+    if (!GetIsObjectValid(oAmmo) || GetItemPossessor(oAmmo) != oPC
+        || !AmmoRep_IsAmmo(oAmmo))
+    {
+        FloatingTextStringOnCreature(
+            &quot;That ammunition is no longer in your pack.&quot;, oPC, FALSE);
+        AmmoRep_ClearSlots(oPC);
+        return;
+    }
+
+    string sName = GetName(oAmmo);
+    int nGiven = AmmoRep_Grant(oPC, oAmmo, AMMOREP_GRANT);
+    int nLeft  = AmmoRep_Consume(oQuiver);
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_MAGBLUE), oPC);
+    FloatingTextStringOnCreature(
+        &quot;The quiver overflows: &quot; + IntToString(nGiven) + &quot; x &quot; + sName + &quot;.&quot;,
+        oPC, FALSE);
+
+    if (nLeft &lt; 1)
+    {
+        DestroyObject(oQuiver);
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_FNF_SUMMON_MONSTER_3), oPC);
+        FloatingTextStringOnCreature(
+            &quot;Its purpose spent, the quiver crumbles to dust.&quot;, oPC, FALSE);
+    }
+    else
+    {
+        FloatingTextStringOnCreature(
+            &quot;The quiver has &quot; + IntToString(nLeft) + &quot; use remaining.&quot;, oPC, FALSE);
+    }
+
+    AmmoRep_ClearSlots(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
