@@ -138,7 +138,7 @@ void FTR_TakeShard(object oPC)
     FTR_SetStage(oPC, 2);
     AddJournalQuestEntry(FTR_QUEST, 2, oPC, FALSE, FALSE, TRUE);
     if (!GetIsObjectValid(GetItemPossessedBy(oPC, &quot;q_ftr_shard&quot;)))
-        CreateItemOnObject(&quot;q_ftr_shard&quot;, oPC, 1);  // notched captain&#x27;s shard (plot)
+        CreateItemOnObject(&quot;q_ftr_shard&quot;, oPC, 1);  // notched captain&#x27;s shard (fighter-only interim dagger: +3 AB, -1 dmg, on-hit wounding)
 }
 
 // Node 3: reforge the shard into the Warden&#x27;s Reforged Blade (stage 2 -&gt; 3).

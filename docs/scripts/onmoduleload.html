@@ -77,6 +77,8 @@
 #include &quot;admin_db&quot;
 #include &quot;boost_db&quot;
 #include &quot;quest_cd_inc&quot;
+#include &quot;faction_db&quot;
+#include &quot;worldstate_inc&quot;
 
 
 void main()
@@ -157,6 +159,17 @@ Boost_InitDb();
 // Quest cooldowns (daily/weekly repeatable quests): ensure the quest_cd table
 // exists before any dialogue conditional reads it. See quest_cd_inc.nss.
 QCD_InitDb();
+
+// Faction allegiance (Good/Evil, persisted per-character): ensure the
+// faction_standing table exists before any adjuster write or login re-apply.
+// See faction_db.nss (roadmap: faction-scaffolding).
+Faction_InitDb();
+
+// World-state globals (server-wide contested control / timed buffs / weekly
+// claims): ensure the world_state + world_state_rule tables exist before any
+// read or before the heartbeat&#x27;s WS_Tick() applies a decay/weekly rule.
+// See worldstate_inc.nss (roadmap: lumber-ent-tugofwar).
+WS_InitDb();
 
 }   //end of main
 </code></pre>

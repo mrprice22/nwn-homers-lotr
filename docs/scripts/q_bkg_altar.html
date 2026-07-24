@@ -77,6 +77,9 @@
 // Does nothing for PCs not on the rite -- to everyone else it is just the
 // Dark Tower&#x27;s cold iron.
 #include &quot;q_bkg_inc&quot;
+// The fall also commits the character to the Evil (Sauron) faction and locks
+// them out of the Good light-shaft (Faction_SetOath), mirroring the Paladin oath.
+#include &quot;faction_db&quot;
 
 void main()
 {
@@ -105,6 +108,7 @@ void main()
     {
         // The fall -- applied exactly once, on this transition only.
         AdjustAlignment(oPC, ALIGNMENT_EVIL, QBKG_FALL_SHIFT, FALSE);
+        Faction_SetOath(oPC, &quot;Evil&quot;);   // commit to Sauron, lock out the Free Peoples&#x27; road
         QBKG_SetStage(oPC, QBKG_STAGE_BRAND);
         AddJournalQuestEntry(QBKG_QUEST, 2, oPC, FALSE, FALSE);
 

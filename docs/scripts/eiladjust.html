@@ -54,12 +54,25 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>eiladjust</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>eiladjust</code></h1><pre class="nss-source"><code>// eiladjust — OnUsed on the EVIL light-shaft placeable (Well of Eru, Homeless
+// castle, House of Despair; blueprint solred.utp) and the EVIL node of
+// factaduster.dlg. Takes the Evil allegiance: persist it to factiondb (which
+// also applies the live reputation against the Goodfaction/Evilfaction anchors
+// — Good becomes hostile on sight) and play the evil VFX.
+#include &quot;faction_db&quot;
+
+void main()
 {
     object oPC = GetLastUsedBy();
-    AdjustReputation(oPC, GetObjectByTag(&quot;Goodfaction&quot;), -100);
-    AdjustReputation(oPC, GetObjectByTag(&quot;Evilfaction&quot;), 1000);
-    AdjustReputation(oPC, GetObjectByTag(&quot;Neutralfaction&quot;), -100);
+    // An oath to the West (Paladin&#x27;s Oath) forbids taking the dark road.
+    if (!Faction_CanSwitchTo(oPC, &quot;Evil&quot;))
+    {
+        FloatingTextStringOnCreature(
+            &quot;Your oath to the West forbids this — the dark road is closed to you.&quot;,
+            oPC, FALSE);
+        return;
+    }
+    Faction_SetAllegiance(oPC, &quot;Evil&quot;);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_LOS_EVIL_20), oPC);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_HEAD_EVIL), oPC);
 }

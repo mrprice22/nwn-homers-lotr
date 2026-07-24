@@ -54,12 +54,25 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>goodadjuster</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>goodadjuster</code></h1><pre class="nss-source"><code>// goodadjuster — OnUsed on the GOOD light-shaft placeable (Well of Eru,
+// Homeless castle, House of Despair) and the GOOD node of factaduster.dlg.
+// Takes the Good allegiance: persist it to factiondb (which also applies the
+// live reputation against the Goodfaction/Evilfaction anchors — Evil becomes
+// hostile on sight) and play the holy VFX.
+#include &quot;faction_db&quot;
+
+void main()
 {
     object oPC = GetLastUsedBy();
-    AdjustReputation(oPC, GetObjectByTag(&quot;Goodfaction&quot;), 1000);
-    AdjustReputation(oPC, GetObjectByTag(&quot;Evilfaction&quot;), -100);
-    AdjustReputation(oPC, GetObjectByTag(&quot;Neutralfaction&quot;), -100);
+    // An oath to the Enemy (Blackguard&#x27;s Black Oath) bars the Free Peoples&#x27; road.
+    if (!Faction_CanSwitchTo(oPC, &quot;Good&quot;))
+    {
+        FloatingTextStringOnCreature(
+            &quot;Your Black Oath binds you — the road of the Free Peoples is closed to you.&quot;,
+            oPC, FALSE);
+        return;
+    }
+    Faction_SetAllegiance(oPC, &quot;Good&quot;);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_LOS_HOLY_30), oPC);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_PULSE_HOLY), oPC);
 }

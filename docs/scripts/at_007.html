@@ -57,15 +57,23 @@
 <h1>Script: <code>at_007</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
 //:: FileName at_007
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 9/21/2002 11:18:54 AM
+//:: Gondor Scribe -- quest accept: hand over the Annuminas Key.
+//:: The key opens the warded Annuminas chests (KeyRequired + AutoRemoveKey),
+//:: which self-destroy the key on use, so one key opens only one warded chest.
+//:: Guard against stockpiling: give at most one key per login, and never a
+//:: second while one is already held.
 //:://////////////////////////////////////////////
 void main()
 {
-	// Give the speaker the items
-	CreateItemOnObject(&quot;annuminaskey&quot;, GetPCSpeaker(), 1);
+    object oPC = GetPCSpeaker();
 
+    if (GetLocalInt(oPC, &quot;annu_key_given&quot;))
+        return;
+    if (GetIsObjectValid(GetItemPossessedBy(oPC, &quot;AnnuminasKey&quot;)))
+        return;
+
+    CreateItemOnObject(&quot;annuminaskey&quot;, oPC, 1);
+    SetLocalInt(oPC, &quot;annu_key_given&quot;, 1);
 }
 </code></pre>
   </main>

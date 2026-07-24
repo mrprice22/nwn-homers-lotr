@@ -54,13 +54,19 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>eviladjust2</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>eviladjust2</code></h1><pre class="nss-source"><code>// eviladjust2 — legacy/duplicate EVIL adjuster (OnUsed style, GetLastUsedBy).
+// Currently unwired (the live EVIL script is eiladjust). Kept for reference;
+// now routes through factiondb so it persists and applies the live reputation
+// via Faction_ApplyLive. NOTE: the previous version used lowercase
+// &quot;goodfaction&quot;/&quot;evilfaction&quot; tags, which never matched the real anchors
+// (Goodfaction/Evilfaction) and silently no-opped.
+#include &quot;faction_db&quot;
+
+void main()
 {
-        object oPC = GetLastUsedBy();
-
-        AdjustReputation(oPC, GetObjectByTag(&quot;goodfaction&quot;),-100);
-        AdjustReputation(oPC, GetObjectByTag(&quot;evilfaction&quot;),1000);
-
+    object oPC = GetLastUsedBy();
+    if (!Faction_CanSwitchTo(oPC, &quot;Evil&quot;)) return;   // oath to the West forbids it
+    Faction_SetAllegiance(oPC, &quot;Evil&quot;);
 }
 </code></pre>
   </main>

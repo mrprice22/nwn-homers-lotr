@@ -54,13 +54,17 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>eviladjuster</code></h1><pre class="nss-source"><code>void main()
-{
-        object oPC = GetLastSpeaker();
+<h1>Script: <code>eviladjuster</code></h1><pre class="nss-source"><code>// eviladjuster — legacy/duplicate EVIL adjuster (dialog style, GetLastSpeaker).
+// Currently unwired (the live EVIL script is eiladjust). Kept for reference and
+// any future re-wire; now routes through factiondb so it persists and applies
+// the live reputation via Faction_ApplyLive (capital anchor tags).
+#include &quot;faction_db&quot;
 
-        AdjustReputation(oPC, GetObjectByTag(&quot;Evilfaction&quot;),1000);
-        AdjustReputation(oPC, GetObjectByTag(&quot;Goodfaction&quot;),-100);
-        AdjustReputation(oPC, GetObjectByTag(&quot;Neutralfaction&quot;),-100);
+void main()
+{
+    object oPC = GetLastSpeaker();
+    if (!Faction_CanSwitchTo(oPC, &quot;Evil&quot;)) return;   // oath to the West forbids it
+    Faction_SetAllegiance(oPC, &quot;Evil&quot;);
 }
 </code></pre>
   </main>
