@@ -124,6 +124,25 @@ def validate(data: dict) -> list[str]:
     ideas = data.get("ideas", [])
     group_ids = {g["id"] for g in data.get("groups", [])}
 
+    # Epics: a small block of umbrella items ideas can hang off. An epic is NOT
+    # an idea — it carries no type, no player and no merit; it only collapses its
+    # children into one card on the public page and the in-game sign.
+    epic_ids: set[str] = set()
+    for i, ep in enumerate(data.get("epics", []) or []):
+        eid = ep.get("id")
+        if not re.fullmatch(r"[a-z0-9-]+", eid or ""):
+            errors.append(f"epic #{i}: id {eid!r} must be lowercase letters/digits/hyphens")
+            continue
+        if eid in epic_ids:
+            errors.append(f"duplicate epic id '{eid}'")
+        epic_ids.add(eid)
+        if not str(ep.get("title", "")).strip():
+            errors.append(f"epic '{eid}': needs a title")
+        if ep.get("group") not in group_ids:
+            errors.append(f"epic '{eid}': unknown group {ep.get('group')!r}")
+        if ep.get("status") is not None and ep.get("status") not in STATUS:
+            errors.append(f"epic '{eid}': unknown status {ep.get('status')!r}")
+
     seen: dict[str, int] = {}
     for i, idea in enumerate(ideas):
         iid = idea.get("id")
@@ -139,6 +158,11 @@ def validate(data: dict) -> list[str]:
             errors.append(f"'{iid}': unknown group {idea.get('group')!r}")
         if idea.get("type") is not None and idea.get("type") not in TYPES:
             errors.append(f"'{iid}': unknown type {idea.get('type')!r}")
+        if idea.get("epic") and idea["epic"] not in epic_ids:
+            errors.append(f"'{iid}': unknown epic {idea['epic']!r}")
+        if idea.get("hidden") is not None and not isinstance(idea.get("hidden"), bool):
+            errors.append(f"'{iid}': hidden must be true/false, got "
+                          f"{idea.get('hidden')!r}")
 
     # dupe_of must point at a real id, and the target must not itself be a dupe.
     for idea in ideas:
@@ -197,6 +221,76 @@ def merge_dupes(ideas: list[dict]) -> list[dict]:
     return canon
 
 
+def publishable(ideas: list[dict]) -> list[dict]:
+    """Drop `hidden` ideas — internal items that must never reach the public page.
+
+    Dropped before merge_dupes() so a hidden row's title AND its submitter credit
+    both stay off the page. A visible idea whose dupe_of target was hidden loses
+    the link (it renders standalone) with a warning, rather than crashing.
+    """
+    kept = [i for i in ideas if not i.get("hidden")]
+    live = {i.get("id") for i in kept}
+    for idea in kept:
+        dof = idea.get("dupe_of")
+        if dof and dof not in live:
+            print(f"  [warn] '{idea['id']}': dupe_of '{dof}' is hidden — "
+                  f"rendering it as its own item", file=sys.stderr)
+            idea.pop("dupe_of")
+    return kept
+
+
+def is_shipped(idea: dict) -> bool:
+    return STATUS[idea["status"]]["board"] == "shipped"
+
+
+def collapse_epics(epics: list[dict], ideas: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Fold each epic's children into one card. Returns (cards, loose ideas).
+
+    An epic replaces its children everywhere on the public page: one card in the
+    Roadmap tables, one under By Category, and — once at least one child has
+    shipped — one on the Recently Shipped board dated by that child. The card's
+    status is derived from the most advanced unfinished child (or `implemented`
+    when they are all done) unless the epic sets `status:` explicitly.
+    """
+    by_id = {e["id"]: e for e in (epics or [])}
+    kids: dict[str, list[dict]] = {}
+    loose: list[dict] = []
+    for idea in ideas:
+        eid = idea.get("epic")
+        if eid in by_id:
+            kids.setdefault(eid, []).append(idea)
+        else:
+            loose.append(idea)
+    cards = []
+    for eid, children in kids.items():
+        ep = by_id[eid]
+        done = [c for c in children if is_shipped(c)]
+        todo = [c for c in children if not is_shipped(c)]
+        status = ep.get("status")
+        if not status:
+            status = (min(todo, key=lambda c: STATUS[c["status"]]["rank"])["status"]
+                      if todo else "implemented")
+        requesters: list[str] = []
+        for c in children:
+            for p in c.get("_requesters", []):
+                if p not in requesters:
+                    requesters.append(p)
+        cards.append({
+            "id": eid,
+            "title": ep.get("title", eid),
+            "group": ep.get("group"),
+            "notes": ep.get("notes"),
+            "status": status,
+            "children": children,
+            "done": len(done),
+            "total": len(children),
+            "date": max((c.get("date") or "" for c in done), default=""),
+            "_requesters": requesters,
+            "_epic": True,
+        })
+    return cards, loose
+
+
 # ---------------------------------------------------------------------------
 # HTML rendering
 # ---------------------------------------------------------------------------
@@ -244,6 +338,50 @@ def idea_row(idea: dict, shipped: bool) -> str:
     )
 
 
+def epic_row(card: dict, shipped: bool) -> str:
+    """One epic card: progress, then a checklist of its child ideas.
+
+    Each child keeps its own `id="idea-<id>"` on its bullet, so every existing
+    `<a href="#idea-…">` cross-link still resolves after the rollup. A partly
+    finished epic renders twice (By Category *and* Recently Shipped); only the
+    copy matching its own status board carries the ids, so the anchors stay
+    unique and land on the card the Roadmap table links to.
+    """
+    meta = STATUS[card["status"]]
+    anchored = shipped == (meta["board"] == "shipped")
+    bits = [f'<span class="rm-badge rm-{meta["cls"]}">{meta["label"]}</span>']
+    if shipped and card.get("date"):
+        bits.append(f'<span class="rm-date">{amp(pretty_date(card["date"]))}</span>')
+    credit = credit_html(card, shipped)
+    if credit:
+        bits.append(credit)
+    clean = sanitize_notes(card.get("notes"))
+    notes = f'<div class="rm-notes">{clean}</div>' if clean else ""
+    def anchor(prefix: str, oid: str) -> str:
+        return f' id="{prefix}-{oid}"' if anchored else ""
+
+    kids = "".join(
+        '<li' + anchor("idea", c["id"])
+        + f' class="{"done" if is_shipped(c) else "todo"}">{amp(c["title"])}</li>'
+        for c in card["children"]
+    )
+    return (
+        '<li class="rm-item rm-epic"' + anchor("epic", card["id"]) + '>'
+        f'<div class="rm-title">{amp(card["title"])}'
+        f'<span class="rm-epic-prog">{card["done"]} / {card["total"]} complete</span>'
+        f'</div>'
+        f'<div class="rm-meta">{"".join(bits)}</div>'
+        f'{notes}'
+        f'<ul class="rm-epic-kids">{kids}</ul>'
+        '</li>'
+    )
+
+
+def board_row(item: dict, shipped: bool) -> str:
+    """Render either an epic card or a plain idea row."""
+    return epic_row(item, shipped) if item.get("_epic") else idea_row(item, shipped)
+
+
 def group_order(groups: list[dict]) -> list[dict]:
     return sorted(groups, key=lambda g: (g.get("order", 9999), g["title"]))
 
@@ -260,7 +398,7 @@ def render_roadmap_board(groups, ideas) -> str:
         if not rows:
             continue
         rows.sort(key=lambda i: (STATUS[i["status"]]["rank"], norm_title(i["title"])))
-        items = "\n".join(idea_row(i, shipped=False) for i in rows)
+        items = "\n".join(board_row(i, shipped=False) for i in rows)
         out.append(
             f'<h3 id="next-{g["id"]}">{g["title"]}</h3>'
             f'<ul class="rm-list">{items}</ul>'
@@ -302,9 +440,13 @@ def render_roadmap_tables(groups, ideas) -> str:
             gid = i["group"]
             cat = (f'<a href="#next-{gid}">{title_of.get(gid, gid)}</a>'
                    if gid in title_of else amp(gid))
+            anchor = ("epic-" if i.get("_epic") else "idea-") + i["id"]
+            name = (f'{amp(i["title"])} <span class="rm-epic-prog">'
+                    f'{i["done"]} / {i["total"]}</span>') if i.get("_epic") \
+                else amp(i["title"])
             body.append(
                 "<tr>"
-                f'<td><a href="#idea-{i["id"]}">{amp(i["title"])}</a></td>'
+                f'<td><a href="#{anchor}">{name}</a></td>'
                 f'<td>{type_badge(i)}</td>'
                 f'<td>{cat}</td>'
                 "</tr>"
@@ -363,10 +505,17 @@ def render_summary_pivot(ideas) -> str:
 
 
 def render_shipped_board(ideas) -> str:
-    """Recently shipped, newest first."""
-    rows = [i for i in ideas if STATUS[i["status"]]["board"] == "shipped"]
+    """Recently shipped, newest first.
+
+    An epic lands here as soon as *any* child has shipped — dated by that child —
+    so partly-finished projects still show their progress instead of spraying one
+    card per small fix.
+    """
+    rows = [i for i in ideas
+            if STATUS[i["status"]]["board"] == "shipped"
+            or (i.get("_epic") and i["done"])]
     rows.sort(key=lambda i: (i.get("date") or "", i["id"]), reverse=True)
-    items = "\n".join(idea_row(i, shipped=True) for i in rows)
+    items = "\n".join(board_row(i, shipped=True) for i in rows)
     return f'<ul class="rm-list">{items}</ul>'
 
 
@@ -419,6 +568,20 @@ STYLE = """  <style>
     .rm-notes a { color: var(--link); }
     .rm-date { color: var(--muted); }
     .rm-credit { color: var(--muted); font-style: italic; }
+
+    /* Epic card: one umbrella item standing in for its child ideas, with an
+       x/y progress count and a ✔/○ checklist of the children. */
+    .rm-epic { border-left: 4px solid var(--accent); }
+    .rm-epic-prog { margin-left: 0.6em; font-size: 0.82em; font-weight: 600;
+      color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
+      padding: 0.1em 0.6em; white-space: nowrap; }
+    .rm-epic-kids { list-style: none; margin: 0.5em 0 0; padding: 0;
+      font-size: 0.9em; }
+    .rm-epic-kids li { padding: 0.1em 0 0.1em 1.5em; position: relative; }
+    .rm-epic-kids li::before { position: absolute; left: 0.2em; }
+    .rm-epic-kids li.done::before { content: "\\2714"; color: #3a7d44; }
+    .rm-epic-kids li.todo::before { content: "\\25CB"; color: var(--muted); }
+    .rm-epic-kids li.todo { color: var(--muted); }
 
     .rm-badge { display: inline-block; padding: 0.1em 0.6em; border-radius: 999px;
       font-size: 0.8em; font-weight: 600; white-space: nowrap;
@@ -479,20 +642,24 @@ def build_html(data: dict) -> str:
     groups = data.get("groups", [])
     ideas = data.get("ideas", [])
 
-    canon = merge_dupes(ideas)
+    canon = merge_dupes(publishable(ideas))
+    # Boards render epic cards in place of their children; the pivot keeps
+    # counting the underlying ideas.
+    cards, loose = collapse_epics(data.get("epics", []) or [], canon)
+    items = loose + cards
     asof = pretty_asof(meta.get("as_of", ""))
 
     # TOC: status subsections of the Roadmap board that have at least one idea
     toc_roadmap = "\n".join(
         f'<li><a href="#roadmap-{s}">{h}</a></li>'
-        for s, h in roadmap_subsections_present(canon)
+        for s, h in roadmap_subsections_present(items)
     )
 
     # TOC: By Category groups that actually have queued items
     roadmap_groups = group_order([
         g for g in groups
         if any(i["group"] == g["id"] and STATUS[i["status"]]["board"] == "roadmap"
-               for i in canon)
+               for i in items)
     ])
     toc_next = "\n".join(
         f'<li><a href="#next-{g["id"]}">{g["title"]}</a></li>' for g in roadmap_groups
@@ -540,7 +707,7 @@ def build_html(data: dict) -> str:
   <h2>Roadmap</h2>
   <p class="section-sub">Where the module is heading, by stage &mdash; from "In Progress" through "Up Next", "Coming Soon", "Coming Later" and "Under Consideration". Click any name or category to jump to its full detail under <a href="#by-category">By Category</a> below.</p>
 </div>
-{render_roadmap_tables(groups, canon)}
+{render_roadmap_tables(groups, items)}
 
 <hr>
 
@@ -548,7 +715,7 @@ def build_html(data: dict) -> str:
   <h2>By Category</h2>
   <p class="section-sub">The same in-flight ideas, grouped by feature theme with full notes. Each item's badge shows its stage: "In progress" is being actively worked; "Up next" is queued, with "Soon" and "Later" progressively further out; "Under consideration" is captured but not yet committed to; "Not likely to implement" is logged but probably won't happen.</p>
 </div>
-{render_roadmap_board(groups, canon)}
+{render_roadmap_board(groups, items)}
 
 <hr>
 
@@ -556,7 +723,7 @@ def build_html(data: dict) -> str:
   <h2>Recently Shipped</h2>
   <p class="section-sub">Player-suggested fixes and features already live on the server, newest first &mdash; with merit credited to whoever suggested them.</p>
 </div>
-{render_shipped_board(canon)}
+{render_shipped_board(items)}
 
   </div>
   </div>

@@ -60,9 +60,9 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 
 # Field order each idea is serialized in. Only `id/title/group/status` are
 # required; the rest are emitted only when present.
-FIELD_ORDER = ["id", "title", "group", "status", "type", "player", "date",
-               "commit", "notes", "notes_h", "impl_notes", "impl_notes_h",
-               "dupe_of", "design_questions", "manual_steps"]
+FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden", "type",
+               "player", "date", "commit", "notes", "notes_h", "impl_notes",
+               "impl_notes_h", "dupe_of", "design_questions", "manual_steps"]
 # Internal fields — admin-only, never rendered on the public board. `notes` is
 # the player-facing release note; everything here is the builder's own record.
 LIST_FIELDS = {"design_questions", "manual_steps"}
@@ -129,8 +129,11 @@ def vocab(data: dict) -> dict:
     statuses = [{"id": k, "label": v["label"]} for k, v in STATUS.items()]
     types = [{"id": k, "label": v["label"]} for k, v in TYPES.items()]
     ids = [i.get("id") for i in ideas if i.get("id")]
+    epics = [{"id": e["id"], "title": e.get("title", ""), "group": e.get("group"),
+              "status": e.get("status"), "notes": e.get("notes")}
+             for e in (data.get("epics", []) or [])]
     return {"groups": groups, "players": players, "statuses": statuses,
-            "types": types, "ids": ids}
+            "types": types, "ids": ids, "epics": epics}
 
 
 # --------------------------------------------------------------------------
@@ -283,23 +286,68 @@ def html_to_plain(s: str) -> str:
     return "\n".join(ln.rstrip() for ln in t.split("\n")).strip()
 
 
-def sync_recent_updates_db(ideas: list, groups: list | None) -> tuple[bool, str]:
-    """Refill roadmapdb.recent_updates with the 10 most recently shipped ideas."""
+def _epic_row(epic: dict, children: list, glabel: dict) -> tuple | None:
+    """One rolled-up sign entry for an epic, or None if nothing shipped yet.
+
+    Mirrors the wiki card: an "x/y complete" headline plus an ASCII checklist of
+    the children (the sign renders plain text through SetCustomToken).
+    """
+    done = [c for c in children if c.get("status") in SHIPPED_STATUSES]
+    if not done:
+        return None
+    players: list[str] = []
+    for c in children:
+        p = c.get("player") or ""
+        p = "Community" if p == "community" else p
+        if p and p not in players:
+            players.append(p)
+    checklist = "\n".join(
+        ("[x] " if c.get("status") in SHIPPED_STATUSES else "[ ] ")
+        + (c.get("title") or "")
+        for c in children)
+    blurb = html_to_plain(epic.get("notes") or "")
+    return (
+        f'{epic.get("title") or epic["id"]} '
+        f'({len(done)}/{len(children)} complete)',
+        "Project: ",
+        glabel.get(epic.get("group"), epic.get("group") or ""),
+        ", ".join(players),
+        max((c.get("date") or "") for c in done),
+        (blurb + "\n\n" if blurb else "") + checklist,
+    )
+
+
+def sync_recent_updates_db(ideas: list, groups: list | None,
+                           epics: list | None = None) -> tuple[bool, str]:
+    """Refill roadmapdb.recent_updates with the 10 most recent shipped entries.
+
+    `hidden` ideas never reach the sign, and an idea belonging to an epic is
+    folded into that epic's single rolled-up row instead of taking a slot of its
+    own — the same collapse the public roadmap page does.
+    """
     GEN.resolve_dates(ideas)  # explicit date wins; else derived from commit
     glabel = {g["id"]: html.unescape(g.get("title", g["id"]))
               for g in (groups or [])}
-    shipped = [i for i in ideas
-               if i.get("status") in SHIPPED_STATUSES and not i.get("dupe_of")]
-    shipped.sort(key=lambda i: (i.get("date") or "", i.get("id") or ""),
-                 reverse=True)
+    by_epic = {e["id"]: e for e in (epics or [])}
+    visible = [i for i in ideas if not i.get("hidden") and not i.get("dupe_of")]
 
-    rows = []
-    for rank, idea in enumerate(shipped[:10]):
+    kids: dict[str, list] = {}
+    loose = []
+    for idea in visible:
+        eid = idea.get("epic")
+        if eid in by_epic:
+            kids.setdefault(eid, []).append(idea)
+        elif idea.get("status") in SHIPPED_STATUSES:
+            loose.append(idea)
+
+    # (title, prefix, group_label, player, date, notes) — epics and plain ideas
+    # compete for the same 10 slots, newest first.
+    entries: list[tuple] = []
+    for idea in loose:
         player = idea.get("player") or ""
         if player == "community":
             player = "Community"
-        rows.append((
-            rank,
+        entries.append((
             idea.get("title") or "",
             TYPE_PREFIX.get(idea.get("type"), DEFAULT_PREFIX),
             glabel.get(idea.get("group"), idea.get("group") or ""),
@@ -307,6 +355,13 @@ def sync_recent_updates_db(ideas: list, groups: list | None) -> tuple[bool, str]
             idea.get("date") or "",
             html_to_plain(idea.get("notes") or ""),
         ))
+    for eid, children in kids.items():
+        row = _epic_row(by_epic[eid], children, glabel)
+        if row:
+            entries.append(row)
+    entries.sort(key=lambda e: (e[4], e[0]), reverse=True)
+
+    rows = [(rank,) + entry for rank, entry in enumerate(entries[:10])]
 
     db = recent_db_path()
     db.parent.mkdir(parents=True, exist_ok=True)
@@ -370,6 +425,8 @@ def dquote(s: str) -> str:
 
 
 def emit_scalar(field: str, value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
     s = str(value)
     if field in QUOTED_FIELDS:
         return dquote(s)
@@ -447,7 +504,7 @@ def serialize_ideas(ideas: list[dict], prefixes: dict, trailing: list[str]) -> s
         first = True
         for field in FIELD_ORDER:
             val = idea.get(field)
-            if val is None or val == "" or val == []:
+            if val is None or val == "" or val == [] or val is False:
                 continue
             if field in LIST_FIELDS:
                 # id is always emitted first, so a list field is never the
@@ -502,6 +559,40 @@ def serialize_groups(groups: list[dict]) -> str:
     return "\n".join(out)
 
 
+def serialize_epics(epics: list[dict]) -> str:
+    """Emit the `epics:` block — umbrella items that ideas hang off via `epic:`."""
+    out: list[str] = []
+    for e in epics:
+        out.append(f"  - id: {e['id']}")
+        out.append(f'    title: {dquote(str(e.get("title", "")))}')
+        out.append(f"    group: {e.get('group', '')}")
+        if str(e.get("status") or "").strip():
+            out.append(f"    status: {e['status']}")
+        if str(e.get("notes") or "").strip():
+            out.append(f'    notes: {dquote(str(e["notes"]))}')
+    return "\n".join(out)
+
+
+def ensure_block(text: str, key: str, before: str) -> str:
+    """Guarantee a top-level `key:` exists, inserting an empty one if it doesn't.
+
+    replace_block() assumes the key is already in the file; `epics:` is new, so a
+    roadmap.yaml written before this feature has no such line. Insert it just
+    above `before:` (with a blank line) so the file keeps its section rhythm.
+    """
+    if re.search(rf"^{re.escape(key)}:\s*$", text, re.M):
+        return text
+    lines = text.splitlines()
+    idx = next(i for i, ln in enumerate(lines)
+               if re.match(rf"^{re.escape(before)}:\s*$", ln))
+    # Attach above any comment block that introduces `before:`.
+    while idx > 0 and (lines[idx - 1].strip() == ""
+                       or lines[idx - 1].lstrip().startswith("#")):
+        idx -= 1
+    lines[idx:idx] = [f"{key}:", ""]
+    return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
+
+
 def serialize_players(players: list[str]) -> str:
     out: list[str] = []
     for p in players:
@@ -520,14 +611,21 @@ def replace_ideas_block(text: str, ideas: list[dict]) -> str:
 
 
 def write_document(ideas: list[dict], groups: list[dict] | None = None,
-                   players: list[str] | None = None) -> None:
-    """Rewrite the ideas block, plus groups/players when supplied; everything
+                   players: list[str] | None = None,
+                   epics: list[dict] | None = None) -> None:
+    """Rewrite the ideas block, plus groups/players/epics when supplied; everything
     else (meta/redemption/housing and all comments) is preserved verbatim."""
     text = YAML_PATH.read_text(encoding="utf-8")
     if groups is not None:
         text = replace_block(text, "groups", serialize_groups(groups))
     if players is not None:
         text = replace_block(text, "players", serialize_players(players))
+    if epics is not None:
+        # Only materialize the block once there is something to put in it, so an
+        # unchanged save on a file that predates epics stays a byte-for-byte no-op.
+        if epics or re.search(r"^epics:\s*$", text, re.M):
+            text = ensure_block(text, "epics", before="ideas")
+            text = replace_block(text, "epics", serialize_epics(epics))
     new_text = replace_ideas_block(text, ideas)
     fd, tmp = tempfile.mkstemp(dir=str(REPO), prefix=".roadmap.", suffix=".tmp")
     try:
@@ -626,9 +724,23 @@ def open_blockers(idea: dict) -> list[dict]:
             and s.get("status") != "done"]
 
 
-def extra_validate(groups, players) -> list[str]:
-    """Structural checks for the editor-managed groups/players blocks."""
+def extra_validate(groups, players, epics=None) -> list[str]:
+    """Structural checks for the editor-managed groups/players/epics blocks."""
     errs: list[str] = []
+    if epics is not None:
+        seen = set()
+        gids = {g.get("id") for g in (groups or [])}
+        for e in epics:
+            eid = e.get("id", "")
+            if not re.fullmatch(r"[a-z0-9-]+", eid or ""):
+                errs.append(f"epic id '{eid}' must be lowercase letters/digits/hyphens")
+            if eid in seen:
+                errs.append(f"duplicate epic id '{eid}'")
+            seen.add(eid)
+            if not str(e.get("title", "")).strip():
+                errs.append(f"epic '{eid}' needs a title")
+            if groups is not None and e.get("group") not in gids:
+                errs.append(f"epic '{eid}': unknown group {e.get('group')!r}")
     if groups is not None:
         seen = set()
         for g in groups:
@@ -652,7 +764,8 @@ def extra_validate(groups, players) -> list[str]:
     return errs
 
 
-def validate_document(ideas, groups=None, players=None) -> tuple[list[str], list[str]]:
+def validate_document(ideas, groups=None, players=None,
+                      epics=None) -> tuple[list[str], list[str]]:
     """Run gen-roadmap's validate() plus our structural checks."""
     data = read_yaml()
     data["ideas"] = ideas
@@ -660,10 +773,13 @@ def validate_document(ideas, groups=None, players=None) -> tuple[list[str], list
         data["groups"] = groups
     if players is not None:
         data["players"] = players
+    if epics is not None:
+        data["epics"] = epics
     buf = io.StringIO()
     with redirect_stderr(buf):
         errors = GEN.validate(data)
-    errors = list(errors) + extra_validate(groups, players) + validate_internal_fields(ideas)
+    errors = (list(errors) + extra_validate(groups, players, epics)
+              + validate_internal_fields(ideas))
     warnings = [ln.strip() for ln in buf.getvalue().splitlines() if ln.strip()]
     return errors, warnings
 
@@ -873,6 +989,7 @@ class Handler(BaseHTTPRequestHandler):
         ideas = payload.get("ideas", [])
         groups = payload.get("groups")
         players = payload.get("players")
+        epics = payload.get("epics")
         base_version = payload.get("base_version")
         force = bool(payload.get("force"))
         # Anti-clobber: if the file changed on disk since the client loaded it
@@ -919,17 +1036,17 @@ class Handler(BaseHTTPRequestHandler):
             # so the YAML — and every regenerate/publish from it — stays clean.
             if it.get("notes"):
                 it["notes"] = sanitize_notes(it["notes"])
-        errors, warnings = validate_document(ideas, groups, players)
+        errors, warnings = validate_document(ideas, groups, players, epics)
         if errors:
             return self._json({"ok": False, "errors": errors, "warnings": warnings})
 
         if self.path == "/api/save":
-            write_document(ideas, groups, players)
+            write_document(ideas, groups, players, epics)
             return self._json({"ok": True, "warnings": warnings,
                                "version": yaml_version(),
                                "message": "Saved roadmap.yaml."})
         if self.path == "/api/regenerate":
-            write_document(ideas, groups, players)
+            write_document(ideas, groups, players, epics)
             stamp = stamp_as_of()
             ok, output = regenerate()
             return self._json({"ok": ok, "warnings": warnings, "output": output,
@@ -937,7 +1054,7 @@ class Handler(BaseHTTPRequestHandler):
                                "message": (f"Saved + regenerated Roadmap.html (as of {stamp})."
                                            if ok else "Regenerate FAILED.")})
         if self.path == "/api/publish":
-            write_document(ideas, groups, players)
+            write_document(ideas, groups, players, epics)
             stamp = stamp_as_of()
             steps: list[str] = [f"Stamped as of {stamp}."]
             ok, output = regenerate()
@@ -958,7 +1075,7 @@ class Handler(BaseHTTPRequestHandler):
             # Sync the in-game Recent Updates sign DB. Non-fatal: a DB failure
             # must never block the wiki publish/push.
             try:
-                _, db_msg = sync_recent_updates_db(ideas, groups)
+                _, db_msg = sync_recent_updates_db(ideas, groups, epics)
             except Exception as e:
                 db_msg = f"DB sync FAILED (wiki still published): {e}"
             steps.append(db_msg)
@@ -1048,6 +1165,19 @@ PAGE = r"""<!doctype html>
   button.danger { color:var(--err); }
   .bar { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
   .spacer { flex:1; }
+  /* Sticky Save/Delete bar at the top of the idea form — the form is long
+     enough that a bottom-anchored Save meant scrolling for every edit. */
+  #formbar { position:sticky; top:0; z-index:5; display:flex; gap:8px;
+             align-items:center; padding:8px 0 10px; margin:0 0 4px;
+             background:var(--bg); border-bottom:1px solid var(--line); }
+  #formbar .who { color:var(--mut); font-size:12px; overflow:hidden;
+                  white-space:nowrap; text-overflow:ellipsis; }
+  /* Publishing state: hidden ideas are dimmed and chipped everywhere. */
+  .chip { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px;
+          border:1px solid var(--line); color:var(--mut); }
+  .chip.hidden { background:#42323a; color:#f0c4d2; border-color:#6b4550; }
+  .chip.epic { background:#2f3a4a; color:#cfe0ff; border-color:#41556e; }
+  .row.hid .t, .card.hid .ct { opacity:0.62; text-decoration:line-through; }
   #banner { margin:10px 0; padding:9px 11px; border-radius:6px; display:none;
             white-space:pre-wrap; }
   #banner.ok { display:block; background:#193a2b; color:var(--ok);
@@ -1187,6 +1317,12 @@ PAGE = r"""<!doctype html>
       <select id="f_ftype"><option value="">All types</option></select>
       <select id="f_fplayer"><option value="">All players</option></select>
       <select id="f_fgroup"><option value="">All groups</option></select>
+      <select id="f_fepic"><option value="">All epics</option></select>
+      <select id="f_fhidden">
+        <option value="">Published + hidden</option>
+        <option value="pub">Published only</option>
+        <option value="hid">Hidden only</option>
+      </select>
       <select id="f_sort">
         <option value="status">Sort: status</option>
         <option value="group">Sort: group</option>
@@ -1200,7 +1336,12 @@ PAGE = r"""<!doctype html>
       Show awarded (done) ideas</label>
     <div class="bar">
       <button id="add">+ Add idea</button>
+      <button id="regen">Save &amp; regenerate HTML</button>
+      <button id="publish">Publish to Wiki &amp; DB</button>
+    </div>
+    <div class="bar">
       <button id="mgroups" class="linkbtn">Manage groups</button>
+      <button id="mepics" class="linkbtn">Manage epics</button>
       <button id="mplayers" class="linkbtn">Manage players</button>
       <button id="mpending" class="linkbtn">Pending Merit Requests</button>
       <button id="mpalette" class="linkbtn">Palette Finder</button>
@@ -1259,9 +1400,18 @@ function refreshPending(){
   }).catch(()=>{});
 }
 
+function epicTitle(id){
+  const e=(DATA.vocab.epics||[]).find(e=>e.id===id);
+  return e ? (e.title||e.id) : (id||'');
+}
+
 function populateFilters(){
   const sSel=$('#f_fstatus'), tSel=$('#f_ftype'), pSel=$('#f_fplayer'), gSel=$('#f_fgroup');
-  const sCur=sSel.value, tCur=tSel.value, pCur=pSel.value, gCur=gSel.value;
+  const eSel=$('#f_fepic');
+  const sCur=sSel.value, tCur=tSel.value, pCur=pSel.value, gCur=gSel.value, eCur=eSel.value;
+  eSel.innerHTML='<option value="">All epics</option>'+BLANK_OPT+
+    (DATA.vocab.epics||[]).map(e=>`<option value="${esc(e.id)}">${esc(e.title||e.id)}</option>`).join('');
+  eSel.value=eCur;
   sSel.innerHTML='<option value="">All statuses</option>'+
     DATA.vocab.statuses.map(s=>`<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.label)}</option>`).join('');
   tSel.innerHTML='<option value="">All types</option>'+
@@ -1283,6 +1433,7 @@ function visibleRows(){
   const q = $('#filter').value.toLowerCase();
   const fs=$('#f_fstatus').value, ft=$('#f_ftype').value;
   const fp=$('#f_fplayer').value, fg=$('#f_fgroup').value;
+  const fe=$('#f_fepic').value, fh=$('#f_fhidden').value;
   // Board always shows the awarded lane; the "Show awarded" checkbox only
   // governs the list view.
   const showAwarded=(view==='board') || $('#f_showawarded').checked, sort=$('#f_sort').value;
@@ -1292,6 +1443,9 @@ function visibleRows(){
     if (ft){ if (ft===BLANK){ if (it.type) return false; } else if ((it.type||'')!==ft) return false; }
     if (fp){ if (fp===BLANK){ if (it.player) return false; } else if ((it.player||'')!==fp) return false; }
     if (fg && it.group!==fg) return false;
+    if (fe){ if (fe===BLANK){ if (it.epic) return false; } else if ((it.epic||'')!==fe) return false; }
+    if (fh==='pub' && it.hidden) return false;
+    if (fh==='hid' && !it.hidden) return false;
     if (q){
       const hay=[it.title,it.player,it.group,it.status,it.type,it.id].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
@@ -1310,17 +1464,25 @@ function visibleRows(){
   return rows;
 }
 
+// Publishing-state chips shown on list rows and board cards.
+function chips(it){
+  let out='';
+  if (it.hidden) out+='<span class="chip hidden">hidden</span> ';
+  if (it.epic) out+=`<span class="chip epic">${esc(epicTitle(it.epic))}</span> `;
+  return out;
+}
+
 function renderList(){
   const rows = visibleRows();
   const box=$('#list'); box.innerHTML='';
   rows.forEach(({it,idx})=>{
     const d=document.createElement('div');
-    d.className='row'+(idx===sel?' sel':'');
+    d.className='row'+(idx===sel?' sel':'')+(it.hidden?' hid':'');
     const tbadge = it.type
       ? `<span class="tbadge ${typeCls(it.type)}">${esc(it.type)}</span> ` : '';
     d.innerHTML=`<span class="t">${esc(it.title||'(untitled)')}</span>
       <span class="meta">${tbadge}<span class="badge ${statusCls(it.status)}">${esc(it.status||'?')}</span>
-      ${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>`;
+      ${chips(it)}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>`;
     d.onclick=()=>select(idx);
     box.appendChild(d);
   });
@@ -1368,9 +1530,9 @@ function renderBoard(){
         ? `<select class="cst" data-idx="${idx}">${BOARD_LANES.map(ls=>
             `<option value="${esc(ls)}"${ls===it.status?' selected':''}>${esc(statusLabel(ls))}</option>`).join('')}</select>`
         : '';
-      return `<div class="card" draggable="true" data-idx="${idx}">
+      return `<div class="card${it.hidden?' hid':''}" draggable="true" data-idx="${idx}">
         <span class="ct">${esc(it.title||'(untitled)')}</span>
-        <span class="cmeta">${tbadge}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>
+        <span class="cmeta">${tbadge}${chips(it)}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>
         ${ddHtml}
       </div>`;
     }).join('');
@@ -1429,7 +1591,15 @@ function select(i){
       DATA.vocab.players.map(p=>opt(p,p,it.player||''))).join('');
   const dupes = ['<option value=""></option>'].concat(
       DATA.vocab.ids.filter(id=>id!==it.id).map(id=>opt(id,id,it.dupe_of||''))).join('');
+  const epics = ['<option value="">(none)</option>'].concat(
+      (DATA.vocab.epics||[]).map(e=>opt(e.id, e.title||e.id, it.epic||''))).join('');
   $('#form').innerHTML = `
+    <div id="formbar">
+      <button class="primary" id="save">Save</button>
+      <button class="danger" id="del">Delete</button>
+      <span class="spacer"></span>
+      <span class="who">${esc(it.id||'(new idea)')}</span>
+    </div>
     <label>Title (this IS the public one-line description)</label>
     <input id="f_title" value="${esc(it.title)}">
     <div class="grid2">
@@ -1439,8 +1609,11 @@ function select(i){
     <div class="grid2">
       <div><label>Type (Defect / Enhancement / Exploit)</label>
         <select id="f_type">${types}</select></div>
-      <div></div>
+      <div><label>Epic (rolls this item up under one published card)</label>
+        <select id="f_epic">${epics}</select></div>
     </div>
+    <label class="chk"><input type="checkbox" id="f_hidden"${it.hidden?' checked':''}>
+      Hidden &mdash; never publish to the wiki roadmap or the in-game Recent Updates board</label>
     <div class="grid2">
       <div>
         <label>Player (submitter credit)</label>
@@ -1469,13 +1642,6 @@ function select(i){
         on the public roadmap). Resrefs, scripts, DB tables, why.</span></label>
       ${rtWidget('impl')}
     </div>
-    <div class="bar">
-      <button class="primary" id="save">Save</button>
-      <button id="regen">Save &amp; regenerate HTML</button>
-      <button id="publish">Publish to Wiki &amp; DB</button>
-      <span class="spacer"></span>
-      <button class="danger" id="del">Delete</button>
-    </div>
     <p class="small">Order in this list = order in the file. Use the buttons to move.</p>
     <div class="bar">
       <button id="up">↑ Move up</button>
@@ -1494,11 +1660,6 @@ function select(i){
     renderMerit(v); renderMeritIngame(v);
   });
   $('#save').onclick = ()=>commit('/api/save');
-  $('#regen').onclick = ()=>commit('/api/regenerate');
-  $('#publish').onclick = ()=>{
-    if(!confirm('Regenerate, publish the roadmap into docs/, sync the in-game Recent Updates DB, commit & git push?')) return;
-    commit('/api/publish');
-  };
   $('#del').onclick = del;
   $('#up').onclick = ()=>move(-1);
   $('#down').onclick = ()=>move(1);
@@ -1982,7 +2143,11 @@ function readForm(){
     id: $('#f_id').value.trim(),
     title: $('#f_title').value.trim(),
     group: $('#f_group').value,
+    epic: $('#f_epic').value,
     status: $('#f_status').value,
+    // Real boolean: pruneEmpty drops it when false so `hidden:` only ever
+    // appears in the YAML on items that really are held back.
+    hidden: $('#f_hidden').checked ? true : '',
     type: $('#f_type').value,
     player: $('#f_player').value.trim(),
     date: $('#f_date').value.trim(),
@@ -1999,7 +2164,7 @@ function readForm(){
 }
 
 function pruneEmpty(o){
-  const r={}; for (const k of ['id','title','group','status','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'])
+  const r={}; for (const k of ['id','title','group','epic','status','hidden','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'])
     if (o[k]!=='' && o[k]!=null) r[k]=o[k];
   return r;
 }
@@ -2027,7 +2192,7 @@ async function commit(endpoint, force){
   const r = await fetch(endpoint, {method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ideas: DATA.ideas, groups: DATA.vocab.groups,
-                          players: DATA.vocab.players,
+                          players: DATA.vocab.players, epics: DATA.vocab.epics,
                           base_version: baseVersion, force: !!force})});
   const res = await r.json();
   if (res.version) baseVersion = res.version;   // rebase our baseline
@@ -2215,6 +2380,65 @@ function openGroups(){
   $('#g_close').onclick=closeModal;
 }
 
+// Epics: umbrella items that ideas hang off via `epic:`. On the published page
+// and the in-game sign an epic replaces its children with a single "x/y
+// complete" card, so a big multi-part project doesn't spam either surface.
+function openEpics(){
+  const gopts = g => DATA.vocab.groups.map(x=>
+    `<option value="${esc(x.id)}"${x.id===g?' selected':''}>${esc(dispAmp(x.title))}</option>`).join('');
+  const rows = (DATA.vocab.epics||[]).map((e,i)=>`
+    <div class="mrow" data-i="${i}" style="flex-wrap:wrap">
+      <span class="gid" title="${esc(e.id)}">${esc(e.id)}</span>
+      <input class="et" value="${esc(dispAmp(e.title||''))}">
+      <select class="eg" style="flex:0 0 190px">${gopts(e.group)}</select>
+      <span class="use">${DATA.ideas.filter(it=>it.epic===e.id).length}</span>
+      <button class="linkbtn edel">remove</button>
+      <input class="en" style="flex:1 0 100%" placeholder="public blurb (optional)"
+             value="${esc(e.notes||'')}">
+    </div>`).join('');
+  modalHTML(`<h2>Manage epics</h2>
+    <p class="small">An epic groups many ideas into one published card
+      (&ldquo;7 / 12 complete&rdquo; with a tick per child, dated by the most recent
+      shipped child). The <b>id</b> is the stable key ideas reference; the number is
+      how many ideas belong to it. Epics earn no merit &mdash; the child ideas still do.</p>
+    <div class="mlist" id="erows">${rows||'<div class="mrow"><span class="use">No epics yet.</span></div>'}</div>
+    <h3 style="font-size:13px;margin:12px 0 4px;">Add an epic</h3>
+    <div class="mrow">
+      <input id="ne_id" class="gid" style="flex:0 0 150px;" placeholder="id (lowercase-hyphen)">
+      <input id="ne_title" placeholder="Title (shown on the page)">
+      <select id="ne_group" style="flex:0 0 190px">${gopts(DATA.vocab.groups[0]&&DATA.vocab.groups[0].id)}</select>
+      <button id="ne_add">Add</button>
+    </div>
+    <div class="hint" id="e_hint"></div>
+    <div class="bar"><button class="primary" id="e_save">Save changes</button>
+      <span class="spacer"></span><button id="e_close">Close</button></div>`);
+  $('#ne_add').onclick=()=>{
+    const id=$('#ne_id').value.trim(), title=$('#ne_title').value.trim();
+    if(!/^[a-z0-9-]+$/.test(id)){ $('#e_hint').textContent='id must be lowercase letters/digits/hyphens'; return; }
+    if((DATA.vocab.epics||[]).some(e=>e.id===id)){ $('#e_hint').textContent='that id already exists'; return; }
+    if(!title){ $('#e_hint').textContent='give the epic a title'; return; }
+    DATA.vocab.epics=(DATA.vocab.epics||[]).concat(
+      [{id, title:escAmp(title), group:$('#ne_group').value, notes:''}]);
+    openEpics();
+  };
+  document.querySelectorAll('#erows .edel').forEach(b=>b.onclick=()=>{
+    const e=DATA.vocab.epics[+b.closest('.mrow').dataset.i];
+    const n=DATA.ideas.filter(it=>it.epic===e.id).length;
+    if(n>0){ $('#e_hint').textContent=`“${e.id}” is used by ${n} idea(s) — clear their Epic field first`; return; }
+    DATA.vocab.epics=DATA.vocab.epics.filter(x=>x.id!==e.id); openEpics();
+  });
+  $('#e_save').onclick=()=>{
+    document.querySelectorAll('#erows .mrow[data-i]').forEach(row=>{
+      const e=DATA.vocab.epics[+row.dataset.i];
+      e.title=escAmp(row.querySelector('.et').value.trim());
+      e.group=row.querySelector('.eg').value;
+      e.notes=row.querySelector('.en').value.trim();
+    });
+    commit('/api/save'); closeModal();
+  };
+  $('#e_close').onclick=closeModal;
+}
+
 function openPlayers(){
   const rows = DATA.vocab.players.map((p,i)=>{
     const n = DATA.ideas.filter(it=>it.player===p).length;
@@ -2303,8 +2527,17 @@ function openPending(){
   });
 }
 
-['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_sort'].forEach(id=>$('#'+id).onchange=render);
+['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_fepic','f_fhidden','f_sort']
+  .forEach(id=>$('#'+id).onchange=render);
 $('#f_showawarded').onchange=render;
+// Regenerate/Publish act on the whole file, so they live in the left pane and
+// work from the Board view too (commit() folds the open form in when in List).
+$('#regen').onclick = ()=>commit('/api/regenerate');
+$('#publish').onclick = ()=>{
+  if(!confirm('Regenerate, publish the roadmap into docs/, sync the in-game Recent Updates DB, commit & git push?')) return;
+  commit('/api/publish');
+};
+$('#mepics').onclick=openEpics;
 $('#mgroups').onclick=openGroups;
 $('#mplayers').onclick=openPlayers;
 $('#mpending').onclick=openPending;

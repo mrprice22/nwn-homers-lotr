@@ -26,9 +26,10 @@ yourself first.
 
 ## `roadmap.yaml` schema
 
-Top-level keys, in order: `meta`, `groups`, `players`, `redemption`, `housing`, `ideas`.
-The GUI editor manages `groups`, `players`, and `ideas`; `meta`/`redemption`/`housing`
-stay hand-edited (and are preserved verbatim, comments and all, on every save).
+Top-level keys, in order: `meta`, `groups`, `players`, `epics`, `redemption`, `housing`,
+`ideas`. The GUI editor manages `groups`, `players`, `epics` and `ideas`;
+`meta`/`redemption`/`housing` stay hand-edited (and are preserved verbatim, comments and
+all, on every save).
 
 `players` is a flat list of submitter names — the merit ledger's controlled vocabulary.
 The GUI's player picker is sourced from it (unioned with any name an idea already uses, so
@@ -43,6 +44,8 @@ Each entry under `ideas:` is one backlog item:
 | `group` | yes | Must match a `groups[].id` (`forge`, `combat-classes`, `bosses`, …). |
 | `status` | yes | One of the ten workflow values below. |
 | `type` | yes | `Defect`, `Enhancement`, or `Exploit`. Sets the merit value of a shipped item (1 / 2 / 3). |
+| `epic` | no | Id of an entry in the `epics:` block. The item is then published only as one bullet inside that epic's rolled-up card — see **Epics** below. |
+| `hidden` | no | `true` = **never published**: kept off the public roadmap page, out of the in-game Recent Updates sign, out of the type/stage pivot counts, and out of any epic's bullet list and `x/y` count. It still shows (chipped and dimmed) in the editor. Omitted entirely when false. |
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
 | `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. **When you ship an item, set this to today.** |
 | `commit` | no | git commit hash (short or full, e.g. `f1e0b114d7d`) of the change that shipped the item. **Add this when you ship.** Used to derive `date` for shipped items when `date` is absent. |
@@ -73,6 +76,41 @@ planned → later → soon → wip → confirmed → manual → implemented → 
 
 `design` branches off `confirmed` and returns to it once every question is answered.
 `manual` sits between `confirmed` and `implemented`.
+
+### Epics
+
+A big multi-part effort (the quest overhaul, say) ships as dozens of small items, and each
+one would otherwise get its own Recently-Shipped card and its own slot on the 10-row in-game
+sign. An **epic** collapses them into a single published card:
+
+```yaml
+epics:
+  - id: quests-overhaul        # stable lowercase-hyphen key, referenced by ideas
+    title: "Quest System Overhaul"
+    group: quests-areas        # must match a groups[].id — where the card renders
+    status: confirmed          # optional; derived when absent
+    notes: "Public blurb shown on the card."
+```
+
+An epic is **not an idea**: it has no `type`, no `player` and earns no merit — its children
+still do, exactly as before. Everything about the rollup is derived:
+
+- **Progress** — `x / y complete`, where `y` is the epic's non-hidden children and `x` those
+  with a shipped status (`implemented`/`awarded`). Each child is a bullet: ✔ shipped, ○ not.
+- **Date** — the most recently shipped child's date.
+- **Status** — the most advanced unfinished child's status (`implemented` once they are all
+  done), unless the epic sets `status:` itself.
+- **Credit** — the deduped union of the children's `player` credits.
+- **Placement** — the epic replaces its children *everywhere* on the public page: one row in
+  the Roadmap tables, one card under By Category, and — as soon as any child has shipped —
+  one card in Recently Shipped. A partly-finished epic therefore renders twice; only the copy
+  matching its own status board carries the `id="epic-<id>"` / `id="idea-<child>"` anchors, so
+  in-page links keep working and stay unique.
+- **In game** — `sync_recent_updates_db()` emits one `Project: <Title> (x/y complete)` row
+  with an ASCII `[x]`/`[ ]` checklist in the detail text, competing with loose ideas for the
+  same 10 slots. No NWScript change was needed; `unpacked/ru_db.nss` reads the same schema.
+
+The pivot table at the top of the page still counts the underlying **ideas**, not epics.
 
 ### The internal fields
 
@@ -240,6 +278,17 @@ What it does:
   A normal save rebases the baseline so the next save doesn't spuriously conflict.
 - **Links to the live site.** The header has **Public wiki ↗** (`https://homerslotr.com/`)
   and **Public roadmap ↗** (`https://homerslotr.com/manual/Roadmap`) shortcuts.
+- **Where the buttons are.** **Save** and **Delete** sit in a sticky bar at the *top* of the
+  idea form (the form is long; a bottom Save meant scrolling for every edit). **Save &
+  regenerate HTML** and **Publish to Wiki & DB** live in the *left* pane next to **+ Add
+  idea**, because they act on the whole file — which also means they now work from the Board
+  view, not just the form. **↑/↓ Move** stay at the bottom of the form.
+- **Epic + Hidden.** The form has an **Epic** dropdown (next to Type) and a **Hidden**
+  checkbox (below Status); the left pane has matching *epic* and *Published / Hidden* filters,
+  and hidden or epic-owned rows carry a chip in both the list and the board.
+- **Manage epics** (button): add an epic (`id` + title + group + optional public blurb),
+  retitle/regroup one, or remove one that no idea references. Same modal shape as Manage
+  groups; the `id` is the immutable key ideas point at.
 - **Manage groups** (button): add a group (`id` + title + order) or rename a title /
   change order. The `id` is the immutable stable key ideas reference, so a title rename
   needs no cascade — every idea shows the new title automatically. A group in use can't be
@@ -255,7 +304,7 @@ What it does:
 - **Validates before writing** using `gen-roadmap.py`'s own `validate()` plus structural
   checks (group id format/uniqueness, blank/duplicate player names) — errors block the
   save and are shown inline; nothing is written on error.
-- **Preserves the file.** It rewrites only the `groups`/`players`/`ideas` blocks; the
+- **Preserves the file.** It rewrites only the `groups`/`players`/`epics`/`ideas` blocks; the
   header comments and the `meta`/`redemption`/`housing` blocks are kept verbatim, and each
   idea's leading section-header comment travels with it by `id`. An unchanged save is a
   byte-for-byte no-op.

@@ -67,6 +67,20 @@
     .rm-date { color: var(--muted); }
     .rm-credit { color: var(--muted); font-style: italic; }
 
+    /* Epic card: one umbrella item standing in for its child ideas, with an
+       x/y progress count and a ✔/○ checklist of the children. */
+    .rm-epic { border-left: 4px solid var(--accent); }
+    .rm-epic-prog { margin-left: 0.6em; font-size: 0.82em; font-weight: 600;
+      color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
+      padding: 0.1em 0.6em; white-space: nowrap; }
+    .rm-epic-kids { list-style: none; margin: 0.5em 0 0; padding: 0;
+      font-size: 0.9em; }
+    .rm-epic-kids li { padding: 0.1em 0 0.1em 1.5em; position: relative; }
+    .rm-epic-kids li::before { position: absolute; left: 0.2em; }
+    .rm-epic-kids li.done::before { content: "\2714"; color: #3a7d44; }
+    .rm-epic-kids li.todo::before { content: "\25CB"; color: var(--muted); }
+    .rm-epic-kids li.todo { color: var(--muted); }
+
     .rm-badge { display: inline-block; padding: 0.1em 0.6em; border-radius: 999px;
       font-size: 0.8em; font-weight: 600; white-space: nowrap;
       border: 1px solid var(--border); }
