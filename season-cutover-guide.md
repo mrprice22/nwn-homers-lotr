@@ -40,7 +40,9 @@ RUNTIME      season N owns  ~/.local/share/Neverwinter Nights S<N>   (home: vaul
                             container  nwnxee-homer-s<N>
 WIKI         homerslotr.com            -> whichever season is LIVE
              season<N>.homerslotr.com  -> season N, permanently (early-access, then archive)
-SHARED       ~/.local/share/nwn-shared/meritdb.sqlite3   <- the ONLY cross-season file
+SHARED       ~/.local/share/nwn-shared/meritdb.sqlite3    <- account merit + entitlements
+             ~/.local/share/nwn-shared/admindb.sqlite3    <- admin whitelist + house records
+             (the ONLY cross-season files; both symlinked into every season's database/)
 ```
 
 **Legacy wart (season 1 only):** season 1 keeps today's *unnumbered* runtime dirs
@@ -93,81 +95,107 @@ All persistent state is **campaign SQLite DBs** in `NWN_HOME_DIR/database/`.
 Campaign DBs are campaign-scoped: any module under the *same* `NWN_HOME_DIR`
 shares them by filename; a *separate* `NWN_HOME_DIR` gets a completely fresh
 `database/`. **A separate `NWN_HOME_DIR` per season is the single lever that makes
-almost everything reset automatically.** You then deliberately re-share the one
-file that must persist.
+almost everything reset automatically.** You then deliberately re-share the two
+files that must persist.
 
-**The rule, not a list:** *everything resets except the shared merit file.* Don't
-maintain an inventory of DB names here — new systems add new DBs (today:
-`admindb`, `ammorepdb`, `bestiarydb`, `boostdb`, `dyedb`, `factiondb`, `roadmapdb`,
-`respawndb`, `teledb`, plus bank/house/fellbeast/meaningwave/partyloot/promo
-stores) and a stale list is worse than none.
+**The rule, not a list:** *everything resets except the two shared files.* Don't
+maintain an inventory of DB names here — the live server already holds 32 campaign
+DBs and new systems add more every month, so a list here would be stale within
+weeks. What matters is the mechanism: the shared DBs are **symlinks**, everything
+else is a regular file, and the wipe deletes regular files only (§7).
 
 | | |
 |---|---|
-| **Shared** | `meritdb` — real file at `~/.local/share/nwn-shared/meritdb.sqlite3`, symlinked into every season's `database/`. Keyed by `GetPCPublicCDKey`: `players`, `redemptions`, `merit_ledger`. |
+| **Shared — merit** | `meritdb` → `~/.local/share/nwn-shared/meritdb.sqlite3`. Keyed by `GetPCPublicCDKey`: `players`, `redemptions`, `merit_ledger`. Account-level rewards and entitlements. |
+| **Shared — admin** | `admindb` → `~/.local/share/nwn-shared/admindb.sqlite3`. `admins` (the CD-key whitelist behind `Admin_CanAdmin/Homeless/Chest`) and `houses` (see below). Admin access and UAT shortcuts don't change between seasons, so re-seeding them every cutover is pure toil. |
 | **Fresh** | Everything else. A new `NWN_HOME_DIR` gives it to you for free — no per-DB surgery. |
 | **Self-resetting** | `respawndb` — `BRD_InitDb()` wipes and re-seeds `boss_registry`/`boss_alias`/`boss_deaths` on every module load. Never carries cross-season state. |
-| **Deliberately fresh** | `admindb` — leave it fresh so player houses start empty; re-seed the admin whitelist with `bin/seed-admindb.sh` against the new home dir (it's out-of-band and key-free). |
+
+### Why `houses` rides along with the admin whitelist
+
+`admindb.houses` is the *fulfilment record* for a player home — area tag, home
+waypoint, key resref. The **entitlement** to that home is a merit redemption
+(401–408 for the home itself, 501–505 for add-ons like the storage chest, store
+and forges), and merit redemptions already persist forever in the shared
+`meritdb`. Resetting `houses` while the entitlement persists would mean a player
+who spent merit on a home has paid for something they no longer have — the
+escrow trap of §7b — and would leave the DM re-fulfilling every home by hand at
+every cutover. So the fulfilment record persists too.
+
+Two consequences worth knowing:
+
+- **The house's *contents* still reset.** `housechest` is a separate campaign DB
+  and gets wiped like everything else — otherwise a persistent chest would be a
+  clean pipeline for carrying season-N gear into season N+1.
+- **New seasons must keep the house area tags alive.** A `houses` row points at
+  `area_tag` / `home_wp_tag` in the module. If a new season drops or renames one
+  of those areas, the row dangles and the player's Home teleport breaks. That is
+  a Phase 1 check (§5), not something to discover at go-live.
 
 **Wiki metrics reset for free — with one catch.**
 - Server-firsts / kill leaderboards come from `bestiarydb` → fresh home dir ⇒ empty.
 - Activity charts are built from `--log-dir` server logs + `activity-sessions.json`
   → fresh run dir ⇒ charts start at zero.
-- **The catch:** during Phase 1 the early-access realm accumulates *both* for
-  weeks. Phase 2's wipe must therefore clear the **run dir's logs and
-  `activity-sessions.json`**, not just the vault and DBs. Miss this and season
-  N+1 launches with early-access playtime already on its charts.
+- **The catch:** this is only free for a *brand new* home/run dir. The
+  early-access realm accumulates weeks of both before it goes live, so Phase 2
+  must actively clear the **run dir's logs and `activity-sessions.json`** as well
+  as the vault and DBs — and then **regenerate the wiki**, because `docs/` is
+  committed to git and still holds the early-access numbers. Full audit in §7a.
 
 ---
 
-## 3. Prep work — one-time, before the first cutover
+## 3. Prerequisites
 
-The runbook below assumes these exist. Do them once; every later season reuses them.
+This runbook assumes the one-time engineering in
+**[season-cutover-prereqs.md](season-cutover-prereqs.md)** is done: the
+`teledb`/`meritdb` split, the `meritdb` + `admindb` DBs moved to their neutral
+shared path, the season
+block in `server.env`, relocatable wrappers, templated systemd units,
+`bin/season-brand.py`, the two season placeables, and
+`bin/roadmap-archive-prune.py`.
 
-| # | Item | Detail |
-|---|------|--------|
-| 1 | **Split `teledb` out of `meritdb`** | `unpacked/tele_db.nss` still has `const string TELE_DB = "meritdb";`. Change to `"teledb"`. Everything else in the file already routes through `TELE_DB`; `Tele_InitDb()` is idempotent and creates the new DB on first use. **Required** — with a shared merit file, per-character `tele_slots`/`tele_state` would otherwise leak into every future season. Teleport *unlocks* are merit redemptions 101–107 in `meritdb.redemptions` and are unaffected; players lose their **saved slots** once. Repack, deploy, announce. |
-| 2 | **Move the merit DB to the neutral path** | Server stopped: `mkdir -p ~/.local/share/nwn-shared`, `mv` the real `meritdb.sqlite3` there, absolute-symlink it back into the season's `database/`. No season is special afterwards, and retiring season 1 can never orphan it. |
-| 3 | **Season block in `server.env`** | `SEASON_NUM`, `SEASON_ROLE` (`live`\|`test`\|`archive`), `SEASON_WIKI_URL`, `SEASON_WORKER_NAME`. The single source of season identity — everything else derives from it. |
-| 4 | **De-hard-code `bin/refresh-homers-lotr-wiki`** | It pins `PROJECT=/var/home/james/GIT/nwn_homers_lotr` (line ~24), `--base-url https://homerslotr.com/` and `--log-dir …/nwnxee-homer` (line ~46). Derive `PROJECT` from `BASH_SOURCE` (copy the idiom from `bin/serve`), and take base-url / log-dir from `$SEASON_WIKI_URL` / `$NWN_RUN_DIR`. This is the only wrapper that isn't already relocatable — `bin/serve` and `bin/backup-homers-lotr` compute `PROJECT_ROOT` correctly already. |
-| 5 | **Backup script** | Exclude `database/meritdb.sqlite3` (a symlink — must not be followed) from every season's snapshot; back up `~/.local/share/nwn-shared/` from exactly one place, gated on `SEASON_ROLE=live`. |
-| 6 | **`@`-templated systemd units** | Today's units hard-code the repo path and `nwnxee-homer`; `homers-lotr-empty-restart.path` also hard-codes the Anvil watch path `%h/.local/state/nwnxee-homer/anvil/PluginData/restart-server`. Convert to instance units keyed on the repo dir name, with `WorkingDirectory`, the podman `ExecStop` name and that `PathExists` all derived from an instance env file. **First commit `homers-lotr-server.service`** — it's installed under `~/.config/systemd/user/` but missing from the repo's `systemd/`. `nwn-reboot.timer` (root, 03:03) stays shared and restarts both instances. |
-| 7 | **`bin/season-brand.py`** (new) | Idempotent rebrand pass driven by the season block. Rewrites every reference in §4 and sets the season sign's text for the current `SEASON_ROLE`. Dry-run by default, `--apply` to write, second `--apply` must produce no diff. |
-| 8 | **Season sign placeable** | One new `.utp` placed once in `thewelloferu.git.json`, mirroring `ru_sign` (`__struct_id: 9`, Appearance 89, text in `Description`). Use `bin/place-helper.py` for coordinates and follow the GIT-instance shape rules in `CLAUDE-blueprints.md`. Three states set by `season-brand.py`: `test` → "Early-access realm — your progress will be wiped when this season goes live"; `archive` → "This season has ended and is no longer updated or maintained"; `live` → hidden (turn visibility off — keep the instance so it serves every future season). Then `python3 bin/file-palette-orphans.py --apply`. |
-| 9 | **`bin/roadmap-archive-prune.py`** (new) | Deletes every `ideas:` entry whose `status` is not `awarded`, plus any epic left childless, then runs `bin/gen-roadmap.py`. Only ever run inside an archived season's repo. |
+**Do not start Phase 1 until that file's boxes are ticked** — every phase below
+calls into one of those pieces, and two of them (the `teledb` split and the merit
+DB move) touch live player data and cannot be done mid-cutover.
 
 ---
 
-## 4. What `season-brand.py` must rewrite
+## 4. Module and server naming
 
-The complete set of season-scoped references. Anything added later that names the
-wiki host, the connect port, or the worker belongs in this table *and* in the script.
+Three names get confused constantly. In NWN, **the module name *is* the installed
+`.mod` filename**, so `NWN_MODULE` must match it exactly or `nwserver` won't find
+the module at boot.
 
-| File | What |
-|------|------|
-| `unpacked/module.ifo.json` | Module description: `Connect: homerslotr.ddns.net:5121` and `Wiki: homerslotr.com` |
-| `unpacked/npguide.dlg.json` | Guide NPC — two wiki links, one of them `…/manual/Customizations` |
-| `unpacked/meritconv.dlg.json` | Merit NPC wiki link |
-| `unpacked/servershout4.nss` | Login floaty text: `View the Wiki at homerslotr.com` |
-| `unpacked/thewelloferu.git.json` | `ru_sign` Description → `https://homerslotr.com/manual/Roadmap#shipped`; and the season sign's text/visibility |
-| `src/index.js` | Worker redirect target for `*.workers.dev` |
-| `wrangler.jsonc` | Worker `name` — **mandatory, not cosmetic**: two repos deploying the same worker name collide (see §6) |
-| `bin/roadmap-editor.py` | The editor's "Public wiki / Public roadmap" links, and its `nwnxee-homer` container-name fallback |
-| `bin/watch-server` | `NWN_CONTAINER_NAME` default (`nwnxee-homer`) |
-| `nasher.cfg` | Target `.mod` filename — one per season (see §11) |
+| Name | Where | Season N value | Changed at |
+|------|-------|----------------|-----------|
+| Build artifact | `nasher.cfg` → `[package].name`, `[target].file` | `homers_lotr_s<N>.mod` | Phase 1 |
+| **Installed module** | `$NWN_HOME_DIR/modules/<name>.mod`, written by the repack wrapper | `Homer's LOTR Season <N>.mod` | Phase 1 |
+| `NWN_MODULE` | `server.env` — the installed filename **minus `.mod`** | `Homer's LOTR Season <N>` | Phase 1 |
+| `NWN_SERVERNAME` | `server.env` — server-browser name, free text | role-dependent ↓ | Phase 1 **and** Phase 2 |
 
-`unpacked/module.jrl.json` currently needs **no** rebrand: the "Website" journal
-entry links Discord only, and the Server Info entries say "wiki: Manual >
-Customizations" without a host. Re-check it each cutover anyway — it's the most
-likely place for a new bare URL to appear.
+`NWN_SERVERNAME` tracks `SEASON_ROLE`, so the two instances are tellable apart in
+the server browser:
 
-> **Do not implement this as a blind `sed` over `unpacked/`.** `5121` occurs
-> inside float coordinates in at least seven `.git.json` files
-> (`"value": 54.5121`, `-22.5121`, …) and as a listen-pattern integer in
-> `unpacked/roulette_os.nss`. A global port substitution silently moves
-> placeables and breaks a conversation. `season-brand.py` must target the exact
-> fields listed above — and the port only ever inside the `Connect:` line of the
-> module description.
+| Role | Server name |
+|------|-------------|
+| `test` | `Homer's LOTR — Season <N> (EARLY ACCESS)` |
+| `live` | `Homer's LOTR — Season <N>` |
+| `archive` | `Homer's LOTR — Season <N> (ARCHIVED)` |
+
+Renaming also means updating the **repack wrapper's install destination** — the
+`.mod` filename it copies into `$NWN_HOME_DIR/modules/`. See prereq item 5; until
+that wrapper is parameterized this is a hand-edit and it is the single most
+error-prone step in Phase 1. A mismatch between the installed filename and
+`NWN_MODULE` shows up as the server exiting at startup with a module-not-found
+error, not as anything subtler.
+
+**Season 1 keeps its legacy names** (`homers_lotr_v3.mod`, module
+`Homer's LOTR VEL v3`, server name `Homer's LOTR Very Easy Leveling`). Never
+rename a live module — the filename change alone breaks every player's saved
+server entry. Numbering starts at season 2.
+
+No data consequence: the servervault is per-`NWN_HOME_DIR` and campaign DBs are
+scoped by their own name, so neither is keyed to the module name.
 
 ---
 
@@ -178,46 +206,79 @@ The live season keeps running throughout; nothing about it moves.
 1. **Copy the outgoing season out.** `cp -a nwn_homers_lotr nwn_homers_lotr_s<N>`
    (or clone). Give it a **new GitHub remote** — it needs its own Cloudflare
    deploy target. Its `server.env` is **inherited unchanged**: same home dir, run
-   dir, container, `NWN_PORT=5121`. Set `SEASON_NUM=<N>`, `SEASON_ROLE=live`,
+   dir, container, `NWN_PORT=5121`, **same module and server name**. Set
+   `SEASON_NUM=<N>`, `SEASON_ROLE=live`,
    `SEASON_WIKI_URL=https://homerslotr.com/`,
-   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N>` (see §6). Repoint its systemd
-   instance at the new directory.
+   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N>`, and the peer block
+   `SEASON_PEER_ROLE=test`, `SEASON_PEER_NUM=<N+1>`, `SEASON_PEER_PORT=5122`,
+   `SEASON_PEER_PASSWORD=volatile` — this peer block is what drives its in-game
+   cross-advert sign in step 5. Repoint its systemd instance at the new directory.
 2. **Re-parameterize the unnumbered repo onto season N+1.** In `server.env`:
    `NWN_HOME_DIR="$HOME/.local/share/Neverwinter Nights S<N+1>"`,
    `NWN_RUN_DIR="$HOME/.local/state/nwnxee-homer-s<N+1>"`,
    `NWN_CONTAINER_NAME=nwnxee-homer-s<N+1>`, `NWN_PORT=5122`,
    `NWNSYNC_PORT=8001`, `NWNSYNC_CONTAINER=nwnsync-nginx-s<N+1>`,
    `NWNSYNC_REPO=…/nwsync/HomersLOTR-S<N+1>`,
-   `NWN_MODULE`/`NWN_SERVERNAME` naming the new season,
    `SEASON_NUM=<N+1>`, `SEASON_ROLE=test`,
    `SEASON_WIKI_URL=https://season<N+1>.homerslotr.com/`,
-   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N+1>`.
+   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N+1>`, and the peer block pointing back
+   at the live season (`SEASON_PEER_ROLE=live`, `SEASON_PEER_NUM=<N>`,
+   `SEASON_PEER_PORT=5121`, `SEASON_PEER_PASSWORD=""`).
    `bin/serve` runs `--network=host`, so **every listening port must be unique** —
    there is no container port isolation.
-3. **Password-gate it.** `NWN_PLAYERPASSWORD="volatile"` in `server.env.local`
+3. **Rename the module (§4).** In the unnumbered repo only: `nasher.cfg`
+   `[package].name` and `[target].file` → `homers_lotr_s<N+1>.mod`;
+   `NWN_MODULE="Homer's LOTR Season <N+1>"`;
+   `NWN_SERVERNAME="Homer's LOTR — Season <N+1> (EARLY ACCESS)"`. Point the repack
+   wrapper's production copy at
+   `$NWN_HOME_DIR/modules/Homer's LOTR Season <N+1>.mod` — the installed filename
+   must match `NWN_MODULE` exactly. Season N keeps its existing names.
+4. **Password-gate it.** `NWN_PLAYERPASSWORD="volatile"` in `server.env.local`
    (gitignored). Hand it only to chosen testers. Also set `NWNSYNC_PUBLIC_URL`
    there for port 8001.
-4. **Rebrand + build.** `python3 bin/season-brand.py --apply` → in-game wiki links
-   point at `season<N+1>.homerslotr.com`, the connect string at `:5122`, and the
-   season sign shows the wipe warning. Repack and deploy.
-5. **Share merit.** After the new server's first boot creates `database/`:
+5. **Rebrand + build both modules.** `python3 bin/season-brand.py --apply` in the
+   unnumbered repo → wiki links point at `season<N+1>.homerslotr.com`, the connect
+   string at `:5122`, and the season sign shows the wipe warning. Repack, deploy.
+
+   **Then do the same in `nwn_homers_lotr_s<N>`** — the live season needs a
+   rebuild too, because its peer block just changed: `season-brand.py` turns on
+   its **cross-advert placeable** in the Well of Eru, telling every player that
+   season N+1 early access is open on port 5122 with password `volatile`. This is
+   the only in-game advertisement testers get, so it is not optional. (The sign
+   text and its states are specified in prereq item 9.)
+6. **Link the two shared DBs.** After the new server's first boot creates
+   `database/`:
    ```bash
-   S="$HOME/.local/share/Neverwinter Nights S<N+1>/database/meritdb.sqlite3"
-   rm -f "$S"
-   ln -s "$HOME/.local/share/nwn-shared/meritdb.sqlite3" "$S"
-   ls -l "$S"      # verify it points at the shared file
+   DB="$HOME/.local/share/Neverwinter Nights S<N+1>/database"
+   for f in meritdb admindb; do
+     rm -f "$DB/$f.sqlite3"
+     ln -s "$HOME/.local/share/nwn-shared/$f.sqlite3" "$DB/$f.sqlite3"
+   done
+   ls -l "$DB"/{merit,admin}db.sqlite3    # verify both point at the shared files
    ```
-6. **Cloudflare.** New worker `homers-lotr-wiki-s<N+1>` deploying from the
+   The shared `admindb` means the early-access realm inherits the live admin
+   whitelist and UAT shortcuts on day one — no re-seed. Because `houses` is shared
+   too (§2), **confirm the new season still has every house `area_tag` /
+   `home_wp_tag` that `admindb.houses` references** — a renamed or dropped home
+   area leaves that row dangling and breaks the owner's Home teleport. Check now,
+   while it's a test realm, not at go-live:
+   ```bash
+   sqlite3 "$HOME/.local/share/nwn-shared/admindb.sqlite3" \
+     'select player_name, area_tag, home_wp_tag from houses;'
+   # each area_tag must exist in this season's unpacked/*.are.json
+   ```
+7. **Cloudflare.** New worker `homers-lotr-wiki-s<N+1>` deploying from the
    unnumbered repo, custom domain `season<N+1>.homerslotr.com` + DNS record.
    The apex stays bound to the **season-N** worker, which now deploys from
    `nwn_homers_lotr_s<N>`. Cloudflare auto-deploys **on git push** — "publish" is
    just commit `docs/` + push; no `wrangler deploy` anywhere.
-7. **Router.** Forward 5122/udp and 8001/tcp. Permanent — reused every season.
-8. **Enable both systemd instances.** Both servers now come up at boot, in parallel.
-9. **Announce loudly and repeatedly:** the early-access vault and *all* its DBs
-   **will be wiped at go-live**. Every character, item, bestiary entry, house and
-   bank gained in testing is temporary. **Merit earned still counts** — it's the
-   shared account DB.
+8. **Router.** Forward 5122/udp and 8001/tcp. Permanent — reused every season.
+9. **Enable both systemd instances.** Both servers now come up at boot, in parallel.
+10. **Announce loudly and repeatedly:** the early-access vault and *all* its DBs
+   **will be wiped at go-live**. Every character, item, bestiary entry and bank
+   balance gained in testing is temporary. **Merit earned still counts**, and
+   **admin access + player-home *entitlements* carry over** (both are shared) —
+   though a home's *contents* (its storage chest) reset with everything else.
 
 Iterate freely: this repo is the real season N+1 code base, and all development
 from here to go-live carries straight through.
@@ -257,50 +318,155 @@ teardown — it is a role and port swap between two servers that are already run
    season-N servervault too if the XP-bank tier is in play.
 2. **Final full wiki republish of season N** against its live DBs, so the archive
    is complete and current.
-3. **Wipe the early-access realm to a clean live state** (server stopped):
+3. **Wipe the early-access realm to a clean live state.** Both servers stopped.
+   Weeks of testing have to leave *nothing* behind — see §7a for exactly what this
+   covers and why.
    ```bash
    H="$HOME/.local/share/Neverwinter Nights S<N+1>"
    R="$HOME/.local/state/nwnxee-homer-s<N+1>"
-   rm -rf "$H/servervault"/*
-   find "$H/database" -name '*.sqlite3' ! -name 'meritdb.sqlite3' -delete
-   rm -rf "$R"/logs.*  "$R"/activity-sessions.json*
-   ls -l "$H/database/meritdb.sqlite3"    # symlink MUST still be intact
+
+   # characters (players + DM + local)
+   rm -rf "$H/servervault"/* "$H/dmvault"/* "$H/localvault"/*
+
+   # every campaign DB except the two shared symlinks
+   find "$H/database" -maxdepth 1 -name '*.sqlite3' \
+        ! -name 'meritdb.sqlite3' ! -name 'admindb.sqlite3' -delete
+
+   # wiki activity + session history, and stale module instances
+   rm -rf "$R"/logs "$R"/logs.* "$R"/activity-sessions.json* \
+          "$R"/currentgame.* "$R"/temp.* "$R"/cache
+
+   ls -l "$H/database"/{merit,admin}db.sqlite3   # both symlinks MUST still be intact
+   ls    "$H/database"                            # should now hold ONLY those two
    ```
-   **Never `rm -rf` the whole `database/` dir** and never let anything follow the
-   merit symlink — deleting the link is recoverable, truncating the shared file is
-   not. The run-dir clear is what makes activity charts and server-firsts start at
-   zero (§2).
-4. **Swap the ports.** Unnumbered repo: `NWN_PORT` 5122→**5121**, `NWNSYNC_PORT`
+   - **Never `rm -rf` the whole `database/` dir**, and never let anything follow
+     the merit or admin symlinks — deleting a link is recoverable, truncating a
+     shared file is not. `-delete` on a `-name '*.sqlite3'` match won't traverse
+     them; `-maxdepth 1` keeps the search off anything else.
+   - **Do not touch `$R/database` or `$R/servervault`.** In the run dir those are
+     symlinks to the container-internal paths `/nwn/home/database` and
+     `/nwn/home/servervault` — dangling on the host, but a recursive delete
+     through them *inside* the container would take the real data with it. The
+     run dir is the server's `-userdirectory`; the real files live under
+     `NWN_HOME_DIR`, which is what the commands above target.
+   - The run-dir clear is what makes activity charts and player-hours start at
+     zero (§2). Leaving `activity-sessions.json` behind is the most likely way to
+     launch a season with early-access playtime already on its charts.
+4. **Re-seed and republish what the wipe legitimately destroyed.** Three stores get
+   deleted that are *not* player progress and must come straight back, or the new
+   season launches broken:
+   - **The admin whitelist and house records are *not* wiped** — `admindb` is a
+     shared symlink (§2), so `Admin_Can*` access, UAT shortcuts and existing homes
+     survive automatically. Just confirm the symlink is intact (the `ls -l` above).
+     Only run `bin/seed-admindb.sh` if you are *adding* a new admin or tier.
+   - Republish `roadmapdb` from `roadmap.yaml` (roadmap editor → *Publish to Wiki &
+     DB*), or the Well of Eru "Recent Updates" sign comes up blank.
+   - **Full wiki regen + push** (`bin/refresh-…-wiki --publish`). `docs/` is
+     **tracked in git**, so the new season's repo is carrying committed pages full
+     of early-access kill counts, server-firsts and activity charts. The DB wipe
+     does not touch them — only a regen does. Skip this and the freshly launched
+     season's public wiki advertises testers' bestiary records.
+5. **Swap the ports.** Unnumbered repo: `NWN_PORT` 5122→**5121**, `NWNSYNC_PORT`
    8001→**8000**. `_s<N>`: 5121→**5122**, 8000→**8001**. Container names, home
    dirs and run dirs never change — only these two numbers per side.
-5. **Flip the roles and rebrand both.**
-   - unnumbered → `SEASON_ROLE=live`, `SEASON_WIKI_URL=https://homerslotr.com/`
-   - `_s<N>` → `SEASON_ROLE=archive`, `SEASON_WIKI_URL=https://season<N>.homerslotr.com/`
+6. **Flip the roles, names and peer blocks, then rebrand both.**
 
-   Run `python3 bin/season-brand.py --apply` in **both** repos, then repack and
-   deploy **both** modules. Season N's rebuild is what flips its sign to "this
-   season has ended" and moves its in-game links off the apex — without it, the
-   archived season's own signs would send players to the new season's wiki.
-6. **Cloudflare:** move the `homerslotr.com` custom domain from worker
+   | | unnumbered (season N+1) | `_s<N>` (season N) |
+   |---|---|---|
+   | `SEASON_ROLE` | `live` | `archive` |
+   | `SEASON_WIKI_URL` | `https://homerslotr.com/` | `https://season<N>.homerslotr.com/` |
+   | `NWN_SERVERNAME` | `Homer's LOTR — Season <N+1>` | `Homer's LOTR — Season <N> (ARCHIVED)` |
+   | `SEASON_PEER_ROLE` | `archive` | `live` |
+   | `SEASON_PEER_PORT` | `5122` | `5121` |
+   | `SEASON_PEER_PASSWORD` | `""` | `""` |
+
+   Drop the `(EARLY ACCESS)` suffix from the new season's `NWN_SERVERNAME` — it is
+   the only naming value that changes at Phase 2. The module filename and
+   `NWN_MODULE` were set at Phase 1 and stay put (§4).
+
+   Then run `python3 bin/season-brand.py --apply` in **both** repos and repack and
+   deploy **both** modules. This is what:
+   - flips season N's sign from nothing to *"this season has ended"* and moves its
+     in-game links off the apex — without it, the archived season's signs would
+     send its remaining players to the new season's wiki;
+   - **turns off season N's early-access cross-advert** (peer is no longer `test`,
+     so the password and port 5122 stop being advertised) and replaces it with the
+     archived-season pointer;
+   - turns off the new season's wipe warning and points its links at the apex.
+7. **Cloudflare:** move the `homerslotr.com` custom domain from worker
    `homers-lotr-wiki-s<N>` to `homers-lotr-wiki-s<N+1>`. Season N keeps its
    subdomain and its publish job.
-7. **Prune the archived roadmap.** In `_s<N>`: `bin/roadmap-archive-prune.py` →
+8. **Prune the archived roadmap.** In `_s<N>`: `bin/roadmap-archive-prune.py` →
    keeps `status: awarded` only, deletes every other item (backlog and
    shipped-but-unpaid alike — that work all lives on in the unnumbered repo's
    roadmap, which is untouched). Run `bin/gen-roadmap.py`, commit both files, and
    publish to that season's `roadmapdb` so its in-game Recent Updates sign matches
    its public page. The archived season's roadmap is now a pure merit-credit ledger.
-8. **Go public.** Remove `NWN_PLAYERPASSWORD` from the unnumbered
+9. **Go public.** Remove `NWN_PLAYERPASSWORD` from the unnumbered
    `server.env.local`, start both servers, and confirm the server browser lists
    season N+1 on 5121 with NWSync on 8000, and season N on 5122 / 8001.
-9. **Verify merit** — log in on both and confirm the same balance reads through.
-10. **Apply the returning-player reward** (§9) and announce: new season live,
+10. **Verify merit** — log in on both and confirm the same balance reads through.
+11. **Apply the returning-player reward** (§9) and announce: new season live,
     old season still playable on the alternate port, old wiki at its subdomain.
+
+### 7a. What the Phase-2 wipe actually covers
+
+Testers spend weeks on the early-access realm. This is the audit of where that
+progress lives, so the wipe can be checked rather than trusted.
+
+| Progress | Lives in | Cleared by |
+|---|---|---|
+| Characters: levels, gear, gold, feats, **journal/quest entries** | `.bic` files in `servervault/` (journal state is stored *in* the character) | `rm -rf servervault/* dmvault/* localvault/*` |
+| Quest flags, cooldowns, world state | campaign DBs — `questcddb`, `worldstatedb`, `craftdb`, `prestigedb`, the `*linedb` class-line DBs, `forbiddendb`, `potd`, `fret`, `cregistred`, area DBs like `maz20`/`mos2` | the `*.sqlite3` sweep |
+| Bestiary kills + server-firsts | `bestiarydb` (plus a legacy `bestiary.sqlite3`) | the `*.sqlite3` sweep |
+| Banks, house **chests**, dyes, boosts, party loot, promo codes, ammo, factions, teleport slots | `bankdb`, `kpb_bank`, `housechest`, `dyedb`, `boostdb`, `partyloot`, `coderedeem`, `ammorepdb`, `factiondb`, `teledb`, … | the `*.sqlite3` sweep |
+| Admin whitelist + UAT access, player-**home** records | `admindb` (`admins`, `houses`) | **kept** — shared symlink, like merit (§2) |
+| Boss respawn history | `respawndb` | self-resetting — `BRD_InitDb()` re-seeds on every module load |
+| Wiki activity charts, player-hours | `$NWN_RUN_DIR/logs*`, `activity-sessions.json` | the run-dir clear |
+| **Published wiki pages** showing early-access stats | `docs/`, **committed to git** | **only** a full wiki regen + push (step 4) |
+| Merit earned in early access | shared `meritdb` | **kept** — testers keep what they earned |
+
+**Why the `*.sqlite3` sweep is trustworthy:** it is name-agnostic. The live server
+today holds 32 campaign DBs, well over half of them undocumented anywhere, and
+new systems add more every month. Anything a module script persists with
+`SqlPrepareCampaign*` or the legacy `SetCampaign*` family lands in
+`database/<name>.sqlite3` and is caught. There is no other on-disk persistence
+surface: no `.bdb`/`.dbf` files, and nothing under the run dir but logs, caches
+and symlinks back into the home dir.
+
+**Verify after wiping, before going public:**
+
+```bash
+ls "$H/database"                  # ONLY meritdb.sqlite3 and admindb.sqlite3 (both symlinks)
+ls -A "$H/servervault"            # empty
+ls "$R" | grep -c '^logs\.'       # 0
+```
+Then log in on the new season and confirm: character list empty, journal empty,
+bestiary at zero, no bank balance, boss board unclaimed — and merit balance intact.
+
+### 7b. The one thing the wipe *cannot* undo — merit escrow
+
+Merit spending is escrowed: `meritdb.players.merit_spent` is a counter, and
+`available = earned - merit_spent` (`CLAUDE-merit.md`). A tester who **redeems a
+merit reward during early access** gets an item that Phase 2 deletes, while the
+`merit_spent` charge survives in the shared DB. The wipe cannot fix this —
+`meritdb` is the one file it must not touch.
+
+Pick one before opening early access and put it in the announcement:
+
+- **Ask testers not to redeem during early access** (simplest; relies on them).
+- **Refund at cutover** — snapshot `merit_spent` per CD key at the start of Phase
+  1, and at Phase 2 reverse any redemption logged during the window. Auditable via
+  `merit_ledger`, and it pairs naturally with the returning-player reward NPC (§9).
+- **Let redemptions ride** — accept that early-access redeemers lose the item. Fine
+  for cosmetics, not for anything expensive.
+
+The same logic applies to any future account-wide unlock stored in `meritdb`.
 
 **Rollback.** Until Phase 3 this is fully reversible: season N's vault and DBs were
 never touched, so swapping the two port pairs back restores the previous state.
-The one shared object is `meritdb` — so **avoid merit schema changes during the
-overlap**, since both seasons write the same file.
+The shared objects are `meritdb` and `admindb` — so **avoid schema changes to
+either during the overlap**, since both seasons write the same two files.
 
 ---
 
@@ -314,6 +480,9 @@ Once `_s<N>` is consistently empty for a decent stretch:
    frozen at `season<N>.homerslotr.com` — indefinitely, no maintenance.
 3. Leave its home dir on disk, or take one final cold archive of vault + DBs.
    Its runtime dirs stay reserved to that season's number.
+4. In the **live** repo set `SEASON_PEER_ROLE=none`, rebrand, repack and deploy —
+   this retires the cross-advert sign that was pointing players at a server that
+   no longer answers.
 
 You are back to a single running instance. 5122/8001 sit idle until the next
 Phase 1 reuses them, and the router forwards stay in place.
@@ -347,22 +516,31 @@ modest bestiary kill-count head start.
 Copy this into the announcement/tracking issue for each cutover.
 
 **Phase 1 — early access**
-- [ ] `cp -a` → `nwn_homers_lotr_s<N>`; new git remote; season block `= live`; systemd repointed
+- [ ] `cp -a` → `nwn_homers_lotr_s<N>`; new git remote; season block `= live`; peer block `= test`; systemd repointed
 - [ ] Unnumbered repo re-parameterized to season N+1 (home/run/container/5122/8001/nwsync repo)
+- [ ] Module renamed (§4): `nasher.cfg` target, `NWN_MODULE`, `NWN_SERVERNAME` `(EARLY ACCESS)`, repack wrapper install path
 - [ ] `NWN_PLAYERPASSWORD="volatile"` + `NWNSYNC_PUBLIC_URL` in `server.env.local`
-- [ ] `season-brand.py --apply`; repack; deploy
+- [ ] `season-brand.py --apply`; repack; deploy — **in the new season repo**
+- [ ] `season-brand.py --apply`; repack; deploy — **in `_s<N>` too**, so the live season advertises the test realm + password
 - [ ] Merit symlink created and verified with `ls -l`
 - [ ] Worker `homers-lotr-wiki-s<N+1>` + `season<N+1>.homerslotr.com` + DNS
 - [ ] Router: 5122/udp, 8001/tcp forwarded
 - [ ] Both systemd instances enabled; both servers up after a reboot
-- [ ] Wipe warning announced to testers
+- [ ] Wipe warning announced to testers — including the merit-redemption policy (§7b)
 
 **Phase 2 — go live**
 - [ ] `bestiarydb` (+ XP) snapshot taken
 - [ ] Final season-N wiki republish
-- [ ] Vault + DBs + **run-dir logs/activity-sessions** wiped; merit symlink intact
+- [ ] Vault (`servervault`/`dmvault`/`localvault`) + all `*.sqlite3` except merit **and admin** + run-dir `logs*`/`activity-sessions.json`/`currentgame.*` wiped
+- [ ] Wipe verified (§7a): `database/` holds only `meritdb`+`admindb` symlinks, vault empty, no `logs.N`
+- [ ] Both shared symlinks (`meritdb`, `admindb`) confirmed intact — admin access carries over, no re-seed needed
+- [ ] `roadmapdb` republished (Recent Updates sign)
+- [ ] **Full wiki regen + push** — `docs/` is tracked in git and still holds early-access stats
+- [ ] Merit-escrow policy applied (§7b) for anyone who redeemed during early access
 - [ ] Ports swapped both sides
-- [ ] Roles flipped; `season-brand.py --apply` run in **both**; both repacked + deployed
+- [ ] Roles, `NWN_SERVERNAME` and peer blocks flipped both sides; `(EARLY ACCESS)` dropped
+- [ ] `season-brand.py --apply` run in **both**; both repacked + deployed
+- [ ] Early-access advert confirmed **gone** from the live season's Well of Eru
 - [ ] Apex custom domain moved to the new worker
 - [ ] Archived roadmap pruned to `awarded`-only; `gen-roadmap.py`; published to its `roadmapdb`
 - [ ] Player password removed; both servers verified in the server browser
@@ -370,6 +548,7 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] Veteran reward live; cutover announced
 
 **Phase 3 — retire**
+- [ ] Live season's peer block set to `none` (archived-season pointer removed); rebrand, repack, deploy
 - [ ] Season-N server + NWSync stopped and disabled
 - [ ] Its wiki-publish and backup units disabled; repo no longer pushed
 - [ ] Frozen wiki confirmed serving at `season<N>.homerslotr.com`
@@ -382,10 +561,10 @@ Copy this into the announcement/tracking issue for each cutover.
   module-agnostic — they key off the working directory, `nasher.cfg`,
   `.nasher/source`, `server.env`, and the `--base-url` / `--out` / `--db-dir` /
   `--log-dir` flags. Prefer wrapper and env changes over touching the core.
-- Give each season a **distinct `.mod` filename** in `nasher.cfg`
-  (`homers_lotr_s<N>.mod`): `nwn-manager` builds via a `/tmp/nwnmgr_<modfile>`
-  symlink and a `nwnmgr_bstamp.nss` build stamp, so a shared filename can race if
-  both seasons ever repack at once.
+- The **distinct `.mod` filename** per season (§4) isn't only cosmetic:
+  `nwn-manager` builds via a `/tmp/nwnmgr_<modfile>` symlink and a
+  `nwnmgr_bstamp.nss` build stamp, so a shared filename can race if both seasons
+  ever repack at once.
 - A season needs its **own NWSync repo/manifest** as soon as its hak/tlk content
   diverges from the other's — which it will, once you rebalance.
 - The **roadmap editor** (`:8765`) is single-instance; run it from whichever repo
