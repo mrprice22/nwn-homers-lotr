@@ -139,11 +139,18 @@ ideas:
   - id: bestiary-boss-breakdown
     title: "Beastiary breakdown for just the bosses"
     group: bosses
-    status: confirmed
+    status: implemented
     type: Enhancement
     player: "-Methonash-"
     date: "2026-07-24"
-    notes: "Update the in-game bestiary so there is a third browse option that shows only the bosses that have yet to be slain, that if burnt down would yield access to the forge's +1 property slot mechanic. Bestairy intro text should confirm x/y how many bosses slain."
+    commit: d88b69b1822
+    notes: "The Bestiary of Middle-earth now has a third browse option, \"Great foes I have yet to fell.\", listing only the tracked bosses your character has still to slay - each with its Challenge Rating and the area it lairs in, hardest first. The book's index page opens with your progress: \"Great foes felled: x of y.\" Fell every one of them and the great forges grant one extra property slot (and +20% to their value cap)."
+    impl_notes: "Bestiary browse mode 2. bst_db.nss gains Bst_BossListSql / Bst_BossTotal / Bst_BossSlainSql / Bst_BossSlainCount / Bst_BuildIntro; Bst_BuildPage grows a mode-2 branch that pages the respawndb boss_registry (the Roll of the Fallen set the forge bonus keys off) instead of the bestiary catalogue. The two campaign DBs cannot be joined in one query, so the already-slain registry-side resrefs are spliced into the respawndb query as a literal quoted IN-list (resrefs are filenames, so this is injection-safe); the registry list and total are cached on the module like forge_inc does. Bst_BossSlainCount reuses forge_inc's COUNT(DISTINCT) formula verbatim (clamped to the registry total) so the book's x/y can never disagree with the forge's tier message. Not an #include of forge_inc - that drags in the appraise/colour stack and bst_db is on the OnDeath hot path. New reply node 15 in bst_book.dlg (script bst_open_boss); progress line is token 5029, set by bst_intro, which runs from dmfi_activate before ActionStartConversation and from the [Back to the index] reply, because token substitution happens at display time and an entry's own action script fires too late."
+    manual_steps:
+      - "UAT: activate the Bestiary of Middle-earth. Index page shows \"Great foes felled: N of 78.\" and a third option \"Great foes I have yet to fell.\""
+      - "UAT: open that list - rows read \"<name>  (CR n)  - <lair area>\", sorted by CR descending, and none of them is a boss the character has already killed."
+      - "UAT: page forward/back through the boss list, then [Back to the index] - the progress line is recomputed, and the two creature lists still page correctly."
+      - "UAT: kill a tracked boss, reopen the book - the felled count rises by one and that boss is gone from the list."
   - id: wiki-charts-by-week
     title: "wiki charts update for days vs weeks"
     group: wiki-tools
