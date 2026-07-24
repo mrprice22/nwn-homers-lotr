@@ -136,6 +136,28 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: bestiary-boss-breakdown
+    title: "Beastiary breakdown for just the bosses"
+    group: bosses
+    status: confirmed
+    type: Enhancement
+    player: "-Methonash-"
+    date: "2026-07-24"
+    notes: "Update the in-game bestiary so there is a third browse option that shows only the bosses that have yet to be slain, that if burnt down would yield access to the forge's +1 property slot mechanic. Bestairy intro text should confirm x/y how many bosses slain."
+  - id: wiki-charts-by-week
+    title: "wiki charts update for days vs weeks"
+    group: wiki-tools
+    status: implemented
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-24"
+    commit: 0a93ed3
+    notes: "<div>Update the player activity charts refresh process in nwn_manager/bin/nwn-wiki.</div><div>For the two charts:</div><ul><li>Daily play-hours</li><li>Concurrent players</li></ul><div>If there are 35 or less days in the chart data, then keep as is.</div><div>If there are 36 or more days, then only show the most recent 35 days for both the charts, </div><div>and then under each chart, show a weekly version of the chart data going back for all the data (including the first 35 days)</div>"
+    impl_notes: "nwn_manager commit 0a93ed3 (`bin/nwn-wiki`, `render_activity_page`). Added `DAILY_WINDOW = 35` plus a `_weekly()` helper that buckets a per-day series into Monday-anchored weeks with a caller-supplied combiner. The daily play-hours and peak-concurrent charts are sliced to `[-35:]`; when the post-cutoff range exceeds 35 days an extra weekly chart is emitted directly beneath each one (sum of hours / max of daily peaks) covering the full range. This replaced the blanket `date_range[-60:]` truncation, which discarded older data before either chart was built, so the weekly roll-ups genuinely reach back to the start. The existing per-chart data cutoffs (2026-05-17 daily, 2026-06-01 concurrency) still apply to both views. Verified against synthetic 20/35/36/90-day datasets: no weekly chart at &lt;=35 days; 35 daily bars plus a full-range weekly chart at 36+."
+    manual_steps:
+      - step: "After the next scheduled wiki refresh, open the Activity page and confirm both daily charts show 35 bars with a weekly roll-up chart directly beneath each."
+        status: open
   - id: test-idea
     title: "test-idea"
     group: wiki-tools
