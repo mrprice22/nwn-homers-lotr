@@ -52,17 +52,47 @@ season (item 2). `tele_db.nss` currently piggybacks on it and stores
 alone, every future season would inherit stale teleport rows for characters that
 no longer exist.
 
-**Player impact, once:** saved teleport *slots* reset. Teleport *unlocks* are
+~~**Player impact, once:** saved teleport *slots* reset.~~ **No player impact —
+the rows were migrated instead.** See the Built note. Teleport *unlocks* are
 merit redemptions 101–107 living in `meritdb.redemptions`, keyed by CD key — they
-are untouched. Repack, deploy, announce the slot reset.
+were never at risk.
 
-- [x] `tele_db.nss` edited, repacked, deployed
+- [x] `tele_db.nss` edited, repacked, deployed, **existing rows migrated**
 
 > **Built.** `TELE_DB` is now `"teledb"`. `tele_woe.nss` is the only other
-> consumer and goes through the `Tele_*` helpers, so nothing else changed. The
-> 95 `tele_slots` / 94 `tele_state` rows left behind in `meritdb` were **not**
-> dropped — they are harmless, and keeping them makes reverting the one-line
-> change a complete rollback. Still to do: announce the slot reset.
+> consumer and goes through the `Tele_*` helpers, so nothing else changed.
+>
+> **The "announce the slot reset" step above was wrong, and was not needed.**
+> This is a *mid-season-1* change, not a cutover: season 1 players had 95 saved
+> slots across 94 characters and there was no reason for them to lose any. The
+> rows were copied into the new per-season `teledb.sqlite3` (server stopped, no
+> logins in between, so nothing was lost even briefly) and verified byte-identical
+> on both tables:
+>
+> ```bash
+> sqlite3 "$DB_DIR/teledb.sqlite3" <<'SQL'
+> CREATE TABLE IF NOT EXISTS tele_slots (pid TEXT NOT NULL,slot INTEGER NOT NULL,
+>   area TEXT,name TEXT,x REAL, y REAL, z REAL, facing REAL,PRIMARY KEY(pid, slot));
+> CREATE TABLE IF NOT EXISTS tele_state (pid TEXT PRIMARY KEY,
+>   return_armed INTEGER NOT NULL DEFAULT 0);
+> SQL
+> sqlite3 "$DB_DIR/teledb.sqlite3" \
+>   "ATTACH '$SHARED/meritdb.sqlite3' AS old;
+>    INSERT OR REPLACE INTO tele_slots SELECT * FROM old.tele_slots;
+>    INSERT OR REPLACE INTO tele_state SELECT * FROM old.tele_state;"
+> ```
+>
+> The DDL is copied verbatim from `Tele_InitDb()`, so its
+> `CREATE TABLE IF NOT EXISTS` is a no-op on the first login afterwards.
+>
+> The stale copies were then **dropped from the shared `meritdb`** (`DROP TABLE`
+> + `VACUUM`, after a `meritdb.sqlite3.pre-tele-migration-<ts>` backup in
+> `nwn-shared/`), which is the whole point of the split — otherwise every future
+> season would still see them sitting in the shared file.
+>
+> **Future seasons need no migration and must not do one.** A new season gets a
+> fresh `NWN_HOME_DIR`, so its `teledb.sqlite3` is created empty on first login
+> and the slots reset as intended by the data contract (guide §2).
 
 ## 2. Move the shared DBs to a season-neutral path — **live data**
 
