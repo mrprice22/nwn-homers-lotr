@@ -56,6 +56,17 @@ TYPES = {
 }
 MERIT_POINTS = {"Defect": 1, "Enhancement": 2, "Exploit": 3}
 
+# Every field an idea is allowed to carry. Anything else is preserved on save
+# (bin/roadmap-editor.py round-trips it) but nothing renders it, so validate()
+# warns — that is how a stray key like the old `fix:` gets noticed instead of
+# quietly riding along forever. Keep in step with FIELD_ORDER in the editor,
+# which orders these same names; the editor warns if the two ever disagree.
+IDEA_FIELDS = {
+    "id", "title", "group", "epic", "status", "hidden", "type", "player",
+    "date", "commit", "notes", "notes_h", "impl_notes", "impl_notes_h",
+    "dupe_of", "design_questions", "manual_steps",
+}
+
 PLAYER_LABEL = {"community": "Community"}
 
 _ENTITY_RE = re.compile(r"&(?:[a-zA-Z][a-zA-Z0-9]+|#\d+|#x[0-9a-fA-F]+);")
@@ -163,6 +174,12 @@ def validate(data: dict) -> list[str]:
         if idea.get("hidden") is not None and not isinstance(idea.get("hidden"), bool):
             errors.append(f"'{iid}': hidden must be true/false, got "
                           f"{idea.get('hidden')!r}")
+        # Advisory, never fatal: the field is kept on save, but no renderer reads
+        # it, so it is almost always a typo or a retired experiment.
+        for key in idea:
+            if key not in IDEA_FIELDS:
+                print(f"  [warn] '{iid}': unrecognised field '{key}' (preserved, "
+                      f"but nothing renders it)", file=sys.stderr)
 
     # dupe_of must point at a real id, and the target must not itself be a dupe.
     for idea in ideas:

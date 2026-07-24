@@ -57,6 +57,14 @@ Each entry under `ideas:` is one backlog item:
 | `design_questions` | no | **Internal — never player-visible.** List of `{question, status, answer}`; `status` is `open` or `answered`. See below. |
 | `manual_steps` | no | **Internal — never player-visible.** List of `{step, status, blocker}`: toolset work only the admin can do (waypoint placement, loot placement) and UAT scripts. See below. |
 
+**Unknown fields.** A key outside this table is **preserved** on save (the editor emits it
+after the known fields; it used to be dropped in silence — that is how three ideas' retired
+`fix:` text would have been lost), and `gen-roadmap.py` prints an advisory
+`unrecognised field '<key>'` warning for it. Nothing renders it, though: anything meant for
+the page belongs in `notes`, anything meant for the record in `impl_notes`. `IDEA_FIELDS` in
+`bin/gen-roadmap.py` is the authoritative set; `FIELD_ORDER` in the editor orders the same
+names and warns at startup if the two ever drift apart.
+
 **Statuses** (workflow order): `awarded` (shipped, merit awarded) · `implemented`
 (shipped, in testing) · `manual` (needs manual finishing — code done, admin toolset work
 outstanding) · `design` (needs design input — blocked on an admin decision) · `confirmed`

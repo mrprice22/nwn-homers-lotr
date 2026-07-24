@@ -88,6 +88,13 @@ def load_gen():
 
 
 GEN = load_gen()
+# FIELD_ORDER orders the same names gen-roadmap.py validates against. A field
+# added to one and not the other means either a silently unrendered key or a
+# spurious "unrecognised field" warning, so say so loudly at startup.
+_drift = set(FIELD_ORDER) ^ GEN.IDEA_FIELDS
+if _drift:
+    print(f"[warn] FIELD_ORDER and gen-roadmap.py IDEA_FIELDS disagree on: "
+          f"{sorted(_drift)}", file=sys.stderr)
 STATUS = GEN.STATUS  # ordered dict: status -> {label, cls, board, rank}
 TYPES = GEN.TYPES    # ordered dict: type -> {label, cls}
 sanitize_notes = GEN.sanitize_notes  # whitelist sanitizer for idea `notes`
@@ -495,6 +502,28 @@ def emit_list_field(field: str, val: list) -> list[str]:
     return lines
 
 
+def emit_unknown(field: str, value) -> list[str]:
+    """Emit a field the editor doesn't model, as faithfully as we can.
+
+    The idea body is regenerated from the edited data rather than preserved
+    verbatim, so a key outside FIELD_ORDER used to be dropped in silence — that
+    is how three ideas' `fix:` text would have been lost on the next GUI save.
+    Nothing renders these (gen-roadmap.py warns about them), but a save must
+    never delete data it merely failed to recognise.
+    """
+    if isinstance(value, (list, dict)):
+        dumped = yaml.safe_dump(value, default_flow_style=True, width=10 ** 6,
+                                allow_unicode=True, sort_keys=False).strip()
+        return [f"    {field}: {dumped}"]
+    if value is None:
+        return [f"    {field}: null"]
+    if isinstance(value, bool):
+        return [f"    {field}: {'true' if value else 'false'}"]
+    if isinstance(value, (int, float)):
+        return [f"    {field}: {value}"]
+    return [f"    {field}: {dquote(str(value))}"]
+
+
 def serialize_ideas(ideas: list[dict], prefixes: dict, trailing: list[str]) -> str:
     out: list[str] = []
     for idea in ideas:
@@ -519,6 +548,11 @@ def serialize_ideas(ideas: list[dict], prefixes: dict, trailing: list[str]) -> s
                 first = False
             else:
                 out.append(f"    {field}: {scalar}")
+        # Carry through anything the editor doesn't model, in its original order,
+        # after the known fields.
+        for field in idea:
+            if field not in FIELD_ORDER:
+                out.extend(emit_unknown(field, idea[field]))
     out.extend(trailing)
     return "\n".join(out).rstrip("\n") + "\n"
 
@@ -690,6 +724,14 @@ def validate_internal_fields(ideas) -> list[str]:
                 errs.append(f"'{iid}': status '{idea['status']}' with {n} "
                             f"unfinished blocker manual_step(s) — finish them "
                             f"or set status 'manual'")
+        # An unknown field is round-tripped by emit_unknown(); refuse to write one
+        # whose value that emitter can't reproduce faithfully, rather than mangle it.
+        for key, val in idea.items():
+            if key in FIELD_ORDER:
+                continue
+            if not isinstance(val, (str, int, float, bool, list, dict, type(None))):
+                errs.append(f"'{iid}': unrecognised field '{key}' holds a value "
+                            f"this editor cannot round-trip ({type(val).__name__})")
         errs.extend(_height_errors(iid, idea))
     return errs
 
@@ -2163,9 +2205,18 @@ function readForm(){
   };
 }
 
-function pruneEmpty(o){
-  const r={}; for (const k of ['id','title','group','epic','status','hidden','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'])
+// Fields the form owns. Anything else an idea carries (a key written by some
+// other tool that this editor doesn't model) is copied through from the loaded
+// idea untouched — readForm() only knows about the form, so without this merge
+// the unknown key would be gone before the save even leaves the browser.
+// Mirrors emit_unknown()/serialize_ideas() in the Python half.
+const FORM_FIELDS = ['id','title','group','epic','status','hidden','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'];
+function pruneEmpty(o, src){
+  const r={};
+  for (const k of FORM_FIELDS)
     if (o[k]!=='' && o[k]!=null) r[k]=o[k];
+  for (const k in (src||{}))
+    if (!FORM_FIELDS.includes(k)) r[k]=src[k];
   return r;
 }
 
@@ -2187,7 +2238,7 @@ async function commit(endpoint, force){
     const vis = visibleRows();
     curPos = vis.findIndex(r=>r.idx===sel);
     if (curPos>=0 && curPos+1<vis.length) nextId = vis[curPos+1].it.id;
-    DATA.ideas[sel] = pruneEmpty(readForm());
+    DATA.ideas[sel] = pruneEmpty(readForm(), DATA.ideas[sel]);
   }
   const r = await fetch(endpoint, {method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -2241,7 +2292,7 @@ function advanceSelection(nextId, curPos){
 
 function move(dir){
   if (sel<0) return;
-  DATA.ideas[sel] = pruneEmpty(readForm());
+  DATA.ideas[sel] = pruneEmpty(readForm(), DATA.ideas[sel]);
   const j = sel+dir; if (j<0||j>=DATA.ideas.length) return;
   [DATA.ideas[sel],DATA.ideas[j]]=[DATA.ideas[j],DATA.ideas[sel]];
   sel=j; renderList(); select(sel);
