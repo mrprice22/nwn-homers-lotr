@@ -10,6 +10,14 @@ After=default.target
 Type=oneshot
 # Self-gates on a 24h sentinel, so firing more often than daily is harmless.
 ExecStart=/var/home/james/GIT/nwn_homers_lotr/bin/backup-homers-lotr
+# Right AFTER the boot backup, repair any stale ab-enhance weapons (both Attack
+# Bonus + Enhancement Bonus) still sitting in player .bic files. Boot is the safe
+# window (no players online); --recent-min 0 disables the "recently saved" guard
+# since the server has just shut down, and the script still skips any .bic held
+# open by a process, backs up every file it touches, and verifies each write.
+# Leading '-' so a fix hiccup never fails the backup service (see journal).
+# Idempotent: a no-op once the vault is clean.
+ExecStartPost=-/usr/bin/python3 /var/home/james/GIT/nwn_homers_lotr/bin/ab-enhance-fix-bic.py --apply --recent-min 0
 Nice=10
 IOSchedulingClass=idle
 

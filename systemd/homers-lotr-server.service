@@ -1,0 +1,27 @@
+[Unit]
+Description=NWN Homer's LotR dedicated server (podman, headless)
+Documentation=file:///var/home/james/GIT/nwn_homers_lotr/bin/serve
+# Replaces the old XDG-autostart launch, which only fired on a *graphical*
+# login -- so any desktop-login failure left the server down. The lingering
+# user manager + this unit start it headlessly on every boot, GUI or not.
+#
+# NOTE: do NOT add `After=homers-lotr-backup.service` -- that backup unit is
+# itself `After=default.target`, and this unit is `WantedBy=default.target`,
+# so ordering after it creates a dependency cycle and systemd drops this
+# unit's start job. The boot backup snapshots in ~3s while the server is still
+# loading its module (well before any player writes), so concurrent start is
+# safe in practice.
+
+[Service]
+Type=simple
+WorkingDirectory=/var/home/james/GIT/nwn_homers_lotr
+ExecStart=/var/home/james/GIT/nwn_homers_lotr/bin/serve
+# serve runs `podman run` in the foreground; a clean stop tears down the
+# container (--rm) and the activity monitor via serve's own EXIT/TERM trap.
+ExecStop=/usr/bin/podman stop -t 20 nwnxee-homer
+TimeoutStopSec=45
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=default.target
