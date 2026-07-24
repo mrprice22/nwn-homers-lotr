@@ -9,5 +9,6 @@
 void main()
 {
     object oPC = GetLastUsedBy();
+    if (!Faction_CanSwitchTo(oPC, "Evil")) return;   // oath to the West forbids it
     Faction_SetAllegiance(oPC, "Evil");
 }

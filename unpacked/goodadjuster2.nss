@@ -9,5 +9,6 @@
 void main()
 {
     object oPC = GetLastUsedBy();
+    if (!Faction_CanSwitchTo(oPC, "Good")) return;   // oath to the Enemy bars it
     Faction_SetAllegiance(oPC, "Good");
 }

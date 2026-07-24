@@ -8,6 +8,14 @@
 void main()
 {
     object oPC = GetLastUsedBy();
+    // An oath to the West (Paladin's Oath) forbids taking the dark road.
+    if (!Faction_CanSwitchTo(oPC, "Evil"))
+    {
+        FloatingTextStringOnCreature(
+            "Your oath to the West forbids this — the dark road is closed to you.",
+            oPC, FALSE);
+        return;
+    }
     Faction_SetAllegiance(oPC, "Evil");
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_FNF_LOS_EVIL_20), oPC);
     ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectVisualEffect(VFX_IMP_HEAD_EVIL), oPC);

@@ -35,7 +35,10 @@
 // (Minas Tirith: Keep, area005) by q_pld_spawn, fired from the area OnEnter
 // wrapper q_pld_enter. Everything no-ops gracefully until the waypoint exists
 // (see the roadmap item manual_steps) and never double-spawns.
-// All engine calls used here are base NWScript builtins -- no framework include.
+// Swearing the oath also commits the character to the Good (Free Peoples)
+// faction and locks them out of the Evil light-shaft (Faction_SetOath), matching
+// the Blackguard's Black Oath on the other side.
+#include "faction_db"
 
 const string PLD_DB       = "pldlinedb";      // shared campaign DB
 const string PLD_STAGEKEY = "oath_stage";     // per-character stage int
@@ -85,6 +88,7 @@ void PLD_TakeOath(object oPC)
     PLD_SetStage(oPC, 1);
     AddJournalQuestEntry(PLD_QUEST, 1, oPC, FALSE, FALSE, TRUE);
     CreateItemOnObject("q_pld_amul", oPC, 1);   // Token of the White Tree (+1 CHA, Paladin)
+    Faction_SetOath(oPC, "Good");   // optional oath: commit to the West, lock the dark road
 }
 
 // Node 2: receive the Sealed Oath of Fealty (stage 1 -> 2). Level gate is
