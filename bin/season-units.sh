@@ -164,12 +164,22 @@ if [[ $MODE == enable ]]; then
   for u in "${ENABLE_UNITS[@]}"; do
     systemctl --user enable "$u"
   done
+
+  # A .path unit only watches while it is ACTIVE — enabling alone just queues it
+  # for the next boot, so reboot-on-empty would silently do nothing until then.
+  # Starting a watcher is harmless (unlike starting the server, which stays a
+  # deliberate manual step below).
+  systemctl --user start "nwn-season-empty-restart@$INSTANCE.path"
+  echo "started nwn-season-empty-restart@$INSTANCE.path (watchers only watch while active)"
+
   echo
-  echo "Enabled. The units are NOT started — start the server when ready:"
+  echo "Enabled. The server is NOT started — start it when ready:"
   echo "  systemctl --user start nwn-season-server@$INSTANCE.service"
   echo
-  echo "The legacy homers-lotr-*.service units are still installed. Once this"
-  echo "instance is proven across a stop/start and a reboot, disable them:"
+  echo "The legacy homers-lotr-* units are still installed. Once this instance is"
+  echo "proven across a stop/start and a reboot, disable them — note '--now', or"
+  echo "the legacy .path watcher keeps running alongside the new one and both"
+  echo "fire on the same flag file:"
   echo "  systemctl --user disable --now homers-lotr-server.service \\"
   echo "      homers-lotr-backup.service homers-lotr-wiki-publish.service \\"
   echo "      homers-lotr-empty-restart.path"
