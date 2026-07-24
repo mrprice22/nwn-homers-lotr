@@ -889,6 +889,36 @@ def server_tz() -> str:
     return "America/Chicago"
 
 
+def container_name() -> str:
+    """Read NWN_CONTAINER_NAME from server.env (same source watch-server uses),
+    defaulting to the known container name."""
+    try:
+        for ln in SERVER_ENV.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"\s*(?:export\s+)?NWN_CONTAINER_NAME\s*=\s*(.+?)\s*$", ln)
+            if m:
+                return m.group(1).strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return "nwnxee-homer"
+
+
+def server_log_tail(tail: int = 400) -> tuple[bool, str]:
+    """Return recent container logs (podman logs --tail), the web equivalent of
+    `bin/watch-server`. podman writes the log stream to stderr, so merge both."""
+    name = container_name()
+    exists = subprocess.run(["podman", "container", "exists", name],
+                            capture_output=True)
+    if exists.returncode != 0:
+        return False, (f"Server container '{name}' is not running.\n"
+                       "Waiting for it to come up...")
+    proc = subprocess.run(
+        ["podman", "logs", "--tail", str(tail), name],
+        capture_output=True, text=True,
+    )
+    out = (proc.stdout or "") + (proc.stderr or "")
+    return proc.returncode == 0, out.rstrip("\n") or "(no log output yet)"
+
+
 def now_stamp() -> str:
     """Current date + local time + zone abbrev, e.g. '2026-06-23 14:30 CDT'."""
     try:
@@ -992,6 +1022,17 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/" or self.path.startswith("/index"):
             self._send(200, PAGE.encode("utf-8"), "text/html; charset=utf-8")
+        elif self.path == "/monitor" or self.path.startswith("/monitor?"):
+            self._send(200, MONITOR_PAGE.encode("utf-8"),
+                       "text/html; charset=utf-8")
+        elif self.path.startswith("/api/serverlog"):
+            q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            try:
+                tail = max(1, min(2000, int(q.get("tail", ["400"])[0])))
+            except ValueError:
+                tail = 400
+            ok, text = server_log_tail(tail)
+            self._json({"ok": ok, "container": container_name(), "log": text})
         elif self.path == "/api/data":
             data = read_yaml()
             self._json({"ideas": data.get("ideas", []) or [], "vocab": vocab(data),
@@ -1134,6 +1175,68 @@ class Handler(BaseHTTPRequestHandler):
 # --------------------------------------------------------------------------
 # Browser UI (single inline page, no build step, no external deps)
 # --------------------------------------------------------------------------
+# Live server-log monitor — the web equivalent of `bin/watch-server`. Black
+# terminal-style page that polls /api/serverlog and rides through restarts.
+MONITOR_PAGE = r"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server Monitor — Homer's LotR</title>
+<style>
+  html, body { margin:0; height:100%; background:#000; color:#c8c8c8;
+    font:13px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  #bar { position:sticky; top:0; display:flex; align-items:center; gap:14px;
+    padding:8px 14px; background:#0a0a0a; border-bottom:1px solid #1e1e1e; }
+  #bar h1 { margin:0; font-size:13px; font-weight:600; color:#9ecbff;
+    letter-spacing:.02em; }
+  #stat { color:#7d7d7d; }
+  #stat.live::before { content:"●"; color:#3fb950; margin-right:5px; }
+  #stat.down::before { content:"●"; color:#f85149; margin-right:5px; }
+  label { color:#7d7d7d; cursor:pointer; }
+  #log { padding:12px 14px; white-space:pre-wrap; word-break:break-word; }
+  #log .join { color:#3fb950; } #log .leave { color:#d29922; }
+  #log .err  { color:#f85149; } #log .dm { color:#9ecbff; }
+</style></head>
+<body>
+  <div id="bar">
+    <h1>Homer's LotR — Server Monitor</h1>
+    <span id="stat">connecting…</span>
+    <label style="margin-left:auto"><input type="checkbox" id="auto" checked>
+      auto-scroll</label>
+  </div>
+  <div id="log">Loading server log…</div>
+<script>
+const logEl = document.getElementById('log');
+const statEl = document.getElementById('stat');
+const autoEl = document.getElementById('auto');
+function colorize(text) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return text.split('\n').map(line => {
+    let cls = '';
+    if (/error|exception|fail|traceback/i.test(line)) cls = 'err';
+    else if (/join|enter|added to|logged in|connect/i.test(line)) cls = 'join';
+    else if (/leav|left|remov|drop|disconnect|logout/i.test(line)) cls = 'leave';
+    else if (/\bDM\b|dungeon master/i.test(line)) cls = 'dm';
+    return cls ? `<span class="${cls}">${esc(line)}</span>` : esc(line);
+  }).join('\n');
+}
+async function poll() {
+  try {
+    const r = await fetch('/api/serverlog?tail=600', {cache:'no-store'});
+    const d = await r.json();
+    logEl.innerHTML = colorize(d.log || '');
+    if (d.ok) { statEl.textContent = d.container + ' — live'; statEl.className = 'live'; }
+    else { statEl.textContent = d.container + ' — down'; statEl.className = 'down'; }
+    if (autoEl.checked) window.scrollTo(0, document.body.scrollHeight);
+  } catch (e) {
+    statEl.textContent = 'monitor unreachable'; statEl.className = 'down';
+  }
+}
+poll();
+setInterval(poll, 3000);
+</script>
+</body></html>"""
+
+
 PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1346,6 +1449,7 @@ PAGE = r"""<!doctype html>
     <div class="extlinks">
       <a href="https://homerslotr.com/" target="_blank" rel="noopener">Public wiki ↗</a>
       <a href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Public roadmap ↗</a>
+      <a href="/monitor" target="_blank" rel="noopener">Server monitor ↗</a>
     </div>
     <div class="viewtoggle">
       <button id="view_board" class="on">Board</button>
