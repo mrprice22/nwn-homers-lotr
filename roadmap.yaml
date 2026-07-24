@@ -114,22 +114,17 @@ ideas:
     player: Szescian82
     date: "2026-07-23"
     commit: 6eccb73f46e
-    fix: "Created the 3 missing Setti keys (pickpocketable/lootable from Summanus), dropped the chest locks from an impossible DC 250 to a pickable 117, replaced the dead loot pools with curated end-game belt/ring/shield sets, and added a once-per-hour cooldown with an entry-timed re-lock. New check_container_keys smoke gate finds any locked+keyed container whose key has no source."
-    notes: "<div>The three Setti coffers in <b>Númenor: Noirinan</b> work again. They were locked at an impossible DC with keys that did not exist, and even if forced open they produced nothing. Now a character with high Open Lock can pick each coffer (DC 117), and the three keys &mdash; <b>Setti Belt / Ring / Shield Key</b> &mdash; can be pickpocketed from (or looted off) <b>Summanus</b> in the same area. Each coffer yields a random <b>end-game belt, ring, or shield</b> suited to the level-40 characters who reach Noirinan. A coffer refills at most once per hour; while spent it sits unlocked and empty, so you never waste a lockpick or a key opening an empty box.</div>"
-    impl_notes: "<div><b>Four separate bugs.</b> The 3 instances in <code>falseheaven.git.json</code> were <code>OpenLockDC=250</code> (engine shows &ldquo;success not possible&rdquo;) keyed to <code>SettiBeltKey/RingKey/ShieldKey</code> &mdash; items that <b>did not exist</b> and that no script minted. Their OnOpen loot (<code>chest_settibelt&rarr;my_createbelt</code>, etc.) drew from resrefs <code>be_all_*/ri_all_*/sh_all_*</code> that <b>also do not exist</b>, and was gated to <code>HitDice&le;12</code> with empty upper bands &mdash; dead for the level-40 visitors who reach the area. And the wrappers minted on <i>every</i> open with <code>OnClosed=sc_setlocked</code> re-locking each close, an infinite end-game farm once opening was fixed.</div><div><b>Fix.</b> (1) Created <code>settibeltkey/settiringkey/settishieldkey.uti</code> (Tag = KeyName, filed by PaletteID) and added them to the <code>summanus.utc</code> ItemList with <code>Dropable=1</code>+<code>Pickpocketable=1</code> (encounter <code>sommanus</code> spawns from the blueprint, covering steal-while-alive and drop-on-death). (2) Lock DCs 250&rarr;117, kept <code>KeyRequired=0</code>+<code>AutoRemoveKey=1</code>. (3) Rewrote <code>my_createbelt/ring/shield.nss</code> to curated 6-item end-game pools (cap raised to 60, empty-resref guarded), vetted against <code>module-index/inaccessible_items.json</code> &mdash; boss-dropped items plus 5 source-less orphans the chests now home (<code>epicbelt</code>, <code>beltofpower002</code>, <code>epicshield</code>, <code>shieldofithilien</code>, <code>it_mring042</code>); excluded god/joke items and lore-locked uniques (One Ring, Arwen's ring). (4) New <code>setti_loot_inc.nss</code>: real-epoch (SQLite <code>strftime</code>) once-per-hour gate in the wrappers; removed the OnClosed re-lock; <code>SettiRearm()</code> re-locks a cooled+empty coffer, called from <code>q_frk_enter</code> (falseheaven-only OnEnter) so re-arm is timed to a returning player's entry. New build gate <code>tests/check_container_keys.py</code> flags any locked+keyed container whose key has neither a <code>.uti</code> blueprint nor a minting script (script-aware, with a KNOWN baseline for the two other pre-existing offenders).</div>"
+    notes: "<div>The three Setti coffers in <b>Númenor: Noirinan</b> work again. They were locked at an impossible DC with keys that did not exist, and even if forced open they produced nothing. Now a character with high Open Lock can pick each coffer (DC 117), and the three keys — <b>Setti Belt / Ring / Shield Key</b> — can be pickpocketed from (or looted off) <b>Summanus</b> in the same area. Each coffer yields a random <b>end-game belt, ring, or shield</b> suited to the level-40 characters who reach Noirinan. A coffer refills at most once per hour; while spent it sits unlocked and empty, so you never waste a lockpick or a key opening an empty box.</div>"
+    impl_notes: "<div><b>Summary.</b> Created the 3 missing Setti keys (pickpocketable/lootable from Summanus), dropped the chest locks from an impossible DC 250 to a pickable 117, replaced the dead loot pools with curated end-game belt/ring/shield sets, and added a once-per-hour cooldown with an entry-timed re-lock. New check_container_keys smoke gate finds any locked+keyed container whose key has no source.</div><div><b>Four separate bugs.</b> The 3 instances in falseheaven.git.json were OpenLockDC=250 (engine shows “success not possible”) keyed to SettiBeltKey/RingKey/ShieldKey — items that <b>did not exist</b> and that no script minted. Their OnOpen loot (chest_settibelt→my_createbelt, etc.) drew from resrefs be_all_*/ri_all_*/sh_all_* that <b>also do not exist</b>, and was gated to HitDice≤12 with empty upper bands — dead for the level-40 visitors who reach the area. And the wrappers minted on <i>every</i> open with OnClosed=sc_setlocked re-locking each close, an infinite end-game farm once opening was fixed.</div><div><b>Fix.</b> (1) Created settibeltkey/settiringkey/settishieldkey.uti (Tag = KeyName, filed by PaletteID) and added them to the summanus.utc ItemList with Dropable=1+Pickpocketable=1 (encounter sommanus spawns from the blueprint, covering steal-while-alive and drop-on-death). (2) Lock DCs 250→117, kept KeyRequired=0+AutoRemoveKey=1. (3) Rewrote my_createbelt/ring/shield.nss to curated 6-item end-game pools (cap raised to 60, empty-resref guarded), vetted against module-index/inaccessible_items.json — boss-dropped items plus 5 source-less orphans the chests now home (epicbelt, beltofpower002, epicshield, shieldofithilien, it_mring042); excluded god/joke items and lore-locked uniques (One Ring, Arwen's ring). (4) New setti_loot_inc.nss: real-epoch (SQLite strftime) once-per-hour gate in the wrappers; removed the OnClosed re-lock; SettiRearm() re-locks a cooled+empty coffer, called from q_frk_enter (falseheaven-only OnEnter) so re-arm is timed to a returning player's entry. New build gate tests/check_container_keys.py flags any locked+keyed container whose key has neither a .uti blueprint nor a minting script (script-aware, with a KNOWN baseline for the two other pre-existing offenders).</div>"
     manual_steps:
       - step: "UAT: with a high Open-Lock PC, pick each of the 3 Setti coffers at DC 117 and confirm a level-appropriate belt / ring / shield appears; repeat across opens to confirm pool variety."
         status: open
-        blocker: false
       - step: "UAT: pickpocket Setti Belt/Ring/Shield Key off Summanus, and separately kill Summanus, confirming the keys are both stealable and drop on death; open a coffer with its key and confirm the key is consumed (AutoRemoveKey)."
         status: open
-        blocker: false
       - step: "UAT cooldown: loot a coffer, take the item, close it; re-open within the hour and confirm it is EMPTY and stays UNLOCKED (no wasted key/pick). Leave and re-enter the area after the hour and confirm the coffer is RE-LOCKED and mints fresh loot."
         status: open
-        blocker: false
       - step: "Req-3 follow-up (tracked in the check_container_keys KNOWN baseline, NOT shipped here): DiviningPool (diviningpl.utp) is KeyRequired with missing key 'divinekey' and no OnOpen loot &mdash; decide create key+source vs drop KeyRequired. loogazlair Chest1/Chest2 reference missing 'loogazkey' but are pickable at DC 18 &mdash; clear the phantom KeyName when convenient."
         status: open
-        blocker: false
   - id: petrification-timeout-2
     title: "Petrification timeout not working as expected"
     group: combat-classes
@@ -143,16 +138,12 @@ ideas:
     manual_steps:
       - step: "UAT: get a low-level PC petrified by a basilisk/medusa (basilisk00x spawn); confirm escalating warnings appear both in the chat log AND as floating text above the character roughly every 15s."
         status: open
-        blocker: false
       - step: "UAT: confirm that at ~2 minutes the petrified PC dies and the respawn GUI panel appears (not a stuck statue)."
         status: open
-        blocker: false
       - step: "UAT: kill the petrifying creature BEFORE the 2 minutes elapse and confirm the timeout still fires (proves the OBJECT_SELF-cancellation bug is gone)."
         status: open
-        blocker: false
       - step: "UAT: have a MeaningWave guide (or any Stone-to-Flesh) cure the PC mid-countdown and confirm the watcher stops (no spurious death after cure)."
         status: open
-        blocker: false
   - id: mw-questgiver-ignore-combat
     title: "Meaningwave quest givers to ignore and be ignored in combat"
     group: combat-classes
@@ -161,16 +152,13 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
     commit: bfa48e426304a70c239e7481d89eb24c7765b6b4
-    fix: "Made the 8 wandering MeaningWave quiz-givers fully non-combatant: a shared OnSpawn script sets them immortal/plot and applies a permanent supernatural Sanctuary(100) so nothing ever targets them, and their combat event scripts are repointed to a no-op so they never retaliate. The caster-duel companion variants are untouched."
-    notes: "<div>The wandering <b>MeaningWave quiz-givers</b> (Peterson, Campbell, Jung, Aurelius, Akira, Jocko, McKenna, Watts) are now fully peaceful. They never fight, and no creature &mdash; not even hostile monsters roaming their areas &mdash; will target or attack them, so you can take their quizzes undisturbed even in the middle of a fight.</div>"
-    impl_notes: "<div><b>Root cause:</b> the 8 spawned quiz-giver blueprints (<code>mw_*_w</code> + <code>mw_akira</code>) used the stock <code>x2_def_*</code> combat scripts, so they retaliated when hit, and being on the Merchant faction (FactionID 3) they were still valid enemy targets for the Hostile faction. Plot/Immortal only prevented death, not targeting or fighting.</div><div><b>Fix:</b> new <code>mw_qg_spawn.nss</code> (OnSpawn) runs <code>ExecuteScript(\"x2_def_spawn\")</code> to preserve ambient/walk behaviour, then <code>SetImmortal</code>+<code>SetPlotFlag</code>, then applies a permanent supernatural <code>EffectSanctuary(100)</code> &mdash; an unbeatable DC so nothing selects them as a target regardless of faction, and it never breaks since they take no hostile action. New <code>mw_qg_noop.nss</code> (empty) is wired to <code>ScriptAttacked</code>, <code>ScriptDamaged</code>, <code>ScriptEndRound</code>, <code>ScriptOnNotice</code>, <code>ScriptSpellAt</code> so they never retaliate or initiate. Edited the 8 blueprints to repoint those 5 combat events + <code>ScriptSpawn</code> and reassert <code>Plot=1</code>/<code>IsImmortal=1</code>. The non-<code>_w</code> caster-duel variants (<code>mw_peterson</code> etc., which use <code>mw_def_attacked</code>/MW_Style counterspell) were deliberately left combat-capable. All builtins verified against the game <code>nwscript.nss</code>; gates passed (script compilation, dialog-integrity, boss registry, palette coverage, reward-exploit, MeaningWave quiz banks, 10/10 smoke).</div>"
+    notes: "<div>The wandering <b>MeaningWave quiz-givers</b> (Peterson, Campbell, Jung, Aurelius, Akira, Jocko, McKenna, Watts) are now fully peaceful. They never fight, and no creature — not even hostile monsters roaming their areas — will target or attack them, so you can take their quizzes undisturbed even in the middle of a fight.</div>"
+    impl_notes: "<div><b>Summary.</b> Made the 8 wandering MeaningWave quiz-givers fully non-combatant: a shared OnSpawn script sets them immortal/plot and applies a permanent supernatural Sanctuary(100) so nothing ever targets them, and their combat event scripts are repointed to a no-op so they never retaliate. The caster-duel companion variants are untouched.</div><div><b>Root cause:</b> the 8 spawned quiz-giver blueprints (mw_*_w + mw_akira) used the stock x2_def_* combat scripts, so they retaliated when hit, and being on the Merchant faction (FactionID 3) they were still valid enemy targets for the Hostile faction. Plot/Immortal only prevented death, not targeting or fighting.</div><div><b>Fix:</b> new mw_qg_spawn.nss (OnSpawn) runs ExecuteScript(\"x2_def_spawn\") to preserve ambient/walk behaviour, then SetImmortal+SetPlotFlag, then applies a permanent supernatural EffectSanctuary(100) — an unbeatable DC so nothing selects them as a target regardless of faction, and it never breaks since they take no hostile action. New mw_qg_noop.nss (empty) is wired to ScriptAttacked, ScriptDamaged, ScriptEndRound, ScriptOnNotice, ScriptSpellAt so they never retaliate or initiate. Edited the 8 blueprints to repoint those 5 combat events + ScriptSpawn and reassert Plot=1/IsImmortal=1. The non-_w caster-duel variants (mw_peterson etc., which use mw_def_attacked/MW_Style counterspell) were deliberately left combat-capable. All builtins verified against the game nwscript.nss; gates passed (script compilation, dialog-integrity, boss registry, palette coverage, reward-exploit, MeaningWave quiz banks, 10/10 smoke).</div>"
     manual_steps:
       - step: "UAT: pull a hostile creature adjacent to a spawned MeaningWave quiz-giver (e.g. Watts in Old Forest (oldforest001), or Jung in Crypts of the Lost (cryptsofthelosts)) and confirm the hostile ignores the NPC entirely and the NPC never fights back."
         status: open
-        blocker: false
       - step: "UAT: confirm the quiz-givers still wander/idle normally and their quiz conversation still opens when clicked."
         status: open
-        blocker: false
   - id: palette-mapping
     title: "WIKI: Document Item and Creature locations within in-game palette"
     group: wiki-tools
@@ -179,13 +167,11 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
     commit: 88780c7d597
-    fix: "Added a Palette Finder to the internal roadmap/merit editor: search any creature/item/placeable/etc. by name or resref and it reports the exact toolset-palette location (Top > Sub > category). Backed by bin/gen-palette-map.py (a standalone, on-demand script — never run by the wiki/rebuild) with a Refresh button in the editor. CLAUDE.md and CLAUDE-autopilot.md were updated so new blueprints are filed by PaletteID and manual-action steps include the palette category path."
-    impl_notes: "<div>Shipped across <code>88780c7d597</code> (Palette Finder: <code>bin/gen-palette-map.py</code> builds <code>module-index/palette_map.json</code> — resref &rarr; {name, type, palette path, in_palette, custom_palette} across all 9 palettes; editor gets a <code>Palette Finder</code> button, <code>/api/palette</code> search and <code>/api/palette/refresh</code> endpoints, results table with palette location + custom/standard flag) and <code>0aa18ad6d08</code> (place blueprints at their <code>PaletteID</code> home to match the toolset, with the custom/standard bucket flag). The map is standalone/on-demand only — explicitly NOT wired into the wiki build or any publish. CLAUDE.md documents the palette_map.json lookup + the <code>file-palette-orphans.py</code> / <code>check_palette_coverage</code> gate, and CLAUDE-autopilot.md step 3 requires filing new blueprints by PaletteID and naming the palette category path in <code>manual_steps</code>. No new work needed at flip time; this record retroactively marks the already-shipped feature as implemented.</div>"
+    notes: "<div>The internal backlog editor now has a <b>Palette Finder</b>: search a creature, item, or placeable by name or resref and it tells you exactly where to find it in the in-game toolset palette (the full Top &gt; Sub &gt; category path), so you no longer have to hunt through hundreds of palette folders. The map is rebuilt on demand from a button; it never runs as part of a rebuild or wiki publish.</div>"
+    impl_notes: "<div><b>Summary.</b> Added a Palette Finder to the internal roadmap/merit editor: search any creature/item/placeable/etc. by name or resref and it reports the exact toolset-palette location (Top &gt; Sub &gt; category). Backed by bin/gen-palette-map.py (a standalone, on-demand script — never run by the wiki/rebuild) with a Refresh button in the editor. CLAUDE.md and CLAUDE-autopilot.md were updated so new blueprints are filed by PaletteID and manual-action steps include the palette category path.</div><div>Shipped across 88780c7d597 (Palette Finder: bin/gen-palette-map.py builds module-index/palette_map.json — resref → {name, type, palette path, in_palette, custom_palette} across all 9 palettes; editor gets a Palette Finder button, /api/palette search and /api/palette/refresh endpoints, results table with palette location + custom/standard flag) and 0aa18ad6d08 (place blueprints at their PaletteID home to match the toolset, with the custom/standard bucket flag). The map is standalone/on-demand only — explicitly NOT wired into the wiki build or any publish. CLAUDE.md documents the palette_map.json lookup + the file-palette-orphans.py / check_palette_coverage gate, and CLAUDE-autopilot.md step 3 requires filing new blueprints by PaletteID and naming the palette category path in manual_steps. No new work needed at flip time; this record retroactively marks the already-shipped feature as implemented.</div>"
     manual_steps:
       - step: "UAT: open the roadmap/merit editor, click Palette Finder, click Refresh palette map, then search a known blueprint (e.g. a creature resref) and confirm it reports a sensible Top > Sub > category path."
         status: open
-        blocker: false
-    notes: "<div>The internal backlog editor now has a <b>Palette Finder</b>: search a creature, item, or placeable by name or resref and it tells you exactly where to find it in the in-game toolset palette (the full <code>Top &gt; Sub &gt; category</code> path), so you no longer have to hunt through hundreds of palette folders. The map is rebuilt on demand from a button; it never runs as part of a rebuild or wiki publish.</div>"
   - id: hgll-banked-skillpoints-lost
     title: "HGLL pre level 41 skill points banked do not carry over"
     group: combat-classes
@@ -268,13 +254,10 @@ ideas:
         step_h: 64
       - step: "UAT appearance: spawn/loot the 6 new caster items (sorc_robe_annu, sorc_amul_annu, sorc_ring_annu, wiz_robe_annu, wiz_amul_annu, wiz_ring_annu) and confirm each looks right, equips on a caster, and its properties display (ability score, bonus spell slots, resistances). Palette: robes -> Armor > Clothing; amulets -> Miscellaneous > Jewelry > Amulets; rings -> Miscellaneous > Jewelry > Rings."
         status: open
-        blocker: false
       - step: "UAT one-key-one-chest: in Ruins of Annuminas (ruinsofannuminas), get the Annuminas Key from the Gondor Scribe (Tower of the High Wizard: Ground Floor / area011), open ONE warded chest (Sorcerer's Warded Coffer @ X71.23/Y50.06 or Wizard's Sealed Reliquary @ X76.24/Y49.98), and confirm the key is consumed and the OTHER warded chest can no longer be opened (unpickable + no key)."
         status: open
-        blocker: false
       - step: "UAT pickable chests: confirm the two remaining Annuminas chests (Placeable-List idx 9 @ X62.34/Y54.80 and idx 10 @ X62.09/Y44.90) are still lockpickable and still generate medium treasure on open."
         status: open
-        blocker: false
   - id: unlock-more-inacessible-creature
     title: "Unlock Inacessible creatures, beef up stats, give them areas to live in"
     group: bosses
@@ -396,7 +379,6 @@ ideas:
     manual_steps:
       - step: "UAT: in Númenor: The Great Forge Of Númenor (heavensfoundry), open the Numenorian Armorer's store (x2_storeweap003) and confirm Divine Arrows and Divine Bullets can be bought repeatedly (more than one 99-stack) without the entry running out."
         status: open
-        blocker: false
   - id: normal-and-epic-summons
     title: "Allow epic summons + normal summons out at same time"
     group: forge
@@ -670,7 +652,6 @@ ideas:
     manual_steps:
       - step: "On approval this becomes a scripting build (equip-flag include + spell-cast-hook interception + the approved item blueprints + boss-drop placement) - re-promote to confirmed. The item blueprints will need palette filing and appearance/equip UAT; boss-drop placement is a per-boss .utc ItemList edit (existing bosses, no new areas)."
         status: open
-        blocker: false
   - id: respawn-tracker-well-of-eru
     title: "Respawn Tracker in Well of Eru"
     group: bosses
@@ -1912,19 +1893,14 @@ ideas:
     manual_steps:
       - step: "UAT persistence: use a Well of Eru Good (or Evil) teleporter to take that allegiance, confirm the opposing faction's NPCs turn hostile, relog, and confirm the allegiance + hostility PERSIST (previously they reset). Then use the opposite teleporter and confirm the flip also persists."
         status: open
-        blocker: false
       - step: "UAT alignment independence: on a True-Neutral-alignment character, take a Good allegiance and confirm it works (allegiance is faction-based, not GetAlignment)."
         status: open
-        blocker: false
       - step: "Confirm the anchor NPCs tagged Goodfaction/Evilfaction/Neutralfaction exist and are placed (the whole system keys off them). Note their area(s) at build time."
         status: open
-        blocker: false
       - step: "UAT oath-lock: swear the Paladin Oath of the West (Hallas, Minas Tirith Keep / area005) and confirm the EVIL light-shaft (solred) now refuses with a message and does not switch you, while the GOOD shaft still works. Symmetric: swear the Blackguard Black Oath (rack in Keep of Barad-dur / baraddurkeep) and confirm the GOOD shaft (zep_lightshft009) refuses."
         status: open
-        blocker: false
       - step: "UAT dual standing + bleed: as DM, Faction_AdjustStanding(oPC,\"Good\",100) then Faction_AdjustStanding(oPC,\"Evil\",100) and confirm BOTH good_standing and evil_standing are non-zero (playing both sides is not punished), and that the Evil grant reduced good_standing by ~25 (25% bleed) but never below 0 / never reset."
         status: open
-        blocker: false
 
   - id: faction-rally-rescue
     title: "Faction rally: pre-death muster call + timed rescue quest"
@@ -1948,7 +1924,6 @@ ideas:
     manual_steps:
       - step: "On approval this is a scripting build (bst_ondamage hook + a rally include over worldstate_inc + a rescue quest journal category + reward). No new blueprints expected; wave/creature flags are blueprint/spawn edits. Re-promote to confirmed after the design questions are answered."
         status: open
-        blocker: false
   - id: pvp-faction-points
     title: "Faction points for PVP kills during active rally calls"
     group: quests-areas
@@ -2402,7 +2377,6 @@ ideas:
     manual_steps:
       - step: "UAT faction oath-lock: after the Black Oath fall, confirm the character is Evil-aligned by faction and that the GOOD Well of Eru light-shaft (zep_lightshft009) now refuses to switch them (message, no change); the EVIL shaft still works."
         status: open
-        blocker: false
       - step: "Verify the Barad-dur rack is actually clickable in-game. The instance follows the shipped-sibling retag shape (Static:0 + OnUsed, no explicit Useable override, exactly like the RDD Forge-of-Durin anvil). If the CEP plc_torture1 base is not useable-by-default the rack will not be clickable and the quest cannot be completed &mdash; if so, add a single Useable:1 field to that instance, and note the same one-line fix would apply to the sibling anvil/altar retags."
         status: open
         blocker: true
@@ -2707,10 +2681,8 @@ ideas:
     manual_steps:
       - step: "DONE: shared world-state helper built (commit 0b17611 — worldstate_inc.nss + worldstatedb + WS_Tick heartbeat). Remaining for this quest: build the tug-of-war scripts + Helm's Deep scaling once the mechanic below is approved, then re-promote to confirmed. The cooldown half needs nothing new (quest_cd_inc.nss exists)."
         status: open
-        blocker: false
       - step: "UAT the world-state helper (infra): as DM, WS_RegisterDecay(\"uat_ws\",1,0) + WS_SetInt(\"uat_ws\",5); after ~5 min confirm WS_GetInt(\"uat_ws\") has decayed toward 0 (~1/min via the heartbeat), and confirm a set value survives a server restart (worldstatedb persistence). WS_Clear(\"uat_ws\") to tidy."
         status: open
-        blocker: false
 
   - id: goblin-town-throne
     title: "Quest: The Goblin-Town Throne (Misty Mountains)"
@@ -2775,7 +2747,6 @@ ideas:
     manual_steps:
       - step: "On approval: build the Ent giver NPC + conversation (3 branches) + the draught item + a per-character once-only completion stamp; place the giver via an AP_ waypoint in the existing Fangorn/Ent area (name the exact area at build time). Then re-promote to confirmed. New NPC + item -> appearance/equip UAT and palette filing."
         status: open
-        blocker: false
   - id: twentyfirst-hall
     title: "Quest: The Twenty-First Hall (Moria, party dungeon)"
     group: quests-areas
@@ -3056,10 +3027,8 @@ ideas:
         step_h: 64
       - step: "UAT (shard weapon): at Fighter 8 take the shard from Hallas and confirm it is now an equippable fighter-only dagger with +3 attack bonus, -1 damage, and causes bleeding (On Hit: Wounding) on hit; confirm a non-fighter cannot equip it; at Fighter 15 confirm the reforge still consumes it and grants the Warden's Reforged Blade."
         status: open
-        blocker: false
       - step: "UAT appearance (Hallas): spawn q_ftr_hallas in The Prancing Pony (theprancingpo001) at AP_fighterlineearly_1 and confirm he now appears in Gondorian plate with a shield and a drawn longsword, the gear stays equipped (not stripped) after spawn, and players cannot loot/steal his armor, shield, or sword."
         status: open
-        blocker: false
 
   - id: fighter-line-mid
     title: "Fighter line II — The Unbroken Shield (L22-38)"
@@ -3354,7 +3323,6 @@ ideas:
     manual_steps:
       - step: "UAT faction oath-lock: after swearing the Oath of the West, confirm the character is Good-aligned by faction and that the EVIL Well of Eru light-shaft (solred) now refuses to switch them (message, no change); the GOOD shaft still works."
         status: open
-        blocker: false
       - step: "Place waypoint AP_paladinlineearly_1 in area005 (Minas Tirith: Keep) — suggested spot is the parapet/wall side of the hall, facing east. Hallas the Oathkeeper is script-spawn-only and no-ops gracefully until then — the entire quest line is invisible in-game until this is placed."
         status: open
         blocker: true
@@ -3419,7 +3387,6 @@ ideas:
         blocker: true
       - step: "If the tag is correct, confirm the live server is running a .mod built at or after commit 82f97f86ded — that commit repointed rivendellupperha's OnEnter from mw_riv_enter to q_bard_enter. A stale module still spawns Peterson (via mw_riv_enter) but never calls q_bard_spawn: exactly 'Peterson yes, Lindir no'. Rebuild/redeploy if stale."
         status: open
-        blocker: false
       - step: "UAT: speak to Lindir on a non-bard — confirm the fire-side greeting with only a farewell option, and no journal entry or item."
         status: open
         step_h: 64
