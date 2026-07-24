@@ -21,7 +21,10 @@ for arg in "$@"; do
   esac
 done
 
-PROJECT=/var/home/james/GIT/nwn_homers_lotr
+# Season-relocatable: derive the project from this script's own location, so a
+# copy of the repo at any path regenerates its OWN wiki (season-cutover-prereqs
+# item 4). nwn_manager stays absolute — it is genuinely one shared checkout.
+PROJECT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 NWN_MANAGER_BIN=/var/home/james/GIT/nwn_manager/bin
 
 export PATH="$HOME/.nimble/bin:$NWN_MANAGER_BIN:$PATH"
@@ -42,11 +45,18 @@ cd "$PROJECT" || { echo "missing project: $PROJECT"; pause; exit 1; }
 # server.env (sourced above); fall back to the standard NWN user dir.
 DB_DIR="${NWN_HOME_DIR:-$HOME/.local/share/Neverwinter Nights}/database"
 
+# Both from server.env: SEASON_WIKI_URL is the apex for the live season and
+# season<N>.homerslotr.com otherwise; NWN_RUN_DIR is this instance's run dir,
+# which holds the host-readable server logs the activity charts are built from.
+# Fallbacks keep the script working against a repo with no season block yet.
+BASE_URL="${SEASON_WIKI_URL:-https://homerslotr.com/}"
+LOG_DIR="${NWN_RUN_DIR:-$HOME/.local/state/nwnxee-homer}"
+
 nwn-manager wiki \
-  --base-url https://homerslotr.com/ \
+  --base-url "$BASE_URL" \
   --exclude-conv-option "[Admin Options]" \
   --exclude-conv-option "[Options of the Homeless]" \
-  --log-dir "$HOME/.local/state/nwnxee-homer" \
+  --log-dir "$LOG_DIR" \
   --db-dir "$DB_DIR" \
   --2da-dir "$PROJECT/hak_2da" \
   --path-from thewelloferu

@@ -33,7 +33,11 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 [[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
 
 # --- config (override via env or server.env) --------------------------------
-: "${BACKUP_DEST:=$HOME/OneDrive/Games/NWNHomersLOTR/backups}"
+# Per-season archive folder: the retention prune below regex-matches every
+# homers-lotr-*.tar.gz in BACKUP_DEST, so two seasons sharing one folder would
+# prune each other's monthly keepers. SEASON_NUM comes from server.env's season
+# block; unset (a repo with no season block) keeps the pre-season flat layout.
+: "${BACKUP_DEST:=$HOME/OneDrive/Games/NWNHomersLOTR/backups${SEASON_NUM:+/s$SEASON_NUM}}"
 : "${BACKUP_SENTINEL:=$NWN_RUN_DIR/.backup-last-run}"
 : "${BACKUP_LOG:=$NWN_RUN_DIR/backup.log}"
 : "${BACKUP_KEEP_DAYS:=30}"                 # keep every backup this recent
@@ -84,9 +88,23 @@ copy_configs() {  # $1 = source base dir, $2 = stage subdir
   done
 }
 
+# Cross-season shared DBs. These are symlinks into ~/.local/share/nwn-shared/ in
+# every season's database/ dir, so each season would otherwise archive them —
+# `sqlite3 .backup` reads straight *through* a symlink. Skip them below and let
+# exactly one instance (the live season) snapshot them, so the archived season's
+# backups hold only its own data and the account-wide state is captured once.
+SHARED_DB_DIR="$HOME/.local/share/nwn-shared"
+SHARED_DBS=(meritdb admindb)
+
 if [[ $DRY_RUN -eq 1 ]]; then
   log "DRY RUN — would back up:"
-  log "  DBs:        $(ls "$NWN_HOME_DIR"/database/*.sqlite3 2>/dev/null | wc -l) sqlite files"
+  log "  season:     num='${SEASON_NUM:-unset}' role='${SEASON_ROLE:-unset}'"
+  log "  DBs:        $(find "$NWN_HOME_DIR/database" -maxdepth 1 -type f -name '*.sqlite3' 2>/dev/null | wc -l) sqlite files (per-season; symlinks skipped)"
+  if [[ ${SEASON_ROLE:-} == live ]]; then
+    log "  shared DBs: ${SHARED_DBS[*]} from $SHARED_DB_DIR (this instance is SEASON_ROLE=live)"
+  else
+    log "  shared DBs: skipped (SEASON_ROLE='${SEASON_ROLE:-unset}' is not 'live')"
+  fi
   log "  vault:      $(find "$NWN_HOME_DIR/servervault" -name '*.bic' 2>/dev/null | wc -l) .bic characters"
   log "  configs:    home + run copies of: ${CONFIG_FILES[*]}"
   log "  activity:   $NWN_RUN_DIR/activity-sessions.json(+.bak)"
@@ -98,12 +116,26 @@ fi
 # --- databases: consistent live snapshots via the SQLite backup API --------
 mkdir -p "$stage/home/database"
 for db in "$NWN_HOME_DIR"/database/*.sqlite3; do
+  [[ -L $db ]] && continue          # shared cross-season DB — captured below, by the live season only
   name=$(basename "$db")
   if ! sqlite3 "$db" ".backup '$stage/home/database/$name'" 2>/dev/null; then
     log "warn: sqlite3 .backup failed for $name; falling back to cp"
     cp -p "$db" "$stage/home/database/$name"
   fi
 done
+
+# The live season owns the shared-DB backup, so two running seasons never race
+# it. `.backup` gives a consistent snapshot even while both servers hold the
+# file open.
+if [[ ${SEASON_ROLE:-} == live ]]; then
+  for f in "${SHARED_DBS[@]}"; do
+    [[ -f $SHARED_DB_DIR/$f.sqlite3 ]] || continue
+    if ! sqlite3 "$SHARED_DB_DIR/$f.sqlite3" ".backup '$stage/home/database/$f.sqlite3'" 2>/dev/null; then
+      log "warn: sqlite3 .backup failed for shared $f; falling back to cp"
+      cp -p "$SHARED_DB_DIR/$f.sqlite3" "$stage/home/database/$f.sqlite3"
+    fi
+  done
+fi
 
 # --- player vault -----------------------------------------------------------
 if [[ -d $NWN_HOME_DIR/servervault ]]; then
@@ -128,6 +160,9 @@ done
   echo "module_source_rev: $(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo '?')"
   echo "nwn_home_dir: $NWN_HOME_DIR"
   echo "nwn_run_dir: $NWN_RUN_DIR"
+  echo "season_num: ${SEASON_NUM:-unset}"
+  echo "season_role: ${SEASON_ROLE:-unset}"
+  echo "shared_dbs_included: $([[ ${SEASON_ROLE:-} == live ]] && echo yes || echo no)"
   echo
   echo "sha256:"
   ( cd "$stage" && find . -type f ! -name MANIFEST.txt -print0 | sort -z \

@@ -813,6 +813,73 @@ cleanly and the host `homers-lotr-empty-restart.path` unit restarts **just the
 server service** onto the new module. Cancel with `bin/reboot-on-empty off`. Full
 setup + one-time unit install: [`rebootSchedule.md`](rebootSchedule.md#adhoc-reboot-on-empty-push-an-update-without-kicking-players).
 
+## Season identity & rotation
+
+The server rotates through **seasons** every 3–4 months — everyone rolls new
+characters, so the module can absorb big rebalances without legacy characters and
+inflated economies. The per-season runbook is
+[`season-cutover-guide.md`](season-cutover-guide.md); the one-time engineering it
+depends on is [`season-cutover-prereqs.md`](season-cutover-prereqs.md).
+
+### The season block in `server.env`
+
+Every season-scoped value in this repo derives from one block at the bottom of
+`server.env`:
+
+| Var | Meaning |
+|-----|---------|
+| `SEASON_NUM` | This environment's season number |
+| `SEASON_ROLE` | `live` \| `test` \| `archive` — drives the server name and the in-game status sign |
+| `SEASON_LEGACY_NAMES` | Season 1 only: suppress the derived module/server names (see below) |
+| `SEASON_WIKI_URL` | `https://homerslotr.com/` for the live season, `https://season<N>.homerslotr.com/` otherwise |
+| `SEASON_WORKER_NAME` | Cloudflare worker serving `docs/`. **Must be unique per season** — two repos deploying the same worker name collide |
+| `SEASON_CONNECT_HOST` | Host half of the module description's `Connect:` line |
+| `SEASON_PEER_*` | The *other* running instance (role / num / port / password), for the in-game cross-advert sign. `SEASON_PEER_ROLE=none` hides it |
+
+`SEASON_NUM` and `SEASON_ROLE` are the only authored facts. Everything else —
+module name, server name, worker name, every in-game URL and both season signs —
+is **derived and written** by `python3 bin/season-brand.py --apply`. Edit the
+block, re-run the script, repack. Never hand-edit the values it owns; the
+`check_season_brand` build gate fails the repack if the tree drifts.
+
+`SEASON_PEER_PASSWORD` is committed on purpose: it is a password the module
+advertises to every player on a sign, so it is not a secret. This is not an
+exception to the "no secrets in `unpacked/`" rule — that rule is about CD keys
+and admin credentials, which still never appear in source or in the packed `.mod`.
+
+`SEASON_*` is deliberately **not** forwarded into the container: `bin/serve`
+passes only `TZ`, `NWN_*`, `NWNX_*` and `ANVIL_*`. Nothing needs it at runtime,
+because the signs are baked into `thewelloferu.git.json` at brand time.
+
+### Module and server naming
+
+Three names get confused constantly. In NWN **the module name *is* the installed
+`.mod` filename**, so `NWN_MODULE` must equal it exactly, minus the extension, or
+`nwserver` exits at boot with a module-not-found error.
+
+| Name | Where it lives | Season N value |
+|------|----------------|----------------|
+| Build artifact | `nasher.cfg` → `[package].name` and `[target].file` | `homers_lotr_s<N>.mod` |
+| **Installed module** | `$NWN_HOME_DIR/modules/<name>.mod`, written by the repack wrapper | `Homer's LOTR Season <N>.mod` |
+| `NWN_MODULE` | `server.env` — the installed filename, **no `.mod`** | `Homer's LOTR Season <N>` |
+| `NWN_SERVERNAME` | `server.env` — server-browser name, free text | role-dependent ↓ |
+
+| `SEASON_ROLE` | `NWN_SERVERNAME` |
+|------|-------------|
+| `test` | `Homer's LOTR — Season <N> (EARLY ACCESS)` |
+| `live` | `Homer's LOTR — Season <N>` |
+| `archive` | `Homer's LOTR — Season <N> (ARCHIVED)` |
+
+**Season 1 keeps its legacy names** — `homers_lotr_v3.mod`, module
+`Homer's LOTR VEL v3`, server name `Homer's LOTR Very Easy Leveling` — which is
+what `SEASON_LEGACY_NAMES=1` enforces. Never rename a live module: the filename
+change alone leaves every player's saved server entry pointing at a module that
+no longer exists. Numbering starts at season 2.
+
+Renaming has no data consequence — the servervault is per-`NWN_HOME_DIR` and
+campaign DBs are scoped by their own name, so neither is keyed to the module
+name. It is purely cosmetic plus the `NWN_MODULE` match.
+
 ## Prerequisites
 
 `nasher`, `nwn_gff`, `nwn_script_comp`, and `python3` (for `wiki`) must be
