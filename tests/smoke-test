@@ -94,4 +94,12 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: season branding…"
+if python3 "$HERE/check_season_brand.py"; then
+  echo "ok: season branding"
+else
+  echo "fail: season branding"
+  rc=1
+fi
+
 exit $rc
