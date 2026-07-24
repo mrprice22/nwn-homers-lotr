@@ -168,17 +168,29 @@ Two consequences worth knowing:
 
 ## 3. Prerequisites
 
-This runbook assumes the one-time engineering in
-**[season-cutover-prereqs.md](season-cutover-prereqs.md)** is done: the
-`teledb`/`meritdb` split, the `meritdb` + `admindb` DBs moved to their neutral
-shared path, the season
-block in `server.env`, relocatable wrappers, templated systemd units,
+This runbook depends on the one-time engineering in
+**[season-cutover-prereqs.md](season-cutover-prereqs.md)** — and as of
+**2026-07-24 all twelve items are done**: the `teledb`/`meritdb` split, the
+`meritdb` + `admindb` DBs moved to their neutral shared path, the season block in
+`server.env`, relocatable wrappers, templated systemd units,
 `bin/season-brand.py`, the two season placeables, and
 `bin/roadmap-archive-prune.py`.
 
-**Do not start Phase 1 until that file's boxes are ticked** — every phase below
-calls into one of those pieces, and two of them (the `teledb` split and the merit
-DB move) touch live player data and cannot be done mid-cutover.
+The tools each phase calls into:
+
+| Phase step | Tool |
+|---|---|
+| Link a new season's shared DBs (§5.6, §7) | `bin/season-shared-dbs.sh --apply` |
+| Rebrand a repo (§5.5, §7.6) | `python3 bin/season-brand.py --apply` |
+| Build a season's module (§5.5) | `repack-homers-lotr --project <repo>` |
+| Stand up / tear down a season's units (§5.9, §8.1) | `bin/season-units.sh --enable` / `--remove` |
+| Ops app-grid shortcuts (§5.10, §8.5) | `bin/season-shortcuts.sh --install` / `--remove` |
+| Freeze the archived roadmap (§7.8) | `python3 bin/roadmap-archive-prune.py --apply` |
+
+Read that file's **Built** notes before the first Phase 1 — several items came
+out differently from the design sketched there, and one of them (the shared DBs
+needing a container bind mount, not just a symlink) is a crash the host-side
+verification steps do not catch.
 
 ---
 

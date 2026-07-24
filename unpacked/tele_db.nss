@@ -1,8 +1,14 @@
 // tele_db.nss — Rest-menu teleport persistence (merit redemptions 101-107).
 //
-// Reuses the campaign SQLite DB "meritdb". Saved positions are PER CHARACTER
+// Uses its own campaign SQLite DB "teledb". Saved positions are PER CHARACTER
 // (keyed by GetObjectUUID), while the unlock entitlements themselves live in the
-// merit redemptions table and are per-CD-Key (see merit_redeem.nss).
+// merit redemptions table in "meritdb" and are per-CD-Key (see merit_redeem.nss).
+//
+// This used to piggyback on "meritdb", which is wrong for the season rotation:
+// meritdb is one of only two files SHARED by every season (the other is
+// admindb), so every future season would have inherited stale per-character
+// teleport rows for characters that no longer exist. Per-character state must
+// live in a per-season DB. See season-cutover-prereqs.md item 1.
 //
 // Tables:
 //   tele_slots(pid, slot, area, name, x, y, z, facing)
@@ -13,7 +19,7 @@
 //     return_armed = 1 after a Well-of-Eru teleport, cleared on a return jump,
 //     so the return can never be used twice in a row.
 
-const string TELE_DB = "meritdb";
+const string TELE_DB = "teledb";
 
 // ------------------------------------------------------------
 // Schema

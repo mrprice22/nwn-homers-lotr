@@ -128,6 +128,19 @@ PYEOF
   echo "[serve] patched settings.tml: sticky-modes=true, always-roll-max-hitpoints-on-levelup=true, max-ability-bonus=24"
 fi
 
+# Cross-season shared campaign DBs (meritdb, admindb) live outside every
+# season's home dir and are ABSOLUTE symlinks inside database/. An absolute
+# symlink only resolves if the same absolute path exists inside the container,
+# so the shared dir is mounted at its own host path. Without this the engine
+# aborts at module load with `what(): database unavailable` — the symlinks
+# dangle and nwserver treats an unopenable campaign DB as fatal.
+# See season-cutover-prereqs.md item 2.
+shared_args=()
+NWN_SHARED_DIR="${NWN_SHARED_DIR:-$HOME/.local/share/nwn-shared}"
+if [[ -d $NWN_SHARED_DIR ]]; then
+  shared_args=(-v "$NWN_SHARED_DIR:$NWN_SHARED_DIR:rw,z")
+fi
+
 podman run --rm --name "$NWN_CONTAINER_NAME" \
   --userns=keep-id --user "$(id -u):$(id -g)" \
   --network=host \
@@ -136,6 +149,7 @@ podman run --rm --name "$NWN_CONTAINER_NAME" \
   -v "$NWN_RUN_DIR:/nwn/run:rw,Z" \
   -v "$NWN_HOME_DIR:/nwn/home:rw,z" \
   -v "$NWN_RUN_DIR/settings.tml:/nwn/run/settings.tml:ro,Z" \
+  "${shared_args[@]}" \
   "$@" \
   "$NWN_IMAGE"
 

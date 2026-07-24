@@ -1,5 +1,18 @@
 # Gotchas — silent failure modes and common traps
 
+- **A symlink in `database/` must resolve *inside the container*, not just on
+  the host.** The server runs in podman with only two bind mounts,
+  `$NWN_RUN_DIR:/nwn/run` and `$NWN_HOME_DIR:/nwn/home`. An absolute symlink
+  pointing anywhere else — e.g. the cross-season shared `meritdb`/`admindb` in
+  `~/.local/share/nwn-shared/` — resolves perfectly from a host shell and
+  **dangles inside the container**. Every host-side check passes (`ls -l` shows
+  a good link, `sqlite3` reads the tables, the backup works) and the only
+  symptom is nwserver aborting at module load with
+  `terminate called … what(): database unavailable` and systemd restart-looping
+  it. `bin/serve` mounts `$NWN_SHARED_DIR` at its own host path so absolute
+  links resolve identically on both sides; anything else you link into
+  `database/` needs the same treatment.
+
 - **Wrong-shape `.git` instances fail silently.** If a struct in a
   `Creature List` / `Placeable List` / etc. has the wrong `__struct_id`
   (e.g. you copied the `.utc`/`.utp` blueprint root instead of an existing

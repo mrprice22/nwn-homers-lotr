@@ -132,6 +132,14 @@ made `slot_token` seem to "disappear"). The **`check_palette_coverage` smoke gat
 the repack** until every blueprint is filed, so this isn't optional. A toolset save
 achieves the same re-filing. Standalone (dry-run by default) — **not** a wiki refresh.
 
+**After changing the season block in `server.env`** (or any season-scoped string
+it owns — wiki URL, connect host/port, module/server name, worker name, the two
+Well of Eru season signs), run `python3 bin/season-brand.py --apply`. It is
+idempotent and dry-run by default; `tests/check_season_brand.py` fails the
+repack until the tree matches the block. Never hand-edit the strings it owns —
+the list is in the script's rule table. See `README.md` "Season identity &
+rotation" and [season-cutover-prereqs.md](season-cutover-prereqs.md).
+
 **After adding or changing areas/transitions**, re-run `python3 bin/gen-map-notes.py`
 (then `--apply`) to keep destination map-note pins on the area map in sync — it
 annotates every door/trigger/portal with its destination area name and each

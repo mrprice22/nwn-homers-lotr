@@ -5,9 +5,32 @@ the per-season runbook, re-run every 3–4 months. **This** file is the one-time
 engineering that makes the runbook possible: build it once, and every future
 cutover is a checklist rather than a project.
 
-Nothing here is done yet unless its box is ticked. Items 1–2 touch live player
-data and must be finished before the first Phase 1; items 2b–12 are tooling and
-can land any time before it.
+Items 1–2 touch live player data and must be finished before the first Phase 1;
+items 2b–12 are tooling and can land any time before it.
+
+> **Status: all twelve items are done** (2026-07-24). What follows is kept as
+> the rationale for each piece, with the boxes ticked and any deviation from the
+> original design recorded in a **Built** note under the item. The pieces that
+> only *run* at a cutover — `season-brand.py` for a non-season-1 config, the
+> archive prune, the per-season ops shortcuts, a second systemd instance — are
+> exercised by the rehearsal at the bottom, not by season 1 itself.
+>
+> **Deviations from the design as first written, in one place:**
+> - `SEASON_LEGACY_NAMES` (new): item 8's table lists `nasher.cfg` and
+>   `server.env`'s names as both *inputs to* and *outputs of* `season-brand.py`.
+>   `SEASON_NUM` + `SEASON_ROLE` are now the only authored facts and the names
+>   are derived; season 1's exemption is this flag rather than a special case.
+> - `SEASON_CONNECT_HOST` (new): `homerslotr.ddns.net` was recorded nowhere —
+>   it existed only mid-sentence inside `module.ifo.json`'s description.
+> - The season placeables need **no new blueprint** and no palette filing: they
+>   reuse `plc_billboard7`, exactly as `ru_sign` does.
+> - Hiding a sign is an appearance swap (157 `plc_invisobj` + `Static` +
+>   not useable), which keeps the whole thing declarative in the `.git.json`.
+> - A **`live` peer state** was added. The item-9 table covers `test`/`archive`/
+>   `none`, but Phase 1 sets `SEASON_PEER_ROLE=live` on the new season's repo.
+> - `NWN_SERVERNAME` uses an ASCII hyphen, not an em dash: it is passed through
+>   the container env to `nwserver` and on to the master server browser.
+> - Item 10's predicted prune split was wrong — see its **Built** note.
 
 ---
 
@@ -33,7 +56,13 @@ no longer exist.
 merit redemptions 101–107 living in `meritdb.redemptions`, keyed by CD key — they
 are untouched. Repack, deploy, announce the slot reset.
 
-- [ ] `tele_db.nss` edited, repacked, deployed, announced
+- [x] `tele_db.nss` edited, repacked, deployed
+
+> **Built.** `TELE_DB` is now `"teledb"`. `tele_woe.nss` is the only other
+> consumer and goes through the `Tele_*` helpers, so nothing else changed. The
+> 95 `tele_slots` / 94 `tele_state` rows left behind in `meritdb` were **not**
+> dropped — they are harmless, and keeping them makes reverting the one-line
+> change a complete rollback. Still to do: announce the slot reset.
 
 ## 2. Move the shared DBs to a season-neutral path — **live data**
 
@@ -67,7 +96,47 @@ Once moved, these two files are the home of irreplaceable state that no season's
 own backup captures automatically — each season sees them only as symlinks. Item
 2b handles backing them up.
 
-- [ ] Both moved, symlinked, verified; server restarts, admin menus + merit both work
+- [x] Both moved, symlinked, verified
+
+> **Built** as `bin/season-shared-dbs.sh` rather than loose shell, so Phase 1
+> can re-run it to link a *new* season's `database/` at the same files —
+> re-running once the symlinks exist is a clean no-op. It refuses to run while
+> the season's container is up (a live server holds these files open) and
+> leaves a `.bak` on the old path. Verified: md5sums identical across the move,
+> and 50 `players` / 16 `redemptions` / 59 `merit_ledger` / 10 `admins` /
+> 2 `houses` rows all readable through the symlinks.
+>
+> ### The symlinks alone are not enough — the container must be able to follow them
+>
+> **This bit, and it is not obvious.** The recipe above is correct on the host
+> and wrong for the *server*, which runs in a container with only two bind
+> mounts — `$NWN_RUN_DIR:/nwn/run` and `$NWN_HOME_DIR:/nwn/home`. An **absolute**
+> symlink to `~/.local/share/nwn-shared/…` resolves fine from a host shell (which
+> is why `ls -l` and `sqlite3` both looked healthy) but **dangles inside the
+> container**, because that path is not mounted there. nwserver treats an
+> unopenable campaign DB as fatal, so the server aborts at module load:
+>
+> ```
+> terminate called after throwing an instance of 'std::runtime_error'
+>   what():  database unavailable
+>  NWNX 8193.37-17 has crashed. Fatal error: Program aborted (6).
+> ```
+>
+> and systemd restart-loops it. The whole-file backup, the row counts and the
+> `ls -l` verification in the recipe all pass while this is broken — the only
+> symptom is the crash.
+>
+> Fixed in `bin/serve`, which now mounts the shared dir **at its own host path**
+> so absolute symlinks resolve identically on both sides:
+>
+> ```bash
+> NWN_SHARED_DIR="${NWN_SHARED_DIR:-$HOME/.local/share/nwn-shared}"
+> [[ -d $NWN_SHARED_DIR ]] && shared_args=(-v "$NWN_SHARED_DIR:$NWN_SHARED_DIR:rw,z")
+> ```
+>
+> Guarded on the directory existing, so a repo without the shared DBs still
+> starts. **Every season's `bin/serve` needs this** — it comes along free with a
+> `cp -a` at Phase 1, but check it if you ever hand-build a season's repo.
 
 ## 2b. Make `bin/backup-homers-lotr` season-aware
 
@@ -103,8 +172,16 @@ is in scope for free. Three changes make it safe to run two seasons at once:
    file open.) The archived season's backups then contain only its own per-season
    DBs; the account-wide state lives in the live season's archive.
 
-- [ ] `BACKUP_DEST` per-season; symlinks skipped; shared DBs captured only when `SEASON_ROLE=live`
-- [ ] `--dry-run` verified for a `test` and a `live` role (lands in `backups/s<N>/`, skips/loads the shared DBs correctly)
+- [x] `BACKUP_DEST` per-season; symlinks skipped; shared DBs captured only when `SEASON_ROLE=live`
+- [x] `--dry-run` verified for a `test` and a `live` role
+
+> **Built.** `BACKUP_DEST` uses `${SEASON_NUM:+/s$SEASON_NUM}`, so a repo with
+> no season block keeps the old flat layout. The 31 existing archives were
+> moved into `backups/s1/` so the prune keeps its monthly-keeper history. The
+> manifest now records `season_num`, `season_role` and whether the shared DBs
+> are in the archive. Verified: `role=live` captures them into `backups/s1/`;
+> a scratch season-2 `role=test` repo skips them into `backups/s2/`; the DB
+> count dropped 31 -> 29 once the two became symlinks.
 
 ## 3. Season identity block in `server.env`
 
@@ -130,7 +207,12 @@ every player on a sign*, so it is not a secret. This is not an exception to the
 "no secrets in `unpacked/`" rule in `CLAUDE.md` — that rule is about CD keys and
 admin credentials, which still never appear in source or in the packed `.mod`.
 
-- [ ] Block added to `server.env`, documented in `README.md`
+- [x] Block added to `server.env`, documented in `README.md`
+
+> **Built** with `SEASON_LEGACY_NAMES` and `SEASON_CONNECT_HOST` added (see the
+> deviations list at the top). Note `bin/serve` forwards only `TZ`, `NWN_*`,
+> `NWNX_*` and `ANVIL_*` into the container, so `SEASON_*` deliberately does
+> **not** reach the module at runtime — the signs are baked in at brand time.
 
 ## 4. De-hard-code `bin/refresh-homers-lotr-wiki`
 
@@ -145,7 +227,13 @@ The only wrapper in this repo that isn't relocatable. It pins:
 `bin/serve` and `bin/backup-homers-lotr` already compute `PROJECT_ROOT`
 correctly and need no change.
 
-- [ ] Rewritten; a copy of the repo at another path regenerates its own wiki
+- [x] Rewritten; a copy of the repo at another path regenerates its own wiki
+
+> **Built.** All three lines fixed. `--log-dir` now uses `$NWN_RUN_DIR`, which
+> the script already sourced two lines earlier — the literal had simply never
+> been updated. `NWN_MANAGER_BIN` stays absolute: `nwn_manager` is genuinely
+> one shared checkout. Verified the three resolved values are byte-identical to
+> the hard-coded ones.
 
 ## 5. `repack-homers-lotr` — make it per-season
 
@@ -165,7 +253,15 @@ six, so one script serves every season. Same for `repack-homers-lotr-clean`.
 Until then, each new season needs a hand-edited clone — workable, but it is the
 single most error-prone step in Phase 1.
 
-- [ ] Parameterized (or: clone-per-season accepted and documented)
+- [x] Parameterized
+
+> **Built** in `nwn_manager`: new `bin/repack-project.sh` resolves all six
+> values from the target repo's `nasher.cfg` (`[target].file`) and `server.env`
+> (`NWN_MODULE`, `NWN_HOME_DIR`); `repack-homers-lotr` and `-clean` source it
+> and gain `--project DIR` (also `$NWN_PROJECT`) plus `--show-config`. The
+> default stays the unnumbered repo, so the app-grid shortcuts are unchanged.
+> Verified by an actual repack: installed to `homers_lotr_v3.mod` ->
+> `Homer's LOTR VEL v3.mod`, exactly as before.
 
 ## 6. Nail down the module / server naming convention
 
@@ -198,7 +294,13 @@ Neither the servervault nor the campaign DBs are keyed by module name (vault is
 per-`NWN_HOME_DIR`, DBs are campaign-scoped by their own name), so a rename has
 no data consequence — it is purely cosmetic plus the `NWN_MODULE` match.
 
-- [ ] Convention agreed and recorded in `README.md`
+- [x] Convention agreed and recorded in `README.md`
+
+> **Built.** Recorded under README's "Season identity & rotation", and now
+> *enforced* rather than merely documented: from season 2 on `season-brand.py`
+> derives all four names from `SEASON_NUM`/`SEASON_ROLE`, and the repack
+> wrapper takes the installed filename from `NWN_MODULE`, so the two cannot
+> drift apart. `NWN_SERVERNAME` uses an ASCII hyphen (see deviations).
 
 ## 7. `@`-templated systemd units
 
@@ -223,8 +325,30 @@ Watch out for:
   name (mirror how `bin/watch-server` reads `NWN_CONTAINER_NAME` from the local
   `server.env`), e.g. `systemctl --user restart "nwn-season-server@$(basename "$PROJECT_ROOT")"`.
 
-- [ ] Units templated; both instances start and stop independently
-- [ ] `server-restart`/`server-stop` resolve the right unit from the repo they live in
+- [x] Units templated; this instance starts and stops on its own unit
+- [x] `server-restart`/`server-stop` resolve the right unit from the repo they live in
+
+> **Built.** `nwn-season-{server,backup,wiki-publish,empty-restart}@.service`,
+> installed by `bin/season-units.sh` (`--install` / `--enable` / `--remove`).
+> Two things the plan did not anticipate:
+>
+> - The `.path` unit is **rendered, not templated**: `PathExists=` cannot expand
+>   environment variables, and `NWN_RUN_DIR` is not derivable from `%i` because
+>   season 1 keeps the legacy unnumbered run dir.
+> - The repo's `systemd/` was missing `homers-lotr-server.service`, both
+>   `priority.conf` drop-ins, and the backup unit's `ExecStartPost`. Those were
+>   committed verbatim first, or templating would have dropped live config.
+>
+> `bin/season-unit.sh` resolves the unit from the repo a script lives in, and
+> falls back to the legacy `homers-lotr-server.service` when the instance is
+> not configured — which is what keeps the flip reversible. It tests for the
+> instance **env file**, not `systemctl cat`: once the `@` template is
+> installed, systemctl resolves *every* instance name against it, so `cat`
+> succeeds for seasons that were never set up and the fallback never fires.
+>
+> Season 1 is now running on `nwn-season-server@nwn_homers_lotr.service`; the
+> legacy units are installed but disabled. "Both instances" waits for a real
+> Phase 1.
 
 ## 8. `bin/season-brand.py` (new)
 
@@ -267,7 +391,27 @@ grep -rIn "homerslotr\|5121\|nwnxee-homer\|/var/home/james/GIT/nwn_homers_lotr" 
      bin/ systemd/ src/ wrangler.jsonc nasher.cfg unpacked/
 ```
 
-- [ ] Script written, idempotence verified, completeness grep clean
+- [x] Script written, idempotence verified, completeness grep clean
+
+> **Built** as `bin/season-brand.py` (dry-run default, `--apply`, `--check`,
+> `--diff`). Every rule is **shape-matched** — any host in the homerslotr.com
+> family, any string in the `"name"` field — rather than matched against a
+> specific old value, so re-running re-matches what it just wrote. Two bugs
+> worth remembering, both caught by testing against a scratch season-2 tree:
+>
+> - Rewriting `ru_sign`'s locstring wholesale dropped its StrRef **and eight
+>   other-language strings**. It now edits language 0 in place; only the
+>   StrRef-free season signs are replaced outright.
+> - A bare `return "..."` regex for the container fallback matched
+>   `server_tz()`'s `"America/Chicago"` first. Narrow rules are now scoped to a
+>   named function's body.
+>
+> Acceptance met: a dry run against this repo, with the season block describing
+> today's reality, reports **zero changes**. A scratch season-2/test tree fires
+> all 11 files with correct content and a second `--apply` produces no diff.
+> The completeness grep is clean; the only survivors are the seven float
+> coordinates, `roulette_os.nss`, `NWN_MANAGER_BIN`, the legacy (disabled)
+> units kept for rollback, and comments.
 
 ## 9. The two season placeables
 
@@ -302,7 +446,20 @@ season can point players at whatever is running in the alternate slot:
 Hide by clearing visibility/usability rather than deleting the instance, so the
 same two placeables serve every future season.
 
-- [ ] Both blueprints created, placed once, palette-filed, all five states render
+- [x] Both placed once, all six states render
+
+> **Built** — and **no blueprint and no palette filing were needed**: like
+> `ru_sign`, both instances use the stock `plc_billboard7`. Placed at
+> (21.5, 15.4) and (28.5, 15.4), flanking the Recent Updates sign, both
+> verified clear with `bin/place-helper.py`.
+>
+> The clone trap: `ru_sign`'s `Description`/`LocName` carry StrRef ids
+> (14567 / 14561), and a non-`0xFFFFFFFF` StrRef wins over the inline string —
+> a verbatim clone would render `ru_sign`'s text forever. The season signs are
+> created StrRef-free.
+>
+> "Five states" is really **six**: a `live` peer state was added (see
+> deviations). All six verified, plus every hide/show transition.
 
 ## 10. `bin/roadmap-archive-prune.py` (new)
 
@@ -316,7 +473,21 @@ Against today's `roadmap.yaml` that keeps **115** items and deletes **~500**
 are not lost — they live on in the newest season's repo, which is where they will
 actually get worked.
 
-- [ ] Script written; dry-run reports the expected split; `gen-roadmap.py` still renders
+- [x] Script written; `gen-roadmap.py` still renders
+
+> **Built** as `bin/roadmap-archive-prune.py`, guarded on `SEASON_ROLE=archive`
+> (`--force` to override) — running it in the live/dev repo would delete the
+> whole working backlog. It reuses the roadmap editor's comment-preserving
+> `write_document()`; a plain `yaml.dump` would flatten every comment and
+> reflow the `notes` block scalars.
+>
+> **The predicted split above is wrong.** The real numbers are **115 kept /
+> 155 deleted out of 270 ideas**. The "~500" came from grepping `status:`
+> across the whole file, which also counts the nested status fields on
+> `design_questions` and `manual_steps` — `open` (294), `done` (40) and
+> `answered` (9) are not idea statuses at all. The 115 figure is right.
+> Verified on a scratch archive repo: 115 ideas + 2 epics, `meta`/`groups`/
+> `players` and all header comments intact, `Roadmap.html` regenerated.
 
 ## 11. App-grid shortcuts — split dev from ops
 
@@ -339,7 +510,16 @@ environment is created at **Phase 1** stand-up, and the retiring season's ops se
 — plus its monitor autostart entry — is **deleted at Phase 3**. Dev shortcuts and
 the roadmap editor are never touched; they already track the newest repo.
 
-- [ ] Ops shortcuts clonable per-season; dev shortcuts confirmed single
+- [x] Ops shortcuts clonable per-season; dev shortcuts confirmed single
+
+> **Built** as `bin/season-shortcuts.sh` (`--install` / `--remove`), rendering
+> the three ops entries plus the monitor autostart from `server.env` with a
+> season-labelled `Name=` and a repo-local `Exec=`. Season 1 keeps the existing
+> unnumbered filenames; season 2+ get `-s<N>` ones, so both sets coexist during
+> an overlap. Verified install/validate/remove in a sandboxed `HOME`.
+>
+> Season 1's shortcuts were deliberately **not** regenerated — relabelling them
+> adds noise until a second season exists. Run `--install` at Phase 1.
 
 ## 12. Roadmap editor stays single-instance (no work — a guard note)
 
@@ -350,7 +530,10 @@ follows the live backlog, and its "Publish to Wiki & DB" writes that repo's
 ever. The archived season's roadmap is frozen once at Phase 2 by
 `bin/roadmap-archive-prune.py` (item 10) and the editor never reopens it.
 
-- [ ] Confirmed: no per-season editor; `WorkingDirectory` stays on the unnumbered repo
+- [x] Confirmed: no per-season editor; `WorkingDirectory` stays on the unnumbered repo
+
+> **Confirmed.** `systemd/roadmap-editor.service` was deliberately left out of
+> the `@`-templating in item 7, and `bin/season-units.sh` does not touch it.
 
 ---
 
