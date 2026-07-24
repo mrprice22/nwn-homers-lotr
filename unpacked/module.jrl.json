@@ -5476,6 +5476,57 @@
           "type": "dword",
           "value": 0
         }
+      },
+      {
+        "__struct_id": 72,
+        "Comment": {
+          "type": "cexostring",
+          "value": "@group 'Server Info'\n@order 9"
+        },
+        "EntryList": {
+          "type": "list",
+          "value": [
+            {
+              "__struct_id": 0,
+              "End": {
+                "type": "word",
+                "value": 1
+              },
+              "ID": {
+                "type": "dword",
+                "value": 1
+              },
+              "Text": {
+                "type": "cexolocstring",
+                "value": {
+                  "0": "=== Combat & Bosses ===\n\n  Soul-fatigue on Heal (Heal spell, Mass Heal, and Heal potions):\n    1. The heal resolves in full — you go to 100% HP as normal.\n    2. You then take 10% of your max HP as damage per stack you already had.\n       This is a scripted cost: no resistance, immunity or DR reduces it, and it can kill you.\n    3. One new stack is added.\n    Each stack falls off on its own 3-minute timer.\n    A heal at 0 stacks is free. At 10 stacks the post-heal hit is 100% of max HP.\n    Casting Heal at undead is an attack, not a heal — no stack, no damage.\n\n  Boss enrage-on-retreat (Roll of the Fallen bosses only):\n    Disengaging — leaving its area, moving more than 40m away, or logging out for ~12 seconds —\n    makes the boss taunt you by name, gain +2 to ALL ability scores for the rest of that life,\n    and instantly heal 25% of its missing HP.\n    It fires even if your party keeps fighting. Every retreat stacks.\n    Dying is not retreating. The enrage never carries onto a respawn.\n\nSee wiki: Manual > Customizations > Combat & Bosses"
+                }
+              }
+            }
+          ]
+        },
+        "Name": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "Combat & Bosses"
+          }
+        },
+        "Picture": {
+          "type": "word",
+          "value": 65535
+        },
+        "Priority": {
+          "type": "dword",
+          "value": 4
+        },
+        "Tag": {
+          "type": "cexostring",
+          "value": "mod_combat"
+        },
+        "XP": {
+          "type": "dword",
+          "value": 0
+        }
       }
     ]
   }

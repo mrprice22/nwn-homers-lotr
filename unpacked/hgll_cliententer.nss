@@ -115,6 +115,7 @@ void main()
     AddJournalQuestEntry("mod_forge",    1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("mod_systems",  1, oPC, FALSE, FALSE);
     AddJournalQuestEntry("mod_factions", 1, oPC, FALSE, FALSE);
+    AddJournalQuestEntry("mod_combat",   1, oPC, FALSE, FALSE);
 
     // The Forbidden Realms: characters who stole the Forbidden Realms Key from
     // Summanus before the tier shipped never saw an OnAcquireItem for it, so

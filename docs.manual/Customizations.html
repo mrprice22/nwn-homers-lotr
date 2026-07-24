@@ -115,6 +115,7 @@
             <li><a href="#instant-rest">Instant Resting &amp; the Rest Menu</a></li>
             <li><a href="#party-loot">Party Loot Rolls</a></li>
             <li><a href="#boss-respawn-tracker">Boss Respawn Tracker</a></li>
+            <li><a href="#boss-enrage">Boss Enrage on Retreat</a></li>
             <li><a href="#caster-gear">Caster Signature Gear</a></li>
             <li><a href="#dungeon-solitaire">Dungeon Solitaire</a></li>
           </ol>
@@ -147,6 +148,7 @@
             <li><a href="#shape-merge">Shapeshifting: Full Equipment Merge</a></li>
             <li><a href="#scaled-summons">Scaled Summons &amp; Animal Companions</a></li>
             <li><a href="#other-spells">Other Spell Changes</a></li>
+            <li><a href="#soul-fatigue">Soul-fatigue on Heal</a></li>
             <li><a href="#spell-duration">Doubled Spell &amp; Effect Duration</a></li>
           </ol>
         </li>
@@ -398,6 +400,42 @@ you can plan a boss run instead of hiking to an empty lair.</p>
   the board shows a live countdown for each. A handful of lair bosses keep their own longer timers
   (shown accurately on the board). Every tracked boss now respawns on its own — none are stuck
   until a reboot.</p>
+</div>
+
+<h3 id="boss-enrage">Boss Enrage on Retreat</h3>
+<p><strong>Retreating from a great boss makes it stronger.</strong> Disengage from one of the
+<a href="#boss-respawn-tracker">Roll of the Fallen</a> bosses and it will taunt you by name, grow in
+power, and claw back part of the damage you had done. This applies <em>only</em> to those unique
+bosses — ordinary creatures you walk away from behave exactly as before.</p>
+<ul>
+  <li><strong>You are "in the fight"</strong> from the moment you damage the boss — in melee, at
+  range, with spells, or through your summons, animal companion or henchman (their damage counts as
+  yours).</li>
+  <li><strong>You have "retreated"</strong> if you leave the boss's area, move more than about
+  <strong>40 metres</strong> away, or log out — and stay that way for roughly
+  <strong>12&nbsp;seconds</strong>. Landing another hit resets the count, so an archer or caster
+  fighting from long range stays engaged as long as they keep contributing.</li>
+  <li><strong>What the boss gains, each time:</strong> a shouted taunt naming you, <strong>+2 to all
+  six ability scores</strong> for the rest of its life, and an instant heal of <strong>25% of its
+  missing HP</strong>.</li>
+  <li>The enrage <strong>stacks</strong> — every retreat is another +2 and another quarter-heal — and
+  it <strong>cannot be dispelled</strong>.</li>
+  <li>It fires <strong>per player</strong>: if you run while the rest of your party keeps fighting,
+  the boss still enrages.</li>
+  <li><strong>Dying is not retreating.</strong> If the boss kills you, it gains nothing.</li>
+  <li>The enrage <strong>never carries onto a respawn</strong> — a boss that returns to its lair is
+  back at its base statistics.</li>
+</ul>
+<div class="warn-box">
+  <p><strong>Every retreat undoes a quarter of your progress</strong> and leaves you facing a
+  stronger enemy than the one you ran from. The winning line against a great boss is a single
+  sustained engagement, brought with the gear and build to see it through — not attrition in
+  shifts.</p>
+</div>
+<div class="tip-box">
+  <p>This is the companion mechanic to <a href="#soul-fatigue">Soul-fatigue on Heal</a>: fatigue makes
+  chain-healing lethal, and enrage removes the option of backing off to wait the stacks out. Design
+  background: <a href="Draft/boss-updates.html#enrage">Endgame Difficulty — Enrage-on-retreat</a>.</p>
 </div>
 
 <h3 id="caster-gear">Caster Signature Gear</h3>
@@ -1022,6 +1060,47 @@ Spell Focus). Summons from other classes (e.g. a wizard's) are unaffected.</p>
 <div class="warn-box">
   <p><strong>Time Stop is disabled.</strong> It cannot be cast on this server — attempting to cast it
   does nothing.</p>
+</div>
+
+<h3 id="soul-fatigue">Soul-fatigue on Heal</h3>
+<p><strong>Healing is a timed resource, not a button you hold.</strong> Being healed by
+<strong>Heal</strong> or <strong>Mass Heal</strong> — including from <strong>Heal potions</strong> and
+any item that casts it — leaves a stack of <em>soul-fatigue</em> on you. The order of events matters:</p>
+<ol>
+  <li><strong>The heal resolves in full first</strong> — you go to 100% HP as normal.</li>
+  <li><strong>You then take 10% of your maximum HP as damage for every stack you were already
+  carrying</strong>, applied <em>after</em> the top-off so the heal cannot erase it.</li>
+  <li><strong>One new stack is added.</strong></li>
+</ol>
+<ul>
+  <li>Each stack decays on its <strong>own independent 3-minute timer</strong>. You are told on screen
+  how many stacks you hold and when each one falls off.</li>
+  <li><strong>A heal at zero stacks is completely free</strong> — full benefit, one stack, no damage.
+  It is <em>chain</em>-healing that turns dangerous.</li>
+  <li>The damage is a <strong>scripted cost, not an attack</strong>: damage resistance, damage
+  reduction and immunities do <strong>not</strong> reduce it. <strong>It can kill you.</strong></li>
+  <li>Casting Heal on <strong>undead</strong> harms them rather than healing them, so it produces no
+  stack and no damage. DMs are unaffected.</li>
+</ul>
+<table class="data change-table">
+  <thead>
+    <tr><th>Stacks held when the heal lands</th><th>HP left immediately after the heal</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>0</td><td>100% — free</td></tr>
+    <tr><td>1</td><td>90%</td></tr>
+    <tr><td>2</td><td>80%</td></tr>
+    <tr><td>5</td><td>50%</td></tr>
+    <tr><td>9</td><td>10%</td></tr>
+    <tr><td>10 or more</td><td><strong>Dead</strong> — the hit is 100% of your maximum HP</td></tr>
+  </tbody>
+</table>
+<div class="tip-box">
+  <p><strong>Don't plan on backing off to wait it out.</strong> Against the great bosses, walking away
+  from the fight triggers <a href="#boss-enrage">Boss Enrage on Retreat</a> — the boss heals and grows
+  stronger while your stacks tick down. The two mechanics shipped together and are meant to be
+  answered with pacing and mitigation, not with spam and retreat. Design background:
+  <a href="Draft/boss-updates.html#fatigue">Endgame Difficulty — Soul-fatigue on Heal</a>.</p>
 </div>
 
 <h3 id="spell-duration">Doubled Spell &amp; Effect Duration</h3>
