@@ -1,0 +1,12 @@
+[Unit]
+Description=Restart Homer's LotR season %i server after an adhoc reboot-on-empty
+Documentation=file://%h/GIT/%i/bin/empty-restart-handler
+# Triggered by nwn-season-empty-restart@%i.path when the plugin drops the
+# restart-server flag in THIS instance's Anvil PluginData dir. The handler
+# consumes the flag, optionally rebuilds NWSync, then restarts
+# nwn-season-server@%i.service onto the freshly deployed module.
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/GIT/%i
+ExecStart=%h/GIT/%i/bin/empty-restart-handler

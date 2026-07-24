@@ -40,6 +40,12 @@ if [[ -f $NWSYNC_FILE ]]; then
   fi
 fi
 
-echo "[empty-restart] restarting homers-lotr-server.service..."
-systemctl --user restart homers-lotr-server.service
+# Restart the server unit belonging to THIS repo's season instance. With two
+# seasons running, a hard-coded unit name here would bounce the wrong server.
+# shellcheck disable=SC1091
+. "$PROJECT_ROOT/bin/season-unit.sh"
+UNIT=$(season_server_unit "$PROJECT_ROOT")
+
+echo "[empty-restart] restarting $UNIT..."
+systemctl --user restart "$UNIT"
 echo "[empty-restart] done."

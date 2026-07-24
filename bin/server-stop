@@ -4,17 +4,25 @@
 # i.e. SIGTERM with a 20s grace period -- the same clean path the old Ctrl+C in
 # the server terminal used. Players are disconnected.
 #
-# The server will start again on the next boot (homers-lotr-server.service), or
+# The server will start again on the next boot (the season server unit), or
 # bring it back now with `server-restart`.
 set -uo pipefail
 
+# Stop the server this repo drives, not a hard-coded unit — so a second season's
+# copy of this script can never stop the other season's server.
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck disable=SC1091
+. "$PROJECT_ROOT/bin/season-unit.sh"
+UNIT=$(season_server_unit "$PROJECT_ROOT")
+
 echo "=== Shut down Homer's LotR server ==="
 echo "Players will be disconnected."
+echo "unit: $UNIT"
 echo
-systemctl --user stop homers-lotr-server.service
+systemctl --user stop "$UNIT"
 echo
-if systemctl --user is-active --quiet homers-lotr-server.service; then
-  echo "WARNING: still active -- check: systemctl --user status homers-lotr-server"
+if systemctl --user is-active --quiet "$UNIT"; then
+  echo "WARNING: still active -- check: systemctl --user status $UNIT"
 else
   echo "Server stopped cleanly. (Starts again on next boot, or run server-restart.)"
 fi

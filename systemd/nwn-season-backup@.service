@@ -1,0 +1,32 @@
+[Unit]
+Description=Homer's LotR season %i state backup (vault + databases + configs) to OneDrive
+Documentation=file://%h/GIT/%i/bin/backup-homers-lotr
+# Runs once per boot, per season instance. The only routine boot is the daily
+# 03:00 reboot, at which point the server has saved+shut down, so the snapshot is
+# fully consistent. The 24h sentinel in the script keeps it to at most once/day
+# across extra boots -- and the sentinel lives in that season's NWN_RUN_DIR, so
+# two instances gate independently.
+#
+# The script itself is season-aware: it archives into backups/s$SEASON_NUM,
+# skips the shared meritdb/admindb symlinks, and snapshots those shared DBs only
+# when SEASON_ROLE=live. See season-cutover-prereqs.md item 2b.
+After=default.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/GIT/%i
+# Self-gates on a 24h sentinel, so firing more often than daily is harmless.
+ExecStart=%h/GIT/%i/bin/backup-homers-lotr
+# Right AFTER the boot backup, repair any stale ab-enhance weapons (both Attack
+# Bonus + Enhancement Bonus) still sitting in player .bic files. Boot is the safe
+# window (no players online); --recent-min 0 disables the "recently saved" guard
+# since the server has just shut down, and the script still skips any .bic held
+# open by a process, backs up every file it touches, and verifies each write.
+# Leading '-' so a fix hiccup never fails the backup service (see journal).
+# Idempotent: a no-op once the vault is clean.
+ExecStartPost=-/usr/bin/python3 %h/GIT/%i/bin/ab-enhance-fix-bic.py --apply --recent-min 0
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=default.target

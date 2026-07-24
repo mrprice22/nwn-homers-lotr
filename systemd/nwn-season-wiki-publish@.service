@@ -1,0 +1,25 @@
+[Unit]
+Description=Full Homer's LotR season %i wiki republish + push (runs once per boot)
+Documentation=file://%h/GIT/%i/bin/refresh-homers-lotr-wiki
+# After the daily reboot the box comes back up and republishes the WHOLE wiki so
+# creature-index/detail kill counts (not just the activity pages) reflect the
+# previous day's play. Idempotent: no commit when nothing changed.
+#
+# Per-season: each instance publishes to its own Cloudflare worker (the live
+# season to the apex, an archived season to its season<N>. subdomain), driven by
+# SEASON_WIKI_URL in that repo's server.env. Publishing stops at Phase 3, when
+# this instance is disabled.
+After=default.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/GIT/%i
+# Generous timeout: a full regen takes ~1-2 min, plus up to ~2.5 min of push
+# retries while the network finishes coming up after boot.
+TimeoutStartSec=1200
+Environment=PATH=/var/home/james/GIT/nwn_manager/bin:/home/james/.nimble/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/GIT/%i/bin/refresh-homers-lotr-wiki --publish
+Nice=10
+
+[Install]
+WantedBy=default.target

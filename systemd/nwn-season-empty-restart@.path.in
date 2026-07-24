@@ -1,0 +1,26 @@
+# Template rendered per season instance by bin/season-units.sh --install into
+#   ~/.config/systemd/user/nwn-season-empty-restart@<instance>.path
+# Placeholders: @INSTANCE@ (season repo dir name), @RUN_DIR@ (that season's
+# NWN_RUN_DIR, absolute).
+#
+# This unit is rendered rather than templated because a .path unit cannot expand
+# environment variables — PathExists= takes only literal text and systemd
+# specifiers, and NWN_RUN_DIR is not derivable from %i (season 1 keeps the
+# legacy unnumbered run dir). A cloned unit that kept the wrong path would watch
+# one season's flag file and silently restart the OTHER season's server, which is
+# the exact trap called out in season-cutover-prereqs.md item 7.
+[Unit]
+Description=Watch for the Anvil reboot-on-empty restart request flag (season @INSTANCE@)
+Documentation=file://%h/GIT/@INSTANCE@/bin/empty-restart-handler
+
+[Path]
+# The ServerRestartManager plugin drops this file after it exports characters and
+# shuts the server down for an adhoc reboot-on-empty. Path is the server's Anvil
+# PluginData dir, which lives under the userdirectory (NWN_RUN_DIR, bind-mounted to
+# /nwn/run) — NOT NWN_HOME_DIR. Re-run bin/season-units.sh --install after any
+# NWN_RUN_DIR change in server.env.
+PathExists=@RUN_DIR@/anvil/PluginData/restart-server
+Unit=nwn-season-empty-restart@@INSTANCE@.service
+
+[Install]
+WantedBy=default.target

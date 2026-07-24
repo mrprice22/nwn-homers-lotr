@@ -5,15 +5,23 @@
 # can watch it come back up.
 #
 # Replaces the old "Host Homer's LotR Server" launcher, which ran `serve`
-# directly and would now collide with homers-lotr-server.service. `restart`
+# directly and would now collide with the season server unit. `restart`
 # also works as a plain start if the server is currently stopped.
 set -uo pipefail
 
+# Restart the server this repo drives, not a hard-coded unit — so a second
+# season's copy of this script can never restart the other season's server.
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck disable=SC1091
+. "$PROJECT_ROOT/bin/season-unit.sh"
+UNIT=$(season_server_unit "$PROJECT_ROOT")
+
 echo "=== Restart Homer's LotR server ==="
 echo "Players will be disconnected; the module reloads in ~40s."
+echo "unit: $UNIT"
 echo
-systemctl --user restart homers-lotr-server.service
+systemctl --user restart "$UNIT"
 echo "Restart issued. Following the log (Ctrl+C closes this; the server keeps running)..."
 echo
 sleep 2
-exec /var/home/james/GIT/nwn_homers_lotr/bin/watch-server
+exec "$PROJECT_ROOT/bin/watch-server"
