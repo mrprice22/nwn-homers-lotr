@@ -6,7 +6,7 @@ engineering that makes the runbook possible: build it once, and every future
 cutover is a checklist rather than a project.
 
 Nothing here is done yet unless its box is ticked. Items 1–2 touch live player
-data and must be finished before the first Phase 1; items 3–10 are tooling and
+data and must be finished before the first Phase 1; items 2b–12 are tooling and
 can land any time before it.
 
 ---
@@ -63,17 +63,48 @@ but resetting homes would strand players who spent merit on a home — see
 "Why `houses` rides along" in the guide's §2. The house's *contents*
 (`housechest`, a separate DB) still reset each season.
 
-**Backup follow-through:** `~/.local/share/nwn-shared/` is now the home of two
-irreplaceable files that no season's own backup captures (each season sees them
-only as symlinks, which a sane backup won't follow). Add the shared dir to the
-backup set from **exactly one** place — gate it on `SEASON_ROLE=live` in
-`bin/backup-homers-lotr` so only the live season snapshots it, and so two running
-seasons never race the same copy. Both files are single SQLite files written by
-up to two servers at once; SQLite handles the concurrency, but the backup must
-not.
+Once moved, these two files are the home of irreplaceable state that no season's
+own backup captures automatically — each season sees them only as symlinks. Item
+2b handles backing them up.
 
 - [ ] Both moved, symlinked, verified; server restarts, admin menus + merit both work
-- [ ] `nwn-shared/` added to exactly one backup path, gated on `SEASON_ROLE=live`
+
+## 2b. Make `bin/backup-homers-lotr` season-aware
+
+The backup already sources `server.env` at the top, so the season block (item 3)
+is in scope for free. Three changes make it safe to run two seasons at once:
+
+1. **Per-season archive folder.** Default `BACKUP_DEST` to a season subfolder so
+   the retention-prune never crosses seasons — today it regex-matches
+   `^homers-lotr-(\d{8})-(\d{6})\.tar\.gz$` across the **whole** `backups/` dir, so
+   two seasons in one folder would prune each other's monthly keepers:
+   ```bash
+   : "${BACKUP_DEST:=$HOME/OneDrive/Games/NWNHomersLOTR/backups/s${SEASON_NUM}}"
+   ```
+2. **Skip the shared symlinks.** The DB loop does
+   `for db in "$NWN_HOME_DIR"/database/*.sqlite3; do sqlite3 "$db" ".backup" …`,
+   and `sqlite3 .backup` reads *through* a symlink — so as written every season
+   archives `meritdb`/`admindb`. Skip them; they are not that season's data:
+   ```bash
+   [[ -L $db ]] && continue          # shared DBs are backed up once, by the live season (below)
+   ```
+   Fix the DRY_RUN count the same way (it uses `ls …/database/*.sqlite3 | wc -l`).
+3. **Live season owns the shared backup.** Exactly one place snapshots
+   `~/.local/share/nwn-shared/`, gated so two running seasons never race it:
+   ```bash
+   if [[ ${SEASON_ROLE:-} == live ]]; then
+     for f in meritdb admindb; do
+       sqlite3 "$HOME/.local/share/nwn-shared/$f.sqlite3" \
+         ".backup '$stage/home/database/$f.sqlite3'"
+     done
+   fi
+   ```
+   (`sqlite3 .backup` gives a consistent snapshot even while both servers hold the
+   file open.) The archived season's backups then contain only its own per-season
+   DBs; the account-wide state lives in the live season's archive.
+
+- [ ] `BACKUP_DEST` per-season; symlinks skipped; shared DBs captured only when `SEASON_ROLE=live`
+- [ ] `--dry-run` verified for a `test` and a `live` role (lands in `backups/s<N>/`, skips/loads the shared DBs correctly)
 
 ## 3. Season identity block in `server.env`
 
@@ -184,10 +215,16 @@ Watch out for:
 - `homers-lotr-server.service` is installed under `~/.config/systemd/user/` but
   **missing from the repo's `systemd/`** — commit it first, drop-in and all.
 - `nwn-reboot.timer` (root, 03:03) stays **shared**; one OS reboot restarts every
-  instance. Same for `roadmap-editor.service` — single instance, run it from
-  whichever repo you're editing.
+  instance. Same for `roadmap-editor.service` — single instance (see item 11),
+  run it from whichever repo you're editing.
+- `bin/server-restart` and `bin/server-stop` hard-code
+  `systemctl --user … homers-lotr-server.service` by literal name — the templated
+  unit renames it, so both break. Have them derive the instance from the repo dir
+  name (mirror how `bin/watch-server` reads `NWN_CONTAINER_NAME` from the local
+  `server.env`), e.g. `systemctl --user restart "nwn-season-server@$(basename "$PROJECT_ROOT")"`.
 
 - [ ] Units templated; both instances start and stop independently
+- [ ] `server-restart`/`server-stop` resolve the right unit from the repo they live in
 
 ## 8. `bin/season-brand.py` (new)
 
@@ -280,6 +317,40 @@ are not lost — they live on in the newest season's repo, which is where they w
 actually get worked.
 
 - [ ] Script written; dry-run reports the expected split; `gen-roadmap.py` still renders
+
+## 11. App-grid shortcuts — split dev from ops
+
+The GNOME shortcuts under `~/.local/share/applications/nwn-homers-lotr-*.desktop`
+(plus the autostart `homers-lotr-monitor.desktop`) all hard-code the unnumbered
+repo or the shared `nwn_manager/bin` wrappers. Split them by purpose:
+
+- **Dev shortcuts stay single** — unpack, repack, repack-clean, repack-test, wiki,
+  refresh-nwsync (×2). You never rebuild a frozen archived season, so these
+  correctly keep targeting the newest (unnumbered) repo. Nothing per-season.
+- **Ops shortcuts are per-season** — `server-restart`, `server-stop`, and the
+  monitor (`watch-server`). During the overlap two servers run, so each
+  environment gets its own set: clone the three `.desktop` files with a
+  season-labelled `Name=` (e.g. *"Restart Homer's LotR — Season 1 (archived)"*)
+  and `Exec=` pointing at **that season's repo** `bin/`. The season these launch
+  is implied by the repo path in `Exec`, so they need no arguments.
+
+**Lifecycle** (referenced by the guide's phases): the ops set for a new
+environment is created at **Phase 1** stand-up, and the retiring season's ops set
+— plus its monitor autostart entry — is **deleted at Phase 3**. Dev shortcuts and
+the roadmap editor are never touched; they already track the newest repo.
+
+- [ ] Ops shortcuts clonable per-season; dev shortcuts confirmed single
+
+## 12. Roadmap editor stays single-instance (no work — a guard note)
+
+`systemd/roadmap-editor.service` has `WorkingDirectory` = the unnumbered repo,
+which is **always** the newest/dev season. So the one editor instance already
+follows the live backlog, and its "Publish to Wiki & DB" writes that repo's
+`docs/` + `roadmapdb`. **Do not instance it per season** — there is one backlog,
+ever. The archived season's roadmap is frozen once at Phase 2 by
+`bin/roadmap-archive-prune.py` (item 10) and the editor never reopens it.
+
+- [ ] Confirmed: no per-season editor; `WorkingDirectory` stays on the unnumbered repo
 
 ---
 

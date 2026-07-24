@@ -1,6 +1,6 @@
-# Season Cutover Runbook — Homer's LOTR (v2.0, repeatable)
+# Season Cutover Runbook — Homer's LOTR (v2.1, repeatable)
 
-> **Status:** v2.0 — a **season-agnostic** runbook. Everything below is written in
+> **Status:** v2.1 — a **season-agnostic** runbook. Everything below is written in
 > terms of **season N** (the outgoing/current season) and **season N+1** (the
 > incoming one). Run it unchanged every cutover; substitute the numbers.
 > It describes changes to make; it does **not** itself change any code, DB, or unit.
@@ -108,8 +108,30 @@ else is a regular file, and the wipe deletes regular files only (§7).
 |---|---|
 | **Shared — merit** | `meritdb` → `~/.local/share/nwn-shared/meritdb.sqlite3`. Keyed by `GetPCPublicCDKey`: `players`, `redemptions`, `merit_ledger`. Account-level rewards and entitlements. |
 | **Shared — admin** | `admindb` → `~/.local/share/nwn-shared/admindb.sqlite3`. `admins` (the CD-key whitelist behind `Admin_CanAdmin/Homeless/Chest`) and `houses` (see below). Admin access and UAT shortcuts don't change between seasons, so re-seeding them every cutover is pure toil. |
-| **Fresh** | Everything else. A new `NWN_HOME_DIR` gives it to you for free — no per-DB surgery. |
+| **Fresh** | Everything else. A new `NWN_HOME_DIR` gives it to you for free — no per-DB surgery. Includes `coderedeem` (see below). |
 | **Self-resetting** | `respawndb` — `BRD_InitDb()` wipes and re-seeds `boss_registry`/`boss_alias`/`boss_deaths` on every module load. Never carries cross-season state. |
+
+### Redemption codes: the code lives in source, the *usage* is per-season
+
+A promo/redemption code has two halves, and only one is a DB:
+
+- **The code itself** — its name, `YYYY-MM-DD` expiry and reward — is defined in
+  **module source** (`unpacked/code_redeem.nss`: `GetCodeExpiration()` and
+  `ApplyCodeBenefit()`; list them with `bin/list-promo-codes.py`). It travels with
+  the module build, so **every environment honors its codes up to each code's set
+  expiry date** — nothing to share or reset.
+- **The usage record** — who redeemed what — is the `coderedeem` campaign DB
+  (`redemptions(code, cdkey, redeemed_at)`), per-`NWN_HOME_DIR`, so **per-season**.
+  It resets like any other fresh DB: a new season starts with an empty record, and
+  Phase 2's wipe clears it, while the codes stay valid to their expiry. That is the
+  intended "reset who-redeemed-what at go-live without invalidating the codes."
+
+Do **not** confuse this with **merit** redemptions (401–408, 101–107, …) — those
+are account-wide entitlements in the shared `meritdb` and persist forever. Code
+redemptions are per-season and every current code's reward is character-level
+(`SetXP` / `GiveXPToCreature` / `CreateItemOnObject`), so resetting `coderedeem`
+can never double-grant an account-wide reward. Keep it that way: a code that ever
+writes `meritdb` would become re-claimable each season — don't add one.
 
 ### Why `houses` rides along with the admin whitelist
 
@@ -274,7 +296,12 @@ The live season keeps running throughout; nothing about it moves.
    just commit `docs/` + push; no `wrangler deploy` anywhere.
 8. **Router.** Forward 5122/udp and 8001/tcp. Permanent — reused every season.
 9. **Enable both systemd instances.** Both servers now come up at boot, in parallel.
-10. **Announce loudly and repeatedly:** the early-access vault and *all* its DBs
+10. **Stand up the new environment's aux services** (§6a): its per-season backup
+    subfolder (automatic once `SEASON_NUM` is set) and its per-season *ops*
+    app-grid shortcuts (restart / stop / monitor, labelled with the season). Leave
+    the dev shortcuts and the roadmap editor alone — they already track the newest
+    repo. Confirm the **live** season still owns the `nwn-shared` backup.
+11. **Announce loudly and repeatedly:** the early-access vault and *all* its DBs
    **will be wiped at go-live**. Every character, item, bestiary entry and bank
    balance gained in testing is temporary. **Merit earned still counts**, and
    **admin access + player-home *entitlements* carry over** (both are shared) —
@@ -305,6 +332,38 @@ Archived seasons **keep publishing** during Phase 2 — players may still be on
 them, and their kill counts and activity charts should keep updating at their
 subdomain. Publishing stops at Phase 3, and Cloudflare then serves the last
 deployed `docs/` frozen, indefinitely.
+
+---
+
+## 6a. Auxiliary services at a glance
+
+Beyond the server and the wiki, a handful of host services touch a season. This
+is which ones are shared, which are per-season, and what to do with each. The
+per-season engineering (templated units, per-season backup, ops shortcuts) is
+built once — see `season-cutover-prereqs.md` items 2b, 7, 11.
+
+| Service | Scope | At cutover |
+|---------|-------|------------|
+| Game server + NWSync (systemd `@`-instances) | **per-season** | Phase 1 enable the new instance; Phase 3 disable the retired one |
+| `nwn-reboot.timer` (root, 03:03) | **shared** | nothing — one OS reboot restarts every instance (all are `WantedBy=default.target`) |
+| Backup (`bin/backup-homers-lotr`) | **per-season**, into `…/backups/s<N>/` | runs per instance; the `SEASON_ROLE=live` one also snapshots the shared `nwn-shared/` DBs (§2, prereq 2b) |
+| Wiki publish (`refresh-…-wiki --publish`) | **per-season** | live → apex, archive → its subdomain; stops at Phase 3 |
+| Empty-restart watch (`.path`/`.service`) | **per-season** | its watch path is the instance's run dir — do not let a clone keep the old path |
+| Dev shortcuts (unpack / repack / wiki / nwsync) | **single**, newest repo | none — you never rebuild a frozen season |
+| Ops shortcuts (restart / stop / monitor) | **per-season** | Phase 1 create the new set; Phase 3 delete the retired set + its monitor autostart |
+| Roadmap editor (`:8765`) | **single**, newest repo | none — one backlog, ever (§11) |
+
+**Ops shortcut lifecycle.** The restart/stop/monitor `.desktop` files are the only
+app-grid entries that are per-season, because during the overlap two servers run.
+Each environment's set points its `Exec` at that season's repo `bin/`; create the
+new set at Phase 1 (step 10), delete the retiring season's set at Phase 3. Dev
+shortcuts stay pointed at the unnumbered repo — which is always the newest season
+— so they never need touching.
+
+**Roadmap editor.** One instance, `WorkingDirectory` on the unnumbered repo, so it
+always edits the newest season's backlog and publishes to that season's wiki +
+`roadmapdb`. Never instance it per season. The archived season's roadmap is frozen
+once at Phase 2 by `bin/roadmap-archive-prune.py` and the editor never reopens it.
 
 ---
 
@@ -352,6 +411,13 @@ teardown — it is a role and port swap between two servers that are already run
    - The run-dir clear is what makes activity charts and player-hours start at
      zero (§2). Leaving `activity-sessions.json` behind is the most likely way to
      launch a season with early-access playtime already on its charts.
+   - Deleting `coderedeem` here **is** the intended reset of promo/redemption-code
+     *usage* — who redeemed what starts empty on go-live, while the codes stay
+     valid to their `code_redeem.nss` expiry (§2). Before the window, run
+     `bin/list-promo-codes.py` and check each code's expiry is right for the new
+     season: early-access-only codes should expire ≤ go-live, and any code carried
+     forward should have a future date. Retire/adjust codes as normal source edits
+     in `code_redeem.nss`.
 4. **Re-seed and republish what the wipe legitimately destroyed.** Three stores get
    deleted that are *not* player progress and must come straight back, or the new
    season launches broken:
@@ -419,7 +485,8 @@ progress lives, so the wipe can be checked rather than trusted.
 | Characters: levels, gear, gold, feats, **journal/quest entries** | `.bic` files in `servervault/` (journal state is stored *in* the character) | `rm -rf servervault/* dmvault/* localvault/*` |
 | Quest flags, cooldowns, world state | campaign DBs — `questcddb`, `worldstatedb`, `craftdb`, `prestigedb`, the `*linedb` class-line DBs, `forbiddendb`, `potd`, `fret`, `cregistred`, area DBs like `maz20`/`mos2` | the `*.sqlite3` sweep |
 | Bestiary kills + server-firsts | `bestiarydb` (plus a legacy `bestiary.sqlite3`) | the `*.sqlite3` sweep |
-| Banks, house **chests**, dyes, boosts, party loot, promo codes, ammo, factions, teleport slots | `bankdb`, `kpb_bank`, `housechest`, `dyedb`, `boostdb`, `partyloot`, `coderedeem`, `ammorepdb`, `factiondb`, `teledb`, … | the `*.sqlite3` sweep |
+| Banks, house **chests**, dyes, boosts, party loot, ammo, factions, teleport slots | `bankdb`, `kpb_bank`, `housechest`, `dyedb`, `boostdb`, `partyloot`, `ammorepdb`, `factiondb`, `teledb`, … | the `*.sqlite3` sweep |
+| Promo/redemption code **usage** (who redeemed what) | `coderedeem` | the `*.sqlite3` sweep — the codes themselves stay valid (they're in module source, §2) |
 | Admin whitelist + UAT access, player-**home** records | `admindb` (`admins`, `houses`) | **kept** — shared symlink, like merit (§2) |
 | Boss respawn history | `respawndb` | self-resetting — `BRD_InitDb()` re-seeds on every module load |
 | Wiki activity charts, player-hours | `$NWN_RUN_DIR/logs*`, `activity-sessions.json` | the run-dir clear |
@@ -483,6 +550,11 @@ Once `_s<N>` is consistently empty for a decent stretch:
 4. In the **live** repo set `SEASON_PEER_ROLE=none`, rebrand, repack and deploy —
    this retires the cross-advert sign that was pointing players at a server that
    no longer answers.
+5. **Delete the retired season's *ops* app-grid shortcuts** (its restart / stop /
+   monitor `.desktop` files) and its monitor autostart entry — the server they
+   drove is gone (§6a). Leave the dev shortcuts and the roadmap editor; they track
+   the newest repo and never pointed at the archived season. The retired season's
+   backup subfolder `…/backups/s<N>/` stays as its frozen history.
 
 You are back to a single running instance. 5122/8001 sit idle until the next
 Phase 1 reuses them, and the router forwards stay in place.
@@ -522,10 +594,12 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] `NWN_PLAYERPASSWORD="volatile"` + `NWNSYNC_PUBLIC_URL` in `server.env.local`
 - [ ] `season-brand.py --apply`; repack; deploy — **in the new season repo**
 - [ ] `season-brand.py --apply`; repack; deploy — **in `_s<N>` too**, so the live season advertises the test realm + password
-- [ ] Merit symlink created and verified with `ls -l`
+- [ ] Both shared symlinks (`meritdb`, `admindb`) created into the new home dir and verified with `ls -l`
+- [ ] House area-tags checked: every `admindb.houses.area_tag` exists in the new season (§5)
 - [ ] Worker `homers-lotr-wiki-s<N+1>` + `season<N+1>.homerslotr.com` + DNS
 - [ ] Router: 5122/udp, 8001/tcp forwarded
 - [ ] Both systemd instances enabled; both servers up after a reboot
+- [ ] Aux services stood up (§6a): per-season backup subfolder; per-season ops shortcuts (restart/stop/monitor)
 - [ ] Wipe warning announced to testers — including the merit-redemption policy (§7b)
 
 **Phase 2 — go live**
@@ -534,6 +608,7 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] Vault (`servervault`/`dmvault`/`localvault`) + all `*.sqlite3` except merit **and admin** + run-dir `logs*`/`activity-sessions.json`/`currentgame.*` wiped
 - [ ] Wipe verified (§7a): `database/` holds only `meritdb`+`admindb` symlinks, vault empty, no `logs.N`
 - [ ] Both shared symlinks (`meritdb`, `admindb`) confirmed intact — admin access carries over, no re-seed needed
+- [ ] Promo codes reviewed (`bin/list-promo-codes.py`): expiries right for the new season; `coderedeem` usage reset by the wipe
 - [ ] `roadmapdb` republished (Recent Updates sign)
 - [ ] **Full wiki regen + push** — `docs/` is tracked in git and still holds early-access stats
 - [ ] Merit-escrow policy applied (§7b) for anyone who redeemed during early access
@@ -551,6 +626,7 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] Live season's peer block set to `none` (archived-season pointer removed); rebrand, repack, deploy
 - [ ] Season-N server + NWSync stopped and disabled
 - [ ] Its wiki-publish and backup units disabled; repo no longer pushed
+- [ ] Retired season's ops app-grid shortcuts + monitor autostart deleted (§6a); dev shortcuts + roadmap editor left alone
 - [ ] Frozen wiki confirmed serving at `season<N>.homerslotr.com`
 
 ---
@@ -567,12 +643,16 @@ Copy this into the announcement/tracking issue for each cutover.
   ever repack at once.
 - A season needs its **own NWSync repo/manifest** as soon as its hak/tlk content
   diverges from the other's — which it will, once you rebalance.
-- The **roadmap editor** (`:8765`) is single-instance; run it from whichever repo
-  you're actually editing. Its "Publish to Wiki" body-swaps `<main>` into the
-  already-built `docs/manual/Roadmap.html` — nav changes land at the next full
-  refresh, not at publish.
+- The **roadmap editor** (`:8765`) is single-instance and stays on the unnumbered
+  (newest) repo — one backlog, ever (§6a). Its "Publish to Wiki" body-swaps
+  `<main>` into the already-built `docs/manual/Roadmap.html` — nav changes land at
+  the next full refresh, not at publish.
+- **Aux services** (backup foldering, per-season ops shortcuts, the shared vs
+  per-season split) are catalogued in §6a; the one-time engineering behind them is
+  `season-cutover-prereqs.md` items 2b, 7 and 11.
 - **Capture surprises back into this file.** Anything that bit you during a
   cutover belongs here before you forget it.
 
-*v2.0 — first written for the season 1 → 2 cutover, but parameterized for every
-cutover after it.*
+*v2.1 — first written for the season 1 → 2 cutover, but parameterized for every
+cutover after it. v2.1 adds the auxiliary-service handling (§6a) and the
+redemption-code split (§2).*
