@@ -34,6 +34,7 @@ void main()
     if (GetItemPossessedBy(oPC, "x0_misc_fists")     == OBJECT_INVALID) CreateItemOnObject("x0_misc_fists",    oPC);
     if (GetItemPossessedBy(oPC, "ElrondsWrit")       == OBJECT_INVALID) CreateItemOnObject("elrondswrit",      oPC);
     if (GetItemPossessedBy(oPC, "Forgekey")          == OBJECT_INVALID) CreateItemOnObject("forgekey",         oPC);
+    if (GetItemPossessedBy(oPC, "ammoreplicator")    == OBJECT_INVALID) CreateItemOnObject("ammoreplicator",   oPC);
 
     // Rapid-testing supply: always hand out a fresh stack of 3 Runes of Expansion
     // (consumable, so no possession guard — each use tops the tester back up to 3).

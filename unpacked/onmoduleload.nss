@@ -23,6 +23,7 @@
 #include "quest_cd_inc"
 #include "faction_db"
 #include "worldstate_inc"
+#include "ammorep_db"
 
 
 void main()
@@ -114,5 +115,11 @@ Faction_InitDb();
 // read or before the heartbeat's WS_Tick() applies a decay/weekly rule.
 // See worldstate_inc.nss (roadmap: lumber-ent-tugofwar).
 WS_InitDb();
+
+// Quiver of Endless Flight (ammo replicator, Legolas/Angmar drop): ensure the
+// replicators table exists before the first activation reads a use count. Uses
+// are keyed on the ITEM's UUID so they follow the quiver when it changes hands.
+// See ammorep_db.nss (roadmap: Ammo-shortage).
+AmmoRep_InitDb();
 
 }   //end of main

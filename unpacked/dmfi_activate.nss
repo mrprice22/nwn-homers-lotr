@@ -76,6 +76,13 @@ void main()
       ExecuteScript("chisel_start", oActivator);
       return;
    }
+   if(GetTag(oItem)=="ammoreplicator")
+   {
+      // Quiver of Endless Flight: pick an ammunition you carry, get 500 more.
+      // Two uses per quiver, counted in ammorepdb by item UUID. See ammorep_inc.nss.
+      ExecuteScript("ammorep_open", oActivator);
+      return;
+   }
    if(GetTag(oItem)=="HornFellBeast")
    {
       // Sound the Horn of the Fell Beast: summon the crypt companion
