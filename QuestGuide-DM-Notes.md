@@ -791,22 +791,25 @@ Both files should be updated in the same commit whenever a quest ships or change
 
 ### Server Info Journals
 
-- **Naming note:** `hgll_cliententer.nss` is simply the module's `Mod_OnClientEntr` handler. The
-  `hgll_` prefix is a leftover from the retired Letoscript "legendary leveler" (levels 41–60 now
-  come from `hak_2da/exptable.2da`); the login wiring in it has nothing to do with that system and
-  survives the leveler's removal.
+- **Naming note (updated 2026-07-25, roadmap `ll-hgll-split-cliententer`):** the module's
+  `Mod_OnClientEntr` / `Mod_OnClientLeav` handlers are `mod_cliententer.nss` / `mod_clientexit.nss`.
+  They used to be `hgll_cliententer.nss` / `hgll_client_exit.nss` — a leftover name from the retired
+  Letoscript "legendary leveler" (levels 41–60 now come from `hak_2da/exptable.2da`). The login
+  wiring never had anything to do with that system and has been moved out; the two `hgll_` files are
+  now stubs holding only the leveler's own residue, each reached by one `ExecuteScript` call from the
+  new handler, to be deleted with the rest of the leveler (`ll-hgll-remove-scripts`).
 - **`mod_progress` content (2026-07-25):** the "Character Progression" entry in `module.jrl.json` no
   longer describes the HGLL leveler. It now states that levels 41–60 are real levels on the
   published XP table (48,800 over level 40, compounding 1.1x, 3,581,000 at level 60) and flags the
   feature as in development for Season 2.
-- **Delivery:** `hgll_cliententer.nss` delivers **eight** categories on every login, idempotently,
+- **Delivery:** `mod_cliententer.nss` delivers **eight** categories on every login, idempotently,
   all with `End=1` so they land in the player's Completed section: `rules`, `website`,
   `modcustoms`, `mod_progress`, `mod_death`, `mod_forge`, `mod_systems`, `mod_factions`.
 - **Guilds retired on purpose (2026-07-15)** (roadmap idea `guilds-journal-never-delivered`):
   delivery of the `guilds` category was briefly added on 2026-07-14, then removed at the admin's
   direction — the guild system is retired/suspended, so the journal is deliberately withheld. The
   category remains in `module.jrl.json` and can be re-enabled with one line in
-  `hgll_cliententer.nss` if guilds return.
+  `mod_cliententer.nss` if guilds return.
 - **Minor open point:** the `website` category's display `Name` is still literally "Website" while
   its content is now the Discord invite (`https://discord.gg/VpAtSpe`) in `module.jrl.json`.
 - **History:** `mod_enter.nss` was dead code, never wired to any event — which is why players never
@@ -830,7 +833,7 @@ carried by Summanus in `falseheaven` = "Númenor: Noirinan") a door, and opens *
 | Gate placeable blueprint | `q_frk_gate.utp` (from `zep_doors012`, Plot, Useable, no inventory) |
 | Court OnDeath | `q_frk_death.nss` — chains `x2_def_ondeath`; set as `ScriptDeath` on the three court blueprints |
 | Key acquisition hook | `acquireditem_tag.nss` → `FRK_OnKeyAcquired` |
-| Retroactive login catch-up | `hgll_cliententer.nss` → `DelayCommand(7.0, FRK_LoginCheck(oPC))` |
+| Retroactive login catch-up | `mod_cliententer.nss` → `DelayCommand(7.0, FRK_LoginCheck(oPC))` |
 
 **Persistence** — campaign DB `forbiddendb`, per character (`oPC`-keyed):
 `frk_stage` 0 none / 1 key acquired / 2 gate opened / 3 tomb entered; `frk_king`, `frk_queen`,
@@ -966,7 +969,8 @@ speaking to Elrond the server-info journals were absent — because they were ne
 coincidence made it look like Elrond's quest was clearing them.
 
 **Fixed (corrected 2026-07-11):** `AddJournalQuestEntry` calls for `rules`, `website` and the six
-`mod_*` journals were added directly to `hgll_cliententer.nss`, the real OnClientEnter handler, and
+`mod_*` journals were added directly to the real OnClientEnter handler (then `hgll_cliententer.nss`,
+now `mod_cliententer.nss`), and
 run idempotently on every login. The `guilds` journal is deliberately excluded as of 2026-07-15. The
 forum URL in the `website` entry has since been refreshed to the community Discord.
 
@@ -976,8 +980,8 @@ forum URL in the `website` entry has since been refreshed to the community Disco
 
 - **2026-05-28** — the fixes described throughout were implemented in module source. Three earlier
   diagnoses were corrected during implementation: `sc_001.nss` never blocked Gloison's conversation
-  (its `Random(100) >= 100` branch can never fire, so it always returns TRUE); `hgll_cliententer.nss`
-  had no pre-existing first-login check to hang the server-info journals from; and the *Book of the
+  (its `Random(100) >= 100` branch can never fire, so it always returns TRUE); the OnClientEnter
+  handler (then `hgll_cliententer.nss`) had no pre-existing first-login check to hang the server-info journals from; and the *Book of the
   Cora* already carries useful properties.
 - **2026-07-11 audit pass** — a re-audit against the live module found the guide had drifted. Two
   fully-scripted reward quests were undocumented and were added (Paths of the Dead, Glorfindel's

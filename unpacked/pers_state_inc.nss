@@ -10,7 +10,7 @@
 // pattern the HGLL leveler uses (see commit 08cb4571).
 //
 // Death is still handled by the existing deathamulet path
-// (ondeath020.nss + the deathamulet check in hgll_cliententer.nss).
+// (ondeath020.nss + the deathamulet check in mod_cliententer.nss).
 // PersState_Restore deliberately skips HP restoration when the saved
 // HP is <= 0 so the deathamulet path is the sole arbiter of death.
 

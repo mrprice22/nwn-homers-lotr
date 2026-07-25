@@ -8,9 +8,8 @@ Player-facing copy and the full reward catalogue live on the wiki:
 ## Storage — campaign DB `meritdb` (SQLite)
 
 Two tables, both created idempotently by `Merit_InitDb()` (called on login from
-`hgll_cliententer.nss`, the module's `Mod_OnClientEntr` handler — the `hgll_`
-prefix is a leftover name from the retired legendary leveler, not a dependency on
-it). All access goes through `SqlPrepareQueryCampaign`.
+`mod_cliententer.nss`, the module's `Mod_OnClientEntr` handler). All access goes
+through `SqlPrepareQueryCampaign`.
 
 - **`players`** — `cdkey PK, name, last_login, bugs, exploits, features, merit_spent`.
   - **Earned merit is never stored or decremented.** It is computed on demand:

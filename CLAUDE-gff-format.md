@@ -65,8 +65,8 @@ event hook, HAK list, custom TLK reference, entry point, etc.
 |-------------------|--------------------|--------------------------------------|
 | `Mod_OnHeartbeat` | `bleeding`         | Custom bleed-out / death-at-negative |
 | `Mod_OnModLoad`   | `onmoduleload`     | PC autosave init + MW NPC spawn      |
-| `Mod_OnClientEntr`| `hgll_cliententer` | Main login handler: merit/forge/bestiary init, journal catch-up. The `hgll_` name is a leftover from the retired legendary leveler |
-| `Mod_OnClientLeav`| `hgll_client_exit` | Logout handler; same legacy name       |
+| `Mod_OnClientEntr`| `mod_cliententer`  | Main login handler: merit/forge/bestiary/teleport/boost/faction init, journal catch-up, death-amulet + bleed-out resolution, build stamp, contraband sweep |
+| `Mod_OnClientLeav`| `mod_clientexit`   | Logout handler: epic-summon dismiss, bank-box commit, persistent-state snapshot, BIC export |
 | `Mod_OnAcquirItem`| `acquireditem_tag` | Hooks into Bedlamson Dynamic Merchants |
 | `Mod_OnUnAqreItem`| `deathamuletdecay` | "deathamulet" cleanup                |
 | `Mod_OnActvtItem` | `dmfi_activate`    | DM Friendly Initiative item          |

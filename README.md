@@ -592,9 +592,12 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
   add-on with its own XP tally, its own leveler NPC and its own area, and none of
   that is how levels 41–60 work now. The scripts are still in `unpacked/` pending
   removal — don't extend them, and don't cite them as the level-41+ mechanism.
-  `hgll_cliententer.nss` / `hgll_client_exit.nss` are the exception: they are the
-  module's live login/logout handlers and carry unrelated wiring (merit, forge,
-  bestiary, journal catch-up); they keep the legacy prefix only as a name.
+  The login/logout handlers are no longer among them: `Mod_OnClientEntr` /
+  `Mod_OnClientLeav` are `mod_cliententer.nss` / `mod_clientexit.nss`, which hold
+  all the real wiring (merit, forge, bestiary, journal catch-up, bank boxes,
+  persistent state). The gutted `hgll_cliententer.nss` / `hgll_client_exit.nss`
+  keep only the leveler's own residue and are each reached by a single
+  `ExecuteScript` call, to be deleted with the rest of the leveler.
 
 ## Updating a hak / refreshing nwsync
 

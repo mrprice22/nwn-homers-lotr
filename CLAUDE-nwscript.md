@@ -54,7 +54,7 @@ files as **third-party — don't refactor unless you know the framework**.
 | `dmfi_*`   | DM Friendly Initiative (DM tools, dice, dialog tokens) | `dmfi_univ_1..N` are universal action scripts; `dmfi_univ_cond` is a parameterized conditional |
 | `dmw_*`    | DM Wand utilities                              |                           |
 | `bdm_*`    | Bedlamson's Dynamic Merchants (faction/race-restricted store stocks) | Hooks `OnAcquireItem` |
-| `hgll_*`   | **Retired** — the old Higher Ground / Letoscript "legendary leveler" for levels 41–60 | **Don't build on it.** Levels 41–60 are now real levels from `hak_2da/exptable.2da`; these scripts are scheduled for removal (roadmap `ll-hgll-remove-scripts`). Only `hgll_cliententer` / `hgll_client_exit` still matter — they are the module's live `Mod_OnClientEntr` / `Mod_OnClientLeav` handlers and host unrelated login wiring (merit, forge, bestiary, journal catch-up) |
+| `hgll_*`   | **Retired** — the old Higher Ground / Letoscript "legendary leveler" for levels 41–60 | **Don't build on it.** Levels 41–60 are now real levels from `hak_2da/exptable.2da`; these scripts are scheduled for removal (roadmap `ll-hgll-remove-scripts`). The login/logout handlers are **no longer** among them: `Mod_OnClientEntr` / `Mod_OnClientLeav` are `mod_cliententer` / `mod_clientexit`. The gutted `hgll_cliententer` / `hgll_client_exit` now hold only the leveler's own residue and are each reached by one `ExecuteScript` call from those handlers |
 | `pc_export*` | PC autosave on heartbeat                     | Hooked at `Mod_OnModLoad` |
 
 `hgll_const_inc.nss` is legacy: it holds the retired leveler's XP constants and a
