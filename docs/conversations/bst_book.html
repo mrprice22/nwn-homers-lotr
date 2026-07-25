@@ -57,7 +57,7 @@
 <h1>Conversation: <code>bst_book</code></h1>
 <dl class="meta">
 <dt>NPC lines</dt><dd>2</dd>
-<dt>PC replies</dt><dd>15</dd>
+<dt>PC replies</dt><dd>16</dd>
 <dt>NumWords</dt><dd>0</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
@@ -80,8 +80,11 @@
 <tr><td><code>bst_open_killed</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>bst_open_unk</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>bst_page_p</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>bst_page_n</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
-<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM5030&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
+<tr><td><code>bst_page_n</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>bst_intro</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>bst_open_boss</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM5029&gt;</code></td><td><a href="../scripts/bst_db.html">bst_db</a></td></tr>
+<tr><td><code>&lt;CUSTOM5030&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5031&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5032&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5033&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
@@ -100,7 +103,11 @@
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">You open the Bestiary of Middle-earth. Its pages record every beast you have faced. What would you like to review?</div>
+<div class="dlg-text">You open the Bestiary of Middle-earth. Its pages record every beast you have faced.
+
+<span class="custom-token" title="SetCustomToken(5029, ...) called in: bst_db">&lt;CUSTOM5029&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>]</sup></span>
+
+What would you like to review?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>bst_open_killed</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
@@ -190,7 +197,7 @@ Entries are listed by Challenge Rating, highest first.</div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #14</span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
+<summary><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>bst_intro</code></span> <a class="dlg-anchor" href="#r14" title="jump to flat reply #14">¶</a></summary>
 <div class="dlg-text">[Back to the index]</div>
 <div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“You open the Bestiary of Middle-earth. Its pages record every beast you have fac…”</span></div>
@@ -208,6 +215,13 @@ Entries are listed by Challenge Rating, highest first.</div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>bst_open_boss</code></span> <a class="dlg-anchor" href="#r15" title="jump to flat reply #15">¶</a></summary>
+<div class="dlg-text">Great foes I have yet to fell.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“()”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
 <div class="dlg-text">Close the book.</div>
 </details>
@@ -215,7 +229,11 @@ Entries are listed by Challenge Rating, highest first.</div>
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">You open the Bestiary of Middle-earth. Its pages record every beast you have faced. What would you like to review?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Creatures I have slain.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Creatures I have not yet slain.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Close the book.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">You open the Bestiary of Middle-earth. Its pages record every beast you have faced.
+
+<span class="custom-token" title="SetCustomToken(5029, ...) called in: bst_db">&lt;CUSTOM5029&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>]</sup></span>
+
+What would you like to review?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Creatures I have slain.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Creatures I have not yet slain.”</span></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Great foes I have yet to fell.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Close the book.”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(5040, ...) called in: bst_db">&lt;CUSTOM5040&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>]</sup></span> (<span class="custom-token" title="SetCustomToken(5041, ...) called in: bst_db">&lt;CUSTOM5041&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>]</sup></span>)
 
 Entries are listed by Challenge Rating, highest first.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“[&lt;&lt; Previous page]”</span> <small class="muted">(if <code>bst_has_prev</code>)</small></li><li><a href="#r4">→ reply #4</a> <small class="muted">(if <code>bst_slot_0_vis</code>)</small></li><li><a href="#r5">→ reply #5</a> <small class="muted">(if <code>bst_slot_1_vis</code>)</small></li><li><a href="#r6">→ reply #6</a> <small class="muted">(if <code>bst_slot_2_vis</code>)</small></li><li><a href="#r7">→ reply #7</a> <small class="muted">(if <code>bst_slot_3_vis</code>)</small></li><li><a href="#r8">→ reply #8</a> <small class="muted">(if <code>bst_slot_4_vis</code>)</small></li><li><a href="#r9">→ reply #9</a> <small class="muted">(if <code>bst_slot_5_vis</code>)</small></li><li><a href="#r10">→ reply #10</a> <small class="muted">(if <code>bst_slot_6_vis</code>)</small></li><li><a href="#r11">→ reply #11</a> <small class="muted">(if <code>bst_slot_7_vis</code>)</small></li><li><a href="#r12">→ reply #12</a> <small class="muted">(if <code>bst_slot_8_vis</code>)</small></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“[Next page &gt;&gt;]”</span> <small class="muted">(if <code>bst_has_next</code>)</small></li><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“[Back to the index]”</span></li></ul></div>
@@ -234,7 +252,8 @@ Entries are listed by Challenge Rating, highest first.</div><ul class="dlg-links
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(5037, ...) called in: merit_redeem">&lt;CUSTOM5037&gt;<sup class="token-setters">[<a href="../scripts/merit_redeem.html">merit_redeem</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“()”</span></li></ul></div>
 <div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(5038, ...) called in: merit_dsel_0, merit_dsel_1, merit_dsel_2, merit_dsel_3, merit_dsel_4, merit_dsel_5, merit_dsel_6, merit_dsel_7, merit_dsel_8">&lt;CUSTOM5038&gt;<sup class="token-setters">[<a href="../scripts/merit_dsel_0.html">merit_dsel_0</a>, <a href="../scripts/merit_dsel_1.html">merit_dsel_1</a>, <a href="../scripts/merit_dsel_2.html">merit_dsel_2</a>, <a href="../scripts/merit_dsel_3.html">merit_dsel_3</a>, <a href="../scripts/merit_dsel_4.html">merit_dsel_4</a>, <a href="../scripts/merit_dsel_5.html">merit_dsel_5</a>, <a href="../scripts/merit_dsel_6.html">merit_dsel_6</a>, <a href="../scripts/merit_dsel_7.html">merit_dsel_7</a>, <a href="../scripts/merit_dsel_8.html">merit_dsel_8</a>]</sup></span></div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“()”</span></li></ul></div>
 <div class="dlg-node reply" id="r13"><div class="dlg-head"><span class="dlg-id">reply #13</span> <span class="dlg-action">→ <code>bst_page_n</code></span></div><div class="dlg-text">[Next page &gt;&gt;]</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“()”</span></li></ul></div>
-<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span></div><div class="dlg-text">[Back to the index]</div><ul class="dlg-links"><li><a href="#e0">→ entry #0</a> <span class="dlg-link-preview">“You open the Bestiary of Middle-earth. Its pages record every beast you have fac…”</span></li></ul></div>
+<div class="dlg-node reply" id="r14"><div class="dlg-head"><span class="dlg-id">reply #14</span> <span class="dlg-action">→ <code>bst_intro</code></span></div><div class="dlg-text">[Back to the index]</div><ul class="dlg-links"><li><a href="#e0">→ entry #0</a> <span class="dlg-link-preview">“You open the Bestiary of Middle-earth. Its pages record every beast you have fac…”</span></li></ul></div>
+<div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>bst_open_boss</code></span></div><div class="dlg-text">Great foes I have yet to fell.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“()”</span></li></ul></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>
