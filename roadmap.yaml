@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-25 09:15 CDT"
+  as_of: "2026-07-25 16:05 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -120,10 +120,10 @@ epics:
     title: "Diffulty Increase"
     group: forge
     notes: "Make the game more challenging (mostly at end game areas)"
-  - id: legendary-feats
-    title: "Legendary Feats"
+  - id: legendary-levels
+    title: "Legendary Levels 41-60"
     group: combat-classes
-    notes: "Feats that can only be taken after level 40, bonus feats for pure classes at level 60"
+    notes: "Replace the bolt-on legendary leveler with real character levels 41-60 — true class progression on a proper epic XP table, plus a pool of Legendary Feats you can only take past level 40"
 
 
 # -----------------------------------------------------------------------------
@@ -249,6 +249,7 @@ ideas:
   - id: hgll-banked-skillpoints-lost
     title: "HGLL pre level 41 skill points banked do not carry over"
     group: combat-classes
+    epic: legendary-levels
     status: unlikely
     type: Defect
     player: "HomelessSon (Server Admin)"
@@ -389,8 +390,8 @@ ideas:
     impl_notes: "<div><b>Root cause:</b> mw_sup_er (Campbell/McKenna OnEndCombatRound) issued song feats every combat round with no guards. Style 1 gated Curse Song on FEAT_CURSE_SONG, but Curse Song actually spends the <i>Bard Song</i> pool (x2_s2_cursesong decrements/checks FEAT_BARD_SONGS) — so the gate never tripped and it re-queued Curse Song every round, flooding the 'no more bardsong uses left' message, which names <i>bard</i> song, hence the confusing verbiage. Style 2 re-sang Bard Song every round with no 'already singing' guard, burning all daily uses in seconds; the constant feat attempts also pre-empted attack/tactics orders in the action queue.</div><div><br></div><div><b>Fix:</b> gate Curse Song on the real FEAT_BARD_SONGS pool and skip an already-cursed enemy; add !GetHasSpellEffect(411) to Bard Song so it is not re-sung while the buff is up, mirroring the module's canonical TalentBardSong().</div>"
   - id: Legendary-Feats
     title: "Implement Legendary Feats"
-    group: forge
-    epic: legendary-feats
+    group: combat-classes
+    epic: legendary-levels
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
@@ -1329,6 +1330,7 @@ ideas:
   - id: ll-modern-leveling
     title: "Replace the conversation-based Legendary Leveler with normal 1-40 leveling (works with 4x multiclass)"
     group: combat-classes
+    epic: legendary-levels
     status: later
     type: Enhancement
     player: "-Methonash-"
@@ -3833,3 +3835,220 @@ ideas:
         status: open
       - step: "UAT: in-game, confirm the Quiver of Endless Flight reads 250,000 gp again."
         status: open
+  # ---------------------------------------------------------------------------
+  # Legendary Levels 41-60 (epic: legendary-levels) — replaces the HGLL bolt-on
+  # with real character levels. See docs.manual/Draft/LegendaryFeats.html.
+  # ---------------------------------------------------------------------------
+  - id: ll-exptable-2da
+    title: "Epic XP table: levels 41-60"
+    group: combat-classes
+    epic: legendary-levels
+    status: wip
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Levels 41-60 cost real XP on a published table instead of the leveler's private accounting, so the XP bar and the character sheet finally agree.</div>"
+    impl_notes: "<div>Add <code>exptable.2da</code> to <code>hak_2da/</code> with rows for 41-60. <b>Decided:</b> the existing HGLL constants in <code>unpacked/hgll_const_inc.nss</code> are reused <b>as cumulative totals</b> — L41 828,800 … L60 3,581,000, per-level deltas starting at 48,800 and compounding x1.1. That is deliberately ~5x cheaper than what HGLL effectively charged (it compared <code>GetXP</code> against the constant and then <i>subtracted the whole constant</i> every level, ~17,498,600 to reach 60 — the figure the <code>freelegendary</code> redeem code still hands out).</div><div>Season 2 is a fresh character wipe, so there is no migration path to worry about.</div>"
+  - id: ll-maxlevel-cap
+    title: "Raise the server level cap to 60"
+    group: combat-classes
+    epic: legendary-levels
+    status: wip
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The server accepts characters above level 40 natively — levels 41-60 are real levels the client understands, not a separate track.</div>"
+    impl_notes: "<div>Two levers do the same job (upstream warns about this in <code>unpacked/nwnx_admin.nss:173</code>): flip <code>NWNX_MAXLEVEL_SKIP=y</code> to <code>n</code> in <code>server.env</code>, or call <code>NWNX_Administration_SetMaxLevel(60)</code> from <code>onmoduleload.nss</code>. Pick one. Also needs <code>MaxLevel</code>/<code>EpicLevel</code> columns updated in a <code>hak_2da/classes.2da</code> (stock values today). <code>NWN_ELC=0</code> / <code>NWN_ILR=0</code> are already off.</div>"
+  - id: ll-cls-progression
+    title: "Class progression tables for levels 41-60"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Levels past 40 advance your class properly: attack bonus, saves, spell slots and the feat / ability-score cadence all keep going, instead of only granting HP and a floating feat.</div>"
+    impl_notes: "<div>This is the substantive difference from HGLL, which explicitly did <i>not</i> extend caster level, spell slots or class progression. Needs <code>cls_*.2da</code> work in <code>hak_2da/</code> (BAB, saves, spell slots/known, feat table cadence). Decide per-class whether 41-60 continues the epic-progression rules or a custom curve, and whether caster level keeps scaling (balance call — spell DCs and duration scale with it).</div>"
+  - id: ll-tweaks-audit
+    title: "Audit NWNX Tweaks options for epic-level play"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Server-side tweaks reviewed so nothing quietly misbehaves once characters go past 40.</div>"
+    impl_notes: "<div>The Tweaks plugin is already enabled (<code>NWNX_TWEAKS_SKIP=n</code>, <code>server.env:58-60</code>) with two options set: <code>CHARLIST_SORT_BY_LAST_PLAYED_DATE</code> and <code>CAN_USE_ITEMS_WHILE_POLYMORPHED</code>. Tweaks has <b>no NWScript API</b> — it is env-var only, so there is nothing to add to <code>unpacked/</code>. Walk the plugin's option list for anything relevant to level/feat/XP handling and record the chosen set in <code>server.env</code> comments.</div>"
+  - id: ll-elc-validation
+    title: "Character validation with a level 60 cap"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Characters above level 40 log in cleanly — no rejected or silently reset characters when the cap moves.</div>"
+    impl_notes: "<div>Confirm the ELC/ILR posture (<code>NWN_ELC=0</code>, <code>NWN_ILR=0</code> today) is still what we want with a real 60 cap, and verify the client accepts a 41+ character with the custom <code>exptable.2da</code>/<code>classes.2da</code> in the hak. Depends on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a> and <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a>.</div>"
+  - id: ll-xp-award-balance
+    title: "Retune XP awards for the 41-60 band"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Levelling from 41 to 60 is a real grind but a finishable one — endgame content pays out at a rate that matches the new table.</div>"
+    impl_notes: "<div>Once the table is fixed, check what the existing endgame creature/boss XP actually pays per hour against the 48,800-rising-x1.1 per-level costs, and adjust awards (or the table) rather than leaving the two to drift. Related: <a href=\"#idea-boss-tuning-post40\">boss tuning past 40</a>.</div>"
+  - id: ll-hgll-remove-scripts
+    title: "Remove the HGLL leveler scripts"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The old legendary-leveler machinery is gone once real levels replace it.</div>"
+    impl_notes: "<div>21 <code>unpacked/hgll_*.nss</code> files (incl. the 250 KB <code>hgll_classft_inc</code> and 176 KB <code>hgll_featreq_inc</code> feat tables) plus <code>sha_leto_inc.nss</code>, a near-duplicate of <code>hgll_leto_inc</code>. <b>Blocker:</b> <code>mw_mixtape_con.nss:4</code> does <code>#include \"hgll_leto_inc\"</code> and must be re-pointed first. Also drop the dead Windows Letoscript path <code>const string NWNPATH</code> in <code>hgll_const_inc.nss:4</code> — but keep the XP constants until <a href=\"#idea-ll-exptable-2da\">the exptable</a> has them.</div>"
+  - id: ll-hgll-split-cliententer
+    title: "Untangle the module OnClientEnter hook from HGLL"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Login-time systems (journals, merit, bestiary, forge, teleports, faction) keep working after the leveler is removed.</div>"
+    impl_notes: "<div><code>hgll_cliententer.nss</code> is wired as <code>Mod_OnClientEntr</code> (<code>unpacked/module.ifo.json:2285</code>) and <code>hgll_client_exit.nss</code> as <code>Mod_OnClientLeav</code> (<code>:2289</code>), but they are <b>not</b> HGLL-only — the enter script carries journal delivery, merit DB init, bestiary install, forge, teleport, XP boost, FRK login check and faction wiring; the exit script only clears pending picks. So this is a rename + strip, not a delete: move the real work to a neutrally-named script, re-point both hooks, and update the references in <code>q_frk_inc.nss:10</code>, <code>pers_state_inc.nss:13</code>, <code>CLAUDE-merit.md:11</code>, <code>CLAUDE-gff-format.md:68-69</code> and <code>QuestGuide-DM-Notes.md</code>.</div>"
+  - id: ll-hgll-retire-area
+    title: "Retire the Legendary Levelling Area"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The Legendary Levelling Area off the Well of Eru goes away — you level at 41+ the same way you level at 4.</div>"
+    impl_notes: "<div>Remove <code>legendarylevelli.are/.git/.gic.json</code> as a set (41 placeables, 0 creatures, 2 triggers, 2 waypoints) plus the Well of Eru trigger that reaches it and the <code>legenarea</code> entry waypoint. The leveler itself is a stock <code>zep_statues026</code> instance with <code>OnUsed = hgll_start_dlg</code> — no blueprint to delete, and no <code>.dlg</code> either (HGLL used zdlg dynamic dialogs). Re-run <code>python3 bin/gen-map-notes.py --apply</code> afterwards. Do <b>not</b> touch <code>halloflegends.*</code> or <code>legenddoor.utd.json</code> — unrelated despite the names.</div>"
+  - id: ll-hgll-retire-gate
+    title: "Drop the HGLL build gate from the smoke test"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Internal build cleanup — no player-visible effect.</div>"
+    impl_notes: "<div><code>tests/check_hgll_transactional.py</code> (invoked from <code>tests/smoke-test:34</code>) enforces the stage-then-commit discipline that stopped the old skill/feat farming exploit. It becomes dead weight once HGLL is gone — remove it <b>last</b>, after <a href=\"#idea-ll-hgll-remove-scripts\">the scripts</a>, so the gate protects the system for as long as it exists.</div>"
+  - id: ll-hgll-purge-docs
+    title: "Purge HGLL from the wiki and repo docs"
+    group: wiki-tools
+    epic: legendary-levels
+    status: planned
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The wiki stops describing the old legendary leveler and documents real levels 41-60 instead.</div>"
+    impl_notes: "<div>Known touch points: <code>docs.manual/Customizations.html</code> (TOC + <code>#legendary-levels</code> section, the do/don't-gain table, the leveler placeable and progression entries), <code>docs.manual/LevelingGuide.html</code> (Legendary Levelling Area dt/dd), <code>docs.manual/Draft/Gem-Socketing.html</code> (planned <code>hgll_cliententer</code> hooks), <code>index.html</code> (landing-page blurb), <code>unpacked/module.ifo.json:2079</code> (module description advertises the HGLL framework), <code>unpacked/module.jrl.json:2289</code> (\"Character Progression\" server-info entry quoting the old XP costs), <code>CLAUDE-nwscript.md:57-60</code>, <code>CLAUDE-gff-format.md:68-69</code>, <code>CLAUDE-merit.md:11</code>, <code>QuestGuide-DM-Notes.md</code>, <code>Quest Ideas.md:456</code>, <code>README.md:450-511</code>, <code>TODO.txt:140</code>, and the <code>server.env</code> comments at lines 30 and 47-48.</div>"
+  - id: ll-freelegendary-code
+    title: "Rework the freelegendary redeem code for the new XP curve"
+    group: economy
+    epic: legendary-levels
+    status: planned
+    type: Exploit
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The admin/testing shortcut for legendary levels matches the new table instead of the old one.</div>"
+    impl_notes: "<div>The <code>freelegendary</code> code does <code>SetXP(oPC, 17498600)</code> (<code>README.md:458</code>) — the old HGLL total-to-60. Against the new cumulative table that is roughly 5x the real cost and would hand out level 60 many times over. Retire the code or reset it to the new L60 total (3,581,000). Depends on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>.</div>"
+  - id: ll-pingpong-41-60
+    title: "Ping Pong: add level 41-60 to the \"Set my level\" menu"
+    group: qol
+    epic: legendary-levels
+    status: wip
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The Ping Pong test NPC can set you to any level from 1 to 60, not just 1 to 40 — so the new legendary levels can actually be tested.</div>"
+    impl_notes: "<div>Conversation <code>unpacked/_pc_builder_v1.dlg.json</code> (NPC <code>butcha</code>, tag <code>BUTCHA</code>, \"Ping Pong\"; placed in <code>thewelloferu</code> and <code>houseofdispai001</code>). Under \"Set my level\", replies 18-57 are Level 40 down to Level 1, each firing <code>_build_level_&lt;N&gt;.nss</code>, which does an <b>absolute</b> <code>SetXP()</code> from the stock cumulative table (500 * n * (n-1); L40 = 780,000). Reply 16 is an unwired stub labelled <code>Htou Level´s</code> with no script — the natural home for a 41-60 submenu. Needs 20 new <code>_build_level_41..60.nss</code> carrying the new table's values, so it depends on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>.</div><div>Two traps when cloning the existing scripts: they set XP on <code>GetPCSpeaker()</code> but play the VFX/floating text on <code>GetLastSpeaker()</code>, and there are duplicate <code>butcha</code>/<code>butcha_2</code> blueprints (<code>CLAUDE-recipes.md:43</code>) — wire the conversation, not one instance.</div>"
+    manual_steps:
+      - step: "UAT: talk to Ping Pong, set level 41 through 60 in turn, and confirm the character sheet and XP bar agree with the new exptable at each step."
+        status: open
+  - id: ll-wiki-leveling-docs
+    title: "Rewrite the Leveling Guide for real levels 41-60"
+    group: wiki-tools
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The wiki explains how levelling past 40 actually works now: what you gain per level, what it costs, and where the Legendary Feats fit.</div>"
+    impl_notes: "<div>Follows <a href=\"#idea-ll-hgll-purge-docs\">the HGLL purge</a> — that one removes the old text, this one writes the replacement in <code>docs.manual/LevelingGuide.html</code> and <code>docs.manual/Customizations.html</code>, including the new XP table and a link to the Legendary Feats page once the draft graduates out of <code>Draft/</code>.</div>"
+  - id: ll-feats-2da
+    title: "Legendary Feats: 2DA plumbing and per-class allotments"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The groundwork for Legendary Feats: feats that only become selectable after level 40, and the rules for how many each class gets.</div>"
+    impl_notes: "<div>Against real levels this is <code>hak_2da/feat.2da</code> work (the file already has <code>MinLevel</code> / <code>PreReqEpic</code> columns) rather than entries in the old <code>hgll_featlist_*</code> pages. Source of truth for the catalogue is <a href=\"Draft/LegendaryFeats.html\">the Legendary Feats draft</a>; allotments are in <a href=\"Draft/LegendaryFeats.html#allotments\">Class Allotments</a>. Every <code>ll-feats-*</code> story below depends on this one.</div>"
+    design_questions:
+      - question: "The draft's Class Allotments assume a pure-class bonus pool, but the roadmap note on Legendary-Feats says 'reuse same pool of feats and just not give as many to mixed classes.' Confirm the mixed-class allotment rule — a flat reduction, a per-class-level formula, or pure-class-only for some tiers?"
+        status: open
+  - id: ll-feats-ability-martial
+    title: "Legendary Feats: ability score and martial feats"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Ability-score and martial Legendary Feats.</div>"
+    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#ability-scores\">Ability Score Feats</a> and <a href=\"Draft/LegendaryFeats.html#martial\">Martial Feats</a>.</div>"
+  - id: ll-feats-defense
+    title: "Legendary Feats: defensive and survival feats"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Defensive and survival Legendary Feats.</div>"
+    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#defensive\">Defensive &amp; Survival Feats</a>.</div>"
+  - id: ll-feats-arcane-divine
+    title: "Legendary Feats: arcane and divine casting feats"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Arcane and divine spellcasting Legendary Feats.</div>"
+    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#arcane\">Arcane Spellcasting Feats</a> and <a href=\"Draft/LegendaryFeats.html#divine\">Divine Spellcasting Feats</a>. Interacts with <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>: how much of this is a feat versus continued caster-level scaling is a balance call to settle there first.</div>"
+  - id: ll-feats-ki-perform-skill
+    title: "Legendary Feats: ki, performance and skill feats"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Ki &amp; mystic, performance &amp; support, and skills &amp; utility Legendary Feats.</div>"
+    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#ki\">Ki &amp; Mystic</a>, <a href=\"Draft/LegendaryFeats.html#performance\">Performance &amp; Support</a> and <a href=\"Draft/LegendaryFeats.html#skills\">Skills &amp; Utility</a>.</div>"
+  - id: ll-feats-spell-upgrades
+    title: "Legendary Feats: legendary spell upgrades"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Legendary Spell feats that upgrade existing spells — summons, damage, control, buffs, necromancy and abjuration.</div>"
+    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#legendary-spells\">Legendary Spell Feats</a> and its six sub-sections (<code>#ls-summons</code>, <code>#ls-damage</code>, <code>#ls-control</code>, <code>#ls-buff</code>, <code>#ls-necromancy</code>, <code>#ls-abjuration</code>). The biggest scripting lift of the feat set — each upgrade is spell-script work, not just a 2DA row. Summon upgrades should be checked against the existing <code>summon_boost.nss</code> scaling so the two do not stack into nonsense.</div>"
+  - id: ll-feats-dominion
+    title: "Legendary Feats: dominion feats"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Dominion feats: Legendary Arcane Dominion, Legendary Divine Wrath and Legendary Primal Force.</div>"
+    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#dominion\">Dominion Feats</a> (<code>#arcane-dominion</code>, <code>#divine-wrath</code>, <code>#primal-force</code>). These read as the capstone tier — decide whether they are level-60-only before pricing the rest of the pool.</div>"
+  - id: ll-feats-hybrid-pure
+    title: "Legendary Feats: hybrid caster feats and pure-class bonuses"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Hybrid caster feats for paladin, bard and ranger, plus the passive bonuses that reward staying pure-class.</div>"
+    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#hybrid-casters\">Hybrid Caster Feats</a> and <a href=\"Draft/LegendaryFeats.html#pure-class-bonuses\">Pure Class Passive Bonuses</a>. This is where the pure-vs-mixed question on <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a> actually bites — the pure-class bonuses were the original idea the whole feat set grew out of.</div>"
+  - id: ll-feats-exotic
+    title: "Legendary Feats: exotic feats"
+    group: combat-classes
+    epic: legendary-levels
+    status: planned
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>The exotic Legendary Feats — the odd ones that do not fit the other categories.</div>"
+    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#exotic\">Exotic Feats</a>.</div>"
