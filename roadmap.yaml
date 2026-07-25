@@ -3931,11 +3931,32 @@ ideas:
     title: "Untangle the module OnClientEnter hook from HGLL"
     group: combat-classes
     epic: legendary-levels
-    status: confirmed
+    status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
-    notes: "<div>Login-time systems (journals, merit, bestiary, forge, teleports, faction) keep working after the leveler is removed.</div>"
-    impl_notes: "<div><code>hgll_cliententer.nss</code> is wired as <code>Mod_OnClientEntr</code> (<code>unpacked/module.ifo.json:2285</code>) and <code>hgll_client_exit.nss</code> as <code>Mod_OnClientLeav</code> (<code>:2289</code>), but they are <b>not</b> HGLL-only — the enter script carries journal delivery, merit DB init, bestiary install, forge, teleport, XP boost, FRK login check and faction wiring; the exit script only clears pending picks. So this is a rename + strip, not a delete: move the real work to a neutrally-named script, re-point both hooks, and update the references in <code>q_frk_inc.nss:10</code>, <code>pers_state_inc.nss:13</code>, <code>CLAUDE-merit.md:11</code>, <code>CLAUDE-gff-format.md:68-69</code> and <code>QuestGuide-DM-Notes.md</code>.</div>"
+    commit: 23487788730240fbac4e4304f925272a07f88dba
+    date: 2026-07-25
+    notes: "<div>Housekeeping under the hood: the login and logout handling has been separated from the old legendary-leveler code it had grown into. Nothing changes for you — your journals, merit login credit, bestiary, teleport unlocks, faction allegiance, XP boosts, bank storage boxes and the bleeding-out survival roll all behave exactly as before. The change clears the way for the retired leveler to be removed without disturbing login.</div>"
+    impl_notes: "<div>Split <code>hgll_cliententer.nss</code> / <code>hgll_client_exit.nss</code> into neutrally-named handlers <code>unpacked/mod_cliententer.nss</code> and <code>unpacked/mod_clientexit.nss</code>, and re-pointed <code>Mod_OnClientEntr</code> (<code>module.ifo.json:2285</code>) and <code>Mod_OnClientLeav</code> (<code>:2289</code>) at them. The new enter handler carries the whole general login flow verbatim: <code>Merit_InitDb/RecordLogin/LoginMessage</code>, <code>Bst_InitDb</code> + <code>GetObjectUUID</code>, <code>Tele_InitDb</code>, <code>Faction_InitDb</code> + delayed <code>Faction_ApplyLive</code>, <code>Boost_InitDb</code> + <code>Boost_LoginReport</code>, the nine server-info <code>AddJournalQuestEntry</code> calls (<code>guilds</code> still deliberately omitted), <code>FRK_LoginCheck</code>, the death-amulet / bleeding-out resolution (<code>HgllPostEnter</code> renamed <code>ModPostEnter</code>), the <code>nwnmgr_bstamp</code> build stamp and <code>ForgeBeginScan</code>. The new exit handler carries <code>EpicSummon_Dismiss</code>, <code>CommitStrongBoxes</code>/<code>CommitFamilyBoxes</code>, <code>PersState_Snapshot</code> and <code>ExportSingleCharacter</code>. All delay timings and statement order are unchanged.</div><div>The two HGLL-specific steps were <b>not</b> copy-pasted: <code>hgll_cliententer.nss</code> is reduced to the pre-port Letoscript locals wipe and <code>hgll_client_exit.nss</code> to <code>HGLL_ClearPendingPicks</code>, both now <code>OBJECT_SELF</code>-based and reached by one <code>ExecuteScript</code> call each — so <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a> deletes two files and one line per handler. Keeping <code>hgll_client_exit.nss</code> alive also keeps <code>tests/check_hgll_transactional.py</code> valid until <a href=\"#idea-ll-hgll-retire-gate\">ll-hgll-retire-gate</a> lands. Comment/doc references updated in <code>unpacked/pers_state_inc.nss</code>, <code>unpacked/q_frk_inc.nss</code>, <code>CLAUDE-gff-format.md</code>, <code>CLAUDE-nwscript.md</code>, <code>CLAUDE-merit.md</code>, <code>README.md</code>, <code>QuestGuide-DM-Notes.md</code> and <code>docs.manual/Draft/Gem-Socketing.html</code>. Gates: 12/12 smoke tests (incl. hgll transactional, dialog integrity, palette coverage, season brand), 12 scripts compiled 0 errors.</div>"
+    manual_steps:
+      - step: "UAT login: log in an existing character and confirm the server-info journals (Rules, Website, Module Customizations, Character Progression, Death, Forge, Systems, Factions, Combat) are all present in the Completed section."
+        status: open
+      - step: "UAT login: confirm the merit login message still arrives ~3s after entering, and the build-stamp 'Module last edited:' line ~5s after."
+        status: open
+      - step: "UAT login: on a character with a chosen Good/Evil allegiance, confirm the opposite side is still hostile-on-sight after relog (faction re-apply)."
+        status: open
+      - step: "UAT login: on a character with an active 2x gold/XP boost, confirm the boost login report still prints."
+        status: open
+      - step: "UAT logout/login: log out while bleeding out (HP 0 to -9) and log back in — the Constitution DC 12 survival message must still fire and resolve (2 HP on success, death on failure)."
+        status: open
+      - step: "UAT logout: log out carrying a Bank of Bree storage box mid-transaction, log back in, and confirm the contents were committed and nothing was lost."
+        status: open
+      - step: "UAT logout: summon an epic summon, log out, log back in and confirm no lingering henchman-slot summon remains."
+        status: open
+      - step: "UAT logout: start a legendary level-up, log out mid-picks, log back in and confirm no staged skill/feat/stat picks were committed (the HGLL residue call still runs ahead of the character export)."
+        status: open
+      - step: "UAT login: log in a character carrying illegally forged gear and confirm the contraband sweep still jails them (~6s after login)."
+        status: open
   - id: ll-hgll-retire-area
     title: "Retire the Legendary Levelling Area"
     group: combat-classes
