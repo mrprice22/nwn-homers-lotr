@@ -137,7 +137,8 @@ inaccessible because the NPC gatekeeper is absent.
 The "too many instructions" (TMI) error is a runtime NWScript issue that cannot
 be confirmed from static analysis alone. The module uses x2_inc_craft.nss (the
 standard NWN crafting include, 1530 lines with inventory iteration loops) and
-several subsystems (hgll_dlg_leveler.nss, omw_ppis_start.nss) that already
+several subsystems (hgll_dlg_leveler.nss - the retired legendary leveler,
+pending removal - and omw_ppis_start.nss) that already
 include explicit TMI workarounds, suggesting TMI has been encountered before.
 
 Fix / follow-up:

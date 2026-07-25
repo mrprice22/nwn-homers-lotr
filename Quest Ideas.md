@@ -453,8 +453,9 @@ These quests were authored against `unpacked/`. All required areas already exist
   Eowyn (`EowyntheShieldmaiden`), Theoden (`theoden002`), Radagast (`RadagasttheBrown`),
   Bilbo (`BilboBaggins`), Gollum (`Gollum`), Witch-King (`WitchKing`), Legolas (`legolas`),
   Gimli (`gimli`), Beorn (`beorning*`), Shelob (`shelob001`), Balrog (`thebalrog`).
-- **Frameworks.** CEP 2, DMFI, DM Wand, Bedlamson Dynamic Merchants, HGLL (Letoscript Lvl 41–60),
-  pc_export autosave.
+- **Frameworks.** CEP 2, DMFI, DM Wand, Bedlamson Dynamic Merchants, pc_export autosave.
+  (Levels 41–60 come from the server's own `hak_2da/exptable.2da` experience table; the old
+  Letoscript "legendary leveler" add-on is retired and being removed.)
 - **Persistence.** Campaign DB via `Get/SetCampaignInt/String/Float` (already used by `bankdb`).
 - **Existing journal entries (11).** `p000`, `Bree Millers Son`, `Elrond's Request`, `Feeding Tharbad`,
   `Ferny's Ring`, `Gloison's Heirloom`, `guilds`, `Ruin of Annuminas`, `rules`, `The Well of Souls`,

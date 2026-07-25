@@ -527,17 +527,20 @@ folder before any hak and is not distributed to clients via nwsync.
    ```
    519  MULTICLASS_LIMIT                                 4
    ```
-3. Build the hak and install it. The live `lotr_rules.hak` contains **both**
-   `ruleset.2da` and `baseitems.2da` (the latter holds the module's custom item
-   stack sizes — ammo 999, potions/scrolls 99 — tracked in git at
-   `hak_2da/baseitems.2da`). Pack both, or a from-scratch rebuild silently drops
-   those customizations:
+3. Build the hak and install it. The live `lotr_rules.hak` contains **all three**
+   of `ruleset.2da`, `baseitems.2da` (the module's custom item stack sizes — ammo
+   999, potions/scrolls 99) and `exptable.2da` (the experience table extended to
+   level 60 — see "Levels 41–60" below), the latter two tracked in git under
+   `hak_2da/`. Pack all of them, or a from-scratch rebuild silently drops those
+   customizations:
    ```sh
    mkdir -p /tmp/lotr_rules_hak
    cp /tmp/nwn_2da/ruleset.2da /tmp/lotr_rules_hak/
    cp hak_2da/baseitems.2da    /tmp/lotr_rules_hak/
+   cp hak_2da/exptable.2da     /tmp/lotr_rules_hak/
    ~/.nimble/bin/nwn_erf -c -f /tmp/lotr_rules.hak -e HAK \
-     /tmp/lotr_rules_hak/ruleset.2da /tmp/lotr_rules_hak/baseitems.2da
+     /tmp/lotr_rules_hak/ruleset.2da /tmp/lotr_rules_hak/baseitems.2da \
+     /tmp/lotr_rules_hak/exptable.2da
    cp /tmp/lotr_rules.hak \
      "$HOME/.local/share/Neverwinter Nights/hak/lotr_rules.hak"
    ```
@@ -560,6 +563,27 @@ folder before any hak and is not distributed to clients via nwsync.
    characters (the extra loop iterations hit `CLASS_TYPE_INVALID` and
    short-circuit). Reverting them is optional; `git revert` the relevant commit
    if you want exact parity with the original.
+
+## Levels 41–60
+
+Levels 41 to 60 are **real character levels**, not a bolt-on system. They come
+from `hak_2da/exptable.2da`, the stock experience table extended past the
+level-40 sentinel: level 41 at **828,800** cumulative XP through level 60 at
+**3,581,000** — the level-41 step is 48,800 XP over level 40 and each step after
+that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
+
+- The table only takes effect once `exptable.2da` is packed into `lotr_rules.hak`
+  and published (see "Four-class multiclassing" step 3, then `bin/refresh-nwsync`).
+- The engine level cap is a separate lever — `NWNX_MAXLEVEL_SKIP` in `server.env`
+  (or `NWNX_Administration_SetMaxLevel`), plus the `MaxLevel`/`EpicLevel` columns
+  of a `hak_2da/classes.2da`. Until that is done characters still stop at 40.
+- **The old `hgll_*` "legendary leveler" is retired.** It was a Letoscript-based
+  add-on with its own XP tally, its own leveler NPC and its own area, and none of
+  that is how levels 41–60 work now. The scripts are still in `unpacked/` pending
+  removal — don't extend them, and don't cite them as the level-41+ mechanism.
+  `hgll_cliententer.nss` / `hgll_client_exit.nss` are the exception: they are the
+  module's live login/logout handlers and carry unrelated wiring (merit, forge,
+  bestiary, journal catch-up); they keep the legacy prefix only as a name.
 
 ## Updating a hak / refreshing nwsync
 

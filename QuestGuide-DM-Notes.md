@@ -791,6 +791,14 @@ Both files should be updated in the same commit whenever a quest ships or change
 
 ### Server Info Journals
 
+- **Naming note:** `hgll_cliententer.nss` is simply the module's `Mod_OnClientEntr` handler. The
+  `hgll_` prefix is a leftover from the retired Letoscript "legendary leveler" (levels 41–60 now
+  come from `hak_2da/exptable.2da`); the login wiring in it has nothing to do with that system and
+  survives the leveler's removal.
+- **`mod_progress` content (2026-07-25):** the "Character Progression" entry in `module.jrl.json` no
+  longer describes the HGLL leveler. It now states that levels 41–60 are real levels on the
+  published XP table (48,800 over level 40, compounding 1.1x, 3,581,000 at level 60) and flags the
+  feature as in development for Season 2.
 - **Delivery:** `hgll_cliententer.nss` delivers **eight** categories on every login, idempotently,
   all with `End=1` so they land in the player's Completed section: `rules`, `website`,
   `modcustoms`, `mod_progress`, `mod_death`, `mod_forge`, `mod_systems`, `mod_factions`.

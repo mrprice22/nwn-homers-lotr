@@ -181,7 +181,9 @@ retroactive pattern, item-local <code>.bic</code> stamps, the generated-include 
   <code>ExecuteScript("gem_activate")</code> and <code>return</code>. (It already supports x2 tag-based dispatch
   at line 45 via <code>GetUserDefinedItemEventScriptName</code>; an explicit branch is simpler and matches the
   existing <code>DyeKit</code>/<code>bestiarybook</code> branches.)</li>
-  <li><strong><code>hgll_cliententer.nss</code></strong> — add <code>DelayCommand(7.0, GemBeginScan(oPC));</code>
+  <li><strong>the module's <code>Mod_OnClientEntr</code> handler</strong> (today <code>hgll_cliententer.nss</code>,
+  a leftover name from the retired legendary leveler — check <code>module.ifo.json</code> for the current resref)
+  — add <code>DelayCommand(7.0, GemBeginScan(oPC));</code>
   next to the existing <code>DelayCommand(6.0, ForgeBeginScan(oPC));</code> (line 107). This is the retroactive
   rollout + update trigger: a bumped <code>SOCKET_VER_CUR</code> re-reconciles all items at next login.</li>
 </ul>
@@ -281,7 +283,8 @@ can occasionally yield a rarer gem, pick a random gem resref from that band's po
   property-builder template</li>
   <li><code>unpacked/modifyitem.nss</code> — <code>FORGE_CLEAN</code> clear + <code>FORGE_CEIL</code> stamp precedent</li>
   <li><code>unpacked/dmfi_activate.nss</code> — <code>Mod_OnActvtItem</code> handler (add gem branch)</li>
-  <li><code>unpacked/hgll_cliententer.nss</code> (~line 107) — login scan wiring (add <code>GemBeginScan</code>)</li>
+  <li>the module's <code>Mod_OnClientEntr</code> handler (today <code>unpacked/hgll_cliententer.nss</code>, ~line 107)
+  — login scan wiring (add <code>GemBeginScan</code>)</li>
   <li><code>unpacked/bst_ondeath.nss</code> / <code>bst_install.nss</code> / <code>nw_c2_default9.nss</code> —
   creature-death hook for drops</li>
   <li><code>unpacked/module.ifo.json</code> — event-handler resref map (no edit needed; handlers already route)</li>
