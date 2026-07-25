@@ -3978,11 +3978,24 @@ ideas:
     title: "Rework the freelegendary redeem code for the new XP curve"
     group: economy
     epic: legendary-levels
-    status: confirmed
+    status: manual
     type: Exploit
     player: "HomelessSon (Server Admin)"
-    notes: "<div>The admin/testing shortcut for legendary levels matches the new table instead of the old one.</div>"
-    impl_notes: "<div>The <code>freelegendary</code> code does <code>SetXP(oPC, 17498600)</code> (<code>README.md:458</code>) — the old HGLL total-to-60. Against the new cumulative table that is roughly 5x the real cost and would hand out level 60 many times over. Retire the code or reset it to the new L60 total (3,581,000). Depends on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>.</div>"
+    commit: fa7bcec94d37c4f1e2b9ad822f9a97ccdb6d2de8
+    date: 2026-07-25
+    notes: "<div>The <code>freelegendary</code> promotional code now grants exactly the experience needed for level 60 on the server's own experience table, instead of a figure carried over from the old legendary-level system. Redeeming it can never reduce a character's experience.</div>"
+    impl_notes: "<div><b>Root cause:</b> the live grant in <code>unpacked/code_redeem.nss</code> was already <code>SetXP(oPC, 3581000)</code> as of <code>bccd437b7b9</code> — the 1.1x compounding change made the retired HGLL total-to-60 and the new <code>hak_2da/exptable.2da</code> row-59 value converge on the same number. The <code>17498600</code> cited by this item survived only as a stale reward example in <code>README.md</code>, not in any shipped script.</div><div><b>Fix:</b> <code>code_redeem.nss</code> gains <code>const int XP_LEVEL_60 = 3581000</code>, commented as the last real row of <code>hak_2da/exptable.2da</code> and explicitly not derived from HGLL accounting; the <code>freelegendary</code> case now grants the constant behind a no-downgrade guard (<code>if (GetXP(oPC) &lt; XP_LEVEL_60) SetXP(...)</code>) — the previous unconditional absolute <code>SetXP</code> would have <i>removed</i> XP from a character banked past the final table row. <code>README.md</code>'s \"Adding a new code\" example updated to the real code, with a new paragraph requiring XP codes to be written against the published table and to guard absolute <code>SetXP</code>.</div><div><b>Not changed:</b> the code's <code>2026-07-01</code> expiration (already past, so the code is inert in-game — reviving/retiring it is an admin call, see manual steps); the other <code>3581000</code> literals in <code>bank_xp_*.nss</code>, <code>grant_lvl60.nss</code> and <code>hgll_const_inc.nss</code> (the last is slated for deletion by <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>). No <code>docs.manual/</code> page documents the redeem-code system. <b>Gates:</b> bare <code>nwn-manager repack</code>, 12/12 smoke tests (incl. <code>check_reward_exploit</code>), 2/2 scripts compiled.</div>"
+    manual_steps:
+      - step: "Decide whether the freelegendary code should stay retired. Its expiration is 2026-07-01, so it currently answers \"That code has expired\" to everyone. The grant is now correct if you want to revive it — push the date out in GetCodeExpiration() — otherwise it can stay inert or have its case removed entirely."
+        status: open
+      - step: "UAT: as an admin on a test character below level 60, temporarily extend the freelegendary expiration, type Code:FreeLegendary in chat, and confirm the character lands on exactly 3,581,000 XP and reads as level 60 on the character sheet."
+        status: open
+      - step: "UAT: redeem the code a second time on the same CD key and confirm it reports \"You have already redeemed that code.\" and grants nothing."
+        status: open
+      - step: "UAT: on a character already holding more than 3,581,000 XP, redeem the code and confirm its XP is NOT reduced (the no-downgrade guard)."
+        status: open
+      - step: "UAT: type Code:FreeLegendary in chat with a second player present and confirm the line is not broadcast to them."
+        status: open
   - id: ll-pingpong-41-60
     title: "Ping Pong: add level 41-60 to the \"Set my level\" menu"
     group: qol
