@@ -54,13 +54,16 @@ files as **third-party — don't refactor unless you know the framework**.
 | `dmfi_*`   | DM Friendly Initiative (DM tools, dice, dialog tokens) | `dmfi_univ_1..N` are universal action scripts; `dmfi_univ_cond` is a parameterized conditional |
 | `dmw_*`    | DM Wand utilities                              |                           |
 | `bdm_*`    | Bedlamson's Dynamic Merchants (faction/race-restricted store stocks) | Hooks `OnAcquireItem` |
-| `hgll_*`   | **Retired** — the old Higher Ground / Letoscript "legendary leveler" for levels 41–60 | **Don't build on it.** Levels 41–60 are now real levels from `hak_2da/exptable.2da`; these scripts are scheduled for removal (roadmap `ll-hgll-remove-scripts`). The login/logout handlers are **no longer** among them: `Mod_OnClientEntr` / `Mod_OnClientLeav` are `mod_cliententer` / `mod_clientexit`. The gutted `hgll_cliententer` / `hgll_client_exit` now hold only the leveler's own residue and are each reached by one `ExecuteScript` call from those handlers |
 | `pc_export*` | PC autosave on heartbeat                     | Hooked at `Mod_OnModLoad` |
 
-`hgll_const_inc.nss` is legacy: it holds the retired leveler's XP constants and a
-hard-coded **Windows path** (`C:/NeverwinterNights/NWN/servervault/`) for
-Letoscript. Nothing new should read it — the authoritative XP curve for levels
-41–60 is `hak_2da/exptable.2da`.
+**There is no `hgll_*` prefix any more.** The old Higher Ground / Letoscript
+"legendary leveler" for levels 41–60 was deleted in full (roadmap
+`ll-hgll-remove-scripts`) — all 21 `hgll_*.nss` files plus `sha_leto_inc.nss`.
+Levels 41–60 are ordinary levels driven by `hak_2da/exptable.2da`; that table is
+the only authoritative XP curve. `Mod_OnClientEntr` / `Mod_OnClientLeav` are
+`mod_cliententer` / `mod_clientexit` and no longer call into any leveler script.
+Don't reintroduce the prefix or cite the old constants (their total-to-60 was
+~17.5M, roughly 5x the real cost).
 
 ## Colour tokens in dialogue text
 

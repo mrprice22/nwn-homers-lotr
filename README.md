@@ -519,7 +519,8 @@ folder before any hak and is not distributed to clients via nwsync.
 - `~/.local/share/Neverwinter Nights/override/ruleset.2da` — same file in the
   server override folder, so the server itself also sees `MULTICLASS_LIMIT 4`.
 - 11 scripts updated in `unpacked/` to handle a 4th class position:
-  `pers_state_inc.nss`, `hgll_featreq_inc.nss`, `bdm_include.nss`,
+  `pers_state_inc.nss`, `hgll_featreq_inc.nss` (since deleted),
+  `bdm_include.nss`,
   `x0_i0_spells.nss`, `my_charfuncs.nss`, `dmfi_dmw_inc.nss`,
   `dmw_func_inc.nss`, `j_inc_generic_ai.nss`, `nw_i0_generic.nss`,
   `nw_o2_coninclude.nss`, `sd_filter_inc.nss`
@@ -588,16 +589,18 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
 - The engine level cap is a separate lever — `NWNX_MAXLEVEL_SKIP` in `server.env`
   (or `NWNX_Administration_SetMaxLevel`), plus the `MaxLevel`/`EpicLevel` columns
   of a `hak_2da/classes.2da`. Until that is done characters still stop at 40.
-- **The old `hgll_*` "legendary leveler" is retired.** It was a Letoscript-based
-  add-on with its own XP tally, its own leveler NPC and its own area, and none of
-  that is how levels 41–60 work now. The scripts are still in `unpacked/` pending
-  removal — don't extend them, and don't cite them as the level-41+ mechanism.
-  The login/logout handlers are no longer among them: `Mod_OnClientEntr` /
-  `Mod_OnClientLeav` are `mod_cliententer.nss` / `mod_clientexit.nss`, which hold
-  all the real wiring (merit, forge, bestiary, journal catch-up, bank boxes,
-  persistent state). The gutted `hgll_cliententer.nss` / `hgll_client_exit.nss`
-  keep only the leveler's own residue and are each reached by a single
-  `ExecuteScript` call, to be deleted with the rest of the leveler.
+- **The old `hgll_*` "legendary leveler" is gone.** It was a Letoscript-based
+  add-on with its own XP tally, its own leveler statue and its own area, and none
+  of that is how levels 41–60 work now. All 21 `hgll_*.nss` scripts plus
+  `sha_leto_inc.nss` were deleted (roadmap `ll-hgll-remove-scripts`) — don't
+  reintroduce them, and don't cite them as the level-41+ mechanism.
+  `Mod_OnClientEntr` / `Mod_OnClientLeav` are `mod_cliententer.nss` /
+  `mod_clientexit.nss`, which hold all the real wiring (merit, forge, bestiary,
+  journal catch-up, bank boxes, persistent state) and no longer call into any
+  leveler script. The Legendary Levelling Area itself still exists; its statue
+  now just tells the player that 41+ levels come from XP like any other level
+  (`ll_leveler_gone.nss`), and the area is scheduled for removal under roadmap
+  `ll-hgll-retire-area`.
 
 ## Updating a hak / refreshing nwsync
 

@@ -30,14 +30,6 @@ else
   rc=1
 fi
 
-echo "[smoke-test] running: legendary leveler transaction…"
-if python3 "$HERE/check_hgll_transactional.py"; then
-  echo "ok: legendary leveler transaction"
-else
-  echo "fail: legendary leveler transaction"
-  rc=1
-fi
-
 echo "[smoke-test] running: creature respawn-override divergence…"
 if python3 "$HERE/check_divergent_creatures.py"; then
   echo "ok: creature respawn-override divergence"

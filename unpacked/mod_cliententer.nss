@@ -6,10 +6,9 @@
 // teleports, faction allegiance, XP boosts, server-info journals, the death
 // amulet / bleeding-out resolution, the build stamp and the contraband sweep.
 //
-// The one genuinely HGLL-specific leftover (wiping the legacy Letoscript queue
-// locals off pre-port characters) still lives in hgll_cliententer.nss and is
-// reached by the single ExecuteScript() call below, so retiring the leveler
-// (roadmap: ll-hgll-remove-scripts) is a one-line deletion here.
+// The leveler itself was deleted in full (roadmap: ll-hgll-remove-scripts), so
+// nothing here calls into it any more. Levels 41-60 are ordinary levels on
+// hak_2da/exptable.2da.
 
 #include "pers_state_inc"
 #include "merit_db"
@@ -73,10 +72,6 @@ void ModPostEnter(object oPC)
 void main()
 {
     object oPC = GetEnteringObject();
-
-    // Legacy HGLL residue: clears the pre-port Letoscript queue locals.
-    // Delete this line together with the hgll_* scripts (ll-hgll-remove-scripts).
-    ExecuteScript("hgll_cliententer", oPC);
 
     Merit_InitDb();
     Merit_RecordLogin(oPC);

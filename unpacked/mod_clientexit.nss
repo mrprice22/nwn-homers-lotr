@@ -5,10 +5,8 @@
 // commits any Bank of Bree storage box still carried, snapshots persistent
 // state and forces the .bic write.
 //
-// The one HGLL-specific step — dropping level-up picks staged by the retired
-// leveler before the character is exported — stays in hgll_client_exit.nss and
-// is reached by the single ExecuteScript() call below, so retiring the leveler
-// (roadmap: ll-hgll-remove-scripts) is a one-line deletion here.
+// The leveler itself was deleted in full (roadmap: ll-hgll-remove-scripts), so
+// there are no staged level-up picks to drop before the export any more.
 
 #include "pers_state_inc"
 #include "bank_box_inc"
@@ -26,12 +24,6 @@ void main()
     CommitStrongBoxes(PC, "client_leave");
     CommitFamilyBoxes(PC, "client_leave");
     PersState_Snapshot(PC);
-    // Legacy HGLL residue: a level-up interrupted by a logout leaves its staged
-    // picks on the PC, and PC locals ride into the BIC. Drop them before the
-    // export so they can never be committed in a later session. Must stay ahead
-    // of ExportSingleCharacter. Delete this line together with the hgll_*
-    // scripts (ll-hgll-remove-scripts).
-    ExecuteScript("hgll_client_exit", PC);
     // Force BIC write so the amulet (if any) and any other inventory /
     // BIC-resident state from this session survive a logout that beats
     // the next pc_export_inc auto-save tick.

@@ -1,7 +1,17 @@
 // Fires when the player confirms consuming Akira's Mixtape.
 // Destroys the ring and permanently adds +1 to all six ability scores.
 #include "mw_unlock_inc"
-#include "hgll_leto_inc"
+#include "nwnx_creature"
+
+// Permanently raises one ability score by 1 on the PC's base (raw) stats.
+// Formerly HGLL_AddStatPoint() from the retired legendary leveler
+// (roadmap: ll-hgll-remove-scripts); inlined here so the mixtape no longer
+// depends on any hgll_* include.
+void MixtapeRaiseStat(object oPC, int nStat)
+{
+    int nCur = NWNX_Creature_GetRawAbilityScore(oPC, nStat);
+    NWNX_Creature_SetRawAbilityScore(oPC, nStat, nCur + 1);
+}
 
 void main()
 {
@@ -23,13 +33,14 @@ void main()
     SetCampaignInt(MW_DB, "mixtape_consumed", 1, oPC);
     DestroyObject(oItem);
 
-    HGLL_AddStatPoint(oPC, ABILITY_STRENGTH);
-    HGLL_AddStatPoint(oPC, ABILITY_DEXTERITY);
-    HGLL_AddStatPoint(oPC, ABILITY_CONSTITUTION);
-    HGLL_AddStatPoint(oPC, ABILITY_INTELLIGENCE);
-    HGLL_AddStatPoint(oPC, ABILITY_WISDOM);
-    HGLL_AddStatPoint(oPC, ABILITY_CHARISMA);
-    HGLL_FlushChanges(oPC);
+    MixtapeRaiseStat(oPC, ABILITY_STRENGTH);
+    MixtapeRaiseStat(oPC, ABILITY_DEXTERITY);
+    MixtapeRaiseStat(oPC, ABILITY_CONSTITUTION);
+    MixtapeRaiseStat(oPC, ABILITY_INTELLIGENCE);
+    MixtapeRaiseStat(oPC, ABILITY_WISDOM);
+    MixtapeRaiseStat(oPC, ABILITY_CHARISMA);
+    // Write the raised base stats through to the .bic immediately.
+    ExportSingleCharacter(oPC);
 
     ApplyEffectToObject(DURATION_TYPE_INSTANT,
         EffectVisualEffect(VFX_FNF_PWKILL), oPC);
