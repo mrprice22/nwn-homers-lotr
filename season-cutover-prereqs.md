@@ -415,6 +415,7 @@ It rewrites every season-scoped reference in the module and hosting config:
 | `unpacked/npguide.dlg.json` | Guide NPC — two wiki links, one `…/manual/Customizations` |
 | `unpacked/meritconv.dlg.json` | Merit NPC wiki link |
 | `unpacked/servershout4.nss` | Login floaty text: `View the Wiki at homerslotr.com` |
+| `index.html` (repo root) | **The wiki landing page** — hand-maintained, *not* generated from `unpacked/`; `nwn-wiki` only injects the header/footer around it. Carries the `Direct connect <host>:<port>` string **twice** plus a wiki link |
 | `unpacked/thewelloferu.git.json` | `ru_sign` Description → `…/manual/Roadmap#shipped`; plus the two season placeables (item 9) |
 | `src/index.js` | Worker redirect target for `*.workers.dev` |
 | `wrangler.jsonc` | Worker `name` — **mandatory, not cosmetic**: two repos deploying the same worker name collide |
@@ -457,6 +458,17 @@ grep -rIn "homerslotr\|5121\|nwnxee-homer\|/var/home/james/GIT/nwn_homers_lotr" 
 > - A bare `return "..."` regex for the container fallback matched
 >   `server_tz()`'s `"America/Chicago"` first. Narrow rules are now scoped to a
 >   named function's body.
+>
+> **A twelfth file was added during the season 1 -> 2 cutover: `index.html`,
+> the wiki landing page.** It was missed because every other branded page under
+> `docs/` is *generated* from `unpacked/`, so the completeness grep over
+> `bin/ systemd/ src/ wrangler.jsonc nasher.cfg unpacked/` never looked at the
+> repo root — and `docs/index.html` is a copy of a hand-maintained root
+> `index.html` that `nwn-wiki` only wraps in a header/footer. Result: the
+> early-access wiki greeted testers with `Direct connect homerslotr.ddns.net:5121`
+> (the *live* season's port) in two places plus an apex wiki link. Worst possible
+> page to be wrong on. **Widen the completeness grep to the repo root** when
+> checking a future cutover.
 >
 > Acceptance met: a dry run against this repo, with the season block describing
 > today's reality, reports **zero changes**. A scratch season-2/test tree fires

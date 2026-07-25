@@ -314,6 +314,33 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
 
     text_edit(UNPACKED / "servershout4.nss", shout)
 
+    # --- the wiki landing page ---------------------------------------------
+    # docs/index.html is NOT generated from unpacked/ like the rest of the wiki:
+    # index.html in the repo root is hand-maintained and nwn-wiki only injects
+    # the header/footer around it. So nothing else in this script reaches it, and
+    # it is the one page that greets a player with "Direct connect <host>:<port>"
+    # — twice, plus a wiki link. The season 1 -> 2 cutover shipped it still
+    # advertising 5121 on the early-access site, which is the worst possible
+    # place to be wrong: it is the first thing a tester reads.
+    #
+    # The connect string is matched as the CONNECT-HOST:PORT shape, never as a
+    # bare port (see the module docstring — a bare 5121 substitution corrupts
+    # float coordinates and a listen pattern).
+    def landing(s, notes):
+        new = rehost(s)
+        if new != s:
+            notes.append("wiki host link(s)")
+        connect_re = re.compile(
+            re.escape(str(cfg["connect"]).rsplit(":", 1)[0]) + r":\d+")
+        after, n = connect_re.subn(str(cfg["connect"]), new)
+        if n and after != new:
+            notes.append(f"direct-connect string x{n}")
+        return after
+
+    landing_page = REPO / "index.html"
+    if landing_page.exists():
+        text_edit(landing_page, landing)
+
     # --- Well of Eru: the roadmap sign + the two season signs ---------------
     def well(obj, notes):
         by_tag = {}
