@@ -455,7 +455,10 @@ string GetCodeExpiration(string sCodeLower)
 // Reward.
 int ApplyCodeBenefit(string sCodeLower, object oPC)
 {
-    if (sCodeLower == "freelegendary") { SetXP(oPC, 17498600); return TRUE; }
+    if (sCodeLower == "freelegendary") {
+        if (GetXP(oPC) < XP_LEVEL_60) SetXP(oPC, XP_LEVEL_60);
+        return TRUE;
+    }
     if (sCodeLower == "mynewcode")     {                                    // ← add
         CreateItemOnObject("some_item_resref", oPC, 1);
         return TRUE;
@@ -463,6 +466,14 @@ int ApplyCodeBenefit(string sCodeLower, object oPC)
     return FALSE;
 }
 ```
+
+`XP_LEVEL_60` (3,581,000) is a constant at the top of `code_redeem.nss`, taken
+from the last real row of `hak_2da/exptable.2da` — the server's own experience
+table for levels 41–60. Any code that grants XP outright should be written
+against the published table, never against the retired HGLL leveler's internal
+accounting (whose total-to-60 was ~17.5M, about 5x the real cost). XP codes
+that use an absolute `SetXP()` should also guard against moving XP *downwards*,
+as the `freelegendary` case above does.
 
 Code names in the script must be **lowercase** (the handler lowercases
 incoming chat before matching). Advertise them in any case you like —
