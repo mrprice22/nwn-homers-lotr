@@ -4,7 +4,8 @@
 One idempotent pass. `server.env`'s SEASON_* block is the single source of
 truth; this script derives and writes everything downstream of it — the module
 description's connect string and wiki link, the guide/merit NPC wiki links, the
-login floaty text, the Well of Eru signs, the Cloudflare worker name and
+login floaty text, the Recent Updates board's roadmap link, the Cloudflare
+worker name and
 redirect target, the roadmap editor's links, and (from season 2 on) the module
 and server names in nasher.cfg and server.env.
 
@@ -51,21 +52,10 @@ UNPACKED = REPO / "unpacked"
 # season<N>.<apex>, which is what makes a single "host family" regex safe.
 APEX_DOMAIN = "homerslotr.com"
 WIKI_HOST_RE = re.compile(r"(?:season\d+\.)?" + re.escape(APEX_DOMAIN))
-# The live season is always on this port; the alternate slot is always 5122.
-LIVE_PORT = "5121"
 
-# --- the two season signs in the Well of Eru --------------------------------
-# Placed once (by tag) and only ever re-texted here, so no season edits a
-# .git.json by hand. Hidden is an appearance swap rather than a deletion, so the
-# same two instances serve every future season.
+
+# The Well of Eru area, for the Recent Updates board's roadmap link.
 WELL_OF_ERU = UNPACKED / "thewelloferu.git.json"
-SIGN_VISIBLE = {"Appearance": 89, "Static": 0, "Useable": 1}
-SIGN_HIDDEN = {"Appearance": 157, "Static": 1, "Useable": 0}  # 157 = plc_invisobj
-
-# In-game text is ASCII only. The module's own description already spells its
-# dashes "--"; non-ASCII in a placeable Description risks mojibake in the game
-# client, and these signs are the first thing a new tester reads.
-
 
 class BrandError(Exception):
     pass
@@ -121,9 +111,6 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
         raise BrandError(f"SEASON_WIKI_URL must be an absolute URL, got {wiki_url!r}")
     wiki_host = m.group(1)
 
-    peer_role = env.get("SEASON_PEER_ROLE", "none") or "none"
-    if peer_role not in ("live", "test", "archive", "none"):
-        raise BrandError(f"SEASON_PEER_ROLE must be live|test|archive|none, got {peer_role!r}")
 
     cfg: dict[str, object] = {
         "num": num,
@@ -134,10 +121,6 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
         "worker_name": need("SEASON_WORKER_NAME"),
         "connect": f'{need("SEASON_CONNECT_HOST")}:{need("NWN_PORT")}',
         "container": need("NWN_CONTAINER_NAME"),
-        "peer_role": peer_role,
-        "peer_num": env.get("SEASON_PEER_NUM", ""),
-        "peer_port": env.get("SEASON_PEER_PORT", ""),
-        "peer_password": env.get("SEASON_PEER_PASSWORD", ""),
     }
 
     # Season 1 keeps its legacy names: renaming a live module leaves every
@@ -155,67 +138,7 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
         # ASCII hyphen, not an em dash: this string is passed through the
         # container env to nwserver and on to the master server browser.
         cfg["nwn_servername"] = f"Homer's LOTR - Season {num}{suffix}"
-
-    if peer_role != "none" and not (cfg["peer_num"] and cfg["peer_port"]):
-        raise BrandError(
-            f"SEASON_PEER_ROLE={peer_role} needs SEASON_PEER_NUM and SEASON_PEER_PORT"
-        )
     return cfg
-
-
-# -------------------------------------------------------------- sign text ---
-def status_sign(cfg) -> tuple[str, bool]:
-    """(text, visible) for the season-status sign, from SEASON_ROLE."""
-    n = cfg["num"]
-    if cfg["role"] == "test":
-        return (
-            f"EARLY ACCESS - Season {n}\n\n"
-            "This is a testing realm. Your characters, gear and progress here "
-            "WILL BE WIPED when this season goes live.\n\n"
-            "Merit you earn still counts.",
-            True,
-        )
-    if cfg["role"] == "archive":
-        return (
-            f"Season {n} has ended.\n\n"
-            "This realm is no longer updated or maintained.\n\n"
-            f"The current season is live on port {LIVE_PORT}.",
-            True,
-        )
-    return ("", False)  # live: nothing to say
-
-
-def peer_sign(cfg) -> tuple[str, bool]:
-    """(text, visible) for the cross-advert sign, from SEASON_PEER_*."""
-    role, n, port = cfg["peer_role"], cfg["peer_num"], cfg["peer_port"]
-    if role == "none":
-        return ("", False)
-    if role == "test":
-        pw = cfg["peer_password"]
-        pw_clause = f", password: {pw}" if pw else ""
-        return (
-            f"Season {n} EARLY ACCESS is now open.\n\n"
-            f"Same server address, port {port}{pw_clause}.\n\n"
-            "Come help test the new season. Progress there will be wiped at "
-            "go-live; merit earned still counts.",
-            True,
-        )
-    if role == "archive":
-        return (
-            f"Season {n} is still playable on port {port}, archived and "
-            "unmaintained.\n\n"
-            f"Its wiki lives at season{n}.{APEX_DOMAIN}.",
-            True,
-        )
-    # role == "live": this realm is the early-access one, pointing at the live
-    # season. Not in the prereqs table, but Phase 1 sets exactly this on the new
-    # season's repo, so it needs a state or the sign would be blank-but-visible.
-    return (
-        f"Season {n} - the current live season - is running on port {port}.\n\n"
-        "This realm is early access. The live season is where your progress "
-        "is permanent.",
-        True,
-    )
 
 
 # ------------------------------------------------------------ file helpers --
@@ -240,12 +163,6 @@ def sub_in_function(src: str, func: str, pattern: str, repl: str) -> str:
     stop = m.end() + (end.start() if end else len(src) - m.end())
     body = src[m.start():stop]
     return src[:m.start()] + re.sub(pattern, repl, body, count=1) + src[stop:]
-
-
-def set_locstring(node: dict, text: str) -> None:
-    """Write language 0 and drop any StrRef. A non-0xFFFFFFFF "id" wins over the
-    inline string in-game, so leaving one would pin the sign to TLK text."""
-    node["value"] = {"0": text}
 
 
 # ------------------------------------------------------------------ rules ---
@@ -361,28 +278,6 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
             ru["Description"]["value"]["0"] = want
             notes.append("recent_updates sign link")
 
-        for tag, (text, visible) in (
-            ("season_status", status_sign(cfg)),
-            ("season_peer", peer_sign(cfg)),
-        ):
-            sign = by_tag.get(tag)
-            if sign is None:
-                raise BrandError(
-                    f"{tag} placeable missing from thewelloferu.git.json — place it "
-                    f"once (see season-cutover-prereqs.md item 9)"
-                )
-            state = SIGN_VISIBLE if visible else SIGN_HIDDEN
-            changed = []
-            if sign["Description"]["value"].get("0") != text or "id" in sign["Description"]["value"]:
-                set_locstring(sign["Description"], text)
-                changed.append("text")
-            for field, val in state.items():
-                if sign[field]["value"] != val:
-                    sign[field]["value"] = val
-                    changed.append(field)
-            if changed:
-                notes.append(f"{tag}: {'visible' if visible else 'hidden'} ({', '.join(changed)})")
-
     json_edit(WELL_OF_ERU, well)
 
     # --- Cloudflare worker: name and redirect target ------------------------
@@ -482,9 +377,6 @@ def main() -> int:
     names = "legacy (season 1)" if cfg["legacy_names"] else f'{cfg["nwn_module"]!r}'
     print(f'season {cfg["num"]} role={cfg["role"]} '
           f'wiki={cfg["wiki_host"]} connect={cfg["connect"]} names={names}')
-    peer = cfg["peer_role"]
-    print(f'peer: {peer}' + (f' season {cfg["peer_num"]} on port {cfg["peer_port"]}'
-                             if peer != "none" else ""))
     print()
 
     if not edits:

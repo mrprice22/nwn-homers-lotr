@@ -155,11 +155,38 @@ MERIT_RATE_FEATURE = 2   # Enhancement
 MERIT_RATE_EXPLOIT = 3   # Exploit
 
 
+def nwn_home_dir() -> Path:
+    """This repo's NWN_HOME_DIR — i.e. THIS season's campaign DB directory.
+
+    The editor is single-instance and always runs from the newest season's repo
+    (season-cutover-prereqs.md item 12), so its campaign DBs must follow that
+    repo. Reading server.env is what makes that true; the old code took
+    $NWN_HOME_DIR or fell back to the literal unnumbered
+    "~/.local/share/Neverwinter Nights", and the systemd unit sets no
+    environment — so after the season 1 -> 2 cutover the editor ran from the
+    season-2 repo and published roadmapdb into SEASON 1's database dir, leaving
+    season 2's Recent Updates sign blank.
+
+    Precedence: explicit env override, then server.env, then the legacy path.
+    """
+    env = os.environ.get("NWN_HOME_DIR")
+    if env:
+        return Path(os.path.expandvars(env))
+    try:
+        for ln in SERVER_ENV.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"\s*(?:export\s+)?NWN_HOME_DIR\s*=\s*(.+?)\s*$", ln)
+            if m:
+                val = m.group(1).strip().strip('"').strip("'")
+                # server.env writes "$HOME/.local/share/..."
+                return Path(os.path.expandvars(val))
+    except OSError:
+        pass
+    return Path(os.path.expanduser("~")) / ".local/share/Neverwinter Nights"
+
+
 def merit_db_path() -> Path:
     """Filesystem path to the live meritdb campaign database."""
-    home = os.environ.get("NWN_HOME_DIR") or os.path.join(
-        os.path.expanduser("~"), ".local", "share", "Neverwinter Nights")
-    return Path(home) / "database" / "meritdb.sqlite3"
+    return nwn_home_dir() / "database" / "meritdb.sqlite3"
 
 
 def _merit_connect():
@@ -273,9 +300,7 @@ _BLANKS_RE = re.compile(r"\n[ \t]*\n[ \t]*\n+")
 
 def recent_db_path() -> Path:
     """Filesystem path to the live roadmapdb campaign database."""
-    home = os.environ.get("NWN_HOME_DIR") or os.path.join(
-        os.path.expanduser("~"), ".local", "share", "Neverwinter Nights")
-    return Path(home) / "database" / "roadmapdb.sqlite3"
+    return nwn_home_dir() / "database" / "roadmapdb.sqlite3"
 
 
 def html_to_plain(s: str) -> str:

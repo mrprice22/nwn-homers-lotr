@@ -834,7 +834,6 @@ Every season-scoped value in this repo derives from one block at the bottom of
 | `SEASON_WIKI_URL` | `https://homerslotr.com/` for the live season, `https://season<N>.homerslotr.com/` otherwise |
 | `SEASON_WORKER_NAME` | Cloudflare worker serving `docs/`. **Must be unique per season** — two repos deploying the same worker name collide |
 | `SEASON_CONNECT_HOST` | Host half of the module description's `Connect:` line |
-| `SEASON_PEER_*` | The *other* running instance (role / num / port / password), for the in-game cross-advert sign. `SEASON_PEER_ROLE=none` hides it |
 
 `SEASON_NUM` and `SEASON_ROLE` are the only authored facts. Everything else —
 module name, server name, worker name, every in-game URL and both season signs —
@@ -842,14 +841,15 @@ is **derived and written** by `python3 bin/season-brand.py --apply`. Edit the
 block, re-run the script, repack. Never hand-edit the values it owns; the
 `check_season_brand` build gate fails the repack if the tree drifts.
 
-`SEASON_PEER_PASSWORD` is committed on purpose: it is a password the module
-advertises to every player on a sign, so it is not a secret. This is not an
-exception to the "no secrets in `unpacked/`" rule — that rule is about CD keys
-and admin credentials, which still never appear in source or in the packed `.mod`.
+The two in-game cutover notices are **not** driven by this block, and are not
+placeables `season-brand.py` manages — that design was retired (see
+`season-cutover-prereqs.md` item 9). The outgoing season's existing
+`recent_updates` board is re-texted by hand as the next-season notice, and the
+incoming season's wipe warning is a coloured message in `servershout4.nss`.
 
 `SEASON_*` is deliberately **not** forwarded into the container: `bin/serve`
-passes only `TZ`, `NWN_*`, `NWNX_*` and `ANVIL_*`. Nothing needs it at runtime,
-because the signs are baked into `thewelloferu.git.json` at brand time.
+passes only `TZ`, `NWN_*`, `NWNX_*` and `ANVIL_*`. Nothing needs it at runtime —
+every branded string is baked in at brand time.
 
 ### Module and server naming
 

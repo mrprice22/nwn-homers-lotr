@@ -173,7 +173,7 @@ This runbook depends on the one-time engineering in
 **2026-07-24 all twelve items are done**: the `teledb`/`meritdb` split, the
 `meritdb` + `admindb` DBs moved to their neutral shared path, the season block in
 `server.env`, relocatable wrappers, templated systemd units,
-`bin/season-brand.py`, the two season placeables, and
+`bin/season-brand.py`, and
 `bin/roadmap-archive-prune.py`.
 
 The tools each phase calls into:
@@ -255,10 +255,9 @@ The live season keeps running throughout; nothing about it moves.
    dir, container, `NWN_PORT=5121`, **same module and server name**. Set
    `SEASON_NUM=<N>`, `SEASON_ROLE=live`,
    `SEASON_WIKI_URL=https://homerslotr.com/`,
-   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N>`, and the peer block
-   `SEASON_PEER_ROLE=test`, `SEASON_PEER_NUM=<N+1>`, `SEASON_PEER_PORT=5122`,
-   `SEASON_PEER_PASSWORD=volatile` — this peer block is what drives its in-game
-   cross-advert sign in step 5. Repoint its systemd instance at the new directory.
+   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N>`. Repoint its systemd instance at
+   the new directory. (There is no peer block any more — the in-game notice is
+   step 5's repurposed Recent Updates board.)
 2. **Re-parameterize the unnumbered repo onto season N+1.** In `server.env`:
    `NWN_HOME_DIR="$HOME/.local/share/Neverwinter Nights S<N+1>"`,
    `NWN_RUN_DIR="$HOME/.local/state/nwnxee-homer-s<N+1>"`,
@@ -267,9 +266,7 @@ The live season keeps running throughout; nothing about it moves.
    `NWNSYNC_REPO=…/nwsync/HomersLOTR-S<N+1>`,
    `SEASON_NUM=<N+1>`, `SEASON_ROLE=test`,
    `SEASON_WIKI_URL=https://season<N+1>.homerslotr.com/`,
-   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N+1>`, and the peer block pointing back
-   at the live season (`SEASON_PEER_ROLE=live`, `SEASON_PEER_NUM=<N>`,
-   `SEASON_PEER_PORT=5121`, `SEASON_PEER_PASSWORD=""`).
+   `SEASON_WORKER_NAME=homers-lotr-wiki-s<N+1>`.
    `bin/serve` runs `--network=host`, so **every listening port must be unique** —
    there is no container port isolation.
 3. **Rename the module (§4).** In the unnumbered repo only: `nasher.cfg`
@@ -284,16 +281,34 @@ The live season keeps running throughout; nothing about it moves.
 4. **Password-gate it.** `NWN_PLAYERPASSWORD="volatile"` in `server.env.local`
    (gitignored). Hand it only to chosen testers. Also set `NWNSYNC_PUBLIC_URL`
    there for port 8001.
-5. **Rebrand + build both modules.** `python3 bin/season-brand.py --apply` in the
-   unnumbered repo → wiki links point at `season<N+1>.homerslotr.com`, the connect
-   string at `:5122`, and the season sign shows the wipe warning. Repack, deploy.
+5. **Rebrand + build the new season.** `python3 bin/season-brand.py --apply` in
+   the unnumbered repo → wiki links point at `season<N+1>.homerslotr.com` and the
+   connect string at `:5122`. Repack, deploy.
 
-   **Then do the same in `nwn_homers_lotr_s<N>`** — the live season needs a
-   rebuild too, because its peer block just changed: `season-brand.py` turns on
-   its **cross-advert placeable** in the Well of Eru, telling every player that
-   season N+1 early access is open on port 5122 with password `volatile`. This is
-   the only in-game advertisement testers get, so it is not optional. (The sign
-   text and its states are specified in prereq item 9.)
+   **Then the two in-game notices** — one per season, and neither is a new
+   placeable (prereq item 9 explains why the old two-sign design was retired):
+
+   - **New season (early access): a coloured login message.** Add the wipe
+     warning and the merit-redemption hold list to `unpacked/servershout4.nss`,
+     wrapped in `ColorString(..., COLOR_LIGHT_BLUE)` from the `color` include so
+     it reads as a different kind of message from the standing reminders. Use the
+     include, **never an inline `<c...>` literal** — a colour token is three raw
+     bytes, and the high bytes make the file invalid UTF-8, which breaks
+     `season-brand.py` (it reads this exact file as UTF-8).
+   - **Outgoing season: repurpose its `recent_updates` board.** In
+     `nwn_homers_lotr_s<N>`, edit that one placeable in `thewelloferu.git.json`:
+     `LocName` → "Season <N> ending soon - examine me", `Description` → the
+     static notice (go-live date; that season N stays online while people play
+     it; port 5122 + password + `season<N+1>.homerslotr.com`; the wipe; what's
+     new; the merit hold list), and clear `Conversation` (`ru_sign`) and `OnUsed`
+     (`ru_use`) so it is examine-only. **Write both locstrings StrRef-free**
+     (`{"0": text}`, no `id`) — they ship with ids 14561/14567 and a
+     non-`0xFFFFFFFF` StrRef beats the inline string, so the sign would render
+     CEP TLK text instead. Repack and deploy season N too.
+
+   This board is the only in-game advertisement testers get, so it is not
+   optional. It also replaces the archived-season notice at Phase 2 — season N
+   keeps using the same board, re-texted.
 5a. **Seed the new season's home and run dirs — the new `NWN_HOME_DIR` is
    empty, and that is not only about `database/`.** A season's home dir is where
    `nwserver` reads **haks, the TLK, and `override/`** from, so a brand-new one
@@ -651,30 +666,33 @@ teardown — it is a role and port swap between two servers that are already run
    ```bash
    grep -H NWNSYNC_PUBLIC_URL */server.env.local     # both, before starting either
    ```
-6. **Flip the roles, names and peer blocks, then rebrand both.**
+6. **Flip the roles and names, then rebrand both.**
 
    | | unnumbered (season N+1) | `_s<N>` (season N) |
    |---|---|---|
    | `SEASON_ROLE` | `live` | `archive` |
    | `SEASON_WIKI_URL` | `https://homerslotr.com/` | `https://season<N>.homerslotr.com/` |
-   | `NWN_SERVERNAME` | `Homer's LOTR — Season <N+1>` | `Homer's LOTR — Season <N> (ARCHIVED)` |
-   | `SEASON_PEER_ROLE` | `archive` | `live` |
-   | `SEASON_PEER_PORT` | `5122` | `5121` |
-   | `SEASON_PEER_PASSWORD` | `""` | `""` |
+   | `NWN_SERVERNAME` | `Homer's LOTR - Season <N+1>` | `Homer's LOTR - Season <N> (ARCHIVED)` |
 
    Drop the `(EARLY ACCESS)` suffix from the new season's `NWN_SERVERNAME` — it is
    the only naming value that changes at Phase 2. The module filename and
    `NWN_MODULE` were set at Phase 1 and stay put (§4).
 
    Then run `python3 bin/season-brand.py --apply` in **both** repos and repack and
-   deploy **both** modules. This is what:
-   - flips season N's sign from nothing to *"this season has ended"* and moves its
-     in-game links off the apex — without it, the archived season's signs would
-     send its remaining players to the new season's wiki;
-   - **turns off season N's early-access cross-advert** (peer is no longer `test`,
-     so the password and port 5122 stop being advertised) and replaces it with the
-     archived-season pointer;
-   - turns off the new season's wipe warning and points its links at the apex.
+   deploy **both** modules. That moves season N's in-game wiki links off the apex
+   (without it the archived season sends its remaining players to the new season's
+   wiki) and points the new season's links at it.
+
+   **Then re-text the two notices by hand** — `season-brand.py` does not own
+   either of them:
+   - **Season N's `recent_updates` board** (the one repurposed at Phase 1) →
+     *"Season N has ended. This realm is no longer updated or maintained. The
+     current season is live on port 5121."* Same edit as Phase 1: `LocName`,
+     `Description`, StrRef-free.
+   - **The new season's login script** → delete the cyan early-access block from
+     `servershout4.nss`. Its wipe warning is now false: this realm is live and
+     progress is permanent. Leaving it in is the single most confusing thing you
+     could ship at go-live.
 7. **Cloudflare: move the apex.** A hostname attaches to exactly one Worker, so
    this is *remove then add*, not a re-assign: remove the `homerslotr.com` custom
    domain from `homers-lotr-wiki-s<N>`, add it to `homers-lotr-wiki-s<N+1>`, then
@@ -777,9 +795,10 @@ Once `_s<N>` is consistently empty for a decent stretch:
    no build connection and no maintenance.
 3. Leave its home dir on disk, or take one final cold archive of vault + DBs.
    Its runtime dirs stay reserved to that season's number.
-4. In the **live** repo set `SEASON_PEER_ROLE=none`, rebrand, repack and deploy —
-   this retires the cross-advert sign that was pointing players at a server that
-   no longer answers.
+4. **Nothing to retire in the live module.** The old design had a cross-advert
+   sign here that needed switching off; the notice now lives on the *archived*
+   season's own board, which stops being reachable when its server stops. So no
+   rebrand, repack or deploy is needed at Phase 3.
 5. **Delete the retired season's *ops* app-grid shortcuts** (its restart / stop /
    monitor `.desktop` files) and its monitor autostart entry — the server they
    drove is gone (§6a). Leave the dev shortcuts and the roadmap editor; they track
@@ -818,7 +837,7 @@ modest bestiary kill-count head start.
 Copy this into the announcement/tracking issue for each cutover.
 
 **Phase 1 — early access**
-- [ ] `cp -a` → `nwn_homers_lotr_s<N>` (never a clone); season block `= live`; peer block `= test`; systemd repointed
+- [ ] `cp -a` → `nwn_homers_lotr_s<N>` (never a clone); season block `= live`; systemd repointed
 - [ ] **Before any unit is enabled or server started** (§5a): archive repo's `origin` repointed and verified (`git remote -v`, `git config branch.main.remote`)
 - [ ] Orphan `main` squashed + pushed to the new GitHub repo; `s<N>-full-history` kept locally
 - [ ] Sibling remotes added both ways (`dev` in the archive, `archive` in the unnumbered repo)
@@ -827,7 +846,8 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] `NWN_PLAYERPASSWORD="volatile"` + `NWNSYNC_PUBLIC_URL` in `server.env.local`
 - [ ] `season-brand.py --apply`; repack; deploy — **in the new season repo**
 - [ ] Landing page checked: the root `index.html` "Direct connect" string (**it appears twice**) and its wiki link show the *new* season's port and host — `season-brand.py` owns these now, so this is a spot-check that the gate ran, not a hand-edit
-- [ ] `season-brand.py --apply`; repack; deploy — **in `_s<N>` too**, so the live season advertises the test realm + password
+- [ ] Cyan early-access notice added to the new season's `servershout4.nss` (via the `color` include, never an inline `<c…>` literal)
+- [ ] Outgoing season's `recent_updates` board repurposed as the next-season notice (StrRef-free; `Conversation`/`OnUsed` cleared); `_s<N>` repacked + deployed
 - [ ] New season's home dir seeded: `hak/`, `tlk/`, `override/`, `nwn.ini`, `settings.tml` (§5.5a) — an empty home dir has no CEP and the module will not load
 - [ ] New season's run dir seeded with `settings.tml` **before first boot** (§5.5a) — a missing bind-mount source becomes a directory
 - [ ] Both shared symlinks (`meritdb`, `admindb`) created **before the new server's first boot** and verified with `ls -l` (§5.6)
@@ -851,9 +871,10 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] **Full wiki regen + push** — `docs/` is tracked in git and still holds early-access stats
 - [ ] Merit-escrow policy applied (§7b) for anyone who redeemed during early access
 - [ ] Ports swapped both sides in `server.env` **and** `NWNSYNC_PUBLIC_URL` in both `server.env.local`
-- [ ] Roles, `NWN_SERVERNAME` and peer blocks flipped both sides; `(EARLY ACCESS)` dropped
+- [ ] Roles and `NWN_SERVERNAME` flipped both sides; `(EARLY ACCESS)` dropped
 - [ ] `season-brand.py --apply` run in **both**; both repacked + deployed
-- [ ] Early-access advert confirmed **gone** from the live season's Well of Eru
+- [ ] Archived season's `recent_updates` board re-texted to "season has ended"
+- [ ] Cyan early-access block **deleted** from the new live season's `servershout4.nss` — its wipe warning is now false
 - [ ] Apex custom domain **removed** from the old worker, **added** to the new one, zone cache purged
 - [ ] Archived roadmap pruned to `awarded`-only; `gen-roadmap.py`; published to its `roadmapdb`
 - [ ] Player password removed; both servers verified in the server browser
@@ -861,7 +882,7 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] Veteran reward live; cutover announced
 
 **Phase 3 — retire**
-- [ ] Live season's peer block set to `none` (archived-season pointer removed); rebrand, repack, deploy
+- [ ] (No live-module change needed — the archived season's own board goes away with its server)
 - [ ] Season-N server + NWSync stopped and disabled
 - [ ] Its wiki-publish and backup units disabled
 - [ ] Season-N GitHub repo archived read-only (`gh repo archive`); its Workers Build disconnected

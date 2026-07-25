@@ -23,12 +23,11 @@ items 2b–12 are tooling and can land any time before it.
 >   are derived; season 1's exemption is this flag rather than a special case.
 > - `SEASON_CONNECT_HOST` (new): `homerslotr.ddns.net` was recorded nowhere —
 >   it existed only mid-sentence inside `module.ifo.json`'s description.
-> - The season placeables need **no new blueprint** and no palette filing: they
->   reuse `plc_billboard7`, exactly as `ru_sign` does.
-> - Hiding a sign is an appearance swap (157 `plc_invisobj` + `Static` +
->   not useable), which keeps the whole thing declarative in the `.git.json`.
-> - A **`live` peer state** was added. The item-9 table covers `test`/`archive`/
->   `none`, but Phase 1 sets `SEASON_PEER_ROLE=live` on the new season's repo.
+> - **Item 9 (the two season signs) is RETIRED** — built, used once at the
+>   season 1 -> 2 cutover, then removed along with the whole `SEASON_PEER_*`
+>   block. The rule that replaced it: the *outgoing* season repurposes its own
+>   `recent_updates` board as the next-season notice, and the *incoming* season
+>   gets a coloured login message. Neither gets a new placeable. See item 9.
 > - `NWN_SERVERNAME` uses an ASCII hyphen, not an em dash: it is passed through
 >   the container env to `nwserver` and on to the master server browser.
 > - Item 10's predicted prune split was wrong — see its **Built** note.
@@ -224,19 +223,13 @@ SEASON_NUM=2                 # this environment's season number
 SEASON_ROLE=test             # live | test | archive
 SEASON_WIKI_URL="https://season2.homerslotr.com/"
 SEASON_WORKER_NAME="homers-lotr-wiki-s2"
-
-# The OTHER running instance, for the in-game cross-advert placeable.
-SEASON_PEER_ROLE=live        # live | test | archive | none
-SEASON_PEER_NUM=1
-SEASON_PEER_PORT=5121
-SEASON_PEER_PASSWORD=""      # the peer's player password, if it has one
 ```
 
-`SEASON_PEER_PASSWORD` sits in `server.env` (committed) rather than
-`server.env.local` **on purpose**: it is a password the module *advertises to
-every player on a sign*, so it is not a secret. This is not an exception to the
-"no secrets in `unpacked/`" rule in `CLAUDE.md` — that rule is about CD keys and
-admin credentials, which still never appear in source or in the packed `.mod`.
+> The block originally carried a `SEASON_PEER_*` sub-block describing the other
+> running instance, to drive the in-game cross-advert sign. **Both were retired**
+> at the season 1 -> 2 cutover — see item 9. The next season's port and password
+> are now written into the outgoing season's repurposed `recent_updates` board by
+> hand, which is a `.git.json` edit and needs no config.
 
 - [x] Block added to `server.env`, documented in `README.md`
 
@@ -477,53 +470,79 @@ grep -rIn "homerslotr\|5121\|nwnxee-homer\|/var/home/james/GIT/nwn_homers_lotr" 
 > coordinates, `roulette_os.nss`, `NWN_MANAGER_BIN`, the legacy (disabled)
 > units kept for rollback, and comments.
 
-## 9. The two season placeables
+## 9. ~~The two season placeables~~ — RETIRED, superseded at the season 1 -> 2 cutover
 
-Both go in the Well of Eru (`thewelloferu.git.json`), both are placed **once** and
-then only have their text changed by `season-brand.py` — so no season ever has to
-edit a `.git.json` by hand.
+**Do not build this. It was built, used once, and removed.** Kept here because
+the reasoning is what a future cutover needs, and because the traps it uncovered
+still apply to the thing that replaced it.
 
-Mirror the existing `ru_sign` placeable in that file: `__struct_id: 9`,
-Appearance 89, text carried in `Description`. Use `bin/place-helper.py` to pick
-coordinates and follow the GIT-instance rules in `CLAUDE-blueprints.md` (correct
-struct id, and `X`/`Y`/`Z`/`Bearing` for placeables — *not* `XPosition`/
-`Orientation`). After adding the blueprints run
-`python3 bin/file-palette-orphans.py --apply`.
+**The original design:** two purpose-built placeables in the Well of Eru — a
+`season_status` sign whose text came from `SEASON_ROLE`, and a `season_peer`
+cross-advert sign whose text came from a `SEASON_PEER_*` block — both placed once
+and only ever re-texted by `season-brand.py`, hidden by an appearance swap to 157
+(`plc_invisobj`) rather than deleted.
 
-**(a) Season status sign** — states driven by `SEASON_ROLE`:
+### What actually happened, and the rule that replaced it
 
-| Role | Text |
-|------|------|
-| `test` | *"EARLY ACCESS — Season N. This is a testing realm. Your characters, gear and progress here will be **wiped** when this season goes live. Merit you earn still counts."* |
-| `archive` | *"Season N has ended. This realm is no longer updated or maintained. The current season is live on port 5121."* |
-| `live` | hidden |
+Both were placed and all six states verified. Then the first real Phase 1 showed
+the design was solving the wrong problem:
 
-**(b) Cross-advert sign** — states driven by `SEASON_PEER_*`, so the *live*
-season can point players at whatever is running in the alternate slot:
+- The **outgoing** season is where the players are, and the notice it needs is
+  one message, not two: "next season opens on <date>, here is the test port and
+  password, your test progress will be wiped, here is what is new." That is a
+  single board's worth of text.
+- The **incoming** early-access realm needs no sign at all. Its wipe warning and
+  merit-hold list belong in the **login script** (`servershout4.nss`), coloured
+  with `COLOR_LIGHT_BLUE` from the `color` include so it reads as a different
+  kind of message — every player sees it, unmissably, without walking to a
+  placeable.
+- And the outgoing season **already had** the perfect board: `recent_updates`,
+  the Recent Updates sign. Once its season is winding down, a shipped-items feed
+  matters less than the cutover notice.
 
-| Peer role | Text |
-|-----------|------|
-| `test` | *"Season N+1 EARLY ACCESS is now open — same server address, **port 5122**, password `volatile`. Come help test the new season. Progress there will be wiped at go-live; merit earned still counts."* |
-| `archive` | *"Season N is still playable on port 5122, archived and unmaintained. Its wiki lives at season\<N\>.homerslotr.com."* |
-| `none` | hidden |
+> **The rule now: the OUTGOING season repurposes its own `recent_updates` board
+> as the next-season notice. The incoming season gets a coloured login message.
+> Neither season gets a new placeable.**
 
-Hide by clearing visibility/usability rather than deleting the instance, so the
-same two placeables serve every future season.
+Repurposing is a `.git.json` edit on the `recent_updates` instance: set `LocName`
+("Season <N> ending soon - examine me"), replace `Description` with the static
+notice, and clear `Conversation` (`ru_sign`) and `OnUsed` (`ru_use`) so it is
+examine-only instead of an interactive board. Leave `OnMeleeAttacked`
+(`_attackplaceable`) — that is shared boilerplate, not board machinery.
 
-- [x] Both placed once, all six states render
+### The traps, which still apply
 
-> **Built** — and **no blueprint and no palette filing were needed**: like
-> `ru_sign`, both instances use the stock `plc_billboard7`. Placed at
-> (21.5, 15.4) and (28.5, 15.4), flanking the Recent Updates sign, both
-> verified clear with `bin/place-helper.py`.
->
-> The clone trap: `ru_sign`'s `Description`/`LocName` carry StrRef ids
-> (14567 / 14561), and a non-`0xFFFFFFFF` StrRef wins over the inline string —
-> a verbatim clone would render `ru_sign`'s text forever. The season signs are
-> created StrRef-free.
->
-> "Five states" is really **six**: a `live` peer state was added (see
-> deviations). All six verified, plus every hide/show transition.
+- **StrRefs beat inline strings.** `recent_updates`'s `LocName`/`Description`
+  carry StrRef ids **14561 / 14567**, and a non-`0xFFFFFFFF` `id` wins over the
+  inline language-0 string in-game. Rewrite the locstring as `{"0": text}` with
+  no `id`, or the sign renders CEP TLK text forever. (This is the same trap that
+  made a verbatim `ru_sign` clone show `ru_sign`'s text.)
+- **`season-brand.py` still owns one string on that board** — the
+  `/manual/Roadmap#shipped` link inside `Description`. That rule is narrow (it
+  rewrites only a URL matching that shape), so a repurposed description with no
+  such URL is left alone and `--check` still passes. Do not widen it to a
+  blanket rehost: a next-season notice legitimately contains
+  `season<N+1>.homerslotr.com`, and a rehost would rewrite it to the *current*
+  season's host and destroy the address.
+- **GIT and GIC are index-parallel.** Deleting a placeable from
+  `thewelloferu.git.json` means deleting the same index from
+  `thewelloferu.gic.json`, or every later comment is attached to the wrong
+  object. Verify equal list lengths after any such edit.
+- Both signs reused the stock `plc_billboard7`, so **no blueprint and no palette
+  filing were ever needed** — which also holds for anything else cloned from
+  `ru_sign`.
+
+### What was removed
+
+`status_sign()`, `peer_sign()`, `SIGN_VISIBLE`/`SIGN_HIDDEN` and the sign loop in
+`season-brand.py`'s `well()`; the `SEASON_PEER_*` block from `server.env` and its
+validation in `season_config()`; and the two instances from season 2's Well of
+Eru (replaced there by a copy of the **Ping Pong** PC-builder NPC, `butcha_2`, at
+the freed spot). Season 1's two instances were left in place — already invisible
+and inert once the rules were gone — to be dropped at its Phase 2 repack rather
+than costing the live server a restart.
+
+- [x] Built, used at the season 1 -> 2 cutover, then retired in favour of the rule above
 
 ## 10. `bin/roadmap-archive-prune.py` (new)
 
