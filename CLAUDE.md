@@ -120,6 +120,20 @@ A blueprint's filename **is** its ResRef (e.g. `bree.are.json` → ResRef `bree`
 Areas are 1:1:1 between `.are` (static), `.git` (instances), and `.gic` (per-instance
 comments) — keep all three when renaming or deleting an area.
 
+**"Copy NPC X into area Y" means a second *instance* of the same blueprint** — only an
+explicit **"deep copy"** means duplicate the `.utc.json`. Duplicating by default leaves
+two indistinguishable palette leaves and an orphan blueprint that drifts, and nothing in
+the build catches it. Recipe: "Place an existing NPC in another area" in
+[CLAUDE-recipes.md](CLAUDE-recipes.md).
+
+**Placed instances don't track their blueprint, but respawn does.** `se_respawn_inc.nss`
+recreates a dead static creature from the blueprint, so any unsynced instance override
+silently reverts after its first death. `tests/check_divergent_creatures.py` is the
+build gate — it covers name, faction, conversation, combat stats, equipment (resref and
+slot) and carried inventory, but **not** portrait, voiceset, gender, CR or appearance.
+`bin/split-divergent-creatures.py` is the remedy it points at; prefer syncing the
+instance where you can, since splitting mints another blueprint.
+
 **After adding a new blueprint** (`.uti`/`.utc`/`.utp`/`.utm`/etc.), file it into the
 toolset palette with `python3 bin/file-palette-orphans.py --apply`. The **NWN toolset
 places every blueprint by its `PaletteID` field** — the category whose `ID` byte equals

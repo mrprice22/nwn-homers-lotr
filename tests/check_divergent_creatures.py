@@ -5,9 +5,15 @@ The module respawns dead static creatures from their *blueprint*
 (`unpacked/se_respawn_inc.nss` → `CreateObject(GetResRef(self), …)`), preserving
 only the tag. So any placement whose identity differs from what its blueprint
 would re-create silently reverts after the first death — name, faction,
-abilities, classes, feats, special abilities, equipment, natural AC, race, or
-conversation. (The bug that produced Carn Dum City's "Numanan Numerocks Second
-Hand" respawning as the blueprint's "Numarok The Black Hand".)
+abilities, classes, feats, special abilities, equipment (resref *and* slot),
+carried inventory, natural AC, race, or conversation. (The bug that produced Carn
+Dum City's "Numanan Numerocks Second Hand" respawning as the blueprint's "Numarok
+The Black Hand".)
+
+Deliberately NOT part of identity: PortraitId, SoundSetFile, Gender,
+ChallengeRating, Appearance_Type, Appearance_Head and the colour/body-part fields.
+They revert on respawn too, and ~57 placements across ~26 blueprints diverge on
+them today — closing that is its own piece of work, not a silent build break.
 
 `bin/split-divergent-creatures.py` fixed every existing case by giving each
 diverging placement its own blueprint. This gate keeps it that way:
@@ -64,10 +70,20 @@ def combat_key(s):
         int(fld(f, "Feat")) for f in list_items(s, "FeatList") if fld(f, "Feat") is not None))
     spec = tuple(sorted(
         (fld(x, "Spell"), fld(x, "SpellCasterLevel")) for x in list_items(s, "SpecAbilityList")))
+    # `__struct_id` is a bare int, not a {"type":..,"value":..} wrapper, so it must be
+    # read directly -- fld() only unwraps dicts and would return None for every slot,
+    # silently reducing this to a multiset of resrefs (a weapon in the wrong hand, or
+    # armour filed as a creature item, used to pass).
     equip = tuple(sorted(
-        (fld(e, "__struct_id"), (fld(e, "EquippedRes") or fld(e, "TemplateResRef") or ""))
+        (e.get("__struct_id"), (fld(e, "EquippedRes") or fld(e, "TemplateResRef") or ""))
         for e in list_items(s, "Equip_ItemList")))
-    return (abilities, classes, feats, spec, equip, fld(s, "NaturalAC"), fld(s, "Race"))
+    # Carried inventory is what the creature drops, so blueprint/instance drift here
+    # changes loot from the first respawn onward.
+    inventory = tuple(sorted(
+        (fld(e, "InventoryRes") or fld(e, "TemplateResRef") or "")
+        for e in list_items(s, "ItemList")))
+    return (abilities, classes, feats, spec, equip, inventory,
+            fld(s, "NaturalAC"), fld(s, "Race"))
 
 
 def display_name(s):

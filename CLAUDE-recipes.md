@@ -11,7 +11,37 @@
    patch the embedded creature struct inside `<area>.git.json`'s
    `Creature List`. Easiest way for many areas: re-place from the
    palette in the toolset, or script a JSON patch.
-4. Repack and test in-game.
+4. **On respawn the blueprint wins.** `se_respawn_inc.nss` recreates a dead
+   static creature with `CreateObject(GetResRef(self), …)`, preserving only
+   the tag — so an instance you *didn't* sync silently reverts after its
+   first death. `tests/check_divergent_creatures.py` gates on name, faction,
+   conversation, abilities, classes, feats, special abilities, equipment
+   (resref **and** slot), carried inventory, natural AC and race. It does
+   **not** cover `PortraitId`, `SoundSetFile`, `Gender`, `ChallengeRating`,
+   `Appearance_Type`/`Appearance_Head` or the colour/body-part fields — those
+   revert too, silently, with no build error. Sync them by hand.
+5. Repack and test in-game.
+
+## Place an existing NPC in another area
+
+**"Copy NPC X to area Y" means a second *instance* of the same blueprint** —
+not a second blueprint. Only an explicit **"deep copy"** means duplicate the
+`.utc.json`.
+
+1. Keep the same `TemplateResRef`. Do **not** create `<resref>_2`.
+2. Clone a neighbouring `__struct_id: 4` struct in the *target* area's
+   `Creature List` and overwrite its position fields (see
+   [CLAUDE-blueprints.md](CLAUDE-blueprints.md); use `bin/place-helper.py` to
+   pick coordinates).
+3. Add the parallel entry to the area's `.gic.json` at the same index —
+   the two lists are positional.
+4. Nothing else to do: both instances now share one blueprint, so there is no
+   divergence to keep in sync and no duplicate palette leaf.
+
+Two blueprints that share a `Tag` are legal and silent — see
+[CLAUDE-gotchas.md](CLAUDE-gotchas.md). This is how the module ended up with
+`butcha` and `butcha_2`, two indistinguishable "Ping Pong" entries in the
+toolset palette, one of them attached to nothing.
 
 ## Add a new NPC creature
 

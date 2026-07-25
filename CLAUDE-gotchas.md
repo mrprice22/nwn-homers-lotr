@@ -34,6 +34,18 @@
   `foo` (they live in different namespaces). Stick to unique resrefs to
   keep your sanity.
 
+- **Duplicate blueprints sharing a `Tag` are legal and silent.** Nothing
+  fails: not the repack, not `check_divergent_creatures.py` (it only compares a
+  placement against *its own* blueprint), not `check_palette_coverage.py`. The
+  only symptoms are two identical-looking leaves in the toolset palette and an
+  orphan half that drifts out of date. 126 tags in this module are shared by
+  more than one blueprint, and `bin/split-divergent-creatures.py` manufactures
+  them by design. **Before adding another, check
+  `module-index/unspawned_creatures.json`** for an orphan that should be reused
+  or deleted instead — and prefer a second *instance* of the existing blueprint
+  (see "Place an existing NPC in another area" in
+  [CLAUDE-recipes.md](CLAUDE-recipes.md)).
+
 - **`.git` and `.gic` are positional.** They share an instance ordering;
   reordering one without the other breaks comments. When deleting an
   instance, delete from both at the same index.

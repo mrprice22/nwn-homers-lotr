@@ -3817,3 +3817,19 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-07-11"
     notes: "<span>Endgame nodes (L46/55/60) of the Sorcerer line, culminating in the class-restricted capstone (+caster-level encoding). Depends on the capstone-item-encoding reference.</span>"
+
+  - id: toolset-cost-override-wipe
+    title: "Investigate: a toolset save can wipe an item blueprint's Cost override"
+    group: wiki-tools
+    status: later
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-25"
+    notes: "<span>Internal investigation - not player-facing.</span>"
+    impl_notes: "<div>Found while changing the appearance of the Quiver of Endless Flight (<code>ammoreplicator</code>). In one toolset save its <code>Cost</code> went <b>250,000 -&gt; 3</b> alongside the intended <code>ModelPart1</code> 11-&gt;226 change. <code>engraverchisel</code>, edited in the same session with the same kind of change (<code>ModelPart1</code> 11-&gt;91), kept its <code>Cost</code> 25,000 - because it carries <code>AddCost</code> 24,997 and 25,000 is its genuine property-derived value. Working hypothesis: <b>the toolset recomputes <code>Cost</code> from base item + properties + <code>AddCost</code> on save and discards any hand-set override</b>; the appearance edit is only what triggered the save, not the cause.</div><div>Why it matters: <code>unpacked/forge_inc.nss</code> (ForgeRebuildValue, ~line 339) documents that <code>GetGoldPieceValue</code> returns the blueprint's fixed <code>Cost</code> override and <i>ignores</i> properties. So that field is the live in-game value, and a silent reprice moves an item relative to the Forge's <code>FORGE_MAX_VALUE</code> caps and changes vendor prices. <code>AddCost</code> is a word capped at 32,767 and cannot carry large values - 284 of 3,401 items use it; the other 3,117 rely on <code>Cost</code> alone and are exposed.</div><div>Restored <code>ammoreplicator</code> to <code>Cost</code> 250,000 in the blueprint and in the inline copy on the Angmar instance (<code>area009.git.json</code> Creature List[0] ItemList[15]).</div><div>To investigate: confirm the recompute rule against a controlled toolset save; work out which items already lost an override historically (git log over <code>unpacked/*.uti.json</code> for <code>Cost</code> drops); decide whether a build gate should flag a <code>Cost</code> that disagrees with its derived value by more than some margin.</div>"
+    manual_steps:
+      - step: "Reproduce: open a high-Cost item with AddCost 0 in the toolset, change nothing, save the module, and diff its .uti.json to confirm Cost is recomputed."
+        status: open
+      - step: "UAT: in-game, confirm the Quiver of Endless Flight reads 250,000 gp again."
+        status: open

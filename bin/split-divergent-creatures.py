@@ -103,10 +103,16 @@ def combat_key(s):
         int(fld(f, "Feat")) for f in list_items(s, "FeatList") if fld(f, "Feat") is not None))
     spec = tuple(sorted(
         (fld(x, "Spell"), fld(x, "SpellCasterLevel")) for x in list_items(s, "SpecAbilityList")))
+    # `__struct_id` is a bare int, not a {"type":..,"value":..} wrapper -- read it
+    # directly; fld() only unwraps dicts and would drop the slot from the key.
     equip = tuple(sorted(
-        (fld(e, "__struct_id"), (fld(e, "EquippedRes", ) or fld(e, "TemplateResRef") or ""))
+        (e.get("__struct_id"), (fld(e, "EquippedRes", ) or fld(e, "TemplateResRef") or ""))
         for e in list_items(s, "Equip_ItemList")))
-    return (abilities, classes, feats, spec, equip, fld(s, "NaturalAC"), fld(s, "Race"))
+    inventory = tuple(sorted(
+        (fld(e, "InventoryRes") or fld(e, "TemplateResRef") or "")
+        for e in list_items(s, "ItemList")))
+    return (abilities, classes, feats, spec, equip, inventory,
+            fld(s, "NaturalAC"), fld(s, "Race"))
 
 
 def display_name(s):

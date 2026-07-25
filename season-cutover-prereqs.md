@@ -537,7 +537,7 @@ examine-only instead of an interactive board. Leave `OnMeleeAttacked`
 `status_sign()`, `peer_sign()`, `SIGN_VISIBLE`/`SIGN_HIDDEN` and the sign loop in
 `season-brand.py`'s `well()`; the `SEASON_PEER_*` block from `server.env` and its
 validation in `season_config()`; and the two instances from season 2's Well of
-Eru (replaced there by a copy of the **Ping Pong** PC-builder NPC, `butcha_2`, at
+Eru (replaced there by a copy of the **Ping Pong** PC-builder NPC, `butcha`, at
 the freed spot). Season 1's two instances were left in place — already invisible
 and inert once the rules were gone — to be dropped at its Phase 2 repack rather
 than costing the live server a restart.
