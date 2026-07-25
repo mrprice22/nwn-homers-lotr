@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-25 16:05 CDT"
+  as_of: "2026-07-25 16:15 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -1650,7 +1650,7 @@ ideas:
   - id: achievements
     title: "Achievement / kill-tracking system: bosses drop trackable items for all-time / weekly / daily kill counts and rewards"
     group: progression
-    status: wip
+    status: soon
     type: Enhancement
     player: Tukwut
     date: "2026-05-30"
@@ -2696,7 +2696,7 @@ ideas:
     title: "Faction quest (Good): The Dead Marshes Lantern"
     group: quests-areas
     epic: faction-quest-system
-    status: wip
+    status: soon
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-11"
@@ -2920,7 +2920,7 @@ ideas:
     title: "Quest: Claim the Deeps (Moria, daily faction-control)"
     group: quests-areas
     epic: quest-overhaul
-    status: wip
+    status: soon
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-11"
@@ -3843,7 +3843,7 @@ ideas:
     title: "Epic XP table: levels 41-60"
     group: combat-classes
     epic: legendary-levels
-    status: wip
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Levels 41-60 cost real XP on a published table instead of the leveler's private accounting, so the XP bar and the character sheet finally agree.</div>"
@@ -3852,25 +3852,33 @@ ideas:
     title: "Raise the server level cap to 60"
     group: combat-classes
     epic: legendary-levels
-    status: wip
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The server accepts characters above level 40 natively — levels 41-60 are real levels the client understands, not a separate track.</div>"
-    impl_notes: "<div>Two levers do the same job (upstream warns about this in <code>unpacked/nwnx_admin.nss:173</code>): flip <code>NWNX_MAXLEVEL_SKIP=y</code> to <code>n</code> in <code>server.env</code>, or call <code>NWNX_Administration_SetMaxLevel(60)</code> from <code>onmoduleload.nss</code>. Pick one. Also needs <code>MaxLevel</code>/<code>EpicLevel</code> columns updated in a <code>hak_2da/classes.2da</code> (stock values today). <code>NWN_ELC=0</code> / <code>NWN_ILR=0</code> are already off.</div>"
+    impl_notes: "<div>Two levers do the same job (upstream warns about this in <code>unpacked/nwnx_admin.nss:173</code>): flip <code>NWNX_MAXLEVEL_SKIP=y</code> to <code>n</code> in <code>server.env</code>, or call <code>NWNX_Administration_SetMaxLevel(60)</code> from <code>onmoduleload.nss</code>. Also needs <code>MaxLevel</code>/<code>EpicLevel</code> columns updated in a <code>hak_2da/classes.2da</code> (stock values today). <code>NWN_ELC=0</code> / <code>NWN_ILR=0</code> are already off.</div>"
+    design_questions:
+      - question: "Which lever raises the cap — the MaxLevel plugin (NWNX_MAXLEVEL_SKIP=n in server.env) or NWNX_Administration_SetMaxLevel(60) from onmoduleload.nss? They write the same value, so using both is a conflict waiting to happen. Proposal: the plugin env flag, because server.env already documents the enabled plugin set in one place and it takes effect without a script change; the tradeoff is that it lives outside git-tracked module source and needs a container restart to apply."
+        status: open
   - id: ll-cls-progression
     title: "Class progression tables for levels 41-60"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Levels past 40 advance your class properly: attack bonus, saves, spell slots and the feat / ability-score cadence all keep going, instead of only granting HP and a floating feat.</div>"
-    impl_notes: "<div>This is the substantive difference from HGLL, which explicitly did <i>not</i> extend caster level, spell slots or class progression. Needs <code>cls_*.2da</code> work in <code>hak_2da/</code> (BAB, saves, spell slots/known, feat table cadence). Decide per-class whether 41-60 continues the epic-progression rules or a custom curve, and whether caster level keeps scaling (balance call — spell DCs and duration scale with it).</div>"
+    impl_notes: "<div>This is the substantive difference from HGLL, which explicitly did <i>not</i> extend caster level, spell slots or class progression. Needs <code>cls_*.2da</code> work in <code>hak_2da/</code> (BAB, saves, spell slots/known, feat table cadence).</div>"
+    design_questions:
+      - question: "Does caster level keep scaling from 41 to 60? Spell DCs, durations and damage caps all key off it, so 20 more caster levels is the single biggest balance lever in the whole epic. Proposal: caster level keeps rising but spell slots stop at the level-40 table, so casters gain reach and reliability without another 20 levels of raw slots — and the extra power gets sold through Legendary Feats instead, where it can be priced per feat."
+        status: open
+      - question: "What cadence do bonus feats and ability-score increases follow from 41 to 60? HGLL gave 1 feat per level and let you buy stat points. Proposal: keep the stock epic cadence (a feat every 3 levels, +1 ability every 4) rather than HGLL's 1-per-level, so the Legendary Feat pool stays scarce enough to matter."
+        status: open
   - id: ll-tweaks-audit
     title: "Audit NWNX Tweaks options for epic-level play"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: soon
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Server-side tweaks reviewed so nothing quietly misbehaves once characters go past 40.</div>"
@@ -3879,7 +3887,7 @@ ideas:
     title: "Character validation with a level 60 cap"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: soon
     type: Defect
     player: "HomelessSon (Server Admin)"
     notes: "<div>Characters above level 40 log in cleanly — no rejected or silently reset characters when the cap moves.</div>"
@@ -3888,7 +3896,7 @@ ideas:
     title: "Retune XP awards for the 41-60 band"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: soon
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Levelling from 41 to 60 is a real grind but a finishable one — endgame content pays out at a rate that matches the new table.</div>"
@@ -3897,16 +3905,16 @@ ideas:
     title: "Remove the HGLL leveler scripts"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: wip
     type: Defect
     player: "HomelessSon (Server Admin)"
     notes: "<div>The old legendary-leveler machinery is gone once real levels replace it.</div>"
-    impl_notes: "<div>21 <code>unpacked/hgll_*.nss</code> files (incl. the 250 KB <code>hgll_classft_inc</code> and 176 KB <code>hgll_featreq_inc</code> feat tables) plus <code>sha_leto_inc.nss</code>, a near-duplicate of <code>hgll_leto_inc</code>. <b>Blocker:</b> <code>mw_mixtape_con.nss:4</code> does <code>#include \"hgll_leto_inc\"</code> and must be re-pointed first. Also drop the dead Windows Letoscript path <code>const string NWNPATH</code> in <code>hgll_const_inc.nss:4</code> — but keep the XP constants until <a href=\"#idea-ll-exptable-2da\">the exptable</a> has them.</div>"
+    impl_notes: "<div>21 <code>unpacked/hgll_*.nss</code> files (incl. the 250 KB <code>hgll_classft_inc</code> and 176 KB <code>hgll_featreq_inc</code> feat tables) plus <code>sha_leto_inc.nss</code>, a near-duplicate of <code>hgll_leto_inc</code>.</div><div><b>Do not bulk-delete <code>hgll_*.nss</code>.</b> Two of those files are the module's live login hooks — <code>hgll_cliententer.nss</code> and <code>hgll_client_exit.nss</code> — and deleting them breaks every player's login. They belong to <a href=\"#idea-ll-hgll-split-cliententer\">ll-hgll-split-cliententer</a>, which must land <b>first</b>; this item removes the other 19 plus <code>sha_leto_inc</code>.</div><div>Other prerequisites: <code>mw_mixtape_con.nss:4</code> does <code>#include \"hgll_leto_inc\"</code> and must be re-pointed, and <code>hgll_const_inc.nss</code> holds the XP constants that <a href=\"#idea-ll-exptable-2da\">the exptable</a> reuses — don't delete it until that item has landed. Also drops the dead Windows Letoscript path <code>const string NWNPATH</code> at <code>hgll_const_inc.nss:4</code>.</div>"
   - id: ll-hgll-split-cliententer
     title: "Untangle the module OnClientEnter hook from HGLL"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: wip
     type: Defect
     player: "HomelessSon (Server Admin)"
     notes: "<div>Login-time systems (journals, merit, bestiary, forge, teleports, faction) keep working after the leveler is removed.</div>"
@@ -3915,7 +3923,7 @@ ideas:
     title: "Retire the Legendary Levelling Area"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: wip
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The Legendary Levelling Area off the Well of Eru goes away — you level at 41+ the same way you level at 4.</div>"
@@ -3924,7 +3932,7 @@ ideas:
     title: "Drop the HGLL build gate from the smoke test"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: wip
     type: Defect
     player: "HomelessSon (Server Admin)"
     notes: "<div>Internal build cleanup — no player-visible effect.</div>"
@@ -3933,7 +3941,7 @@ ideas:
     title: "Purge HGLL from the wiki and repo docs"
     group: wiki-tools
     epic: legendary-levels
-    status: planned
+    status: confirmed
     type: Defect
     player: "HomelessSon (Server Admin)"
     notes: "<div>The wiki stops describing the old legendary leveler and documents real levels 41-60 instead.</div>"
@@ -3942,7 +3950,7 @@ ideas:
     title: "Rework the freelegendary redeem code for the new XP curve"
     group: economy
     epic: legendary-levels
-    status: planned
+    status: wip
     type: Exploit
     player: "HomelessSon (Server Admin)"
     notes: "<div>The admin/testing shortcut for legendary levels matches the new table instead of the old one.</div>"
@@ -3963,7 +3971,7 @@ ideas:
     title: "Rewrite the Leveling Guide for real levels 41-60"
     group: wiki-tools
     epic: legendary-levels
-    status: planned
+    status: soon
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The wiki explains how levelling past 40 actually works now: what you gain per level, what it costs, and where the Legendary Feats fit.</div>"
@@ -3972,7 +3980,7 @@ ideas:
     title: "Legendary Feats: 2DA plumbing and per-class allotments"
     group: combat-classes
     epic: legendary-levels
-    status: planned
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The groundwork for Legendary Feats: feats that only become selectable after level 40, and the rules for how many each class gets.</div>"
