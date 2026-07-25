@@ -294,17 +294,48 @@ The live season keeps running throughout; nothing about it moves.
    season N+1 early access is open on port 5122 with password `volatile`. This is
    the only in-game advertisement testers get, so it is not optional. (The sign
    text and its states are specified in prereq item 9.)
-6. **Link the two shared DBs.** After the new server's first boot creates
-   `database/`:
+5a. **Seed the new season's home and run dirs — the new `NWN_HOME_DIR` is
+   empty, and that is not only about `database/`.** A season's home dir is where
+   `nwserver` reads **haks, the TLK, and `override/`** from, so a brand-new one
+   means no CEP and no `cep.tlk` and the module cannot load. `bin/serve` only
+   `mkdir -p`s the *run* dir; nothing bootstraps the rest. Copy it from the
+   outgoing season:
    ```bash
-   DB="$HOME/.local/share/Neverwinter Nights S<N+1>/database"
-   for f in meritdb admindb; do
-     rm -f "$DB/$f.sqlite3"
-     ln -s "$HOME/.local/share/nwn-shared/$f.sqlite3" "$DB/$f.sqlite3"
-   done
-   ls -l "$DB"/{merit,admin}db.sqlite3    # verify both point at the shared files
+   S1="$HOME/.local/share/Neverwinter Nights"          # outgoing season's home
+   S2="$HOME/.local/share/Neverwinter Nights S<N+1>"
+   mkdir -p "$S2"/{modules,servervault,dmvault,localvault,nwsync,portraits,ambient,music,movies,development}
+   cp -a "$S1"/{hak,tlk,override} "$S2"/               # ~8 GB; reflinks on btrfs/xfs, so instant
+   cp -a "$S1"/{nwn.ini,nwnplayer.ini,settings.tml} "$S2"/
    ```
-   The shared `admindb` means the early-access realm inherits the live admin
+   Then the run dir, and **`settings.tml` must exist there before the first
+   boot**: `bin/serve` mounts it `-v "$NWN_RUN_DIR/settings.tml:…:ro"`, and podman
+   creates an empty **directory** at a bind-mount source that doesn't exist —
+   after which `nwserver` cannot write its settings and the serve-time patch
+   (sticky modes, max HP, `max-ability-bonus`) silently never applies.
+   ```bash
+   R1="$HOME/.local/state/nwnxee-homer"; R2="$HOME/.local/state/nwnxee-homer-s<N+1>"
+   mkdir -p "$R2" && cp -a "$R1/settings.tml" "$R2/settings.tml"
+   for l in database servervault tlk hak override modules portraits nwsync development; do
+     [[ -L $R1/$l ]] && ln -sfn "$(readlink "$R1/$l")" "$R2/$l"
+   done
+   ```
+   Those run-dir entries are symlinks to the *container-internal* `/nwn/home/…`
+   paths — they dangle on the host by design (§7 step 3 warns against deleting
+   through them). Don't copy `cryptographic_secret`: let the new season generate
+   its own, so the two instances are distinct to the master server.
+
+6. **Link the two shared DBs — _before_ the new server's first boot.** The
+   ordering matters and is easy to get backwards: if the server boots first it
+   creates `meritdb.sqlite3`/`admindb.sqlite3` as **regular files**, and
+   `bin/season-shared-dbs.sh` then refuses with *"regular file here AND a shared
+   copy exists — refusing to guess"* rather than silently picking one.
+   ```bash
+   mkdir -p "$HOME/.local/share/Neverwinter Nights S<N+1>/database"
+   bin/season-shared-dbs.sh              # dry run: expect "will link" for both
+   bin/season-shared-dbs.sh --apply      # creates the absolute symlinks
+   ```
+   Prefer the script to hand-rolled `ln -s`: it verifies the links and reads a
+   table count back through each one. The shared `admindb` means the early-access realm inherits the live admin
    whitelist and UAT shortcuts on day one — no re-seed. Because `houses` is shared
    too (§2), **confirm the new season still has every house `area_tag` /
    `home_wp_tag` that `admindb.houses` references** — a renamed or dropped home
@@ -387,6 +418,11 @@ within hours, while you sleep.
 |---|---|---|
 | `nwn_homers_lotr` (unnumbered) | always the newest season and the only dev repo | keeps the original repo, forever |
 | `nwn_homers_lotr_s<N>` | season N's frozen line | its own repo, created fresh at each cutover |
+
+The archive repo's **GitHub name is whatever you create** — the season 1 archive
+is `mrprice22/nwn_homers_lotr_s1` (underscores, matching the local directory),
+not the `nwn-homers-lotr-s<N>` this file used to assume. Nothing derives from it;
+only the Cloudflare build connection points at it. Just use the real name.
 
 ### The copy procedure (Phase 1 step 1, in full)
 
@@ -791,7 +827,9 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] `NWN_PLAYERPASSWORD="volatile"` + `NWNSYNC_PUBLIC_URL` in `server.env.local`
 - [ ] `season-brand.py --apply`; repack; deploy — **in the new season repo**
 - [ ] `season-brand.py --apply`; repack; deploy — **in `_s<N>` too**, so the live season advertises the test realm + password
-- [ ] Both shared symlinks (`meritdb`, `admindb`) created into the new home dir and verified with `ls -l`
+- [ ] New season's home dir seeded: `hak/`, `tlk/`, `override/`, `nwn.ini`, `settings.tml` (§5.5a) — an empty home dir has no CEP and the module will not load
+- [ ] New season's run dir seeded with `settings.tml` **before first boot** (§5.5a) — a missing bind-mount source becomes a directory
+- [ ] Both shared symlinks (`meritdb`, `admindb`) created **before the new server's first boot** and verified with `ls -l` (§5.6)
 - [ ] House area-tags checked: every `admindb.houses.area_tag` exists in the new season (§5)
 - [ ] Season-N worker's **build connection re-pointed** to `nwn-homers-lotr-s<N>` — done *before* the unnumbered repo's first push (§5.7)
 - [ ] Worker `homers-lotr-wiki-s<N+1>` created against `nwn-homers-lotr` + custom domain `season<N+1>.homerslotr.com` (DNS is automatic)
