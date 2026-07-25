@@ -3843,11 +3843,28 @@ ideas:
     title: "Epic XP table: levels 41-60"
     group: combat-classes
     epic: legendary-levels
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<div>Levels 41-60 cost real XP on a published table instead of the leveler's private accounting, so the XP bar and the character sheet finally agree.</div>"
-    impl_notes: "<div>Add <code>exptable.2da</code> to <code>hak_2da/</code> with rows for 41-60. <b>Decided:</b> the existing HGLL constants in <code>unpacked/hgll_const_inc.nss</code> are reused <b>as cumulative totals</b> — L41 828,800 … L60 3,581,000, per-level deltas starting at 48,800 and compounding x1.1. That is deliberately ~5x cheaper than what HGLL effectively charged (it compared <code>GetXP</code> against the constant and then <i>subtracted the whole constant</i> every level, ~17,498,600 to reach 60 — the figure the <code>freelegendary</code> redeem code still hands out).</div><div>Season 2 is a fresh character wipe, so there is no migration path to worry about.</div>"
+    commit: 83848c05cc63256a657e46eb426988a22decf475
+    date: 2026-07-25
+    notes: "<div>Levels 41&ndash;60 now cost real experience on a published table instead of the leveling system's private accounting &mdash; so your XP bar and your character sheet finally agree past level 40. Level 41 sits at 828,800 total XP and level 60 at 3,581,000; level 41 costs 48,800 over level 40, and every level after that costs 10% more than the one before it. The full table is in <a href=\"Customizations.html#legendary-levels\">Customizations &rarr; Legendary Levels</a>.</div>"
+    impl_notes: "<div>Added <code>hak_2da/exptable.2da</code>. Rows 0-39 (levels 1-40) were extracted from stock game data with <code>nwn_resman_cat --root \"$STEAM_NWN\" exptable.2da</code> and are byte-identical to stock (verified with <code>cmp</code> over the header + first 40 rows); nothing below 41 was regenerated. Stock row 40 (level 41) carries the <code>0xFFFFFFFF</code> unreachable-level sentinel &mdash; it was replaced with <code>828800</code> and rows for levels 42-60 appended verbatim from the cumulative constants in <code>unpacked/hgll_const_inc.nss</code> (<code>XP_REQ_LVL41</code>..<code>XP_REQ_LVL60</code>, delta 48,800 compounding x1.1, ending 3,581,000). A new row <code>60 61 0xFFFFFFFF</code> preserves the stock sentinel convention above the cap. CRLF line endings and the stock column layout match the other files in <code>hak_2da/</code>.</div><div><b>Delivery:</b> <code>hak_2da/</code> is not packed by nasher (<code>nasher.cfg</code> includes only <code>unpacked/**</code>); it is a staging dir for the wiki generator and for hand-built haks. This 2da only takes effect once packed into <code>lotr_rules.hak</code> (README.md, \"Four-class multiclassing\" step 3) and republished with <code>bin/refresh-nwsync</code>. No server override copy is needed &mdash; nwserver reads the module haks. Item therefore ships <code>manual</code>.</div><div><b>Docs:</b> <code>docs.manual/Customizations.html#legendary-levels</code> and <code>docs.manual/LevelingGuide.html</code> (General Tips) gained XP-table facts only; the broader HGLL wording purge stays with <code>ll-hgll-purge-docs</code>.</div><div><b>Gates:</b> bare <code>nwn-manager repack</code>, 12/12 smoke tests, 1/1 script compiled.</div>"
+    manual_steps:
+      - step: "Pack hak_2da/exptable.2da into lotr_rules.hak alongside ruleset.2da and baseitems.2da (see README.md, 'Four-class multiclassing' step 3: nwn_erf -c -f /tmp/lotr_rules.hak -e HAK ruleset.2da baseitems.2da exptable.2da), then copy the hak to ~/.local/share/Neverwinter Nights/hak/. Until this is done the 41-60 XP table does not exist in game at all."
+        status: open
+        blocker: true
+      - step: "Run bin/refresh-nwsync so clients receive the updated lotr_rules.hak. Clients with a stale hak will show the old level-40 XP cap on the character sheet."
+        status: open
+        blocker: true
+      - step: "UAT: log in with a level 40 character and confirm the XP bar / character sheet shows the next-level requirement as 828,800 rather than treating 40 as the cap."
+        status: open
+      - step: "UAT: verify the level-40 threshold is unchanged (780,000) and that no character below 40 sees a shifted XP requirement — rows 1-40 are byte-identical to stock, this is a regression check."
+        status: open
+      - step: "UAT: spot-check three mid-table levels against Customizations.html — L44 1,006,600, L52 1,825,100, L60 3,581,000 — as reported by the character sheet."
+        status: open
+      - step: "UAT: confirm a character cannot be pushed past level 60 (the level-61 row is the 0xFFFFFFFF unreachable sentinel); note the actual cap also depends on roadmap item ll-maxlevel-cap, so if levels stop at 40 the cause is the max-level lever, not this table."
+        status: open
   - id: ll-maxlevel-cap
     title: "Raise the server level cap to 60"
     group: combat-classes
