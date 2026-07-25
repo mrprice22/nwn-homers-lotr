@@ -265,10 +265,10 @@ correctly and need no change.
 > one shared checkout. Verified the three resolved values are byte-identical to
 > the hard-coded ones.
 
-## 5. `repack-homers-lotr` — make it per-season
+## 5. `repack-homers-lotr` / `refresh-homers-lotr` — make them per-season
 
-**Lives in the `nwn_manager` repo** (`GIT/nwn_manager/bin/repack-homers-lotr`),
-not here, and hard-codes six season-scoped values:
+**Live in the `nwn_manager` repo** (`GIT/nwn_manager/bin/`), not here.
+`repack-homers-lotr` hard-codes six season-scoped values:
 
 - `PROJECT=/var/home/james/GIT/nwn_homers_lotr`
 - the build artifact `homers_lotr_v3.mod` (eight occurrences)
@@ -278,10 +278,14 @@ not here, and hard-codes six season-scoped values:
   `NWN_MODULE` must match (see item 6)
 - the timestamped archive prefix
 
-Rework it to source the target repo's `server.env` + `nasher.cfg` and derive all
-six, so one script serves every season. Same for `repack-homers-lotr-clean`.
-Until then, each new season needs a hand-edited clone — workable, but it is the
-single most error-prone step in Phase 1.
+`refresh-homers-lotr` (the **unpack** half) hard-codes three more: the project
+path, the same flat OneDrive dir, and `CANONICAL_NAME="homers_lotr_v3.mod"` — a
+season-1 artifact name used as the newest-mtime tie-break.
+
+Rework them to source the target repo's `server.env` + `nasher.cfg` and derive
+everything, so one set of scripts serves every season. Until then, each new
+season needs a hand-edited clone — workable, but it is the single most
+error-prone step in Phase 1.
 
 - [x] Parameterized
 
@@ -292,6 +296,23 @@ single most error-prone step in Phase 1.
 > default stays the unnumbered repo, so the app-grid shortcuts are unchanged.
 > Verified by an actual repack: installed to `homers_lotr_v3.mod` ->
 > `Homer's LOTR VEL v3.mod`, exactly as before.
+>
+> **Unpack half built (2026-07-24).** The OneDrive copy dir is now split into a
+> shared `ONEDRIVE_ROOT` plus a per-season `ONEDRIVE_MOD_DIR` =
+> `$ONEDRIVE_ROOT/Season$SEASON_NUM`; the repack wrappers `mkdir -p` it, so a new
+> season's folder appears on its first build. `refresh-homers-lotr` now sources
+> the same resolver, scans **only** that folder, and gained `--project` /
+> `--show-config`. The newest-mtime + canonical-name-tie-break rule is kept, but
+> the tie-break is now `$MODFILE` from the target repo's `nasher.cfg` instead of
+> the literal `homers_lotr_v3.mod`. Renamed point-in-time backups returning from
+> the Windows toolset still win on mtime; the tie-break only separates
+> same-second candidates and keeps `.nasher/source` off a stray alt-named build.
+> The project root and
+> `$NWN_HOME_DIR/modules` are deliberately not scanned (the repack archive in the
+> project root would shadow an older OneDrive edit by mtime). Verified:
+> `--show-config` on both halves resolves the same `Season1` path, and a scratch
+> `SEASON_NUM=2` repo resolves to `Season2`/`homers_lotr_s2.mod` with no season-1
+> file reachable.
 
 ## 6. Nail down the module / server naming convention
 

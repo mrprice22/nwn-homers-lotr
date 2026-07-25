@@ -206,6 +206,7 @@ the module at boot.
 | **Installed module** | `$NWN_HOME_DIR/modules/<name>.mod`, written by the repack wrapper | `Homer's LOTR Season <N>.mod` | Phase 1 |
 | `NWN_MODULE` | `server.env` — the installed filename **minus `.mod`** | `Homer's LOTR Season <N>` | Phase 1 |
 | `NWN_SERVERNAME` | `server.env` — server-browser name, free text | role-dependent ↓ | Phase 1 **and** Phase 2 |
+| OneDrive build folder | `~/OneDrive/Games/NWNHomersLOTR/Season<N>/` — derived from `SEASON_NUM` by `repack-project.sh` | created on first repack | Phase 1 (automatic) |
 
 `NWN_SERVERNAME` tracks `SEASON_ROLE`, so the two instances are tellable apart in
 the server browser:
@@ -216,12 +217,20 @@ the server browser:
 | `live` | `Homer's LOTR — Season <N>` |
 | `archive` | `Homer's LOTR — Season <N> (ARCHIVED)` |
 
-Renaming also means updating the **repack wrapper's install destination** — the
-`.mod` filename it copies into `$NWN_HOME_DIR/modules/`. See prereq item 5; until
-that wrapper is parameterized this is a hand-edit and it is the single most
-error-prone step in Phase 1. A mismatch between the installed filename and
-`NWN_MODULE` shows up as the server exiting at startup with a module-not-found
-error, not as anything subtler.
+Renaming also drives the **repack wrapper's install destination** — the `.mod`
+filename it copies into `$NWN_HOME_DIR/modules/`. This is no longer a hand-edit:
+`repack-project.sh` derives it from `NWN_MODULE`, so setting the names right in
+`server.env` + `nasher.cfg` is the whole job (prereq item 5). A mismatch between
+the installed filename and `NWN_MODULE` shows up as the server exiting at startup
+with a module-not-found error, not as anything subtler.
+
+The **OneDrive build folder** is likewise derived — `Season$SEASON_NUM` under the
+shared root — and the repack wrappers create it on the season's first build. The
+unpack wrapper scans only that folder, so `.mod` files you rename by hand on the
+Windows side stay picked up (newest mtime wins, canonical artifact name breaking
+ties) without leaking across seasons.
+Check both halves agree with `repack-homers-lotr --show-config` and
+`refresh-homers-lotr --show-config`.
 
 **Season 1 keeps its legacy names** (`homers_lotr_v3.mod`, module
 `Homer's LOTR VEL v3`, server name `Homer's LOTR Very Easy Leveling`). Never
@@ -263,10 +272,12 @@ The live season keeps running throughout; nothing about it moves.
 3. **Rename the module (§4).** In the unnumbered repo only: `nasher.cfg`
    `[package].name` and `[target].file` → `homers_lotr_s<N+1>.mod`;
    `NWN_MODULE="Homer's LOTR Season <N+1>"`;
-   `NWN_SERVERNAME="Homer's LOTR — Season <N+1> (EARLY ACCESS)"`. Point the repack
-   wrapper's production copy at
+   `NWN_SERVERNAME="Homer's LOTR — Season <N+1> (EARLY ACCESS)"`. The repack
+   wrapper derives its production copy from these, installing to
    `$NWN_HOME_DIR/modules/Homer's LOTR Season <N+1>.mod` — the installed filename
-   must match `NWN_MODULE` exactly. Season N keeps its existing names.
+   must match `NWN_MODULE` exactly. Season N keeps its existing names. Confirm
+   with `repack-homers-lotr --show-config` before the first build; it also shows
+   the new `…/NWNHomersLOTR/Season<N+1>/` folder the build will create.
 4. **Password-gate it.** `NWN_PLAYERPASSWORD="volatile"` in `server.env.local`
    (gitignored). Hand it only to chosen testers. Also set `NWNSYNC_PUBLIC_URL`
    there for port 8001.
