@@ -584,6 +584,38 @@ the roadmap editor are never touched; they already track the newest repo.
 >
 > Season 1's shortcuts were deliberately **not** regenerated — relabelling them
 > adds noise until a second season exists. Run `--install` at Phase 1.
+>
+> ### Reversed at the season 1 -> 2 cutover: the dev set is per-season too
+>
+> **"You never rebuild a frozen archived season" is false for the whole
+> overlap.** At Phase 1 the *outgoing* season is the one copied out, and it keeps
+> serving every player on 5121 — so `_s<N>` is the **live** server and is exactly
+> the repo that may need an urgent hotfix (guide §5a says as much). It is frozen
+> by policy, not by circumstance, and it had **no dev shortcuts at all**.
+>
+> The mirror-image problem is worse: the unnumbered repo's dev shortcuts silently
+> *changed meaning* at Phase 1. "Repack Homer's LotR Module" stopped building the
+> live server and started building the early-access realm, with nothing in the
+> label saying so. Eight unlabelled buttons pointing at a test realm, and no way
+> to rebuild live.
+>
+> So `bin/season-shortcuts.sh` now renders **11 entries per season** — the four
+> ops entries plus a per-season `NWN Logs`, plus the seven dev entries (unpack,
+> repack, repack-clean, repack-test, wiki, nwsync, nwsync-force) — every one
+> season-labelled. The eight legacy unlabelled entries were deleted. Three
+> details worth keeping:
+>
+> - The `nwn_manager` wrappers are driven with `--project`, but
+>   **`nwn_manager/bin/refresh-homers-lotr-wiki` still hard-codes the unnumbered
+>   repo and has no `--project`** (item 4 fixed only the *repo-local* copy). The
+>   wiki entry therefore calls `$PROJECT_ROOT/bin/refresh-homers-lotr-wiki`.
+>   Same for `refresh-nwsync`. Both derive `PROJECT` from `BASH_SOURCE`.
+> - The logs entry opens **`$NWN_RUN_DIR/logs.0`**, not the home dir. The old
+>   `nwn-logs.desktop` opened `$NWN_HOME_DIR/logs`, which holds a couple of stale
+>   files and does not exist at all in a fresh season's home dir.
+> - Paths inside the `bash -lc '…'` wrapper are double-quoted; writing
+>   `--project '$PROJECT_ROOT'` closes and reopens the single quote and only
+>   works by luck while no repo path contains a space.
 
 ## 12. Roadmap editor stays single-instance (no work — a guard note)
 
