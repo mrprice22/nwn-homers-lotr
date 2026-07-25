@@ -247,8 +247,11 @@ scoped by their own name, so neither is keyed to the module name.
 The live season keeps running throughout; nothing about it moves.
 
 1. **Copy the outgoing season out.** `cp -a nwn_homers_lotr nwn_homers_lotr_s<N>`
-   (or clone). Give it a **new GitHub remote** — it needs its own Cloudflare
-   deploy target. Its `server.env` is **inherited unchanged**: same home dir, run
+   — **`cp -a`, never a clone**: `server.env.local`, `.nasher/source` and the
+   build cache are untracked and a clone loses them. Then repoint its git remote
+   and cut its publish history **before anything else** — the exact procedure,
+   and why the order is not negotiable, is §5a. Its `server.env` is
+   **inherited unchanged**: same home dir, run
    dir, container, `NWN_PORT=5121`, **same module and server name**. Set
    `SEASON_NUM=<N>`, `SEASON_ROLE=live`,
    `SEASON_WIKI_URL=https://homerslotr.com/`,
@@ -312,11 +315,37 @@ The live season keeps running throughout; nothing about it moves.
      'select player_name, area_tag, home_wp_tag from houses;'
    # each area_tag must exist in this season's unpacked/*.are.json
    ```
-7. **Cloudflare.** New worker `homers-lotr-wiki-s<N+1>` deploying from the
-   unnumbered repo, custom domain `season<N+1>.homerslotr.com` + DNS record.
-   The apex stays bound to the **season-N** worker, which now deploys from
-   `nwn_homers_lotr_s<N>`. Cloudflare auto-deploys **on git push** — "publish" is
-   just commit `docs/` + push; no `wrangler deploy` anywhere.
+7. **Cloudflare.** Deploys run through **Workers Builds**, which is bound to a
+   **GitHub repository**, not to a folder on this machine (§6). At Phase 1 the
+   *original* GitHub repo stops being the live season, so the connections have to
+   be re-pointed — and in this order:
+
+   1. Create the archive GitHub repo and push it (§5a) — the build target must
+      exist before anything is re-pointed.
+   2. On the **existing** worker (`homers-lotr-wiki` for season 1):
+      *Settings → Build* → disconnect `nwn-homers-lotr`, reconnect to
+      `nwn-homers-lotr-s<N>`, production branch `main`. Confirm the apex custom
+      domain is still bound to this worker.
+   3. Create worker `homers-lotr-wiki-s<N+1>`, connected to `nwn-homers-lotr`
+      (the unnumbered repo, branch `main`), and add the custom domain
+      `season<N+1>.homerslotr.com`. **The DNS record is created automatically** —
+      there is no separate DNS step.
+   4. *Only now* run `season-brand.py --apply` and push in the unnumbered repo
+      (step 5). Its `wrangler.jsonc` name is already `homers-lotr-wiki-s<N+1>`,
+      matching the worker from step 3.
+
+   > **Do not push from the unnumbered repo between the `cp -a` and step 2.**
+   > That repo is still wired to the apex worker, so the first push deploys the
+   > early-access wiki onto `homerslotr.com`. And the push may not be yours:
+   > `serve --auto-publish` and `nwn-season-wiki-publish@` push unattended (§5a).
+
+   Verify: push a trivial commit on each side and confirm each build lands on its
+   own worker; `curl -I https://homerslotr.com` and
+   `https://season<N+1>.homerslotr.com` both 200; each worker's `*.workers.dev`
+   URL 301s to its own host (`src/index.js`).
+
+   Cloudflare auto-deploys **on git push** — "publish" is just commit `docs/` +
+   push; no `wrangler deploy` anywhere.
 8. **Router.** Forward 5122/udp and 8001/tcp. Permanent — reused every season.
 9. **Enable both systemd instances.** Both servers now come up at boot, in parallel.
 10. **Stand up the new environment's aux services** (§6a): its per-season backup
@@ -335,10 +364,120 @@ from here to go-live carries straight through.
 
 ---
 
+## 5a. Git topology and the two-repo overlap
+
+From Phase 1 to Phase 3 there are **two repos accumulating commits**. This is the
+part of the cutover with no undo button on the hosting side, because **nothing
+about publishing is manual**:
+
+- `bin/serve` runs `nwn-manager serve --auto-publish`, which
+  `git commit && git push`es `docs/activity.html` **every time the server
+  empties**;
+- `nwn-season-wiki-publish@.service` does a full regen + commit + push **once per
+  boot**;
+- every one of those pushes triggers a Cloudflare Workers build.
+
+So during the overlap two unattended agents are pushing to git and deploying to
+Cloudflare. A mis-wired remote is not a latent bug you find next week — it fires
+within hours, while you sleep.
+
+### Repo roles
+
+| Repo | Role | GitHub remote |
+|---|---|---|
+| `nwn_homers_lotr` (unnumbered) | always the newest season and the only dev repo | keeps the original repo, forever |
+| `nwn_homers_lotr_s<N>` | season N's frozen line | its own repo, created fresh at each cutover |
+
+### The copy procedure (Phase 1 step 1, in full)
+
+`cp -a` inherits `origin` **and** `main`'s upstream, so straight out of the copy
+the archive pushes to the *live* repo. Repoint it before enabling any unit or
+starting either server.
+
+The pushed history is **squashed to a single commit**: `.git` here is ~1 GB of
+`docs/` churn, and re-pushing all of it to a new GitHub repo every cutover buys
+nothing — the full history already lives (and continues) in the unnumbered repo.
+Keep it locally for archaeology, publish an orphan line.
+
+```bash
+cp -a nwn_homers_lotr nwn_homers_lotr_s<N>      # cp -a only — never a clone
+cd nwn_homers_lotr_s<N>
+
+git branch -m main s<N>-full-history            # keep history locally, unpushed
+git checkout --orphan main                      # squashed publish line
+git commit -m "Season <N> final — archived at cutover to season <N+1>"
+
+gh repo create mrprice22/nwn-homers-lotr-s<N> --private --source=. --remote=origin
+git push -u origin main
+git remote add dev ../nwn_homers_lotr           # sibling, for cherry-picks
+
+git remote -v                                   # origin MUST be the new repo
+git config branch.main.remote                   # MUST be origin -> new repo
+git diff --stat HEAD                            # empty: orphan tree == working tree
+```
+
+The orphan branch has **no upstream until the `-u` push**, which is a small piece
+of luck: in the window between the copy and the push, a bare `git push` from an
+automated job errors out instead of guessing the old remote. Don't lean on it —
+`origin` is still the live repo until `set-url`/`gh repo create` runs.
+
+And in the unnumbered repo, the matching half:
+
+```bash
+git remote add archive ../nwn_homers_lotr_s<N>
+```
+
+### Which repo gets which commit
+
+| | unnumbered repo (season N+1) | `_s<N>` (season N) |
+|---|---|---|
+| **Phase 1 → 2** | all development: `unpacked/`, scripts, `roadmap.yaml`, `docs.manual/` | season block + `season-brand.py` output; emergency hotfixes only; auto-published `docs/` |
+| **Phase 2** | wipe-related regen, role/port/peer flip, brand, full wiki regen + push | role/port/peer flip, brand, roadmap prune, final republish |
+| **Phase 3** | everything — single repo again | nothing; repo goes read-only |
+
+The counter-intuitive line is the middle column at Phase 1: during the overlap
+the **archive repo is the live server with all the players on it**, so it is the
+one that may need an urgent fix. It is frozen by policy, not by circumstance.
+
+### Hotfixes cross by cherry-pick, never by merge
+
+Fix it in whichever repo has to ship it first, then carry it across:
+
+```bash
+# live-season hotfix during the overlap, then forward it to the new season
+cd nwn_homers_lotr_s<N> && git commit -am "hotfix: ..."       # repack + deploy here
+cd ../nwn_homers_lotr  && git fetch archive && git cherry-pick <sha>
+
+# or the other direction, for a fix developed in the new season
+cd nwn_homers_lotr_s<N> && git fetch dev && git cherry-pick <sha>
+```
+
+`git cherry-pick` applies a diff and does not need shared ancestry, so it works
+across the orphan cut. **Never `merge` or `rebase` between the two repos** — the
+archive's published line is orphaned, and a merge would drag the entire dev
+history onto it and undo the point of the squash.
+
+Two caveats: the roadmap entry always lives in the **unnumbered** repo (one
+backlog, ever — §11), even when the code shipped in the archive; and each side
+needs its own repack + deploy, because the `.mod` filenames differ (§4).
+
+---
+
 ## 6. Wiki hosting — one worker per season
 
 `wrangler.jsonc` defines a worker serving `./docs` as static assets; `src/index.js`
 301-redirects `*.workers.dev` to the season's own host.
+
+**The deploy path is Workers Builds via the Cloudflare GitHub App**, and its
+connection is to a **GitHub repository**, not to a directory on this machine.
+That connection is the one piece of cutover state that lives *outside* the repo —
+nothing in `server.env` describes it, and `season-brand.py` cannot fix it. It is
+re-pointed by hand in the dashboard at Phase 1 (§5.7) and never touched again.
+
+**A worker cannot be renamed in place.** "Renaming" means creating a new worker
+and re-binding its custom domain, which is why season 1's archive repo keeps
+`SEASON_WORKER_NAME="homers-lotr-wiki"` (its `SEASON_LEGACY_NAMES=1` covers this)
+rather than being renamed to `-s1`.
 
 **Rule: every season owns a permanently-named worker `homers-lotr-wiki-s<N>`,
 permanently bound to `season<N>.homerslotr.com`. The apex `homerslotr.com` custom
@@ -355,6 +494,13 @@ Archived seasons **keep publishing** during Phase 2 — players may still be on
 them, and their kill counts and activity charts should keep updating at their
 subdomain. Publishing stops at Phase 3, and Cloudflare then serves the last
 deployed `docs/` frozen, indefinitely.
+
+**Limits worth watching.** A Workers deploy caps at **20,000 asset files** and
+**25 MiB per file**; `docs/` is currently 10,765 files / 140 MB with a largest
+asset of 4.6 MB, so there is headroom — but content grows every season and a
+build that trips the file cap fails at deploy, not at generation. And during the
+overlap the **build rate roughly doubles**: every server-empty on either season
+is a push and therefore a build.
 
 ---
 
@@ -455,9 +601,20 @@ teardown — it is a role and port swap between two servers that are already run
      of early-access kill counts, server-firsts and activity charts. The DB wipe
      does not touch them — only a regen does. Skip this and the freshly launched
      season's public wiki advertises testers' bestiary records.
-5. **Swap the ports.** Unnumbered repo: `NWN_PORT` 5122→**5121**, `NWNSYNC_PORT`
-   8001→**8000**. `_s<N>`: 5121→**5122**, 8000→**8001**. Container names, home
-   dirs and run dirs never change — only these two numbers per side.
+5. **Swap the ports — in `server.env` *and* `server.env.local`.** In `server.env`,
+   unnumbered repo: `NWN_PORT` 5122→**5121**, `NWNSYNC_PORT` 8001→**8000**;
+   `_s<N>`: 5121→**5122**, 8000→**8001**. Container names, home dirs and run dirs
+   never change — only these two numbers per side.
+
+   Then the easily-missed half: **`NWNSYNC_PUBLIC_URL` hard-codes its port and
+   lives in the gitignored `server.env.local`**, which `cp -a` duplicated at
+   Phase 1. It is the URL clients are *told* to fetch haks from, so if it isn't
+   swapped too (`:8001`→`:8000` on the new live, `:8000`→`:8001` on the archive)
+   both seasons advertise the other's nginx. Nothing in git or `season-brand.py`
+   catches this — `server.env.local` is untracked by design.
+   ```bash
+   grep -H NWNSYNC_PUBLIC_URL */server.env.local     # both, before starting either
+   ```
 6. **Flip the roles, names and peer blocks, then rebrand both.**
 
    | | unnumbered (season N+1) | `_s<N>` (season N) |
@@ -482,9 +639,16 @@ teardown — it is a role and port swap between two servers that are already run
      so the password and port 5122 stop being advertised) and replaces it with the
      archived-season pointer;
    - turns off the new season's wipe warning and points its links at the apex.
-7. **Cloudflare:** move the `homerslotr.com` custom domain from worker
-   `homers-lotr-wiki-s<N>` to `homers-lotr-wiki-s<N+1>`. Season N keeps its
-   subdomain and its publish job.
+7. **Cloudflare: move the apex.** A hostname attaches to exactly one Worker, so
+   this is *remove then add*, not a re-assign: remove the `homerslotr.com` custom
+   domain from `homers-lotr-wiki-s<N>`, add it to `homers-lotr-wiki-s<N+1>`, then
+   **purge the cache** for the zone. Season N keeps its subdomain and its publish
+   job. **No build connection changes at Phase 2** — both were wired at Phase 1
+   (§5.7) and stay put; this step is only the domain binding.
+
+   The apex serves whatever `homers-lotr-wiki-s<N+1>` last built, so step 4's
+   full wiki regen + push **must already have landed** — otherwise the moment the
+   domain moves, the public apex is the early-access wiki.
 8. **Prune the archived roadmap.** In `_s<N>`: `bin/roadmap-archive-prune.py` →
    keeps `status: awarded` only, deletes every other item (backlog and
    shipped-but-unpaid alike — that work all lives on in the unnumbered repo's
@@ -566,8 +730,15 @@ Once `_s<N>` is consistently empty for a decent stretch:
 
 1. Stop and disable its server + NWSync systemd instances, and its wiki-publish
    and backup units.
-2. Stop pushing that repo. Cloudflare keeps serving its last-deployed `docs/`
-   frozen at `season<N>.homerslotr.com` — indefinitely, no maintenance.
+2. **Stop pushing that repo — with a control, not a promise.** Step 1 already
+   removes both automated pushers (stopping the server ends
+   `serve --auto-publish`; disabling `nwn-season-wiki-publish@` ends the
+   per-boot republish), so what's left is a stray manual push or a unit someone
+   re-enables. Make it structural: **archive the season-N GitHub repo
+   (read-only)** — `gh repo archive mrprice22/nwn-homers-lotr-s<N>` — and
+   disconnect its Workers Build in the dashboard. Cloudflare keeps serving its
+   last-deployed `docs/` frozen at `season<N>.homerslotr.com` indefinitely, with
+   no build connection and no maintenance.
 3. Leave its home dir on disk, or take one final cold archive of vault + DBs.
    Its runtime dirs stay reserved to that season's number.
 4. In the **live** repo set `SEASON_PEER_ROLE=none`, rebrand, repack and deploy —
@@ -611,7 +782,10 @@ modest bestiary kill-count head start.
 Copy this into the announcement/tracking issue for each cutover.
 
 **Phase 1 — early access**
-- [ ] `cp -a` → `nwn_homers_lotr_s<N>`; new git remote; season block `= live`; peer block `= test`; systemd repointed
+- [ ] `cp -a` → `nwn_homers_lotr_s<N>` (never a clone); season block `= live`; peer block `= test`; systemd repointed
+- [ ] **Before any unit is enabled or server started** (§5a): archive repo's `origin` repointed and verified (`git remote -v`, `git config branch.main.remote`)
+- [ ] Orphan `main` squashed + pushed to the new GitHub repo; `s<N>-full-history` kept locally
+- [ ] Sibling remotes added both ways (`dev` in the archive, `archive` in the unnumbered repo)
 - [ ] Unnumbered repo re-parameterized to season N+1 (home/run/container/5122/8001/nwsync repo)
 - [ ] Module renamed (§4): `nasher.cfg` target, `NWN_MODULE`, `NWN_SERVERNAME` `(EARLY ACCESS)`, repack wrapper install path
 - [ ] `NWN_PLAYERPASSWORD="volatile"` + `NWNSYNC_PUBLIC_URL` in `server.env.local`
@@ -619,7 +793,9 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] `season-brand.py --apply`; repack; deploy — **in `_s<N>` too**, so the live season advertises the test realm + password
 - [ ] Both shared symlinks (`meritdb`, `admindb`) created into the new home dir and verified with `ls -l`
 - [ ] House area-tags checked: every `admindb.houses.area_tag` exists in the new season (§5)
-- [ ] Worker `homers-lotr-wiki-s<N+1>` + `season<N+1>.homerslotr.com` + DNS
+- [ ] Season-N worker's **build connection re-pointed** to `nwn-homers-lotr-s<N>` — done *before* the unnumbered repo's first push (§5.7)
+- [ ] Worker `homers-lotr-wiki-s<N+1>` created against `nwn-homers-lotr` + custom domain `season<N+1>.homerslotr.com` (DNS is automatic)
+- [ ] Both hosts return 200; a test push on each side builds only its own worker
 - [ ] Router: 5122/udp, 8001/tcp forwarded
 - [ ] Both systemd instances enabled; both servers up after a reboot
 - [ ] Aux services stood up (§6a): per-season backup subfolder; per-season ops shortcuts (restart/stop/monitor)
@@ -635,11 +811,11 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] `roadmapdb` republished (Recent Updates sign)
 - [ ] **Full wiki regen + push** — `docs/` is tracked in git and still holds early-access stats
 - [ ] Merit-escrow policy applied (§7b) for anyone who redeemed during early access
-- [ ] Ports swapped both sides
+- [ ] Ports swapped both sides in `server.env` **and** `NWNSYNC_PUBLIC_URL` in both `server.env.local`
 - [ ] Roles, `NWN_SERVERNAME` and peer blocks flipped both sides; `(EARLY ACCESS)` dropped
 - [ ] `season-brand.py --apply` run in **both**; both repacked + deployed
 - [ ] Early-access advert confirmed **gone** from the live season's Well of Eru
-- [ ] Apex custom domain moved to the new worker
+- [ ] Apex custom domain **removed** from the old worker, **added** to the new one, zone cache purged
 - [ ] Archived roadmap pruned to `awarded`-only; `gen-roadmap.py`; published to its `roadmapdb`
 - [ ] Player password removed; both servers verified in the server browser
 - [ ] Merit balance verified on both
@@ -648,7 +824,8 @@ Copy this into the announcement/tracking issue for each cutover.
 **Phase 3 — retire**
 - [ ] Live season's peer block set to `none` (archived-season pointer removed); rebrand, repack, deploy
 - [ ] Season-N server + NWSync stopped and disabled
-- [ ] Its wiki-publish and backup units disabled; repo no longer pushed
+- [ ] Its wiki-publish and backup units disabled
+- [ ] Season-N GitHub repo archived read-only (`gh repo archive`); its Workers Build disconnected
 - [ ] Retired season's ops app-grid shortcuts + monitor autostart deleted (§6a); dev shortcuts + roadmap editor left alone
 - [ ] Frozen wiki confirmed serving at `season<N>.homerslotr.com`
 
@@ -673,9 +850,15 @@ Copy this into the announcement/tracking issue for each cutover.
 - **Aux services** (backup foldering, per-season ops shortcuts, the shared vs
   per-season split) are catalogued in §6a; the one-time engineering behind them is
   `season-cutover-prereqs.md` items 2b, 7 and 11.
+- **The riskiest window is between the `cp -a` and the Cloudflare re-point** —
+  publishing is fully automated on both sides (§5a), so a wrong remote or a stale
+  build connection is exercised unattended within hours. Do those two steps
+  back-to-back, never overnight.
 - **Capture surprises back into this file.** Anything that bit you during a
   cutover belongs here before you forget it.
 
-*v2.1 — first written for the season 1 → 2 cutover, but parameterized for every
-cutover after it. v2.1 adds the auxiliary-service handling (§6a) and the
-redemption-code split (§2).*
+*v2.2 — first written for the season 1 → 2 cutover, but parameterized for every
+cutover after it. v2.1 added the auxiliary-service handling (§6a) and the
+redemption-code split (§2). v2.2 adds the git topology and two-repo overlap model
+(§5a), the ordered Workers-Builds re-point (§5.7), and the `server.env.local`
+port swap (§7.5).*

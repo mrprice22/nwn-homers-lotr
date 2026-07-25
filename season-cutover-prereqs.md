@@ -8,7 +8,8 @@ cutover is a checklist rather than a project.
 Items 1–2 touch live player data and must be finished before the first Phase 1;
 items 2b–12 are tooling and can land any time before it.
 
-> **Status: all twelve items are done** (2026-07-24). What follows is kept as
+> **Status: all twelve items are done** (2026-07-24); item 13 is a
+> documentation-only guard note added afterwards. What follows is kept as
 > the rationale for each piece, with the boxes ticked and any deviation from the
 > original design recorded in a **Built** note under the item. The pieces that
 > only *run* at a cutover — `season-brand.py` for a non-season-1 config, the
@@ -586,6 +587,31 @@ ever. The archived season's roadmap is frozen once at Phase 2 by
 > **Confirmed.** `systemd/roadmap-editor.service` was deliberately left out of
 > the `@`-templating in item 7, and `bin/season-units.sh` does not touch it.
 
+## 13. The Cloudflare build connection lives outside the repo (a guard note)
+
+No engineering — a fact worth recording, because it is the one piece of cutover
+state that no script owns and no build gate can catch.
+
+The wiki is deployed by **Workers Builds via the Cloudflare GitHub App**
+(the `cloudflare/workers-autoconfig` branch on the origin repo is the bot's), and
+that connection binds a Worker to a **GitHub repository**, not to a directory
+here. `season-brand.py` rewrites `wrangler.jsonc`'s worker `name`, but it cannot
+touch which repo Cloudflare builds from — so at Phase 1, when the original GitHub
+repo stops being the live season, the connections must be re-pointed by hand in
+the dashboard, **before the re-parameterized repo is pushed**. Publishing is
+unattended (`serve --auto-publish`, `nwn-season-wiki-publish@`), so getting the
+order wrong deploys the early-access wiki onto the apex on its own.
+
+Ordered procedure: guide §5.7. Git-side topology, remotes and the hotfix
+cherry-pick flow: guide §5a.
+
+- [x] Recorded (no code)
+
+> **Possible follow-up, not built:** a gate asserting `SEASON_WORKER_NAME` ==
+> `wrangler.jsonc`'s `name`, the way `tests/check_season_brand.py` covers the
+> rest of the branded surface. It would catch a hand-edit, but not the thing that
+> actually bites — the dashboard-side repo binding, which nothing local can see.
+
 ---
 
 ## Rehearsal before the first real Phase 1
@@ -605,3 +631,8 @@ touching a live server:
    or run-dir collision.
 6. `python3 tests/check_manual_menus.py` plus the standard repack gates after any
    `unpacked/` change.
+7. **Git drill** (guide §5a) on the scratch copy: rename `main`, `checkout
+   --orphan main`, commit, and confirm `git diff --stat HEAD` is empty and
+   `git remote -v` / `git config branch.main.remote` show the *new* target. Then
+   `git fetch dev && git cherry-pick <sha>` a commit from the real repo to prove
+   a hotfix crosses the orphan cut. Do **not** create a real GitHub repo.
