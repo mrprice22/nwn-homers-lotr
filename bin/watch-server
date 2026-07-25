@@ -14,7 +14,7 @@ PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 # Read the container name from server.env without sourcing the whole file.
 NWN_CONTAINER_NAME=$(grep -E '^NWN_CONTAINER_NAME=' "$PROJECT_ROOT/server.env" 2>/dev/null \
   | tail -1 | cut -d= -f2- | tr -d '"')
-NWN_CONTAINER_NAME=${NWN_CONTAINER_NAME:-nwnxee-homer}
+NWN_CONTAINER_NAME=${NWN_CONTAINER_NAME:-nwnxee-homer-s2}
 
 echo "=== Homer's LotR — live server monitor ==="
 echo "Container: $NWN_CONTAINER_NAME"

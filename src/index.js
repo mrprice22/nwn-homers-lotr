@@ -4,7 +4,7 @@ export default {
 
     // Redirect legacy workers.dev URL to custom domain
     if (url.hostname.endsWith('.workers.dev')) {
-      url.hostname = 'homerslotr.com';
+      url.hostname = 'season2.homerslotr.com';
       return Response.redirect(url.toString(), 301);
     }
 

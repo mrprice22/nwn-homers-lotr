@@ -899,7 +899,7 @@ def container_name() -> str:
                 return m.group(1).strip().strip('"').strip("'")
     except OSError:
         pass
-    return "nwnxee-homer"
+    return "nwnxee-homer-s2"
 
 
 def server_log_tail(tail: int = 400) -> tuple[bool, str]:
@@ -1447,8 +1447,8 @@ PAGE = r"""<!doctype html>
   <div class="pad">
     <h1>Roadmap / Merit Backlog</h1>
     <div class="extlinks">
-      <a href="https://homerslotr.com/" target="_blank" rel="noopener">Public wiki ↗</a>
-      <a href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Public roadmap ↗</a>
+      <a href="https://season2.homerslotr.com/" target="_blank" rel="noopener">Public wiki ↗</a>
+      <a href="https://season2.homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Public roadmap ↗</a>
       <a href="/monitor" target="_blank" rel="noopener">Server monitor ↗</a>
     </div>
     <div class="viewtoggle">
