@@ -359,6 +359,15 @@ Watch out for:
 - `homers-lotr-empty-restart.path` hard-codes
   `%h/.local/state/nwnxee-homer/anvil/PluginData/restart-server` — a cloned unit
   that keeps this path silently restarts the **wrong** server.
+- **The new season's run dir needs a *real* `anvil/` directory**, or the rendered
+  `.path` watches a host path that can never exist and the empty-restart shuts
+  the season down without bringing it back. The Anvil image entrypoint symlinks
+  `anvil` to the container-only `/nwn/home/anvil` whenever it is missing from
+  `/nwn/run`; that is fine for `database`/`hak`/`tlk`/… and fatal for `anvil`.
+  `bin/serve` now pre-creates it on every start and
+  `bin/season-units.sh --install` refuses to render the unit against a symlinked
+  layout — `bin/season-anvil-fix` repairs a season already in that state. Season
+  2 shipped broken this way (guide §5a).
 - `homers-lotr-server.service` is installed under `~/.config/systemd/user/` but
   **missing from the repo's `systemd/`** — commit it first, drop-in and all.
 - `nwn-reboot.timer` (root, 03:03) stays **shared**; one OS reboot restarts every

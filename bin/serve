@@ -28,6 +28,18 @@ fi
 
 mkdir -p "$NWN_RUN_DIR"
 
+# `anvil/` must be a REAL directory in the run dir before the container starts.
+# The Anvil image's entrypoint loops over `anvil database hak modules nwsync
+# override portraits saves servervault tlk development` and symlinks anything
+# missing from /nwn/run to the container-absolute /nwn/home/<entry>. Those links
+# dangle on the host by design for the other entries — but for `anvil` it breaks
+# the host side of the plugin control-file channel: bin/reboot-on-empty can't
+# write PluginData/, and nwn-season-empty-restart@<instance>.path watches a path
+# that can never exist, so an empty-restart would shut the season down and never
+# bring it back. Season 2 shipped that way because the cutover bootstrap didn't
+# create it. Creating it here means every season gets it, every start.
+mkdir -p "$NWN_RUN_DIR/anvil/PluginData" "$NWN_RUN_DIR/anvil/Plugins"
+
 # Bring up the nwsync nginx container first so it's already listening when
 # the first client connects. Idempotent: a no-op if already running.
 "$PROJECT_ROOT/bin/serve-nwsync" || \

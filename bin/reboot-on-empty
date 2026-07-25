@@ -22,6 +22,11 @@
 # (NWN_RUN_DIR, bind-mounted to /nwn/run in the container) — NOT NWN_HOME_DIR,
 # which is mounted at /nwn/home and is not where Anvil's HomeStorage.PluginData
 # resolves. Reads NWN_RUN_DIR from ../server.env.
+#
+# Each season arms itself: PROJECT_ROOT is this script's own repo, so the copy in
+# the season-1 repo drives season 1 and the copy here drives season 2. The path
+# is resolved through season_anvil_dir() so a season whose run dir never got a
+# real `anvil/` directory reports what is wrong instead of failing in mkdir.
 set -euo pipefail
 
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -32,9 +37,16 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 [[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
 : "${NWN_RUN_DIR:?server.env must define NWN_RUN_DIR}"
 
-PLUGIN_DATA="$NWN_RUN_DIR/anvil/PluginData"
+# shellcheck source=bin/season-unit.sh
+. "$PROJECT_ROOT/bin/season-unit.sh"
+ANVIL_DIR=$(season_anvil_dir "$NWN_RUN_DIR")     # fails loudly if it is a symlink
+PLUGIN_DATA="$ANVIL_DIR/PluginData"
 ARM_FILE="$PLUGIN_DATA/reboot-on-empty"
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
+
+# ServerRestartManager ships inside the DungeonSolitaire.Nwn plugin — without it
+# nothing ever reads the arm file, so arming would be a silent no-op.
+PLUGIN_DLL="$ANVIL_DIR/Plugins/DungeonSolitaire.Nwn/DungeonSolitaire.Nwn.dll"
 
 case "${1:-}" in
   -h|--help|help)
@@ -74,6 +86,12 @@ USAGE
     NWSYNC=0
     if [[ ${1:-} == --nwsync ]]; then NWSYNC=1; shift; fi
     MSG="$*"
+    if [[ ! -f $PLUGIN_DLL ]]; then
+      echo "[reboot-on-empty] WARNING: $PLUGIN_DLL is missing — the" >&2
+      echo "                  ServerRestartManager plugin is not deployed to this" >&2
+      echo "                  season, so nothing will act on the arm file." >&2
+      echo "                  Deploy it (csharp/README.md) and restart the server." >&2
+    fi
     mkdir -p "$PLUGIN_DATA"
     printf '%s' "$MSG" > "$ARM_FILE"
     if [[ $NWSYNC -eq 1 ]]; then

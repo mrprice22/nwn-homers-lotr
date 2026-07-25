@@ -330,14 +330,60 @@ The live season keeps running throughout; nothing about it moves.
    ```bash
    R1="$HOME/.local/state/nwnxee-homer"; R2="$HOME/.local/state/nwnxee-homer-s<N+1>"
    mkdir -p "$R2" && cp -a "$R1/settings.tml" "$R2/settings.tml"
+   mkdir -p "$R2"/anvil/{PluginData,Plugins}      # REAL dir — see below
    for l in database servervault tlk hak override modules portraits nwsync development; do
      [[ -L $R1/$l ]] && ln -sfn "$(readlink "$R1/$l")" "$R2/$l"
    done
    ```
    Those run-dir entries are symlinks to the *container-internal* `/nwn/home/…`
    paths — they dangle on the host by design (§7 step 3 warns against deleting
-   through them). Don't copy `cryptographic_secret`: let the new season generate
+   through them).
+
+   **`anvil` is the one entry that must NOT be a symlink, and is deliberately
+   absent from that loop.** The Anvil image's entrypoint (`/nwn/run-server.sh`)
+   loops over `anvil database hak modules nwsync override portraits saves
+   servervault tlk development` and symlinks anything missing from `/nwn/run`
+   to `/nwn/home/<entry>` — so if you don't pre-create a real `anvil/`, you get
+   a host-dangling link, and with it:
+   - `bin/reboot-on-empty` dies in `mkdir` — the season can never be armed;
+   - `nwn-season-empty-restart@<instance>.path` watches a path that can never
+     exist, so an empty-restart shuts the season down and **never restarts it**.
+
+   `bin/serve` now creates `$NWN_RUN_DIR/anvil/{PluginData,Plugins}` on every
+   start, so this is belt-and-braces; `bin/season-anvil-fix` repairs a season
+   that is already stuck on the symlink. Season 2 shipped in that state — it had
+   no reboot-on-empty and no daily restart until 2026-07-25.
+
+   Don't copy `cryptographic_secret`: let the new season generate
    its own, so the two instances are distinct to the master server.
+
+5b. **Deploy the Anvil plugin to the new season.** `ServerRestartManager` is not
+   an Anvil built-in — it ships inside `csharp/DungeonSolitaire.Nwn`. A season
+   without it has **no daily 03:00 in-game countdown, character export or clean
+   shutdown** (even though `ANVIL_RESTART_DAILY=03:00` is set), **no
+   reboot-on-empty**, and a dead Dungeon Solitaire area. The symptom in the log
+   is `Loading 0 DotNET plugin/s from: "/nwn/run/anvil/Plugins"`.
+
+   ```bash
+   bin/season-anvil-fix        # builds if needed, deploys, restarts the season
+   ```
+
+   Or by hand — the folder name **must** equal the assembly name, or Anvil
+   silently skips it (`<folder>/<folder>.dll`):
+
+   ```bash
+   dotnet build csharp/DungeonSolitaire.Nwn -c Release
+   DEST="$NWN_RUN_DIR/anvil/Plugins/DungeonSolitaire.Nwn"   # from that season's server.env
+   mkdir -p "$DEST"
+   cp csharp/DungeonSolitaire.Nwn/bin/Release/net8.0/DungeonSolitaire.{Nwn,Core}.dll "$DEST"/
+   ```
+
+   Verify after the next start:
+   ```
+   Loading 1 DotNET plugin/s from: "/nwn/run/anvil/Plugins"
+   Registered service "DungeonSolitaire.Nwn.ServerRestartManager"
+   [ServerRestart] daily restart armed for 03:00 server-local time.
+   ```
 
 6. **Link the two shared DBs — _before_ the new server's first boot.** The
    ordering matters and is easy to get backwards: if the server boots first it
@@ -568,7 +614,8 @@ built once — see `season-cutover-prereqs.md` items 2b, 7, 11.
 | `nwn-reboot.timer` (root, 03:03) | **shared** | nothing — one OS reboot restarts every instance (all are `WantedBy=default.target`) |
 | Backup (`bin/backup-homers-lotr`) | **per-season**, into `…/backups/s<N>/` | runs per instance; the `SEASON_ROLE=live` one also snapshots the shared `nwn-shared/` DBs (§2, prereq 2b) |
 | Wiki publish (`refresh-…-wiki --publish`) | **per-season** | live → apex, archive → its subdomain; stops at Phase 3 |
-| Empty-restart watch (`.path`/`.service`) | **per-season** | its watch path is the instance's run dir — do not let a clone keep the old path |
+| Empty-restart watch (`.path`/`.service`) | **per-season** | its watch path is the instance's run dir — do not let a clone keep the old path, and that run dir needs a **real** `anvil/` (§5a) |
+| Anvil plugins (`anvil/Plugins/`) | **per-season** | deploy `DungeonSolitaire.Nwn` to the new season's run dir — it carries `ServerRestartManager`, so without it the season has no daily restart and no reboot-on-empty (§5b) |
 | Dev shortcuts (unpack / repack / wiki / nwsync) | **single**, newest repo | none — you never rebuild a frozen season |
 | Ops shortcuts (restart / stop / monitor) | **per-season** | Phase 1 create the new set; Phase 3 delete the retired set + its monitor autostart |
 | Roadmap editor (`:8765`) | **single**, newest repo | none — one backlog, ever (§11) |

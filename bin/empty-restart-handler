@@ -20,7 +20,9 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 [[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
 : "${NWN_RUN_DIR:?server.env must define NWN_RUN_DIR}"
 
-PLUGIN_DATA="$NWN_RUN_DIR/anvil/PluginData"
+# shellcheck source=bin/season-unit.sh
+. "$PROJECT_ROOT/bin/season-unit.sh"
+PLUGIN_DATA="$(season_anvil_dir "$NWN_RUN_DIR")/PluginData" || exit 1
 REQUEST_FILE="$PLUGIN_DATA/restart-server"
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
 
@@ -42,8 +44,7 @@ fi
 
 # Restart the server unit belonging to THIS repo's season instance. With two
 # seasons running, a hard-coded unit name here would bounce the wrong server.
-# shellcheck disable=SC1091
-. "$PROJECT_ROOT/bin/season-unit.sh"
+# (season-unit.sh is already sourced above for season_anvil_dir.)
 UNIT=$(season_server_unit "$PROJECT_ROOT")
 
 echo "[empty-restart] restarting $UNIT..."

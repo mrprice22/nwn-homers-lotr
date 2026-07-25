@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+# Repair a season whose run-dir `anvil` is the container-only symlink instead of
+# a real directory, and deploy the Anvil plugin that the reboot machinery needs.
+#
+# Why this exists
+# ---------------
+# The Anvil image entrypoint (/nwn/run-server.sh) loops over
+#   anvil database hak modules nwsync override portraits saves servervault tlk development
+# and, for anything missing from /nwn/run, creates a symlink to the
+# container-absolute /nwn/home/<entry>. For every entry except `anvil` that is
+# the intended design — they dangle on the host and nothing host-side needs them.
+#
+# `anvil` is different: Anvil's HomeStorage.PluginData under it is the channel the
+# host uses to talk to the ServerRestartManager plugin (restart-now,
+# reboot-on-empty, restart-server). With a dangling symlink there:
+#   * bin/reboot-on-empty dies in `mkdir`, so a season can't be armed at all;
+#   * nwn-season-empty-restart@<instance>.path watches a path that can never
+#     exist, so an empty-restart shuts the season down and never restarts it.
+#
+# Season 1's run dir already had a real anvil/ (from the original plugin deploy)
+# so the entrypoint skipped it. Season 2 was bootstrapped by
+# season-cutover-guide.md section 5a, whose symlink loop omits `anvil`, so the
+# entrypoint claimed it. bin/serve now pre-creates the real directory on every
+# start; this script fixes a season that is already in the broken state.
+#
+# Safe to re-run: every step is a no-op once the layout is correct.
+#
+# Usage:
+#   bin/season-anvil-fix [--no-restart] [--no-plugin]
+set -euo pipefail
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+ENV_FILE="$PROJECT_ROOT/server.env"
+LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+[[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
+: "${NWN_RUN_DIR:?server.env must define NWN_RUN_DIR}"
+: "${NWN_HOME_DIR:?server.env must define NWN_HOME_DIR}"
+: "${NWN_CONTAINER_NAME:?server.env must define NWN_CONTAINER_NAME}"
+
+# shellcheck disable=SC1091
+. "$PROJECT_ROOT/bin/season-unit.sh"
+
+DO_RESTART=1
+DO_PLUGIN=1
+for a in "$@"; do
+  case $a in
+    --no-restart) DO_RESTART=0 ;;
+    --no-plugin)  DO_PLUGIN=0 ;;
+    -h|--help)    sed -n '2,28p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    *) echo "season-anvil-fix: unknown option $a" >&2; exit 2 ;;
+  esac
+done
+
+UNIT=$(season_server_unit "$PROJECT_ROOT")
+RUN_ANVIL="$NWN_RUN_DIR/anvil"
+HOME_ANVIL="$NWN_HOME_DIR/anvil"
+
+echo "[anvil-fix] season instance : $(basename "$PROJECT_ROOT")"
+echo "[anvil-fix] server unit     : $UNIT"
+echo "[anvil-fix] run dir anvil   : $RUN_ANVIL"
+
+# --- 1. stop the server so nothing holds the directory open -------------------
+STOPPED=0
+if [[ -L $RUN_ANVIL ]] && systemctl --user is-active --quiet "$UNIT"; then
+  players=$(podman logs --tail 200 "$NWN_CONTAINER_NAME" 2>&1 \
+            | grep -oE '\([0-9]+ players left\)' | tail -1 || true)
+  echo "[anvil-fix] last player-count line: ${players:-none seen}"
+  echo "[anvil-fix] stopping $UNIT ..."
+  systemctl --user stop "$UNIT"
+  STOPPED=1
+fi
+
+# --- 2. replace the symlink with a real directory -----------------------------
+if [[ -L $RUN_ANVIL ]]; then
+  echo "[anvil-fix] removing symlink -> $(readlink "$RUN_ANVIL")"
+  rm "$RUN_ANVIL"
+fi
+mkdir -p "$RUN_ANVIL/PluginData" "$RUN_ANVIL/Plugins"
+
+# --- 3. migrate Anvil state out of the home dir -------------------------------
+# While `anvil` was a symlink, the container's /nwn/run/anvil resolved to
+# /nwn/home/anvil, so Anvil wrote its Paket cache, nlog config and ResourceTemp
+# into NWN_HOME_DIR. Move them so there is one copy of truth.
+if [[ -d $HOME_ANVIL ]]; then
+  shopt -s nullglob dotglob
+  for entry in "$HOME_ANVIL"/*; do
+    name=$(basename "$entry")
+    if [[ -e $RUN_ANVIL/$name && $name != Plugins && $name != PluginData ]]; then
+      echo "[anvil-fix] keeping existing $RUN_ANVIL/$name (leaving $entry in place)"
+      continue
+    fi
+    case $name in
+      Plugins|PluginData)
+        # merge contents rather than replacing the dir we just made
+        if compgen -G "$entry/*" >/dev/null; then
+          echo "[anvil-fix] merging $name/ into the run dir"
+          cp -a "$entry"/. "$RUN_ANVIL/$name"/
+        fi
+        rm -rf "$entry"
+        ;;
+      *)
+        echo "[anvil-fix] moving $name -> run dir"
+        mv "$entry" "$RUN_ANVIL/"
+        ;;
+    esac
+  done
+  shopt -u nullglob dotglob
+fi
+
+# --- 4. deploy the Anvil plugin ----------------------------------------------
+# ServerRestartManager lives inside DungeonSolitaire.Nwn.dll. Without it the
+# season has no daily in-game shutdown and no reboot-on-empty, and the Dungeon
+# Solitaire area does nothing. The folder name MUST equal the assembly name —
+# Anvil looks for <folder>/<folder>.dll and silently skips the folder otherwise.
+PLUGIN_SRC="$PROJECT_ROOT/csharp/DungeonSolitaire.Nwn/bin/Release/net8.0"
+PLUGIN_DEST="$RUN_ANVIL/Plugins/DungeonSolitaire.Nwn"
+if [[ $DO_PLUGIN -eq 1 ]]; then
+  if [[ ! -f $PLUGIN_SRC/DungeonSolitaire.Nwn.dll ]]; then
+    echo "[anvil-fix] building the plugin ..."
+    dotnet build "$PROJECT_ROOT/csharp/DungeonSolitaire.Nwn" -c Release >/dev/null
+  fi
+  mkdir -p "$PLUGIN_DEST"
+  cp "$PLUGIN_SRC/DungeonSolitaire.Nwn.dll"  "$PLUGIN_DEST"/
+  cp "$PLUGIN_SRC/DungeonSolitaire.Core.dll" "$PLUGIN_DEST"/
+  echo "[anvil-fix] deployed DungeonSolitaire.Nwn to $PLUGIN_DEST"
+fi
+
+# --- 5. re-render the .path unit against the now-valid layout ------------------
+if [[ -f "$HOME/.config/nwn-season/$(basename "$PROJECT_ROOT").env" ]]; then
+  "$PROJECT_ROOT/bin/season-units.sh" --install >/dev/null
+  echo "[anvil-fix] re-rendered the empty-restart .path unit"
+fi
+
+# --- 6. bring the server back -------------------------------------------------
+if [[ $DO_RESTART -eq 1 && $STOPPED -eq 1 ]]; then
+  echo "[anvil-fix] starting $UNIT ..."
+  systemctl --user start "$UNIT"
+fi
+
+echo
+echo "[anvil-fix] done. Verify with:"
+echo "    podman logs $NWN_CONTAINER_NAME 2>&1 | grep -E 'DotNET plugin|ServerRestartManager'"
+echo "    bin/reboot-on-empty status"

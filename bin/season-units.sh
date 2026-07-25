@@ -152,6 +152,18 @@ done
 # A .path unit cannot expand environment variables, and NWN_RUN_DIR is not
 # derivable from %i (season 1 keeps the legacy unnumbered run dir), so this one
 # is generated with the literal path baked in.
+#
+# Validate the layout before baking it in: if this season's run dir has `anvil`
+# as the container-only symlink the image entrypoint creates, the rendered unit
+# would watch a host path that can never exist and the empty-restart would leave
+# the season down. Better to fail at install time than to ship a dead watcher.
+# shellcheck source=bin/season-unit.sh
+. "$PROJECT_ROOT/bin/season-unit.sh"
+season_anvil_dir "$NWN_RUN_DIR" >/dev/null || {
+  echo "season-units: refusing to render $PATH_UNIT with a broken Anvil layout" >&2
+  exit 1
+}
+
 sed -e "s|@INSTANCE@|$INSTANCE|g" -e "s|@RUN_DIR@|$NWN_RUN_DIR|g" \
     "$SRC/nwn-season-empty-restart@.path.in" > "$UNIT_DIR/$PATH_UNIT"
 echo "rendered $UNIT_DIR/$PATH_UNIT"

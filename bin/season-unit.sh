@@ -38,3 +38,43 @@ season_server_unit() {
     echo "homers-lotr-server.service"
   fi
 }
+
+# season_anvil_dir <run_dir> -> prints the host path of that season's Anvil home
+#
+# Anvil resolves HomeStorage from the server's -userdirectory, which bin/serve
+# bind-mounts as $NWN_RUN_DIR:/nwn/run — so the Anvil home is $NWN_RUN_DIR/anvil
+# and PluginData under it is how the host and the plugin exchange control files
+# (restart-now, reboot-on-empty, restart-server).
+#
+# That only works while $NWN_RUN_DIR/anvil is a REAL directory. The Anvil image's
+# entrypoint loops over `anvil database hak modules …` and symlinks any entry
+# missing from /nwn/run to the container-absolute /nwn/home/<entry>. For every
+# other entry that is fine — they dangle on the host by design. For `anvil` it is
+# not: the host can no longer traverse it, so arming reboot-on-empty dies in
+# mkdir and the empty-restart .path unit watches a path that can never exist,
+# which would leave the season shut down instead of restarted.
+#
+# Season 2 hit exactly that (its run dir was bootstrapped without `anvil`, so the
+# entrypoint claimed it). bin/serve now pre-creates the real directory for every
+# season; this guard turns the leftover case into a diagnosis instead of a crash.
+season_anvil_dir() {
+  local run_dir=${1:-${NWN_RUN_DIR:-}}
+  if [[ -z $run_dir ]]; then
+    echo "season_anvil_dir: no run dir given and NWN_RUN_DIR is unset" >&2
+    return 1
+  fi
+  if [[ -L $run_dir/anvil ]]; then
+    cat >&2 <<EOF
+[season-anvil] $run_dir/anvil is a symlink to $(readlink "$run_dir/anvil")
+               — a container-only path the host cannot write through, so this
+               season's reboot-on-empty and empty-restart watcher cannot work.
+
+  Fix (stops and restarts this season's server):
+      bin/season-anvil-fix
+
+  Background: season-cutover-guide.md section 5a.
+EOF
+    return 1
+  fi
+  echo "$run_dir/anvil"
+}

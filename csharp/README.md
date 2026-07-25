@@ -116,12 +116,19 @@ runtime, so it is not copied to the output.
 2. Copy the build output into a plugin folder. **The folder name must match the
    main assembly's filename** (`DungeonSolitaire.Nwn`) — Anvil looks for
    `<folder>/<folder>.dll` and silently skips the folder otherwise:
+   The destination is **per season** — take `NWN_RUN_DIR` from that season's
+   `server.env`, never a hard-coded path, or you deploy to the wrong instance:
    ```bash
-   DEST=~/.local/state/nwnxee-homer/anvil/Plugins/DungeonSolitaire.Nwn
+   . ../server.env                                    # this repo's season
+   DEST="$NWN_RUN_DIR/anvil/Plugins/DungeonSolitaire.Nwn"
    mkdir -p "$DEST"
    cp bin/Release/net8.0/DungeonSolitaire.Nwn.dll  "$DEST"/
    cp bin/Release/net8.0/DungeonSolitaire.Core.dll "$DEST"/
    ```
+   `../bin/season-anvil-fix` does all of this (build included) and restarts the
+   season. Note the assembly also carries `ServerRestartManager`, so a season
+   missing this plugin has no daily restart and no reboot-on-empty — see
+   `../season-cutover-guide.md` §5b.
 3. Repack the module so the new GFF assets ship in it:
    ```bash
    nwn-manager repack
@@ -131,8 +138,16 @@ runtime, so it is not copied to the output.
    updated `area017` placeable descriptions. The dialogs' `ds_atk*` / `ds_ch*`
    scripts are handled by the plugin's `[ScriptHandler]` methods — there are no
    `.nss` files for them, and none are needed.
-4. Restart `nwnxee-homer`; watch `~/.local/state/nwnxee-homer/logs.0/` for the
-   `[DungeonSolitaire] wired Dungeon Solitaire area and lever.` line.
+4. Restart that season's server (`systemctl --user restart
+   nwn-season-server@<repo-dir-name>.service`) and check
+   `podman logs $NWN_CONTAINER_NAME` for:
+   ```
+   Loading 1 DotNET plugin/s from: "/nwn/run/anvil/Plugins"
+   Registered service "DungeonSolitaire.Nwn.ServerRestartManager"
+   [DungeonSolitaire] wired Dungeon Solitaire area and lever.
+   ```
+   `Loading 0` means Anvil skipped the folder — almost always because its name
+   doesn't match the assembly (step 2).
 
 ## Regenerating the GFF assets
 

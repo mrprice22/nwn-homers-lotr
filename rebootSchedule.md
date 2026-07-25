@@ -117,25 +117,43 @@ whole machine.
    shows new joiners an on-login notice while armed.
 4. Once the server sits empty for ~45s it exports characters, shuts down cleanly,
    and drops an `anvil/PluginData/restart-server` flag.
-5. A host `.path` unit (`homers-lotr-empty-restart.path`) sees the flag and runs
-   `bin/empty-restart-handler`: optionally rebuilds NWSync, then
-   `systemctl --user restart homers-lotr-server.service` — the server comes back on
-   the new module. The arm flag is deleted before shutdown, so there is no boot loop.
+5. A host `.path` unit (`nwn-season-empty-restart@<instance>.path`) sees the flag and
+   runs `bin/empty-restart-handler`: optionally rebuilds NWSync, then restarts that
+   season's `nwn-season-server@<instance>.service` — the server comes back on the new
+   module. The arm flag is deleted before shutdown, so there is no boot loop.
 
 **Cancel a pending reboot:** `bin/reboot-on-empty off` (players are told it was cancelled).
 **Check state:** `bin/reboot-on-empty status`.
 
-**One-time install of the restart trigger units:**
+**Every season arms independently.** `bin/reboot-on-empty` resolves `NWN_RUN_DIR` from
+*its own repo's* `server.env`, and `bin/empty-restart-handler` restarts the unit named
+after *its own repo's* directory — so the copy in the season-1 repo drives season 1 and
+the copy in the season-2 repo drives season 2. Running one never touches the other.
+
+**Install of the restart trigger units** is part of the season units tool, not a manual
+copy:
 ```bash
-cp systemd/homers-lotr-empty-restart.path systemd/homers-lotr-empty-restart.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now homers-lotr-empty-restart.path
+bin/season-units.sh --install     # renders nwn-season-empty-restart@<instance>.path
+bin/season-units.sh --enable      # enables + starts it (a .path only watches while active)
 ```
-> The `.path` unit watches `~/.local/state/nwnxee-homer/anvil/PluginData/restart-server`
-> — the server's *userdirectory* (`NWN_RUN_DIR`, bind-mounted to `/nwn/run`), which is
-> where Anvil's `HomeStorage.PluginData` resolves. This is **not** `NWN_HOME_DIR`
-> (`~/.local/share/Neverwinter Nights`, the `/nwn/home` mount). If `NWN_RUN_DIR` differs
-> from that default, edit `PathExists=` in the `.path` unit to match.
+> The `.path` unit watches `$NWN_RUN_DIR/anvil/PluginData/restart-server` — the server's
+> *userdirectory* (bind-mounted to `/nwn/run`), which is where Anvil's
+> `HomeStorage.PluginData` resolves. This is **not** `NWN_HOME_DIR` (the `/nwn/home`
+> mount). `--install` bakes the season's literal run dir into `PathExists=`, because a
+> `.path` unit cannot expand environment variables.
+>
+> **That run dir must contain a *real* `anvil/` directory.** The Anvil image entrypoint
+> symlinks `anvil` to the container-only `/nwn/home/anvil` if it is missing, which
+> dangles on the host: arming then fails in `mkdir`, and the watcher can never fire — so
+> an empty-restart would shut the season down and leave it down. `bin/serve` pre-creates
+> it on every start and `--install` refuses to render against a symlinked layout; run
+> **`bin/season-anvil-fix`** to repair a season already in that state.
+
+**Requires the Anvil plugin.** `ServerRestartManager` lives inside
+`csharp/DungeonSolitaire.Nwn` — a season whose `anvil/Plugins/` is empty
+(`Loading 0 DotNET plugin/s` in the log) has neither reboot-on-empty nor the daily
+restart, whatever `ANVIL_RESTART_DAILY` says. `bin/reboot-on-empty` warns when the DLL
+is missing; `bin/season-anvil-fix` deploys it. See `season-cutover-guide.md` §5b.
 
 **Test without real players:** arm it on an empty server — after the ~45s grace it
 will reboot itself (loading whatever `.mod` is currently deployed).
