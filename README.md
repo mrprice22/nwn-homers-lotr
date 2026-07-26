@@ -597,10 +597,10 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
   `Mod_OnClientEntr` / `Mod_OnClientLeav` are `mod_cliententer.nss` /
   `mod_clientexit.nss`, which hold all the real wiring (merit, forge, bestiary,
   journal catch-up, bank boxes, persistent state) and no longer call into any
-  leveler script. The Legendary Levelling Area itself still exists; its statue
-  now just tells the player that 41+ levels come from XP like any other level
-  (`ll_leveler_gone.nss`), and the area is scheduled for removal under roadmap
-  `ll-hgll-retire-area`.
+  leveler script. The Legendary Levelling Area is gone too (roadmap
+  `ll-hgll-retire-area`): `legendarylevelli.are/.git/.gic.json` were deleted as a
+  set, the area was dropped from `Mod_Area_list`, and the Well of Eru trigger and
+  level-40 warning script (`servershout5.nss`) that led to it went with it.
 
 ## Updating a hak / refreshing nwsync
 

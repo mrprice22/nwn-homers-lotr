@@ -455,7 +455,7 @@ These quests were authored against `unpacked/`. All required areas already exist
   Gimli (`gimli`), Beorn (`beorning*`), Shelob (`shelob001`), Balrog (`thebalrog`).
 - **Frameworks.** CEP 2, DMFI, DM Wand, Bedlamson Dynamic Merchants, pc_export autosave.
   (Levels 41–60 come from the server's own `hak_2da/exptable.2da` experience table; the old
-  Letoscript "legendary leveler" add-on is retired and being removed.)
+  Letoscript "legendary leveler" add-on, its statue and its area are gone.)
 - **Persistence.** Campaign DB via `Get/SetCampaignInt/String/Float` (already used by `bankdb`).
 - **Existing journal entries (11).** `p000`, `Bree Millers Son`, `Elrond's Request`, `Feeding Tharbad`,
   `Ferny's Ring`, `Gloison's Heirloom`, `guilds`, `Ruin of Annuminas`, `rules`, `The Well of Souls`,

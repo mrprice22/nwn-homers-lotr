@@ -62,6 +62,8 @@ files as **third-party — don't refactor unless you know the framework**.
 Levels 41–60 are ordinary levels driven by `hak_2da/exptable.2da`; that table is
 the only authoritative XP curve. `Mod_OnClientEntr` / `Mod_OnClientLeav` are
 `mod_cliententer` / `mod_clientexit` and no longer call into any leveler script.
+The Legendary Levelling Area (`legendarylevelli`) that held the leveler statue was
+deleted with it (roadmap `ll-hgll-retire-area`).
 Don't reintroduce the prefix or cite the old constants (their total-to-60 was
 ~17.5M, roughly 5x the real cost).
 

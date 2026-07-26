@@ -797,7 +797,10 @@ Both files should be updated in the same commit whenever a quest ships or change
   Letoscript "legendary leveler" (levels 41–60 now come from `hak_2da/exptable.2da`). The login
   wiring never had anything to do with that system and has been moved out. The two `hgll_` stubs and
   the rest of the leveler (21 `hgll_*.nss` + `sha_leto_inc.nss`) were **deleted on 2026-07-25**
-  (roadmap `ll-hgll-remove-scripts`); the handlers no longer call into any leveler script.
+  (roadmap `ll-hgll-remove-scripts`); the handlers no longer call into any leveler script. The
+  **Legendary Levelling Area is gone as well** (roadmap `ll-hgll-retire-area`, 2026-07-25):
+  `legendarylevelli.are/.git/.gic.json` deleted as a set, dropped from `Mod_Area_list`, and the Well
+  of Eru entry trigger plus its `servershout5.nss` level-40 warning removed with it.
 - **`mod_progress` content (2026-07-25):** the "Character Progression" entry in `module.jrl.json` no
   longer describes the HGLL leveler. It now states that levels 41–60 are real levels on the
   published XP table (48,800 over level 40, compounding 1.1x, 3,581,000 at level 60) and flags the
