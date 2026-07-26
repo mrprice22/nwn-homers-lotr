@@ -3974,11 +3974,27 @@ ideas:
     title: "Retire the Legendary Levelling Area"
     group: combat-classes
     epic: legendary-levels
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<div>The Legendary Levelling Area off the Well of Eru goes away — you level at 41+ the same way you level at 4.</div>"
-    impl_notes: "<div>Remove <code>legendarylevelli.are/.git/.gic.json</code> as a set (41 placeables, 0 creatures, 2 triggers, 2 waypoints) plus the Well of Eru trigger that reaches it and the <code>legenarea</code> entry waypoint. The leveler itself is a stock <code>zep_statues026</code> instance with <code>OnUsed = hgll_start_dlg</code> — no blueprint to delete, and no <code>.dlg</code> either (HGLL used zdlg dynamic dialogs). Re-run <code>python3 bin/gen-map-notes.py --apply</code> afterwards. Do <b>not</b> touch <code>halloflegends.*</code> or <code>legenddoor.utd.json</code> — unrelated despite the names.</div>"
+    commit: 6cdbf5335dd01aa4933332b7afdf814f6da59fb1
+    date: "2026-07-25"
+    notes: "<div>The Legendary Levelling Area off the Well of Eru is closed and gone. Levels 41-60 are ordinary levels earned with ordinary experience, so there is no longer a separate room to travel to or a statue to visit — the doorway in the Well of Eru has been removed along with it. See <a href=\"Customizations.html#legendary-levels\">Legendary Levels: 41-60</a>.</div>"
+    impl_notes: "<div>Deleted <code>legendarylevelli.are/.git/.gic.json</code> as a set and removed the area's struct from <code>Mod_Area_list</code> in <code>module.ifo.json</code> (292 &rarr; 291 areas; <code>Mod_Entry_Area</code> is <code>thewelloferu</code> and was untouched).</div><div>The inbound Well of Eru trigger was already gone before this item ran: the admin toolset save <code>91261442750</code> (2026-07-25 09:43) removed both the <code>AreaTransition</code> trigger with <code>LinkedTo: \"legenarea\"</code> and the <code>GenericTrigger</code> whose OnEnter/OnExit ran <code>servershout5</code> (5 triggers &rarr; 3, git+gic already in lockstep). <code>module-index/area_graph.json</code> still showed the edge only because it was generated at 03:11, before that save.</div><div>Two scripts deleted as orphans: <code>ll_leveler_gone.nss</code> (the retired-statue stub added under <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>; its only caller was the <code>ZEP_STATUES026</code> <code>OnUsed</code> in the deleted <code>.git</code>) and <code>servershout5.nss</code> (the \"You must be level 40 to enter the Legendary Levelling Area\" warning). <code>servershout2/3/4</code> are unrelated and were left alone; <code>halloflegends.*</code> and <code>legenddoor.utd.json</code> untouched.</div><div>Verified post-delete: <code>legendarylevelli</code>, <code>legenarea</code>, <code>LegendaryLevellingArea</code>, <code>ll_leveler_gone</code> and <code>servershout5</code> appear nowhere in <code>unpacked/</code>, <code>tests/</code>, <code>bin/</code> or <code>nasher.cfg</code>, and <code>nwn_erf -l</code> on the packed <code>.mod</code> lists none of them. Build: 11/11 smoke tests, area list 291, 1 script compiled clean.</div><div><code>bin/gen-map-notes.py</code> was run dry and compared against a HEAD worktree: identical results (244 updated / 313 unchanged / 132 areas touched), so this change produces zero map-note delta and <code>--apply</code> was deliberately not run — the 244 updates are pre-existing drift unrelated to this item.</div><div>Docs synced: <code>README.md</code>, <code>CLAUDE-nwscript.md</code>, <code>QuestGuide-DM-Notes.md</code>, <code>Quest Ideas.md</code>.</div>"
+    manual_steps:
+      - step: "A character standing inside the Legendary Levelling Area when the server next loads this build would be stranded in a deleted area. Before deploying, confirm no character is parked there — the admin controls when the server reloads."
+        status: open
+        blocker: true
+      - step: "Rebuild and redeploy to the live server (repack-homers-lotr wrapper) and restart — the autopilot build only produced dist/ and the OneDrive copy."
+        status: open
+      - step: "UAT module load: after the restart, confirm the module loads and the server log reports no missing-area error (the area was dropped from Mod_Area_list)."
+        status: open
+      - step: "UAT Well of Eru: walk the spot where the Legendary Levelling Area entrance used to be and confirm there is no transition, no 'You must be level 40' floating text, and no error in the log."
+        status: open
+      - step: "UAT area list: open the DM area-jump / player map and confirm the Legendary Levelling Area no longer appears (291 areas)."
+        status: open
+      - step: "UAT levelling: take a level-40 test character past the cap once the cap lift lands and confirm levelling happens on the character sheet with no reference to the removed area."
+        status: open
   - id: ll-hgll-retire-gate
     title: "Drop the HGLL build gate from the smoke test"
     group: combat-classes
