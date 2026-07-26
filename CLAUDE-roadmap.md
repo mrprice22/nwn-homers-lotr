@@ -46,6 +46,7 @@ Each entry under `ideas:` is one backlog item:
 | `type` | yes | `Defect`, `Enhancement`, or `Exploit`. Sets the merit value of a shipped item (1 / 2 / 3). |
 | `epic` | no | Id of an entry in the `epics:` block. The item is then published only as one bullet inside that epic's rolled-up card — see **Epics** below. |
 | `hidden` | no | `true` = **never published**: kept off the public roadmap page, out of the in-game Recent Updates sign, out of the type/stage pivot counts, and out of any epic's bullet list and `x/y` count. It still shows (chipped and dimmed) in the editor. Omitted entirely when false. |
+| `merit_awarded` | no | `true` = the submitter's Merit for this item was really paid into the `meritdb` campaign DB. **Never hand-edit and never set it from an agent** — it is written only by the editor's **Award merit** / **Revoke merit points** buttons, which do the DB write first. It is deliberately separate from `status: awarded` so the status can move back to `implemented` and forward again without paying twice. Omitted entirely when false. |
 | `player` | no | Submitter credit. Omit for admin/community items; use `community` for crowd-sourced. |
 | `date` | no | `YYYY-MM-DD`, what the page shows. If absent, derived from `commit`. **When you ship an item, set this to today.** |
 | `commit` | no | git commit hash (short or full, e.g. `f1e0b114d7d`) of the change that shipped the item. **Add this when you ship.** Used to derive `date` for shipped items when `date` is absent. |
@@ -182,8 +183,9 @@ These are hard rules — follow them exactly:
   `awarded`.** When you finish the code for an item, it lands in `manual` (needs manual
   finishing) with the outstanding toolset work listed in `manual_steps`. Set `implemented`
   **only if you can confirm zero manual toolset steps remain** — if you are uncertain,
-  choose `manual`. **Never** set `awarded` (or otherwise mark an item "done") — that step
-  credits Merit to the player and is the admin's call.
+  choose `manual`. **Never** set `awarded` (or otherwise mark an item "done"), and never
+  touch `merit_awarded` — that step credits Merit to the player in the live game database
+  and is the admin's call, made with the editor's **Award merit** button.
 - **Blocked on a design decision → `status: design`.** If an item needs a call only the
   admin can make (mechanics, balance, lore, pricing, UX), set `status: design` and append
   the question(s) to `design_questions` with `status: open` and `answer: null`. **Do not**
@@ -275,7 +277,8 @@ What it does:
   → Merit awarded → Not likely); lane labels come from `gen-roadmap.py`'s `STATUS` so they
   never drift. The board honors the same filters/search; it always shows the awarded lane
   (ignores "Show awarded"). **Drag a card between lanes** to change an idea's `status`,
-  which auto-saves. An optional **Card status dropdowns (Board)** checkbox (off by default)
+  which auto-saves. Dragging into the awarded lane (like the Status dropdown) is a **YAML
+  edit only** — it never pays Merit; only the form's **Award merit** button does. An optional **Card status dropdowns (Board)** checkbox (off by default)
   adds a per-card status `<select>` as a drag-free alternative. Click a card to open it in
   the List form; **+ Add idea** works from the board too (it drops you into the form).
 - **External-edit / anti-clobber guard.** The page keeps a content hash of `roadmap.yaml`
@@ -286,6 +289,35 @@ What it does:
   A normal save rebases the baseline so the next save doesn't spuriously conflict.
 - **Links to the live site.** The header has **Public wiki ↗** (`https://homerslotr.com/`)
   and **Public roadmap ↗** (`https://homerslotr.com/manual/Roadmap`) shortcuts.
+- **Pipeline buttons (and the only thing that pays Merit).** The sticky bar at the top of
+  the idea form carries a **back** and a **forward** button, each labelled with the status
+  it moves to (`◀ In progress` / `Needs manual finishing ▶` / `Ship · in testing ▶` /
+  `Award merit ▶`). They walk the chain
+  `planned → later → soon → wip → confirmed → manual → implemented → awarded`; from the
+  off-chain `design` and `unlikely`, forward rejoins the chain (`confirmed` / `planned`)
+  and back is a dead end. Illegal moves are **greyed with the reason on hover**: unfinished
+  blocker `manual_steps`, open `design_questions`, a missing `type`, or an idea that has no
+  `id` yet.
+  **Forward into `awarded` is the merit payment.** Unlike the Status dropdown or a board
+  lane drag — which only edit YAML — this button writes the live `meritdb`: it bumps the
+  submitter's counter for the idea's `type` (Defect→`bugs` +1, Enhancement→`features` +2,
+  Exploit→`exploits` +3) and appends a `merit_ledger` row reading
+  `award: <kind> (roadmap:<idea-id>)`, in one transaction, then re-reads the row to prove
+  it landed. If the player can't be resolved or the DB write fails, **the status change is
+  rolled back** (every other edit in the form is still saved) and the banner says why.
+  An unmatched submitter name opens a picker of `meritdb` accounts; the choice is
+  remembered in `roadmap-merit-aliases.json` (gitignored — it holds CD keys) so the same
+  roadmap name resolves by itself next time. An idea with no submitter (or `community`)
+  asks for confirmation and then moves the status with no payment.
+  Once paid, the bar shows a **merit paid** chip and a **Revoke merit points** button
+  (confirmation required) that subtracts the points and writes a negative ledger row.
+  Moving *back* out of `awarded` never un-pays, and moving forward again never pays twice —
+  that is what the `merit_awarded` flag records.
+- **Unsaved-changes guard.** The form lives in the DOM until Save, so leaving it used to
+  discard edits silently. Clicking another idea, switching to the Board, or adding a new
+  idea with unsaved edits now opens a modal: **Save and continue** (navigates only if the
+  save actually lands), **Discard and continue**, or **Cancel — stay here**. Closing the
+  browser tab warns too.
 - **Where the buttons are.** **Save** and **Delete** sit in a sticky bar at the *top* of the
   idea form (the form is long; a bottom Save meant scrolling for every edit). **Save &
   regenerate HTML** and **Publish to Wiki & DB** live in the *left* pane next to **+ Add

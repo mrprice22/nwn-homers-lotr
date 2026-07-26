@@ -62,7 +62,8 @@ MERIT_POINTS = {"Defect": 1, "Enhancement": 2, "Exploit": 3}
 # quietly riding along forever. Keep in step with FIELD_ORDER in the editor,
 # which orders these same names; the editor warns if the two ever disagree.
 IDEA_FIELDS = {
-    "id", "title", "group", "epic", "status", "hidden", "type", "player",
+    "id", "title", "group", "epic", "status", "hidden", "merit_awarded",
+    "type", "player",
     "date", "commit", "notes", "notes_h", "impl_notes", "impl_notes_h",
     "dupe_of", "design_questions", "manual_steps",
 }

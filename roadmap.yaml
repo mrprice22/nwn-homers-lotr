@@ -86,7 +86,7 @@ players:
   - "Fugdish (Try_this)"
   - McGondy
   - "-Methonash-"
-  - "Piskan (Alec Cain)"
+  - "Piskan (Alek Cain)"
   - Tukwut
   - Y a z k i r
   - Llikanthus
@@ -139,7 +139,8 @@ ideas:
   - id: bestiary-boss-breakdown
     title: "Beastiary breakdown for just the bosses"
     group: bosses
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-07-24"
@@ -149,12 +150,16 @@ ideas:
     manual_steps:
       - step: "UAT: activate the Bestiary of Middle-earth. Index page shows \"Great foes felled: N of 78.\" and a third option \"Great foes I have yet to fell.\""
         status: open
+        step_h: 64
       - step: "UAT: open that list - rows read \"<name>  (CR n)  - <lair area>\", sorted by CR descending, and none of them is a boss the character has already killed."
         status: open
+        step_h: 64
       - step: "UAT: page forward/back through the boss list, then [Back to the index] - the progress line is recomputed, and the two creature lists still page correctly."
         status: open
+        step_h: 64
       - step: "UAT: kill a tracked boss, reopen the book - the felled count rises by one and that boss is gone from the list."
         status: open
+        step_h: 64
   - id: wiki-charts-by-week
     title: "wiki charts update for days vs weeks"
     group: wiki-tools
@@ -173,6 +178,7 @@ ideas:
     title: "Season 2 Test Realm is Live"
     group: wiki-tools
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -181,7 +187,8 @@ ideas:
   - id: numenor-chests
     title: "Fix the 3 chests in Númenor: Noirinan"
     group: quests-areas
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-07-23"
@@ -191,31 +198,40 @@ ideas:
     manual_steps:
       - step: "UAT: with a high Open-Lock PC, pick each of the 3 Setti coffers at DC 117 and confirm a level-appropriate belt / ring / shield appears; repeat across opens to confirm pool variety."
         status: open
+        step_h: 64
       - step: "UAT: pickpocket Setti Belt/Ring/Shield Key off Summanus, and separately kill Summanus, confirming the keys are both stealable and drop on death; open a coffer with its key and confirm the key is consumed (AutoRemoveKey)."
         status: open
+        step_h: 64
       - step: "UAT cooldown: loot a coffer, take the item, close it; re-open within the hour and confirm it is EMPTY and stays UNLOCKED (no wasted key/pick). Leave and re-enter the area after the hour and confirm the coffer is RE-LOCKED and mints fresh loot."
         status: open
+        step_h: 64
       - step: "Req-3 follow-up (tracked in the check_container_keys KNOWN baseline, NOT shipped here): DiviningPool (diviningpl.utp) is KeyRequired with missing key 'divinekey' and no OnOpen loot &mdash; decide create key+source vs drop KeyRequired. loogazlair Chest1/Chest2 reference missing 'loogazkey' but are pickable at DC 18 &mdash; clear the phantom KeyName when convenient."
         status: open
+        step_h: 64
   - id: petrification-timeout-2
     title: "Petrification timeout not working as expected"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-07-23"
-    commit: 45167215955
+    commit: "45167215955"
     notes: "<div>The <a href=\"#idea-petrification-timeout\">2-minute petrification timeout</a> now actually fires. If any enemy turns you to stone, escalating warnings appear <b>both in your chat log and as floating text above your character</b> every 15 seconds, and after 2 minutes you die and get the normal respawn option instead of being stuck as a statue. Being cured (Stone to Flesh) mid-countdown cancels it, as expected.</div>"
     impl_notes: "<div><b>Root cause:</b> the original fix (commit 46aa7efaa1e) added a bounded-timeout chain inside DoPetrification() in the module's x0_i0_spells.nss include. But in-game petrification comes from <b>base-game precompiled gaze / flesh-to-stone scripts</b> whose .ncs already inline the <i>stock</i> DoPetrification — no module script recompiles that include on the petrify path. So the edited include was dead code and the stock behavior (indefinite petrify / no-op death GUI) still ran. Secondary flaw: the timeout DelayCommand chain was queued on OBJECT_SELF (the petrifying NPC), so it was cancelled if that NPC died mid-window.</div><div><b>Fix:</b> replaced it with a source-independent watcher in the module heartbeat bleeding.nss (petrifyCheck(), called from the existing GetFirstPC()/GetNextPC() loop). Per PC it scans for EFFECT_TYPE_PETRIFY (same idiom as mw_hench_hb.nss::MW_HasPetrify), counts heartbeats (PETRIFY_HB, ~6s each), emits the seven original escalating messages once per 15s bucket via <b>both</b> SendMessageToPC and FloatingTextStringOnCreature(..., FALSE), and at 120s applies EffectDeath — routing through ondeath020 to the respawn GUI (same pipeline the bleed-out path already uses). Trackers cleared when the effect is gone, so a cure stops it. Removed the now-dead LOTR_PetrifyTimeoutTick + DelayCommand edits from x0_i0_spells.nss (restored the stock PopUpDeathGUIPanel line) so there is a single source of truth.</div>"
     manual_steps:
       - step: "UAT: get a low-level PC petrified by a basilisk/medusa (basilisk00x spawn); confirm escalating warnings appear both in the chat log AND as floating text above the character roughly every 15s."
         status: open
+        step_h: 64
       - step: "UAT: confirm that at ~2 minutes the petrified PC dies and the respawn GUI panel appears (not a stuck statue)."
         status: open
+        step_h: 64
       - step: "UAT: kill the petrifying creature BEFORE the 2 minutes elapse and confirm the timeout still fires (proves the OBJECT_SELF-cancellation bug is gone)."
         status: open
+        step_h: 64
       - step: "UAT: have a MeaningWave guide (or any Stone-to-Flesh) cure the PC mid-countdown and confirm the watcher stops (no spurious death after cure)."
         status: open
+        step_h: 64
   - id: mw-questgiver-ignore-combat
     title: "Meaningwave quest givers to ignore and be ignored in combat"
     group: combat-classes
@@ -236,6 +252,7 @@ ideas:
     group: wiki-tools
     status: awarded
     hidden: true
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
@@ -259,6 +276,7 @@ ideas:
     title: "Epic Summons don't unsummon when dismissed"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
@@ -279,6 +297,7 @@ ideas:
     title: "Legendary Level Skill Points Exploit"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: "Rajmund (Ray)"
     date: "2026-07-13"
@@ -296,6 +315,7 @@ ideas:
     title: "Party Loot Roll and Pickpocket"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-07-11"
@@ -356,6 +376,7 @@ ideas:
     title: "New end game bosses/higher difficulty ceiling (Epic)"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Tukwut
     date: "2026-07-13"
@@ -364,6 +385,7 @@ ideas:
     title: "Standard Map Notes for all area transitions"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-11"
@@ -373,6 +395,7 @@ ideas:
     title: "New Forge in Kallrist Crypt"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-09"
@@ -382,6 +405,7 @@ ideas:
     title: "MW Companions/Henchmen can get stuck trying to use Bard Song over and over"
     group: meaningwave
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Fugdish (Try_this)"
     date: "2026-07-07"
@@ -409,6 +433,7 @@ ideas:
     title: "Initial 3 free levels worth of xp from new characters can be xp-banked"
     group: banking
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: "Rajmund (Ray)"
     date: "2026-07-05"
@@ -418,6 +443,7 @@ ideas:
     title: "Requesting proper dying kit (which works on cloaks) or dyes that work on metallic 1,2 and leather 1,2 (colors)"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "Rajmund (Ray)"
     date: "2026-07-04"
@@ -427,6 +453,7 @@ ideas:
     title: "Item appearance crafting can send you to prison"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-07-04"
@@ -437,6 +464,7 @@ ideas:
     title: "Docs Question: What is 'Legendary travel menu' how is it obtainable?"
     group: wiki-tools
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-07-04"
@@ -498,8 +526,9 @@ ideas:
     title: "Allow epic summons + normal summons out at same time"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-07-03"
     commit: bdab134bd5a
     notes: "Epic spell mummy and the summon creature X for example. Fixed: epic summons (Mummy Reaper, Dragon Knight) now spawn on the henchman slot instead of the single engine summon slot, so one epic can be out alongside one normal summon-animal. Mummy vs Dragon Knight stay mutually exclusive; normal summons still one-at-a-time. Both epic summons now last 30h (fixed the Dragon Knight ~3 min duration bug)."
@@ -507,6 +536,7 @@ ideas:
     title: "HGLL should not be influenced by gear"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: "Rajmund (Ray)"
     date: "2026-07-03"
@@ -515,6 +545,7 @@ ideas:
     title: "x2 GOLD boost not working"
     group: economy
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Fugdish (Try_this)"
     date: "2026-07-03"
@@ -524,6 +555,7 @@ ideas:
     title: "Remove mutli class XP penalty"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-07-01"
@@ -532,6 +564,7 @@ ideas:
     title: "proper leveling for 40-60 (normal class progression)"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Llikanthus
     date: "2026-07-02"
@@ -541,6 +574,7 @@ ideas:
     title: "Jailed for Elrond's Sword (unmodified)"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Zambro (Xil)"
     date: "2026-07-01"
@@ -555,6 +589,7 @@ ideas:
     title: "Transition is missing from Pelennor Fields into Minas Tirith: Gates"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-07-08"
@@ -570,6 +605,7 @@ ideas:
     title: "MW Henchmen: Counterspell mode not working -- needs revisions"
     group: meaningwave
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-01"
@@ -579,6 +615,7 @@ ideas:
     title: "Door not working at bottom of goblin caves (SE Corner)"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Fugdish (Try_this)"
     date: "2026-07-08"
@@ -586,6 +623,7 @@ ideas:
     title: "Newbie starting gear once per account"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Tukwut
     date: "2026-06-29"
@@ -594,6 +632,7 @@ ideas:
     title: "[Anvil] Adhoc toggle reboot on empty with warning to players"
     group: wiki-tools
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-02"
@@ -603,13 +642,15 @@ ideas:
     title: "Make scrolls stackable (x99)"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-29"
   - id: petrification-timeout
     title: "Add a timeout to Petrification (from NPCs)"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "Zambro (Xil)"
     date: "2026-07-02"
@@ -619,6 +660,7 @@ ideas:
     title: "the High wizard in Gondor kills herself with her pulse attacks"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-07-02"
@@ -628,6 +670,7 @@ ideas:
     title: "including other items into druid/shifter shapes"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: McGondy
     date: "2026-07-02"
@@ -645,6 +688,7 @@ ideas:
     title: "At least one of the Norther Forest of Ithilien transitions seems off"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-07-08"
@@ -653,6 +697,7 @@ ideas:
     title: "Knock Spell Effect not working"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-29"
@@ -662,6 +707,7 @@ ideas:
     title: "Is Morannon meant to have arcane spell failure?"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-07-01"
@@ -671,6 +717,7 @@ ideas:
     title: "Forge/Smith updates for weapons (Better handling for items worth more than default forge GP value limit)"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-25"
@@ -680,6 +727,7 @@ ideas:
     title: "Bard song damge modifier (not working again)"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-24"
@@ -697,6 +745,7 @@ ideas:
     title: "Items lost when logging out without talking to banker"
     group: banking
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Llikanthus
     date: "2026-06-23"
@@ -705,6 +754,7 @@ ideas:
     title: "Dungeon Area Transition in Kallrist North Shore intentionally removed?"
     group: travel
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-07-08"
@@ -714,6 +764,7 @@ ideas:
     title: "Kallrist Crypt riddle puzzle grants no key -- inner crypt sealed"
     group: travel
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-08"
@@ -772,6 +823,7 @@ ideas:
     title: "Respawn Tracker in Well of Eru"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-07-05"
@@ -796,6 +848,7 @@ ideas:
     title: "Card Menard in Edoras drops Elrond's sword"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-07-07"
@@ -805,6 +858,7 @@ ideas:
     title: "party XP is applied to the whole party even if not in the same area"
     group: progression
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-22"
@@ -814,6 +868,7 @@ ideas:
     title: "Issues with improved invisibility after buff duration exentsion (and exclusion)"
     group: qol
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-07-08"
@@ -824,6 +879,7 @@ ideas:
     title: "divine might duration bug"
     group: qol
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-07-02"
@@ -834,6 +890,7 @@ ideas:
     title: "Wiki Missing creature: Numanan Numerocks Second Hand (CARN DUM)"
     group: wiki-tools
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-23"
@@ -843,6 +900,7 @@ ideas:
     title: "Forge-Warden can get script overflow and leave you stuck in pit prison"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-19"
@@ -850,6 +908,7 @@ ideas:
     title: "New bardsong updates not working as expected"
     group: qol
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-06-20"
@@ -857,6 +916,7 @@ ideas:
     title: "Fornost teleport Broken (Removed dead area from list of teleports)"
     group: travel
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Llikanthus
     date: "2026-06-24"
@@ -864,6 +924,7 @@ ideas:
     title: "Adjust verbiage in leveing guide of wiki: legendary leveler area makes current verbiage makes it sound like you can fight enemies and gain XP there."
     group: wiki-tools
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Y a z k i r"
     date: "2026-06-22"
@@ -872,6 +933,7 @@ ideas:
     group: wiki-tools
     status: awarded
     hidden: true
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
@@ -889,6 +951,7 @@ ideas:
     title: "Closed the 0-value forge exploit; forge now prices by true item value"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: "Fugdish (Try_this)"
     date: "2026-06-10"
@@ -898,6 +961,7 @@ ideas:
     title: "Nerfed the overpowered Forge of Moria (godlike amulets for 8M gold)"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: Tukwut
     date: "2026-06-08"
@@ -906,6 +970,7 @@ ideas:
     title: "Disenchant-one-property service at all three forges; staged so an illegal item can never be minted"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-20"
@@ -915,6 +980,7 @@ ideas:
     title: "Illegally-forged gear is quarantined in the Pit Prison; Forge Wardens can revert items to stock"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: "HomelessSon (Server Admin)"
     date: "2026-06-11"
@@ -923,6 +989,7 @@ ideas:
     title: "Forges gained gold/value enchanting caps and tell you the value remaining to enchant with"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-15"
@@ -931,6 +998,7 @@ ideas:
     title: "Smith conversations now confirm current and available GP values for enchanting"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-15"
@@ -939,6 +1007,7 @@ ideas:
     title: "Cheap starter forge added in Bree"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-07"
@@ -948,30 +1017,34 @@ ideas:
     title: "Combat modes (Power Attack, Rapid Shot, etc.) are now permanent toggles"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-05-31"
     commit: 37a52f8f51d
   - id: max-ability-24
     title: "Raised the max ability-score bonus to 24 (was 12)"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-07"
     commit: 5a33cd17c1a
   - id: buff-durations-2x
     title: "Doubled player-cast spell/effect durations server-wide"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-19"
     commit: 365b6f51064
   - id: max-hp-levelup
     title: "Always roll max hit points on level up (no more re-rolling for theorycrafting)"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-05-31"
@@ -980,6 +1053,7 @@ ideas:
     title: "Fixed duplicate Weapon Focus / Improved Critical feats (from a CEP2 HAK update)"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-05-31"
@@ -988,6 +1062,7 @@ ideas:
     title: "Bard Song customized to mirror the customized Curse Song"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-19"
@@ -996,6 +1071,7 @@ ideas:
     title: "Documented Curse Song behavior in the Customizations wiki page"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-03"
@@ -1006,6 +1082,7 @@ ideas:
     title: "Balrog no longer vanishes when the last player leaves and rests (respawn 90m -> 15m)"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-06-07"
@@ -1014,6 +1091,7 @@ ideas:
     title: "Khamul's pulse attack no longer haunts players across the module after death"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-05-28"
@@ -1022,6 +1100,7 @@ ideas:
     title: "Dimholt forgotten king: added a questline and fixed the bark frequency / damage handling"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Tukwut
     date: "2026-06-16"
@@ -1032,6 +1111,7 @@ ideas:
     title: "Bestiary kill-tracking with both PARTY and SOLO credit"
     group: progression
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-14"
@@ -1042,6 +1122,7 @@ ideas:
     title: "Family bank: persistent XP, gold and Strongbox storage shared across your account"
     group: banking
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-05-27"
@@ -1050,6 +1131,7 @@ ideas:
     title: "Removed the requirements for depositing / withdrawing XP"
     group: banking
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-05-30"
@@ -1060,6 +1142,7 @@ ideas:
     title: "Fixed Isengard / Dol Guldur faction issues"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-05-30"
@@ -1068,6 +1151,7 @@ ideas:
     title: "Helms Deep cave & road: Edoras folk were Evil — set to Good"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: McGondy
     date: "2026-06-08"
@@ -1076,6 +1160,7 @@ ideas:
     title: "Neutral alignments no longer attacked by both factions; alignment auto-syncs via the Well-of-Eru orbs"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "Fugdish (Try_this)"
     date: "2026-06-04"
@@ -1084,6 +1169,7 @@ ideas:
     title: "Hall of Sauron (Mount Doom): fixed mixed-up factions (Bishop killing Underlord)"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-05-31"
@@ -1091,6 +1177,7 @@ ideas:
     title: "Fixed weird interactions entering Legolas's area (disappear/reappear + periodic damage) and the missing inbound transition"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-05-31"
@@ -1099,6 +1186,7 @@ ideas:
     title: "Fixed the Mirkwood door that should lead to the Basilisk King (was an empty tomb)"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-06-02"
@@ -1107,6 +1195,7 @@ ideas:
     title: "Fixed Elrond's quest (couldn't use forge/smith even with the writ)"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "FLYING HITCHER"
     date: "2026-06-05"
@@ -1115,6 +1204,7 @@ ideas:
     title: "Closed the exploit that let you cast spells in the Well of Eru after resting"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: Tukwut
     date: "2026-06-03"
@@ -1123,6 +1213,7 @@ ideas:
     title: "Fixed the endless bleed-out loop where regen kept you stuck dying"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-05-21"
@@ -1131,6 +1222,7 @@ ideas:
     title: "Fixed Dol Guldur Smithy refusing to buy gear (item-type filtering audit across all smiths)"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-06-07"
@@ -1139,6 +1231,7 @@ ideas:
     title: "Lonely Mountain — Temple of Marr: restored the merchant's missing store conversation"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-06-01"
@@ -1146,6 +1239,7 @@ ideas:
     title: "Fixed the White Hand Blaster failing with the wrong faction in the Magic Room"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-05-31"
@@ -1153,6 +1247,7 @@ ideas:
     title: "Name/typo fixes across creatures, items and all 337 conversations (gadalf, captian, etc.)"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-06-17"
@@ -1161,6 +1256,7 @@ ideas:
     title: "Fixed no-XP-for-kills after a weekend of server downtime"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-05-16"
@@ -1170,14 +1266,16 @@ ideas:
     title: "Rod of Fast Casting — a fast-buff tool"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-03"
     commit: 6e78ec48efa
   - id: rod-fast-lore
     title: "Rod of Fast Lore — identifies all items in your inventory using your own Lore (castable on others)"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: McGondy
     date: "2026-06-18"
@@ -1186,6 +1284,7 @@ ideas:
     title: "Well-Mart option to auto-identify every item you carry"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "Fugdish (Try_this)"
     date: "2026-06-04"
@@ -1194,21 +1293,24 @@ ideas:
     title: "Raised consumable stack size to 99 (potions)"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-14"
     commit: 94e5cd7b150
   - id: ammo-stack999
     title: "Raised ammunition stack size to 999"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-12"
   - id: gloin-amulet
     title: "Fixed Gloin's amulet immunity mismatch (wiki said 20%, item was 25%)"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-05-31"
@@ -1216,6 +1318,7 @@ ideas:
     title: "Fixed damage-immunity percentages not showing after the NWSync / CEP2 HAK update"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-05-31"
@@ -1224,6 +1327,7 @@ ideas:
     title: "Donation chest hands out Inaccessible (boss) items"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Exploit
     player: "-Methonash-"
     date: "2026-05-18"
@@ -1235,6 +1339,7 @@ ideas:
     title: "Meaningwave companions: aegis ring, scaling unlocks, battlefield cures and a counterspell mode"
     group: meaningwave
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-06-18"
@@ -1246,6 +1351,7 @@ ideas:
     title: "Good/Evil orbs at the Well of Eru: alignment VFX, a warning you'll be disliked by the other side, and auto-sync on teleport out"
     group: qol
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: McGondy
     date: "2026-06-07"
@@ -1260,16 +1366,18 @@ ideas:
     title: "Legendary Leveler: can't find Tumble"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Defect
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-23"
     notes: "<ul><li>Found and fixed HGLL bug that caused <font color=\"#f66151\">armor check penalty</font> <i>for currently equipped armor</i> to be factored into skill ranks during legendary level ups</li><li><font color=\"#26a269\">Added note in level up conversation</font> that calls out what the system sees as the player's dominant class (highest level class), <b>which is what determines the skills that are available</b> for selection during level up (it is expected that having a minor class with tumble, <b>does not</b> let you take tumble during legendary levels)</li></ul>"
   - id: ab-enhance-stack-bug
     title: "Weapons with both Attack Bonus (AB) and Enhancement Bonus (EB) appear to mis-calculate stats"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Defect
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-23"
     notes: "<div>Weapons carrying both an Attack Bonus and an Enhancement Bonus were misleading you: the NWN engine applies only the higher of the two to your attack roll, so any Attack Bonus at or below the Enhancement Bonus was dead weight on the character sheet. This is hardcoded engine behaviour with no toggle, so every weapon in the module was audited instead — 253 weapons had the two properties collapsed into a single Enhancement Bonus, raised to a balanced value where the old Attack Bonus was higher. Copies already in your inventory were repaired automatically.</div><div><br></div><div><b>If you keep old copies in the Bank of Bree</b>, take them out and leave them in a character's inventory overnight — the nightly 3am reboot scans character files, not storage boxes, so banked items will not be fixed until they are carried.</div>"
     notes_h: 258
@@ -1294,12 +1402,13 @@ ideas:
     group: forge
     status: later
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     dupe_of: cnr-crafting
   - id: plot-flag-craft
     title: "Tainted Steel of Morgrond & Skinner's Acidic Plate are flagged Plot and can't be used in the craft-skill menu"
     group: wiki-tools
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-06-26"
@@ -1308,6 +1417,7 @@ ideas:
     title: "Discipline missing from the forge craft list (Rivendell forge)"
     group: forge
     status: awarded
+    merit_awarded: true
     type: Defect
     player: McGondy
     date: "2026-06-23"
@@ -1318,13 +1428,13 @@ ideas:
     group: combat-classes
     status: later
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
   - id: devcrit-roll
     title: "Convert Devastating Critical to a roll for bonus damage (or a new 'chaos' damage type)"
     group: combat-classes
     status: planned
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-03"
     notes: "<span><span>Change it to \"a </span><span>dev</span><span> crit will do an additional x1 multiplier\", or \"stun for one round\"... Something like that, you know?</span></span>"
   - id: ll-modern-leveling
@@ -1351,8 +1461,9 @@ ideas:
     title: "Scale druid summons/companions (HP, saves, AB, AC) with level, Animal Empathy and epic Conjuration"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-07-03"
     commit: fd5a1bccdf0
     notes: "<div>Druid and ranger summons and animal companions now scale with their master's power the moment they spawn, so late-game pets stay relevant on this high-magic server. The boost grows with your class level, your Animal Empathy, and the Conjuration spell-focus feat line — up to +20 attack, +12 dodge AC, +20 all saves and +24 to every ability score. It is permanent and cannot be dispelled. Other classes' summons are unaffected. Details: <a href=\"Customizations.html#scaled-summons\">Customizations → Scaled Summons &amp; Animal Companions</a>.</div>"
@@ -1365,32 +1476,33 @@ ideas:
     group: combat-classes
     status: planned
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
   - id: dd-defensive-stance
     title: "Let Dwarven Defenders move while in Defensive Stance"
     group: combat-classes
     status: planned
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
   - id: remove-class-restrictions
     title: "Remove all class restrictions"
     group: combat-classes
     status: planned
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
   - id: class-specific-gear
     title: "Class-locked signature weapons (need ~20-25 levels of a class to equip)"
     group: items-gear
     status: later
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     notes: "<div><b>Examples </b>(Will work on some more class spec ideas)</div><div><ul><li>Monk: Quarterstaff +15 Enhancement 20 Divine dmg 2d12 Blud 2d12 Sonic Keen +2 Apr (Also, QS needs to be added to Monk weapons for it to work as intended, which they should have been from the start imo)</li><li>Sorc/Wiz: Staff +10 Con +10 Int +10 Cha Flowcasting (Make spell slots reset after doing a certain amount of dmg with spells) </li><li>Paladin: Maul (if you can add them, can add it to Warhammer spec) +15 Enhancement 20 Divine 2d12 Positive 2d12 Lightning Keen Chance on Hit: Sunbeam</li><li>Barbarian: Greataxe +15 Enhancement 20 Slashing 2d12 Piercing 2d12 Blud Keen Call lightning On-Hit (Once per round, if possible) }</li></ul></div>"
   - id: monk-weapons
     title: "Add Shuriken, Katana and Quarterstaff to monk weapon list and count as finessable"
     group: combat-classes
     status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-06-24"
     commit: 24a7a96bc31
     notes: "<div>baseitems.2da: Shuriken, Katana and Quarterstaff are now monk weapons (IsMonkWeapon=1, like Kama), so they get monk attack-bonus progression. Katana and Quarterstaff are now finessable (WeaponFinesseMinimumCreatureSize=2) for <em>any</em> class with the Weapon Finesse feat — not just monks, and small races included.</div><div><br></div><div>Note on flurry: NWN has a single IsMonkWeapon flag that governs both monk-weapon benefits and Flurry of Blows — there is no per-weapon flurry toggle. Kama itself is flurry-compatible, so these weapons are too (the original “not compatible with flurry” ask was dropped after confirming Kama allows flurry).</div><div><br></div><div>Live deployment requires repacking lotr_rules.hak with the new baseitems.2da, then refresh-nwsync + server restart.</div>"
@@ -1408,6 +1520,7 @@ ideas:
     title: "Sauron's Chosen Minion fights his own faction (faction looks wrong)"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-06-29"
@@ -1416,6 +1529,7 @@ ideas:
     title: "The Rancid Skinner shouts 'Helms Deep is under attack' on death"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-07-01"
@@ -1425,6 +1539,7 @@ ideas:
     title: "Theoden's Chosen seems to have more AC than the wiki's 82"
     group: bosses
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-06-22"
@@ -1433,13 +1548,13 @@ ideas:
     group: bosses
     status: later
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
   - id: boss-tuning-post40
     title: "Boss tuning so you can progress past level 40 (starter bosses are currently unkillable)"
     group: bosses
     status: unlikely
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     notes: "This is resolved basically by <a href=\"#idea-forge-bree-starter\">updates to the forge system</a>"
   - id: true-damage-type
     title: "A new low-dice 'true' damage type no boss is immune to — made incompatible with the forge so you choose optimized gear vs. boss-chipping gear"
@@ -1454,6 +1569,7 @@ ideas:
     group: bosses
     epic: difficulty-increase
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
@@ -1484,6 +1600,7 @@ ideas:
     group: bosses
     epic: difficulty-increase
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-13"
@@ -1511,6 +1628,7 @@ ideas:
     group: bosses
     epic: difficulty-increase
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-15"
@@ -1663,7 +1781,8 @@ ideas:
   - id: item-slot-tokens
     title: "Increase an item's property slots using boss-drop 'tokens' or a rare boss drop"
     group: forge
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-07-23"
@@ -1730,6 +1849,7 @@ ideas:
     title: "Rest-menu teleport back to where you last used the Well-of-Eru port"
     group: travel
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-06-27"
@@ -1741,6 +1861,7 @@ ideas:
     title: "Don't withdraw XP from the bank while on an XP penalty; banker should warn about multiclass penalties first"
     group: banking
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-07-01"
@@ -1781,9 +1902,10 @@ ideas:
   - id: item-rename
     title: "Let players rename their weapons (e.g. a chisel item)"
     group: items-gear
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
-    player: "Piskan (Alec Cain)"
+    player: "Piskan (Alek Cain)"
     date: "2026-07-16"
     commit: f10e0d8
     notes: "<div>You can name your own weapons. The <b>Engraver's Chisel</b> is sold at the Well Mart in the Well of Eru for 25,000 gp: equip a weapon, activate the chisel, and speak the new name — nobody else sees you say it. Names stick through the vault, and renaming does not affect a weapon's forge legality. Say 'cancel' to back out without spending the chisel. Details: <a href=\"Customizations.html#weapon-rename\">Customizations → Weapon Renaming</a>.</div>"
@@ -1820,6 +1942,7 @@ ideas:
     title: "Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-05"
@@ -1839,6 +1962,7 @@ ideas:
     title: "Party Loot Roll system (configurable through rest menu)"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
     date: "2026-06-25"
@@ -1848,6 +1972,7 @@ ideas:
     title: "When an NPC disarms you the weapon can despawn — send disarms to your inventory instead of the ground"
     group: items-gear
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-07-08"
@@ -1859,6 +1984,7 @@ ideas:
     title: "Getting stuck in the wall at Gwathdor"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: Tukwut
     date: "2026-07-09"
@@ -1869,6 +1995,7 @@ ideas:
     title: "Glorfindel's potion quest: the plant doesn't spawn and there are no journal entries"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "FLYING HITCHER"
     date: "2026-07-04"
@@ -1878,6 +2005,7 @@ ideas:
     title: "Once the Moria door is closed you must use the Balin's Tomb side entrance until reset; 'Mellon' password and gate state inconsistent"
     group: quests-areas
     status: awarded
+    merit_awarded: true
     type: Defect
     player: McGondy
     date: "2026-07-03"
@@ -1903,6 +2031,7 @@ ideas:
     title: "Tune Meaningwave Henchmen appearances (some spawn naked instead of wearing their armor)"
     group: meaningwave
     status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-06-27"
@@ -1912,6 +2041,7 @@ ideas:
     title: "Merit Reward redemption go-live"
     group: economy
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-06-27"
@@ -1922,6 +2052,7 @@ ideas:
     title: "Merit premium boosts: temporary 2x gold & XP (personal + server-wide)"
     group: economy
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-02"
@@ -1988,6 +2119,7 @@ ideas:
     group: quests-areas
     epic: quest-overhaul
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-14"
@@ -2530,7 +2662,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-16"
-    commit: 62695e7
+    commit: "62695e7"
     notes: "<div><b>The Sworn Blade</b> — the Weapon Master initiation, the hub's eighth order. Strike the combat dummy in Minas Tirith with your Weapon of Choice in hand — bare hands or the wrong weapon proves nothing. Pays 1,000 XP and the <b>Buckle of the Sworn Blade</b> (Discipline +3, Parry +3, saves vs. fear +3). Details: <a href=\"QuestGuide.html#weapon-master\">Quest Guide → Weapon Master</a>.</div>"
     impl_notes: "<div>Journal pc_weaponmaster; prestigedb order key 'wm', one-off. Offer requires 1+ Weapon Master level; others get a pointer line.</div><div><br></div><div>The design's gear-swap gimmick became a Weapon-of-Choice proof: a deterministic baseitems.2da WeaponOfChoiceFeat + GetHasFeat check, which covers CEP weapons. The first Combat Dummy in Minas Tirith is reused (retagged and made usable); the other two are untouched. Bare hands and non-WoC weapons give distinct retry messages. Notch of the Proven Blade is plot+cursed, re-given if lost. Reward is skills/saves only, forge-cap-safe.</div>"
     manual_steps:
@@ -2595,7 +2727,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-16"
-    commit: 43e2030
+    commit: "43e2030"
     notes: "<div><b>The Shield of Others</b> — the Divine Champion initiation, the hub's ninth order. Keep the vigil at the Altar of the Istari in the Minas Tirith temple with a shield on your arm. Pays 1,000 XP and the <b>Mantle of the Westward Vow</b> (Heal +3, Persuade +3, saves vs. divine +3). Details: <a href=\"QuestGuide.html#divine-champion\">Quest Guide → Divine Champion</a>.</div>"
     impl_notes: "<div>Journal pc_divinechampion; prestigedb order key 'divch', one-off. Offer requires 1+ Divine Champion level; others get a pointer line.</div><div><br></div><div>Existing Minas Tirith temple altar placeable reused — retagged with an OnUsed added; nothing referenced the old tag. Small/large/tower shields all pass; an empty arm and a non-shield off-hand give distinct retry messages, deterministic, no dice. Oath-Light of the West is plot+cursed, re-given if lost. Reward skills are distinct from every sibling reward and forge-cap-safe.</div>"
     manual_steps:
@@ -3066,6 +3198,7 @@ ideas:
     group: quests-areas
     epic: quest-overhaul
     status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-16"
@@ -3829,7 +3962,7 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
     notes: "<span>Internal investigation - not player-facing.</span>"
-    impl_notes: "<div>Found while changing the appearance of the Quiver of Endless Flight (<code>ammoreplicator</code>). In one toolset save its <code>Cost</code> went <b>250,000 -&gt; 3</b> alongside the intended <code>ModelPart1</code> 11-&gt;226 change. <code>engraverchisel</code>, edited in the same session with the same kind of change (<code>ModelPart1</code> 11-&gt;91), kept its <code>Cost</code> 25,000 - because it carries <code>AddCost</code> 24,997 and 25,000 is its genuine property-derived value. Working hypothesis: <b>the toolset recomputes <code>Cost</code> from base item + properties + <code>AddCost</code> on save and discards any hand-set override</b>; the appearance edit is only what triggered the save, not the cause.</div><div>Why it matters: <code>unpacked/forge_inc.nss</code> (ForgeRebuildValue, ~line 339) documents that <code>GetGoldPieceValue</code> returns the blueprint's fixed <code>Cost</code> override and <i>ignores</i> properties. So that field is the live in-game value, and a silent reprice moves an item relative to the Forge's <code>FORGE_MAX_VALUE</code> caps and changes vendor prices. <code>AddCost</code> is a word capped at 32,767 and cannot carry large values - 284 of 3,401 items use it; the other 3,117 rely on <code>Cost</code> alone and are exposed.</div><div>Restored <code>ammoreplicator</code> to <code>Cost</code> 250,000 in the blueprint and in the inline copy on the Angmar instance (<code>area009.git.json</code> Creature List[0] ItemList[15]).</div><div>To investigate: confirm the recompute rule against a controlled toolset save; work out which items already lost an override historically (git log over <code>unpacked/*.uti.json</code> for <code>Cost</code> drops); decide whether a build gate should flag a <code>Cost</code> that disagrees with its derived value by more than some margin.</div>"
+    impl_notes: "<div>Found while changing the appearance of the Quiver of Endless Flight (ammoreplicator). In one toolset save its Cost went <b>250,000 -&gt; 3</b> alongside the intended ModelPart1 11-&gt;226 change. engraverchisel, edited in the same session with the same kind of change (ModelPart1 11-&gt;91), kept its Cost 25,000 - because it carries AddCost 24,997 and 25,000 is its genuine property-derived value. Working hypothesis: <b>the toolset recomputes Cost from base item + properties + AddCost on save and discards any hand-set override</b>; the appearance edit is only what triggered the save, not the cause.</div><div>Why it matters: unpacked/forge_inc.nss (ForgeRebuildValue, ~line 339) documents that GetGoldPieceValue returns the blueprint's fixed Cost override and <i>ignores</i> properties. So that field is the live in-game value, and a silent reprice moves an item relative to the Forge's FORGE_MAX_VALUE caps and changes vendor prices. AddCost is a word capped at 32,767 and cannot carry large values - 284 of 3,401 items use it; the other 3,117 rely on Cost alone and are exposed.</div><div>Restored ammoreplicator to Cost 250,000 in the blueprint and in the inline copy on the Angmar instance (area009.git.json Creature List[0] ItemList[15]).</div><div>To investigate: confirm the recompute rule against a controlled toolset save; work out which items already lost an override historically (git log over unpacked/*.uti.json for Cost drops); decide whether a build gate should flag a Cost that disagrees with its derived value by more than some margin.</div>"
     manual_steps:
       - step: "Reproduce: open a high-Cost item with AddCost 0 in the toolset, change nothing, save the module, and diff its .uti.json to confirm Cost is recomputed."
         status: open
@@ -3846,10 +3979,10 @@ ideas:
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    commit: 83848c05cc63256a657e46eb426988a22decf475
     date: "2026-07-25"
-    notes: "<div>Levels 41&ndash;60 now cost real experience on a published table instead of the leveling system's private accounting &mdash; so your XP bar and your character sheet finally agree past level 40. Level 41 sits at 828,800 total XP and level 60 at 3,581,000; level 41 costs 48,800 over level 40, and every level after that costs 10% more than the one before it. The full table is in <a href=\"Customizations.html#legendary-levels\">Customizations &rarr; Legendary Levels</a>.</div>"
-    impl_notes: "<div>Added <code>hak_2da/exptable.2da</code>. Rows 0-39 (levels 1-40) were extracted from stock game data with <code>nwn_resman_cat --root \"$STEAM_NWN\" exptable.2da</code> and are byte-identical to stock (verified with <code>cmp</code> over the header + first 40 rows); nothing below 41 was regenerated. Stock row 40 (level 41) carries the <code>0xFFFFFFFF</code> unreachable-level sentinel &mdash; it was replaced with <code>828800</code> and rows for levels 42-60 appended verbatim from the cumulative constants in <code>unpacked/hgll_const_inc.nss</code> (<code>XP_REQ_LVL41</code>..<code>XP_REQ_LVL60</code>, delta 48,800 compounding x1.1, ending 3,581,000). A new row <code>60 61 0xFFFFFFFF</code> preserves the stock sentinel convention above the cap. CRLF line endings and the stock column layout match the other files in <code>hak_2da/</code>.</div><div><b>Delivery:</b> <code>hak_2da/</code> is not packed by nasher (<code>nasher.cfg</code> includes only <code>unpacked/**</code>); it is a staging dir for the wiki generator and for hand-built haks. This 2da only takes effect once packed into <code>lotr_rules.hak</code> (README.md, \"Four-class multiclassing\" step 3) and republished with <code>bin/refresh-nwsync</code>. No server override copy is needed &mdash; nwserver reads the module haks. Item therefore ships <code>manual</code>.</div><div><b>Docs:</b> <code>docs.manual/Customizations.html#legendary-levels</code> and <code>docs.manual/LevelingGuide.html</code> (General Tips) gained XP-table facts only; the broader HGLL wording purge stays with <code>ll-hgll-purge-docs</code>.</div><div><b>Gates:</b> bare <code>nwn-manager repack</code>, 12/12 smoke tests, 1/1 script compiled.</div>"
+    commit: 83848c05cc63256a657e46eb426988a22decf475
+    notes: "<div>Levels 41–60 now cost real experience on a published table instead of the leveling system's private accounting — so your XP bar and your character sheet finally agree past level 40. Level 41 sits at 828,800 total XP and level 60 at 3,581,000; level 41 costs 48,800 over level 40, and every level after that costs 10% more than the one before it. The full table is in <a href=\"Customizations.html#legendary-levels\">Customizations → Legendary Levels</a>.</div>"
+    impl_notes: "<div>Added hak_2da/exptable.2da. Rows 0-39 (levels 1-40) were extracted from stock game data with nwn_resman_cat --root \"$STEAM_NWN\" exptable.2da and are byte-identical to stock (verified with cmp over the header + first 40 rows); nothing below 41 was regenerated. Stock row 40 (level 41) carries the 0xFFFFFFFF unreachable-level sentinel — it was replaced with 828800 and rows for levels 42-60 appended verbatim from the cumulative constants in unpacked/hgll_const_inc.nss (XP_REQ_LVL41..XP_REQ_LVL60, delta 48,800 compounding x1.1, ending 3,581,000). A new row 60 61 0xFFFFFFFF preserves the stock sentinel convention above the cap. CRLF line endings and the stock column layout match the other files in hak_2da/.</div><div><b>Delivery:</b> hak_2da/ is not packed by nasher (nasher.cfg includes only unpacked/**); it is a staging dir for the wiki generator and for hand-built haks. This 2da only takes effect once packed into lotr_rules.hak (README.md, \"Four-class multiclassing\" step 3) and republished with bin/refresh-nwsync. No server override copy is needed — nwserver reads the module haks. Item therefore ships manual.</div><div><b>Docs:</b> docs.manual/Customizations.html#legendary-levels and docs.manual/LevelingGuide.html (General Tips) gained XP-table facts only; the broader HGLL wording purge stays with ll-hgll-purge-docs.</div><div><b>Gates:</b> bare nwn-manager repack, 12/12 smoke tests, 1/1 script compiled.</div>"
     manual_steps:
       - step: "Pack hak_2da/exptable.2da into lotr_rules.hak alongside ruleset.2da and baseitems.2da (see README.md, 'Four-class multiclassing' step 3: nwn_erf -c -f /tmp/lotr_rules.hak -e HAK ruleset.2da baseitems.2da exptable.2da), then copy the hak to ~/.local/share/Neverwinter Nights/hak/. Until this is done the 41-60 XP table does not exist in game at all."
         status: open
@@ -3873,10 +4006,11 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The server accepts characters above level 40 natively — levels 41-60 are real levels the client understands, not a separate track.</div>"
-    impl_notes: "<div>Two levers do the same job (upstream warns about this in <code>unpacked/nwnx_admin.nss:173</code>): flip <code>NWNX_MAXLEVEL_SKIP=y</code> to <code>n</code> in <code>server.env</code>, or call <code>NWNX_Administration_SetMaxLevel(60)</code> from <code>onmoduleload.nss</code>. Also needs <code>MaxLevel</code>/<code>EpicLevel</code> columns updated in a <code>hak_2da/classes.2da</code> (stock values today). <code>NWN_ELC=0</code> / <code>NWN_ILR=0</code> are already off.</div>"
+    impl_notes: "<div>Two levers do the same job (upstream warns about this in unpacked/nwnx_admin.nss:173): flip NWNX_MAXLEVEL_SKIP=y to n in server.env, or call NWNX_Administration_SetMaxLevel(60) from onmoduleload.nss. Also needs MaxLevel/EpicLevel columns updated in a hak_2da/classes.2da (stock values today). NWN_ELC=0 / NWN_ILR=0 are already off.</div>"
     design_questions:
       - question: "Which lever raises the cap — the MaxLevel plugin (NWNX_MAXLEVEL_SKIP=n in server.env) or NWNX_Administration_SetMaxLevel(60) from onmoduleload.nss? They write the same value, so using both is a conflict waiting to happen. Proposal: the plugin env flag, because server.env already documents the enabled plugin set in one place and it takes effect without a script change; the tradeoff is that it lives outside git-tracked module source and needs a container restart to apply."
         status: open
+        answer: null
   - id: ll-cls-progression
     title: "Class progression tables for levels 41-60"
     group: combat-classes
@@ -3885,12 +4019,14 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Levels past 40 advance your class properly: attack bonus, saves, spell slots and the feat / ability-score cadence all keep going, instead of only granting HP and a floating feat.</div>"
-    impl_notes: "<div>This is the substantive difference from HGLL, which explicitly did <i>not</i> extend caster level, spell slots or class progression. Needs <code>cls_*.2da</code> work in <code>hak_2da/</code> (BAB, saves, spell slots/known, feat table cadence).</div>"
+    impl_notes: "<div>This is the substantive difference from HGLL, which explicitly did <i>not</i> extend caster level, spell slots or class progression. Needs cls_*.2da work in hak_2da/ (BAB, saves, spell slots/known, feat table cadence).</div>"
     design_questions:
       - question: "Does caster level keep scaling from 41 to 60? Spell DCs, durations and damage caps all key off it, so 20 more caster levels is the single biggest balance lever in the whole epic. Proposal: caster level keeps rising but spell slots stop at the level-40 table, so casters gain reach and reliability without another 20 levels of raw slots — and the extra power gets sold through Legendary Feats instead, where it can be priced per feat."
         status: open
+        answer: null
       - question: "What cadence do bonus feats and ability-score increases follow from 41 to 60? HGLL gave 1 feat per level and let you buy stat points. Proposal: keep the stock epic cadence (a feat every 3 levels, +1 ability every 4) rather than HGLL's 1-per-level, so the Legendary Feat pool stays scarce enough to matter."
         status: open
+        answer: null
   - id: ll-tweaks-audit
     title: "Audit NWNX Tweaks options for epic-level play"
     group: combat-classes
@@ -3899,7 +4035,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Server-side tweaks reviewed so nothing quietly misbehaves once characters go past 40.</div>"
-    impl_notes: "<div>The Tweaks plugin is already enabled (<code>NWNX_TWEAKS_SKIP=n</code>, <code>server.env:58-60</code>) with two options set: <code>CHARLIST_SORT_BY_LAST_PLAYED_DATE</code> and <code>CAN_USE_ITEMS_WHILE_POLYMORPHED</code>. Tweaks has <b>no NWScript API</b> — it is env-var only, so there is nothing to add to <code>unpacked/</code>. Walk the plugin's option list for anything relevant to level/feat/XP handling and record the chosen set in <code>server.env</code> comments.</div>"
+    impl_notes: "<div>The Tweaks plugin is already enabled (NWNX_TWEAKS_SKIP=n, server.env:58-60) with two options set: CHARLIST_SORT_BY_LAST_PLAYED_DATE and CAN_USE_ITEMS_WHILE_POLYMORPHED. Tweaks has <b>no NWScript API</b> — it is env-var only, so there is nothing to add to unpacked/. Walk the plugin's option list for anything relevant to level/feat/XP handling and record the chosen set in server.env comments.</div>"
   - id: ll-elc-validation
     title: "Character validation with a level 60 cap"
     group: combat-classes
@@ -3907,10 +4043,10 @@ ideas:
     status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
-    commit: 8b1ffa7f99d11688be417dc427bf213978c9f5a7
     date: "2026-07-25"
+    commit: 8b1ffa7f99d11688be417dc427bf213978c9f5a7
     notes: "<div>Characters past level 40 log in cleanly. The server does not re-validate characters against the rules tables on connect, so a legendary character is never rejected or quietly reset back to 40 when the cap moves. Item level restrictions stay off as well — your gear keeps working at every level.</div>"
-    impl_notes: "<div><b>Verified 2026-07-25 — no code change required.</b> <code>server.env</code> already runs <code>NWN_ELC=0</code> and <code>NWN_ILR=0</code>, so no login-time character re-validation happens and a level 41+ character cannot be rejected or clamped. No NWNX ELC plugin is enabled and nothing in <code>unpacked/</code> subscribes to <code>NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE/_AFTER</code> (only the vendored <code>nwnx_events.nss</code>/<code>nwnx_player.nss</code> headers mention them), so there is no second validation path. <code>hak_2da/classes.2da</code> was diffed field-by-field against the stock EE table: all 11 player base classes already carry <code>MaxLevel 0</code> and <code>EpicLevel -1</code>, so no 2DA edit is needed for a 60 cap — the remaining non-zero <code>MaxLevel</code> values are stock prestige-class limits (40, or 5 for Harper/PDK) that a 60-level budget cannot reach once base-class prereqs are paid. The README's claim that those columns were part of the cap lever was wrong and has been corrected; the cap is entirely <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a>'s NWNX/<code>server.env</code> decision, so this item is not blocked on it. The only real hazard left for 41+ logins is hak mismatch, not validation: a client without the published <code>exptable.2da</code> reads the level-40 table.</div><div>Separately, listing the installed <code>lotr_rules.hak</code> showed it ships <code>classes.2da</code> (multiclass <code>XPPenalty</code> zeroed) while the README rebuild recipe omitted it — a from-scratch rebuild would have silently dropped it; the recipe now packs all four 2DAs and documents <code>nwn_erf -t</code> as the verification step. The same listing confirms <code>exptable.2da</code> is still absent from the live hak (tracked on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>). Build gates: 11/11 smoke tests.</div>"
+    impl_notes: "<div><b>Verified 2026-07-25 — no code change required.</b> server.env already runs NWN_ELC=0 and NWN_ILR=0, so no login-time character re-validation happens and a level 41+ character cannot be rejected or clamped. No NWNX ELC plugin is enabled and nothing in unpacked/ subscribes to NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE/_AFTER (only the vendored nwnx_events.nss/nwnx_player.nss headers mention them), so there is no second validation path. hak_2da/classes.2da was diffed field-by-field against the stock EE table: all 11 player base classes already carry MaxLevel 0 and EpicLevel -1, so no 2DA edit is needed for a 60 cap — the remaining non-zero MaxLevel values are stock prestige-class limits (40, or 5 for Harper/PDK) that a 60-level budget cannot reach once base-class prereqs are paid. The README's claim that those columns were part of the cap lever was wrong and has been corrected; the cap is entirely <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a>'s NWNX/server.env decision, so this item is not blocked on it. The only real hazard left for 41+ logins is hak mismatch, not validation: a client without the published exptable.2da reads the level-40 table.</div><div>Separately, listing the installed lotr_rules.hak showed it ships classes.2da (multiclass XPPenalty zeroed) while the README rebuild recipe omitted it — a from-scratch rebuild would have silently dropped it; the recipe now packs all four 2DAs and documents nwn_erf -t as the verification step. The same listing confirms exptable.2da is still absent from the live hak (tracked on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>). Build gates: 11/11 smoke tests.</div>"
     manual_steps:
       - step: "UAT: with NWN_ELC=0/NWN_ILR=0 unchanged, log in an existing level-40 character after the level-cap lift ships and confirm it loads at level 40 with no 'character rejected'/'invalid character' message and no XP loss."
         status: open
@@ -3938,10 +4074,10 @@ ideas:
     status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
-    commit: d212c3c2b0809a8983140d6b9995d5dd9403b984
     date: "2026-07-25"
+    commit: d212c3c2b0809a8983140d6b9995d5dd9403b984
     notes: "<div>The old legendary-leveller machinery is gone. Levels 41 to 60 are ordinary levels now — you earn them with experience, wherever you happen to be standing, with no statue to visit and no separate ritual. The statue in the Legendary Levelling Area no longer does anything but say so.</div>"
-    impl_notes: "<div>Deleted all 21 <code>unpacked/hgll_*.nss</code> files (incl. the 250 KB <code>hgll_classft_inc</code> and 176 KB <code>hgll_featreq_inc</code> feat tables, <code>hgll_func_inc</code>, <code>hgll_leto_inc</code>, <code>hgll_const_inc</code>, <code>hgll_dlg_leveler</code>, <code>hgll_start_dlg</code>, <code>hgll_struct_stat</code>, <code>hgll_featlist_01</code>–<code>11</code>, and the two gutted login stubs) plus <code>sha_leto_inc.nss</code> — 14,572 lines removed.</div><div>Four live references de-referenced first: the single <code>ExecuteScript(\"hgll_cliententer\")</code> in <code>mod_cliententer.nss</code> and <code>ExecuteScript(\"hgll_client_exit\")</code> in <code>mod_clientexit.nss</code> were dropped; <code>mw_mixtape_con.nss</code> lost its <code>#include \"hgll_leto_inc\"</code> in favour of a local <code>MixtapeRaiseStat()</code> over <code>NWNX_Creature_Get/SetRawAbilityScore</code> plus a direct <code>ExportSingleCharacter()</code> (identical behaviour to the old <code>HGLL_AddStatPoint</code>/<code>HGLL_FlushChanges</code>); and the <code>ZEP_STATUES026</code> placeable in <code>legendarylevelli.git.json</code> had its <code>OnUsed</code> moved from <code>hgll_start_dlg</code> to the new <code>ll_leveler_gone.nss</code> stub, so the retired statue explains itself instead of pointing at a deleted script.</div><div><code>hgll_const_inc.nss</code> had no consumer outside the deleted set — no constants needed relocating; <code>code_redeem.nss</code> already sources <code>XP_LEVEL_60</code> from <code>hak_2da/exptable.2da</code>. The dead Windows Letoscript path <code>const string NWNPATH</code> went with it.</div><div>Also removed <code>tests/check_hgll_transactional.py</code> and its block in <code>tests/smoke-test</code> (closes <a href=\"#idea-ll-hgll-retire-gate\">ll-hgll-retire-gate</a>) — it inspected <code>hgll_client_exit.nss</code> and would have reddened the build. Smoke runner now reports 11/11.</div><div>Verified post-delete: no <code>hgll</code>/<code>sha_leto_inc</code> include, <code>ExecuteScript</code> or GFF script-field reference remains anywhere in <code>unpacked/</code>, <code>tests/</code>, <code>bin/</code> or <code>nasher.cfg</code> (comments only), and <code>nwn_erf -l</code> on the packed <code>.mod</code> lists zero such resources. Docs synced: <code>README.md</code>, <code>CLAUDE-nwscript.md</code>, <code>QuestGuide-DM-Notes.md</code>.</div><div>Still standing, owned by <a href=\"#idea-ll-hgll-retire-area\">ll-hgll-retire-area</a>: the <code>legendarylevelli</code> area set, its Well of Eru trigger and the <code>legenarea</code> waypoint.</div>"
+    impl_notes: "<div>Deleted all 21 unpacked/hgll_*.nss files (incl. the 250 KB hgll_classft_inc and 176 KB hgll_featreq_inc feat tables, hgll_func_inc, hgll_leto_inc, hgll_const_inc, hgll_dlg_leveler, hgll_start_dlg, hgll_struct_stat, hgll_featlist_01–11, and the two gutted login stubs) plus sha_leto_inc.nss — 14,572 lines removed.</div><div>Four live references de-referenced first: the single ExecuteScript(\"hgll_cliententer\") in mod_cliententer.nss and ExecuteScript(\"hgll_client_exit\") in mod_clientexit.nss were dropped; mw_mixtape_con.nss lost its #include \"hgll_leto_inc\" in favour of a local MixtapeRaiseStat() over NWNX_Creature_Get/SetRawAbilityScore plus a direct ExportSingleCharacter() (identical behaviour to the old HGLL_AddStatPoint/HGLL_FlushChanges); and the ZEP_STATUES026 placeable in legendarylevelli.git.json had its OnUsed moved from hgll_start_dlg to the new ll_leveler_gone.nss stub, so the retired statue explains itself instead of pointing at a deleted script.</div><div>hgll_const_inc.nss had no consumer outside the deleted set — no constants needed relocating; code_redeem.nss already sources XP_LEVEL_60 from hak_2da/exptable.2da. The dead Windows Letoscript path const string NWNPATH went with it.</div><div>Also removed tests/check_hgll_transactional.py and its block in tests/smoke-test (closes <a href=\"#idea-ll-hgll-retire-gate\">ll-hgll-retire-gate</a>) — it inspected hgll_client_exit.nss and would have reddened the build. Smoke runner now reports 11/11.</div><div>Verified post-delete: no hgll/sha_leto_inc include, ExecuteScript or GFF script-field reference remains anywhere in unpacked/, tests/, bin/ or nasher.cfg (comments only), and nwn_erf -l on the packed .mod lists zero such resources. Docs synced: README.md, CLAUDE-nwscript.md, QuestGuide-DM-Notes.md.</div><div>Still standing, owned by <a href=\"#idea-ll-hgll-retire-area\">ll-hgll-retire-area</a>: the legendarylevelli area set, its Well of Eru trigger and the legenarea waypoint.</div>"
     manual_steps:
       - step: "UAT login/logout: log a character in and back out, then reconnect — the character must load normally and keep its inventory, journals and persistent state (the login and logout handlers each lost a call to a now-deleted script)."
         status: open
@@ -3960,10 +4096,10 @@ ideas:
     status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
-    commit: 23487788730240fbac4e4304f925272a07f88dba
     date: "2026-07-25"
+    commit: 23487788730240fbac4e4304f925272a07f88dba
     notes: "<div>Housekeeping under the hood: the login and logout handling has been separated from the old legendary-leveler code it had grown into. Nothing changes for you — your journals, merit login credit, bestiary, teleport unlocks, faction allegiance, XP boosts, bank storage boxes and the bleeding-out survival roll all behave exactly as before. The change clears the way for the retired leveler to be removed without disturbing login.</div>"
-    impl_notes: "<div>Split <code>hgll_cliententer.nss</code> / <code>hgll_client_exit.nss</code> into neutrally-named handlers <code>unpacked/mod_cliententer.nss</code> and <code>unpacked/mod_clientexit.nss</code>, and re-pointed <code>Mod_OnClientEntr</code> (<code>module.ifo.json:2285</code>) and <code>Mod_OnClientLeav</code> (<code>:2289</code>) at them. The new enter handler carries the whole general login flow verbatim: <code>Merit_InitDb/RecordLogin/LoginMessage</code>, <code>Bst_InitDb</code> + <code>GetObjectUUID</code>, <code>Tele_InitDb</code>, <code>Faction_InitDb</code> + delayed <code>Faction_ApplyLive</code>, <code>Boost_InitDb</code> + <code>Boost_LoginReport</code>, the nine server-info <code>AddJournalQuestEntry</code> calls (<code>guilds</code> still deliberately omitted), <code>FRK_LoginCheck</code>, the death-amulet / bleeding-out resolution (<code>HgllPostEnter</code> renamed <code>ModPostEnter</code>), the <code>nwnmgr_bstamp</code> build stamp and <code>ForgeBeginScan</code>. The new exit handler carries <code>EpicSummon_Dismiss</code>, <code>CommitStrongBoxes</code>/<code>CommitFamilyBoxes</code>, <code>PersState_Snapshot</code> and <code>ExportSingleCharacter</code>. All delay timings and statement order are unchanged.</div><div>The two HGLL-specific steps were <b>not</b> copy-pasted: <code>hgll_cliententer.nss</code> is reduced to the pre-port Letoscript locals wipe and <code>hgll_client_exit.nss</code> to <code>HGLL_ClearPendingPicks</code>, both now <code>OBJECT_SELF</code>-based and reached by one <code>ExecuteScript</code> call each — so <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a> deletes two files and one line per handler. Keeping <code>hgll_client_exit.nss</code> alive also keeps <code>tests/check_hgll_transactional.py</code> valid until <a href=\"#idea-ll-hgll-retire-gate\">ll-hgll-retire-gate</a> lands. Comment/doc references updated in <code>unpacked/pers_state_inc.nss</code>, <code>unpacked/q_frk_inc.nss</code>, <code>CLAUDE-gff-format.md</code>, <code>CLAUDE-nwscript.md</code>, <code>CLAUDE-merit.md</code>, <code>README.md</code>, <code>QuestGuide-DM-Notes.md</code> and <code>docs.manual/Draft/Gem-Socketing.html</code>. Gates: 12/12 smoke tests (incl. hgll transactional, dialog integrity, palette coverage, season brand), 12 scripts compiled 0 errors.</div>"
+    impl_notes: "<div>Split hgll_cliententer.nss / hgll_client_exit.nss into neutrally-named handlers unpacked/mod_cliententer.nss and unpacked/mod_clientexit.nss, and re-pointed Mod_OnClientEntr (module.ifo.json:2285) and Mod_OnClientLeav (:2289) at them. The new enter handler carries the whole general login flow verbatim: Merit_InitDb/RecordLogin/LoginMessage, Bst_InitDb + GetObjectUUID, Tele_InitDb, Faction_InitDb + delayed Faction_ApplyLive, Boost_InitDb + Boost_LoginReport, the nine server-info AddJournalQuestEntry calls (guilds still deliberately omitted), FRK_LoginCheck, the death-amulet / bleeding-out resolution (HgllPostEnter renamed ModPostEnter), the nwnmgr_bstamp build stamp and ForgeBeginScan. The new exit handler carries EpicSummon_Dismiss, CommitStrongBoxes/CommitFamilyBoxes, PersState_Snapshot and ExportSingleCharacter. All delay timings and statement order are unchanged.</div><div>The two HGLL-specific steps were <b>not</b> copy-pasted: hgll_cliententer.nss is reduced to the pre-port Letoscript locals wipe and hgll_client_exit.nss to HGLL_ClearPendingPicks, both now OBJECT_SELF-based and reached by one ExecuteScript call each — so <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a> deletes two files and one line per handler. Keeping hgll_client_exit.nss alive also keeps tests/check_hgll_transactional.py valid until <a href=\"#idea-ll-hgll-retire-gate\">ll-hgll-retire-gate</a> lands. Comment/doc references updated in unpacked/pers_state_inc.nss, unpacked/q_frk_inc.nss, CLAUDE-gff-format.md, CLAUDE-nwscript.md, CLAUDE-merit.md, README.md, QuestGuide-DM-Notes.md and docs.manual/Draft/Gem-Socketing.html. Gates: 12/12 smoke tests (incl. hgll transactional, dialog integrity, palette coverage, season brand), 12 scripts compiled 0 errors.</div>"
     manual_steps:
       - step: "UAT login: log in an existing character and confirm the server-info journals (Rules, Website, Module Customizations, Character Progression, Death, Forge, Systems, Factions, Combat) are all present in the Completed section."
         status: open
@@ -3990,10 +4126,10 @@ ideas:
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    commit: 6cdbf5335dd01aa4933332b7afdf814f6da59fb1
     date: "2026-07-25"
+    commit: 6cdbf5335dd01aa4933332b7afdf814f6da59fb1
     notes: "<div>The Legendary Levelling Area off the Well of Eru is closed and gone. Levels 41-60 are ordinary levels earned with ordinary experience, so there is no longer a separate room to travel to or a statue to visit — the doorway in the Well of Eru has been removed along with it. See <a href=\"Customizations.html#legendary-levels\">Legendary Levels: 41-60</a>.</div>"
-    impl_notes: "<div>Deleted <code>legendarylevelli.are/.git/.gic.json</code> as a set and removed the area's struct from <code>Mod_Area_list</code> in <code>module.ifo.json</code> (292 &rarr; 291 areas; <code>Mod_Entry_Area</code> is <code>thewelloferu</code> and was untouched).</div><div>The inbound Well of Eru trigger was already gone before this item ran: the admin toolset save <code>91261442750</code> (2026-07-25 09:43) removed both the <code>AreaTransition</code> trigger with <code>LinkedTo: \"legenarea\"</code> and the <code>GenericTrigger</code> whose OnEnter/OnExit ran <code>servershout5</code> (5 triggers &rarr; 3, git+gic already in lockstep). <code>module-index/area_graph.json</code> still showed the edge only because it was generated at 03:11, before that save.</div><div>Two scripts deleted as orphans: <code>ll_leveler_gone.nss</code> (the retired-statue stub added under <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>; its only caller was the <code>ZEP_STATUES026</code> <code>OnUsed</code> in the deleted <code>.git</code>) and <code>servershout5.nss</code> (the \"You must be level 40 to enter the Legendary Levelling Area\" warning). <code>servershout2/3/4</code> are unrelated and were left alone; <code>halloflegends.*</code> and <code>legenddoor.utd.json</code> untouched.</div><div>Verified post-delete: <code>legendarylevelli</code>, <code>legenarea</code>, <code>LegendaryLevellingArea</code>, <code>ll_leveler_gone</code> and <code>servershout5</code> appear nowhere in <code>unpacked/</code>, <code>tests/</code>, <code>bin/</code> or <code>nasher.cfg</code>, and <code>nwn_erf -l</code> on the packed <code>.mod</code> lists none of them. Build: 11/11 smoke tests, area list 291, 1 script compiled clean.</div><div><code>bin/gen-map-notes.py</code> was run dry and compared against a HEAD worktree: identical results (244 updated / 313 unchanged / 132 areas touched), so this change produces zero map-note delta and <code>--apply</code> was deliberately not run — the 244 updates are pre-existing drift unrelated to this item.</div><div>Docs synced: <code>README.md</code>, <code>CLAUDE-nwscript.md</code>, <code>QuestGuide-DM-Notes.md</code>, <code>Quest Ideas.md</code>.</div>"
+    impl_notes: "<div>Deleted legendarylevelli.are/.git/.gic.json as a set and removed the area's struct from Mod_Area_list in module.ifo.json (292 → 291 areas; Mod_Entry_Area is thewelloferu and was untouched).</div><div>The inbound Well of Eru trigger was already gone before this item ran: the admin toolset save 91261442750 (2026-07-25 09:43) removed both the AreaTransition trigger with LinkedTo: \"legenarea\" and the GenericTrigger whose OnEnter/OnExit ran servershout5 (5 triggers → 3, git+gic already in lockstep). module-index/area_graph.json still showed the edge only because it was generated at 03:11, before that save.</div><div>Two scripts deleted as orphans: ll_leveler_gone.nss (the retired-statue stub added under <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>; its only caller was the ZEP_STATUES026 OnUsed in the deleted .git) and servershout5.nss (the \"You must be level 40 to enter the Legendary Levelling Area\" warning). servershout2/3/4 are unrelated and were left alone; halloflegends.* and legenddoor.utd.json untouched.</div><div>Verified post-delete: legendarylevelli, legenarea, LegendaryLevellingArea, ll_leveler_gone and servershout5 appear nowhere in unpacked/, tests/, bin/ or nasher.cfg, and nwn_erf -l on the packed .mod lists none of them. Build: 11/11 smoke tests, area list 291, 1 script compiled clean.</div><div>bin/gen-map-notes.py was run dry and compared against a HEAD worktree: identical results (244 updated / 313 unchanged / 132 areas touched), so this change produces zero map-note delta and --apply was deliberately not run — the 244 updates are pre-existing drift unrelated to this item.</div><div>Docs synced: README.md, CLAUDE-nwscript.md, QuestGuide-DM-Notes.md, Quest Ideas.md.</div>"
     manual_steps:
       - step: "A character standing inside the Legendary Levelling Area when the server next loads this build would be stranded in a deleted area. Before deploying, confirm no character is parked there — the admin controls when the server reloads."
         status: open
@@ -4015,10 +4151,10 @@ ideas:
     status: implemented
     type: Defect
     player: "HomelessSon (Server Admin)"
-    commit: d212c3c2b0809a8983140d6b9995d5dd9403b984
     date: "2026-07-25"
+    commit: d212c3c2b0809a8983140d6b9995d5dd9403b984
     notes: "<div>Internal build cleanup — no player-visible effect.</div>"
-    impl_notes: "<div>Done as part of <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>: <code>tests/check_hgll_transactional.py</code> and its 8-line block in <code>tests/smoke-test</code> were deleted in the same commit. The gate inspected <code>hgll_client_exit.nss</code>, so it could not outlive the scripts it guarded — leaving it would have reddened the build. The smoke runner now reports 11/11 instead of 12/12. No toolset or server work remains for this item.</div>"
+    impl_notes: "<div>Done as part of <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>: tests/check_hgll_transactional.py and its 8-line block in tests/smoke-test were deleted in the same commit. The gate inspected hgll_client_exit.nss, so it could not outlive the scripts it guarded — leaving it would have reddened the build. The smoke runner now reports 11/11 instead of 12/12. No toolset or server work remains for this item.</div>"
   - id: ll-hgll-purge-docs
     title: "Purge HGLL from the wiki and repo docs"
     group: wiki-tools
@@ -4026,10 +4162,10 @@ ideas:
     status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
-    commit: fe08ce09df2ff81f6ad03aa909011c341d044a58
     date: "2026-07-25"
-    notes: "<div>The wiki no longer describes the old bolt-on legendary leveler. Levels 41 to 60 are documented as what they now are: ordinary character levels on the server's own published experience table &mdash; level 41 at 828,800 total XP, each level after costing 10% more than the last, ending at 3,581,000 for level 60. Your XP bar simply keeps going past 40; there is no leveling NPC to visit and no separate area to travel to. The in-game \"Character Progression\" info journal and the server listing now say the same thing. This is flagged as <strong>in development for Season 2</strong> &mdash; the XP table is in the build, the level-cap lift is still being worked on. See <a href=\"Customizations.html#legendary-levels\">Customizations &rarr; Legendary Levels: 41&ndash;60</a>.</div>"
-    impl_notes: "<div>Documentation/text only &mdash; no script or blueprint behaviour changed. <b>Player-facing:</b> <code>docs.manual/Customizations.html</code> (<code>#legendary-levels</code> rewritten: HGLL vault link, \"Legendary Leveler\" NPC/placeable, Legendary Leveling area, the DO/DON'T-gain table and the \"stock HGLL charges 1.25x\" comparison all removed; replaced with an in-development tip-box, a real-levels explanation and the retained XP table); <code>docs.manual/LevelingGuide.html</code> (the \"Legendary Levelling Area\" dt deleted, folded into \"Levels 41 to 60 are ordinary levels\" with the in-development caveat); <code>index.html</code> (landing-page card and Leveling Guide tile no longer name HGLL); <code>docs.manual/Draft/Gem-Socketing.html</code> (<code>hgll_cliententer.nss</code> references rephrased as \"the module's <code>Mod_OnClientEntr</code> handler\"). <b>GFF strings:</b> <code>unpacked/module.ifo.json</code> <code>Mod_Description</code> cexolocstring and <code>unpacked/module.jrl.json</code> \"Character Progression\" (<code>mod_progress</code>) entry, which quoted the old per-level XP costs and the ~17.5M total; both re-verified as valid JSON and <code>bin/season-brand.py</code> reports no drift (it owns only the Connect:/Wiki: lines).</div><div><b>Repo docs:</b> <code>CLAUDE-nwscript.md</code> (<code>hgll_*</code> prefix row marked retired, pointing at <code>hak_2da/exptable.2da</code> and <code>ll-hgll-remove-scripts</code>), <code>CLAUDE-gff-format.md</code> (event-hook table now describes the real login/logout wiring instead of \"Letoscript apply on enter (HGLL)\"), <code>CLAUDE-merit.md</code>, <code>QuestGuide-DM-Notes.md</code>, <code>Quest Ideas.md</code>, <code>TODO.txt</code>, and <code>README.md</code> &mdash; new \"Levels 41&ndash;60\" section stating the table, the two remaining levers (hak publish, <code>NWNX_MAXLEVEL_SKIP</code> / <code>classes.2da</code>) and the retired-leveler rule, plus <code>hak_2da/exptable.2da</code> added to the <code>lotr_rules.hak</code> pack instructions (previously only <code>ruleset.2da</code> + <code>baseitems.2da</code>, which would silently drop the new table on a from-scratch rebuild). <code>server.env</code> comments de-HGLL'd; <code>tests/check_season_brand.py</code> still passes.</div><div><b>Deliberately left alone:</b> the <code>hgll_*</code> scripts, the <code>servershout*</code> floating text and the leveler area itself (<code>ll-hgll-remove-scripts</code>), and the <code>freelegendary</code> README example with <code>SetXP(oPC, 17498600)</code> (<code>ll-freelegendary-code</code>). Remaining references to <code>hgll_cliententer.nss</code> are factual &mdash; it is still the live <code>Mod_OnClientEntr</code> handler &mdash; and are annotated as a legacy name. <code>docs/</code> and <code>docs.manual/Roadmap.html</code> untouched; no wiki refresh run. <b>Gates:</b> bare <code>nwn-manager repack</code>, 12/12 smoke tests, 1/1 script compiled.</div>"
+    commit: fe08ce09df2ff81f6ad03aa909011c341d044a58
+    notes: "<div>The wiki no longer describes the old bolt-on legendary leveler. Levels 41 to 60 are documented as what they now are: ordinary character levels on the server's own published experience table — level 41 at 828,800 total XP, each level after costing 10% more than the last, ending at 3,581,000 for level 60. Your XP bar simply keeps going past 40; there is no leveling NPC to visit and no separate area to travel to. The in-game \"Character Progression\" info journal and the server listing now say the same thing. This is flagged as <strong>in development for Season 2</strong> — the XP table is in the build, the level-cap lift is still being worked on. See <a href=\"Customizations.html#legendary-levels\">Customizations → Legendary Levels: 41–60</a>.</div>"
+    impl_notes: "<div>Documentation/text only — no script or blueprint behaviour changed. <b>Player-facing:</b> docs.manual/Customizations.html (#legendary-levels rewritten: HGLL vault link, \"Legendary Leveler\" NPC/placeable, Legendary Leveling area, the DO/DON'T-gain table and the \"stock HGLL charges 1.25x\" comparison all removed; replaced with an in-development tip-box, a real-levels explanation and the retained XP table); docs.manual/LevelingGuide.html (the \"Legendary Levelling Area\" dt deleted, folded into \"Levels 41 to 60 are ordinary levels\" with the in-development caveat); index.html (landing-page card and Leveling Guide tile no longer name HGLL); docs.manual/Draft/Gem-Socketing.html (hgll_cliententer.nss references rephrased as \"the module's Mod_OnClientEntr handler\"). <b>GFF strings:</b> unpacked/module.ifo.json Mod_Description cexolocstring and unpacked/module.jrl.json \"Character Progression\" (mod_progress) entry, which quoted the old per-level XP costs and the ~17.5M total; both re-verified as valid JSON and bin/season-brand.py reports no drift (it owns only the Connect:/Wiki: lines).</div><div><b>Repo docs:</b> CLAUDE-nwscript.md (hgll_* prefix row marked retired, pointing at hak_2da/exptable.2da and ll-hgll-remove-scripts), CLAUDE-gff-format.md (event-hook table now describes the real login/logout wiring instead of \"Letoscript apply on enter (HGLL)\"), CLAUDE-merit.md, QuestGuide-DM-Notes.md, Quest Ideas.md, TODO.txt, and README.md — new \"Levels 41–60\" section stating the table, the two remaining levers (hak publish, NWNX_MAXLEVEL_SKIP / classes.2da) and the retired-leveler rule, plus hak_2da/exptable.2da added to the lotr_rules.hak pack instructions (previously only ruleset.2da + baseitems.2da, which would silently drop the new table on a from-scratch rebuild). server.env comments de-HGLL'd; tests/check_season_brand.py still passes.</div><div><b>Deliberately left alone:</b> the hgll_* scripts, the servershout* floating text and the leveler area itself (ll-hgll-remove-scripts), and the freelegendary README example with SetXP(oPC, 17498600) (ll-freelegendary-code). Remaining references to hgll_cliententer.nss are factual — it is still the live Mod_OnClientEntr handler — and are annotated as a legacy name. docs/ and docs.manual/Roadmap.html untouched; no wiki refresh run. <b>Gates:</b> bare nwn-manager repack, 12/12 smoke tests, 1/1 script compiled.</div>"
     manual_steps:
       - step: "UAT: log in and open Journal -> Completed -> \"Character Progression\" — it must describe levels 41-60 as real levels on the published XP table (48,800 over level 40, compounding 1.1x, 3,581,000 at level 60) with no mention of HGLL or a leveling NPC."
         status: open
@@ -4046,10 +4182,10 @@ ideas:
     status: manual
     type: Exploit
     player: "HomelessSon (Server Admin)"
-    commit: fa7bcec94d37c4f1e2b9ad822f9a97ccdb6d2de8
     date: "2026-07-25"
-    notes: "<div>The <code>freelegendary</code> promotional code now grants exactly the experience needed for level 60 on the server's own experience table, instead of a figure carried over from the old legendary-level system. Redeeming it can never reduce a character's experience.</div>"
-    impl_notes: "<div><b>Root cause:</b> the live grant in <code>unpacked/code_redeem.nss</code> was already <code>SetXP(oPC, 3581000)</code> as of <code>bccd437b7b9</code> — the 1.1x compounding change made the retired HGLL total-to-60 and the new <code>hak_2da/exptable.2da</code> row-59 value converge on the same number. The <code>17498600</code> cited by this item survived only as a stale reward example in <code>README.md</code>, not in any shipped script.</div><div><b>Fix:</b> <code>code_redeem.nss</code> gains <code>const int XP_LEVEL_60 = 3581000</code>, commented as the last real row of <code>hak_2da/exptable.2da</code> and explicitly not derived from HGLL accounting; the <code>freelegendary</code> case now grants the constant behind a no-downgrade guard (<code>if (GetXP(oPC) &lt; XP_LEVEL_60) SetXP(...)</code>) — the previous unconditional absolute <code>SetXP</code> would have <i>removed</i> XP from a character banked past the final table row. <code>README.md</code>'s \"Adding a new code\" example updated to the real code, with a new paragraph requiring XP codes to be written against the published table and to guard absolute <code>SetXP</code>.</div><div><b>Not changed:</b> the code's <code>2026-07-01</code> expiration (already past, so the code is inert in-game — reviving/retiring it is an admin call, see manual steps); the other <code>3581000</code> literals in <code>bank_xp_*.nss</code>, <code>grant_lvl60.nss</code> and <code>hgll_const_inc.nss</code> (the last is slated for deletion by <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>). No <code>docs.manual/</code> page documents the redeem-code system. <b>Gates:</b> bare <code>nwn-manager repack</code>, 12/12 smoke tests (incl. <code>check_reward_exploit</code>), 2/2 scripts compiled.</div>"
+    commit: fa7bcec94d37c4f1e2b9ad822f9a97ccdb6d2de8
+    notes: "<div>The freelegendary promotional code now grants exactly the experience needed for level 60 on the server's own experience table, instead of a figure carried over from the old legendary-level system. Redeeming it can never reduce a character's experience.</div>"
+    impl_notes: "<div><b>Root cause:</b> the live grant in unpacked/code_redeem.nss was already SetXP(oPC, 3581000) as of bccd437b7b9 — the 1.1x compounding change made the retired HGLL total-to-60 and the new hak_2da/exptable.2da row-59 value converge on the same number. The 17498600 cited by this item survived only as a stale reward example in README.md, not in any shipped script.</div><div><b>Fix:</b> code_redeem.nss gains const int XP_LEVEL_60 = 3581000, commented as the last real row of hak_2da/exptable.2da and explicitly not derived from HGLL accounting; the freelegendary case now grants the constant behind a no-downgrade guard (if (GetXP(oPC) &lt; XP_LEVEL_60) SetXP(...)) — the previous unconditional absolute SetXP would have <i>removed</i> XP from a character banked past the final table row. README.md's \"Adding a new code\" example updated to the real code, with a new paragraph requiring XP codes to be written against the published table and to guard absolute SetXP.</div><div><b>Not changed:</b> the code's 2026-07-01 expiration (already past, so the code is inert in-game — reviving/retiring it is an admin call, see manual steps); the other 3581000 literals in bank_xp_*.nss, grant_lvl60.nss and hgll_const_inc.nss (the last is slated for deletion by <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>). No docs.manual/ page documents the redeem-code system. <b>Gates:</b> bare nwn-manager repack, 12/12 smoke tests (incl. check_reward_exploit), 2/2 scripts compiled.</div>"
     manual_steps:
       - step: "Decide whether the freelegendary code should stay retired. Its expiration is 2026-07-01, so it currently answers \"That code has expired\" to everyone. The grant is now correct if you want to revive it — push the date out in GetCodeExpiration() — otherwise it can stay inert or have its case removed entirely."
         status: open
@@ -4062,16 +4198,20 @@ ideas:
       - step: "UAT: type Code:FreeLegendary in chat with a second player present and confirm the line is not broadcast to them."
         status: open
   - id: ll-pingpong-41-60
-    title: 'Ping Pong: add level 41-60 to the "Set my level" menu'
+    title: "Ping Pong: add level 41-60 to the \"Set my level\" menu"
     group: combat-classes
     epic: legendary-levels
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    commit: fb3435f894237d25360afed7d2db472520337858
     date: "2026-07-25"
+    commit: fb3435f894237d25360afed7d2db472520337858
     notes: "<div>Ping Pong, the test NPC, can now set you to any of the new legendary levels. Pick \"Set my level.\", then \"Legendary Levels (41 - 60)\" from the high-level page, and choose anything from 41 up to 60. The experience granted matches the server's published legendary table exactly.</div>"
-    impl_notes: "<div><code>unpacked/_pc_builder_v1.dlg.json</code>: new entry 5 (\"Which legendary level do you want? (41 - 60)\") with replies 58-77 (levels 41-60) plus a Nevermind link; reached from entry 4 (the existing 21-40 page) via new reply 79 \"Legendary Levels (41 - 60)\". Note the original note was wrong that reply 16 was an unwired stub — the dialog already linked the 1-20 page to the 21-40 page.</div><div>New include <code>unpacked/_build_lvl_inc.nss</code> holds <code>BuildLegendaryXP()</code> / <code>BuildSetLegendaryLevel()</code>; the 20 new <code>_build_level_41..60.nss</code> are one-line wrappers. XP is read at runtime from <code>Get2DAString(\"exptable\", \"XP\", nLevel - 1)</code> so <code>hak_2da/exptable.2da</code> stays the single source of truth, with a transcribed fallback switch (828,800 &hellip; 3,581,000) for the case where the hak is absent. The new path uses <code>GetPCSpeaker()</code> for the XP set <i>and</i> the VFX/floating text (fixing the stock scripts' <code>GetLastSpeaker()</code> split), and the change is on the conversation, not on an instance, so both <code>butcha</code> placements (<code>thewelloferu</code>, <code>houseofdispai001</code>) pick it up.</div><div>Setting a level above 40 will not raise the character sheet until <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a> lands; until then <code>SetXP</code> banks the XP but the engine caps the level. Gates: 11/11 smoke tests, dialog integrity 378 dialogs / 0 failing, 21 scripts compiled 0 errors.</div>"
+    impl_notes: "<div>unpacked/_pc_builder_v1.dlg.json: new entry 5 (\"Which legendary level do you want? (41 - 60)\") with replies 58-77 (levels 41-60) plus a Nevermind link; reached from entry 4 (the existing 21-40 page) via new reply 79 \"Legendary Levels (41 - 60)\". Note the original note was wrong that reply 16 was an unwired stub — the dialog already linked the 1-20 page to the 21-40 page.</div><div>New include unpacked/_build_lvl_inc.nss holds BuildLegendaryXP() / BuildSetLegendaryLevel(); the 20 new _build_level_41..60.nss are one-line wrappers. XP is read at runtime from Get2DAString(\"exptable\", \"XP\", nLevel - 1) so hak_2da/exptable.2da stays the single source of truth, with a transcribed fallback switch (828,800 … 3,581,000) for the case where the hak is absent. The new path uses GetPCSpeaker() for the XP set <i>and</i> the VFX/floating text (fixing the stock scripts' GetLastSpeaker() split), and the change is on the conversation, not on an instance, so both butcha placements (thewelloferu, houseofdispai001) pick it up.</div><div>Setting a level above 40 will not raise the character sheet until <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a> lands; until then SetXP banks the XP but the engine caps the level. Gates: 11/11 smoke tests, dialog integrity 378 dialogs / 0 failing, 21 scripts compiled 0 errors.</div>"
+    design_questions:
+      - question: "Ping Pong (\"Set my level\", \"100,000,000 GP\") is placed in The Well of Eru (thewelloferu), the public hub, with no CD-key or admin gate at all — empty StartingList conditional, stock nw_c2_default4, no Active on any reply. Any player can already set their own level and mint 100 million gold; this item now adds level 60 to that. Proposed: gate the conversation with an Admin_CanAdmin()/Admin_CanHomeless() StartingConditional (a new _build_admin_sc.nss calling the existing admin_db.nss helpers) so only whitelisted CD keys see the menu, and leave the House of Dispair (houseofdispai001) copy as-is; alternatively remove the thewelloferu instance entirely and keep Ping Pong to the admin house. Approve one, or say it should stay open to everyone. Not acted on — gating is a policy decision that changes live player-facing behaviour."
+        status: open
+        answer: null
     manual_steps:
       - step: "UAT: talk to Ping Pong, choose \"Set my level.\" then \"Legendary Levels (41 - 60)\", and confirm the new page lists Level 41 through Level 60 (Legendary Maxx) plus Nevermind, and that Nevermind returns to the opening line."
         status: open
@@ -4085,10 +4225,6 @@ ideas:
         status: open
       - step: "UAT: confirm the existing 1-20 and 21-40 pages still work unchanged (set level 20 and level 40)."
         status: open
-    design_questions:
-      - question: "Ping Pong (\"Set my level\", \"100,000,000 GP\") is placed in The Well of Eru (thewelloferu), the public hub, with no CD-key or admin gate at all — empty StartingList conditional, stock nw_c2_default4, no Active on any reply. Any player can already set their own level and mint 100 million gold; this item now adds level 60 to that. Proposed: gate the conversation with an Admin_CanAdmin()/Admin_CanHomeless() StartingConditional (a new _build_admin_sc.nss calling the existing admin_db.nss helpers) so only whitelisted CD keys see the menu, and leave the House of Dispair (houseofdispai001) copy as-is; alternatively remove the thewelloferu instance entirely and keep Ping Pong to the admin house. Approve one, or say it should stay open to everyone. Not acted on — gating is a policy decision that changes live player-facing behaviour."
-        status: open
-        answer: null
   - id: ll-wiki-leveling-docs
     title: "Rewrite the Leveling Guide for real levels 41-60"
     group: wiki-tools
@@ -4097,7 +4233,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The wiki explains how levelling past 40 actually works now: what you gain per level, what it costs, and where the Legendary Feats fit.</div>"
-    impl_notes: "<div>Follows <a href=\"#idea-ll-hgll-purge-docs\">the HGLL purge</a> — that one removes the old text, this one writes the replacement in <code>docs.manual/LevelingGuide.html</code> and <code>docs.manual/Customizations.html</code>, including the new XP table and a link to the Legendary Feats page once the draft graduates out of <code>Draft/</code>.</div><div><b>2026-07-25 (autopilot):</b> the XP-cost half of this page has already landed via <a href=\"#idea-ll-hgll-purge-docs\">ll-hgll-purge-docs</a> (the 41-60 table, the 48,800 / x1.1 rule, the in-development caveat). What is left is precisely the part nobody has decided yet — the per-level gains (BAB, saves, hit dice, skill points, spell progression) owned by <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>, and the Legendary Feats section owned by <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a>, both still in design. Writing those sections now means inventing the rules in prose and rewriting the page once the real tables land. Parked rather than half-written.</div>"
+    impl_notes: "<div>Follows <a href=\"#idea-ll-hgll-purge-docs\">the HGLL purge</a> — that one removes the old text, this one writes the replacement in docs.manual/LevelingGuide.html and docs.manual/Customizations.html, including the new XP table and a link to the Legendary Feats page once the draft graduates out of Draft/.</div><div><b>2026-07-25 (autopilot):</b> the XP-cost half of this page has already landed via <a href=\"#idea-ll-hgll-purge-docs\">ll-hgll-purge-docs</a> (the 41-60 table, the 48,800 / x1.1 rule, the in-development caveat). What is left is precisely the part nobody has decided yet — the per-level gains (BAB, saves, hit dice, skill points, spell progression) owned by <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>, and the Legendary Feats section owned by <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a>, both still in design. Writing those sections now means inventing the rules in prose and rewriting the page once the real tables land. Parked rather than half-written.</div>"
     design_questions:
       - question: "Should the Leveling Guide rewrite wait for its dependencies, or ship an XP-only version now? Proposed: wait — resume this item only once ll-cls-progression and ll-feats-2da are decided, then write the per-level gains table and the Legendary Feats section in one pass. The XP-cost half is already published (ll-hgll-purge-docs), so nothing is currently missing or wrong on the page; it is just incomplete, and marked in development. Alternative if you would rather not wait: say so and the page gets an explicit \"per-level gains and Legendary Feats are still being designed\" placeholder section now."
         status: open
@@ -4110,10 +4246,11 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The groundwork for Legendary Feats: feats that only become selectable after level 40, and the rules for how many each class gets.</div>"
-    impl_notes: "<div>Against real levels this is <code>hak_2da/feat.2da</code> work (the file already has <code>MinLevel</code> / <code>PreReqEpic</code> columns) rather than entries in the old <code>hgll_featlist_*</code> pages. Source of truth for the catalogue is <a href=\"Draft/LegendaryFeats.html\">the Legendary Feats draft</a>; allotments are in <a href=\"Draft/LegendaryFeats.html#allotments\">Class Allotments</a>. Every <code>ll-feats-*</code> story below depends on this one.</div>"
+    impl_notes: "<div>Against real levels this is hak_2da/feat.2da work (the file already has MinLevel / PreReqEpic columns) rather than entries in the old hgll_featlist_* pages. Source of truth for the catalogue is <a>the Legendary Feats draft</a>; allotments are in <a>Class Allotments</a>. Every ll-feats-* story below depends on this one.</div>"
     design_questions:
       - question: "The draft's Class Allotments assume a pure-class bonus pool, but the roadmap note on Legendary-Feats says 'reuse same pool of feats and just not give as many to mixed classes.' Confirm the mixed-class allotment rule — a flat reduction, a per-class-level formula, or pure-class-only for some tiers?"
         status: open
+        answer: null
   - id: ll-feats-ability-martial
     title: "Legendary Feats: ability score and martial feats"
     group: combat-classes
@@ -4122,7 +4259,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Ability-score and martial Legendary Feats.</div>"
-    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#ability-scores\">Ability Score Feats</a> and <a href=\"Draft/LegendaryFeats.html#martial\">Martial Feats</a>.</div>"
+    impl_notes: "<div>Draft sections <a>Ability Score Feats</a> and <a>Martial Feats</a>.</div>"
   - id: ll-feats-defense
     title: "Legendary Feats: defensive and survival feats"
     group: combat-classes
@@ -4131,7 +4268,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Defensive and survival Legendary Feats.</div>"
-    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#defensive\">Defensive &amp; Survival Feats</a>.</div>"
+    impl_notes: "<div>Draft section <a>Defensive &amp; Survival Feats</a>.</div>"
   - id: ll-feats-arcane-divine
     title: "Legendary Feats: arcane and divine casting feats"
     group: combat-classes
@@ -4140,7 +4277,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Arcane and divine spellcasting Legendary Feats.</div>"
-    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#arcane\">Arcane Spellcasting Feats</a> and <a href=\"Draft/LegendaryFeats.html#divine\">Divine Spellcasting Feats</a>. Interacts with <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>: how much of this is a feat versus continued caster-level scaling is a balance call to settle there first.</div>"
+    impl_notes: "<div>Draft sections <a>Arcane Spellcasting Feats</a> and <a>Divine Spellcasting Feats</a>. Interacts with <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>: how much of this is a feat versus continued caster-level scaling is a balance call to settle there first.</div>"
   - id: ll-feats-ki-perform-skill
     title: "Legendary Feats: ki, performance and skill feats"
     group: combat-classes
@@ -4149,7 +4286,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Ki &amp; mystic, performance &amp; support, and skills &amp; utility Legendary Feats.</div>"
-    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#ki\">Ki &amp; Mystic</a>, <a href=\"Draft/LegendaryFeats.html#performance\">Performance &amp; Support</a> and <a href=\"Draft/LegendaryFeats.html#skills\">Skills &amp; Utility</a>.</div>"
+    impl_notes: "<div>Draft sections <a>Ki &amp; Mystic</a>, <a>Performance &amp; Support</a> and <a>Skills &amp; Utility</a>.</div>"
   - id: ll-feats-spell-upgrades
     title: "Legendary Feats: legendary spell upgrades"
     group: combat-classes
@@ -4158,7 +4295,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Legendary Spell feats that upgrade existing spells — summons, damage, control, buffs, necromancy and abjuration.</div>"
-    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#legendary-spells\">Legendary Spell Feats</a> and its six sub-sections (<code>#ls-summons</code>, <code>#ls-damage</code>, <code>#ls-control</code>, <code>#ls-buff</code>, <code>#ls-necromancy</code>, <code>#ls-abjuration</code>). The biggest scripting lift of the feat set — each upgrade is spell-script work, not just a 2DA row. Summon upgrades should be checked against the existing <code>summon_boost.nss</code> scaling so the two do not stack into nonsense.</div>"
+    impl_notes: "<div>Draft section <a>Legendary Spell Feats</a> and its six sub-sections (#ls-summons, #ls-damage, #ls-control, #ls-buff, #ls-necromancy, #ls-abjuration). The biggest scripting lift of the feat set — each upgrade is spell-script work, not just a 2DA row. Summon upgrades should be checked against the existing summon_boost.nss scaling so the two do not stack into nonsense.</div>"
   - id: ll-feats-dominion
     title: "Legendary Feats: dominion feats"
     group: combat-classes
@@ -4167,7 +4304,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Dominion feats: Legendary Arcane Dominion, Legendary Divine Wrath and Legendary Primal Force.</div>"
-    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#dominion\">Dominion Feats</a> (<code>#arcane-dominion</code>, <code>#divine-wrath</code>, <code>#primal-force</code>). These read as the capstone tier — decide whether they are level-60-only before pricing the rest of the pool.</div>"
+    impl_notes: "<div>Draft section <a>Dominion Feats</a> (#arcane-dominion, #divine-wrath, #primal-force). These read as the capstone tier — decide whether they are level-60-only before pricing the rest of the pool.</div>"
   - id: ll-feats-hybrid-pure
     title: "Legendary Feats: hybrid caster feats and pure-class bonuses"
     group: combat-classes
@@ -4176,7 +4313,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Hybrid caster feats for paladin, bard and ranger, plus the passive bonuses that reward staying pure-class.</div>"
-    impl_notes: "<div>Draft sections <a href=\"Draft/LegendaryFeats.html#hybrid-casters\">Hybrid Caster Feats</a> and <a href=\"Draft/LegendaryFeats.html#pure-class-bonuses\">Pure Class Passive Bonuses</a>. This is where the pure-vs-mixed question on <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a> actually bites — the pure-class bonuses were the original idea the whole feat set grew out of.</div>"
+    impl_notes: "<div>Draft sections <a>Hybrid Caster Feats</a> and <a>Pure Class Passive Bonuses</a>. This is where the pure-vs-mixed question on <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a> actually bites — the pure-class bonuses were the original idea the whole feat set grew out of.</div>"
   - id: ll-feats-exotic
     title: "Legendary Feats: exotic feats"
     group: combat-classes
@@ -4185,4 +4322,4 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The exotic Legendary Feats — the odd ones that do not fit the other categories.</div>"
-    impl_notes: "<div>Draft section <a href=\"Draft/LegendaryFeats.html#exotic\">Exotic Feats</a>.</div>"
+    impl_notes: "<div>Draft section <a>Exotic Feats</a>.</div>"

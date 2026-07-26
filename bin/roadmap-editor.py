@@ -60,9 +60,16 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 
 # Field order each idea is serialized in. Only `id/title/group/status` are
 # required; the rest are emitted only when present.
-FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden", "type",
+FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
+               "merit_awarded", "type",
                "player", "date", "commit", "notes", "notes_h", "impl_notes",
                "impl_notes_h", "dupe_of", "design_questions", "manual_steps"]
+# `merit_awarded` records that meritdb was really credited for this idea, which
+# `status: awarded` alone cannot: status can bounce back to `implemented` and
+# forward again, and the merit must be granted exactly once. Written only by the
+# Award / Revoke buttons in the detail-pane header bar (never by the form, the
+# status dropdown, or a board-lane drag) — see award_merit().
+MERIT_FLAG = "merit_awarded"
 # Internal fields — admin-only, never rendered on the public board. `notes` is
 # the player-facing release note; everything here is the builder's own record.
 LIST_FIELDS = {"design_questions", "manual_steps"}
@@ -280,6 +287,163 @@ def pending_requests() -> dict:
 
 
 # --------------------------------------------------------------------------
+# In-game merit database (write) — the Award / Revoke buttons
+# --------------------------------------------------------------------------
+# In-game, a DM's EmoteWand awards merit by bumping ONE counter column and
+# writing one merit_ledger row (merit_award_bug/exp/ftr.nss). The editor's
+# "Award merit" button does exactly the same thing, so the two paths stay
+# indistinguishable in the ledger apart from the "(roadmap:<id>)" suffix.
+#
+# Which column an idea pays into is decided solely by its `type`.
+MERIT_COLUMN = {"Defect": "bugs", "Enhancement": "features",
+                "Exploit": "exploits"}
+MERIT_POINTS = {"Defect": MERIT_RATE_BUG, "Enhancement": MERIT_RATE_FEATURE,
+                "Exploit": MERIT_RATE_EXPLOIT}
+# Ledger wording, matching the in-game award scripts verbatim.
+MERIT_REASON = {"Defect": "defect report",
+                "Enhancement": "feature implementation",
+                "Exploit": "exploit report"}
+# Roadmap player name -> meritdb cdkey, for names the fuzzy matcher can't reach
+# ("Piskan (Alec Cain)" vs the DB's "Alek Cain"). Written when you pick a player
+# by hand in the award dialog, so the same name resolves silently next time.
+MERIT_ALIAS_PATH = REPO / "roadmap-merit-aliases.json"
+
+
+def read_merit_aliases() -> dict:
+    try:
+        data = json.loads(MERIT_ALIAS_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def write_merit_alias(roadmap_name: str, cdkey: str) -> None:
+    aliases = read_merit_aliases()
+    aliases[roadmap_name] = cdkey
+    MERIT_ALIAS_PATH.write_text(
+        json.dumps(dict(sorted(aliases.items())), indent=2) + "\n",
+        encoding="utf-8")
+
+
+def merit_players() -> dict:
+    """Every meritdb player, most recently seen first — the award-dialog picker."""
+    con = _merit_connect()
+    if con is None:
+        return {"available": False, "rows": [],
+                "reason": f"meritdb not found at {merit_db_path()}"}
+    try:
+        rows = [dict(r) for r in con.execute(
+            "SELECT cdkey, name, last_login, bugs, exploits, features, "
+            "merit_spent FROM players ORDER BY last_login DESC").fetchall()]
+        for r in rows:
+            r["earned"] = ((r["bugs"] or 0) * MERIT_RATE_BUG
+                           + (r["features"] or 0) * MERIT_RATE_FEATURE
+                           + (r["exploits"] or 0) * MERIT_RATE_EXPLOIT)
+            r["balance"] = r["earned"] - (r["merit_spent"] or 0)
+        return {"available": True, "rows": rows}
+    finally:
+        con.close()
+
+
+def _earned(row) -> int:
+    return ((row["bugs"] or 0) * MERIT_RATE_BUG
+            + (row["features"] or 0) * MERIT_RATE_FEATURE
+            + (row["exploits"] or 0) * MERIT_RATE_EXPLOIT)
+
+
+def award_merit(roadmap_name: str, idea_type: str, idea_id: str,
+                cdkey: str = "", revoke: bool = False) -> dict:
+    """Credit (or take back) one idea's merit in the live meritdb.
+
+    One BEGIN IMMEDIATE transaction: resolve the player row, move the counter,
+    re-read it to prove the move landed, then write the ledger row. Anything
+    that doesn't check out rolls the whole thing back and returns ok=False, so
+    the caller can leave the roadmap status alone.
+
+    Never INSERTs a players row: in-game rows are created on login only
+    (Merit_RecordLogin), and inventing one here would mint merit for a cdkey
+    that may not exist. An unmatched name is an error, not a new player.
+    """
+    col = MERIT_COLUMN.get(idea_type)
+    if not col:
+        return {"ok": False,
+                "reason": f"idea type {idea_type or '(none)'} carries no merit value"}
+    db = merit_db_path()
+    if not db.exists():
+        return {"ok": False, "reason": f"meritdb not found at {db}"}
+    points = MERIT_POINTS[idea_type]
+    step = -1 if revoke else 1
+    verb = "revoke" if revoke else "award"
+    try:
+        # The live server holds this file open, hence the busy timeout.
+        con = sqlite3.connect(str(db), timeout=10.0)
+    except sqlite3.Error as e:
+        return {"ok": False, "reason": f"cannot open meritdb: {e}"}
+    con.row_factory = sqlite3.Row
+    con.isolation_level = None      # we drive the transaction by hand
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        row = None
+        if cdkey:
+            row = con.execute("SELECT * FROM players WHERE cdkey = ?",
+                              (cdkey,)).fetchone()
+            if row is None:
+                return {"ok": False, "matched": False,
+                        "reason": f"no meritdb player with cdkey {cdkey}"}
+        else:
+            alias = read_merit_aliases().get(roadmap_name)
+            if alias:
+                row = con.execute("SELECT * FROM players WHERE cdkey = ?",
+                                  (alias,)).fetchone()
+            if row is None:
+                row = _resolve_player_row(con, roadmap_name)
+        if row is None:
+            return {"ok": False, "matched": False,
+                    "reason": f"no meritdb player matched "
+                              f"'{roadmap_name or '(no submitter)'}'"}
+        key, name = row["cdkey"], row["name"]
+        before = row[col] or 0
+        if revoke and before <= 0:
+            return {"ok": False,
+                    "reason": f"{name} has no {col} left to take back"}
+        cur = con.execute(f"UPDATE players SET {col} = {col} + ? WHERE cdkey = ?",
+                          (step, key))
+        if cur.rowcount != 1:
+            return {"ok": False,
+                    "reason": f"merit update touched {cur.rowcount} rows, expected 1"}
+        after = con.execute("SELECT * FROM players WHERE cdkey = ?",
+                            (key,)).fetchone()
+        # Prove the counter really moved before we claim it did.
+        if after is None or (after[col] or 0) != before + step:
+            return {"ok": False,
+                    "reason": f"merit counter did not move ({col}: {before} -> "
+                              f"{after[col] if after else 'gone'})"}
+        balance = _earned(after) - (after["merit_spent"] or 0)
+        con.execute(
+            "INSERT INTO merit_ledger (cdkey, player_name, delta, balance_after, "
+            "reason, redemption_id) VALUES (?, ?, ?, ?, ?, 0)",
+            (key, name, step * points, balance,
+             f"{verb}: {MERIT_REASON[idea_type]} (roadmap:{idea_id})"))
+        con.execute("COMMIT")
+        return {"ok": True, "matched": True, "cdkey": key, "matched_name": name,
+                "points": points, "delta": step * points, "column": col,
+                "balance": balance,
+                "message": (f"{'Revoked' if revoke else 'Awarded'} {points} merit "
+                            f"{'from' if revoke else 'to'} {name} "
+                            f"({idea_type}); balance now {balance}.")}
+    except sqlite3.Error as e:
+        return {"ok": False, "reason": f"meritdb error: {e}"}
+    finally:
+        # Any early return above left the transaction open — undo it.
+        try:
+            if con.in_transaction:
+                con.execute("ROLLBACK")
+        except sqlite3.Error:
+            pass
+        con.close()
+
+
+# --------------------------------------------------------------------------
 # In-game "Recent Updates" sign DB (write)
 # --------------------------------------------------------------------------
 # The Well of Eru "Recent Updates" sign (tag recent_updates, conversation
@@ -456,11 +620,27 @@ def dquote(s: str) -> str:
     return '"' + s + '"'
 
 
+# Text that YAML would read back as something other than a string. A git hash
+# that happens to be all digits ("45167215955") round-trips as an int, and the
+# whole toolchain then treats a number as a commit ref — the editor threw
+# mid-render on exactly that. Quote these so a string stays a string.
+_NUMERICISH_RE = re.compile(r"[-+]?(\d[\d_]*)(\.\d*)?([eE][-+]?\d+)?$")
+_YAML_WORDS = {"true", "false", "yes", "no", "on", "off", "null", "~"}
+
+
+def looks_non_string(s: str) -> bool:
+    return bool(_NUMERICISH_RE.match(s)) or s.lower() in _YAML_WORDS
+
+
 def emit_scalar(field: str, value) -> str:
     if isinstance(value, bool):
         return "true" if value else "false"
     s = str(value)
     if field in QUOTED_FIELDS:
+        return dquote(s)
+    # Only for fields that are conceptually text. The genuinely numeric fields
+    # (the *_h heights) must stay bare or they fail validation on reload.
+    if field not in HEIGHT_KEYS and looks_non_string(s):
         return dquote(s)
     if field == "player" and not re.fullmatch(r"[A-Za-z0-9_]+", s):
         return dquote(s)
@@ -723,6 +903,9 @@ def validate_internal_fields(ideas) -> list[str]:
                     elif not isinstance(s.get("blocker", False), bool):
                         errs.append(f"'{iid}': manual_step blocker must be "
                                     f"true/false")
+        if not isinstance(idea.get(MERIT_FLAG, False), bool):
+            errs.append(f"'{iid}': {MERIT_FLAG} must be true/false, got "
+                        f"{idea.get(MERIT_FLAG)!r}")
         qs = idea.get("design_questions")
         if qs is not None:
             if not isinstance(qs, list):
@@ -1037,12 +1220,85 @@ class Handler(BaseHTTPRequestHandler):
     def _send(self, code: int, body: bytes, ctype: str):
         self.send_response(code)
         self.send_header("Content-Type", ctype)
+        # The page IS the app — there is no separate bundle to version. Without
+        # this a browser can keep serving an older copy of the editor from cache
+        # after a restart, which looks exactly like "the fix didn't work".
+        self.send_header("Cache-Control", "no-store, must-revalidate")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
     def _json(self, obj, code: int = 200):
         self._send(code, json.dumps(obj).encode("utf-8"), "application/json")
+
+    def _merit_write(self, revoke, payload, ideas, groups, players, epics,
+                     warnings):
+        """Move an idea into/out of 'merit awarded' AND pay/take back the merit.
+
+        The two halves must agree, so either both land or neither does:
+          * merit fails  -> the idea's status is put back to `prev_status` and
+            the flag left alone, but the document is still written, so every
+            other edit made in the same form survives (the roadmap is not the
+            thing that failed).
+          * merit lands but the YAML write blows up -> the merit is immediately
+            taken back again, so the DB never records a payment the roadmap
+            has no memory of.
+        """
+        iid = payload.get("idea_id") or ""
+        idea = next((i for i in ideas if i.get("id") == iid), None)
+        if idea is None:
+            return self._json({"ok": False,
+                               "errors": [f"idea '{iid}' not found in payload"]})
+        name = (idea.get("player") or "").strip()
+        itype = idea.get("type") or ""
+        cdkey = (payload.get("cdkey") or "").strip()
+        # skip_merit = admin/community item the user chose to mark awarded with
+        # no payment; already-flagged = re-entering `awarded`, never pay twice.
+        skip = bool(payload.get("skip_merit"))
+        if not revoke and idea.get(MERIT_FLAG):
+            skip = True
+        if revoke and not idea.get(MERIT_FLAG):
+            return self._json({"ok": False,
+                               "errors": [f"'{iid}' is not marked as merit awarded"]})
+
+        res = ({"ok": True, "message": "Status changed; no merit granted."}
+               if skip and not revoke
+               else award_merit(name, itype, iid, cdkey=cdkey, revoke=revoke))
+        if not res.get("ok"):
+            if not revoke:
+                idea["status"] = payload.get("prev_status") or idea.get("status")
+                idea.pop(MERIT_FLAG, None)
+            write_document(ideas, groups, players, epics)
+            return self._json({
+                "ok": False, "warnings": warnings, "version": yaml_version(),
+                "matched": res.get("matched"), "reverted": not revoke,
+                "errors": [res.get("reason", "merit update failed")]
+                + (["Status left unchanged; your other edits were saved."]
+                   if not revoke else ["Your other edits were saved."])})
+
+        if revoke:
+            idea.pop(MERIT_FLAG, None)
+        elif not skip:
+            idea[MERIT_FLAG] = True
+        try:
+            write_document(ideas, groups, players, epics)
+        except Exception as e:
+            undo = ""
+            if res.get("cdkey"):
+                back = award_merit(name, itype, iid, cdkey=res["cdkey"],
+                                   revoke=not revoke)
+                undo = (" Merit change was rolled back."
+                        if back.get("ok")
+                        else f" MERIT NOT ROLLED BACK: {back.get('reason')}")
+            return self._json({"ok": False, "version": yaml_version(),
+                               "errors": [f"could not write roadmap.yaml: {e}"
+                                          + undo]})
+        if res.get("cdkey") and cdkey and name:
+            # A hand-picked player teaches the matcher for next time.
+            write_merit_alias(name, res["cdkey"])
+        return self._json({"ok": True, "warnings": warnings,
+                           "version": yaml_version(),
+                           "message": res.get("message", "Saved.")})
 
     def do_GET(self):
         if self.path == "/" or self.path.startswith("/index"):
@@ -1064,6 +1320,10 @@ class Handler(BaseHTTPRequestHandler):
                         "version": yaml_version()})
         elif self.path == "/api/version":
             self._json({"version": yaml_version()})
+        elif self.path == "/api/meritplayers":
+            # Must precede the /api/merit prefix test below, which would
+            # otherwise swallow this path.
+            self._json(merit_players())
         elif self.path.startswith("/api/merit"):
             q = urllib.parse.urlparse(self.path).query
             player = urllib.parse.parse_qs(q).get("player", [""])[0]
@@ -1153,6 +1413,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": True, "warnings": warnings,
                                "version": yaml_version(),
                                "message": "Saved roadmap.yaml."})
+        if self.path in ("/api/award", "/api/revoke"):
+            return self._merit_write(self.path == "/api/revoke", payload, ideas,
+                                     groups, players, epics, warnings)
         if self.path == "/api/regenerate":
             write_document(ideas, groups, players, epics)
             stamp = stamp_as_of()
@@ -1342,11 +1605,19 @@ PAGE = r"""<!doctype html>
              background:var(--bg); border-bottom:1px solid var(--line); }
   #formbar .who { color:var(--mut); font-size:12px; overflow:hidden;
                   white-space:nowrap; text-overflow:ellipsis; }
+  /* Pipeline buttons: forward/back one status. A disabled one keeps its label
+     (so you can see where the pipeline goes next) and explains itself on hover. */
+  #formbar .step { max-width:15em; overflow:hidden; white-space:nowrap;
+                   text-overflow:ellipsis; }
+  #formbar .step.fwd { border-color:var(--accent); }
+  button[disabled] { opacity:0.42; cursor:not-allowed; }
+  button[disabled]:hover { border-color:var(--line); }
   /* Publishing state: hidden ideas are dimmed and chipped everywhere. */
   .chip { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px;
           border:1px solid var(--line); color:var(--mut); }
   .chip.hidden { background:#42323a; color:#f0c4d2; border-color:#6b4550; }
   .chip.epic { background:#2f3a4a; color:#cfe0ff; border-color:#41556e; }
+  .chip.merit { background:#1e3a2b; color:#9fe8c0; border-color:#2c6b4e; }
   .row.hid .t, .card.hid .ct { opacity:0.62; text-decoration:line-through; }
   #banner { margin:10px 0; padding:9px 11px; border-radius:6px; display:none;
             white-space:pre-wrap; }
@@ -1393,6 +1664,13 @@ PAGE = r"""<!doctype html>
   .modal { background:var(--panel); border:1px solid var(--line); border-radius:8px;
            width:min(560px,100%); max-height:86vh; overflow:auto; padding:16px 18px; }
   .modal h2 { margin:0 0 10px; }
+  /* Scrolling pick-one list (merit player picker). */
+  .picklist { border:1px solid var(--line); border-radius:6px; margin:8px 0;
+              max-height:46vh; overflow:auto; }
+  .pick { display:flex; gap:10px; align-items:baseline; padding:6px 9px;
+          border-bottom:1px solid var(--line); cursor:pointer; }
+  .pick:last-child { border-bottom:none; }
+  .pick:hover { background:var(--bg); }
   .mlist { border:1px solid var(--line); border-radius:6px; overflow:hidden; margin:8px 0; }
   .mrow { display:flex; gap:8px; align-items:center; padding:6px 8px;
           border-bottom:1px solid var(--line); }
@@ -1531,12 +1809,36 @@ PAGE = r"""<!doctype html>
 let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}};
 let sel = -1;
 let baseVersion = null;      // hash of roadmap.yaml as we last loaded/saved it
+// Serialized form state as of the last render — the baseline "unsaved changes"
+// is measured against. Comparing a snapshot beats listening for input events:
+// the rich-text editors fire plenty of events while initialising, and none of
+// those are the user changing anything.
+let formSnapshot = null;
+// The idea object the open form belongs to. `sel` is only an index, and an
+// index silently means a *different* idea the moment DATA.ideas is replaced
+// (every load()) or reordered — folding the form back in by index then
+// overwrites a neighbour, which reads as "an idea disappeared" plus a
+// duplicate-id error. Everything that writes the form back resolves this
+// reference instead, and refuses to write at all if it can't find it.
+let selRef = null;
+function curIdx(){
+  if (!selRef) return -1;
+  return DATA.ideas.indexOf(selRef);
+}
 let view = 'board';          // 'list' | 'board' — Board is the default view
 let showCardDropdown = false; // per-card status <select> on board cards (off by default)
 // Board lanes, left→right = pipeline flow. Labels come from DATA.vocab.statuses
 // (sourced from gen-roadmap.py STATUS) so they never drift.
 const BOARD_LANES = ['planned','later','soon','wip','confirmed','design','manual',
                      'implemented','awarded','unlikely'];
+// The pipeline the header-bar forward/back buttons walk. `design` and
+// `unlikely` sit off it: from either, forward rejoins the chain (design → back
+// to work, unlikely → back under consideration) and back is a dead end.
+const CHAIN = ['planned','later','soon','wip','confirmed','manual',
+               'implemented','awarded'];
+const OFFCHAIN_FWD = {design:'confirmed', unlikely:'planned'};
+// Labels that read badly as a button. Everything else uses its STATUS label.
+const PIPE_LABEL = {awarded:'Award merit', implemented:'Ship · in testing'};
 // Sentinel filter value: match rows whose field is empty/unset.
 const BLANK = '__BLANK__';
 const BLANK_OPT = `<option value="${BLANK}">&lt;Is Blank&gt;</option>`;
@@ -1544,7 +1846,11 @@ const $ = s => document.querySelector(s);
 
 function statusCls(s){ return s || ''; }
 function typeCls(t){ return (t||'').toLowerCase(); }
-function esc(s){ return (s||'').replace(/[&<>"]/g, c => (
+// Coerce first: not every field arrives as a string. An all-digit commit hash
+// (`commit: 45167215955`) comes back from YAML as a *number*, and calling
+// .replace on it threw mid-render — the list had already redrawn, so the form
+// silently kept showing the previous idea.
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, c => (
   {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 function groupTitle(id){
@@ -1654,7 +1960,7 @@ function renderList(){
     d.innerHTML=`<span class="t">${esc(it.title||'(untitled)')}</span>
       <span class="meta">${tbadge}<span class="badge ${statusCls(it.status)}">${esc(it.status||'?')}</span>
       ${chips(it)}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>`;
-    d.onclick=()=>select(idx);
+    d.onclick=()=>guard(()=>selectById(it.id, idx));
     box.appendChild(d);
   });
   $('#count').textContent=`${rows.length}/${DATA.ideas.length} ideas`;
@@ -1664,6 +1970,10 @@ function renderList(){
 function render(){ if (view==='board') renderBoard(); else renderList(); }
 
 function setView(v){
+  // Leaving list view hides the form without re-rendering it, so ask about
+  // unsaved edits here — once we are on the board there is no live form and
+  // isDirty() can no longer see them.
+  if (v==='board' && view==='list' && isDirty()) return guard(()=>setView(v));
   view = v;
   $('#view_list').classList.toggle('on', v==='list');
   $('#view_board').classList.toggle('on', v==='board');
@@ -1675,7 +1985,10 @@ function setView(v){
     let b=$('#board'); if (b) b.remove();
     if (form) form.style.display='';
     renderList();
-    if (sel>=0 && DATA.ideas[sel]) select(sel); else if (DATA.ideas.length) select(0);
+    const i = curIdx();
+    if (i>=0) select(i);
+    else if (sel>=0 && DATA.ideas[sel]) select(sel);
+    else if (DATA.ideas.length) select(0);
   }
 }
 
@@ -1751,8 +2064,106 @@ function opt(value,label,cur){
   return `<option value="${esc(value)}"${value===cur?' selected':''}>${esc(label)}</option>`;
 }
 
+// ---- pipeline transitions (header-bar forward/back buttons) --------------
+// JS mirror of open_blockers() in the Python half — a blocking manual step that
+// isn't done. Legacy bare-string steps were written before the flag existed.
+function openBlockers(it){
+  return (it.manual_steps||[]).filter(s=>s && typeof s==='object'
+    && s.blocker && s.status!=='done');
+}
+function openQuestions(it){
+  return (it.design_questions||[]).filter(q=>q && q.status==='open');
+}
+function pipeLabel(st){ return PIPE_LABEL[st] || statusLabel(st); }
+
+// What the two pipeline buttons do for this idea. A non-empty `reason` means
+// the move isn't legal right now: the button stays visible (so the pipeline is
+// still readable) but greyed, with the reason on hover.
+function transitions(it){
+  const cur = it.status || '';
+  const i = CHAIN.indexOf(cur);
+  const back = (i > 0) ? CHAIN[i-1] : null;
+  const fwd  = (i >= 0) ? (CHAIN[i+1] || null) : (OFFCHAIN_FWD[cur] || null);
+  const out = {back:{status:back, label:back?('◀ '+pipeLabel(back)):'', reason:''},
+               fwd:{status:fwd, label:fwd?(pipeLabel(fwd)+' ▶'):'', reason:''}};
+  if (!back) out.back.reason = (i===0) ? 'Already at the start of the pipeline'
+                                       : 'Off the main pipeline — use the Status dropdown';
+  if (!fwd)  out.fwd.reason  = (cur==='awarded') ? 'Already the final state'
+                                                 : 'No forward step from this status';
+  if (!(it.id||'').trim()){
+    out.back.reason = out.fwd.reason = 'Give the idea an id and Save it first';
+    return out;
+  }
+  // Shipping gates, same rules the server refuses to save past.
+  if (fwd==='implemented' || fwd==='awarded'){
+    const n = openBlockers(it).length;
+    if (n) out.fwd.reason = n+' unfinished blocker manual step'+(n>1?'s':'');
+  }
+  if (cur==='design'){
+    const n = openQuestions(it).length;
+    if (n) out.fwd.reason = n+' open design question'+(n>1?'s':'');
+  }
+  if (fwd==='awarded'){
+    if (!it.type) out.fwd.reason = 'Set a type (Defect/Enhancement/Exploit) — '
+                                 + 'it decides how much merit is granted';
+    // Already paid: the move is legal, it just must not pay again.
+    else if (it.merit_awarded) out.fwd.label = 'Mark awarded ▶';
+  }
+  return out;
+}
+
+// The idea as the form currently has it, not as the file has it — the pipeline
+// buttons must judge the edits you can see (a status just picked, a blocker
+// step just ticked done), not the last saved copy.
+function liveIdea(){
+  const it = DATA.ideas[curIdx()] || {};
+  if (!$('#f_id')) return it;
+  const ho = HO ? handoffOut() : {};
+  return Object.assign({}, it, {
+    id: $('#f_id').value.trim(), status: $('#f_status').value,
+    type: $('#f_type').value, player: $('#f_player').value.trim(),
+    manual_steps: ho.manual_steps || [],
+    design_questions: ho.design_questions || []});
+}
+
+function formbarHTML(it){
+  const tr = transitions(it);
+  const stepBtn = (id, t, cls) => t.status
+    ? `<button id="${id}" class="step ${cls}"${t.reason?' disabled':''}
+         title="${esc(t.reason || ('Move to: '+statusLabel(t.status)))}"
+         >${esc(t.label)}</button>`
+    : `<button id="${id}" class="step ${cls}" disabled
+         title="${esc(t.reason)}">${cls==='fwd'?'▶':'◀'}</button>`;
+  return `
+      <button class="primary" id="save">Save</button>
+      <button class="danger" id="del">Delete</button>
+      <span class="spacer"></span>
+      ${it.merit_awarded ? '<span class="chip merit">merit paid</span>'
+        + '<button class="danger" id="revoke">Revoke merit points</button>' : ''}
+      ${stepBtn('t_back', tr.back, 'back')}
+      ${stepBtn('t_fwd', tr.fwd, 'fwd')}`;
+}
+
+// (Re)wire the bar. Called on every render and whenever a field the buttons
+// depend on changes, so a status/type/blocker edit re-labels them immediately.
+function bindFormbar(){
+  const tr = transitions(liveIdea());
+  $('#save').onclick = ()=>commit('/api/save');
+  $('#del').onclick = del;
+  const bb=$('#t_back'), fb=$('#t_fwd'), rb=$('#revoke');
+  if (bb && !bb.disabled) bb.onclick = ()=>stepTo(tr.back.status);
+  if (fb && !fb.disabled) fb.onclick = ()=>stepTo(tr.fwd.status);
+  if (rb) rb.onclick = revokeMerit;
+}
+
+function refreshFormbar(){
+  const bar = $('#formbar'); if (!bar) return;
+  bar.innerHTML = formbarHTML(liveIdea());
+  bindFormbar();
+}
+
 function select(i){
-  sel = i; renderList();
+  sel = i; formSnapshot = null; selRef = DATA.ideas[i] || null; renderList();
   const it = DATA.ideas[i]; if (!it) { $('#form').innerHTML=''; return; }
   const groups = DATA.vocab.groups.map(g=>opt(g.id, g.title.replace(/&amp;/g,'&'), it.group)).join('');
   const stats  = DATA.vocab.statuses.map(s=>opt(s.id, s.id+' — '+s.label, it.status)).join('');
@@ -1765,12 +2176,7 @@ function select(i){
   const epics = ['<option value="">(none)</option>'].concat(
       (DATA.vocab.epics||[]).map(e=>opt(e.id, e.title||e.id, it.epic||''))).join('');
   $('#form').innerHTML = `
-    <div id="formbar">
-      <button class="primary" id="save">Save</button>
-      <button class="danger" id="del">Delete</button>
-      <span class="spacer"></span>
-      <span class="who">${esc(it.id||'(new idea)')}</span>
-    </div>
+    <div id="formbar">${formbarHTML(it)}</div>
     <label>Title (this IS the public one-line description)</label>
     <input id="f_title" value="${esc(it.title)}">
     <div class="grid2">
@@ -1830,10 +2236,112 @@ function select(i){
     const v=e.target.value.trim();
     renderMerit(v); renderMeritIngame(v);
   });
-  $('#save').onclick = ()=>commit('/api/save');
-  $('#del').onclick = del;
   $('#up').onclick = ()=>move(-1);
   $('#down').onclick = ()=>move(1);
+  bindFormbar();
+  // Status/type/blocker edits change what the pipeline buttons may do. `change`
+  // (not `input`) so the rich-text editors don't rebuild the bar per keystroke.
+  $('#form').onchange = refreshFormbar;   // property, not addEventListener:
+                                          // select() re-renders often and these
+                                          // would otherwise stack up.
+  // Baseline for the unsaved-changes guard: whatever the form says right now.
+  formSnapshot = snapshot();
+}
+
+// ---- pipeline moves ------------------------------------------------------
+// Every move folds the open form in and saves, so an edit made just before
+// clicking a pipeline button is never lost. Only the move into `awarded` goes
+// through /api/award — the one path that touches the live merit database.
+function stepTo(status){
+  if (status !== 'awarded'){
+    $('#f_status').value = status;
+    return commit('/api/save', false, {stay:true});
+  }
+  return awardFlow();
+}
+
+function doAward(it, prev, cdkey, skip){
+  $('#f_status').value = 'awarded';
+  return commit('/api/award', false, {stay:true, extra:{
+    idea_id: it.id, prev_status: prev, cdkey: cdkey||'', skip_merit: !!skip}});
+}
+
+async function awardFlow(){
+  const it = DATA.ideas[curIdx()]; if (!it) return;
+  const prev = it.status;
+  const name = $('#f_player').value.trim();
+  const type = $('#f_type').value;
+  const pts = MERIT_POINTS[type] || 0;
+  // Already paid once — move the status, never grant twice.
+  if (it.merit_awarded) return doAward(it, prev, '', true);
+  if (!name || name === 'community'){
+    if (!confirm('This idea has no individual submitter'
+      + (name ? ' (credited to "community")' : '')
+      + ', so no merit can be granted.\n\nMove it to "Merit awarded" anyway? '
+      + 'The status changes and nothing is written to the merit database.')) return;
+    return doAward(it, prev, '', true);
+  }
+  // Resolve the submitter first: an unmatched name gets a picker rather than a
+  // failed award (roadmap names and in-game login names drift apart).
+  let m = {};
+  try { m = await (await fetch('/api/merit?player='+encodeURIComponent(name))).json(); }
+  catch(e){ m = {}; }
+  if (m.available && m.matched === false) return pickMeritPlayer(it, prev, name, type, pts);
+  const who = m.matched_name || name;
+  if (!confirm('Grant '+pts+' merit point'+(pts>1?'s':'')+' ('+type+') to '+who
+    + ' in the live merit database?\n\nThe game DB is written now; the status '
+    + 'only moves if that write succeeds.')) return;
+  return doAward(it, prev, '', false);
+}
+
+// The roadmap player name matched nothing in meritdb. Show every known player
+// and let the admin say who it is; the choice is remembered server-side so the
+// same roadmap name resolves by itself next time.
+async function pickMeritPlayer(it, prev, name, type, pts){
+  let res = {};
+  try { res = await (await fetch('/api/meritplayers')).json(); } catch(e){ res={}; }
+  const rows = res.rows || [];
+  if (!rows.length){
+    banner('bad', 'No merit database players to choose from'
+      + (res.reason ? ' — '+res.reason : '') + '.');
+    return;
+  }
+  modalHTML(`<h2>Who is “${esc(name)}”?</h2>
+    <p class="small">No merit-database player matched this roadmap name. Pick the
+      account to credit with ${pts} point${pts>1?'s':''} (${esc(type)}). The match
+      is remembered for next time.</p>
+    <input id="mp_q" placeholder="Filter by name…" style="width:100%">
+    <div id="mp_list" class="picklist"></div>
+    <div class="bar"><span class="spacer"></span><button id="mp_close">Cancel</button></div>`);
+  const draw = ()=>{
+    const q = ($('#mp_q').value||'').toLowerCase();
+    const hits = rows.filter(r=>!q || (r.name||'').toLowerCase().includes(q));
+    $('#mp_list').innerHTML = hits.slice(0,200).map((r,i)=>
+      `<div class="pick" data-i="${rows.indexOf(r)}"><b>${esc(r.name||'(no name)')}</b>
+        <span class="small">balance ${r.balance} · last login ${esc(r.last_login||'—')}</span></div>`
+    ).join('') || '<p class="small">No match.</p>';
+    $('#mp_list').querySelectorAll('.pick').forEach(d=>{
+      d.onclick = ()=>{
+        const r = rows[+d.dataset.i];
+        if (!confirm('Grant '+pts+' merit point'+(pts>1?'s':'')+' ('+type+') to '
+          + r.name + '?\n\n"' + name + '" will be remembered as this account.')) return;
+        closeModal();
+        doAward(it, prev, r.cdkey, false);
+      };
+    });
+  };
+  $('#mp_q').oninput = draw; draw(); $('#mp_q').focus();
+  $('#mp_close').onclick = closeModal;
+}
+
+function revokeMerit(){
+  const it = DATA.ideas[curIdx()]; if (!it || !it.merit_awarded) return;
+  const pts = MERIT_POINTS[it.type] || 0;
+  if (!confirm('Take back '+pts+' merit point'+(pts>1?'s':'')+' from '
+    + (it.player||'this submitter') + '?\n\nThis subtracts from the live merit '
+    + 'database and writes a negative ledger entry. The idea keeps its status; '
+    + 'only the "merit paid" flag is cleared.')) return;
+  return commit('/api/revoke', false, {stay:true, extra:{idea_id: it.id}});
 }
 
 // Lifetime merit for a submitter: count their *awarded* (totally done) ideas by
@@ -2076,7 +2584,7 @@ function restoreRange(){
 }
 
 function openIdeaLink(){
-  const ids = DATA.vocab.ids.filter(id=>id!==(DATA.ideas[sel]||{}).id);
+  const ids = DATA.vocab.ids.filter(id=>id!==(DATA.ideas[curIdx()]||{}).id);
   const rows = ids.map(id=>{
     const t = (DATA.ideas.find(i=>i.id===id)||{}).title || '';
     return `<div class="mrow" style="cursor:pointer" data-id="${esc(id)}">
@@ -2319,6 +2827,10 @@ function readForm(){
     // Real boolean: pruneEmpty drops it when false so `hidden:` only ever
     // appears in the YAML on items that really are held back.
     hidden: $('#f_hidden').checked ? true : '',
+    // Read-only here: no input owns it. It is set/cleared only by the Award and
+    // Revoke buttons (which write meritdb first), so the form must carry the
+    // live value straight through or an unrelated edit would silently clear it.
+    merit_awarded: (selRef && selRef.merit_awarded) ? true : '',
     type: $('#f_type').value,
     player: $('#f_player').value.trim(),
     date: $('#f_date').value.trim(),
@@ -2339,7 +2851,7 @@ function readForm(){
 // idea untouched — readForm() only knows about the form, so without this merge
 // the unknown key would be gone before the save even leaves the browser.
 // Mirrors emit_unknown()/serialize_ideas() in the Python half.
-const FORM_FIELDS = ['id','title','group','epic','status','hidden','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'];
+const FORM_FIELDS = ['id','title','group','epic','status','hidden','merit_awarded','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'];
 function pruneEmpty(o, src){
   const r={};
   for (const k of FORM_FIELDS)
@@ -2351,7 +2863,87 @@ function pruneEmpty(o, src){
 
 function banner(cls,msg){ const b=$('#banner'); b.className=cls; b.textContent=msg; }
 
-async function commit(endpoint, force){
+// ---- unsaved-changes guard ----------------------------------------------
+// The form lives entirely in the DOM until Save folds it into DATA, so anything
+// that re-renders or hides it silently threw the edits away. Every navigation
+// that would do that goes through guard().
+function snapshot(){
+  const i = curIdx();
+  return (view==='list' && i>=0 && $('#f_id'))
+    ? JSON.stringify(pruneEmpty(readForm(), DATA.ideas[i])) : null;
+}
+function isDirty(){
+  // Fails open on purpose. If the comparison itself breaks (a half-rendered
+  // form, an editor that hasn't initialised), the answer must be "not dirty":
+  // a guard that throws would silently swallow every click and strand you on
+  // one idea, which is far worse than losing the prompt.
+  try {
+    const now = snapshot();
+    return now!==null && formSnapshot!==null && now!==formSnapshot;
+  } catch(e){
+    console.error('unsaved-changes check failed; treating form as clean', e);
+    return false;
+  }
+}
+// Run `action`, but if the open form has unsaved edits, ask first. `action`
+// must resolve its target by id, not index: Save reloads the file first.
+function guard(action){
+  if (!isDirty()) return action();
+  const it = DATA.ideas[curIdx()] || {};
+  try {
+  modalHTML(`<h2>Unsaved changes</h2>
+    <p>“${esc(it.title || it.id || 'this idea')}” has edits that have not been
+       written to roadmap.yaml.</p>
+    <div class="bar">
+      <button class="primary" id="g_save">Save and continue</button>
+      <button class="danger" id="g_discard">Discard and continue</button>
+      <span class="spacer"></span>
+      <button id="g_cancel">Cancel — stay here</button>
+    </div>`);
+  $('#g_cancel').onclick = closeModal;
+  $('#g_discard').onclick = ()=>{ closeModal(); formSnapshot=null; action(); };
+  $('#g_save').onclick = async ()=>{
+    closeModal();
+    // Only navigate if the save actually landed — a validation error or a
+    // write conflict must leave the edits on screen to be fixed.
+    if (await commit('/api/save', false, {stay:true})) action();
+  };
+  } catch(e){
+    // Same rule as isDirty(): if the prompt can't be shown, navigate anyway.
+    console.error('unsaved-changes prompt failed; navigating anyway', e);
+    action();
+  }
+}
+
+// An uncaught error used to disappear into the console — invisible when the
+// symptom is "the pane just stopped updating". Put it on screen.
+window.addEventListener('error', e=>{
+  try { banner('bad', 'JavaScript error: ' + (e.message || e.error)
+    + (e.lineno ? ' (line '+e.lineno+')' : '')
+    + '\nThe page may be in a bad state — reload it.'); } catch(_){}
+});
+window.addEventListener('unhandledrejection', e=>{
+  try { banner('bad', 'JavaScript error (async): '
+    + ((e.reason && e.reason.message) || e.reason)); } catch(_){}
+});
+// Select an idea after a possible reload: prefer its id, fall back to the row
+// index for a brand-new idea that has no id yet.
+function selectById(id, idx){
+  const i = id ? DATA.ideas.findIndex(x=>x.id===id) : -1;
+  select(i>=0 ? i : idx);
+}
+window.addEventListener('beforeunload', e=>{
+  if (isDirty()){ e.preventDefault(); e.returnValue=''; }
+});
+
+// opts.stay  — hold the current idea selected instead of advancing to the next
+//              visible row (pipeline buttons and the dirty-state guard: both
+//              are mid-flow, and jumping the selection would be jarring).
+// opts.extra — extra body fields for the endpoint (/api/award, /api/revoke).
+// Returns true when the save landed.
+async function commit(endpoint, force, opts){
+  opts = opts || {};
+  let keepId = (sel>=0 && DATA.ideas[sel]) ? DATA.ideas[sel].id : null;
   // Capture where we are in the *visible* (filtered + sorted) list so we can
   // advance to the next item there after the save reloads from the file, even
   // if the edit moved or dropped the current item out of the view.
@@ -2359,35 +2951,72 @@ async function commit(endpoint, force){
   // In list view, fold the open form's edits into DATA before sending. In board
   // view there is no live form, so skip this (moveToStatus already mutated the
   // idea in place).
-  if (view==='list' && sel>=0 && $('#f_id')){
+  if (view==='list' && $('#f_id')){
+    // Resolve the open idea by identity, never by the (possibly stale) index.
+    const idx = curIdx();
+    if (idx < 0){
+      banner('bad', 'The idea you were editing is no longer in the loaded file '
+        + '(it was reloaded or removed elsewhere). Nothing was saved — reload '
+        + 'the page and redo this edit.');
+      return false;
+    }
+    // Renaming an idea onto another idea's id would overwrite that one here in
+    // the browser and only fail server-side — by which point the overwritten
+    // item has vanished from the page. Refuse up front instead.
+    const formId = $('#f_id').value.trim();
+    const clash = DATA.ideas.findIndex((x,j)=>j!==idx && x.id && x.id===formId);
+    if (clash >= 0){
+      banner('bad', 'Another idea already uses the id "'+formId+'" ("'
+        + (DATA.ideas[clash].title||'') + '"). Nothing was saved — give this '
+        + 'one a unique id.');
+      return false;
+    }
+    sel = idx;   // re-sync the list highlight with what we are actually writing
     // Capture the next row from the list *as currently displayed*, BEFORE the
     // edit is applied — otherwise an edit that changes a sort key (status,
     // group, title…) re-sorts the current item and "next" is taken relative to
     // its new position, making the selection jump somewhere unexpected.
     const vis = visibleRows();
-    curPos = vis.findIndex(r=>r.idx===sel);
+    curPos = vis.findIndex(r=>r.idx===idx);
     if (curPos>=0 && curPos+1<vis.length) nextId = vis[curPos+1].it.id;
-    DATA.ideas[sel] = pruneEmpty(readForm(), DATA.ideas[sel]);
+    DATA.ideas[idx] = pruneEmpty(readForm(), DATA.ideas[idx]);
+    selRef = DATA.ideas[idx];
+    keepId = DATA.ideas[idx].id || keepId;   // follow a renamed id
   }
   const r = await fetch(endpoint, {method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ideas: DATA.ideas, groups: DATA.vocab.groups,
-                          players: DATA.vocab.players, epics: DATA.vocab.epics,
-                          base_version: baseVersion, force: !!force})});
+    body: JSON.stringify(Object.assign(
+      {ideas: DATA.ideas, groups: DATA.vocab.groups,
+       players: DATA.vocab.players, epics: DATA.vocab.epics,
+       base_version: baseVersion, force: !!force}, opts.extra||{}))});
   const res = await r.json();
   if (res.version) baseVersion = res.version;   // rebase our baseline
-  if (res.conflict){ conflictBanner(endpoint); return; }
+  if (res.conflict){ conflictBanner(endpoint); return false; }
   if (!res.ok){
     banner('bad', 'Not saved:\n• ' + (res.errors||['unknown error']).join('\n• ')
       + (res.warnings&&res.warnings.length ? '\n\nWarnings:\n• '+res.warnings.join('\n• '):''));
-    return;
+    // A failed merit award/revoke still writes the file (with the status put
+    // back), so re-read it rather than leave the page showing a state the file
+    // never had.
+    if (res.reverted !== undefined){ await load(); reselect(keepId); }
+    return false;
   }
   let msg = res.message || 'Saved.';
   if (res.warnings && res.warnings.length) msg += '\n\nWarnings:\n• '+res.warnings.join('\n• ');
   if (res.output) msg += '\n\n'+res.output;
   banner(res.warnings&&res.warnings.length ? 'warn':'ok', msg);
   await load();
-  if (view==='list') advanceSelection(nextId, curPos);
+  if (view!=='list') return true;
+  if (opts.stay) reselect(keepId); else advanceSelection(nextId, curPos);
+  return true;
+}
+
+// Re-select an idea by id after a reload (indices shift when the file is
+// re-read, so nothing may be held across a load() but the id).
+function reselect(id){
+  const i = id ? DATA.ideas.findIndex(x=>x.id===id) : -1;
+  if (i>=0) select(i);
+  else { sel=-1; selRef=null; formSnapshot=null; renderList(); $('#form').innerHTML=''; }
 }
 
 // External-edit conflict: the file changed on disk since we loaded it. Offer to
@@ -2416,34 +3045,35 @@ function advanceSelection(nextId, curPos){
   // Otherwise hold the same slot in the (possibly shorter) visible list.
   if (target<0 && curPos>=0 && vis.length) target = vis[Math.min(curPos, vis.length-1)].idx;
   if (target>=0){ select(target); }
-  else { sel=-1; renderList(); $('#form').innerHTML=''; }
+  else { sel=-1; selRef=null; renderList(); $('#form').innerHTML=''; }
 }
 
 function move(dir){
-  if (sel<0) return;
-  DATA.ideas[sel] = pruneEmpty(readForm(), DATA.ideas[sel]);
-  const j = sel+dir; if (j<0||j>=DATA.ideas.length) return;
-  [DATA.ideas[sel],DATA.ideas[j]]=[DATA.ideas[j],DATA.ideas[sel]];
+  const i = curIdx(); if (i<0) return;
+  DATA.ideas[i] = pruneEmpty(readForm(), DATA.ideas[i]);
+  const j = i+dir; if (j<0||j>=DATA.ideas.length) return;
+  [DATA.ideas[i],DATA.ideas[j]]=[DATA.ideas[j],DATA.ideas[i]];
   sel=j; renderList(); select(sel);
 }
 
 function del(){
-  if (sel<0) return;
+  const i = curIdx(); if (i<0) return;
   if (!confirm('Delete this idea from the backlog?')) return;
-  DATA.ideas.splice(sel,1);
-  sel = Math.min(sel, DATA.ideas.length-1);
-  renderList(); if (sel>=0) select(sel); else $('#form').innerHTML='';
+  DATA.ideas.splice(i,1);
+  sel = Math.min(i, DATA.ideas.length-1);
+  renderList();
+  if (sel>=0) select(sel); else { selRef=null; $('#form').innerHTML=''; }
   banner('warn','Deleted in the editor. Click Save to write it to roadmap.yaml.');
 }
 
-$('#add').onclick = ()=>{
+$('#add').onclick = ()=>guard(()=>{
   const g = DATA.vocab.groups[0] ? DATA.vocab.groups[0].id : '';
   DATA.ideas.unshift({id:'', title:'', group:g, status:'planned'});
   // Adding needs the full form (id + title), so always land in list view.
   if (view!=='list'){ setView('list'); }
   sel=0; renderList(); select(0);
   banner('warn','New idea added. Give it a unique id + title, then Save.');
-};
+});
 
 // ---- group / player management modals -----------------------------------
 const escAmp = s => s.replace(/&/g,'&amp;');          // store titles in YAML form
