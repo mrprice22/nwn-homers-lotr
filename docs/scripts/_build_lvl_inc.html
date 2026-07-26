@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script _build_lvl_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>_build_lvl_inc</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: _build_lvl_inc
+//:: Shared helper for the Ping Pong (&quot;Ultimate PC Builder&quot;) level menu,
+//:: legendary tier (levels 41 - 60).
+//::
+//:: The stock _build_level_1..40 scripts each hard-code a cumulative XP
+//:: value from the old Bioware curve (500 * n * (n - 1); level 40 = 780000).
+//:: Levels 41 - 60 do NOT follow that formula -- they come from the server&#x27;s
+//:: own experience table, hak_2da/exptable.2da, where the per-level delta
+//:: starts at 48800 over the level-40 total and compounds by x1.1
+//:: (level 41 = 828800 ... level 60 = 3581000).
+//::
+//:: So this helper reads exptable.2da directly at runtime -- one source of
+//:: truth -- and only falls back to the transcribed values below if the 2da
+//:: row cannot be read (e.g. the hak is not loaded, in which case levels
+//:: past 40 do not exist in that game anyway).
+//::
+//:: Same convention as code_redeem.nss&#x27;s XP_LEVEL_60: if the 41-60 curve is
+//:: ever retuned in exptable.2da, the fallback table here must be retuned
+//:: with it.
+//:://////////////////////////////////////////////
+
+// Cumulative XP required for character level nLevel (41 &lt;= nLevel &lt;= 60),
+// or 0 if nLevel is outside that range.
+int BuildLegendaryXP(int nLevel);
+
+// Set oPC to exactly the cumulative XP for nLevel and play the usual
+// Ping Pong &quot;you have been levelled&quot; flourish. No-op for a bad level.
+void BuildSetLegendaryLevel(int nLevel);
+
+
+int BuildLegendaryXP(int nLevel)
+{
+    if (nLevel &lt; 41 || nLevel &gt; 60) return 0;
+
+    // exptable.2da is 0-indexed by (level - 1): row 40 -&gt; level 41.
+    string sXP = Get2DAString(&quot;exptable&quot;, &quot;XP&quot;, nLevel - 1);
+    int nXP = StringToInt(sXP);
+    if (nXP &gt; 0) return nXP;
+
+    // Fallback: transcribed from hak_2da/exptable.2da rows 40 - 59.
+    switch (nLevel)
+    {
+        case 41: return  828800;
+        case 42: return  882500;
+        case 43: return  941600;
+        case 44: return 1006600;
+        case 45: return 1078100;
+        case 46: return 1156800;
+        case 47: return 1243400;
+        case 48: return 1338700;
+        case 49: return 1443500;
+        case 50: return 1558800;
+        case 51: return 1685600;
+        case 52: return 1825100;
+        case 53: return 1978600;
+        case 54: return 2147500;
+        case 55: return 2333300;
+        case 56: return 2537700;
+        case 57: return 2762500;
+        case 58: return 3009800;
+        case 59: return 3281800;
+        case 60: return 3581000;
+    }
+    return 0;
+}
+
+void BuildSetLegendaryLevel(int nLevel)
+{
+    object oPC = GetPCSpeaker();
+    if (!GetIsObjectValid(oPC)) return;
+
+    int nXP = BuildLegendaryXP(nLevel);
+    if (nXP &lt;= 0)
+    {
+        SendMessageToPC(oPC, &quot;Ping Pong: that legendary level is not on the &quot;
+                             + &quot;experience table.&quot;);
+        return;
+    }
+
+    object oCaster = OBJECT_SELF;
+    effect eVFX = EffectVisualEffect(VFX_IMP_HASTE);
+
+    // Note: the stock _build_level_* scripts drive the flourish off
+    // GetLastSpeaker() but set XP on GetPCSpeaker(). Use GetPCSpeaker() for
+    // both so the effect always lands on the player who picked the reply.
+    DelayCommand(0.0, AssignCommand(oCaster,
+        ActionCastFakeSpellAtObject(SPELL_MASS_HEAL, oPC)));
+    DelayCommand(2.0, ApplyEffectToObject(DURATION_TYPE_INSTANT, eVFX, oPC));
+    DelayCommand(2.0, FloatingTextStringOnCreature(
+        &quot;LEGENDARY LEVEL &quot; + IntToString(nLevel), oPC));
+
+    SetXP(oPC, nXP);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

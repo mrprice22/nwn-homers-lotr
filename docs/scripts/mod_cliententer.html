@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script hgll_cliententer</title>
+  <title>Script mod_cliententer</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,13 +54,17 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>hgll_cliententer</code></h1><pre class="nss-source"><code>// hgll_cliententer — NWNX:EE port
+<h1>Script: <code>mod_cliententer</code></h1><pre class="nss-source"><code>// mod_cliententer — the module&#x27;s Mod_OnClientEntr handler.
 //
-// Originally cleared a queued Letoscript string left over from logout (the
-// NWNX2 plugin replayed it on next login). NWNX:EE applies HGLL changes
-// in-memory at the moment they happen, so there&#x27;s nothing to replay.
-// We still wipe the legacy locals in case they&#x27;re hanging around on
-// pre-port characters.
+// Split out of hgll_cliententer.nss (roadmap: ll-hgll-split-cliententer). That
+// script carried the whole login flow under the retired legendary leveler&#x27;s
+// name; everything here is ordinary module login wiring — merit, bestiary,
+// teleports, faction allegiance, XP boosts, server-info journals, the death
+// amulet / bleeding-out resolution, the build stamp and the contraband sweep.
+//
+// The leveler itself was deleted in full (roadmap: ll-hgll-remove-scripts), so
+// nothing here calls into it any more. Levels 41-60 are ordinary levels on
+// hak_2da/exptable.2da.
 
 #include &quot;pers_state_inc&quot;
 #include &quot;merit_db&quot;
@@ -74,7 +78,7 @@
 // Death amulet check + persistent state restore. Delayed so the engine&#x27;s
 // own post-login passes (inventory hydration, spellbook sync, &quot;fresh PC&quot;
 // HP/spell resets) have settled before we read or override state.
-void HgllPostEnter(object oPC)
+void ModPostEnter(object oPC)
 {
     object oItem = GetFirstItemInInventory(oPC);
     while (GetIsObjectValid(oItem))
@@ -124,8 +128,6 @@ void HgllPostEnter(object oPC)
 void main()
 {
     object oPC = GetEnteringObject();
-    SetLocalString(oPC, &quot;LetoScript&quot;, &quot;&quot;);
-    SetLocalString(oPC, &quot;LetoscriptLL&quot;, &quot;&quot;);
 
     Merit_InitDb();
     Merit_RecordLogin(oPC);
@@ -179,7 +181,7 @@ void main()
     // the inventory is hydrated before we scan it.
     DelayCommand(7.0, FRK_LoginCheck(oPC));
 
-    DelayCommand(1.0, HgllPostEnter(oPC));
+    DelayCommand(1.0, ModPostEnter(oPC));
 
     // Build stamp: nwn-manager generates &quot;nwnmgr_bstamp&quot; at repack with the module&#x27;s
     // last-edited timestamp + git revision. Resolved at runtime, so it safely no-ops

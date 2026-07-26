@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script servershout5</title>
+  <title>Script _build_level_57</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,21 +54,16 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>servershout5</code></h1><pre class="nss-source"><code>      void main()
+<h1>Script: <code>_build_level_57</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: ULTIMATE PC BUILDER -- LEGENDARY LEVEL 57
+//:: Ping Pong &quot;Set my level.&quot; -&gt; &quot;Legendary Levels (41 - 60)&quot; -&gt; &quot;Level 57&quot;
+//:: XP value comes from hak_2da/exptable.2da via _build_lvl_inc.
+//:://////////////////////////////////////////////
+#include &quot;_build_lvl_inc&quot;
+
+void main()
 {
-
-object oPC = GetEnteringObject();
-
-if (!GetIsPC(oPC)) return;
-
-int DoOnce = GetLocalInt(oPC, GetTag(OBJECT_SELF));
-
-if (DoOnce==TRUE) return;
-
-SetLocalInt(oPC, GetTag(OBJECT_SELF), TRUE);
-
-FloatingTextStringOnCreature(&quot;You must be level 40 to enter the Legendary Levelling Area.&quot;, oPC);
-
+    BuildSetLegendaryLevel(57);
 }
 </code></pre>
   </main>

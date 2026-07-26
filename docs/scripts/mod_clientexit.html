@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script hgll_featlist_08</title>
+  <title>Script mod_clientexit</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,23 +54,36 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>hgll_featlist_08</code></h1><pre class="nss-source"><code>#include &quot;zdlg_include_i&quot;
-#include &quot;hgll_func_inc&quot;
-const string THIRD_PAGE = &quot;feat_select&quot;;
+<h1>Script: <code>mod_clientexit</code></h1><pre class="nss-source"><code>// mod_clientexit — the module&#x27;s Mod_OnClientLeav handler.
+//
+// Split out of hgll_client_exit.nss (roadmap: ll-hgll-split-cliententer). None
+// of this is legendary-leveler work: it dismisses lingering epic summons,
+// commits any Bank of Bree storage box still carried, snapshots persistent
+// state and forces the .bic write.
+//
+// The leveler itself was deleted in full (roadmap: ll-hgll-remove-scripts), so
+// there are no staged level-up picks to drop before the export any more.
+
+#include &quot;pers_state_inc&quot;
+#include &quot;bank_box_inc&quot;
+#include &quot;epic_summon_inc&quot;
+
 void main()
 {
-int nFeat;
-int nCount2;
-object oPC = OBJECT_SELF;
-for(nFeat = 700; nFeat &lt; 800; nFeat++)//loop through the feat constants
-                    {
-                    if (GetIsFeatAvailable(nFeat, oPC))//if the PC can take the feat, it is displayed
-                        {
-                        nCount2 = AddStringElement(GetNameOfFeat(nFeat), THIRD_PAGE, oPC );
-                        ReplaceIntElement(nCount2 - 1, nFeat, THIRD_PAGE, oPC);//store the skill int with the skill
-                        //DoDebug(oPC, &quot;Response Number: &quot; + IntToString(nCount2) + &quot;, Feat Number: &quot; + IntToString(nFeat) + &quot;.&quot;);
-                        }
-                    }
+    object PC = GetExitingObject();
+    // Epic summons live in the henchman slot and don&#x27;t auto-despawn on logout
+    // like summoned associates do -- clean up any lingering one here.
+    EpicSummon_Dismiss(PC);
+    // Safety net: if the player logs out mid-session with a Bank of Bree storage
+    // box still in inventory (i.e. before finishing the banker dialog), commit it
+    // here so the contents are not lost. No-op when no box is carried.
+    CommitStrongBoxes(PC, &quot;client_leave&quot;);
+    CommitFamilyBoxes(PC, &quot;client_leave&quot;);
+    PersState_Snapshot(PC);
+    // Force BIC write so the amulet (if any) and any other inventory /
+    // BIC-resident state from this session survive a logout that beats
+    // the next pc_export_inc auto-save tick.
+    ExportSingleCharacter(PC);
 }
 </code></pre>
   </main>

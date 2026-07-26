@@ -68,6 +68,13 @@
 const string CODE_DB     = &quot;coderedeem&quot;;
 const string CODE_PREFIX = &quot;code:&quot;;
 
+// Cumulative XP for character level 60, i.e. the last real row of the
+// server&#x27;s own experience table (hak_2da/exptable.2da, row 59 -&gt; level 60).
+// Keep this in sync with that file if the 41-60 curve is ever retuned. It is
+// deliberately NOT taken from the retired HGLL accounting, whose total-to-60
+// was ~17.5M and bears no relation to the published table.
+const int XP_LEVEL_60 = 3581000;
+
 // Returns the expiration date &quot;YYYY-MM-DD&quot; for sCodeLower, or &quot;&quot; if unknown.
 string GetCodeExpiration(string sCodeLower)
 {
@@ -86,7 +93,10 @@ int ApplyCodeBenefit(string sCodeLower, object oPC)
 {
     if (sCodeLower == &quot;freelegendary&quot;)
     {
-        SetXP(oPC, 3581000);
+        // Absolute set: top the character up to exactly level 60 on the
+        // published table. Never move XP downwards -- a character who has
+        // banked XP past the last table row must not be docked by redeeming.
+        if (GetXP(oPC) &lt; XP_LEVEL_60) SetXP(oPC, XP_LEVEL_60);
         return TRUE;
     }
     if (sCodeLower == &quot;defect20260516&quot;)

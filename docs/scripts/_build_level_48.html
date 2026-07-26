@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script hgll_client_exit</title>
+  <title>Script _build_level_48</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,39 +54,16 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>hgll_client_exit</code></h1><pre class="nss-source"><code>// hgll_client_exit — NWNX:EE port
-//
-// Originally pushed a queued Letoscript string into the NWNX2 IPC channel on
-// logout to mutate the BIC file. With NWNX:EE, HGLL mutations are applied
-// in-memory at level-up time and persisted via NWNX_Player_SaveCharacter
-// from the leveler dialog itself, so there&#x27;s nothing to do here.
-
-#include &quot;hgll_func_inc&quot;
-#include &quot;pers_state_inc&quot;
-#include &quot;bank_box_inc&quot;
-#include &quot;epic_summon_inc&quot;
+<h1>Script: <code>_build_level_48</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: ULTIMATE PC BUILDER -- LEGENDARY LEVEL 48
+//:: Ping Pong &quot;Set my level.&quot; -&gt; &quot;Legendary Levels (41 - 60)&quot; -&gt; &quot;Level 48&quot;
+//:: XP value comes from hak_2da/exptable.2da via _build_lvl_inc.
+//:://////////////////////////////////////////////
+#include &quot;_build_lvl_inc&quot;
 
 void main()
 {
-    object PC = GetExitingObject();
-    // Epic summons live in the henchman slot and don&#x27;t auto-despawn on logout
-    // like summoned associates do -- clean up any lingering one here.
-    EpicSummon_Dismiss(PC);
-    // Safety net: if the player logs out mid-session with a Bank of Bree storage
-    // box still in inventory (i.e. before finishing the banker dialog), commit it
-    // here so the contents are not lost. No-op when no box is carried.
-    CommitStrongBoxes(PC, &quot;client_leave&quot;);
-    CommitFamilyBoxes(PC, &quot;client_leave&quot;);
-    PersState_Snapshot(PC);
-    // A level-up interrupted by a logout leaves its staged picks on the PC, and PC
-    // locals ride into the BIC. Drop them before the export so they can never be
-    // committed in a later session.
-    HGLL_ClearPendingPicks(PC);
-    // Force BIC write so the amulet (if any) and any other inventory /
-    // BIC-resident state from this session survive a logout that beats
-    // the next pc_export_inc auto-save tick.
-    ExportSingleCharacter(PC);
-    SetLocalString(PC, &quot;LetoScript&quot;, &quot;&quot;);
+    BuildSetLegendaryLevel(48);
 }
 </code></pre>
   </main>

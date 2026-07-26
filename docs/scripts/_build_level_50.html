@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script hgll_featlist_09</title>
+  <title>Script _build_level_50</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -54,23 +54,16 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>hgll_featlist_09</code></h1><pre class="nss-source"><code>#include &quot;zdlg_include_i&quot;
-#include &quot;hgll_func_inc&quot;
-const string THIRD_PAGE = &quot;feat_select&quot;;
+<h1>Script: <code>_build_level_50</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: ULTIMATE PC BUILDER -- LEGENDARY LEVEL 50
+//:: Ping Pong &quot;Set my level.&quot; -&gt; &quot;Legendary Levels (41 - 60)&quot; -&gt; &quot;Level 50&quot;
+//:: XP value comes from hak_2da/exptable.2da via _build_lvl_inc.
+//:://////////////////////////////////////////////
+#include &quot;_build_lvl_inc&quot;
+
 void main()
 {
-int nFeat;
-int nCount2;
-object oPC = OBJECT_SELF;
-for(nFeat = 800; nFeat &lt; 900; nFeat++)//loop through the feat constants
-                    {
-                    if (GetIsFeatAvailable(nFeat, oPC))//if the PC can take the feat, it is displayed
-                        {
-                        nCount2 = AddStringElement(GetNameOfFeat(nFeat), THIRD_PAGE, oPC );
-                        ReplaceIntElement(nCount2 - 1, nFeat, THIRD_PAGE, oPC);//store the skill int with the skill
-                        //DoDebug(oPC, &quot;Response Number: &quot; + IntToString(nCount2) + &quot;, Feat Number: &quot; + IntToString(nFeat) + &quot;.&quot;);
-                        }
-                    }
+    BuildSetLegendaryLevel(50);
 }
 </code></pre>
   </main>
