@@ -4049,17 +4049,33 @@ ideas:
       - step: "UAT: type Code:FreeLegendary in chat with a second player present and confirm the line is not broadcast to them."
         status: open
   - id: ll-pingpong-41-60
-    title: "Ping Pong: add level 41-60 to the \"Set my level\" menu"
-    group: qol
+    title: 'Ping Pong: add level 41-60 to the "Set my level" menu'
+    group: combat-classes
     epic: legendary-levels
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<div>The Ping Pong test NPC can set you to any level from 1 to 60, not just 1 to 40 — so the new legendary levels can actually be tested.</div>"
-    impl_notes: "<div>Conversation <code>unpacked/_pc_builder_v1.dlg.json</code> (NPC <code>butcha</code>, tag <code>BUTCHA</code>, \"Ping Pong\"; placed in <code>thewelloferu</code> and <code>houseofdispai001</code>). Under \"Set my level\", replies 18-57 are Level 40 down to Level 1, each firing <code>_build_level_&lt;N&gt;.nss</code>, which does an <b>absolute</b> <code>SetXP()</code> from the stock cumulative table (500 * n * (n-1); L40 = 780,000). Reply 16 is an unwired stub labelled <code>Htou Level´s</code> with no script — the natural home for a 41-60 submenu. Needs 20 new <code>_build_level_41..60.nss</code> carrying the new table's values, so it depends on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>.</div><div>Two traps when cloning the existing scripts: they set XP on <code>GetPCSpeaker()</code> but play the VFX/floating text on <code>GetLastSpeaker()</code>, and there are duplicate <code>butcha</code>/<code>butcha_2</code> blueprints (<code>CLAUDE-recipes.md:43</code>) — wire the conversation, not one instance.</div>"
+    commit: fb3435f894237d25360afed7d2db472520337858
+    date: "2026-07-25"
+    notes: "<div>Ping Pong, the test NPC, can now set you to any of the new legendary levels. Pick \"Set my level.\", then \"Legendary Levels (41 - 60)\" from the high-level page, and choose anything from 41 up to 60. The experience granted matches the server's published legendary table exactly.</div>"
+    impl_notes: "<div><code>unpacked/_pc_builder_v1.dlg.json</code>: new entry 5 (\"Which legendary level do you want? (41 - 60)\") with replies 58-77 (levels 41-60) plus a Nevermind link; reached from entry 4 (the existing 21-40 page) via new reply 79 \"Legendary Levels (41 - 60)\". Note the original note was wrong that reply 16 was an unwired stub — the dialog already linked the 1-20 page to the 21-40 page.</div><div>New include <code>unpacked/_build_lvl_inc.nss</code> holds <code>BuildLegendaryXP()</code> / <code>BuildSetLegendaryLevel()</code>; the 20 new <code>_build_level_41..60.nss</code> are one-line wrappers. XP is read at runtime from <code>Get2DAString(\"exptable\", \"XP\", nLevel - 1)</code> so <code>hak_2da/exptable.2da</code> stays the single source of truth, with a transcribed fallback switch (828,800 &hellip; 3,581,000) for the case where the hak is absent. The new path uses <code>GetPCSpeaker()</code> for the XP set <i>and</i> the VFX/floating text (fixing the stock scripts' <code>GetLastSpeaker()</code> split), and the change is on the conversation, not on an instance, so both <code>butcha</code> placements (<code>thewelloferu</code>, <code>houseofdispai001</code>) pick it up.</div><div>Setting a level above 40 will not raise the character sheet until <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a> lands; until then <code>SetXP</code> banks the XP but the engine caps the level. Gates: 11/11 smoke tests, dialog integrity 378 dialogs / 0 failing, 21 scripts compiled 0 errors.</div>"
     manual_steps:
-      - step: "UAT: talk to Ping Pong, set level 41 through 60 in turn, and confirm the character sheet and XP bar agree with the new exptable at each step."
+      - step: "UAT: talk to Ping Pong, choose \"Set my level.\" then \"Legendary Levels (41 - 60)\", and confirm the new page lists Level 41 through Level 60 (Legendary Maxx) plus Nevermind, and that Nevermind returns to the opening line."
         status: open
+      - step: "UAT: set level 41 and confirm the character's XP reads exactly 828,800; set level 60 and confirm exactly 3,581,000."
+        status: open
+      - step: "UAT: spot-check three mid-tier levels (47 = 1,243,400; 52 = 1,825,100; 58 = 3,009,800) against hak_2da/exptable.2da."
+        status: open
+      - step: "UAT: confirm the character sheet level itself only follows past 40 once ll-maxlevel-cap has shipped — before that, expect banked XP but a level-40 sheet. This is expected, not a bug in this item."
+        status: open
+      - step: "UAT: with a second player standing next to Ping Pong, confirm the level-up VFX and floating text land on the player who picked the reply, not the bystander (this is the GetLastSpeaker fix)."
+        status: open
+      - step: "UAT: confirm the existing 1-20 and 21-40 pages still work unchanged (set level 20 and level 40)."
+        status: open
+    design_questions:
+      - question: "Ping Pong (\"Set my level\", \"100,000,000 GP\") is placed in The Well of Eru (thewelloferu), the public hub, with no CD-key or admin gate at all — empty StartingList conditional, stock nw_c2_default4, no Active on any reply. Any player can already set their own level and mint 100 million gold; this item now adds level 60 to that. Proposed: gate the conversation with an Admin_CanAdmin()/Admin_CanHomeless() StartingConditional (a new _build_admin_sc.nss calling the existing admin_db.nss helpers) so only whitelisted CD keys see the menu, and leave the House of Dispair (houseofdispai001) copy as-is; alternatively remove the thewelloferu instance entirely and keep Ping Pong to the admin house. Approve one, or say it should stay open to everyone. Not acted on — gating is a policy decision that changes live player-facing behaviour."
+        status: open
+        answer: null
   - id: ll-wiki-leveling-docs
     title: "Rewrite the Leveling Guide for real levels 41-60"
     group: wiki-tools
