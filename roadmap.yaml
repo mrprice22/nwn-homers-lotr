@@ -3904,11 +3904,24 @@ ideas:
     title: "Character validation with a level 60 cap"
     group: combat-classes
     epic: legendary-levels
-    status: confirmed
+    status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
-    notes: "<div>Characters above level 40 log in cleanly — no rejected or silently reset characters when the cap moves.</div>"
-    impl_notes: "<div>Confirm the ELC/ILR posture (<code>NWN_ELC=0</code>, <code>NWN_ILR=0</code> today) is still what we want with a real 60 cap, and verify the client accepts a 41+ character with the custom <code>exptable.2da</code>/<code>classes.2da</code> in the hak. Depends on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a> and <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a>.</div>"
+    commit: 8b1ffa7f99d11688be417dc427bf213978c9f5a7
+    date: "2026-07-25"
+    notes: "<div>Characters past level 40 log in cleanly. The server does not re-validate characters against the rules tables on connect, so a legendary character is never rejected or quietly reset back to 40 when the cap moves. Item level restrictions stay off as well — your gear keeps working at every level.</div>"
+    impl_notes: "<div><b>Verified 2026-07-25 — no code change required.</b> <code>server.env</code> already runs <code>NWN_ELC=0</code> and <code>NWN_ILR=0</code>, so no login-time character re-validation happens and a level 41+ character cannot be rejected or clamped. No NWNX ELC plugin is enabled and nothing in <code>unpacked/</code> subscribes to <code>NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE/_AFTER</code> (only the vendored <code>nwnx_events.nss</code>/<code>nwnx_player.nss</code> headers mention them), so there is no second validation path. <code>hak_2da/classes.2da</code> was diffed field-by-field against the stock EE table: all 11 player base classes already carry <code>MaxLevel 0</code> and <code>EpicLevel -1</code>, so no 2DA edit is needed for a 60 cap — the remaining non-zero <code>MaxLevel</code> values are stock prestige-class limits (40, or 5 for Harper/PDK) that a 60-level budget cannot reach once base-class prereqs are paid. The README's claim that those columns were part of the cap lever was wrong and has been corrected; the cap is entirely <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a>'s NWNX/<code>server.env</code> decision, so this item is not blocked on it. The only real hazard left for 41+ logins is hak mismatch, not validation: a client without the published <code>exptable.2da</code> reads the level-40 table.</div><div>Separately, listing the installed <code>lotr_rules.hak</code> showed it ships <code>classes.2da</code> (multiclass <code>XPPenalty</code> zeroed) while the README rebuild recipe omitted it — a from-scratch rebuild would have silently dropped it; the recipe now packs all four 2DAs and documents <code>nwn_erf -t</code> as the verification step. The same listing confirms <code>exptable.2da</code> is still absent from the live hak (tracked on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>). Build gates: 11/11 smoke tests.</div>"
+    manual_steps:
+      - step: "UAT: with NWN_ELC=0/NWN_ILR=0 unchanged, log in an existing level-40 character after the level-cap lift ships and confirm it loads at level 40 with no 'character rejected'/'invalid character' message and no XP loss."
+        status: open
+      - step: "UAT: after the cap lift, level a test character to 41 and relog — confirm it comes back at 41 with its XP intact (nothing clamped back to 40)."
+        status: open
+      - step: "UAT: log in from a client that has NOT yet pulled the refreshed nwsync hak and confirm the only symptom is the character sheet clamping at 40 (not a rejected login) — the fix is bin/refresh-nwsync, not an ELC change."
+        status: open
+      - step: "Do NOT enable NWN_ELC or NWN_ILR in server.env while levels 41-60 are live; turning ELC on would re-validate legendary characters against the 2DAs. If it is ever needed, first prove exptable.2da is identical on server and client."
+        status: open
+      - step: "Hak rebuild: the README recipe now packs classes.2da as well (multiclass XPPenalty zeroed). Next time lotr_rules.hak is rebuilt, pack ruleset.2da + baseitems.2da + classes.2da + exptable.2da and verify with nwn_erf -t. The installed hak still lacks exptable.2da."
+        status: open
   - id: ll-xp-award-balance
     title: "Retune XP awards for the 41-60 band"
     group: combat-classes
