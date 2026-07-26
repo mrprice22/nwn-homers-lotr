@@ -4048,11 +4048,15 @@ ideas:
     title: "Rewrite the Leveling Guide for real levels 41-60"
     group: wiki-tools
     epic: legendary-levels
-    status: confirmed
+    status: design
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The wiki explains how levelling past 40 actually works now: what you gain per level, what it costs, and where the Legendary Feats fit.</div>"
-    impl_notes: "<div>Follows <a href=\"#idea-ll-hgll-purge-docs\">the HGLL purge</a> — that one removes the old text, this one writes the replacement in <code>docs.manual/LevelingGuide.html</code> and <code>docs.manual/Customizations.html</code>, including the new XP table and a link to the Legendary Feats page once the draft graduates out of <code>Draft/</code>.</div>"
+    impl_notes: "<div>Follows <a href=\"#idea-ll-hgll-purge-docs\">the HGLL purge</a> — that one removes the old text, this one writes the replacement in <code>docs.manual/LevelingGuide.html</code> and <code>docs.manual/Customizations.html</code>, including the new XP table and a link to the Legendary Feats page once the draft graduates out of <code>Draft/</code>.</div><div><b>2026-07-25 (autopilot):</b> the XP-cost half of this page has already landed via <a href=\"#idea-ll-hgll-purge-docs\">ll-hgll-purge-docs</a> (the 41-60 table, the 48,800 / x1.1 rule, the in-development caveat). What is left is precisely the part nobody has decided yet — the per-level gains (BAB, saves, hit dice, skill points, spell progression) owned by <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>, and the Legendary Feats section owned by <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a>, both still in design. Writing those sections now means inventing the rules in prose and rewriting the page once the real tables land. Parked rather than half-written.</div>"
+    design_questions:
+      - question: "Should the Leveling Guide rewrite wait for its dependencies, or ship an XP-only version now? Proposed: wait — resume this item only once ll-cls-progression and ll-feats-2da are decided, then write the per-level gains table and the Legendary Feats section in one pass. The XP-cost half is already published (ll-hgll-purge-docs), so nothing is currently missing or wrong on the page; it is just incomplete, and marked in development. Alternative if you would rather not wait: say so and the page gets an explicit \"per-level gains and Legendary Feats are still being designed\" placeholder section now."
+        status: open
+        answer: null
   - id: ll-feats-2da
     title: "Legendary Feats: 2DA plumbing and per-class allotments"
     group: combat-classes
