@@ -136,6 +136,24 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: rancid-skinner-bark-still-not-working
+    title: "Rancid Skinner is still shouting 'Helms Deep is under attack' on death"
+    group: quests-areas
+    status: wip
+    type: Defect
+    player: Szescian82
+    date: "2026-07-27"
+    notes: "<div>original idea: rancid-skinner-bark, did not resolve issue</div><div><br></div><div>maybe blueprint was updated but not the instance?</div>"
+  - id: shayan-subrace-revivial
+    title: "Expore Shayan's Subrace Engine"
+    group: combat-classes
+    status: confirmed
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-27"
+    notes: "<div> sha_subr_methds.nss: Shayan's Subrace Engine is already present in the source code, but is not documented or exposed to the players</div><div><br></div><div>Is this system already wired up fully and ready to use?</div><div>need a subraces journal entry and info in docs.manual/cusotmizations</div>"
+    impl_notes: "sha_leto_inc.nss was collateral damage from the HGLL purge (d212c3c2b08). That commit de-referenced every hgll_* consumer, but sha_leto_inc had a second consumer nobody checked: sha_subr_methds.nss:44, Shayan's Subrace Engine. That 227\n  KB file is included by default.nss, nw_o0_respawn.nss, nw_s2_turndead.nss, several spell overrides and the _dm_subrace_* wands — hence 56 errors from one missing file. Every repack since was incremental, so nasher reused cached .ncs and\n  packed a module whose sources no longer compiled.\n\n  Fix: restored the file verbatim. It was already an NWNX:EE no-op shim — LetoScript() returns \"\" and the LETO_* helpers only build strings to hand to it — so nothing about runtime behaviour changes; the subrace engine's Leto path has\n  been inert since the EE port regardless. I added a header recording that it's a shim, that it now belongs to the subrace engine alone, why it came back rather than being excised"
+    impl_notes_h: 162
   - id: concerning-pipeweed
     title: "Concerning Pipeweed"
     group: travel
@@ -4041,17 +4059,17 @@ ideas:
         status: done
         step_h: 64
       - step: "Run bin/refresh-nwsync so clients receive the updated lotr_rules.hak, then restart the server. Clients with a stale hak read the old table and their character sheet clamps at 40."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: log in with a level 40 character and confirm the XP bar / character sheet shows the next-level requirement as 828,800 rather than treating 40 as the cap. Note the MaxLevel plugin has a known upstream bug where the sheet's \"Next Level\" figure is wrong past 40 — judge by whether levelling actually happens, not only by that number."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT: verify the level-40 threshold is unchanged (780,000) and that no character below 40 sees a shifted XP requirement — rows 1-40 are byte-identical to stock, this is a regression check."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT: spot-check three mid-table levels against Customizations.html — L44 1,006,600, L52 1,825,100, L60 3,581,000."
-        status: open
+        status: wip
         step_h: 64
       - step: "UAT: confirm a character cannot be pushed past level 60 (the level-61 row is the 0xFFFFFFFF unreachable sentinel)."
         status: open
