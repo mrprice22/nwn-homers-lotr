@@ -10,10 +10,11 @@ things can silently break them, none of which any other check would catch:
    multiclass XP penalty (classes) with no visible symptom until a player
    levels.
 2. **A retune of the curve in one place only.** The 41-60 values are
-   transcribed twice: in exptable.2da, and as the runtime fallback switch in
-   unpacked/_build_lvl_inc.nss (the Ping Pong legendary level menu). The
-   include's own header says the two must be retuned together. Nothing enforced
-   it until this gate.
+   transcribed three times: in exptable.2da, as the runtime fallback switch in
+   unpacked/_build_lvl_inc.nss (the Ping Pong legendary level menu), and as
+   XP_LEVEL_60 in unpacked/code_redeem.nss (the freelegendary promo code, which
+   SetXP's a character to exactly that total). The include's own header says
+   they must be retuned together. Nothing enforced it until this gate.
 3. **A shifted sub-40 row.** Rows for levels 1-40 must stay exactly on the
    stock Bioware curve (500 * n * (n - 1)); a stray edit there would move every
    existing character's next-level threshold.
@@ -37,6 +38,7 @@ REPO = Path(__file__).resolve().parent.parent
 EXPTABLE = REPO / "hak_2da" / "exptable.2da"
 CLASSES = REPO / "hak_2da" / "classes.2da"
 BUILD_INC = REPO / "unpacked" / "_build_lvl_inc.nss"
+CODE_REDEEM = REPO / "unpacked" / "code_redeem.nss"
 
 LEVEL_40_XP = 780000
 FIRST_STEP = 48800          # level 40 -> 41
@@ -154,6 +156,28 @@ def check_fallback(problems, table):
             )
 
 
+def check_code_redeem(problems, table):
+    """code_redeem.nss's XP_LEVEL_60 is the third copy of the same number.
+
+    The `freelegendary` promo code tops a character up to exactly level 60 with
+    an absolute SetXP, so a stale constant here would set players to the wrong
+    level rather than merely display something odd.
+    """
+    if not CODE_REDEEM.exists():
+        return                      # optional consumer; nothing to reconcile
+    src = CODE_REDEEM.read_text(encoding="utf-8")
+    m = re.search(r"const\s+int\s+XP_LEVEL_60\s*=\s*(\d+)\s*;", src)
+    if not m:
+        problems.append("code_redeem.nss: XP_LEVEL_60 constant not found")
+        return
+    want = table.get(MAX_LEVEL)
+    if want is not None and int(m.group(1)) != want:
+        problems.append(
+            f"code_redeem.nss: XP_LEVEL_60 is {m.group(1)}, exptable.2da says "
+            f"{want} — the freelegendary code would set the wrong level"
+        )
+
+
 def check_classes(problems):
     """XPPenalty must stay zeroed for the player base classes."""
     if not CLASSES.exists():
@@ -187,6 +211,7 @@ def main() -> int:
     problems: list[str] = []
     table = check_exptable(problems)
     check_fallback(problems, table)
+    check_code_redeem(problems, table)
     check_classes(problems)
 
     if problems:
@@ -201,7 +226,7 @@ def main() -> int:
     print(
         f"ok epic-tables: exptable.2da levels 1-{MAX_LEVEL} on curve "
         f"(41={table.get(41)}, {MAX_LEVEL}={table.get(MAX_LEVEL)}), "
-        "fallback switch matches, XPPenalty zeroed"
+        "fallback switch + XP_LEVEL_60 match, XPPenalty zeroed"
     )
     return 0
 

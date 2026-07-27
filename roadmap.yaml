@@ -136,6 +136,16 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: concerning-pipeweed
+    title: "Concerning Pipeweed"
+    group: travel
+    epic: quest-overhaul
+    status: confirmed
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-26"
+    notes: "<div>Depends on completion of concerning-hobbits quest. </div><div>Both the concerning-hobbits, and the wizard class early line quests are low level and direct players to Hobbiton. However, Hobbiton is a LONG walk from well of eru, fastest path from bree through mirkwood which is too tough for low level players. </div><div><br></div><div><b>Add a fast travel option to the good teleporter from well of eru that takes people to Hobbiton. </b></div><div><br></div><div>Also, once concerning-hobbits is complete, you should be able to return to hobbiton to buy more pipe weed. The pipeweed from concerning-hobbits, as well as what you can buy afterword, should all be compatiable with the smoking chamber water pipes that are accessible from the well of eru. </div><div><br></div><div>Review the scripts when the water pipe is used to smoke the pipeweed: confirm the the effects here and propose ways to improve/modify them. I'm interested in the  hobbit offering multiple strains of pipeweed with different effects. E.g. maybe one that lowers your CHA by 4 and increases your WIS by 4, and it lasts for 1 in-game hour even after resting. </div><div><br></div><div>Possibly alter/modify conversations frequently used NPCs can recognize when you are under the influence of pipe weed and make comments about it. </div><div><br></div><div>Document a new draft followup quest idea that triggers once youve bought pipe weed from hobbit on 3 different real-word calendar days, on that third time he after purchasing, the hobbit tells you he's running low on supply and you have a quest to secure trade routes or stop hostile mobs from preventing his grow operation, etc. </div>"
+    notes_h: 192
   - id: bestiary-boss-breakdown
     title: "Beastiary breakdown for just the bosses"
     group: bosses
@@ -324,7 +334,7 @@ ideas:
   - id: gondor-scribe
     title: "Well of Souls Quest: No Gondor Scribe"
     group: quests-areas
-    status: design
+    status: confirmed
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-07-23"
@@ -335,11 +345,13 @@ ideas:
       - question: "On the Hanee-first route the Annuminas Key still only comes from the scribe, so the ruins' four key chests (KeyRequired=0, pickable) are reached before the key exists. Leave as-is, grant the key at Hanee's handoff, or set KeyRequired=1?"
         status: answered
         answer: "Leave as is with key coming from scribe; set 2 of the chests to be keyRequired and unpickable -- add moderately high powered sorcerer gear in one and wizard gear in the other, a 3 pieces of +10 gear with some resistances, bonus spell slots, and relevant ability score boosts. The key should be destroyed on use, so player can only open 1 of the 2 locked chests. The scribe should offer an in game warning/explanation for why (something, something, magic) and the chests should be labeled with unique names and have unique descriptions that hint at what they are rewards for (sorcerer vs wizard). Move the original contents of the 2 chests we're locking with a key here to be split up among the other 2 chests that remain pickable so no net-loss of loot, only added loot for people who do the quest and come back with the key."
-        question_h: 64
-        answer_h: 64
+        question_h: 84
+        answer_h: 128
       - question: "Residual relog key-farm on the new warded chests: the scribe accept node (StartingList entry 0) still fires whenever the PC lacks azagothshead and azagothdead!=1, so a player could open one warded chest, relog (which clears the session annu_key_given local int), re-accept for a fresh key, and open the second warded chest too. AutoRemoveKey + the same-session guard block casual double-dipping but not deliberate relog-farming. Proposed: leave as-is (low-value gear, high-effort setup), OR harden it — persist the guard as a roadmapdb/campaign-DB row keyed by CD-key/UUID, or advance the quest stage so accept-entry-0 stops firing after the first key grant. Which do you want?"
-        status: open
-        answer: null
+        status: answered
+        answer: "Harden it: Okay to use the campign-db. Wouldn't advancing quest stage also need hardened if we went that approach to also use campaign db so the quest stage persisted through reboots?"
+        question_h: 123
+        answer_h: 64
     manual_steps:
       - step: "UAT Hanee-first path: accept from Hanee in Bree -> kill Azagoth in the Ruins of Annuminas -> back to Hanee (+5k XP, keeps head, no repeat on re-talk) -> Gondor Scribe in the Tower ground floor (+10k XP, head consumed, Well of Souls stage 2)."
         status: open
@@ -352,15 +364,18 @@ ideas:
         step_h: 64
       - step: "UAT appearance: spawn/loot the 6 new caster items (sorc_robe_annu, sorc_amul_annu, sorc_ring_annu, wiz_robe_annu, wiz_amul_annu, wiz_ring_annu) and confirm each looks right, equips on a caster, and its properties display (ability score, bonus spell slots, resistances). Palette: robes -> Armor > Clothing; amulets -> Miscellaneous > Jewelry > Amulets; rings -> Miscellaneous > Jewelry > Rings."
         status: open
+        step_h: 64
       - step: "UAT one-key-one-chest: in Ruins of Annuminas (ruinsofannuminas), get the Annuminas Key from the Gondor Scribe (Tower of the High Wizard: Ground Floor / area011), open ONE warded chest (Sorcerer's Warded Coffer @ X71.23/Y50.06 or Wizard's Sealed Reliquary @ X76.24/Y49.98), and confirm the key is consumed and the OTHER warded chest can no longer be opened (unpickable + no key)."
         status: open
+        step_h: 64
       - step: "UAT pickable chests: confirm the two remaining Annuminas chests (Placeable-List idx 9 @ X62.34/Y54.80 and idx 10 @ X62.09/Y44.90) are still lockpickable and still generate medium treasure on open."
         status: open
+        step_h: 64
   - id: unlock-more-inacessible-creature
     title: "Unlock Inacessible creatures, beef up stats, give them areas to live in"
     group: bosses
     epic: difficulty-increase
-    status: design
+    status: awarded
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-09"
@@ -368,8 +383,8 @@ ideas:
     impl_notes: "<div>Original ask was to write a plan to incorporate the creatures listed at https://homerslotr.com/creatures/#absent. The plan is written; the concrete build work now lives entirely in the two linked backlog slices.</div>"
     design_questions:
       - question: "The original ask (write the plan) is complete and the concrete work now lives in the two linked slices, so this umbrella needs an admin call: close it as implemented (as was done for the endgame-ceiling umbrella), or keep it open until the slices ship?"
-        status: open
-        answer: null
+        status: answered
+        answer: "ok to close"
         question_h: 64
         answer_h: 64
   - id: higher-difficulty-ceiling-revamp
@@ -472,7 +487,8 @@ ideas:
   - id: Ammo-shortage
     title: "Ammo shortage -> ammo replication item?"
     group: items-gear
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-07-24"
@@ -492,7 +508,7 @@ ideas:
         answer_h: 64
     manual_steps:
       - step: "ICON UAT/TUNE (Quiver of Endless Flight): pull ammoreplicator from the Castle Homeless cheat chest and look at its inventory icon. It is a misc-medium item (base item 29) currently on the placeholder ModelPart1 = 11. If that does not read as a QUIVER, cycle candidate misc-medium models in the toolset item editor until one does, then write the final value into unpacked/ammoreplicator.uti.json. No CEP hak was readable at build time, so the model could only be guessed."
-        status: open
+        status: done
         blocker: true
         step_h: 96
       - step: "UAT drop: kill Angmar (area009, Angmar's Lair) and confirm the Quiver of Endless Flight is on the corpse. Then kill Legolas Greenleaf (area023, Mirkwoods - Halls of Greenleafs, encounter-spawned) and confirm the same."
@@ -800,25 +816,34 @@ ideas:
   - id: Gear-to-boost-specific-mage-spells
     title: "Gear to boost specific mage spells"
     group: items-gear
-    status: design
+    status: confirmed
     type: Enhancement
     player: "dc0960 (Dungeon_Crawler)"
     date: "2026-07-23"
     notes: "<div><em>Original ask:</em> \"An item to improve epic summons would be nice, not to make them more tanks, but more dps so they do something vs higher bosses. Or a way to improve spells in general, obviously there are a lot of spells that can't be used as they are — mobs are just immune to them. Like an item to change implosion to do 'chaos' dmg instead of death. As a whole for casters there are very little ways to kill something, its either damage shields, IGMS or epic spell lucky rolls for the majority. So some boosting to lvl 9 spells would be nice.\"</div><div><br></div><div><strong>The problem.</strong> Against high-tier bosses casters hit a wall: bosses are immune to death/instant-kill and to whole swaths of spells, so the only reliable answers left are damage shields, IGMS, and lucky epic-spell rolls. There is no way to make a favourite spell — or your epic summons — actually matter at the top of the roster.</div><div><br></div><div><strong>Concept: caster gear that <em>drops from high-tier bosses</em>.</strong> Each piece is a single equippable that flags its wearer on equip; a scripted hook then reads that flag plus the spell being cast and adjusts the outcome. Four archetypes:</div><ul><li><strong>Spell / School Amplifier</strong> — multiplies a chosen spell's or school's damage by a capped % (e.g. \"Evocation +25%\", or a single named spell). Rides the same spell-id effect-scaling machinery the module already uses to double spell durations.</li><li><strong>Damage Retyper</strong> — rewrites a spell's damage <em>type</em> to an <strong>existing</strong> type the target isn't immune to (e.g. Implosion's death damage → magical or negative), so immune bosses still take the hit. <em>No new damage type is being invented here</em> — this maps only onto existing NWN types; the separate forge \"true damage type\" idea is out of scope for this item.</li><li><strong>Summoner's Gear</strong> — pushes a summon's attack/damage output (DPS, not tankiness — exactly as asked) up to where it matters against high-CR bosses, extending the existing summon-scaling that already boosts summons at spawn.</li><li><strong>Focus / Caster-Level Gear</strong> — temporarily bumps caster level or save DC for a chosen school so save-based level-9 spells can actually land on high-CR targets. The trickiest to balance — treat as a stretch tier.</li></ul><div><strong>Feasibility.</strong> No native item property can boost a specific spell, so all four are scripted — but the plumbing already exists in the module: tag-based equip markers, the spell-cast hook (the same one that runs the Meaningwave counterspell), the spell-id effect-scaling handler that doubles durations, and the summon-boost hook. Reuse, not new engine work.</div><div><br></div><div><strong>Open questions.</strong> One dedicated slot with hard % caps and no stacking of the same effect; which specific spells/schools ship first; and the drop sources / rarity across the boss roster.</div><div><br></div><div><strong>Starter catalogue (2026-07-09).</strong> A concrete first draft of <strong>20 items — five each for Cleric, Druid, Sorcerer and Wizard</strong> is written up, with signature effects, damage dice / caster-level scaling, stat lines tiered to each source boss's challenge rating, and a thematic boss drop for every one (all existing, reachable bosses — no new areas needed). A new design pillar rewards <strong>pure single-class casters</strong> with a stronger version of every effect. See the full table on the wiki: <a href=\"https://homerslotr.com/manual/CasterGear\" target=\"_blank\" rel=\"noopener\">Caster Signature Gear</a> (linked from <a href=\"https://homerslotr.com/manual/Customizations#caster-gear\" target=\"_blank\" rel=\"noopener\">Customizations → Notable Custom Systems</a>).</div>"
+    notes_h: 460
     impl_notes: "<div><b>Feasibility re-confirmed (autopilot 2026-07-23):</b> no native item property boosts a specific spell, so all four archetypes are scripted, but the plumbing already exists — tag-based equip markers, the module spell-cast hook (same one running the Meaningwave counterspell), the spell-id effect-scaling handler that doubles durations, and the summon-boost hook (summon_boost.nss). The Damage Retyper is the most mechanically contained archetype (a single OnCast interception that swaps an existing damage type) and directly answers the core complaint (bosses immune to death/instant-kill). This is parked rather than built because every archetype shifts high-tier boss balance and the slot/cap/drop policy is the admin's call — see the design questions; on approval the MVP is a small, well-scoped build.</div>"
+    impl_notes_h: 115
     design_questions:
       - question: "MVP SCOPE - which archetype ships first? Proposed: the DAMAGE RETYPER as the pilot (most contained + directly fixes the immunity wall). Concrete first slice = 3 amulets that retype a chosen death/instant-kill spell's damage to an existing type the boss is not immune to: (a) Implosion death->magical, (b) Wail of the Banshee death->negative, (c) Finger of Death death->negative. Each is one equippable that sets a PC flag on equip; the existing spell-cast hook reads the flag + the spell id and rewrites the damage. Approve Damage Retyper as MVP, or start with Summoner's Gear (extend summon_boost.nss for DPS) / Spell Amplifier instead?"
-        status: open
-        answer: null
+        status: answered
+        answer: "accept proposed -- add draft backlog ideas for the other types of items (if they don't exist yet)"
+        question_h: 87
+        answer_h: 64
       - question: "SLOT / CAP / STACKING POLICY (needed before any archetype ships). Proposed: ONE dedicated equip slot for this whole system (suggest amulet OR ring - which?), a hard per-effect cap (e.g. Amplifier +25% max, Focus +2 caster level / +2 DC max), and NO stacking of the same effect (two Evocation amplifiers do not add). This keeps casters relevant without trivialising bosses. Approve the slot choice + caps, or set your own numbers?"
-        status: open
-        answer: null
+        status: answered
+        answer: "yes, dedicated equip slot: amulet"
+        question_h: 76
+        answer_h: 64
       - question: "CATALOGUE SOURCE. A 20-item 'Caster Signature Gear' starter catalogue (5 each for Cleric/Druid/Sorcerer/Wizard, with signature effects, scaling, per-boss drops, and a pure-single-class bonus pillar) already exists on the wiki (Customizations -> Caster Signature Gear). Should the MVP build a scoped SUBSET of that catalogue (e.g. just the 3 Damage Retyper amulets above, each from its listed boss), or do you want to revise the catalogue first? Confirm the drop sources are still the intended bosses before anything is placed."
-        status: open
-        answer: null
+        status: answered
+        answer: "the 20 catalog draft is a decent starting point but nothing in there has to be final: I want a damage retyper for each class with the first shipment. Propose new item(s) to fill the gap to meet this, and review draft boss drops for these and suggest if you think they make sense, or if not then propose other places or methods to get the items. We do have class-specific quest lines WIP that we could lean on or integrate with, e.g. at level 40 the quest lines tell you which boss has that class gear (and when you fight that boss with the quest active; the boss fight is changed slightly, maybe the boss as dialogue lines it says in combat, or has additional minions, or player has to use a specific item they got earlier in their class quest line to make the boss vulnerable before it can be damaged) -- could also be a new unique boss or bringing in an otherwise unused/inaccessible boss."
+        question_h: 84
+        answer_h: 98
     manual_steps:
       - step: "On approval this becomes a scripting build (equip-flag include + spell-cast-hook interception + the approved item blueprints + boss-drop placement) - re-promote to confirmed. The item blueprints will need palette filing and appearance/equip UAT; boss-drop placement is a per-boss .utc ItemList edit (existing bosses, no new areas)."
         status: open
+        step_h: 64
   - id: respawn-tracker-well-of-eru
     title: "Respawn Tracker in Well of Eru"
     group: bosses
@@ -1667,18 +1692,18 @@ ideas:
     impl_notes: "<div>Opens gravesofthelostk, which had zero connections of any kind, and spawns three previously-unspawned blueprints. New: q_frk_inc.nss (all logic), q_frk_enter/q_frk_tomb (OnEnter wrappers on falseheaven/gravesofthelostk, chaining ent and leash_to_area), q_frk_gate.utp + q_frk_gate.nss (one gate blueprint serving both ends; direction via local string FRK_DEST; the return leg deliberately does not demand the key so a lost key cannot entomb a player), q_frk_death.nss (ScriptDeath on weathertopkin003/que003/arc002, chaining x2_def_ondeath, party-credited). Journal category frk_tombs (@group 'Lord of the Rings', @order 90), entries 1/2/3/10. Hooks: acquireditem_tag on Tag ForbiddenRealmsKey, plus a retroactive FRK_LoginCheck in hgll_cliententer for characters who stole the key before this shipped. Persistence: campaign DB forbiddendb, per character (frk_stage 0-3, advance-only).</div><div><br></div><div>Court picked as the highest non-outlier CR variant of each: King weathertopkin003 (454, rejecting the CR-1514 kin004), Queen weathertopque003 (594), Archer weathertoparc002 (337) — one-line constants at the top of q_frk_inc.nss. Spawn guards are area-scoped by resref, not module-wide by tag, because the court tags are shared with the placed Weathertop variants. Script-spawned creatures are not in gen-boss-registry.py's placed-instance registry, so the court does not appear on the Roll of the Fallen. No new loot was authored — the court drops whatever is on the blueprints, which may be thin for an end-game tier. Gates passed: 7/7 smoke tests, check_boss_registry unchanged at 78, dialog integrity clean. Admin half documented in QuestGuide-DM-Notes.md.</div>"
     design_questions:
       - question: "Should the barrow-court respawn? It currently re-forms whenever a PC enters and that member is not standing — so the fight is farmable, though the journal completes only once. One guard swap in FRK_SpawnCourtMember makes it a once-per-server or once-per-character kill instead."
-        status: open
-        answer: "15 min respawn? hm.."
+        status: answered
+        answer: "1.5 hr respawn"
         question_h: 64
         answer_h: 64
       - question: "Should the court appear on the Roll of the Fallen board? Script-spawned creatures are invisible to the boss registry; tracking them needs real placed instances (toolset work) instead of waypoint spawns."
-        status: open
-        answer: null
+        status: answered
+        answer: "Add the king and queen to the board; they should be made strong enough to well overpass requirements to be on the board, and be tougher than summunus boss. \nThere should be multiple other minions (archers/fighters) supporting the king and queen, but their multiplicity will prevent them from showing up on the board."
         question_h: 64
         answer_h: 64
       - question: "Are the CR picks right? The highest non-outlier variant of each was taken (King 454 / Queen 594 / Archer 337), skipping the CR-1514 King. Related: no new loot was authored for the tier."
-        status: open
-        answer: null
+        status: answered
+        answer: "CR-1514 King sounds more appropriate than the 454 king.. Going for a TOUGH boss fight, new end-game tier\nPropose new boss loot."
         question_h: 64
         answer_h: 64
     manual_steps:
@@ -2696,10 +2721,10 @@ ideas:
     manual_steps:
       - step: "UAT faction oath-lock: after the Black Oath fall, confirm the character is Evil-aligned by faction and that the GOOD Well of Eru light-shaft (zep_lightshft009) now refuses to switch them (message, no change); the EVIL shaft still works."
         status: open
-      - step: "Verify the Barad-dur rack is actually clickable in-game. The instance follows the shipped-sibling retag shape (Static:0 + OnUsed, no explicit Useable override, exactly like the RDD Forge-of-Durin anvil). If the CEP plc_torture1 base is not useable-by-default the rack will not be clickable and the quest cannot be completed &mdash; if so, add a single Useable:1 field to that instance, and note the same one-line fix would apply to the sibling anvil/altar retags."
-        status: open
-        blocker: true
         step_h: 64
+      - step: "UAT: Verify the Barad-dur rack is actually clickable in-game. The instance follows the shipped-sibling retag shape (Static:0 + OnUsed, no explicit Useable override, exactly like the RDD Forge-of-Durin anvil). If the CEP plc_torture1 base is not useable-by-default the rack will not be clickable and the quest cannot be completed &mdash; if so, add a single Useable:1 field to that instance, and note the same one-line fix would apply to the sibling anvil/altar retags."
+        status: open
+        step_h: 89
       - step: "UAT gating: non-Blackguard L14+ character at Halmir gets only the pointer line. (Halmir needs AP_prestigehub_1 placed to appear; this quest adds no new waypoint of its own.)"
         status: open
         step_h: 64
@@ -3001,7 +3026,7 @@ ideas:
     title: "Quest pair: Lumber Runners (Evil) vs Ent-Watch (Good), Fangorn dailies"
     group: quests-areas
     epic: quest-overhaul
-    status: design
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
@@ -3011,14 +3036,20 @@ ideas:
       - question: "SHARED WORLD-STATE HELPER (the real second infra unblocker; the cooldown helper already exists as quest_cd_inc.nss). Proposed: a thin include 'worldstate_inc.nss' over a 'worldstatedb' campaign DB — WS_GetInt/WS_SetInt/WS_Adjust for server-wide persistent globals plus a ~1/min WS_Tick for per-key decay/weekly reset."
         status: answered
         answer: "Approved: Campaign DB + heartbeat tick + decay. Build worldstate_inc.nss + worldstatedb + WS_Tick as shared infra (autopilot is building this independently of the tug-of-war quest, which still needs its mechanic decision below)."
+        question_h: 64
+        answer_h: 64
       - question: "LUMBER/ENT TUG-OF-WAR MECHANIC (creative/balance, needs your call). Concept: a shared isengard_warmachine world-state var that both sides push — players felling trees / aiding Isengard raise it, players defending Fangorn / doing Ent objectives lower it — and its value scales the difficulty/rewards of the linked Helm's Deep event ('ship the pair together'). Open: what raises/lowers it and by how much per action, the min/max clamp, whether it decays toward centre over time (via WS_Tick), and what the Helm's Deep event does at each band. Proposed starting point: range 0-100, start 50, +/-5 per qualifying action, decay 1/hour toward 50, three difficulty bands (<=25 / 26-74 / >=75). Approve/tweak, and confirm the two areas (Fangorn + Helm's Deep) to wire."
-        status: open
-        answer: null
+        status: answered
+        answer: "back-end calcs use range 0-200, start 100, +/-5 per qualifying action, decay 1/hour toward 100, five difficulty bands (<=25 / 26-74 / 75-125 /126-174 / >=175).\nHowever, any in-game mentions of this progress should be normalizes to %, as  0 to 100% for one side or the other, so the progress % decay's at a fixed rate of 1% per hour, and 100% for one faction means either back end value of 0 or 200"
+        question_h: 120
+        answer_h: 90
     manual_steps:
       - step: "DONE: shared world-state helper built (commit 0b17611 — worldstate_inc.nss + worldstatedb + WS_Tick heartbeat). Remaining for this quest: build the tug-of-war scripts + Helm's Deep scaling once the mechanic below is approved, then re-promote to confirmed. The cooldown half needs nothing new (quest_cd_inc.nss exists)."
         status: open
+        step_h: 64
       - step: "UAT the world-state helper (infra): as DM, WS_RegisterDecay(\"uat_ws\",1,0) + WS_SetInt(\"uat_ws\",5); after ~5 min confirm WS_GetInt(\"uat_ws\") has decayed toward 0 (~1/min via the heartbeat), and confirm a set value survives a server restart (worldstatedb persistence). WS_Clear(\"uat_ws\") to tidy."
         status: open
+        step_h: 64
 
   - id: goblin-town-throne
     title: "Quest: The Goblin-Town Throne (Misty Mountains)"
@@ -3034,7 +3065,7 @@ ideas:
     title: "The Mithril Seam"
     group: quests-areas
     epic: quest-overhaul
-    status: design
+    status: soon
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
@@ -3042,12 +3073,15 @@ ideas:
     impl_notes: "<div><b>Infra-gated on the shared world-state helper</b> (see lumber-ent-tugofwar's proposal). A weekly SERVER-WIDE single-claim race is not a per-character cooldown - quest_cd_inc.nss (QCD_IsDoneThisWeek) is per-PC, so it cannot express 'one seam, first to claim, gone until next week for EVERYONE'. That needs a shared world-state key (e.g. mithril_seam_claimed + claim owner + week stamp) reset weekly by the WS_Tick. Build once the world-state helper is approved.</div>"
     design_questions:
       - question: "SERVER-WIDE WEEKLY CLAIM (depends on the world-state helper proposed on lumber-ent-tugofwar). Proposed: a single seam node in the Misty Mountains; the first L28+ character to mine/claim it in a given ISO week sets world-state mithril_seam_owner=<pckey> + mithril_seam_week=<isoweek> and receives the reward; everyone else sees it depleted until WS_Tick rolls the week over. Approve this model? And WHAT is the reward for winning the weekly race (a mithril ingot / crafting mat, a unique item, gold/XP)? - that reward is a balance/design call for you."
-        status: open
-        answer: null
+        status: answered
+        answer: "a mithril ingot sounds great - we will use this later in the next level forge; start an epic for 'Legendary Forge\" and draft ideas for it: it should act like existing high level forge but offer new damage types, higher damage dice, and bonus limits, higher GP ceiling/property counts, BUT, require mithril ingots and other high end crafting materials obtained from quests, bosses, or just out in the open area places."
+        question_h: 86
+        answer_h: 64
     manual_steps:
       - step: "Blocked until the world-state helper (worldstate_inc.nss + worldstatedb + WS_Tick) is approved and built. Then: place the seam node (AP_ waypoint / usable placeable) in the Misty Mountains area, wire OnUsed to the weekly-claim check, and grant the approved reward. Re-promote once world-state ships."
         status: open
         blocker: true
+        step_h: 64
   - id: claim-the-deeps
     title: "Quest: Claim the Deeps (Moria, daily faction-control)"
     group: quests-areas
@@ -3072,7 +3106,7 @@ ideas:
     title: "The Thirteenth Ent"
     group: quests-areas
     epic: quest-overhaul
-    status: design
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
@@ -3080,14 +3114,19 @@ ideas:
     impl_notes: "<div>Self-contained (no faction/world-state dependency; areas exist). Mechanically buildable once the branch content + reward are approved: a giver NPC (Ent) with a conversation offering three solution paths gated on skill/class, a persistent per-character completion stamp (quest_cd_inc or a simple advance-only flag), and a reward item. The creative/balance decisions below are the admin's call.</div>"
     design_questions:
       - question: "THREE-BRANCH SOLUTION (approve/tweak the content). The quest restores a 'tree-still' Ent via a Druid / Bard / Lore branch. Proposed shape: DRUID branch - a skill/class-gated dialogue + cast (or a component gathered nearby) that channels growth into the Ent; BARD branch - perform/Perform-gated to sing the Ent awake (Entish is song); LORE branch - Lore/Knowledge check to recall the Ent's true name and speak it. Each branch reaches the same restoration but with different flavour. Approve these three, or change the gating skills/classes? What Perform/Lore/skill DCs (suggest scaling to L32: e.g. Lore/Perform DC ~40)?"
-        status: open
-        answer: null
+        status: answered
+        answer: "Druid branch: (Requires level 20 druid) is sent to gather magic invisible truffles (nearby), player must wildshape into a boar before the truffles will spawn/be visible, and once obtained , druid must cast nature's balance with truffle in inventory and in area of effect overlapping the Ent. Confirm proposed in-game dialogue/hints for this. Once the truffles are picked, the druid has a short time to make it back to the ent and complete the ritual/cast the spell, or else fails and needs to get another truffle (can only be attempted once per 24 hrs real world time)\n\nBard branch: (Requires level 20 bard): bard must pass 2 stages of PERFORM+LORE checks of increasing difficulty; putting on a short concert for the ent/guiding through stages of reawakening and remembrance of who the ent is. There should be a short pause between each stage where the ent gives a cue (like it stirs, or mumbles, or starts to speak..) after which the bard should execute a perform action (use bard song feat), which causes server to roll a Lore and a Perform check for the bard (results/outcome visible). \nStage 1: Lore DC30, Perform DC30\nStage 2: Lore DC40, Perform DC40. \nA failure on any of the 4 checks means ritual fail the the bard must wait 24 hours (real world time) before attempting again\n\nChange from 3 to 2 branch solution: only open to druid and bard casters for the moment.. may add another one like ranger: propose an idea for this."
+        question_h: 86
+        answer_h: 117
       - question: "REWARD (power decision). Proposed: a one-time 'Draught of the Ent' consumable granting a PERMANENT +1 STR and +1 CON (as asked). Permanent stat boosts are strong end-game power creep - confirm +1 STR / +1 CON permanent is intended, or would you prefer a smaller/temporary buff, a once-per-character cap only, or a non-stat reward? (It must be non-farmable: advance-only per-character stamp so the draught can be earned once.)"
-        status: open
-        answer: null
+        status: answered
+        answer: "Yes, permanent bonus"
+        question_h: 92
+        answer_h: 83
     manual_steps:
       - step: "On approval: build the Ent giver NPC + conversation (3 branches) + the draught item + a per-character once-only completion stamp; place the giver via an AP_ waypoint in the existing Fangorn/Ent area (name the exact area at build time). Then re-promote to confirmed. New NPC + item -> appearance/equip UAT and palette filing."
         status: open
+        step_h: 64
   - id: twentyfirst-hall
     title: "Quest: The Twenty-First Hall (Moria, party dungeon)"
     group: quests-areas
@@ -3229,32 +3268,40 @@ ideas:
     title: "Quest: Concerning Hobbits (Shire genealogy)"
     group: quests-areas
     epic: quest-overhaul
-    status: design
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
     commit: 7ed910b39b3
-    notes: "<div><b>Concerning Hobbits</b> — a new T1 daily (L5) in Hobbiton. Odo Proudfoot is deep in a genealogy dispute and wants five questions of Shire lineage settled. Four right pays 40-100 gp, 100 XP and a pouch of pipe-weed; a perfect five upgrades the keepsake to a <b>Greater Ring of Scholars</b>. The dispute — and the answers — change with the season, and the whole server argues over the same one. Details: <a href=\"QuestGuide.html#concerning-hobbits\">Quest Guide → Concerning Hobbits</a>.</div>"
-    notes_h: 353
+    notes: "<div><b>Concerning Hobbits</b> — a new T1 daily (L5) in Hobbiton. Odo Proudfoot is deep in a genealogy dispute and wants five questions of Shire lineage settled. Four right pays 40-100 gp, 100 XP and a pouch of pipe-weed; a perfect five upgrades the keepsake to a <b>Greater Ring of Scholars</b>. The dispute — and the answers — change with the season, and the whole server argues over the same one. Details: <a href=\"QuestGuide.html#concerning-hobbits\">Quest Guide → Concerning Hobbits</a>.</div><div><br></div><div>Question For Claude:<br>If this is a daily quest, what is the pool of questions? (for each season?) will questions be re-used each day within the same season?\nWe could make this a weekly quest or just a one-off quest instead if question pool is too shallow to support variety -- not sure how much hobbit lore you can whip up.</div>"
+    notes_h: 202
     impl_notes: "<div>Journal tag concern_hob; custom tokens 6420-6428; all logic in q_hob_inc.nss. Built on the established riddle-game pattern (token-driven dialogue, StartingConditional Active scripts, quest_cd_inc/questcddb, journal wiring).</div><div><br></div><div>Odo Proudfoot (q_hob_odo) draws five questions from a bank of 16 canon Tolkien-genealogy questions; question set and answer order are seeded from the in-game calendar season (GetCalendarYear()*4 + season, stride walk over the bank), so the correct answer rotates each season and the whole server shares one seasonal dispute. Rewards witchbud and grscholar, both verified existing module blueprints.</div><div><br></div><div>Daily gate (QCD_IsDoneToday) applies win or lose, finalized atomically on the fifth answer so escape-closing cannot dodge the stamp or double-pay. Hobbiton OnEnter wrapped (q_hob_enter chains leash_to_area then q_hob_spawn); giver spawns at AP_concerninghobbits_1; conversation q_hob_conv on the blueprint.</div>"
     design_questions:
       - question: "The original card's reward was 'Bag End housing access (owner-check workaround, no instancing)'. That is design-sensitive &mdash; which door and interior, persistent housing entry vs. a campaign flag, and what eviction semantics apply &mdash; so a concrete gold/XP/keepsake reward shipped instead and the housing piece was deferred. Should housing access be added later as a win-hook in QHOB_PayOut, and if so on what terms?"
-        status: open
-        answer: null
+        status: answered
+        answer: "Replace reward with new access to pipeweed shop as described in concerning-pipeweed idea. Increase reward from 100gp/xp to 500gp/xp."
+        question_h: 64
+        answer_h: 135
     manual_steps:
       - step: "Place waypoint AP_concerninghobbits_1 in shirehobbiton001. Odo is script-spawn-only and the scripts no-op gracefully until the waypoint exists, so the quest is unreachable without it."
         status: open
         blocker: true
+        step_h: 64
       - step: "UAT: enter Hobbiton, talk to Odo, accept -> journal concern_hob opens."
         status: open
+        step_h: 64
       - step: "UAT rewards: answer the five questions &mdash; 4/5 pays 40-100 gp + 100 XP + pipe-weed; a perfect 5/5 gives the Greater Ring of Scholars; the journal closes on finish."
         status: open
+        step_h: 64
       - step: "UAT cooldown: re-ask the same day -> 'come back tomorrow' countdown to 00:00 UTC; resets the next UTC day. DM can reset with QCD_Clear."
         status: open
+        step_h: 64
       - step: "UAT rotation: the offered question set and answer positions differ across in-game seasons."
         status: open
+        step_h: 64
       - step: "UAT exploit guard: escape-closing on the fifth answer still stamps and pays exactly once (no double-pay)."
         status: open
+        step_h: 64
 
   - id: bombadils-errand
     title: "Quest: Bombadil's Errand (Old Forest)"
@@ -3361,7 +3408,8 @@ ideas:
     title: "Fighter line I — The Unbroken Shield (L1-15)"
     group: quests-areas
     epic: class-quest-lines
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
@@ -3396,8 +3444,10 @@ ideas:
         step_h: 64
       - step: "UAT (shard weapon): at Fighter 8 take the shard from Hallas and confirm it is now an equippable fighter-only dagger with +3 attack bonus, -1 damage, and causes bleeding (On Hit: Wounding) on hit; confirm a non-fighter cannot equip it; at Fighter 15 confirm the reforge still consumes it and grants the Warden's Reforged Blade."
         status: open
+        step_h: 64
       - step: "UAT appearance (Hallas): spawn q_ftr_hallas in The Prancing Pony (theprancingpo001) at AP_fighterlineearly_1 and confirm he now appears in Gondorian plate with a shield and a drawn longsword, the gear stays equipped (not stripped) after spawn, and players cannot loot/steal his armor, shield, or sword."
         status: open
+        step_h: 64
 
   - id: fighter-line-mid
     title: "Fighter line II — The Unbroken Shield (L22-38)"
@@ -3478,12 +3528,13 @@ ideas:
     title: "Rogue line I — The Long Shadow (L1-15)"
     group: quests-areas
     epic: class-quest-lines
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-17"
     commit: c8d85dc109b
     notes: "<div><b>The Long Shadow</b> — the first three chapters (L1, L8, L15) of the Rogue class line. Fenn the Shade runs a net of Bree-land watchers out of the Prancing Pony and swears in only those who know how to go unseen: the <b>Shadowmantle</b> at L1, a cipher-token at L8, and <b>Nightthorn</b> at L15. Details: <a href=\"QuestGuide.html#long-shadow\">Quest Guide → The Long Shadow</a>.</div><div><br></div><div>UAT: Fenn also spawns in naked and looks identical to the Shield Warden from fighter quest line also in bree tavern..</div><div>UAT: Dialogue when level 8 says 5 levels more, to 15.. but 5+8 = 13 not 15.. and a character might be level 9, or 10, etc. when coming back so just drop the \"5 levels more\" bit, and state desired/intended level requirement: check similar verbiage on the other class quest givers</div>"
+    notes_h: 149
     impl_notes: "<div>Journal category rog_shadow (@group 'Class Lines' @order 2). Giver q_rog_fenn, plot/immortal hooded rogue; offer gated on GetLevelByClass(CLASS_TYPE_ROGUE) &gt;= 1 (value 8 verified), non-rogues get a flavour line. Cloned structurally from fighter-line-early.</div><div><br></div><div>Three level-gated one-off nodes; per-character state in the roguelinedb campaign DB (key shadow_stage 0-&gt;3, advance-only). Reward properties use verified stock encodings (Use-Limitation:Class subtype 8 = Rogue).</div><div><br></div><div>Prancing Pony OnEnter wrapped q_rog_enter (chains the existing q_ftr_enter -&gt; q_hrp_ent1, preserving leash + Harper contact + Hallas's spawn) -&gt; q_rog_spawn; conversation q_rog_conv, reply-link Actives left blank, avoiding the fighter-line bug fixed in the same session. Build passed all gates. Capstone (Shelob / Cirith Ungol / dual-swords finale) deliberately deferred to rogue-line-mid/later.</div>"
     impl_notes_h: 167
     manual_steps:
@@ -3757,7 +3808,7 @@ ideas:
     title: "Bard line I — Tales That Live Forever (L1-15)"
     group: quests-areas
     epic: class-quest-lines
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-23"
@@ -3773,10 +3824,12 @@ ideas:
         status: wip
         step_h: 64
       - step: "Verify the placed waypoint's TAG in Rivendell Upper Halls (rivendellupperha) is byte-for-byte AP_bardlineearly_1 (lowercase, no hyphens, trailing _1). A common miss is tagging it AP_bard-line-early_1 / AP_bardline_1 / leaving the tag blank — any of those means GetWaypointByTag never finds it and Lindir never spawns (same failure mode as the 2026-07-14 mismatch). It is the Tag, not the ResRef, that the script looks up. Correct it in the toolset if it differs, then re-UAT."
-        status: open
+        status: done
         blocker: true
+        step_h: 89
       - step: "If the tag is correct, confirm the live server is running a .mod built at or after commit 82f97f86ded — that commit repointed rivendellupperha's OnEnter from mw_riv_enter to q_bard_enter. A stale module still spawns Peterson (via mw_riv_enter) but never calls q_bard_spawn: exactly 'Peterson yes, Lindir no'. Rebuild/redeploy if stale."
         status: open
+        step_h: 64
       - step: "UAT: speak to Lindir on a non-bard — confirm the fire-side greeting with only a farewell option, and no journal entry or item."
         status: open
         step_h: 64
@@ -3979,63 +4032,112 @@ ideas:
     status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-25"
-    commit: 83848c05cc63256a657e46eb426988a22decf475
-    notes: "<div>Levels 41–60 now cost real experience on a published table instead of the leveling system's private accounting — so your XP bar and your character sheet finally agree past level 40. Level 41 sits at 828,800 total XP and level 60 at 3,581,000; level 41 costs 48,800 over level 40, and every level after that costs 10% more than the one before it. The full table is in <a href=\"Customizations.html#legendary-levels\">Customizations → Legendary Levels</a>.</div>"
-    impl_notes: "<div>Added hak_2da/exptable.2da. Rows 0-39 (levels 1-40) were extracted from stock game data with nwn_resman_cat --root \"$STEAM_NWN\" exptable.2da and are byte-identical to stock (verified with cmp over the header + first 40 rows); nothing below 41 was regenerated. Stock row 40 (level 41) carries the 0xFFFFFFFF unreachable-level sentinel — it was replaced with 828800 and rows for levels 42-60 appended verbatim from the cumulative constants in unpacked/hgll_const_inc.nss (XP_REQ_LVL41..XP_REQ_LVL60, delta 48,800 compounding x1.1, ending 3,581,000). A new row 60 61 0xFFFFFFFF preserves the stock sentinel convention above the cap. CRLF line endings and the stock column layout match the other files in hak_2da/.</div><div><b>Delivery:</b> hak_2da/ is not packed by nasher (nasher.cfg includes only unpacked/**); it is a staging dir for the wiki generator and for hand-built haks. This 2da only takes effect once packed into lotr_rules.hak (README.md, \"Four-class multiclassing\" step 3) and republished with bin/refresh-nwsync. No server override copy is needed — nwserver reads the module haks. Item therefore ships manual.</div><div><b>Docs:</b> docs.manual/Customizations.html#legendary-levels and docs.manual/LevelingGuide.html (General Tips) gained XP-table facts only; the broader HGLL wording purge stays with ll-hgll-purge-docs.</div><div><b>Gates:</b> bare nwn-manager repack, 12/12 smoke tests, 1/1 script compiled.</div>"
+    date: "2026-07-27"
+    commit: 5828f534322
+    notes: "<div>Levels 41–60 now cost real experience on a published table instead of the leveling system's private accounting — so your XP bar and your character sheet finally agree past level 40. Level 41 sits at 828,800 total XP and level 60 at 3,581,000; level 41 costs 48,800 over level 40, and every level after that costs 10% more than the one before it. The full table is in <a href=\"Customizations.html#legendary-levels\">Customizations → Legendary Levels</a>.</div><div><br></div><div>Approved: CLAUDE to pack HAKs, take down season 2 server, refresh nwnsync, and then bring server back online</div>"
+    impl_notes: "<div>Table itself shipped earlier (commit 83848c05cc63256a657e46eb426988a22decf475): hak_2da/exptable.2da, rows 0-39 byte-identical to stock, row 40 (level 41) 828800 replacing the 0xFFFFFFFF sentinel, rows to level 60 = 3,581,000 (delta 48,800 compounding x1.1, the <i>step</i> rounded to whole hundreds each level, half up), and a new row 60 carrying the sentinel above the cap.</div><div><b>Delivery (2026-07-27):</b> the table was never actually packed — the installed lotr_rules.hak held only ruleset/baseitems/classes, so levels 41-60 did not exist in game. Added bin/build-lotr-rules-hak: packs the four rules 2DAs from hak_2da/, verifies the pack with nwn_erf -t against its own file list before install, backs up the hak it replaces, and installs into $NWN_HOME_DIR/hak (--home for extra NWN homes). Hand-packing from the README recipe had dropped a 2DA twice; the list now lives in the script. hak_2da/ruleset.2da (MULTICLASS_LIMIT 4) is now tracked so the hak is reproducible from the repo without re-extracting game data. Built and installed into the season 2 home; nwsync publish + restart are the remaining steps.</div><div><b>Gate:</b> new tests/check_epic_tables.py in the smoke test — exptable.2da must stay on the stock curve to 40 and the compounding curve to 60 with the level-61 sentinel intact, and the transcribed fallback switch in unpacked/_build_lvl_inc.nss must match it value-for-value (the curve was transcribed twice with nothing tying the copies together). Also asserts classes.2da XPPenalty stays zeroed. 11/11 smoke tests pass.</div>"
     manual_steps:
-      - step: "Pack hak_2da/exptable.2da into lotr_rules.hak alongside ruleset.2da and baseitems.2da (see README.md, 'Four-class multiclassing' step 3: nwn_erf -c -f /tmp/lotr_rules.hak -e HAK ruleset.2da baseitems.2da exptable.2da), then copy the hak to ~/.local/share/Neverwinter Nights/hak/. Until this is done the 41-60 XP table does not exist in game at all."
+      - step: "Pack exptable.2da into lotr_rules.hak. DONE 2026-07-27 via bin/build-lotr-rules-hak --install (verified: baseitems, classes, exptable, ruleset). Rebuild with that script from now on — never by hand."
+        status: done
+        step_h: 64
+      - step: "Run bin/refresh-nwsync so clients receive the updated lotr_rules.hak, then restart the server. Clients with a stale hak read the old table and their character sheet clamps at 40."
         status: open
         blocker: true
-      - step: "Run bin/refresh-nwsync so clients receive the updated lotr_rules.hak. Clients with a stale hak will show the old level-40 XP cap on the character sheet."
+        step_h: 64
+      - step: "UAT: log in with a level 40 character and confirm the XP bar / character sheet shows the next-level requirement as 828,800 rather than treating 40 as the cap. Note the MaxLevel plugin has a known upstream bug where the sheet's \"Next Level\" figure is wrong past 40 — judge by whether levelling actually happens, not only by that number."
         status: open
-        blocker: true
-      - step: "UAT: log in with a level 40 character and confirm the XP bar / character sheet shows the next-level requirement as 828,800 rather than treating 40 as the cap."
-        status: open
+        step_h: 64
       - step: "UAT: verify the level-40 threshold is unchanged (780,000) and that no character below 40 sees a shifted XP requirement — rows 1-40 are byte-identical to stock, this is a regression check."
         status: open
-      - step: "UAT: spot-check three mid-table levels against Customizations.html — L44 1,006,600, L52 1,825,100, L60 3,581,000 — as reported by the character sheet."
+        step_h: 64
+      - step: "UAT: spot-check three mid-table levels against Customizations.html — L44 1,006,600, L52 1,825,100, L60 3,581,000."
         status: open
-      - step: "UAT: confirm a character cannot be pushed past level 60 (the level-61 row is the 0xFFFFFFFF unreachable sentinel); note the actual cap also depends on roadmap item ll-maxlevel-cap, so if levels stop at 40 the cause is the max-level lever, not this table."
+        step_h: 64
+      - step: "UAT: confirm a character cannot be pushed past level 60 (the level-61 row is the 0xFFFFFFFF unreachable sentinel)."
         status: open
+        step_h: 64
   - id: ll-maxlevel-cap
     title: "Raise the server level cap to 60"
     group: combat-classes
     epic: legendary-levels
-    status: design
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    date: "2026-07-27"
+    commit: 5828f534322
     notes: "<div>The server accepts characters above level 40 natively — levels 41-60 are real levels the client understands, not a separate track.</div>"
-    impl_notes: "<div>Two levers do the same job (upstream warns about this in unpacked/nwnx_admin.nss:173): flip NWNX_MAXLEVEL_SKIP=y to n in server.env, or call NWNX_Administration_SetMaxLevel(60) from onmoduleload.nss. Also needs MaxLevel/EpicLevel columns updated in a hak_2da/classes.2da (stock values today). NWN_ELC=0 / NWN_ILR=0 are already off.</div>"
+    impl_notes: "<div>server.env: NWNX_MAXLEVEL_SKIP flipped y-&gt;n with NWNX_MAXLEVEL_MAX=60 (the plugin's env var, valid range 41-60; cached readme at ~/Documents/nwn_docs/NWNX_EE_ MaxLevel.html). The env-flag lever was chosen over NWNX_Administration_SetMaxLevel() so there is exactly one writer — unpacked/nwnx_admin.nss:173 warns about the conflict. Needs a container restart, which is fine.</div><div><b>Undocumented dependency found:</b> MaxLevel also requires the <b>NWNX_ELC plugin to be loaded</b> to bypass the engine's level-40 restriction (\"merely loading this plugin is sufficient\", no configuration). Added NWNX_ELC_SKIP=n. This is <i>not</i> the server's own character validation: NWN_ELC/NWN_ILR stay 0 and nothing in unpacked/ subscribes to the NWNX ELC validation events, so no connecting character is re-validated — see ll-elc-validation. Both plugins are present in the Anvil image (NWNX_MaxLevel.so, NWNX_ELC.so).</div><div><b>classes.2da needs no change</b> — the earlier claim in these notes and in the README was wrong and has been retracted: all 11 player base classes already carry MaxLevel 0 / EpicLevel -1.</div><div><b>Known upstream quirks</b> (recorded, not fixed): the character sheet's \"Next Level\" XP figure is wrong past 40 — workaround is a per-player NWNX_Player_SetTlkOverride on strref 315 — and spellcasters may be unable to re-pick known spells on an epic level-up.</div>"
     design_questions:
       - question: "Which lever raises the cap — the MaxLevel plugin (NWNX_MAXLEVEL_SKIP=n in server.env) or NWNX_Administration_SetMaxLevel(60) from onmoduleload.nss? They write the same value, so using both is a conflict waiting to happen. Proposal: the plugin env flag, because server.env already documents the enabled plugin set in one place and it takes effect without a script change; the tradeoff is that it lives outside git-tracked module source and needs a container restart to apply."
+        status: answered
+        answer: "I only found docs for NWNX_MAXLEVEL_MAX, cached locally as \"/home/james/Documents/nwn_docs/NWNX_EE_ MaxLevel.html\"\ncontainer restart is fine\nI want to use the normal level up screen that players get for levels 2-40 already\nI want the in-game server browser to advertise max level 60 using the native nwn level range display on servers.. I have seen others with 60 so I know this is possible."
+        question_h: 64
+        answer_h: 99
+    manual_steps:
+      - step: "Restart the season 2 server so the new NWNX env vars are read (bin/server-restart). The plugin load line for MaxLevel and ELC should appear in the startup log; \"Server: Invalid argument to -maxlevel\" at startup is expected and safe to ignore per the plugin readme."
         status: open
-        answer: null
+        blocker: true
+        step_h: 64
+      - step: "UAT: with the rebuilt hak published, take a level-40 test character past 40 (Ping Pong → Set my level → Legendary Levels 41-60, or award XP) and confirm level 41 is actually granted rather than silently refused."
+        status: open
+        step_h: 64
+      - step: "UAT: confirm the in-game server browser advertises the level range up to 60."
+        status: open
+        step_h: 64
+      - step: "If level 41 is refused, the ELC dependency is the first thing to check — confirm NWNX_ELC actually loaded in the startup log before touching anything else."
+        status: open
+        step_h: 64
   - id: ll-cls-progression
     title: "Class progression tables for levels 41-60"
     group: combat-classes
     epic: legendary-levels
-    status: design
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<div>Levels past 40 advance your class properly: attack bonus, saves, spell slots and the feat / ability-score cadence all keep going, instead of only granting HP and a floating feat.</div>"
-    impl_notes: "<div>This is the substantive difference from HGLL, which explicitly did <i>not</i> extend caster level, spell slots or class progression. Needs cls_*.2da work in hak_2da/ (BAB, saves, spell slots/known, feat table cadence).</div>"
+    date: "2026-07-27"
+    commit: 5828f534322
+    notes: "<div>Levels past 40 advance your class properly: attack bonus, saves and the feat / ability-score cadence all keep going, and your caster level keeps rising with every level — so spell DCs, durations and damage caps keep scaling too. Spell slots stay where they were at 40, the same way epic levels 21-40 already work; the extra casting power will be sold through Legendary Feats instead.</div>"
+    impl_notes: "<div><b>No 2DA work needed — the earlier scope (\"needs cls_*.2da work in hak_2da/\") was wrong.</b> Stock NWN:EE class progression tables already carry 60 rows, so classes.2da keeps pointing at them and 41-60 progresses on its own. Verified against the live install with nwn_resman_cat (row index = level - 1):</div><ul><li>cls_atk_1: BAB 30 at level 39 → 40 at level 59; cls_atk_3: 20 → 30. +0.5/level continues.</li><li>cls_savthr_fight: 21/15/15 → 31/25/25. Saves keep climbing.</li><li>cls_bfeat_fight: the 1/0 epic alternation runs through row 58.</li><li>cls_spgn_wiz and cls_spkn_sorc are identical at levels 39 and 59 — no new slots past 20, which is exactly the agreed \"caster level scales, slots don't\" answer.</li></ul><div>General feats (1 per 3 levels) and ability increases (+1 per 4) are engine-side and continue past 40 per the MaxLevel readme (\"Feats and Ability Points follow their normal progression\") — the one part that must be confirmed empirically. Findings recorded in README.md \"Levels 41-60\".</div>"
     design_questions:
       - question: "Does caster level keep scaling from 41 to 60? Spell DCs, durations and damage caps all key off it, so 20 more caster levels is the single biggest balance lever in the whole epic. Proposal: caster level keeps rising but spell slots stop at the level-40 table, so casters gain reach and reliability without another 20 levels of raw slots — and the extra power gets sold through Legendary Feats instead, where it can be priced per feat."
-        status: open
-        answer: null
+        status: answered
+        answer: "yes caster level keep scaling in all the regular ways: spell slots, caster DC, duration, damage caps."
+        question_h: 64
+        answer_h: 64
       - question: "What cadence do bonus feats and ability-score increases follow from 41 to 60? HGLL gave 1 feat per level and let you buy stat points. Proposal: keep the stock epic cadence (a feat every 3 levels, +1 ability every 4) rather than HGLL's 1-per-level, so the Legendary Feat pool stays scarce enough to matter."
+        status: answered
+        answer: "HGLL did NOT give 1 feat ever level: it followed the stock epic cadence (a feat every 3 levels, +1 ability every 4) which is what we will do for 41-59. \n\nThe Legendary feats can ONLY be taking at exactly level 60 though, not simply levels 41-60 at every 3 levels frequency (those use the normal /epic feat pool)"
+        question_h: 64
+        answer_h: 64
+    manual_steps:
+      - step: "UAT: with the cap live, level a test character 40 → 41 → 45 → 60 with Ping Pong and record per level: BAB, the three saves, hit points, skill points, caster level, bonus feats and ability increases. Compare against the stock tables in the impl notes."
         status: open
-        answer: null
+        blocker: true
+        step_h: 64
+      - step: "UAT: confirm the general feat pick lands at 42/45/48... (every 3 levels) and the ability point at 44/48/52... (every 4)."
+        status: open
+        step_h: 64
+      - step: "UAT (casters): confirm caster level rises with each level past 40 — check a level-scaling spell's duration or damage cap — and that spell slots are unchanged from level 40."
+        status: open
+        step_h: 64
+      - step: "Feed the recorded table into the Leveling Guide rewrite (ll-hgll-purge-docs / ll-wiki-leveling-docs); the per-level gains section is waiting on exactly this data."
+        status: open
+        step_h: 64
   - id: ll-tweaks-audit
     title: "Audit NWNX Tweaks options for epic-level play"
     group: combat-classes
     epic: legendary-levels
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    date: "2026-07-27"
+    commit: 5828f534322
     notes: "<div>Server-side tweaks reviewed so nothing quietly misbehaves once characters go past 40.</div>"
-    impl_notes: "<div>The Tweaks plugin is already enabled (NWNX_TWEAKS_SKIP=n, server.env:58-60) with two options set: CHARLIST_SORT_BY_LAST_PLAYED_DATE and CAN_USE_ITEMS_WHILE_POLYMORPHED. Tweaks has <b>no NWScript API</b> — it is env-var only, so there is nothing to add to unpacked/. Walk the plugin's option list for anything relevant to level/feat/XP handling and record the chosen set in server.env comments.</div>"
+    impl_notes: "<div>Tweaks is already enabled (NWNX_TWEAKS_SKIP=n) with CHARLIST_SORT_BY_LAST_PLAYED_DATE and CAN_USE_ITEMS_WHILE_POLYMORPHED. The plugin has no NWScript API — it is env-var only — so there is nothing to add to unpacked/ and the server.env comment block is the record.</div><div>Audited 2026-07-27 against the plugin's full option list (read out of NWNX_Tweaks.so in the running Anvil image, since no readme is cached locally). Nothing in the list touches level, feat or XP grants, so no Tweaks option is required for the cap. Six options were judged epic-adjacent and deliberately left off, each recorded in server.env with the reason: ADD_PRESTIGECLASS_CASTER_LEVELS (also changes 1-40 balance — a separate decision), RESIST_ENERGY_STACKS_WITH_EPIC_ENERGY_RESISTANCE / UNCAP_DAMAGE_RESISTANCE_DAMAGE_FLAGS / PREVENT_ATTACK_BONUS_BYPASSING_REDUCTION (push the high-end damage/DR maths further — revisit once 41-60 play is observed), FIX_DISPEL_EFFECT_LEVELS (caster-level sensitive), SEND_TLK_OVERRIDE_BEFORE_CHARGEN (only needed if the \"Next Level\" XP display workaround is implemented). CANUSEITEM_CHECK_ILR_FOR_HENCHMEN is moot with NWN_ILR=0.</div>"
+    manual_steps:
+      - step: "Re-read the server.env Tweaks block after the 41-60 UAT and decide whether any of the six deferred options should be flipped on the strength of observed play — particularly the damage/DR trio."
+        status: open
+        step_h: 64
   - id: ll-elc-validation
     title: "Character validation with a level 60 cap"
     group: combat-classes
@@ -4043,21 +4145,27 @@ ideas:
     status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-25"
-    commit: 8b1ffa7f99d11688be417dc427bf213978c9f5a7
-    notes: "<div>Characters past level 40 log in cleanly. The server does not re-validate characters against the rules tables on connect, so a legendary character is never rejected or quietly reset back to 40 when the cap moves. Item level restrictions stay off as well — your gear keeps working at every level.</div>"
-    impl_notes: "<div><b>Verified 2026-07-25 — no code change required.</b> server.env already runs NWN_ELC=0 and NWN_ILR=0, so no login-time character re-validation happens and a level 41+ character cannot be rejected or clamped. No NWNX ELC plugin is enabled and nothing in unpacked/ subscribes to NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE/_AFTER (only the vendored nwnx_events.nss/nwnx_player.nss headers mention them), so there is no second validation path. hak_2da/classes.2da was diffed field-by-field against the stock EE table: all 11 player base classes already carry MaxLevel 0 and EpicLevel -1, so no 2DA edit is needed for a 60 cap — the remaining non-zero MaxLevel values are stock prestige-class limits (40, or 5 for Harper/PDK) that a 60-level budget cannot reach once base-class prereqs are paid. The README's claim that those columns were part of the cap lever was wrong and has been corrected; the cap is entirely <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a>'s NWNX/server.env decision, so this item is not blocked on it. The only real hazard left for 41+ logins is hak mismatch, not validation: a client without the published exptable.2da reads the level-40 table.</div><div>Separately, listing the installed lotr_rules.hak showed it ships classes.2da (multiclass XPPenalty zeroed) while the README rebuild recipe omitted it — a from-scratch rebuild would have silently dropped it; the recipe now packs all four 2DAs and documents nwn_erf -t as the verification step. The same listing confirms exptable.2da is still absent from the live hak (tracked on <a href=\"#idea-ll-exptable-2da\">ll-exptable-2da</a>). Build gates: 11/11 smoke tests.</div>"
+    date: "2026-07-27"
+    commit: 5828f534322
+    notes: "<div>Characters past level 40 log in cleanly. The server does not re-validate characters against the rules tables on connect, so a legendary character is never rejected or quietly reset back to 40 when the cap moves. Item level restrictions stay off as well — your gear keeps working at every level.</div><div><br></div><div>(Blocked pending go live/enablement of level 41-60 through nwnxee)</div>"
+    impl_notes: "<div>Verified 2026-07-25 — no login-validation change needed: server.env runs NWN_ELC=0 and NWN_ILR=0, so no connecting character is re-validated and a level 41+ character cannot be rejected or clamped. hak_2da/classes.2da was diffed field-by-field against stock: all 11 player base classes already carry MaxLevel 0 and EpicLevel -1, so no 2DA edit is needed for a 60 cap; the remaining non-zero MaxLevel values are stock prestige-class limits unreachable inside a 60-level budget. The README's claim that those columns were part of the cap lever was wrong and has been corrected.</div><div><b>Update 2026-07-27:</b> the <b>NWNX_ELC plugin is now loaded</b> (NWNX_ELC_SKIP=n) — not for validation, but because NWNX_MaxLevel requires it to bypass the engine's level-40 restriction. Loading the plugin is not NWN_ELC=1: the server still does not re-validate characters, nothing in unpacked/ subscribes to NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE/_AFTER, and no custom validation script exists. This is the one thing to watch in UAT — if a legendary character is ever refused at login, this plugin is the first suspect. Rolled out on season 2, whose servervault is the isolated test vault (2 accounts), not the season 1 vault.</div>"
     manual_steps:
-      - step: "UAT: with NWN_ELC=0/NWN_ILR=0 unchanged, log in an existing level-40 character after the level-cap lift ships and confirm it loads at level 40 with no 'character rejected'/'invalid character' message and no XP loss."
+      - step: "UAT: log in an existing level-40 character after the restart and confirm it loads at 40 with no 'character rejected'/'invalid character' message and no XP loss — this is the check that the newly loaded NWNX_ELC plugin has not started validating anyone."
         status: open
-      - step: "UAT: after the cap lift, level a test character to 41 and relog — confirm it comes back at 41 with its XP intact (nothing clamped back to 40)."
+        blocker: true
+        step_h: 64
+      - step: "UAT: level a test character to 41 and relog — confirm it comes back at 41 with its XP intact (nothing clamped back to 40)."
         status: open
+        step_h: 64
       - step: "UAT: log in from a client that has NOT yet pulled the refreshed nwsync hak and confirm the only symptom is the character sheet clamping at 40 (not a rejected login) — the fix is bin/refresh-nwsync, not an ELC change."
         status: open
-      - step: "Do NOT enable NWN_ELC or NWN_ILR in server.env while levels 41-60 are live; turning ELC on would re-validate legendary characters against the 2DAs. If it is ever needed, first prove exptable.2da is identical on server and client."
+        step_h: 64
+      - step: "Do NOT set NWN_ELC=1 or NWN_ILR=1 while levels 41-60 are live; that is the server's own validation and would re-check legendary characters against the 2DAs. The NWNX_ELC plugin being loaded is unrelated and must stay."
         status: open
-      - step: "Hak rebuild: the README recipe now packs classes.2da as well (multiclass XPPenalty zeroed). Next time lotr_rules.hak is rebuilt, pack ruleset.2da + baseitems.2da + classes.2da + exptable.2da and verify with nwn_erf -t. The installed hak still lacks exptable.2da."
-        status: open
+        step_h: 64
+      - step: "Hak rebuild: lotr_rules.hak now packs ruleset + baseitems + classes + exptable, and bin/build-lotr-rules-hak verifies that list on every build. Installed and verified 2026-07-27."
+        status: done
+        step_h: 64
   - id: ll-xp-award-balance
     title: "Retune XP awards for the 41-60 band"
     group: combat-classes
@@ -4071,7 +4179,7 @@ ideas:
     title: "Remove the HGLL leveler scripts"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: implemented
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -4081,19 +4189,24 @@ ideas:
     manual_steps:
       - step: "UAT login/logout: log a character in and back out, then reconnect — the character must load normally and keep its inventory, journals and persistent state (the login and logout handlers each lost a call to a now-deleted script)."
         status: open
+        step_h: 64
       - step: "UAT mixtape: consume Akira's Mixtape on a test character and confirm all six ability scores rise by exactly 1 permanently — log out, log back in, and confirm the gain survived (the stat grant was re-implemented without the old leveller include)."
         status: open
+        step_h: 64
       - step: "UAT mixtape anti-farm: drop the Mixtape ring mid-conversation on the Consume node — no stats may be granted."
         status: open
+        step_h: 64
       - step: "UAT retired statue: in Legendary Levelling Area (legendarylevelli), use the statue and confirm it prints the message that levels 41-60 now come from experience, with no error in the server log about a missing script."
         status: open
+        step_h: 64
       - step: "Rebuild and redeploy the module to the live server (repack-homers-lotr wrapper) and restart, so the deleted scripts leave the running module — the autopilot build only produced dist/ and the OneDrive copy."
         status: open
+        step_h: 64
   - id: ll-hgll-split-cliententer
     title: "Untangle the module OnClientEnter hook from HGLL"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: implemented
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -4103,27 +4216,36 @@ ideas:
     manual_steps:
       - step: "UAT login: log in an existing character and confirm the server-info journals (Rules, Website, Module Customizations, Character Progression, Death, Forge, Systems, Factions, Combat) are all present in the Completed section."
         status: open
+        step_h: 64
       - step: "UAT login: confirm the merit login message still arrives ~3s after entering, and the build-stamp 'Module last edited:' line ~5s after."
         status: open
+        step_h: 64
       - step: "UAT login: on a character with a chosen Good/Evil allegiance, confirm the opposite side is still hostile-on-sight after relog (faction re-apply)."
         status: open
+        step_h: 64
       - step: "UAT login: on a character with an active 2x gold/XP boost, confirm the boost login report still prints."
         status: open
+        step_h: 64
       - step: "UAT logout/login: log out while bleeding out (HP 0 to -9) and log back in — the Constitution DC 12 survival message must still fire and resolve (2 HP on success, death on failure)."
         status: open
+        step_h: 64
       - step: "UAT logout: log out carrying a Bank of Bree storage box mid-transaction, log back in, and confirm the contents were committed and nothing was lost."
         status: open
+        step_h: 64
       - step: "UAT logout: summon an epic summon, log out, log back in and confirm no lingering henchman-slot summon remains."
         status: open
+        step_h: 64
       - step: "UAT logout: start a legendary level-up, log out mid-picks, log back in and confirm no staged skill/feat/stat picks were committed (the HGLL residue call still runs ahead of the character export)."
         status: open
+        step_h: 64
       - step: "UAT login: log in a character carrying illegally forged gear and confirm the contraband sweep still jails them (~6s after login)."
         status: open
+        step_h: 64
   - id: ll-hgll-retire-area
     title: "Retire the Legendary Levelling Area"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -4132,18 +4254,24 @@ ideas:
     impl_notes: "<div>Deleted legendarylevelli.are/.git/.gic.json as a set and removed the area's struct from Mod_Area_list in module.ifo.json (292 → 291 areas; Mod_Entry_Area is thewelloferu and was untouched).</div><div>The inbound Well of Eru trigger was already gone before this item ran: the admin toolset save 91261442750 (2026-07-25 09:43) removed both the AreaTransition trigger with LinkedTo: \"legenarea\" and the GenericTrigger whose OnEnter/OnExit ran servershout5 (5 triggers → 3, git+gic already in lockstep). module-index/area_graph.json still showed the edge only because it was generated at 03:11, before that save.</div><div>Two scripts deleted as orphans: ll_leveler_gone.nss (the retired-statue stub added under <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>; its only caller was the ZEP_STATUES026 OnUsed in the deleted .git) and servershout5.nss (the \"You must be level 40 to enter the Legendary Levelling Area\" warning). servershout2/3/4 are unrelated and were left alone; halloflegends.* and legenddoor.utd.json untouched.</div><div>Verified post-delete: legendarylevelli, legenarea, LegendaryLevellingArea, ll_leveler_gone and servershout5 appear nowhere in unpacked/, tests/, bin/ or nasher.cfg, and nwn_erf -l on the packed .mod lists none of them. Build: 11/11 smoke tests, area list 291, 1 script compiled clean.</div><div>bin/gen-map-notes.py was run dry and compared against a HEAD worktree: identical results (244 updated / 313 unchanged / 132 areas touched), so this change produces zero map-note delta and --apply was deliberately not run — the 244 updates are pre-existing drift unrelated to this item.</div><div>Docs synced: README.md, CLAUDE-nwscript.md, QuestGuide-DM-Notes.md, Quest Ideas.md.</div>"
     manual_steps:
       - step: "A character standing inside the Legendary Levelling Area when the server next loads this build would be stranded in a deleted area. Before deploying, confirm no character is parked there — the admin controls when the server reloads."
-        status: open
+        status: done
         blocker: true
+        step_h: 64
       - step: "Rebuild and redeploy to the live server (repack-homers-lotr wrapper) and restart — the autopilot build only produced dist/ and the OneDrive copy."
         status: open
+        step_h: 64
       - step: "UAT module load: after the restart, confirm the module loads and the server log reports no missing-area error (the area was dropped from Mod_Area_list)."
         status: open
+        step_h: 64
       - step: "UAT Well of Eru: walk the spot where the Legendary Levelling Area entrance used to be and confirm there is no transition, no 'You must be level 40' floating text, and no error in the log."
         status: open
+        step_h: 64
       - step: "UAT area list: open the DM area-jump / player map and confirm the Legendary Levelling Area no longer appears (291 areas)."
         status: open
+        step_h: 64
       - step: "UAT levelling: take a level-40 test character past the cap once the cap lift lands and confirm levelling happens on the character sheet with no reference to the removed area."
         status: open
+        step_h: 64
   - id: ll-hgll-retire-gate
     title: "Drop the HGLL build gate from the smoke test"
     group: combat-classes
@@ -4159,49 +4287,32 @@ ideas:
     title: "Purge HGLL from the wiki and repo docs"
     group: wiki-tools
     epic: legendary-levels
-    status: manual
+    status: later
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
     commit: fe08ce09df2ff81f6ad03aa909011c341d044a58
-    notes: "<div>The wiki no longer describes the old bolt-on legendary leveler. Levels 41 to 60 are documented as what they now are: ordinary character levels on the server's own published experience table — level 41 at 828,800 total XP, each level after costing 10% more than the last, ending at 3,581,000 for level 60. Your XP bar simply keeps going past 40; there is no leveling NPC to visit and no separate area to travel to. The in-game \"Character Progression\" info journal and the server listing now say the same thing. This is flagged as <strong>in development for Season 2</strong> — the XP table is in the build, the level-cap lift is still being worked on. See <a href=\"Customizations.html#legendary-levels\">Customizations → Legendary Levels: 41–60</a>.</div>"
+    notes: "<div>The wiki no longer describes the old bolt-on legendary leveler. Levels 41 to 60 are documented as what they now are: ordinary character levels on the server's own published experience table — level 41 at 828,800 total XP, each level after costing 10% more than the last, ending at 3,581,000 for level 60. Your XP bar simply keeps going past 40; there is no leveling NPC to visit and no separate area to travel to. The in-game \"Character Progression\" info journal and the server listing now say the same thing. This is flagged as <strong>in development for Season 2</strong> — the XP table is in the build, the level-cap lift is still being worked on. See <a href=\"Customizations.html#legendary-levels\">Customizations → Legendary Levels: 41–60</a>.</div><div><br></div><div>Leave story open in backlog to be closed out later after legendary leveler working, to refine/clean up docs, removing 'in development' verbiage, etc.</div>"
     impl_notes: "<div>Documentation/text only — no script or blueprint behaviour changed. <b>Player-facing:</b> docs.manual/Customizations.html (#legendary-levels rewritten: HGLL vault link, \"Legendary Leveler\" NPC/placeable, Legendary Leveling area, the DO/DON'T-gain table and the \"stock HGLL charges 1.25x\" comparison all removed; replaced with an in-development tip-box, a real-levels explanation and the retained XP table); docs.manual/LevelingGuide.html (the \"Legendary Levelling Area\" dt deleted, folded into \"Levels 41 to 60 are ordinary levels\" with the in-development caveat); index.html (landing-page card and Leveling Guide tile no longer name HGLL); docs.manual/Draft/Gem-Socketing.html (hgll_cliententer.nss references rephrased as \"the module's Mod_OnClientEntr handler\"). <b>GFF strings:</b> unpacked/module.ifo.json Mod_Description cexolocstring and unpacked/module.jrl.json \"Character Progression\" (mod_progress) entry, which quoted the old per-level XP costs and the ~17.5M total; both re-verified as valid JSON and bin/season-brand.py reports no drift (it owns only the Connect:/Wiki: lines).</div><div><b>Repo docs:</b> CLAUDE-nwscript.md (hgll_* prefix row marked retired, pointing at hak_2da/exptable.2da and ll-hgll-remove-scripts), CLAUDE-gff-format.md (event-hook table now describes the real login/logout wiring instead of \"Letoscript apply on enter (HGLL)\"), CLAUDE-merit.md, QuestGuide-DM-Notes.md, Quest Ideas.md, TODO.txt, and README.md — new \"Levels 41–60\" section stating the table, the two remaining levers (hak publish, NWNX_MAXLEVEL_SKIP / classes.2da) and the retired-leveler rule, plus hak_2da/exptable.2da added to the lotr_rules.hak pack instructions (previously only ruleset.2da + baseitems.2da, which would silently drop the new table on a from-scratch rebuild). server.env comments de-HGLL'd; tests/check_season_brand.py still passes.</div><div><b>Deliberately left alone:</b> the hgll_* scripts, the servershout* floating text and the leveler area itself (ll-hgll-remove-scripts), and the freelegendary README example with SetXP(oPC, 17498600) (ll-freelegendary-code). Remaining references to hgll_cliententer.nss are factual — it is still the live Mod_OnClientEntr handler — and are annotated as a legacy name. docs/ and docs.manual/Roadmap.html untouched; no wiki refresh run. <b>Gates:</b> bare nwn-manager repack, 12/12 smoke tests, 1/1 script compiled.</div>"
+    impl_notes_h: 345
     manual_steps:
       - step: "UAT: log in and open Journal -> Completed -> \"Character Progression\" — it must describe levels 41-60 as real levels on the published XP table (48,800 over level 40, compounding 1.1x, 3,581,000 at level 60) with no mention of HGLL or a leveling NPC."
         status: open
+        step_h: 64
       - step: "UAT: check the server listing / module description in the NWN server browser — it should read \"1.5x XP, with real levels 41-60 on the server's own experience table (in development)\" and no longer advertise an HGLL framework. Confirm the Connect: and Wiki: lines are still correct for Season 2."
         status: open
+        step_h: 64
       - step: "UAT: after the next scheduled wiki refresh, open Customizations -> Legendary Levels: 41-60 and the Leveling Guide and confirm no page still mentions HGLL, the Legendary Leveler NPC/placeable, or the Legendary Levelling Area."
         status: open
+        step_h: 64
       - step: "Decide whether the \"in development for Season 2\" framing is the wording you want on the public wiki, given the old leveler is still physically in the module until ll-hgll-remove-scripts ships. If you would rather the pages describe 41-60 as live, say so and the caveats come out in one edit."
-        status: open
-  - id: ll-freelegendary-code
-    title: "Rework the freelegendary redeem code for the new XP curve"
-    group: economy
-    epic: legendary-levels
-    status: manual
-    type: Exploit
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-25"
-    commit: fa7bcec94d37c4f1e2b9ad822f9a97ccdb6d2de8
-    notes: "<div>The freelegendary promotional code now grants exactly the experience needed for level 60 on the server's own experience table, instead of a figure carried over from the old legendary-level system. Redeeming it can never reduce a character's experience.</div>"
-    impl_notes: "<div><b>Root cause:</b> the live grant in unpacked/code_redeem.nss was already SetXP(oPC, 3581000) as of bccd437b7b9 — the 1.1x compounding change made the retired HGLL total-to-60 and the new hak_2da/exptable.2da row-59 value converge on the same number. The 17498600 cited by this item survived only as a stale reward example in README.md, not in any shipped script.</div><div><b>Fix:</b> code_redeem.nss gains const int XP_LEVEL_60 = 3581000, commented as the last real row of hak_2da/exptable.2da and explicitly not derived from HGLL accounting; the freelegendary case now grants the constant behind a no-downgrade guard (if (GetXP(oPC) &lt; XP_LEVEL_60) SetXP(...)) — the previous unconditional absolute SetXP would have <i>removed</i> XP from a character banked past the final table row. README.md's \"Adding a new code\" example updated to the real code, with a new paragraph requiring XP codes to be written against the published table and to guard absolute SetXP.</div><div><b>Not changed:</b> the code's 2026-07-01 expiration (already past, so the code is inert in-game — reviving/retiring it is an admin call, see manual steps); the other 3581000 literals in bank_xp_*.nss, grant_lvl60.nss and hgll_const_inc.nss (the last is slated for deletion by <a href=\"#idea-ll-hgll-remove-scripts\">ll-hgll-remove-scripts</a>). No docs.manual/ page documents the redeem-code system. <b>Gates:</b> bare nwn-manager repack, 12/12 smoke tests (incl. check_reward_exploit), 2/2 scripts compiled.</div>"
-    manual_steps:
-      - step: "Decide whether the freelegendary code should stay retired. Its expiration is 2026-07-01, so it currently answers \"That code has expired\" to everyone. The grant is now correct if you want to revive it — push the date out in GetCodeExpiration() — otherwise it can stay inert or have its case removed entirely."
-        status: open
-      - step: "UAT: as an admin on a test character below level 60, temporarily extend the freelegendary expiration, type Code:FreeLegendary in chat, and confirm the character lands on exactly 3,581,000 XP and reads as level 60 on the character sheet."
-        status: open
-      - step: "UAT: redeem the code a second time on the same CD key and confirm it reports \"You have already redeemed that code.\" and grants nothing."
-        status: open
-      - step: "UAT: on a character already holding more than 3,581,000 XP, redeem the code and confirm its XP is NOT reduced (the no-downgrade guard)."
-        status: open
-      - step: "UAT: type Code:FreeLegendary in chat with a second player present and confirm the line is not broadcast to them."
-        status: open
+        status: done
+        step_h: 64
   - id: ll-pingpong-41-60
     title: "Ping Pong: add level 41-60 to the \"Set my level\" menu"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -4210,47 +4321,61 @@ ideas:
     impl_notes: "<div>unpacked/_pc_builder_v1.dlg.json: new entry 5 (\"Which legendary level do you want? (41 - 60)\") with replies 58-77 (levels 41-60) plus a Nevermind link; reached from entry 4 (the existing 21-40 page) via new reply 79 \"Legendary Levels (41 - 60)\". Note the original note was wrong that reply 16 was an unwired stub — the dialog already linked the 1-20 page to the 21-40 page.</div><div>New include unpacked/_build_lvl_inc.nss holds BuildLegendaryXP() / BuildSetLegendaryLevel(); the 20 new _build_level_41..60.nss are one-line wrappers. XP is read at runtime from Get2DAString(\"exptable\", \"XP\", nLevel - 1) so hak_2da/exptable.2da stays the single source of truth, with a transcribed fallback switch (828,800 … 3,581,000) for the case where the hak is absent. The new path uses GetPCSpeaker() for the XP set <i>and</i> the VFX/floating text (fixing the stock scripts' GetLastSpeaker() split), and the change is on the conversation, not on an instance, so both butcha placements (thewelloferu, houseofdispai001) pick it up.</div><div>Setting a level above 40 will not raise the character sheet until <a href=\"#idea-ll-maxlevel-cap\">ll-maxlevel-cap</a> lands; until then SetXP banks the XP but the engine caps the level. Gates: 11/11 smoke tests, dialog integrity 378 dialogs / 0 failing, 21 scripts compiled 0 errors.</div>"
     design_questions:
       - question: "Ping Pong (\"Set my level\", \"100,000,000 GP\") is placed in The Well of Eru (thewelloferu), the public hub, with no CD-key or admin gate at all — empty StartingList conditional, stock nw_c2_default4, no Active on any reply. Any player can already set their own level and mint 100 million gold; this item now adds level 60 to that. Proposed: gate the conversation with an Admin_CanAdmin()/Admin_CanHomeless() StartingConditional (a new _build_admin_sc.nss calling the existing admin_db.nss helpers) so only whitelisted CD keys see the menu, and leave the House of Dispair (houseofdispai001) copy as-is; alternatively remove the thewelloferu instance entirely and keep Ping Pong to the admin house. Approve one, or say it should stay open to everyone. Not acted on — gating is a policy decision that changes live player-facing behaviour."
-        status: open
-        answer: null
+        status: answered
+        answer: "No gate needed - ping pong will be removed after season 2 offical go live (progress wipe happens then); this is support testing only."
+        question_h: 138
+        answer_h: 64
     manual_steps:
       - step: "UAT: talk to Ping Pong, choose \"Set my level.\" then \"Legendary Levels (41 - 60)\", and confirm the new page lists Level 41 through Level 60 (Legendary Maxx) plus Nevermind, and that Nevermind returns to the opening line."
         status: open
+        step_h: 64
       - step: "UAT: set level 41 and confirm the character's XP reads exactly 828,800; set level 60 and confirm exactly 3,581,000."
         status: open
+        step_h: 64
       - step: "UAT: spot-check three mid-tier levels (47 = 1,243,400; 52 = 1,825,100; 58 = 3,009,800) against hak_2da/exptable.2da."
         status: open
+        step_h: 64
       - step: "UAT: confirm the character sheet level itself only follows past 40 once ll-maxlevel-cap has shipped — before that, expect banked XP but a level-40 sheet. This is expected, not a bug in this item."
         status: open
+        step_h: 64
       - step: "UAT: with a second player standing next to Ping Pong, confirm the level-up VFX and floating text land on the player who picked the reply, not the bystander (this is the GetLastSpeaker fix)."
         status: open
+        step_h: 64
       - step: "UAT: confirm the existing 1-20 and 21-40 pages still work unchanged (set level 20 and level 40)."
         status: open
+        step_h: 64
   - id: ll-wiki-leveling-docs
     title: "Rewrite the Leveling Guide for real levels 41-60"
     group: wiki-tools
     epic: legendary-levels
-    status: design
+    status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
+    date: "2026-07-26"
     notes: "<div>The wiki explains how levelling past 40 actually works now: what you gain per level, what it costs, and where the Legendary Feats fit.</div>"
     impl_notes: "<div>Follows <a href=\"#idea-ll-hgll-purge-docs\">the HGLL purge</a> — that one removes the old text, this one writes the replacement in docs.manual/LevelingGuide.html and docs.manual/Customizations.html, including the new XP table and a link to the Legendary Feats page once the draft graduates out of Draft/.</div><div><b>2026-07-25 (autopilot):</b> the XP-cost half of this page has already landed via <a href=\"#idea-ll-hgll-purge-docs\">ll-hgll-purge-docs</a> (the 41-60 table, the 48,800 / x1.1 rule, the in-development caveat). What is left is precisely the part nobody has decided yet — the per-level gains (BAB, saves, hit dice, skill points, spell progression) owned by <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>, and the Legendary Feats section owned by <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a>, both still in design. Writing those sections now means inventing the rules in prose and rewriting the page once the real tables land. Parked rather than half-written.</div>"
     design_questions:
       - question: "Should the Leveling Guide rewrite wait for its dependencies, or ship an XP-only version now? Proposed: wait — resume this item only once ll-cls-progression and ll-feats-2da are decided, then write the per-level gains table and the Legendary Feats section in one pass. The XP-cost half is already published (ll-hgll-purge-docs), so nothing is currently missing or wrong on the page; it is just incomplete, and marked in development. Alternative if you would rather not wait: say so and the page gets an explicit \"per-level gains and Legendary Feats are still being designed\" placeholder section now."
-        status: open
-        answer: null
+        status: answered
+        answer: "confirmed wait (until the legendary levels and quest overhaul/faction quest, class-quest line epics are complete)"
+        question_h: 122
+        answer_h: 64
   - id: ll-feats-2da
     title: "Legendary Feats: 2DA plumbing and per-class allotments"
     group: combat-classes
     epic: legendary-levels
-    status: design
+    status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    notes: "<div>The groundwork for Legendary Feats: feats that only become selectable after level 40, and the rules for how many each class gets.</div>"
-    impl_notes: "<div>Against real levels this is hak_2da/feat.2da work (the file already has MinLevel / PreReqEpic columns) rather than entries in the old hgll_featlist_* pages. Source of truth for the catalogue is <a>the Legendary Feats draft</a>; allotments are in <a>Class Allotments</a>. Every ll-feats-* story below depends on this one.</div>"
+    date: "2026-07-27"
+    notes: "<div>The groundwork for Legendary Feats: feats that only become <i><font color=\"#e01b24\">selectable <u>after level 40</u> </font></i><b>(this is incorrect, the expectation is legendary feats are <font color=\"#26a269\">ONLY selectable AT level 60)</font></b><u>,</u> and the rules for how many each class gets.</div>"
+    impl_notes: "<div><b>Deferred 2026-07-27:</b> the current effort ships functional levels 41-60 only — no feat.2da work and no new TLK. Decisions already taken, recorded here so nothing has to be re-litigated when this resumes:</div><ul><li><b>Allotment:</b> at level 60, mixed classes get 1 Legendary Feat, pure classes 2, pure Fighter 3. These replace the standard/epic feat pick that the every-3-levels rule would otherwise give at 60 — they are not additional.</li><li><b>Selectable at exactly level 60</b>, not \"past 40\".</li><li><b>Strings:</b> new feats need names and descriptions, and the module's custom TLK is CEP's cep.tlk (NWN allows one). Agreed approach is to build a lotr.tlk from cep.tlk, appending above CEP's highest ID, switch the module's TLK and republish via nwsync — a one-time infrastructure task that must land before any feat row does.</li><li><b>Scope reality:</b> the draft (docs.manual/Draft/LegendaryFeats.html) defines ~140 feats plus 18 dominion cantrip toggles and 11 auto-granted pure-class packages. A large fraction describe behaviour NWN cannot express in a 2DA (extra attacks per round, unlimited Cleave, automatic counterspell, rerolled saves), and six dominion cantrips do not exist as spells. Expect a triage pass before implementation, not a straight transcription.</li></ul><div>Against real levels this is hak_2da/feat.2da work (MinLevel / PreReqEpic columns) rather than the old hgll_featlist_* pages. Every ll-feats-* story depends on this one.</div>"
     design_questions:
       - question: "The draft's Class Allotments assume a pure-class bonus pool, but the roadmap note on Legendary-Feats says 'reuse same pool of feats and just not give as many to mixed classes.' Confirm the mixed-class allotment rule — a flat reduction, a per-class-level formula, or pure-class-only for some tiers?"
-        status: open
-        answer: null
+        status: answered
+        answer: "Do update docs for this so everything aligns: \nAt level 60, mixed classes get 1 legendary feat (it's like a super epic class augment)\nAt level 60, PURE classes get 2 legendary feats (pay off for their dedication), except pure Fighters who get 3 Legendary feats (fighter is feat-based archetype). \n\nThis replaces the standard/epic feat selection that would normally be available at level 60 following the every 3 levels rule."
+        question_h: 64
+        answer_h: 120
   - id: ll-feats-ability-martial
     title: "Legendary Feats: ability score and martial feats"
     group: combat-classes
