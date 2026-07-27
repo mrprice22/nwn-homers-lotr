@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script nextlvl_inc</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>nextlvl_inc</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: nextlvl_inc
+//:: &quot;Next Level&quot; XP display fix for levels 40 - 60.
+//::
+//:: The NWNX MaxLevel plugin (the lever behind levels 41-60) has a known
+//:: upstream bug: from level 40 up, the character sheet&#x27;s &quot;Next Level:&quot; figure
+//:: is wrong -- the engine keeps extrapolating its own hardcoded curve instead
+//:: of reading exptable.2da. Everything else works; it is the number on the
+//:: sheet that lies, which is exactly the thing levels 41-60 promised to fix.
+//::
+//:: The documented workaround (NWNX:EE MaxLevel readme) is a per-player TLK
+//:: override on strref 315, &quot;Next Level&quot;. The character sheet renders that
+//:: strref followed by the engine&#x27;s value, so an override of
+//::
+//::     &quot;Next Level: 828800\n&quot;
+//::
+//:: prints the correct number and pushes the engine&#x27;s wrong one onto a second
+//:: line, out of the field&#x27;s view. The override is per player, so it has to be
+//:: (re)applied whenever the player&#x27;s level can have changed: login, level up,
+//:: level down.
+//::
+//:: The value comes from exptable.2da -- the same table the server levels off,
+//:: read at runtime -- so this can never disagree with the real requirement.
+//:: Below level 40 the override is cleared and the stock string comes back.
+//::
+//:: See README.md &quot;Levels 41-60&quot;; hooked from mod_cliententer.nss and
+//:: nextlvl_evt.nss.
+//:://////////////////////////////////////////////
+
+#include &quot;nwnx_player&quot;
+
+const int NEXTLVL_STRREF   = 315;   // &quot;Next Level&quot;
+const int NEXTLVL_FIRST    = 40;    // the engine&#x27;s figure is wrong from here up
+const int NEXTLVL_MAXLEVEL = 60;    // exptable.2da&#x27;s last real row
+
+// Re-apply (or clear) oPC&#x27;s &quot;Next Level&quot; TLK override for its current level.
+void NextLevel_FixTlk(object oPC);
+
+
+void NextLevel_FixTlk(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    int nLevel = GetHitDice(oPC);
+
+    // Below 40 the stock display is correct. Clear any override left over from
+    // a level drain, restoring the global string.
+    if (nLevel &lt; NEXTLVL_FIRST)
+    {
+        NWNX_Player_SetTlkOverride(oPC, NEXTLVL_STRREF, &quot;&quot;);
+        return;
+    }
+
+    string sValue;
+    if (nLevel &gt;= NEXTLVL_MAXLEVEL)
+    {
+        // At the cap there is no next level -- row 60 is the 0xFFFFFFFF
+        // unreachable sentinel, so there is no number to show.
+        sValue = &quot;Max&quot;;
+    }
+    else
+    {
+        // exptable.2da is 0-indexed by (level - 1), so the NEXT level&#x27;s
+        // requirement is row nLevel.
+        string sXP = Get2DAString(&quot;exptable&quot;, &quot;XP&quot;, nLevel);
+        int nXP = StringToInt(sXP);
+
+        // A client or server without the rebuilt lotr_rules.hak reads no row
+        // here. Leave the stock display alone rather than print a bare 0.
+        if (nXP &lt;= 0)
+        {
+            NWNX_Player_SetTlkOverride(oPC, NEXTLVL_STRREF, &quot;&quot;);
+            return;
+        }
+        sValue = IntToString(nXP);
+    }
+
+    // Trailing newline is load-bearing: it pushes the engine&#x27;s own (wrong)
+    // value out of the visible field.
+    NWNX_Player_SetTlkOverride(oPC, NEXTLVL_STRREF, &quot;Next Level: &quot; + sValue + &quot;\n&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

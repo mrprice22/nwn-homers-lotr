@@ -74,6 +74,7 @@
 #include &quot;boost_db&quot;
 #include &quot;q_frk_inc&quot;
 #include &quot;faction_db&quot;
+#include &quot;nextlvl_inc&quot;
 
 // Death amulet check + persistent state restore. Delayed so the engine&#x27;s
 // own post-login passes (inventory hydration, spellbook sync, &quot;fresh PC&quot;
@@ -182,6 +183,13 @@ void main()
     DelayCommand(7.0, FRK_LoginCheck(oPC));
 
     DelayCommand(1.0, ModPostEnter(oPC));
+
+    // Character sheet &quot;Next Level:&quot; fix for levels 40-60 — the NWNX MaxLevel
+    // plugin leaves the engine&#x27;s figure wrong past 40, so we override strref
+    // 315 with the real requirement from exptable.2da (nextlvl_inc.nss).
+    // Delayed so the player is fully connected before the override is sent;
+    // nextlvl_evt.nss keeps it current on every level up / level down.
+    DelayCommand(2.0, NextLevel_FixTlk(oPC));
 
     // Build stamp: nwn-manager generates &quot;nwnmgr_bstamp&quot; at repack with the module&#x27;s
     // last-edited timestamp + git revision. Resolved at runtime, so it safely no-ops
