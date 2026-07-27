@@ -52,6 +52,19 @@ DB_DIR="${NWN_HOME_DIR:-$HOME/.local/share/Neverwinter Nights}/database"
 BASE_URL="${SEASON_WIKI_URL:-https://homerslotr.com/}"
 LOG_DIR="${NWN_RUN_DIR:-$HOME/.local/state/nwnxee-homer}"
 
+# Combat-stat dials, from server.env so the wiki's derived stats match what the
+# running server actually enforces (nwn-wiki defaults to the stock 40 / +12):
+#   NWN_MAXLEVEL          — server level cap; nwn-wiki clamps a creature's total
+#                           class levels to it when summing BAB, so a 100+ HD
+#                           boss stops accruing BAB past the cap. Unset means the
+#                           container's own default of 40 (season 1); season 2
+#                           sets 60, which lets a multiclass boss's later classes
+#                           keep contributing where a 40 cap cut them off.
+#   NWN_MAX_ABILITY_BONUS — cap on the ability bonus a single item may grant
+#                           (settings.tml max-ability-bonus; this module runs 24).
+MAX_LEVEL="${NWN_MAXLEVEL:-40}"
+MAX_ABILITY_BONUS="${NWN_MAX_ABILITY_BONUS:-12}"
+
 nwn-manager wiki \
   --base-url "$BASE_URL" \
   --exclude-conv-option "[Admin Options]" \
@@ -59,6 +72,8 @@ nwn-manager wiki \
   --log-dir "$LOG_DIR" \
   --db-dir "$DB_DIR" \
   --2da-dir "$PROJECT/hak_2da" \
+  --max-character-level "$MAX_LEVEL" \
+  --max-ability-bonus "$MAX_ABILITY_BONUS" \
   --path-from thewelloferu
 status=$?
 
@@ -73,18 +88,17 @@ echo "[done] wiki regenerated → $PROJECT/docs/index.html"
 
 # ----------------------------------------------------------------- publish ---
 if [[ $PUBLISH -eq 1 ]]; then
-  # Stage the regenerated site. docs/ is the published wiki; module-index/ holds
-  # generated lookup/report JSON (staged only if it's tracked in this repo).
-  git -C "$PROJECT" add -A docs/
-  if git -C "$PROJECT" ls-files --error-unmatch module-index >/dev/null 2>&1; then
-    git -C "$PROJECT" add -A module-index/
-  fi
+  # Stage the regenerated site. docs/ is the published wiki, and it is the ONLY
+  # path this automated publish may commit — the pathspec is repeated on the
+  # commit so unrelated work in the tree (or anything another process has
+  # already staged in the index) can never be swept into the republish.
+  git -C "$PROJECT" add -A -- docs
 
-  if git -C "$PROJECT" diff --cached --quiet; then
+  if git -C "$PROJECT" diff --cached --quiet -- docs; then
     echo "[publish] no wiki changes to commit"
   else
     msg="Full wiki republish (kill counts + all pages): $(date '+%Y-%m-%d %H:%M')"
-    if ! git -C "$PROJECT" commit -q -m "$msg"; then
+    if ! git -C "$PROJECT" commit -q -m "$msg" -- docs; then
       echo "[publish] warn: commit failed" >&2
     else
       # Push with retries — the network may still be coming up just after boot.
