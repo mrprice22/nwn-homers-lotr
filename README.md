@@ -607,11 +607,15 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
   caster level, DC, duration and damage-cap scaling, not extra slots, which is
   the intended design. General feats (1 per 3 levels) and ability increases
   (+1 per 4) are engine-side and continue past 40.
-- Two upstream quirks come with the MaxLevel plugin, both cosmetic-to-annoying
-  and neither fixed here: the character sheet's "Next Level" XP figure is wrong
-  past 40 (workaround is a per-player TLK override via
-  `NWNX_Player_SetTlkOverride`), and spellcasters may be unable to re-pick known
-  spells on an epic level-up.
+- Two upstream quirks come with the MaxLevel plugin. The character sheet's
+  "Next Level" XP figure is wrong from level 40 up — **worked around** in
+  `unpacked/nextlvl_inc.nss`, which overrides strref 315 ("Next Level")
+  per player with the real requirement read out of `exptable.2da` and a trailing
+  newline that pushes the engine's wrong figure out of the field. It is applied
+  at login (`mod_cliententer.nss`) and re-applied on every level up / level down
+  (`nextlvl_evt.nss`, subscribed in `onmoduleload.nss`), and clears itself below
+  40 or when the hak is missing. The second quirk is **not** worked around:
+  spellcasters may be unable to re-pick known spells on an epic level-up.
 - `tests/check_epic_tables.py` (smoke-test gate) keeps `exptable.2da`, the
   transcribed fallback switch in `unpacked/_build_lvl_inc.nss` and `classes.2da`'s
   zeroed `XPPenalty` from drifting apart.

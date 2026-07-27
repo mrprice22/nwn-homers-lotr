@@ -67,6 +67,14 @@ NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
 // no const in nwnx_events.nss, so it is passed as a literal string.
 NWNX_Events_SubscribeEvent("NWNX_ON_SET_EXPERIENCE_BEFORE", "boost_xp_evt");
 
+// "Next Level" character-sheet fix for levels 40-60. The NWNX MaxLevel plugin
+// leaves the sheet's next-level XP figure wrong past 40; nextlvl_inc.nss
+// overrides strref 315 per player with the real requirement out of
+// exptable.2da. Login is handled in mod_cliententer.nss; these two keep it
+// current when the level moves (death XP loss can drain back below 40).
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "nextlvl_evt");
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, "nextlvl_evt");
+
 // Party loot: announce current roll settings when a player joins a party or the
 // party leadership changes (pl_party_evt broadcasts to the whole party).
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, "pl_party_evt");
