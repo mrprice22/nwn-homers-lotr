@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+# build-lotr-rules-hak — pack hak_2da/ into lotr_rules.hak and install it.
+#
+# lotr_rules.hak is the module's highest-priority hak (first in Mod_HakList), so
+# the 2DAs in it override CEP and stock. It must contain ALL FOUR of:
+#
+#   ruleset.2da    MULTICLASS_LIMIT 4  (four-class multiclassing)
+#   baseitems.2da  ammo stacks 999, potions/scrolls 99, monk/finesse weapons
+#   classes.2da    XPPenalty zeroed on all 11 player base classes
+#   exptable.2da   the experience table extended to level 60 (levels 41-60)
+#
+# Packing this by hand from the README recipe has silently dropped a 2DA twice
+# (classes.2da once, exptable.2da once — which is why levels 41-60 sat built but
+# dead for weeks). That is what this script exists to prevent: the file list is
+# in one place, and the result is verified with `nwn_erf -t` before install.
+#
+# Usage:
+#   bin/build-lotr-rules-hak              # build to dist/ and verify (no install)
+#   bin/build-lotr-rules-hak --install    # ... and install into $NWN_HOME_DIR/hak
+#   bin/build-lotr-rules-hak --install --home "/path/to/other NWN home"
+#
+# --home may be repeated to install into extra NWN home dirs (e.g. the local
+# client/toolset home, which is a DIFFERENT directory from the season server's
+# home — a mismatch there means the toolset and the server disagree on the rules).
+#
+# After installing, publish to clients with `bin/refresh-nwsync` and restart the
+# server; clients holding a stale hak read the old tables (e.g. a character
+# sheet that clamps at level 40).
+
+set -euo pipefail
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+ENV_FILE="$PROJECT_ROOT/server.env"
+LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
+
+# The authoritative content list. Add a 2DA here, not in a README paragraph.
+RULES_2DA=(ruleset.2da baseitems.2da classes.2da exptable.2da)
+
+INSTALL=0
+EXTRA_HOMES=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --install) INSTALL=1 ;;
+    --home)    shift; [[ $# -gt 0 ]] || { echo "--home needs a directory" >&2; exit 2; }
+               EXTRA_HOMES+=("$1") ;;
+    -h|--help) sed -n '2,30p' "$0"; exit 0 ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+[[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
+: "${NWN_HOME_DIR:?server.env must define NWN_HOME_DIR}"
+
+NWN_ERF="${NWN_ERF:-$HOME/.nimble/bin/nwn_erf}"
+if [[ ! -x $NWN_ERF ]]; then
+  echo "error: nwn_erf not found at $NWN_ERF" >&2
+  echo "       install niv/neverwinter.nim or set NWN_ERF in server.env.local" >&2
+  exit 1
+fi
+
+SRC_DIR="$PROJECT_ROOT/hak_2da"
+OUT_DIR="$PROJECT_ROOT/dist"
+OUT_HAK="$OUT_DIR/lotr_rules.hak"
+
+# Every source must exist before anything is packed — a partial hak silently
+# reverts the rules it is missing.
+missing=0
+for f in "${RULES_2DA[@]}"; do
+  if [[ ! -f "$SRC_DIR/$f" ]]; then
+    echo "error: missing source $SRC_DIR/$f" >&2
+    missing=1
+  fi
+done
+[[ $missing -eq 0 ]] || exit 1
+
+mkdir -p "$OUT_DIR"
+STAGE=$(mktemp -d)
+trap 'rm -rf "$STAGE"' EXIT
+for f in "${RULES_2DA[@]}"; do cp "$SRC_DIR/$f" "$STAGE/$f"; done
+
+echo "[hak] packing ${#RULES_2DA[@]} 2DAs -> $OUT_HAK"
+staged=()
+for f in "${RULES_2DA[@]}"; do staged+=("$STAGE/$f"); done
+"$NWN_ERF" -c -f "$OUT_HAK" -e HAK "${staged[@]}"
+
+# Verify the pack really contains what we asked for, before it can be installed.
+echo "[hak] contents:"
+mapfile -t got < <("$NWN_ERF" -t -f "$OUT_HAK" | sed 's/[[:space:]]*$//' | sort)
+printf '        %s\n' "${got[@]}"
+mapfile -t want < <(printf '%s\n' "${RULES_2DA[@]}" | sort)
+if [[ "${got[*]}" != "${want[*]}" ]]; then
+  echo "error: packed hak does not match the expected file list" >&2
+  echo "       want: ${want[*]}" >&2
+  echo "       got:  ${got[*]}" >&2
+  exit 1
+fi
+echo "[hak] verified: all ${#want[@]} 2DAs present"
+
+if [[ $INSTALL -eq 0 ]]; then
+  echo
+  echo "Built but NOT installed. Install with:  $0 --install"
+  exit 0
+fi
+
+install_into() {
+  local home="$1" dest="$1/hak/lotr_rules.hak"
+  if [[ ! -d "$home/hak" ]]; then
+    echo "[hak] skip (no hak dir): $home"
+    return
+  fi
+  if [[ -f $dest ]]; then
+    local bak="$dest.bak-$(date +%Y%m%d_%H%M%S)"
+    cp -p "$dest" "$bak"
+    echo "[hak] backed up -> $bak"
+  fi
+  cp "$OUT_HAK" "$dest"
+  echo "[hak] installed -> $dest"
+}
+
+install_into "$NWN_HOME_DIR"
+for h in ${EXTRA_HOMES+"${EXTRA_HOMES[@]}"}; do install_into "$h"; done
+
+echo
+echo "Next:"
+echo "  1. bin/refresh-nwsync     # publish the new hak to clients"
+echo "  2. restart the server     # bin/server-restart"

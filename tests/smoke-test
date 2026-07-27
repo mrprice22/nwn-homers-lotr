@@ -86,6 +86,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: epic XP tables (levels 41-60)…"
+if python3 "$HERE/check_epic_tables.py"; then
+  echo "ok: epic XP tables"
+else
+  echo "fail: epic XP tables"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

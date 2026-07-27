@@ -544,24 +544,22 @@ folder before any hak and is not distributed to clients via nwsync.
    potions/scrolls 99), `classes.2da` (multiclass `XPPenalty` zeroed on all 11
    player base classes, so a 4-class build takes no XP penalty) and `exptable.2da`
    (the experience table extended to level 60 — see "Levels 41–60" below), the
-   latter three tracked in git under `hak_2da/`. Pack all of them, or a
-   from-scratch rebuild silently drops those customizations:
+   all four tracked in git under `hak_2da/`. Pack all of them, or a
+   from-scratch rebuild silently drops those customizations — which is exactly
+   what happened twice, so **don't pack it by hand**:
    ```sh
-   mkdir -p /tmp/lotr_rules_hak
-   cp /tmp/nwn_2da/ruleset.2da /tmp/lotr_rules_hak/
-   cp hak_2da/baseitems.2da    /tmp/lotr_rules_hak/
-   cp hak_2da/classes.2da      /tmp/lotr_rules_hak/
-   cp hak_2da/exptable.2da     /tmp/lotr_rules_hak/
-   ~/.nimble/bin/nwn_erf -c -f /tmp/lotr_rules.hak -e HAK \
-     /tmp/lotr_rules_hak/ruleset.2da /tmp/lotr_rules_hak/baseitems.2da \
-     /tmp/lotr_rules_hak/classes.2da /tmp/lotr_rules_hak/exptable.2da
-   cp /tmp/lotr_rules.hak \
-     "$HOME/.local/share/Neverwinter Nights/hak/lotr_rules.hak"
+   bin/build-lotr-rules-hak --install
    ```
-   Verify what a built hak actually holds with
-   `~/.nimble/bin/nwn_erf -t -f <path>/lotr_rules.hak` — as of 2026-07-25 the
-   installed hak lists `baseitems.2da`, `classes.2da`, `ruleset.2da` and is still
-   **missing `exptable.2da`**, i.e. levels 41–60 are not live yet.
+   The script packs the four 2DAs from `hak_2da/`, verifies the result with
+   `nwn_erf -t` before installing, backs up the hak it replaces, and installs
+   into `$NWN_HOME_DIR/hak` (this season's home — pass `--home <dir>` to install
+   into another NWN home as well, e.g. the local toolset's). Run it with no
+   arguments to build into `dist/` and verify without installing.
+
+   `hak_2da/ruleset.2da` is the edited copy from step 2; it is tracked so the hak
+   is reproducible from the repo alone, without re-extracting from the game data.
+   Inspect any built or installed hak with
+   `~/.nimble/bin/nwn_erf -t -f <path>/lotr_rules.hak`.
 4. Copy the 2da into the server override folder too (server-side enforcement):
    ```sh
    cp /tmp/nwn_2da/ruleset.2da \
@@ -591,10 +589,32 @@ level-40 sentinel: level 41 at **828,800** cumulative XP through level 60 at
 that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
 
 - The table only takes effect once `exptable.2da` is packed into `lotr_rules.hak`
-  and published (see "Four-class multiclassing" step 3, then `bin/refresh-nwsync`).
-- The engine level cap is a separate lever — `NWNX_MAXLEVEL_SKIP` in `server.env`
-  (or `NWNX_Administration_SetMaxLevel`); roadmap `ll-maxlevel-cap`. Until that is
-  done characters still stop at 40.
+  and published (`bin/build-lotr-rules-hak --install`, then `bin/refresh-nwsync`).
+- The engine level cap is a separate lever: `NWNX_MAXLEVEL_SKIP=n` +
+  `NWNX_MAXLEVEL_MAX=60` in `server.env`, which additionally needs
+  `NWNX_ELC_SKIP=n` — the MaxLevel plugin's readme requires NWNX_ELC to be
+  *loaded* (no configuration) to bypass the engine's level-40 restriction. That
+  is not the same as turning on the server's own ELC: `NWN_ELC`/`NWN_ILR` stay 0
+  (see "Character validation" below). Don't also call
+  `NWNX_Administration_SetMaxLevel()` — one lever only.
+- **Class progression to 60 needs no 2DA work.** Stock NWN:EE `CLS_*` tables
+  already carry 60 rows, so `classes.2da` keeps pointing at them and levels 41-60
+  progress on their own: BAB keeps climbing +0.5/level (`cls_atk_1` 30 at level 39
+  → 40 at level 59; `cls_atk_3` 20 → 30), saves keep climbing
+  (`cls_savthr_fight` 21/15/15 → 31/25/25), epic bonus feats keep their cadence
+  (`cls_bfeat_fight` alternating to row 58), and spell slots stay flat past 20
+  (`cls_spgn_wiz`/`cls_spkn_sorc` identical at 39 and 59) — i.e. casters gain
+  caster level, DC, duration and damage-cap scaling, not extra slots, which is
+  the intended design. General feats (1 per 3 levels) and ability increases
+  (+1 per 4) are engine-side and continue past 40.
+- Two upstream quirks come with the MaxLevel plugin, both cosmetic-to-annoying
+  and neither fixed here: the character sheet's "Next Level" XP figure is wrong
+  past 40 (workaround is a per-player TLK override via
+  `NWNX_Player_SetTlkOverride`), and spellcasters may be unable to re-pick known
+  spells on an epic level-up.
+- `tests/check_epic_tables.py` (smoke-test gate) keeps `exptable.2da`, the
+  transcribed fallback switch in `unpacked/_build_lvl_inc.nss` and `classes.2da`'s
+  zeroed `XPPenalty` from drifting apart.
 - **`classes.2da` needs no change for the 60 cap.** (Earlier revisions of this
   section claimed its `MaxLevel`/`EpicLevel` columns were part of the lever — they
   are not.) In `hak_2da/classes.2da` every player base class already has
@@ -617,11 +637,12 @@ That is the correct posture for a 41–60 cap and it needs no change:
   rejected at login or silently rolled back to 40. Turning ELC **on** is what would
   put legendary characters at risk — don't, unless `exptable.2da` and the rest of
   `lotr_rules.hak` are provably identical on server and client.
-- Nothing in `unpacked/` subscribes to the NWNX ELC events
-  (`NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE`/`_AFTER`) — the only mentions are in the
-  vendored `nwnx_events.nss` / `nwnx_player.nss` headers. There is no NWNX ELC
-  plugin enabled in `server.env` and no custom validation script, so there is no
-  second validation path to update.
+- The **NWNX ELC plugin is loaded** (`NWNX_ELC_SKIP=n`), but only because the
+  MaxLevel plugin requires it to bypass the level-40 restriction. It is not a
+  second validation path: nothing in `unpacked/` subscribes to the NWNX ELC
+  events (`NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE`/`_AFTER`) — the only mentions
+  are in the vendored `nwnx_events.nss` / `nwnx_player.nss` headers — and there
+  is no custom validation script. Loading the plugin ≠ `NWN_ELC=1`.
 - The remaining level-41+ login hazard is **hak mismatch, not validation**: a
   client without the published `exptable.2da` reads the level-40 table, so its
   character sheet clamps the display at 40. The fix is `bin/refresh-nwsync` after
