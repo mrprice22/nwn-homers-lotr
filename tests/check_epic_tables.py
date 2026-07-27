@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Build gate: the levels 41-60 experience table must stay coherent.
+"""Build gate: the levels 41-60 rules data must stay coherent.
 
-Levels 41-60 are real character levels driven by hak_2da/exptable.2da. Three
+Levels 41-60 are real character levels driven by hak_2da/exptable.2da. Four
 things can silently break them, none of which any other check would catch:
 
 1. **A stock re-extraction.** exptable.2da and classes.2da are hand-edited
@@ -18,6 +18,11 @@ things can silently break them, none of which any other check would catch:
 3. **A shifted sub-40 row.** Rows for levels 1-40 must stay exactly on the
    stock Bioware curve (500 * n * (n - 1)); a stray edit there would move every
    existing character's next-level threshold.
+4. **Half the level cap.** server.env carries two independent caps — the NWNX
+   plugin's (which lets a character gain the level) and the server's own -maxlevel
+   (which decides whether it may log back in). Raising only the first levels a
+   character past 40 and then locks it out of the server that levelled it. That
+   is not hypothetical; it happened on 2026-07-27 during UAT.
 
 The curve itself: level 41 costs 48,800 XP over level 40's 780,000, and each
 step after that is 1.1x the step before it, ending at 3,581,000 for level 60.
@@ -178,6 +183,72 @@ def check_code_redeem(problems, table):
         )
 
 
+def check_level_cap(problems, table):
+    """server.env's two level caps must agree with each other and the table.
+
+    There are two independent caps and they are easy to confuse:
+
+      NWN_MAXLEVEL       the SERVER's own restriction, passed to nwserver as
+                         -maxlevel and written into settings.tml by bin/serve.
+                         It is what the server browser advertises and what
+                         refuses a login with "character level disallowed by
+                         server restrictions".
+      NWNX_MAXLEVEL_MAX  the NWNX MaxLevel plugin's cap, which is what lets a
+                         character gain the level in the first place.
+
+    Setting only the NWNX one produces the worst possible outcome: the server
+    happily levels a character past 40 and then refuses to let it back in --
+    locked out of the very server that levelled it. That happened on 2026-07-27.
+    """
+    env = REPO / "server.env"
+    if not env.exists():
+        return
+    text = env.read_text(encoding="utf-8")
+
+    def value(key):
+        m = re.search(rf"(?m)^{key}=(\S+)", text)
+        if not m:
+            return None
+        return m.group(1).strip().strip('"').strip("'")
+
+    skip = value("NWNX_MAXLEVEL_SKIP")
+    if skip != "n":
+        return                      # plugin off: levels past 40 aren't enabled
+
+    server_cap = value("NWN_MAXLEVEL")
+    plugin_cap = value("NWNX_MAXLEVEL_MAX")
+
+    if server_cap is None:
+        problems.append(
+            "server.env: NWNX_MAXLEVEL_SKIP=n but no NWN_MAXLEVEL — the server "
+            "would default to -maxlevel 40 and refuse a level 41+ character at "
+            "login after letting it level"
+        )
+        return
+
+    # The plugin cap may be written as "$NWN_MAXLEVEL"; that is the intended
+    # single-source form and needs no numeric comparison.
+    if plugin_cap not in ("$NWN_MAXLEVEL", "${NWN_MAXLEVEL}", server_cap):
+        problems.append(
+            f"server.env: NWN_MAXLEVEL={server_cap} but "
+            f"NWNX_MAXLEVEL_MAX={plugin_cap} — the two caps must match, or "
+            "characters get locked out above the lower one"
+        )
+
+    if server_cap.isdigit() and int(server_cap) != MAX_LEVEL:
+        problems.append(
+            f"server.env: NWN_MAXLEVEL={server_cap} but exptable.2da tops out "
+            f"at level {MAX_LEVEL}"
+        )
+
+    if value("NWNX_ELC_SKIP") != "n":
+        problems.append(
+            "server.env: NWNX_MAXLEVEL_SKIP=n needs NWNX_ELC_SKIP=n — the "
+            "MaxLevel plugin requires NWNX_ELC to be loaded to bypass the "
+            "engine's level-40 restriction"
+        )
+
+
 def check_classes(problems):
     """XPPenalty must stay zeroed for the player base classes."""
     if not CLASSES.exists():
@@ -212,6 +283,7 @@ def main() -> int:
     table = check_exptable(problems)
     check_fallback(problems, table)
     check_code_redeem(problems, table)
+    check_level_cap(problems, table)
     check_classes(problems)
 
     if problems:
@@ -226,7 +298,7 @@ def main() -> int:
     print(
         f"ok epic-tables: exptable.2da levels 1-{MAX_LEVEL} on curve "
         f"(41={table.get(41)}, {MAX_LEVEL}={table.get(MAX_LEVEL)}), "
-        "fallback switch + XP_LEVEL_60 match, XPPenalty zeroed"
+        "fallback switch + XP_LEVEL_60 match, both level caps at 60, XPPenalty zeroed"
     )
     return 0
 

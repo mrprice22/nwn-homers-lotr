@@ -590,13 +590,29 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
 
 - The table only takes effect once `exptable.2da` is packed into `lotr_rules.hak`
   and published (`bin/build-lotr-rules-hak --install`, then `bin/refresh-nwsync`).
-- The engine level cap is a separate lever: `NWNX_MAXLEVEL_SKIP=n` +
-  `NWNX_MAXLEVEL_MAX=60` in `server.env`, which additionally needs
-  `NWNX_ELC_SKIP=n` — the MaxLevel plugin's readme requires NWNX_ELC to be
-  *loaded* (no configuration) to bypass the engine's level-40 restriction. That
-  is not the same as turning on the server's own ELC: `NWN_ELC`/`NWN_ILR` stay 0
-  (see "Character validation" below). Don't also call
-  `NWNX_Administration_SetMaxLevel()` — one lever only.
+- **The level cap is two levers, and you need both.** They fail in opposite
+  halves and the combination is a trap:
+  - `NWNX_MAXLEVEL_SKIP=n` + `NWNX_MAXLEVEL_MAX` in `server.env` — the NWNX
+    plugin, which is what lets a character *gain* a level past 40. It also needs
+    `NWNX_ELC_SKIP=n`: the plugin's readme requires NWNX_ELC to be *loaded* (no
+    configuration) to bypass the engine's level-40 restriction. That is not the
+    same as turning on the server's own ELC — `NWN_ELC`/`NWN_ILR` stay 0 (see
+    "Character validation" below).
+  - `NWN_MAXLEVEL` in `server.env` — the **server's own** restriction. The
+    container entrypoint passes it as `-maxlevel` (defaulting to **40**), it is
+    what the server browser advertises as the level range, and it is what decides
+    whether a character may *log in*. `bin/serve` also writes it into
+    `settings.tml` as `max-character-level`, along with that key's schema
+    constraint (which ships as `max = 40` and would otherwise clamp it).
+  Raise only the NWNX one and the server cheerfully levels a character to 41,
+  then refuses it at the door: *"Invalid character - player login refused,
+  character level disallowed by server restrictions."* The character is not
+  damaged — it logs in again as soon as `NWN_MAXLEVEL` matches. `server.env`
+  keeps them in step by defining `NWNX_MAXLEVEL_MAX="$NWN_MAXLEVEL"`, and
+  `tests/check_epic_tables.py` fails the build if they ever diverge.
+  Don't also call `NWNX_Administration_SetMaxLevel()` — one NWNX lever only.
+  A startup line "Server: Invalid argument to -maxlevel" is expected and safe to
+  ignore (the plugin raises the limit after the argument is parsed).
 - **Class progression to 60 needs no 2DA work.** Stock NWN:EE `CLS_*` tables
   already carry 60 rows, so `classes.2da` keeps pointing at them and levels 41-60
   progress on their own: BAB keeps climbing +0.5/level (`cls_atk_1` 30 at level 39

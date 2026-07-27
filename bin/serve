@@ -119,9 +119,23 @@ echo "[serve] activity monitor started (PID $_SERVE_PID)"
 # so the server reads our values but cannot overwrite them.
 _settings="$NWN_RUN_DIR/settings.tml"
 if [[ -f "$_settings" ]]; then
-  python3 - "$_settings" <<'PYEOF'
+  python3 - "$_settings" "${NWN_MAXLEVEL:-40}" <<'PYEOF'
 import re, sys
 txt = open(sys.argv[1]).read()
+
+# Engine level cap. nwserver would rewrite this from its own -maxlevel arg, but
+# the file is mounted read-only, so whatever is written here is what the server
+# reads. It must match NWN_MAXLEVEL (passed as -maxlevel by the container
+# entrypoint) or a character above the lower of the two is refused at login with
+# "character level disallowed by server restrictions" -- locked out of the very
+# server that levelled it. See server.env NWN_MAXLEVEL / NWNX_MAXLEVEL_MAX.
+maxlevel = sys.argv[2]
+txt = re.sub(r'(max-character-level\s*=\s*)\d+', r'\g<1>' + maxlevel, txt, count=1)
+# ...and the schema's own constraint on that key, which ships as max = 40 and
+# would otherwise clamp the value straight back down.
+txt = re.sub(
+    r'(\["~~schema"\.binds\."ruleset\.max-character-level"\.constraints\]\s*\n\s*max\s*=\s*)\d+',
+    r'\g<1>' + maxlevel, txt, count=1)
 txt = re.sub(r'(always-roll-max-hitpoints-on-levelup\s*=\s*)false', r'\g<1>true', txt, count=1)
 txt = re.sub(r'(\t\tsticky-modes\s*=\s*)false', r'\g<1>true', txt, count=1)
 
@@ -137,7 +151,7 @@ else:                                                     # key missing: insert 
     txt = re.sub(r'(?m)^(\t\[ruleset\.combat\]\n)', r'\g<1>\t\tmax-ability-bonus = 24\n', txt, count=1)
 open(sys.argv[1], 'w').write(txt)
 PYEOF
-  echo "[serve] patched settings.tml: sticky-modes=true, always-roll-max-hitpoints-on-levelup=true, max-ability-bonus=24"
+  echo "[serve] patched settings.tml: sticky-modes=true, always-roll-max-hitpoints-on-levelup=true, max-ability-bonus=24, max-character-level=${NWN_MAXLEVEL:-40}"
 fi
 
 # Cross-season shared campaign DBs (meritdb, admindb) live outside every
