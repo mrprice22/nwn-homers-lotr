@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-07-25 16:15 CDT"
+  as_of: "2026-07-30 08:03 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -275,8 +275,9 @@ ideas:
   - id: wiki-charts-by-week
     title: "wiki charts update for days vs weeks"
     group: wiki-tools
-    status: implemented
+    status: awarded
     hidden: true
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-24"
@@ -286,6 +287,7 @@ ideas:
     manual_steps:
       - step: "After the next scheduled wiki refresh, open the Activity page and confirm both daily charts show 35 bars with a weekly roll-up chart directly beneath each."
         status: open
+        step_h: 64
   - id: season2-test-announce
     title: "Season 2 Test Realm is Live"
     group: wiki-tools
@@ -1765,7 +1767,7 @@ ideas:
   - id: encounter-density-reused-mobs
     title: "Encounter density: bump per-instance spawn counts 1 to 2 for creatures used by more than one encounter (cap 2, never solo boss encounters)"
     group: bosses
-    status: implemented
+    status: awarded
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-15"
@@ -1775,12 +1777,16 @@ ideas:
     manual_steps:
       - step: "Correct the design brief's solo-encounter figure at the next design edit: it says 19, the module actually has 61 solo instances (9 registry encounter-bosses)."
         status: open
+        step_h: 64
       - step: "UAT: look for pairs of giant spiders in Alterwald and Old Back Road, and denser packs in The Wold, Wold South and the Kallrist shores."
         status: open
+        step_h: 64
       - step: "UAT regression: the Balrog of Moria and Summanus still spawn exactly one each and track normally on the Roll of the Fallen."
         status: open
+        step_h: 64
       - step: "UAT perf: impact should be negligible (+1 creature on 32 triggers module-wide)."
         status: open
+        step_h: 64
   - id: forbidden-realms-key-tier
     title: "Forbidden Realms Key tier: journal quest and a Númenor gate opening the orphaned Tombs of the Lost Souls as the Weathertop court's barrow"
     group: bosses
@@ -2034,7 +2040,8 @@ ideas:
   - id: forge-limits-progressive
     title: "Tie forge limits to boss-kill progress (kill more bosses to earn a slight gear edge)"
     group: forge
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Tukwut
     date: "2026-07-16"
@@ -2045,14 +2052,19 @@ ideas:
     manual_steps:
       - step: "UAT low tier: a character with under 10 registry boss kills sees a progress hint and unchanged caps."
         status: open
+        step_h: 64
       - step: "UAT tier 1: a 10+ distinct-boss character sees the +5% floating text and the raised ceiling quoted by the smith (Tagget 262,500)."
         status: open
+        step_h: 64
       - step: "UAT transferability: trade an above-750k forged piece to a fresh character and walk into the Well of Eru &mdash; it must NOT jail them."
         status: open
+        step_h: 64
       - step: "UAT enforcement: the Warden still jails genuinely tampered gear above 900k / 7 props."
         status: open
+        step_h: 64
       - step: "UAT: disenchant status lines cite the 900k figure."
         status: open
+        step_h: 64
 
   # ---- Teleports & travel ---------------------------------------------------
   - id: teleport-expansion
@@ -2093,7 +2105,8 @@ ideas:
   - id: wiki-top-killers
     title: "On each creature page, show the top players/characters by kills"
     group: wiki-tools
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Tukwut
     date: "2026-07-16"
@@ -2388,23 +2401,34 @@ ideas:
       - question: "FACTION ROSTER."
         status: answered
         answer: "Do NOT add 10-15 named factions. Keep just 2 (Good and Evil), aligning with how the Well of Eru teleporters already set faction hostility. This is NOT tied to character alignment, so e.g. druids stay Neutral (alignment) and can still pick either faction's quests."
+        question_h: 64
+        answer_h: 64
       - question: "Enemy default stance toward the PC."
         status: answered
         answer: "Hostile on sight (0) - the opposing faction attacks immediately; standing must be earned. (Already the effect of the existing -100 AdjustReputation.)"
+        question_h: 64
+        answer_h: 64
       - question: "Persistence of standing."
         status: answered
         answer: "Persist per-character in a factiondb campaign DB, re-applied on login, so allegiance/standing survives relog and reboot."
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "UAT persistence: use a Well of Eru Good (or Evil) teleporter to take that allegiance, confirm the opposing faction's NPCs turn hostile, relog, and confirm the allegiance + hostility PERSIST (previously they reset). Then use the opposite teleporter and confirm the flip also persists."
         status: open
+        step_h: 64
       - step: "UAT alignment independence: on a True-Neutral-alignment character, take a Good allegiance and confirm it works (allegiance is faction-based, not GetAlignment)."
         status: open
+        step_h: 64
       - step: "Confirm the anchor NPCs tagged Goodfaction/Evilfaction/Neutralfaction exist and are placed (the whole system keys off them). Note their area(s) at build time."
         status: open
+        step_h: 64
       - step: "UAT oath-lock: swear the Paladin Oath of the West (Hallas, Minas Tirith Keep / area005) and confirm the EVIL light-shaft (solred) now refuses with a message and does not switch you, while the GOOD shaft still works. Symmetric: swear the Blackguard Black Oath (rack in Keep of Barad-dur / baraddurkeep) and confirm the GOOD shaft (zep_lightshft009) refuses."
         status: open
+        step_h: 64
       - step: "UAT dual standing + bleed: as DM, Faction_AdjustStanding(oPC,\"Good\",100) then Faction_AdjustStanding(oPC,\"Evil\",100) and confirm BOTH good_standing and evil_standing are non-zero (playing both sides is not punished), and that the Evil grant reduced good_standing by ~25 (25% bleed) but never below 0 / never reset."
         status: open
+        step_h: 64
 
   - id: faction-rally-rescue
     title: "Faction rally: pre-death muster call + timed rescue quest"
@@ -4220,7 +4244,9 @@ ideas:
     title: "Epic XP table: levels 41-60"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
+    hidden: true
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-27"
@@ -4232,11 +4258,11 @@ ideas:
         status: done
         step_h: 64
       - step: "Run bin/refresh-nwsync so clients receive the updated lotr_rules.hak, then restart the server. Clients with a stale hak read the old table and their character sheet clamps at 40."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: log in with a level 40 character and confirm the XP bar / character sheet shows the next-level requirement as 828,800 rather than treating 40 as the cap. Note the MaxLevel plugin has a known upstream bug where the sheet's \"Next Level\" figure is wrong past 40 — judge by whether levelling actually happens, not only by that number."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT: verify the level-40 threshold is unchanged (780,000) and that no character below 40 sees a shifted XP requirement — rows 1-40 are byte-identical to stock, this is a regression check."
         status: open
@@ -4288,7 +4314,8 @@ ideas:
     title: "Class progression tables for levels 41-60"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-27"
@@ -4308,17 +4335,17 @@ ideas:
         answer_h: 64
     manual_steps:
       - step: "UAT: with the cap live, level a test character 40 → 41 → 45 → 60 with Ping Pong and record per level: BAB, the three saves, hit points, skill points, caster level, bonus feats and ability increases. Compare against the stock tables in the impl notes."
-        status: open
+        status: done
         blocker: true
         step_h: 64
       - step: "UAT: confirm the general feat pick lands at 42/45/48... (every 3 levels) and the ability point at 44/48/52... (every 4)."
-        status: open
+        status: done
         step_h: 64
       - step: "UAT (casters): confirm caster level rises with each level past 40 — check a level-scaling spell's duration or damage cap — and that spell slots are unchanged from level 40."
-        status: open
+        status: done
         step_h: 64
       - step: "Feed the recorded table into the Leveling Guide rewrite (ll-hgll-purge-docs / ll-wiki-leveling-docs); the per-level gains section is waiting on exactly this data."
-        status: open
+        status: done
         step_h: 64
   - id: ll-tweaks-audit
     title: "Audit NWNX Tweaks options for epic-level play"
@@ -4378,7 +4405,9 @@ ideas:
     title: "Remove the HGLL leveler scripts"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: awarded
+    hidden: true
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -4405,7 +4434,9 @@ ideas:
     title: "Untangle the module OnClientEnter hook from HGLL"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: awarded
+    hidden: true
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -4475,7 +4506,8 @@ ideas:
     title: "Drop the HGLL build gate from the smoke test"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: awarded
+    hidden: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -4511,7 +4543,9 @@ ideas:
     title: "Ping Pong: add level 41-60 to the \"Set my level\" menu"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: awarded
+    hidden: true
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
