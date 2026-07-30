@@ -2,27 +2,45 @@
 """Map every blueprint to its location in the in-game toolset palette.
 
 A DM/admin who knows a creature/item/placeable by name often can't find it among
-the hundreds of categories and submenus in the toolset's custom palette. This
-tool walks every `unpacked/*palcus.itp.json` (the custom palette trees) and emits
-a flat, searchable index:
+the hundreds of categories and submenus in the toolset's palette. This tool
+walks two trees per resource type and emits a flat, searchable index:
 
-    resref  ->  { name, type, palette:"Top > Sub > ... > Leaf category" }
+    resref  ->  { name, type, palette:"Top > Sub > ... > Leaf category",
+                  custom_palette: bool }
+
+  1. `unpacked/<type>palcus.itp.json` — the module's own saved "Custom" tab
+     tree (may also contain a large static copy of vanilla content, left over
+     from when the palette was first initialized in the toolset).
+  2. `<type>palstd.itp` — the toolset's real default "Standard" tab tree,
+     pulled live from the local NWN client install via `nwn_resman_cat` +
+     `nwn_gff` (niv/neverwinter.nim, the same toolkit `nwn-manager` wraps).
+     This is the authority for what's genuinely vanilla Bioware/expansion
+     content: resman is loaded with no haks, so anything CEP or the module
+     added — even filed under a vanilla-looking category name — won't be in
+     it. A resref's `custom_palette` flag is `resref not in <that tree>`, not
+     a guess based on which top-level category it sits under (a category-name
+     heuristic is wrong whenever CEP files its own content into a vanilla
+     category, e.g. `zep_altar001` under `Miscellaneous`, or `ogre003` under
+     `Monsters`). Standard-tree entries missing from the module's own palcus
+     snapshot (e.g. `plc_butterflies`, dropped when CEP overwrote `Parks &
+     Nature`) are added too, so the index doesn't miss factory content the
+     module's saved palette never carried forward.
 
 The output feeds the "Palette Finder" search panel in bin/roadmap-editor.py.
 
 Blueprints that exist in unpacked/ but were never filed into a custom palette
-category (script-created / "orphaned" ones — e.g. slot_token) don't appear in the
-palette tree at all. They're still indexed here with `in_palette: false` and a
-"(not in toolset palette …)" marker, so a search finds them instead of returning
-nothing.
+category (script-created / "orphaned" ones) don't appear in either tree.
+They're still indexed here with `in_palette: false` and a "(not in toolset
+palette …)" marker, so a search finds them instead of returning nothing.
 
 STANDALONE / ONE-OFF: this is NOT part of the wiki build or the Publish flow.
 Run it (or click "Refresh palette map" in the roadmap editor) after adding or
 renaming blueprints you place into a palette category. It never touches git or
 docs/.
 
---- Palette (.itp.json) shape ---
-Each file is a GFF "ITP " tree. MAIN is a recursive list of struct nodes:
+--- Palette (.itp) shape ---
+Each file (module `*.itp.json`, or the client's `*palstd.itp` converted the
+same way) is a GFF "ITP " tree. MAIN is a recursive list of struct nodes:
   * Category node : ID (byte) + a name (STRREF dword TLK ref, or inline NAME
                     cexostring) + a child LIST.
   * Blueprint leaf: RESREF (= the blueprint's filename stem), optionally an
@@ -37,12 +55,20 @@ category refs the palette uses, so for those we point at a fuller CEP 2.6 tlk
 falls back gracefully: base categories still resolve from the repo tlk even if
 the fuller tlk is absent.
 
+--- Standard-tab dependency ---
+Reading `<type>palstd.itp` needs `nwn_resman_cat` and `nwn_gff` on PATH or in
+~/.nimble/bin (installed as part of niv/neverwinter.nim). If either is missing,
+generation still succeeds but falls back to treating every palcus-tree entry as
+Standard (the old, less accurate behavior) — a warning is printed either way.
+
 Output: module-index/palette_map.json (module-index/ is gitignored).
 """
 import argparse
 import datetime
 import json
+import shutil
 import struct
+import subprocess
 import sys
 from pathlib import Path
 
@@ -174,18 +200,65 @@ def blueprint_name(resref: str, ext: str) -> str:
     return ""
 
 
-# Top-level palette categories that are module/custom buckets (as opposed to the
-# standard Bioware/CEP category tree). Used to flag whether a blueprint sits in
-# the "custom palette" section. `Special` holds the Custom 1-5 slots.
-CUSTOM_ROOTS = {"Module Specific*", "CEP Specific*", "Special"}
+def find_tool(name: str) -> str | None:
+    """Locate an niv/neverwinter.nim CLI tool: PATH, else ~/.nimble/bin."""
+    found = shutil.which(name)
+    if found:
+        return found
+    candidate = Path.home() / ".nimble" / "bin" / name
+    return str(candidate) if candidate.exists() else None
 
 
-def is_custom_root(root: str) -> bool:
-    return root in CUSTOM_ROOTS or root.startswith("* CEP")
+def load_std_itp(stem: str) -> dict | None:
+    """Fetch+convert `<stem without palcus>palstd.itp` from the local NWN
+    client install (the toolset's real default Standard-tab tree). Returns
+    None (non-fatal) if the tools or the resource aren't available.
+    """
+    resman = find_tool("nwn_resman_cat")
+    gff = find_tool("nwn_gff")
+    if not resman or not gff:
+        return None
+    base = stem[: -len("palcus")] if stem.endswith("palcus") else stem
+    try:
+        raw = subprocess.run(
+            [resman, f"{base}palstd.itp"], capture_output=True, check=True,
+        ).stdout
+        conv = subprocess.run(
+            [gff, "-l", "gff", "-k", "json"], input=raw,
+            capture_output=True, check=True,
+        ).stdout
+        return json.loads(conv)
+    except (subprocess.CalledProcessError, ValueError):
+        return None
+
+
+class _Universe:
+    """Fallback 'standard set' when the Standard tree can't be loaded: treat
+    every resref as standard, matching the old (less accurate) behavior.
+    """
+    def __contains__(self, item):
+        return True
+
+
+def collect_resrefs(itp: dict) -> set[str]:
+    """Every RESREF value anywhere in an ITP tree (membership only, no path)."""
+    out: set[str] = set()
+
+    def walk_(entries: list):
+        for node in entries:
+            if "RESREF" in node:
+                out.add(node["RESREF"]["value"])
+            child = node.get("LIST")
+            if child and isinstance(child.get("value"), list):
+                walk_(child["value"])
+
+    walk_(itp.get("MAIN", {}).get("value", []))
+    return out
 
 
 def walk(entries: list, path: list[str], typ: str, ext: str,
-         tlk: TlkResolver, names: dict[str, str], out: list[dict]):
+         tlk: TlkResolver, names: dict[str, str], out: list[dict],
+         standard_resrefs: set[str]):
     for node in entries:
         if "RESREF" in node:
             resref = node["RESREF"]["value"]
@@ -193,19 +266,19 @@ def walk(entries: list, path: list[str], typ: str, ext: str,
                     or node_inline_name(node, tlk)
                     or blueprint_name(resref, ext)
                     or resref)
-            root = next((p for p in path if p), "")
             out.append({
                 "resref": resref,
                 "name": name,
                 "type": typ,
                 "palette": " > ".join(p for p in path if p),
                 "in_palette": True,
-                "custom_palette": is_custom_root(root),
+                "custom_palette": resref not in standard_resrefs,
             })
         child = node.get("LIST")
         if child and isinstance(child.get("value"), list):
             cat = node_category_name(node, tlk)
-            walk(child["value"], path + [cat], typ, ext, tlk, names, out)
+            walk(child["value"], path + [cat], typ, ext, tlk, names, out,
+                 standard_resrefs)
 
 
 # Marker for blueprints that exist in unpacked/ but were never filed into a
@@ -271,17 +344,48 @@ def main() -> int:
     names = build_resref_names()
 
     out: list[dict] = []
+    std_missing = False
+    std_added_total = 0
     for stem, (typ, ext) in PALETTES.items():
         f = UNPACKED / f"{stem}.itp.json"
         if not f.exists():
             continue
         itp = json.loads(f.read_text())
         main_list = itp.get("MAIN", {}).get("value", [])
-        walk(main_list, [], typ, ext, tlk, names, out)
+
+        std_itp = load_std_itp(stem)
+        if std_itp is None:
+            std_missing = True
+            standard_resrefs = _Universe()
+        else:
+            standard_resrefs = collect_resrefs(std_itp)
+
+        before = len(out)
+        walk(main_list, [], typ, ext, tlk, names, out, standard_resrefs)
+
+        if std_itp is not None:
+            # Surface factory Standard-tab entries the module's own saved
+            # palette never carried forward (e.g. plc_butterflies, dropped
+            # when CEP overwrote a category) — skip ones already indexed.
+            seen_this_type = {e["resref"] for e in out[before:]}
+            std_out: list[dict] = []
+            walk(std_itp.get("MAIN", {}).get("value", []), [], typ, ext,
+                 tlk, names, std_out, standard_resrefs)
+            for e in std_out:
+                if e["resref"] not in seen_this_type:
+                    seen_this_type.add(e["resref"])
+                    out.append(e)
+                    std_added_total += 1
+
+    if std_missing:
+        print("warning: nwn_resman_cat/nwn_gff not found — Standard-tab "
+              "membership falls back to 'everything in the module's own "
+              "palette counts as standard' for the affected types",
+              file=sys.stderr)
 
     # Blueprints that exist but were never filed into a custom palette category
-    # (e.g. script-created items like slot_token) don't appear in the palette
-    # tree at all. Add them so a search still surfaces them, flagged in_palette.
+    # (e.g. script-created items) don't appear in the palette tree at all. Add
+    # them so a search still surfaces them, flagged in_palette.
     seen = {e["resref"] for e in out}
     scan_orphans(seen, names, out)
 
@@ -302,6 +406,8 @@ def main() -> int:
     orphans = sum(1 for e in out if not e["in_palette"])
     summary = ", ".join(f"{k}={v}" for k, v in sorted(per_type.items()))
     print(f"palette_map: {len(out)} entries ({summary})")
+    print(f"  {std_added_total} added from the Standard-tab tree "
+          "(missing from the module's own saved palette)")
     print(f"  {orphans} not in any custom palette (blueprint/script only)")
     print(f"  unresolved category refs: {tlk.unresolved}"
           f"  cep tlk: {cep_path or '(none)'}")
