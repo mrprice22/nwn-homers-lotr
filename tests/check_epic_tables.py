@@ -23,6 +23,12 @@ things can silently break them, none of which any other check would catch:
    (which decides whether it may log back in). Raising only the first levels a
    character past 40 and then locks it out of the server that levelled it. That
    is not hypothetical; it happened on 2026-07-27 during UAT.
+5. **Flat caster tables.** The seven hak_2da/cls_spgn_*.2da tables carry the
+   spell slots per day that levels 41-60 grant. Stock is flat from level 20, so a
+   re-extraction (or a hand edit) silently reverts twenty levels of caster
+   progression with no symptom until a player rests and counts slots. Rows 40-59
+   are owned by bin/gen-caster-slots.py; this gate re-derives them from that
+   script's own cadence table rather than transcribing the numbers a second time.
 
 The curve itself: level 41 costs 48,800 XP over level 40's 780,000, and each
 step after that is 1.1x the step before it, ending at 3,581,000 for level 60.
@@ -35,6 +41,7 @@ never packed into lotr_rules.hak is still dead in game. Use
 
 Exit 0 = coherent, 1 = drifted.
 """
+import importlib.util
 import re
 import sys
 from pathlib import Path
@@ -278,6 +285,96 @@ def check_classes(problems):
         problems.append(f"classes.2da: no row for player class {missing}")
 
 
+def load_caster_rules():
+    """Import bin/gen-caster-slots.py for its cadence table.
+
+    Imported rather than re-transcribed on purpose: the whole reason this file
+    exists is that the 41-60 XP curve was written down three times with nothing
+    tying the copies together. Do not repeat that with the caster cadence.
+    """
+    path = REPO / "bin" / "gen-caster-slots.py"
+    if not path.exists():
+        return None
+    spec = importlib.util.spec_from_file_location("gen_caster_slots", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_caster_slots(problems):
+    """hak_2da/cls_spgn_*.2da rows 40-59 must match the generator's cadence."""
+    rules = load_caster_rules()
+    if rules is None:
+        problems.append(
+            "bin/gen-caster-slots.py is missing — nothing owns the caster spell "
+            "slots for levels 41-60"
+        )
+        return 0
+
+    checked = 0
+    for stem, cadence in rules.SLOT_TABLES.items():
+        path = REPO / "hak_2da" / f"{stem}.2da"
+        if not path.exists():
+            problems.append(
+                f"hak_2da/{stem}.2da is missing — casters of that class gain no "
+                "spell slots from 41 to 60"
+            )
+            continue
+
+        header, rows = read_2da(path)
+        spell_cols = [
+            (i + 1, name) for i, name in enumerate(header)
+            if name.startswith("SpellLevel")
+        ]
+        if not spell_cols:
+            problems.append(f"{stem}.2da: no SpellLevel* columns")
+            continue
+
+        base = rows.get(39)                 # level 40
+        lvl20 = rows.get(19)                 # level 20
+        if base is None or lvl20 is None:
+            problems.append(f"{stem}.2da: missing row 19 or row 39")
+            continue
+
+        # The stock table is flat across the whole epic band. If level 40 no longer
+        # equals level 20, someone edited the sub-40 rows this script must not own.
+        for col, name in spell_cols:
+            if base[col] != lvl20[col]:
+                problems.append(
+                    f"{stem}.2da: {name} differs between level 20 ({lvl20[col]}) "
+                    f"and level 40 ({base[col]}) — the sub-40 band was edited; "
+                    "only rows 40-59 belong to bin/gen-caster-slots.py"
+                )
+
+        num_col = header.index("NumSpellLevels") + 1 if "NumSpellLevels" in header else None
+
+        for level in range(41, MAX_LEVEL + 1):
+            row = rows.get(level - 1)
+            if row is None:
+                problems.append(f"{stem}.2da: no row for level {level}")
+                continue
+            for col, name in spell_cols:
+                stock = base[col]
+                if stock == rules.BLANK:
+                    # A class that cannot cast this spell level at 40 never can.
+                    want = rules.BLANK
+                else:
+                    want = str(int(stock) + rules.bonus(cadence, level))
+                if row[col] != want:
+                    problems.append(
+                        f"{stem}.2da: level {level} {name} is {row[col]}, expected "
+                        f"{want} (cadence {'/'.join(str(t) for t in cadence)})"
+                    )
+            if num_col is not None and row[num_col] != base[num_col]:
+                problems.append(
+                    f"{stem}.2da: level {level} NumSpellLevels is "
+                    f"{row[num_col]}, expected {base[num_col]} — 41-60 grants "
+                    "more slots, never a new spell level"
+                )
+        checked += 1
+    return checked
+
+
 def main() -> int:
     problems: list[str] = []
     table = check_exptable(problems)
@@ -285,6 +382,7 @@ def main() -> int:
     check_code_redeem(problems, table)
     check_level_cap(problems, table)
     check_classes(problems)
+    casters = check_caster_slots(problems)
 
     if problems:
         print("FAIL epic-tables: the levels 41-60 rules data has drifted")
@@ -298,7 +396,8 @@ def main() -> int:
     print(
         f"ok epic-tables: exptable.2da levels 1-{MAX_LEVEL} on curve "
         f"(41={table.get(41)}, {MAX_LEVEL}={table.get(MAX_LEVEL)}), "
-        "fallback switch + XP_LEVEL_60 match, both level caps at 60, XPPenalty zeroed"
+        "fallback switch + XP_LEVEL_60 match, both level caps at 60, "
+        f"XPPenalty zeroed, {casters} caster slot table(s) on cadence"
     )
     return 0
 

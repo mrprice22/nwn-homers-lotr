@@ -539,18 +539,19 @@ folder before any hak and is not distributed to clients via nwsync.
    ```
    519  MULTICLASS_LIMIT                                 4
    ```
-3. Build the hak and install it. `lotr_rules.hak` must contain **all four** of
+3. Build the hak and install it. `lotr_rules.hak` must contain **all eleven** of
    `ruleset.2da`, `baseitems.2da` (the module's custom item stack sizes — ammo 999,
    potions/scrolls 99), `classes.2da` (multiclass `XPPenalty` zeroed on all 11
-   player base classes, so a 4-class build takes no XP penalty) and `exptable.2da`
-   (the experience table extended to level 60 — see "Levels 41–60" below), the
-   all four tracked in git under `hak_2da/`. Pack all of them, or a
-   from-scratch rebuild silently drops those customizations — which is exactly
-   what happened twice, so **don't pack it by hand**:
+   player base classes, so a 4-class build takes no XP penalty), `exptable.2da`
+   (the experience table extended to level 60 — see "Levels 41–60" below) and the
+   seven `cls_spgn_*.2da` caster tables (spell slots per day across levels 41-60,
+   also "Levels 41–60"), all eleven tracked in git under `hak_2da/`. Pack all of
+   them, or a from-scratch rebuild silently drops those customizations — which is
+   exactly what happened twice, so **don't pack it by hand**:
    ```sh
    bin/build-lotr-rules-hak --install
    ```
-   The script packs the four 2DAs from `hak_2da/`, verifies the result with
+   The script packs the eleven 2DAs from `hak_2da/`, verifies the result with
    `nwn_erf -t` before installing, backs up the hak it replaces, and installs
    into `$NWN_HOME_DIR/hak` (this season's home — pass `--home <dir>` to install
    into another NWN home as well, e.g. the local toolset's). Run it with no
@@ -613,16 +614,37 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
   Don't also call `NWNX_Administration_SetMaxLevel()` — one NWNX lever only.
   A startup line "Server: Invalid argument to -maxlevel" is expected and safe to
   ignore (the plugin raises the limit after the argument is parsed).
-- **Class progression to 60 needs no 2DA work.** Stock NWN:EE `CLS_*` tables
+- **Martial progression to 60 needs no 2DA work.** Stock NWN:EE `CLS_*` tables
   already carry 60 rows, so `classes.2da` keeps pointing at them and levels 41-60
   progress on their own: BAB keeps climbing +0.5/level (`cls_atk_1` 30 at level 39
   → 40 at level 59; `cls_atk_3` 20 → 30), saves keep climbing
-  (`cls_savthr_fight` 21/15/15 → 31/25/25), epic bonus feats keep their cadence
-  (`cls_bfeat_fight` alternating to row 58), and spell slots stay flat past 20
-  (`cls_spgn_wiz`/`cls_spkn_sorc` identical at 39 and 59) — i.e. casters gain
-  caster level, DC, duration and damage-cap scaling, not extra slots, which is
-  the intended design. General feats (1 per 3 levels) and ability increases
-  (+1 per 4) are engine-side and continue past 40.
+  (`cls_savthr_fight` 21/15/15 → 31/25/25), and epic bonus feats keep their cadence
+  (`cls_bfeat_fight` alternating to row 58). General feats (1 per 3 levels) and
+  ability increases (+1 per 4) are engine-side and continue past 40.
+- **Caster progression DID need 2DA work.** Earlier revisions of this section
+  claimed flat spell slots past 20 were "the intended design" — that was wrong,
+  and it contradicted the recorded design answer on roadmap
+  `ll-class-progression-41-60` ("caster level keeps scaling in all the regular
+  ways: **spell slots**, caster DC, duration, damage caps"). Stock `cls_spgn_*` is
+  flat from level 20 (`cls_spgn_wiz` reads `4` at levels 20, 40 **and** 60), so a
+  caster gained no slots for twenty levels. Fixed by shipping all seven
+  `cls_spgn_*.2da` in `lotr_rules.hak`, which is the path the MaxLevel readme
+  names ("Spell counts gained can be configured for the additional levels"):
+  - **+1 slot at every castable spell level** at each cadence threshold.
+    Full cadence (wizard/sorcerer/cleric/druid/**bard**): **44, 48, 52, 56, 60**
+    → +5 by level 60. Half cadence (paladin/ranger): **50, 60** → +2. So a wizard
+    goes 4 → 9 slots per spell level, a cleric 6/6/6/6/6/6/5/5/5/5 →
+    11/11/11/11/11/11/10/10/10/10, a paladin 3 → 5.
+  - Rows 0-39 stay **byte-identical to stock** — the sub-40 band is untouched, and
+    the gate below asserts it. Slots are computed from the table at rest, not
+    stored per level in the `.bic`, so existing level-41+ characters get the new
+    slots **retroactively** with no relevel.
+  - Rows 40-59 are owned by **`bin/gen-caster-slots.py`** (dry-run by default,
+    `--apply` to write, idempotent). Retune the cadence table at the top of that
+    script — never by hand-editing a 2DA, and never by re-extracting from the game
+    data, which silently reverts twenty levels of progression.
+  - `classes.2da` needed no change: it already points `SpellGainTable` at the stock
+    table names, so a same-named 2DA in the hak overrides it.
 - Two upstream quirks come with the MaxLevel plugin. The character sheet's
   "Next Level" XP figure is wrong from level 40 up — **worked around** in
   `unpacked/nextlvl_inc.nss`, which overrides strref 315 ("Next Level")
@@ -630,11 +652,33 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
   newline that pushes the engine's wrong figure out of the field. It is applied
   at login (`mod_cliententer.nss`) and re-applied on every level up / level down
   (`nextlvl_evt.nss`, subscribed in `onmoduleload.nss`), and clears itself below
-  40 or when the hak is missing. The second quirk is **not** worked around:
-  spellcasters may be unable to re-pick known spells on an epic level-up.
+  40 or when the hak is missing. The second quirk is **spells known**, and it is
+  **open — under measurement**, not worked around:
+  - The readme lists "Spellcasters may not change spells when levelling up" and
+    says there is "no client interface for PCs to change their known spells past
+    level 40". More slots do not help here: a wizard normally picks 2 new spells
+    per level, and that count is **engine-side** — Wizard has no `SpellKnownTable`
+    (`classes.2da` reads `****`) and nothing in `ruleset.2da` exposes it. There is
+    no server-side lever to reopen that page either: `nwnx_player` has no
+    GUI-panel opener beyond inventory/examine/character-sheet, and
+    `NWNX_ON_CLIENT_LEVEL_UP_BEGIN_BEFORE/_AFTER` carries no event data.
+  - **It has never been measured on this build**, so before building anything, the
+    three `unpacked/sk_probe_*.nss` scripts measure it from real play: snapshot
+    `GetKnownSpellCount()` on `NWNX_ON_LEVEL_UP_BEFORE`, diff on `_AFTER`, report
+    the delta to admins and the log. Wizard/Sorcerer/Bard only — those are the
+    `SpellbookRestricted` classes. **Delete all three plus the two subscriptions
+    in `onmoduleload.nss` once the answer is recorded.**
+  - `hak_2da/cls_spkn_sorc.2da` / `cls_spkn_bard.2da` are generated on the full
+    cadence but deliberately **not** packed (see the note in
+    `bin/build-lotr-rules-hak`) — a table promising a pick the client cannot offer
+    is worse than a flat one. If the probe shows the native page does work above
+    40, add them to `RULES_2DA` and spells known comes for free.
 - `tests/check_epic_tables.py` (smoke-test gate) keeps `exptable.2da`, the
-  transcribed fallback switch in `unpacked/_build_lvl_inc.nss` and `classes.2da`'s
-  zeroed `XPPenalty` from drifting apart.
+  transcribed fallback switch in `unpacked/_build_lvl_inc.nss`, `classes.2da`'s
+  zeroed `XPPenalty` and the seven `cls_spgn_*.2da` caster tables from drifting
+  apart. For the caster tables it imports `bin/gen-caster-slots.py`'s own cadence
+  table rather than transcribing the numbers twice, and it asserts level 40 still
+  equals level 20 so an edit to the sub-40 band is caught too.
 - **`classes.2da` needs no change for the 60 cap.** (Earlier revisions of this
   section claimed its `MaxLevel`/`EpicLevel` columns were part of the lever — they
   are not.) In `hak_2da/classes.2da` every player base class already has

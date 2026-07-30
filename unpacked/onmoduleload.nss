@@ -75,6 +75,14 @@ NWNX_Events_SubscribeEvent("NWNX_ON_SET_EXPERIENCE_BEFORE", "boost_xp_evt");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "nextlvl_evt");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, "nextlvl_evt");
 
+// TEMPORARY DIAGNOSTIC -- "casters learn no new spells past 40" (roadmap
+// legendary-caster-spells-on-level-up). Snapshots known-spell counts before a
+// level up and reports the delta after, to establish whether the native level-up
+// spell picker works above 40 at all. Delete these two lines and the three
+// sk_probe_* scripts once the question is answered; see sk_probe_inc.nss.
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_BEFORE,  "sk_probe_pre");
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "sk_probe_post");
+
 // Party loot: announce current roll settings when a player joins a party or the
 // party leadership changes (pl_party_evt broadcasts to the whole party).
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, "pl_party_evt");
