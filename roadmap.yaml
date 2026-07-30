@@ -123,7 +123,7 @@ epics:
   - id: legendary-levels
     title: "Legendary Levels 41-60"
     group: combat-classes
-    notes: "Replace the bolt-on legendary leveler with real character levels 41-60 — true class progression on a proper epic XP table, plus a pool of Legendary Feats you can only take past level 40"
+    notes: "Replace the bolt-on legendary leveler with real character levels 41-60 — true class progression on a proper epic XP table, plus a pool of Legendary Feats you can only take at level 60"
 
 
 # -----------------------------------------------------------------------------
@@ -4675,22 +4675,55 @@ ideas:
         answer: "confirmed wait (until the legendary levels and quest overhaul/faction quest, class-quest line epics are complete)"
         question_h: 122
         answer_h: 64
-  - id: ll-feats-2da
-    title: "Legendary Feats: 2DA plumbing and per-class allotments"
+  - id: ll-feats-tlk
+    title: "Legendary Feats: build a custom lotr.tlk"
     group: combat-classes
     epic: legendary-levels
     status: later
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-27"
-    notes: "<div>The groundwork for Legendary Feats: feats that only become <i><font color=\"#e01b24\">selectable <u>after level 40</u> </font></i><b>(this is incorrect, the expectation is legendary feats are <font color=\"#26a269\">ONLY selectable AT level 60)</font></b><u>,</u> and the rules for how many each class gets.</div>"
-    impl_notes: "<div><b>Deferred 2026-07-27:</b> the current effort ships functional levels 41-60 only — no feat.2da work and no new TLK. Decisions already taken, recorded here so nothing has to be re-litigated when this resumes:</div><ul><li><b>Allotment:</b> at level 60, mixed classes get 1 Legendary Feat, pure classes 2, pure Fighter 3. These replace the standard/epic feat pick that the every-3-levels rule would otherwise give at 60 — they are not additional.</li><li><b>Selectable at exactly level 60</b>, not \"past 40\".</li><li><b>Strings:</b> new feats need names and descriptions, and the module's custom TLK is CEP's cep.tlk (NWN allows one). Agreed approach is to build a lotr.tlk from cep.tlk, appending above CEP's highest ID, switch the module's TLK and republish via nwsync — a one-time infrastructure task that must land before any feat row does.</li><li><b>Scope reality:</b> the draft (docs.manual/Draft/LegendaryFeats.html) defines ~140 feats plus 18 dominion cantrip toggles and 11 auto-granted pure-class packages. A large fraction describe behaviour NWN cannot express in a 2DA (extra attacks per round, unlimited Cleave, automatic counterspell, rerolled saves), and six dominion cantrips do not exist as spells. Expect a triage pass before implementation, not a straight transcription.</li></ul><div>Against real levels this is hak_2da/feat.2da work (MinLevel / PreReqEpic columns) rather than the old hgll_featlist_* pages. Every ll-feats-* story depends on this one.</div>"
+    date: "2026-07-30"
+    notes: "<div>Behind-the-scenes groundwork for Legendary Feats. Nothing player-visible ships with this one — it only makes it possible for the server to carry its own custom text for names and descriptions that the base game and CEP don't provide.</div>"
+    impl_notes: "<div><b>Phase 1 of the Legendary Feats build order</b> (full architecture: <code>CLAUDE-legendary-feats.md</code>). A hard prerequisite — no feat row can land before this does, and it must ship and be verified <i>on its own</i>.</div><div><br></div><div><b>Why.</b> feat.2da's NAME and DESCRIPTION columns are <b>strref-only</b>, so the repo's standing \"use inline strings, skip the TLK\" policy (CLAUDE-gotchas.md) does not help. NWN allows exactly one custom TLK and the module uses CEP's (module.ifo.json &rarr; Mod_CustomTlk: \"cep\"), so ours must be built <i>from</i> cep.tlk rather than alongside it.</div><div><br></div><div><b>Work.</b> New <code>bin/build-lotr-tlk</code> in house generator style (dry-run default, --apply, idempotent, owned string table at the top, modelled on bin/gen-caster-slots.py), using <code>~/.nimble/bin/nwn_tlk</code> — present, same toolchain as the nwn_erf that build-lotr-rules-hak already uses. Converts tlk/cep.tlk to JSON, appends strictly above CEP's last index, writes tlk/lotr.tlk. Then flip Mod_CustomTlk to \"lotr\".</div><div><br></div><div><b>Measured 2026-07-30:</b> tlk/cep.tlk holds <b>7213 entries (0-7212)</b> — identical to the copy installed in NWN_HOME_DIR — so our block starts at custom index <b>7213</b>, i.e. strref <b>16784429</b> once the 0x01000000 custom-TLK offset is applied.</div><div><br></div><div><b>Invariant + gate.</b> Every pre-existing CEP index must keep its value; a one-entry shift silently repoints CEP-sourced names and descriptions across the <i>entire</i> module, and nothing else would catch it. New <code>tests/check_lotr_tlk.py</code> asserts lotr.tlk[0..7212] == cep.tlk and that our block matches the generator's table — <b>importing</b> the generator rather than re-transcribing, the lesson tests/check_epic_tables.py already encodes.</div><div><br></div><div><b>Needs a .mod repack:</b> bin/refresh-nwsync runs without --with-module and only reads the .mod to discover its hak/tlk dependency list, so the manifest won't carry lotr.tlk until the module is repacked.</div>"
+    manual_steps:
+      - step: "UAT: after publishing lotr.tlk (build, install, nwsync, repack, restart) and BEFORE any feat row exists, log in and confirm CEP item and creature names still read correctly. A TLK index slip is silent and repo-wide — do not diagnose it on top of new feat rows."
+        status: open
+        blocker: true
+  - id: ll-feats-2da
+    title: "Legendary Feats: feat.2da plumbing and the first proof feats"
+    group: combat-classes
+    epic: legendary-levels
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-30"
+    notes: "<div>The plumbing that lets the server define its own <b>Legendary Feats</b> — feats you can only take at <b>level 60</b>. This step ships the machinery plus the six <b>Ability Score</b> feats (Legendary Strength and friends, +6 to a stat) as the first real content; the rest of the pool follows one category at a time.</div>"
+    impl_notes: "<div><b>Phase 2 of the Legendary Feats build order</b> (full architecture: <code>CLAUDE-legendary-feats.md</code>). Blocked on <a href=\"#idea-ll-feats-tlk\">ll-feats-tlk</a>.</div><div><br></div><div><b>Architecture: feats are inert tokens.</b> A legendary feat row carries name, description and icon only, with no engine mechanic. Every effect is applied server-side by script — ability bonuses as item properties on the PC's skin, other effects as permanent supernatural effects re-applied at login, spell upgrades as a branch in the relevant spell script on GetHasFeat(). This is what makes the draft's \"NWN can't express that in a 2DA\" entries tractable: <i>Legendary Onslaught</i>'s bonus attack is EffectModifyAttacks(1), not a 2DA column. It also means feat.2da gates nothing — prereqs, class gating and the allotment all live in the picker.</div><div><br></div><div><b>CORRECTION, measured 2026-07-30 — do not build on hak_2da/feat.2da.</b> That file is byte-identical to the one inside <code>cep2_add_feats.hak</code>, <b>a hak the module does not load</b> (Mod_HakList has no cep2_add_feats). It is a reference extract: 24,771 rows, 44 columns. The module actually resolves the <b>stock</b> feat.2da — <b>1116 rows (0-1115, last PLAYER_TOOL_10) and 43 columns</b>. Building on the CEP copy would silently add ~23,000 CEP weapon-of-choice feats and change the column count. Extract the real base with the nwn_resman_extract recipe in README.md (\"Rebuild from scratch\"). <b>Our rows append at 1116.</b></div><div><br></div><div><b>Work.</b> New <code>bin/gen-legendary-feats.py</code> owns rows 1116+; rows 0-1115 stay byte-identical and the gate asserts it. One feat-definition table at the top of the script is the single source of truth — it drives both the 2DA rows and the TLK strings that bin/build-lotr-tlk consumes, so a name exists once. Add feat.2da to RULES_2DA in bin/build-lotr-rules-hak <b>and</b> update that script's header comment (it says \"ALL ELEVEN of\" — the list and the prose are both load-bearing there). New <code>tests/check_legendary_feats.py</code> follows check_epic_tables.py's import-the-generator idiom and reuses its read_2da() helper.</div><div><br></div><div><b>Easiest bug to ship:</b> rows must be set so the <b>engine never offers a legendary feat on its own level-up feat page</b>. The picker is the only grant path; a feat reachable from both is a double-grant.</div>"
     design_questions:
       - question: "The draft's Class Allotments assume a pure-class bonus pool, but the roadmap note on Legendary-Feats says 'reuse same pool of feats and just not give as many to mixed classes.' Confirm the mixed-class allotment rule — a flat reduction, a per-class-level formula, or pure-class-only for some tiers?"
         status: answered
-        answer: "Do update docs for this so everything aligns: \nAt level 60, mixed classes get 1 legendary feat (it's like a super epic class augment)\nAt level 60, PURE classes get 2 legendary feats (pay off for their dedication), except pure Fighters who get 3 Legendary feats (fighter is feat-based archetype). \n\nThis replaces the standard/epic feat selection that would normally be available at level 60 following the every 3 levels rule."
+        answer: "At level 60, mixed classes get 1 legendary feat (it's like a super epic class augment). At level 60, PURE classes get 2 legendary feats (pay off for their dedication), except pure Fighters who get 3 (fighter is the feat-based archetype).\n\nSUPERSEDED 2026-07-30 on the second half of this answer: the legendary picks are ADDITIONAL, not a replacement. The PC takes the normal level-60 feat through the standard engine level-up UI, and the legendary pick(s) land on top. The earlier wording here — 'This replaces the standard/epic feat selection that would normally be available at level 60' — is no longer the design. Docs corrected: CLAUDE-legendary-feats.md and docs.manual/Draft/LegendaryFeats.html (#allotments plus the Overview implementation note, which also still described the old auto-granted 'Pure <Classname>' HAK feat)."
         question_h: 64
-        answer_h: 120
+        answer_h: 180
+      - question: "Selectable at exactly level 60, not 'past 40' — confirm."
+        status: answered
+        answer: "Confirmed. Legendary feats are ONLY selectable AT level 60."
+        question_h: 64
+        answer_h: 64
+  - id: ll-feats-picker
+    title: "Legendary Feats: the level-60 picker window"
+    group: combat-classes
+    epic: legendary-levels
+    status: later
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-07-30"
+    notes: "<div>Hit <b>level 60</b> and, after you take your normal level-60 feat as usual, a <b>picker window</b> opens offering the Legendary Feat pool. Your legendary picks are <b>on top of</b> the normal feat — you give up nothing for them.</div><div><br></div><div><b>Pure Fighter gets 3 picks, any other pure class 2, and a mixed-class character 1.</b> \"Pure\" means all 60 levels in a single class.</div><div><br></div><div>Closed the window, or logged out halfway through? Reopen it from the <b>rest menu</b> any time you still have picks left. Picks are permanent once made.</div>"
+    impl_notes: "<div><b>Phase 3 of the Legendary Feats build order</b> (full architecture: <code>CLAUDE-legendary-feats.md</code>). Blocked on <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a>. Every category story is blocked on this.</div><div><br></div><div><b>Why a custom picker at all:</b> the engine's own level-up feat page hands out exactly one general feat at 60 to everyone, so the 1 / 2 / 3 allotment cannot be expressed to it. Decided 2026-07-30 in favour of a NUI over a conversation.</div><div><br></div><div><b>Work.</b> <code>legfeat_nui_*.nss</code> (open / event / include), following the repo's two NUI precedents — pl_nui_evt.nss (party loot roll) and dye_nui_* — and respecting the two traps already recorded against them: the <b>16-character resref limit</b> and <b>no &amp; reference parameters</b> in nw_inc_nui.</div><ul><li><b>Trigger:</b> NWNX_ON_LEVEL_UP_AFTER, already subscribed in unpacked/onmoduleload.nss, firing when GetHitDice() == 60.</li><li><b>Re-entry:</b> a rest-menu option (the _restemo_*.nss StartingConditional pattern) shown only while unspent picks remain.</li><li><b>Allotment</b> computed from class levels; feats granted with NWNX_Creature_AddFeat.</li><li><b>Persistence:</b> campaign DB <code>legfeatdb</code> keyed on GetObjectUUID(), holding picks granted and picks remaining. Shape it like bestiarydb / meritdb. A relog must not re-grant.</li><li><b>Re-apply effects at login.</b> The <i>feat</i> persists in the .bic; its <i>effects</i> do not. Every legendary feat a PC holds needs its effect or skin property re-applied on client enter. This is the piece most likely to be forgotten, and it fails silently — the sheet just quietly stops showing the bonus.</li></ul><div>Prereq checking lives here, in script — that is the whole point of the inert-token model.</div>"
+    manual_steps:
+      - step: "UAT: level-60 test characters of each shape (pure Fighter, pure Wizard, mixed) — picker pops, allotment is 3/2/1, pick applies, bonus shows on the character sheet, relog keeps it, rest reopens the picker while picks remain, and the engine's own feat page never lists a legendary feat. No category story starts until this passes."
+        status: open
+        blocker: true
   - id: ll-feats-ability-martial
     title: "Legendary Feats: ability score and martial feats"
     group: combat-classes
@@ -4699,7 +4732,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Ability-score and martial Legendary Feats.</div>"
-    impl_notes: "<div>Draft sections <a>Ability Score Feats</a> and <a>Martial Feats</a>.</div>"
+    impl_notes: "<div>Draft sections <a>Ability Score Feats</a> and <a>Martial Feats</a>.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 1 of 7.</b> The six Ability Score feats ship earlier as the proof payload on ll-feats-2da; this item is the 23 Martial feats.</div><div><br></div><div><b>Do the triage pass first</b>, once, over the whole draft: classify every feat as plain effect / item property / spell-script branch / needs NWNX / cut, and dedupe (Legendary Shadow Step appears in both Ki and Exotic with different prereqs; the four Bard hybrid feats are duplicated verbatim in Performance &amp; Support).</div>"
   - id: ll-feats-defense
     title: "Legendary Feats: defensive and survival feats"
     group: combat-classes
@@ -4708,7 +4741,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Defensive and survival Legendary Feats.</div>"
-    impl_notes: "<div>Draft section <a>Defensive &amp; Survival Feats</a>.</div>"
+    impl_notes: "<div>Draft section <a>Defensive &amp; Survival Feats</a>.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 2 of 7.</b></div>"
   - id: ll-feats-arcane-divine
     title: "Legendary Feats: arcane and divine casting feats"
     group: combat-classes
@@ -4717,7 +4750,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Arcane and divine spellcasting Legendary Feats.</div>"
-    impl_notes: "<div>Draft sections <a>Arcane Spellcasting Feats</a> and <a>Divine Spellcasting Feats</a>. Interacts with <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>: how much of this is a feat versus continued caster-level scaling is a balance call to settle there first.</div>"
+    impl_notes: "<div>Draft sections <a>Arcane Spellcasting Feats</a> and <a>Divine Spellcasting Feats</a>. Interacts with <a href=\"#idea-ll-cls-progression\">ll-cls-progression</a>: how much of this is a feat versus continued caster-level scaling is a balance call to settle there first.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 4 of 7.</b> Settle the caster-level-scaling-vs-feat balance question before starting.</div>"
   - id: ll-feats-ki-perform-skill
     title: "Legendary Feats: ki, performance and skill feats"
     group: combat-classes
@@ -4726,7 +4759,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Ki &amp; mystic, performance &amp; support, and skills &amp; utility Legendary Feats.</div>"
-    impl_notes: "<div>Draft sections <a>Ki &amp; Mystic</a>, <a>Performance &amp; Support</a> and <a>Skills &amp; Utility</a>.</div>"
+    impl_notes: "<div>Draft sections <a>Ki &amp; Mystic</a>, <a>Performance &amp; Support</a> and <a>Skills &amp; Utility</a>.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 3 of 7.</b> Ships together with ll-feats-exotic (2 feats).</div>"
   - id: ll-feats-spell-upgrades
     title: "Legendary Feats: legendary spell upgrades"
     group: combat-classes
@@ -4735,7 +4768,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Legendary Spell feats that upgrade existing spells — summons, damage, control, buffs, necromancy and abjuration.</div>"
-    impl_notes: "<div>Draft section <a>Legendary Spell Feats</a> and its six sub-sections (#ls-summons, #ls-damage, #ls-control, #ls-buff, #ls-necromancy, #ls-abjuration). The biggest scripting lift of the feat set — each upgrade is spell-script work, not just a 2DA row. Summon upgrades should be checked against the existing summon_boost.nss scaling so the two do not stack into nonsense.</div>"
+    impl_notes: "<div>Draft section <a>Legendary Spell Feats</a> and its six sub-sections (#ls-summons, #ls-damage, #ls-control, #ls-buff, #ls-necromancy, #ls-abjuration). The biggest scripting lift of the feat set — each upgrade is spell-script work, not just a 2DA row. Summon upgrades should be checked against the existing summon_boost.nss scaling so the two do not stack into nonsense.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 6 of 7.</b> The biggest lift: 41 feats across six sub-sections, spell-script work per upgrade. Check against unpacked/summon_boost.nss so summon upgrades do not stack into nonsense.</div>"
   - id: ll-feats-dominion
     title: "Legendary Feats: dominion feats"
     group: combat-classes
@@ -4744,7 +4777,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Dominion feats: Legendary Arcane Dominion, Legendary Divine Wrath and Legendary Primal Force.</div>"
-    impl_notes: "<div>Draft section <a>Dominion Feats</a> (#arcane-dominion, #divine-wrath, #primal-force). These read as the capstone tier — decide whether they are level-60-only before pricing the rest of the pool.</div>"
+    impl_notes: "<div>Draft section <a>Dominion Feats</a> (#arcane-dominion, #divine-wrath, #primal-force). These read as the capstone tier — decide whether they are level-60-only before pricing the rest of the pool.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 7 of 7.</b> Capstone tier, and six of its cantrips do not exist as spells, so they would have to be authored first. Genuinely last.</div>"
   - id: ll-feats-hybrid-pure
     title: "Legendary Feats: hybrid caster feats and pure-class bonuses"
     group: combat-classes
@@ -4753,7 +4786,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>Hybrid caster feats for paladin, bard and ranger, plus the passive bonuses that reward staying pure-class.</div>"
-    impl_notes: "<div>Draft sections <a>Hybrid Caster Feats</a> and <a>Pure Class Passive Bonuses</a>. This is where the pure-vs-mixed question on <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a> actually bites — the pure-class bonuses were the original idea the whole feat set grew out of.</div>"
+    impl_notes: "<div>Draft sections <a>Hybrid Caster Feats</a> and <a>Pure Class Passive Bonuses</a>. This is where the pure-vs-mixed question on <a href=\"#idea-ll-feats-2da\">ll-feats-2da</a> actually bites — the pure-class bonuses were the original idea the whole feat set grew out of.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 5 of 7.</b> Includes the 11 auto-granted pure-class packages, which largely restate feats already in the pick lists — needs an overlap triage.</div>"
   - id: ll-feats-exotic
     title: "Legendary Feats: exotic feats"
     group: combat-classes
@@ -4762,4 +4795,4 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The exotic Legendary Feats — the odd ones that do not fit the other categories.</div>"
-    impl_notes: "<div>Draft section <a>Exotic Feats</a>.</div>"
+    impl_notes: "<div>Draft section <a>Exotic Feats</a>.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 3 of 7.</b> Ships together with ll-feats-ki-perform-skill.</div>"

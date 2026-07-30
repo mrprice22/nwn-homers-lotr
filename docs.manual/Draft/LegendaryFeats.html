@@ -193,37 +193,56 @@
         <p class="tier-sub">How the legendary feat system works.</p>
       </div>
 
-      <p>When a character reaches level 60 with no levels in any other class, the HAK grants a <code>Pure &lt;Classname&gt;</code> feat automatically. This feat unlocks the legendary feat pool for that class and allows the player to select their allotted picks from the lists below. Prerequisites are checked at the time of selection. Picks are permanent and cannot be changed after resting.</p>
+      <p>Legendary feats are the payoff for reaching <strong>level 60</strong> — the very top of the legendary levels. They cannot be taken at any level below 60.</p>
 
-      <div class="loot-box">
-        <strong>Implementation note</strong>
-        Legendary feats are granted via HAK feat and managed through local variables. Ability score bonuses are applied as item properties on an undroppable cursed token. Spell upgrades are handled by branching in the relevant spell scripts when a flag variable is set on the caster.
-      </div>
+      <p>When you hit 60 you take your normal level-60 feat through the usual level-up screen, exactly as always. Then a <strong>separate picker window opens</strong> offering the legendary pool. Your legendary picks are <em>on top of</em> the normal feat — you do not give anything up for them. If you close the picker or log out before finishing, you can reopen it from the <strong>rest menu</strong> at any time while you still have picks left.</p>
+
+      <p>Prerequisites are checked when you pick. <strong>Picks are permanent</strong> and cannot be changed afterwards.</p>
 
       <!-- ============================================================ -->
       <div class="tier-header" id="allotments">
         <h2>Class Allotments</h2>
-        <p class="tier-sub">How many legendary feat picks each pure class receives.</p>
+        <p class="tier-sub">How many legendary feat picks you receive at level 60.</p>
       </div>
 
       <table class="class-allotment">
         <thead>
-          <tr><th>Class</th><th>Picks</th><th>Notes</th></tr>
+          <tr><th>Character</th><th>Legendary picks</th><th>Notes</th></tr>
         </thead>
         <tbody>
-          <tr><td>Fighter</td><td>3</td><td>No magic fallback; bonus feats are Fighter's entire identity.</td></tr>
-          <tr><td>Barbarian</td><td>2</td><td>Legendary Rage → Legendary Bloodlust chain is nearly mandatory and intentionally so.</td></tr>
-          <tr><td>Ranger</td><td>2</td><td>Has access to hybrid caster feats as well as the martial pool.</td></tr>
-          <tr><td>Rogue</td><td>2</td><td></td></tr>
-          <tr><td>Monk</td><td>2</td><td></td></tr>
-          <tr><td>Paladin</td><td>2</td><td>Has access to hybrid caster feats as well as the divine pool.</td></tr>
-          <tr><td>Cleric</td><td>2</td><td></td></tr>
-          <tr><td>Druid</td><td>2</td><td>Qualifies for Legendary Primal Force dominion feat.</td></tr>
-          <tr><td>Sorcerer</td><td>2</td><td>Qualifies for Legendary Arcane Dominion.</td></tr>
-          <tr><td>Wizard</td><td>2</td><td>Qualifies for Legendary Arcane Dominion.</td></tr>
-          <tr><td>Bard</td><td>2</td><td>Has access to hybrid caster feats as well as the arcane pool (excluding Dominion).</td></tr>
+          <tr><td><strong>Pure Fighter</strong></td><td>3</td><td>No magic fallback; bonus feats are Fighter's entire identity.</td></tr>
+          <tr><td><strong>Any other pure class</strong></td><td>2</td><td>The reward for never splitting your levels.</td></tr>
+          <tr><td><strong>Mixed class</strong></td><td>1</td><td>A capstone augment for multiclass builds.</td></tr>
         </tbody>
       </table>
+
+      <p>"Pure" means <strong>all 60 levels in a single class</strong>. These picks are in addition to the standard level-60 feat.</p>
+
+      <p>Which feats you may choose from still depends on your class and on each feat's own prerequisites — a pure Wizard and a pure Fighter both get their picks from the pool below, but very few entries are open to both:</p>
+
+      <table class="class-allotment">
+        <thead>
+          <tr><th>Class</th><th>Notes on the pool</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fighter</td><td>Martial and defensive pools.</td></tr>
+          <tr><td>Barbarian</td><td>Legendary Rage → Legendary Bloodlust chain is nearly mandatory and intentionally so.</td></tr>
+          <tr><td>Ranger</td><td>Has access to hybrid caster feats as well as the martial pool.</td></tr>
+          <tr><td>Rogue</td><td>Martial, skills and utility pools.</td></tr>
+          <tr><td>Monk</td><td>Ki &amp; mystic pool as well as the martial pool.</td></tr>
+          <tr><td>Paladin</td><td>Has access to hybrid caster feats as well as the divine pool.</td></tr>
+          <tr><td>Cleric</td><td>Divine spellcasting pool.</td></tr>
+          <tr><td>Druid</td><td>Qualifies for Legendary Primal Force dominion feat.</td></tr>
+          <tr><td>Sorcerer</td><td>Qualifies for Legendary Arcane Dominion.</td></tr>
+          <tr><td>Wizard</td><td>Qualifies for Legendary Arcane Dominion.</td></tr>
+          <tr><td>Bard</td><td>Has access to hybrid caster feats as well as the arcane pool (excluding Dominion).</td></tr>
+        </tbody>
+      </table>
+
+      <div class="loot-box">
+        <strong>Implementation note</strong>
+        Legendary feats are inert rows in <code>feat.2da</code> — name, description and icon only, with no engine mechanic. Everything is applied server-side: ability bonuses as item properties on the PC's skin, other effects as permanent supernatural effects re-applied at login, and spell upgrades by branching in the relevant spell script on <code>GetHasFeat()</code>. Prerequisites, class gating and the allotment are all enforced by the picker NUI, not by the 2DA; the engine's own level-up feat page never offers a legendary feat. Picks are tracked in the <code>legfeatdb</code> campaign database. Full build order and invariants: <code>CLAUDE-legendary-feats.md</code>.
+      </div>
 
       <hr>
 
