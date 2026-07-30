@@ -681,19 +681,29 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
     subscriptions in `onmoduleload.nss` once the fix lands.** Note they only run
     from a **repacked `.mod`** — publishing the hak alone does not deploy them,
     which is exactly how the first UAT produced no probe output.
-  - **The native path that may still be open is scroll-scribing.** Wizards learn
-    spells from scrolls through a different code path from the level-up panel, with
-    its own validation strings (`dialog.tlk` 64456 "Only Wizards may learn spells in
-    that manner", 64457 "You have not achieved the required level to learn that
-    spell", 64459 opposition school, 64502 arcane only). If that path works above
-    40, wizards need no custom UI at all and the fix is making scrolls obtainable;
-    64457 is the risk, since it may reuse the same broken level→spell-level
-    resolution. Sorcerers and bards cannot learn from scrolls at all (64456), so
-    they need a scripted grant regardless.
-  - `hak_2da/cls_spkn_sorc.2da` / `cls_spkn_bard.2da` are generated on the full
-    cadence but deliberately **not** packed (see the note in
-    `bin/build-lotr-rules-hak`) — a table promising a pick the client cannot offer
-    is worse than a flat one, and the tab evidence says the client cannot offer it.
+  - **Root cause, and why no data fix can work: the spell-level tabs render
+    *enabled* for roughly one frame, then are hidden/greyed.** So the client builds
+    the correct tab set from the 2DA data on its first pass — the data was never the
+    problem — and a *later* pass in client code disables them. Nothing in a 2DA, a
+    hak, a plugin option or a server script can intercept a client-side disable
+    pass. **Treat this as unfixable from this repo pending a client build**, and do
+    not spend another publish cycle on 2DA experiments.
+  - **The cap keys on *class* level, not character level.** A fresh caster class
+    taken at character level 41 (sorcerer 1) offers spells normally. Only a
+    character with **40+ levels in a single casting class** is affected; multiclass
+    casters are fine. That bounds the blast radius usefully.
+  - **Tested and disproven — do not retry:**
+    - Extending and packing `cls_spkn_sorc.2da` / `cls_spkn_bard.2da` (the one thing
+      MaxLevel's readme calls "not worth changing" without having tested it). A
+      *sorcerer* past class level 40 fails identically, so a genuinely table-driven
+      class does not help. Both tables were deleted; `bin/gen-caster-slots.py` no
+      longer generates them and `bin/build-lotr-rules-hak` carries a do-not-re-add
+      note.
+    - `classes.2da` Wizard `MaxLevel` `0` → `60`. No effect; reverted.
+    - Giving Wizard its own `cls_spkn_wiz` table was **not** attempted — the
+      sorcerer result makes it pointless, since the table-driven path is broken too.
+  - **Not tracked upstream.** Beamdog/nwn-issues has no report of it. Only a client
+    fix can restore the native page, so it is worth reporting.
   - Reference counts for whatever fix ships — stock wizard/sorcerer-learnable
     spells, from `spells.2da`'s `Wiz_Sorc` column (**179** total, and no hak in the
     NWN home overrides `spells.2da`): `L0:7 L1:22 L2:28 L3:23 L4:21 L5:18 L6:20

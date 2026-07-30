@@ -64,15 +64,15 @@ SLOT_TABLES = {
     "cls_spgn_rang": HALF_CADENCE,
 }
 
-# Spells KNOWN (sorcerer/bard only; every other caster knows its whole list).
-# Generated but NOT in bin/build-lotr-rules-hak's RULES_2DA: MaxLevel's readme
-# says "there's currently no client interface for PCs to change their known
-# spells past level 40", and a table promising a pick the client cannot offer is
-# worse than a flat one. Kept generated so the experiment is one line away.
-KNOWN_TABLES = {
-    "cls_spkn_sorc": FULL_CADENCE,
-    "cls_spkn_bard": FULL_CADENCE,
-}
+# Spells KNOWN (cls_spkn_sorc / cls_spkn_bard) are deliberately NOT generated.
+# They were, briefly: on 2026-07-29 they were built on the full cadence and packed
+# into lotr_rules.hak to test whether the level-up spell page works above level 40
+# when a spells-KNOWN table drives it. It does not — a sorcerer past class level 40
+# still gets cantrips only, every other spell-level tab greyed out — so the tables
+# were deleted rather than left shipping an entitlement the client cannot spend.
+# Don't reinstate them without a client build that fixes the level-up page.
+# See README.md "Levels 41-60" and roadmap legendary-caster-spells-on-level-up.
+KNOWN_TABLES: dict[str, tuple[int, ...]] = {}
 
 TABLES = {**SLOT_TABLES, **KNOWN_TABLES}
 

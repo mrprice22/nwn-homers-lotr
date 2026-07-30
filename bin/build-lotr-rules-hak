@@ -2,7 +2,7 @@
 # build-lotr-rules-hak — pack hak_2da/ into lotr_rules.hak and install it.
 #
 # lotr_rules.hak is the module's highest-priority hak (first in Mod_HakList), so
-# the 2DAs in it override CEP and stock. It must contain ALL THIRTEEN of:
+# the 2DAs in it override CEP and stock. It must contain ALL ELEVEN of:
 #
 #   ruleset.2da    MULTICLASS_LIMIT 4  (four-class multiclassing)
 #   baseitems.2da  ammo stacks 999, potions/scrolls 99, monk/finesse weapons
@@ -18,15 +18,14 @@
 # dead for weeks). That is what this script exists to prevent: the file list is
 # in one place, and the result is verified with `nwn_erf -t` before install.
 #
-# PACKED AS AN EXPERIMENT (2026-07-29): cls_spkn_sorc.2da / cls_spkn_bard.2da, the
-# sorcerer/bard spells-KNOWN tables. The MaxLevel readme says these are "not worth
-# changing as there's currently no client interface for PCs to change their known
-# spells past level 40" — but that was never tested here, and it is the last data
-# lever left for the level-up spell page (see README.md "Levels 41-60"). If a
-# table-driven class turns out to enumerate spells past 40, the client can do this
-# and the wizard's engine-side pick count is the only remaining gap; if it does not,
-# REMOVE these two again — a table promising a pick the client cannot offer is worse
-# than a flat one. Roadmap: legendary-caster-spells-on-level-up, Test B.
+# DO NOT ADD cls_spkn_sorc.2da / cls_spkn_bard.2da — tested and disproven.
+# They were packed on 2026-07-29 to test whether the level-up spell page works above
+# 40 when a spells-KNOWN table drives it (the one thing MaxLevel's readme calls "not
+# worth changing" without having tested it). It does not: a sorcerer past class level
+# 40 still shows cantrips only, every other spell-level tab greyed. The tables were
+# removed again and deleted, because a table promising a pick the client cannot offer
+# is worse than a flat one. Do not re-add them without a new client build.
+# See README.md "Levels 41-60" and roadmap legendary-caster-spells-on-level-up.
 #
 # Usage:
 #   bin/build-lotr-rules-hak              # build to dist/ and verify (no install)
@@ -51,8 +50,7 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 RULES_2DA=(ruleset.2da baseitems.2da classes.2da exptable.2da
            cls_spgn_wiz.2da cls_spgn_sorc.2da cls_spgn_cler.2da
            cls_spgn_dru.2da cls_spgn_bard.2da cls_spgn_pal.2da
-           cls_spgn_rang.2da
-           cls_spkn_sorc.2da cls_spkn_bard.2da)
+           cls_spgn_rang.2da)
 
 INSTALL=0
 EXTRA_HOMES=()
