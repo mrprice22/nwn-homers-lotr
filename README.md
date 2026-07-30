@@ -653,26 +653,51 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
   at login (`mod_cliententer.nss`) and re-applied on every level up / level down
   (`nextlvl_evt.nss`, subscribed in `onmoduleload.nss`), and clears itself below
   40 or when the hak is missing. The second quirk is **spells known**, and it is
-  **open — under measurement**, not worked around:
-  - The readme lists "Spellcasters may not change spells when levelling up" and
-    says there is "no client interface for PCs to change their known spells past
-    level 40". More slots do not help here: a wizard normally picks 2 new spells
-    per level, and that count is **engine-side** — Wizard has no `SpellKnownTable`
-    (`classes.2da` reads `****`) and nothing in `ruleset.2da` exposes it. There is
-    no server-side lever to reopen that page either: `nwnx_player` has no
-    GUI-panel opener beyond inventory/examine/character-sheet, and
-    `NWNX_ON_CLIENT_LEVEL_UP_BEGIN_BEFORE/_AFTER` carries no event data.
-  - **It has never been measured on this build**, so before building anything, the
-    three `unpacked/sk_probe_*.nss` scripts measure it from real play: snapshot
-    `GetKnownSpellCount()` on `NWNX_ON_LEVEL_UP_BEFORE`, diff on `_AFTER`, report
-    the delta to admins and the log. Wizard/Sorcerer/Bard only — those are the
-    `SpellbookRestricted` classes. **Delete all three plus the two subscriptions
-    in `onmoduleload.nss` once the answer is recorded.**
+  **still open** — the level-up spell picker is confirmed broken above 40 and
+  **cannot be fixed from this repo**:
+  - **Measured 2026-07-29 (UAT).** At level 41 the spell-selection panel appears
+    and asks a wizard for its usual 2 picks, but **only the cantrip (spell level 0)
+    tab is populated — every other spell-level tab is empty**, and the panel reports
+    the stock engine string **strref 10278**, *"There are no more spells available
+    at this level"* (that "level" is the *spell*-level tab, not character level). A
+    level-41 wizard has known all **7** stock cantrips since about level 5, hence an
+    empty list. Levels 1–40 behave normally on the same character, and the level-up
+    still **completes without spending the picks**, so they are silently lost.
+  - So the client resolves the wizard's **maximum castable spell level as 0** at
+    class level 41. This is not data-driven: the shipped `cls_spgn_wiz.2da` row 40
+    reads `4` at all ten spell levels, and `classes.2da`'s Wizard row has nothing
+    that bounds it (`MaxLevel 0`, `EpicLevel -1`, `MinCastingLevel 1`,
+    `SkipSpellSelection 0`). The 2-picks-per-level count is engine-side — Wizard has
+    no `SpellKnownTable` and nothing in `ruleset.2da` exposes it. And no server-side
+    lever reaches that panel: `nwnx_player` has no GUI-panel opener beyond
+    inventory/examine/character-sheet, and
+    `NWNX_ON_CLIENT_LEVEL_UP_BEGIN_BEFORE/_AFTER` carries no event data. This is
+    MaxLevel's documented "Spellcasters may not change spells when levelling up",
+    and it is why "just use the native level-up GUI" is not an available option.
+  - **The `unpacked/sk_probe_*.nss` scripts** turn that observation into numbers:
+    snapshot `GetKnownSpellCount()` on `NWNX_ON_LEVEL_UP_BEFORE`, diff on `_AFTER`,
+    report the delta to admins and the log. Wizard/Sorcerer/Bard only — those are
+    the `SpellbookRestricted` classes. **Delete all three plus the two
+    subscriptions in `onmoduleload.nss` once the fix lands.** Note they only run
+    from a **repacked `.mod`** — publishing the hak alone does not deploy them,
+    which is exactly how the first UAT produced no probe output.
+  - **The native path that may still be open is scroll-scribing.** Wizards learn
+    spells from scrolls through a different code path from the level-up panel, with
+    its own validation strings (`dialog.tlk` 64456 "Only Wizards may learn spells in
+    that manner", 64457 "You have not achieved the required level to learn that
+    spell", 64459 opposition school, 64502 arcane only). If that path works above
+    40, wizards need no custom UI at all and the fix is making scrolls obtainable;
+    64457 is the risk, since it may reuse the same broken level→spell-level
+    resolution. Sorcerers and bards cannot learn from scrolls at all (64456), so
+    they need a scripted grant regardless.
   - `hak_2da/cls_spkn_sorc.2da` / `cls_spkn_bard.2da` are generated on the full
     cadence but deliberately **not** packed (see the note in
     `bin/build-lotr-rules-hak`) — a table promising a pick the client cannot offer
-    is worse than a flat one. If the probe shows the native page does work above
-    40, add them to `RULES_2DA` and spells known comes for free.
+    is worse than a flat one, and the tab evidence says the client cannot offer it.
+  - Reference counts for whatever fix ships — stock wizard/sorcerer-learnable
+    spells, from `spells.2da`'s `Wiz_Sorc` column (**179** total, and no hak in the
+    NWN home overrides `spells.2da`): `L0:7 L1:22 L2:28 L3:23 L4:21 L5:18 L6:20
+    L7:13 L8:13 L9:14`.
 - `tests/check_epic_tables.py` (smoke-test gate) keeps `exptable.2da`, the
   transcribed fallback switch in `unpacked/_build_lvl_inc.nss`, `classes.2da`'s
   zeroed `XPPenalty` and the seven `cls_spgn_*.2da` caster tables from drifting
