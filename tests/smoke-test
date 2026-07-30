@@ -94,6 +94,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: custom TLK (lotr.tlk)…"
+if python3 "$HERE/check_lotr_tlk.py"; then
+  echo "ok: custom TLK"
+else
+  echo "fail: custom TLK"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

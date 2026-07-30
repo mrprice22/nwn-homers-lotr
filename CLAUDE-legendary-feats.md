@@ -8,10 +8,12 @@ Design draft: `docs.manual/Draft/LegendaryFeats.html` (~139 feats + 18 dominion
 cantrip toggles + 11 pure-class packages). The draft is a **wish list, not a
 spec** — expect a triage pass, not a transcription.
 
-**Status: not started.** Nothing in this document exists yet. It records the
-architecture and the order the pieces must be built in, so the sequencing does
-not have to be re-derived. Roadmap items: `ll-feats-tlk`, `ll-feats-2da`,
-`ll-feats-picker`, then the seven `ll-feats-*` category stories.
+**Status: phase 1 built, awaiting in-game UAT.** `bin/build-lotr-tlk`,
+`tests/check_lotr_tlk.py` and the `Mod_CustomTlk` swap have landed; phases 2+
+are unstarted. This document records the architecture and the order the pieces
+must be built in, so the sequencing does not have to be re-derived. Roadmap
+items: `ll-feats-tlk`, `ll-feats-2da`, `ll-feats-picker`, then the seven
+`ll-feats-*` category stories.
 
 ## The core idea: feats are inert tokens
 
@@ -69,22 +71,39 @@ GFF `cexolocstring`s and does not help here. NWN allows exactly one custom TLK
 and the module currently uses CEP's (`module.ifo.json` → `Mod_CustomTlk: "cep"`),
 so ours must be built *from* `cep.tlk`, not alongside it.
 
-- `bin/build-lotr-tlk` (new) — house generator style: dry-run default,
-  `--apply`, idempotent, owned string table at the top of the script, modelled
+- `bin/build-lotr-tlk` — house generator style: dry-run default, `--apply`,
+  `--install`, idempotent, owned string table at the top of the script, modelled
   on `bin/gen-caster-slots.py`. Uses `~/.nimble/bin/nwn_tlk` (present; same
   toolchain as the `nwn_erf` that `build-lotr-rules-hak` already uses) to
   convert `tlk/cep.tlk` → JSON, append our entries **strictly above CEP's last
-  index**, write `tlk/lotr.tlk`.
-- **`tlk/cep.tlk` holds 7213 entries (0–7212)**, so our block starts at custom
-  index **7213** — i.e. strref `16777216 + 7213 = 16784429` as written into a
-  2DA (custom-TLK strrefs are offset by `0x01000000`).
+  index**, write `tlk/lotr.tlk`. `tlk/` is gitignored, so the generated TLK is a
+  local build artefact and the script is the thing under version control.
+- **`cep.tlk` is sparse — the block starts at 41101, not 7213.** Its header
+  declares `StringCount = 41101` (indices 0–41100); only **7213** of those
+  carry text, at index 0 and then 30000–41100. An earlier draft of this document
+  said 7213/strref 16784429, which was the JSON entry *count* mistaken for the
+  entry *range* — appending there would land inside CEP's own block and repoint
+  roughly 7000 CEP strings. The real first owned strref is
+  `16777216 + 41101 = `**`16818317`** (custom-TLK strrefs are offset by
+  `0x01000000`). `bin/build-lotr-tlk` re-reads `StringCount` at build time and
+  hard-errors rather than silently re-basing if `cep.tlk` ever changes.
+- **`OWNED_STRINGS` is append-only.** Index = `BLOCK_START + position`; once a
+  strref is baked into a 2DA row it must never move, so never insert, reorder or
+  delete — blank an obsolete string in place instead.
 - **Invariant: every pre-existing CEP index keeps its value.** A one-entry shift
   silently repoints CEP-sourced names and descriptions across the entire module,
-  and nothing else would catch it. `tests/check_lotr_tlk.py` (new) asserts
-  `lotr.tlk[0..7212] == cep.tlk` and that our block matches the generator's
-  table — **importing** the generator rather than re-transcribing the strings,
-  the lesson `tests/check_epic_tables.py` already encodes in its docstring.
-- `unpacked/module.ifo.json`: `Mod_CustomTlk` `"cep"` → `"lotr"`.
+  and nothing else would catch it. `tests/check_lotr_tlk.py` asserts
+  `lotr.tlk[0..41100] == cep.tlk`, that our block matches the generator's table,
+  that nothing sits above it, and that `Mod_CustomTlk` reads `lotr` — **importing**
+  the generator rather than re-transcribing the strings, the lesson
+  `tests/check_epic_tables.py` already encodes in its docstring. It is wired into
+  `tests/smoke-test`, so a drifted TLK aborts the repack. On a machine without
+  `tlk/cep.tlk` or `nwn_tlk` it warns and passes rather than blocking the build
+  on game data it cannot reach.
+- `unpacked/module.ifo.json`: `Mod_CustomTlk` `"cep"` → `"lotr"`. **Done — which
+  means the module now hard-depends on `lotr.tlk` being installed and synced.**
+  Until the repack + nwsync below happen, the flipped `.ifo` is committed but not
+  live; once they do, a client without `lotr.tlk` reads blank CEP names.
 - **A `.mod` repack is required.** `bin/refresh-nwsync` runs without
   `--with-module` and only reads the `.mod` to discover its hak/tlk dependency
   list, so the nwsync manifest will not carry `lotr.tlk` until the module is

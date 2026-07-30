@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+"""build-lotr-tlk — build tlk/lotr.tlk from tlk/cep.tlk plus our own strings.
+
+Phase 1 of the Legendary Feats build order (CLAUDE-legendary-feats.md).
+
+WHY THIS EXISTS
+---------------
+feat.2da's NAME and DESCRIPTION columns are **strref-only** — they cannot hold
+an inline string. The repo's standing "use inline strings, skip the TLK" policy
+(CLAUDE-gotchas.md) covers GFF cexolocstrings and does not help here. NWN allows
+exactly ONE custom TLK per module and the module currently uses CEP's
+(module.ifo.json -> Mod_CustomTlk: "cep"), so ours must be built *from* cep.tlk,
+never alongside it.
+
+THE INVARIANT THAT MATTERS
+--------------------------
+**Every pre-existing CEP index keeps its exact value.** A one-entry shift
+silently repoints CEP-sourced item and creature names and descriptions across
+the entire module, and nothing else in the build would catch it. That is what
+tests/check_lotr_tlk.py exists to prevent; it imports THIS script's table rather
+than re-transcribing the strings (the lesson tests/check_epic_tables.py already
+encodes in its docstring).
+
+WHERE OUR BLOCK STARTS
+----------------------
+**cep.tlk is sparse.** Its header declares StringCount = 41101 (indices
+0..41100) while only 7213 of those entries carry text — the populated ones sit
+at 0 and then 30000..41100. Counting the entries in a JSON dump gives 7213 and
+is the wrong number; appending there would land inside CEP's own range and
+repoint ~7000 CEP strings. Our block therefore starts at **41101**:
+
+    strref written into a 2DA = 0x01000000 + index = 16777216 + 41101 = 16818317
+
+(Custom-TLK strrefs are offset by 0x01000000. Stock dialog.tlk strrefs are not.)
+
+APPEND-ONLY
+-----------
+OWNED_STRINGS is positional: index = BLOCK_START + position. Once a strref is
+baked into a 2DA row or a GFF field it must never move, so entries may only be
+**appended** to the end of the list. Never insert, never reorder, never delete —
+retire an obsolete string by blanking its text in place if you must.
+
+PHASE 2 HOOK
+------------
+bin/gen-legendary-feats.py (not written yet) will own the feat-definition table
+that is the single source of truth for both the 2DA rows and the strings here.
+When it lands, this script imports that table and extends OWNED_STRINGS from it
+so a feat name exists in exactly one place — it does not get a second copy typed
+in below.
+
+Usage:
+    bin/build-lotr-tlk                    # dry run: report what would change
+    bin/build-lotr-tlk --apply            # write tlk/lotr.tlk
+    bin/build-lotr-tlk --apply --install  # ... and copy into NWN_HOME_DIR/tlk
+    bin/build-lotr-tlk --apply --install --home "/path/to/other NWN home"
+
+Idempotent: a second --apply run reports no changes.
+
+Publishing (a hak-only edit does NOT need the repack; a TLK swap does):
+    bin/build-lotr-tlk --apply --install
+    bin/refresh-nwsync        # so clients get lotr.tlk
+    nwn-manager repack        # the .mod is what names the TLK
+    bin/server-restart
+"""
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+TLK_DIR = REPO / "tlk"
+BASE_TLK = TLK_DIR / "cep.tlk"
+OUT_TLK = TLK_DIR / "lotr.tlk"
+MODULE_IFO = REPO / "unpacked" / "module.ifo.json"
+
+# The first index we own. Derived from cep.tlk's declared StringCount, NOT from
+# the count of populated entries — see "WHERE OUR BLOCK STARTS" above. Verified
+# against the file at build time; a mismatch is a hard error.
+BLOCK_START = 41101
+CUSTOM_TLK_OFFSET = 0x01000000
+
+# Our owned strings, in index order. APPEND ONLY — see the note above.
+#
+# Phase 1 ships the boundary marker alone: it pins index 41101, makes lotr.tlk
+# provably different from cep.tlk (so the gate is not vacuous), and lets the TLK
+# swap be verified in game with no feat rows in play, which is the whole point of
+# shipping phase 1 by itself.
+OWNED_STRINGS = [
+    "Homer's LOTR — custom string table begins here. Reserved.",
+]
+
+
+# --------------------------------------------------------------------------
+# nwn_tlk plumbing
+# --------------------------------------------------------------------------
+
+def nwn_tlk_bin():
+    """Locate nwn_tlk (niv/neverwinter.nim), same toolchain as nwn_erf."""
+    override = os.environ.get("NWN_TLK")
+    candidates = [override] if override else []
+    candidates += [
+        str(Path.home() / ".nimble" / "bin" / "nwn_tlk"),
+        shutil.which("nwn_tlk"),
+    ]
+    for c in candidates:
+        if c and Path(c).is_file() and os.access(c, os.X_OK):
+            return c
+    return None
+
+
+def tlk_to_entries(tlk_path, tool):
+    """Return {index: text} for a .tlk. Only populated entries appear."""
+    # -l tlk explicitly: nwn_tlk autodetects the input format from the file
+    # extension, and we hand it a .tlk.tmp during the write-and-verify step.
+    out = subprocess.run(
+        [tool, "-i", str(tlk_path), "-l", "tlk", "-k", "json"],
+        check=True, capture_output=True,
+    ).stdout.decode("utf-8")
+    data = json.loads(out)
+    return data.get("language", 0), {e["id"]: e.get("text", "") for e in data["entries"]}
+
+
+def declared_string_count(tlk_path, tool):
+    """Read StringCount out of the header — this is the real entry count."""
+    out = subprocess.run(
+        [tool, "-i", str(tlk_path), "-l", "tlk", "-k", "debug"],
+        check=True, capture_output=True,
+    ).stdout.decode("utf-8", "replace")
+    m = re.search(r"StringCount\s+(\d+)", out)
+    if not m:
+        raise RuntimeError(f"could not read StringCount from {tlk_path}")
+    return int(m.group(1))
+
+
+def entries_to_tlk(language, entries, out_path, tool):
+    """Write {index: text} back out as a .tlk."""
+    payload = {
+        "language": language,
+        "entries": [
+            {"id": i, "text": entries[i]} for i in sorted(entries)
+        ],
+    }
+    subprocess.run(
+        [tool, "-l", "json", "-k", "tlk", "-o", str(out_path)],
+        input=json.dumps(payload).encode("utf-8"),
+        check=True, capture_output=True,
+    )
+
+
+# --------------------------------------------------------------------------
+# build
+# --------------------------------------------------------------------------
+
+def build_entries(tool):
+    """Return (language, entries) for the lotr.tlk we want, and sanity-check
+    the block start against cep.tlk's actual header."""
+    count = declared_string_count(BASE_TLK, tool)
+    if count != BLOCK_START:
+        raise SystemExit(
+            f"error: {BASE_TLK} declares StringCount={count}, but this script "
+            f"owns indices from {BLOCK_START}.\n"
+            "       cep.tlk changed. Do NOT just bump BLOCK_START — any string "
+            "already written into a 2DA would be repointed. Work out what moved "
+            "first."
+        )
+    language, entries = tlk_to_entries(BASE_TLK, tool)
+    collisions = [i for i in entries if i >= BLOCK_START]
+    if collisions:
+        raise SystemExit(
+            f"error: {BASE_TLK} has populated entries at or above {BLOCK_START}: "
+            f"{sorted(collisions)[:5]} — our block would overwrite them."
+        )
+    for pos, text in enumerate(OWNED_STRINGS):
+        entries[BLOCK_START + pos] = text
+    return language, entries
+
+
+def main():
+    ap = argparse.ArgumentParser(
+        description="Build tlk/lotr.tlk from cep.tlk plus our owned strings.")
+    ap.add_argument("--apply", action="store_true",
+                    help="write tlk/lotr.tlk (default is a dry run)")
+    ap.add_argument("--install", action="store_true",
+                    help="copy the result into NWN_HOME_DIR/tlk")
+    ap.add_argument("--home", action="append", default=[], metavar="DIR",
+                    help="extra NWN home dir to install into (repeatable)")
+    args = ap.parse_args()
+
+    tool = nwn_tlk_bin()
+    if tool is None:
+        print("error: nwn_tlk not found (~/.nimble/bin/nwn_tlk, $PATH, or $NWN_TLK)",
+              file=sys.stderr)
+        print("       install niv/neverwinter.nim", file=sys.stderr)
+        return 1
+    if not BASE_TLK.exists():
+        print(f"error: {BASE_TLK} is missing — see README.md "
+              '"Rebuild from scratch" for how to extract it', file=sys.stderr)
+        return 1
+
+    language, entries = build_entries(tool)
+    first = BLOCK_START + CUSTOM_TLK_OFFSET
+    print(f"[tlk] base:  {BASE_TLK.name}  ({BLOCK_START} entries declared, "
+          f"{sum(1 for i in entries if i < BLOCK_START)} populated)")
+    print(f"[tlk] owned: {len(OWNED_STRINGS)} string(s) at index {BLOCK_START}+ "
+          f"(strref {first}+)")
+    for pos, text in enumerate(OWNED_STRINGS):
+        idx = BLOCK_START + pos
+        preview = text if len(text) <= 60 else text[:57] + "..."
+        print(f"        {idx}  strref {idx + CUSTOM_TLK_OFFSET}  {preview}")
+
+    if not args.apply:
+        print()
+        print(f"Dry run. Nothing written. Re-run with --apply to write {OUT_TLK}.")
+        return 0
+
+    # Write via a temp file so a failed conversion cannot leave a truncated
+    # lotr.tlk behind — a half-written TLK breaks every CEP name in the module.
+    tmp = OUT_TLK.with_suffix(".tlk.tmp")
+    entries_to_tlk(language, entries, tmp, tool)
+
+    # Verify what we actually wrote, not what we intended to write.
+    _, got = tlk_to_entries(tmp, tool)
+    base_only = {i: t for i, t in entries.items() if i < BLOCK_START}
+    got_base = {i: t for i, t in got.items() if i < BLOCK_START}
+    if got_base != base_only:
+        tmp.unlink(missing_ok=True)
+        print("error: round-trip changed CEP's own entries — refusing to install",
+              file=sys.stderr)
+        return 1
+    for pos, text in enumerate(OWNED_STRINGS):
+        if got.get(BLOCK_START + pos) != text:
+            tmp.unlink(missing_ok=True)
+            print(f"error: owned entry {BLOCK_START + pos} did not round-trip",
+                  file=sys.stderr)
+            return 1
+
+    unchanged = OUT_TLK.exists() and OUT_TLK.read_bytes() == tmp.read_bytes()
+    tmp.replace(OUT_TLK)
+    print()
+    print(f"[tlk] {'unchanged' if unchanged else 'wrote'} -> {OUT_TLK}")
+
+    if args.install:
+        homes = [_server_home()] + args.home
+        for home in homes:
+            if home is None:
+                continue
+            dest_dir = Path(home) / "tlk"
+            if not dest_dir.is_dir():
+                print(f"[tlk] skip (no tlk dir): {home}")
+                continue
+            dest = dest_dir / OUT_TLK.name
+            if dest.exists():
+                bak = dest.with_name(
+                    f"{dest.name}.bak-{time.strftime('%Y%m%d_%H%M%S')}")
+                shutil.copy2(dest, bak)
+                print(f"[tlk] backed up -> {bak}")
+            shutil.copy2(OUT_TLK, dest)
+            print(f"[tlk] installed -> {dest}")
+        print()
+        print("Next:")
+        print("  1. bin/refresh-nwsync   # publish lotr.tlk to clients")
+        print("  2. nwn-manager repack   # the .mod names the TLK; required")
+        print("  3. bin/server-restart")
+    else:
+        print(f"Built but NOT installed. Install with:  {sys.argv[0]} --apply --install")
+    return 0
+
+
+def _server_home():
+    """NWN_HOME_DIR out of server.env / server.env.local (shell-sourced files)."""
+    home = None
+    for name in ("server.env", "server.env.local"):
+        path = REPO / name
+        if not path.exists():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            m = re.match(r'\s*(?:export\s+)?NWN_HOME_DIR\s*=\s*"?(.*?)"?\s*$', line)
+            if m:
+                home = os.path.expandvars(m.group(1))
+    return home
+
+
+if __name__ == "__main__":
+    sys.exit(main())
