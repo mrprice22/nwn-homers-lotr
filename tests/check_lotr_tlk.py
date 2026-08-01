@@ -20,9 +20,10 @@ Three things can break it, none of which any other check would catch:
    carry 0x01000000-offset strrefs from our block yields blank names in game,
    because those indices do not exist in cep.tlk.
 
-This gate re-derives our block from bin/build-lotr-tlk's own OWNED_STRINGS
-rather than transcribing the strings a second time — the idiom
-tests/check_epic_tables.py already uses for the caster tables.
+This gate re-derives our block from bin/build-lotr-tlk's own owned_strings()
+— its OWNED_STRINGS table plus the feat names and descriptions it pulls from
+bin/gen-legendary-feats.py — rather than transcribing the strings a second time,
+the idiom tests/check_epic_tables.py already uses for the caster tables.
 
 It does NOT check the *installed* TLK: a correct tlk/lotr.tlk that was never
 copied into NWN_HOME_DIR/tlk (or never pushed through bin/refresh-nwsync) is
@@ -117,6 +118,10 @@ def check_tlk(problems, gen):
     base = tlk_entries(tool, BASE_TLK)
     ours = tlk_entries(tool, OUT_TLK)
     start = gen.BLOCK_START
+    # owned_strings(), not OWNED_STRINGS: the block is the generator's own table
+    # plus the legendary feat names and descriptions it pulls from
+    # bin/gen-legendary-feats.py.
+    expected = gen.owned_strings()
 
     # 1. CEP's own indices must survive untouched.
     prefix = {i: t for i, t in ours.items() if i < start}
@@ -134,7 +139,7 @@ def check_tlk(problems, gen):
         )
 
     # 2. Our block must match the generator's table exactly, and stop there.
-    for pos, want in enumerate(gen.OWNED_STRINGS):
+    for pos, want in enumerate(expected):
         idx = start + pos
         got = ours.get(idx)
         if got != want:
@@ -143,13 +148,14 @@ def check_tlk(problems, gen):
                 f"is {got!r}, generator says {want!r} — stale build, re-run "
                 "bin/build-lotr-tlk --apply"
             )
-    extra = sorted(i for i in ours if i >= start + len(gen.OWNED_STRINGS))
+    extra = sorted(i for i in ours if i >= start + len(expected))
     if extra:
         problems.append(
             f"lotr.tlk has {len(extra)} entr{'y' if len(extra) == 1 else 'ies'} "
             f"above the generator's block (first: {extra[:5]}) — a string was "
-            "removed from OWNED_STRINGS. That list is append-only: removing an "
-            "entry moves every strref after it."
+            "removed from the block — either bin/build-lotr-tlk's OWNED_STRINGS "
+            "or a feat in bin/gen-legendary-feats.py. Both lists are "
+            "append-only: removing an entry moves every strref after it."
         )
 
 
@@ -160,7 +166,7 @@ def main():
         problems.append(
             f"{GENERATOR} is missing — nothing owns the module's custom TLK")
     else:
-        if not gen.OWNED_STRINGS:
+        if not gen.owned_strings():
             problems.append(
                 "bin/build-lotr-tlk OWNED_STRINGS is empty — lotr.tlk would be "
                 "an exact copy of cep.tlk and this gate would prove nothing")

@@ -40,13 +40,14 @@ baked into a 2DA row or a GFF field it must never move, so entries may only be
 **appended** to the end of the list. Never insert, never reorder, never delete —
 retire an obsolete string by blanking its text in place if you must.
 
-PHASE 2 HOOK
-------------
-bin/gen-legendary-feats.py (not written yet) will own the feat-definition table
-that is the single source of truth for both the 2DA rows and the strings here.
-When it lands, this script imports that table and extends OWNED_STRINGS from it
-so a feat name exists in exactly one place — it does not get a second copy typed
-in below.
+WHERE THE FEAT STRINGS COME FROM
+--------------------------------
+bin/gen-legendary-feats.py owns the feat-definition table that is the single
+source of truth for both the feat.2da rows and their names and descriptions.
+This script appends `tlk_strings()` from that module after OWNED_STRINGS — a
+feat name is typed exactly once, over there. Do not copy feat text into the
+table below. The import is lazy (inside owned_strings()) so that the feat
+generator can import this module back for the block layout without a cycle.
 
 Usage:
     bin/build-lotr-tlk                    # dry run: report what would change
@@ -63,6 +64,7 @@ Publishing (a hak-only edit does NOT need the repack; a TLK swap does):
     bin/server-restart
 """
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -86,13 +88,35 @@ CUSTOM_TLK_OFFSET = 0x01000000
 
 # Our owned strings, in index order. APPEND ONLY — see the note above.
 #
-# Phase 1 ships the boundary marker alone: it pins index 41101, makes lotr.tlk
-# provably different from cep.tlk (so the gate is not vacuous), and lets the TLK
-# swap be verified in game with no feat rows in play, which is the whole point of
-# shipping phase 1 by itself.
+# The boundary marker pins index 41101. It shipped alone in phase 1 so the TLK
+# swap could be verified in game with no feat rows in play; it stays because
+# removing it would shift every feat string down by one.
+#
+# Feat names and descriptions are NOT listed here — owned_strings() appends them
+# from bin/gen-legendary-feats.py. See "WHERE THE FEAT STRINGS COME FROM".
 OWNED_STRINGS = [
     "Homer's LOTR — custom string table begins here. Reserved.",
 ]
+
+FEAT_GENERATOR = REPO / "bin" / "gen-legendary-feats.py"
+
+
+def owned_strings():
+    """OWNED_STRINGS plus the legendary feat names and descriptions.
+
+    The feat generator is imported lazily, here rather than at module scope, so
+    that it can import this module back for the block layout (BLOCK_START and
+    the offset its strings land at) without a circular import.
+    """
+    strings = list(OWNED_STRINGS)
+    if not FEAT_GENERATOR.exists():
+        return strings
+    spec = importlib.util.spec_from_file_location(
+        "gen_legendary_feats", FEAT_GENERATOR)
+    feats = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(feats)
+    strings.extend(feats.tlk_strings())
+    return strings
 
 
 # --------------------------------------------------------------------------
@@ -175,7 +199,7 @@ def build_entries(tool):
             f"error: {BASE_TLK} has populated entries at or above {BLOCK_START}: "
             f"{sorted(collisions)[:5]} — our block would overwrite them."
         )
-    for pos, text in enumerate(OWNED_STRINGS):
+    for pos, text in enumerate(owned_strings()):
         entries[BLOCK_START + pos] = text
     return language, entries
 
@@ -203,12 +227,13 @@ def main():
         return 1
 
     language, entries = build_entries(tool)
+    strings = owned_strings()
     first = BLOCK_START + CUSTOM_TLK_OFFSET
     print(f"[tlk] base:  {BASE_TLK.name}  ({BLOCK_START} entries declared, "
           f"{sum(1 for i in entries if i < BLOCK_START)} populated)")
-    print(f"[tlk] owned: {len(OWNED_STRINGS)} string(s) at index {BLOCK_START}+ "
+    print(f"[tlk] owned: {len(strings)} string(s) at index {BLOCK_START}+ "
           f"(strref {first}+)")
-    for pos, text in enumerate(OWNED_STRINGS):
+    for pos, text in enumerate(strings):
         idx = BLOCK_START + pos
         preview = text if len(text) <= 60 else text[:57] + "..."
         print(f"        {idx}  strref {idx + CUSTOM_TLK_OFFSET}  {preview}")
@@ -232,7 +257,7 @@ def main():
         print("error: round-trip changed CEP's own entries — refusing to install",
               file=sys.stderr)
         return 1
-    for pos, text in enumerate(OWNED_STRINGS):
+    for pos, text in enumerate(strings):
         if got.get(BLOCK_START + pos) != text:
             tmp.unlink(missing_ok=True)
             print(f"error: owned entry {BLOCK_START + pos} did not round-trip",

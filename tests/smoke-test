@@ -102,6 +102,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: legendary feat rows…"
+if python3 "$HERE/check_legendary_feats.py"; then
+  echo "ok: legendary feat rows"
+else
+  echo "fail: legendary feat rows"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

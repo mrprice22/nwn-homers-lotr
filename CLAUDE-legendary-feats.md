@@ -8,9 +8,11 @@ Design draft: `docs.manual/Draft/LegendaryFeats.html` (~139 feats + 18 dominion
 cantrip toggles + 11 pure-class packages). The draft is a **wish list, not a
 spec** — expect a triage pass, not a transcription.
 
-**Status: phase 1 built, awaiting in-game UAT.** `bin/build-lotr-tlk`,
-`tests/check_lotr_tlk.py` and the `Mod_CustomTlk` swap have landed; phases 2+
-are unstarted. This document records the architecture and the order the pieces
+**Status: phases 1 and 2 built; phase 1 UAT passed, phase 2 awaiting UAT.**
+Phase 1 (`bin/build-lotr-tlk`, `tests/check_lotr_tlk.py`, the `Mod_CustomTlk`
+swap) is verified in game. Phase 2 (`bin/gen-legendary-feats.py`, the stock-based
+`hak_2da/feat.2da` with six proof rows, `tests/check_legendary_feats.py`, the hak
+wiring) is built and gated but not yet seen in game. Phase 3 is unstarted. This document records the architecture and the order the pieces
 must be built in, so the sequencing does not have to be re-derived. Roadmap
 items: `ll-feats-tlk`, `ll-feats-2da`, `ll-feats-picker`, then the seven
 `ll-feats-*` category stories.
@@ -120,23 +122,37 @@ does not load** (`Mod_HakList` has no `cep2_add_feats`). It is a reference
 extract, 24,771 rows and 44 columns. The module actually resolves the **stock**
 `feat.2da`: **1116 rows (0–1115, last `PLAYER_TOOL_10`) and 43 columns**.
 Building on the CEP copy would silently add ~23,000 CEP weapon-of-choice feats
-to the module and change the column count. Extract the real base with the
-`nwn_resman_extract` recipe in `README.md` ("Rebuild from scratch").
+to the module and change the column count. `hak_2da/feat.2da` **now holds the
+stock-based generated table**; the CEP copy it replaced is recoverable from
+`cep2_add_feats.hak` if it is ever wanted as a reference again.
 
-- Our rows therefore append at **1116**.
-- `bin/gen-legendary-feats.py` (new) owns rows 1116+; rows 0–1115 stay
-  byte-identical and the gate asserts it. **One feat-definition table at the top
-  of the script is the single source of truth** — it drives both the 2DA rows
-  and the TLK strings that `bin/build-lotr-tlk` consumes, so a name exists once.
-- Add `feat.2da` to `RULES_2DA` in `bin/build-lotr-rules-hak` **and** update
-  that script's header comment, which says "ALL ELEVEN of" — the list and the
-  prose are both load-bearing there.
+- Our rows therefore append at **1116**, and the six proof feats occupy
+  **1116–1121**.
+- `bin/gen-legendary-feats.py` owns rows 1116+; rows 0–1115 stay byte-identical
+  (CRLF included — the table uses CRLF, and rewriting it with bare LF makes
+  every base row differ) and the gate asserts it. **One feat-definition table at
+  the top of the script is the single source of truth** — it drives both the 2DA
+  rows and the TLK strings `bin/build-lotr-tlk` consumes, so a name exists once,
+  and each row's strrefs are *derived* from where the TLK builder actually places
+  that string rather than written down twice. `--from-stock PATH` reseeds the
+  base while keeping our rows; extract a fresh one with `nwn_resman_cat`
+  (`nwn_resman_extract -p feat` also works but sweeps thousands of unrelated
+  resources and takes minutes).
+- `feat.2da` is in `RULES_2DA` in `bin/build-lotr-rules-hak`, whose header
+  comment and `README.md`'s "Rebuild from scratch" recipe both now say **twelve**
+  — the list and the prose are equally load-bearing there.
 - Gate: `tests/check_legendary_feats.py`, following
   `tests/check_epic_tables.py`'s import-the-generator idiom and its
-  `read_2da()` helper.
-- Payload for this phase: **only the six `#ability-scores` feats** (e.g.
-  *Legendary Strength*, +6 STR). Simplest possible content, and it exercises the
-  whole chain including the skin-item-property application path.
+  `read_2da()` helper. It asserts the stock base shape, that our rows match the
+  generator, that every one carries `ALLCLASSESCANUSE = 0`, that no
+  `cls_feat_*.2da` lists one, that the strrefs match the TLK block, and that
+  `feat.2da` is actually in the hak's content list. Wired into `tests/smoke-test`.
+- Payload for this phase: **only the six `#ability-scores` feats**
+  (*Legendary Strength* … *Charisma*, +6 each). Simplest possible content.
+  **The effects are not applied yet** — the skin-item-property path is written in
+  phase 3 alongside the picker that grants the feats and the login hook that
+  re-applies them. Phase 2's rows are inert by design: taking one shows the name,
+  description and icon and changes nothing.
 
 ### Phase 3 — the picker NUI
 
@@ -195,13 +211,18 @@ Support. Then, easiest mechanics first:
 Same as any hak change, plus the TLK:
 
 ```
-bin/build-lotr-tlk --apply          # phase 1 only, when strings change
-bin/gen-legendary-feats.py --apply  # when feat rows change
+python3 bin/gen-legendary-feats.py --apply   # when feat rows change
+bin/build-lotr-tlk --apply --install         # feat names/descriptions live here
 bin/build-lotr-rules-hak --install
 bin/refresh-nwsync
-nwn-manager repack                  # required whenever unpacked/ changed
+nwn-manager repack                           # required whenever unpacked/ changed
 bin/server-restart
 ```
+
+**Run the feat generator before the TLK builder** — the TLK block ends with the
+feat strings, so a name change has to reach `FEATS` first. Publish the hak and
+the TLK **together**: the rows point at strrefs that exist only in ours, so a
+client with one and not the other reads blank feat names.
 
 Clients holding a stale hak or TLK read the old tables. A `.mod` repack is
 required for the TLK swap and for any script change; a hak-only edit is not.

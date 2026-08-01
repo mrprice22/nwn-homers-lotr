@@ -539,19 +539,22 @@ folder before any hak and is not distributed to clients via nwsync.
    ```
    519  MULTICLASS_LIMIT                                 4
    ```
-3. Build the hak and install it. `lotr_rules.hak` must contain **all eleven** of
+3. Build the hak and install it. `lotr_rules.hak` must contain **all twelve** of
    `ruleset.2da`, `baseitems.2da` (the module's custom item stack sizes — ammo 999,
    potions/scrolls 99), `classes.2da` (multiclass `XPPenalty` zeroed on all 11
    player base classes, so a 4-class build takes no XP penalty), `exptable.2da`
-   (the experience table extended to level 60 — see "Levels 41–60" below) and the
+   (the experience table extended to level 60 — see "Levels 41–60" below), the
    seven `cls_spgn_*.2da` caster tables (spell slots per day across levels 41-60,
-   also "Levels 41–60"), all eleven tracked in git under `hak_2da/`. Pack all of
+   also "Levels 41–60") and `feat.2da` (the stock table plus the legendary feat
+   rows — see [CLAUDE-legendary-feats.md](CLAUDE-legendary-feats.md); its names
+   and descriptions are strrefs into `tlk/lotr.tlk`, so the hak and the TLK must
+   be published together), all twelve tracked in git under `hak_2da/`. Pack all of
    them, or a from-scratch rebuild silently drops those customizations — which is
    exactly what happened twice, so **don't pack it by hand**:
    ```sh
    bin/build-lotr-rules-hak --install
    ```
-   The script packs the eleven 2DAs from `hak_2da/`, verifies the result with
+   The script packs the twelve 2DAs from `hak_2da/`, verifies the result with
    `nwn_erf -t` before installing, backs up the hak it replaces, and installs
    into `$NWN_HOME_DIR/hak` (this season's home — pass `--home <dir>` to install
    into another NWN home as well, e.g. the local toolset's). Run it with no
