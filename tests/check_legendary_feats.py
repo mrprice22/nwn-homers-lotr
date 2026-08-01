@@ -32,6 +32,7 @@ that is tests/check_lotr_tlk.py's job.
 Exit 0 = coherent, 1 = drifted.
 """
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -40,6 +41,18 @@ GENERATOR = REPO / "bin" / "gen-legendary-feats.py"
 FEAT_2DA = REPO / "hak_2da" / "feat.2da"
 HAK_BUILDER = REPO / "bin" / "build-lotr-rules-hak"
 HAK_2DA_DIR = REPO / "hak_2da"
+UNPACKED = REPO / "unpacked"
+IDS_INC = UNPACKED / "legfeat_ids_inc.nss"
+MODULE_LOAD = UNPACKED / "onmoduleload.nss"
+CLIENT_ENTER = UNPACKED / "mod_cliententer.nss"
+REST_DLG = UNPACKED / "emotewand.dlg.json"
+
+# Every script this feature adds. NWN resrefs are capped at 16 characters and
+# the compiler does not warn — a longer name simply never resolves at runtime.
+LEGFEAT_SCRIPTS = [
+    "legfeat_db", "legfeat_inc", "legfeat_ids_inc", "legfeat_nui",
+    "legfeat_open", "legfeat_evt", "legfeat_lvl", "_restemo_lfeat",
+]
 
 
 def load_generator():
@@ -159,6 +172,96 @@ def check_packed(problems):
             "legendary rows would never reach a client")
 
 
+def strip_line_comments(text):
+    """Drop // comments so a wiring check cannot match the prose describing it."""
+    out = []
+    for line in text.splitlines():
+        pos = line.find("//")
+        out.append(line if pos < 0 else line[:pos])
+    return "\n".join(out)
+
+
+def check_ids_include(problems, gen):
+    """unpacked/legfeat_ids_inc.nss must match the generator exactly.
+
+    It is the only place scripts learn a legendary feat's row number. A stale
+    copy points the picker at the wrong feat id — it would still grant *a* feat,
+    just not the one the player clicked.
+    """
+    if not IDS_INC.exists():
+        problems.append(
+            f"{IDS_INC} is missing — run: python3 bin/gen-legendary-feats.py --apply")
+        return
+    if IDS_INC.read_text(encoding="utf-8") != gen.nss_include():
+        problems.append(
+            "unpacked/legfeat_ids_inc.nss is stale — it no longer matches the "
+            "feat table in bin/gen-legendary-feats.py. Scripts would grant the "
+            "wrong feat id. Re-run: python3 bin/gen-legendary-feats.py --apply")
+
+
+def check_wiring(problems):
+    """The three hooks without which the feature is silently inert or lossy."""
+    for name in LEGFEAT_SCRIPTS:
+        if len(name) > 16:
+            problems.append(
+                f"script resref {name!r} is {len(name)} characters — NWN caps "
+                "resrefs at 16 and the compiler does not warn; it simply never "
+                "resolves at runtime")
+        if not (UNPACKED / f"{name}.nss").exists():
+            problems.append(f"unpacked/{name}.nss is missing")
+
+    # 1. The level-60 trigger. Without it nothing ever opens the picker.
+    if MODULE_LOAD.exists():
+        text = strip_line_comments(MODULE_LOAD.read_text(encoding="latin-1"))
+        if "legfeat_lvl" not in text:
+            problems.append(
+                "onmoduleload.nss does not subscribe legfeat_lvl to "
+                "NWNX_ON_LEVEL_UP_AFTER — reaching level 60 would never open "
+                "the picker")
+
+    # 2. The login re-apply. THE failure this design is most likely to ship: the
+    #    feat persists in the .bic, its effects do not, and a missing re-apply
+    #    has no symptom beyond a bonus quietly absent from the character sheet.
+    if CLIENT_ENTER.exists():
+        # Comments stripped first: this file explains the call right above it,
+        # and a substring search would happily match the explanation after
+        # someone deleted the call.
+        text = strip_line_comments(CLIENT_ENTER.read_text(encoding="latin-1"))
+        if "LegFeat_ApplyAll" not in text:
+            problems.append(
+                "mod_cliententer.nss does not call LegFeat_ApplyAll — every "
+                "legendary feat's effect would be lost on logout and never come "
+                "back, with no error and no message")
+
+    # 3. The rest-menu recovery path for a dismissed or half-finished picker.
+    if REST_DLG.exists():
+        dlg = json.loads(REST_DLG.read_text(encoding="utf-8"))
+        replies = dlg.get("ReplyList", {}).get("value", [])
+        entries = dlg.get("EntryList", {}).get("value", [])
+        links = []
+        for entry in entries:
+            links.extend(entry.get("RepliesList", {}).get("value", []))
+        gated = [
+            link for link in links
+            if (link.get("Active", {}) or {}).get("value") == "_restemo_lfeat"
+        ]
+        if not gated:
+            problems.append(
+                "emotewand.dlg.json (the rest menu) has no option gated on "
+                "_restemo_lfeat — a player who dismisses the picker could never "
+                "spend the picks they were granted")
+        for link in gated:
+            index = (link.get("Index", {}) or {}).get("value")
+            script = ""
+            if isinstance(index, int) and 0 <= index < len(replies):
+                script = (replies[index].get("Script", {}) or {}).get("value", "")
+            if script != "legfeat_open":
+                problems.append(
+                    f"the rest-menu legendary-feat option points at reply "
+                    f"{index}, whose Script is {script!r} — expected "
+                    "'legfeat_open'")
+
+
 def main():
     problems = []
     gen = load_generator()
@@ -168,7 +271,9 @@ def main():
     else:
         check_table(problems, gen)
         check_not_selectable(problems, gen)
+        check_ids_include(problems, gen)
     check_packed(problems)
+    check_wiring(problems)
 
     if problems:
         print("FAIL: legendary feat table has drifted\n", file=sys.stderr)
@@ -177,7 +282,8 @@ def main():
         return 1
     count = len(gen.FEATS) if gen else 0
     print(f"ok: legendary feats coherent ({count} rows from "
-          f"{gen.FIRST_ROW}, stock base intact, none selectable at level-up)")
+          f"{gen.FIRST_ROW}, stock base intact, none selectable at level-up, "
+          "picker wired)")
     return 0
 
 

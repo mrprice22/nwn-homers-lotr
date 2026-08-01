@@ -8,14 +8,20 @@ Design draft: `docs.manual/Draft/LegendaryFeats.html` (~139 feats + 18 dominion
 cantrip toggles + 11 pure-class packages). The draft is a **wish list, not a
 spec** — expect a triage pass, not a transcription.
 
-**Status: phases 1 and 2 built; phase 1 UAT passed, phase 2 awaiting UAT.**
+**Status: phases 1-3 built; phase 1 UAT passed, phases 2-3 awaiting UAT.**
 Phase 1 (`bin/build-lotr-tlk`, `tests/check_lotr_tlk.py`, the `Mod_CustomTlk`
 swap) is verified in game. Phase 2 (`bin/gen-legendary-feats.py`, the stock-based
 `hak_2da/feat.2da` with six proof rows, `tests/check_legendary_feats.py`, the hak
-wiring) is built and gated but not yet seen in game. Phase 3 is unstarted. This document records the architecture and the order the pieces
-must be built in, so the sequencing does not have to be re-derived. Roadmap
-items: `ll-feats-tlk`, `ll-feats-2da`, `ll-feats-picker`, then the seven
-`ll-feats-*` category stories.
+wiring) and phase 3 (the picker NUI, `legfeat_*.nss`, the level-60 trigger, the
+rest-menu re-entry, `legfeatdb`, and the login re-apply) are built and gated but
+not yet seen in game — phase 4 is that UAT. Content (phase 5+) has not started.
+
+Phase 2's half of the level-up check is already done: on 2026-08-01, with the hak
+and TLK live, a level-up offered no legendary feat on the engine's own feat page.
+
+This document records the architecture and the order the pieces must be built in,
+so the sequencing does not have to be re-derived. Roadmap items: `ll-feats-tlk`,
+`ll-feats-2da`, `ll-feats-picker`, then the seven `ll-feats-*` category stories.
 
 ## The core idea: feats are inert tokens
 
@@ -24,7 +30,7 @@ It has no engine mechanic. Every effect is applied server-side by script:
 
 | Effect shape | How |
 |---|---|
-| Ability score bonus | Item property on the PC's skin (the `npcbuffgear` pattern) |
+| Ability score bonus | Permanent supernatural `EffectAbilityIncrease` re-applied at login. **Not** a skin item property — see phase 3: PCs here have no skin, and the shapeshift filter destroys the creature-armour item. |
 | Bonus attack, AC, regen, immunity | Permanent supernatural `Effect*` re-applied at login (e.g. `EffectModifyAttacks(1)` for *Legendary Onslaught*) |
 | Spell behaviour change | Branch in the relevant spell script on `GetHasFeat()` |
 | Passive rule change | Wherever that rule already lives in `unpacked/` |
@@ -156,25 +162,48 @@ stock-based generated table**; the CEP copy it replaced is recoverable from
 
 ### Phase 3 — the picker NUI
 
-- `legfeat_nui_*.nss` (open / event / include). Follow `pl_nui_evt.nss` (party
-  loot roll) and `dye_nui_*` — the repo's two NUI precedents — and respect the
-  two traps already recorded against them: the **16-character resref limit** and
-  **no `&` reference parameters** in `nw_inc_nui`.
-- **Trigger:** `NWNX_ON_LEVEL_UP_AFTER`, already subscribed in
-  `unpacked/onmoduleload.nss`, firing the picker when `GetHitDice() == 60`.
-- **Re-entry:** a rest-menu option (the `_restemo_*.nss` StartingConditional
-  pattern) shown only while unspent picks remain, so a dismissed or
-  half-finished picker is recoverable.
-- **Allotment** computed from class levels per the table above; feats granted
-  with `NWNX_Creature_AddFeat`.
-- **Persistence:** campaign DB `legfeatdb`, keyed on `GetObjectUUID()`, holding
-  picks granted and picks remaining. Shape it like `bestiarydb` / `meritdb`. A
-  relog must not re-grant.
-- **Re-apply effects at login.** The *feat* persists in the `.bic`; its
-  *effects* do not. Every legendary feat a PC holds needs its effect or skin
-  property re-applied on client enter. This is the piece most likely to be
-  forgotten, and it fails silently — the character sheet just quietly stops
-  showing the bonus.
+The files, and what each owns:
+
+| File | Owns |
+|---|---|
+| `legfeat_ids_inc.nss` | **Generated** by `bin/gen-legendary-feats.py`. Feat ids, names, descriptions, and the ability/bonus each ability feat carries. No script hand-types a row number. |
+| `legfeat_db.nss` | `legfeatdb` — `legfeat_alloc` (picks granted, per character) and `legfeat_pick` (one row per feat taken). Keyed on `GetObjectUUID()`. |
+| `legfeat_inc.nss` | Allotment, `LegFeat_Take`, and the effects. |
+| `legfeat_nui.nss` | The window. |
+| `legfeat_evt.nss` | Its click handler (`NuiCreate`'s `sEventScript`). |
+| `legfeat_open.nss` | The one entry point — resolves the PC from `GetPCSpeaker()` or `OBJECT_SELF`, grants the allotment, opens the window. |
+| `legfeat_lvl.nss` | `NWNX_ON_LEVEL_UP_AFTER` handler. |
+| `_restemo_lfeat.nss` | Rest-menu StartingConditional. |
+
+- **Trigger:** `NWNX_ON_LEVEL_UP_AFTER` → `legfeat_lvl`, subscribed in
+  `onmoduleload.nss`, firing when `GetHitDice() >= 60`. It opens the picker on a
+  **2-second delay**: at `_AFTER` the engine is still finishing the level-up with
+  its own UI on screen, and a NUI window opened into that is one the player
+  cannot interact with.
+- **Re-entry:** rest-menu option `[Choose your Legendary Feats.]` in
+  `emotewand.dlg` (reply 138), gated by `_restemo_lfeat`. Shown while picks
+  remain **or** when the character has no allotment row at all — that second case
+  is how a character who reached 60 before this shipped gets its picks. The
+  conditional deliberately writes nothing; `legfeat_open` grants when the option
+  is actually chosen.
+- **Allotment** computed from class levels per the table above; granted with
+  `NWNX_Creature_AddFeat`. `LegFeat_EnsureAllotment` writes a fixed value rather
+  than incrementing, so re-firing it from any path is harmless — that is what
+  makes a relog safe.
+- **Effects are permanent supernatural effects, not skin item properties.** This
+  reverses the plan above, for two reasons found while building it: PCs in this
+  module have no creature-armour skin (nothing creates one), and
+  `sd_filter_inc.nss` **destroys** the creature-armour item on shapeshift — a
+  druid would silently lose every legendary bonus on their first shift. A
+  permanent supernatural `EffectAbilityIncrease` survives rest and dispel, shows
+  on the sheet, and is rebuilt at login. Every effect is tagged `LEGFEAT_EFF`,
+  and `LegFeat_ApplyAll` clears that tag before re-applying, so it is idempotent.
+- **Re-apply effects at login** — `mod_cliententer.nss`, `DelayCommand(6.5, …)`.
+  The *feat* persists in the `.bic`; its *effects* do not. This is the piece most
+  likely to be forgotten and it fails silently, so
+  `tests/check_legendary_feats.py` asserts the call is there (with `//` comments
+  stripped first — the first version of that check happily matched the comment
+  explaining the call).
 
 ### Phase 4 — end-to-end UAT
 
@@ -218,6 +247,10 @@ bin/refresh-nwsync
 nwn-manager repack                           # required whenever unpacked/ changed
 bin/server-restart
 ```
+
+A script-only change (anything under `unpacked/`) needs the repack and restart
+but not the hak or TLK steps. `legfeat_ids_inc.nss` is generated into
+`unpacked/`, so a feat-table edit touches both halves.
 
 **Run the feat generator before the TLK builder** — the TLK block ends with the
 feat strings, so a name change has to reach `FEATS` first. Publish the hak and

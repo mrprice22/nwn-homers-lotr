@@ -19,6 +19,7 @@
 #include "q_frk_inc"
 #include "faction_db"
 #include "nextlvl_inc"
+#include "legfeat_inc"
 
 // Death amulet check + persistent state restore. Delayed so the engine's
 // own post-login passes (inventory hydration, spellbook sync, "fresh PC"
@@ -146,4 +147,12 @@ void main()
     // inventory is fully hydrated before we scan it. Chunked (one item per
     // delayed step) to stay under the script instruction cap.
     DelayCommand(6.0, ForgeBeginScan(oPC));
+
+    // Legendary feats: the FEAT persists in the .bic, its EFFECTS do not. Every
+    // legendary feat this character has taken needs its bonus re-applied on
+    // every login or the character sheet quietly stops showing it — no error,
+    // no message, just a missing +6. LegFeat_ApplyAll clears its own tagged
+    // effects first, so this is idempotent. Delayed past the login flood, and
+    // after the ability-score-sensitive passes above have settled.
+    DelayCommand(6.5, LegFeat_ApplyAll(oPC));
 }

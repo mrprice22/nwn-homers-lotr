@@ -83,6 +83,13 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, "nextlvl_evt");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_BEFORE,  "sk_probe_pre");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "sk_probe_post");
 
+// Legendary Feats: fire the level-60 picker the moment a character reaches 60.
+// The picks cannot come from the engine's own level-up page — that page grants
+// exactly one general feat to everybody, and legendary feats are deliberately
+// invisible to it (ALLCLASSESCANUSE = 0). legfeat_lvl no-ops below level 60.
+// See CLAUDE-legendary-feats.md.
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER, "legfeat_lvl");
+
 // Party loot: announce current roll settings when a player joins a party or the
 // party leadership changes (pl_party_evt broadcasts to the whole party).
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, "pl_party_evt");
