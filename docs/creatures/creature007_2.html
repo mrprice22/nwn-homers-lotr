@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Khamûl The Ringwraith</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <link rel="icon" href="../assets/favicon.png">
@@ -10,7 +11,7 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="../index.html"><img class="site-header-img" src="../assets/header.png" data-header-images="[&quot;../assets/header.png&quot;, &quot;../assets/header_02.png&quot;, &quot;../assets/header_03.png&quot;, &quot;../assets/header_04.png&quot;]" alt="Home"></a>
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
     <nav>
       <a href="../map/index.html">Map</a>
       <a href="../areas/index.html">Areas</a>
@@ -74,7 +75,7 @@
 <table class="data"><tr><th>Str</th><td>114 <small class="muted">(+12 item)</small></td><th>Dex</th><td>112</td><th>Con</th><td>62</td><th>Int</th><td>108</td><th>Wis</th><td>62</td><th>Cha</th><td>62</td></tr></table>
 <h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Ranger</td><td>30</td></tr><tr><td>Wizard</td><td>20</td></tr><tr><td>Blackguard</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>7,300</td><th>AC</th><td>91 <small class="muted">(10 base + +51 Dex + +10 natural (NaturalAC) + +8 armor + +8 armor enchant + +4 dodge (haste))</small></td><th>BAB</th><td>+40</td></tr><tr><th>Fort</th><td>+36</td><th>Ref</th><td>+61</td><th>Will</th><td>+36</td></tr></table>
+<table class="data"><tr><th>HP</th><td>7,300</td><th>AC</th><td>91 <small class="muted">(10 base + +51 Dex + +10 natural (NaturalAC) + +8 armor + +8 armor enchant + +4 dodge (haste))</small></td><th>BAB</th><td>+25</td></tr><tr><th>Fort</th><td>+36</td><th>Ref</th><td>+61</td><th>Will</th><td>+36</td></tr></table>
 <p class="muted">AC extras: +8 AC Bonus</p>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
 <p class="note-retaliation"><strong>Retaliation.</strong> When struck, this creature will deal 3d20 Negative damage to its attacker. <span class="muted">(<code>OnDamaged</code>: <code>negaura</code>)</span></p>
@@ -89,10 +90,10 @@
 <tr><th>Immunity: Spells</th><td>Cloud of Bewilderment, Dominate Monster, Dominate Person, Harm, Implosion, Tasha&#x27;s Hideous Laughter</td></tr>
 <tr><th>Regeneration</th><td>+11 HP/round</td></tr>
 <tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement, True Seeing</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/shadowoftheeast.html">Shadow of the East</a></td><td>throwingaxe</td><td>Ranged (100)</td><td>+106/+101/+96/+91</td><td>1d6+28 (29–34) + Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 2d10, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d10, Damage Bonus Piercing 2d10, Damage Bonus <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> 2d10, On Hit Properties Ability Drain DC 14</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (R)</td><td><a href="../items/devstatingclaw.html">Devstating Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+112/+107/+102/+97</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/devstatingclaw.html">Devstating Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+112/+107/+102/+97</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/devstatingclaw.html">Devstating Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+112/+107/+102/+97</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/shadowoftheeast.html">Shadow of the East</a></td><td>throwingaxe</td><td>Ranged (100)</td><td>+91/+86/+81/+76</td><td>1d6+28 (29–34) + Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 2d10, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d10, Damage Bonus Piercing 2d10, Damage Bonus <span class="nwn-dmg nwn-dmg-sonic" style="color:#ff9901">Sonic</span> 2d10, On Hit Properties Ability Drain DC 14</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (R)</td><td><a href="../items/devstatingclaw.html">Devstating Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+97/+92/+87/+82</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/devstatingclaw.html">Devstating Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+97/+92/+87/+82</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/devstatingclaw.html">Devstating Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+97/+92/+87/+82</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Spells</h2>
 <h3>Wizard</h3>
 <table class="data"><tbody><tr><th>Level 9 (Memorized)</th><td>Mordenkainen's Disjunction</td></tr></tbody></table>
