@@ -1610,7 +1610,10 @@ ideas:
       - step: "Review the crit-immunity audit and decide which NPCs, if any, keep immunity to critical hits. The full table shipped as CLAUDE-devcrit-immunity-audit.md with a 'keep?' column per creature, sorted by CR. The recipe for keeping it on a hand-picked boss without a 178-creature sweep is in the document: strip the property from the shared blueprint, mint a variant (e.g. bossring_ci) for the bosses that keep it, and swap the resref on the .utc AND the .git instance in lockstep."
         status: open
         blocker: false
-      - step: "Decide on bilbobaggins: its placed instance in shirebilbohouse carries an equipped, DROPPABLE bilbosdefense, which grants crit immunity. This is the second player-reachable leak the audit found and the only one not yet ruled on (the Witch King's Boots of Quickening are allowed)."
+      - step: "FIXED 2026-08-02: bilbobaggins's placed instance in shirebilbohouse had bilbosdefense equipped with Dropable=1 while the blueprint said undroppable - an instance/blueprint divergence, not a loot decision. The instance now matches. check_divergent_creatures.py could not catch it (it compares equipment by slot and resref and ignores Dropable); there are ~301 such Dropable-only divergences module-wide across 45 blueprints, so tightening that gate is its own piece of work."
+        status: done
+        blocker: false
+      - step: "Separately, Bilbo's instance also makes sting and item089 droppable where the blueprint does not. Left alone - those look like deliberate loot rather than an oversight, unlike the armour, but they are the same kind of divergence and revert on respawn."
         status: open
         blocker: false
       - step: "Enable the NWNX Damage plugin: copy .nwnx_includes/nwnx_damage.nss into unpacked/, set NWNX_DAMAGE_SKIP=n in server.env, restart. Forgetting the env flip gives per-call 'Plugin not loaded' errors and nothing else."

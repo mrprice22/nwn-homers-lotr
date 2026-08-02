@@ -265,9 +265,18 @@ def markdown(rep, out_path):
         add("")
         add("Reviewed 2026-08-02: the Witch King's Boots of Quickening are "
             "**allowed to stay droppable** (admin decision), and the Witch King "
-            "**keeps** his crit immunity as a boss. `bilbobaggins` "
-            "(`bilbosdefense`, equipped and droppable) was turned up by this "
-            "run and has **not** been ruled on.")
+            "**keeps** his crit immunity as a boss.")
+        add("")
+        add("Also found and **fixed** on 2026-08-02: `bilbobaggins`'s placed "
+            "instance in `shirebilbohouse` had `bilbosdefense` equipped with "
+            "`Dropable=1` while the blueprint said undroppable — an "
+            "instance/blueprint divergence, not a deliberate loot decision. The "
+            "instance now matches the blueprint. Note that "
+            "`tests/check_divergent_creatures.py` could not have caught it: it "
+            "compares equipment by slot and resref and deliberately ignores the "
+            "`Dropable` flag. Module-wide there are ~301 such `Dropable`-only "
+            "divergences across 45 creature blueprints, so tightening that gate "
+            "is its own piece of work, not a side effect of this one.")
         add("")
     add("**The two boss rings are not the same blueprint and do not behave the "
         "same.** `bossring` is `Cursed=1`, so it cannot be unequipped or traded "

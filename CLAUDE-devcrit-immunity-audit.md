@@ -12,17 +12,18 @@ Crit immunity is item property **37** (immunity, miscellaneous) with **subtype 8
 - **178** creature blueprints carry one (215 creature→item rows).
 - **180** further matches on placed instances in `*.git.json`.
 - **0** scripts grant it — every case is an item property, which is the good news: stripping a handful of shared blueprints removes it from most creatures at once.
-- **3** droppable (player-reachable) instances.
+- **2** droppable (player-reachable) instances.
 
 ## Notable findings
 
 **Droppable — these crit-immunity items are reachable by players.** Everything else in the module is undroppable, so this is the whole leak:
 
 - `witchking` carries `bootsofquicke002` (inventory, `Dropable=1`) — blueprint
-- `bilbobaggins` carries `bilbosdefense` (equipped, `Dropable=1`) — placed instance in `shirebilbohouse`
 - `witchking` carries `bootsofquicke002` (inventory, `Dropable=1`) — placed instance in `thewitchkingsthr`
 
-Reviewed 2026-08-02: the Witch King's Boots of Quickening are **allowed to stay droppable** (admin decision), and the Witch King **keeps** his crit immunity as a boss. `bilbobaggins` (`bilbosdefense`, equipped and droppable) was turned up by this run and has **not** been ruled on.
+Reviewed 2026-08-02: the Witch King's Boots of Quickening are **allowed to stay droppable** (admin decision), and the Witch King **keeps** his crit immunity as a boss.
+
+Also found and **fixed** on 2026-08-02: `bilbobaggins`'s placed instance in `shirebilbohouse` had `bilbosdefense` equipped with `Dropable=1` while the blueprint said undroppable — an instance/blueprint divergence, not a deliberate loot decision. The instance now matches the blueprint. Note that `tests/check_divergent_creatures.py` could not have caught it: it compares equipment by slot and resref and deliberately ignores the `Dropable` flag. Module-wide there are ~301 such `Dropable`-only divergences across 45 creature blueprints, so tightening that gate is its own piece of work, not a side effect of this one.
 
 **The two boss rings are not the same blueprint and do not behave the same.** `bossring` is `Cursed=1`, so it cannot be unequipped or traded if it ever reaches a PC. `dontdropbossring` — despite the name — is `Cursed=0` and has none of that protection. Its tag `EpicRing` also collides with the separate `epicring` blueprint. Gandalf the Gray wears **both** rings.
 
@@ -515,7 +516,7 @@ Instance-level copies. An instance that diverges from its blueprint reverts on r
 | `rivendellupperha` | `creature005` | Arwen, The Evenstar | `undropablearwens` | equipped | no |
 | `rivendellupperha` | `creature005` | Arwen, The Evenstar | `npcbuffgear` | equipped | no |
 | `rivendellupperha` | `elrond001_2` | Elrond | `npcbuffgear005` | equipped | no |
-| `shirebilbohouse` | `bilbobaggins` | Bilbo Baggins | `bilbosdefense` | equipped | **YES** |
+| `shirebilbohouse` | `bilbobaggins` | Bilbo Baggins | `bilbosdefense` | equipped | no |
 | `shirebilbohouse` | `bilbobaggins` | Bilbo Baggins | `bilbosdefhide` | equipped | no |
 | `shirehobbiton001` | `gandalf001` | Gandalf the Gray | `item074` | equipped | no |
 | `shirehobbiton001` | `gandalf001` | Gandalf the Gray | `bossring` | equipped | no |
