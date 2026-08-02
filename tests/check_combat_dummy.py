@@ -133,7 +133,24 @@ if utp_path.is_file():
         errors.append("cbd_sign.utp.json OnUsed is not cbd_use — the sign "
                       "would open with empty tokens.")
 
-# --- 5. the sign's tokens and the conversation agree ------------------------
+# --- 5. the abandoned-session watchdog --------------------------------------
+inc = strip_comments(read(UNPACKED / "cbd_inc.nss"))
+if "CBD_Watchdog" not in inc or "CBD_IDLE_LIMIT" not in inc:
+    errors.append(
+        "cbd_inc.nss has no idle watchdog — a tester who wanders off mid-trial "
+        "would still have ten rounds counted, most of them empty, and that "
+        "score would be written to the leaderboard.")
+if "GetArea(oPC) != GetArea(oDummy)" not in inc:
+    errors.append(
+        "cbd_inc.nss's watchdog no longer cancels when the owner leaves the "
+        "area.")
+if "CBD_Touch" not in strip_comments(read(UNPACKED / "cbd_damage.nss")):
+    errors.append(
+        "cbd_damage.nss never calls CBD_Touch — the idle clock would never "
+        "reset for a caster, and a spell-only trial would be cancelled "
+        "mid-run.")
+
+# --- 6. the sign's tokens and the conversation agree ------------------------
 db = read(UNPACKED / "cbd_db.nss")
 dlg_src = read(UNPACKED / "cbd_sign.dlg.json")
 for tok in [6400] + list(range(6401, 6411)) + [6411]:

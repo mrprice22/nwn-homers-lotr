@@ -45,6 +45,7 @@ void main()
         {
             if (nDmg > 0)
             {
+                CBD_Touch(oDummy);
                 SetLocalInt(oDummy, CBD_VAR_DMG_RND,
                             GetLocalInt(oDummy, CBD_VAR_DMG_RND) + nDmg);
                 SetLocalInt(oDummy, CBD_VAR_DMG_TOT,

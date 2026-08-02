@@ -34,6 +34,8 @@
 //   CBD_ATK_RND / CBD_DMG_RND                 this round, reset every tick
 //   CBD_COOL      1 during the post-session cooldown (attacks are ignored)
 //   CBD_SPAWN     the location cbd_death respawns at
+//   CBD_IDLE      seconds since the owner last attacked or dealt damage; the
+//                 watchdog abandons the session at CBD_IDLE_LIMIT
 
 #include "nwnx_damage"
 #include "cbd_db"
@@ -43,6 +45,8 @@ const float CBD_ROUND_SECS = 6.0;   // one NWN combat round
 const float CBD_COOL_SECS  = 12.0;  // grace after a session, so trailing swings
                                     // don't immediately start the next one
 const float CBD_PETRIFY    = 10.0;  // intruder lock-out (same as _attackplaceable)
+const float CBD_WATCH_SECS = 1.0;   // idle watchdog resolution
+const int   CBD_IDLE_LIMIT = 5;     // seconds of no attack/damage = abandoned
 
 const string CBD_VAR_IS_DUMMY = "CBD_IS_DUMMY";
 const string CBD_VAR_ACTIVE   = "CBD_ACTIVE";
@@ -57,6 +61,7 @@ const string CBD_VAR_DMG_RND  = "CBD_DMG_RND";
 const string CBD_VAR_COOL     = "CBD_COOL";
 const string CBD_VAR_SPAWN    = "CBD_SPAWN";
 const string CBD_VAR_WARNED   = "CBD_WARNED";
+const string CBD_VAR_IDLE     = "CBD_IDLE";
 
 const string CBD_RESREF = "cbd_dummy";   // for the respawn in cbd_death
 
@@ -75,6 +80,8 @@ void   CBD_ClearCooldown(object oDummy, int nToken);
 void   CBD_Reject(object oDummy, object oSrc);
 void   CBD_TrackAttack(struct NWNX_Damage_AttackEventData data);
 void   CBD_Respawn(location lLoc);
+void   CBD_Watchdog(object oDummy, int nToken);
+void   CBD_Touch(object oDummy);
 
 // ---------------------------------------------------------------------------
 
@@ -108,8 +115,16 @@ void CBD_Say(object oPC, string sMsg)
     FloatingTextStringOnCreature(sMsg, oPC, FALSE);
 }
 
+// Any activity from the owner resets the idle clock. Called from both the
+// attack and the damage handler.
+void CBD_Touch(object oDummy)
+{
+    SetLocalInt(oDummy, CBD_VAR_IDLE, 0);
+}
+
 void CBD_ClearState(object oDummy)
 {
+    DeleteLocalInt(oDummy, CBD_VAR_IDLE);
     DeleteLocalInt(oDummy, CBD_VAR_ACTIVE);
     DeleteLocalObject(oDummy, CBD_VAR_OWNER);
     DeleteLocalInt(oDummy, CBD_VAR_ROUND);
@@ -140,6 +155,44 @@ void CBD_StartSession(object oDummy, object oPC)
 
     AssignCommand(oDummy,
         DelayCommand(CBD_ROUND_SECS, CBD_RoundTick(oDummy, nToken)));
+    AssignCommand(oDummy,
+        DelayCommand(CBD_WATCH_SECS, CBD_Watchdog(oDummy, nToken)));
+}
+
+// A trial only means anything if the tester keeps swinging: idle rounds would
+// drag APR and DPR toward zero and then record that as a score. So the session
+// is abandoned after CBD_IDLE_LIMIT seconds with no attack and no damage, and
+// immediately if the owner leaves the area or dies. Nothing is recorded.
+// Runs once a second, but only while a session is actually open.
+void CBD_Watchdog(object oDummy, int nToken)
+{
+    if (!GetIsObjectValid(oDummy)) return;
+    if (GetLocalInt(oDummy, CBD_VAR_TOKEN) != nToken) return;
+    if (!GetLocalInt(oDummy, CBD_VAR_ACTIVE)) return;
+
+    object oPC = GetLocalObject(oDummy, CBD_VAR_OWNER);
+    if (!GetIsObjectValid(oPC) || GetIsDead(oPC))
+    {
+        CBD_CancelSession(oDummy, "");
+        return;
+    }
+    if (GetArea(oPC) != GetArea(oDummy))
+    {
+        CBD_CancelSession(oDummy, "Combat test cancelled - you left the area. Nothing was recorded.");
+        return;
+    }
+
+    int nIdle = GetLocalInt(oDummy, CBD_VAR_IDLE) + 1;
+    SetLocalInt(oDummy, CBD_VAR_IDLE, nIdle);
+    if (nIdle >= CBD_IDLE_LIMIT)
+    {
+        CBD_CancelSession(oDummy, "Combat test cancelled - you stopped attacking for " +
+                                  IntToString(CBD_IDLE_LIMIT) + " seconds. Nothing was recorded.");
+        return;
+    }
+
+    AssignCommand(oDummy,
+        DelayCommand(CBD_WATCH_SECS, CBD_Watchdog(oDummy, nToken)));
 }
 
 void CBD_RoundTick(object oDummy, int nToken)
@@ -280,6 +333,7 @@ void CBD_TrackAttack(struct NWNX_Damage_AttackEventData data)
         return;
     }
 
+    CBD_Touch(oDummy);
     SetLocalInt(oDummy, CBD_VAR_ATK_RND, GetLocalInt(oDummy, CBD_VAR_ATK_RND) + 1);
     SetLocalInt(oDummy, CBD_VAR_ATK_TOT, GetLocalInt(oDummy, CBD_VAR_ATK_TOT) + 1);
 
