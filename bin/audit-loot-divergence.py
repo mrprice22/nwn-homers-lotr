@@ -26,7 +26,6 @@ WHAT IT REPORTS
     python3 bin/audit-loot-divergence.py                 # summary
     python3 bin/audit-loot-divergence.py --full          # every row
     python3 bin/audit-loot-divergence.py --markdown FILE # the decision document
-    python3 bin/audit-loot-divergence.py --baseline FILE # the gate's known-list
 
 WHICH SIDE IS RIGHT IS A JUDGEMENT CALL, WHICH IS WHY THIS IS A REPORT
     Nothing here is auto-fixable. `sting` on Bilbo reads as intended loot the
@@ -172,14 +171,13 @@ def direction(row):
     return "counts differ"
 
 
-def baseline_key(row):
-    """A stable identity for the gate's known-list.
+def case_key(row):
+    """Collapses rows to one decision.
 
-    Deliberately excludes the placement INDEX: reordering a Creature List is a
-    routine toolset side effect and must not turn a known divergence into a new
-    one. Two placements of the same blueprint in the same area diverging on the
-    same item collapse to one entry, which is the right granularity for a
-    decision that is taken per blueprint anyway.
+    Deliberately excludes the placement INDEX, because the fix is decided per
+    (blueprint, area, item) and applied to every placement of it at once --
+    four Ridermark Guardians withholding the same helm are one decision, not
+    four. Used only for counting; the gate itself fails on every row.
     """
     return "|".join((row["base"], row["area"], row["list"], row["item"]))
 
@@ -190,7 +188,7 @@ def print_summary(rows):
         by_base[row["base"]].append(row)
     print(f"loot divergences (Dropable): {len(rows)} row(s) "
           f"across {len(by_base)} creature blueprint(s), "
-          f"{len({baseline_key(r) for r in rows})} distinct blueprint/area/item case(s)")
+          f"{len({case_key(r) for r in rows})} distinct blueprint/area/item case(s)")
     print()
     counts = defaultdict(int)
     for row in rows:
@@ -201,26 +199,6 @@ def print_summary(rows):
     print("worst-affected blueprints:")
     for base, group in sorted(by_base.items(), key=lambda kv: -len(kv[1]))[:15]:
         print(f"  {len(group):5d}  {base:24s} {group[0]['base_name']}")
-
-
-def write_baseline(rows, path):
-    """The known-list the gate reads: everything that exists today."""
-    payload = {
-        "_comment": [
-            "Known blueprint/instance Dropable divergences, as measured when",
-            "tests/check_divergent_creatures.py was tightened to cover loot.",
-            "These are REPORTED but do not fail the build; anything NOT in this",
-            "list does fail. Delete an entry once the underlying divergence is",
-            "resolved -- the gate also complains about entries that no longer",
-            "correspond to a real divergence, so this file cannot rot silently.",
-            "Regenerate with: bin/audit-loot-divergence.py --baseline <this file>",
-        ],
-        "known": sorted({baseline_key(r) for r in rows}),
-    }
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2)
-        fh.write("\n")
-    print(f"wrote -> {path} ({len(payload['known'])} known case(s))")
 
 
 def markdown(rows, path):
@@ -241,22 +219,25 @@ def markdown(rows, path):
         "**exactly once per reboot** — as placed until that creature first "
         "dies, as the blueprint says forever after.")
     add("")
-    add("`tests/check_divergent_creatures.py` now covers this, but every case "
-        "below predates the change and is **reported, not gated** "
-        "(`tests/known_loot_divergence.json`). New divergences fail the build.")
+    add("`tests/check_divergent_creatures.py` gates this, with **no allowlist "
+        "and no grandfathering** — every case below fails the build until the "
+        "placement and the blueprint agree. **This document is the worklist, "
+        "and the repack stays red until it is empty.**")
     add("")
     add("**Nothing here is auto-fixable and nothing has been changed.** Which "
         "side is right is a judgement call: `sting` on Bilbo reads as intended "
         "loot the blueprint forgot, while a buff item on a boss reads as a "
         "hand-edited placement. Fill in the **fix** column — `blueprint` (make "
-        "the blueprint match the placement), `instance` (make the placement "
-        "match the blueprint), or `leave`.")
+        "the blueprint match the placement, i.e. keep the loot) or `instance` "
+        "(make the placement match the blueprint, i.e. drop the loot). There is "
+        "no third option: leaving one in place means loot that behaves "
+        "differently before and after the first respawn.")
     add("")
     add("## Summary")
     add("")
     add(f"- **{len(rows)}** diverging rows across **{len(by_base)}** creature "
         f"blueprints.")
-    add(f"- **{len({baseline_key(r) for r in rows})}** distinct "
+    add(f"- **{len({case_key(r) for r in rows})}** distinct "
         "blueprint/area/item cases (the granularity the gate tracks).")
     counts = defaultdict(int)
     for row in rows:
@@ -295,8 +276,6 @@ def main():
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--full", action="store_true", help="print every row")
     ap.add_argument("--markdown", metavar="FILE", help="write the decision document")
-    ap.add_argument("--baseline", metavar="FILE",
-                    help="write the gate's known-list")
     args = ap.parse_args()
 
     rows = scan()
@@ -311,8 +290,6 @@ def main():
 
     if args.markdown:
         markdown(rows, args.markdown)
-    if args.baseline:
-        write_baseline(rows, args.baseline)
     return 0
 
 

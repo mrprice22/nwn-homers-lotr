@@ -4,9 +4,9 @@
 
 `se_respawn_inc.nss` recreates a dead static creature **from its blueprint**, keeping only the tag. So where a placement disagrees with its blueprint about whether an item is droppable, the loot works **exactly once per reboot** — as placed until that creature first dies, as the blueprint says forever after.
 
-`tests/check_divergent_creatures.py` now covers this, but every case below predates the change and is **reported, not gated** (`tests/known_loot_divergence.json`). New divergences fail the build.
+`tests/check_divergent_creatures.py` gates this, with **no allowlist and no grandfathering** — every case below fails the build until the placement and the blueprint agree. **This document is the worklist, and the repack stays red until it is empty.**
 
-**Nothing here is auto-fixable and nothing has been changed.** Which side is right is a judgement call: `sting` on Bilbo reads as intended loot the blueprint forgot, while a buff item on a boss reads as a hand-edited placement. Fill in the **fix** column — `blueprint` (make the blueprint match the placement), `instance` (make the placement match the blueprint), or `leave`.
+**Nothing here is auto-fixable and nothing has been changed.** Which side is right is a judgement call: `sting` on Bilbo reads as intended loot the blueprint forgot, while a buff item on a boss reads as a hand-edited placement. Fill in the **fix** column — `blueprint` (make the blueprint match the placement, i.e. keep the loot) or `instance` (make the placement match the blueprint, i.e. drop the loot). There is no third option: leaving one in place means loot that behaves differently before and after the first respawn.
 
 ## Summary
 
