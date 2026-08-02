@@ -33,6 +33,19 @@
 const string LEGFEAT_WIN = "legfeats";     // NuiCreate window id
 const string LEGFEAT_TOK = "LEGFEAT_TOK";  // PC local: this window's token
 
+// The one line of tunable text under the "you may choose N" header. It exists
+// because where a player re-picks is not settled — the re-pick node is parked on
+// Ping Pong and will likely move — and the window should not have to be edited
+// when it does. Set it to "" to drop the line entirely.
+//
+// BUDGET: roughly 90 characters per line at 100% UI scale across
+// LEGFEAT_LIST_W, and it is rendered in a two-line box, so about 180 characters
+// before it clips. Keep to ~80 for a single clean line, because a player running
+// a larger UI scale fits fewer. NUI cannot reflow a built layout: the box is a
+// fixed height, so longer text wraps within it and is then CLIPPED — it never
+// pushes the feat list down. See README.md "Tuning the picker's subtitle".
+const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
+
 // Geometry. The three row columns sum to 660, comfortably inside the list
 // group's 680, which is what keeps the horizontal scrollbar away.
 const float LEGFEAT_WIN_W   = 720.0;
@@ -43,6 +56,7 @@ const float LEGFEAT_COL_BTN = 80.0;
 const float LEGFEAT_COL_NAME = 240.0;
 const float LEGFEAT_COL_EFF  = 340.0;
 const float LEGFEAT_ROW_H    = 30.0;
+const float LEGFEAT_SUB_H    = 36.0;   // two lines of subtitle
 
 json LegFeat_Window(object oPC);
 void LegFeat_Open(object oPC);
@@ -95,12 +109,20 @@ json LegFeat_Window(object oPC)
     string sHdr;
     if (nRemaining > 0)
         sHdr = "You may choose " + IntToString(nRemaining) + " legendary feat"
-             + ((nRemaining == 1) ? "" : "s") + ".  Choices are permanent.";
+             + ((nRemaining == 1) ? "." : "s.");
     else
         sHdr = "You have spent all of your legendary feats.";
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
         NuiLabel(JsonString(sHdr), JsonInt(NUI_HALIGN_CENTER),
                  JsonInt(NUI_VALIGN_MIDDLE)), LEGFEAT_LIST_W), 26.0));
+
+    // NuiText, not NuiLabel: a label is single-line and clips silently, and this
+    // line is meant to be edited by someone who is not looking at the layout.
+    // Borderless with no scrollbars, so it reads as prose rather than a field.
+    if (LEGFEAT_SUBTITLE != "")
+        jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
+            NuiText(JsonString(LEGFEAT_SUBTITLE), FALSE, NUI_SCROLLBARS_NONE),
+            LEGFEAT_LIST_W), LEGFEAT_SUB_H));
 
     // Explicitly sized, vertical scrollbars only: the list can grow to the whole
     // feat pool without the layout changing shape or scrolling sideways.

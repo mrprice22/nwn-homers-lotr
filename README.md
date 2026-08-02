@@ -794,6 +794,36 @@ asserts the respec still calls that function. Re-picking is refused while
 polymorphed, because a base-score write lands on a body that is about to be
 replaced.
 
+### Tuning the picker's subtitle
+
+The line under *"You may choose N legendary feats."* is a single constant at the
+top of `unpacked/legfeat_nui.nss`:
+
+```c
+const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
+```
+
+Edit it, repack, restart. Set it to `""` to drop the line entirely. It exists
+because where a player re-picks is not settled — the node is parked on Ping Pong
+and will likely move — and the window should not need editing when it does.
+
+**Length budget: about 90 characters per line at 100% UI scale**, across the
+680px content width. It is rendered in a **two-line** box (`LEGFEAT_SUB_H`,
+36px), so roughly **180 characters** in total before it clips. Keep to **≤ 80**
+for one clean line: a player running a larger UI scale fits fewer characters per
+line than you do, so text that just fits on your screen can wrap on theirs.
+
+**It does not push the feat list down.** NUI cannot reflow a layout once it is
+built, so every element has a fixed height. Longer text wraps *within* the
+two-line box and anything past that is clipped — silently, with no error. If you
+genuinely need three lines, raise `LEGFEAT_SUB_H` to ~52 and
+`LEGFEAT_WIN_H` by the same amount, together; changing one without the other
+either clips the text or leaves a gap above the Close button.
+
+It uses `NuiText` rather than `NuiLabel` deliberately: a label is single-line and
+clips with no warning, which is how the header ended up reading "You may choose 2
+leg" during UAT. `NuiText` at least wraps.
+
 ### Where the picker opens from
 
 Reaching level 60 opens it. After that: **Force Rest** (rest menu → *Force Rest*,
