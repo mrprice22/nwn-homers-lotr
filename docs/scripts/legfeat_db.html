@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script legfeat_db</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>legfeat_db</code></h1><pre class="nss-source"><code>// legfeat_db.nss — persistence for Legendary Feats (level-60 feat picks).
+//
+// Campaign SQLite DB &quot;legfeatdb&quot;, keyed on GetObjectUUID() — one row per
+// character per feat taken, plus a per-character row recording how many picks
+// that character was granted. Shaped like bestiarydb / meritdb / dyedb.
+//
+// WHY THE DB EXISTS AT ALL. The feat itself persists in the .bic, so the
+// character sheet remembers it without our help. What does NOT persist is:
+//
+//   * how many picks the character is still owed (a dismissed or half-finished
+//     picker has to be recoverable — that is the rest-menu re-entry), and
+//   * the fact that we already granted this character its allotment, so a relog
+//     at level 60 must not hand out a second set.
+//
+// The feat rows are also kept, rather than read back off the character, because
+// they are what a revoke undoes. Reading GetHasFeat() cannot tell a picked feat
+// from one a DM added by hand, and after a revoke has to know exactly what was
+// granted in order to take the base-score points back.
+//
+// legfeat_alloc also stores the CLASS SIGNATURE the allotment was computed from
+// (sorted class ids, no levels). Comparing it is how a relevel is detected: the
+// signature fully determines the allotment, and excludes levels so 59 -&gt; 60 does
+// not look like a change.
+//
+// See CLAUDE-legendary-feats.md (&quot;Phase 3 — the picker NUI&quot;).
+
+const string LEGFEAT_DB = &quot;legfeatdb&quot;;
+
+void   LegFeat_InitDb();
+int    LegFeat_GetGranted(object oPC);
+string LegFeat_GetClassSig(object oPC);
+void   LegFeat_SetAlloc(object oPC, int nPicks, string sClassSig);
+void   LegFeat_ClearAlloc(object oPC);
+int    LegFeat_GetSpent(object oPC);
+void   LegFeat_RecordPick(object oPC, int nFeatId);
+int    LegFeat_HasPick(object oPC, int nFeatId);
+void   LegFeat_ClearPicks(object oPC);
+
+// Idempotent — safe to call on every login and every window open.
+void LegFeat_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS legfeat_alloc (&quot; +
+        &quot;pid TEXT PRIMARY KEY, cdkey TEXT, picks INTEGER NOT NULL,&quot; +
+        &quot;class_sig TEXT NOT NULL DEFAULT &#x27;&#x27;,&quot; +
+        &quot;granted_at TEXT DEFAULT CURRENT_TIMESTAMP)&quot;);
+    SqlStep(q);
+
+    // Migration: class_sig was added after the first build shipped, and
+    // CREATE TABLE IF NOT EXISTS does not add a column to a table that already
+    // exists. Without this, every INSERT naming class_sig fails to *prepare* on
+    // a pre-existing DB — &quot;sqlite error: not prepared&quot; in the log, no allotment
+    // written, and the picker silently never opens. Guarded with PRAGMA so the
+    // ALTER is skipped once the column is there (the bst_db.nss idiom).
+    q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;SELECT 1 FROM pragma_table_info(&#x27;legfeat_alloc&#x27;) WHERE name=&#x27;class_sig&#x27;&quot;);
+    if (!SqlStep(q))
+    {
+        q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+            &quot;ALTER TABLE legfeat_alloc ADD COLUMN class_sig TEXT NOT NULL DEFAULT &#x27;&#x27;&quot;);
+        SqlStep(q);
+    }
+
+    q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;CREATE TABLE IF NOT EXISTS legfeat_pick (&quot; +
+        &quot;pid TEXT NOT NULL, feat INTEGER NOT NULL, cdkey TEXT,&quot; +
+        &quot;taken_at TEXT DEFAULT CURRENT_TIMESTAMP,&quot; +
+        &quot;PRIMARY KEY(pid, feat))&quot;);
+    SqlStep(q);
+}
+
+// How many picks this character has been granted in total. 0 = never reached
+// the allotment step, which is NOT the same as &quot;has spent them all&quot;.
+int LegFeat_GetGranted(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;SELECT picks FROM legfeat_alloc WHERE pid=@p LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    if (!SqlStep(q)) return 0;
+    return SqlGetInt(q, 0);
+}
+
+// The class signature the stored allotment was computed from. &quot;&quot; = no row.
+string LegFeat_GetClassSig(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;SELECT class_sig FROM legfeat_alloc WHERE pid=@p LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    if (!SqlStep(q)) return &quot;&quot;;
+    return SqlGetString(q, 0);
+}
+
+// Record the allotment and the class signature it was derived from. Written with
+// a fixed value rather than incremented, which is what makes every caller of
+// LegFeat_EnsureAllotment safe to re-fire.
+void LegFeat_SetAlloc(object oPC, int nPicks, string sClassSig)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;INSERT INTO legfeat_alloc(pid, cdkey, picks, class_sig)&quot; +
+        &quot; VALUES(@p, @k, @n, @s)&quot; +
+        &quot; ON CONFLICT(pid) DO UPDATE SET picks=excluded.picks,&quot; +
+        &quot; class_sig=excluded.class_sig&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindInt(q, &quot;@n&quot;, nPicks);
+    SqlBindString(q, &quot;@s&quot;, sClassSig);
+    SqlStep(q);
+}
+
+// Drop the allotment entirely — used when a character falls below level 60, so
+// the picks are re-earned rather than banked on the way back up.
+void LegFeat_ClearAlloc(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;DELETE FROM legfeat_alloc WHERE pid=@p&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlStep(q);
+}
+
+int LegFeat_GetSpent(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;SELECT COUNT(*) FROM legfeat_pick WHERE pid=@p&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    if (!SqlStep(q)) return 0;
+    return SqlGetInt(q, 0);
+}
+
+// INSERT OR IGNORE: taking the same feat twice is a no-op rather than a second
+// row, so a double-clicked button cannot burn two picks on one feat.
+void LegFeat_RecordPick(object oPC, int nFeatId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;INSERT OR IGNORE INTO legfeat_pick(pid, feat, cdkey)&quot; +
+        &quot; VALUES(@p, @f, @k)&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@f&quot;, nFeatId);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlStep(q);
+}
+
+int LegFeat_HasPick(object oPC, int nFeatId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;SELECT 1 FROM legfeat_pick WHERE pid=@p AND feat=@f LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@f&quot;, nFeatId);
+    return SqlStep(q);
+}
+
+// Forget every pick this character has taken. The caller is responsible for
+// having already taken the feats and their benefits back off the character —
+// this only clears the record.
+void LegFeat_ClearPicks(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        &quot;DELETE FROM legfeat_pick WHERE pid=@p&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlStep(q);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

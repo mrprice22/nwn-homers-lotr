@@ -55,7 +55,9 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>on_mod_rest</code></h1><dl class="meta"><dt>Starts dialogs</dt><dd><a href="../conversations/emotewand.html">emotewand</a></dd></dl><pre class="nss-source"><code>void main()
+<h1>Script: <code>on_mod_rest</code></h1><dl class="meta"><dt>Starts dialogs</dt><dd><a href="../conversations/emotewand.html">emotewand</a></dd></dl><pre class="nss-source"><code>#include &quot;legfeat_inc&quot;
+
+void main()
 {
     object oPC = GetLastPCRested();
     int iMamber = GetCampaignInt(&quot;cRegistred&quot;,&quot;iMamber&quot;,oPC);
@@ -72,6 +74,15 @@
     if (nEvent == REST_EVENTTYPE_REST_FINISHED &amp;&amp; GetLocalInt(oPC, &quot;SPFAIL_ZONE&quot;))
         DelayCommand(0.1f, ApplyEffectToObject(DURATION_TYPE_PERMANENT,
             EffectSpellFailure(100), oPC));
+
+    // Legendary Feats: a rest is the recovery path for a picker that was
+    // dismissed, and for any level-60 character that has never seen one. This
+    // fires for Force Rest too — ew_forcerest calls ForceRest, which raises
+    // REST_FINISHED. Delayed for the same reason as the line above: at this
+    // point ForceRest is still mid-flight and the rest menu is still closing.
+    if (nEvent == REST_EVENTTYPE_REST_FINISHED
+        &amp;&amp; LegFeat_EnsureAllotment(oPC) &gt; 0)
+        DelayCommand(2.0, ExecuteScript(&quot;legfeat_open&quot;, oPC));
 }
 </code></pre>
   </main>

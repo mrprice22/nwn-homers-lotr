@@ -56,6 +56,7 @@
   </header>
   <main>
 <h1>Script: <code>ew_forcerest</code></h1><pre class="nss-source"><code>#include &quot;pers_state_inc&quot;
+#include &quot;legfeat_inc&quot;
 
 void main()
 {
@@ -69,6 +70,16 @@ void main()
     // Snapshot freshly-rested HP / spells / feats so a logout
     // immediately after the emotewand instant-rest restores correctly.
     DelayCommand(0.5, PersState_Snapshot(oPC));
+
+    // Legendary Feats: this is where a rest actually completes in this module.
+    // The module cancels the engine&#x27;s own rest at REST_STARTED to open the rest
+    // menu (hence &quot;Resting. / Cancelled Rest.&quot; in the log), so REST_FINISHED is
+    // not a path a player reaches by resting normally — ForceRest is. Hooking
+    // the action script is deterministic; on_mod_rest keeps a REST_FINISHED
+    // hook as a fallback, and re-opening is harmless because LegFeat_Open
+    // destroys any existing window before building a new one.
+    if (LegFeat_EnsureAllotment(oPC) &gt; 0)
+        DelayCommand(2.0, ExecuteScript(&quot;legfeat_open&quot;, oPC));
 }
 </code></pre>
   </main>

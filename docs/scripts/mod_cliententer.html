@@ -76,6 +76,19 @@
 #include &quot;q_frk_inc&quot;
 #include &quot;faction_db&quot;
 #include &quot;nextlvl_inc&quot;
+#include &quot;legfeat_inc&quot;
+#include &quot;color&quot;
+
+// Legendary feats: re-derive the allotment (which revokes picks a relevel or a
+// lost level has invalidated) and nudge if any are left to spend.
+void LegFeatLoginCheck(object oPC)
+{
+    int nRemaining = LegFeat_EnsureAllotment(oPC);
+    if (nRemaining &lt;= 0) return;
+    SendMessageToPC(oPC, ColorString(&quot;You have &quot; + IntToString(nRemaining)
+        + &quot; legendary feat pick&quot; + ((nRemaining == 1) ? &quot;&quot; : &quot;s&quot;)
+        + &quot; to spend. Force Rest to choose.&quot;, COLOR_GREEN));
+}
 
 // Death amulet check + persistent state restore. Delayed so the engine&#x27;s
 // own post-login passes (inventory hydration, spellbook sync, &quot;fresh PC&quot;
@@ -203,6 +216,21 @@ void main()
     // inventory is fully hydrated before we scan it. Chunked (one item per
     // delayed step) to stay under the script instruction cap.
     DelayCommand(6.0, ForgeBeginScan(oPC));
+
+    // Legendary feats, three jobs on login, all delayed past the login flood:
+    //
+    //  * LegFeat_ApplyAll rebuilds EFFECT-kind bonuses, which do not survive a
+    //    logout. It also strips any stale LEGFEAT_EFF effect, which is what
+    //    cleans the old buff-style ability bonuses off characters granted feats
+    //    by the first build. Base-score (RAW) feats are deliberately NOT
+    //    re-applied — their bonus is already in the .bic.
+    //  * LegFeat_EnsureAllotment re-derives the entitlement, so a relevel or a
+    //    death-loss level is caught even if no level event fired for us. It is
+    //    also what revokes picks the character no longer qualifies for.
+    //  * The nudge tells a level-60 character with unspent picks how to spend
+    //    them. A popup on every login would be intrusive; resting opens one.
+    DelayCommand(6.5, LegFeat_ApplyAll(oPC));
+    DelayCommand(7.5, LegFeatLoginCheck(oPC));
 }
 </code></pre>
   </main>

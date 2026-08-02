@@ -140,6 +140,17 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, &quot;nextlvl_evt&quot;);
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_BEFORE,  &quot;sk_probe_pre&quot;);
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   &quot;sk_probe_post&quot;);
 
+// Legendary Feats: fire the level-60 picker the moment a character reaches 60.
+// The picks cannot come from the engine&#x27;s own level-up page — that page grants
+// exactly one general feat to everybody, and legendary feats are deliberately
+// invisible to it (ALLCLASSESCANUSE = 0). See CLAUDE-legendary-feats.md.
+//
+// LEVEL_DOWN matters as much as LEVEL_UP: a character that drops below 60 (death
+// XP loss) or changes its class makeup has its picks revoked, and legfeat_lvl is
+// where that is noticed. Energy drain is not a level loss and does not reach it.
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   &quot;legfeat_lvl&quot;);
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, &quot;legfeat_lvl&quot;);
+
 // Party loot: announce current roll settings when a player joins a party or the
 // party leadership changes (pl_party_evt broadcasts to the whole party).
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, &quot;pl_party_evt&quot;);
