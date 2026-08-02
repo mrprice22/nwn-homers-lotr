@@ -33,6 +33,7 @@ DROPPABILITY
 """
 
 import argparse
+import importlib.util
 import json
 import re
 import sys
@@ -216,8 +217,80 @@ def print_summary(rep):
             print(f"  {row['creature']:24s} {row['item']:24s} ({row['where']})")
 
 
+def read_decisions(path):
+    """Recover the hand-filled `keep?` column from an existing audit document.
+
+    The tables are generated, but that last column is the ADMIN'S WORK -- the
+    keep/strip decision, taken creature by creature. Regenerating must never
+    discard it, so it is parsed back out and re-emitted. Keyed by
+    (creature resref, item resref), which survives a CR change or a rename.
+    """
+    decisions = {}
+    if not path or not Path(path).exists():
+        return decisions
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        if not line.startswith("| "):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        # CR | creature | name | item | where | droppable | keep?
+        if len(cells) != 7 or not cells[6] or cells[0] in ("CR", "---:"):
+            continue
+        creature, item = cells[1].strip("`"), cells[3].strip("`")
+        if creature and item:
+            decisions[(creature, item)] = cells[6]
+    return decisions
+
+
+def keep_provenance():
+    """creature resref -> why it still has crit immunity.
+
+    Imported from bin/apply-crit-immunity.py, which owns the decision list, so
+    this document cannot claim something the applier did not do. One-directional
+    and tolerant: if the applier is ever removed, rows simply show no
+    provenance rather than the audit failing.
+    """
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "apply_crit_immunity", REPO / "bin" / "apply-crit-immunity.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    except Exception:
+        return {}
+    out = {}
+    for creature in mod.KEEP_RACE_UNDEAD:
+        out[creature] = "YES (race: Undead)"
+    for creature in mod.KEEP_NAZGUL:
+        out[creature] = "YES (Nazgul)"
+    for creature in mod.KEEP_JUDGEMENT:
+        out[creature] = "YES (reviewed)"
+    for creature in mod.KEEP_ADMIN_YES:
+        out[creature] = "YES"          # an explicit mark outranks the rest
+    return out
+
+
+def decision_for(decisions, creature, item):
+    """The recorded decision for one row, tolerating a changed item resref.
+
+    Applying the decisions repointed keepers at variant blueprints
+    (npcbuffgear -> npcbuffgear_ci), so an exact (creature, item) match misses
+    exactly the rows that were acted on. Fall back to the creature when it has
+    a single unambiguous decision on file; stay silent when it has more than
+    one, because guessing which of two items a mark referred to would put words
+    in the admin's mouth.
+    """
+    exact = decisions.get((creature, item))
+    if exact:
+        return exact
+    marks = {v for (c, _i), v in decisions.items() if c == creature}
+    if len(marks) == 1:
+        return marks.pop()
+    return keep_provenance().get(creature, "")
+
+
 def markdown(rep, out_path):
     items = rep["items"]
+    # Carry the admin's decisions across a regeneration -- see read_decisions.
+    decisions = read_decisions(out_path)
     lines = []
     add = lines.append
 
@@ -227,12 +300,20 @@ def markdown(rep, out_path):
     add("")
     add("# Immunity to critical hits — full audit")
     add("")
-    add("Required deliverable of roadmap item **`devcrit-roll`**, which reworks "
-        "Devastating Critical from save-or-die into bonus damage. Once a "
-        "devastating critical can no longer delete a boss outright, most of "
-        "this immunity has lost its reason to exist — but the removal cannot be "
-        "planned without knowing where it comes from. **This table is the input "
-        "to that decision; nothing has been stripped.**")
+    add("Immunity to critical hits is no longer the default. It was stripped on "
+        "**2026-08-02** (roadmap `remove-crit-immunity`), once "
+        "`devcrit-roll` had made a devastating critical stop being an instant "
+        "kill, under one rule from the admin:")
+    add("")
+    add("> keep crit immunity if and only if it makes thematic sense for the "
+        "creature to be **undead** — and **Nazgul count as undead**.")
+    add("")
+    add("**Everything below is what survived that rule.** The `keep?` column "
+        "says why: `YES` is an explicit mark from the review, `YES (race: "
+        "Undead)` came from the blueprint's own race flag, `YES (Nazgul)` from "
+        "the name, `YES (reviewed)` from a judgement call taken case by case. "
+        "The decision list lives in `bin/apply-crit-immunity.py`, which is also "
+        "what applied it; this document imports it, so the two cannot disagree.")
     add("")
     add("Crit immunity is item property **37** (immunity, miscellaneous) with "
         "**subtype 8**. Regenerate with `python3 bin/audit-crit-immunity.py "
@@ -246,8 +327,8 @@ def markdown(rep, out_path):
     add(f"- **{len(rep['instance_rows'])}** further matches on placed instances "
         "in `*.git.json`.")
     add(f"- **{len(rep['script_hits'])}** scripts grant it — every case is an "
-        "item property, which is the good news: stripping a handful of shared "
-        "blueprints removes it from most creatures at once.")
+        "item property, which is what made the removal a small edit rather "
+        "than a sweep over hundreds of creatures.")
     add(f"- **{len(rep['droppable'])}** droppable (player-reachable) instances.")
     add("")
     add("## Notable findings")
@@ -272,18 +353,18 @@ def markdown(rep, out_path):
             "`Dropable=1` while the blueprint said undroppable — an "
             "instance/blueprint divergence, not a deliberate loot decision. The "
             "instance now matches the blueprint. Note that "
-            "`tests/check_divergent_creatures.py` could not have caught it: it "
-            "compares equipment by slot and resref and deliberately ignores the "
-            "`Dropable` flag. Module-wide there are ~301 such `Dropable`-only "
-            "divergences across 45 creature blueprints, so tightening that gate "
-            "is its own piece of work, not a side effect of this one.")
+            "`tests/check_divergent_creatures.py` did not cover the `Dropable` "
+            "flag at the time; it does now, with no allowlist. The other 26 "
+            "divergences that turned up module-wide were resolved additively — "
+            "see CLAUDE-loot-divergence-audit.md.")
         add("")
-    add("**The two boss rings are not the same blueprint and do not behave the "
-        "same.** `bossring` is `Cursed=1`, so it cannot be unequipped or traded "
-        "if it ever reaches a PC. `dontdropbossring` — despite the name — is "
-        "`Cursed=0` and has none of that protection. Its tag `EpicRing` also "
-        "collides with the separate `epicring` blueprint. Gandalf the Gray "
-        "wears **both** rings.")
+    add("**The two boss rings are separate blueprints.** `dontdropbossring` — "
+        "despite the name — relied on a per-creature undroppable flag rather "
+        "than being cursed, so it had none of `bossring`'s protection against "
+        "being unequipped or traded if it ever reached a PC. **Set `Cursed=1` "
+        "on 2026-08-02** across the blueprint and all 14 inlined instance "
+        "copies. Its tag `EpicRing` still collides with the separate `epicring` "
+        "blueprint. Gandalf the Gray wears **both** rings.")
     add("")
     add("**No script grants crit immunity**, confirmed by scanning every "
         "`unpacked/*.nss` for `IMMUNITY_TYPE_CRITICAL_HIT`. One near-miss worth "
@@ -295,21 +376,26 @@ def markdown(rep, out_path):
         "anything today. Recorded against roadmap item `concerning-pipeweed`, "
         "which is the one thing that might revive that code.")
     add("")
-    add("## How to keep immunity on a hand-picked boss")
+    add("## How this was applied, and how to change it later")
     add("")
-    add("Do **not** hand-edit one creature's instance. The shared blueprints "
-        "below cover dozens of creatures each, so the route is:")
+    add("Crit immunity lives in **two** places that have to move together: the "
+        "item blueprint, which a respawn rebuilds from, and an inlined copy "
+        "inside each placed instance, which is what the creature standing there "
+        "right now actually has. 236 instance copies carried it independently "
+        "of their blueprint, so editing only blueprints would have left every "
+        "already-placed creature immune until its first death.")
     add("")
-    add("1. Strip property 37/8 from the shared blueprint (`npcbuffgear`, "
-        "`bossring`, `it_creitem*`, …). Every creature using it loses immunity.")
-    add("2. For each boss that **keeps** immunity, mint a variant blueprint "
-        "(e.g. `bossring_ci`) that retains the property, and swap the resref on "
-        "**both** the `.utc` blueprint **and** the placed `.git` instance — "
-        "respawn rebuilds a dead static creature from the blueprint, so an "
-        "unsynced instance silently reverts after its first death "
-        "(`tests/check_divergent_creatures.py` is the gate).")
-    add("3. File the new blueprint with `python3 bin/file-palette-orphans.py "
-        "--apply`, or the `check_palette_coverage` gate aborts the repack.")
+    add("Because the shared blueprints are shared hard — `npcbuffgear` alone "
+        "was worn by 49 creatures, 8 of them keepers — a keeper cannot simply "
+        "keep the shared item. Seven **`_ci` variant blueprints** were minted "
+        "(`bossring_ci`, `npcbuffgear_ci`, …), each with its own tag, and the "
+        "keepers repointed at them on both the blueprint and the placed "
+        "instance.")
+    add("")
+    add("To change a decision: edit the `KEEP_*` sets in "
+        "`bin/apply-crit-immunity.py` and re-run it (dry-run by default), then "
+        "`python3 bin/file-palette-orphans.py --apply` if it minted anything "
+        "new, or the `check_palette_coverage` gate aborts the repack.")
     add("")
     add("## By item blueprint")
     add("")
@@ -333,9 +419,10 @@ def markdown(rep, out_path):
     add("|---:|---|---|---|---|---|---|")
     for row in sorted(rep["blueprint_rows"],
                       key=lambda r: (-(r["cr"] or 0), r["creature"])):
+        kept = decision_for(decisions, row["creature"], row["item"])
         add(f"| {row['cr']} | `{row['creature']}` | {row['creature_name']} "
             f"| `{row['item']}` | {row['where']} "
-            f"| {'**YES**' if row['dropable'] else 'no'} |  |")
+            f"| {'**YES**' if row['dropable'] else 'no'} | {kept} |")
     add("")
     add("## Placed instances")
     add("")
