@@ -762,6 +762,62 @@ That is the correct posture for a 41–60 cap and it needs no change:
   set, the area was dropped from `Mod_Area_list`, and the Well of Eru trigger and
   level-40 warning script (`servershout5.nss`) that led to it went with it.
 
+## Legendary feats (level 60)
+
+Feats selectable only at character level 60, granted by a custom picker rather
+than the engine's own level-up feat page. Architecture, build order and the
+publish sequence: [CLAUDE-legendary-feats.md](CLAUDE-legendary-feats.md).
+
+The feat table is owned by `bin/gen-legendary-feats.py`, which writes three
+things from one list: the `hak_2da/feat.2da` rows, the strings
+`bin/build-lotr-tlk` puts in `tlk/lotr.tlk`, and `unpacked/legfeat_ids_inc.nss`
+(the script-side view). Never hand-edit any of the three.
+
+### Resetting a character's legendary feats
+
+Testing feats means taking them, looking at the result, and starting over. A
+legendary feat is added with `NWNX_Creature_AddFeat` and lives in the character's
+`.bic`, so **nothing else in game removes one** — deleting `legfeatdb` clears the
+records but leaves the feats on the character.
+
+In game, on the character you want to reset:
+
+> **Rest → `[Admin Options]` → `[Admin] Reset my legendary feats`**
+
+Admin Options is gated by the `admindb` whitelist (`_cdkey`), so the reset tool
+inherits that gate and sits beside `Grant me level 60`. It puts the character
+back to "never had a legendary feat":
+
+- every legendary feat is removed;
+- base-score points are subtracted **for picks that were recorded in
+  `legfeatdb`**;
+- the pick and allotment records are cleared, so the next level-up, rest or
+  login grants a fresh allotment;
+- the character is exported, writing the corrected base scores through.
+
+**A feat with no pick record has its feat removed but its ability score left
+alone** — DM-granted feats and leftovers from a wiped `legfeatdb` land here.
+Nothing recorded granting those points, and subtracting on a guess would
+permanently lower a base stat. If you wipe the DB *and* want the scores back,
+note the values first and set them with a DM.
+
+The tool iterates the generated feat table, so it keeps working unchanged as the
+feat pool grows. It is `unpacked/legfeat_reset.nss` →
+`LegFeat_ResetCharacter()` in `legfeat_inc.nss`.
+
+### Wiping the database instead
+
+To clear every character's picks at once (test server only — this is not a
+migration path):
+
+```sh
+rm "$HOME/.local/share/Neverwinter Nights S2/database/legfeatdb.sqlite3"
+```
+
+Restart the server afterwards; nwserver keeps writing to the unlinked file until
+it stops, then creates a fresh one. The feats themselves stay on each `.bic` —
+use the reset tool above per character to remove those.
+
 ## Updating a hak / refreshing nwsync
 
 Clients receive the haks + `cep.tlk` the module references through an **nwsync**

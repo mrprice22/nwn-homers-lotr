@@ -174,6 +174,7 @@ The files, and what each owns:
 | `legfeat_evt.nss` | Its click handler (`NuiCreate`'s `sEventScript`). |
 | `legfeat_open.nss` | The one entry point — re-derives the allotment, opens the window. |
 | `legfeat_lvl.nss` | `NWNX_ON_LEVEL_UP_AFTER` **and** `_LEVEL_DOWN_AFTER` handler. |
+| `legfeat_reset.nss` | Admin test tool — rest menu → `[Admin Options]`. Puts a character back to "never had a legendary feat"; a feat added by NWNX lives in the `.bic` and nothing else removes one. See `README.md` "Resetting a character's legendary feats". |
 
 - **Trigger:** `NWNX_ON_LEVEL_UP_AFTER` → `legfeat_lvl`, subscribed in
   `onmoduleload.nss`, firing when `GetHitDice() >= 60`. It opens the picker on a

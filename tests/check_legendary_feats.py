@@ -46,13 +46,14 @@ IDS_INC = UNPACKED / "legfeat_ids_inc.nss"
 MODULE_LOAD = UNPACKED / "onmoduleload.nss"
 CLIENT_ENTER = UNPACKED / "mod_cliententer.nss"
 REST_HOOK = UNPACKED / "on_mod_rest.nss"
+REST_DLG = UNPACKED / "emotewand.dlg.json"
 LEGFEAT_INC = UNPACKED / "legfeat_inc.nss"
 
 # Every script this feature adds. NWN resrefs are capped at 16 characters and
 # the compiler does not warn — a longer name simply never resolves at runtime.
 LEGFEAT_SCRIPTS = [
     "legfeat_db", "legfeat_inc", "legfeat_ids_inc", "legfeat_nui",
-    "legfeat_open", "legfeat_evt", "legfeat_lvl",
+    "legfeat_open", "legfeat_evt", "legfeat_lvl", "legfeat_reset",
 ]
 
 
@@ -245,7 +246,22 @@ def check_wiring(problems):
                 "dismisses the window, or who was already level 60 when this "
                 "shipped, would have no way to spend their picks")
 
-    # 4. Base-score feats must never be re-applied at login. The bonus is
+    # 4. The admin reset tool must stay reachable. It is the only in-game way to
+    #    put a test character back to "never had a legendary feat", and a feat
+    #    granted by NWNX lives in the .bic where nothing else will remove it.
+    if REST_DLG.exists():
+        dlg = json.loads(REST_DLG.read_text(encoding="utf-8"))
+        scripts = {
+            (r.get("Script", {}) or {}).get("value", "")
+            for r in dlg.get("ReplyList", {}).get("value", [])
+        }
+        if "legfeat_reset" not in scripts:
+            problems.append(
+                "emotewand.dlg.json has no reply running legfeat_reset — the "
+                "Admin Options reset tool is unreachable, and a legendary feat "
+                "in a .bic cannot be removed any other way in game")
+
+    # 5. Base-score feats must never be re-applied at login. The bonus is
     #    written into the .bic, so a second application is permanent, silent and
     #    cumulative: +6 per session, forever.
     if LEGFEAT_INC.exists():

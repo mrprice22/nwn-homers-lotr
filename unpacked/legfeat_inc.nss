@@ -77,6 +77,7 @@ int    LegFeat_Take(object oPC, int nIndex);
 void   LegFeat_ApplyOne(object oPC, int nFeatId);
 void   LegFeat_ApplyAll(object oPC);
 void   LegFeat_RevokeAll(object oPC, string sReason);
+int    LegFeat_ResetCharacter(object oPC);
 
 // Character level from CLASS levels, which no effect can touch. Deliberately
 // not GetHitDice(): whether that tracks effective level under energy drain is
@@ -324,4 +325,54 @@ int LegFeat_Take(object oPC, int nIndex)
         ExportSingleCharacter(oPC);
 
     return TRUE;
+}
+
+// Admin test tool: put a character back to "never had a legendary feat".
+//
+// Returns the number of feats removed. Reached from the rest menu's Admin
+// Options (legfeat_reset.nss); see README.md "Resetting a character's legendary
+// feats".
+//
+// Two passes, because the two sources of a legendary feat need different
+// treatment:
+//
+//   1. LegFeat_RevokeAll undoes everything we have a RECORD of granting — the
+//      feat and, for base-score feats, the points.
+//   2. A sweep then removes any legendary feat still on the character with no
+//      record behind it: granted by a DM, or left over from a wiped legfeatdb.
+//      Those have their FEAT removed but their ability score left alone, on
+//      purpose — with no record that we granted the points, subtracting them
+//      would be guessing, and guessing wrong permanently lowers a base stat.
+//
+// The allotment row goes too, so the next check grants a fresh one.
+int LegFeat_ResetCharacter(object oPC)
+{
+    if (!GetIsPC(oPC)) return 0;
+    LegFeat_InitDb();
+
+    int nRecorded = LegFeat_GetSpent(oPC);
+    if (nRecorded > 0)
+        LegFeat_RevokeAll(oPC, "an administrator reset your legendary feats.");
+
+    int nStray = 0;
+    int i;
+    for (i = 0; i < LEGFEAT_COUNT; i++)
+    {
+        int nFeatId = LegFeat_IdAt(i);
+        if (!GetHasFeat(nFeatId, oPC)) continue;
+        NWNX_Creature_RemoveFeat(oPC, nFeatId);
+        nStray++;
+    }
+
+    LegFeat_ClearPicks(oPC);
+    LegFeat_ClearAlloc(oPC);
+    LegFeat_ApplyAll(oPC);          // clears any EFFECT-kind effects too
+    ExportSingleCharacter(oPC);
+
+    if (nStray > 0)
+        SendMessageToPC(oPC, "Removed " + IntToString(nStray)
+            + " legendary feat(s) with no pick record — ability scores were left "
+            + "alone, since nothing recorded granting those points.");
+
+    return nRecorded + nStray;
 }
