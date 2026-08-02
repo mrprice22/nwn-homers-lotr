@@ -794,6 +794,15 @@ asserts the respec still calls that function. Re-picking is refused while
 polymorphed, because a base-score write lands on a body that is about to be
 replaced.
 
+### Where the picker opens from
+
+Reaching level 60 opens it. After that: **Force Rest** (rest menu → *Force Rest*,
+or Admin Options → *Force Rest*) reopens it while picks remain. Note it is
+**Force Rest specifically, not resting**: the module cancels the engine's own
+rest at `REST_STARTED` to open the rest menu, so a plain rest never completes and
+`REST_FINISHED` never fires for it. A green login message reports outstanding
+picks.
+
 ### Resetting a character's legendary feats
 
 Testing feats means taking them, looking at the result, and starting over. A

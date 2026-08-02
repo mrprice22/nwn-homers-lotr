@@ -20,6 +20,7 @@
 #include "faction_db"
 #include "nextlvl_inc"
 #include "legfeat_inc"
+#include "color"
 
 // Legendary feats: re-derive the allotment (which revokes picks a relevel or a
 // lost level has invalidated) and nudge if any are left to spend.
@@ -27,9 +28,9 @@ void LegFeatLoginCheck(object oPC)
 {
     int nRemaining = LegFeat_EnsureAllotment(oPC);
     if (nRemaining <= 0) return;
-    SendMessageToPC(oPC, "You have " + IntToString(nRemaining)
+    SendMessageToPC(oPC, ColorString("You have " + IntToString(nRemaining)
         + " legendary feat pick" + ((nRemaining == 1) ? "" : "s")
-        + " to spend. Rest to choose.");
+        + " to spend. Force Rest to choose.", COLOR_GREEN));
 }
 
 // Death amulet check + persistent state restore. Delayed so the engine's

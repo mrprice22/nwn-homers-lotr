@@ -45,7 +45,13 @@ UNPACKED = REPO / "unpacked"
 IDS_INC = UNPACKED / "legfeat_ids_inc.nss"
 MODULE_LOAD = UNPACKED / "onmoduleload.nss"
 CLIENT_ENTER = UNPACKED / "mod_cliententer.nss"
-REST_HOOK = UNPACKED / "on_mod_rest.nss"
+# Where a rest actually completes in this module: the engine's own rest is
+# cancelled at REST_STARTED to open the rest menu, so ForceRest is the path a
+# player reaches. on_mod_rest keeps a REST_FINISHED hook as a fallback.
+REST_HOOKS = [
+    UNPACKED / "ew_forcerest.nss",
+    UNPACKED / "forcerest.nss",
+]
 REST_DLG = UNPACKED / "emotewand.dlg.json"
 RESPEC_DLG = UNPACKED / "_pc_builder_v1.dlg.json"
 LEGFEAT_INC = UNPACKED / "legfeat_inc.nss"
@@ -240,13 +246,18 @@ def check_wiring(problems):
     # 3. The rest recovery path for a dismissed or half-finished picker. Also
     #    the only route by which a character who reached 60 before this feature
     #    existed ever gets its picks.
-    if REST_HOOK.exists():
-        text = strip_line_comments(REST_HOOK.read_text(encoding="latin-1"))
+    for path in REST_HOOKS:
+        if not path.exists():
+            problems.append(f"unpacked/{path.name} is missing")
+            continue
+        text = strip_line_comments(path.read_text(encoding="latin-1"))
         if "legfeat_open" not in text:
             problems.append(
-                "on_mod_rest.nss does not open the picker — a player who "
-                "dismisses the window, or who was already level 60 when this "
-                "shipped, would have no way to spend their picks")
+                f"{path.name} does not open the picker — Force Rest is the only "
+                "rest that completes in this module (the engine's rest is "
+                "cancelled at REST_STARTED to open the rest menu), so a player "
+                "who dismisses the window, or who was already level 60 when "
+                "this shipped, would have no way to spend their picks")
 
     # 4. The admin reset tool must stay reachable. It is the only in-game way to
     #    put a test character back to "never had a legendary feat", and a feat

@@ -183,12 +183,17 @@ The files, and what each owns:
   **2-second delay**: at `_AFTER` the engine is still finishing the level-up with
   its own UI on screen, and a NUI window opened into that is one the player
   cannot interact with.
-- **Re-entry:** finishing a rest reopens the picker while picks remain
-  (`on_mod_rest.nss`, on `REST_EVENTTYPE_REST_FINISHED`, 2-second delay). Force
-  Rest goes through the same event, since `ew_forcerest` calls `ForceRest`. This
-  replaced a rest-menu conversation node, which UAT judged the wrong shape — the
-  window should just come back. A login nudge covers characters that were already
-  60 when the feature shipped.
+- **Re-entry: hook Force Rest, not the rest event.** The module cancels the
+  engine's own rest at `REST_STARTED` in order to open the rest menu — the log
+  reads "Resting. / Cancelled Rest." — so **`REST_FINISHED` is not a path a
+  player reaches by resting.** `ew_forcerest.nss` and `forcerest.nss` (the two
+  Force Rest actions) open the picker directly, 2-second delay so the
+  conversation has closed. `on_mod_rest.nss` keeps a `REST_FINISHED` hook as a
+  fallback; both firing is harmless, since `LegFeat_Open` destroys any existing
+  window before building a new one. UAT round 2 shipped the `REST_FINISHED` hook
+  alone and nothing happened, with no error — that is what the cancelled rest
+  looks like from the outside. A green login nudge covers characters that were
+  already 60 when the feature shipped.
 - **Allotment** computed from class levels per the table above; granted with
   `NWNX_Creature_AddFeat`. `LegFeat_EnsureAllotment` writes a computed value
   rather than incrementing, so re-firing it from any path is harmless.
