@@ -45,13 +45,14 @@ UNPACKED = REPO / "unpacked"
 IDS_INC = UNPACKED / "legfeat_ids_inc.nss"
 MODULE_LOAD = UNPACKED / "onmoduleload.nss"
 CLIENT_ENTER = UNPACKED / "mod_cliententer.nss"
-REST_DLG = UNPACKED / "emotewand.dlg.json"
+REST_HOOK = UNPACKED / "on_mod_rest.nss"
+LEGFEAT_INC = UNPACKED / "legfeat_inc.nss"
 
 # Every script this feature adds. NWN resrefs are capped at 16 characters and
 # the compiler does not warn — a longer name simply never resolves at runtime.
 LEGFEAT_SCRIPTS = [
     "legfeat_db", "legfeat_inc", "legfeat_ids_inc", "legfeat_nui",
-    "legfeat_open", "legfeat_evt", "legfeat_lvl", "_restemo_lfeat",
+    "legfeat_open", "legfeat_evt", "legfeat_lvl",
 ]
 
 
@@ -233,33 +234,28 @@ def check_wiring(problems):
                 "legendary feat's effect would be lost on logout and never come "
                 "back, with no error and no message")
 
-    # 3. The rest-menu recovery path for a dismissed or half-finished picker.
-    if REST_DLG.exists():
-        dlg = json.loads(REST_DLG.read_text(encoding="utf-8"))
-        replies = dlg.get("ReplyList", {}).get("value", [])
-        entries = dlg.get("EntryList", {}).get("value", [])
-        links = []
-        for entry in entries:
-            links.extend(entry.get("RepliesList", {}).get("value", []))
-        gated = [
-            link for link in links
-            if (link.get("Active", {}) or {}).get("value") == "_restemo_lfeat"
-        ]
-        if not gated:
+    # 3. The rest recovery path for a dismissed or half-finished picker. Also
+    #    the only route by which a character who reached 60 before this feature
+    #    existed ever gets its picks.
+    if REST_HOOK.exists():
+        text = strip_line_comments(REST_HOOK.read_text(encoding="latin-1"))
+        if "legfeat_open" not in text:
             problems.append(
-                "emotewand.dlg.json (the rest menu) has no option gated on "
-                "_restemo_lfeat — a player who dismisses the picker could never "
-                "spend the picks they were granted")
-        for link in gated:
-            index = (link.get("Index", {}) or {}).get("value")
-            script = ""
-            if isinstance(index, int) and 0 <= index < len(replies):
-                script = (replies[index].get("Script", {}) or {}).get("value", "")
-            if script != "legfeat_open":
-                problems.append(
-                    f"the rest-menu legendary-feat option points at reply "
-                    f"{index}, whose Script is {script!r} — expected "
-                    "'legfeat_open'")
+                "on_mod_rest.nss does not open the picker — a player who "
+                "dismisses the window, or who was already level 60 when this "
+                "shipped, would have no way to spend their picks")
+
+    # 4. Base-score feats must never be re-applied at login. The bonus is
+    #    written into the .bic, so a second application is permanent, silent and
+    #    cumulative: +6 per session, forever.
+    if LEGFEAT_INC.exists():
+        text = strip_line_comments(LEGFEAT_INC.read_text(encoding="latin-1"))
+        body = text.split("void LegFeat_ApplyAll", 1)
+        if len(body) < 2 or "LEGFEAT_KIND_RAW) continue" not in body[1]:
+            problems.append(
+                "legfeat_inc.nss LegFeat_ApplyAll does not skip "
+                "LEGFEAT_KIND_RAW feats — base ability scores live in the .bic, "
+                "so re-applying at login stacks another bonus every session")
 
 
 def main():

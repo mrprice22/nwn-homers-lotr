@@ -21,6 +21,17 @@
 #include "nextlvl_inc"
 #include "legfeat_inc"
 
+// Legendary feats: re-derive the allotment (which revokes picks a relevel or a
+// lost level has invalidated) and nudge if any are left to spend.
+void LegFeatLoginCheck(object oPC)
+{
+    int nRemaining = LegFeat_EnsureAllotment(oPC);
+    if (nRemaining <= 0) return;
+    SendMessageToPC(oPC, "You have " + IntToString(nRemaining)
+        + " legendary feat pick" + ((nRemaining == 1) ? "" : "s")
+        + " to spend. Rest to choose.");
+}
+
 // Death amulet check + persistent state restore. Delayed so the engine's
 // own post-login passes (inventory hydration, spellbook sync, "fresh PC"
 // HP/spell resets) have settled before we read or override state.
@@ -148,11 +159,18 @@ void main()
     // delayed step) to stay under the script instruction cap.
     DelayCommand(6.0, ForgeBeginScan(oPC));
 
-    // Legendary feats: the FEAT persists in the .bic, its EFFECTS do not. Every
-    // legendary feat this character has taken needs its bonus re-applied on
-    // every login or the character sheet quietly stops showing it — no error,
-    // no message, just a missing +6. LegFeat_ApplyAll clears its own tagged
-    // effects first, so this is idempotent. Delayed past the login flood, and
-    // after the ability-score-sensitive passes above have settled.
+    // Legendary feats, three jobs on login, all delayed past the login flood:
+    //
+    //  * LegFeat_ApplyAll rebuilds EFFECT-kind bonuses, which do not survive a
+    //    logout. It also strips any stale LEGFEAT_EFF effect, which is what
+    //    cleans the old buff-style ability bonuses off characters granted feats
+    //    by the first build. Base-score (RAW) feats are deliberately NOT
+    //    re-applied — their bonus is already in the .bic.
+    //  * LegFeat_EnsureAllotment re-derives the entitlement, so a relevel or a
+    //    death-loss level is caught even if no level event fired for us. It is
+    //    also what revokes picks the character no longer qualifies for.
+    //  * The nudge tells a level-60 character with unspent picks how to spend
+    //    them. A popup on every login would be intrusive; resting opens one.
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
+    DelayCommand(7.5, LegFeatLoginCheck(oPC));
 }

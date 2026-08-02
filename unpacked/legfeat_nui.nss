@@ -1,8 +1,8 @@
 // legfeat_nui.nss — the Legendary Feats picker window.
 //
 // Opened at character level 60 (legfeat_lvl, from NWNX_ON_LEVEL_UP_AFTER) and
-// re-openable from the rest menu while picks remain. Event handling is in
-// legfeat_evt.nss, registered per-window via NuiCreate's sEventScript.
+// re-opened by finishing a rest while picks remain (on_mod_rest). Event handling
+// is in legfeat_evt.nss, registered per-window via NuiCreate's sEventScript.
 //
 // WHY A CUSTOM PICKER. The engine's own level-up feat page hands out exactly one
 // general feat at 60 to everybody, so the 1 / 2 / 3 allotment cannot be
@@ -17,12 +17,32 @@
 // Two traps already recorded against this repo's other NUI windows apply here:
 // resrefs are capped at 16 characters, and nw_inc_nui has no `&` reference
 // parameters. Both are respected below.
+//
+// LAYOUT: EVERY CHILD GETS AN EXPLICIT WIDTH, AND THE LIST GROUP AN EXPLICIT
+// SIZE. The first build left the list group unsized and gave the description
+// label no width, so the group sized itself to the description text: it took a
+// fraction of the window, grew a horizontal scrollbar, and squeezed the header
+// labels down to "You may choose 2 leg". dye_nui_inc.nss is the working
+// precedent — one group, explicit NuiHeight. The row widths below sum to less
+// than LEGFEAT_LIST_W, and the group scrolls vertically only, so no amount of
+// content can reintroduce a horizontal scrollbar.
 
 #include "nw_inc_nui"
 #include "legfeat_inc"
 
 const string LEGFEAT_WIN = "legfeats";     // NuiCreate window id
 const string LEGFEAT_TOK = "LEGFEAT_TOK";  // PC local: this window's token
+
+// Geometry. The three row columns sum to 660, comfortably inside the list
+// group's 680, which is what keeps the horizontal scrollbar away.
+const float LEGFEAT_WIN_W   = 720.0;
+const float LEGFEAT_WIN_H   = 470.0;
+const float LEGFEAT_LIST_W  = 680.0;
+const float LEGFEAT_LIST_H  = 320.0;
+const float LEGFEAT_COL_BTN = 80.0;
+const float LEGFEAT_COL_NAME = 240.0;
+const float LEGFEAT_COL_EFF  = 340.0;
+const float LEGFEAT_ROW_H    = 30.0;
 
 json LegFeat_Window(object oPC);
 void LegFeat_Open(object oPC);
@@ -39,8 +59,8 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     if (bTaken)
     {
         jRow = JsonArrayInsert(jRow, NuiWidth(
-            NuiLabel(JsonString("[taken]"), JsonInt(NUI_HALIGN_CENTER),
-                     JsonInt(NUI_VALIGN_MIDDLE)), 70.0));
+            NuiLabel(JsonString("taken"), JsonInt(NUI_HALIGN_CENTER),
+                     JsonInt(NUI_VALIGN_MIDDLE)), LEGFEAT_COL_BTN));
     }
     else
     {
@@ -49,19 +69,22 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
         // still read the whole pool and decide before spending.
         jBtn = NuiEnabled(jBtn, JsonBool(nRemaining > 0));
         jBtn = NuiTooltip(jBtn, JsonString(LegFeat_DescAt(nIndex)));
-        jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, 70.0));
+        jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, LEGFEAT_COL_BTN));
     }
 
+    // Name and a short effect summary. The full description is the tooltip on
+    // both — an inline description is what forced the horizontal scrollbar.
     json jName = NuiLabel(JsonString(LegFeat_NameAt(nIndex)),
                           JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
-    jRow = JsonArrayInsert(jRow, NuiWidth(jName, 170.0));
+    jName = NuiTooltip(jName, JsonString(LegFeat_DescAt(nIndex)));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jName, LEGFEAT_COL_NAME));
 
-    json jDesc = NuiLabel(JsonString(LegFeat_DescAt(nIndex)),
-                          JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
-    jDesc = NuiTooltip(jDesc, JsonString(LegFeat_DescAt(nIndex)));
-    jRow = JsonArrayInsert(jRow, jDesc);
+    json jEff = NuiLabel(JsonString(LegFeat_EffectAt(nIndex)),
+                         JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
+    jEff = NuiTooltip(jEff, JsonString(LegFeat_DescAt(nIndex)));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jEff, LEGFEAT_COL_EFF));
 
-    return NuiHeight(NuiRow(jRow), 28.0);
+    return NuiHeight(NuiRow(jRow), LEGFEAT_ROW_H);
 }
 
 json LegFeat_Window(object oPC)
@@ -72,30 +95,31 @@ json LegFeat_Window(object oPC)
     string sHdr;
     if (nRemaining > 0)
         sHdr = "You may choose " + IntToString(nRemaining) + " legendary feat"
-             + ((nRemaining == 1) ? "." : "s.");
+             + ((nRemaining == 1) ? "" : "s") + ".  Choices are permanent.";
     else
         sHdr = "You have spent all of your legendary feats.";
-    jCol = JsonArrayInsert(jCol, NuiHeight(
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
         NuiLabel(JsonString(sHdr), JsonInt(NUI_HALIGN_CENTER),
-                 JsonInt(NUI_VALIGN_MIDDLE)), 24.0));
-    jCol = JsonArrayInsert(jCol, NuiHeight(
-        NuiLabel(JsonString("Choices are permanent."),
-                 JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 20.0));
+                 JsonInt(NUI_VALIGN_MIDDLE)), LEGFEAT_LIST_W), 26.0));
 
-    // The list is scrollable so later content categories can grow it without a
-    // layout rewrite.
+    // Explicitly sized, vertical scrollbars only: the list can grow to the whole
+    // feat pool without the layout changing shape or scrolling sideways.
     json jList = JsonArray();
     int i;
     for (i = 0; i < LEGFEAT_COUNT; i++)
         jList = JsonArrayInsert(jList, LegFeat_Row(oPC, i, nRemaining));
-    jCol = JsonArrayInsert(jCol, NuiGroup(NuiCol(jList), FALSE, NUI_SCROLLBARS_AUTO));
+    json jGroup = NuiGroup(NuiCol(jList), TRUE, NUI_SCROLLBARS_Y);
+    jGroup = NuiWidth(jGroup, LEGFEAT_LIST_W);
+    jGroup = NuiHeight(jGroup, LEGFEAT_LIST_H);
+    jCol = JsonArrayInsert(jCol, jGroup);
 
     json jFoot = JsonArray();
-    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString("Close")), "bclose"));
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(
+        NuiId(NuiButton(JsonString("Close")), "bclose"), 120.0));
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
 
     return NuiWindow(NuiCol(jCol), JsonString("Legendary Feats"),
-        NuiRect(-1.0, -1.0, 620.0, 400.0),
+        NuiRect(-1.0, -1.0, LEGFEAT_WIN_W, LEGFEAT_WIN_H),
         JsonBool(FALSE),   // resizable
         JsonBool(FALSE),   // collapsed
         JsonBool(TRUE),    // closable

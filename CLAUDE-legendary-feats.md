@@ -8,7 +8,8 @@ Design draft: `docs.manual/Draft/LegendaryFeats.html` (~139 feats + 18 dominion
 cantrip toggles + 11 pure-class packages). The draft is a **wish list, not a
 spec** — expect a triage pass, not a transcription.
 
-**Status: phases 1-3 built; phase 1 UAT passed, phases 2-3 awaiting UAT.**
+**Status: phases 1-3 built; phase 1 UAT passed, phases 2-3 in UAT (first round
+found four defects, all fixed — see phase 4).**
 Phase 1 (`bin/build-lotr-tlk`, `tests/check_lotr_tlk.py`, the `Mod_CustomTlk`
 swap) is verified in game. Phase 2 (`bin/gen-legendary-feats.py`, the stock-based
 `hak_2da/feat.2da` with six proof rows, `tests/check_legendary_feats.py`, the hak
@@ -30,7 +31,7 @@ It has no engine mechanic. Every effect is applied server-side by script:
 
 | Effect shape | How |
 |---|---|
-| Ability score bonus | Permanent supernatural `EffectAbilityIncrease` re-applied at login. **Not** a skin item property — see phase 3: PCs here have no skin, and the shapeshift filter destroys the creature-armour item. |
+| Ability score bonus | A write to the character's **base** score (`NWNX_Creature_SetRawAbilityScore` + `ExportSingleCharacter`, the `mw_mixtape_con.nss` route). Applied **once**, never re-applied at login. Not an effect and not a skin item property — see phase 3. |
 | Bonus attack, AC, regen, immunity | Permanent supernatural `Effect*` re-applied at login (e.g. `EffectModifyAttacks(1)` for *Legendary Onslaught*) |
 | Spell behaviour change | Branch in the relevant spell script on `GetHasFeat()` |
 | Passive rule change | Wherever that rule already lives in `unpacked/` |
@@ -171,39 +172,72 @@ The files, and what each owns:
 | `legfeat_inc.nss` | Allotment, `LegFeat_Take`, and the effects. |
 | `legfeat_nui.nss` | The window. |
 | `legfeat_evt.nss` | Its click handler (`NuiCreate`'s `sEventScript`). |
-| `legfeat_open.nss` | The one entry point — resolves the PC from `GetPCSpeaker()` or `OBJECT_SELF`, grants the allotment, opens the window. |
-| `legfeat_lvl.nss` | `NWNX_ON_LEVEL_UP_AFTER` handler. |
-| `_restemo_lfeat.nss` | Rest-menu StartingConditional. |
+| `legfeat_open.nss` | The one entry point — re-derives the allotment, opens the window. |
+| `legfeat_lvl.nss` | `NWNX_ON_LEVEL_UP_AFTER` **and** `_LEVEL_DOWN_AFTER` handler. |
 
 - **Trigger:** `NWNX_ON_LEVEL_UP_AFTER` → `legfeat_lvl`, subscribed in
   `onmoduleload.nss`, firing when `GetHitDice() >= 60`. It opens the picker on a
   **2-second delay**: at `_AFTER` the engine is still finishing the level-up with
   its own UI on screen, and a NUI window opened into that is one the player
   cannot interact with.
-- **Re-entry:** rest-menu option `[Choose your Legendary Feats.]` in
-  `emotewand.dlg` (reply 138), gated by `_restemo_lfeat`. Shown while picks
-  remain **or** when the character has no allotment row at all — that second case
-  is how a character who reached 60 before this shipped gets its picks. The
-  conditional deliberately writes nothing; `legfeat_open` grants when the option
-  is actually chosen.
+- **Re-entry:** finishing a rest reopens the picker while picks remain
+  (`on_mod_rest.nss`, on `REST_EVENTTYPE_REST_FINISHED`, 2-second delay). Force
+  Rest goes through the same event, since `ew_forcerest` calls `ForceRest`. This
+  replaced a rest-menu conversation node, which UAT judged the wrong shape — the
+  window should just come back. A login nudge covers characters that were already
+  60 when the feature shipped.
 - **Allotment** computed from class levels per the table above; granted with
-  `NWNX_Creature_AddFeat`. `LegFeat_EnsureAllotment` writes a fixed value rather
-  than incrementing, so re-firing it from any path is harmless — that is what
-  makes a relog safe.
-- **Effects are permanent supernatural effects, not skin item properties.** This
-  reverses the plan above, for two reasons found while building it: PCs in this
-  module have no creature-armour skin (nothing creates one), and
-  `sd_filter_inc.nss` **destroys** the creature-armour item on shapeshift — a
-  druid would silently lose every legendary bonus on their first shift. A
-  permanent supernatural `EffectAbilityIncrease` survives rest and dispel, shows
-  on the sheet, and is rebuilt at login. Every effect is tagged `LEGFEAT_EFF`,
-  and `LegFeat_ApplyAll` clears that tag before re-applying, so it is idempotent.
-- **Re-apply effects at login** — `mod_cliententer.nss`, `DelayCommand(6.5, …)`.
-  The *feat* persists in the `.bic`; its *effects* do not. This is the piece most
-  likely to be forgotten and it fails silently, so
-  `tests/check_legendary_feats.py` asserts the call is there (with `//` comments
-  stripped first — the first version of that check happily matched the comment
-  explaining the call).
+  `NWNX_Creature_AddFeat`. `LegFeat_EnsureAllotment` writes a computed value
+  rather than incrementing, so re-firing it from any path is harmless.
+- **Two kinds of benefit, and the difference is load-bearing.** The generator
+  tags each feat `LEGFEAT_KIND_RAW` or `LEGFEAT_KIND_EFFECT`:
+  - **RAW** writes the character's **base** ability score and is saved in the
+    `.bic`. Applied exactly once, at the pick, followed by
+    `ExportSingleCharacter`. **Never re-applied at login** — that would stack
+    another +6 into the character every session, silently and permanently.
+    `tests/check_legendary_feats.py` asserts `LegFeat_ApplyAll` skips them.
+  - **EFFECT** is a permanent supernatural effect tagged `LEGFEAT_EFF`, rebuilt
+    on every login by `LegFeat_ApplyAll`, which clears the tag first so it is
+    idempotent. Nothing uses it yet; phase 5 content will.
+- **Re-apply EFFECT feats at login** — `mod_cliententer.nss`,
+  `DelayCommand(6.5, …)`. The *feat* persists in the `.bic`; a supernatural
+  *effect* does not. This is the piece most likely to be forgotten and it fails
+  silently, so the gate asserts the call is there (with `//` comments stripped
+  first — the first version of that check happily matched the comment explaining
+  the call).
+
+#### Revoking: the two triggers, and the one false positive that must not happen
+
+`LegFeat_EnsureAllotment` re-derives the entitlement on **every** call (level up,
+level down, login, rest, picker open). The first build wrote the allotment row
+once and never looked again, so a pure barbarian who took 2 picks and relevelled
+to 59 barbarian / 1 bard kept both — a two-minute exploit with the level setter
+on this server.
+
+Every pick is revoked when:
+
+1. **The class composition changed.** Compared via a **class signature** —
+   sorted class ids with levels, *no level numbers* (`"36"`, `"1,36"`), built by
+   walking class ids in order because NWScript has no arrays. Excluding levels is
+   what stops 59 → 60 reading as a change, and the signature alone determines the
+   allotment.
+2. **The character is no longer level 60.** Death XP loss can take a 60 back to
+   59. The allotment row is dropped too, so the picks are re-earned on the way up
+   rather than banked.
+
+**Energy drain is not a level loss**, and treating it as one would strip a
+permanent feat because a wraith touched someone. Two independent guards:
+
+- The level is judged from **class levels** (`LegFeat_TrueLevel`, summing
+  `GetLevelByPosition`), which no effect can touch — deliberately not
+  `GetHitDice`.
+- If the character carries any `EFFECT_TYPE_NEGATIVELEVEL`, **no revoke decision
+  is made at all**. It re-runs at the next login or level event, so deferring
+  costs nothing.
+
+Revoking takes the feat back (`NWNX_Creature_RemoveFeat`) *and* subtracts the
+base-score points, floored at 3 so a relevel that rebuilt the scores underneath
+us cannot produce nonsense, then exports the character.
 
 ### Phase 4 — end-to-end UAT
 
@@ -212,6 +246,26 @@ picker pops, allotment correct, pick applies, the bonus shows on the character
 sheet, relog keeps it, rest reopens the picker while picks remain, and the
 engine's own feat page never lists a legendary feat. **No category story starts
 until this passes.**
+
+**Round 1 (2026-08-01) found four defects, all fixed.** They are recorded here
+because three of them are the kind that would be reintroduced by someone reading
+only the design:
+
+1. **The allotment was never re-checked** — see "Revoking" above.
+2. **Rest did not reopen the picker.** It shipped as a rest-menu conversation
+   node; the wanted behaviour was the window simply coming back on rest.
+3. **The ability bonus was a buff, not a base-score change.** An
+   `EffectAbilityIncrease` renders green with a buff icon and **counts against
+   the server's maximum enchantment ability bonus**, so a character already at
+   the gear cap gained nothing at all from the feat. Hence `LEGFEAT_KIND_RAW`.
+4. **The picker was cramped** — an unsized list group with an unconstrained
+   description label sized itself to the description text, so it occupied a
+   fraction of the window, grew a horizontal scrollbar and clipped the header to
+   "You may choose 2 leg". Every child now has an explicit width, the group has
+   an explicit size, and it scrolls vertically only.
+
+The level-up half of the "never on the engine's feat page" check passed on
+2026-08-01: with the hak and TLK live, a level-up offered no legendary feat.
 
 ### Phase 5+ — content, one category per release
 

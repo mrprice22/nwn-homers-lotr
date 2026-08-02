@@ -105,6 +105,13 @@ class Feat:
     # from the same table that names the feat. -1 = not an ability feat.
     ability: int = -1
     bonus: int = 0
+    # How the effect is applied. "raw_ability" writes the character's BASE
+    # ability score (NWNX_Creature_SetRawAbilityScore, the Akira's Mixtape
+    # route): permanent, saved in the .bic, applied exactly once and never
+    # re-applied at login. "effect" is a permanent supernatural effect rebuilt
+    # on every login. Getting this wrong on a raw_ability feat stacks another
+    # +6 into the .bic every session, silently and permanently.
+    kind: str = "effect"
 
 
 # ---------------------------------------------------------------------------
@@ -118,33 +125,33 @@ FEATS: list[Feat] = [
     Feat("LEGENDARY_STRENGTH", "Legendary Strength",
          "Your might has passed out of the merely mortal. You gain a permanent "
          "+6 bonus to Strength.",
-         "ife_X2GrStr1", effect="+6 STR",
-         category="Ability Scores", ability=0, bonus=6),
+         "ife_X2GrStr1", effect="+6 Strength (base)",
+         category="Ability Scores", ability=0, bonus=6, kind="raw_ability"),
     Feat("LEGENDARY_DEXTERITY", "Legendary Dexterity",
          "You move as the wind through grass. You gain a permanent +6 bonus to "
          "Dexterity.",
-         "ife_X2GrDex1", effect="+6 DEX",
-         category="Ability Scores", ability=1, bonus=6),
+         "ife_X2GrDex1", effect="+6 Dexterity (base)",
+         category="Ability Scores", ability=1, bonus=6, kind="raw_ability"),
     Feat("LEGENDARY_CONSTITUTION", "Legendary Constitution",
          "Hurt cannot find purchase in you. You gain a permanent +6 bonus to "
          "Constitution.",
-         "ife_X2GrCon1", effect="+6 CON",
-         category="Ability Scores", ability=2, bonus=6),
+         "ife_X2GrCon1", effect="+6 Constitution (base)",
+         category="Ability Scores", ability=2, bonus=6, kind="raw_ability"),
     Feat("LEGENDARY_INTELLIGENCE", "Legendary Intelligence",
          "Lore long lost lies open to you. You gain a permanent +6 bonus to "
          "Intelligence.",
-         "ife_X2GrInt1", effect="+6 INT",
-         category="Ability Scores", ability=3, bonus=6),
+         "ife_X2GrInt1", effect="+6 Intelligence (base)",
+         category="Ability Scores", ability=3, bonus=6, kind="raw_ability"),
     Feat("LEGENDARY_WISDOM", "Legendary Wisdom",
          "You see the shape of things as they truly are. You gain a permanent "
          "+6 bonus to Wisdom.",
-         "ife_X2GrWis1", effect="+6 WIS",
-         category="Ability Scores", ability=4, bonus=6),
+         "ife_X2GrWis1", effect="+6 Wisdom (base)",
+         category="Ability Scores", ability=4, bonus=6, kind="raw_ability"),
     Feat("LEGENDARY_CHARISMA", "Legendary Charisma",
          "Others follow where you lead, and are glad of it. You gain a "
          "permanent +6 bonus to Charisma.",
-         "ife_X2GrCha1", effect="+6 CHA",
-         category="Ability Scores", ability=5, bonus=6),
+         "ife_X2GrCha1", effect="+6 Charisma (base)",
+         category="Ability Scores", ability=5, bonus=6, kind="raw_ability"),
 ]
 
 
@@ -182,6 +189,13 @@ def nss_include():
         f"const int LEGFEAT_COUNT = {len(FEATS)};",
         f"const int LEGFEAT_FIRST = {FIRST_ROW};",
         "",
+        "// How a feat's benefit is applied. RAW writes the character's BASE",
+        "// ability score and is saved in the .bic, so it is applied exactly ONCE",
+        "// and must never be re-applied at login. EFFECT is a permanent",
+        "// supernatural effect and IS rebuilt on every login.",
+        "const int LEGFEAT_KIND_EFFECT = 0;",
+        "const int LEGFEAT_KIND_RAW    = 1;",
+        "",
     ]
     for offset, feat in enumerate(FEATS):
         lines.append(f"const int FEAT_{feat.label} = {FIRST_ROW + offset};")
@@ -197,6 +211,10 @@ def nss_include():
         "// feat is not an ability feat) and the size of the bonus.",
         "int LegFeat_AbilityAt(int n);",
         "int LegFeat_BonusAt(int n);",
+        "// LEGFEAT_KIND_* — how this feat's benefit is applied.",
+        "int LegFeat_KindAt(int n);",
+        "// Short summary for the picker's effect column (e.g. \"+6 Strength\").",
+        "string LegFeat_EffectAt(int n);",
         "",
         "int LegFeat_IdAt(int n)",
         "{",
@@ -251,6 +269,31 @@ def nss_include():
     lines += [
         "    }",
         "    return 0;",
+        "}",
+        "",
+        "int LegFeat_KindAt(int n)",
+        "{",
+        "    switch (n)",
+        "    {",
+    ]
+    for offset, feat in enumerate(FEATS):
+        kind = "LEGFEAT_KIND_RAW" if feat.kind == "raw_ability" else "LEGFEAT_KIND_EFFECT"
+        lines.append(f"        case {offset}: return {kind};")
+    lines += [
+        "    }",
+        "    return LEGFEAT_KIND_EFFECT;",
+        "}",
+        "",
+        "string LegFeat_EffectAt(int n)",
+        "{",
+        "    switch (n)",
+        "    {",
+    ]
+    for offset, feat in enumerate(FEATS):
+        lines.append(f'        case {offset}: return "{feat.effect}";')
+    lines += [
+        "    }",
+        '    return "";',
         "}",
         "",
     ]

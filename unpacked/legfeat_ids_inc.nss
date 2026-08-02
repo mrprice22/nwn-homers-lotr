@@ -10,6 +10,13 @@
 const int LEGFEAT_COUNT = 6;
 const int LEGFEAT_FIRST = 1116;
 
+// How a feat's benefit is applied. RAW writes the character's BASE
+// ability score and is saved in the .bic, so it is applied exactly ONCE
+// and must never be re-applied at login. EFFECT is a permanent
+// supernatural effect and IS rebuilt on every login.
+const int LEGFEAT_KIND_EFFECT = 0;
+const int LEGFEAT_KIND_RAW    = 1;
+
 const int FEAT_LEGENDARY_STRENGTH = 1116;
 const int FEAT_LEGENDARY_DEXTERITY = 1117;
 const int FEAT_LEGENDARY_CONSTITUTION = 1118;
@@ -27,6 +34,10 @@ string LegFeat_DescAt(int n);
 // feat is not an ability feat) and the size of the bonus.
 int LegFeat_AbilityAt(int n);
 int LegFeat_BonusAt(int n);
+// LEGFEAT_KIND_* — how this feat's benefit is applied.
+int LegFeat_KindAt(int n);
+// Short summary for the picker's effect column (e.g. "+6 Strength").
+string LegFeat_EffectAt(int n);
 
 int LegFeat_IdAt(int n)
 {
@@ -88,4 +99,32 @@ int LegFeat_BonusAt(int n)
         case 5: return 6;
     }
     return 0;
+}
+
+int LegFeat_KindAt(int n)
+{
+    switch (n)
+    {
+        case 0: return LEGFEAT_KIND_RAW;
+        case 1: return LEGFEAT_KIND_RAW;
+        case 2: return LEGFEAT_KIND_RAW;
+        case 3: return LEGFEAT_KIND_RAW;
+        case 4: return LEGFEAT_KIND_RAW;
+        case 5: return LEGFEAT_KIND_RAW;
+    }
+    return LEGFEAT_KIND_EFFECT;
+}
+
+string LegFeat_EffectAt(int n)
+{
+    switch (n)
+    {
+        case 0: return "+6 Strength (base)";
+        case 1: return "+6 Dexterity (base)";
+        case 2: return "+6 Constitution (base)";
+        case 3: return "+6 Intelligence (base)";
+        case 4: return "+6 Wisdom (base)";
+        case 5: return "+6 Charisma (base)";
+    }
+    return "";
 }
