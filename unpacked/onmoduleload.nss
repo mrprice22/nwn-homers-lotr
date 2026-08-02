@@ -94,6 +94,13 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "sk_probe_post");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "legfeat_lvl");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, "legfeat_lvl");
 
+// Some legendary feats are CONDITIONAL on what the character is holding —
+// Legendary Onslaught grants its extra attack for melee and unarmed but not for
+// a bow. legfeat_equip rebuilds those on every weapon swap; without it the
+// effect goes stale silently, and an archer keeps a melee-only bonus attack.
+NWNX_Events_SubscribeEvent(NWNX_ON_ITEM_EQUIP_AFTER,   "legfeat_equip");
+NWNX_Events_SubscribeEvent(NWNX_ON_ITEM_UNEQUIP_AFTER, "legfeat_equip");
+
 // Party loot: announce current roll settings when a player joins a party or the
 // party leadership changes (pl_party_evt broadcasts to the whole party).
 NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER, "pl_party_evt");

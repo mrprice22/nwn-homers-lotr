@@ -49,8 +49,8 @@
 //                         silently and permanently.
 //   LEGFEAT_KIND_EFFECT — a permanent supernatural effect, tagged
 //                         LEGFEAT_EFFECT_TAG and rebuilt on every login by
-//                         LegFeat_ApplyAll. Nothing uses this yet; phase 5
-//                         content will.
+//                         LegFeat_ApplyAll. Legendary Assault and Legendary
+//                         Onslaught are the first two.
 //
 // Ability bonuses were LEGFEAT_KIND_EFFECT in the first build. UAT found the
 // problem: an EffectAbilityIncrease renders as a *buffed* score (green, with a
@@ -74,6 +74,7 @@ int    LegFeat_Allotment(object oPC);
 int    LegFeat_Remaining(object oPC);
 int    LegFeat_EnsureAllotment(object oPC);
 int    LegFeat_IndexOf(int nFeatId);
+int    LegFeat_IsMeleeArmed(object oPC);
 int    LegFeat_Take(object oPC, int nIndex);
 void   LegFeat_ApplyOne(object oPC, int nFeatId);
 void   LegFeat_ApplyAll(object oPC);
@@ -164,11 +165,40 @@ int LegFeat_IndexOf(int nFeatId)
     return n;
 }
 
+// Is this character fighting in melee right now? Unarmed counts — the only
+// thing that answers FALSE is a ranged weapon in the right hand.
+//
+// Read by CONDITIONAL feats (Legendary Onslaught), whose effect depends on what
+// is held rather than on the feat alone. Those are rebuilt by legfeat_equip.nss
+// on every equip and unequip, so the answer here is never stale for long.
+int LegFeat_IsMeleeArmed(object oPC)
+{
+    object oRight = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oPC);
+    if (!GetIsObjectValid(oRight)) return TRUE;      // bare hands are melee
+    return !GetWeaponRanged(oRight);
+}
+
+// Apply a permanent supernatural, LEGFEAT_EFF-tagged effect. Every EFFECT-kind
+// feat goes through here, so the tagging that makes LegFeat_ApplyAll idempotent
+// is written once and cannot be forgotten on a new feat.
+void LegFeat_ApplyEffect(object oPC, effect e)
+{
+    e = SupernaturalEffect(e);                  // survives rest and dispel
+    e = TagEffect(e, LEGFEAT_EFFECT_TAG);
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, e, oPC);
+}
+
 // Apply one feat's benefit.
 //
 // RAW feats write the base score and are exported by the caller. EFFECT feats
 // get a tagged permanent supernatural effect; idempotence for those is
 // LegFeat_ApplyAll's job (it clears the tag first).
+//
+// ADDING A FEAT: the ability-score feats are table-driven (ability + bonus come
+// from legfeat_ids_inc.nss, which the generator writes), so they need no case
+// here. Everything else gets a case in the switch below. A feat with no case
+// and no ability payload applies nothing at all and fails silently — the pick
+// records, the feat appears on the sheet, and the benefit never arrives.
 void LegFeat_ApplyOne(object oPC, int nFeatId)
 {
     int nIndex = LegFeat_IndexOf(nFeatId);
@@ -176,19 +206,33 @@ void LegFeat_ApplyOne(object oPC, int nFeatId)
 
     int nAbility = LegFeat_AbilityAt(nIndex);
     int nBonus   = LegFeat_BonusAt(nIndex);
-    if (nAbility < 0 || nBonus <= 0) return;   // no ability payload (yet)
 
-    if (LegFeat_KindAt(nIndex) == LEGFEAT_KIND_RAW)
+    if (nAbility >= 0 && nBonus > 0)
     {
-        int nCur = NWNX_Creature_GetRawAbilityScore(oPC, nAbility);
-        NWNX_Creature_SetRawAbilityScore(oPC, nAbility, nCur + nBonus);
+        if (LegFeat_KindAt(nIndex) == LEGFEAT_KIND_RAW)
+        {
+            int nCur = NWNX_Creature_GetRawAbilityScore(oPC, nAbility);
+            NWNX_Creature_SetRawAbilityScore(oPC, nAbility, nCur + nBonus);
+            return;
+        }
+        LegFeat_ApplyEffect(oPC, EffectAbilityIncrease(nAbility, nBonus));
         return;
     }
 
-    effect eAbil = EffectAbilityIncrease(nAbility, nBonus);
-    eAbil = SupernaturalEffect(eAbil);          // survives rest and dispel
-    eAbil = TagEffect(eAbil, LEGFEAT_EFFECT_TAG);
-    ApplyEffectToObject(DURATION_TYPE_PERMANENT, eAbil, oPC);
+    switch (nFeatId)
+    {
+        case FEAT_LEGENDARY_PROWESS:
+            LegFeat_ApplyEffect(oPC, EffectAttackIncrease(5));
+            break;
+
+        // CONDITIONAL: melee only. EffectModifyAttacks, not an attack-speed
+        // effect — it adds a whole extra attack at full BAB rather than
+        // shifting the iterative progression.
+        case FEAT_LEGENDARY_ONSLAUGHT:
+            if (LegFeat_IsMeleeArmed(oPC))
+                LegFeat_ApplyEffect(oPC, EffectModifyAttacks(1));
+            break;
+    }
 }
 
 // Clear and rebuild every EFFECT-kind legendary effect on this character.
@@ -331,6 +375,12 @@ int LegFeat_Take(object oPC, int nIndex)
     if (LegFeat_HasPick(oPC, nFeatId)) return FALSE;
     if (GetHasFeat(nFeatId, oPC)) return FALSE;   // belt and braces vs a DM grant
     if (LegFeat_IsPolymorphed(oPC)) return FALSE; // raw-score write is unsafe here
+
+    // Prerequisites are checked HERE as well as in the picker, which greys the
+    // row. The window is a client-side snapshot: it is rebuilt after each pick,
+    // but a player who took the feat a prerequisite depends on, or lost one to a
+    // relevel, is holding a stale list. This is the check that actually binds.
+    if (!LegFeat_MeetsPrereq(oPC, nIndex)) return FALSE;
 
     NWNX_Creature_AddFeat(oPC, nFeatId);
     LegFeat_RecordPick(oPC, nFeatId);

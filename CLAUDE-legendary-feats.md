@@ -12,7 +12,128 @@ This document records the architecture and the order the pieces must be built in
 so the sequencing does not have to be re-derived. Roadmap items: `ll-feats-tlk`,
 `ll-feats-2da`, `ll-feats-picker`, then the seven `ll-feats-*` category stories.
 
-## Checkpoint — 2026-08-01
+## Checkpoint — 2026-08-01 (second session)
+
+**Phases 1–4 are done. Phase 5 has started: the triage pass is complete and the
+first two effect feats are approved, published and awaiting UAT.** A new session should
+read this section, then
+[CLAUDE-legendary-feats-triage.md](CLAUDE-legendary-feats-triage.md).
+
+### The rule that overrides everything else here
+
+**Never implement a legendary feat without the admin's explicit approval of that
+specific feat** — name, effect, numbers, prerequisites. **This covers every
+category, without exception**: martial, defensive, arcane, divine, ki,
+performance, skills, exotic, spell upgrades, dominion, hybrid. Not just the ones
+under active discussion, and not just the ones with open design questions.
+
+The triage document and the `ll-feats-*` backlog read like a settled plan; they
+are proposals. As of the end of this session the admin has reviewed **only** the
+martial replacement set and the Shadow Bomb / Second Wind / Dominion decisions
+below — **everything else in the triage document is unreviewed**, including the
+defensive tranche this file recommends building next. Recommending an order is
+not approval to build it.
+
+**Building machinery unprompted is fine; building content is not.**
+
+> **Approved and published 2026-08-01:** *Legendary Prowess* and *Legendary
+> Onslaught*, after being retuned in the same session (see below). They are the
+> first feats to go through this approval gate — everything else in the triage
+> document is still unreviewed.
+
+### Built and published this session
+
+- **Prerequisites** (`prereq` / `prereq_text` on `Feat` → generated
+  `LegFeat_MeetsPrereq` / `LegFeat_PrereqAt`), enforced in both the picker and
+  `LegFeat_Take`.
+- **The first two `LEGFEAT_KIND_EFFECT` feats**, rows 1122-1123, **approved:**
+  - *Legendary Prowess* — +5 attack bonus. Prereq **BAB 35+ and Epic Prowess**.
+  - *Legendary Onslaught* — +1 attack per round, **melee and unarmed only**.
+    Prereq **BAB 30+ and Monk level 30+**. The pool's first CONDITIONAL feat.
+- **Two new gates** in `tests/check_legendary_feats.py`, both negative-tested.
+
+**Published** — TLK, hak, nwsync, repack and restart all ran. **The UAT step
+that matters most is the relog check**: these are the first effect feats, so
+they are the first real exercise of the login re-apply path, and it has not been
+exercised in game yet. Remaining UAT is on `ll-feats-ability-martial`.
+
+### Decisions taken this session (do not relitigate)
+
+- **Pure-class passive packages: cut.** The 3/2/1 allotment is the pure-class
+  reward; further pure-class support will be **items**, not feats. Consequently
+  **no feat may test for purity** — rewrite the draft's `<class> level 60`
+  prerequisites (purity tests in disguise at a cap of 60) to `<class> level 30+`.
+- **Activated feats do not need `spells.2da`** — a bound token item plus a tag
+  case in `dmfi_activate.nss` (the Horn of the Fell Beast pattern). But **item
+  activation costs ~2 in-game turns, so it is unusable for reflexive combat
+  abilities.** Automatic triggers for those; tokens only for stance-like choices.
+- **Legendary Shadow Step is replaced by Legendary Shadow Bomb** — automatic at
+  35% HP, `EffectCutsceneParalyze` in a radius (unresistable, and identical to
+  normal paralysis otherwise, so victims are helpless and sneak-attackable), 90s
+  cooldown, hits allies too, bosses not exempt, snapshot at trigger. **Never
+  build it out of `EffectTimeStop`, which is module-wide.**
+- **Legendary Second Wind** — automatic at 25% HP, **full heal**, once per rest,
+  no after-effect. Reset the per-rest use on the **Force Rest actions**, never
+  `REST_FINISHED`.
+- **Dominion** — trinket + NUI element picker, usable in combat, 3 selections per
+  rest, and the window always opens because reverting to stock damage types is
+  free. The draft's eight missing cantrips are no longer needed.
+- **The martial set has a reviewed replacement list** for the six engine-owned
+  cuts, plus ranged and party-support feats the draft lacked entirely. Full table
+  with agreed numbers and prerequisites is in the triage doc.
+
+### The blocker in front of the martial set
+
+**The NWNX Damage plugin needs enabling**, and the admin has not yet said yes.
+Nothing in the current plugin set can tell a script that a hit was a critical, or
+that an attack landed — `NWNX_Events` has no attack-resolution event and stock
+NWScript never exposes the result. `NWNX_Damage_AttackEventData` does
+(`iAttackResult` 3 = critical, 10 = devastating; plus `bRangedAttack`,
+`bKillingBlow`, `iToHitRoll`, and modifiable per-type damage).
+
+The include is already staged at `.nwnx_includes/nwnx_damage.nss` and the server
+runs `nwnxee/unified`, so enabling is: copy it into `unpacked/`, set
+`NWNX_DAMAGE_SKIP=n`, restart. **Caution: the damage event intercepts every point
+of damage on the server**, so it wants its own gate and a handler that returns
+early when nothing applies.
+
+Feats blocked on it: **Butcher, Sundering, Quarry, Wrath**, and **Bulwark** gets
+strictly better with it (damage reduced *before* it lands, so it can prevent a
+killing blow).
+
+### The next thing to build is not a legendary feat
+
+**`devcrit-roll`** (roadmap, promoted to `wip`) — a player request from Piskan,
+now designed and **a prerequisite for Legendary Butcher**:
+
+- Devastating Critical stops being save-or-die and becomes **+3 dice** of bonus
+  physical damage typed to the weapon; **Butcher adds +5 more, stacking**.
+- **Die size scales with weapon size** — d6 small, d8 medium, d10 large, so a
+  large weapon with both lands **+8d10**. Weapon size comes from
+  `Get2DAString("baseitems", "WeaponSize", …)`; NWScript has no `GetWeaponSize`.
+- **Symmetric: it applies to NPCs and players alike.**
+- **Suppressing the instant kill is a second mechanism** — the engine applies it
+  as an `EffectDeath`, not as damage, so the damage event cannot stop it. Use
+  `NWNX_ON_EFFECT_APPLIED_BEFORE` + `NWNX_Events_SkipEvent()`, discriminated by a
+  short-lived flag the attack event sets when `iAttackResult == 10`. The module
+  already subscribes the `_AFTER` half of that event for `eff_dur_x2`.
+- **It must ship with an audit of every crit-immune NPC and the source of each
+  immunity.** First pass measured: 91 item blueprints grant it, 181 of 777
+  creature blueprints carry one, no script applies it, and it is concentrated in
+  `npcbuffgear*` (~75 creatures) and `bossring`/`dontdropbossring` (~41) — so
+  removing it is a handful of item edits, not a 181-creature sweep.
+
+Then `remove-crit-immunity` (the same rework from the boss angle) becomes
+reviewable.
+
+### Suggested order from here
+
+1. `devcrit-roll` + the NWNX Damage enable (unblocks four martial feats).
+2. **`ll-feats-defense`** — 13 of its 16 feats are a single permanent effect, the
+   cheapest breadth available while the pool holds eight feats.
+3. The reviewed martial replacement set.
+
+## Checkpoint — 2026-08-01 (first session)
 
 **Phases 1–3 are built, published and working in game. The machinery is done;
 what is left is content.** Three UAT rounds ran the same day, each finding
@@ -44,26 +165,54 @@ session should either drive these or ask for them before starting content:
   return to the same numbers each time (upward drift is the stat farm).
 - Re-picking refused while polymorphed; the Ping Pong node absent below 60.
 
-### Where to pick up
+### Where to pick up (superseded — see the second-session checkpoint above)
 
-**Phase 5, content — start with the triage pass** described at the bottom of
-this document. Adding a feat is now: append to `FEATS` in
-`bin/gen-legendary-feats.py`, `--apply`, write the behaviour, publish. The table
-is append-only and drives the 2DA rows, the TLK strings and
+**Phase 5, content.** The triage pass is done —
+[CLAUDE-legendary-feats-triage.md](CLAUDE-legendary-feats-triage.md) carries the
+route for every one of the draft's 139 entries, the duplicates resolved, and the
+cuts. **Read the relevant section of it before starting any category story**; it
+is what stops "can NWN even do that?" being re-derived per feat.
+
+Adding a feat is: append to `FEATS` in `bin/gen-legendary-feats.py`, `--apply`,
+write the behaviour (a case in `LegFeat_ApplyOne` for an effect feat), publish.
+The table is append-only and drives the 2DA rows, the TLK strings and
 `unpacked/legfeat_ids_inc.nss` together.
 
-Two open design threads that are cheap now and expensive later:
+Both of the design threads the last session flagged are now closed:
 
-- **`LEGFEAT_KIND_EFFECT` has never been exercised.** Every feat so far is
-  `RAW`. The first non-ability feat is also the first test of the login re-apply
-  path, so expect to debug that machinery when it lands rather than assuming it
-  works.
-- **Prerequisites are not implemented.** The inert-token model puts them in the
-  picker, in script, and nothing needs them yet because the six ability feats
-  have none. The draft's martial feats do (BAB 20+, "Epic Weapon Specialization
-  in", "Cleave"), so `ll-feats-ability-martial` is where that gets designed —
-  probably a `prereq` field on `Feat` and a `LegFeat_MeetsPrereq()` the picker
-  consults when deciding whether to grey a row.
+- **`LEGFEAT_KIND_EFFECT` is exercised.** *Legendary Prowess* (`+5 AB`) and
+  *Legendary Onslaught* (`+1 attack/round`) are the first two, and the first real
+  test of the login re-apply path. **Confirm that path in game before adding
+  more effect feats** — every one after them rides on it.
+- **Prerequisites are implemented.** A `Feat` carries `prereq` (an NWScript
+  boolean expression over `oPC`, rendered verbatim into `LegFeat_MeetsPrereq`)
+  and `prereq_text` (what the picker shows). The generator refuses to run with
+  one and not the other. Enforced **twice**: the picker greys the row and shows
+  "Requires: …" in the effect column, and `LegFeat_Take` re-checks — the window
+  is a client-side snapshot, so it is the server-side check that binds.
+  Ability prerequisites must read **base** scores; a requirement met by swapping
+  a belt on for one button press is not a requirement.
+
+Both of the questions the triage raised are now **answered** (2026-08-01):
+
+- **Activated feats do not need `spells.2da`.** The module's `OnActivateItem`
+  (`dmfi_activate.nss`) already dispatches by item tag — the Dye Kit, the
+  bestiary book and the Horn of the Fell Beast all work that way. An activated
+  legendary feat is a bound token item carrying *Unique Power (Self Only)* plus
+  a tag case, granted and revoked alongside the feat. Prefer an automatic
+  trigger where one reads the same; use a token only where the choice of moment
+  is the point.
+- **The pure-class passive packages are cut.** The **3 / 2 / 1 allotment is the
+  pure-class reward**, and further pure-class support will be *items*, not
+  feats.
+
+**The rule that came with that second decision, and it binds every category
+story: no legendary feat may test for purity** — not in a prerequisite, not in
+the picker, not in its effect. The draft's `<class> level 60` prerequisites are
+purity tests in disguise at a cap of 60 and must be rewritten to a threshold a
+multiclass can reach (house form: `<class> level 30+`). Class-level
+prerequisites themselves are fine — "Monk level 30+" asks for the class the feat
+belongs to, and a 30/30 Monk/Rogue qualifying is intended.
 
 ## The core idea: feats are inert tokens
 
@@ -213,7 +362,7 @@ The files, and what each owns:
 
 | File | Owns |
 |---|---|
-| `legfeat_ids_inc.nss` | **Generated** by `bin/gen-legendary-feats.py`. Feat ids, names, descriptions, and the ability/bonus each ability feat carries. No script hand-types a row number. |
+| `legfeat_ids_inc.nss` | **Generated** by `bin/gen-legendary-feats.py`. Feat ids, names, descriptions, the ability/bonus each ability feat carries, and each feat's prerequisite (`LegFeat_MeetsPrereq` / `LegFeat_PrereqAt`). No script hand-types a row number. |
 | `legfeat_db.nss` | `legfeatdb` — `legfeat_alloc` (picks granted, per character) and `legfeat_pick` (one row per feat taken). Keyed on `GetObjectUUID()`. |
 | `legfeat_inc.nss` | Allotment, `LegFeat_Take`, and the effects. |
 | `legfeat_nui.nss` | The window. Carries `LEGFEAT_SUBTITLE`, the one line of tunable text under the header — see `README.md` "Tuning the picker's subtitle" for the length budget and why it is `NuiText`. |
@@ -365,6 +514,22 @@ Also added during these rounds, neither in the original plan:
 
 ### Phase 5+ — content, one category per release
 
+**Triage: done, 2026-08-01.**
+[CLAUDE-legendary-feats-triage.md](CLAUDE-legendary-feats-triage.md) is the
+output — per-feat routes (RAW / EFF / HOOK / SPELL / CUT), the duplicates
+resolved, and where the pool actually lands (133 distinct feats, ~119 after
+cuts, 34 of them one effect each). It also **revises the order below**: take
+**Defensive next, not Arcane** — thirteen of its sixteen feats are a single
+permanent effect, which is the cheapest breadth available while the pool has
+eight feats in it.
+
+**Built from martial so far (unpublished):** *Legendary Prowess* and
+*Legendary Onslaught*,
+the two feats in that section that are one effect each. The rest of the martial
+list needs a combat hook, a spell script, or is engine-owned and cut — the
+triage says which for each.
+
+
 **Adding a feat, mechanically:** append an entry to `FEATS` in
 `bin/gen-legendary-feats.py` (append-only — a row index is a feat id baked into
 save games, and the strings sit at fixed TLK indices), run
@@ -424,6 +589,13 @@ required for the TLK swap and for any script change; a hak-only edit is not.
 
 ## Never
 
+- **Never implement a legendary feat without the admin's explicit approval of
+  that feat** — name, effect, numbers and prerequisites, feat by feat. The
+  triage document and the `ll-feats-*` backlog read like a settled plan; they are
+  unreviewed proposals. `FEATS` is append-only and a feat's row index is its id
+  in every save game the moment someone takes it, so a wrong name or number
+  cannot be withdrawn cleanly. Building the machinery unprompted is fine;
+  building the content is not.
 - Never hand-edit `hak_2da/feat.2da` or `tlk/lotr.tlk` — edit the generator's
   table and re-run it, exactly as with `bin/gen-caster-slots.py`.
 - Never re-extract `feat.2da` from the game data over the generated file; that

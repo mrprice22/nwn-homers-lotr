@@ -22,9 +22,13 @@ void main()
     if (!LegFeat_Take(oPC, nIndex))
     {
         // Every rejection is a state the window should already have prevented
-        // (no picks left, feat already held, not level 60), so say which.
+        // (no picks left, prerequisite unmet, feat already held, not level 60),
+        // so say which.
         if (LegFeat_Remaining(oPC) <= 0)
             SendMessageToPC(oPC, "You have no legendary feat picks remaining.");
+        else if (!LegFeat_MeetsPrereq(oPC, nIndex))
+            SendMessageToPC(oPC, LegFeat_NameAt(nIndex) + " requires: "
+                + LegFeat_PrereqAt(nIndex) + ".");
         else
             SendMessageToPC(oPC, "You already have that legendary feat.");
         return;

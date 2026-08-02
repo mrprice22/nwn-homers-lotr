@@ -7,7 +7,7 @@
 //
 // Re-run: python3 bin/gen-legendary-feats.py --apply
 
-const int LEGFEAT_COUNT = 6;
+const int LEGFEAT_COUNT = 8;
 const int LEGFEAT_FIRST = 1116;
 
 // How a feat's benefit is applied. RAW writes the character's BASE
@@ -23,6 +23,8 @@ const int FEAT_LEGENDARY_CONSTITUTION = 1118;
 const int FEAT_LEGENDARY_INTELLIGENCE = 1119;
 const int FEAT_LEGENDARY_WISDOM = 1120;
 const int FEAT_LEGENDARY_CHARISMA = 1121;
+const int FEAT_LEGENDARY_PROWESS = 1122;
+const int FEAT_LEGENDARY_ONSLAUGHT = 1123;
 
 // Feat id at picker index n (0 .. LEGFEAT_COUNT-1), or -1 if out of range.
 int LegFeat_IdAt(int n);
@@ -38,6 +40,15 @@ int LegFeat_BonusAt(int n);
 int LegFeat_KindAt(int n);
 // Short summary for the picker's effect column (e.g. "+6 Strength").
 string LegFeat_EffectAt(int n);
+
+// Prerequisites. feat.2da gates nothing — these are the whole gate, and
+// they are enforced twice: the picker greys a row that fails, and
+// LegFeat_Take refuses it, so a stale window cannot buy past the check.
+// Ability prerequisites read BASE scores, so a +12 belt worn for the
+// duration of one button press does not qualify anyone.
+int    LegFeat_MeetsPrereq(object oPC, int n);
+// Player-facing prerequisite text, or "" when the feat has none.
+string LegFeat_PrereqAt(int n);
 
 int LegFeat_IdAt(int n)
 {
@@ -55,6 +66,8 @@ string LegFeat_NameAt(int n)
         case 3: return "Legendary Intelligence";
         case 4: return "Legendary Wisdom";
         case 5: return "Legendary Charisma";
+        case 6: return "Legendary Prowess";
+        case 7: return "Legendary Onslaught";
     }
     return "";
 }
@@ -69,6 +82,8 @@ string LegFeat_DescAt(int n)
         case 3: return "Lore long lost lies open to you. You gain a permanent +6 bonus to Intelligence.";
         case 4: return "You see the shape of things as they truly are. You gain a permanent +6 bonus to Wisdom.";
         case 5: return "Others follow where you lead, and are glad of it. You gain a permanent +6 bonus to Charisma.";
+        case 6: return "Every blow you aim finds its mark. You gain a permanent +5 bonus to your attack rolls.";
+        case 7: return "You strike faster than the eye can follow. You gain one additional attack each round while fighting with a melee weapon or unarmed.";
     }
     return "";
 }
@@ -83,6 +98,8 @@ int LegFeat_AbilityAt(int n)
         case 3: return 3;
         case 4: return 4;
         case 5: return 5;
+        case 6: return -1;
+        case 7: return -1;
     }
     return -1;
 }
@@ -97,6 +114,8 @@ int LegFeat_BonusAt(int n)
         case 3: return 6;
         case 4: return 6;
         case 5: return 6;
+        case 6: return 0;
+        case 7: return 0;
     }
     return 0;
 }
@@ -111,6 +130,8 @@ int LegFeat_KindAt(int n)
         case 3: return LEGFEAT_KIND_RAW;
         case 4: return LEGFEAT_KIND_RAW;
         case 5: return LEGFEAT_KIND_RAW;
+        case 6: return LEGFEAT_KIND_EFFECT;
+        case 7: return LEGFEAT_KIND_EFFECT;
     }
     return LEGFEAT_KIND_EFFECT;
 }
@@ -125,6 +146,31 @@ string LegFeat_EffectAt(int n)
         case 3: return "+6 Intelligence (base)";
         case 4: return "+6 Wisdom (base)";
         case 5: return "+6 Charisma (base)";
+        case 6: return "+5 attack bonus";
+        case 7: return "+1 melee attack per round";
+    }
+    return "";
+}
+
+// Each case is the feat's `prereq` expression from the generator's table,
+// rendered verbatim. A feat with no prerequisite emits no case and falls
+// through to TRUE.
+int LegFeat_MeetsPrereq(object oPC, int n)
+{
+    switch (n)
+    {
+        case 6: return (GetBaseAttackBonus(oPC) >= 35 && GetHasFeat(FEAT_EPIC_PROWESS, oPC));
+        case 7: return (GetBaseAttackBonus(oPC) >= 30 && GetLevelByClass(CLASS_TYPE_MONK, oPC) >= 30);
+    }
+    return TRUE;
+}
+
+string LegFeat_PrereqAt(int n)
+{
+    switch (n)
+    {
+        case 6: return "BAB 35+, Epic Prowess";
+        case 7: return "BAB 30+, Monk level 30+";
     }
     return "";
 }

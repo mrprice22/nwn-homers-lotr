@@ -112,6 +112,17 @@ class Feat:
     # on every login. Getting this wrong on a raw_ability feat stacks another
     # +6 into the .bic every session, silently and permanently.
     kind: str = "effect"
+    # Prerequisite, as an NWScript boolean expression over `oPC`, rendered
+    # verbatim into LegFeat_MeetsPrereq. Empty = no prerequisite. The picker
+    # greys a row whose expression is FALSE and LegFeat_Take refuses it, so
+    # this is the ONLY place a prerequisite is written down — feat.2da gates
+    # nothing (see the architecture note at the top of this file).
+    #
+    # Read BASE ability scores (GetAbilityScore(..., TRUE)) and not the
+    # buffed ones: a prerequisite met by swapping on a +12 belt for the
+    # duration of one button press is not a prerequisite.
+    prereq: str = ""
+    prereq_text: str = ""      # how the picker spells it out to the player
 
 
 # ---------------------------------------------------------------------------
@@ -152,6 +163,42 @@ FEATS: list[Feat] = [
          "permanent +6 bonus to Charisma.",
          "ife_X2GrCha1", effect="+6 Charisma (base)",
          category="Ability Scores", ability=5, bonus=6, kind="raw_ability"),
+
+    # --- Martial (ll-feats-ability-martial) -------------------------------
+    # The first two LEGFEAT_KIND_EFFECT feats in the pool, and deliberately the
+    # two simplest in the whole draft: one permanent supernatural effect each,
+    # applied by a branch in LegFeat_ApplyOne and rebuilt at every login by
+    # LegFeat_ApplyAll. Everything else martial needs a combat hook, a spell
+    # script or an engine behaviour that is not scriptable — see
+    # CLAUDE-legendary-feats-triage.md for the route each one takes.
+    # A BAB prerequisite below ~30 is decorative at this level cap: levels 21-60
+    # grant +1 BAB every 2 levels, so every level-60 character clears 20. A
+    # martial prerequisite that means anything is 30+ or 35+ (a pure level-60
+    # Fighter reaches 40, and what separates builds is levels 1-20).
+    Feat("LEGENDARY_PROWESS", "Legendary Prowess",
+         "Every blow you aim finds its mark. You gain a permanent +5 bonus to "
+         "your attack rolls.",
+         "ife_X2EpicProw", effect="+5 attack bonus",
+         category="Martial",
+         prereq="GetBaseAttackBonus(oPC) >= 35 "
+                "&& GetHasFeat(FEAT_EPIC_PROWESS, oPC)",
+         prereq_text="BAB 35+, Epic Prowess"),
+    # Melee counterpart to Legendary Marksman: the extra attack is CONDITIONAL on
+    # what is in hand, so it is applied and dropped by the equip hook
+    # (legfeat_equip.nss) rather than sitting there permanently. Unarmed counts as
+    # melee — the only thing that switches it off is holding a ranged weapon.
+    Feat("LEGENDARY_ONSLAUGHT", "Legendary Onslaught",
+         "You strike faster than the eye can follow. You gain one additional "
+         "attack each round while fighting with a melee weapon or unarmed.",
+         "ife_X2BldSpd", effect="+1 melee attack per round",
+         category="Martial",
+         # Monk level, not Flurry of Blows. Flurry is monk-only, so gating on it
+         # said "monk" without saying it — and a prerequisite the player has to
+         # reverse-engineer is a prerequisite they will misread. A CLASS LEVEL
+         # is not a purity test: a 30/30 monk/rogue qualifies, which is intended.
+         prereq="GetBaseAttackBonus(oPC) >= 30 "
+                "&& GetLevelByClass(CLASS_TYPE_MONK, oPC) >= 30",
+         prereq_text="BAB 30+, Monk level 30+"),
 ]
 
 
@@ -215,6 +262,15 @@ def nss_include():
         "int LegFeat_KindAt(int n);",
         "// Short summary for the picker's effect column (e.g. \"+6 Strength\").",
         "string LegFeat_EffectAt(int n);",
+        "",
+        "// Prerequisites. feat.2da gates nothing — these are the whole gate, and",
+        "// they are enforced twice: the picker greys a row that fails, and",
+        "// LegFeat_Take refuses it, so a stale window cannot buy past the check.",
+        "// Ability prerequisites read BASE scores, so a +12 belt worn for the",
+        "// duration of one button press does not qualify anyone.",
+        "int    LegFeat_MeetsPrereq(object oPC, int n);",
+        "// Player-facing prerequisite text, or \"\" when the feat has none.",
+        "string LegFeat_PrereqAt(int n);",
         "",
         "int LegFeat_IdAt(int n)",
         "{",
@@ -291,6 +347,36 @@ def nss_include():
     ]
     for offset, feat in enumerate(FEATS):
         lines.append(f'        case {offset}: return "{feat.effect}";')
+    lines += [
+        "    }",
+        '    return "";',
+        "}",
+        "",
+        "// Each case is the feat's `prereq` expression from the generator's table,",
+        "// rendered verbatim. A feat with no prerequisite emits no case and falls",
+        "// through to TRUE.",
+        "int LegFeat_MeetsPrereq(object oPC, int n)",
+        "{",
+        "    switch (n)",
+        "    {",
+    ]
+    for offset, feat in enumerate(FEATS):
+        if feat.prereq:
+            lines.append(f"        case {offset}: return ({feat.prereq});")
+    lines += [
+        "    }",
+        "    return TRUE;",
+        "}",
+        "",
+        "string LegFeat_PrereqAt(int n)",
+        "{",
+        "    switch (n)",
+        "    {",
+    ]
+    for offset, feat in enumerate(FEATS):
+        if feat.prereq_text:
+            text = feat.prereq_text.replace('"', "'")
+            lines.append(f'        case {offset}: return "{text}";')
     lines += [
         "    }",
         '    return "";',
@@ -453,6 +539,16 @@ def main():
     if not source.exists():
         print(f"error: {source} is missing", file=sys.stderr)
         return 1
+
+    # A prerequisite the player is never told about is indistinguishable from a
+    # broken picker ("why is that row greyed out?"), and prose with no test
+    # behind it is a prerequisite that is not enforced. Neither half is optional.
+    for feat in FEATS:
+        if bool(feat.prereq) != bool(feat.prereq_text):
+            print(f"error: {feat.label} sets only one of prereq / prereq_text — "
+                  "a prerequisite needs both the test and the text",
+                  file=sys.stderr)
+            return 1
 
     preamble, header, rows, newline = read_2da(source)
     check_base(source, preamble, header, rows)

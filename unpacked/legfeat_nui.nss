@@ -87,6 +87,15 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
 {
     int nFeatId = LegFeat_IdAt(nIndex);
     int bTaken  = LegFeat_HasPick(oPC, nFeatId);
+    int bQualified = LegFeat_MeetsPrereq(oPC, nIndex);
+
+    // The tooltip carries the prerequisite as well as the description, on every
+    // row and whether or not it is met — a player deciding how to spend two
+    // picks needs to see that Onslaught wants Assault BEFORE taking something
+    // else. A greyed row with no visible reason is the complaint this avoids.
+    string sTip = LegFeat_DescAt(nIndex);
+    string sPrereq = LegFeat_PrereqAt(nIndex);
+    if (sPrereq != "") sTip += "  (Requires: " + sPrereq + ")";
 
     json jRow = JsonArray();
     if (bTaken)
@@ -98,10 +107,12 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     else
     {
         json jBtn = NuiId(NuiButton(JsonString("Take")), "t" + IntToString(nIndex));
-        // Greyed out rather than hidden when no picks are left, so the player can
-        // still read the whole pool and decide before spending.
-        jBtn = NuiEnabled(jBtn, JsonBool(nRemaining > 0));
-        jBtn = NuiTooltip(jBtn, JsonString(LegFeat_DescAt(nIndex)));
+        // Greyed out rather than hidden when no picks are left or the
+        // prerequisite is not met, so the player can still read the whole pool
+        // and decide before spending. LegFeat_Take re-checks the prerequisite —
+        // this window is only a snapshot of it.
+        jBtn = NuiEnabled(jBtn, JsonBool(nRemaining > 0 && bQualified));
+        jBtn = NuiTooltip(jBtn, JsonString(sTip));
         jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, LEGFEAT_COL_BTN));
     }
 
@@ -109,12 +120,18 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     // both — an inline description is what forced the horizontal scrollbar.
     json jName = NuiLabel(JsonString(LegFeat_NameAt(nIndex)),
                           JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
-    jName = NuiTooltip(jName, JsonString(LegFeat_DescAt(nIndex)));
+    jName = NuiTooltip(jName, JsonString(sTip));
     jRow = JsonArrayInsert(jRow, NuiWidth(jName, LEGFEAT_COL_NAME));
 
-    json jEff = NuiLabel(JsonString(LegFeat_EffectAt(nIndex)),
+    // An unqualified row shows what it wants instead of what it gives: the
+    // effect is moot until the prerequisite is met, and "Requires: ..." in the
+    // column the eye is already on beats a tooltip nobody hovers. Kept short —
+    // a NUI label clips silently rather than wrapping (see the header note).
+    string sEff = LegFeat_EffectAt(nIndex);
+    if (!bTaken && !bQualified) sEff = "Requires: " + sPrereq;
+    json jEff = NuiLabel(JsonString(sEff),
                          JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
-    jEff = NuiTooltip(jEff, JsonString(LegFeat_DescAt(nIndex)));
+    jEff = NuiTooltip(jEff, JsonString(sTip));
     jRow = JsonArrayInsert(jRow, NuiWidth(jEff, LEGFEAT_COL_EFF));
 
     return NuiHeight(NuiRow(jRow), LEGFEAT_ROW_H);

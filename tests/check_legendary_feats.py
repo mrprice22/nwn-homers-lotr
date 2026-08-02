@@ -61,7 +61,7 @@ LEGFEAT_INC = UNPACKED / "legfeat_inc.nss"
 LEGFEAT_SCRIPTS = [
     "legfeat_db", "legfeat_inc", "legfeat_ids_inc", "legfeat_nui",
     "legfeat_open", "legfeat_evt", "legfeat_lvl", "legfeat_reset",
-    "legfeat_respec", "legfeat_cond",
+    "legfeat_respec", "legfeat_cond", "legfeat_equip",
 ]
 
 
@@ -311,6 +311,63 @@ def check_wiring(problems):
                 "so re-applying at login stacks another bonus every session")
 
 
+    # 6b. Conditional feats need the equip hook. Legendary Onslaught's extra
+    #     attack is melee-only, so it has to be rebuilt when the character
+    #     changes weapons. Without the subscription the effect goes stale in the
+    #     player's favour and in silence: swap a sword for a bow and you keep a
+    #     melee-only bonus attack until your next login.
+    if MODULE_LOAD.exists():
+        text = strip_line_comments(MODULE_LOAD.read_text(encoding="latin-1"))
+        if "legfeat_equip" not in text:
+            problems.append(
+                "onmoduleload.nss does not subscribe legfeat_equip to the item "
+                "equip/unequip events — conditional legendary feats (melee-only "
+                "extra attacks) would keep applying after the weapon they depend "
+                "on is put away")
+
+    # 7. Prerequisites must bind on the server, not just in the window. The
+    #    picker greys an unqualified row, but the window is a client-side
+    #    snapshot — a player holding a stale one (took the prerequisite feat's
+    #    rival, or lost a prerequisite to a relevel) would otherwise buy straight
+    #    past the check. LegFeat_Take is where the decision actually has to live.
+    if LEGFEAT_INC.exists():
+        text = strip_line_comments(LEGFEAT_INC.read_text(encoding="latin-1"))
+        body = text.split("int LegFeat_Take", 1)
+        if len(body) < 2 or "LegFeat_MeetsPrereq" not in body[1]:
+            problems.append(
+                "legfeat_inc.nss LegFeat_Take does not call LegFeat_MeetsPrereq "
+                "— prerequisites would be enforced only by the picker's greyed "
+                "buttons, which is to say only by the client")
+
+
+def check_effect_payloads(problems, gen):
+    """Every EFFECT-kind feat must actually do something.
+
+    An ability feat is table-driven (ability + bonus come from the generator),
+    but any other EFFECT feat needs a hand-written case in LegFeat_ApplyOne.
+    Without one it fails in the worst possible way: the pick is spent, the feat
+    appears on the character sheet with its real name and description, and the
+    benefit simply never arrives — no error, nothing in the log.
+    """
+    if not LEGFEAT_INC.exists():
+        return
+    text = strip_line_comments(LEGFEAT_INC.read_text(encoding="latin-1"))
+    body = text.split("void LegFeat_ApplyOne", 1)
+    if len(body) < 2:
+        problems.append("legfeat_inc.nss has no LegFeat_ApplyOne")
+        return
+    apply_one = body[1].split("\nvoid LegFeat_ApplyAll", 1)[0]
+
+    for feat in gen.FEATS:
+        if feat.kind == "raw_ability" or feat.ability >= 0:
+            continue
+        if f"FEAT_{feat.label}" not in apply_one:
+            problems.append(
+                f"FEAT_{feat.label} is an EFFECT-kind feat with no ability "
+                "payload and no case in legfeat_inc.nss LegFeat_ApplyOne — the "
+                "pick would be spent and nothing at all would happen")
+
+
 def main():
     problems = []
     gen = load_generator()
@@ -321,6 +378,7 @@ def main():
         check_table(problems, gen)
         check_not_selectable(problems, gen)
         check_ids_include(problems, gen)
+        check_effect_payloads(problems, gen)
     check_packed(problems)
     check_wiring(problems)
 
