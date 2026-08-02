@@ -118,6 +118,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: combat dummy wiring…"
+if python3 "$HERE/check_combat_dummy.py"; then
+  echo "ok: combat dummy wiring"
+else
+  echo "fail: combat dummy wiring"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

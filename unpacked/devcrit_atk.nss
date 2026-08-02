@@ -19,10 +19,17 @@
 
 #include "nwnx_damage"
 #include "devcrit_inc"
+#include "cbd_inc"
 
 void main()
 {
     struct NWNX_Damage_AttackEventData data = NWNX_Damage_GetAttackEventData();
+
+    // Combat Dummy (roadmap combat-dummy) counts attacks per round, so it needs
+    // MISSES too and cannot sit behind the critical guard below. One
+    // GetLocalInt on the target is the whole cost for every other attack on the
+    // server; keep it that way. Everything else lives in cbd_inc.
+    if (GetLocalInt(data.oTarget, CBD_VAR_IS_DUMMY)) CBD_TrackAttack(data);
 
     // The hot path: everything that is not a critical leaves here.
     int nResult = data.iAttackResult;

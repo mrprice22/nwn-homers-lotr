@@ -187,7 +187,10 @@ def blueprint_name(resref: str, ext: str) -> str:
         obj = json.loads(f.read_text())
     except (OSError, ValueError):
         return ""
-    for key in ("LocalizedName", "FirstName"):
+    # LocName is what placeables/doors/triggers/waypoints actually call the
+    # field (LocalizedName is items); without it those all fall back to their
+    # resref in the Palette Finder.
+    for key in ("LocalizedName", "LocName", "FirstName"):
         field = obj.get(key)
         if isinstance(field, dict):
             val = field.get("value")

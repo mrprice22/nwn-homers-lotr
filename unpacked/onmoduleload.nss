@@ -25,6 +25,7 @@
 #include "faction_db"
 #include "worldstate_inc"
 #include "ammorep_db"
+#include "cbd_db"
 
 
 void main()
@@ -168,5 +169,11 @@ WS_InitDb();
 // are keyed on the ITEM's UUID so they follow the quiver when it changes hands.
 // See ammorep_db.nss (roadmap: Ammo-shortage).
 AmmoRep_InitDb();
+
+// Combat Dummy leaderboard ("Hall of Champions" sign): ensure the sessions
+// table exists before the first trial finishes or the first sign read. The
+// dummy's own OnSpawn calls this too, so a dummy placed in a module whose load
+// order never reached here still records. See cbd_db.nss (roadmap: combat-dummy).
+Cbd_InitDb();
 
 }   //end of main
