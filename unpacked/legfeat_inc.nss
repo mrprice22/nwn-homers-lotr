@@ -199,6 +199,12 @@ void LegFeat_ApplyEffect(object oPC, effect e)
 // here. Everything else gets a case in the switch below. A feat with no case
 // and no ability payload applies nothing at all and fails silently — the pick
 // records, the feat appears on the sheet, and the benefit never arrives.
+//
+// The exception is LEGFEAT_KIND_HOOK, where applying nothing is the CORRECT
+// behaviour: the feat is an inert token and a combat hook elsewhere reads it
+// with GetHasFeat (Legendary Butcher -> unpacked/devcrit_atk.nss). Giving one a
+// case here would hand out the benefit twice. LegFeat_ApplyAll skips them
+// outright so they never even reach this switch.
 void LegFeat_ApplyOne(object oPC, int nFeatId)
 {
     int nIndex = LegFeat_IndexOf(nFeatId);
@@ -237,9 +243,10 @@ void LegFeat_ApplyOne(object oPC, int nFeatId)
 
 // Clear and rebuild every EFFECT-kind legendary effect on this character.
 //
-// Call at login. RAW feats are deliberately skipped — their bonus is already in
-// the character's base scores, and re-applying would add another one every
-// session. Clearing the tag first is what makes this safe to call twice, and it
+// Call at login. RAW and HOOK feats are deliberately skipped — a RAW feat's
+// bonus is already in the character's base scores and re-applying would add
+// another one every session, and a HOOK feat has no effect to rebuild.
+// Clearing the tag first is what makes this safe to call twice, and it
 // also strips the old buff-style bonuses off characters granted feats by the
 // first build.
 void LegFeat_ApplyAll(object oPC)
@@ -258,7 +265,11 @@ void LegFeat_ApplyAll(object oPC)
     int i;
     for (i = 0; i < LEGFEAT_COUNT; i++)
     {
-        if (LegFeat_KindAt(i) == LEGFEAT_KIND_RAW) continue;
+        // RAW: the bonus is already in the base scores. HOOK: the feat grants
+        // nothing by design and is read by a combat hook instead. Both must be
+        // left alone here.
+        int nKind = LegFeat_KindAt(i);
+        if (nKind == LEGFEAT_KIND_RAW || nKind == LEGFEAT_KIND_HOOK) continue;
         int nFeatId = LegFeat_IdAt(i);
         if (LegFeat_HasPick(oPC, nFeatId))
             LegFeat_ApplyOne(oPC, nFeatId);

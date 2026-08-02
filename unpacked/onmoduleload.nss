@@ -15,6 +15,7 @@
 #include "color"
 #include "nwnx_admin"
 #include "nwnx_events"
+#include "nwnx_damage"
 #include "x2_inc_switches"
 #include "ru_db"
 #include "brd_db"
@@ -60,6 +61,18 @@ ExecuteScript("gwathlab_wire", GetModule());
 
 // Double the duration of every temporary effect a player creates (eff_dur_x2).
 NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
+
+// Devastating Critical rework (roadmap: devcrit-roll). Two halves, because the
+// engine uses two mechanisms: devcrit_atk adds the bonus physical damage in the
+// NWNX Damage attack event (the only place iAttackResult == 10 is visible), and
+// devcrit_eff refuses the EffectDeath the engine applies separately. The rule is
+// symmetric — no oOwner on the attack script, so it covers NPCs as well as
+// players. Both handlers return immediately on anything that is not their case;
+// see the warnings in their headers before editing either, and note that
+// NWNX_DAMAGE_SKIP=n in server.env is the other half of the plugin being
+// available at all. tests/check_devcrit.py gates all of this.
+NWNX_Damage_SetAttackEventScript("devcrit_atk");
+NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_BEFORE, "devcrit_eff");
 
 // Premium 2x gold/XP boost: multiply positive XP gains for players with an active
 // boost (merit redemptions 201-204). Engine combat XP is not script-granted, so

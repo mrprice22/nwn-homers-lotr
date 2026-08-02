@@ -110,6 +110,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: devastating critical rework…"
+if python3 "$HERE/check_devcrit.py"; then
+  echo "ok: devastating critical rework"
+else
+  echo "fail: devastating critical rework"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

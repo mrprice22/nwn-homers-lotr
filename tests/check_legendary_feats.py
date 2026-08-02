@@ -33,6 +33,7 @@ Exit 0 = coherent, 1 = drifted.
 """
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -304,11 +305,18 @@ def check_wiring(problems):
     if LEGFEAT_INC.exists():
         text = strip_line_comments(LEGFEAT_INC.read_text(encoding="latin-1"))
         body = text.split("void LegFeat_ApplyAll", 1)
-        if len(body) < 2 or "LEGFEAT_KIND_RAW) continue" not in body[1]:
+        if len(body) < 2 or "LEGFEAT_KIND_RAW" not in body[1]:
             problems.append(
                 "legfeat_inc.nss LegFeat_ApplyAll does not skip "
                 "LEGFEAT_KIND_RAW feats — base ability scores live in the .bic, "
                 "so re-applying at login stacks another bonus every session")
+        # HOOK feats have no effect to rebuild; ApplyAll must skip them too, or
+        # it drops into LegFeat_ApplyOne looking for a case that must not exist.
+        elif "LEGFEAT_KIND_HOOK" not in body[1]:
+            problems.append(
+                "legfeat_inc.nss LegFeat_ApplyAll does not skip "
+                "LEGFEAT_KIND_HOOK feats — a hook feat grants nothing by design "
+                "and must never be routed through LegFeat_ApplyOne")
 
 
     # 6b. Conditional feats need the equip hook. Legendary Onslaught's extra
@@ -348,6 +356,11 @@ def check_effect_payloads(problems, gen):
     Without one it fails in the worst possible way: the pick is spent, the feat
     appears on the character sheet with its real name and description, and the
     benefit simply never arrives — no error, nothing in the log.
+
+    A HOOK feat is the deliberate opposite: it grants nothing here, because
+    something else reads it with GetHasFeat. That has exactly the same silent
+    failure mode if the reader does not exist, so it gets the mirror-image
+    check — somewhere under unpacked/ must actually test for it.
     """
     if not LEGFEAT_INC.exists():
         return
@@ -359,6 +372,21 @@ def check_effect_payloads(problems, gen):
     apply_one = body[1].split("\nvoid LegFeat_ApplyAll", 1)[0]
 
     for feat in gen.FEATS:
+        if feat.kind == "hook":
+            const = f"FEAT_{feat.label}"
+            readers = [
+                path.name for path in UNPACKED.glob("*.nss")
+                if path.name != "legfeat_ids_inc.nss"
+                and re.search(rf"GetHasFeat\(\s*{const}\b",
+                              path.read_text(encoding="latin-1"))
+            ]
+            if not readers:
+                problems.append(
+                    f"{const} is a HOOK-kind feat, so it grants nothing itself "
+                    "and relies on a combat hook reading it — but no script "
+                    f"under unpacked/ calls GetHasFeat({const}). The pick would "
+                    "be spent and nothing would ever happen")
+            continue
         if feat.kind == "raw_ability" or feat.ability >= 0:
             continue
         if f"FEAT_{feat.label}" not in apply_one:

@@ -111,6 +111,12 @@ class Feat:
     # re-applied at login. "effect" is a permanent supernatural effect rebuilt
     # on every login. Getting this wrong on a raw_ability feat stacks another
     # +6 into the .bic every session, silently and permanently.
+    #
+    # "hook" is the third kind: the feat grants NOTHING at pick time or at
+    # login. It is a pure token that some combat hook elsewhere reads with
+    # GetHasFeat — Legendary Butcher, read by unpacked/devcrit_atk.nss, is the
+    # first. LegFeat_ApplyAll must leave these alone; applying an effect for one
+    # would double the benefit.
     kind: str = "effect"
     # Prerequisite, as an NWScript boolean expression over `oPC`, rendered
     # verbatim into LegFeat_MeetsPrereq. Empty = no prerequisite. The picker
@@ -199,6 +205,30 @@ FEATS: list[Feat] = [
          prereq="GetBaseAttackBonus(oPC) >= 30 "
                 "&& GetLevelByClass(CLASS_TYPE_MONK, oPC) >= 30",
          prereq_text="BAB 30+, Monk level 30+"),
+    # The first LEGFEAT_KIND_HOOK feat: it applies nothing and is never rebuilt
+    # at login. unpacked/devcrit_atk.nss reads GetHasFeat in the NWNX Damage
+    # attack event and does all the work, which is also the only place a
+    # critical hit is visible to script at all.
+    #
+    # Half of roadmap item devcrit-roll, and meaningless without it: that item
+    # reworks the STOCK Devastating Critical from save-or-die into +3 dice of
+    # the same size-scaled physical damage, and Butcher stacks +5 more on top.
+    # A large weapon in the hands of someone with both lands +8d10. Butcher
+    # additionally fires on an ORDINARY critical (attack result 3), which is
+    # what makes it a critical-damage feat rather than a second dev-crit feat.
+    #
+    # Typed physical on purpose, so heavy damage reduction eats part of it.
+    Feat("LEGENDARY_BUTCHER", "Legendary Butcher",
+         "You do not wound; you ruin. Whenever you score a critical hit you "
+         "deal 5 extra dice of damage, scaled to your weapon: d6 for a small "
+         "weapon, d8 for a medium one, d10 for a large one. This is added to "
+         "the extra damage of a devastating critical, not in place of it.",
+         # Great Cleave's icon — already referenced by feat.2da, so it is known
+         # to resolve. We ship no new art yet.
+         "ife_X1GCleave", effect="+5 damage dice on a critical",
+         category="Martial", kind="hook",
+         prereq="LegFeat_HasAnyDevCrit(oPC)",
+         prereq_text="Devastating Critical (any weapon)"),
 ]
 
 
@@ -240,13 +270,36 @@ def nss_include():
         "// ability score and is saved in the .bic, so it is applied exactly ONCE",
         "// and must never be re-applied at login. EFFECT is a permanent",
         "// supernatural effect and IS rebuilt on every login.",
+        "// HOOK grants nothing at all — the feat is an inert token that a combat",
+        "// hook elsewhere reads with GetHasFeat, so LegFeat_ApplyAll must skip it.",
         "const int LEGFEAT_KIND_EFFECT = 0;",
         "const int LEGFEAT_KIND_RAW    = 1;",
+        "const int LEGFEAT_KIND_HOOK   = 2;",
         "",
     ]
     for offset, feat in enumerate(FEATS):
         lines.append(f"const int FEAT_{feat.label} = {FIRST_ROW + offset};")
     lines += [
+        "",
+        "// --- prerequisite helpers ------------------------------------------------",
+        "// A `prereq` expression in the generator's table is rendered verbatim into",
+        "// LegFeat_MeetsPrereq below, and THIS FILE HAS NO INCLUDES — so an",
+        "// expression may only use NWScript builtins and the helpers here.",
+        "//",
+        "// Devastating Critical is not one feat: it is one feat PER WEAPON, ids 495",
+        "// to 532 contiguous, plus 955 (dwarven waraxe) and 996 (whip) bolted on",
+        "// later by the expansions. Anything gated on 'has Devastating Critical'",
+        "// has to test the lot.",
+        "int LegFeat_HasAnyDevCrit(object oPC)",
+        "{",
+        "    int nFeat;",
+        "    for (nFeat = FEAT_EPIC_DEVASTATING_CRITICAL_CLUB;",
+        "         nFeat <= FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE; nFeat++)",
+        "        if (GetHasFeat(nFeat, oPC)) return TRUE;",
+        "",
+        "    return GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_DWAXE, oPC)",
+        "        || GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_WHIP, oPC);",
+        "}",
         "",
         "// Feat id at picker index n (0 .. LEGFEAT_COUNT-1), or -1 if out of range.",
         "int LegFeat_IdAt(int n);",
@@ -333,7 +386,10 @@ def nss_include():
         "    {",
     ]
     for offset, feat in enumerate(FEATS):
-        kind = "LEGFEAT_KIND_RAW" if feat.kind == "raw_ability" else "LEGFEAT_KIND_EFFECT"
+        kind = {
+            "raw_ability": "LEGFEAT_KIND_RAW",
+            "hook": "LEGFEAT_KIND_HOOK",
+        }.get(feat.kind, "LEGFEAT_KIND_EFFECT")
         lines.append(f"        case {offset}: return {kind};")
     lines += [
         "    }",

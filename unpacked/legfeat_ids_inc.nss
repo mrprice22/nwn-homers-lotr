@@ -7,15 +7,18 @@
 //
 // Re-run: python3 bin/gen-legendary-feats.py --apply
 
-const int LEGFEAT_COUNT = 8;
+const int LEGFEAT_COUNT = 9;
 const int LEGFEAT_FIRST = 1116;
 
 // How a feat's benefit is applied. RAW writes the character's BASE
 // ability score and is saved in the .bic, so it is applied exactly ONCE
 // and must never be re-applied at login. EFFECT is a permanent
 // supernatural effect and IS rebuilt on every login.
+// HOOK grants nothing at all — the feat is an inert token that a combat
+// hook elsewhere reads with GetHasFeat, so LegFeat_ApplyAll must skip it.
 const int LEGFEAT_KIND_EFFECT = 0;
 const int LEGFEAT_KIND_RAW    = 1;
+const int LEGFEAT_KIND_HOOK   = 2;
 
 const int FEAT_LEGENDARY_STRENGTH = 1116;
 const int FEAT_LEGENDARY_DEXTERITY = 1117;
@@ -25,6 +28,27 @@ const int FEAT_LEGENDARY_WISDOM = 1120;
 const int FEAT_LEGENDARY_CHARISMA = 1121;
 const int FEAT_LEGENDARY_PROWESS = 1122;
 const int FEAT_LEGENDARY_ONSLAUGHT = 1123;
+const int FEAT_LEGENDARY_BUTCHER = 1124;
+
+// --- prerequisite helpers ------------------------------------------------
+// A `prereq` expression in the generator's table is rendered verbatim into
+// LegFeat_MeetsPrereq below, and THIS FILE HAS NO INCLUDES — so an
+// expression may only use NWScript builtins and the helpers here.
+//
+// Devastating Critical is not one feat: it is one feat PER WEAPON, ids 495
+// to 532 contiguous, plus 955 (dwarven waraxe) and 996 (whip) bolted on
+// later by the expansions. Anything gated on 'has Devastating Critical'
+// has to test the lot.
+int LegFeat_HasAnyDevCrit(object oPC)
+{
+    int nFeat;
+    for (nFeat = FEAT_EPIC_DEVASTATING_CRITICAL_CLUB;
+         nFeat <= FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE; nFeat++)
+        if (GetHasFeat(nFeat, oPC)) return TRUE;
+
+    return GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_DWAXE, oPC)
+        || GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_WHIP, oPC);
+}
 
 // Feat id at picker index n (0 .. LEGFEAT_COUNT-1), or -1 if out of range.
 int LegFeat_IdAt(int n);
@@ -68,6 +92,7 @@ string LegFeat_NameAt(int n)
         case 5: return "Legendary Charisma";
         case 6: return "Legendary Prowess";
         case 7: return "Legendary Onslaught";
+        case 8: return "Legendary Butcher";
     }
     return "";
 }
@@ -84,6 +109,7 @@ string LegFeat_DescAt(int n)
         case 5: return "Others follow where you lead, and are glad of it. You gain a permanent +6 bonus to Charisma.";
         case 6: return "Every blow you aim finds its mark. You gain a permanent +5 bonus to your attack rolls.";
         case 7: return "You strike faster than the eye can follow. You gain one additional attack each round while fighting with a melee weapon or unarmed.";
+        case 8: return "You do not wound; you ruin. Whenever you score a critical hit you deal 5 extra dice of damage, scaled to your weapon: d6 for a small weapon, d8 for a medium one, d10 for a large one. This is added to the extra damage of a devastating critical, not in place of it.";
     }
     return "";
 }
@@ -100,6 +126,7 @@ int LegFeat_AbilityAt(int n)
         case 5: return 5;
         case 6: return -1;
         case 7: return -1;
+        case 8: return -1;
     }
     return -1;
 }
@@ -116,6 +143,7 @@ int LegFeat_BonusAt(int n)
         case 5: return 6;
         case 6: return 0;
         case 7: return 0;
+        case 8: return 0;
     }
     return 0;
 }
@@ -132,6 +160,7 @@ int LegFeat_KindAt(int n)
         case 5: return LEGFEAT_KIND_RAW;
         case 6: return LEGFEAT_KIND_EFFECT;
         case 7: return LEGFEAT_KIND_EFFECT;
+        case 8: return LEGFEAT_KIND_HOOK;
     }
     return LEGFEAT_KIND_EFFECT;
 }
@@ -148,6 +177,7 @@ string LegFeat_EffectAt(int n)
         case 5: return "+6 Charisma (base)";
         case 6: return "+5 attack bonus";
         case 7: return "+1 melee attack per round";
+        case 8: return "+5 damage dice on a critical";
     }
     return "";
 }
@@ -161,6 +191,7 @@ int LegFeat_MeetsPrereq(object oPC, int n)
     {
         case 6: return (GetBaseAttackBonus(oPC) >= 35 && GetHasFeat(FEAT_EPIC_PROWESS, oPC));
         case 7: return (GetBaseAttackBonus(oPC) >= 30 && GetLevelByClass(CLASS_TYPE_MONK, oPC) >= 30);
+        case 8: return (LegFeat_HasAnyDevCrit(oPC));
     }
     return TRUE;
 }
@@ -171,6 +202,7 @@ string LegFeat_PrereqAt(int n)
     {
         case 6: return "BAB 35+, Epic Prowess";
         case 7: return "BAB 30+, Monk level 30+";
+        case 8: return "Devastating Critical (any weapon)";
     }
     return "";
 }
