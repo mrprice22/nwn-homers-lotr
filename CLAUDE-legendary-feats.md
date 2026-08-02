@@ -8,21 +8,62 @@ Design draft: `docs.manual/Draft/LegendaryFeats.html` (~139 feats + 18 dominion
 cantrip toggles + 11 pure-class packages). The draft is a **wish list, not a
 spec** — expect a triage pass, not a transcription.
 
-**Status: phases 1-3 built; phase 1 UAT passed, phases 2-3 in UAT (first round
-found four defects, all fixed — see phase 4).**
-Phase 1 (`bin/build-lotr-tlk`, `tests/check_lotr_tlk.py`, the `Mod_CustomTlk`
-swap) is verified in game. Phase 2 (`bin/gen-legendary-feats.py`, the stock-based
-`hak_2da/feat.2da` with six proof rows, `tests/check_legendary_feats.py`, the hak
-wiring) and phase 3 (the picker NUI, `legfeat_*.nss`, the level-60 trigger, the
-rest-menu re-entry, `legfeatdb`, and the login re-apply) are built and gated but
-not yet seen in game — phase 4 is that UAT. Content (phase 5+) has not started.
-
-Phase 2's half of the level-up check is already done: on 2026-08-01, with the hak
-and TLK live, a level-up offered no legendary feat on the engine's own feat page.
-
 This document records the architecture and the order the pieces must be built in,
 so the sequencing does not have to be re-derived. Roadmap items: `ll-feats-tlk`,
 `ll-feats-2da`, `ll-feats-picker`, then the seven `ll-feats-*` category stories.
+
+## Checkpoint — 2026-08-01
+
+**Phases 1–3 are built, published and working in game. The machinery is done;
+what is left is content.** Three UAT rounds ran the same day, each finding
+defects that are now fixed (phase 4 below records what they were and why —
+worth reading before touching any of this, because most of them are the kind
+that get reintroduced by someone working from the design alone).
+
+Confirmed in game:
+
+- CEP names still read correctly after the TLK swap (phase 1).
+- No legendary feat appears on the engine's own level-up feat page.
+- Reaching 60 opens the picker; taking a feat works; the feat and its name,
+  description and icon read correctly.
+- The green login nudge reports outstanding picks.
+- Force Rest reopens the picker while picks remain.
+- The admin reset tool removes feats and clears records.
+
+**Not yet confirmed in game** — all shipped and gated, none exercised. A new
+session should either drive these or ask for them before starting content:
+
+- Base score, not buff: the sheet's *base* column rises, in plain text, and it
+  stacks on a character already at the gear enchantment cap.
+- Relog does not double a base-score bonus (that would mean the login path is
+  re-applying a RAW feat — permanent and cumulative).
+- Revoke on relevel (pure → multiclass) and on a real drop below 60, with base
+  scores returning to exactly their pre-pick values.
+- **Energy drain does not revoke** — the case that must not be got wrong.
+- Re-pick round trip: swap feats three or four times and confirm the scores
+  return to the same numbers each time (upward drift is the stat farm).
+- Re-picking refused while polymorphed; the Ping Pong node absent below 60.
+
+### Where to pick up
+
+**Phase 5, content — start with the triage pass** described at the bottom of
+this document. Adding a feat is now: append to `FEATS` in
+`bin/gen-legendary-feats.py`, `--apply`, write the behaviour, publish. The table
+is append-only and drives the 2DA rows, the TLK strings and
+`unpacked/legfeat_ids_inc.nss` together.
+
+Two open design threads that are cheap now and expensive later:
+
+- **`LEGFEAT_KIND_EFFECT` has never been exercised.** Every feat so far is
+  `RAW`. The first non-ability feat is also the first test of the login re-apply
+  path, so expect to debug that machinery when it lands rather than assuming it
+  works.
+- **Prerequisites are not implemented.** The inert-token model puts them in the
+  picker, in script, and nothing needs them yet because the six ability feats
+  have none. The draft's martial feats do (BAB 20+, "Epic Weapon Specialization
+  in", "Cleave"), so `ll-feats-ability-martial` is where that gets designed —
+  probably a `prereq` field on `Feat` and a `LegFeat_MeetsPrereq()` the picker
+  consults when deciding whether to grey a row.
 
 ## The core idea: feats are inert tokens
 
@@ -58,7 +99,12 @@ grants through the standard level-up UI:
 | Pure Fighter | 3 |
 
 Fighter gets three because bonus feats are its whole identity and it has no
-magic fallback. Picks are permanent.
+magic fallback.
+
+Picks are **not** permanent: a player may re-choose them at any time from a
+conversation node, and the allotment is re-derived (and revoked) whenever the
+character's class makeup or level changes. See "Re-picking" and "Revoking" under
+phase 3.
 
 > **This reverses an earlier decision.** `ll-feats-2da` used to record that the
 > legendary picks *replace* the standard level-60 feat selection. They do not —
@@ -155,11 +201,11 @@ stock-based generated table**; the CEP copy it replaced is recoverable from
   `cls_feat_*.2da` lists one, that the strrefs match the TLK block, and that
   `feat.2da` is actually in the hak's content list. Wired into `tests/smoke-test`.
 - Payload for this phase: **only the six `#ability-scores` feats**
-  (*Legendary Strength* … *Charisma*, +6 each). Simplest possible content.
-  **The effects are not applied yet** — the skin-item-property path is written in
-  phase 3 alongside the picker that grants the feats and the login hook that
-  re-applies them. Phase 2's rows are inert by design: taking one shows the name,
-  description and icon and changes nothing.
+  (*Legendary Strength* … *Charisma*, +6 each). Simplest possible content. The
+  rows themselves stay inert — a `feat.2da` row cannot do anything; phase 3 is
+  what applies the +6, and it does so by writing the base score (see
+  `LEGFEAT_KIND_RAW`), not the skin item property this document originally
+  planned.
 
 ### Phase 3 — the picker NUI
 
@@ -170,7 +216,7 @@ The files, and what each owns:
 | `legfeat_ids_inc.nss` | **Generated** by `bin/gen-legendary-feats.py`. Feat ids, names, descriptions, and the ability/bonus each ability feat carries. No script hand-types a row number. |
 | `legfeat_db.nss` | `legfeatdb` — `legfeat_alloc` (picks granted, per character) and `legfeat_pick` (one row per feat taken). Keyed on `GetObjectUUID()`. |
 | `legfeat_inc.nss` | Allotment, `LegFeat_Take`, and the effects. |
-| `legfeat_nui.nss` | The window. |
+| `legfeat_nui.nss` | The window. Carries `LEGFEAT_SUBTITLE`, the one line of tunable text under the header — see `README.md` "Tuning the picker's subtitle" for the length budget and why it is `NuiText`. |
 | `legfeat_evt.nss` | Its click handler (`NuiCreate`'s `sEventScript`). |
 | `legfeat_open.nss` | The one entry point — re-derives the allotment, opens the window. |
 | `legfeat_lvl.nss` | `NWNX_ON_LEVEL_UP_AFTER` **and** `_LEVEL_DOWN_AFTER` handler. |
@@ -178,8 +224,9 @@ The files, and what each owns:
 | `legfeat_cond.nss` | StartingConditional: level-60 only, writes nothing. |
 | `legfeat_reset.nss` | Admin test tool — rest menu → `[Admin Options]`. Puts a character back to "never had a legendary feat"; a feat added by NWNX lives in the `.bic` and nothing else removes one. See `README.md` "Resetting a character's legendary feats". |
 
-- **Trigger:** `NWNX_ON_LEVEL_UP_AFTER` → `legfeat_lvl`, subscribed in
-  `onmoduleload.nss`, firing when `GetHitDice() >= 60`. It opens the picker on a
+- **Trigger:** `NWNX_ON_LEVEL_UP_AFTER` **and** `_LEVEL_DOWN_AFTER` →
+  `legfeat_lvl`, subscribed in `onmoduleload.nss`. Level is read with
+  `LegFeat_TrueLevel`, never `GetHitDice` (see "Revoking"). It opens the picker on a
   **2-second delay**: at `_AFTER` the engine is still finishing the level-up with
   its own UI on screen, and a NUI window opened into that is one the player
   cannot interact with.
@@ -289,7 +336,46 @@ only the design:
 The level-up half of the "never on the engine's feat page" check passed on
 2026-08-01: with the hak and TLK live, a level-up offered no legendary feat.
 
+**Round 2 — `sqlite error: not prepared` on every level-up, and no picker.** A
+missing schema migration, not the layout work and not the DB wipe it was blamed
+on. `class_sig` was added to `legfeat_alloc` after the first build, and
+`CREATE TABLE IF NOT EXISTS` does not add a column to a table that already
+exists, so every statement naming it failed to **prepare** — no allotment
+written, picker never opened. `LegFeat_InitDb` now `ALTER`s it behind a
+`pragma_table_info` guard, the `bst_db.nss` idiom. **Relying on a DB wipe to
+carry a schema change was the mistake**; the schema self-heals now, and it should
+stay that way — a live server cannot be wiped.
+
+**Round 3 — Force Rest did nothing, silently.** The re-entry hung off
+`REST_EVENTTYPE_REST_FINISHED`, which no player reaches: the module cancels the
+engine's own rest at `REST_STARTED` to open the rest menu. The evidence was in a
+screenshot from round 1 — "Resting. / Cancelled Rest." in the combat log — and
+was read past. See the re-entry bullet under phase 3. **Anything else that ever
+wants to happen "on rest" in this module belongs on the Force Rest actions, not
+the rest event.**
+
+Also added during these rounds, neither in the original plan:
+
+- **The admin reset tool** (`legfeat_reset.nss`, rest menu → `[Admin Options]`).
+  A feat added by NWNX lives in the `.bic` and nothing else in game removes one,
+  so testing the pool was otherwise a one-way trip. `README.md` "Resetting a
+  character's legendary feats".
+- **The player re-pick** (see above). Requested mid-UAT so players can follow a
+  growing feat pool and changing gear without rerolling to 60.
+
 ### Phase 5+ — content, one category per release
+
+**Adding a feat, mechanically:** append an entry to `FEATS` in
+`bin/gen-legendary-feats.py` (append-only — a row index is a feat id baked into
+save games, and the strings sit at fixed TLK indices), run
+`python3 bin/gen-legendary-feats.py --apply`, write the behaviour, then publish
+per the sequence at the bottom of this document. The generator updates the 2DA
+rows, the TLK strings and `unpacked/legfeat_ids_inc.nss` together; the gate
+fails the repack if any of the three drifts.
+
+Set `kind="raw_ability"` only for base-score feats. Everything else is
+`"effect"`, which means `LegFeat_ApplyOne` needs a branch for whatever that feat
+does and `LegFeat_ApplyAll` will rebuild it at login.
 
 Start with a **single triage pass over the whole draft**, classifying every feat
 as: plain effect / item property / spell-script branch / needs NWNX / cut. Also
