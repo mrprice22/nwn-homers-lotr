@@ -773,6 +773,27 @@ things from one list: the `hak_2da/feat.2da` rows, the strings
 `bin/build-lotr-tlk` puts in `tlk/lotr.tlk`, and `unpacked/legfeat_ids_inc.nss`
 (the script-side view). Never hand-edit any of the three.
 
+### Re-choosing legendary feats (players)
+
+Talk to **Ping Pong** → *"Let me choose my legendary feats again."* The node only
+appears for a level-60 character (`legfeat_cond`). It hands every legendary feat
+back and reopens the picker with the full allotment; **the character's level does
+not change**. This is the intended way to follow a growing feat pool or a change
+of gear without rerolling and levelling to 60 again.
+
+The node is parked on Ping Pong for now — the scripts do not care where it lives,
+so moving it to the rest menu or another NPC is a dialog edit and nothing else.
+
+**The invariant that keeps this from being an exploit:** giving a feat back has
+to be exactly as complete as taking it — the feat *and* the base ability points.
+`LegFeat_Respec` goes through `LegFeat_RevokeAll`, which undoes both from the
+`legfeatdb` pick records, so swapping Legendary Strength for Legendary Wisdom
+leaves you +6 Wisdom, not +6 to both. A re-pick path that removed the feat but
+kept the points would be a repeatable stat farm; `tests/check_legendary_feats.py`
+asserts the respec still calls that function. Re-picking is refused while
+polymorphed, because a base-score write lands on a body that is about to be
+replaced.
+
 ### Resetting a character's legendary feats
 
 Testing feats means taking them, looking at the result, and starting over. A
@@ -817,6 +838,13 @@ rm "$HOME/.local/share/Neverwinter Nights S2/database/legfeatdb.sqlite3"
 Restart the server afterwards; nwserver keeps writing to the unlinked file until
 it stops, then creates a fresh one. The feats themselves stay on each `.bic` —
 use the reset tool above per character to remove those.
+
+Wiping is rarely the right move: `LegFeat_InitDb` migrates the schema in place
+(the `pragma_table_info` guard, as in `bst_db.nss`), so a column added later does
+not need a wipe. It is worth knowing what a *missing* migration looks like,
+because it is quiet: every statement naming the new column fails to **prepare**,
+the log fills with `sqlite error: not prepared`, no allotment is written, and the
+picker simply never opens.
 
 ## Updating a hak / refreshing nwsync
 

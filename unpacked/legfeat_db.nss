@@ -46,6 +46,21 @@ void LegFeat_InitDb()
         "granted_at TEXT DEFAULT CURRENT_TIMESTAMP)");
     SqlStep(q);
 
+    // Migration: class_sig was added after the first build shipped, and
+    // CREATE TABLE IF NOT EXISTS does not add a column to a table that already
+    // exists. Without this, every INSERT naming class_sig fails to *prepare* on
+    // a pre-existing DB — "sqlite error: not prepared" in the log, no allotment
+    // written, and the picker silently never opens. Guarded with PRAGMA so the
+    // ALTER is skipped once the column is there (the bst_db.nss idiom).
+    q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+        "SELECT 1 FROM pragma_table_info('legfeat_alloc') WHERE name='class_sig'");
+    if (!SqlStep(q))
+    {
+        q = SqlPrepareQueryCampaign(LEGFEAT_DB,
+            "ALTER TABLE legfeat_alloc ADD COLUMN class_sig TEXT NOT NULL DEFAULT ''");
+        SqlStep(q);
+    }
+
     q = SqlPrepareQueryCampaign(LEGFEAT_DB,
         "CREATE TABLE IF NOT EXISTS legfeat_pick (" +
         "pid TEXT NOT NULL, feat INTEGER NOT NULL, cdkey TEXT," +

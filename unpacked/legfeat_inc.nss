@@ -68,6 +68,7 @@ const int    LEGFEAT_MIN_STAT   = 3;               // floor when undoing a bonus
 
 int    LegFeat_TrueLevel(object oPC);
 int    LegFeat_HasNegativeLevels(object oPC);
+int    LegFeat_IsPolymorphed(object oPC);
 string LegFeat_ClassSig(object oPC);
 int    LegFeat_Allotment(object oPC);
 int    LegFeat_Remaining(object oPC);
@@ -78,6 +79,7 @@ void   LegFeat_ApplyOne(object oPC, int nFeatId);
 void   LegFeat_ApplyAll(object oPC);
 void   LegFeat_RevokeAll(object oPC, string sReason);
 int    LegFeat_ResetCharacter(object oPC);
+int    LegFeat_Respec(object oPC);
 
 // Character level from CLASS levels, which no effect can touch. Deliberately
 // not GetHitDice(): whether that tracks effective level under energy drain is
@@ -94,6 +96,20 @@ int LegFeat_HasNegativeLevels(object oPC)
     while (GetIsEffectValid(e))
     {
         if (GetEffectType(e) == EFFECT_TYPE_NEGATIVELEVEL) return TRUE;
+        e = GetNextEffect(oPC);
+    }
+    return FALSE;
+}
+
+// Base ability scores are swapped out while polymorphed, so a raw-score write
+// made in that state is either lost or double-applied when the shape ends.
+// Every path that adds or subtracts base points refuses while shifted.
+int LegFeat_IsPolymorphed(object oPC)
+{
+    effect e = GetFirstEffect(oPC);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_POLYMORPH) return TRUE;
         e = GetNextEffect(oPC);
     }
     return FALSE;
@@ -314,6 +330,7 @@ int LegFeat_Take(object oPC, int nIndex)
     if (LegFeat_Remaining(oPC) <= 0) return FALSE;
     if (LegFeat_HasPick(oPC, nFeatId)) return FALSE;
     if (GetHasFeat(nFeatId, oPC)) return FALSE;   // belt and braces vs a DM grant
+    if (LegFeat_IsPolymorphed(oPC)) return FALSE; // raw-score write is unsafe here
 
     NWNX_Creature_AddFeat(oPC, nFeatId);
     LegFeat_RecordPick(oPC, nFeatId);
@@ -375,4 +392,44 @@ int LegFeat_ResetCharacter(object oPC)
             + "alone, since nothing recorded granting those points.");
 
     return nRecorded + nStray;
+}
+
+// Player-facing re-pick: hand every legendary feat back and let them be chosen
+// again, without touching the character's level.
+//
+// Returns TRUE if the picker should now be opened.
+//
+// THE EXPLOIT THIS HAS TO NOT BE. A re-pick is only safe while giving a feat
+// back is exactly as complete as taking it: the feat comes off AND the base
+// ability points come off. LegFeat_RevokeAll does both from the pick records,
+// so the round trip nets to zero — swap Legendary Strength for Legendary
+// Wisdom and you are +6 WIS, not +6 to both. The failure to look for when
+// touching any of this is a path that removes the feat but leaves the points.
+//
+// Refused while polymorphed for the same reason (see LegFeat_IsPolymorphed):
+// the subtraction would land on a body that is about to be replaced.
+int LegFeat_Respec(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return FALSE;
+
+    if (LegFeat_TrueLevel(oPC) < LEGFEAT_LEVEL)
+    {
+        SendMessageToPC(oPC, "Legendary feats are chosen at level "
+            + IntToString(LEGFEAT_LEVEL) + ".");
+        return FALSE;
+    }
+    if (LegFeat_IsPolymorphed(oPC))
+    {
+        SendMessageToPC(oPC, "Return to your own shape first.");
+        return FALSE;
+    }
+
+    LegFeat_InitDb();
+    if (LegFeat_GetSpent(oPC) > 0)
+        LegFeat_RevokeAll(oPC, "you asked to choose them again.");
+
+    // Re-derives the allotment, so a character whose classes changed since the
+    // last grant re-picks under the rules that apply now.
+    LegFeat_EnsureAllotment(oPC);
+    return TRUE;
 }

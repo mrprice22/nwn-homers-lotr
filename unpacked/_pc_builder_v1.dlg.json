@@ -123,6 +123,21 @@
               "__struct_id": 5,
               "Active": {
                 "type": "resref",
+                "value": "legfeat_cond"
+              },
+              "Index": {
+                "type": "dword",
+                "value": 93
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
+              "__struct_id": 6,
+              "Active": {
+                "type": "resref",
                 "value": ""
               },
               "Index": {
@@ -2764,7 +2779,7 @@
         "Text": {
           "type": "cexolocstring",
           "value": {
-            "0": "Htou Level\u00b4s"
+            "0": "Htou Level´s"
           }
         }
       },
@@ -6145,6 +6160,47 @@
           "type": "cexolocstring",
           "value": {
             "0": "Back"
+          }
+        }
+      },
+      {
+        "__struct_id": 93,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "Legendary Feats re-pick. Gated by legfeat_cond (level 60 only); legfeat_respec hands the feats and their base ability points back and reopens the picker. Level is not changed. Parked on Ping Pong for now - move the node wherever it belongs, the scripts do not care."
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": []
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": "legfeat_respec"
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "Let me choose my legendary feats again."
           }
         }
       }

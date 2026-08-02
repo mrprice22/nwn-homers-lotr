@@ -47,6 +47,7 @@ MODULE_LOAD = UNPACKED / "onmoduleload.nss"
 CLIENT_ENTER = UNPACKED / "mod_cliententer.nss"
 REST_HOOK = UNPACKED / "on_mod_rest.nss"
 REST_DLG = UNPACKED / "emotewand.dlg.json"
+RESPEC_DLG = UNPACKED / "_pc_builder_v1.dlg.json"
 LEGFEAT_INC = UNPACKED / "legfeat_inc.nss"
 
 # Every script this feature adds. NWN resrefs are capped at 16 characters and
@@ -54,6 +55,7 @@ LEGFEAT_INC = UNPACKED / "legfeat_inc.nss"
 LEGFEAT_SCRIPTS = [
     "legfeat_db", "legfeat_inc", "legfeat_ids_inc", "legfeat_nui",
     "legfeat_open", "legfeat_evt", "legfeat_lvl", "legfeat_reset",
+    "legfeat_respec", "legfeat_cond",
 ]
 
 
@@ -261,7 +263,31 @@ def check_wiring(problems):
                 "Admin Options reset tool is unreachable, and a legendary feat "
                 "in a .bic cannot be removed any other way in game")
 
-    # 5. Base-score feats must never be re-applied at login. The bonus is
+    # 5. The player-facing re-pick must stay reachable, and must give the base
+    #    ability points back with the feat. A re-pick that removes the feat but
+    #    keeps the +6 is a stat farm: swap feats repeatedly, bank the bonus each
+    #    time. LegFeat_RevokeAll is the one path that undoes both, so the
+    #    respec has to go through it rather than growing its own removal loop.
+    if RESPEC_DLG.exists():
+        dlg = json.loads(RESPEC_DLG.read_text(encoding="utf-8"))
+        scripts = {
+            (r.get("Script", {}) or {}).get("value", "")
+            for r in dlg.get("ReplyList", {}).get("value", [])
+        }
+        if "legfeat_respec" not in scripts:
+            problems.append(
+                "_pc_builder_v1.dlg.json has no reply running legfeat_respec — "
+                "players would have no way to re-choose their legendary feats")
+    if LEGFEAT_INC.exists():
+        text = strip_line_comments(LEGFEAT_INC.read_text(encoding="latin-1"))
+        body = text.split("int LegFeat_Respec", 1)
+        if len(body) < 2 or "LegFeat_RevokeAll" not in body[1]:
+            problems.append(
+                "legfeat_inc.nss LegFeat_Respec does not call LegFeat_RevokeAll "
+                "— a re-pick that hands back the feat but keeps the base ability "
+                "points is a stat farm, repeatable as often as the player likes")
+
+    # 6. Base-score feats must never be re-applied at login. The bonus is
     #    written into the .bic, so a second application is permanent, silent and
     #    cumulative: +6 per session, forever.
     if LEGFEAT_INC.exists():

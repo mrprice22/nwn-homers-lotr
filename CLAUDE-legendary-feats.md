@@ -174,6 +174,8 @@ The files, and what each owns:
 | `legfeat_evt.nss` | Its click handler (`NuiCreate`'s `sEventScript`). |
 | `legfeat_open.nss` | The one entry point — re-derives the allotment, opens the window. |
 | `legfeat_lvl.nss` | `NWNX_ON_LEVEL_UP_AFTER` **and** `_LEVEL_DOWN_AFTER` handler. |
+| `legfeat_respec.nss` | Player re-pick — hands the feats *and* their base points back, reopens the picker, level unchanged. Node on Ping Pong (`_pc_builder_v1`), gated by `legfeat_cond`. |
+| `legfeat_cond.nss` | StartingConditional: level-60 only, writes nothing. |
 | `legfeat_reset.nss` | Admin test tool — rest menu → `[Admin Options]`. Puts a character back to "never had a legendary feat"; a feat added by NWNX lives in the `.bic` and nothing else removes one. See `README.md` "Resetting a character's legendary feats". |
 
 - **Trigger:** `NWNX_ON_LEVEL_UP_AFTER` → `legfeat_lvl`, subscribed in
@@ -206,6 +208,20 @@ The files, and what each owns:
   silently, so the gate asserts the call is there (with `//` comments stripped
   first — the first version of that check happily matched the comment explaining
   the call).
+
+#### Re-picking, and the exploit it must not become
+
+Players may re-choose their legendary feats at any time from a conversation node
+(Ping Pong for now — the scripts do not care where the node lives). Level is not
+touched. This exists so the pool can grow and gear can change without a reroll.
+
+**Handing a feat back has to be exactly as complete as taking it: the feat AND
+its base ability points.** `LegFeat_Respec` goes through `LegFeat_RevokeAll`,
+which undoes both from the pick records, so a swap nets to zero. A re-pick path
+that removed the feat but left the points would be a repeatable stat farm — the
+gate asserts the call is still there. Re-picking (and taking) is refused while
+polymorphed: base scores are swapped out in that state, so the write would land
+on a body about to be replaced.
 
 #### Revoking: the two triggers, and the one false positive that must not happen
 
