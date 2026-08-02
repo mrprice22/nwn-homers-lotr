@@ -38,13 +38,31 @@ const string LEGFEAT_TOK = "LEGFEAT_TOK";  // PC local: this window's token
 // Ping Pong and will likely move — and the window should not have to be edited
 // when it does. Set it to "" to drop the line entirely.
 //
-// BUDGET: roughly 90 characters per line at 100% UI scale across
-// LEGFEAT_LIST_W, and it is rendered in a two-line box, so about 180 characters
-// before it clips. Keep to ~80 for a single clean line, because a player running
-// a larger UI scale fits fewer. NUI cannot reflow a built layout: the box is a
-// fixed height, so longer text wraps within it and is then CLIPPED — it never
-// pushes the feat list down. See README.md "Tuning the picker's subtitle".
+// It is appended to the "You may choose N legendary feats." header and shown on
+// the SAME centred line, wrapping onto a second line only if the two together
+// are too long — see LEGFEAT_HDR_WRAP_AT below for what that costs.
+//
+// BUDGET: header + subtitle together should stay under ~80 characters. See
+// README.md "Tuning the picker's subtitle".
 const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
+
+// Where the header stops being one line.
+//
+// NUI forces a choice: a `label` centres but NEVER wraps (it clips silently —
+// that is how the header once read "You may choose 2 leg"), while `text` wraps
+// but cannot be aligned, so it is always left-justified. There is no centred
+// wrapping control.
+//
+// So: at or under this many characters the header and subtitle share one centred
+// label, which is the normal case and the one that looks right. Over it, they
+// fall back to a two-line wrapping text box — left-justified, but readable,
+// which beats clipping half the sentence. Keep the subtitle short and the
+// fallback never fires.
+//
+// The threshold is characters against a proportional font, so it is an estimate,
+// deliberately conservative: a player running a larger UI scale fits fewer
+// characters per line than you do.
+const int LEGFEAT_HDR_WRAP_AT = 80;
 
 // Geometry. The three row columns sum to 660, comfortably inside the list
 // group's 680, which is what keeps the horizontal scrollbar away.
@@ -56,7 +74,8 @@ const float LEGFEAT_COL_BTN = 80.0;
 const float LEGFEAT_COL_NAME = 240.0;
 const float LEGFEAT_COL_EFF  = 340.0;
 const float LEGFEAT_ROW_H    = 30.0;
-const float LEGFEAT_SUB_H    = 36.0;   // two lines of subtitle
+const float LEGFEAT_HDR_H    = 26.0;   // one centred line
+const float LEGFEAT_SUB_H    = 40.0;   // two lines, wrapped fallback
 
 json LegFeat_Window(object oPC);
 void LegFeat_Open(object oPC);
@@ -111,18 +130,32 @@ json LegFeat_Window(object oPC)
         sHdr = "You may choose " + IntToString(nRemaining) + " legendary feat"
              + ((nRemaining == 1) ? "." : "s.");
     else
-        sHdr = "You have spent all of your legendary feats.";
-    jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
-        NuiLabel(JsonString(sHdr), JsonInt(NUI_HALIGN_CENTER),
-                 JsonInt(NUI_VALIGN_MIDDLE)), LEGFEAT_LIST_W), 26.0));
-
-    // NuiText, not NuiLabel: a label is single-line and clips silently, and this
-    // line is meant to be edited by someone who is not looking at the layout.
-    // Borderless with no scrollbars, so it reads as prose rather than a field.
+        // Kept short on purpose: it is concatenated with LEGFEAT_SUBTITLE and
+        // the pair has to stay under LEGFEAT_HDR_WRAP_AT, or this one state
+        // drops to the left-justified fallback while every other reads centred.
+        sHdr = "Your legendary picks are all spent.";
     if (LEGFEAT_SUBTITLE != "")
+        sHdr += "  " + LEGFEAT_SUBTITLE;
+
+    if (GetStringLength(sHdr) <= LEGFEAT_HDR_WRAP_AT)
+    {
+        // The normal case: one centred line. A label cannot wrap, which is
+        // exactly why the length is checked first.
         jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
-            NuiText(JsonString(LEGFEAT_SUBTITLE), FALSE, NUI_SCROLLBARS_NONE),
+            NuiLabel(JsonString(sHdr), JsonInt(NUI_HALIGN_CENTER),
+                     JsonInt(NUI_VALIGN_MIDDLE)), LEGFEAT_LIST_W),
+            LEGFEAT_HDR_H));
+    }
+    else
+    {
+        // Too long to fit centred on one line. Wrap it instead — borderless
+        // text with no scrollbars, so it still reads as prose. It is
+        // left-justified because NUI text takes no alignment; that is the price
+        // of not clipping the sentence in half.
+        jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
+            NuiText(JsonString(sHdr), FALSE, NUI_SCROLLBARS_NONE),
             LEGFEAT_LIST_W), LEGFEAT_SUB_H));
+    }
 
     // Explicitly sized, vertical scrollbars only: the list can grow to the whole
     // feat pool without the layout changing shape or scrolling sideways.

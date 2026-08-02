@@ -796,33 +796,42 @@ replaced.
 
 ### Tuning the picker's subtitle
 
-The line under *"You may choose N legendary feats."* is a single constant at the
+The text after *"You may choose N legendary feats."* is a single constant at the
 top of `unpacked/legfeat_nui.nss`:
 
 ```c
 const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
 ```
 
-Edit it, repack, restart. Set it to `""` to drop the line entirely. It exists
-because where a player re-picks is not settled — the node is parked on Ping Pong
-and will likely move — and the window should not need editing when it does.
+Edit it, repack, restart. `""` drops it. It exists because where a player
+re-picks is not settled — the node is parked on Ping Pong and will likely move —
+and the window should not need editing when it does.
 
-**Length budget: about 90 characters per line at 100% UI scale**, across the
-680px content width. It is rendered in a **two-line** box (`LEGFEAT_SUB_H`,
-36px), so roughly **180 characters** in total before it clips. Keep to **≤ 80**
-for one clean line: a player running a larger UI scale fits fewer characters per
-line than you do, so text that just fits on your screen can wrap on theirs.
+**It shares the header's line, centred.** Keep **header + subtitle together under
+80 characters** (`LEGFEAT_HDR_WRAP_AT`) and it stays one centred line. The
+current pair is 75.
 
-**It does not push the feat list down.** NUI cannot reflow a layout once it is
-built, so every element has a fixed height. Longer text wraps *within* the
-two-line box and anything past that is clipped — silently, with no error. If you
-genuinely need three lines, raise `LEGFEAT_SUB_H` to ~52 and
-`LEGFEAT_WIN_H` by the same amount, together; changing one without the other
-either clips the text or leaves a gap above the Close button.
+**Over 80 it falls back to a two-line wrapping box, which is left-justified.**
+That is not a choice, it is NUI: a `label` centres but never wraps — it clips
+silently, which is how the header once read "You may choose 2 leg" — while a
+`text` wraps but takes no alignment. There is no centred wrapping control, so
+the layout picks whichever failure is less bad: centred while it fits, wrapped
+rather than truncated when it does not.
 
-It uses `NuiText` rather than `NuiLabel` deliberately: a label is single-line and
-clips with no warning, which is how the header ended up reading "You may choose 2
-leg" during UAT. `NuiText` at least wraps.
+The threshold counts characters against a proportional font, so it is an
+estimate and deliberately conservative — a player running a larger UI scale fits
+fewer characters per line than you do.
+
+Two consequences worth knowing:
+
+- **The "all spent" header is kept short on purpose.** It is concatenated with
+  the same subtitle, so if you lengthen it that one state drops to the
+  left-justified fallback while every other state reads centred.
+- **Neither form pushes the feat list down.** NUI cannot reflow a built layout,
+  so heights are fixed. Past two lines the wrapped form clips. If you genuinely
+  need three, raise `LEGFEAT_SUB_H` to ~56 and `LEGFEAT_WIN_H` by the same
+  amount together; changing one without the other either clips the text or
+  leaves a gap above the Close button.
 
 ### Where the picker opens from
 
