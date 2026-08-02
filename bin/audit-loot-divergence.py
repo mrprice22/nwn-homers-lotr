@@ -220,18 +220,42 @@ def markdown(rows, path):
         "dies, as the blueprint says forever after.")
     add("")
     add("`tests/check_divergent_creatures.py` gates this, with **no allowlist "
-        "and no grandfathering** — every case below fails the build until the "
-        "placement and the blueprint agree. **This document is the worklist, "
-        "and the repack stays red until it is empty.**")
+        "and no grandfathering** — every case fails the build until the "
+        "placement and the blueprint agree.")
     add("")
-    add("**Nothing here is auto-fixable and nothing has been changed.** Which "
-        "side is right is a judgement call: `sting` on Bilbo reads as intended "
-        "loot the blueprint forgot, while a buff item on a boss reads as a "
-        "hand-edited placement. Fill in the **fix** column — `blueprint` (make "
-        "the blueprint match the placement, i.e. keep the loot) or `instance` "
-        "(make the placement match the blueprint, i.e. drop the loot). There is "
-        "no third option: leaving one in place means loot that behaves "
-        "differently before and after the first respawn.")
+    if not rows:
+        add("## Clear")
+        add("")
+        add("**No divergences. Every placement agrees with its blueprint about "
+            "which items drop.**")
+        add("")
+        add("The original 26 (11 distinct cases across `drowmage002`, "
+            "`drowrogue021`, `arohirrimsold005` and `bilbobaggins`) were "
+            "resolved **additively** on 2026-08-02 by "
+            "`bin/fix-loot-divergence.py`: wherever the two sides disagreed, "
+            "*both* were set to droppable — placements gained the flag their "
+            "blueprint already had, and Bilbo's blueprint gained the flag his "
+            "placement already had. Nothing lost loot. It has to be both sides, "
+            "because respawn rebuilds from the blueprint: fixing only the "
+            "placement gives loot that vanishes after the first death, and "
+            "fixing only the blueprint gives loot that does not exist until "
+            "then.")
+        add("")
+        add("If this document ever lists rows again, something new diverged. "
+            "Re-run `bin/fix-loot-divergence.py` for the additive resolution, "
+            "or decide per item if additive is not right for that case.")
+        add("")
+        return _write(lines, path)
+    add("**Nothing here is auto-fixable by default and nothing has been "
+        "changed.** Which side is right is a judgement call: `sting` on Bilbo "
+        "read as intended loot the blueprint forgot, while a buff item on a "
+        "boss reads as a hand-edited placement. Fill in the **fix** column — "
+        "`blueprint` (make the blueprint match the placement, i.e. keep the "
+        "loot) or `instance` (make the placement match the blueprint, i.e. drop "
+        "the loot). There is no third option: leaving one in place means loot "
+        "that behaves differently before and after the first respawn. "
+        "`bin/fix-loot-divergence.py` applies the additive answer (keep the "
+        "loot) to every row at once.")
     add("")
     add("## Summary")
     add("")
@@ -266,6 +290,10 @@ def markdown(rows, path):
                 f"| {direction(row)} |  |")
         add("")
 
+    return _write(lines, path)
+
+
+def _write(lines, path):
     with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
     print(f"wrote -> {path}")

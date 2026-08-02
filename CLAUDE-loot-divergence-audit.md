@@ -4,64 +4,13 @@
 
 `se_respawn_inc.nss` recreates a dead static creature **from its blueprint**, keeping only the tag. So where a placement disagrees with its blueprint about whether an item is droppable, the loot works **exactly once per reboot** — as placed until that creature first dies, as the blueprint says forever after.
 
-`tests/check_divergent_creatures.py` gates this, with **no allowlist and no grandfathering** — every case below fails the build until the placement and the blueprint agree. **This document is the worklist, and the repack stays red until it is empty.**
+`tests/check_divergent_creatures.py` gates this, with **no allowlist and no grandfathering** — every case fails the build until the placement and the blueprint agree.
 
-**Nothing here is auto-fixable and nothing has been changed.** Which side is right is a judgement call: `sting` on Bilbo reads as intended loot the blueprint forgot, while a buff item on a boss reads as a hand-edited placement. Fill in the **fix** column — `blueprint` (make the blueprint match the placement, i.e. keep the loot) or `instance` (make the placement match the blueprint, i.e. drop the loot). There is no third option: leaving one in place means loot that behaves differently before and after the first respawn.
+## Clear
 
-## Summary
+**No divergences. Every placement agrees with its blueprint about which items drop.**
 
-- **26** diverging rows across **4** creature blueprints.
-- **11** distinct blueprint/area/item cases (the granularity the gate tracks).
-- **24** — blueprint drops, instance does not.
-- **2** — instance drops, blueprint does not.
+The original 26 (11 distinct cases across `drowmage002`, `drowrogue021`, `arohirrimsold005` and `bilbobaggins`) were resolved **additively** on 2026-08-02 by `bin/fix-loot-divergence.py`: wherever the two sides disagreed, *both* were set to droppable — placements gained the flag their blueprint already had, and Bilbo's blueprint gained the flag his placement already had. Nothing lost loot. It has to be both sides, because respawn rebuilds from the blueprint: fixing only the placement gives loot that vanishes after the first death, and fixing only the blueprint gives loot that does not exist until then.
 
-Items that exist on one side and not the other are **not** listed here; `check_divergent_creatures.py` already failed the build on those.
-
-## By creature blueprint
-
-### `drowmage002` — Black Numenorean Mage (15 row(s))
-
-| area | # | placement name | list | item | blueprint | instance | direction | fix |
-|---|---:|---|---|---|---|---|---|---|
-| `mountgundabad001` | 13 | Black Numenorean Mage | inventory | `nw_it_mpotion003` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabad001` | 13 | Black Numenorean Mage | inventory | `nw_it_mpotion008` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabad001` | 13 | Black Numenorean Mage | inventory | `nw_wswdg001` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabad001` | 14 | Black Numenorean Mage | inventory | `nw_it_mpotion003` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabad001` | 14 | Black Numenorean Mage | inventory | `nw_it_mpotion008` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabad001` | 14 | Black Numenorean Mage | inventory | `nw_wswdg001` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 6 | Black Numenorean Mage | inventory | `nw_it_mpotion003` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 6 | Black Numenorean Mage | inventory | `nw_it_mpotion008` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 6 | Black Numenorean Mage | inventory | `nw_wswdg001` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 10 | Black Numenorean Mage | inventory | `nw_it_mpotion003` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 10 | Black Numenorean Mage | inventory | `nw_it_mpotion008` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 10 | Black Numenorean Mage | inventory | `nw_wswdg001` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 11 | Black Numenorean Mage | inventory | `nw_it_mpotion003` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 11 | Black Numenorean Mage | inventory | `nw_it_mpotion008` | 1 | 0 | blueprint drops, instance does not |  |
-| `mountgundabadlev` | 11 | Black Numenorean Mage | inventory | `nw_wswdg001` | 1 | 0 | blueprint drops, instance does not |  |
-
-### `drowrogue021` — Black Numenorean Shadow Master (5 row(s))
-
-| area | # | placement name | list | item | blueprint | instance | direction | fix |
-|---|---:|---|---|---|---|---|---|---|
-| `carndumcity` | 3 | Black Numenorean Shadow Master | inventory | `nw_it_mpotion008` | 1,1,1 | 0,0,0 | blueprint drops, instance does not |  |
-| `carndumcity` | 4 | Black Numenorean Shadow Master | inventory | `nw_it_mpotion008` | 1,1,1 | 0,0,0 | blueprint drops, instance does not |  |
-| `carndumtemple` | 1 | Black Numenorean Shadow Master | inventory | `nw_it_mpotion008` | 1,1,1 | 0,0,0 | blueprint drops, instance does not |  |
-| `carndumtemple` | 2 | Black Numenorean Shadow Master | inventory | `nw_it_mpotion008` | 1,1,1 | 0,0,0 | blueprint drops, instance does not |  |
-| `carndumtemple` | 3 | Black Numenorean Shadow Master | inventory | `nw_it_mpotion008` | 1,1,1 | 0,0,0 | blueprint drops, instance does not |  |
-
-### `arohirrimsold005` — A Ridermark Guardian (4 row(s))
-
-| area | # | placement name | list | item | blueprint | instance | direction | fix |
-|---|---:|---|---|---|---|---|---|---|
-| `theodenshall` | 1 | A Ridermark Guardian | equipped | `helmoftheride001` | 1 | 0 | blueprint drops, instance does not |  |
-| `theodenshall` | 2 | A Ridermark Guardian | equipped | `helmoftheride001` | 1 | 0 | blueprint drops, instance does not |  |
-| `theodenshall` | 3 | A Ridermark Guardian | equipped | `helmoftheride001` | 1 | 0 | blueprint drops, instance does not |  |
-| `theodenshall` | 4 | A Ridermark Guardian | equipped | `helmoftheride001` | 1 | 0 | blueprint drops, instance does not |  |
-
-### `bilbobaggins` — Bilbo Baggins (2 row(s))
-
-| area | # | placement name | list | item | blueprint | instance | direction | fix |
-|---|---:|---|---|---|---|---|---|---|
-| `shirebilbohouse` | 0 | Bilbo Baggins | equipped | `item089` | 0 | 1 | instance drops, blueprint does not |  |
-| `shirebilbohouse` | 0 | Bilbo Baggins | equipped | `sting` | 0 | 1 | instance drops, blueprint does not |  |
+If this document ever lists rows again, something new diverged. Re-run `bin/fix-loot-divergence.py` for the additive resolution, or decide per item if additive is not right for that case.
 
