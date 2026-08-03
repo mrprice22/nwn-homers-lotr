@@ -1,5 +1,21 @@
 # Gotchas — silent failure modes and common traps
 
+- **NWScript is windows-1252: a UTF-8 em dash in a `.nss` reaches the player as
+  garbage.** NWN reads script text one byte per character, so the `—` in
+  `"Your account — 10 most recent tests"` arrived on the Hall of Champions sign
+  as `Your account â€" 10 most recent tests`. In a comment the same bytes are a
+  compile trap instead. It is invisible in a diff and it is a recurring slip in
+  machine-written scripts (811 characters across 401 files when this was first
+  swept). **Write ASCII in `.nss` — dashes, straight quotes, `...`, `->`.**
+  `python3 bin/ascii-clean-nss.py --apply` sweeps the tree and
+  `tests/check_ascii_nss.py` fails the repack on a new one. **This does not
+  extend to raw high bytes**, which are how NWN colour tags are written
+  (`COLOR_RED` is `"<c\xfe\x20\x20>"` — those bytes are the colour, not text);
+  both tools work on a list of UTF-8 typographic sequences and skip anything
+  inside a `<cRGB>` tag, deliberately. Generators that emit `.nss`
+  (`bin/gen-*.py`) must emit ASCII too, or the gate fails the next time they run.
+  GFF JSON is unaffected: `nwn_gff` converts it with a declared encoding.
+
 - **A symlink in `database/` must resolve *inside the container*, not just on
   the host.** The server runs in podman with only two bind mounts,
   `$NWN_RUN_DIR:/nwn/run` and `$NWN_HOME_DIR:/nwn/home`. An absolute symlink

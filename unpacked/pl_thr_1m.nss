@@ -1,4 +1,4 @@
-// pl_thr_1m — rest-menu action (leader only): set the party's minimum item
+// pl_thr_1m - rest-menu action (leader only): set the party's minimum item
 // value to trigger a loot roll to 1000000 gp. Persisted on the leader.
 #include "inc_partyloot"
 

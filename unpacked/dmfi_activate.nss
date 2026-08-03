@@ -67,7 +67,7 @@ void main()
    if(GetTag(oItem)=="bestiarybook")
    {
       // Boss-progress line on the index page (token 5029) must be set before
-      // the first entry renders — see bst_intro / Bst_BuildIntro.
+      // the first entry renders - see bst_intro / Bst_BuildIntro.
       ExecuteScript("bst_intro", oActivator);
       AssignCommand(oActivator, ActionStartConversation(oActivator, "bst_book", TRUE));
       return;

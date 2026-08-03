@@ -1,4 +1,4 @@
-// merit_mcanc_6 — Reply action: cancel the player's own pending request in slot 6.
+// merit_mcanc_6 - Reply action: cancel the player's own pending request in slot 6.
 #include "merit_redeem"
 void main()
 {

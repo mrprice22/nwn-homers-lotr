@@ -1,4 +1,4 @@
-// prsg_c_sum.nss — summary-line token setter (roadmap: prestige-trainer-hub).
+// prsg_c_sum.nss - summary-line token setter (roadmap: prestige-trainer-hub).
 // Fills custom token 6381 with the orders that would hear the PC's name as
 // they stand today, then always shows the line.
 #include "prsg_inc"

@@ -1,5 +1,5 @@
 // Tag-based item script for mw_mixtape (Akira's Mixtape).
-// Fires via OnActivateItem → kpb_on_activate → tag-based dispatch.
+// Fires via OnActivateItem -> kpb_on_activate -> tag-based dispatch.
 #include "x2_inc_switches"
 
 void main()

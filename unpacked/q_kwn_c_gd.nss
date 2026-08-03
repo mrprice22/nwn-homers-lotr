@@ -1,4 +1,4 @@
-// q_kwn_c_gd — gate guardsman: this post already stands mustered for the
+// q_kwn_c_gd - gate guardsman: this post already stands mustered for the
 // knight (stage 2, post counted). (roadmap: knight-westernesse-quest)
 #include "q_kwn_inc"
 

@@ -10,7 +10,7 @@
 // :: It has been slightly modified for the Subrace Engine.
 // :: Thanks to Demux for this wonderful script.
 //
-// :: NWN:EE STATUS — this file is a NO-OP SHIM, and belongs to the subrace
+// :: NWN:EE STATUS - this file is a NO-OP SHIM, and belongs to the subrace
 // :: engine alone. Letoscript was an NWNX2-era external .bic rewriter; it does
 // :: not exist under NWNX:EE, so LetoScript() returns "" and the LETO_* helpers
 // :: only build strings that are then handed to it. Nothing here edits a
@@ -18,7 +18,7 @@
 // :: SubraceOnClientLeave / LetoSubraceModifications) is therefore inert.
 // ::
 // :: It was deleted in commit d212c3c2b08 alongside the HGLL legendary-leveler
-// :: scripts, which also used it — but sha_subr_methds.nss:44 still includes it,
+// :: scripts, which also used it - but sha_subr_methds.nss:44 still includes it,
 // :: and that only surfaced on a CLEAN repack (56 compile errors across the
 // :: subrace engine and the core scripts that include it: default.nss,
 // :: nw_o0_respawn.nss, nw_s2_turndead.nss, the _dm_subrace_* wands...). An
@@ -36,7 +36,7 @@ int LetoPingPong();
 
 string LetoScript(string script)
 {
-    // NWNX:EE port — Letoscript IPC is gone; HGLL applies its own changes
+    // NWNX:EE port - Letoscript IPC is gone; HGLL applies its own changes
     // directly via NWNX_Creature/Player. This stub just keeps the linker
     // happy for any leftover sha_leto callers (none live in this module).
     return "";

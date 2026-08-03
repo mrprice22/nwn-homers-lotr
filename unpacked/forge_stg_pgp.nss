@@ -1,4 +1,4 @@
-// "Show the previous enchantments" — step the staged disenchant menu back one
+// "Show the previous enchantments" - step the staged disenchant menu back one
 // page (clamped at the first) and re-prime the slot cues.
 #include "forge_inc"
 

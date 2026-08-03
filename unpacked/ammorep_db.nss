@@ -1,7 +1,7 @@
-// ammorep_db.nss — persistence for the Quiver of Endless Flight (ammo replicator).
+// ammorep_db.nss - persistence for the Quiver of Endless Flight (ammo replicator).
 //
 // The quiver is a boss drop (Legolas Greenleaf, Angmar) that can be used twice
-// before it crumbles. The remaining uses are NOT normal item charges — they live
+// before it crumbles. The remaining uses are NOT normal item charges - they live
 // in the campaign SQLite DB "ammorepdb", keyed on the ITEM's own UUID.
 //
 // Keying on the item (not the holder) is the point: a half-used quiver stays
@@ -16,7 +16,7 @@ const string AMMOREP_DB   = "ammorepdb";
 const int    AMMOREP_USES = 2;     // uses per quiver before it crumbles
 const int    AMMOREP_GRANT = 500;  // units of the chosen ammo granted per use
 
-// Idempotent — called from onmoduleload.nss.
+// Idempotent - called from onmoduleload.nss.
 void AmmoRep_InitDb()
 {
     sqlquery q = SqlPrepareQueryCampaign(AMMOREP_DB,

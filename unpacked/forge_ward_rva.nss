@@ -1,6 +1,6 @@
 // Forge Warden: revert ALL illegal gear to stock blueprints and, when that
 // leaves the PC clean, release them to the Well of Eru. Items with no known
-// blueprint stay illegal — the dialog branches to a remains-unlawful entry
+// blueprint stay illegal - the dialog branches to a remains-unlawful entry
 // (gated by forge_ward_c_il) and the player must strip those by hand.
 #include "forge_inc"
 

@@ -1,4 +1,4 @@
-// tele_set — Overwrite the currently-open save-slot with the PC's current
+// tele_set - Overwrite the currently-open save-slot with the PC's current
 // position (tele_cur_slot set by the tele_open_N reply that led here).
 #include "tele_db"
 void main()

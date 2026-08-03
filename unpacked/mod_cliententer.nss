@@ -1,8 +1,8 @@
-// mod_cliententer — the module's Mod_OnClientEntr handler.
+// mod_cliententer - the module's Mod_OnClientEntr handler.
 //
 // Split out of hgll_cliententer.nss (roadmap: ll-hgll-split-cliententer). That
 // script carried the whole login flow under the retired legendary leveler's
-// name; everything here is ordinary module login wiring — merit, bestiary,
+// name; everything here is ordinary module login wiring - merit, bestiary,
 // teleports, faction allegiance, XP boosts, server-info journals, the death
 // amulet / bleeding-out resolution, the build stamp and the contraband sweep.
 //
@@ -50,7 +50,7 @@ void ModPostEnter(object oPC)
     }
 
     // Bleeding-out login resolution: HP was saved as 0 to -9 (dying state).
-    // Roll Con save DC 12 — pass returns player at 2 HP, fail kills them.
+    // Roll Con save DC 12 - pass returns player at 2 HP, fail kills them.
     if (NWNX_Object_GetInt(oPC, PERS_HP_VALID) == 1)
     {
         int nSaved = NWNX_Object_GetInt(oPC, PERS_HP);
@@ -60,7 +60,7 @@ void ModPostEnter(object oPC)
             int nRoll   = d20(1);
             int nTotal  = nRoll + nConMod;
             string sMsg = "You logged out while bleeding out (HP: "
-                + IntToString(nSaved) + "). Constitution survival check DC 12 — "
+                + IntToString(nSaved) + "). Constitution survival check DC 12 - "
                 + "rolled " + IntToString(nRoll)
                 + " + CON " + IntToString(nConMod)
                 + " = " + IntToString(nTotal) + ". ";
@@ -110,7 +110,7 @@ void main()
     DelayCommand(4.5, Faction_ApplyLive(oPC));
 
     // Premium 2x gold/XP boosts (merit redemptions 201-204): ensure the tables
-    // exist, then report any active/pending server + personal subscriptions —
+    // exist, then report any active/pending server + personal subscriptions -
     // who bought each and the estimated end date. Delayed past the login flood.
     Boost_InitDb();
     DelayCommand(4.0, Boost_LoginReport(oPC));
@@ -118,7 +118,7 @@ void main()
     // Server-info reference journals (Rules/Guilds/Website). Each category's
     // entry 1 has End=1, so these land in the player's Completed section.
     // AddJournalQuestEntry is idempotent (re-adding the same state just resets
-    // it), so we deliver unconditionally on every login — this reaches existing
+    // it), so we deliver unconditionally on every login - this reaches existing
     // characters too, not just first-time logins. mod_enter.nss (the old, never-
     // wired delivery, which also had a "gguild" tag typo) is bypassed entirely.
     AddJournalQuestEntry("rules",        1, oPC, FALSE, FALSE);
@@ -141,7 +141,7 @@ void main()
 
     DelayCommand(1.0, ModPostEnter(oPC));
 
-    // Character sheet "Next Level:" fix for levels 40-60 — the NWNX MaxLevel
+    // Character sheet "Next Level:" fix for levels 40-60 - the NWNX MaxLevel
     // plugin leaves the engine's figure wrong past 40, so we override strref
     // 315 with the real requirement from exptable.2da (nextlvl_inc.nss).
     // Delayed so the player is fully connected before the override is sent;
@@ -166,7 +166,7 @@ void main()
     //    logout. It also strips any stale LEGFEAT_EFF effect, which is what
     //    cleans the old buff-style ability bonuses off characters granted feats
     //    by the first build. Base-score (RAW) feats are deliberately NOT
-    //    re-applied — their bonus is already in the .bic.
+    //    re-applied - their bonus is already in the .bic.
     //  * LegFeat_EnsureAllotment re-derives the entitlement, so a relevel or a
     //    death-loss level is caught even if no level event fired for us. It is
     //    also what revokes picks the character no longer qualifies for.

@@ -1,4 +1,4 @@
-// legfeat_nui.nss — the Legendary Feats picker window.
+// legfeat_nui.nss - the Legendary Feats picker window.
 //
 // Opened at character level 60 (legfeat_lvl, from NWNX_ON_LEVEL_UP_AFTER) and
 // re-opened by finishing a rest while picks remain (on_mod_rest). Event handling
@@ -6,7 +6,7 @@
 //
 // WHY A CUSTOM PICKER. The engine's own level-up feat page hands out exactly one
 // general feat at 60 to everybody, so the 1 / 2 / 3 allotment cannot be
-// expressed to it — and legendary feats are deliberately invisible to it
+// expressed to it - and legendary feats are deliberately invisible to it
 // (ALLCLASSESCANUSE = 0 in feat.2da). This window is the only grant path.
 //
 // The window is REBUILT rather than updated after each pick: a taken feat turns
@@ -23,7 +23,7 @@
 // label no width, so the group sized itself to the description text: it took a
 // fraction of the window, grew a horizontal scrollbar, and squeezed the header
 // labels down to "You may choose 2 leg". dye_nui_inc.nss is the working
-// precedent — one group, explicit NuiHeight. The row widths below sum to less
+// precedent - one group, explicit NuiHeight. The row widths below sum to less
 // than LEGFEAT_LIST_W, and the group scrolls vertically only, so no amount of
 // content can reintroduce a horizontal scrollbar.
 
@@ -34,13 +34,13 @@ const string LEGFEAT_WIN = "legfeats";     // NuiCreate window id
 const string LEGFEAT_TOK = "LEGFEAT_TOK";  // PC local: this window's token
 
 // The one line of tunable text under the "you may choose N" header. It exists
-// because where a player re-picks is not settled — the re-pick node is parked on
-// Ping Pong and will likely move — and the window should not have to be edited
+// because where a player re-picks is not settled - the re-pick node is parked on
+// Ping Pong and will likely move - and the window should not have to be edited
 // when it does. Set it to "" to drop the line entirely.
 //
 // It is appended to the "You may choose N legendary feats." header and shown on
 // the SAME centred line, wrapping onto a second line only if the two together
-// are too long — see LEGFEAT_HDR_WRAP_AT below for what that costs.
+// are too long - see LEGFEAT_HDR_WRAP_AT below for what that costs.
 //
 // BUDGET: header + subtitle together should stay under ~80 characters. See
 // README.md "Tuning the picker's subtitle".
@@ -48,14 +48,14 @@ const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
 
 // Where the header stops being one line.
 //
-// NUI forces a choice: a `label` centres but NEVER wraps (it clips silently —
+// NUI forces a choice: a `label` centres but NEVER wraps (it clips silently -
 // that is how the header once read "You may choose 2 leg"), while `text` wraps
 // but cannot be aligned, so it is always left-justified. There is no centred
 // wrapping control.
 //
 // So: at or under this many characters the header and subtitle share one centred
 // label, which is the normal case and the one that looks right. Over it, they
-// fall back to a two-line wrapping text box — left-justified, but readable,
+// fall back to a two-line wrapping text box - left-justified, but readable,
 // which beats clipping half the sentence. Keep the subtitle short and the
 // fallback never fires.
 //
@@ -90,7 +90,7 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     int bQualified = LegFeat_MeetsPrereq(oPC, nIndex);
 
     // The tooltip carries the prerequisite as well as the description, on every
-    // row and whether or not it is met — a player deciding how to spend two
+    // row and whether or not it is met - a player deciding how to spend two
     // picks needs to see that Onslaught wants Assault BEFORE taking something
     // else. A greyed row with no visible reason is the complaint this avoids.
     string sTip = LegFeat_DescAt(nIndex);
@@ -109,7 +109,7 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
         json jBtn = NuiId(NuiButton(JsonString("Take")), "t" + IntToString(nIndex));
         // Greyed out rather than hidden when no picks are left or the
         // prerequisite is not met, so the player can still read the whole pool
-        // and decide before spending. LegFeat_Take re-checks the prerequisite —
+        // and decide before spending. LegFeat_Take re-checks the prerequisite -
         // this window is only a snapshot of it.
         jBtn = NuiEnabled(jBtn, JsonBool(nRemaining > 0 && bQualified));
         jBtn = NuiTooltip(jBtn, JsonString(sTip));
@@ -117,7 +117,7 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     }
 
     // Name and a short effect summary. The full description is the tooltip on
-    // both — an inline description is what forced the horizontal scrollbar.
+    // both - an inline description is what forced the horizontal scrollbar.
     json jName = NuiLabel(JsonString(LegFeat_NameAt(nIndex)),
                           JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
     jName = NuiTooltip(jName, JsonString(sTip));
@@ -125,7 +125,7 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
 
     // An unqualified row shows what it wants instead of what it gives: the
     // effect is moot until the prerequisite is met, and "Requires: ..." in the
-    // column the eye is already on beats a tooltip nobody hovers. Kept short —
+    // column the eye is already on beats a tooltip nobody hovers. Kept short -
     // a NUI label clips silently rather than wrapping (see the header note).
     string sEff = LegFeat_EffectAt(nIndex);
     if (!bTaken && !bQualified) sEff = "Requires: " + sPrereq;
@@ -165,7 +165,7 @@ json LegFeat_Window(object oPC)
     }
     else
     {
-        // Too long to fit centred on one line. Wrap it instead — borderless
+        // Too long to fit centred on one line. Wrap it instead - borderless
         // text with no scrollbars, so it still reads as prose. It is
         // left-justified because NUI text takes no alignment; that is the price
         // of not clipping the sentence in half.

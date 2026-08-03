@@ -1,4 +1,4 @@
-// bst_page_p — reply action: previous page of the current bestiary section.
+// bst_page_p - reply action: previous page of the current bestiary section.
 #include "bst_db"
 void main()
 {

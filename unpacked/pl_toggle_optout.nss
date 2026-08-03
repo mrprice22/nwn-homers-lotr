@@ -1,4 +1,4 @@
-// pl_toggle_optout — rest-menu action: toggle this PC's opt-out of party loot
+// pl_toggle_optout - rest-menu action: toggle this PC's opt-out of party loot
 // rolls. Persisted per-character in the campaign DB.
 #include "inc_partyloot"
 

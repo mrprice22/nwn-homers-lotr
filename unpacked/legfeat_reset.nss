@@ -1,15 +1,15 @@
-// legfeat_reset.nss — admin test tool: reset the speaker's legendary feats.
+// legfeat_reset.nss - admin test tool: reset the speaker's legendary feats.
 //
 // Rest menu -> [Admin Options] -> "[Admin] Reset my legendary feats". The whole
 // Admin Options branch is gated by _cdkey (the admindb whitelist), so this
-// script needs no gate of its own — it sits beside grant_lvl60 and is reached
+// script needs no gate of its own - it sits beside grant_lvl60 and is reached
 // the same way.
 //
 // Puts the character back to "never had a legendary feat": feats removed, any
 // base-score points we recorded granting subtracted, pick and allotment records
 // cleared. The next level-up, rest or login grants a fresh allotment.
 //
-// Written for repeat use — testing a feat, resetting, and testing the next one
+// Written for repeat use - testing a feat, resetting, and testing the next one
 // is the loop this exists to serve, and it stays correct as the feat pool grows
 // because it iterates the generated table rather than a hand-written list.
 //

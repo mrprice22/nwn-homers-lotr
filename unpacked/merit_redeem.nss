@@ -1,4 +1,4 @@
-// merit_redeem.nss — Merit redemption catalogue + request/approval engine.
+// merit_redeem.nss - Merit redemption catalogue + request/approval engine.
 //
 // Earned merit is never decremented (it stays bugs*1 + exploits*3 + features*2,
 // in merit_db.nss). Spending is tracked entirely through players.merit_spent via
@@ -26,7 +26,7 @@
 // id for the currently displayed list (0 = empty). DM list also stashes
 // "merit_lslot_<i>_desc" for the detail entry. The confirmation step uses
 // separate locals: merit_pick_id / merit_pick_dm / merit_pick_afford, and the
-// tournament picker uses merit_tslot_<i> (resref) + merit_tpage_off/total — all
+// tournament picker uses merit_tslot_<i> (resref) + merit_tpage_off/total - all
 // distinct from merit_lslot_* so "Nevermind" returns to the option list intact.
 
 #include "merit_db"
@@ -52,7 +52,7 @@ struct merit_reward
 };
 
 // ------------------------------------------------------------
-// Catalogue — single source of truth. To add a redemption: add a case here and
+// Catalogue - single source of truth. To add a redemption: add a case here and
 // register its id in Merit_CatReward / Merit_CatCount.
 
 struct merit_reward Merit_GetReward(int nId)
@@ -424,7 +424,7 @@ void Merit_BuildPendingPage(object oDM)
 }
 
 // ------------------------------------------------------------
-// Tournament gear (reward 302) — curated picker. One solid item per weapon
+// Tournament gear (reward 302) - curated picker. One solid item per weapon
 // type plus armour, tower shield, gauntlets, and bows (dupes/mislabeled
 // blueprints dropped). The chosen piece is delivered instantly.
 
@@ -636,7 +636,7 @@ int Merit_GrantInstant(object oPC, int nId)
         + IntToString(nReqId) + ": " + r.label + " (" + IntToString(r.cost) + " merit).");
 
     // Premium 2x gold/XP boosts (201-204): enqueue a subscription. Buying more of
-    // the same kind never runs two clocks at once — extra time queues and slow-
+    // the same kind never runs two clocks at once - extra time queues and slow-
     // burns (see boost_db.nss). Server buffs pause everyone's personal clock.
     if (nId >= 201 && nId <= 204)
     {
@@ -651,16 +651,16 @@ int Merit_GrantInstant(object oPC, int nId)
         Boost_Enqueue(sScope, sCdKey, GetPCPlayerName(oPC), nDays);
 
         if (nBefore > 0)
-            SendMessageToPC(oPC, "[Boost] Queued — it activates when the current "
+            SendMessageToPC(oPC, "[Boost] Queued - it activates when the current "
                 + sScope + " boost runs out.");
         else
-            SendMessageToPC(oPC, "[Boost] Active now — enjoy 2x gold & XP for "
+            SendMessageToPC(oPC, "[Boost] Active now - enjoy 2x gold & XP for "
                 + IntToString(nDays) + " days!");
     }
     return TRUE;
 }
 
-// Tournament instant grant — like Merit_GrantInstant but delivers a chosen item.
+// Tournament instant grant - like Merit_GrantInstant but delivers a chosen item.
 int Merit_GrantTournament(object oPC, string sResref, string sItemName)
 {
     struct merit_reward r = Merit_GetReward(302);

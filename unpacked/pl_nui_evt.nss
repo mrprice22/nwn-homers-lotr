@@ -1,4 +1,4 @@
-// pl_nui_evt — NUI event handler for the Party Loot Roll window.
+// pl_nui_evt - NUI event handler for the Party Loot Roll window.
 // Registered per-window via the sEventScript arg of NuiCreate in inc_partyloot.
 #include "inc_partyloot"
 

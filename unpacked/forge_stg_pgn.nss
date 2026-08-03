@@ -1,4 +1,4 @@
-// "Show more enchantments" — advance the staged disenchant menu to the next page
+// "Show more enchantments" - advance the staged disenchant menu to the next page
 // and re-prime the slot cues. The menu re-shows via the D1 entry (child link).
 #include "forge_inc"
 

@@ -1,4 +1,4 @@
-// tele_woe — Rest-menu "To. The Well of Eru." teleport. Before sending the PC to
+// tele_woe - Rest-menu "To. The Well of Eru." teleport. Before sending the PC to
 // the Well of Eru, it records their current spot as slot 0 and arms the return
 // (merit unlock 102), so the "Return to last Well-of-Eru point" option brings
 // them back here exactly once.

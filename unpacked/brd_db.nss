@@ -1,10 +1,10 @@
-// brd_db.nss — "Roll of the Fallen" boss respawn tracker database helpers.
+// brd_db.nss - "Roll of the Fallen" boss respawn tracker database helpers.
 //
 // Campaign DB "respawndb" (file database/respawndb.sqlite3).
 //
 // Tables:
 //   boss_registry (resref PK, name, tag, area_resref, area_name, cr,
-//                  respawn_seconds, spawn_type) — the curated list of tracked
+//                  respawn_seconds, spawn_type) - the curated list of tracked
 //                  bosses, reseeded from this file on every module load.
 //                  spawn_type 'placed'    = se_respawn_inc DelayCommand, exact
 //                                           respawn respawn_seconds after death;
@@ -12,9 +12,9 @@
 //                                           becomes ELIGIBLE after respawn_seconds
 //                                           and returns when its lair encounter
 //                                           next triggers.
-//   boss_alias    (resref PK, canonical) — variant blueprints that all represent
+//   boss_alias    (resref PK, canonical) - variant blueprints that all represent
 //                  the same boss (e.g. the five leveled Xanith The Mad blueprints).
-//   boss_deaths   (resref PK, died_at, killed_by) — one row per currently-dead
+//   boss_deaths   (resref PK, died_at, killed_by) - one row per currently-dead
 //                  boss; wiped on module load because a restart revives everything.
 //
 // Membership rule: only bosses that can ever have ONE live instance at a time
@@ -99,7 +99,7 @@ void BRD_InitDb()
     q = SqlPrepareQueryCampaign(BRD_DB, "DELETE FROM boss_alias");
     SqlStep(q);
 
-    // BEGIN GENERATED REGISTRY — produced by bin/gen-boss-registry.py
+    // BEGIN GENERATED REGISTRY - produced by bin/gen-boss-registry.py
     // Do not hand-edit; run the generator to refresh (see CLAUDE-boss-tracker.md).
     BRD_SeedBoss("creature016", "Theoden's Chosen", "TheodensChosen", "area013", "Helm's Deep: Cave", 9540.0, 900, "placed");
     BRD_SeedBoss("summanus", "Summanus", "Summanus", "falseheaven", "Numenor: Noirinan", 2938.0, 480, "encounter");

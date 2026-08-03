@@ -1,4 +1,4 @@
-// mod_clientexit — the module's Mod_OnClientLeav handler.
+// mod_clientexit - the module's Mod_OnClientLeav handler.
 //
 // Split out of hgll_client_exit.nss (roadmap: ll-hgll-split-cliententer). None
 // of this is legendary-leveler work: it dismisses lingering epic summons,

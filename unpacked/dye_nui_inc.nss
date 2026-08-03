@@ -1,4 +1,4 @@
-// dye_nui_inc.nss — "Dye Studio" NUI color picker (all 176 armor-tint colors).
+// dye_nui_inc.nss - "Dye Studio" NUI color picker (all 176 armor-tint colors).
 // Launched from the DyeKit item (dye_nui_open) for armor / helmet / cloak.
 // Clicking a swatch tints the equipped item live via CopyItemAndModify, preserving
 // the forge legality stamps (FORGE_CEIL/FORGE_CLEAN) so dyeing never jails the bearer.
@@ -163,7 +163,7 @@ json DyeBuildGridJson(object oPC) {
 
 // An auto-width slot/material button. Its highlight is a translucent fill drawn
 // only when the bind "hl_<id>" is TRUE (toggled by DyeSetHighlights). scissor=TRUE
-// clips the oversized rect to the button, so no fixed button size is needed — the
+// clips the oversized rect to the button, so no fixed button size is needed - the
 // buttons stay auto-width (equal thirds in their row) like the proven round-1 rows.
 json DyeGridBtn(string sId, string sLabel) {
     json jBtn = NuiButton(JsonString(sLabel));
@@ -234,7 +234,7 @@ json DyeBuildWindow(object oPC) {
     jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString("Save and Close")), "bclose"));
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
 
-    // Footer row 2 — save/apply a color scheme (persistent per character)
+    // Footer row 2 - save/apply a color scheme (persistent per character)
     json jFoot2 = JsonArray();
     jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString("Copy colors")), "bsave"));
     jFoot2 = JsonArrayInsert(jFoot2, NuiId(NuiButton(JsonString("Paste colors")), "bapply"));

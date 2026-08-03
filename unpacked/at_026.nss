@@ -11,7 +11,7 @@ void main()
 
     // Verify both items are present before taking either.
     // Players can drop items between the dialog condition check and clicking this
-    // node — taking one then failing on the other would be an exploit.
+    // node - taking one then failing on the other would be an exploit.
     object oHelm = GetItemPossessedBy(oPC, "HelmoftheWarlord");
     object oHead = GetItemPossessedBy(oPC, "MutantsHead");
 
@@ -28,7 +28,7 @@ void main()
         return;
     }
 
-    // Both confirmed present — take them and set the flag for at_024.
+    // Both confirmed present - take them and set the flag for at_024.
     DestroyObject(oHelm);
     DestroyObject(oHead);
     SetLocalInt(oPC, "elrond_gave_items", 1);

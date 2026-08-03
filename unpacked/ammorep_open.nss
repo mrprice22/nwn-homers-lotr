@@ -2,7 +2,7 @@
 // dmfi_activate.nss (Mod_OnActvtItem).
 //
 // Primes the menu cues HERE, before ActionStartConversation, because the root
-// entry's text is rendered before any script on the entry itself would run —
+// entry's text is rendered before any script on the entry itself would run -
 // the same ordering trap documented in forge_stg_open.nss.
 #include "ammorep_inc"
 

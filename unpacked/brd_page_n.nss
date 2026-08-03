@@ -1,4 +1,4 @@
-// brd_page_n — reply action: next page of the fallen.
+// brd_page_n - reply action: next page of the fallen.
 #include "brd_db"
 void main()
 {

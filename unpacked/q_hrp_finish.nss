@@ -1,4 +1,4 @@
-// q_hrp_finish — fires on Halmir's induction line (prsg_conv), reached by
+// q_hrp_finish - fires on Halmir's induction line (prsg_conv), reached by
 // saying the counter-word. Stage 2 -> 3 (final, never resets), journal
 // End, Harper Pin + XP. Hardened: only fires from stage 2, so the reward
 // cannot be re-earned by re-running the dialogue.

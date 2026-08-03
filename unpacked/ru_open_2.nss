@@ -1,4 +1,4 @@
-// ru_open_2 — reply action: drill into the recent update shown in row 2.
+// ru_open_2 - reply action: drill into the recent update shown in row 2.
 #include "ru_db"
 void main()
 {

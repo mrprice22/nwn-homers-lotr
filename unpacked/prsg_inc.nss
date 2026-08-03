@@ -1,8 +1,8 @@
-// prsg_inc.nss — Prestige-order hub shared helpers (roadmap: prestige-trainer-hub)
+// prsg_inc.nss - Prestige-order hub shared helpers (roadmap: prestige-trainer-hub)
 //
 // The hub: Halmir the Grey, Keeper of the Old Orders (prsg_trainer, tag
 // PrestigeTrainer), stands in the Well of Eru and brokers introductions to
-// the twelve "old orders" — the prestige classes, framed in-fiction as
+// the twelve "old orders" - the prestige classes, framed in-fiction as
 // orders/disciplines. He is script-spawned at the admin-placed waypoint
 // AP_prestigehub_1 by prsg_spawn (fired from the thewelloferu OnEnter
 // wrapper prsg_enter, which chains the area's previous OnEnter
@@ -10,23 +10,23 @@
 // and never double-spawns.
 //
 // The gating framework the twelve future prestige quests reuse:
-//   * PRSG_MeetsLevel(oPC, nMin)  — total character level gate (hub lines).
-//   * PRSG_HasClass(oPC, nClass) — 1+ level in the prestige class (quest
+//   * PRSG_MeetsLevel(oPC, nMin)  - total character level gate (hub lines).
+//   * PRSG_HasClass(oPC, nClass) - 1+ level in the prestige class (quest
 //     givers: pass a CLASS_TYPE_* constant).
-//   * PRSG_LVL_* constants        — the per-order minimum-level table.
+//   * PRSG_LVL_* constants        - the per-order minimum-level table.
 //   * The hub dialogue (prsg_conv) shows one line per order, each behind a
 //     per-order StartingConditional (prsg_c_harper .. prsg_c_shift) that
-//     checks that order's minimum level — plus dwarf race for the Dwarven
+//     checks that order's minimum level - plus dwarf race for the Dwarven
 //     Defenders. Non-qualifying orders are hidden entirely.
 //
 // Campaign-DB idiom for the future prestige quests (mirrors the fret /
-// mos2 / maz20 pattern — per-character, persistent, relog- and
+// mos2 / maz20 pattern - per-character, persistent, relog- and
 // restart-safe, no farmable local state):
 //   * One shared DB PRSG_DB ("prestigedb"), keyed per character via the
 //     oPC parameter of Get/SetCampaignInt.
 //   * Per-order stage int under "<order>_stage" (use the short order keys:
 //     harper, pdk, pale, shadow, archer, rdd, assn, wm, bg, divch, dwdef,
-//     shift) — 0 none / 1 accepted / ... / N done; one-offs never reset
+//     shift) - 0 none / 1 accepted / ... / N done; one-offs never reset
 //     their final stage. Read/write via PRSG_GetStage / PRSG_SetStage.
 //   * Extra per-order keys (kill counts, trial flags) go in the same DB as
 //     "<order>_<what>" so a whole order can be audited in one place.
@@ -111,7 +111,7 @@ string PRSG_QualifyList(object oPC)
     if (PRSG_MeetsLevel(oPC, PRSG_LVL_SHIFT))  s = PRSG_AppendOrder(s, "the Shifters");
 
     if (s == "")
-        s = "none yet — the orders look for proven hands; the first would "
+        s = "none yet - the orders look for proven hands; the first would "
             + "hear your name at your sixth level";
     return s;
 }

@@ -1,6 +1,6 @@
 //::///////////////////////////////////////////////
 //:: at_glsn_rwd
-//:: Gloison's Heirloom — turn-in reward.
+//:: Gloison's Heirloom - turn-in reward.
 //:: Consumes the heirloom and rewards the PC. Gated upstream by
 //:: sc_glsn_have, so the item is present when this fires.
 //:://////////////////////////////////////////////

@@ -1,4 +1,4 @@
-// q_brn_wd — Beorn's Garden warg OnDeath wrapper (roadmap: beorns-garden)
+// q_brn_wd - Beorn's Garden warg OnDeath wrapper (roadmap: beorns-garden)
 // Blueprint OnDeath for q_brn_warg (the hive-angered garden wargs). Skins a
 // pelt for the killing PC while the quest is active, then chains the
 // standard death script. Bestiary-safe: bst_install stores this script as

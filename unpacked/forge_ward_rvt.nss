@@ -7,7 +7,7 @@ void main()
     object oPC = GetPCSpeaker();
     object oItem = GetLocalObject(oPC, "FORGE_DIS_ITEM");
     // Stale/recycled handle guard: never revert something this PC no longer
-    // holds — re-resolve to their current illegal item instead.
+    // holds - re-resolve to their current illegal item instead.
     if (!ForgePCHolds(oPC, oItem))
     {
         oItem = ForgeFindIllegalItem(oPC);
@@ -29,7 +29,7 @@ void main()
     }
     else
         SetLocalInt(oPC, "FORGE_RVT_OK", FALSE);
-    // Reverting an item changes the contraband picture — refresh the cached gate
+    // Reverting an item changes the contraband picture - refresh the cached gate
     // verdict off the hot path so the release reply tracks the new state.
     ForgeBeginWardenScan(oPC);
 }

@@ -1,4 +1,4 @@
-// tele_return — Rest-menu return to your last Well-of-Eru save point (unlock
+// tele_return - Rest-menu return to your last Well-of-Eru save point (unlock
 // 102). One-shot: it disarms after use, so it cannot be used twice in a row
 // without teleporting to the Well of Eru again (death never re-arms it).
 #include "tele_db"

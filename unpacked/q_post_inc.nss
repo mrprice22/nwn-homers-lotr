@@ -1,4 +1,4 @@
-// q_post_inc.nss — Hobbit Post shared helpers (roadmap: hobbit-post)
+// q_post_inc.nss - Hobbit Post shared helpers (roadmap: hobbit-post)
 //
 // T1 daily delivery quest, journal tag "hobbit_post". Posco Whitfoot, the
 // Hobbiton post-master, hands out one sealed parcel per real day; the
@@ -11,13 +11,13 @@
 //   5  Milo Burrows                  Whitfurrow Inn
 //
 // State lives entirely on the parcel item (tag QP_TAG, blueprint
-// q_post_parcel — plot + cursed, so it can't be sold, dropped or traded):
-//   POST_DAY  int 1..5 — the addressee on the label (baked at accept time,
+// q_post_parcel - plot + cursed, so it can't be sold, dropped or traded):
+//   POST_DAY  int 1..5 - the addressee on the label (baked at accept time,
 //                        so a calendar flip mid-delivery can't strand it)
-//   POST_MIS  int 0/1  — misdelivery: the label is wrong; the labelled
+//   POST_MIS  int 0/1  - misdelivery: the label is wrong; the labelled
 //                        recipient refuses and points at the true one,
 //                        QP_TrueRec(label) = (label % 5) + 1, who pays extra
-//   POST_T0   int      — real-world accept epoch (QCD_Now); the speed bonus
+//   POST_T0   int      - real-world accept epoch (QCD_Now); the speed bonus
 //                        pays if delivery lands within QP_FAST_SECS of it
 //
 // Daily gating is quest_cd_inc's calendar reset: QCD_IsDoneToday gates the
@@ -123,7 +123,7 @@ int QP_IsTrue(object oPC, int r)
     return nLabel > 0 && QP_Mis(oPC) && QP_TrueRec(nLabel) == r;
 }
 
-// --- Payout — ActionTaken on every accepting entry (normal + true-recipient).
+// --- Payout - ActionTaken on every accepting entry (normal + true-recipient).
 // Guarded so it can never pay twice in a day or without a parcel in hand.
 void QP_Pay(object oPC)
 {

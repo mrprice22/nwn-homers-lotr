@@ -126,6 +126,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: script text is ASCII…"
+if python3 "$HERE/check_ascii_nss.py"; then
+  echo "ok: script text is ASCII"
+else
+  echo "fail: script text is ASCII"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

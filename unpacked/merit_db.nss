@@ -1,4 +1,4 @@
-// merit_db.nss — Merit Award System database helpers
+// merit_db.nss - Merit Award System database helpers
 //
 // Campaign DB: "meritdb" (SQLite)
 // Schema:  players(cdkey PK, name, last_login, bugs, exploits, features, merit_spent)
@@ -66,7 +66,7 @@ void Merit_InitDb()
         SqlStep(qa);
     }
 
-    // Transaction ledger — every merit movement (spend/refund/award) with the
+    // Transaction ledger - every merit movement (spend/refund/award) with the
     // resulting available balance, for audit and recovery. Never pruned.
     sqlquery ql = SqlPrepareQueryCampaign(MERIT_DB,
         "CREATE TABLE IF NOT EXISTS merit_ledger (" +

@@ -1,4 +1,4 @@
-// merit_rpage_p — Reply action: previous page of pending redemptions.
+// merit_rpage_p - Reply action: previous page of pending redemptions.
 #include "merit_redeem"
 void main()
 {

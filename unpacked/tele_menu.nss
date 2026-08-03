@@ -1,4 +1,4 @@
-// tele_menu — Reply action on "Teleports." : populate the dynamic teleport-menu
+// tele_menu - Reply action on "Teleports." : populate the dynamic teleport-menu
 // tokens before the Teleports sub-menu (entry) renders.
 //   5090-5094 = "Slot 1..5: <area name or Unused>"
 //   5095      = last Well-of-Eru return-point area name (or "Unused")

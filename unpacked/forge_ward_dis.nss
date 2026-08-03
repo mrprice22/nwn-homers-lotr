@@ -7,7 +7,7 @@ void main()
     object oPC = GetPCSpeaker();
     object oItem = GetLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
     // Stale/recycled handle guard: the cached item must still be on this PC
-    // (it may be legal already — mid-disenchant entries show its status).
+    // (it may be legal already - mid-disenchant entries show its status).
     if (!ForgePCHolds(oPC, oItem))
     {
         oItem = ForgeFindIllegalItem(oPC);

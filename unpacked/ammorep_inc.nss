@@ -1,4 +1,4 @@
-// ammorep_inc.nss — Quiver of Endless Flight: inventory scan, menu cues, grant.
+// ammorep_inc.nss - Quiver of Endless Flight: inventory scan, menu cues, grant.
 //
 // Activating the quiver opens ammorep_conv, a flat menu listing the ammunition
 // stacks the player is carrying, richest first. Picking one grants AMMOREP_GRANT

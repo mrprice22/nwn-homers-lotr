@@ -1,4 +1,4 @@
-// bst_open_unk — reply action: open the "Not Yet Slain" list (page 1).
+// bst_open_unk - reply action: open the "Not Yet Slain" list (page 1).
 #include "bst_db"
 void main()
 {

@@ -1,4 +1,4 @@
-// brd_open_7 — reply action: drill into the slain boss shown in row 7.
+// brd_open_7 - reply action: drill into the slain boss shown in row 7.
 #include "brd_db"
 void main()
 {

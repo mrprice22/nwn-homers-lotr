@@ -1,4 +1,4 @@
-// legfeat_inc.nss — Legendary Feats: allotment, granting, revoking, effects.
+// legfeat_inc.nss - Legendary Feats: allotment, granting, revoking, effects.
 //
 // Legendary feats are inert tokens: the feat.2da row carries a name, a
 // description and an icon, and nothing else. Everything a legendary feat
@@ -18,17 +18,17 @@
 // row once at level 60 and never looked again, so a pure barbarian who took 2
 // picks and then relevelled to 59 barbarian / 1 bard kept both. With the level
 // setter on this server that is a two-minute exploit. LegFeat_EnsureAllotment
-// now re-derives the entitlement on every call — level up, level down, login.
+// now re-derives the entitlement on every call - level up, level down, login.
 //
 // TWO THINGS REVOKE EVERY PICK:
 //
 //   1. The class composition changed (pure <-> multiclass, or any reshuffle).
-//   2. The character is no longer level 60 — death XP loss can take a 60 back
+//   2. The character is no longer level 60 - death XP loss can take a 60 back
 //      to 59, and a legendary feat must not survive that. The picks are
 //      re-earned on the way back up.
 //
 // ENERGY DRAIN IS NOT A LEVEL LOSS, and getting that wrong would be a serious
-// bug — late content drains routinely, and these feats are permanent. Two
+// bug - late content drains routinely, and these feats are permanent. Two
 // independent guards:
 //
 //   * The level is judged from CLASS levels (LegFeat_TrueLevel), which live in
@@ -40,14 +40,14 @@
 //
 // EFFECTS: TWO KINDS, AND THE DIFFERENCE MATTERS
 //
-//   LEGFEAT_KIND_RAW    — writes the character's BASE ability score
+//   LEGFEAT_KIND_RAW    - writes the character's BASE ability score
 //                         (NWNX_Creature_SetRawAbilityScore, the same route
 //                         Akira's Mixtape uses in mw_mixtape_con.nss). Saved in
 //                         the .bic. Applied exactly ONCE, at the moment of the
 //                         pick, and NEVER re-applied at login: doing so would
 //                         stack another +6 into the character every session,
 //                         silently and permanently.
-//   LEGFEAT_KIND_EFFECT — a permanent supernatural effect, tagged
+//   LEGFEAT_KIND_EFFECT - a permanent supernatural effect, tagged
 //                         LEGFEAT_EFFECT_TAG and rebuilt on every login by
 //                         LegFeat_ApplyAll. Legendary Assault and Legendary
 //                         Onslaught are the first two.
@@ -121,7 +121,7 @@ int LegFeat_IsPolymorphed(object oPC)
 // class change, and the signature already determines the allotment.
 // Walks class ids in order rather than reading the four class positions and
 // sorting them: NWScript has no arrays, and this comes out sorted by
-// construction. That ordering is the point — taking the same classes in a
+// construction. That ordering is the point - taking the same classes in a
 // different order must not read as a different build.
 const int LEGFEAT_MAX_CLASS_ID = 99;   // covers stock + CEP classes.2da
 
@@ -165,7 +165,7 @@ int LegFeat_IndexOf(int nFeatId)
     return n;
 }
 
-// Is this character fighting in melee right now? Unarmed counts — the only
+// Is this character fighting in melee right now? Unarmed counts - the only
 // thing that answers FALSE is a ranged weapon in the right hand.
 //
 // Read by CONDITIONAL feats (Legendary Onslaught), whose effect depends on what
@@ -197,7 +197,7 @@ void LegFeat_ApplyEffect(object oPC, effect e)
 // ADDING A FEAT: the ability-score feats are table-driven (ability + bonus come
 // from legfeat_ids_inc.nss, which the generator writes), so they need no case
 // here. Everything else gets a case in the switch below. A feat with no case
-// and no ability payload applies nothing at all and fails silently — the pick
+// and no ability payload applies nothing at all and fails silently - the pick
 // records, the feat appears on the sheet, and the benefit never arrives.
 //
 // The exception is LEGFEAT_KIND_HOOK, where applying nothing is the CORRECT
@@ -232,7 +232,7 @@ void LegFeat_ApplyOne(object oPC, int nFeatId)
             break;
 
         // CONDITIONAL: melee only. EffectModifyAttacks, not an attack-speed
-        // effect — it adds a whole extra attack at full BAB rather than
+        // effect - it adds a whole extra attack at full BAB rather than
         // shifting the iterative progression.
         case FEAT_LEGENDARY_ONSLAUGHT:
             if (LegFeat_IsMeleeArmed(oPC))
@@ -243,7 +243,7 @@ void LegFeat_ApplyOne(object oPC, int nFeatId)
 
 // Clear and rebuild every EFFECT-kind legendary effect on this character.
 //
-// Call at login. RAW and HOOK feats are deliberately skipped — a RAW feat's
+// Call at login. RAW and HOOK feats are deliberately skipped - a RAW feat's
 // bonus is already in the character's base scores and re-applying would add
 // another one every session, and a HOOK feat has no effect to rebuild.
 // Clearing the tag first is what makes this safe to call twice, and it
@@ -324,7 +324,7 @@ void LegFeat_RevokeAll(object oPC, string sReason)
 // Re-derive the allotment, revoking if the character no longer qualifies for
 // what it holds. Returns the number of picks now outstanding.
 //
-// Safe to call from anywhere and as often as you like — the allotment row is
+// Safe to call from anywhere and as often as you like - the allotment row is
 // written with a computed value rather than incremented.
 int LegFeat_EnsureAllotment(object oPC)
 {
@@ -414,12 +414,12 @@ int LegFeat_Take(object oPC, int nIndex)
 // Two passes, because the two sources of a legendary feat need different
 // treatment:
 //
-//   1. LegFeat_RevokeAll undoes everything we have a RECORD of granting — the
+//   1. LegFeat_RevokeAll undoes everything we have a RECORD of granting - the
 //      feat and, for base-score feats, the points.
 //   2. A sweep then removes any legendary feat still on the character with no
 //      record behind it: granted by a DM, or left over from a wiped legfeatdb.
 //      Those have their FEAT removed but their ability score left alone, on
-//      purpose — with no record that we granted the points, subtracting them
+//      purpose - with no record that we granted the points, subtracting them
 //      would be guessing, and guessing wrong permanently lowers a base stat.
 //
 // The allotment row goes too, so the next check grants a fresh one.
@@ -449,7 +449,7 @@ int LegFeat_ResetCharacter(object oPC)
 
     if (nStray > 0)
         SendMessageToPC(oPC, "Removed " + IntToString(nStray)
-            + " legendary feat(s) with no pick record — ability scores were left "
+            + " legendary feat(s) with no pick record - ability scores were left "
             + "alone, since nothing recorded granting those points.");
 
     return nRecorded + nStray;
@@ -463,7 +463,7 @@ int LegFeat_ResetCharacter(object oPC)
 // THE EXPLOIT THIS HAS TO NOT BE. A re-pick is only safe while giving a feat
 // back is exactly as complete as taking it: the feat comes off AND the base
 // ability points come off. LegFeat_RevokeAll does both from the pick records,
-// so the round trip nets to zero — swap Legendary Strength for Legendary
+// so the round trip nets to zero - swap Legendary Strength for Legendary
 // Wisdom and you are +6 WIS, not +6 to both. The failure to look for when
 // touching any of this is a path that removes the feat but leaves the points.
 //

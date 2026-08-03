@@ -1,4 +1,4 @@
-// q_pass_inc.nss — "Pass the Pass" Misty Mountains escort (roadmap: pass-the-pass)
+// q_pass_inc.nss - "Pass the Pass" Misty Mountains escort (roadmap: pass-the-pass)
 //
 // T2 (L10+) daily escort quest, journal tag "pass_pass". A caravan-master
 // waits at the western foot of the High Pass (Foothills of the Misty

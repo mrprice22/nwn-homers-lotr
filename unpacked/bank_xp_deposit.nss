@@ -12,7 +12,7 @@ if(GetHitDice(oPC) < 4)
     return;
 }
 
-// Place the retirement marker first — also acts as an inventory-space check.
+// Place the retirement marker first - also acts as an inventory-space check.
 // CreateItemOnObject returns OBJECT_INVALID if the inventory is full.
 object oMarker = CreateItemOnObject("bank_xp_retired", oPC);
 if(!GetIsObjectValid(oMarker))
@@ -70,7 +70,7 @@ while(GetIsObjectValid(oItem))
 
 // Zero XP, export the stripped state, then delete the character file.
 // The marker item left in the .bic acts as a fallback ban if NWNX delete fails
-// and the player somehow reconnects — asc_enter.nss will catch and boot them.
+// and the player somehow reconnects - asc_enter.nss will catch and boot them.
 SetXP(oPC, 0);
 ExportSingleCharacter(oPC);
 

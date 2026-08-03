@@ -2,7 +2,7 @@
 // ActionTaken on Grimbeorn's turn-in reply. Consumes the day's pelts, pays
 // the randomized bounty from Beorn's stores and closes the day.
 // Double-guarded: no payout without both legs done, and never twice a day.
-// (The honey leg is consumed implicitly — the per-hive calendar keys expire
+// (The honey leg is consumed implicitly - the per-hive calendar keys expire
 // at UTC midnight along with everything else.)
 #include "q_brn_inc"
 

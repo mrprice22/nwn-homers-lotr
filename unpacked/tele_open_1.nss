@@ -1,4 +1,4 @@
-// tele_open_1 — Reply action: enter save-slot 1's sub-menu. Records the
+// tele_open_1 - Reply action: enter save-slot 1's sub-menu. Records the
 // active slot for the shared detail entry and refreshes the binding header.
 #include "tele_db"
 void main()

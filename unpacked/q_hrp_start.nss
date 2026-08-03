@@ -1,4 +1,4 @@
-// q_hrp_start — accept ActionTaken on Halmir's Harper branch
+// q_hrp_start - accept ActionTaken on Halmir's Harper branch
 // (roadmap: harper-scout-quest). Stage 0 -> 1, journal entry 1, and make
 // sure the contact stands at her table (cross-area spawn works: the
 // waypoint is looked up module-wide).

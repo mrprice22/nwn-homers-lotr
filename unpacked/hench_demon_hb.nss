@@ -1,5 +1,5 @@
 //::///////////////////////////////////////////////
-//:: Demon henchman heartbeat — persistent-follow wrapper around the
+//:: Demon henchman heartbeat - persistent-follow wrapper around the
 //:: standard nw_ch_ac1 (HotU associate heartbeat). Adds two behaviors
 //:: on top of stock henchman AI:
 //::   1. If the master is gone, the demon vanishes.

@@ -1,8 +1,8 @@
-// meth_house_inc — shared helpers for the Methonash's Place player house
+// meth_house_inc - shared helpers for the Methonash's Place player house
 // (and any future player house built on the same plumbing).
 //
 // Ownership is decided entirely by the key-free admindb `houses` table
-// (see admin_db.nss). No CD keys appear in source — the chest/key-ring just
+// (see admin_db.nss). No CD keys appear in source - the chest/key-ring just
 // ask Admin_OwnsAreaHouse(). Persistence uses the legacy Bioware campaign
 // object store (same mechanism as the module's PPIS chests), keyed by the
 // owner's CD key, so a house's stored items follow the CD key across all of

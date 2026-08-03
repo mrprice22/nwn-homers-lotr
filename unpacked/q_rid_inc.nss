@@ -1,11 +1,11 @@
-// q_rid_inc.nss — The Riddle Game shared helpers (roadmap: riddle-game)
+// q_rid_inc.nss - The Riddle Game shared helpers (roadmap: riddle-game)
 //
 // T1 weekly dialogue minigame, journal tag "riddle_game". A whispering
-// wretch (q_rid_wretch — strongly implied to be, but never named, Gollum)
+// wretch (q_rid_wretch - strongly implied to be, but never named, Gollum)
 // squats in Bree Cave and plays the old game: seven riddles, answered by
 // dialogue choice. Five or more right of seven wins a prize from its hoard;
 // fewer wins nothing but taunting. One attempt per calendar week
-// (quest_cd_inc QCD_IsDoneThisWeek — resets at the start of the ISO week,
+// (quest_cd_inc QCD_IsDoneThisWeek - resets at the start of the ISO week,
 // UTC, matching the "weekly" intent; win or lose, the week is stamped).
 //
 // The wretch is script-spawned at waypoint AP_riddlegame_1 (Bree Cave) by
@@ -20,7 +20,7 @@
 // stride-through-the-bank walk (offset + k*step mod 16, step odd so it is
 // coprime with 16), and rotates the displayed answer order per riddle so
 // the correct letter moves around. A mid-game relog just clears the session
-// locals — the game restarts from riddle one (same weekly set); the weekly
+// locals - the game restarts from riddle one (same weekly set); the weekly
 // stamp is only written when the seventh answer lands.
 //
 // Session state (locals on the PC, cleared/reset by q_rid_begin):
@@ -110,82 +110,82 @@ string QRID_Opt(int i, int j)
 {
     switch (i * 4 + j)
     {
-        // 0 — teeth
+        // 0 - teeth
         case 0:  return "Teeth in a mouth.";
         case 1:  return "The horses of the Rohirrim.";
         case 2:  return "Millstones grinding.";
         case 3:  return "Dwarves at supper.";
-        // 1 — the dark
+        // 1 - the dark
         case 4:  return "The dark.";
         case 5:  return "A wraith.";
         case 6:  return "The cold wind off the mountains.";
         case 7:  return "Fear.";
-        // 2 — an egg
+        // 2 - an egg
         case 8:  return "An egg.";
         case 9:  return "A dragon's hoard.";
         case 10: return "A barrow-mound.";
         case 11: return "A casket of mithril.";
-        // 3 — time
+        // 3 - time
         case 12: return "Time.";
         case 13: return "A dragon.";
         case 14: return "The Great Enemy.";
         case 15: return "Rust.";
-        // 4 — a fish
+        // 4 - a fish
         case 16: return "A fish.";
         case 17: return "A barrow-wight.";
         case 18: return "An icicle.";
         case 19: return "A drowned knight.";
-        // 5 — the wind
+        // 5 - the wind
         case 20: return "The wind.";
         case 21: return "A ghost.";
         case 22: return "A guilty conscience.";
         case 23: return "A swarm of midges.";
-        // 6 — a mountain
+        // 6 - a mountain
         case 24: return "A mountain.";
         case 25: return "A mallorn of the Golden Wood.";
         case 26: return "A tower of Gondor.";
         case 27: return "An Ent.";
-        // 7 — sun on the daisies
+        // 7 - sun on the daisies
         case 28: return "The sun shining on the daisies.";
         case 29: return "The moon mirrored in a pool.";
         case 30: return "A dragon eyeing an emerald.";
         case 31: return "Two elves staring at one another.";
-        // 8 — a ring
+        // 8 - a ring
         case 32: return "A ring.";
         case 33: return "A gold coin.";
         case 34: return "A crown.";
         case 35: return "A promise.";
-        // 9 — a shadow
+        // 9 - a shadow
         case 36: return "Your shadow.";
         case 37: return "A hungry dog.";
         case 38: return "Regret.";
         case 39: return "A Black Rider.";
-        // 10 — your name
+        // 10 - your name
         case 40: return "Your name.";
         case 41: return "Your gold.";
         case 42: return "Your pipe.";
         case 43: return "Your grave.";
-        // 11 — a candle
+        // 11 - a candle
         case 44: return "A candle.";
         case 45: return "A king.";
         case 46: return "A pine tree.";
         case 47: return "A dragon on its hoard.";
-        // 12 — a river
+        // 12 - a river
         case 48: return "A river.";
         case 49: return "A serpent.";
         case 50: return "An orc-scout.";
         case 51: return "A rumor.";
-        // 13 — silence
+        // 13 - silence
         case 52: return "Silence.";
         case 53: return "A secret.";
         case 54: return "The dark.";
         case 55: return "A promise.";
-        // 14 — footprints
+        // 14 - footprints
         case 56: return "Footprints.";
         case 57: return "Memories.";
         case 58: return "Debts.";
         case 59: return "Ponies.";
-        // 15 — tomorrow
+        // 15 - tomorrow
         case 60: return "Tomorrow.";
         case 61: return "The post.";
         case 62: return "Winter.";
@@ -201,7 +201,7 @@ string QRID_Opt(int i, int j)
 // SetCustomToken per call, immediately before that reply is rendered. The
 // earlier design set all four tokens in a single loop inside q_rid_c_show;
 // in-engine only the first-written token survived to the reply list, so the
-// three distractor replies rendered empty text and NWN suppressed them —
+// three distractor replies rendered empty text and NWN suppressed them -
 // leaving only the correct answer. Setting each slot's token from its own
 // reply conditional matches how the entry tokens (6361/6362) reliably resolve.
 //
@@ -253,7 +253,7 @@ string QRID_WrongTaunt(int k)
 // ------------------------------------------------------------
 // Reward on a win: 100-300 gp, QRID_XP, and one random minor treasure from
 // the hoard (all existing blueprints, verified; nothing above trinket tier
-// — the game is T1 and open to level 1).
+// - the game is T1 and open to level 1).
 
 void QRID_PayOut(object oPC)
 {
@@ -278,7 +278,7 @@ void QRID_PayOut(object oPC)
 // ------------------------------------------------------------
 // Core answer handler, shared by q_rid_a1..a4. nSlot = the displayed
 // option (1..4) the player chose. On the seventh answer the game is
-// finalized right here — stamp, journal, payout — so escape-closing the
+// finalized right here - stamp, journal, payout - so escape-closing the
 // dialogue on the result line can never dodge the weekly stamp or lose a
 // paid-out prize.
 
@@ -297,7 +297,7 @@ void QRID_Answer(object oPC, int nSlot)
     SetLocalInt(oPC, "Q_RID_IDX", nIdx);
     if (nIdx < QRID_ASKED) return;
 
-    // Seventh answer — game over. One attempt per week, win or lose.
+    // Seventh answer - game over. One attempt per week, win or lose.
     DeleteLocalInt(oPC, "Q_RID_ACTIVE");
     int nScore = GetLocalInt(oPC, "Q_RID_SCORE");
     int nWon   = (nScore >= QRID_TO_WIN);

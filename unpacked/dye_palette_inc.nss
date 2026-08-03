@@ -1,4 +1,4 @@
-// dye_palette_inc.nss — GENERATED. Do not hand-edit.
+// dye_palette_inc.nss - GENERATED. Do not hand-edit.
 // Representative RGB (packed 0xRRGGBB) and a human-readable name for each of the
 // 176 armor-tint color indices, sampled at column 128 of the game palette images
 // pal_cloth01.tga (cloth+leather) and pal_armor01.tga (metal). Fills/names the NUI

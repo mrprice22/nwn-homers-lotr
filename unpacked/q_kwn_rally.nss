@@ -1,4 +1,4 @@
-// q_kwn_rally — rally ActionTaken on a gate guardsman (q_kwn_guard).
+// q_kwn_rally - rally ActionTaken on a gate guardsman (q_kwn_guard).
 // Counts this post to the knight's banner-detail: stamps the design
 // card's per-character command counter ("pdk_command") and the post flag,
 // both persistent. The third spear completes the muster: stage 2 -> 3,

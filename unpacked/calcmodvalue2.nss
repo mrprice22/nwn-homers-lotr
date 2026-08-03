@@ -17,7 +17,7 @@ void main()
     if (iCurrentValue < 0 || iNewValue < 0)
     {
         ForgeLog("calcmodvalue2: valuation failed for '" + GetName(oItem)
-            + "' — refusing");
+            + "' - refusing");
         SetLocalInt(oPC, "MODIFY_VALUE", 0);
         SetLocalInt(oPC, "MODIFY_DIFF", -1);
         SetCustomToken(101, "0");

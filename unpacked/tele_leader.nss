@@ -1,4 +1,4 @@
-// tele_leader — Rest-menu teleport to your party leader (merit unlock 101).
+// tele_leader - Rest-menu teleport to your party leader (merit unlock 101).
 #include "tele_db"
 void main()
 {

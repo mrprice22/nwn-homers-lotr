@@ -1,8 +1,8 @@
-// q_maz_inc.nss — The Twentieth Plot of Mazarbul shared helpers
+// q_maz_inc.nss - The Twentieth Plot of Mazarbul shared helpers
 // (roadmap: twentieth-plot-mazarbul)
 //
-// T2 one-off (level 18+), journal tag "mazarbul_20". Frar the Restless — a
-// shade of Balin's colony haunting the Chamber of Records — begs the PC to
+// T2 one-off (level 18+), journal tag "mazarbul_20". Frar the Restless - a
+// shade of Balin's colony haunting the Chamber of Records - begs the PC to
 // finish the colony's last labor: a hidden codicil to the Book of Mazarbul
 // names twenty crypt-plots that must be kept sealed. Nineteen hold; the
 // twentieth's seal-braziers were never lit. Light the three braziers
@@ -12,16 +12,16 @@
 // Quest state is per-character and persistent (campaign DB MAZ_DB, same
 // scheme as Ferny's Return "fret"): "stage" 0 none / 1 accepted / 2 braziers
 // done, wraith up / 3 wraith slain / 4 done, plus per-brazier keys
-// "seal_1..3" — relog- and restart-safe, no farmable local state. One-off:
+// "seal_1..3" - relog- and restart-safe, no farmable local state. One-off:
 // stage 4 never resets.
 //
 // Everything is script-spawned at admin-placed waypoints (autopilot
 // no-coordinate-picking rule) and no-ops gracefully until they exist:
-//   AP_mazarbul20_1 — Frar's shade (chamberofrecords)
-//   AP_mazarbul20_2 — brazier 1   (chamberofrecords)
-//   AP_mazarbul20_3 — brazier 2   (balinstomb)
-//   AP_mazarbul20_4 — brazier 3   (balinstomb)
-//   AP_mazarbul20_5 — optional wraith arena spot; if absent the wraith
+//   AP_mazarbul20_1 - Frar's shade (chamberofrecords)
+//   AP_mazarbul20_2 - brazier 1   (chamberofrecords)
+//   AP_mazarbul20_3 - brazier 2   (balinstomb)
+//   AP_mazarbul20_4 - brazier 3   (balinstomb)
+//   AP_mazarbul20_5 - optional wraith arena spot; if absent the wraith
 //                     rises at the brazier that completed the seal.
 // Spawning runs from the chamberofrecords/balinstomb OnEnter wrappers
 // (q_maz_ent1/q_maz_ent2), double-spawn guarded.
@@ -139,7 +139,7 @@ void MAZ_SpawnAll()
 
 // Raise the wraith. Prefers the optional arena waypoint AP_mazarbul20_5;
 // falls back to oFallback's own location (the brazier that completed the
-// seal — no coordinate picking). Single-spawn guarded.
+// seal - no coordinate picking). Single-spawn guarded.
 void MAZ_SpawnWraith(object oFallback)
 {
     if (MAZ_WraithAlive()) return;

@@ -1,15 +1,15 @@
-// legfeat_lvl.nss — NWNX_ON_LEVEL_UP_AFTER / NWNX_ON_LEVEL_DOWN_AFTER handler
+// legfeat_lvl.nss - NWNX_ON_LEVEL_UP_AFTER / NWNX_ON_LEVEL_DOWN_AFTER handler
 // for Legendary Feats. Subscribed in onmoduleload.nss.
 //
 // Both directions matter, and they do different things:
 //
-//   UP to 60   — grant the allotment and open the picker.
-//   DOWN below 60, or any class-composition change — LegFeat_EnsureAllotment
+//   UP to 60   - grant the allotment and open the picker.
+//   DOWN below 60, or any class-composition change - LegFeat_EnsureAllotment
 //                revokes what the character no longer qualifies for. Death XP
 //                loss can take a 60 back to 59, and a legendary feat must not
 //                survive that.
 //
-// Energy drain is not a level loss and never reaches the revoke path — see
+// Energy drain is not a level loss and never reaches the revoke path - see
 // legfeat_inc.nss. This script does not need to know about it.
 //
 // The picker is opened on a 2-second delay: at _AFTER the engine is still

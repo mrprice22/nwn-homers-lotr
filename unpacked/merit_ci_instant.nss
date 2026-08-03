@@ -1,4 +1,4 @@
-// merit_ci_instant — Conditional: show "Yes, grant it now!" for an affordable,
+// merit_ci_instant - Conditional: show "Yes, grant it now!" for an affordable,
 // instant, non-tournament reward.
 int StartingConditional()
 {

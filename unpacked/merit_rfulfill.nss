@@ -1,4 +1,4 @@
-// merit_rfulfill — Reply action: mark the selected redemption fulfilled.
+// merit_rfulfill - Reply action: mark the selected redemption fulfilled.
 #include "merit_redeem"
 void main()
 {

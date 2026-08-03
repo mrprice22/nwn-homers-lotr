@@ -1,28 +1,28 @@
-// quest_cd_inc.nss — Quest cooldown helpers (daily/weekly gating)
+// quest_cd_inc.nss - Quest cooldown helpers (daily/weekly gating)
 //
 // Campaign DB: "questcddb" (SQLite, file database/questcddb.sqlite3 on the
-// server — never part of the .mod). One row per (character, quest): when the
+// server - never part of the .mod). One row per (character, quest): when the
 // quest was last completed, in real-world unix-epoch seconds.
 //
 // Schema:  quest_cd(uuid, quest, cdkey, char_name, stamped_at, times_done,
 //                   PRIMARY KEY (uuid, quest))
 //          Character identity is GetObjectUUID (persists in the .bic, same
 //          key the bestiary uses); cdkey/char_name are stored for out-of-band
-//          inspection with sqlite3 only — lookups never use them.
+//          inspection with sqlite3 only - lookups never use them.
 //
 // This is the shared gate for every Daily/Weekly repeatable quest. Time is
 // real-world wall-clock (SQLite strftime('%s','now')), NOT the game calendar,
 // so cooldowns survive reboots, relogs and module time changes.
 //
 // Two gating styles:
-//   * Rolling window  — "once per 24 real hours from completion":
+//   * Rolling window  - "once per 24 real hours from completion":
 //         QCD_IsOnCooldown(oPC, "ferny_return", QCD_DAY)
-//   * Calendar reset  — "resets at UTC midnight / start of ISO week":
+//   * Calendar reset  - "resets at UTC midnight / start of ISO week":
 //         QCD_IsDoneToday(oPC, "hobbit_post")
 //         QCD_IsDoneThisWeek(oPC, "riddle_gollum")
 //
 // ------------------------------------------------------------
-// Usage — typical daily quest dialogue:
+// Usage - typical daily quest dialogue:
 //
 //   // StartingConditional on the "I have another job for you" NPC line:
 //   #include "quest_cd_inc"
@@ -45,7 +45,7 @@
 //   QCD_Stamp(oPC, "ferny_return");
 //
 // Weekly quest: same calls with QCD_WEEK (rolling) or QCD_IsDoneThisWeek
-// (calendar). QCD_InitDb() is called from onmoduleload.nss — new consumers
+// (calendar). QCD_InitDb() is called from onmoduleload.nss - new consumers
 // need no setup beyond the #include.
 
 const string QCD_DB   = "questcddb";
@@ -54,7 +54,7 @@ const int    QCD_DAY  = 86400;      // rolling daily window
 const int    QCD_WEEK = 604800;     // rolling weekly window
 
 // ------------------------------------------------------------
-// Schema — idempotent; called once from onmoduleload.nss.
+// Schema - idempotent; called once from onmoduleload.nss.
 
 void QCD_InitDb()
 {

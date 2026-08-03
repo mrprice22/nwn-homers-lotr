@@ -1,4 +1,4 @@
-// q_kwn_finish — fires on Halmir's knighthood line (prsg_conv), reached
+// q_kwn_finish - fires on Halmir's knighthood line (prsg_conv), reached
 // by reporting the planted banner. Stage 5 -> 6 (final, never resets),
 // journal End, Banner of the West + XP. Hardened: only fires from stage
 // 5, so the reward cannot be re-earned by re-running the dialogue.

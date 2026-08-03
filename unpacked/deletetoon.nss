@@ -1,4 +1,4 @@
-// deletetoon — NWNX:EE port (was: NWNX2 DELETECHAR IPC).
+// deletetoon - NWNX:EE port (was: NWNX2 DELETECHAR IPC).
 // Deletes the speaking PC's character on a 5-second delay.
 
 #include "nwnx_admin"

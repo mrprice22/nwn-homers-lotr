@@ -1,6 +1,6 @@
 // _inc_donations.nss
 // Donations Chest data: bonus item pool, stack sizes, and illicit quarantine list.
-// AUTO-MANAGED by bin/sync_donations.py — do not hand-edit the generated sections.
+// AUTO-MANAGED by bin/sync_donations.py - do not hand-edit the generated sections.
 
 // Number of items in the bonus pool (cases 0..BONUS_POOL_SIZE-1).
 const int BONUS_POOL_SIZE = 198;

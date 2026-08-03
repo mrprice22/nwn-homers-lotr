@@ -1,7 +1,7 @@
-// admin_db.nss — Admin whitelist database helpers
+// admin_db.nss - Admin whitelist database helpers
 //
 // Campaign DB: "admindb" (SQLite, lives in the server's database/ folder on the
-// physical machine — never part of the .mod, so admin CD keys can't leak through
+// physical machine - never part of the .mod, so admin CD keys can't leak through
 // a shared module). Replaces the old hard-coded GetPCPublicCDKey() == "..." lists.
 //
 // Schema:  admins(cdkey PK, name, can_admin, can_homeless, can_chest, added_at)
@@ -10,7 +10,7 @@
 //
 // The whitelist (and the per-CD-key player-house rows) are seeded/maintained OUT
 // OF BAND with sqlite3 (see the gitignored bin/seed-admindb.sh). Module scripts
-// only ever SELECT — no CD keys live in source.
+// only ever SELECT - no CD keys live in source.
 
 const string ADMIN_DB = "admindb";
 
@@ -78,7 +78,7 @@ int Admin_CanChest(object oPC)
 // Player-house ownership (houses table). All SELECT-only, keyed by CD key /
 // area tag. Used by the "Home" rest-menu teleport, the in-house persistent
 // chest, and the key-ring. Adding a new player house is a data-entry job in
-// bin/seed-admindb.sh — no script change needed.
+// bin/seed-admindb.sh - no script change needed.
 
 // TRUE if this PC's CD key owns a home (any houses row).
 int Admin_HasHome(object oPC)

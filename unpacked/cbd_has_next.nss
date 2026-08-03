@@ -1,4 +1,4 @@
-// cbd_has_next — sign: is there a page after the current one?
+// cbd_has_next - sign: is there a page after the current one?
 #include "cbd_db"
 int StartingConditional()
 {

@@ -1,4 +1,4 @@
-// pl_party_evt — runs on NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER and
+// pl_party_evt - runs on NWNX_ON_PARTY_ACCEPT_INVITATION_AFTER and
 // NWNX_ON_PARTY_TRANSFER_LEADERSHIP_AFTER (subscribed in onmoduleload.nss).
 // OBJECT_SELF is the player who triggered the event (the joiner / new leader).
 // We re-announce the current party loot settings in green to the whole party so

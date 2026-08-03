@@ -1,4 +1,4 @@
-// tele_db.nss — Rest-menu teleport persistence (merit redemptions 101-107).
+// tele_db.nss - Rest-menu teleport persistence (merit redemptions 101-107).
 //
 // Uses its own campaign SQLite DB "teledb". Saved positions are PER CHARACTER
 // (keyed by GetObjectUUID), while the unlock entitlements themselves live in the

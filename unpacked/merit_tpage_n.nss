@@ -1,4 +1,4 @@
-// merit_tpage_n — Reply action: next page of tournament gear.
+// merit_tpage_n - Reply action: next page of tournament gear.
 #include "merit_redeem"
 void main()
 {

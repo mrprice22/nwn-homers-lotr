@@ -1,4 +1,4 @@
-// cbd_use — Hall of Champions sign OnUsed: open the menu.
+// cbd_use - Hall of Champions sign OnUsed: open the menu.
 #include "cbd_db"
 void main()
 {

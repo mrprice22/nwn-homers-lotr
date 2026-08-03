@@ -1,4 +1,4 @@
-// q_hrp_solve — fires on Della's counter-word line (q_hrp_conv), reached
+// q_hrp_solve - fires on Della's counter-word line (q_hrp_conv), reached
 // only after the cipher is read true (Lore shortcut or the hint path).
 // Stage 1 -> 2, journal entry 2. Hardened: only fires from stage 1, so
 // re-running the dialogue can't skip or repeat states.

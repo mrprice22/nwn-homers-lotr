@@ -1,4 +1,4 @@
-// pers_state_inc — fix the relog-heals-and-rests exploit.
+// pers_state_inc - fix the relog-heals-and-rests exploit.
 //
 // Snapshots the PC's current HP, remaining spell slots (per multiclass
 // + spell level) and remaining uses on a fixed list of daily-use feats
@@ -6,7 +6,7 @@
 // snapshot on next client-enter, undoing the engine's automatic
 // "rested" reset.
 //
-// Persistence rides on NWNX_Object_*Int with bPersist=TRUE — the same
+// Persistence rides on NWNX_Object_*Int with bPersist=TRUE - the same
 // pattern the HGLL leveler uses (see commit 08cb4571).
 //
 // Death is still handled by the existing deathamulet path
@@ -41,7 +41,7 @@ int PersState_FeatId(int i)
         case  5: return FEAT_TURN_UNDEAD;
         case  6: return FEAT_KI_DAMAGE;
         case  7: return FEAT_QUIVERING_PALM;
-        // Epic spells — feat IDs verified in j_inc_constants.nss.
+        // Epic spells - feat IDs verified in j_inc_constants.nss.
         case  8: return 874;   // FEAT_EPIC_SPELL_MUMMY_DUST
         case  9: return 875;   // FEAT_EPIC_SPELL_DRAGON_KNIGHT
         case 10: return 876;   // FEAT_EPIC_SPELL_HELLBALL
@@ -132,7 +132,7 @@ void PersState_Restore(object oPC)
                 // Engine restores all prepared slots to ready on enter;
                 // only flip back to not-ready those the snapshot says
                 // were spent. Don't go the other way (snap back to
-                // ready) — we only ever take spells away, never give.
+                // ready) - we only ever take spells away, never give.
                 if (!bSavedReady && GetMemorizedSpellReady(oPC, nClassType, nLevel, i))
                     SetMemorizedSpellReady(oPC, nClassType, nLevel, i, FALSE);
             }
@@ -148,14 +148,14 @@ void PersState_Restore(object oPC)
         // PCs that never logged out. Use the total-uses ceiling as a
         // proxy for "was this snapshotted?": only restore if the saved
         // value is strictly less than current (engine just gave them
-        // full uses on enter — if our saved value is the same or
+        // full uses on enter - if our saved value is the same or
         // higher there's nothing to take away).
         int nCur = NWNX_Creature_GetFeatRemainingUses(oPC, nFeat);
         if (nUses < nCur) NWNX_Creature_SetFeatRemainingUses(oPC, nFeat, nUses);
     }
 
     // HP last. Skip when the snapshot was never taken or the saved
-    // value is <= 0 (death — let the deathamulet handle it).
+    // value is <= 0 (death - let the deathamulet handle it).
     // Direct NWNX HP set bypasses DR/resistance and is exact regardless
     // of where the engine's post-login heal has landed by now.
     if (NWNX_Object_GetInt(oPC, PERS_HP_VALID) == 1)

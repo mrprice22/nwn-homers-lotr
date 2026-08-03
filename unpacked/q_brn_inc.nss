@@ -1,4 +1,4 @@
-// q_brn_inc.nss — Beorn's Garden shared helpers (roadmap: beorns-garden)
+// q_brn_inc.nss - Beorn's Garden shared helpers (roadmap: beorns-garden)
 //
 // T2 daily kill-and-gather quest, journal tag "beorn_garden". Grimbeorn the
 // Old, Lord of the Beornings (Beorn's homestead, area "beorn" off the Old
@@ -6,19 +6,19 @@
 // bee-meadow and harvesting the great hives. Level BRN_MIN_LVL+.
 //
 // Two legs, both required for the turn-in:
-//   * Wargs  — collect BRN_NEED_PELTS warg pelts. Garden wargs
+//   * Wargs  - collect BRN_NEED_PELTS warg pelts. Garden wargs
 //     (q_brn_warg, tag BeornGardenWarg) are script-spawned in packs of two
-//     at each hive when it is harvested — there are no standing warg
+//     at each hive when it is harvested - there are no standing warg
 //     encounters near the Carrock, so the hives themselves draw the raiders
 //     in. Pelts drop from the q_brn_wd OnDeath wrapper (chains
 //     nw_c2_default7; bestiary-safe: bst_install stores q_brn_wd as
 //     bst_orig_death at spawn and bst_ondeath chains it after recording).
-//   * Honey  — harvest BRN_NEED_HONEY hives. Hive placeables (q_brn_hive,
+//   * Honey  - harvest BRN_NEED_HONEY hives. Hive placeables (q_brn_hive,
 //     tag HoneyHive) are script-spawned at waypoints AP_beornsgarden_1/2/3
 //     by q_brn_spawn from the beorn/carrok/carrokgreater OnEnter wrappers
 //     (q_brn_ent1/q_brn_ent2); each no-ops gracefully until the admin
 //     places the waypoint. Per-PC per-hive per-day gating lives in
-//     questcddb calendar keys ("beorn_garden_h1..3") — relog- and
+//     questcddb calendar keys ("beorn_garden_h1..3") - relog- and
 //     restart-safe, no farmable local state.
 //
 // Active-state is persistent and item-free, same scheme as the Spider Silk
@@ -149,7 +149,7 @@ void BRN_SpawnHives()
     }
 }
 
-// Spawn a pack of wargs at oHive (its own location — no coordinate picking).
+// Spawn a pack of wargs at oHive (its own location - no coordinate picking).
 // Capped at BRN_AREA_CAP live garden wargs in the hive's area so repeated
 // hive use can't flood the meadow. Returns the number actually spawned.
 int BRN_SpawnWargs(object oHive)

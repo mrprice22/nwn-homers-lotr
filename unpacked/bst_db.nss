@@ -1,16 +1,16 @@
-// bst_db.nss — Bestiary / creature-kill-tracking database helpers
+// bst_db.nss - Bestiary / creature-kill-tracking database helpers
 //
 // Campaign DB: "bestiarydb" (SQLite, file database/bestiary.sqlite3)
 //
 // Tables:
 //   kills        (uuid, cdkey, char_name, resref, solo_kills, party_kills, last_kill)
-//                  PRIMARY KEY (uuid, resref) — per-character per-creature totals.
+//                  PRIMARY KEY (uuid, resref) - per-character per-creature totals.
 //                  Character identity is GetObjectUUID (persists in the .bic);
 //                  cdkey kept so per-(character,cdkey) aggregation is possible.
 //   server_first (resref PK, cr, first_uuid, first_name, first_cdkey, first_player_name, first_at)
 //                  one row per hard creature (CR >= BST_SF_CR) first slain server-wide.
-//   catalogue    (resref PK, name, cr) — every creature type, seeded by nwn-wiki.
-//   resref_alias (resref PK, canonical) — maps blueprint/variant resrefs to the
+//   catalogue    (resref PK, name, cr) - every creature type, seeded by nwn-wiki.
+//   resref_alias (resref PK, canonical) - maps blueprint/variant resrefs to the
 //                  canonical resref used everywhere else, also seeded by nwn-wiki.
 //
 // Kills are recorded by CANONICAL resref (see Bst_Canonical) so the in-game
@@ -121,7 +121,7 @@ int Bst_InCatalogue(string sResref)
     return SqlStep(q);
 }
 
-// Total kills (solo+party) of sResref by a character — for the combat-log line.
+// Total kills (solo+party) of sResref by a character - for the combat-log line.
 int Bst_GetTotal(string sUuid, string sResref)
 {
     sqlquery q = SqlPrepareQueryCampaign(BST_DB,
@@ -158,11 +158,11 @@ int Bst_RegisterServerFirst(string sResref, float fCR, string sUuid, string sNam
 // Tracked bosses (browse mode 2 + the intro progress line)
 //
 // The boss set is the "Roll of the Fallen" registry in respawndb (the CR>60
-// single-instance bosses — see CLAUDE-boss-tracker.md), i.e. exactly the set
+// single-instance bosses - see CLAUDE-boss-tracker.md), i.e. exactly the set
 // the forge's progressive bonus keys off: slay every one of them and the top
 // forges grant +20% value cap and one extra property slot (forge_inc.nss,
 // ForgeBossDistinctKills / ForgeBossBonusPct). Kept in this file rather than
-// #include "forge_inc" — that include drags in the whole forge/appraise/colour
+// #include "forge_inc" - that include drags in the whole forge/appraise/colour
 // stack, and bst_db is on the OnDeath hot path.
 
 // Quoted, comma-separated list of every tracked boss resref (registry +
@@ -244,7 +244,7 @@ int Bst_BossSlainCount(object oPC)
     return nKills;
 }
 
-// Token 5029 — the boss-progress line on the book's index page. Must be set
+// Token 5029 - the boss-progress line on the book's index page. Must be set
 // BEFORE the index entry is spoken (token substitution happens at display), so
 // it is driven from the item-activation script and the [Back to the index]
 // reply, not from the entry node's own action script.
@@ -261,7 +261,7 @@ void Bst_BuildIntro(object oPC)
     string sLine = "Great foes felled: " + IntToString(nSlain) + " of " + IntToString(nTotal) + ".";
 
     if (nSlain >= nTotal)
-        sLine += " Not one remains — the great forges yield their final property slot to you.";
+        sLine += " Not one remains - the great forges yield their final property slot to you.";
     else
         sLine += " Fell them all and the great forges will yield one more property slot.";
 

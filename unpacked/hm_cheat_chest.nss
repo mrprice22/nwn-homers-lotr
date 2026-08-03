@@ -6,7 +6,7 @@ void main()
     if (!GetIsPC(oPC)) return;
 
     // Whitelist lives in the "admindb" campaign database (admins.can_chest),
-    // not in source — keys never ship inside the .mod.
+    // not in source - keys never ship inside the .mod.
     int bAuth = Admin_CanChest(oPC);
 
     if (!bAuth)
@@ -37,7 +37,7 @@ void main()
     if (GetItemPossessedBy(oPC, "ammoreplicator")    == OBJECT_INVALID) CreateItemOnObject("ammoreplicator",   oPC);
 
     // Rapid-testing supply: always hand out a fresh stack of 3 Runes of Expansion
-    // (consumable, so no possession guard — each use tops the tester back up to 3).
+    // (consumable, so no possession guard - each use tops the tester back up to 3).
     CreateItemOnObject("slot_token", oPC, 3);
 
     SendMessageToPC(oPC, "Your items have been placed in your inventory.");

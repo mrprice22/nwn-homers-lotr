@@ -1,4 +1,4 @@
-// q_kwn_c_prog — TRUE while the proving is under way (stages 1-4):
+// q_kwn_c_prog - TRUE while the proving is under way (stages 1-4):
 // Halmir's reminder line. (roadmap: knight-westernesse-quest)
 #include "q_kwn_inc"
 

@@ -1,4 +1,4 @@
-// q_maz_end — turn-in ActionTaken (roadmap: twentieth-plot-mazarbul).
+// q_maz_end - turn-in ActionTaken (roadmap: twentieth-plot-mazarbul).
 // Frar's shade pays out: gold, XP and the Seal of the Twentieth, then the
 // quest closes for good (stage 4, End=1). Hardened: only fires from stage
 // 3, so the reward cannot be re-earned by re-running the dialogue.

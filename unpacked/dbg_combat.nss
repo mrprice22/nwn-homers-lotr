@@ -1,10 +1,10 @@
-// dbg_combat.nss — admin toggle for the combat diagnostics.
+// dbg_combat.nss - admin toggle for the combat diagnostics.
 //
 // Turns BOTH temporary diagnostic modes on or off together, module-wide:
 //
 //   DEVCRIT_DEBUG (devcrit_inc)  every effect landing on a victim inside a
 //                                devastating critical's no-kill window is
-//                                reported with its raw internal TYPE — the
+//                                reported with its raw internal TYPE - the
 //                                measurement that says whether the engine's
 //                                dev-crit kill is an applied effect at all.
 //   CBD_DEBUG     (cbd_inc)      the Combat Dummy echoes every attack and every
@@ -15,7 +15,7 @@
 // Run it from the DM client console:  dm_runscript dbg_combat
 // (or ExecuteScript("dbg_combat", GetModule()) from anywhere).
 //
-// Gated on the admindb whitelist, same as every other admin-only feature — a
+// Gated on the admindb whitelist, same as every other admin-only feature - a
 // non-admin running it changes nothing. Both flags are OFF at every reboot:
 // they live on the module object and nothing persists them, deliberately.
 //

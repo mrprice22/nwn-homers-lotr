@@ -1,4 +1,4 @@
-// openstoremeth — opens Methonash's Well-Mart (100k buy cap) for the speaker.
+// openstoremeth - opens Methonash's Well-Mart (100k buy cap) for the speaker.
 // Clone of openstore061 targeting the "methmart" store instead of "wellshop".
 #include "store_appr_inc"
 void main()

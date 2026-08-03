@@ -1,4 +1,4 @@
-// ru_db.nss — "Recent Updates" sign database helpers.
+// ru_db.nss - "Recent Updates" sign database helpers.
 //
 // Campaign DB "roadmapdb" (file database/roadmapdb.sqlite3), table recent_updates.
 // The table is written by bin/roadmap-editor.py on the "Publish to Wiki & DB"

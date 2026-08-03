@@ -288,9 +288,9 @@ void ZEP_StartCraft(object oPC, object oItem) {
     // If another session is already active, clean it up before starting a new
     // one. The dialogue has multiple "start" nodes (armor, helmet, weapon,
     // shield, robe) each calling ZEP_StartCraft. Without this guard:
-    //   • The old ZEP_CR_ITEM (a different equipped item) retains TEMPITEM
+    //   * The old ZEP_CR_ITEM (a different equipped item) retains TEMPITEM
     //     and gets quarantined by ZEP_PurifyAllItems on the next area entry.
-    //   • The old backup in the work container becomes an unreferenced orphan.
+    //   * The old backup in the work container becomes an unreferenced orphan.
     // Fix: clear TEMPITEM from the old item and destroy its orphaned backup
     // before we overwrite the ZEP_CR_* locals with the new session's data.
     if (GetLocalInt(oPC, "ZEP_CR_STARTED")) {
@@ -605,7 +605,7 @@ void ZEP_SetPart(object oPC, int nPart, int nStrRef) {
         fDistance = 3.0;
         fPitch = 65.0;
     } else if (nPart==ZEP_CR_CLOAK) {
-        // Cloak hangs on the back — rotate camera 180° to look from behind.
+        // Cloak hangs on the back - rotate camera 180 degrees to look from behind.
         fFacing -= 180.0;
         if (fFacing < 0.0) fFacing += 360.0;
         fDistance = 3.5;
@@ -901,7 +901,7 @@ void ZEP_RemakeItem(object oPC, int nMode) {
 
         if (nPart == ITEM_APPR_ARMOR_MODEL_TORSO) {
             string sAC = Get2DAString("parts_chest", "ACBONUS", nCurrApp);
-            if (sAC == "") sAC = "0"; // CEP appearance beyond parts_chest.2da range — fall back to cloth tier
+            if (sAC == "") sAC = "0"; // CEP appearance beyond parts_chest.2da range - fall back to cloth tier
             // Fetch the stringlist that holds the ID's for this part
             sPreRead = GetLocalString(GetModule(), "ZEP_IDPreReadAC_"+GetStringLeft(sAC,1));
             if (sPreRead=="") // list didn't exist yet, so generate it
@@ -926,13 +926,13 @@ void ZEP_RemakeItem(object oPC, int nMode) {
         if (sID=="") {
             // Not found in preread list (CEP appearance out of 2DA range).
             // Torso preread has no leading 0, so start at offset 1.
-            // Non-torso preread is always :0:X:Y:... — start at offset 3 to skip
+            // Non-torso preread is always :0:X:Y:... - start at offset 3 to skip
             // appearance 0 (invisible part) and land on the first real appearance.
             int nOff = (nPart == ITEM_APPR_ARMOR_MODEL_TORSO) ? 1 : 3;
             sID = GetSubString(sPreRead, nOff, 5);
             n = FindSubString(sID, ":");
             sID = GetStringLeft(sID, n);
-            if (sID == "") { // safety: degenerate preread — fall back to position 1
+            if (sID == "") { // safety: degenerate preread - fall back to position 1
                 sID = GetSubString(sPreRead, 1, 5);
                 n = FindSubString(sID, ":");
                 sID = GetStringLeft(sID, n);
@@ -1007,9 +1007,9 @@ void ZEP_RemakeItem(object oPC, int nMode) {
 
     } else if (nPart == ZEP_CR_CLOAK) {
         // Handle Cloak appearance change.
-        // Appearance 0 = hidden (no model visible) — always included as a
+        // Appearance 0 = hidden (no model visible) - always included as a
         // valid cycling target so the player can toggle the cloak off.
-        // Cycle wraps: ... → nMax → 0(hidden) → 1 → ... → nMax → 0 → ...
+        // Cycle wraps: ... -> nMax -> 0(hidden) -> 1 -> ... -> nMax -> 0 -> ...
         nCurrApp = GetItemAppearance(oItem, ITEM_APPR_TYPE_SIMPLE_MODEL, 0);
         int nMax = StringToInt(Get2DAString("baseitems", "MaxRange", BASE_ITEM_CLOAK));
         if (nMax < 1) nMax = 20; // safety: malformed 2DA
@@ -1022,7 +1022,7 @@ void ZEP_RemakeItem(object oPC, int nMode) {
             oNew = CopyItemAndModify(oItem, ITEM_APPR_TYPE_SIMPLE_MODEL, 0, nCurrApp, TRUE);
         } while (!GetIsObjectValid(oNew) && nCurrApp != 0);
         // Appearance 0 always valid; if the loop stopped there, oNew may
-        // still be OBJECT_INVALID from the last loop body — try once explicitly.
+        // still be OBJECT_INVALID from the last loop body - try once explicitly.
         if (nCurrApp == 0 && !GetIsObjectValid(oNew))
             oNew = CopyItemAndModify(oItem, ITEM_APPR_TYPE_SIMPLE_MODEL, 0, 0, TRUE);
 
@@ -1052,7 +1052,7 @@ void ZEP_RemakeItem(object oPC, int nMode) {
         int nBaseType = GetBaseItemType(oItem);
         int nMin = StringToInt(Get2DAString("baseitems", "MinRange", nBaseType)) /10;
         int nMax = StringToInt(Get2DAString("baseitems", "MaxRange", nBaseType)) /10;
-        // Guard against degenerate 2DA row (empty column → StringToInt returns 0).
+        // Guard against degenerate 2DA row (empty column -> StringToInt returns 0).
         // Without this, nMin=nMax=0 makes the do-while spin forever on model 0
         // (always invalid) since the wrap condition ++nCurrApp>0 always fires and
         // resets nCurrApp back to 0.

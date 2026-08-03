@@ -1,4 +1,4 @@
-// q_kwn_c_noh — Halmir's Westernesse branch: the "how does one ride under
+// q_kwn_c_noh - Halmir's Westernesse branch: the "how does one ride under
 // that banner" pointer for a PC who has not started the quest and has no
 // Knight of Westernesse level yet. (roadmap: knight-westernesse-quest)
 #include "q_kwn_inc"

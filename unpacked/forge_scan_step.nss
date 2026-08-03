@@ -1,4 +1,4 @@
-// forge_scan_step — one step of a chunked contraband scan.
+// forge_scan_step - one step of a chunked contraband scan.
 //
 // Run via ExecuteScript on the PC (OBJECT_SELF = the player) from
 // ForgeBeginScan / ForgeBeginWardenScan (forge_inc). Evaluates the single queued
@@ -8,8 +8,8 @@
 // login enter scripts or the Forge Warden's dialog gates.
 //
 // Two modes (FORGE_SCAN_MODE):
-//   0 = LOGIN  — an illegal item jails the bearer and stops the scan.
-//   1 = WARDEN — an illegal item records the contraband verdict
+//   0 = LOGIN  - an illegal item jails the bearer and stops the scan.
+//   1 = WARDEN - an illegal item records the contraband verdict
 //                (FORGE_WARDEN_DIRTY=1, FORGE_ILLEGAL_ITEM) without jailing and
 //                stops; draining the queue clean sets FORGE_WARDEN_DIRTY=0.
 //                Either way FORGE_WARDEN_READY=1 marks the verdict as known, so
@@ -50,7 +50,7 @@ void main()
             }
             else
                 ForgeJailForItem(oPC, oItem);
-            return; // stop scanning — verdict is dirty
+            return; // stop scanning - verdict is dirty
         }
         if (nVerdict == FORGE_LEG_LEGAL)
             SetLocalInt(oItem, "FORGE_CLEAN", FORGE_CLEAN_VER);

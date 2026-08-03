@@ -1,4 +1,4 @@
-// q_kwn_muster — the Gate Captain sets the command exercise (q_kwn_capt).
+// q_kwn_muster - the Gate Captain sets the command exercise (q_kwn_capt).
 // Stage 1 -> 2, journal entry 2. Hardened: only fires from stage 1.
 // (roadmap: knight-westernesse-quest)
 #include "q_kwn_inc"

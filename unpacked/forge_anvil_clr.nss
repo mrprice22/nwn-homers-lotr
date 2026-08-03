@@ -1,4 +1,4 @@
-// Anvil-forge conversation cleanup — wired to the dialog's EndConversation AND
+// Anvil-forge conversation cleanup - wired to the dialog's EndConversation AND
 // EndConverAbort hooks (mirrors forge_ward_clr for the Forge Warden). Without it
 // the cached item handle (MODIFY_ITEM) and the staged-disenchant plan/page linger
 // on the PC between conversations: the smith would speak about a stale item and a

@@ -1,4 +1,4 @@
-// dye_nui_evt.nss — NUI event handler for the Dye Studio window.
+// dye_nui_evt.nss - NUI event handler for the Dye Studio window.
 // Registered per-window via the sEventScript arg of NuiCreate in dye_nui_open.
 #include "dye_nui_inc"
 

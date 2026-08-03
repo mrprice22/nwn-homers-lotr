@@ -1,4 +1,4 @@
-// merit_pick_4 — Reply action: prepare the confirmation step for option slot 4.
+// merit_pick_4 - Reply action: prepare the confirmation step for option slot 4.
 #include "merit_redeem"
 void main()
 {

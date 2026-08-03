@@ -1,4 +1,4 @@
-// bst_ondeath — wrapped creature OnDeath: record the kill, then chain original.
+// bst_ondeath - wrapped creature OnDeath: record the kill, then chain original.
 //
 // Installed by bst_install. Credits every PC that dealt damage to the creature
 // (gathered by bst_ondamage). Solo = exactly one PC contributor; Party = more
@@ -26,7 +26,7 @@ void main()
 
     // A creature that is itself a PC's summon/associate (summoned monster from
     // any spell or feat, familiar, animal companion, henchman) is not a bestiary
-    // target — its death is not a kill. Skip recording AND the uncatalogued log;
+    // target - its death is not a kill. Skip recording AND the uncatalogued log;
     // just chain the original handler. Enemy-summoned creatures have a non-PC
     // master, so Bst_OwningPC returns OBJECT_INVALID and they still count.
     if (GetIsObjectValid(Bst_OwningPC(oCre)))
@@ -37,7 +37,7 @@ void main()
     }
 
     // Roll of the Fallen (Well of Eru board): record a tracked boss's death
-    // regardless of who lands the blow — the boss is gone either way. Reads the
+    // regardless of who lands the blow - the boss is gone either way. Reads the
     // bst_ctrb_N contributor locals for the "slain by" line; no-op otherwise.
     BRD_RecordDeath(oCre);
 

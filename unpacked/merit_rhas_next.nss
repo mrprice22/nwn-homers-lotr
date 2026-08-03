@@ -1,4 +1,4 @@
-// merit_rhas_next — Conditional: show [Next >>] only when more pending pages exist.
+// merit_rhas_next - Conditional: show [Next >>] only when more pending pages exist.
 int StartingConditional()
 {
     object oDM = GetPCSpeaker();

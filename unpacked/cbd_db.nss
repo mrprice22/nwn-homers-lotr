@@ -1,4 +1,4 @@
-// cbd_db.nss — Combat Dummy leaderboard ("Hall of Champions") database.
+// cbd_db.nss - Combat Dummy leaderboard ("Hall of Champions") database.
 //
 // Campaign DB "combatdummydb" (file database/combatdummydb.sqlite3), table
 // sessions: one row per completed 10-round test.
@@ -7,7 +7,7 @@
 //
 // Identity is split the same way as bst_db.nss: `uuid` (GetObjectUUID) is the
 // CHARACTER, `cdkey` (GetPCPublicCDKey) is the ACCOUNT. Attacks per round are
-// deliberately NOT stored — they are a per-session diagnostic, not a score.
+// deliberately NOT stored - they are a per-session diagnostic, not a score.
 //
 // The sign (cbd_sign.dlg) browses three views, 10 rows to a page:
 //   mode 1  this account's best result per character, top 10
@@ -69,9 +69,9 @@ void Cbd_Record(object oPC, float fDpr, int nTotalDamage, int nRounds)
 
 string Cbd_ModeTitle(int nMode)
 {
-    if (nMode == 1) return "Your account — best result per character";
-    if (nMode == 2) return "Your account — 10 most recent tests";
-    return "Server-wide — top " + IntToString(CBD_TOP_MAX) + " (best per player)";
+    if (nMode == 1) return "Your account - best result per character";
+    if (nMode == 2) return "Your account - 10 most recent tests";
+    return "Server-wide - top " + IntToString(CBD_TOP_MAX) + " (best per player)";
 }
 
 // One "keep only the best row" filter, written once. The correlated NOT EXISTS
@@ -86,8 +86,16 @@ string Cbd_BestRowFilter(string sPartitionCol)
 
 string Cbd_Sql(int nMode, int bCount)
 {
+    // "at" is stored as datetime('now'), which SQLite gives in UTC - always
+    // convert for display or the board reads a day ahead of the player.
+    // The 10-most-recent view is a log of THIS session's tests, so it shows the
+    // time as well; the two high-score views are historical and show the date
+    // only.
+    string sWhen = (nMode == 2) ? "substr(datetime(s.at, 'localtime'), 1, 16)"
+                                : "substr(datetime(s.at, 'localtime'), 1, 10)";
+
     string sCols = bCount ? "COUNT(*)"
-                          : "player_name, char_name, dpr, substr(at, 1, 10)";
+                          : "player_name, char_name, dpr, " + sWhen;
     string sSql  = "SELECT " + sCols + " FROM sessions s WHERE 1=1";
 
     if (nMode == 1)

@@ -1,10 +1,10 @@
-// store_appr_inc.nss — Appraise-scaled, per-PC store opening.
+// store_appr_inc.nss - Appraise-scaled, per-PC store opening.
 //
 // A store's MaxBuyPrice (the cap on the gold it will pay a player for any one
 // item) lives on the shared store object, so scaling it in place would leak one
 // player's Appraise bonus to everyone else shopping the same store. Instead,
 // OpenStoreAppr opens a throwaway COPY of the store whose cap is scaled by the
-// opening player's Appraise — fully per-player, nothing shared. The copy is
+// opening player's Appraise - fully per-player, nothing shared. The copy is
 // destroyed when the player closes it (store_appr_cls on STORE_ON_CLOSE), with
 // a delayed fallback in case the close event is missed.
 //
@@ -22,7 +22,7 @@
 #include "appraise_inc"
 #include "boost_inc"    // Boost_Mult(oPC) -> 2 when the premium boost is active, else 1
 #include "color"        // ColorString + COLOR_LIGHT_BLUE (the module's cyan token)
-#include "nw_i0_plot"   // gplotAppraiseOpenStore — preserves stock store pricing
+#include "nw_i0_plot"   // gplotAppraiseOpenStore - preserves stock store pricing
 
 // Thousands-separated gold string, standard-currency style: 196000 -> "196,000".
 // Values passed here are non-negative store caps.
@@ -89,7 +89,7 @@ void OpenStoreAppr(object oStore, object oPC, int bAppraisePricing = FALSE)
     object oCopy = CopyObject(oStore, GetLocation(oStore), OBJECT_INVALID, "", TRUE);
     if (!GetIsObjectValid(oCopy))
     {
-        // Copy failed — never deny the player their store; open the original.
+        // Copy failed - never deny the player their store; open the original.
         StoreOpenAs(oStore, oPC, bAppraisePricing);
         return;
     }
@@ -97,7 +97,7 @@ void OpenStoreAppr(object oStore, object oPC, int bAppraisePricing = FALSE)
     // Raise this player's cap. Appraise adds +0 (no investment) up to +100% (double)
     // at an Appraise check of 65; the premium 2x boost then STACKS multiplicatively on
     // top (up to 4x base with both maxed). Merchant sales were previously the one gold
-    // path the boost never touched — this is the 2x-gold-defect fix.
+    // path the boost never touched - this is the 2x-gold-defect fix.
     int nApprBonus = AppraiseBonusScaled(oPC, nBase);   // 0 .. nBase
     int nMult      = Boost_Mult(oPC);                   // 1 or 2
     int nFinal     = (nBase + nApprBonus) * nMult;

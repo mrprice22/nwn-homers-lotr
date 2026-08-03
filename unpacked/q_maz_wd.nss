@@ -1,4 +1,4 @@
-// q_maz_wd — Wraith of the Twentieth Plot OnDeath (roadmap:
+// q_maz_wd - Wraith of the Twentieth Plot OnDeath (roadmap:
 // twentieth-plot-mazarbul). Advances every party-member PC in the area who
 // is at stage 2 to stage 3 (party-aware kill credit, same pattern as
 // Ferny's Return / The Miller's Other Son). Quest state lives in the

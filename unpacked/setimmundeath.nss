@@ -1,4 +1,4 @@
-// Forge option param setter: "Deathless" — immunity to Death Magic.
+// Forge option param setter: "Deathless" - immunity to Death Magic.
 // Pairs with setpropmiscimmun (MODIFY_PROPERTY = "Miscellaneous Immunity").
 void main()
 {

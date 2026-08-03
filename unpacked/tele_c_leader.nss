@@ -1,4 +1,4 @@
-// tele_c_leader — Conditional: show the party-leader teleport when this CD Key
+// tele_c_leader - Conditional: show the party-leader teleport when this CD Key
 // owns merit unlock 101.
 #include "merit_redeem"
 int StartingConditional()

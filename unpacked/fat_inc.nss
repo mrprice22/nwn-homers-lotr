@@ -1,16 +1,16 @@
-// fat_inc — soul-fatigue on the Heal spell and Heal potions
+// fat_inc - soul-fatigue on the Heal spell and Heal potions
 // (roadmap: heal-soul-fatigue).
 //
 // Design spec: docs.manual/boss-updates.html#fatigue.
 //
 // Turns reflexive full-heal spam into a timed resource. When a living PC is
-// healed by the Heal spell (SPELL_HEAL, including potion/item activations —
+// healed by the Heal spell (SPELL_HEAL, including potion/item activations -
 // they fire the same spell id through the module override spellscript) or by
 // Mass Heal, three things happen in strict order:
 //   1. the heal fully resolves first (we only schedule work AFTER the real
 //      impact script has run),
 //   2. the PC then takes 10% of max HP as damage PER stack that was already
-//      active BEFORE this heal — applied after the top-off so the heal can't
+//      active BEFORE this heal - applied after the top-off so the heal can't
 //      erase it. This can kill: at 10 prior stacks the hit is 100% of max HP.
 //   3. a new stack is added.
 // Each stack decays on its own independent 3-minute timer. A heal from zero
@@ -24,7 +24,7 @@
 //
 // Scope / defensive rules:
 //   * PCs only, never DMs. NPCs healing themselves are unaffected.
-//   * An undead target isn't being healed by these spells (they harm it) —
+//   * An undead target isn't being healed by these spells (they harm it) -
 //     no stack, no damage.
 //   * Mass Heal mirrors the module impact script nw_s0_masheal.nss exactly:
 //     friendly, non-undead targets in a MEDIUM sphere at the target location
@@ -33,7 +33,7 @@
 //   * All delayed work is assigned to the module object so it survives the
 //     caster dying/logging out; every callback re-validates its PC first.
 //   * Stacks live in a local int on the PC (precedent: the brief). They are
-//     wiped by a relog — accepted for now; persist via SQLite later if the
+//     wiped by a relog - accepted for now; persist via SQLite later if the
 //     admin wants relogging closed off as an out.
 //
 // Locals used (on the PC):
@@ -76,8 +76,8 @@ void FAT_ApplyToPC(object oPC)
         if (nDmg > 0)
         {
             // Remove the HP directly rather than via EffectDamage. This is the
-            // crux of the fix: EVERY EffectDamage damage type — including
-            // DAMAGE_TYPE_MAGICAL — can be soaked by damage resistance,
+            // crux of the fix: EVERY EffectDamage damage type - including
+            // DAMAGE_TYPE_MAGICAL - can be soaked by damage resistance,
             // immunity %, or DR, and geared PCs reduced the old magical hit to
             // zero. A soul-fatigue hit is a scripted cost, not an attack, so we
             // subtract HP straight off the creature: nothing can resist or be
@@ -91,7 +91,7 @@ void FAT_ApplyToPC(object oPC)
             {
                 // Lethal. Base-game SetCurrentHitPoints floors at 1 and never
                 // kills, so force death explicitly. (A PC with outright death
-                // immunity would survive at 1 HP — a rare, accepted corner.)
+                // immunity would survive at 1 HP - a rare, accepted corner.)
                 SetCurrentHitPoints(oPC, 1);
                 ApplyEffectToObject(DURATION_TYPE_INSTANT,
                     EffectDeath(FALSE, FALSE), oPC);
@@ -107,7 +107,7 @@ void FAT_ApplyToPC(object oPC)
         }
     }
 
-    // The new stack — even if the fatigue damage just killed them.
+    // The new stack - even if the fatigue damage just killed them.
     int nNow = GetLocalInt(oPC, FAT_VAR) + 1;
     SetLocalInt(oPC, FAT_VAR, nNow);
     AssignCommand(GetModule(), DelayCommand(FAT_DECAY, FAT_Decay(oPC)));
@@ -120,7 +120,7 @@ void FAT_ApplyToPC(object oPC)
 }
 
 // Entry point, called from stop_spellcheat.nss with OBJECT_SELF = the caster
-// (for potions/items: the user). Runs on EVERY cast — bail out fast.
+// (for potions/items: the user). Runs on EVERY cast - bail out fast.
 void FAT_OnOverrideSpellCast()
 {
     int nSpell = GetSpellId();
@@ -131,7 +131,7 @@ void FAT_OnOverrideSpellCast()
         object oTarget = GetSpellTargetObject();
         if (!GetIsObjectValid(oTarget)) return;
         if (!GetIsPC(oTarget) || GetIsDM(oTarget)) return;
-        // Heal cast at undead is an attack, not a heal — no fatigue.
+        // Heal cast at undead is an attack, not a heal - no fatigue.
         if (GetRacialType(oTarget) == RACIAL_TYPE_UNDEAD) return;
         AssignCommand(GetModule(),
             DelayCommand(FAT_LAND, FAT_ApplyToPC(oTarget)));

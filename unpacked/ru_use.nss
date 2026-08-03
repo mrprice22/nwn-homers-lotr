@@ -1,4 +1,4 @@
-// ru_use — Recent Updates sign OnUsed: prime page 1 and open the conversation.
+// ru_use - Recent Updates sign OnUsed: prime page 1 and open the conversation.
 #include "ru_db"
 void main()
 {

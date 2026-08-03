@@ -1,4 +1,4 @@
-// bst_install — install the bestiary kill-tracking wrappers on a creature.
+// bst_install - install the bestiary kill-tracking wrappers on a creature.
 //
 // Run as OBJECT_SELF = the creature, once per creature. Stores the creature's
 // original OnDamaged / OnDeath handlers and redirects both to the bestiary

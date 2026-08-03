@@ -1,4 +1,4 @@
-// merit_rcancel — Reply action: cancel the selected redemption (refunds the player).
+// merit_rcancel - Reply action: cancel the selected redemption (refunds the player).
 #include "merit_redeem"
 void main()
 {

@@ -1,4 +1,4 @@
-// bst_ondamage — wrapped creature OnDamaged: record PC damage contributors.
+// bst_ondamage - wrapped creature OnDamaged: record PC damage contributors.
 //
 // Installed by bst_install. Records each distinct PC that has dealt damage to
 // this creature (walking the summon/henchman master chain to the owning PC) so

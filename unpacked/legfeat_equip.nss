@@ -1,10 +1,10 @@
-// legfeat_equip.nss — rebuild CONDITIONAL legendary feat effects on an equip
+// legfeat_equip.nss - rebuild CONDITIONAL legendary feat effects on an equip
 // change. Subscribed to NWNX_ON_ITEM_EQUIP_AFTER and _UNEQUIP_AFTER in
 // onmoduleload.nss.
 //
 // WHY THIS EXISTS. Most legendary feat effects depend on the feat alone, so
 // applying them once at login is enough. Some depend on what the character is
-// HOLDING — Legendary Onslaught grants its extra attack for melee and unarmed
+// HOLDING - Legendary Onslaught grants its extra attack for melee and unarmed
 // but not for a bow. An effect like that goes stale the moment the player swaps
 // weapons, and it goes stale SILENTLY: an archer who switched from a sword keeps
 // an extra ranged attack they should not have, and nothing in the log says so.
@@ -12,7 +12,7 @@
 // The whole job is therefore to re-run LegFeat_ApplyAll, which clears the
 // LEGFEAT_EFF tag and rebuilds every effect from the pick records. That is
 // already the idempotent path used at login, so this adds no new way to be
-// wrong — a conditional feat simply asks LegFeat_IsMeleeArmed again.
+// wrong - a conditional feat simply asks LegFeat_IsMeleeArmed again.
 //
 // THE DELAY IS LOAD-BEARING. At _AFTER the engine has not necessarily finished
 // moving the item: on unequip in particular the weapon can still read as being

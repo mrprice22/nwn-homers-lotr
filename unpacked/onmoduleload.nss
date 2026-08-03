@@ -44,7 +44,7 @@ SetModuleSwitch(MODULE_SWITCH_ENABLE_TAGBASED_SCRIPTS, TRUE);
 
 // Module override spellscript: run stop_spellcheat before every spell impact
 // script (counterspell anti-cheat + soul-fatigue on Heal/Mass Heal via
-// fat_inc.nss, roadmap: heal-soul-fatigue). This MUST be installed here — the
+// fat_inc.nss, roadmap: heal-soul-fatigue). This MUST be installed here - the
 // old on_module_load.nss that carried these lines was never wired to
 // Mod_OnModLoad (the hook is this script, onmoduleload), so the override
 // never ran. x2_inc_spellhook's X2RunUserDefinedSpellScript() only fires when
@@ -67,7 +67,7 @@ NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
 // engine uses two mechanisms: devcrit_atk adds the bonus physical damage in the
 // NWNX Damage attack event (the only place iAttackResult == 10 is visible), and
 // devcrit_eff refuses the EffectDeath the engine applies separately. The rule is
-// symmetric — no oOwner on the attack script, so it covers NPCs as well as
+// symmetric - no oOwner on the attack script, so it covers NPCs as well as
 // players. Both handlers return immediately on anything that is not their case;
 // see the warnings in their headers before editing either, and note that
 // NWNX_DAMAGE_SKIP=n in server.env is the other half of the plugin being
@@ -98,7 +98,7 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_BEFORE,  "sk_probe_pre");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "sk_probe_post");
 
 // Legendary Feats: fire the level-60 picker the moment a character reaches 60.
-// The picks cannot come from the engine's own level-up page — that page grants
+// The picks cannot come from the engine's own level-up page - that page grants
 // exactly one general feat to everybody, and legendary feats are deliberately
 // invisible to it (ALLCLASSESCANUSE = 0). See CLAUDE-legendary-feats.md.
 //
@@ -108,7 +108,7 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "sk_probe_post");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "legfeat_lvl");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, "legfeat_lvl");
 
-// Some legendary feats are CONDITIONAL on what the character is holding —
+// Some legendary feats are CONDITIONAL on what the character is holding -
 // Legendary Onslaught grants its extra attack for melee and unarmed but not for
 // a bow. legfeat_equip rebuilds those on every weapon swap; without it the
 // effect goes stale silently, and an archer keeps a melee-only bonus attack.
@@ -138,7 +138,7 @@ SetCustomToken(6102, COLOR_END);
 RU_InitDb();
 
 // Roll of the Fallen board (Well of Eru): reseed the boss registry and clear
-// stale death rows — a restart revives every boss, so the board starts empty.
+// stale death rows - a restart revives every boss, so the board starts empty.
 BRD_InitDb();
 
 // Admin whitelist (rest-menu Admin/Homeless options, cheat chest): ensure the

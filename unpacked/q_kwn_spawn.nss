@@ -1,4 +1,4 @@
-// q_kwn_spawn — (re)spawn helper for the banner-stone on the Pelennor
+// q_kwn_spawn - (re)spawn helper for the banner-stone on the Pelennor
 // Fields (roadmap: knight-westernesse-quest). Fired from the field's
 // OnEnter wrapper (q_kwn_ent1) and re-checked when the quest is accepted
 // and when the standard is released. No-ops gracefully until the admin

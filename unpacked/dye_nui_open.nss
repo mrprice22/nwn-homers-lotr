@@ -1,4 +1,4 @@
-// dye_nui_open.nss — opens the Dye Studio NUI. ExecuteScript target from the
+// dye_nui_open.nss - opens the Dye Studio NUI. ExecuteScript target from the
 // DyeKit item activation (dmfi_activate). OBJECT_SELF is the activating PC.
 #include "dye_nui_inc"
 

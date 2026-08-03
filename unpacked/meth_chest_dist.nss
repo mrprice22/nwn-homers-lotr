@@ -1,4 +1,4 @@
-// meth_chest_dist — OnInvDisturbed of the invisible storage locker
+// meth_chest_dist - OnInvDisturbed of the invisible storage locker
 // (meth_chest_inv). Refuses containers (no nested-storage exploit) and
 // re-snapshots the locker to the campaign DB under the owner's CD key shortly
 // after any add/remove, so stored items persist across the account's characters
@@ -17,7 +17,7 @@ void main()
     int iType = GetInventoryDisturbType();
     object oItem = GetInventoryDisturbItem();
 
-    // No containers — they could nest unlimited items and dodge any future cap.
+    // No containers - they could nest unlimited items and dodge any future cap.
     if (iType == INVENTORY_DISTURB_TYPE_ADDED && GetHasInventory(oItem))
     {
         DelayCommand(0.3, AssignCommand(oLocker, ActionGiveItem(oItem, oPC)));

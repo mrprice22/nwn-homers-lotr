@@ -1,4 +1,4 @@
-// merit_list_cur — Reply action: return to player list keeping current page.
+// merit_list_cur - Reply action: return to player list keeping current page.
 #include "merit_db"
 void main()
 {

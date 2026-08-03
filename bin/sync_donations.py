@@ -156,7 +156,7 @@ def generate_inc(bonus_pool: list, ammo_set: set, illicit: list) -> str:
     parts = [
         "// _inc_donations.nss",
         "// Donations Chest data: bonus item pool, stack sizes, and illicit quarantine list.",
-        "// AUTO-MANAGED by bin/sync_donations.py — do not hand-edit the generated sections.",
+        "// AUTO-MANAGED by bin/sync_donations.py - do not hand-edit the generated sections.",
         "",
         "// Number of items in the bonus pool (cases 0..BONUS_POOL_SIZE-1).",
         f"const int BONUS_POOL_SIZE = {pool_size};",

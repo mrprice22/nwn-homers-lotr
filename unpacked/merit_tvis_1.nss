@@ -1,4 +1,4 @@
-// merit_tvis_1 — Conditional: show tournament picker slot 1 (only while
+// merit_tvis_1 - Conditional: show tournament picker slot 1 (only while
 // choosing tournament gear and the slot is populated and affordable).
 int StartingConditional()
 {

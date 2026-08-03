@@ -2,7 +2,7 @@
 // ActionTaken on Thranduil's turn-in reply. Consumes the day's bolts, pays
 // the flat bounty and closes the day. Double-guarded: no payout without the
 // bolts in hand, and never twice in a day. (Dynamic silk_supply pricing is
-// deferred to a v2 — see q_silk_inc.nss.)
+// deferred to a v2 - see q_silk_inc.nss.)
 #include "q_silk_inc"
 
 void main()

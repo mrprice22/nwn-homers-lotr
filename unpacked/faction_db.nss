@@ -1,30 +1,30 @@
-// faction_db.nss — Good/Evil allegiance + dual-faction standing persistence
+// faction_db.nss - Good/Evil allegiance + dual-faction standing persistence
 //
 // Campaign DB: "factiondb" (SQLite, file database/factiondb.sqlite3 on the
-// server — never part of the .mod). One row per character.
+// server - never part of the .mod). One row per character.
 //
 // The module runs a 2-faction Good-vs-Evil model. Three distinct things are
 // tracked per character, and they are deliberately independent:
 //
-//   * allegiance  — the character's CURRENT live side ('Good'/'Evil'/'Neutral').
+//   * allegiance  - the character's CURRENT live side ('Good'/'Evil'/'Neutral').
 //                   This is what Faction_ApplyLive turns into live reputation
 //                   (who is hostile). Players switch it FREELY at the Well of
-//                   Eru light-shafts (goodadjuster / eiladjust) — unless an oath
+//                   Eru light-shafts (goodadjuster / eiladjust) - unless an oath
 //                   locks them (below).
-//   * good_standing / evil_standing — PROGRESS with each faction (0-1000 each),
+//   * good_standing / evil_standing - PROGRESS with each faction (0-1000 each),
 //                   tracked INDEPENDENTLY so playing both sides is not punished.
 //                   Faction quests grow the relevant side via
 //                   Faction_AdjustStanding, which also applies a small reversible
-//                   "loyalty bleed" (FACTION_BLEED_PCT) to the opposite side —
+//                   "loyalty bleed" (FACTION_BLEED_PCT) to the opposite side -
 //                   floored at 0, never a full reset. Consistent one-faction play
 //                   simply pulls ahead.
-//   * oath        — '' | 'Good' | 'Evil'. An OPTIONAL class oath (Paladin's Oath
+//   * oath        - '' | 'Good' | 'Evil'. An OPTIONAL class oath (Paladin's Oath
 //                   of the West -> 'Good'; Blackguard's Black Oath -> 'Evil';
 //                   possibly others later). Once sworn it LOCKS the character out
 //                   of the opposite side's light-shaft (Faction_CanSwitchTo), and
 //                   Faction_SetOath commits their allegiance to that side.
 //
-// Allegiance is NOT tied to GetAlignment — it is faction reputation only
+// Allegiance is NOT tied to GetAlignment - it is faction reputation only
 // (AdjustReputation against the invisible anchor NPCs), so a True-Neutral druid
 // can still be Good- or Evil-aligned by faction. The enemy side is hostile on
 // sight (the -100 AdjustReputation drops the opposing anchor below the attack
@@ -35,20 +35,20 @@
 //                           standing (legacy, unused), updated_at)
 //          Character identity is GetObjectUUID (persists in the .bic, same key
 //          the bestiary / quest cooldowns use); cdkey/char_name are stored for
-//          out-of-band inspection with sqlite3 only — lookups never use them.
+//          out-of-band inspection with sqlite3 only - lookups never use them.
 //
 // Live reputation is driven entirely off the stored allegiance by
-// Faction_ApplyLive — the single source of truth. Both Faction_SetAllegiance
+// Faction_ApplyLive - the single source of truth. Both Faction_SetAllegiance
 // (the placeable/dialog adjusters) and the OnClientEnter login hook call it, so
 // the wire never diverges from the DB. Anchor NPCs (invisible objects) are tagged:
-//     Goodfaction  (invisobj001)   — the Free Peoples of Middle Earth
-//     Evilfaction  (invisobj002)   — Sauron / Mordor
-//     Neutralfaction               — (optional; not placed at time of writing —
+//     Goodfaction  (invisobj001)   - the Free Peoples of Middle Earth
+//     Evilfaction  (invisobj002)   - Sauron / Mordor
+//     Neutralfaction               - (optional; not placed at time of writing -
 //                                    the -100 against it simply no-ops)
 // GetObjectByTag on a missing anchor returns OBJECT_INVALID and AdjustReputation
 // no-ops, so a missing Neutralfaction anchor is harmless.
 //
-// Faction_InitDb() is called from onmoduleload.nss — new consumers need no
+// Faction_InitDb() is called from onmoduleload.nss - new consumers need no
 // setup beyond the #include.
 
 const string FACTION_DB = "factiondb";
@@ -58,7 +58,7 @@ const string FACTION_DB = "factiondb";
 const int    FACTION_BLEED_PCT = 25;
 
 // ------------------------------------------------------------
-// Schema — idempotent; called once from onmoduleload.nss. Also migrates an
+// Schema - idempotent; called once from onmoduleload.nss. Also migrates an
 // older factiondb (single 'standing' column, no dual/oath columns) forward in
 // place: CREATE IF NOT EXISTS covers fresh DBs, then ADD COLUMN each missing
 // column (guarded by a PRAGMA check so re-running never errors), then seed the
@@ -168,7 +168,7 @@ string Faction_GetOath(object oPC)
 
 // May oPC switch their live allegiance to sSide? FALSE only when an oath binds
 // them to the opposite side. (Switching to your own oath side, or Neutral, is
-// never blocked here — callers decide whether Neutral is offered.)
+// never blocked here - callers decide whether Neutral is offered.)
 int Faction_CanSwitchTo(object oPC, string sSide)
 {
     string sOath = Faction_GetOath(oPC);
@@ -179,7 +179,7 @@ int Faction_CanSwitchTo(object oPC, string sSide)
 }
 
 // ------------------------------------------------------------
-// Live reputation — the single source of truth. Reads the stored allegiance and
+// Live reputation - the single source of truth. Reads the stored allegiance and
 // AdjustReputation()s the PC against the anchor NPCs to match. Values are deltas
 // that the engine clamps to [0,100], so re-applying on every login is idempotent
 // (max toward the chosen side, floor the others). No row -> no change (leave the
@@ -217,7 +217,7 @@ void Faction_ApplyLive(object oPC)
 
 // Set the character's live allegiance ('Good'/'Evil'/'Neutral') AND apply it
 // live immediately. Called by the Good/Evil adjuster placeables (and the
-// factaduster dialog). Standing columns are untouched — allegiance is the live
+// factaduster dialog). Standing columns are untouched - allegiance is the live
 // side, standing is durable progress. NOTE: this does NOT enforce the oath lock;
 // callers gate with Faction_CanSwitchTo() so they can show a fitting message.
 void Faction_SetAllegiance(object oPC, string sAllegiance)
@@ -233,8 +233,8 @@ void Faction_SetAllegiance(object oPC, string sAllegiance)
     Faction_ApplyLive(oPC);
 }
 
-// Move the character's standing with one side by nDelta (clamped 0-1000), and —
-// when growing (nDelta>0) and bBleed — apply a small reversible loyalty bleed of
+// Move the character's standing with one side by nDelta (clamped 0-1000), and -
+// when growing (nDelta>0) and bBleed - apply a small reversible loyalty bleed of
 // FACTION_BLEED_PCT of the gain to the OPPOSITE side (floored at 0, never a full
 // reset). For faction quests to grow/burn standing (later gating rewards).
 // Does not touch allegiance. Creates a Neutral row if none exists.

@@ -1,4 +1,4 @@
-// q_kwn_banner — the Gate Captain releases the standard to the mustered
+// q_kwn_banner - the Gate Captain releases the standard to the mustered
 // detail (q_kwn_capt). Stage 3 -> 4, journal entry 4, and re-check the
 // banner-stone spawn (in case the Pelennor has not been entered since the
 // waypoint was placed). Hardened: only fires from stage 3.

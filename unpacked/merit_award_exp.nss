@@ -1,4 +1,4 @@
-// merit_award_exp — Reply action: award an Exploit Report merit to selected player.
+// merit_award_exp - Reply action: award an Exploit Report merit to selected player.
 #include "merit_db"
 void main()
 {

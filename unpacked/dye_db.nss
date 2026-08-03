@@ -1,13 +1,13 @@
-// dye_db.nss — persistence for the Dye Studio "save/apply color scheme" feature.
+// dye_db.nss - persistence for the Dye Studio "save/apply color scheme" feature.
 //
 // One saved scheme PER CHARACTER, keyed by (account CD-key, character GUID), so a
 // player can copy an item's six armor-tint channel colors and paste them onto
-// another item — and it survives reboots. Saving again overwrites the scheme.
+// another item - and it survives reboots. Saving again overwrites the scheme.
 // Uses the campaign SQLite DB "dyedb" (mirrors tele_db.nss / merit_db.nss).
 
 const string DYE_DB = "dyedb";
 
-// Idempotent — safe to call on every window open.
+// Idempotent - safe to call on every window open.
 void Dye_InitDb()
 {
     sqlquery q = SqlPrepareQueryCampaign(DYE_DB,

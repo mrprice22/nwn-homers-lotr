@@ -1,4 +1,4 @@
-// legfeat_open.nss — open the Legendary Feats picker for OBJECT_SELF.
+// legfeat_open.nss - open the Legendary Feats picker for OBJECT_SELF.
 //
 // One entry point for every caller: the level-60 hook (legfeat_lvl) and the
 // rest-finished hook (on_mod_rest), both via ExecuteScript on the PC. The

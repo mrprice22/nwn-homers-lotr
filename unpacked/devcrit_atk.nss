@@ -1,4 +1,4 @@
-// devcrit_atk.nss — NWNX Damage ATTACK event handler.
+// devcrit_atk.nss - NWNX Damage ATTACK event handler.
 //
 // Roadmap: devcrit-roll. Adds the bonus physical damage that replaces the
 // Devastating Critical save-or-die.
@@ -6,7 +6,7 @@
 // The save-or-die itself is gone at the source: hak_2da/baseitems.2da has a
 // blank EpicWeaponDevastatingCriticalFeat column, so the engine's own check
 // (CNWSCreatureStats::GetEpicWeaponDevastatingCritical) can never succeed and
-// no save is ever rolled. See bin/gen-devcrit-map.py — it is also what
+// no save is ever rolled. See bin/gen-devcrit-map.py - it is also what
 // generates devcrit_map_inc.nss, the base item -> feat table that used to be
 // that column and that this script now uses to decide who earns the dice.
 //
@@ -22,7 +22,7 @@
 // ###########################################################################
 // # THIS RUNS ON EVERY ATTACK ON THE SERVER. A bug here is a bug in ALL      #
 // # combat, not just in critical hits. The iAttackResult test below is the   #
-// # first thing after fetching the event data and must stay that way — every #
+// # first thing after fetching the event data and must stay that way - every #
 // # non-critical attack has to leave through it. tests/check_devcrit.py      #
 // # asserts the guard is still in place.                                     #
 // ###########################################################################
@@ -69,7 +69,7 @@ void main()
     // blank EpicWeaponDevastatingCriticalFeat column, so the engine never
     // considers a devastating critical at all (bin/gen-devcrit-map.py). This
     // branch is the belt-and-braces for the one case that can still produce it
-    // — a server or client running a stale hak — and is what devcrit_eff.nss
+    // - a server or client running a stale hak - and is what devcrit_eff.nss
     // needs to refuse the kill.
     if (nResult == 10)
     {

@@ -1,4 +1,4 @@
-// q_hob_inc.nss — "Concerning Hobbits" Shire-genealogy quiz (roadmap: concerning-hobbits)
+// q_hob_inc.nss - "Concerning Hobbits" Shire-genealogy quiz (roadmap: concerning-hobbits)
 //
 // T1 (L5) daily dialogue minigame, journal tag "concern_hob". Odo Proudfoot
 // (q_hob_odo), a Hobbiton genealogist, is forever settling a dispute at the
@@ -108,82 +108,82 @@ string QHOB_Opt(int i, int j)
 {
     switch (i * 4 + j)
     {
-        // 0 — Belladonna Took
+        // 0 - Belladonna Took
         case 0:  return "Belladonna Took.";
         case 1:  return "Mirabella Took.";
         case 2:  return "Donnamira Took.";
         case 3:  return "Primula Brandybuck.";
-        // 1 — Primula Brandybuck
+        // 1 - Primula Brandybuck
         case 4:  return "Primula Brandybuck.";
         case 5:  return "Esmeralda Took.";
         case 6:  return "Peony Baggins.";
         case 7:  return "Menegilda Goold.";
-        // 2 — Drogo Baggins
+        // 2 - Drogo Baggins
         case 8:  return "Drogo Baggins.";
         case 9:  return "Dudo Baggins.";
         case 10: return "Fosco Baggins.";
         case 11: return "Otho Sackville-Baggins.";
-        // 3 — Frodo Baggins
+        // 3 - Frodo Baggins
         case 12: return "Frodo Baggins.";
         case 13: return "Lotho Sackville-Baggins.";
         case 14: return "Meriadoc Brandybuck.";
         case 15: return "Folco Boffin.";
-        // 4 — Lobelia
+        // 4 - Lobelia
         case 16: return "Lobelia Bracegirdle.";
         case 17: return "Lalia Clayhanger.";
         case 18: return "Camellia Sackville.";
         case 19: return "Peony Baggins.";
-        // 5 — Lotho
+        // 5 - Lotho
         case 20: return "Lotho Sackville-Baggins.";
         case 21: return "Ted Sandyman.";
         case 22: return "Sancho Proudfoot.";
         case 23: return "Otho the Younger.";
-        // 6 — the Gaffer
+        // 6 - the Gaffer
         case 24: return "the Gaffer -- Hamfast Gamgee.";
         case 25: return "Andwise 'Andy' Roper.";
         case 26: return "Daddy Twofoot.";
         case 27: return "Halfred of Overhill.";
-        // 7 — Rosie Cotton
+        // 7 - Rosie Cotton
         case 28: return "Rosie Cotton.";
         case 29: return "Marigold Gamgee.";
         case 30: return "Pretty Poppy Chubb.";
         case 31: return "Daisy Boffin.";
-        // 8 — Saradoc Brandybuck
+        // 8 - Saradoc Brandybuck
         case 32: return "Saradoc Brandybuck.";
         case 33: return "Rorimac Brandybuck.";
         case 34: return "Gorbadoc Brandybuck.";
         case 35: return "Merimac Brandybuck.";
-        // 9 — Paladin Took
+        // 9 - Paladin Took
         case 36: return "Paladin Took.";
         case 37: return "Ferumbras Took.";
         case 38: return "Adalgrim Took.";
         case 39: return "Fortinbras Took.";
-        // 10 — Gerontius Took
+        // 10 - Gerontius Took
         case 40: return "Gerontius Took.";
         case 41: return "Isengrim Took.";
         case 42: return "Isumbras Took.";
         case 43: return "Bandobras Took.";
-        // 11 — Bandobras Took
+        // 11 - Bandobras Took
         case 44: return "Bandobras Took.";
         case 45: return "Gerontius Took.";
         case 46: return "Isengrim Took.";
         case 47: return "Ferumbras Took.";
-        // 12 — Brandybuck
+        // 12 - Brandybuck
         case 48: return "The Brandybucks.";
         case 49: return "The Tooks.";
         case 50: return "The Bolgers.";
         case 51: return "The Boffins.";
-        // 13 — Fredegar Bolger
+        // 13 - Fredegar Bolger
         case 52: return "Fredegar Bolger.";
         case 53: return "Folco Boffin.";
         case 54: return "Odo Proudfoot.";
         case 55: return "Milo Burrows.";
-        // 14 — Took
+        // 14 - Took
         case 56: return "The Tooks.";
         case 57: return "The Brandybucks.";
         case 58: return "The Bagginses.";
         case 59: return "The Bolgers.";
-        // 15 — 111
+        // 15 - 111
         case 60: return "A hundred and eleven.";
         case 61: return "A hundred exactly.";
         case 62: return "A hundred and twenty-one.";

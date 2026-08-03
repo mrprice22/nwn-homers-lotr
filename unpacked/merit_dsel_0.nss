@@ -1,4 +1,4 @@
-// merit_dsel_0 — Reply action: select pending request in slot 0 for fulfil/cancel.
+// merit_dsel_0 - Reply action: select pending request in slot 0 for fulfil/cancel.
 #include "merit_redeem"
 void main()
 {

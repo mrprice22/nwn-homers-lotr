@@ -1,4 +1,4 @@
-// merit_award_bug — Reply action: award a Defect Report merit to selected player.
+// merit_award_bug - Reply action: award a Defect Report merit to selected player.
 #include "merit_db"
 void main()
 {

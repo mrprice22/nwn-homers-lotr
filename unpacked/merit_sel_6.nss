@@ -1,4 +1,4 @@
-// merit_sel_6 — Reply action: select player in slot 6 for merit award.
+// merit_sel_6 - Reply action: select player in slot 6 for merit award.
 void main()
 {
     object oDM    = GetPCSpeaker();

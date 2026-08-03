@@ -1,4 +1,4 @@
-// tele_go — Teleport to the currently-open save-slot (tele_cur_slot set by the
+// tele_go - Teleport to the currently-open save-slot (tele_cur_slot set by the
 // tele_open_N reply that led into this sub-menu).
 #include "tele_db"
 void main()

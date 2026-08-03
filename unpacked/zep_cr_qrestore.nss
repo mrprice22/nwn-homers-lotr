@@ -1,5 +1,5 @@
 // OnOpen for ZEP_CR_QUARANTINE chest.
-// After a reboot the chest is empty — restore from the last-close snapshot.
+// After a reboot the chest is empty - restore from the last-close snapshot.
 // Also pulls in any items quarantined since the last open.
 // Items are cleared of crafting flags (Plot/Cursed/Stolen/TEMPITEM) so they
 // can be picked up and given back to players.

@@ -1,4 +1,4 @@
-// Forge Warden conversation cleanup — wired to the dialog's EndConversation
+// Forge Warden conversation cleanup - wired to the dialog's EndConversation
 // AND EndConverAbort hooks, so every new conversation starts from a clean
 // slate and forge_ward_intro re-scans the live inventory. Without this the
 // cached handles linger on the PC and can be recycled by the engine to

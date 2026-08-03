@@ -1,4 +1,4 @@
-// bst_has_next — conditional: show [Next >>] only when more rows remain.
+// bst_has_next - conditional: show [Next >>] only when more rows remain.
 int StartingConditional()
 {
     object oPC = GetPCSpeaker();

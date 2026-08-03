@@ -1,24 +1,24 @@
-// q_hrp_inc.nss — Harper Scout initiation "The Cipher in the Inn"
+// q_hrp_inc.nss - Harper Scout initiation "The Cipher in the Inn"
 // (roadmap: harper-scout-quest)
 //
 // The first of the twelve prestige-order quests hung on Halmir the Grey
 // (the prestige hub, prsg_inc.nss). T1 one-off, journal tag "pc_harper".
 //
 // Flow: Halmir's Harper branch (prsg_conv) offers the errand to a PC with
-// 1+ Harper Scout level (the roadmap/design gate — the hub line itself is
+// 1+ Harper Scout level (the roadmap/design gate - the hub line itself is
 // visible from total level 6). The PC finds Halmir's contact at the corner
-// table of the Prancing Pony in Bree — Della Heathertoes, a traveller in a
-// fern-green cloak — who tests them with a line of road-cant (each word
+// table of the Prancing Pony in Bree - Della Heathertoes, a traveller in a
+// fern-green cloak - who tests them with a line of road-cant (each word
 // written tail-first). A Lore check (rank 8+) reads it at a glance; anyone
 // else gets a hint and picks the true reading from three (wrong picks loop
-// back — wordier, never a dead end). She trusts the PC with the
+// back - wordier, never a dead end). She trusts the PC with the
 // counter-word; carrying it back to Halmir completes the induction: the
 // Harper Pin plus a little XP. The card's Rivendell/Lothlorien contacts are
 // folded into her dialogue (word of the new Harper is *sent* north) to keep
-// the quest T1-compact — one contact, one waypoint.
+// the quest T1-compact - one contact, one waypoint.
 //
 // Quest state is per-character and persistent via the prestige hub's
-// campaign-DB stage idiom (prestigedb, order key "harper" — see
+// campaign-DB stage idiom (prestigedb, order key "harper" - see
 // prsg_inc.nss): 0 none / 1 accepted / 2 cipher solved / 3 done. One-off:
 // stage 3 never resets.
 //
@@ -57,7 +57,7 @@ void QHRP_SetStage(object oPC, int nStage)
 }
 
 // TRUE if oPC has taken up the Harpers' discipline (1+ Harper Scout level)
-// — the design gate for being counted on the rolls.
+// - the design gate for being counted on the rolls.
 int QHRP_IsHarper(object oPC)
 {
     return PRSG_HasClass(oPC, CLASS_TYPE_HARPER);

@@ -1,6 +1,6 @@
 // The Banner of the West (roadmap: knight-westernesse-quest)
 // Pelennor Fields OnEnter wrapper: keep the area's previous OnEnter
-// (d_cleartrash — trash sweep, which itself chains the anti-kiting
+// (d_cleartrash - trash sweep, which itself chains the anti-kiting
 // leash), then make sure the banner-stone stands at its waypoint. Same
 // wrapper pattern as prsg_enter / q_hrp_ent1.
 void main()

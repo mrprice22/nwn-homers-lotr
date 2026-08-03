@@ -1,4 +1,4 @@
-// merit_ci_dm — Conditional: show "Yes, submit request now!" for an affordable
+// merit_ci_dm - Conditional: show "Yes, submit request now!" for an affordable
 // DM-fulfilled reward.
 int StartingConditional()
 {

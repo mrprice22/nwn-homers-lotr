@@ -1,4 +1,4 @@
-// q_kwn_plant — banner-stone OnUsed (roadmap: knight-westernesse-quest).
+// q_kwn_plant - banner-stone OnUsed (roadmap: knight-westernesse-quest).
 // A knight carrying the released standard (stage 4) sets the banner of
 // the West in the old socket with their own hand: stage 4 -> 5, journal
 // entry 5, a flare of the holy host for the field to see. Everyone else

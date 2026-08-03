@@ -1,4 +1,4 @@
-// bst_open_killed — reply action: open the "Creatures Slain" list (page 1).
+// bst_open_killed - reply action: open the "Creatures Slain" list (page 1).
 #include "bst_db"
 void main()
 {

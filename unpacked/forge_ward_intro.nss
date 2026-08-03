@@ -6,7 +6,7 @@ void main()
 {
     object oPC = GetPCSpeaker();
     // Name the offending item from the cached verdict (set by the jail scan or a
-    // prior Warden scan) instead of re-scanning the whole inventory here — the
+    // prior Warden scan) instead of re-scanning the whole inventory here - the
     // synchronous scan is the instruction-cap hazard we are eliminating. Fall
     // back to one scan only if nothing is cached yet.
     object oBad = GetLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
@@ -19,7 +19,7 @@ void main()
         // scan can back it up now (stale/recycled handle, item moved beyond
         // ForgeFindIllegalItem's reach, or already resolved off-scan). Never
         // accuse on an unconfirmed charge, and never leave <CUSTOM100>/
-        // <CUSTOM6119> unset on screen — release instead.
+        // <CUSTOM6119> unset on screen - release instead.
         ForgeLog("forge_ward_intro: DIRTY set but no illegal item resolved for "
             + GetName(oPC) + " -- releasing without judgment.");
         SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", FALSE);

@@ -1,4 +1,4 @@
-// ru_page_n — reply action: next page of recent updates.
+// ru_page_n - reply action: next page of recent updates.
 #include "ru_db"
 void main()
 {

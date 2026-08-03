@@ -1,4 +1,4 @@
-// prsg_c_assn.nss — hub line gate for the Assassins
+// prsg_c_assn.nss - hub line gate for the Assassins
 // (roadmap: prestige-trainer-hub). Shows Halmir's branch for this order
 // only when the PC meets the order's minimum level (see prsg_inc.nss).
 #include "prsg_inc"

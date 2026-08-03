@@ -1,4 +1,4 @@
-// merit_tgrant_8 — Reply action: grant the tournament item in picker slot 8.
+// merit_tgrant_8 - Reply action: grant the tournament item in picker slot 8.
 #include "merit_redeem"
 void main()
 {

@@ -1,4 +1,4 @@
-// merit_thas_prev — Conditional: show [<< Previous] in the tournament picker.
+// merit_thas_prev - Conditional: show [<< Previous] in the tournament picker.
 int StartingConditional()
 {
     object oPC = GetPCSpeaker();

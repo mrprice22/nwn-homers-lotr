@@ -1,6 +1,6 @@
-// legfeat_db.nss — persistence for Legendary Feats (level-60 feat picks).
+// legfeat_db.nss - persistence for Legendary Feats (level-60 feat picks).
 //
-// Campaign SQLite DB "legfeatdb", keyed on GetObjectUUID() — one row per
+// Campaign SQLite DB "legfeatdb", keyed on GetObjectUUID() - one row per
 // character per feat taken, plus a per-character row recording how many picks
 // that character was granted. Shaped like bestiarydb / meritdb / dyedb.
 //
@@ -8,7 +8,7 @@
 // character sheet remembers it without our help. What does NOT persist is:
 //
 //   * how many picks the character is still owed (a dismissed or half-finished
-//     picker has to be recoverable — that is the rest-menu re-entry), and
+//     picker has to be recoverable - that is the rest-menu re-entry), and
 //   * the fact that we already granted this character its allotment, so a relog
 //     at level 60 must not hand out a second set.
 //
@@ -22,7 +22,7 @@
 // signature fully determines the allotment, and excludes levels so 59 -> 60 does
 // not look like a change.
 //
-// See CLAUDE-legendary-feats.md ("Phase 3 — the picker NUI").
+// See CLAUDE-legendary-feats.md ("Phase 3 - the picker NUI").
 
 const string LEGFEAT_DB = "legfeatdb";
 
@@ -36,7 +36,7 @@ void   LegFeat_RecordPick(object oPC, int nFeatId);
 int    LegFeat_HasPick(object oPC, int nFeatId);
 void   LegFeat_ClearPicks(object oPC);
 
-// Idempotent — safe to call on every login and every window open.
+// Idempotent - safe to call on every login and every window open.
 void LegFeat_InitDb()
 {
     sqlquery q = SqlPrepareQueryCampaign(LEGFEAT_DB,
@@ -49,7 +49,7 @@ void LegFeat_InitDb()
     // Migration: class_sig was added after the first build shipped, and
     // CREATE TABLE IF NOT EXISTS does not add a column to a table that already
     // exists. Without this, every INSERT naming class_sig fails to *prepare* on
-    // a pre-existing DB — "sqlite error: not prepared" in the log, no allotment
+    // a pre-existing DB - "sqlite error: not prepared" in the log, no allotment
     // written, and the picker silently never opens. Guarded with PRAGMA so the
     // ALTER is skipped once the column is there (the bst_db.nss idiom).
     q = SqlPrepareQueryCampaign(LEGFEAT_DB,
@@ -107,7 +107,7 @@ void LegFeat_SetAlloc(object oPC, int nPicks, string sClassSig)
     SqlStep(q);
 }
 
-// Drop the allotment entirely — used when a character falls below level 60, so
+// Drop the allotment entirely - used when a character falls below level 60, so
 // the picks are re-earned rather than banked on the way back up.
 void LegFeat_ClearAlloc(object oPC)
 {
@@ -149,7 +149,7 @@ int LegFeat_HasPick(object oPC, int nFeatId)
 }
 
 // Forget every pick this character has taken. The caller is responsible for
-// having already taken the feats and their benefits back off the character —
+// having already taken the feats and their benefits back off the character -
 // this only clears the record.
 void LegFeat_ClearPicks(object oPC)
 {

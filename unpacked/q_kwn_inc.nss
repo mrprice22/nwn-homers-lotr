@@ -1,4 +1,4 @@
-// q_kwn_inc.nss — Knight of Westernesse initiation "The Banner of the West"
+// q_kwn_inc.nss - Knight of Westernesse initiation "The Banner of the West"
 // (roadmap: knight-westernesse-quest)
 //
 // The second of the twelve prestige-order quests hung on Halmir the Grey
@@ -6,24 +6,24 @@
 //
 // Flow: Halmir's Knights-of-Westernesse branch (prsg_conv) offers the
 // proving to a PC with 1+ Knight of Westernesse level (Purple Dragon
-// Knight, CLASS_TYPE_PURPLE_DRAGON_KNIGHT — the roadmap/design gate; the
+// Knight, CLASS_TYPE_PURPLE_DRAGON_KNIGHT - the roadmap/design gate; the
 // hub line itself is visible from total level 6). The PC reports to Wart,
 // the Gondorian Gate Captain at the Gates of Minas Tirith (an EXISTING
-// placed NPC, reused — no new placement), who sets the command exercise:
+// placed NPC, reused - no new placement), who sets the command exercise:
 // muster three of his gate-watch guardsmen to the banner-detail. Each
 // existing placed Gondorian Guardsman at the Gates carries a post index
 // (instance local int q_kwn_post, 1..7) and rallying him stamps the
 // per-character survival/command counter "pdk_command" from the design
 // card (SetCampaignInt idiom). With three spears mustered the captain
 // releases the standard; the knight plants it with their own hand at the
-// old banner-stone on the Pelennor Fields — a placeable script-spawned at
-// the admin-placed waypoint AP_knightwest_1 — then carries word back to
+// old banner-stone on the Pelennor Fields - a placeable script-spawned at
+// the admin-placed waypoint AP_knightwest_1 - then carries word back to
 // Halmir for the knighthood: the Banner of the West tower shield plus XP.
 // The card's "each guardsman who survives adds +1 command" escort is
 // compacted to the muster count (no henchman AI) to keep the quest T1.
 //
 // Quest state is per-character and persistent via the prestige hub's
-// campaign-DB stage idiom (prestigedb, order key "pdk" — see
+// campaign-DB stage idiom (prestigedb, order key "pdk" - see
 // prsg_inc.nss): 0 none / 1 accepted / 2 mustering / 3 mustered /
 // 4 standard released / 5 banner planted / 6 done. One-off: stage 6
 // never resets. Rallied posts persist per character (pdk_post_<n>).
@@ -70,7 +70,7 @@ void QKWN_SetStage(object oPC, int nStage)
 }
 
 // TRUE if oPC already rides in the order's line (1+ Knight of Westernesse
-// / Purple Dragon Knight level) — the design gate for the proving.
+// / Purple Dragon Knight level) - the design gate for the proving.
 int QKWN_IsKnight(object oPC)
 {
     return PRSG_HasClass(oPC, CLASS_TYPE_PURPLE_DRAGON_KNIGHT);

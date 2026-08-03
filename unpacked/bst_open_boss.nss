@@ -1,6 +1,6 @@
-// bst_open_boss — reply action: open the "Bosses Not Yet Slain" list (page 1).
+// bst_open_boss - reply action: open the "Bosses Not Yet Slain" list (page 1).
 // Mode 2 lists the Roll of the Fallen registry bosses this character has still
-// to fell — the set that unlocks the great forges' extra property slot.
+// to fell - the set that unlocks the great forges' extra property slot.
 #include "bst_db"
 void main()
 {

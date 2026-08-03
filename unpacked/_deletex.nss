@@ -1,4 +1,4 @@
-// _deletex — NWNX:EE port
+// _deletex - NWNX:EE port
 //
 // Originally used the NWNX2 deletechar plugin via the
 // SetLocalString(GetModule(), "NWNX!DELETECHAR!DELETE", ...) IPC magic
@@ -7,7 +7,7 @@
 //
 // Original signature is preserved for callers; sPlayerName is unused now
 // because NWNX:EE keys deletion off the in-memory player object, not name
-// strings — so callers must pass an oPC. Use the (object) form.
+// strings - so callers must pass an oPC. Use the (object) form.
 
 #include "nwnx_admin"
 

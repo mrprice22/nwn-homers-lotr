@@ -1,4 +1,4 @@
-// merit_rlist_pg — Reply action: open the DM pending-redemptions list (page 1).
+// merit_rlist_pg - Reply action: open the DM pending-redemptions list (page 1).
 #include "merit_redeem"
 void main()
 {

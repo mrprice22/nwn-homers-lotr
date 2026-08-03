@@ -11,9 +11,9 @@ just wrong or never appear:
      zero or counts only criticals — and the whole point of the feature is
      measuring feats that add ordinary attacks.
   2. The DPR half and the indestructibility both live in cbd_damage.nss, which
-     only runs because cbd_spawn registers it PER OBJECT. Lose the registration
-     and the dummy takes real damage and dies; lose the zeroing and Harm/Drown
-     kill it.
+     only runs because cbd_spawn registers it PER OBJECT. Lose the registration,
+     or the heal-back it schedules, and the dummy dies to the damage it now
+     deliberately lets land.
   3. The blueprint has to stay hostile (so hostile-only spells can target it)
      and has to keep pointing at cbd_spawn/cbd_death, or a toolset-placed dummy
      installs nothing at all.
@@ -84,20 +84,35 @@ if "EffectCutsceneImmobilize" not in spawn:
     errors.append("cbd_spawn.nss no longer immobilizes the dummy.")
 if "IMMUNITY_TYPE_DEATH" not in spawn:
     errors.append(
-        "cbd_spawn.nss no longer grants death immunity — damage is zeroed, but "
-        "death EFFECTS are not damage and would still drop the dummy.")
+        "cbd_spawn.nss no longer grants death immunity — damage is healed back "
+        "off, but death EFFECTS are not damage and would still drop the dummy.")
 
 dmg = strip_comments(read(UNPACKED / "cbd_damage.nss"))
-if "NWNX_Damage_SetDamageEventData" not in dmg:
+# The dummy deliberately LETS the damage land (so the combat log shows the
+# numbers, the resistances and any damage reduction) and heals it straight back
+# off. Two things must hold, or it becomes destructible again:
+if "CBD_ScheduleRestore" not in dmg:
     errors.append(
-        "cbd_damage.nss never writes the damage back — without "
-        "NWNX_Damage_SetDamageEventData the zeroing does nothing and the dummy "
-        "is destructible.")
-for field in ("iBludgeoning", "iNegative", "iCustom19"):
-    if not re.search(rf"data\.{field}\s*=\s*0", dmg):
-        errors.append(
-            f"cbd_damage.nss does not zero data.{field} — one live damage type "
-            "is enough for Harm or a drown to kill the dummy.")
+        "cbd_damage.nss never calls CBD_ScheduleRestore — the damage now lands "
+        "for real, so without the heal-back the dummy simply dies.")
+if re.search(r"data\.iBludgeoning\s*=\s*0", dmg):
+    errors.append(
+        "cbd_damage.nss is zeroing the damage again. That makes the dummy "
+        "indestructible the silent way: HP never moves, so the engine prints "
+        "no damage and no 'damage reduction absorbs' line, and a combat test "
+        "cannot be checked against the combat log (UAT round 3).")
+
+inc_src = strip_comments(read(UNPACKED / "cbd_inc.nss"))
+if "NWNX_Object_SetCurrentHitPoints" not in inc_src:
+    errors.append(
+        "cbd_inc.nss no longer restores the dummy's hit points — "
+        "CBD_Restore is what keeps it standing now that damage really lands.")
+if "CBD_ResolveSrc" not in dmg:
+    errors.append(
+        "cbd_damage.nss does not resolve the damage source through "
+        "CBD_ResolveSrc. NWNX's damage event does not reliably name the damager "
+        "for weapon hits; without the attack-event fallback every hit is "
+        "discarded as an intruder's and rounds report '0 damage'.")
 
 # --- 4. the blueprint still says what the scripts assume --------------------
 utc_path = UNPACKED / "cbd_dummy.utc.json"

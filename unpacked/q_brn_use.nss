@@ -1,6 +1,6 @@
-// q_brn_use — Beorn's Garden hive OnUsed (roadmap: beorns-garden)
+// q_brn_use - Beorn's Garden hive OnUsed (roadmap: beorns-garden)
 // Harvest a honey hive: once per PC per hive per day (questcddb calendar
-// key beorn_garden_h<idx> — relog/restart-safe). Every harvest angers the
+// key beorn_garden_h<idx> - relog/restart-safe). Every harvest angers the
 // hive's raiders and spawns a warg pack at the hive's own location. If the
 // honey leg is done but pelts still run short, re-using a harvested hive
 // rattles it and calls another pack, so the day can always be finished

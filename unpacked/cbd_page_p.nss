@@ -1,4 +1,4 @@
-// cbd_page_p — sign: previous page.
+// cbd_page_p - sign: previous page.
 #include "cbd_db"
 void main()
 {

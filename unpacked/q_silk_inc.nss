@@ -1,4 +1,4 @@
-// q_silk_inc.nss — Spider Silk Harvest shared helpers (roadmap: spider-silk-harvest)
+// q_silk_inc.nss - Spider Silk Harvest shared helpers (roadmap: spider-silk-harvest)
 //
 // T2 daily kill-collect quest, journal tag "mirkwood_silk". Thranduil, King
 // of Eryn Lasgalen (Thranduil's Hall, through the Wood of Legolas off
@@ -8,7 +8,7 @@
 // Active-state is persistent and item-free: accepting stamps the questcddb
 // key QS_ACC (quest_cd_inc calendar-daily), so "active today" =
 // accepted-today && !paid-today. That survives relogs and server restarts,
-// and resets at UTC midnight together with the completion gate — no local
+// and resets at UTC midnight together with the completion gate - no local
 // variables to lose, no state item to exploit.
 //
 // Silk drops: the six module spider blueprints that fill every Mirkwood

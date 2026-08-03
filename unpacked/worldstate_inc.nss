@@ -1,7 +1,7 @@
-// worldstate_inc.nss — Shared server-wide world-state helpers
+// worldstate_inc.nss - Shared server-wide world-state helpers
 //
 // Campaign DB: "worldstatedb" (SQLite, file database/worldstatedb.sqlite3 on the
-// server — never part of the .mod). A simple server-wide key -> value store for
+// server - never part of the .mod). A simple server-wide key -> value store for
 // PERSISTENT GLOBAL state that many players read and affect and that changes over
 // time: contested-territory control, siege-engine progress, timed world buffs,
 // weekly resource claims, etc.
@@ -12,7 +12,7 @@
 // use worldstate_inc for "what is the current state of the WORLD".
 //
 // Time is real wall-clock (SQLite strftime('%s','now')), NOT the game calendar,
-// so decay/weekly behavior survives reboots, relogs and module time changes —
+// so decay/weekly behavior survives reboots, relogs and module time changes -
 // exactly like quest_cd_inc.nss.
 //
 // ------------------------------------------------------------
@@ -24,16 +24,16 @@
 //
 //   world_state_rule(skey PK, kind, rate, target, period, last_tick)
 //       Optional per-key time behavior, applied by WS_Tick() off the heartbeat:
-//         kind='decay'  — every `period` real seconds, move ival toward `target`
+//         kind='decay'  - every `period` real seconds, move ival toward `target`
 //                         by `rate` (multi-step catch-up after a reboot gap).
-//         kind='weekly' — reset ival -> `target` at each ISO-week rollover
+//         kind='weekly' - reset ival -> `target` at each ISO-week rollover
 //                         (strftime('%Y-%W'), UTC), independent of `rate`/`period`.
-//         kind='none'   — inert (same as having no rule row).
+//         kind='none'   - inert (same as having no rule row).
 //
 // ------------------------------------------------------------
-// Usage — a decaying siege / tug-of-war meter:
+// Usage - a decaying siege / tug-of-war meter:
 //
-//   // At quest/system init (once — e.g. in an OnModuleLoad ExecuteScript, or the
+//   // At quest/system init (once - e.g. in an OnModuleLoad ExecuteScript, or the
 //   // first time the contested area loads): bleed 1 point/minute back toward 0.
 //   #include "worldstate_inc"
 //   WS_RegisterDecay("isengard_warmachine", 1, 0);   // rate=1, target=0, per-minute
@@ -45,7 +45,7 @@
 //   // Anywhere that needs the current value (StartingConditional, spawn script):
 //   if (WS_GetInt("isengard_warmachine") >= 100) { /* Isengard wins this cycle */ }
 //
-// Usage — a weekly resource claim (mithril seam), with an owner string:
+// Usage - a weekly resource claim (mithril seam), with an owner string:
 //
 //   WS_RegisterWeekly("mithril_seam", 0);              // ival resets to 0 each week
 //   ...
@@ -55,7 +55,7 @@
 //   // Gate the reward:
 //   if (WS_GetInt("mithril_seam") == 0) { /* still available this week */ }
 //
-// Usage — a timed world buff (goblin-town throne, 7 real days):
+// Usage - a timed world buff (goblin-town throne, 7 real days):
 //
 //   WS_RegisterDecay("goblin_throne", 1, 0, 604800);   // one step, target 0, 7d period
 //   WS_SetInt("goblin_throne", 1);                      // buff on; WS_Tick clears it after 7d
@@ -75,7 +75,7 @@ const int    WS_TICK_INTERVAL = 60;
 const string WS_TICK_KEY = "__ws_last_tick";
 
 // ------------------------------------------------------------
-// Schema — idempotent; called once from onmoduleload.nss.
+// Schema - idempotent; called once from onmoduleload.nss.
 
 void WS_InitDb()
 {
@@ -136,7 +136,7 @@ void WS_SetInt(string sKey, int nVal)
 }
 
 // Move sKey's value by nDelta and persist. Clamps to [nMin,nMax] ONLY when
-// nMin != nMax (pass both 0 — the default — for an unclamped counter).
+// nMin != nMax (pass both 0 - the default - for an unclamped counter).
 // Returns the new stored value.
 int WS_AdjustInt(string sKey, int nDelta, int nMin = 0, int nMax = 0)
 {
@@ -177,7 +177,7 @@ void WS_SetStr(string sKey, string sVal)
 }
 
 // ------------------------------------------------------------
-// Rule registry — idempotent upserts. Register once; WS_Tick applies them.
+// Rule registry - idempotent upserts. Register once; WS_Tick applies them.
 
 // Bleed sKey toward nTarget by nRatePerStep every nPeriodSec real seconds.
 // Default period is the heartbeat tick interval (per-minute decay).
@@ -221,7 +221,7 @@ void WS_ClearRule(string sKey)
 }
 
 // ------------------------------------------------------------
-// Tick — apply one rule row. Reads its own value, computes, writes back.
+// Tick - apply one rule row. Reads its own value, computes, writes back.
 
 void WS_ApplyRule(string sKey)
 {
@@ -285,7 +285,7 @@ void WS_ApplyRule(string sKey)
 
 // Heartbeat entry point. Self-throttles to once per WS_TICK_INTERVAL real
 // seconds, then applies every registered rule. Cheap and safe to call every 6s
-// heartbeat pulse — the throttle check is a single indexed lookup.
+// heartbeat pulse - the throttle check is a single indexed lookup.
 void WS_Tick()
 {
     int nNow  = WS_Now();
@@ -293,7 +293,7 @@ void WS_Tick()
     if (nLast != 0 && (nNow - nLast) < WS_TICK_INTERVAL) return;
     WS_SetInt(WS_TICK_KEY, nNow);
 
-    // Collect the rule keys first, then apply — don't mutate rows mid-SELECT.
+    // Collect the rule keys first, then apply - don't mutate rows mid-SELECT.
     string sKeys = "";
     sqlquery q = SqlPrepareQueryCampaign(WS_DB,
         "SELECT skey FROM world_state_rule WHERE kind IN ('decay','weekly')");

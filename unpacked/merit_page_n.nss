@@ -1,4 +1,4 @@
-// merit_page_n — Reply action: go to next page of player list.
+// merit_page_n - Reply action: go to next page of player list.
 #include "merit_db"
 void main()
 {

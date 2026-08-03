@@ -1,11 +1,11 @@
-// enr_inc — boss enrage-on-retreat (roadmap: boss-enrage-on-retreat).
+// enr_inc - boss enrage-on-retreat (roadmap: boss-enrage-on-retreat).
 //
 // Design spec: docs.manual/boss-updates.html#enrage.
 //
 // Scope: ONLY the CR>60 single-instance bosses on the Roll-of-the-Fallen
 // registry (respawndb.boss_registry, seeded from brd_db.nss). When a PC who
-// has been fighting such a boss disengages — leaves the area, moves out of
-// engagement range, or logs out, whether or not other PCs are still fighting —
+// has been fighting such a boss disengages - leaves the area, moves out of
+// engagement range, or logs out, whether or not other PCs are still fighting -
 // the boss:
 //   1. shouts a taunt naming the fleeing player (shout channel),
 //   2. gains +2 to ALL ability scores for the remainder of that life
@@ -14,13 +14,13 @@
 //   3. instantly heals 25% of its missing HP.
 //
 // "Left combat" detection (the open design detail in the brief): a hybrid of
-// the two candidates, built on plumbing that already exists —
+// the two candidates, built on plumbing that already exists -
 //   * ENGAGEMENT is recorded by the bestiary's runtime OnDamaged wrapper
 //     (bst_ondamage calls ENR_OnBossDamaged with the master-chain-resolved
-//     owning PC), so anyone who damages the boss — melee, ranged, caster, or
-//     via summons/henchmen — is "engaged". No new event hooks needed.
+//     owning PC), so anyone who damages the boss - melee, ranged, caster, or
+//     via summons/henchmen - is "engaged". No new event hooks needed.
 //   * DISENGAGEMENT is decided by a boss-side pseudo-heartbeat (a DelayCommand
-//     loop that only runs while at least one PC is engaged — zero cost for the
+//     loop that only runs while at least one PC is engaged - zero cost for the
 //     other 500+ creatures and for idle bosses). Each tick, an engaged PC who
 //     is out of the boss's area, farther than ENR_RANGE, or logged out gets a
 //     strike; ENR_STRIKES consecutive strikes (~ENR_TICK * ENR_STRIKES
@@ -207,7 +207,7 @@ void ENR_OnBossDamaged(object oCre, object oPC)
         }
     }
 
-    // New engagement (or re-engagement after a previous retreat — which can
+    // New engagement (or re-engagement after a previous retreat - which can
     // legitimately earn the boss another stack later).
     string sN = IntToString(nN);
     SetLocalObject(oCre, "enr_pc_"   + sN, oPC);

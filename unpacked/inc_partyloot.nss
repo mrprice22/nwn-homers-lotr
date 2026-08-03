@@ -1,4 +1,4 @@
-// inc_partyloot — WoW-style party loot roll (Need / Greed / Pass) via NUI.
+// inc_partyloot - WoW-style party loot roll (Need / Greed / Pass) via NUI.
 //
 // Triggered from the OnAcquireItem hook (acquireditem_tag.nss) when a PC picks
 // up an item worth >= the party's minimum and other eligible party members are
@@ -478,7 +478,7 @@ void PL_OnItemAcquired()
         return;
 
     // GetGoldPieceValue returns 1 for unidentified items, so defer the threshold
-    // check for them — we'll re-check after the lore step if identification succeeds.
+    // check for them - we'll re-check after the lore step if identification succeeds.
     int bWasUnidentified = !GetIdentified(oItem);
 
     object oLeader = GetFactionLeader(oPC);
@@ -520,7 +520,7 @@ void PL_OnItemAcquired()
     int i;
 
     // Lore identification: ALL in-area party members attempt to ID an unidentified
-    // item — including opted-out players (they contribute lore but get no window).
+    // item - including opted-out players (they contribute lore but get no window).
     // DC uses the item's true (identified) gold value; temporarily identify to read it.
     if (bWasUnidentified)
     {

@@ -1,6 +1,6 @@
-// q_maz_use — seal-brazier OnUsed (roadmap: twentieth-plot-mazarbul)
+// q_maz_use - seal-brazier OnUsed (roadmap: twentieth-plot-mazarbul)
 // Light a crypt-seal brazier: once per PC per brazier, persistent (campaign
-// DB "maz20" keys seal_1..3 — relog/restart-safe). Lighting grants a short
+// DB "maz20" keys seal_1..3 - relog/restart-safe). Lighting grants a short
 // ward against grave-chill (minor negative-energy resistance, pure flavor).
 // The third seal completes the rite and raises the Wraith of the Twentieth
 // Plot. Completability guard: at stage 2 a brazier re-summons the wraith if

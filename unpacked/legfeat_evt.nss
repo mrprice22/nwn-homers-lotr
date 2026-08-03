@@ -1,4 +1,4 @@
-// legfeat_evt.nss — NUI event handler for the Legendary Feats picker.
+// legfeat_evt.nss - NUI event handler for the Legendary Feats picker.
 // Registered per-window via the sEventScript arg of NuiCreate in legfeat_nui.
 #include "legfeat_nui"
 
@@ -15,7 +15,7 @@ void main()
         return;
     }
 
-    // "t<index>" — take the feat at that picker index.
+    // "t<index>" - take the feat at that picker index.
     if (GetStringLeft(sElem, 1) != "t") return;
     int nIndex = StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1));
 

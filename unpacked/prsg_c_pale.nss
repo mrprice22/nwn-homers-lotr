@@ -1,4 +1,4 @@
-// prsg_c_pale.nss — hub line gate for the Pale Masters
+// prsg_c_pale.nss - hub line gate for the Pale Masters
 // (roadmap: prestige-trainer-hub). Shows Halmir's branch for this order
 // only when the PC meets the order's minimum level (see prsg_inc.nss).
 #include "prsg_inc"

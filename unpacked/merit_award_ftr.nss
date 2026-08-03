@@ -1,4 +1,4 @@
-// merit_award_ftr — Reply action: award a Feature Implementation merit to selected player.
+// merit_award_ftr - Reply action: award a Feature Implementation merit to selected player.
 #include "merit_db"
 void main()
 {

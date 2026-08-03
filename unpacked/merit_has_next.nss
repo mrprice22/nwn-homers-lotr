@@ -1,4 +1,4 @@
-// merit_has_next — Conditional: show [Next >>] only when more pages exist.
+// merit_has_next - Conditional: show [Next >>] only when more pages exist.
 int StartingConditional()
 {
     object oDM  = GetPCSpeaker();

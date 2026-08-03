@@ -1,4 +1,4 @@
-// tele_c_bound — Conditional: show "Teleport to <slot>" only when the currently
+// tele_c_bound - Conditional: show "Teleport to <slot>" only when the currently
 // open save-slot has a saved location.
 #include "tele_db"
 int StartingConditional()

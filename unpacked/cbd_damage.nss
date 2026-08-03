@@ -1,4 +1,4 @@
-// cbd_damage.nss — Combat Dummy: NWNX Damage DAMAGE event handler.
+// cbd_damage.nss - Combat Dummy: NWNX Damage DAMAGE event handler.
 //
 // Registered PER OBJECT by cbd_spawn:
 //     NWNX_Damage_SetDamageEventScript("cbd_damage", OBJECT_SELF);
@@ -8,13 +8,18 @@
 //
 // Two jobs:
 //   1. attribute and accumulate the damage (this is the DPR measurement, and
-//      it counts EVERYTHING the owner deals — weapons, spells, on-hit
+//      it counts EVERYTHING the owner deals - weapons, spells, on-hit
 //      properties);
-//   2. ZERO the damage before handing it back, which is what makes the dummy
-//      indestructible. HP never moves, so Harm, Drown and every other
-//      damage-based "instant kill" are no-ops and no healing loop is needed.
-//      (Effect-based deaths are covered by the death immunity in cbd_spawn and,
-//      as a last resort, by the respawn in cbd_death.)
+//   2. let the damage LAND and heal it straight back off, which is what makes
+//      the dummy indestructible.
+//
+// It used to zero every damage field instead. That worked, but it cost the
+// tester the single most useful thing on screen: with no HP change the engine
+// prints no damage line and no "damage reduction absorbs" feedback, so a
+// combat test could not be checked against the combat log at all (UAT round 3).
+// Now the hit applies normally and CBD_Restore puts the dummy back to full on
+// the next pulse. Death immunity (cbd_spawn) and the respawn (cbd_death) are
+// still behind that, for the one hit big enough to outrun the restore.
 
 #include "nwnx_damage"
 #include "cbd_inc"
@@ -36,14 +41,20 @@ void main()
                data.iCustom13 + data.iCustom14 + data.iCustom15 + data.iCustom16 +
                data.iCustom17 + data.iCustom18 + data.iCustom19;
 
-    object oSrc = data.oDamager;
+    // Who dealt it. data.oDamager is NOT reliable for weapon damage - UAT round
+    // 3 measured "6 attacks, 0 damage" for a whole set because every packet
+    // arrived with an unusable damager, resolved to no PC, and was thrown away
+    // as an intruder's. CBD_ResolveSrc falls back to the attacker the attack
+    // event stashed, which is always valid.
+    object oSrc = CBD_ResolveSrc(oDummy, data.oDamager);
     object oPC  = CBD_OwnerPC(oSrc);
 
-    // Diagnostic mode (CBD_DEBUG on the dummy) — every packet, with its source
+    // Diagnostic mode (CBD_DEBUG on the dummy) - every packet, with its source
     // and the state that decides whether it is counted. Off by default.
     if (CBD_IsDebug(oDummy))
         CBD_Debug(oDummy, oPC, "damage from " + GetName(oSrc) +
-                  " (pc=" + GetName(oPC) + ")" +
+                  " (raw=" + GetName(data.oDamager) +
+                  ", pc=" + GetName(oPC) + ")" +
                   " active=" + IntToString(GetLocalInt(oDummy, CBD_VAR_ACTIVE)) +
                   " cool=" + IntToString(GetLocalInt(oDummy, CBD_VAR_COOL)) +
                   " total=" + IntToString(nDmg) + ":" +
@@ -74,10 +85,13 @@ void main()
                             GetLocalInt(oDummy, CBD_VAR_DMG_TOT) + nDmg);
             }
         }
-        else
+        else if (GetIsObjectValid(oPC))
         {
-            // Anyone else — another PC, a henchman, a summon: frozen out, and
-            // their damage is discarded from both metrics.
+            // Another PC, a henchman, a summon: frozen out, and their damage is
+            // discarded from both metrics. Only ever taken when the source
+            // resolves to a REAL and different player - damage we cannot
+            // attribute falls through to the owner above via CBD_ResolveSrc,
+            // because silently discarding it is what broke the measurement.
             CBD_Reject(oDummy, oSrc);
         }
     }
@@ -98,17 +112,8 @@ void main()
         }
     }
 
-    // Nothing gets through, whoever dealt it.
-    data.iBludgeoning = 0; data.iPierce   = 0; data.iSlash      = 0;
-    data.iMagical     = 0; data.iAcid     = 0; data.iCold       = 0;
-    data.iDivine      = 0; data.iElectrical = 0; data.iFire     = 0;
-    data.iNegative    = 0; data.iPositive = 0; data.iSonic      = 0;
-    data.iBase        = 0;
-    data.iCustom1  = 0; data.iCustom2  = 0; data.iCustom3  = 0; data.iCustom4  = 0;
-    data.iCustom5  = 0; data.iCustom6  = 0; data.iCustom7  = 0; data.iCustom8  = 0;
-    data.iCustom9  = 0; data.iCustom10 = 0; data.iCustom11 = 0; data.iCustom12 = 0;
-    data.iCustom13 = 0; data.iCustom14 = 0; data.iCustom15 = 0; data.iCustom16 = 0;
-    data.iCustom17 = 0; data.iCustom18 = 0; data.iCustom19 = 0;
-
-    NWNX_Damage_SetDamageEventData(data);
+    // The damage is handed back UNTOUCHED so the engine applies it and prints
+    // it: per-type numbers, resistances, damage reduction. The dummy is put
+    // back to full on the next pulse instead.
+    if (nDmg > 0) CBD_ScheduleRestore(oDummy);
 }

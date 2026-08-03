@@ -4,7 +4,7 @@
 //
 // The colour comes from the "color" include, NOT an inline "<c...>" literal:
 // a colour token is three RAW bytes, and the high bytes (0xAE/0xFE here) would
-// make this file invalid UTF-8 — which breaks bin/season-brand.py, since it
+// make this file invalid UTF-8 - which breaks bin/season-brand.py, since it
 // reads this very file with read_text(encoding="utf-8") to rehost the wiki
 // link. color.nss already holds those bytes and nothing parses it as UTF-8.
 // (Do not copy merit_redeem.nss's MERIT_PH: its 0xFF was mangled into the

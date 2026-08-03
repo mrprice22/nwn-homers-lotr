@@ -1,11 +1,11 @@
-// appraise_inc.nss — shared Appraise-skill scaling helpers.
+// appraise_inc.nss - shared Appraise-skill scaling helpers.
 //
 // Used by the Forge of Wonders (raises the max gold value an item may be
 // enchanted to, and the lawful contraband ceiling) and by the merchant system
 // (raises the max gold a capped store will pay a player when selling).
 //
-// The skill is read deterministically — players always "take 20" rather than
-// rolling a d20 — so the same character always sees the same benefit.
+// The skill is read deterministically - players always "take 20" rather than
+// rolling a d20 - so the same character always sees the same benefit.
 //
 // NWScript has no include guards; consumer scripts may #include this alongside
 // other includes. Define nothing here that another include also defines.

@@ -1,4 +1,4 @@
-// eviladjust2 — legacy/duplicate EVIL adjuster (OnUsed style, GetLastUsedBy).
+// eviladjust2 - legacy/duplicate EVIL adjuster (OnUsed style, GetLastUsedBy).
 // Currently unwired (the live EVIL script is eiladjust). Kept for reference;
 // now routes through factiondb so it persists and applies the live reputation
 // via Faction_ApplyLive. NOTE: the previous version used lowercase

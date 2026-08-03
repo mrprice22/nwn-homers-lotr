@@ -1,4 +1,4 @@
-// merit_list_pg — Reply action: enter Merit Awards player list (resets to page 1).
+// merit_list_pg - Reply action: enter Merit Awards player list (resets to page 1).
 #include "merit_db"
 void main()
 {

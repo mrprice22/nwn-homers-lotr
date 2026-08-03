@@ -1,4 +1,4 @@
-// brd_has_next — conditional: show [Next page] only when more rows follow.
+// brd_has_next - conditional: show [Next page] only when more rows follow.
 int StartingConditional()
 {
     object oPC = GetPCSpeaker();

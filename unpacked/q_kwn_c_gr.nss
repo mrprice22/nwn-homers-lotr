@@ -1,6 +1,6 @@
-// q_kwn_c_gr — gate guardsman: show the rally line only to a knight on
+// q_kwn_c_gr - gate guardsman: show the rally line only to a knight on
 // the muster (stage 2) at a post not yet counted. Guards without a post
-// index (q_kwn_post local int unset — e.g. future placements elsewhere)
+// index (q_kwn_post local int unset - e.g. future placements elsewhere)
 // never offer it. (roadmap: knight-westernesse-quest)
 #include "q_kwn_inc"
 

@@ -18,8 +18,8 @@ void main()
     //assessed value past this forge's cap (0 = uncapped), plus a hard backstop
     //at the global jailable ceiling so a missing/cleared area var can never let
     //a forge mint an item the login contraband scan would jail.
-    //We assess the projected value directly — copy the item, add the pending
-    //property, and price the copy (identified, non-plot via ForgeItemValue) —
+    //We assess the projected value directly - copy the item, add the pending
+    //property, and price the copy (identified, non-plot via ForgeItemValue) -
     //so enforcement does NOT depend on the MODIFY_VALUE/MODIFY_DIFF locals an
     //earlier dialog node set; any stale-local path is still capped. A failed
     //valuation refuses rather than passing as cheap.
@@ -46,7 +46,7 @@ void main()
         }
     if (iCurValue < 0 || iProjected < 0)
         {
-        SpeakString("I cannot take the measure of this piece just now — try me "
+        SpeakString("I cannot take the measure of this piece just now - try me "
             + "again in a moment.");
         return;
         }
@@ -56,12 +56,12 @@ void main()
     if (iProjected > ForgeLegalMaxValue() + iBonus)
         {
         SpeakString("No forge in these lands may bind so much worth into one "
-            + "piece — that lies beyond what the law allows. I'll not do it.");
+            + "piece - that lies beyond what the law allows. I'll not do it.");
         return;
         }
     if (iMax > 0 && iProjected > iMax)
         {
-        SpeakString("I'm sorry — my forge cannot work this piece any further. I "
+        SpeakString("I'm sorry - my forge cannot work this piece any further. I "
             + "dare not raise its worth past " + ForgeGold(iMax) + " gold. Take "
             + "it to a greater forge if you would push it beyond that.");
         return;
@@ -84,14 +84,14 @@ void main()
             {
             SpeakString("No forge may bind more than "
                 + IntToString(iItemMaxProps) + " enchantments into one "
-                + "piece — that is the limit of the law for this item. Have me "
+                + "piece - that is the limit of the law for this item. Have me "
                 + "strike one from it first.");
             return;
             }
         if (iMaxProps > 0 && iProps >= iMaxProps)
             {
             SpeakString("This piece already carries " + IntToString(iMaxProps)
-                + " enchantments — as much power as my forge dares bind into one "
+                + " enchantments - as much power as my forge dares bind into one "
                 + "item. Have me strike an enchantment from it first, or seek a "
                 + "greater forge.");
             return;
@@ -99,10 +99,10 @@ void main()
         }
 
     //No refunds: refuse any change that would lower the item's assessed value.
-    //The forges only enchant an item upward — never pay out for a downgrade.
+    //The forges only enchant an item upward - never pay out for a downgrade.
     if (iDiff == -1)
         {
-        SpeakString("I shape metal forward, not back — I'll not unmake the work "
+        SpeakString("I shape metal forward, not back - I'll not unmake the work "
             + "already in this piece for a handful of coin. Choose an enchantment "
             + "that betters it, or take it as it is.");
         return;
@@ -125,7 +125,7 @@ void main()
     if ( GetIsItemPropertyValid(ipNew))
         {
         CustomAddProperty(oItem, ipNew);
-        // Enchanting changes the item's legality footprint — drop its "clean"
+        // Enchanting changes the item's legality footprint - drop its "clean"
         // stamp so the next login contraband scan re-evaluates it.
         DeleteLocalInt(oItem, "FORGE_CLEAN");
         // If this lawful enchant carried the item above the default global

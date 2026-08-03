@@ -1,9 +1,9 @@
-// cbd_inc.nss — Combat Dummy: shared state machine.
+// cbd_inc.nss - Combat Dummy: shared state machine.
 //
 // Roadmap: combat-dummy. A hostile, immobile, indestructible creature that
 // measures what a character actually does in combat over a fixed 10 rounds:
-//   * attacks per round (APR) — reported only, never stored;
-//   * damage per round  (DPR) — reported AND written to the leaderboard.
+//   * attacks per round (APR) - reported only, never stored;
+//   * damage per round  (DPR) - reported AND written to the leaderboard.
 //
 // It exists because several feats change nothing on the character sheet
 // (stock Flurry of Blows, the legendary monk extra attack), so the only way to
@@ -12,14 +12,15 @@
 // --- how the two halves are wired -------------------------------------------
 // DAMAGE (for DPR) comes from a PER-OBJECT NWNX Damage damage-event handler the
 // dummy registers on ITSELF at spawn (cbd_spawn -> cbd_damage). Per-object, so
-// it costs the rest of the server nothing. That handler ZEROES every damage
-// field before returning it: the dummy's HP never moves, which is why Harm and
-// Drown cannot kill it and why no healing loop is needed.
+// it costs the rest of the server nothing. The damage is allowed to LAND - so
+// the combat log shows the real numbers, resistances and damage reduction - and
+// the handler heals the dummy back to full on the next pulse (CBD_Restore).
+// Death immunity and the OnDeath respawn sit behind that.
 //
 // ATTACKS (for APR) can only come from the NWNX Damage ATTACK event, because
 // that is the only place a MISS is visible. That event script slot is global
 // and belongs to devcrit_atk.nss, so devcrit_atk calls CBD_TrackAttack() behind
-// a single GetLocalInt guard. Keep that guard cheap — it runs on every attack
+// a single GetLocalInt guard. Keep that guard cheap - it runs on every attack
 // on the server.
 //
 // --- session state (all locals on the DUMMY) --------------------------------
@@ -38,6 +39,7 @@
 //                 watchdog abandons the session at CBD_IDLE_LIMIT
 
 #include "nwnx_damage"
+#include "nwnx_object"   // SetCurrentHitPoints, for the heal-back in CBD_Restore
 #include "cbd_db"
 #include "color"
 
@@ -67,8 +69,13 @@ const string CBD_VAR_SPAWN    = "CBD_SPAWN";
 const string CBD_VAR_WARNED   = "CBD_WARNED";
 const string CBD_VAR_IDLE     = "CBD_IDLE";
 
-// Diagnostic mode. Set by hand on a dummy (DM client, or the toolset) —
-// SetLocalInt(oDummy, "CBD_DEBUG", 1) — and every attack and every damage
+// The attacker from the most recent attack event. NWNX's damage event does not
+// reliably identify the damager for weapon damage, so this is what the damage
+// handler attributes a hit to when data.oDamager resolves to nobody.
+const string CBD_VAR_LAST_SRC = "CBD_LAST_SRC";
+
+// Diagnostic mode. Set by hand on a dummy (DM client, or the toolset) -
+// SetLocalInt(oDummy, "CBD_DEBUG", 1) - and every attack and every damage
 // packet is echoed to the tester with its raw event fields, so a "the numbers
 // look low" report can be reconciled against the combat log packet by packet.
 // OFF by default and behind a single GetLocalInt, so it costs a live dummy
@@ -96,6 +103,9 @@ void   CBD_Respawn(location lLoc);
 void   CBD_Watchdog(object oDummy, int nToken);
 void   CBD_Touch(object oDummy);
 void   CBD_SelfDestruct(object oDummy, object oPC, int nToken);
+object CBD_ResolveSrc(object oDummy, object oDamager);
+void   CBD_ScheduleRestore(object oDummy);
+void   CBD_Restore(object oDummy);
 int    CBD_IsDebug(object oDummy);
 string CBD_DbgField(string sName, int nVal);
 void   CBD_Debug(object oDummy, object oPC, string sMsg);
@@ -125,10 +135,10 @@ object CBD_OwnerPC(object oSrc)
 
 // Every report goes out three ways, because the point of the tool is that the
 // numbers survive long enough to be read:
-//   * floating text over the tester  — immediate, but gone in seconds;
-//   * SendMessageToPC                — the server channel, tagged and coloured
+//   * floating text over the tester  - immediate, but gone in seconds;
+//   * SendMessageToPC                - the server channel, tagged and coloured
 //                                      so it can be picked out of combat spam;
-//   * the dummy SPEAKS the same line — the Talk channel, which is the copy that
+//   * the dummy SPEAKS the same line - the Talk channel, which is the copy that
 //                                      is definitely still in the log to scroll
 //                                      back to. The first UAT lost every line
 //                                      when the float faded, so the spoken copy
@@ -150,6 +160,49 @@ void CBD_Report(object oDummy, object oPC, string sMsg)
     AssignCommand(oDummy, SpeakString(sMsg, TALKVOLUME_TALK));
 }
 
+// Who to credit a damage packet to. The damage event's own oDamager is the
+// first choice, but for weapon damage it frequently resolves to nothing at all
+// - which for a whole UAT set meant every hit fell into the "not the owner"
+// branch and was discarded, giving "6 attacks, 0 damage" rounds and a DPR made
+// of the few packets that happened to carry a source. The fallback is the
+// attacker the attack event just stashed; the attack and its damage resolve in
+// the same combat step, so it is the same swing.
+object CBD_ResolveSrc(object oDummy, object oDamager)
+{
+    if (GetIsObjectValid(CBD_OwnerPC(oDamager))) return oDamager;
+
+    object oLast = GetLocalObject(oDummy, CBD_VAR_LAST_SRC);
+    if (GetIsObjectValid(oLast)) return oLast;
+
+    return oDamager;
+}
+
+// Indestructibility, the visible way: the hit lands (so the combat log shows
+// the damage, the resistances and any reduction), and this puts the HP back on
+// the next pulse. DelayCommand(0.0) is deliberate - the damage has not been
+// applied yet while this event script is running, so restoring now would be
+// undone by the very hit being reported.
+void CBD_ScheduleRestore(object oDummy)
+{
+    // On the module: a delayed command on the dummy is discarded if the dummy
+    // is destroyed, and this is the one that has to survive the edge cases.
+    AssignCommand(GetModule(), DelayCommand(0.0, CBD_Restore(oDummy)));
+}
+
+void CBD_Restore(object oDummy)
+{
+    if (!GetIsObjectValid(oDummy)) return;
+    if (!GetLocalInt(oDummy, CBD_VAR_IS_DUMMY)) return;
+
+    // Never undo the end-of-set self-destruct, and never haul a corpse back up.
+    if (GetIsDead(oDummy)) return;
+
+    int nMax = GetMaxHitPoints(oDummy);
+    if (GetCurrentHitPoints(oDummy) >= nMax) return;
+
+    NWNX_Object_SetCurrentHitPoints(oDummy, nMax);
+}
+
 // ---- diagnostics (CBD_DEBUG) ----------------------------------------------
 
 // On when the flag is set on this dummy specifically, or module-wide (which is
@@ -160,7 +213,7 @@ int CBD_IsDebug(object oDummy)
     return GetLocalInt(GetModule(), CBD_VAR_DEBUG);
 }
 
-// " name=N" for a non-zero field, "" otherwise — so a dump lists only the
+// " name=N" for a non-zero field, "" otherwise - so a dump lists only the
 // damage types that actually arrived.
 string CBD_DbgField(string sName, int nVal)
 {
@@ -295,13 +348,13 @@ void CBD_RoundTick(object oDummy, int nToken)
 }
 
 // The end-of-set cue. A full 10-round set finishes with the dummy blowing
-// apart — the same visual and the same 6-second cbd_death respawn a real death
+// apart - the same visual and the same 6-second cbd_death respawn a real death
 // produces, which is exactly why it is used: it is unmistakable across a room,
 // and it stops the tester dead. Called on a delay from CBD_EndSession so the
 // spoken summary lines (actions on the dummy) get out first.
 //
 // This is the ONLY death a dummy is ever supposed to have. cbd_spawn's
-// EffectImmunity(IMMUNITY_TYPE_DEATH) has to come off for it to land — the
+// EffectImmunity(IMMUNITY_TYPE_DEATH) has to come off for it to land - the
 // dummy carries no other immunity effect, so stripping the type is safe and
 // avoids caching the effect handle across a 60-second session.
 //
@@ -316,7 +369,7 @@ void CBD_SelfDestruct(object oDummy, object oPC, int nToken)
     // alone rather than killing a run that just started.
     if (GetLocalInt(oDummy, CBD_VAR_TOKEN) != nToken) return;
 
-    // Stop the tester swinging at thin air — the set is over and anything
+    // Stop the tester swinging at thin air - the set is over and anything
     // further would land on the corpse or on the replacement.
     if (GetIsObjectValid(oPC)) AssignCommand(oPC, ClearAllActions(TRUE));
 
@@ -370,7 +423,7 @@ void CBD_EndSession(object oDummy)
     CBD_Report(oDummy, oPC, "Damage per round: " + FloatToString(fDpr, 0, 1) +
                "   (" + IntToString(nDmgTot) + " total)");
 
-    // Nothing happened — don't pollute the leaderboard with idle sessions.
+    // Nothing happened - don't pollute the leaderboard with idle sessions.
     if (nDmgTot <= 0) return;
 
     Cbd_Record(oPC, fDpr, nDmgTot, CBD_ROUNDS);
@@ -383,7 +436,7 @@ void CBD_CancelSession(object oDummy, string sWhy)
     SetLocalInt(oDummy, CBD_VAR_TOKEN, GetLocalInt(oDummy, CBD_VAR_TOKEN) + 1);
     CBD_ClearState(oDummy);
     if (sWhy != "") CBD_Say(oPC, sWhy);
-    else CBD_Say(oPC, "Combat test cancelled — nothing recorded.");
+    else CBD_Say(oPC, "Combat test cancelled - nothing recorded.");
 }
 
 void CBD_ClearCooldown(object oDummy, int nToken)
@@ -405,14 +458,14 @@ void CBD_Reject(object oDummy, object oSrc)
     object oPC = CBD_OwnerPC(oSrc);
     if (!GetIsObjectValid(oPC)) return;
 
-    // One message per session per intruder — the handler fires on every swing.
+    // One message per session per intruder - the handler fires on every swing.
     string sVar = "CBD_TOLD_" + ObjectToString(oDummy);
     if (GetLocalInt(oPC, sVar) == GetLocalInt(oDummy, CBD_VAR_TOKEN)) return;
     SetLocalInt(oPC, sVar, GetLocalInt(oDummy, CBD_VAR_TOKEN));
 
     object oOwner = GetLocalObject(oDummy, CBD_VAR_OWNER);
     CBD_Say(oPC, "This combat dummy is in use by " + GetName(oOwner) +
-                 ". Wait for the test to finish — your damage is not counted.");
+                 ". Wait for the test to finish - your damage is not counted.");
 }
 
 // Called from devcrit_atk.nss on every attack whose target is a dummy.
@@ -425,6 +478,12 @@ void CBD_Reject(object oDummy, object oSrc)
 void CBD_TrackAttack(struct NWNX_Damage_AttackEventData data)
 {
     object oDummy = data.oTarget;
+
+    // Stash the attacker FIRST, before any early return: this is the only place
+    // the source of a hit is known for certain, and cbd_damage falls back to it
+    // when the damage event cannot say who dealt the damage.
+    SetLocalObject(oDummy, CBD_VAR_LAST_SRC, OBJECT_SELF);
+
     if (GetLocalInt(oDummy, CBD_VAR_COOL)) return;
 
     object oPC = CBD_OwnerPC(OBJECT_SELF);
@@ -451,7 +510,7 @@ void CBD_TrackAttack(struct NWNX_Damage_AttackEventData data)
     if (CBD_IsDebug(oDummy))
     {
         // The attack event carries damage fields of its own. These are the
-        // values as they stand when this hook runs — devcrit_atk calls us
+        // values as they stand when this hook runs - devcrit_atk calls us
         // first and adds its bonus dice AFTER, so the difference between this
         // line and the cbd_damage line below is exactly what the rest of the
         // pipeline (devcrit dice, then reduction/resistance) did to the hit.

@@ -1,4 +1,4 @@
-// pl_tog_disable — rest-menu action (leader only): enable/disable party loot
+// pl_tog_disable - rest-menu action (leader only): enable/disable party loot
 // rolling for the whole party. Persisted on the leader in the campaign DB.
 #include "inc_partyloot"
 

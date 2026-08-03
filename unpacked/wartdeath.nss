@@ -1,4 +1,4 @@
-// wartdeath.nss — OnDeath for the Wart Gondorian Gate Captain (gondorianguar005).
+// wartdeath.nss - OnDeath for the Wart Gondorian Gate Captain (gondorianguar005).
 //
 // Runs the shared HotU XP-fix handler (hotuxpfix) that this boss used to have,
 // then respawns the boss 15 min after death so it appears with an accurate

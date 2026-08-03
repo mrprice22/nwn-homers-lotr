@@ -1,4 +1,4 @@
-// tele_c_return — Conditional: show the Well-of-Eru return teleport only when
+// tele_c_return - Conditional: show the Well-of-Eru return teleport only when
 // this CD Key owns unlock 102, a return point is saved, and it is armed (i.e.
 // the player has teleported to the Well of Eru and not yet returned).
 #include "merit_redeem"
