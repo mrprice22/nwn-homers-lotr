@@ -58,7 +58,7 @@
  },
  "Comment": {
   "type": "cexostring",
-  "value": "Combat Dummy - roadmap combat-dummy. Place anywhere from the toolset; it self-installs at OnSpawn (cbd_spawn). Hostile so hostile-only spells can target it; immobile, and indestructible because cbd_damage zeroes all incoming damage."
+  "value": "Combat Dummy - roadmap combat-dummy. Place anywhere from the toolset; it self-installs at OnSpawn (cbd_spawn). Hostile so hostile-only spells can target it; immobile. MUST NOT be Plot: the engine zeroes damage to a plot creature BEFORE the NWNX damage event, so cbd_damage would measure nothing. Indestructibility comes from cbd_damage zeroing the damage after counting it, plus the death immunity in cbd_spawn."
  },
  "Conversation": {
   "type": "resref",
@@ -178,7 +178,7 @@
  },
  "Plot": {
   "type": "byte",
-  "value": 1
+  "value": 0
  },
  "PortraitId": {
   "type": "word",

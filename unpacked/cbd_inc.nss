@@ -39,6 +39,7 @@
 
 #include "nwnx_damage"
 #include "cbd_db"
+#include "color"
 
 const int   CBD_ROUNDS     = 10;    // rounds in a session
 const float CBD_ROUND_SECS = 6.0;   // one NWN combat round
@@ -71,6 +72,7 @@ const string CBD_RESREF = "cbd_dummy";   // for the respawn in cbd_death
 
 object CBD_OwnerPC(object oSrc);
 void   CBD_Say(object oPC, string sMsg);
+void   CBD_Report(object oDummy, object oPC, string sMsg);
 void   CBD_ClearState(object oDummy);
 void   CBD_StartSession(object oDummy, object oPC);
 void   CBD_RoundTick(object oDummy, int nToken);
@@ -106,13 +108,31 @@ object CBD_OwnerPC(object oSrc)
     return GetIsPC(oSrc) ? oSrc : OBJECT_INVALID;
 }
 
-// Every report goes to BOTH the floating text (immediate, unmissable) and the
-// chat log (scrollable, so a missed round can still be read afterwards).
+// Every report goes out three ways, because the point of the tool is that the
+// numbers survive long enough to be read:
+//   * floating text over the tester  — immediate, but gone in seconds;
+//   * SendMessageToPC                — the server channel, tagged and coloured
+//                                      so it can be picked out of combat spam;
+//   * the dummy SPEAKS the same line — the Talk channel, which is the copy that
+//                                      is definitely still in the log to scroll
+//                                      back to. The first UAT lost every line
+//                                      when the float faded, so the spoken copy
+//                                      is deliberate belt-and-braces, not an
+//                                      accident.
 void CBD_Say(object oPC, string sMsg)
 {
     if (!GetIsObjectValid(oPC)) return;
-    SendMessageToPC(oPC, sMsg);
+    SendMessageToPC(oPC, COLOR_YELLOW + "[Combat Dummy] " + sMsg + COLOR_END);
     FloatingTextStringOnCreature(sMsg, oPC, FALSE);
+}
+
+// As CBD_Say, plus the dummy says it out loud so it lands in the Talk channel.
+// Used for the lines a tester needs to be able to re-read: the round-by-round
+// figures and the final averages.
+void CBD_Report(object oDummy, object oPC, string sMsg)
+{
+    CBD_Say(oPC, sMsg);
+    AssignCommand(oDummy, SpeakString(sMsg, TALKVOLUME_TALK));
 }
 
 // Any activity from the owner resets the idle clock. Called from both the
@@ -217,7 +237,7 @@ void CBD_RoundTick(object oDummy, int nToken)
     SetLocalInt(oDummy, CBD_VAR_ATK_RND, 0);
     SetLocalInt(oDummy, CBD_VAR_DMG_RND, 0);
 
-    CBD_Say(oPC, "Round " + IntToString(nRound) + "/" +
+    CBD_Report(oDummy, oPC, "Round " + IntToString(nRound) + "/" +
                  IntToString(CBD_ROUNDS) + ": " + IntToString(nAtk) +
                  " attacks, " + IntToString(nDmg) + " damage.");
 
@@ -255,13 +275,13 @@ void CBD_EndSession(object oDummy)
 
     if (!GetIsObjectValid(oPC)) return;
 
-    CBD_Say(oPC, "Combat test complete (" + IntToString(CBD_ROUNDS) +
-                 " rounds).");
-    CBD_Say(oPC, "  Attacks per round: " + FloatToString(fApr, 0, 2) +
-                 "   (" + IntToString(nHitTot) + " hits / " +
-                 IntToString(nAtkTot) + " attacks)");
-    CBD_Say(oPC, "  Damage per round:  " + FloatToString(fDpr, 0, 1) +
-                 "   (" + IntToString(nDmgTot) + " total)");
+    CBD_Report(oDummy, oPC, "Combat test complete (" + IntToString(CBD_ROUNDS) +
+               " rounds).");
+    CBD_Report(oDummy, oPC, "Attacks per round: " + FloatToString(fApr, 0, 2) +
+               "   (" + IntToString(nHitTot) + " hits / " +
+               IntToString(nAtkTot) + " attacks)");
+    CBD_Report(oDummy, oPC, "Damage per round: " + FloatToString(fDpr, 0, 1) +
+               "   (" + IntToString(nDmgTot) + " total)");
 
     // Nothing happened — don't pollute the leaderboard with idle sessions.
     if (nDmgTot <= 0) return;

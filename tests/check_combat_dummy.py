@@ -120,8 +120,14 @@ if utc_path.is_file():
         errors.append(
             "cbd_dummy.utc.json ScriptDeath is not cbd_death — a destroyed "
             "dummy would never come back.")
-    if val("Plot") != 1:
-        errors.append("cbd_dummy.utc.json is not flagged Plot.")
+    if val("Plot") != 0:
+        errors.append(
+            "cbd_dummy.utc.json is flagged Plot. It must NOT be: the engine "
+            "zeroes damage to a plot creature BEFORE the NWNX damage event, so "
+            "every attack measures 0, DPR reads 0 and nothing is ever written "
+            "to the leaderboard. This is exactly what the first UAT hit. "
+            "Indestructibility comes from cbd_damage zeroing the damage after "
+            "counting it, not from the Plot flag.")
 
 utp_path = UNPACKED / "cbd_sign.utp.json"
 if utp_path.is_file():
@@ -150,7 +156,17 @@ if "CBD_Touch" not in strip_comments(read(UNPACKED / "cbd_damage.nss")):
         "reset for a caster, and a spell-only trial would be cancelled "
         "mid-run.")
 
-# --- 6. the sign's tokens and the conversation agree ------------------------
+# --- 6. the reports survive the float fading --------------------------------
+if "SpeakString" not in inc:
+    errors.append(
+        "cbd_inc.nss no longer speaks its reports. Floating text fades in "
+        "seconds; the spoken copy is what puts the round figures and the final "
+        "averages in the chat log where they can be scrolled back to, which is "
+        "the entire point of the readout.")
+if "SendMessageToPC" not in inc:
+    errors.append("cbd_inc.nss no longer sends its reports to the chat log.")
+
+# --- 7. the sign's tokens and the conversation agree ------------------------
 db = read(UNPACKED / "cbd_db.nss")
 dlg_src = read(UNPACKED / "cbd_sign.dlg.json")
 for tok in [6400] + list(range(6401, 6411)) + [6411]:
