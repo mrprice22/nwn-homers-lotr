@@ -22,6 +22,7 @@
           <a href="../creatures/by-area/index.html">By Area</a>
           <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
           <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
           <a href="../creatures/bosses.html">Bosses</a>
           <a href="../creatures/pictures.html">Pictures</a>
         </div>
@@ -75,11 +76,11 @@
 <table class="data"><tr><th>Str</th><td>108 <small class="muted">(+10 item)</small></td><th>Dex</th><td>24</td><th>Con</th><td>84 <small class="muted">(+6 item)</small></td><th>Int</th><td>28 <small class="muted">(+6 item)</small></td><th>Wis</th><td>52 <small class="muted">(+10 item)</small></td><th>Cha</th><td>29 <small class="muted">(+6 item)</small></td></tr></table>
 <h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>WeaponMaster</td><td>45</td></tr><tr><td>Fighter</td><td>25</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>10,096 (9,996 + 100 Epic Toughness)</td><th>AC</th><td>91 <small class="muted">(10 base + +7 Dex + +30 natural (NaturalAC) + +2 natural (Armor Skin) + +8 armor + +10 armor enchant + +20 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+35</td></tr><tr><th>Fort</th><td>+45</td><th>Ref</th><td>+27</td><th>Will</th><td>+39</td></tr></table>
+<table class="data"><tr><th>HP</th><td>10,096 (9,996 + 100 Epic Toughness)</td><th>AC</th><td>91 <small class="muted">(10 base + +7 Dex + +30 natural (NaturalAC) + +2 natural (Armor Skin) + +8 armor + +10 armor enchant + +20 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+20</td></tr><tr><th>Fort</th><td>+45</td><th>Ref</th><td>+27</td><th>Will</th><td>+39</td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
 <p class="warn-damage-gate"><strong>Note: this creature uses a custom damage script.</strong> Its <code>OnDamaged</code> handler (<code>dunharrowking</code>) changes how it takes damage — reported damage may be healed back or ignored. It can only be reliably harmed by a character wielding: <a href="../items/glamhring2.html">Flame of the West </a>.</p>
-<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20 (capped from +25)</td></tr>
+<h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20 (capped from +25)</td></tr>
 <tr><th>Save vs. Death</th><td>+5</td></tr>
 <tr><th>Save vs. Fear</th><td>+6</td></tr>
 <tr><th>Save vs. Fortitude</th><td>+8</td></tr>
@@ -91,11 +92,11 @@
 <tr><th>Damage Resistance</th><td>Acid 35/-, Bludgeoning 20/-, Cold 20/-, Magical 10/-, Negative 20/-, Piercing 20/-, Slashing 20/-</td></tr>
 <tr><th>Damage Reduction</th><td>Soak10, bypass +10</td></tr>
 <tr><th>Damage Immunity</th><td>Piercing (25%), Slashing (25%)</td></tr>
-<tr><th>Misc Immunity</th><td>Critical Hits, Death Magic, Disease, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Misc Immunity</th><td>Critical Hits (racial, gear), Death Magic (racial, gear), Disease (racial, gear), Fear (racial), Level/Ability Drain (racial, gear), Mind-Affecting Spells (racial, gear), Paralysis (racial, gear), Poison (racial, gear), Sneak Attack (racial, gear)</td></tr>
 <tr><th>Immunity: Spells</th><td>Flesh to Stone</td></tr>
 <tr><th>Immunity: Spell Level</th><td>9th level and below</td></tr>
-<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), True Seeing, Darkvision</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/avenger002.html">Avenger</a></td><td>greatsword</td><td>Melee</td><td>+103/+98/+93/+88</td><td>2d6+49 (51–61) + Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d12, Damage Bonus <span class="nwn-dmg nwn-dmg-positive" style="color:#ffffff">Positive</span> 2d12, Damage Bonus Slashing 2d12, Massive Criticals 2d12, On Hit Properties Greater Dispelling DC 20</td><td>19-20/x2</td></tr></tbody></table>
+<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), True Seeing, Darkvision</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/avenger002.html">Avenger</a></td><td>greatsword</td><td>Melee</td><td>+88/+83/+78/+73</td><td>2d6+49 (51–61) + Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d12, Damage Bonus <span class="nwn-dmg nwn-dmg-positive" style="color:#ffffff">Positive</span> 2d12, Damage Bonus Slashing 2d12, Massive Criticals 2d12, On Hit Properties Greater Dispelling DC 20</td><td>19-20/x2</td></tr></tbody></table>
 <h2>Spells</h2>
 <h3>Special abilities</h3><table class="data"><thead><tr><th>Spell/ability</th><th>Caster level</th><th>Uses</th></tr></thead><tbody><tr><td>Aura of Glory - Cursed</td><td>15</td><td>1/day</td></tr>
 <tr><td>Aura of Hellfire</td><td>15</td><td>1/day</td></tr>

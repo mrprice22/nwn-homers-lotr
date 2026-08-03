@@ -22,6 +22,7 @@
           <a href="../creatures/by-area/index.html">By Area</a>
           <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
           <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
           <a href="../creatures/bosses.html">Bosses</a>
           <a href="../creatures/pictures.html">Pictures</a>
         </div>
@@ -76,10 +77,10 @@
 <table class="data"><tr><th>Str</th><td>47 <small class="muted">(+10 item)</small></td><th>Dex</th><td>72 <small class="muted">(+10 item)</small></td><th>Con</th><td>62 <small class="muted">(+10 item)</small></td><th>Int</th><td>42</td><th>Wis</th><td>42</td><th>Cha</th><td>42</td></tr></table>
 <h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Fighter</td><td>15</td></tr><tr><td>Champion_Torm</td><td>15</td></tr><tr><td>Monk</td><td>35</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>7,100 (7,000 + 100 Epic Toughness)</td><th>AC</th><td>137 <small class="muted">(10 base + +31 Dex + +25 natural (NaturalAC) + +2 natural (Armor Skin) + +10 armor enchant + +20 dodge (items) + +4 dodge (haste) + +12 dodge (Tumble, 60 ranks) + +16 Wis (monk) + +7 dodge (monk level))</small></td><th>BAB</th><td>+45</td></tr><tr><th>Fort</th><td>+28</td><th>Ref</th><td>+32</td><th>Will</th><td>+23</td></tr><tr><th>Spell Resistance</th><td>45 <small class="muted">(max of: feats (18), Diamond Soul (45), items (22))</small></td><td></td><td></td></tr></table>
+<table class="data"><tr><th>HP</th><td>7,100 (7,000 + 100 Epic Toughness)</td><th>AC</th><td>137 <small class="muted">(10 base + +31 Dex + +25 natural (NaturalAC) + +2 natural (Armor Skin) + +10 armor enchant + +20 dodge (items) + +4 dodge (haste) + +12 dodge (Tumble, 60 ranks) + +16 Wis (monk) + +7 dodge (monk level))</small></td><th>BAB</th><td>+37</td></tr><tr><th>Fort</th><td>+28</td><th>Ref</th><td>+32</td><th>Will</th><td>+23</td></tr><tr><th>Spell Resistance</th><td>45 <small class="muted">(max of: feats (18), Diamond Soul (45), items (22))</small></td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20</td></tr>
+<h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20</td></tr>
 <tr><th>Save vs. Universal</th><td>+5</td></tr>
 <tr><th>Ability Bonuses</th><td>Constitution +10, Dexterity +10, Strength +10</td></tr>
 <tr><th>Skill Bonuses</th><td>Concentration +50, Discipline +50, Listen +50, Perform +10, Search +50, Spot +50, Tumble +50, Use Magic Device +10</td></tr>
@@ -88,10 +89,10 @@
 <tr><th>Damage Immunity</th><td>Bludgeoning (50%), Divine (50%), Magical (50%), Negative (50%), Piercing (50%), Positive (50%), Slashing (50%)</td></tr>
 <tr><th>Misc Immunity</th><td>Mind-Affecting Spells, Paralysis, Sneak Attack</td></tr>
 <tr><th>Regeneration</th><td>+10 HP/round</td></tr>
-<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement, True Seeing</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/adultbasilis007.html">Adult Basilisk Bite</a></td><td>cslashweapon</td><td>Melee</td><td>+77/+74/+71/+68/+65</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+77/+74/+71/+68/+65</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (bite)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+77/+74/+71/+68/+65</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement, True Seeing</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/adultbasilis007.html">Adult Basilisk Bite</a></td><td>cslashweapon</td><td>Melee</td><td>+69/+66</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+69/+66</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (bite)</td><td><a href="../items/adultbasilis015.html">Adult Basilisk Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+69/+66</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Spells</h2>
 <h3>Special abilities</h3><table class="data"><thead><tr><th>Spell/ability</th><th>Caster level</th><th>Uses</th></tr></thead><tbody><tr><td>Epic Spell: Dragon Knight</td><td>0</td><td>1/day</td></tr>
 <tr><td>Epic Spell: Epic Mage Armor</td><td>0</td><td>1/day</td></tr>

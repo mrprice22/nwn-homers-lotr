@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Search Creatures</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Search Creatures</h1><p>All conditions must be satisfied simultaneously. Leave fields blank to skip. Set a row to <em>lacks</em> to find creatures <em>without</em> an ability — the result header reports how many of the total matched, so a <em>has</em>/<em>lacks</em> pair always sums to the full roster.</p><form id="cf" class="item-search-form creature-search-form"><div class="search-row"><label for="fq">Name</label><input id="fq" type="search" placeholder="substring"><label for="frace">Race</label><select id="frace"><option value="">— all —</option></select><label for="fclass">Class</label><select id="fclass"><option value="">— any —</option></select><input id="fclvl" type="number" min="0" placeholder="min level"></div><div class="search-row"><label for="farea">Area</label><select id="farea"><option value="">— all —</option></select><label for="ffac">Faction</label><select id="ffac"><option value="">— all —</option></select><label class="checkbox-label" title="Only creatures actually placed in the module (spawned by an encounter, placed in an area, or created by a script)"><input type="checkbox" id="fim"> Placed in module only</label><label class="checkbox-label"><input type="checkbox" id="fboss"> Bosses only</label></div><div class="search-row stat-row"><label for="fcrmin">CR</label><input id="fcrmin" type="number" step="0.5" placeholder="min"><input id="fcrmax" type="number" step="0.5" placeholder="max"><label for="fhpmin">HP</label><input id="fhpmin" type="number" placeholder="min"><input id="fhpmax" type="number" placeholder="max"><label for="facmin">AC</label><input id="facmin" type="number" placeholder="min"><label for="fbabmin">BAB</label><input id="fbabmin" type="number" placeholder="min"><label for="fsrmin">SR</label><input id="fsrmin" type="number" placeholder="min"><label for="fsavemin" title="Every saving throw must be at least this high">Saves</label><input id="fsavemin" type="number" placeholder="min"></div><div class="prop-rows"><div class="prop-row"><select id="cm1" class="mode-sel"><option value="has">has</option><option value="lacks">lacks</option></select><select id="cp1" class="prop-sel"><option value="">— any —</option></select><select id="cs1" class="subtype-sel" disabled><option value="">— any —</option></select><input id="cv1" type="number" min="0" placeholder="min value"></div><div class="prop-row"><select id="cm2" class="mode-sel"><option value="has">has</option><option value="lacks">lacks</option></select><select id="cp2" class="prop-sel"><option value="">— any —</option></select><select id="cs2" class="subtype-sel" disabled><option value="">— any —</option></select><input id="cv2" type="number" min="0" placeholder="min value"></div><div class="prop-row"><select id="cm3" class="mode-sel"><option value="has">has</option><option value="lacks">lacks</option></select><select id="cp3" class="prop-sel"><option value="">— any —</option></select><select id="cs3" class="subtype-sel" disabled><option value="">— any —</option></select><input id="cv3" type="number" min="0" placeholder="min value"></div><div class="prop-row"><select id="cm4" class="mode-sel"><option value="has">has</option><option value="lacks">lacks</option></select><select id="cp4" class="prop-sel"><option value="">— any —</option></select><select id="cs4" class="subtype-sel" disabled><option value="">— any —</option></select><input id="cv4" type="number" min="0" placeholder="min value"></div></div><div class="search-row"><label for="fo">Sort by</label><select id="fo"><option value="cr">Challenge Rating</option><option value="name">Name</option><option value="hp">HP</option><option value="ac">AC</option><option value="bab">BAB</option><option value="sr">Spell Resistance</option><option value="count">Count in module</option><option value="value">Matched Property Value</option></select><select id="fd"><option value="desc">Descending</option><option value="asc">Ascending</option></select><button type="submit">Search</button></div></form><div id="cr_out"><p class="muted">Loading creature index…</p></div><p class="muted">Abilities come from a creature's equipped items plus the immunities its racial type grants (marked <em>racial</em>) — see any creature's <em>Abilities &amp; combat properties</em> table for the full picture.</p><script>(function(){
+var N=4,data=[],form=document.getElementById('cf'),results=document.getElementById('cr_out');
+var modeSels=[],propSels=[],subSels=[],minVals=[];
+for(var i=1;i<=N;i++){
+  modeSels.push(document.getElementById('cm'+i));
+  propSels.push(document.getElementById('cp'+i));
+  subSels.push(document.getElementById('cs'+i));
+  minVals.push(document.getElementById('cv'+i));
+}
+function $(id){return document.getElementById(id);}
+function num(id){var v=parseFloat($(id).value);return isNaN(v)?null:v;}
+
+fetch('search-index.json').then(function(r){return r.json();}).then(function(d){
+  data=d; populateFilters();
+  results.innerHTML='<p class="muted">'+data.length+' creatures indexed. Set filters above and click Search.</p>';
+});
+
+function fillSel(sel,vals){
+  vals.forEach(function(v){sel.appendChild(new Option(v,v));});
+}
+
+function populateFilters(){
+  var props={},subs={},races={},classes={},areas={},factions={};
+  data.forEach(function(cr){
+    if(cr.race)races[cr.race]=1;
+    if(cr.faction)factions[cr.faction]=1;
+    (cr.classes||[]).forEach(function(c){classes[c.n]=1;});
+    (cr.areas||[]).forEach(function(a){areas[a]=1;});
+    (cr.props||[]).forEach(function(p){
+      props[p.p]=1;
+      if(p.s){if(!subs[p.p])subs[p.p]={};subs[p.p][p.s]=1;}
+    });
+  });
+  window._csubs=subs;
+  fillSel($('frace'),Object.keys(races).sort());
+  fillSel($('fclass'),Object.keys(classes).sort());
+  fillSel($('farea'),Object.keys(areas).sort());
+  fillSel($('ffac'),Object.keys(factions).sort());
+  var propOpts=Object.keys(props).sort();
+  propSels.forEach(function(sel){fillSel(sel,propOpts);});
+}
+
+propSels.forEach(function(sel,idx){
+  sel.addEventListener('change',function(){
+    var chosen=sel.value,sub=(window._csubs||{})[chosen]||{};
+    subSels[idx].innerHTML='<option value="">— any —</option>';
+    Object.keys(sub).sort().forEach(function(s){subSels[idx].appendChild(new Option(s,s));});
+    subSels[idx].disabled=!chosen||!Object.keys(sub).length;
+  });
+});
+
+function propMatches(cr,c){
+  return (cr.props||[]).filter(function(p){
+    if(c.prop&&p.p!==c.prop)return false;
+    if(c.sub&&p.s!==c.sub)return false;
+    if(c.minv>0&&(p.v||0)<c.minv)return false;
+    return true;
+  });
+}
+
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  var q=($('fq').value||'').trim().toLowerCase();
+  var race=$('frace').value,cls=$('fclass').value,area=$('farea').value,fac=$('ffac').value;
+  var clvl=parseInt($('fclvl').value,10)||0;
+  var crMin=num('fcrmin'),crMax=num('fcrmax');
+  var hpMin=num('fhpmin'),hpMax=num('fhpmax');
+  var acMin=num('facmin'),babMin=num('fbabmin'),srMin=num('fsrmin');
+  var saveMin=num('fsavemin');
+  var inMod=$('fim').checked;
+  var bossEl=$('fboss'),bossOnly=bossEl&&bossEl.checked;
+  var sortBy=$('fo').value,asc=$('fd').value==='asc';
+
+  var conds=[];
+  for(var i=0;i<N;i++){
+    var prop=propSels[i].value,sub=subSels[i].value;
+    var minv=parseInt(minVals[i].value,10)||0;
+    if(prop||sub||minv>0)conds.push({prop:prop,sub:sub,minv:minv,neg:modeSels[i].value==='lacks'});
+  }
+
+  var out=[];
+  data.forEach(function(cr){
+    if(q&&cr.name.toLowerCase().indexOf(q)<0)return;
+    if(race&&cr.race!==race)return;
+    if(fac&&cr.faction!==fac)return;
+    if(area&&(cr.areas||[]).indexOf(area)<0)return;
+    if(inMod&&!cr.count)return;
+    if(bossOnly&&!cr.boss)return;
+    if(cls){
+      var hit=(cr.classes||[]).some(function(c){return c.n===cls&&c.l>=clvl;});
+      if(!hit)return;
+    }else if(clvl>0){
+      if(!(cr.classes||[]).some(function(c){return c.l>=clvl;}))return;
+    }
+    if(crMin!==null&&(cr.cr===null||cr.cr<crMin))return;
+    if(crMax!==null&&(cr.cr===null||cr.cr>crMax))return;
+    if(hpMin!==null&&(cr.hp===null||cr.hp<hpMin))return;
+    if(hpMax!==null&&(cr.hp===null||cr.hp>hpMax))return;
+    if(acMin!==null&&(cr.ac||0)<acMin)return;
+    if(babMin!==null&&(cr.bab||0)<babMin)return;
+    if(srMin!==null&&(cr.sr||0)<srMin)return;
+    if(saveMin!==null&&Math.min(cr.fort||0,cr.ref||0,cr.will||0)<saveMin)return;
+
+    var matched=[];
+    var ok=conds.every(function(c){
+      var mp=propMatches(cr,c);
+      if(c.neg)return mp.length===0;
+      if(!mp.length)return false;
+      matched.push(mp[0]);
+      return true;
+    });
+    if(!ok)return;
+    out.push({c:cr,matched:matched});
+  });
+
+  out.sort(function(a,b){
+    var v;
+    if(sortBy==='name')v=a.c.name.localeCompare(b.c.name);
+    else if(sortBy==='value')v=(a.matched[0]?(a.matched[0].v||0):0)-(b.matched[0]?(b.matched[0].v||0):0);
+    else v=(a.c[sortBy]===null?-Infinity:(a.c[sortBy]||0))-(b.c[sortBy]===null?-Infinity:(b.c[sortBy]||0));
+    if(v===0)v=a.c.name.localeCompare(b.c.name);
+    return asc?v:-v;
+  });
+  render(out,conds.length>0);
+});
+
+function crBucket(cr){
+  if(cr===null)return 'CR unset';
+  var lo=Math.floor(cr/5)*5;
+  return 'CR '+lo+'–'+(lo+4);
+}
+
+function tally(rows,keyFn){
+  var m={};
+  rows.forEach(function(r){var k=keyFn(r.c);m[k]=(m[k]||0)+1;});
+  return Object.keys(m).sort(function(a,b){return m[b]-m[a]||a.localeCompare(b);})
+    .map(function(k){return '<li>'+esc(k)+' <strong>'+m[k]+'</strong></li>';}).join('');
+}
+
+function render(rows,showProps){
+  var total=data.length;
+  var head='<p><strong>'+rows.length+'</strong> of '+total+' creature'+(total!==1?'s':'')
+    +' match'+(rows.length===1?'es':'')
+    +' <span class="muted">('+(total-rows.length)+' excluded)</span></p>';
+  if(!rows.length){results.innerHTML=head+'<p class="muted">No creatures match.</p>';return;}
+  head+='<details class="search-breakdown"><summary>Breakdown of the '+rows.length+' matches</summary>'
+    +'<div class="breakdown-cols">'
+    +'<div><h4>By race</h4><ul>'+tally(rows,function(c){return c.race||'(unset)';})+'</ul></div>'
+    +'<div><h4>By challenge rating</h4><ul>'+tally(rows,function(c){return crBucket(c.cr);})+'</ul></div>'
+    +'</div></details>';
+
+  var cols='<th>Name</th><th>Count</th><th>Race</th><th>Class</th>'
+    +'<th>CR</th><th>HP</th><th>AC</th>'
+    +(showProps?'<th>Matched</th>':'');
+  var html=head+'<table class="data"><thead><tr>'+cols+'</tr></thead><tbody>';
+  rows.forEach(function(r){
+    var c=r.c;
+    var cls=(c.classes||[]).map(function(x){return esc(x.n)+' '+x.l;}).join('/');
+    var props=r.matched.map(function(p){
+      var label=p.a
+        ?'<a href="../items/properties/index.html#'+esc(p.a)+'">'+esc(p.p)+'</a>'
+        :esc(p.p);
+      var det='';
+      if(p.s&&p.c)det=': '+esc(p.s)+' — '+esc(p.c);
+      else if(p.s)det=': '+esc(p.s);
+      else if(p.c)det=' — '+esc(p.c);
+      var tag=p.src==='race'?' <span class="muted">(racial)</span>':'';
+      return '<span>'+label+det+tag+'</span>';
+    }).join('<br>');
+    var boss=c.boss?' <span class="badge-boss">boss</span>':'';
+    html+='<tr><td><a href="'+esc(c.url)+'">'+esc(c.name)+'</a>'+boss+'</td>'
+      +'<td>'+(c.count?c.count:'—')+'</td>'
+      +'<td>'+esc(c.race||'')+'</td>'
+      +'<td>'+cls+'</td>'
+      +'<td>'+(c.cr===null?'—':c.cr)+'</td>'
+      +'<td>'+(c.hp===null?'—':c.hp.toLocaleString())+'</td>'
+      +'<td>'+(c.ac||'—')+'</td>'
+      +(showProps?'<td>'+props+'</td>':'')
+      +'</tr>';
+  });
+  results.innerHTML=html+'</tbody></table>';
+}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+})();</script>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

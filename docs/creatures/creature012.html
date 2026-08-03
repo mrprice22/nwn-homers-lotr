@@ -22,6 +22,7 @@
           <a href="../creatures/by-area/index.html">By Area</a>
           <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
           <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
           <a href="../creatures/bosses.html">Bosses</a>
           <a href="../creatures/pictures.html">Pictures</a>
         </div>
@@ -73,18 +74,18 @@
 <table class="data"><tr><th>Str</th><td>99 <small class="muted">(+2 racial)</small></td><th>Dex</th><td>27</td><th>Con</th><td>88</td><th>Int</th><td>20 <small class="muted">(-2 racial)</small></td><th>Wis</th><td>22</td><th>Cha</th><td>20 <small class="muted">(-2 racial)</small></td></tr></table>
 <h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Barbarian</td><td>50</td></tr><tr><td>Fighter</td><td>40</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>5,475 (5,355 + 120 Epic Toughness)</td><th>AC</th><td>76 <small class="muted">(10 base + +8 Dex + +38 natural (NaturalAC) + +2 natural (Armor Skin) + +3 armor + +10 armor enchant + +1 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+30</td></tr><tr><th>Fort</th><td>+39</td><th>Ref</th><td>+8</td><th>Will</th><td>+6</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
+<table class="data"><tr><th>HP</th><td>5,475 (5,355 + 120 Epic Toughness)</td><th>AC</th><td>76 <small class="muted">(10 base + +8 Dex + +38 natural (NaturalAC) + +2 natural (Armor Skin) + +3 armor + +10 armor enchant + +1 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+20</td></tr><tr><th>Fort</th><td>+39</td><th>Ref</th><td>+8</td><th>Will</th><td>+6</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+1</td></tr>
+<h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+1</td></tr>
 <tr><th>Skill Bonuses</th><td>Concentration +10, Discipline +6, Spot +10, Taunt +10, Use Magic Device +10</td></tr>
 <tr><th>Damage Resistance</th><td>Acid 5/-, Cold 30/-, Electrical 30/-, Fire 30/-, Piercing 5/-, Slashing 5/-, Sonic 30/-</td></tr>
 <tr><th>Damage Reduction</th><td>Soak20, bypass +1</td></tr>
-<tr><th>Misc Immunity</th><td>Disease, Fear, Knockdown, Level/Ability Drain, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Misc Immunity</th><td>Disease, Fear, Knockdown, Level/Ability Drain, Paralysis, Poison (racial, gear), Sneak Attack</td></tr>
 <tr><th>Regeneration</th><td>+5 HP/round</td></tr>
-<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/kukriofthegateco.html">Kukri of the Gate Commander</a></td><td>kukri</td><td>Melee</td><td>+84/+79/+74/+69</td><td>1d4+44 (45–48) + Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 2d6, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d6, Damage Bonus Slashing 2d6, Massive Criticals 2d6</td><td>18-20/x2</td></tr>
-<tr><td>Left hand</td><td><a href="../items/kukriofthegateco.html">Kukri of the Gate Commander</a></td><td>kukri</td><td>Melee</td><td>+84/+79/+74/+69</td><td>1d4+44 (45–48) + Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 2d6, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d6, Damage Bonus Slashing 2d6, Massive Criticals 2d6</td><td>18-20/x2</td></tr></tbody></table>
+<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/kukriofthegateco.html">Kukri of the Gate Commander</a></td><td>kukri</td><td>Melee</td><td>+74/+69/+64/+59</td><td>1d4+44 (45–48) + Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 2d6, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d6, Damage Bonus Slashing 2d6, Massive Criticals 2d6</td><td>18-20/x2</td></tr>
+<tr><td>Left hand</td><td><a href="../items/kukriofthegateco.html">Kukri of the Gate Commander</a></td><td>kukri</td><td>Melee</td><td>+74/+69/+64/+59</td><td>1d4+44 (45–48) + Damage Bonus <span class="nwn-dmg nwn-dmg-fire" style="color:#ff0101">Fire</span> 2d6, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d6, Damage Bonus Slashing 2d6, Massive Criticals 2d6</td><td>18-20/x2</td></tr></tbody></table>
 <h2>Spells</h2>
 <h3>Special abilities</h3><table class="data"><thead><tr><th>Spell/ability</th><th>Caster level</th><th>Uses</th></tr></thead><tbody><tr><td>Aura of Blinding</td><td>0</td><td>2/day</td></tr>
 <tr><td>Ferocity, Greater</td><td>0</td><td>4/day</td></tr></tbody></table>

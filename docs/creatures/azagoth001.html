@@ -22,6 +22,7 @@
           <a href="../creatures/by-area/index.html">By Area</a>
           <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
           <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
           <a href="../creatures/bosses.html">Bosses</a>
           <a href="../creatures/pictures.html">Pictures</a>
         </div>
@@ -77,10 +78,10 @@
 <table class="data"><tr><th>Str</th><td>111 <small class="muted">(+9 item)</small></td><th>Dex</th><td>61 <small class="muted">(+9 item)</small></td><th>Con</th><td>67 <small class="muted">(+5 item)</small></td><th>Int</th><td>42</td><th>Wis</th><td>42</td><th>Cha</th><td>47 <small class="muted">(+5 item)</small></td></tr></table>
 <h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>WeaponMaster</td><td>40</td></tr><tr><td>Barbarian</td><td>30</td></tr><tr><td>Outsider</td><td>30</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>8,100</td><th>AC</th><td>84 <small class="muted">(10 base + +25 Dex + +40 natural (NaturalAC) + +5 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+40</td></tr><tr><th>Fort</th><td>+28</td><th>Ref</th><td>+25</td><th>Will</th><td>+16</td></tr><tr><th>Spell Resistance</th><td>28</td><td></td><td></td></tr></table>
+<table class="data"><tr><th>HP</th><td>8,100</td><th>AC</th><td>84 <small class="muted">(10 base + +25 Dex + +40 natural (NaturalAC) + +5 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+20</td></tr><tr><th>Fort</th><td>+28</td><th>Ref</th><td>+25</td><th>Will</th><td>+16</td></tr><tr><th>Spell Resistance</th><td>28</td><td></td><td></td></tr></table>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
 <p class="note-retaliation"><strong>Retaliation.</strong> When struck, this creature has a ~20% chance to unleash 5d100 + 100 Negative damage to everything nearby (area of effect). <span class="muted">(<code>OnDamaged</code>: <code>on_dmgd_massharm</code>)</span></p>
-<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+5</td></tr>
+<h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+5</td></tr>
 <tr><th>Ability Bonuses</th><td>Charisma +5, Constitution +5, Dexterity +9, Strength +9</td></tr>
 <tr><th>Skill Bonuses</th><td>Concentration +4, Discipline +4, Spellcraft +4, Spot +4</td></tr>
 <tr><th>Damage Resistance</th><td>Acid 50/-, Bludgeoning 25/-, Cold 30/-, Divine 5/-, Electrical 35/-, Fire 25/-, Magical 5/-, Negative 25/-, Piercing 25/-, Positive 5/-, Slashing 25/-, Sonic 20/-</td></tr>
@@ -89,9 +90,9 @@
 <tr><th>Misc Immunity</th><td>Death Magic, Fear, Knockdown, Level/Ability Drain, Paralysis, Poison</td></tr>
 <tr><th>Immunity: Spells</th><td>Cloud of Bewilderment, Dominate Monster, Dominate Person, Flesh to Stone, Harm, Implosion</td></tr>
 <tr><th>Regeneration</th><td>+10 HP/round</td></tr>
-<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp022.html">Balrog&#x27;s Battle Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+110/+105/+100/+95</td><td>—</td><td>20/x2</td></tr>
-<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp022.html">Balrog&#x27;s Battle Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+110/+105/+100/+95</td><td>—</td><td>20/x2</td></tr></tbody></table>
+<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Creature weapon (R)</td><td><a href="../items/it_crewpsp022.html">Balrog&#x27;s Battle Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+90/+85/+80/+75</td><td>—</td><td>20/x2</td></tr>
+<tr><td>Creature weapon (L)</td><td><a href="../items/it_crewpsp022.html">Balrog&#x27;s Battle Claw</a></td><td>cslshprcweap</td><td>Melee</td><td>+90/+85/+80/+75</td><td>—</td><td>20/x2</td></tr></tbody></table>
 <h2>Spells</h2>
 <h3>Special abilities</h3><table class="data"><thead><tr><th>Spell/ability</th><th>Caster level</th><th>Uses</th></tr></thead><tbody><tr><td>Epic Spell: Epic Warding</td><td>0</td><td>1/day</td></tr>
 <tr><td>Howl, Paralysis</td><td>0</td><td>1/day</td></tr>

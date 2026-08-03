@@ -22,6 +22,7 @@
           <a href="../creatures/by-area/index.html">By Area</a>
           <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
           <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
           <a href="../creatures/bosses.html">Bosses</a>
           <a href="../creatures/pictures.html">Pictures</a>
         </div>
@@ -75,22 +76,22 @@
 <table class="data"><tr><th>Str</th><td>124 <small class="muted">(+12 item)</small></td><th>Dex</th><td>112 <small class="muted">(+2 racial, +8 item)</small></td><th>Con</th><td>50 <small class="muted">(-2 racial)</small></td><th>Int</th><td>52</td><th>Wis</th><td>59 <small class="muted">(+7 item)</small></td><th>Cha</th><td>52</td></tr></table>
 <h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Ranger</td><td>25</td></tr><tr><td>Fighter</td><td>25</td></tr><tr><td>Arcane_Archer</td><td>20</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>5,380</td><th>AC</th><td>103 <small class="muted">(10 base + +51 Dex + +10 natural (NaturalAC) + +8 armor enchant + +20 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+50</td></tr><tr><th>Fort</th><td>+32</td><th>Ref</th><td>+51</td><th>Will</th><td>+24</td></tr><tr><th>Spell Resistance</th><td>30</td><td></td><td></td></tr></table>
+<table class="data"><tr><th>HP</th><td>5,380</td><th>AC</th><td>103 <small class="muted">(10 base + +51 Dex + +10 natural (NaturalAC) + +8 armor enchant + +20 dodge (items) + +4 dodge (haste))</small></td><th>BAB</th><td>+35</td></tr><tr><th>Fort</th><td>+32</td><th>Ref</th><td>+51</td><th>Will</th><td>+24</td></tr><tr><th>Spell Resistance</th><td>30</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +8 AC Bonus</p>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
 <p class="note-retaliation"><strong>Retaliation.</strong> When struck, this creature will instantly slay Good-aligned player characters that strike it. <span class="muted">(<code>OnDamaged</code>: <code>goodcheatorguard</code>)</span></p>
-<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20 (capped from +23)</td></tr>
+<h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>AC Bonus (Dodge, items)</th><td>+20 (capped from +23)</td></tr>
 <tr><th>Save vs. Universal</th><td>+2</td></tr>
 <tr><th>Ability Bonuses</th><td>Dexterity +8, Strength +12, Wisdom +7</td></tr>
 <tr><th>Skill Bonuses</th><td>Craft Trap +10, Disable Trap +10, Discipline +10, Hide +12, Listen +50, Move Silently +12, Pick Pocket +10, Search +10, Set Trap +10, Spot +50</td></tr>
 <tr><th>Damage Resistance</th><td>Acid 50/-, Bludgeoning 15/-, Cold 15/-, Divine 5/-, Electrical 15/-, Fire 20/-, Magical 10/-, Negative 25/-, Piercing 20/-, Positive 5/-, Slashing 20/-, Sonic 10/-</td></tr>
 <tr><th>Damage Reduction</th><td>Soak50, bypass +5</td></tr>
 <tr><th>Damage Immunity</th><td>Acid (50%), Bludgeoning (50%), Divine (50%), Negative (50%), Piercing (50%), Positive (75%), Slashing (50%)</td></tr>
-<tr><th>Misc Immunity</th><td>Death Magic, Disease, Fear, Level/Ability Drain, Mind-Affecting Spells, Paralysis, Poison</td></tr>
+<tr><th>Misc Immunity</th><td>Death Magic (racial, gear), Disease, Fear, Level/Ability Drain, Mind-Affecting Spells (racial, gear), Paralysis, Poison</td></tr>
 <tr><th>Immunity: Spells</th><td>Bigby&#x27;s Clenched Fist, Bigby&#x27;s Crushing Hand, Bigby&#x27;s Forceful Hand, Cloud of Bewilderment, Dominate Monster, Dominate Person, Drown, Flesh to Stone, Harm, Implosion, Isaac&#x27;s Greater Missile Storm, Tasha&#x27;s Hideous Laughter</td></tr>
 <tr><th>Regeneration</th><td>+31 HP/round</td></tr>
-<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement, True Seeing, Darkvision</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/greaterbowoftheg.html">Greater Bow of the Galadhrim</a></td><td>longbow</td><td>Ranged (200)</td><td>+117/+112/+107/+102</td><td>1d8 (1–8) + Massive Criticals 2d12</td><td>20/x3</td></tr></tbody></table>
+<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), Freedom of Movement, True Seeing, Darkvision</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/greaterbowoftheg.html">Greater Bow of the Galadhrim</a></td><td>longbow</td><td>Ranged (200)</td><td>+102/+97/+92/+87</td><td>1d8 (1–8) + Massive Criticals 2d12</td><td>20/x3</td></tr></tbody></table>
 <h2>Equipment</h2>
 <table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Lootable</th></tr></thead><tbody><tr><td>Chest</td><td><a href="../items/garbsoflasgalen.html">Garbs of Lasgalen</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>
 <tr><td>Boots</td><td><a href="../items/nighthief.html">Silent Night</a></td><td><span style="color:#4a8;font-weight:bold">Yes</span></td></tr>

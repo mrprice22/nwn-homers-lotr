@@ -22,6 +22,7 @@
           <a href="../creatures/by-area/index.html">By Area</a>
           <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
           <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
           <a href="../creatures/bosses.html">Bosses</a>
           <a href="../creatures/pictures.html">Pictures</a>
         </div>
@@ -73,21 +74,21 @@
 <table class="data"><tr><th>Str</th><td>107</td><th>Dex</th><td>82 <small class="muted">(+2 racial, +8 item)</small></td><th>Con</th><td>35 <small class="muted">(-2 racial)</small></td><th>Int</th><td>42</td><th>Wis</th><td>42</td><th>Cha</th><td>42</td></tr></table>
 <h2>Classes</h2><table class="data"><thead><tr><th>Class</th><th>Level</th></tr></thead><tbody><tr><td>Assassin</td><td>40</td></tr><tr><td>Fighter</td><td>40</td></tr></tbody></table>
 <h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td>8,470</td><th>AC</th><td>104 <small class="muted">(10 base + +36 Dex + +34 natural (NaturalAC) + +2 natural (Armor Skin) + +2 armor + +10 armor enchant + +4 dodge (haste) + +6 dodge (Tumble, 31 ranks))</small></td><th>BAB</th><td>+35</td></tr><tr><th>Fort</th><td>+12</td><th>Ref</th><td>+36</td><th>Will</th><td>+21</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
+<table class="data"><tr><th>HP</th><td>8,470</td><th>AC</th><td>104 <small class="muted">(10 base + +36 Dex + +34 natural (NaturalAC) + +2 natural (Armor Skin) + +2 armor + +10 armor enchant + +4 dodge (haste) + +6 dodge (Tumble, 31 ranks))</small></td><th>BAB</th><td>+15</td></tr><tr><th>Fort</th><td>+12</td><th>Ref</th><td>+36</td><th>Will</th><td>+21</td></tr><tr><th>Spell Resistance</th><td>10</td><td></td><td></td></tr></table>
 <p class="muted">AC extras: +10 AC Bonus</p>
 <p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h3>Equipment combat properties (combined)</h3><table class="data"><tbody><tr><th>Save vs. Will</th><td>+5</td></tr>
+<h3>Abilities &amp; combat properties</h3><table class="data"><tbody><tr><th>Save vs. Will</th><td>+5</td></tr>
 <tr><th>Ability Bonuses</th><td>Dexterity +8</td></tr>
 <tr><th>Skill Bonuses</th><td>Craft Trap +10, Disable Trap +5, Hide +20, Move Silently +20, Open Lock +10, Pick Pocket +10, Set Trap +10, Tumble +5, Use Magic Device +5</td></tr>
 <tr><th>Damage Resistance</th><td>Acid 30/-, Bludgeoning 25/-, Cold 10/-, Electrical 25/-, Fire 30/-, Piercing 25/-, Slashing 25/-, Sonic 10/-</td></tr>
 <tr><th>Damage Reduction</th><td>Soak10, bypass +10</td></tr>
 <tr><th>Damage Immunity</th><td>Bludgeoning (10%), Piercing (50%), Positive (10%), Slashing (50%)</td></tr>
-<tr><th>Misc Immunity</th><td>Death Magic, Disease, Fear, Knockdown, Level/Ability Drain, Paralysis, Poison, Sneak Attack</td></tr>
+<tr><th>Misc Immunity</th><td>Death Magic, Disease, Fear (racial, gear), Knockdown, Level/Ability Drain, Paralysis, Poison (racial, gear), Sneak Attack (racial, gear)</td></tr>
 <tr><th>Immunity: Spells</th><td>Dominate Monster, Dominate Person, Harm, Improved Invisibility</td></tr>
 <tr><th>Regeneration</th><td>+10 HP/round</td></tr>
 <tr><th>Regen: Vampiric</th><td>+2 HP/hit</td></tr>
-<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), True Seeing</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit.</p>
-<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/wswmrp008.html">Shadow Rapier </a></td><td>rapier</td><td>Melee</td><td>+98/+93/+88/+83</td><td>1d6+48 (49–54) + Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 1d12, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d10, Damage Bonus Piercing 2d10, Massive Criticals 2d12, On Hit Cast Spell Bigby&#x27;s Interposing Hand Caster Level 4</td><td>18-20/x2</td></tr></tbody></table>
+<tr><th>Misc Abilities</th><td>Haste (+4 dodge AC, factored into main AC), True Seeing</td></tr></tbody></table><p class="muted">Dodge AC and save bonuses are factored into the main combat stats above. Dodge AC stacks (cap +20); haste adds +4 more (separate). All other same-type bonuses do not stack — only the highest is shown. Regeneration stacks without limit. Immunities marked <em>(racial)</em> are granted by the creature's racial type by the engine, not by its equipment.</p>
+<h3>Weapons</h3><table class="data"><thead><tr><th>Slot</th><th>Item</th><th>Base</th><th>Type</th><th>Attack schedule</th><th>Damage</th><th>Crit</th></tr></thead><tbody><tr><td>Right hand</td><td><a href="../items/wswmrp008.html">Shadow Rapier </a></td><td>rapier</td><td>Melee</td><td>+78/+73/+68</td><td>1d6+48 (49–54) + Damage Bonus <span class="nwn-dmg nwn-dmg-magical" style="color:#cc77ff">Magical</span> 1d12, Damage Bonus <span class="nwn-dmg nwn-dmg-negative" style="color:#999999">Negative</span> 2d10, Damage Bonus Piercing 2d10, Massive Criticals 2d12, On Hit Cast Spell Bigby&#x27;s Interposing Hand Caster Level 4</td><td>18-20/x2</td></tr></tbody></table>
 <h2>Spells</h2>
 <h3>Special abilities</h3><table class="data"><thead><tr><th>Spell/ability</th><th>Caster level</th><th>Uses</th></tr></thead><tbody><tr><td>Aura of Unnatural</td><td>0</td><td>6/day</td></tr>
 <tr><td>Psionic Mind Blast</td><td>0</td><td>2/day</td></tr>
