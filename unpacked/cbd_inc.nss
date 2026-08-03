@@ -41,6 +41,7 @@
 #include "nwnx_damage"
 #include "nwnx_object"   // SetCurrentHitPoints, for the heal-back in CBD_Restore
 #include "cbd_db"
+#include "admin_db"   // Admin_CanAdmin, for the admin auto-diagnostic
 #include "color"
 
 const int   CBD_ROUNDS     = 10;    // rounds in a session
@@ -74,13 +75,22 @@ const string CBD_VAR_IDLE     = "CBD_IDLE";
 // handler attributes a hit to when data.oDamager resolves to nobody.
 const string CBD_VAR_LAST_SRC = "CBD_LAST_SRC";
 
-// Diagnostic mode. Set by hand on a dummy (DM client, or the toolset) -
-// SetLocalInt(oDummy, "CBD_DEBUG", 1) - and every attack and every damage
-// packet is echoed to the tester with its raw event fields, so a "the numbers
-// look low" report can be reconciled against the combat log packet by packet.
-// OFF by default and behind a single GetLocalInt, so it costs a live dummy
-// nothing.
+// Diagnostic mode: every attack and every damage packet is echoed to the tester
+// with its raw event fields and the branch it took, so a "the numbers look
+// wrong" report can be reconciled against the combat log packet by packet.
+//
+// Three ways it turns on, all behind a single GetLocalInt on the hot path:
+//   * CBD_DEBUG on the dummy      - set by hand from the toolset;
+//   * CBD_DEBUG on the module     - what dbg_combat flips server-wide;
+//   * the tester is an ADMIN      - resolved ONCE per session in
+//                                   CBD_StartSession (one admindb SELECT) and
+//                                   cached on the dummy, so an admin never has
+//                                   to reach for a DM console to get the dump.
+//
+// This is temporary UAT instrumentation (roadmap combat-dummy). When the
+// measurement is settled, the admin auto-enable is the first thing to remove.
 const string CBD_VAR_DEBUG    = "CBD_DEBUG";
+const string CBD_VAR_DEBUG_ADMIN = "CBD_DEBUG_ADMIN";
 
 const string CBD_RESREF = "cbd_dummy";   // for the respawn in cbd_death
 
@@ -210,6 +220,7 @@ void CBD_Restore(object oDummy)
 int CBD_IsDebug(object oDummy)
 {
     if (GetLocalInt(oDummy, CBD_VAR_DEBUG)) return TRUE;
+    if (GetLocalInt(oDummy, CBD_VAR_DEBUG_ADMIN)) return TRUE;
     return GetLocalInt(GetModule(), CBD_VAR_DEBUG);
 }
 
@@ -262,6 +273,14 @@ void CBD_StartSession(object oDummy, object oPC)
     CBD_ClearState(oDummy);
     SetLocalInt(oDummy, CBD_VAR_ACTIVE, 1);
     SetLocalObject(oDummy, CBD_VAR_OWNER, oPC);
+
+    // An admin testing the tool gets the diagnostic without touching a console.
+    // Resolved here, once, because Admin_CanAdmin is a database read and the
+    // damage handler runs per packet.
+    // Its own variable, set AND cleared here, so an admin's session never
+    // leaves the next player's session dumping packets at them.
+    if (Admin_CanAdmin(oPC)) SetLocalInt(oDummy, CBD_VAR_DEBUG_ADMIN, 1);
+    else                     DeleteLocalInt(oDummy, CBD_VAR_DEBUG_ADMIN);
 
     ApplyEffectToObject(DURATION_TYPE_INSTANT,
                         EffectVisualEffect(VFX_FNF_LOS_HOLY_10), oDummy);
