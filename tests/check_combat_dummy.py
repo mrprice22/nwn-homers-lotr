@@ -141,8 +141,8 @@ if utc_path.is_file():
             "zeroes damage to a plot creature BEFORE the NWNX damage event, so "
             "every attack measures 0, DPR reads 0 and nothing is ever written "
             "to the leaderboard. This is exactly what the first UAT hit. "
-            "Indestructibility comes from cbd_damage zeroing the damage after "
-            "counting it, not from the Plot flag.")
+            "Indestructibility comes from cbd_damage counting the damage and "
+            "healing it straight back off, not from the Plot flag.")
 
 utp_path = UNPACKED / "cbd_sign.utp.json"
 if utp_path.is_file():
@@ -171,15 +171,26 @@ if "CBD_Touch" not in strip_comments(read(UNPACKED / "cbd_damage.nss")):
         "reset for a caster, and a spell-only trial would be cancelled "
         "mid-run.")
 
-# --- 6. the reports survive the float fading --------------------------------
-if "SpeakString" not in inc:
-    errors.append(
-        "cbd_inc.nss no longer speaks its reports. Floating text fades in "
-        "seconds; the spoken copy is what puts the round figures and the final "
-        "averages in the chat log where they can be scrolled back to, which is "
-        "the entire point of the readout.")
+# --- 6. the reports reach the chat log, and go nowhere else -----------------
+# Round 1 of UAT lost every figure because the readout was floating text only.
+# The fix is the chat copy, colour-coded (yellow per round, green for the final
+# summary) so it can be found by scrolling. The float and the dummy's speech
+# bubble were removed afterwards on the same reasoning in reverse: they printed
+# the same sentence a second and third time over the dummy's head, and the
+# float echoes into the log as well.
 if "SendMessageToPC" not in inc:
     errors.append("cbd_inc.nss no longer sends its reports to the chat log.")
+if "FloatingTextStringOnCreature" in inc or "SpeakString" in inc:
+    errors.append(
+        "cbd_inc.nss floats or speaks its reports again. Every line belongs in "
+        "the chat log and nowhere else - the float and the speech bubble are "
+        "duplicates of it (the float echoes into the log too), and they clutter "
+        "the dummy.")
+for const in ("CBD_COLOR_ROUND", "CBD_COLOR_FINAL"):
+    if const not in inc:
+        errors.append(
+            f"cbd_inc.nss no longer defines {const} - the colours ARE the "
+            "readout's structure now that there is only the one chat copy.")
 
 # --- 7. the sign's tokens and the conversation agree ------------------------
 db = read(UNPACKED / "cbd_db.nss")

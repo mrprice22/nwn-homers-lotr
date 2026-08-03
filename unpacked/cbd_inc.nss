@@ -156,17 +156,15 @@ object CBD_OwnerPC(object oSrc)
     return GetIsPC(oSrc) ? oSrc : OBJECT_INVALID;
 }
 
-// Every report goes out three ways, because the point of the tool is that the
-// numbers survive long enough to be read:
-//   * floating text over the tester  - immediate, but gone in seconds;
-//   * SendMessageToPC                - the server channel, tagged and coloured
-//                                      so it can be picked out of combat spam;
-//   * the dummy SPEAKS the same line - the Talk channel, which is the copy that
-//                                      is definitely still in the log to scroll
-//                                      back to. The first UAT lost every line
-//                                      when the float faded, so the spoken copy
-//                                      is deliberate belt-and-braces, not an
-//                                      accident.
+// EVERY line the tool prints goes to the chat log and NOWHERE else.
+//
+// It used to also float the text over the tester and have the dummy SpeakString
+// it, because the first UAT lost every figure when the float faded. The colours
+// solved that better: the log copy is tagged and coloured (yellow per round,
+// green for the summary), so it survives and can be found by scrolling, while
+// the float and the speech bubble were just the same sentence a second and
+// third time over the dummy's head - and FloatingTextStringOnCreature echoes
+// into the log as well, so a one-off notice read as a stutter.
 // A one-off notice: the chat line only, no floating text. FloatingTextString-
 // OnCreature ALSO echoes into the chat log, so a CBD_Say notice reads as the
 // same sentence printed twice - which is what it looked like when the dummy
@@ -183,7 +181,6 @@ void CBD_SayColor(object oPC, string sMsg, string sColor)
 {
     if (!GetIsObjectValid(oPC)) return;
     SendMessageToPC(oPC, sColor + "[Combat Dummy] " + sMsg + COLOR_END);
-    FloatingTextStringOnCreature(sColor + sMsg + COLOR_END, oPC, FALSE);
 }
 
 void CBD_Say(object oPC, string sMsg)
@@ -191,13 +188,13 @@ void CBD_Say(object oPC, string sMsg)
     CBD_SayColor(oPC, sMsg, CBD_COLOR_ROUND);
 }
 
-// As CBD_Say, plus the dummy says it out loud so it lands in the Talk channel.
-// Used for the lines a tester needs to be able to re-read: the round-by-round
-// figures and the final averages.
+// The round-by-round figures and the final averages. Same as CBD_SayColor now
+// that the speech bubble is gone; kept as its own name because the reports are
+// what the tool is FOR, and a future change to how they are delivered belongs
+// here rather than in every call site.
 void CBD_ReportColor(object oDummy, object oPC, string sMsg, string sColor)
 {
     CBD_SayColor(oPC, sMsg, sColor);
-    AssignCommand(oDummy, SpeakString(sMsg, TALKVOLUME_TALK));
 }
 
 void CBD_Report(object oDummy, object oPC, string sMsg)
