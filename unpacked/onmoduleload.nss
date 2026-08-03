@@ -127,6 +127,11 @@ NWNX_Events_SubscribeEvent(NWNX_ON_PARTY_TRANSFER_LEADERSHIP_AFTER, "pl_party_ev
 NWNX_Events_SubscribeEvent(NWNX_ON_DISARM_BEFORE, "disarm_catch");
 NWNX_Events_SubscribeEvent(NWNX_ON_DISARM_AFTER,  "disarm_catch");
 
+// Legendary Juggernaut's disarm immunity. The engine has no IMMUNITY_TYPE_ for
+// disarm, so the only way to make a weapon unstrikable is to refuse the event.
+// A second subscriber on the same event is fine - NWNX_Events runs them all.
+NWNX_Events_SubscribeEvent(NWNX_ON_DISARM_BEFORE, "legfeat_disarm");
+
 // Color tokens for dialogue text (used in bank XP retirement warnings)
 // CUSTOM6100 = red, CUSTOM6101 = yellow, CUSTOM6102 = close
 SetCustomToken(6100, COLOR_RED);

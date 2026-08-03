@@ -229,6 +229,126 @@ FEATS: list[Feat] = [
          category="Martial", kind="hook",
          prereq="LegFeat_HasAnyDevCrit(oPC)",
          prereq_text="Devastating Critical (any weapon)"),
+
+    # --- Martial replacement set (approved 2026-08-03) --------------------
+    # The reviewed replacements for the six martial feats the engine owns and
+    # will not give up, plus the ranged and party-support ground the draft had
+    # nothing on. Numbers and prerequisites are the admin's revised table in
+    # CLAUDE-legendary-feats-triage.md ("Martial replacements"), signed off
+    # 2026-08-03. Two entries of that table are NOT here - Legendary Warcry and
+    # Legendary Called Shot - because each has a live design problem; see the
+    # "Deferred" note under the table in the triage doc.
+    #
+    # Three kinds are represented, and the kind is the whole contract:
+    #   effect      - a permanent supernatural effect, rebuilt at login.
+    #   effect + conditional - same, but LegFeat_ApplyOne asks what is in hand,
+    #                 so legfeat_equip.nss must rebuild it on every weapon swap.
+    #   hook        - grants NOTHING here; a combat hook reads GetHasFeat.
+    #                 Giving one a case in LegFeat_ApplyOne pays it out twice.
+    Feat("LEGENDARY_JUGGERNAUT", "Legendary Juggernaut",
+         "Nothing moves you that you do not choose to be moved by. You are "
+         "immune to knockdown, entanglement, paralysis and slow, and your "
+         "weapon cannot be struck from your hand.",
+         "ife_knockdow", effect="immune to knockdown, entangle, paralysis, "
+                                "slow and disarm",
+         category="Martial",
+         # Discipline is read as BASE ranks: a Discipline requirement met by a
+         # +10 skill cloak is met by taking the cloak off again.
+         prereq="GetBaseAttackBonus(oPC) >= 20 "
+                "&& GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE) >= 30",
+         prereq_text="BAB 20+, Discipline 30 ranks"),
+    # CONDITIONAL, like Onslaught: a weapon in each hand. Dropping the off-hand
+    # must drop the bonus, which is legfeat_equip.nss's job.
+    Feat("LEGENDARY_GRIP", "Legendary Grip",
+         "Two blades, one will. While you fight with a weapon in each hand you "
+         "gain +4 to your attack rolls and +6 to your Armour Class.",
+         "ife_twoweap", effect="+4 attack, +6 AC while dual-wielding",
+         category="Martial",
+         prereq="GetHasFeat(FEAT_AMBIDEXTERITY, oPC) "
+                "&& GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC) "
+                "&& GetHasFeat(FEAT_WEAPON_FINESSE, oPC)",
+         prereq_text="Ambidexterity, Improved Two-Weapon Fighting, "
+                     "Weapon Finesse"),
+    # CONDITIONAL, and the ranged counterpart to Legendary Onslaught. Bows and
+    # crossbows only - not slings, not thrown - so it cannot be held alongside
+    # Onslaught's melee attack by holding one of each.
+    Feat("LEGENDARY_MARKSMAN", "Legendary Marksman",
+         "Your shots come faster than an archer's eye can follow. You gain one "
+         "additional attack each round while wielding a bow or a crossbow.",
+         "ife_rapidshot", effect="+1 ranged attack per round (bow/crossbow)",
+         category="Martial",
+         prereq="GetHasFeat(FEAT_RAPID_SHOT, oPC) "
+                "&& GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC) "
+                "&& GetBaseAttackBonus(oPC) >= 30",
+         prereq_text="Rapid Shot, Point Blank Shot, BAB 30+"),
+    # HOOK (defender side): legfeat_dmg.nss, the NWNX Damage event script that
+    # LegFeat_ArmHooks registers on the character. Reduction happens AFTER the
+    # engine has finished with damage reduction, resistance and immunity, which
+    # is the whole point - it is the only layer that cannot be resisted around.
+    Feat("LEGENDARY_BULWARK", "Legendary Bulwark",
+         "The shield is not a thing you carry; it is a thing you are. While a "
+         "shield is on your arm, every blow that reaches you is reduced by 10 "
+         "points, after all other reductions and resistances.",
+         "ife_sh_prof", effect="-10 damage taken while a shield is equipped",
+         category="Martial", kind="hook",
+         prereq="GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC) "
+                "&& GetBaseAttackBonus(oPC) >= 15",
+         prereq_text="Shield Proficiency, BAB 15+"),
+    # HOOK (defender side), same script as Bulwark.
+    #
+    # 60 RANKS of Parry, not 60 modified Parry: at this level cap the modified
+    # number is mostly gear. Ranks are what the character spent.
+    Feat("LEGENDARY_RIPOSTE", "Legendary Riposte",
+         "You answer the blade with the blade. Once each round, when a melee "
+         "attack lands on you, you may turn it aside and strike back for your "
+         "weapon's damage. You do not stop attacking to do it.",
+         "ife_impparry", effect="1/round counter-attack when hit in melee",
+         category="Martial", kind="hook",
+         prereq="GetSkillRank(SKILL_PARRY, oPC, TRUE) >= 60",
+         prereq_text="Parry 60 ranks"),
+    # HOOK (attacker side): legfeat_atk_inc.nss, called from devcrit_atk.nss.
+    Feat("LEGENDARY_REAPING", "Legendary Reaping",
+         "Killing feeds you. Each enemy you fell grants +2 to your attack rolls "
+         "and +2 damage for 12 seconds, stacking up to five times.",
+         "ife_cleave", effect="+2 attack/+2 damage per kill, 12s, stacks 5",
+         category="Martial", kind="hook",
+         prereq="GetHasFeat(FEAT_GREAT_CLEAVE, oPC) "
+                "&& GetBaseAttackBonus(oPC) >= 35",
+         prereq_text="Great Cleave, BAB 35+"),
+    # HOOK (attacker side). Scales off the attacker's OWN missing health, so it
+    # is at its best exactly when the character is closest to dying.
+    Feat("LEGENDARY_WRATH", "Legendary Wrath",
+         "Wound you and you only grow terrible. Your blows deal +1 damage for "
+         "every 5% of your health that is missing, up to +20.",
+         "ife_rage", effect="+1 damage per 5% health missing, max +20",
+         category="Martial", kind="hook",
+         # CON is read as the BASE score for the usual reason - a belt is not a
+         # constitution.
+         prereq="GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE) >= 21",
+         prereq_text="Constitution 21+ (base)"),
+    # HOOK (attacker side). The only feat in the pool that reads the target's
+    # race, and the only one that pays off a class's own mechanic.
+    Feat("LEGENDARY_QUARRY", "Legendary Quarry",
+         "You finish what you have hunted. Against a favoured enemy that has "
+         "fallen below half its health, you deal half again as much damage.",
+         "ife_trackstep", effect="+50% damage to favoured enemies below 50% HP",
+         category="Martial", kind="hook",
+         # A class level, not a purity test: a 30/30 ranger/rogue qualifies.
+         prereq="GetLevelByClass(CLASS_TYPE_RANGER, oPC) >= 30",
+         prereq_text="Ranger level 30+"),
+    # HOOK (attacker side). The cap is the good part of the design: the armour
+    # a target is actually wearing is the most it can be stripped of, so this
+    # cannot shred an unarmoured or naturally-armoured enemy to nothing.
+    Feat("LEGENDARY_SUNDERING", "Legendary Sundering",
+         "You do not merely strike armour; you ruin it. Your landed attacks cut "
+         "3 from your target's Armour Class, stacking three times, but never by "
+         "more than the armour and shield it is actually wearing are worth.",
+         "ife_disarm", effect="-3 target AC per hit, stacks 3, capped at its "
+                              "armour+shield AC",
+         category="Martial", kind="hook",
+         prereq="GetBaseAttackBonus(oPC) >= 35 "
+                "&& GetHasFeat(FEAT_CALLED_SHOT, oPC)",
+         prereq_text="BAB 35+, Called Shot"),
 ]
 
 

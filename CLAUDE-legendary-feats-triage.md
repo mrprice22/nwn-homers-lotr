@@ -111,9 +111,26 @@ pick-two allotment.
 ### Martial replacements — design-reviewed 2026-08-01
 
 Proposed to replace the six engine-owned cuts and to widen a section that had
-nothing for ranged builds and nothing that helped a party. **Design-reviewed
-and revised by the admin; still pending final per-feat sign-off** before any of
-it reaches `FEATS` (see the banner at the top of this file).
+nothing for ranged builds and nothing that helped a party.
+
+> **APPROVED 2026-08-03 and built the same day — nine of the twelve.** Rows
+> 1125–1133. Juggernaut, Grip, Marksman, Bulwark, Riposte, Reaping, Wrath,
+> Quarry and Sundering are in `FEATS` and wired; Butcher shipped earlier with
+> `devcrit-roll`. **Bulwark's flat reduction, which the table never fixed, is
+> 10.** Implementation notes: the third-session checkpoint in
+> [CLAUDE-legendary-feats.md](CLAUDE-legendary-feats.md).
+>
+> **Deferred: Legendary Warcry and Legendary Called Shot.** Neither is a cut —
+> each has one clause that cannot be built as written, and both are open
+> `design_questions` on `ll-feats-ability-martial`:
+>
+> * **Warcry** has no trigger. Intimidate is not an activated skill in NWN and
+>   `NWNX_ON_USE_SKILL_*` never fires for it. Proposal: re-base on **Taunt**,
+>   every number unchanged.
+> * **Called Shot** cannot lose its −4 attack penalty — that is applied inside
+>   the engine's own resolution and no event exposes it. The doubled effects on
+>   a failed Discipline check are buildable. Proposal: ship that half and reword,
+>   or cut and let Sundering carry the role.
 
 | Feat | Effect | Route | Prereq |
 |---|---|---|---|

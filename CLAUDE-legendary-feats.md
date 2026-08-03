@@ -12,6 +12,77 @@ This document records the architecture and the order the pieces must be built in
 so the sequencing does not have to be re-derived. Roadmap items: `ll-feats-tlk`,
 `ll-feats-2da`, `ll-feats-picker`, then the seven `ll-feats-*` category stories.
 
+## Checkpoint — 2026-08-03 (third session)
+
+**The martial replacement set is built: nine feats, rows 1125–1133, taking the
+pool from 9 to 18.** The admin approved the reviewed table wholesale on
+2026-08-03 (the sign-off the second-session checkpoint was waiting for). Built
+but **not yet published** — the TLK, hak, nwsync, repack and restart still have
+to run, and until they do the new rows read as blank names.
+
+Shipped: **Juggernaut** (four immunity effects plus a disarm hook),
+**Grip** (+4 AB / +6 dodge AC, conditional on a weapon in each hand),
+**Marksman** (+1 attack, conditional on a bow or crossbow),
+**Bulwark** (−10 damage behind a shield), **Riposte** (1/round counter-attack),
+**Reaping** (+2/+2 per kill, stacks 5), **Wrath** (+1 damage per 5% health
+missing, max +20), **Quarry** (+50% vs a favoured enemy below half health),
+**Sundering** (−3 target AC per hit, stacks 3, capped at real armour+shield AC).
+
+### The three new pieces of machinery, and why each is shaped that way
+
+- **`legfeat_atk_inc.nss`** — the attacker-side feats (Wrath, Quarry, Sundering,
+  Reaping), called from `devcrit_atk.nss`, which is the module's *only* sight of
+  an attack result. Two rules govern it, both load-bearing:
+  - **Entry is one `GetLocalInt`.** `LEGFEAT_ATK_VAR` is set by
+    `LegFeat_ArmHooks` only on a character who holds one of the four. That read
+    is the entire cost these feats impose on every other attack on the server.
+  - **The damage struct is read-only in there.** `devcrit_atk` owns it and calls
+    `NWNX_Damage_SetAttackEventData` once, on the critical path only — so a
+    bonus written into the struct from the hook would be silently dropped on
+    every ordinary hit and double-counted on criticals. The feats apply their
+    damage as a separate `EffectDamage` instead, which also renders honestly in
+    the combat log.
+- **`legfeat_dmg.nss`** — the defender-side feats (Bulwark, Riposte), registered
+  **per character** with `NWNX_Damage_SetDamageEventScript` and only on someone
+  holding one of the two. Bulwark runs here rather than on `OnDamaged` because
+  the damage event is *after* the engine has finished with DR, resistance and
+  immunity: it is the one layer nothing can resist around, and it is why Bulwark
+  can prevent a killing blow.
+- **`legfeat_disarm.nss`** — the engine has no `IMMUNITY_TYPE_` for disarm, so
+  the only way to make a weapon unstrikable is to skip
+  `NWNX_ON_DISARM_BEFORE`. That is why Juggernaut is an effect feat with one
+  hook bolted on rather than a pure effect feat. A second subscriber alongside
+  `disarm_catch` is fine — NWNX_Events runs them all.
+
+All three are switched on **and off** by **`LegFeat_ArmHooks`**, called at the
+end of `LegFeat_ApplyAll`. It must clear as readily as it sets: without the else
+branches, a character who respecs out of Bulwark keeps the damage script, and
+keeps the reduction.
+
+**New gate**, negative-tested: every HOOK feat read by a *gated* hook must be
+named in `LegFeat_ArmHooks`. The existing payload gate proves a reader exists;
+this one proves the reader is ever reached. A handler that never runs looks
+exactly like a handler that does not exist.
+
+### Two of the twelve were NOT built, and both need an answer
+
+They are recorded as `design_questions` on `ll-feats-ability-martial`:
+
+- **Legendary Warcry** — its trigger does not exist. Intimidate is not an
+  activated skill in NWN, and `NWNX_ON_USE_SKILL_*` only fires for skills a
+  player actually activates. Proposal: re-base it on **Taunt**, keeping every
+  number and the Intimidate 25+ prerequisite.
+- **Legendary Called Shot** — "loses its −4 attack penalty" is engine-owned and
+  cannot be scripted away; the penalty is applied inside the engine's own Called
+  Shot resolution. The doubled-and-extended effects on a failed Discipline check
+  *are* buildable on `NWNX_ON_USE_FEAT_AFTER`. Proposal: ship the second half
+  and reword the feat, or cut it and let Sundering carry the role.
+
+**Next after publishing and UAT:** `ll-feats-defense` — thirteen single-effect
+feats, still unreviewed, and it needs two numbers from the admin (Legendary
+Toughness rounds to +40 or +60 HP; Spell Immunity ships as six rows or not at
+all).
+
 ## Checkpoint — 2026-08-01 (second session)
 
 **Phases 1–4 are done. Phase 5 has started: the triage pass is complete and the

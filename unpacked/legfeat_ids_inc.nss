@@ -7,7 +7,7 @@
 //
 // Re-run: python3 bin/gen-legendary-feats.py --apply
 
-const int LEGFEAT_COUNT = 9;
+const int LEGFEAT_COUNT = 18;
 const int LEGFEAT_FIRST = 1116;
 
 // How a feat's benefit is applied. RAW writes the character's BASE
@@ -29,6 +29,15 @@ const int FEAT_LEGENDARY_CHARISMA = 1121;
 const int FEAT_LEGENDARY_PROWESS = 1122;
 const int FEAT_LEGENDARY_ONSLAUGHT = 1123;
 const int FEAT_LEGENDARY_BUTCHER = 1124;
+const int FEAT_LEGENDARY_JUGGERNAUT = 1125;
+const int FEAT_LEGENDARY_GRIP = 1126;
+const int FEAT_LEGENDARY_MARKSMAN = 1127;
+const int FEAT_LEGENDARY_BULWARK = 1128;
+const int FEAT_LEGENDARY_RIPOSTE = 1129;
+const int FEAT_LEGENDARY_REAPING = 1130;
+const int FEAT_LEGENDARY_WRATH = 1131;
+const int FEAT_LEGENDARY_QUARRY = 1132;
+const int FEAT_LEGENDARY_SUNDERING = 1133;
 
 // --- prerequisite helpers ------------------------------------------------
 // A `prereq` expression in the generator's table is rendered verbatim into
@@ -93,6 +102,15 @@ string LegFeat_NameAt(int n)
         case 6: return "Legendary Prowess";
         case 7: return "Legendary Onslaught";
         case 8: return "Legendary Butcher";
+        case 9: return "Legendary Juggernaut";
+        case 10: return "Legendary Grip";
+        case 11: return "Legendary Marksman";
+        case 12: return "Legendary Bulwark";
+        case 13: return "Legendary Riposte";
+        case 14: return "Legendary Reaping";
+        case 15: return "Legendary Wrath";
+        case 16: return "Legendary Quarry";
+        case 17: return "Legendary Sundering";
     }
     return "";
 }
@@ -110,6 +128,15 @@ string LegFeat_DescAt(int n)
         case 6: return "Every blow you aim finds its mark. You gain a permanent +5 bonus to your attack rolls.";
         case 7: return "You strike faster than the eye can follow. You gain one additional attack each round while fighting with a melee weapon or unarmed.";
         case 8: return "You do not wound; you ruin. Whenever you score a critical hit you deal 5 extra dice of damage, scaled to your weapon: d6 for a small weapon, d8 for a medium one, d10 for a large one. This is added to the extra damage of a devastating critical, not in place of it.";
+        case 9: return "Nothing moves you that you do not choose to be moved by. You are immune to knockdown, entanglement, paralysis and slow, and your weapon cannot be struck from your hand.";
+        case 10: return "Two blades, one will. While you fight with a weapon in each hand you gain +4 to your attack rolls and +6 to your Armour Class.";
+        case 11: return "Your shots come faster than an archer's eye can follow. You gain one additional attack each round while wielding a bow or a crossbow.";
+        case 12: return "The shield is not a thing you carry; it is a thing you are. While a shield is on your arm, every blow that reaches you is reduced by 10 points, after all other reductions and resistances.";
+        case 13: return "You answer the blade with the blade. Once each round, when a melee attack lands on you, you may turn it aside and strike back for your weapon's damage. You do not stop attacking to do it.";
+        case 14: return "Killing feeds you. Each enemy you fell grants +2 to your attack rolls and +2 damage for 12 seconds, stacking up to five times.";
+        case 15: return "Wound you and you only grow terrible. Your blows deal +1 damage for every 5% of your health that is missing, up to +20.";
+        case 16: return "You finish what you have hunted. Against a favoured enemy that has fallen below half its health, you deal half again as much damage.";
+        case 17: return "You do not merely strike armour; you ruin it. Your landed attacks cut 3 from your target's Armour Class, stacking three times, but never by more than the armour and shield it is actually wearing are worth.";
     }
     return "";
 }
@@ -127,6 +154,15 @@ int LegFeat_AbilityAt(int n)
         case 6: return -1;
         case 7: return -1;
         case 8: return -1;
+        case 9: return -1;
+        case 10: return -1;
+        case 11: return -1;
+        case 12: return -1;
+        case 13: return -1;
+        case 14: return -1;
+        case 15: return -1;
+        case 16: return -1;
+        case 17: return -1;
     }
     return -1;
 }
@@ -144,6 +180,15 @@ int LegFeat_BonusAt(int n)
         case 6: return 0;
         case 7: return 0;
         case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 0;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 0;
+        case 15: return 0;
+        case 16: return 0;
+        case 17: return 0;
     }
     return 0;
 }
@@ -161,6 +206,15 @@ int LegFeat_KindAt(int n)
         case 6: return LEGFEAT_KIND_EFFECT;
         case 7: return LEGFEAT_KIND_EFFECT;
         case 8: return LEGFEAT_KIND_HOOK;
+        case 9: return LEGFEAT_KIND_EFFECT;
+        case 10: return LEGFEAT_KIND_EFFECT;
+        case 11: return LEGFEAT_KIND_EFFECT;
+        case 12: return LEGFEAT_KIND_HOOK;
+        case 13: return LEGFEAT_KIND_HOOK;
+        case 14: return LEGFEAT_KIND_HOOK;
+        case 15: return LEGFEAT_KIND_HOOK;
+        case 16: return LEGFEAT_KIND_HOOK;
+        case 17: return LEGFEAT_KIND_HOOK;
     }
     return LEGFEAT_KIND_EFFECT;
 }
@@ -178,6 +232,15 @@ string LegFeat_EffectAt(int n)
         case 6: return "+5 attack bonus";
         case 7: return "+1 melee attack per round";
         case 8: return "+5 damage dice on a critical";
+        case 9: return "immune to knockdown, entangle, paralysis, slow and disarm";
+        case 10: return "+4 attack, +6 AC while dual-wielding";
+        case 11: return "+1 ranged attack per round (bow/crossbow)";
+        case 12: return "-10 damage taken while a shield is equipped";
+        case 13: return "1/round counter-attack when hit in melee";
+        case 14: return "+2 attack/+2 damage per kill, 12s, stacks 5";
+        case 15: return "+1 damage per 5% health missing, max +20";
+        case 16: return "+50% damage to favoured enemies below 50% HP";
+        case 17: return "-3 target AC per hit, stacks 3, capped at its armour+shield AC";
     }
     return "";
 }
@@ -192,6 +255,15 @@ int LegFeat_MeetsPrereq(object oPC, int n)
         case 6: return (GetBaseAttackBonus(oPC) >= 35 && GetHasFeat(FEAT_EPIC_PROWESS, oPC));
         case 7: return (GetBaseAttackBonus(oPC) >= 30 && GetLevelByClass(CLASS_TYPE_MONK, oPC) >= 30);
         case 8: return (LegFeat_HasAnyDevCrit(oPC));
+        case 9: return (GetBaseAttackBonus(oPC) >= 20 && GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE) >= 30);
+        case 10: return (GetHasFeat(FEAT_AMBIDEXTERITY, oPC) && GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC) && GetHasFeat(FEAT_WEAPON_FINESSE, oPC));
+        case 11: return (GetHasFeat(FEAT_RAPID_SHOT, oPC) && GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC) && GetBaseAttackBonus(oPC) >= 30);
+        case 12: return (GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC) && GetBaseAttackBonus(oPC) >= 15);
+        case 13: return (GetSkillRank(SKILL_PARRY, oPC, TRUE) >= 60);
+        case 14: return (GetHasFeat(FEAT_GREAT_CLEAVE, oPC) && GetBaseAttackBonus(oPC) >= 35);
+        case 15: return (GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE) >= 21);
+        case 16: return (GetLevelByClass(CLASS_TYPE_RANGER, oPC) >= 30);
+        case 17: return (GetBaseAttackBonus(oPC) >= 35 && GetHasFeat(FEAT_CALLED_SHOT, oPC));
     }
     return TRUE;
 }
@@ -203,6 +275,15 @@ string LegFeat_PrereqAt(int n)
         case 6: return "BAB 35+, Epic Prowess";
         case 7: return "BAB 30+, Monk level 30+";
         case 8: return "Devastating Critical (any weapon)";
+        case 9: return "BAB 20+, Discipline 30 ranks";
+        case 10: return "Ambidexterity, Improved Two-Weapon Fighting, Weapon Finesse";
+        case 11: return "Rapid Shot, Point Blank Shot, BAB 30+";
+        case 12: return "Shield Proficiency, BAB 15+";
+        case 13: return "Parry 60 ranks";
+        case 14: return "Great Cleave, BAB 35+";
+        case 15: return "Constitution 21+ (base)";
+        case 16: return "Ranger level 30+";
+        case 17: return "BAB 35+, Called Shot";
     }
     return "";
 }

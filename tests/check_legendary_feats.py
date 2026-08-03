@@ -68,6 +68,8 @@ LEGFEAT_SCRIPTS = [
     "legfeat_db", "legfeat_inc", "legfeat_ids_inc", "legfeat_nui",
     "legfeat_open", "legfeat_evt", "legfeat_lvl", "legfeat_reset",
     "legfeat_respec", "legfeat_cond", "legfeat_equip",
+    # The martial replacement set's combat hooks.
+    "legfeat_atk_inc", "legfeat_dmg", "legfeat_disarm",
 ]
 
 
@@ -433,6 +435,50 @@ def check_effect_payloads(problems, gen):
                 "pick would be spent and nothing at all would happen")
 
 
+def check_hook_arming(problems, gen):
+    """Every hook feat whose reader has to be switched on must be in ArmHooks.
+
+    The hook feats do not all work the same way. Legendary Butcher is read by
+    devcrit_atk.nss, which is registered server-wide and runs for everybody, so
+    it needs no arming. The rest are deliberately NOT server-wide, because they
+    would otherwise put work on every attack and every point of damage on the
+    server:
+
+      * legfeat_atk_inc.nss runs only behind a LEGFEAT_ATK_VAR local int
+      * legfeat_dmg.nss is registered per character, on nobody else
+
+    Both are switched on by LegFeat_ArmHooks. A feat read by one of those two
+    files and missing from ArmHooks has the same silent failure as a feat with
+    no reader at all — the reader exists, and is never reached.
+    """
+    if not LEGFEAT_INC.exists():
+        return
+    text = strip_line_comments(LEGFEAT_INC.read_text(encoding="latin-1"))
+    body = text.split("void LegFeat_ArmHooks", 1)
+    if len(body) < 2:
+        problems.append(
+            "legfeat_inc.nss has no LegFeat_ArmHooks — the gated hook feats "
+            "(legfeat_atk_inc / legfeat_dmg) would never be switched on")
+        return
+    arm_hooks = body[1].split("\n}", 1)[0]
+
+    gated = ("legfeat_atk_inc.nss", "legfeat_dmg.nss")
+    for feat in gen.FEATS:
+        if feat.kind != "hook":
+            continue
+        const = f"FEAT_{feat.label}"
+        read_by_gated = any(
+            re.search(rf"GetHasFeat\(\s*{const}\b",
+                      (UNPACKED / name).read_text(encoding="latin-1"))
+            for name in gated if (UNPACKED / name).exists())
+        if read_by_gated and const not in arm_hooks:
+            problems.append(
+                f"{const} is read by a GATED hook (legfeat_atk_inc or "
+                "legfeat_dmg) but is not named in LegFeat_ArmHooks, so the "
+                "hook is never switched on for a character who takes it — the "
+                "pick is spent and nothing happens")
+
+
 def main():
     problems = []
     gen = load_generator()
@@ -447,6 +493,7 @@ def main():
         check_not_selectable(problems, gen)
         check_ids_include(problems, gen)
         check_effect_payloads(problems, gen)
+        check_hook_arming(problems, gen)
     check_packed(problems)
     check_wiring(problems)
 

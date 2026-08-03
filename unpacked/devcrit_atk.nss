@@ -30,6 +30,7 @@
 #include "nwnx_damage"
 #include "devcrit_inc"
 #include "cbd_inc"
+#include "legfeat_atk_inc"
 
 void main()
 {
@@ -40,6 +41,14 @@ void main()
     // GetLocalInt on the target is the whole cost for every other attack on the
     // server; keep it that way. Everything else lives in cbd_inc.
     if (GetLocalInt(data.oTarget, CBD_VAR_IS_DUMMY)) CBD_TrackAttack(data);
+
+    // Attacker-side legendary feats (Wrath, Quarry, Sundering, Reaping) fire on
+    // ORDINARY hits, so like the dummy they cannot sit behind the critical
+    // guard below. Same deal as the dummy too: one GetLocalInt on the attacker
+    // for every other attack on the server, and the flag is only ever set on a
+    // character who actually holds one of those feats (LegFeat_ArmHooks). The
+    // hook does not touch `data` - see the header of legfeat_atk_inc.nss.
+    if (GetLocalInt(OBJECT_SELF, LEGFEAT_ATK_VAR)) LegFeatAtk_OnAttack(data);
 
     // The hot path: everything that is not a critical leaves here.
     int nResult = data.iAttackResult;
