@@ -201,6 +201,19 @@ admin CD keys.) Keeping a secret out of git is **not** keeping it out of the bui
   on the server; restart so the conditionals re-read live rows. There is no
   in-game admin-management UI by design.
 
+**The admin has no DM console. Never ship a feature that has to be triggered by
+`dm_runscript`, a DM chat command, or the DM client at all** — the answer is
+always "how do I run that?", and the answer must never be "log in as a DM". If
+an admin-only action needs a manual trigger, wire it into the **rest menu's
+Admin Options** (the `can_admin` tier, `_restemo_admin.nss` StartingConditional)
+or another in-game surface that already exists — a placeable, an item, an NPC
+conversation. If it does *not* need a manual trigger, prefer making it
+self-arming for admins: resolve `Admin_CanAdmin()` once at a natural boundary
+and cache the answer (`cbd_inc.nss` does this for the Combat Dummy diagnostic —
+one `admindb` read at session start, so an admin's own test dumps its
+diagnostics with no console involved). A bare `.nss` that only a DM can invoke
+is not a delivered feature.
+
 **Adding a new gated feature:** put the check behind an `Admin_Can*()` helper (add
 a new tier column + helper + seed column if needed) — don't write a new
 `GetPCPublicCDKey(oPC) == "…"` literal. If you ever need a new secret on disk,

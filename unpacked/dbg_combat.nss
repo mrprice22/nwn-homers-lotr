@@ -12,8 +12,14 @@
 //                                "the numbers look low" can be reconciled
 //                                against the combat log packet by packet.
 //
-// Run it from the DM client console:  dm_runscript dbg_combat
-// (or ExecuteScript("dbg_combat", GetModule()) from anywhere).
+// HOW IT IS ACTUALLY TRIGGERED: it is not, by hand. The admin does not use a DM
+// client, so `dm_runscript dbg_combat` is not a route that exists here (see
+// CLAUDE.md, "The admin has no DM console"). The Combat Dummy diagnostic arms
+// ITSELF for an admin owner at session start (CBD_StartSession), which is what
+// the UAT actually uses. This script stays as the server-wide switch for the
+// devcrit half, callable from a rest-menu Admin Options entry or
+// ExecuteScript("dbg_combat", GetModule()) - wire it to the menu before relying
+// on it.
 //
 // Gated on the admindb whitelist, same as every other admin-only feature - a
 // non-admin running it changes nothing. Both flags are OFF at every reboot:
