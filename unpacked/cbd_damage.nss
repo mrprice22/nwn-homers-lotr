@@ -31,15 +31,27 @@ void main()
     object oDummy = OBJECT_SELF;
     if (!GetLocalInt(oDummy, CBD_VAR_IS_DUMMY)) return;
 
-    int nDmg = data.iBludgeoning + data.iPierce + data.iSlash + data.iMagical +
-               data.iAcid + data.iCold + data.iDivine + data.iElectrical +
-               data.iFire + data.iNegative + data.iPositive + data.iSonic +
-               data.iBase +
-               data.iCustom1 + data.iCustom2 + data.iCustom3 + data.iCustom4 +
-               data.iCustom5 + data.iCustom6 + data.iCustom7 + data.iCustom8 +
-               data.iCustom9 + data.iCustom10 + data.iCustom11 + data.iCustom12 +
-               data.iCustom13 + data.iCustom14 + data.iCustom15 + data.iCustom16 +
-               data.iCustom17 + data.iCustom18 + data.iCustom19;
+    // EVERY field goes through CBD_Amt: NWNX reports an unused damage type as
+    // -1, not 0. Summing them raw subtracts one point per unused type, which is
+    // how a 33-point greatsword hit measured as 2 and a 28-point hit as -3 and
+    // was then dropped as "no damage" (UAT rounds 3 and 4).
+    int nDmg = CBD_Amt(data.iBludgeoning) + CBD_Amt(data.iPierce) +
+               CBD_Amt(data.iSlash) + CBD_Amt(data.iMagical) +
+               CBD_Amt(data.iAcid) + CBD_Amt(data.iCold) +
+               CBD_Amt(data.iDivine) + CBD_Amt(data.iElectrical) +
+               CBD_Amt(data.iFire) + CBD_Amt(data.iNegative) +
+               CBD_Amt(data.iPositive) + CBD_Amt(data.iSonic) +
+               CBD_Amt(data.iBase) +
+               CBD_Amt(data.iCustom1) + CBD_Amt(data.iCustom2) +
+               CBD_Amt(data.iCustom3) + CBD_Amt(data.iCustom4) +
+               CBD_Amt(data.iCustom5) + CBD_Amt(data.iCustom6) +
+               CBD_Amt(data.iCustom7) + CBD_Amt(data.iCustom8) +
+               CBD_Amt(data.iCustom9) + CBD_Amt(data.iCustom10) +
+               CBD_Amt(data.iCustom11) + CBD_Amt(data.iCustom12) +
+               CBD_Amt(data.iCustom13) + CBD_Amt(data.iCustom14) +
+               CBD_Amt(data.iCustom15) + CBD_Amt(data.iCustom16) +
+               CBD_Amt(data.iCustom17) + CBD_Amt(data.iCustom18) +
+               CBD_Amt(data.iCustom19);
 
     // Who dealt it. data.oDamager is NOT reliable for weapon damage - UAT round
     // 3 measured "6 attacks, 0 damage" for a whole set because every packet

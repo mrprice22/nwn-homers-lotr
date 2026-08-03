@@ -94,12 +94,21 @@ void main()
         if (n >= 1 && n <= 4) nWeaponType = n;
     }
 
+    // NWNX reports a damage type that was not dealt as -1, NOT as 0, so a bare
+    // += on an unused type loses a point (a 15-point bonus on a weapon that
+    // deals no slashing landed as 14 - visible in the UAT dump as
+    // "base=96 slash=14" for a 15-point roll). DevCrit_AddDamage assigns when
+    // the field is unset and adds when it is not.
     switch (nWeaponType)
     {
-        case 1:  data.iPierce      += nDamage; break;
+        case 1:  data.iPierce      = DevCrit_AddDamage(data.iPierce, nDamage);
+                 break;
         case 3:
-        case 4:  data.iSlash       += nDamage; break;  // 4 picks slashing
-        default: data.iBludgeoning += nDamage; break;
+        case 4:  data.iSlash       = DevCrit_AddDamage(data.iSlash, nDamage);
+                 break;  // 4 picks slashing
+        default: data.iBludgeoning = DevCrit_AddDamage(data.iBludgeoning,
+                                                       nDamage);
+                 break;
     }
 
     NWNX_Damage_SetAttackEventData(data);

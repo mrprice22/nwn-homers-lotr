@@ -92,6 +92,10 @@ const string CBD_VAR_LAST_SRC = "CBD_LAST_SRC";
 const string CBD_VAR_DEBUG    = "CBD_DEBUG";
 const string CBD_VAR_DEBUG_ADMIN = "CBD_DEBUG_ADMIN";
 
+// Diagnostic lines are bright red so they are distinguishable at a glance from
+// the tool's own yellow output and from the engine's combat log.
+const string CBD_DEBUG_COLOR = COLOR_RED;
+
 const string CBD_RESREF = "cbd_dummy";   // for the respawn in cbd_death
 
 // ---------------------------------------------------------------------------
@@ -113,6 +117,7 @@ void   CBD_Respawn(location lLoc);
 void   CBD_Watchdog(object oDummy, int nToken);
 void   CBD_Touch(object oDummy);
 void   CBD_SelfDestruct(object oDummy, object oPC, int nToken);
+int    CBD_Amt(int nValue);
 object CBD_ResolveSrc(object oDummy, object oDamager);
 void   CBD_ScheduleRestore(object oDummy);
 void   CBD_Restore(object oDummy);
@@ -213,6 +218,17 @@ void CBD_Restore(object oDummy)
     NWNX_Object_SetCurrentHitPoints(oDummy, nMax);
 }
 
+// One damage field's contribution. NWNX reports a damage type that was NOT
+// dealt as -1, not as 0 - so a plain sum of the 32 fields is the real damage
+// MINUS the number of unused types. That is what made a 33-point greatsword hit
+// measure as 2 and a 28-point hit as -3 ("packet carried no damage"), and it is
+// why every damage field must go through here. Verified from the live dump:
+// base=33 with 31 fields at -1 reported total=2.
+int CBD_Amt(int nValue)
+{
+    return (nValue > 0) ? nValue : 0;
+}
+
 // ---- diagnostics (CBD_DEBUG) ----------------------------------------------
 
 // On when the flag is set on this dummy specifically, or module-wide (which is
@@ -228,7 +244,8 @@ int CBD_IsDebug(object oDummy)
 // damage types that actually arrived.
 string CBD_DbgField(string sName, int nVal)
 {
-    if (nVal == 0) return "";
+    // <= 0 rather than == 0: unused types come through as -1 (see CBD_Amt).
+    if (nVal <= 0) return "";
     return " " + sName + "=" + IntToString(nVal);
 }
 
@@ -239,7 +256,7 @@ void CBD_Debug(object oDummy, object oPC, string sMsg)
 {
     if (!GetIsObjectValid(oPC)) oPC = GetLocalObject(oDummy, CBD_VAR_OWNER);
     if (!GetIsObjectValid(oPC)) return;
-    SendMessageToPC(oPC, "[CBD_DEBUG] " + sMsg);
+    SendMessageToPC(oPC, CBD_DEBUG_COLOR + "[CBD_DEBUG] " + sMsg + COLOR_END);
 }
 
 // Any activity from the owner resets the idle clock. Called from both the

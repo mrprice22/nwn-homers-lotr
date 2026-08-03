@@ -31,6 +31,7 @@
 // hak_2da/baseitems.2da. Same rule as legfeat_ids_inc: never hardcode the ids.
 #include "devcrit_map_inc"
 #include "nwnx_events"
+#include "color"        // COLOR_RED for the diagnostic lines
 
 // ---------------------------------------------------------------------------
 // The numbers. These are the published design (roadmap.yaml, devcrit-roll) and
@@ -93,6 +94,10 @@ int DevCrit_DieSize(object oWeapon);
 
 // Total of nDice dice of nSize.
 int DevCrit_Roll(int nDice, int nSize);
+
+// Add nDamage to one of NWNX's per-type damage fields. NWNX uses -1 for "this
+// type was not dealt", so a bare += on an unused type silently loses a point.
+int DevCrit_AddDamage(int nField, int nDamage);
 
 // Stamp the "refuse the next death effect" flag on oTarget, self-clearing.
 // oAttacker is remembered only so the diagnostics have a recipient.
@@ -167,6 +172,11 @@ int DevCrit_DieSize(object oWeapon)
     return DEVCRIT_DIE_SMALL;
 }
 
+int DevCrit_AddDamage(int nField, int nDamage)
+{
+    return (nField > 0) ? nField + nDamage : nDamage;
+}
+
 int DevCrit_Roll(int nDice, int nSize)
 {
     int nTotal = 0;
@@ -182,7 +192,10 @@ int DevCrit_IsDebug()
 
 void DevCrit_Debug(object oTarget, string sMsg)
 {
-    string sLine = "[DEVCRIT] " + GetName(oTarget) + ": " + sMsg;
+    // Bright red, like the Combat Dummy's dump: a diagnostic must not read as
+    // ordinary feedback.
+    string sLine = COLOR_RED + "[DEVCRIT] " + GetName(oTarget) + ": " + sMsg +
+                   COLOR_END;
 
     object oSrc = GetLocalObject(oTarget, DEVCRIT_VAR_SRC);
     if (GetIsPC(oSrc)) SendMessageToPC(oSrc, sLine);

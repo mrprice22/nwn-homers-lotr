@@ -1083,6 +1083,17 @@
             },
             {
               "__struct_id": 11,
+              "Index": {
+                "type": "dword",
+                "value": 139
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
+              "__struct_id": 12,
               "Active": {
                 "type": "resref",
                 "value": ""
@@ -9549,6 +9560,47 @@
           "type": "cexolocstring",
           "value": {
             "0": "[Admin] Reset my legendary feats"
+          }
+        }
+      },
+      {
+        "__struct_id": 139,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "Admin toggle: combat diagnostics on/off (dbg_combat) - the CBD_DEBUG / DEVCRIT_DEBUG per-packet dumps. Gated by the _cdkey admindb check on the parent Admin Options node. Temporary UAT instrumentation: remove this reply with the debug blocks (roadmap combat-dummy / devcrit-roll)."
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": []
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": "dbg_combat"
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "[Admin] Combat diagnostics on/off"
           }
         }
       }
