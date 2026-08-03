@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script devcrit_eff</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>devcrit_eff</code></h1><pre class="nss-source"><code>// devcrit_eff.nss - NWNX_ON_EFFECT_APPLIED_BEFORE handler.
+//
+// Roadmap: devcrit-roll. SAFETY NET ONLY - read this before trusting it.
+//
+// It was written as the half of the rework that stops the kill, on the theory
+// that the engine delivers a Devastating Critical kill as an EffectDeath. UAT
+// disproved that: a devastating critical killed a target that was BOTH flagged
+// here and carrying EffectImmunity(IMMUNITY_TYPE_DEATH). The real fix is
+// upstream - the blank EpicWeaponDevastatingCriticalFeat column in
+// hak_2da/baseitems.2da means the engine never rolls the save at all (see
+// bin/gen-devcrit-map.py and the header of devcrit_atk.nss).
+//
+// This is kept for the one case that can still resolve an engine devastating
+// critical: a server or client running a hak from before that change. It
+// refuses that death effect if it can, and lets every other death in the
+// module through untouched.
+//
+// Registered from onmoduleload.nss:
+//     NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_BEFORE, &quot;devcrit_eff&quot;);
+//
+// OBJECT_SELF is the TARGET of the effect. The module already subscribes the
+// _AFTER half of this same event for eff_dur_x2.nss - that file is the pattern
+// for reading event data here.
+//
+// This fires for every temporary and permanent effect applied on the server, so
+// the type test is first and everything else leaves immediately.
+
+#include &quot;devcrit_inc&quot;
+
+void main()
+{
+    // &quot;TYPE&quot; is the internal NWNXLib effect enum, NOT an NWScript EFFECT_TYPE_*
+    // constant - see DEVCRIT_EFFTYPE_DEATH in devcrit_inc.nss.
+    int nType = StringToInt(NWNX_Events_GetEventData(&quot;TYPE&quot;));
+
+    object oTarget = OBJECT_SELF;
+
+    if (nType != DEVCRIT_EFFTYPE_DEATH)
+    {
+        // Diagnostic mode only, and only for a victim already inside a
+        // devastating critical&#x27;s window: dump what the engine IS applying, so
+        // a wrong DEVCRIT_EFFTYPE_DEATH (the kill arriving under a different
+        // enum) can be told apart from the kill not being an applied effect at
+        // all. The module check comes first so the normal hot path - every
+        // effect applied on the server - is one GetLocalInt as before.
+        if (DevCrit_IsDebug() &amp;&amp; DevCrit_IsNoKill(oTarget))
+            DevCrit_Debug(oTarget, &quot;effect applied inside window, TYPE=&quot; +
+                          IntToString(nType));
+        return;
+    }
+
+    // A death effect from anything else - Finger of Death, a rogue&#x27;s Death
+    // Attack, Weird, a DM, a plot script - is none of our business. Only a
+    // death arriving inside the window devcrit_atk.nss opened is refused.
+    if (!DevCrit_IsNoKill(oTarget)) return;
+
+    if (DevCrit_IsDebug())
+        DevCrit_Debug(oTarget, &quot;death effect inside window - REFUSED&quot;);
+
+    NWNX_Events_SkipEvent();
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

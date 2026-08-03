@@ -56,7 +56,7 @@
   </header>
   <main>
 <h1>Script: <code>forge_dis_go</code></h1><pre class="nss-source"><code>// Disenchant confirm: remove the picked permanent property from the target
-// item. No gold changes hands — the magic is simply destroyed.
+// item. No gold changes hands - the magic is simply destroyed.
 #include &quot;forge_inc&quot;
 
 void main()
@@ -72,13 +72,13 @@ void main()
         ForgeLog(&quot;disenchant: PC=&quot; + GetName(oPC) + &quot; item=&#x27;&quot; + GetName(oItem)
             + &quot;&#x27; removing [&quot; + ForgePropName(ip) + &quot;]&quot;);
         RemoveItemProperty(oItem, ip);
-        // Disenchanting changes the item&#x27;s legality footprint — drop its &quot;clean&quot;
+        // Disenchanting changes the item&#x27;s legality footprint - drop its &quot;clean&quot;
         // stamp so the next login contraband scan re-evaluates it.
         DeleteLocalInt(oItem, &quot;FORGE_CLEAN&quot;);
     }
     // Refresh the list tokens for the re-shown menu.
     ForgeDisenchantSetup(oPC, oItem);
-    // Disenchanting may have made the PC lawful — refresh the cached gate
+    // Disenchanting may have made the PC lawful - refresh the cached gate
     // verdict off the hot path so the release reply can appear on the next click.
     ForgeBeginWardenScan(oPC);
 }

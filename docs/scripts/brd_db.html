@@ -55,13 +55,13 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>brd_db</code></h1><pre class="nss-source"><code>// brd_db.nss — &quot;Roll of the Fallen&quot; boss respawn tracker database helpers.
+<h1>Script: <code>brd_db</code></h1><pre class="nss-source"><code>// brd_db.nss - &quot;Roll of the Fallen&quot; boss respawn tracker database helpers.
 //
 // Campaign DB &quot;respawndb&quot; (file database/respawndb.sqlite3).
 //
 // Tables:
 //   boss_registry (resref PK, name, tag, area_resref, area_name, cr,
-//                  respawn_seconds, spawn_type) — the curated list of tracked
+//                  respawn_seconds, spawn_type) - the curated list of tracked
 //                  bosses, reseeded from this file on every module load.
 //                  spawn_type &#x27;placed&#x27;    = se_respawn_inc DelayCommand, exact
 //                                           respawn respawn_seconds after death;
@@ -69,9 +69,9 @@
 //                                           becomes ELIGIBLE after respawn_seconds
 //                                           and returns when its lair encounter
 //                                           next triggers.
-//   boss_alias    (resref PK, canonical) — variant blueprints that all represent
+//   boss_alias    (resref PK, canonical) - variant blueprints that all represent
 //                  the same boss (e.g. the five leveled Xanith The Mad blueprints).
-//   boss_deaths   (resref PK, died_at, killed_by) — one row per currently-dead
+//   boss_deaths   (resref PK, died_at, killed_by) - one row per currently-dead
 //                  boss; wiped on module load because a restart revives everything.
 //
 // Membership rule: only bosses that can ever have ONE live instance at a time
@@ -156,7 +156,7 @@ void BRD_InitDb()
     q = SqlPrepareQueryCampaign(BRD_DB, &quot;DELETE FROM boss_alias&quot;);
     SqlStep(q);
 
-    // BEGIN GENERATED REGISTRY — produced by bin/gen-boss-registry.py
+    // BEGIN GENERATED REGISTRY - produced by bin/gen-boss-registry.py
     // Do not hand-edit; run the generator to refresh (see CLAUDE-boss-tracker.md).
     BRD_SeedBoss(&quot;creature016&quot;, &quot;Theoden&#x27;s Chosen&quot;, &quot;TheodensChosen&quot;, &quot;area013&quot;, &quot;Helm&#x27;s Deep: Cave&quot;, 9540.0, 900, &quot;placed&quot;);
     BRD_SeedBoss(&quot;summanus&quot;, &quot;Summanus&quot;, &quot;Summanus&quot;, &quot;falseheaven&quot;, &quot;Numenor: Noirinan&quot;, 2938.0, 480, &quot;encounter&quot;);

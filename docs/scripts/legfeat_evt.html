@@ -55,7 +55,7 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>legfeat_evt</code></h1><pre class="nss-source"><code>// legfeat_evt.nss — NUI event handler for the Legendary Feats picker.
+<h1>Script: <code>legfeat_evt</code></h1><pre class="nss-source"><code>// legfeat_evt.nss - NUI event handler for the Legendary Feats picker.
 // Registered per-window via the sEventScript arg of NuiCreate in legfeat_nui.
 #include &quot;legfeat_nui&quot;
 
@@ -72,7 +72,7 @@ void main()
         return;
     }
 
-    // &quot;t&lt;index&gt;&quot; — take the feat at that picker index.
+    // &quot;t&lt;index&gt;&quot; - take the feat at that picker index.
     if (GetStringLeft(sElem, 1) != &quot;t&quot;) return;
     int nIndex = StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1));
 

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script devcrit_atk</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>devcrit_atk</code></h1><pre class="nss-source"><code>// devcrit_atk.nss - NWNX Damage ATTACK event handler.
+//
+// Roadmap: devcrit-roll. Adds the bonus physical damage that replaces the
+// Devastating Critical save-or-die.
+//
+// The save-or-die itself is gone at the source: hak_2da/baseitems.2da has a
+// blank EpicWeaponDevastatingCriticalFeat column, so the engine&#x27;s own check
+// (CNWSCreatureStats::GetEpicWeaponDevastatingCritical) can never succeed and
+// no save is ever rolled. See bin/gen-devcrit-map.py - it is also what
+// generates devcrit_map_inc.nss, the base item -&gt; feat table that used to be
+// that column and that this script now uses to decide who earns the dice.
+//
+// Consequence: iAttackResult 10 no longer happens. The bonus dice ride on an
+// ORDINARY critical (result 3) for an attacker holding the Devastating
+// Critical feat that matches the weapon in hand.
+//
+// Registered server-wide from onmoduleload.nss:
+//     NWNX_Damage_SetAttackEventScript(&quot;devcrit_atk&quot;);
+//
+// OBJECT_SELF is the ATTACKER; the victim is data.oTarget.
+//
+// ###########################################################################
+// # THIS RUNS ON EVERY ATTACK ON THE SERVER. A bug here is a bug in ALL      #
+// # combat, not just in critical hits. The iAttackResult test below is the   #
+// # first thing after fetching the event data and must stay that way - every #
+// # non-critical attack has to leave through it. tests/check_devcrit.py      #
+// # asserts the guard is still in place.                                     #
+// ###########################################################################
+
+#include &quot;nwnx_damage&quot;
+#include &quot;devcrit_inc&quot;
+#include &quot;cbd_inc&quot;
+
+void main()
+{
+    struct NWNX_Damage_AttackEventData data = NWNX_Damage_GetAttackEventData();
+
+    // Combat Dummy (roadmap combat-dummy) counts attacks per round, so it needs
+    // MISSES too and cannot sit behind the critical guard below. One
+    // GetLocalInt on the target is the whole cost for every other attack on the
+    // server; keep it that way. Everything else lives in cbd_inc.
+    if (GetLocalInt(data.oTarget, CBD_VAR_IS_DUMMY)) CBD_TrackAttack(data);
+
+    // The hot path: everything that is not a critical leaves here.
+    int nResult = data.iAttackResult;
+    if (nResult != 3 &amp;&amp; nResult != 10) return;
+
+    object oAttacker = OBJECT_SELF;
+
+    // Which weapon actually swung. Creature attacks (3-5) and unarmed (7-8)
+    // have no weapon object and fall through to small dice, bludgeoning.
+    // Needed before the dice, because since the engine&#x27;s devastating critical
+    // was disabled at source (see below) the WEAPON is what says whether this
+    // critical earns the bonus dice.
+    object oWeapon = OBJECT_INVALID;
+    if (data.iWeaponAttackType == 1 || data.iWeaponAttackType == 6)
+        oWeapon = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oAttacker);
+    else if (data.iWeaponAttackType == 2)
+        oWeapon = GetItemInSlot(INVENTORY_SLOT_LEFTHAND, oAttacker);
+
+    int nDice = DevCrit_BonusDice(oAttacker, nResult, oWeapon,
+                                  data.iWeaponAttackType);
+
+    // An ordinary critical by someone with neither Devastating Critical for
+    // this weapon nor Legendary Butcher: nothing to do.
+    if (nDice &lt;= 0) return;
+
+    // iAttackResult 10 should now be unreachable: hak_2da/baseitems.2da has a
+    // blank EpicWeaponDevastatingCriticalFeat column, so the engine never
+    // considers a devastating critical at all (bin/gen-devcrit-map.py). This
+    // branch is the belt-and-braces for the one case that can still produce it
+    // - a server or client running a stale hak - and is what devcrit_eff.nss
+    // needs to refuse the kill.
+    if (nResult == 10)
+    {
+        DevCrit_FlagNoKill(data.oTarget, oAttacker);
+        if (DevCrit_IsDebug())
+            DevCrit_Debug(data.oTarget, &quot;devastating critical from &quot; +
+                          GetName(oAttacker) +
+                          &quot; - STALE HAK? no-kill window open&quot;);
+    }
+
+    int nDamage = DevCrit_Roll(nDice, DevCrit_DieSize(oWeapon));
+    if (nDamage &lt;= 0) return;
+
+    // Typed to the weapon&#x27;s own damage type, from baseitems.2da WeaponType:
+    // 1 = piercing, 2 = bludgeoning, 3 = slashing, 4 = slashing/piercing.
+    // No weapon (fists, claws, bites) is bludgeoning.
+    int nWeaponType = 2;
+    if (GetIsObjectValid(oWeapon))
+    {
+        int n = StringToInt(Get2DAString(&quot;baseitems&quot;, &quot;WeaponType&quot;,
+                                         GetBaseItemType(oWeapon)));
+        if (n &gt;= 1 &amp;&amp; n &lt;= 4) nWeaponType = n;
+    }
+
+    // NWNX reports a damage type that was not dealt as -1, NOT as 0, so a bare
+    // += on an unused type loses a point (a 15-point bonus on a weapon that
+    // deals no slashing landed as 14 - visible in the UAT dump as
+    // &quot;base=96 slash=14&quot; for a 15-point roll). DevCrit_AddDamage assigns when
+    // the field is unset and adds when it is not.
+    switch (nWeaponType)
+    {
+        case 1:  data.iPierce      = DevCrit_AddDamage(data.iPierce, nDamage);
+                 break;
+        case 3:
+        case 4:  data.iSlash       = DevCrit_AddDamage(data.iSlash, nDamage);
+                 break;  // 4 picks slashing
+        default: data.iBludgeoning = DevCrit_AddDamage(data.iBludgeoning,
+                                                       nDamage);
+                 break;
+    }
+
+    NWNX_Damage_SetAttackEventData(data);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

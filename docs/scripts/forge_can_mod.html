@@ -58,8 +58,8 @@
 <h1>Script: <code>forge_can_mod</code></h1><pre class="nss-source"><code>// Reply/entry gate for the forge &quot;modify the item&quot; (add-enchant) path: TRUE only
 // when exactly one item sits on the anvil AND it still has value headroom to be
 // enchanted upward (current worth below this forge&#x27;s cap MODIFY_MAX). An item
-// already at/over the cap can never gain an enchant — every add would be refused
-// at commit — so the dialog routes it to the &quot;at the limit, strip only&quot; line
+// already at/over the cap can never gain an enchant - every add would be refused
+// at commit - so the dialog routes it to the &quot;at the limit, strip only&quot; line
 // instead of the yes/no add-enchant flow. Delegates the single-item check and the
 // token priming to ForgeRefreshAnvilContext, so 100/104/105 are fresh for the
 // chosen entry. Per-enchant overflow of an under-cap item is still caught at
@@ -74,7 +74,7 @@ int StartingConditional()
     object oItem = GetLocalObject(oPC, &quot;MODIFY_ITEM&quot;);
     int nWorth = ForgeItemValue(oItem);
     if (nWorth &lt; 0)
-        return FALSE;                       // valuation unavailable — refuse
+        return FALSE;                       // valuation unavailable - refuse
     return nWorth &lt; GetLocalInt(oPC, &quot;MODIFY_MAX&quot;);
 }
 </code></pre>

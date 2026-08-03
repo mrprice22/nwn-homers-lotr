@@ -72,6 +72,7 @@
 #include &quot;color&quot;
 #include &quot;nwnx_admin&quot;
 #include &quot;nwnx_events&quot;
+#include &quot;nwnx_damage&quot;
 #include &quot;x2_inc_switches&quot;
 #include &quot;ru_db&quot;
 #include &quot;brd_db&quot;
@@ -81,6 +82,7 @@
 #include &quot;faction_db&quot;
 #include &quot;worldstate_inc&quot;
 #include &quot;ammorep_db&quot;
+#include &quot;cbd_db&quot;
 
 
 void main()
@@ -99,7 +101,7 @@ SetModuleSwitch(MODULE_SWITCH_ENABLE_TAGBASED_SCRIPTS, TRUE);
 
 // Module override spellscript: run stop_spellcheat before every spell impact
 // script (counterspell anti-cheat + soul-fatigue on Heal/Mass Heal via
-// fat_inc.nss, roadmap: heal-soul-fatigue). This MUST be installed here — the
+// fat_inc.nss, roadmap: heal-soul-fatigue). This MUST be installed here - the
 // old on_module_load.nss that carried these lines was never wired to
 // Mod_OnModLoad (the hook is this script, onmoduleload), so the override
 // never ran. x2_inc_spellhook&#x27;s X2RunUserDefinedSpellScript() only fires when
@@ -117,6 +119,18 @@ ExecuteScript(&quot;gwathlab_wire&quot;, GetModule());
 
 // Double the duration of every temporary effect a player creates (eff_dur_x2).
 NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, &quot;eff_dur_x2&quot;);
+
+// Devastating Critical rework (roadmap: devcrit-roll). Two halves, because the
+// engine uses two mechanisms: devcrit_atk adds the bonus physical damage in the
+// NWNX Damage attack event (the only place iAttackResult == 10 is visible), and
+// devcrit_eff refuses the EffectDeath the engine applies separately. The rule is
+// symmetric - no oOwner on the attack script, so it covers NPCs as well as
+// players. Both handlers return immediately on anything that is not their case;
+// see the warnings in their headers before editing either, and note that
+// NWNX_DAMAGE_SKIP=n in server.env is the other half of the plugin being
+// available at all. tests/check_devcrit.py gates all of this.
+NWNX_Damage_SetAttackEventScript(&quot;devcrit_atk&quot;);
+NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_BEFORE, &quot;devcrit_eff&quot;);
 
 // Premium 2x gold/XP boost: multiply positive XP gains for players with an active
 // boost (merit redemptions 201-204). Engine combat XP is not script-granted, so
@@ -141,7 +155,7 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_BEFORE,  &quot;sk_probe_pre&quot;);
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   &quot;sk_probe_post&quot;);
 
 // Legendary Feats: fire the level-60 picker the moment a character reaches 60.
-// The picks cannot come from the engine&#x27;s own level-up page — that page grants
+// The picks cannot come from the engine&#x27;s own level-up page - that page grants
 // exactly one general feat to everybody, and legendary feats are deliberately
 // invisible to it (ALLCLASSESCANUSE = 0). See CLAUDE-legendary-feats.md.
 //
@@ -150,6 +164,13 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   &quot;sk_probe_post&quot;);
 // where that is noticed. Energy drain is not a level loss and does not reach it.
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   &quot;legfeat_lvl&quot;);
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, &quot;legfeat_lvl&quot;);
+
+// Some legendary feats are CONDITIONAL on what the character is holding -
+// Legendary Onslaught grants its extra attack for melee and unarmed but not for
+// a bow. legfeat_equip rebuilds those on every weapon swap; without it the
+// effect goes stale silently, and an archer keeps a melee-only bonus attack.
+NWNX_Events_SubscribeEvent(NWNX_ON_ITEM_EQUIP_AFTER,   &quot;legfeat_equip&quot;);
+NWNX_Events_SubscribeEvent(NWNX_ON_ITEM_UNEQUIP_AFTER, &quot;legfeat_equip&quot;);
 
 // Party loot: announce current roll settings when a player joins a party or the
 // party leadership changes (pl_party_evt broadcasts to the whole party).
@@ -174,7 +195,7 @@ SetCustomToken(6102, COLOR_END);
 RU_InitDb();
 
 // Roll of the Fallen board (Well of Eru): reseed the boss registry and clear
-// stale death rows — a restart revives every boss, so the board starts empty.
+// stale death rows - a restart revives every boss, so the board starts empty.
 BRD_InitDb();
 
 // Admin whitelist (rest-menu Admin/Homeless options, cheat chest): ensure the
@@ -205,6 +226,12 @@ WS_InitDb();
 // are keyed on the ITEM&#x27;s UUID so they follow the quiver when it changes hands.
 // See ammorep_db.nss (roadmap: Ammo-shortage).
 AmmoRep_InitDb();
+
+// Combat Dummy leaderboard (&quot;Hall of Champions&quot; sign): ensure the sessions
+// table exists before the first trial finishes or the first sign read. The
+// dummy&#x27;s own OnSpawn calls this too, so a dummy placed in a module whose load
+// order never reached here still records. See cbd_db.nss (roadmap: combat-dummy).
+Cbd_InitDb();
 
 }   //end of main
 </code></pre>

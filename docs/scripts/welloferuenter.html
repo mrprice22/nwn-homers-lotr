@@ -169,7 +169,7 @@ void QuarantineIllicitItem(object oItem, object oPC)
 
     // Stamp provenance onto the item so it persists in the quarantine chest
     // snapshot until a DM removes it (the quarantine_*_info row is cleared as
-    // soon as the chest is opened — see zep_cr_qrestore.nss).
+    // soon as the chest is opened - see zep_cr_qrestore.nss).
     SetLocalString(oItem, &quot;QUARANTINE_INFO&quot;, sLog);
 
     int nQ = GetCampaignInt(&quot;craftdb&quot;, &quot;quarantine_count&quot;);
@@ -251,7 +251,7 @@ void main()
         SendMessageToPC(oPC, &quot;Welcome to Homer&#x27;s Legendary Lord of the Rings!&quot;);
         SendMessageToPC(oPC, &quot;The light of Eru smiles upon you, new adventurer. &quot;
             + &quot;You have been granted 3000 experience points to begin your journey. &quot;
-            + &quot;Check the Donations Chest near the Well Mart — it may hold something &quot;
+            + &quot;Check the Donations Chest near the Well Mart - it may hold something &quot;
             + &quot;useful to help you on your way. Good luck, and may your path through &quot;
             + &quot;Middle-earth be legendary!&quot;);
     }

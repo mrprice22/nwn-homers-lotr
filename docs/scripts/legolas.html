@@ -68,7 +68,7 @@
     effect eSmoke = EffectVisualEffect(VFX_FNF_SMOKE_PUFF);
     effect eDamage = EffectDamage(d100(2), DAMAGE_TYPE_SONIC, DAMAGE_POWER_PLUS_FIVE);
 
-    // Smoke puff at departure — intentional vanish, not a glitch
+    // Smoke puff at departure - intentional vanish, not a glitch
     DelayCommand(0.0f, ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eSmoke, lStart));
     DelayCommand(0.0f, ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eVis,  OBJECT_SELF, 6.0));
     DelayCommand(0.5f, ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eVis1, OBJECT_SELF, 6.0));

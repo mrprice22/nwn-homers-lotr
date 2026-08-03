@@ -55,11 +55,11 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>eiladjust</code></h1><pre class="nss-source"><code>// eiladjust — OnUsed on the EVIL light-shaft placeable (Well of Eru, Homeless
+<h1>Script: <code>eiladjust</code></h1><pre class="nss-source"><code>// eiladjust - OnUsed on the EVIL light-shaft placeable (Well of Eru, Homeless
 // castle, House of Despair; blueprint solred.utp) and the EVIL node of
 // factaduster.dlg. Takes the Evil allegiance: persist it to factiondb (which
 // also applies the live reputation against the Goodfaction/Evilfaction anchors
-// — Good becomes hostile on sight) and play the evil VFX.
+// - Good becomes hostile on sight) and play the evil VFX.
 #include &quot;faction_db&quot;
 
 void main()
@@ -69,7 +69,7 @@ void main()
     if (!Faction_CanSwitchTo(oPC, &quot;Evil&quot;))
     {
         FloatingTextStringOnCreature(
-            &quot;Your oath to the West forbids this — the dark road is closed to you.&quot;,
+            &quot;Your oath to the West forbids this - the dark road is closed to you.&quot;,
             oPC, FALSE);
         return;
     }

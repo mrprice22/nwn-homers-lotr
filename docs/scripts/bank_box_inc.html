@@ -55,7 +55,7 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bank_box_inc</code></h1><pre class="nss-source"><code>// bank_box_inc.nss — Bank of Bree storage commit helpers + audit log
+<h1>Script: <code>bank_box_inc</code></h1><pre class="nss-source"><code>// bank_box_inc.nss - Bank of Bree storage commit helpers + audit log
 //
 // Both Bank of Bree storage types spawn a live placeable container into the
 // player&#x27;s inventory while the vault dialog is open, and only serialize it back
@@ -70,7 +70,7 @@
 //   CommitStrongBoxes  -&gt; az_strongbox_&lt;CDKey&gt;_N  -&gt; &quot;bank_box_N&quot;        (owner = oPC)
 //
 // Each successful store is recorded in the bankaudit table (same bankdb file) so
-// future loss reports can be investigated — the previous DB had no timestamps or
+// future loss reports can be investigated - the previous DB had no timestamps or
 // transaction log, so past losses could not be confirmed.
 
 const string BANK_DB = &quot;bankdb&quot;;
@@ -126,7 +126,7 @@ int Bank_CountItems(object oBox)
 //
 // sSource identifies the calling path for the audit log (&quot;dialog&quot;, &quot;area_exit&quot;,
 // &quot;client_leave&quot;). Both helpers are safe to call when the player has no boxes in
-// inventory — they simply do nothing.
+// inventory - they simply do nothing.
 
 void CommitFamilyBoxes(object oPC, string sSource)
 {

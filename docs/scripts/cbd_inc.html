@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cbd_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cbd_inc</code></h1><pre class="nss-source"><code>// cbd_inc.nss - Combat Dummy: shared state machine.
+//
+// Roadmap: combat-dummy. A hostile, immobile, indestructible creature that
+// measures what a character actually does in combat over a fixed 10 rounds:
+//   * attacks per round (APR) - reported only, never stored;
+//   * damage per round  (DPR) - reported AND written to the leaderboard.
+//
+// It exists because several feats change nothing on the character sheet
+// (stock Flurry of Blows, the legendary monk extra attack), so the only way to
+// tell whether they fire is to count real swings against a real target.
+//
+// --- how the two halves are wired -------------------------------------------
+// DAMAGE (for DPR) comes from a PER-OBJECT NWNX Damage damage-event handler the
+// dummy registers on ITSELF at spawn (cbd_spawn -&gt; cbd_damage). Per-object, so
+// it costs the rest of the server nothing. The damage is allowed to LAND - so
+// the combat log shows the real numbers, resistances and damage reduction - and
+// the handler heals the dummy back to full on the next pulse (CBD_Restore).
+// Death immunity and the OnDeath respawn sit behind that.
+//
+// ATTACKS (for APR) can only come from the NWNX Damage ATTACK event, because
+// that is the only place a MISS is visible. That event script slot is global
+// and belongs to devcrit_atk.nss, so devcrit_atk calls CBD_TrackAttack() behind
+// a single GetLocalInt guard. Keep that guard cheap - it runs on every attack
+// on the server.
+//
+// --- session state (all locals on the DUMMY) --------------------------------
+//   CBD_IS_DUMMY  1 on a live dummy (the handlers&#x27; identity check)
+//   CBD_ACTIVE    1 while a 10-round session is running
+//   CBD_TOKEN     session serial; every delayed round tick carries the token it
+//                 was scheduled with, so a cancelled session&#x27;s pending ticks
+//                 become no-ops instead of firing into the next session
+//   CBD_OWNER     the PC being measured
+//   CBD_ROUND     rounds completed so far
+//   CBD_ATK_TOT / CBD_HIT_TOT / CBD_DMG_TOT   session totals
+//   CBD_ATK_RND / CBD_DMG_RND                 this round, reset every tick
+//   CBD_COOL      1 during the post-session cooldown (attacks are ignored)
+//   CBD_SPAWN     the location cbd_death respawns at
+//   CBD_IDLE      seconds since the owner last attacked or dealt damage; the
+//                 watchdog abandons the session at CBD_IDLE_LIMIT
+
+#include &quot;nwnx_damage&quot;
+#include &quot;nwnx_object&quot;   // SetCurrentHitPoints, for the heal-back in CBD_Restore
+#include &quot;cbd_db&quot;
+#include &quot;color&quot;
+
+const int   CBD_ROUNDS     = 10;    // rounds in a session
+const float CBD_ROUND_SECS = 6.0;   // one NWN combat round
+const float CBD_COOL_SECS  = 12.0;  // grace after a session, so trailing swings
+                                    // don&#x27;t immediately start the next one
+const float CBD_PETRIFY    = 10.0;  // intruder lock-out (same as _attackplaceable)
+const float CBD_WATCH_SECS = 1.0;   // idle watchdog resolution
+const int   CBD_IDLE_LIMIT = 5;     // seconds of no attack/damage = abandoned
+const float CBD_DESTRUCT   = 1.5;   // pause after the final report before the
+                                    // dummy self-destructs, so the spoken
+                                    // summary lines are not cut off by death
+
+const string CBD_VAR_IS_DUMMY = &quot;CBD_IS_DUMMY&quot;;
+const string CBD_VAR_ACTIVE   = &quot;CBD_ACTIVE&quot;;
+const string CBD_VAR_TOKEN    = &quot;CBD_TOKEN&quot;;
+const string CBD_VAR_OWNER    = &quot;CBD_OWNER&quot;;
+const string CBD_VAR_ROUND    = &quot;CBD_ROUND&quot;;
+const string CBD_VAR_ATK_TOT  = &quot;CBD_ATK_TOT&quot;;
+const string CBD_VAR_HIT_TOT  = &quot;CBD_HIT_TOT&quot;;
+const string CBD_VAR_DMG_TOT  = &quot;CBD_DMG_TOT&quot;;
+const string CBD_VAR_ATK_RND  = &quot;CBD_ATK_RND&quot;;
+const string CBD_VAR_DMG_RND  = &quot;CBD_DMG_RND&quot;;
+const string CBD_VAR_COOL     = &quot;CBD_COOL&quot;;
+const string CBD_VAR_SPAWN    = &quot;CBD_SPAWN&quot;;
+const string CBD_VAR_WARNED   = &quot;CBD_WARNED&quot;;
+const string CBD_VAR_IDLE     = &quot;CBD_IDLE&quot;;
+
+// The attacker from the most recent attack event. NWNX&#x27;s damage event does not
+// reliably identify the damager for weapon damage, so this is what the damage
+// handler attributes a hit to when data.oDamager resolves to nobody.
+const string CBD_VAR_LAST_SRC = &quot;CBD_LAST_SRC&quot;;
+
+// Diagnostic mode: every attack and every damage packet is echoed to the tester
+// with its raw event fields and the branch it took, so a &quot;the numbers look
+// wrong&quot; report can be reconciled against the combat log packet by packet.
+//
+// Three ways it turns on, all behind a single GetLocalInt on the hot path:
+//   * CBD_DEBUG on the module     - what the rest menu&#x27;s Admin Options -&gt;
+//                                   &quot;[Admin] Combat diagnostics on/off&quot;
+//                                   (dbg_combat) flips, and the switch a tester
+//                                   will reach for;
+//   * CBD_DEBUG on the dummy      - set by hand from the toolset, for one dummy.
+//
+// There is deliberately NO &quot;admins always get it&quot; rule any more: it made the
+// menu lie, because turning the toggle OFF left an admin still seeing the dump.
+// One switch, and it is the one in the menu.
+//
+// This is temporary UAT instrumentation (roadmap combat-dummy).
+const string CBD_VAR_DEBUG    = &quot;CBD_DEBUG&quot;;
+
+// The readout&#x27;s palette. Three colours, so a glance at the log separates the
+// running commentary from the answer from the instrumentation:
+//   yellow  the per-round lines and one-off notices;
+//   green   the end-of-set summary - the numbers the tester came for;
+//   red     the diagnostic dump.
+const string CBD_COLOR_ROUND = COLOR_YELLOW;
+const string CBD_COLOR_FINAL = COLOR_GREEN;
+const string CBD_DEBUG_COLOR = COLOR_RED;
+
+const string CBD_RESREF = &quot;cbd_dummy&quot;;   // for the respawn in cbd_death
+
+// ---------------------------------------------------------------------------
+// Prototypes (CBD_RoundTick is delayed recursively, so it must be declared
+// before it is used).
+
+object CBD_OwnerPC(object oSrc);
+void   CBD_Say(object oPC, string sMsg);
+void   CBD_SayColor(object oPC, string sMsg, string sColor);
+void   CBD_Notice(object oPC, string sMsg);
+void   CBD_Report(object oDummy, object oPC, string sMsg);
+void   CBD_ReportColor(object oDummy, object oPC, string sMsg, string sColor);
+void   CBD_ClearState(object oDummy);
+void   CBD_StartSession(object oDummy, object oPC);
+void   CBD_RoundTick(object oDummy, int nToken);
+void   CBD_EndSession(object oDummy);
+void   CBD_CancelSession(object oDummy, string sWhy);
+void   CBD_ClearCooldown(object oDummy, int nToken);
+void   CBD_Reject(object oDummy, object oSrc);
+void   CBD_TrackAttack(struct NWNX_Damage_AttackEventData data);
+void   CBD_Respawn(location lLoc);
+void   CBD_Watchdog(object oDummy, int nToken);
+void   CBD_Touch(object oDummy);
+void   CBD_SelfDestruct(object oDummy, object oPC, int nToken);
+int    CBD_Amt(int nValue);
+object CBD_ResolveSrc(object oDummy, object oDamager);
+void   CBD_ScheduleRestore(object oDummy);
+void   CBD_Restore(object oDummy);
+int    CBD_IsDebug(object oDummy);
+string CBD_DbgField(string sName, int nVal);
+void   CBD_Debug(object oDummy, object oPC, string sMsg);
+
+// ---------------------------------------------------------------------------
+
+// DelayCommand can only defer a void call, and CreateObject returns an object,
+// so the respawn in cbd_death goes through this.
+void CBD_Respawn(location lLoc)
+{
+    CreateObject(OBJECT_TYPE_CREATURE, CBD_RESREF, lLoc);
+}
+
+// The PC that owns oSrc: oSrc itself if it is a PC, else the top of its master
+// chain (summons, familiars, henchmen, dominated creatures). OBJECT_INVALID if
+// nothing player-controlled is behind it.
+object CBD_OwnerPC(object oSrc)
+{
+    int i = 0;
+    while (GetIsObjectValid(oSrc) &amp;&amp; !GetIsPC(oSrc) &amp;&amp; i &lt; 5)
+    {
+        oSrc = GetMaster(oSrc);
+        i++;
+    }
+    return GetIsPC(oSrc) ? oSrc : OBJECT_INVALID;
+}
+
+// EVERY line the tool prints goes to the chat log and NOWHERE else.
+//
+// It used to also float the text over the tester and have the dummy SpeakString
+// it, because the first UAT lost every figure when the float faded. The colours
+// solved that better: the log copy is tagged and coloured (yellow per round,
+// green for the summary), so it survives and can be found by scrolling, while
+// the float and the speech bubble were just the same sentence a second and
+// third time over the dummy&#x27;s head - and FloatingTextStringOnCreature echoes
+// into the log as well, so a one-off notice read as a stutter.
+// A one-off notice: the chat line only, no floating text. FloatingTextString-
+// OnCreature ALSO echoes into the chat log, so a CBD_Say notice reads as the
+// same sentence printed twice - which is what it looked like when the dummy
+// said it was resetting. The round reports keep CBD_Say (and CBD_Report): there
+// the repetition is deliberate, because each copy lands in a different place
+// and outlives the others.
+void CBD_Notice(object oPC, string sMsg)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    SendMessageToPC(oPC, CBD_COLOR_ROUND + &quot;[Combat Dummy] &quot; + sMsg + COLOR_END);
+}
+
+void CBD_SayColor(object oPC, string sMsg, string sColor)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    SendMessageToPC(oPC, sColor + &quot;[Combat Dummy] &quot; + sMsg + COLOR_END);
+}
+
+void CBD_Say(object oPC, string sMsg)
+{
+    CBD_SayColor(oPC, sMsg, CBD_COLOR_ROUND);
+}
+
+// The round-by-round figures and the final averages. Same as CBD_SayColor now
+// that the speech bubble is gone; kept as its own name because the reports are
+// what the tool is FOR, and a future change to how they are delivered belongs
+// here rather than in every call site.
+void CBD_ReportColor(object oDummy, object oPC, string sMsg, string sColor)
+{
+    CBD_SayColor(oPC, sMsg, sColor);
+}
+
+void CBD_Report(object oDummy, object oPC, string sMsg)
+{
+    CBD_ReportColor(oDummy, oPC, sMsg, CBD_COLOR_ROUND);
+}
+
+// Who to credit a damage packet to. The damage event&#x27;s own oDamager is the
+// first choice, but for weapon damage it frequently resolves to nothing at all
+// - which for a whole UAT set meant every hit fell into the &quot;not the owner&quot;
+// branch and was discarded, giving &quot;6 attacks, 0 damage&quot; rounds and a DPR made
+// of the few packets that happened to carry a source. The fallback is the
+// attacker the attack event just stashed; the attack and its damage resolve in
+// the same combat step, so it is the same swing.
+object CBD_ResolveSrc(object oDummy, object oDamager)
+{
+    if (GetIsObjectValid(CBD_OwnerPC(oDamager))) return oDamager;
+
+    object oLast = GetLocalObject(oDummy, CBD_VAR_LAST_SRC);
+    if (GetIsObjectValid(oLast)) return oLast;
+
+    return oDamager;
+}
+
+// Indestructibility, the visible way: the hit lands (so the combat log shows
+// the damage, the resistances and any reduction), and this puts the HP back on
+// the next pulse. DelayCommand(0.0) is deliberate - the damage has not been
+// applied yet while this event script is running, so restoring now would be
+// undone by the very hit being reported.
+void CBD_ScheduleRestore(object oDummy)
+{
+    // On the module: a delayed command on the dummy is discarded if the dummy
+    // is destroyed, and this is the one that has to survive the edge cases.
+    AssignCommand(GetModule(), DelayCommand(0.0, CBD_Restore(oDummy)));
+}
+
+void CBD_Restore(object oDummy)
+{
+    if (!GetIsObjectValid(oDummy)) return;
+    if (!GetLocalInt(oDummy, CBD_VAR_IS_DUMMY)) return;
+
+    // Never undo the end-of-set self-destruct, and never haul a corpse back up.
+    if (GetIsDead(oDummy)) return;
+
+    int nMax = GetMaxHitPoints(oDummy);
+    if (GetCurrentHitPoints(oDummy) &gt;= nMax) return;
+
+    NWNX_Object_SetCurrentHitPoints(oDummy, nMax);
+}
+
+// One damage field&#x27;s contribution. NWNX reports a damage type that was NOT
+// dealt as -1, not as 0 - so a plain sum of the 32 fields is the real damage
+// MINUS the number of unused types. That is what made a 33-point greatsword hit
+// measure as 2 and a 28-point hit as -3 (&quot;packet carried no damage&quot;), and it is
+// why every damage field must go through here. Verified from the live dump:
+// base=33 with 31 fields at -1 reported total=2.
+int CBD_Amt(int nValue)
+{
+    return (nValue &gt; 0) ? nValue : 0;
+}
+
+// ---- diagnostics (CBD_DEBUG) ----------------------------------------------
+
+// On when the flag is set on this dummy specifically, or module-wide (which is
+// what the dbg_combat admin script flips, so no toolset trip is needed).
+int CBD_IsDebug(object oDummy)
+{
+    if (GetLocalInt(oDummy, CBD_VAR_DEBUG)) return TRUE;
+    return GetLocalInt(GetModule(), CBD_VAR_DEBUG);
+}
+
+// &quot; name=N&quot; for a non-zero field, &quot;&quot; otherwise - so a dump lists only the
+// damage types that actually arrived.
+string CBD_DbgField(string sName, int nVal)
+{
+    // &lt;= 0 rather than == 0: unused types come through as -1 (see CBD_Amt).
+    if (nVal &lt;= 0) return &quot;&quot;;
+    return &quot; &quot; + sName + &quot;=&quot; + IntToString(nVal);
+}
+
+// Diagnostic line: server channel only (no float, no SpeakString) so it cannot
+// be confused with the tool&#x27;s real output, and it is prefixed so it can be
+// grepped out of a client log.
+void CBD_Debug(object oDummy, object oPC, string sMsg)
+{
+    if (!GetIsObjectValid(oPC)) oPC = GetLocalObject(oDummy, CBD_VAR_OWNER);
+    if (!GetIsObjectValid(oPC)) return;
+    SendMessageToPC(oPC, CBD_DEBUG_COLOR + &quot;[CBD_DEBUG] &quot; + sMsg + COLOR_END);
+}
+
+// Any activity from the owner resets the idle clock. Called from both the
+// attack and the damage handler.
+void CBD_Touch(object oDummy)
+{
+    SetLocalInt(oDummy, CBD_VAR_IDLE, 0);
+}
+
+void CBD_ClearState(object oDummy)
+{
+    DeleteLocalInt(oDummy, CBD_VAR_IDLE);
+    DeleteLocalInt(oDummy, CBD_VAR_ACTIVE);
+    DeleteLocalObject(oDummy, CBD_VAR_OWNER);
+    DeleteLocalInt(oDummy, CBD_VAR_ROUND);
+    DeleteLocalInt(oDummy, CBD_VAR_ATK_TOT);
+    DeleteLocalInt(oDummy, CBD_VAR_HIT_TOT);
+    DeleteLocalInt(oDummy, CBD_VAR_DMG_TOT);
+    DeleteLocalInt(oDummy, CBD_VAR_ATK_RND);
+    DeleteLocalInt(oDummy, CBD_VAR_DMG_RND);
+    DeleteLocalInt(oDummy, CBD_VAR_WARNED);
+}
+
+void CBD_StartSession(object oDummy, object oPC)
+{
+    // Bump the serial FIRST: any tick still pending from a previous session is
+    // now stale and will drop out of CBD_RoundTick.
+    int nToken = GetLocalInt(oDummy, CBD_VAR_TOKEN) + 1;
+    SetLocalInt(oDummy, CBD_VAR_TOKEN, nToken);
+
+    CBD_ClearState(oDummy);
+    SetLocalInt(oDummy, CBD_VAR_ACTIVE, 1);
+    SetLocalObject(oDummy, CBD_VAR_OWNER, oPC);
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                        EffectVisualEffect(VFX_FNF_LOS_HOLY_10), oDummy);
+
+    CBD_Say(oPC, &quot;Combat test started: &quot; + IntToString(CBD_ROUNDS) +
+                 &quot; rounds. Keep attacking the dummy.&quot;);
+
+    AssignCommand(oDummy,
+        DelayCommand(CBD_ROUND_SECS, CBD_RoundTick(oDummy, nToken)));
+    AssignCommand(oDummy,
+        DelayCommand(CBD_WATCH_SECS, CBD_Watchdog(oDummy, nToken)));
+}
+
+// A trial only means anything if the tester keeps swinging: idle rounds would
+// drag APR and DPR toward zero and then record that as a score. So the session
+// is abandoned after CBD_IDLE_LIMIT seconds with no attack and no damage, and
+// immediately if the owner leaves the area or dies. Nothing is recorded.
+// Runs once a second, but only while a session is actually open.
+void CBD_Watchdog(object oDummy, int nToken)
+{
+    if (!GetIsObjectValid(oDummy)) return;
+    if (GetLocalInt(oDummy, CBD_VAR_TOKEN) != nToken) return;
+    if (!GetLocalInt(oDummy, CBD_VAR_ACTIVE)) return;
+
+    object oPC = GetLocalObject(oDummy, CBD_VAR_OWNER);
+    if (!GetIsObjectValid(oPC) || GetIsDead(oPC))
+    {
+        CBD_CancelSession(oDummy, &quot;&quot;);
+        return;
+    }
+    if (GetArea(oPC) != GetArea(oDummy))
+    {
+        CBD_CancelSession(oDummy, &quot;Combat test cancelled - you left the area. Nothing was recorded.&quot;);
+        return;
+    }
+
+    int nIdle = GetLocalInt(oDummy, CBD_VAR_IDLE) + 1;
+    SetLocalInt(oDummy, CBD_VAR_IDLE, nIdle);
+    if (nIdle &gt;= CBD_IDLE_LIMIT)
+    {
+        CBD_CancelSession(oDummy, &quot;Combat test cancelled - you stopped attacking for &quot; +
+                                  IntToString(CBD_IDLE_LIMIT) + &quot; seconds. Nothing was recorded.&quot;);
+        return;
+    }
+
+    AssignCommand(oDummy,
+        DelayCommand(CBD_WATCH_SECS, CBD_Watchdog(oDummy, nToken)));
+}
+
+void CBD_RoundTick(object oDummy, int nToken)
+{
+    // Stale tick from a cancelled or superseded session.
+    if (!GetIsObjectValid(oDummy)) return;
+    if (GetLocalInt(oDummy, CBD_VAR_TOKEN) != nToken) return;
+    if (!GetLocalInt(oDummy, CBD_VAR_ACTIVE)) return;
+
+    object oPC = GetLocalObject(oDummy, CBD_VAR_OWNER);
+    if (!GetIsObjectValid(oPC) || GetIsDead(oPC))
+    {
+        CBD_CancelSession(oDummy, &quot;&quot;);
+        return;
+    }
+
+    int nRound = GetLocalInt(oDummy, CBD_VAR_ROUND) + 1;
+    SetLocalInt(oDummy, CBD_VAR_ROUND, nRound);
+
+    int nAtk = GetLocalInt(oDummy, CBD_VAR_ATK_RND);
+    int nDmg = GetLocalInt(oDummy, CBD_VAR_DMG_RND);
+
+    // Diagnostic: the tick&#x27;s own view of the counters, so a tally that is being
+    // lost between the damage handler and here is visible as a mismatch with
+    // the &quot;counted +N&quot; lines above it.
+    if (CBD_IsDebug(oDummy))
+        CBD_Debug(oDummy, oPC, &quot;tick round &quot; + IntToString(nRound) +
+                  &quot;: atk_rnd=&quot; + IntToString(nAtk) +
+                  &quot; dmg_rnd=&quot; + IntToString(nDmg) +
+                  &quot; dmg_tot=&quot; + IntToString(GetLocalInt(oDummy, CBD_VAR_DMG_TOT)));
+    SetLocalInt(oDummy, CBD_VAR_ATK_RND, 0);
+    SetLocalInt(oDummy, CBD_VAR_DMG_RND, 0);
+
+    CBD_Report(oDummy, oPC, &quot;Round &quot; + IntToString(nRound) + &quot;/&quot; +
+                 IntToString(CBD_ROUNDS) + &quot;: &quot; + IntToString(nAtk) +
+                 &quot; attacks, &quot; + IntToString(nDmg) + &quot; damage.&quot;);
+
+    if (nRound &gt;= CBD_ROUNDS)
+    {
+        CBD_EndSession(oDummy);
+        return;
+    }
+
+    AssignCommand(oDummy,
+        DelayCommand(CBD_ROUND_SECS, CBD_RoundTick(oDummy, nToken)));
+}
+
+// The end-of-set cue. A full 10-round set finishes with the dummy blowing
+// apart - the same visual and the same 6-second cbd_death respawn a real death
+// produces, which is exactly why it is used: it is unmistakable across a room,
+// and it stops the tester dead. Called on a delay from CBD_EndSession so the
+// spoken summary lines (actions on the dummy) get out first.
+//
+// This is the ONLY death a dummy is ever supposed to have. cbd_spawn&#x27;s
+// EffectImmunity(IMMUNITY_TYPE_DEATH) has to come off for it to land - the
+// dummy carries no other immunity effect, so stripping the type is safe and
+// avoids caching the effect handle across a 60-second session.
+//
+// cbd_death does not double-report: CBD_EndSession has already cleared
+// CBD_ACTIVE by the time this runs, so the cancel branch there is skipped.
+void CBD_SelfDestruct(object oDummy, object oPC, int nToken)
+{
+    if (!GetIsObjectValid(oDummy)) return;
+
+    // A new session opened in the gap (the replacement dummy is a different
+    // object, so this can only be this same dummy being re-engaged): leave it
+    // alone rather than killing a run that just started.
+    if (GetLocalInt(oDummy, CBD_VAR_TOKEN) != nToken) return;
+
+    // Stop the tester swinging at thin air - the set is over and anything
+    // further would land on the corpse or on the replacement.
+    if (GetIsObjectValid(oPC)) AssignCommand(oPC, ClearAllActions(TRUE));
+
+    effect e = GetFirstEffect(oDummy);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_IMMUNITY) RemoveEffect(oDummy, e);
+        e = GetNextEffect(oDummy);
+    }
+
+    // TRUE = spectacular death: the dummy comes apart instead of falling over.
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(TRUE, TRUE), oDummy);
+}
+
+void CBD_EndSession(object oDummy)
+{
+    object oPC   = GetLocalObject(oDummy, CBD_VAR_OWNER);
+    int nAtkTot  = GetLocalInt(oDummy, CBD_VAR_ATK_TOT);
+    int nHitTot  = GetLocalInt(oDummy, CBD_VAR_HIT_TOT);
+    int nDmgTot  = GetLocalInt(oDummy, CBD_VAR_DMG_TOT);
+
+    float fApr = IntToFloat(nAtkTot) / IntToFloat(CBD_ROUNDS);
+    float fDpr = IntToFloat(nDmgTot) / IntToFloat(CBD_ROUNDS);
+
+    // Close the session before anything that can fail, so a DB problem can
+    // never leave the dummy stuck &quot;active&quot;.
+    int nToken = GetLocalInt(oDummy, CBD_VAR_TOKEN) + 1;
+    SetLocalInt(oDummy, CBD_VAR_TOKEN, nToken);
+    CBD_ClearState(oDummy);
+    SetLocalInt(oDummy, CBD_VAR_COOL, 1);
+    AssignCommand(oDummy,
+        DelayCommand(CBD_COOL_SECS, CBD_ClearCooldown(oDummy, nToken)));
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                        EffectVisualEffect(VFX_FNF_TIME_STOP), oDummy);
+
+    // ...and then it self-destructs. Scheduled before the reporting and the
+    // early returns below so that a completed set ALWAYS ends this way, even
+    // when the owner has gone or nothing was recorded. Assigned to the module:
+    // a delayed command on the dummy would be discarded if it went away first.
+    AssignCommand(GetModule(),
+        DelayCommand(CBD_DESTRUCT, CBD_SelfDestruct(oDummy, oPC, nToken)));
+
+    if (!GetIsObjectValid(oPC)) return;
+
+    // Green: this is the answer the tester came for, and it has to be findable
+    // in a log full of yellow round lines and red combat spam.
+    CBD_ReportColor(oDummy, oPC, &quot;Combat test complete (&quot; +
+                    IntToString(CBD_ROUNDS) + &quot; rounds).&quot;, CBD_COLOR_FINAL);
+    CBD_ReportColor(oDummy, oPC, &quot;Attacks per round: &quot; +
+                    FloatToString(fApr, 0, 2) + &quot;   (&quot; + IntToString(nHitTot) +
+                    &quot; hits / &quot; + IntToString(nAtkTot) + &quot; attacks)&quot;,
+                    CBD_COLOR_FINAL);
+    CBD_ReportColor(oDummy, oPC, &quot;Damage per round: &quot; +
+                    FloatToString(fDpr, 0, 1) + &quot;   (&quot; + IntToString(nDmgTot) +
+                    &quot; total)&quot;, CBD_COLOR_FINAL);
+
+    // Nothing happened - don&#x27;t pollute the leaderboard with idle sessions.
+    if (nDmgTot &lt;= 0) return;
+
+    Cbd_Record(oPC, fDpr, nDmgTot, CBD_ROUNDS);
+    CBD_SayColor(oPC, &quot;  Recorded to the Hall of Champions.&quot;, CBD_COLOR_FINAL);
+}
+
+void CBD_CancelSession(object oDummy, string sWhy)
+{
+    object oPC = GetLocalObject(oDummy, CBD_VAR_OWNER);
+    SetLocalInt(oDummy, CBD_VAR_TOKEN, GetLocalInt(oDummy, CBD_VAR_TOKEN) + 1);
+    CBD_ClearState(oDummy);
+    if (sWhy != &quot;&quot;) CBD_Say(oPC, sWhy);
+    else CBD_Say(oPC, &quot;Combat test cancelled - nothing recorded.&quot;);
+}
+
+void CBD_ClearCooldown(object oDummy, int nToken)
+{
+    if (!GetIsObjectValid(oDummy)) return;
+    if (GetLocalInt(oDummy, CBD_VAR_TOKEN) != nToken) return;
+    DeleteLocalInt(oDummy, CBD_VAR_COOL);
+}
+
+// Somebody who is not the session owner touched an active dummy: freeze them
+// for a moment and tell them why. Their damage is discarded by the caller.
+void CBD_Reject(object oDummy, object oSrc)
+{
+    if (!GetIsObjectValid(oSrc)) return;
+
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, EffectPetrify(), oSrc,
+                        CBD_PETRIFY);
+
+    object oPC = CBD_OwnerPC(oSrc);
+    if (!GetIsObjectValid(oPC)) return;
+
+    // One message per session per intruder - the handler fires on every swing.
+    string sVar = &quot;CBD_TOLD_&quot; + ObjectToString(oDummy);
+    if (GetLocalInt(oPC, sVar) == GetLocalInt(oDummy, CBD_VAR_TOKEN)) return;
+    SetLocalInt(oPC, sVar, GetLocalInt(oDummy, CBD_VAR_TOKEN));
+
+    object oOwner = GetLocalObject(oDummy, CBD_VAR_OWNER);
+    CBD_Say(oPC, &quot;This combat dummy is in use by &quot; + GetName(oOwner) +
+                 &quot;. Wait for the test to finish - your damage is not counted.&quot;);
+}
+
+// Called from devcrit_atk.nss on every attack whose target is a dummy.
+// OBJECT_SELF is the attacker; data.oTarget is the dummy.
+//
+// This is also one of the two places a session can START. It has to be: the
+// attack event resolves BEFORE the damage event, so if only cbd_damage could
+// open a session, the swing that opened it would never be counted and every
+// APR reading would be one attack light in round 1.
+void CBD_TrackAttack(struct NWNX_Damage_AttackEventData data)
+{
+    object oDummy = data.oTarget;
+
+    // Stash the attacker FIRST, before any early return: this is the only place
+    // the source of a hit is known for certain, and cbd_damage falls back to it
+    // when the damage event cannot say who dealt the damage.
+    SetLocalObject(oDummy, CBD_VAR_LAST_SRC, OBJECT_SELF);
+
+    if (GetLocalInt(oDummy, CBD_VAR_COOL)) return;
+
+    object oPC = CBD_OwnerPC(OBJECT_SELF);
+
+    if (!GetLocalInt(oDummy, CBD_VAR_ACTIVE))
+    {
+        if (!GetIsObjectValid(oPC)) return;
+        CBD_StartSession(oDummy, oPC);
+    }
+    else if (oPC != GetLocalObject(oDummy, CBD_VAR_OWNER))
+    {
+        CBD_Reject(oDummy, OBJECT_SELF);
+        return;
+    }
+
+    CBD_Touch(oDummy);
+    SetLocalInt(oDummy, CBD_VAR_ATK_RND, GetLocalInt(oDummy, CBD_VAR_ATK_RND) + 1);
+    SetLocalInt(oDummy, CBD_VAR_ATK_TOT, GetLocalInt(oDummy, CBD_VAR_ATK_TOT) + 1);
+
+    // iAttackResult: 1 hit, 2 parried, 3 critical, 4 miss, 5 resisted,
+    // 7 automatic hit, 8 concealed, 9 miss chance, 10 devastating critical.
+    int nRes = data.iAttackResult;
+
+    if (CBD_IsDebug(oDummy))
+    {
+        // The attack event carries damage fields of its own. These are the
+        // values as they stand when this hook runs - devcrit_atk calls us
+        // first and adds its bonus dice AFTER, so the difference between this
+        // line and the cbd_damage line below is exactly what the rest of the
+        // pipeline (devcrit dice, then reduction/resistance) did to the hit.
+        CBD_Debug(oDummy, oPC, &quot;attack #&quot; + IntToString(data.iAttackNumber) +
+                  &quot;: result=&quot; + IntToString(nRes) +
+                  &quot; wtype=&quot; + IntToString(data.iWeaponAttackType) +
+                  &quot; sneak=&quot; + IntToString(data.iSneakAttack) +
+                  &quot; dmg:&quot; +
+                  CBD_DbgField(&quot;base&quot;,  data.iBase) +
+                  CBD_DbgField(&quot;bludg&quot;, data.iBludgeoning) +
+                  CBD_DbgField(&quot;pierce&quot;, data.iPierce) +
+                  CBD_DbgField(&quot;slash&quot;, data.iSlash) +
+                  CBD_DbgField(&quot;magic&quot;, data.iMagical) +
+                  CBD_DbgField(&quot;fire&quot;,  data.iFire) +
+                  CBD_DbgField(&quot;cold&quot;,  data.iCold) +
+                  CBD_DbgField(&quot;elec&quot;,  data.iElectrical) +
+                  CBD_DbgField(&quot;acid&quot;,  data.iAcid) +
+                  CBD_DbgField(&quot;sonic&quot;, data.iSonic) +
+                  CBD_DbgField(&quot;div&quot;,   data.iDivine) +
+                  CBD_DbgField(&quot;neg&quot;,   data.iNegative) +
+                  CBD_DbgField(&quot;pos&quot;,   data.iPositive));
+    }
+
+    if (nRes == 1 || nRes == 3 || nRes == 7 || nRes == 10)
+        SetLocalInt(oDummy, CBD_VAR_HIT_TOT,
+                    GetLocalInt(oDummy, CBD_VAR_HIT_TOT) + 1);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

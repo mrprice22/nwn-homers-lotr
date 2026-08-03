@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cbd_damage</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cbd_damage</code></h1><pre class="nss-source"><code>// cbd_damage.nss - Combat Dummy: NWNX Damage DAMAGE event handler.
+//
+// Registered PER OBJECT by cbd_spawn:
+//     NWNX_Damage_SetDamageEventScript(&quot;cbd_damage&quot;, OBJECT_SELF);
+// so it never runs for anything but a dummy and costs the rest of the server
+// nothing. OBJECT_SELF is the object taking the damage (the dummy);
+// data.oDamager is the source.
+//
+// Two jobs:
+//   1. attribute and accumulate the damage (this is the DPR measurement, and
+//      it counts EVERYTHING the owner deals - weapons, spells, on-hit
+//      properties);
+//   2. let the damage LAND and heal it straight back off, which is what makes
+//      the dummy indestructible.
+//
+// It used to zero every damage field instead. That worked, but it cost the
+// tester the single most useful thing on screen: with no HP change the engine
+// prints no damage line and no &quot;damage reduction absorbs&quot; feedback, so a
+// combat test could not be checked against the combat log at all (UAT round 3).
+// Now the hit applies normally and CBD_Restore puts the dummy back to full on
+// the next pulse. Death immunity (cbd_spawn) and the respawn (cbd_death) are
+// still behind that, for the one hit big enough to outrun the restore.
+
+#include &quot;nwnx_damage&quot;
+#include &quot;cbd_inc&quot;
+
+void main()
+{
+    struct NWNX_Damage_DamageEventData data = NWNX_Damage_GetDamageEventData();
+
+    object oDummy = OBJECT_SELF;
+    if (!GetLocalInt(oDummy, CBD_VAR_IS_DUMMY)) return;
+
+    // EVERY field goes through CBD_Amt: NWNX reports an unused damage type as
+    // -1, not 0. Summing them raw subtracts one point per unused type, which is
+    // how a 33-point greatsword hit measured as 2 and a 28-point hit as -3 and
+    // was then dropped as &quot;no damage&quot; (UAT rounds 3 and 4).
+    int nDmg = CBD_Amt(data.iBludgeoning) + CBD_Amt(data.iPierce) +
+               CBD_Amt(data.iSlash) + CBD_Amt(data.iMagical) +
+               CBD_Amt(data.iAcid) + CBD_Amt(data.iCold) +
+               CBD_Amt(data.iDivine) + CBD_Amt(data.iElectrical) +
+               CBD_Amt(data.iFire) + CBD_Amt(data.iNegative) +
+               CBD_Amt(data.iPositive) + CBD_Amt(data.iSonic) +
+               CBD_Amt(data.iBase) +
+               CBD_Amt(data.iCustom1) + CBD_Amt(data.iCustom2) +
+               CBD_Amt(data.iCustom3) + CBD_Amt(data.iCustom4) +
+               CBD_Amt(data.iCustom5) + CBD_Amt(data.iCustom6) +
+               CBD_Amt(data.iCustom7) + CBD_Amt(data.iCustom8) +
+               CBD_Amt(data.iCustom9) + CBD_Amt(data.iCustom10) +
+               CBD_Amt(data.iCustom11) + CBD_Amt(data.iCustom12) +
+               CBD_Amt(data.iCustom13) + CBD_Amt(data.iCustom14) +
+               CBD_Amt(data.iCustom15) + CBD_Amt(data.iCustom16) +
+               CBD_Amt(data.iCustom17) + CBD_Amt(data.iCustom18) +
+               CBD_Amt(data.iCustom19);
+
+    // Who dealt it. data.oDamager is NOT reliable for weapon damage - UAT round
+    // 3 measured &quot;6 attacks, 0 damage&quot; for a whole set because every packet
+    // arrived with an unusable damager, resolved to no PC, and was thrown away
+    // as an intruder&#x27;s. CBD_ResolveSrc falls back to the attacker the attack
+    // event stashed, which is always valid.
+    object oSrc = CBD_ResolveSrc(oDummy, data.oDamager);
+    object oPC  = CBD_OwnerPC(oSrc);
+
+    // Diagnostic mode (CBD_DEBUG on the dummy) - every packet, with its source
+    // and the state that decides whether it is counted. Off by default.
+    if (CBD_IsDebug(oDummy))
+        CBD_Debug(oDummy, oPC, &quot;damage from &quot; + GetName(oSrc) +
+                  &quot; (raw=&quot; + GetName(data.oDamager) +
+                  &quot;, pc=&quot; + GetName(oPC) + &quot;)&quot; +
+                  &quot; active=&quot; + IntToString(GetLocalInt(oDummy, CBD_VAR_ACTIVE)) +
+                  &quot; cool=&quot; + IntToString(GetLocalInt(oDummy, CBD_VAR_COOL)) +
+                  &quot; total=&quot; + IntToString(nDmg) + &quot;:&quot; +
+                  CBD_DbgField(&quot;base&quot;,  data.iBase) +
+                  CBD_DbgField(&quot;bludg&quot;, data.iBludgeoning) +
+                  CBD_DbgField(&quot;pierce&quot;, data.iPierce) +
+                  CBD_DbgField(&quot;slash&quot;, data.iSlash) +
+                  CBD_DbgField(&quot;magic&quot;, data.iMagical) +
+                  CBD_DbgField(&quot;fire&quot;,  data.iFire) +
+                  CBD_DbgField(&quot;cold&quot;,  data.iCold) +
+                  CBD_DbgField(&quot;elec&quot;,  data.iElectrical) +
+                  CBD_DbgField(&quot;acid&quot;,  data.iAcid) +
+                  CBD_DbgField(&quot;sonic&quot;, data.iSonic) +
+                  CBD_DbgField(&quot;div&quot;,   data.iDivine) +
+                  CBD_DbgField(&quot;neg&quot;,   data.iNegative) +
+                  CBD_DbgField(&quot;pos&quot;,   data.iPositive));
+
+    if (GetLocalInt(oDummy, CBD_VAR_ACTIVE))
+    {
+        if (GetIsObjectValid(oPC) &amp;&amp; oPC == GetLocalObject(oDummy, CBD_VAR_OWNER))
+        {
+            if (nDmg &gt; 0)
+            {
+                CBD_Touch(oDummy);
+                SetLocalInt(oDummy, CBD_VAR_DMG_RND,
+                            GetLocalInt(oDummy, CBD_VAR_DMG_RND) + nDmg);
+                SetLocalInt(oDummy, CBD_VAR_DMG_TOT,
+                            GetLocalInt(oDummy, CBD_VAR_DMG_TOT) + nDmg);
+
+                if (CBD_IsDebug(oDummy))
+                    CBD_Debug(oDummy, oPC, &quot;  counted +&quot; + IntToString(nDmg) +
+                              &quot; (round &quot; +
+                              IntToString(GetLocalInt(oDummy, CBD_VAR_DMG_RND)) +
+                              &quot;, session &quot; +
+                              IntToString(GetLocalInt(oDummy, CBD_VAR_DMG_TOT)) + &quot;)&quot;);
+            }
+            else if (CBD_IsDebug(oDummy))
+                CBD_Debug(oDummy, oPC, &quot;  IGNORED: packet carried no damage&quot;);
+        }
+        else if (GetIsObjectValid(oPC))
+        {
+            if (CBD_IsDebug(oDummy))
+                CBD_Debug(oDummy, oPC, &quot;  DISCARDED: not the session owner (&quot; +
+                          GetName(GetLocalObject(oDummy, CBD_VAR_OWNER)) + &quot;)&quot;);
+
+            // Another PC, a henchman, a summon: frozen out, and their damage is
+            // discarded from both metrics. Only ever taken when the source
+            // resolves to a REAL and different player - damage we cannot
+            // attribute falls through to the owner above via CBD_ResolveSrc,
+            // because silently discarding it is what broke the measurement.
+            CBD_Reject(oDummy, oSrc);
+        }
+        else if (CBD_IsDebug(oDummy))
+            CBD_Debug(oDummy, OBJECT_INVALID,
+                      &quot;  DISCARDED: no player behind this damage at all&quot;);
+    }
+    else if (!GetLocalInt(oDummy, CBD_VAR_COOL) &amp;&amp; GetIsObjectValid(oPC) &amp;&amp; nDmg &gt; 0)
+    {
+        // First blood on an idle dummy starts the session, and this hit counts
+        // as part of round 1.
+        CBD_StartSession(oDummy, oPC);
+        SetLocalInt(oDummy, CBD_VAR_DMG_RND, nDmg);
+        SetLocalInt(oDummy, CBD_VAR_DMG_TOT, nDmg);
+    }
+    else if (GetLocalInt(oDummy, CBD_VAR_COOL) &amp;&amp; GetIsObjectValid(oPC))
+    {
+        if (!GetLocalInt(oDummy, CBD_VAR_WARNED))
+        {
+            SetLocalInt(oDummy, CBD_VAR_WARNED, 1);
+            CBD_Notice(oPC, &quot;The dummy is resetting - wait a moment before the next test.&quot;);
+        }
+    }
+
+    // The damage is handed back UNTOUCHED so the engine applies it and prints
+    // it: per-type numbers, resistances, damage reduction. The dummy is put
+    // back to full on the next pulse instead.
+    if (nDmg &gt; 0) CBD_ScheduleRestore(oDummy);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

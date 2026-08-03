@@ -61,7 +61,7 @@ void main() {
     object oPC = GetPCSpeaker();
     // Only start a new session if one isn&#x27;t already active. When the player
     // arrives here via the armor sub-menu (zep_cr_start_ca), the session is
-    // already running for the chest armor — calling ZEP_StartCraft again
+    // already running for the chest armor - calling ZEP_StartCraft again
     // would orphan the existing backup in the work container and create a
     // spurious TEMPITEM that gets quarantined on the next area entry check.
     if (!GetLocalInt(oPC, &quot;ZEP_CR_STARTED&quot;)) {

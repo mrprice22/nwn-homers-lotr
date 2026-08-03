@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cbd_db</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cbd_db</code></h1><pre class="nss-source"><code>// cbd_db.nss - Combat Dummy leaderboard (&quot;Hall of Champions&quot;) database.
+//
+// Campaign DB &quot;combatdummydb&quot; (file database/combatdummydb.sqlite3), table
+// sessions: one row per completed 10-round test.
+//
+//   id, cdkey, player_name, uuid, char_name, dpr, total_damage, rounds, at
+//
+// Identity is split the same way as bst_db.nss: `uuid` (GetObjectUUID) is the
+// CHARACTER, `cdkey` (GetPCPublicCDKey) is the ACCOUNT. Attacks per round are
+// deliberately NOT stored - they are a per-session diagnostic, not a score.
+//
+// The sign (cbd_sign.dlg) browses three views, 10 rows to a page:
+//   mode 1  this account&#x27;s best result per character, top 10
+//   mode 2  this account&#x27;s 10 most recent results
+//   mode 3  server-wide top 20, ONE ROW PER ACCOUNT (an account&#x27;s single best
+//           result across all its characters), paged 10 + 10
+//
+// Custom tokens: 6400 header, 6401-6410 rows, 6411 footer.
+// Per-PC locals: &quot;cbd_mode&quot;, &quot;cbd_off&quot;, &quot;cbd_total&quot;.
+
+const string CBD_DB       = &quot;combatdummydb&quot;;
+const int    CBD_TOK_HEAD = 6400;
+const int    CBD_TOK_ROW0 = 6401;
+const int    CBD_TOK_FOOT = 6411;
+const int    CBD_PAGE     = 10;   // rows per page
+const int    CBD_TOP_MAX  = 20;   // server-wide leaderboard depth
+
+void Cbd_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(CBD_DB,
+        &quot;CREATE TABLE IF NOT EXISTS sessions (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;cdkey TEXT NOT NULL,&quot; +
+        &quot;player_name TEXT,&quot; +
+        &quot;uuid TEXT NOT NULL,&quot; +
+        &quot;char_name TEXT,&quot; +
+        &quot;dpr REAL NOT NULL,&quot; +
+        &quot;total_damage INTEGER NOT NULL,&quot; +
+        &quot;rounds INTEGER NOT NULL,&quot; +
+        &quot;at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)))&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(CBD_DB,
+        &quot;CREATE INDEX IF NOT EXISTS idx_sessions_cdkey ON sessions(cdkey)&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(CBD_DB,
+        &quot;CREATE INDEX IF NOT EXISTS idx_sessions_dpr ON sessions(dpr DESC)&quot;);
+    SqlStep(q);
+}
+
+void Cbd_Record(object oPC, float fDpr, int nTotalDamage, int nRounds)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CBD_DB,
+        &quot;INSERT INTO sessions (cdkey, player_name, uuid, char_name, dpr,&quot; +
+        &quot; total_damage, rounds) VALUES (@k, @p, @u, @c, @d, @t, @r)&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@p&quot;, GetPCPlayerName(oPC));
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@c&quot;, GetName(oPC));
+    SqlBindFloat (q, &quot;@d&quot;, fDpr);
+    SqlBindInt   (q, &quot;@t&quot;, nTotalDamage);
+    SqlBindInt   (q, &quot;@r&quot;, nRounds);
+    SqlStep(q);
+}
+
+// ---------------------------------------------------------------------------
+// Browsing
+
+string Cbd_ModeTitle(int nMode)
+{
+    if (nMode == 1) return &quot;Your account - best result per character&quot;;
+    if (nMode == 2) return &quot;Your account - 10 most recent tests&quot;;
+    return &quot;Server-wide - top &quot; + IntToString(CBD_TOP_MAX) + &quot; (best per player)&quot;;
+}
+
+// One &quot;keep only the best row&quot; filter, written once. The correlated NOT EXISTS
+// picks the single winning row per partition (and its own char_name/date), which
+// a GROUP BY + MAX(dpr) cannot promise.
+string Cbd_BestRowFilter(string sPartitionCol)
+{
+    return &quot; AND NOT EXISTS (SELECT 1 FROM sessions b WHERE b.&quot; +
+           sPartitionCol + &quot; = s.&quot; + sPartitionCol +
+           &quot; AND (b.dpr &gt; s.dpr OR (b.dpr = s.dpr AND b.id &lt; s.id)))&quot;;
+}
+
+string Cbd_Sql(int nMode, int bCount)
+{
+    // &quot;at&quot; is stored as datetime(&#x27;now&#x27;), which SQLite gives in UTC - always
+    // convert for display or the board reads a day ahead of the player.
+    // The 10-most-recent view is a log of THIS session&#x27;s tests, so it shows the
+    // time as well; the two high-score views are historical and show the date
+    // only.
+    string sWhen = (nMode == 2) ? &quot;substr(datetime(s.at, &#x27;localtime&#x27;), 1, 16)&quot;
+                                : &quot;substr(datetime(s.at, &#x27;localtime&#x27;), 1, 10)&quot;;
+
+    string sCols = bCount ? &quot;COUNT(*)&quot;
+                          : &quot;player_name, char_name, dpr, &quot; + sWhen;
+    string sSql  = &quot;SELECT &quot; + sCols + &quot; FROM sessions s WHERE 1=1&quot;;
+
+    if (nMode == 1)
+        sSql += &quot; AND s.cdkey = @k&quot; + Cbd_BestRowFilter(&quot;uuid&quot;);
+    else if (nMode == 2)
+        sSql += &quot; AND s.cdkey = @k&quot;;
+    else
+        sSql += Cbd_BestRowFilter(&quot;cdkey&quot;);
+
+    if (bCount) return sSql;
+
+    if (nMode == 2) sSql += &quot; ORDER BY s.id DESC&quot;;
+    else            sSql += &quot; ORDER BY s.dpr DESC, s.id ASC&quot;;
+
+    return sSql + &quot; LIMIT @lim OFFSET @off&quot;;
+}
+
+// How many rows this mode can show in total (capped by the published depth).
+int Cbd_Total(object oPC, int nMode)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CBD_DB, Cbd_Sql(nMode, TRUE));
+    if (nMode == 1 || nMode == 2) SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+
+    int nTotal = 0;
+    if (SqlStep(q)) nTotal = SqlGetInt(q, 0);
+
+    int nCap = (nMode == 3) ? CBD_TOP_MAX : CBD_PAGE;
+    return (nTotal &gt; nCap) ? nCap : nTotal;
+}
+
+// Fill the page tokens for the PC&#x27;s current mode/offset.
+void Cbd_BuildPage(object oPC)
+{
+    int nMode = GetLocalInt(oPC, &quot;cbd_mode&quot;);
+    int nOff  = GetLocalInt(oPC, &quot;cbd_off&quot;);
+
+    int nTotal = Cbd_Total(oPC, nMode);
+    SetLocalInt(oPC, &quot;cbd_total&quot;, nTotal);
+
+    SetCustomToken(CBD_TOK_HEAD, Cbd_ModeTitle(nMode));
+    int i;
+    for (i = 0; i &lt; CBD_PAGE; i++) SetCustomToken(CBD_TOK_ROW0 + i, &quot;&quot;);
+
+    if (nTotal &lt;= 0)
+    {
+        SetCustomToken(CBD_TOK_ROW0, &quot;   (no results recorded yet)&quot;);
+        SetCustomToken(CBD_TOK_FOOT, &quot;&quot;);
+        return;
+    }
+
+    // Never read past the published depth, even if the table holds more.
+    int nLimit = nTotal - nOff;
+    if (nLimit &gt; CBD_PAGE) nLimit = CBD_PAGE;
+
+    sqlquery q = SqlPrepareQueryCampaign(CBD_DB, Cbd_Sql(nMode, FALSE));
+    if (nMode == 1 || nMode == 2) SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindInt(q, &quot;@lim&quot;, nLimit);
+    SqlBindInt(q, &quot;@off&quot;, nOff);
+
+    i = 0;
+    while (SqlStep(q) &amp;&amp; i &lt; CBD_PAGE)
+    {
+        string sRow = IntToString(nOff + i + 1) + &quot;. &quot; +
+                      SqlGetString(q, 0) + &quot;  |  &quot; +      // player account
+                      SqlGetString(q, 1) + &quot;  |  &quot; +      // character
+                      FloatToString(SqlGetFloat(q, 2), 0, 1) + &quot; DPR  |  &quot; +
+                      SqlGetString(q, 3);                 // date
+        SetCustomToken(CBD_TOK_ROW0 + i, sRow);
+        i++;
+    }
+
+    SetCustomToken(CBD_TOK_FOOT, &quot;Showing &quot; + IntToString(nOff + 1) + &quot;-&quot; +
+                   IntToString(nOff + i) + &quot; of &quot; + IntToString(nTotal) + &quot;.&quot;);
+}
+
+void Cbd_OpenMode(object oPC, int nMode)
+{
+    SetLocalInt(oPC, &quot;cbd_mode&quot;, nMode);
+    SetLocalInt(oPC, &quot;cbd_off&quot;, 0);
+    Cbd_BuildPage(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

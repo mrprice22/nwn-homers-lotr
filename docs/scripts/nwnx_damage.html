@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script nwnx_damage</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>nwnx_damage</code></h1><pre class="nss-source"><code>/// @addtogroup damage Damage
+/// @brief Run a script before damage and attack events allowing for modification. Includes function to arbitrarily apply damage.
+/// @{
+/// @file nwnx_damage.nss
+
+const string NWNX_Damage = &quot;NWNX_Damage&quot;; ///&lt; @private
+
+/// @struct NWNX_Damage_DamageEventData
+/// @brief Damage Event Data
+struct NWNX_Damage_DamageEventData
+{
+    object oDamager; ///&lt; The object that inflicted the damage.
+    int iBludgeoning; ///&lt; Bludgeoning damage
+    int iPierce; ///&lt; Piercing damage
+    int iSlash; ///&lt; Slashing damage
+    int iMagical; ///&lt; Magical damage
+    int iAcid; ///&lt; Acid damage
+    int iCold; ///&lt; Cold damage
+    int iDivine; ///&lt; Divine damage
+    int iElectrical; ///&lt; Electrical damage
+    int iFire; ///&lt; Fire damage
+    int iNegative; ///&lt; Negative damage
+    int iPositive; ///&lt; Positive damage
+    int iSonic; ///&lt; Sonic damage
+    int iBase; ///&lt; Base damage
+    int iCustom1; ///&lt; Custom1 damage
+    int iCustom2; ///&lt; Custom2 damage
+    int iCustom3; ///&lt; Custom3 damage
+    int iCustom4; ///&lt; Custom4 damage
+    int iCustom5; ///&lt; Custom5 damage
+    int iCustom6; ///&lt; Custom6 damage
+    int iCustom7; ///&lt; Custom7 damage
+    int iCustom8; ///&lt; Custom8 damage
+    int iCustom9; ///&lt; Custom9 damage
+    int iCustom10; ///&lt; Custom10 damage
+    int iCustom11; ///&lt; Custom11 damage
+    int iCustom12; ///&lt; Custom12 damage
+    int iCustom13; ///&lt; Custom13 damage
+    int iCustom14; ///&lt; Custom14 damage
+    int iCustom15; ///&lt; Custom15 damage
+    int iCustom16; ///&lt; Custom16 damage
+    int iCustom17; ///&lt; Custom17 damage
+    int iCustom18; ///&lt; Custom18 damage
+    int iCustom19; ///&lt; Custom19 damage
+    int iSpellId; ///&lt; The spell id associated with the damage or -1 if not known.
+};
+
+/// @struct NWNX_Damage_AttackEventData
+/// @brief Attack Event Data
+struct NWNX_Damage_AttackEventData
+{
+    object oTarget; ///&lt; The target who took the damage
+    int iBludgeoning; ///&lt; Bludgeoning damage
+    int iPierce; ///&lt; Piercing damage
+    int iSlash; ///&lt; Slashing damage
+    int iMagical; ///&lt; Magical damage
+    int iAcid; ///&lt; Acid damage
+    int iCold; ///&lt; Cold damage
+    int iDivine; ///&lt; Divine damage
+    int iElectrical; ///&lt; Electrical damage
+    int iFire; ///&lt; Fire damage
+    int iNegative; ///&lt; Negative damage
+    int iPositive; ///&lt; Positive damage
+    int iSonic; ///&lt; Sonic damage
+    int iBase; ///&lt; Base damage
+    int iCustom1; ///&lt; Custom1 damage
+    int iCustom2; ///&lt; Custom2 damage
+    int iCustom3; ///&lt; Custom3 damage
+    int iCustom4; ///&lt; Custom4 damage
+    int iCustom5; ///&lt; Custom5 damage
+    int iCustom6; ///&lt; Custom6 damage
+    int iCustom7; ///&lt; Custom7 damage
+    int iCustom8; ///&lt; Custom8 damage
+    int iCustom9; ///&lt; Custom9 damage
+    int iCustom10; ///&lt; Custom10 damage
+    int iCustom11; ///&lt; Custom11 damage
+    int iCustom12; ///&lt; Custom12 damage
+    int iCustom13; ///&lt; Custom13 damage
+    int iCustom14; ///&lt; Custom14 damage
+    int iCustom15; ///&lt; Custom15 damage
+    int iCustom16; ///&lt; Custom16 damage
+    int iCustom17; ///&lt; Custom17 damage
+    int iCustom18; ///&lt; Custom18 damage
+    int iCustom19; ///&lt; Custom19 damage
+    int iAttackNumber; ///&lt; 1-based index of the attack in current combat round
+    int iAttackResult; ///&lt; 1=hit, 2=parried, 3=critical hit, 4=miss, 5=resisted, 7=automatic hit, 8=concealed, 9=miss chance, 10=devastating crit
+    int iWeaponAttackType; ///&lt; 1=main hand, 2=offhand, 3-5=creature, 6=extra(haste), 7=unarmed, 8=unarmed extra
+    int iSneakAttack; ///&lt; 0=neither, 1=sneak attack, 2=death attack, 3=both
+    int bRangedAttack; /// TRUE if it is a ranged attack
+    int bKillingBlow; ///&lt; TRUE if the hit is a killing blow
+    int iAttackType; ///&lt; 65002=Attack of Opportunity, 65003=Riposte or a FeatID like KnockDown or some other special attack.
+    int iToHitRoll; ///&lt; The to hit roll of the attack
+    int iToHitModifier; ///&lt; The to hit modifier of the attack
+};
+
+/// @struct NWNX_Damage_DamageData
+/// @brief Used for DealDamage
+struct NWNX_Damage_DamageData
+{
+    int iBludgeoning; ///&lt; Bludgeoning damage
+    int iPierce; ///&lt; Piercing damage
+    int iSlash; ///&lt; Slashing damage
+    int iMagical; ///&lt; Magical damage
+    int iAcid; ///&lt; Acid damage
+    int iCold; ///&lt; Cold damage
+    int iDivine; ///&lt; Divine damage
+    int iElectrical; ///&lt; Electrical damage
+    int iFire; ///&lt; Fire damage
+    int iNegative; ///&lt; Negative damage
+    int iPositive; ///&lt; Positive damage
+    int iSonic; ///&lt; Sonic damage
+    int iCustom1; ///&lt; Custom1 damage
+    int iCustom2; ///&lt; Custom2 damage
+    int iCustom3; ///&lt; Custom3 damage
+    int iCustom4; ///&lt; Custom4 damage
+    int iCustom5; ///&lt; Custom5 damage
+    int iCustom6; ///&lt; Custom6 damage
+    int iCustom7; ///&lt; Custom7 damage
+    int iCustom8; ///&lt; Custom8 damage
+    int iCustom9; ///&lt; Custom9 damage
+    int iCustom10; ///&lt; Custom10 damage
+    int iCustom11; ///&lt; Custom11 damage
+    int iCustom12; ///&lt; Custom12 damage
+    int iCustom13; ///&lt; Custom13 damage
+    int iCustom14; ///&lt; Custom14 damage
+    int iCustom15; ///&lt; Custom15 damage
+    int iCustom16; ///&lt; Custom16 damage
+    int iCustom17; ///&lt; Custom17 damage
+    int iCustom18; ///&lt; Custom18 damage
+    int iCustom19; ///&lt; Custom19 damage
+    int iPower; ///&lt; For overcoming DR
+};
+
+/// @brief Sets the script to run with a damage event.
+/// @param sScript The script that will handle the damage event.
+/// @param oOwner An object if only executing for a specific object or OBJECT_INVALID for global.
+void NWNX_Damage_SetDamageEventScript(string sScript, object oOwner = OBJECT_INVALID);
+
+/// @brief Get Damage Event Data
+/// @return A NWNX_Damage_DamageEventData struct.
+/// @note To use only in the Damage Event Script.
+struct NWNX_Damage_DamageEventData NWNX_Damage_GetDamageEventData();
+
+/// @brief Set Damage Event Data
+/// @param data A NWNX_Damage_DamageEventData struct.
+/// @note To use only in the Damage Event Script.
+void NWNX_Damage_SetDamageEventData(struct NWNX_Damage_DamageEventData data);
+
+/// @brief Sets the script to run with an attack event.
+/// @param sScript The script that will handle the attack event.
+/// @param oOwner An object if only executing for a specific object or OBJECT_INVALID for global.
+void NWNX_Damage_SetAttackEventScript(string sScript, object oOwner = OBJECT_INVALID);
+
+/// @brief Get Attack Event Data
+/// @return A NWNX_Damage_AttackEventData struct.
+/// @note To use only in the Attack Event Script.
+struct NWNX_Damage_AttackEventData NWNX_Damage_GetAttackEventData();
+
+/// @brief Set Attack Event Data
+/// @param data A NWNX_Damage_AttackEventData struct.
+/// @note To use only in the Attack Event Script.
+/// @note Setting iSneakAttack will only change the attack roll message and floating text feedback. Immunities and damage will have already been resolved by the time the attack event script is ran.
+void NWNX_Damage_SetAttackEventData(struct NWNX_Damage_AttackEventData data);
+
+/// @brief Deal damage to a target.
+/// @remark Permits multiple damage types and checks enhancement bonus for overcoming DR.
+/// @param data A NWNX_Damage_DamageData struct.
+/// @param oTarget The target object on whom the damage is dealt.
+/// @param oSource The source of the damage.
+/// @param iRanged Whether the attack should be treated as ranged by the engine (for example when considering damage inflicted by Acid Sheath and other such effects)
+void NWNX_Damage_DealDamage(struct NWNX_Damage_DamageData data, object oTarget, object oSource = OBJECT_SELF, int iRanged = FALSE);
+
+/// @}
+
+void NWNX_Damage_SetDamageEventScript(string sScript, object oOwner=OBJECT_INVALID)
+{
+    NWNXPushObject(oOwner);
+    NWNXPushString(sScript);
+    NWNXPushString(&quot;DAMAGE&quot;);
+    NWNXCall(NWNX_Damage, &quot;SetEventScript&quot;);
+}
+
+struct NWNX_Damage_DamageEventData NWNX_Damage_GetDamageEventData()
+{
+    struct NWNX_Damage_DamageEventData data;
+    NWNXCall(NWNX_Damage, &quot;GetDamageEventData&quot;);
+    data.oDamager     = NWNXPopObject();
+    data.iBludgeoning = NWNXPopInt();
+    data.iPierce      = NWNXPopInt();
+    data.iSlash       = NWNXPopInt();
+    data.iMagical     = NWNXPopInt();
+    data.iAcid        = NWNXPopInt();
+    data.iCold        = NWNXPopInt();
+    data.iDivine      = NWNXPopInt();
+    data.iElectrical  = NWNXPopInt();
+    data.iFire        = NWNXPopInt();
+    data.iNegative    = NWNXPopInt();
+    data.iPositive    = NWNXPopInt();
+    data.iSonic       = NWNXPopInt();
+    data.iBase        = NWNXPopInt();
+    data.iCustom1     = NWNXPopInt();
+    data.iCustom2     = NWNXPopInt();
+    data.iCustom3     = NWNXPopInt();
+    data.iCustom4     = NWNXPopInt();
+    data.iCustom5     = NWNXPopInt();
+    data.iCustom6     = NWNXPopInt();
+    data.iCustom7     = NWNXPopInt();
+    data.iCustom8     = NWNXPopInt();
+    data.iCustom9     = NWNXPopInt();
+    data.iCustom10    = NWNXPopInt();
+    data.iCustom11    = NWNXPopInt();
+    data.iCustom12    = NWNXPopInt();
+    data.iCustom13    = NWNXPopInt();
+    data.iCustom14    = NWNXPopInt();
+    data.iCustom15    = NWNXPopInt();
+    data.iCustom16    = NWNXPopInt();
+    data.iCustom17    = NWNXPopInt();
+    data.iCustom18    = NWNXPopInt();
+    data.iCustom19    = NWNXPopInt();
+    data.iSpellId     = NWNXPopInt();
+    return data;
+}
+
+void NWNX_Damage_SetDamageEventData(struct NWNX_Damage_DamageEventData data)
+{
+    NWNXPushInt(data.iCustom19);
+    NWNXPushInt(data.iCustom18);
+    NWNXPushInt(data.iCustom17);
+    NWNXPushInt(data.iCustom16);
+    NWNXPushInt(data.iCustom15);
+    NWNXPushInt(data.iCustom14);
+    NWNXPushInt(data.iCustom13);
+    NWNXPushInt(data.iCustom12);
+    NWNXPushInt(data.iCustom11);
+    NWNXPushInt(data.iCustom10);
+    NWNXPushInt(data.iCustom9);
+    NWNXPushInt(data.iCustom8);
+    NWNXPushInt(data.iCustom7);
+    NWNXPushInt(data.iCustom6);
+    NWNXPushInt(data.iCustom5);
+    NWNXPushInt(data.iCustom4);
+    NWNXPushInt(data.iCustom3);
+    NWNXPushInt(data.iCustom2);
+    NWNXPushInt(data.iCustom1);
+    NWNXPushInt(data.iBase);
+    NWNXPushInt(data.iSonic);
+    NWNXPushInt(data.iPositive);
+    NWNXPushInt(data.iNegative);
+    NWNXPushInt(data.iFire);
+    NWNXPushInt(data.iElectrical);
+    NWNXPushInt(data.iDivine);
+    NWNXPushInt(data.iCold);
+    NWNXPushInt(data.iAcid);
+    NWNXPushInt(data.iMagical);
+    NWNXPushInt(data.iSlash);
+    NWNXPushInt(data.iPierce);
+    NWNXPushInt(data.iBludgeoning);
+
+    NWNXCall(NWNX_Damage, &quot;SetDamageEventData&quot;);
+}
+
+void NWNX_Damage_SetAttackEventScript(string sScript, object oOwner=OBJECT_INVALID)
+{
+    NWNXPushObject(oOwner);
+    NWNXPushString(sScript);
+    NWNXPushString(&quot;ATTACK&quot;);
+    NWNXCall(NWNX_Damage, &quot;SetEventScript&quot;);
+}
+
+struct NWNX_Damage_AttackEventData NWNX_Damage_GetAttackEventData()
+{
+    struct NWNX_Damage_AttackEventData data;
+    NWNXCall(NWNX_Damage, &quot;GetAttackEventData&quot;);
+    data.oTarget           = NWNXPopObject();
+    data.iBludgeoning      = NWNXPopInt();
+    data.iPierce           = NWNXPopInt();
+    data.iSlash            = NWNXPopInt();
+    data.iMagical          = NWNXPopInt();
+    data.iAcid             = NWNXPopInt();
+    data.iCold             = NWNXPopInt();
+    data.iDivine           = NWNXPopInt();
+    data.iElectrical       = NWNXPopInt();
+    data.iFire             = NWNXPopInt();
+    data.iNegative         = NWNXPopInt();
+    data.iPositive         = NWNXPopInt();
+    data.iSonic            = NWNXPopInt();
+    data.iBase             = NWNXPopInt();
+    data.iCustom1          = NWNXPopInt();
+    data.iCustom2          = NWNXPopInt();
+    data.iCustom3          = NWNXPopInt();
+    data.iCustom4          = NWNXPopInt();
+    data.iCustom5          = NWNXPopInt();
+    data.iCustom6          = NWNXPopInt();
+    data.iCustom7          = NWNXPopInt();
+    data.iCustom8          = NWNXPopInt();
+    data.iCustom9          = NWNXPopInt();
+    data.iCustom10         = NWNXPopInt();
+    data.iCustom11         = NWNXPopInt();
+    data.iCustom12         = NWNXPopInt();
+    data.iCustom13         = NWNXPopInt();
+    data.iCustom14         = NWNXPopInt();
+    data.iCustom15         = NWNXPopInt();
+    data.iCustom16         = NWNXPopInt();
+    data.iCustom17         = NWNXPopInt();
+    data.iCustom18         = NWNXPopInt();
+    data.iCustom19         = NWNXPopInt();
+    data.iAttackNumber     = NWNXPopInt();
+    data.iAttackResult     = NWNXPopInt();
+    data.iWeaponAttackType = NWNXPopInt();
+    data.iSneakAttack      = NWNXPopInt();
+    data.bKillingBlow      = NWNXPopInt();
+    data.iAttackType       = NWNXPopInt();
+    data.iToHitRoll        = NWNXPopInt();
+    data.iToHitModifier    = NWNXPopInt();
+    data.bRangedAttack     = NWNXPopInt();
+    return data;
+}
+
+void NWNX_Damage_SetAttackEventData(struct NWNX_Damage_AttackEventData data)
+{
+    NWNXPushInt(data.iSneakAttack);
+    NWNXPushInt(data.iAttackResult);
+    NWNXPushInt(data.iCustom19);
+    NWNXPushInt(data.iCustom18);
+    NWNXPushInt(data.iCustom17);
+    NWNXPushInt(data.iCustom16);
+    NWNXPushInt(data.iCustom15);
+    NWNXPushInt(data.iCustom14);
+    NWNXPushInt(data.iCustom13);
+    NWNXPushInt(data.iCustom12);
+    NWNXPushInt(data.iCustom11);
+    NWNXPushInt(data.iCustom10);
+    NWNXPushInt(data.iCustom9);
+    NWNXPushInt(data.iCustom8);
+    NWNXPushInt(data.iCustom7);
+    NWNXPushInt(data.iCustom6);
+    NWNXPushInt(data.iCustom5);
+    NWNXPushInt(data.iCustom4);
+    NWNXPushInt(data.iCustom3);
+    NWNXPushInt(data.iCustom2);
+    NWNXPushInt(data.iCustom1);
+    NWNXPushInt(data.iBase);
+    NWNXPushInt(data.iSonic);
+    NWNXPushInt(data.iPositive);
+    NWNXPushInt(data.iNegative);
+    NWNXPushInt(data.iFire);
+    NWNXPushInt(data.iElectrical);
+    NWNXPushInt(data.iDivine);
+    NWNXPushInt(data.iCold);
+    NWNXPushInt(data.iAcid);
+    NWNXPushInt(data.iMagical);
+    NWNXPushInt(data.iSlash);
+    NWNXPushInt(data.iPierce);
+    NWNXPushInt(data.iBludgeoning);
+    NWNXCall(NWNX_Damage, &quot;SetAttackEventData&quot;);
+}
+
+void NWNX_Damage_DealDamage(struct NWNX_Damage_DamageData data, object oTarget, object oSource, int iRanged = FALSE)
+{
+    NWNXPushInt(iRanged);
+    NWNXPushInt(data.iPower);
+    NWNXPushInt(data.iCustom19);
+    NWNXPushInt(data.iCustom18);
+    NWNXPushInt(data.iCustom17);
+    NWNXPushInt(data.iCustom16);
+    NWNXPushInt(data.iCustom15);
+    NWNXPushInt(data.iCustom14);
+    NWNXPushInt(data.iCustom13);
+    NWNXPushInt(data.iCustom12);
+    NWNXPushInt(data.iCustom11);
+    NWNXPushInt(data.iCustom10);
+    NWNXPushInt(data.iCustom9);
+    NWNXPushInt(data.iCustom8);
+    NWNXPushInt(data.iCustom7);
+    NWNXPushInt(data.iCustom6);
+    NWNXPushInt(data.iCustom5);
+    NWNXPushInt(data.iCustom4);
+    NWNXPushInt(data.iCustom3);
+    NWNXPushInt(data.iCustom2);
+    NWNXPushInt(data.iCustom1);
+    NWNXPushInt(0);// Padding for Base Damage
+    NWNXPushInt(data.iSonic);
+    NWNXPushInt(data.iPositive);
+    NWNXPushInt(data.iNegative);
+    NWNXPushInt(data.iFire);
+    NWNXPushInt(data.iElectrical);
+    NWNXPushInt(data.iDivine);
+    NWNXPushInt(data.iCold);
+    NWNXPushInt(data.iAcid);
+    NWNXPushInt(data.iMagical);
+    NWNXPushInt(data.iSlash);
+    NWNXPushInt(data.iPierce);
+    NWNXPushInt(data.iBludgeoning);
+    NWNXPushObject(oTarget);
+    NWNXPushObject(oSource);
+    NWNXCall(NWNX_Damage, &quot;DealDamage&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
