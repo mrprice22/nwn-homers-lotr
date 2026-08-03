@@ -175,6 +175,41 @@ for tok in [6400] + list(range(6401, 6411)) + [6411]:
             f"cbd_sign.dlg.json never shows <CUSTOM{tok}>, but cbd_db.nss "
             "fills it — that leaderboard row would be invisible.")
 
+# --- 8. the end-of-set self-destruct ----------------------------------------
+# A finished set ends with the dummy blowing apart and the tester's actions
+# cancelled. Both are the STOP cue: without them a tester keeps swinging into
+# the cooldown and reads the next session's opening rounds as part of this one.
+if "CBD_SelfDestruct" not in inc:
+    errors.append(
+        "cbd_inc.nss no longer defines CBD_SelfDestruct — a completed 10-round "
+        "set must end with the dummy destroying itself; that visual and the "
+        "cbd_death respawn are the end-of-set cue.")
+else:
+    destruct = inc.split("void CBD_SelfDestruct(object oDummy, object oPC,", 1)[-1]
+    destruct = destruct.split("void CBD_EndSession", 1)[0]
+    if "ClearAllActions" not in destruct:
+        errors.append(
+            "CBD_SelfDestruct does not ClearAllActions on the session owner — "
+            "the tester keeps attacking after the set is over.")
+    if "EffectDeath" not in destruct:
+        errors.append("CBD_SelfDestruct never applies EffectDeath.")
+    if "EFFECT_TYPE_IMMUNITY" not in destruct:
+        errors.append(
+            "CBD_SelfDestruct does not strip the death immunity cbd_spawn "
+            "applies, so the kill it asks for cannot land and the set ends "
+            "with no cue at all.")
+
+if "CBD_SelfDestruct" not in inc.split("void CBD_EndSession", 1)[-1]:
+    errors.append(
+        "CBD_EndSession never schedules CBD_SelfDestruct — the set would end "
+        "silently.")
+
+# The dummy must still be indestructible for the other 10 rounds.
+if "IMMUNITY_TYPE_DEATH" not in strip_comments(read(UNPACKED / "cbd_spawn.nss")):
+    errors.append(
+        "cbd_spawn.nss no longer grants death immunity — the dummy could die "
+        "mid-set, which throws the run away.")
+
 if errors:
     print("check_combat_dummy: FAIL")
     for e in errors:

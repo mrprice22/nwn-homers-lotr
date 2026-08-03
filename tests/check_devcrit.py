@@ -22,6 +22,12 @@ feature does nothing. This checks the things that cannot be seen from the game.
   5. The published numbers in roadmap.yaml's devcrit-roll card still match the
      constants in devcrit_inc.nss, so the code and the player-facing design
      cannot drift apart.
+  6. The save-or-die is still disabled AT SOURCE: hak_2da/baseitems.2da's
+     EpicWeaponDevastatingCriticalFeat column is blank on every row, and the
+     mapping it used to hold still exists in the generated
+     unpacked/devcrit_map_inc.nss. Either half alone is a silent failure — a
+     re-extracted baseitems.2da brings the instant kill back, and an empty
+     include takes the replacement dice away from every weapon.
 """
 import re
 import sys
@@ -158,6 +164,55 @@ else:
                 f"roadmap.yaml's devcrit-roll card no longer says '{phrase}' — "
                 "if the dice changed, change devcrit_inc.nss and the expected "
                 "values in this gate too.")
+
+# --- 6. the save-or-die is disabled at source -------------------------------
+COLUMN = "EpicWeaponDevastatingCriticalFeat"
+baseitems = (ROOT / "hak_2da" / "baseitems.2da")
+if not baseitems.is_file():
+    errors.append("hak_2da/baseitems.2da is missing.")
+else:
+    lines = baseitems.read_bytes().decode("latin-1").replace(
+        "\r\n", "\n").split("\n")
+    header = next((ln.split() for ln in lines if COLUMN in ln), None)
+    if header is None:
+        errors.append(f"hak_2da/baseitems.2da has no {COLUMN} column.")
+    else:
+        col = header.index(COLUMN) + 1   # +1: the row number precedes the header
+        named = []
+        for ln in lines:
+            fields = ln.split()
+            if len(fields) <= col or not fields[0].isdigit():
+                continue
+            if fields[col].isdigit():
+                named.append(fields[0])
+        if named:
+            errors.append(
+                f"hak_2da/baseitems.2da still names a devastating critical feat "
+                f"on {len(named)} row(s) (e.g. base item {named[0]}). The "
+                "engine's save-or-die is live again for those weapons — re-run "
+                "python3 bin/gen-devcrit-map.py --apply, then rebuild the hak.")
+
+    map_inc = UNPACKED / "devcrit_map_inc.nss"
+    if not map_inc.is_file():
+        errors.append(
+            "unpacked/devcrit_map_inc.nss is missing — generate it with "
+            "python3 bin/gen-devcrit-map.py --apply. Without it devcrit_inc.nss "
+            "does not compile.")
+    else:
+        cases = re.findall(r"case\s+\d+:\s*return\s+\d+;",
+                           map_inc.read_text(encoding="latin-1"))
+        if len(cases) < 60:
+            errors.append(
+                f"unpacked/devcrit_map_inc.nss maps only {len(cases)} base "
+                "items to a devastating critical feat (expected the full stock "
+                "+ CEP set, ~67). The bonus dice would silently stop firing for "
+                "the missing weapons.")
+
+if "DevCrit_HasDevCrit" not in read(UNPACKED / "devcrit_inc.nss"):
+    errors.append(
+        "devcrit_inc.nss no longer defines DevCrit_HasDevCrit — with the "
+        "engine's check disabled, the feat test is the ONLY thing that grants "
+        "the bonus dice.")
 
 # ---------------------------------------------------------------------------
 if errors:

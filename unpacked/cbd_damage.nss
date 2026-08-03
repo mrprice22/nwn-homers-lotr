@@ -39,6 +39,28 @@ void main()
     object oSrc = data.oDamager;
     object oPC  = CBD_OwnerPC(oSrc);
 
+    // Diagnostic mode (CBD_DEBUG on the dummy) — every packet, with its source
+    // and the state that decides whether it is counted. Off by default.
+    if (CBD_IsDebug(oDummy))
+        CBD_Debug(oDummy, oPC, "damage from " + GetName(oSrc) +
+                  " (pc=" + GetName(oPC) + ")" +
+                  " active=" + IntToString(GetLocalInt(oDummy, CBD_VAR_ACTIVE)) +
+                  " cool=" + IntToString(GetLocalInt(oDummy, CBD_VAR_COOL)) +
+                  " total=" + IntToString(nDmg) + ":" +
+                  CBD_DbgField("base",  data.iBase) +
+                  CBD_DbgField("bludg", data.iBludgeoning) +
+                  CBD_DbgField("pierce", data.iPierce) +
+                  CBD_DbgField("slash", data.iSlash) +
+                  CBD_DbgField("magic", data.iMagical) +
+                  CBD_DbgField("fire",  data.iFire) +
+                  CBD_DbgField("cold",  data.iCold) +
+                  CBD_DbgField("elec",  data.iElectrical) +
+                  CBD_DbgField("acid",  data.iAcid) +
+                  CBD_DbgField("sonic", data.iSonic) +
+                  CBD_DbgField("div",   data.iDivine) +
+                  CBD_DbgField("neg",   data.iNegative) +
+                  CBD_DbgField("pos",   data.iPositive));
+
     if (GetLocalInt(oDummy, CBD_VAR_ACTIVE))
     {
         if (GetIsObjectValid(oPC) && oPC == GetLocalObject(oDummy, CBD_VAR_OWNER))

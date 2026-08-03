@@ -1,9 +1,17 @@
-// cbd_death.nss — Combat Dummy OnDeath: the fallback that must never be needed.
+// cbd_death.nss — Combat Dummy OnDeath.
 //
-// cbd_damage zeroes all incoming damage and cbd_spawn grants death immunity, so
-// a dummy should be unkillable. If something gets through anyway, the rule is:
-// the in-progress session is thrown away (NOT recorded — a partial run is not a
-// score), and a fresh dummy stands back up where this one was.
+// TWO callers, and the difference is CBD_ACTIVE:
+//
+//   * the PLANNED death at the end of a full 10-round set (CBD_SelfDestruct in
+//     cbd_inc). CBD_EndSession has already reported, recorded and cleared the
+//     session, so the cancel branch below is skipped and all this does is stand
+//     a fresh dummy back up — which is the whole point: the destruction visual
+//     and this 6-second respawn ARE the end-of-set cue.
+//
+//   * an UNPLANNED death, which must never happen: cbd_damage zeroes all
+//     incoming damage and cbd_spawn grants death immunity. If something gets
+//     through anyway, the in-progress session is thrown away (NOT recorded — a
+//     partial run is not a score) before the same respawn happens.
 
 #include "cbd_inc"
 
