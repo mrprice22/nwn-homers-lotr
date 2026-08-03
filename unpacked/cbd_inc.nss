@@ -330,6 +330,15 @@ void CBD_RoundTick(object oDummy, int nToken)
 
     int nAtk = GetLocalInt(oDummy, CBD_VAR_ATK_RND);
     int nDmg = GetLocalInt(oDummy, CBD_VAR_DMG_RND);
+
+    // Diagnostic: the tick's own view of the counters, so a tally that is being
+    // lost between the damage handler and here is visible as a mismatch with
+    // the "counted +N" lines above it.
+    if (CBD_IsDebug(oDummy))
+        CBD_Debug(oDummy, oPC, "tick round " + IntToString(nRound) +
+                  ": atk_rnd=" + IntToString(nAtk) +
+                  " dmg_rnd=" + IntToString(nDmg) +
+                  " dmg_tot=" + IntToString(GetLocalInt(oDummy, CBD_VAR_DMG_TOT)));
     SetLocalInt(oDummy, CBD_VAR_ATK_RND, 0);
     SetLocalInt(oDummy, CBD_VAR_DMG_RND, 0);
 

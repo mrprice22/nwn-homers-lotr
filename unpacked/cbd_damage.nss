@@ -83,10 +83,23 @@ void main()
                             GetLocalInt(oDummy, CBD_VAR_DMG_RND) + nDmg);
                 SetLocalInt(oDummy, CBD_VAR_DMG_TOT,
                             GetLocalInt(oDummy, CBD_VAR_DMG_TOT) + nDmg);
+
+                if (CBD_IsDebug(oDummy))
+                    CBD_Debug(oDummy, oPC, "  counted +" + IntToString(nDmg) +
+                              " (round " +
+                              IntToString(GetLocalInt(oDummy, CBD_VAR_DMG_RND)) +
+                              ", session " +
+                              IntToString(GetLocalInt(oDummy, CBD_VAR_DMG_TOT)) + ")");
             }
+            else if (CBD_IsDebug(oDummy))
+                CBD_Debug(oDummy, oPC, "  IGNORED: packet carried no damage");
         }
         else if (GetIsObjectValid(oPC))
         {
+            if (CBD_IsDebug(oDummy))
+                CBD_Debug(oDummy, oPC, "  DISCARDED: not the session owner (" +
+                          GetName(GetLocalObject(oDummy, CBD_VAR_OWNER)) + ")");
+
             // Another PC, a henchman, a summon: frozen out, and their damage is
             // discarded from both metrics. Only ever taken when the source
             // resolves to a REAL and different player - damage we cannot
@@ -94,6 +107,9 @@ void main()
             // because silently discarding it is what broke the measurement.
             CBD_Reject(oDummy, oSrc);
         }
+        else if (CBD_IsDebug(oDummy))
+            CBD_Debug(oDummy, OBJECT_INVALID,
+                      "  DISCARDED: no player behind this damage at all");
     }
     else if (!GetLocalInt(oDummy, CBD_VAR_COOL) && GetIsObjectValid(oPC) && nDmg > 0)
     {
