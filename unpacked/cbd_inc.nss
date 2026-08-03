@@ -41,7 +41,6 @@
 #include "nwnx_damage"
 #include "nwnx_object"   // SetCurrentHitPoints, for the heal-back in CBD_Restore
 #include "cbd_db"
-#include "admin_db"   // Admin_CanAdmin, for the admin auto-diagnostic
 #include "color"
 
 const int   CBD_ROUNDS     = 10;    // rounds in a session
@@ -80,20 +79,26 @@ const string CBD_VAR_LAST_SRC = "CBD_LAST_SRC";
 // wrong" report can be reconciled against the combat log packet by packet.
 //
 // Three ways it turns on, all behind a single GetLocalInt on the hot path:
-//   * CBD_DEBUG on the dummy      - set by hand from the toolset;
-//   * CBD_DEBUG on the module     - what dbg_combat flips server-wide;
-//   * the tester is an ADMIN      - resolved ONCE per session in
-//                                   CBD_StartSession (one admindb SELECT) and
-//                                   cached on the dummy, so an admin never has
-//                                   to reach for a DM console to get the dump.
+//   * CBD_DEBUG on the module     - what the rest menu's Admin Options ->
+//                                   "[Admin] Combat diagnostics on/off"
+//                                   (dbg_combat) flips, and the switch a tester
+//                                   will reach for;
+//   * CBD_DEBUG on the dummy      - set by hand from the toolset, for one dummy.
 //
-// This is temporary UAT instrumentation (roadmap combat-dummy). When the
-// measurement is settled, the admin auto-enable is the first thing to remove.
+// There is deliberately NO "admins always get it" rule any more: it made the
+// menu lie, because turning the toggle OFF left an admin still seeing the dump.
+// One switch, and it is the one in the menu.
+//
+// This is temporary UAT instrumentation (roadmap combat-dummy).
 const string CBD_VAR_DEBUG    = "CBD_DEBUG";
-const string CBD_VAR_DEBUG_ADMIN = "CBD_DEBUG_ADMIN";
 
-// Diagnostic lines are bright red so they are distinguishable at a glance from
-// the tool's own yellow output and from the engine's combat log.
+// The readout's palette. Three colours, so a glance at the log separates the
+// running commentary from the answer from the instrumentation:
+//   yellow  the per-round lines and one-off notices;
+//   green   the end-of-set summary - the numbers the tester came for;
+//   red     the diagnostic dump.
+const string CBD_COLOR_ROUND = COLOR_YELLOW;
+const string CBD_COLOR_FINAL = COLOR_GREEN;
 const string CBD_DEBUG_COLOR = COLOR_RED;
 
 const string CBD_RESREF = "cbd_dummy";   // for the respawn in cbd_death
@@ -104,8 +109,10 @@ const string CBD_RESREF = "cbd_dummy";   // for the respawn in cbd_death
 
 object CBD_OwnerPC(object oSrc);
 void   CBD_Say(object oPC, string sMsg);
+void   CBD_SayColor(object oPC, string sMsg, string sColor);
 void   CBD_Notice(object oPC, string sMsg);
 void   CBD_Report(object oDummy, object oPC, string sMsg);
+void   CBD_ReportColor(object oDummy, object oPC, string sMsg, string sColor);
 void   CBD_ClearState(object oDummy);
 void   CBD_StartSession(object oDummy, object oPC);
 void   CBD_RoundTick(object oDummy, int nToken);
@@ -169,23 +176,33 @@ object CBD_OwnerPC(object oSrc)
 void CBD_Notice(object oPC, string sMsg)
 {
     if (!GetIsObjectValid(oPC)) return;
-    SendMessageToPC(oPC, COLOR_YELLOW + "[Combat Dummy] " + sMsg + COLOR_END);
+    SendMessageToPC(oPC, CBD_COLOR_ROUND + "[Combat Dummy] " + sMsg + COLOR_END);
+}
+
+void CBD_SayColor(object oPC, string sMsg, string sColor)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    SendMessageToPC(oPC, sColor + "[Combat Dummy] " + sMsg + COLOR_END);
+    FloatingTextStringOnCreature(sColor + sMsg + COLOR_END, oPC, FALSE);
 }
 
 void CBD_Say(object oPC, string sMsg)
 {
-    if (!GetIsObjectValid(oPC)) return;
-    SendMessageToPC(oPC, COLOR_YELLOW + "[Combat Dummy] " + sMsg + COLOR_END);
-    FloatingTextStringOnCreature(sMsg, oPC, FALSE);
+    CBD_SayColor(oPC, sMsg, CBD_COLOR_ROUND);
 }
 
 // As CBD_Say, plus the dummy says it out loud so it lands in the Talk channel.
 // Used for the lines a tester needs to be able to re-read: the round-by-round
 // figures and the final averages.
+void CBD_ReportColor(object oDummy, object oPC, string sMsg, string sColor)
+{
+    CBD_SayColor(oPC, sMsg, sColor);
+    AssignCommand(oDummy, SpeakString(sMsg, TALKVOLUME_TALK));
+}
+
 void CBD_Report(object oDummy, object oPC, string sMsg)
 {
-    CBD_Say(oPC, sMsg);
-    AssignCommand(oDummy, SpeakString(sMsg, TALKVOLUME_TALK));
+    CBD_ReportColor(oDummy, oPC, sMsg, CBD_COLOR_ROUND);
 }
 
 // Who to credit a damage packet to. The damage event's own oDamager is the
@@ -249,7 +266,6 @@ int CBD_Amt(int nValue)
 int CBD_IsDebug(object oDummy)
 {
     if (GetLocalInt(oDummy, CBD_VAR_DEBUG)) return TRUE;
-    if (GetLocalInt(oDummy, CBD_VAR_DEBUG_ADMIN)) return TRUE;
     return GetLocalInt(GetModule(), CBD_VAR_DEBUG);
 }
 
@@ -303,14 +319,6 @@ void CBD_StartSession(object oDummy, object oPC)
     CBD_ClearState(oDummy);
     SetLocalInt(oDummy, CBD_VAR_ACTIVE, 1);
     SetLocalObject(oDummy, CBD_VAR_OWNER, oPC);
-
-    // An admin testing the tool gets the diagnostic without touching a console.
-    // Resolved here, once, because Admin_CanAdmin is a database read and the
-    // damage handler runs per packet.
-    // Its own variable, set AND cleared here, so an admin's session never
-    // leaves the next player's session dumping packets at them.
-    if (Admin_CanAdmin(oPC)) SetLocalInt(oDummy, CBD_VAR_DEBUG_ADMIN, 1);
-    else                     DeleteLocalInt(oDummy, CBD_VAR_DEBUG_ADMIN);
 
     ApplyEffectToObject(DURATION_TYPE_INSTANT,
                         EffectVisualEffect(VFX_FNF_LOS_HOLY_10), oDummy);
@@ -473,19 +481,23 @@ void CBD_EndSession(object oDummy)
 
     if (!GetIsObjectValid(oPC)) return;
 
-    CBD_Report(oDummy, oPC, "Combat test complete (" + IntToString(CBD_ROUNDS) +
-               " rounds).");
-    CBD_Report(oDummy, oPC, "Attacks per round: " + FloatToString(fApr, 0, 2) +
-               "   (" + IntToString(nHitTot) + " hits / " +
-               IntToString(nAtkTot) + " attacks)");
-    CBD_Report(oDummy, oPC, "Damage per round: " + FloatToString(fDpr, 0, 1) +
-               "   (" + IntToString(nDmgTot) + " total)");
+    // Green: this is the answer the tester came for, and it has to be findable
+    // in a log full of yellow round lines and red combat spam.
+    CBD_ReportColor(oDummy, oPC, "Combat test complete (" +
+                    IntToString(CBD_ROUNDS) + " rounds).", CBD_COLOR_FINAL);
+    CBD_ReportColor(oDummy, oPC, "Attacks per round: " +
+                    FloatToString(fApr, 0, 2) + "   (" + IntToString(nHitTot) +
+                    " hits / " + IntToString(nAtkTot) + " attacks)",
+                    CBD_COLOR_FINAL);
+    CBD_ReportColor(oDummy, oPC, "Damage per round: " +
+                    FloatToString(fDpr, 0, 1) + "   (" + IntToString(nDmgTot) +
+                    " total)", CBD_COLOR_FINAL);
 
     // Nothing happened - don't pollute the leaderboard with idle sessions.
     if (nDmgTot <= 0) return;
 
     Cbd_Record(oPC, fDpr, nDmgTot, CBD_ROUNDS);
-    CBD_Say(oPC, "  Recorded to the Hall of Champions.");
+    CBD_SayColor(oPC, "  Recorded to the Hall of Champions.", CBD_COLOR_FINAL);
 }
 
 void CBD_CancelSession(object oDummy, string sWhy)

@@ -15,10 +15,9 @@
 // the admin does not use a DM client, so `dm_runscript` is not a route that
 // exists here; see CLAUDE.md, "The admin has no DM console".
 //
-// The Combat Dummy also arms itself for an admin owner at session start
-// (CBD_StartSession), so an admin's own test set is instrumented whether this
-// toggle is on or not. This switch is what turns the dump on for a NON-admin
-// tester's session, and what turns the devcrit half on at all.
+// This is the ONLY switch. An earlier build also armed the dummy's dump
+// automatically for an admin owner, which made this menu entry lie: turning it
+// OFF left the admin still seeing the diagnostic. That auto-arm is gone.
 //
 // Gated on the admindb whitelist. Both flags live on the module object and
 // nothing persists them, so they are OFF at every reboot, deliberately.
@@ -51,9 +50,11 @@ void main()
     SetLocalInt(oMod, DEVCRIT_VAR_DEBUG, nOn);
     SetLocalInt(oMod, CBD_VAR_DEBUG,     nOn);
 
-    string sMsg = CBD_DEBUG_COLOR + "[DEBUG] combat diagnostics (devcrit + " +
-                  "combat dummy) are now " + (nOn ? "ON" : "OFF") + "." +
-                  COLOR_END;
+    // Red while it is on (it is instrumentation, and it should look like it),
+    // green to confirm the log is clean again.
+    string sColor = nOn ? CBD_DEBUG_COLOR : CBD_COLOR_FINAL;
+    string sMsg = sColor + "[DEBUG] combat diagnostics (devcrit + combat dummy) "
+                  + "are now " + (nOn ? "ON" : "OFF") + "." + COLOR_END;
 
     if (GetIsPC(oPC)) SendMessageToPC(oPC, sMsg);
     else SendMessageToAllDMs(sMsg);
