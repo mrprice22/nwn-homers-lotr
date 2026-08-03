@@ -98,6 +98,31 @@ OWNED_STRINGS = [
     "Homer's LOTR — custom string table begins here. Reserved.",
 ]
 
+# Replacement text for STOCK feat descriptions we have changed the behaviour of.
+#
+# These are not our feats -- they are Bioware rows whose in-game description no
+# longer matches what the module does, which is worse than no description at
+# all: a player reads "must succeed at a Fortitude save or die" and builds
+# around a rule that has not applied since 2026-08-02.
+#
+# This block is appended AFTER the feat strings, not before them. Adding an
+# entry to OWNED_STRINGS above would shift every feat string by one, and while
+# a synchronised rebuild survives that, a client holding a stale TLK would read
+# feat names off by one. Appending last costs nothing and moves nothing.
+#
+# APPEND-ONLY, for the same reason as OWNED_STRINGS: each entry's position is
+# its strref, and gen-legendary-feats.py bakes those into hak_2da/feat.2da.
+STOCK_OVERRIDE_STRINGS = [
+    # Devastating Critical, all 40 weapon rows (roadmap: devcrit-roll).
+    "On a devastating critical hit you deal 3 extra dice of damage, of the "
+    "same type as your weapon. The dice scale with the weapon: d6 for a small "
+    "weapon, d8 for a medium one, d10 for a large one.\n\n"
+    "This replaces the original save-or-die effect. A devastating critical no "
+    "longer kills outright, for you or against you.\n\n"
+    "Use: Automatic, on rolling a critical threat and confirming it with the "
+    "chosen weapon.",
+]
+
 FEAT_GENERATOR = REPO / "bin" / "gen-legendary-feats.py"
 
 
@@ -116,7 +141,18 @@ def owned_strings():
     feats = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(feats)
     strings.extend(feats.tlk_strings())
+    strings.extend(STOCK_OVERRIDE_STRINGS)
     return strings
+
+
+def stock_override_strref(text):
+    """The strref a STOCK_OVERRIDE_STRINGS entry lands at.
+
+    gen-legendary-feats.py calls this to repoint stock feat rows, so the text
+    is written down once, here, and the 2DA cannot drift from the TLK.
+    """
+    strings = owned_strings()
+    return BLOCK_START + CUSTOM_TLK_OFFSET + strings.index(text)
 
 
 # --------------------------------------------------------------------------

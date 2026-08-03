@@ -474,6 +474,42 @@ def strrefs():
 
 
 # ---------------------------------------------------------------------------
+# Stock rows we override
+#
+# These are Bioware's own feats, not ours. We only touch them when the module
+# has changed what the feat DOES and the shipped description has become a lie —
+# a player reading "must succeed at a Fortitude save or die" builds around a
+# rule that has not applied since the devcrit-roll rework. The row keeps its
+# name, id, prerequisites and everything else; only DESCRIPTION moves, to a
+# string in our own TLK block.
+#
+# Devastating Critical is one feat per weapon: 495-532 contiguous, plus 955
+# (dwarven waraxe) and 996 (whip) added by the expansions. 39 of the 40 share
+# the stock description strref and the creature-weapon row has its own; both
+# are replaced, so the text is consistent whichever weapon the player took.
+# ---------------------------------------------------------------------------
+DEVCRIT_ROWS = list(range(495, 533)) + [955, 996]
+
+
+def stock_overrides():
+    """{row index: {column: new value}} for stock rows we repoint.
+
+    The strref comes from bin/build-lotr-tlk, which owns the text, so the 2DA
+    cannot drift from the TLK by a transcription error — the same one-way
+    import strrefs() already uses for the legendary feats.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "build_lotr_tlk", TLK_GENERATOR,
+        loader=importlib.machinery.SourceFileLoader(
+            "build_lotr_tlk", str(TLK_GENERATOR)),
+    )
+    tlk = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tlk)
+    devcrit = tlk.stock_override_strref(tlk.STOCK_OVERRIDE_STRINGS[0])
+    return {row: {"DESCRIPTION": str(devcrit)} for row in DEVCRIT_ROWS}
+
+
+# ---------------------------------------------------------------------------
 # 2DA reading and writing
 # ---------------------------------------------------------------------------
 
@@ -610,6 +646,26 @@ def main():
     check_base(source, preamble, header, rows)
     refs = strrefs()
     kept = {i: line for i, line in rows.items() if i < FIRST_ROW}
+
+    # Repoint the stock rows we have changed the behaviour of. Done on `kept`
+    # so a --from-stock reseed picks the override up again automatically:
+    # re-extracting the table is exactly when this would otherwise be lost, and
+    # the only symptom would be a feat quietly describing the old rule.
+    overrides = stock_overrides()
+    patched = 0
+    for row, changes in sorted(overrides.items()):
+        line = kept.get(row)
+        if line is None:
+            print(f"error: stock row {row} is missing from {source}",
+                  file=sys.stderr)
+            return 1
+        cells = line.split()
+        for column, value in changes.items():
+            position = 1 + header.index(column)
+            if cells[position] != value:
+                cells[position] = value
+                patched += 1
+        kept[row] = cells
     owned_cells = {
         FIRST_ROW + offset: build_cells(FIRST_ROW + offset, feat, refs, header)
         for offset, feat in enumerate(FEATS)
@@ -619,13 +675,18 @@ def main():
 
     print(f"[feat] base:  {source}  ({len(kept)} rows, {len(header)} columns)")
     print(f"[feat] owned: {len(owned)} row(s) from {FIRST_ROW}")
+    print(f"[feat] stock: {len(overrides)} row(s) repointed at our TLK "
+          f"({patched} cell(s) changed this run)")
     for index, feat in zip(sorted(owned), FEATS):
         name_ref, desc_ref = refs[feat.label]
         print(f"        {index}  FEAT_{feat.label}  "
               f"name={name_ref} desc={desc_ref}  {feat.effect}")
 
-    out_lines = preamble + [kept[i] for i in sorted(kept)] \
-        + [owned[i] for i in sorted(owned)]
+    base_lines = [
+        render(kept[i], widths) if isinstance(kept[i], list) else kept[i]
+        for i in sorted(kept)
+    ]
+    out_lines = preamble + base_lines + [owned[i] for i in sorted(owned)]
     text = newline.join(out_lines) + newline
 
     if not args.apply:

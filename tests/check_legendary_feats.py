@@ -18,6 +18,11 @@ tuning, and four things can break it silently:
    picker is the only grant path; a feat the level-up page can also offer is a
    double-grant. ALLCLASSESCANUSE must be 0 on every owned row, and no
    cls_feat_*.2da may list one.
+4b. **A stock feat we reworked reverting to its shipped description.** All 40
+   Devastating Critical rows point at our TLK, because the Bioware text says the
+   target must save or die and the module has not worked that way since the
+   devcrit-roll rework. A re-extraction restores the original strref and the
+   only symptom is a feat describing a rule that no longer exists.
 4. **Rows and TLK strings drifting apart.** Each row's NAME and DESCRIPTION are
    strrefs into our custom TLK. This gate re-derives them from
    bin/gen-legendary-feats.py, which derives them from where bin/build-lotr-tlk
@@ -348,6 +353,38 @@ def check_wiring(problems):
                 "buttons, which is to say only by the client")
 
 
+def check_stock_overrides(problems, gen, rows, header):
+    """Stock rows we repointed must still point at our TLK.
+
+    Devastating Critical's shipped description says the target must save or die.
+    That has not been true since the devcrit-roll rework, so all 40 weapon rows
+    were repointed at a string in our own block. The failure mode this catches
+    is specific and silent: re-extracting feat.2da from the game data (or a
+    --from-stock reseed that skipped the generator) restores Bioware's strref,
+    and the only symptom is a feat in the character sheet describing a rule the
+    module no longer has.
+    """
+    try:
+        overrides = gen.stock_overrides()
+    except Exception as exc:                      # pragma: no cover
+        problems.append(f"cannot compute stock overrides: {exc}")
+        return
+    for row, changes in sorted(overrides.items()):
+        cells = rows.get(row)
+        if cells is None:
+            problems.append(f"feat.2da is missing stock row {row}")
+            continue
+        for column, want in changes.items():
+            got = cells[1 + header.index(column)]
+            if got != want:
+                problems.append(
+                    f"feat.2da row {row} ({cells[1]}) has {column}={got}, "
+                    f"expected {want} — the stock description was restored, so "
+                    "the feat now describes a rule the module does not have. "
+                    "Re-run bin/gen-legendary-feats.py --apply")
+                return          # 40 identical rows; one message is enough
+
+
 def check_effect_payloads(problems, gen):
     """Every EFFECT-kind feat must actually do something.
 
@@ -404,6 +441,9 @@ def main():
             f"{GENERATOR} is missing — nothing owns the legendary feat rows")
     else:
         check_table(problems, gen)
+        if FEAT_2DA.exists():
+            header, rows = read_2da(FEAT_2DA)
+            check_stock_overrides(problems, gen, rows, header)
         check_not_selectable(problems, gen)
         check_ids_include(problems, gen)
         check_effect_payloads(problems, gen)
@@ -416,9 +456,10 @@ def main():
             print(f"  - {p}", file=sys.stderr)
         return 1
     count = len(gen.FEATS) if gen else 0
+    overridden = len(gen.stock_overrides()) if gen else 0
     print(f"ok: legendary feats coherent ({count} rows from "
-          f"{gen.FIRST_ROW}, stock base intact, none selectable at level-up, "
-          "picker wired)")
+          f"{gen.FIRST_ROW}, stock base intact, {overridden} stock row(s) "
+          "repointed, none selectable at level-up, picker wired)")
     return 0
 
 
