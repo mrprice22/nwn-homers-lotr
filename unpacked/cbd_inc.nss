@@ -104,6 +104,7 @@ const string CBD_RESREF = "cbd_dummy";   // for the respawn in cbd_death
 
 object CBD_OwnerPC(object oSrc);
 void   CBD_Say(object oPC, string sMsg);
+void   CBD_Notice(object oPC, string sMsg);
 void   CBD_Report(object oDummy, object oPC, string sMsg);
 void   CBD_ClearState(object oDummy);
 void   CBD_StartSession(object oDummy, object oPC);
@@ -159,6 +160,18 @@ object CBD_OwnerPC(object oSrc)
 //                                      when the float faded, so the spoken copy
 //                                      is deliberate belt-and-braces, not an
 //                                      accident.
+// A one-off notice: the chat line only, no floating text. FloatingTextString-
+// OnCreature ALSO echoes into the chat log, so a CBD_Say notice reads as the
+// same sentence printed twice - which is what it looked like when the dummy
+// said it was resetting. The round reports keep CBD_Say (and CBD_Report): there
+// the repetition is deliberate, because each copy lands in a different place
+// and outlives the others.
+void CBD_Notice(object oPC, string sMsg)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    SendMessageToPC(oPC, COLOR_YELLOW + "[Combat Dummy] " + sMsg + COLOR_END);
+}
+
 void CBD_Say(object oPC, string sMsg)
 {
     if (!GetIsObjectValid(oPC)) return;

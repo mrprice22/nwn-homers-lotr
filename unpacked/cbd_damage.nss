@@ -136,7 +136,7 @@ void main()
         if (!GetLocalInt(oDummy, CBD_VAR_WARNED))
         {
             SetLocalInt(oDummy, CBD_VAR_WARNED, 1);
-            CBD_Say(oPC, "The dummy is resetting - wait a moment before the next test.");
+            CBD_Notice(oPC, "The dummy is resetting - wait a moment before the next test.");
         }
     }
 
