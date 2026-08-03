@@ -86,6 +86,14 @@ void main()
       ExecuteScript("ammorep_open", oActivator);
       return;
    }
+   if(GetTag(oItem)=="OrbLevelDrain")
+   {
+      // Orb of Level Drain: admin test tool - 5 negative levels on, then off,
+      // so energy drain can be exercised in game (the Legendary Feats revoke
+      // path must survive it). See orb_lvldrain.nss.
+      ExecuteScript("orb_lvldrain", oActivator);
+      return;
+   }
    if(GetTag(oItem)=="HornFellBeast")
    {
       // Sound the Horn of the Fell Beast: summon the crypt companion
