@@ -65,7 +65,7 @@
 //
 // Re-run: python3 bin/gen-legendary-feats.py --apply
 
-const int LEGFEAT_COUNT = 9;
+const int LEGFEAT_COUNT = 18;
 const int LEGFEAT_FIRST = 1116;
 
 // How a feat&#x27;s benefit is applied. RAW writes the character&#x27;s BASE
@@ -87,6 +87,15 @@ const int FEAT_LEGENDARY_CHARISMA = 1121;
 const int FEAT_LEGENDARY_PROWESS = 1122;
 const int FEAT_LEGENDARY_ONSLAUGHT = 1123;
 const int FEAT_LEGENDARY_BUTCHER = 1124;
+const int FEAT_LEGENDARY_JUGGERNAUT = 1125;
+const int FEAT_LEGENDARY_GRIP = 1126;
+const int FEAT_LEGENDARY_MARKSMAN = 1127;
+const int FEAT_LEGENDARY_BULWARK = 1128;
+const int FEAT_LEGENDARY_RIPOSTE = 1129;
+const int FEAT_LEGENDARY_REAPING = 1130;
+const int FEAT_LEGENDARY_WRATH = 1131;
+const int FEAT_LEGENDARY_QUARRY = 1132;
+const int FEAT_LEGENDARY_SUNDERING = 1133;
 
 // --- prerequisite helpers ------------------------------------------------
 // A `prereq` expression in the generator&#x27;s table is rendered verbatim into
@@ -151,6 +160,15 @@ string LegFeat_NameAt(int n)
         case 6: return &quot;Legendary Prowess&quot;;
         case 7: return &quot;Legendary Onslaught&quot;;
         case 8: return &quot;Legendary Butcher&quot;;
+        case 9: return &quot;Legendary Juggernaut&quot;;
+        case 10: return &quot;Legendary Grip&quot;;
+        case 11: return &quot;Legendary Marksman&quot;;
+        case 12: return &quot;Legendary Bulwark&quot;;
+        case 13: return &quot;Legendary Riposte&quot;;
+        case 14: return &quot;Legendary Reaping&quot;;
+        case 15: return &quot;Legendary Wrath&quot;;
+        case 16: return &quot;Legendary Quarry&quot;;
+        case 17: return &quot;Legendary Sundering&quot;;
     }
     return &quot;&quot;;
 }
@@ -168,6 +186,15 @@ string LegFeat_DescAt(int n)
         case 6: return &quot;Every blow you aim finds its mark. You gain a permanent +5 bonus to your attack rolls.&quot;;
         case 7: return &quot;You strike faster than the eye can follow. You gain one additional attack each round while fighting with a melee weapon or unarmed.&quot;;
         case 8: return &quot;You do not wound; you ruin. Whenever you score a critical hit you deal 5 extra dice of damage, scaled to your weapon: d6 for a small weapon, d8 for a medium one, d10 for a large one. This is added to the extra damage of a devastating critical, not in place of it.&quot;;
+        case 9: return &quot;Nothing moves you that you do not choose to be moved by. You are immune to knockdown, entanglement, paralysis and slow, and your weapon cannot be struck from your hand.&quot;;
+        case 10: return &quot;Two blades, one will. While you fight with a weapon in each hand you gain +4 to your attack rolls and +6 to your Armour Class.&quot;;
+        case 11: return &quot;Your shots come faster than an archer&#x27;s eye can follow. You gain one additional attack each round while wielding a bow or a crossbow.&quot;;
+        case 12: return &quot;The shield is not a thing you carry; it is a thing you are. While a shield is on your arm, every blow that reaches you is reduced by 10 points, after all other reductions and resistances.&quot;;
+        case 13: return &quot;You answer the blade with the blade. Once each round, when a melee attack lands on you, you may turn it aside and strike back for your weapon&#x27;s damage. You do not stop attacking to do it.&quot;;
+        case 14: return &quot;Killing feeds you. Each enemy you fell grants +2 to your attack rolls and +2 damage for 12 seconds, stacking up to five times.&quot;;
+        case 15: return &quot;Wound you and you only grow terrible. Your blows deal +1 damage for every 5% of your health that is missing, up to +20.&quot;;
+        case 16: return &quot;You finish what you have hunted. Against a favoured enemy that has fallen below half its health, you deal half again as much damage.&quot;;
+        case 17: return &quot;You do not merely strike armour; you ruin it. Your landed attacks cut 3 from your target&#x27;s Armour Class, stacking three times, but never by more than the armour and shield it is actually wearing are worth.&quot;;
     }
     return &quot;&quot;;
 }
@@ -185,6 +212,15 @@ int LegFeat_AbilityAt(int n)
         case 6: return -1;
         case 7: return -1;
         case 8: return -1;
+        case 9: return -1;
+        case 10: return -1;
+        case 11: return -1;
+        case 12: return -1;
+        case 13: return -1;
+        case 14: return -1;
+        case 15: return -1;
+        case 16: return -1;
+        case 17: return -1;
     }
     return -1;
 }
@@ -202,6 +238,15 @@ int LegFeat_BonusAt(int n)
         case 6: return 0;
         case 7: return 0;
         case 8: return 0;
+        case 9: return 0;
+        case 10: return 0;
+        case 11: return 0;
+        case 12: return 0;
+        case 13: return 0;
+        case 14: return 0;
+        case 15: return 0;
+        case 16: return 0;
+        case 17: return 0;
     }
     return 0;
 }
@@ -219,6 +264,15 @@ int LegFeat_KindAt(int n)
         case 6: return LEGFEAT_KIND_EFFECT;
         case 7: return LEGFEAT_KIND_EFFECT;
         case 8: return LEGFEAT_KIND_HOOK;
+        case 9: return LEGFEAT_KIND_EFFECT;
+        case 10: return LEGFEAT_KIND_EFFECT;
+        case 11: return LEGFEAT_KIND_EFFECT;
+        case 12: return LEGFEAT_KIND_HOOK;
+        case 13: return LEGFEAT_KIND_HOOK;
+        case 14: return LEGFEAT_KIND_HOOK;
+        case 15: return LEGFEAT_KIND_HOOK;
+        case 16: return LEGFEAT_KIND_HOOK;
+        case 17: return LEGFEAT_KIND_HOOK;
     }
     return LEGFEAT_KIND_EFFECT;
 }
@@ -236,6 +290,15 @@ string LegFeat_EffectAt(int n)
         case 6: return &quot;+5 attack bonus&quot;;
         case 7: return &quot;+1 melee attack per round&quot;;
         case 8: return &quot;+5 damage dice on a critical&quot;;
+        case 9: return &quot;immune to knockdown, entangle, paralysis, slow and disarm&quot;;
+        case 10: return &quot;+4 attack, +6 AC while dual-wielding&quot;;
+        case 11: return &quot;+1 ranged attack per round (bow/crossbow)&quot;;
+        case 12: return &quot;-10 damage taken while a shield is equipped&quot;;
+        case 13: return &quot;1/round counter-attack when hit in melee&quot;;
+        case 14: return &quot;+2 attack/+2 damage per kill, 12s, stacks 5&quot;;
+        case 15: return &quot;+1 damage per 5% health missing, max +20&quot;;
+        case 16: return &quot;+50% damage to favoured enemies below 50% HP&quot;;
+        case 17: return &quot;-3 target AC per hit, stacks 3, capped at its armour+shield AC&quot;;
     }
     return &quot;&quot;;
 }
@@ -250,6 +313,15 @@ int LegFeat_MeetsPrereq(object oPC, int n)
         case 6: return (GetBaseAttackBonus(oPC) &gt;= 35 &amp;&amp; GetHasFeat(FEAT_EPIC_PROWESS, oPC));
         case 7: return (GetBaseAttackBonus(oPC) &gt;= 30 &amp;&amp; GetLevelByClass(CLASS_TYPE_MONK, oPC) &gt;= 30);
         case 8: return (LegFeat_HasAnyDevCrit(oPC));
+        case 9: return (GetBaseAttackBonus(oPC) &gt;= 20 &amp;&amp; GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE) &gt;= 30);
+        case 10: return (GetHasFeat(FEAT_AMBIDEXTERITY, oPC) &amp;&amp; GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC) &amp;&amp; GetHasFeat(FEAT_WEAPON_FINESSE, oPC));
+        case 11: return (GetHasFeat(FEAT_RAPID_SHOT, oPC) &amp;&amp; GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC) &amp;&amp; GetBaseAttackBonus(oPC) &gt;= 30);
+        case 12: return (GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC) &amp;&amp; GetBaseAttackBonus(oPC) &gt;= 15);
+        case 13: return (GetSkillRank(SKILL_PARRY, oPC, TRUE) &gt;= 60);
+        case 14: return (GetHasFeat(FEAT_GREAT_CLEAVE, oPC) &amp;&amp; GetBaseAttackBonus(oPC) &gt;= 35);
+        case 15: return (GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE) &gt;= 21);
+        case 16: return (GetLevelByClass(CLASS_TYPE_RANGER, oPC) &gt;= 30);
+        case 17: return (GetBaseAttackBonus(oPC) &gt;= 35 &amp;&amp; GetHasFeat(FEAT_CALLED_SHOT, oPC));
     }
     return TRUE;
 }
@@ -261,6 +333,15 @@ string LegFeat_PrereqAt(int n)
         case 6: return &quot;BAB 35+, Epic Prowess&quot;;
         case 7: return &quot;BAB 30+, Monk level 30+&quot;;
         case 8: return &quot;Devastating Critical (any weapon)&quot;;
+        case 9: return &quot;BAB 20+, Discipline 30 ranks&quot;;
+        case 10: return &quot;Ambidexterity, Improved Two-Weapon Fighting, Weapon Finesse&quot;;
+        case 11: return &quot;Rapid Shot, Point Blank Shot, BAB 30+&quot;;
+        case 12: return &quot;Shield Proficiency, BAB 15+&quot;;
+        case 13: return &quot;Parry 60 ranks&quot;;
+        case 14: return &quot;Great Cleave, BAB 35+&quot;;
+        case 15: return &quot;Constitution 21+ (base)&quot;;
+        case 16: return &quot;Ranger level 30+&quot;;
+        case 17: return &quot;BAB 35+, Called Shot&quot;;
     }
     return &quot;&quot;;
 }

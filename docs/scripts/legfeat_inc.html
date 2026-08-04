@@ -119,10 +119,28 @@
 #include &quot;legfeat_ids_inc&quot;
 #include &quot;legfeat_db&quot;
 #include &quot;nwnx_creature&quot;
+#include &quot;nwnx_damage&quot;
+// LEGFEAT_ATK_VAR lives in legfeat_atk_inc, next to the hook that reads it:
+// devcrit_atk.nss includes that file and must NOT drag the database and the
+// NUI picker in behind it just to learn the name of a local variable.
+#include &quot;legfeat_atk_inc&quot;
 
 const int    LEGFEAT_LEVEL      = 60;              // picks unlock at exactly 60
 const string LEGFEAT_EFFECT_TAG = &quot;LEGFEAT_EFF&quot;;   // every EFFECT-kind effect
 const int    LEGFEAT_MIN_STAT   = 3;               // floor when undoing a bonus
+
+// HOOK-kind feats are inert tokens read by combat hooks, and those hooks have
+// to be armed. Two things do the arming, both from LegFeat_ArmHooks:
+//
+//   LEGFEAT_ATK_VAR   - a local int on the character, read by devcrit_atk.nss
+//                       (the server-wide NWNX Damage ATTACK script) with one
+//                       GetLocalInt per attack. That one read is the entire
+//                       cost the attacker-side feats impose on every other
+//                       attack on the server, and it has to stay that way.
+//   legfeat_dmg       - the per-character NWNX Damage DAMAGE script, set only
+//                       on characters holding a defender-side feat. Everyone
+//                       else has no damage script at all and pays nothing.
+const string LEGFEAT_DMG_SCRIPT = &quot;legfeat_dmg&quot;;
 
 int    LegFeat_TrueLevel(object oPC);
 int    LegFeat_HasNegativeLevels(object oPC);
@@ -135,6 +153,7 @@ int    LegFeat_IndexOf(int nFeatId);
 int    LegFeat_IsMeleeArmed(object oPC);
 int    LegFeat_Take(object oPC, int nIndex);
 void   LegFeat_ApplyOne(object oPC, int nFeatId);
+void   LegFeat_ArmHooks(object oPC);
 void   LegFeat_ApplyAll(object oPC);
 void   LegFeat_RevokeAll(object oPC, string sReason);
 int    LegFeat_ResetCharacter(object oPC);
@@ -236,6 +255,40 @@ int LegFeat_IsMeleeArmed(object oPC)
     return !GetWeaponRanged(oRight);
 }
 
+// Is this item a weapon? Answered from baseitems.2da rather than a list of
+// base-item constants, so CEP&#x27;s and the module&#x27;s own weapons count without
+// anyone having to remember to add them. WeaponType is blank on everything
+// that is not a weapon - shields and torches included, which is the case that
+// matters for Legendary Grip.
+int LegFeat_IsWeapon(object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return FALSE;
+    string sType = Get2DAString(&quot;baseitems&quot;, &quot;WeaponType&quot;,
+                                GetBaseItemType(oItem));
+    return sType != &quot;&quot; &amp;&amp; StringToInt(sType) &gt; 0;
+}
+
+// A weapon in each hand. A shield or a torch in the off hand is not a weapon
+// and does not qualify - Legendary Grip is paid for holding two edges, not for
+// having something in the left slot.
+int LegFeat_IsDualWielding(object oPC)
+{
+    return LegFeat_IsWeapon(GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oPC))
+        &amp;&amp; LegFeat_IsWeapon(GetItemInSlot(INVENTORY_SLOT_LEFTHAND, oPC));
+}
+
+// A bow or a crossbow, specifically - not a sling and not a thrown weapon.
+// Legendary Marksman is the archer&#x27;s counterpart to Legendary Onslaught, and
+// GetWeaponRanged alone would hand its extra attack to a sling or a dart.
+int LegFeat_IsBowArmed(object oPC)
+{
+    object oRight = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oPC);
+    if (!GetIsObjectValid(oRight)) return FALSE;
+    int nBase = GetBaseItemType(oRight);
+    return nBase == BASE_ITEM_LONGBOW || nBase == BASE_ITEM_SHORTBOW
+        || nBase == BASE_ITEM_LIGHTCROSSBOW || nBase == BASE_ITEM_HEAVYCROSSBOW;
+}
+
 // Apply a permanent supernatural, LEGFEAT_EFF-tagged effect. Every EFFECT-kind
 // feat goes through here, so the tagging that makes LegFeat_ApplyAll idempotent
 // is written once and cannot be forgotten on a new feat.
@@ -296,7 +349,62 @@ void LegFeat_ApplyOne(object oPC, int nFeatId)
             if (LegFeat_IsMeleeArmed(oPC))
                 LegFeat_ApplyEffect(oPC, EffectModifyAttacks(1));
             break;
+
+        // Four immunities, applied as four effects: EffectImmunity takes one
+        // IMMUNITY_TYPE_* at a time. The fifth thing Juggernaut promises -
+        // that the weapon cannot be struck from the hand - is not an immunity
+        // type at all and lives in legfeat_disarm.nss instead.
+        case FEAT_LEGENDARY_JUGGERNAUT:
+            LegFeat_ApplyEffect(oPC, EffectImmunity(IMMUNITY_TYPE_KNOCKDOWN));
+            LegFeat_ApplyEffect(oPC, EffectImmunity(IMMUNITY_TYPE_ENTANGLE));
+            LegFeat_ApplyEffect(oPC, EffectImmunity(IMMUNITY_TYPE_PARALYSIS));
+            LegFeat_ApplyEffect(oPC, EffectImmunity(IMMUNITY_TYPE_SLOW));
+            break;
+
+        // CONDITIONAL: a weapon in each hand. Dodge AC, so it stacks with worn
+        // armour rather than replacing it, and so it does not read as a second
+        // suit of armour on the character sheet.
+        case FEAT_LEGENDARY_GRIP:
+            if (LegFeat_IsDualWielding(oPC))
+            {
+                LegFeat_ApplyEffect(oPC, EffectAttackIncrease(4));
+                LegFeat_ApplyEffect(oPC, EffectACIncrease(6, AC_DODGE_BONUS));
+            }
+            break;
+
+        // CONDITIONAL: bow or crossbow. The mirror of Onslaught, and the pair
+        // are mutually exclusive in practice - one hand, one weapon.
+        case FEAT_LEGENDARY_MARKSMAN:
+            if (LegFeat_IsBowArmed(oPC))
+                LegFeat_ApplyEffect(oPC, EffectModifyAttacks(1));
+            break;
     }
+}
+
+// Arm or disarm the combat hooks for the HOOK-kind feats this character holds.
+//
+// HOOK feats apply no effect, so LegFeat_ApplyAll&#x27;s loop skips them entirely -
+// which means this is the ONLY place their machinery gets switched on. Called
+// at the end of LegFeat_ApplyAll, so it re-runs at login, on every weapon swap
+// and after a re-pick, and it must therefore be safe to run repeatedly and
+// must CLEAR as readily as it sets: a character who respecs out of Legendary
+// Bulwark keeps its damage script otherwise, and would keep the reduction.
+void LegFeat_ArmHooks(object oPC)
+{
+    // Attacker side: read once per attack by devcrit_atk.nss.
+    int bAtk = LegFeat_HasPick(oPC, FEAT_LEGENDARY_REAPING)
+            || LegFeat_HasPick(oPC, FEAT_LEGENDARY_WRATH)
+            || LegFeat_HasPick(oPC, FEAT_LEGENDARY_QUARRY)
+            || LegFeat_HasPick(oPC, FEAT_LEGENDARY_SUNDERING);
+    if (bAtk) SetLocalInt(oPC, LEGFEAT_ATK_VAR, TRUE);
+    else      DeleteLocalInt(oPC, LEGFEAT_ATK_VAR);
+
+    // Defender side: the per-character damage event script. Setting it to &quot;&quot;
+    // is how NWNX unregisters, so the else branch is not optional.
+    int bDmg = LegFeat_HasPick(oPC, FEAT_LEGENDARY_BULWARK)
+            || LegFeat_HasPick(oPC, FEAT_LEGENDARY_RIPOSTE);
+    if (bDmg) NWNX_Damage_SetDamageEventScript(LEGFEAT_DMG_SCRIPT, oPC);
+    else      NWNX_Damage_SetDamageEventScript(&quot;&quot;, oPC);
 }
 
 // Clear and rebuild every EFFECT-kind legendary effect on this character.
@@ -332,6 +440,11 @@ void LegFeat_ApplyAll(object oPC)
         if (LegFeat_HasPick(oPC, nFeatId))
             LegFeat_ApplyOne(oPC, nFeatId);
     }
+
+    // HOOK feats were skipped above by design; this is where they get their
+    // machinery. It clears as well as sets, so a respec out of a hook feat
+    // takes the hook with it.
+    LegFeat_ArmHooks(oPC);
 }
 
 // Take every pick back: the feats, their base-score points, and the records.

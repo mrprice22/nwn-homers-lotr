@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script legfeat_atk_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>legfeat_atk_inc</code></h1><pre class="nss-source"><code>// legfeat_atk_inc.nss - attacker-side legendary feat hooks.
+//
+// Called from devcrit_atk.nss, the server-wide NWNX Damage ATTACK script,
+// which is the only place in the module where the RESULT of an attack is
+// visible to script at all. Four feats live here:
+//
+//   Legendary Wrath      - +1 damage per 5% of the attacker&#x27;s missing health
+//   Legendary Quarry     - +50% damage to a favoured enemy below half health
+//   Legendary Sundering  - -3 to the target&#x27;s AC per landed hit, stacking 3
+//   Legendary Reaping    - +2 attack / +2 damage per kill, stacking 5
+//
+// ###########################################################################
+// # ENTRY IS GATED BY ONE GetLocalInt IN THE CALLER. Nothing in this file    #
+// # runs for a character who holds none of these feats, and that gate        #
+// # (LEGFEAT_ATK_VAR, set by LegFeat_ArmHooks) is what keeps four feats held #
+// # by a handful of level-60s off the hot path of every attack on the        #
+// # server. Never call in here without it.                                   #
+// ###########################################################################
+//
+// THE DAMAGE STRUCT IS READ-ONLY HERE. devcrit_atk owns it: it modifies its
+// own copy and calls NWNX_Damage_SetAttackEventData once, at the end, on the
+// critical path only. If this file also wrote to the struct, a bonus added
+// here would be silently dropped on every non-critical hit (devcrit returns
+// early and never sets), and double-counted on criticals. So these feats add
+// their damage as a separate EffectDamage instead - which is also the honest
+// rendering: the combat log shows the feat&#x27;s contribution on its own line.
+
+#include &quot;nwnx_damage&quot;
+#include &quot;legfeat_ids_inc&quot;
+
+// Set by LegFeat_ArmHooks on any character holding an attacker-side hook feat,
+// and read by devcrit_atk.nss once per attack. It is declared here rather than
+// in legfeat_inc.nss so that the hot-path caller can include this file alone.
+const string LEGFEAT_ATK_VAR    = &quot;legfeat_atk&quot;;
+
+const string LEGFEAT_SUNDER_TAG = &quot;LEGFEAT_SUNDER&quot;;
+const string LEGFEAT_SUNDER_AMT = &quot;legfeat_sunder_amt&quot;;
+const string LEGFEAT_SUNDER_GEN = &quot;legfeat_sunder_gen&quot;;
+const float  LEGFEAT_SUNDER_DUR = 18.0;
+const int    LEGFEAT_SUNDER_STEP = 3;
+const int    LEGFEAT_SUNDER_MAX = 9;      // three stacks of three
+
+const string LEGFEAT_REAP_TAG   = &quot;LEGFEAT_REAP&quot;;
+const string LEGFEAT_REAP_AMT   = &quot;legfeat_reap_amt&quot;;
+const string LEGFEAT_REAP_GEN   = &quot;legfeat_reap_gen&quot;;
+const float  LEGFEAT_REAP_DUR   = 12.0;
+const int    LEGFEAT_REAP_STEP  = 2;
+const int    LEGFEAT_REAP_MAX   = 10;     // five stacks of two
+
+const int    LEGFEAT_WRATH_MAX  = 20;
+
+// Damage the engine has already resolved for this attack. Fields that were not
+// dealt come back as -1, NOT 0 (the trap devcrit_atk documents), so every field
+// is tested before it is added.
+int LegFeatAtk_Total(struct NWNX_Damage_AttackEventData data)
+{
+    int nTotal = 0;
+    if (data.iBase        &gt; 0) nTotal += data.iBase;
+    if (data.iBludgeoning &gt; 0) nTotal += data.iBludgeoning;
+    if (data.iPierce      &gt; 0) nTotal += data.iPierce;
+    if (data.iSlash       &gt; 0) nTotal += data.iSlash;
+    if (data.iMagical     &gt; 0) nTotal += data.iMagical;
+    if (data.iAcid        &gt; 0) nTotal += data.iAcid;
+    if (data.iCold        &gt; 0) nTotal += data.iCold;
+    if (data.iDivine      &gt; 0) nTotal += data.iDivine;
+    if (data.iElectrical  &gt; 0) nTotal += data.iElectrical;
+    if (data.iFire        &gt; 0) nTotal += data.iFire;
+    if (data.iNegative    &gt; 0) nTotal += data.iNegative;
+    if (data.iPositive    &gt; 0) nTotal += data.iPositive;
+    if (data.iSonic       &gt; 0) nTotal += data.iSonic;
+    return nTotal;
+}
+
+// The weapon that swung, by the same rule devcrit_atk uses: attack types 1 and
+// 6 are the right hand, 2 is the left, and creature/unarmed attacks have no
+// weapon object at all.
+object LegFeatAtk_Weapon(object oAttacker, int nWeaponAttackType)
+{
+    if (nWeaponAttackType == 1 || nWeaponAttackType == 6)
+        return GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oAttacker);
+    if (nWeaponAttackType == 2)
+        return GetItemInSlot(INVENTORY_SLOT_LEFTHAND, oAttacker);
+    return OBJECT_INVALID;
+}
+
+// Physical damage type of the weapon in hand, from baseitems.2da. Fists,
+// claws and bites are bludgeoning. Same table devcrit_atk reads, and the same
+// reason: these bonuses are typed physical on purpose, so heavy damage
+// reduction eats part of them.
+int LegFeatAtk_DamageType(object oWeapon)
+{
+    if (GetIsObjectValid(oWeapon))
+    {
+        int n = StringToInt(Get2DAString(&quot;baseitems&quot;, &quot;WeaponType&quot;,
+                                         GetBaseItemType(oWeapon)));
+        if (n == 1) return DAMAGE_TYPE_PIERCING;
+        if (n == 3 || n == 4) return DAMAGE_TYPE_SLASHING;
+    }
+    return DAMAGE_TYPE_BLUDGEONING;
+}
+
+// Percentage of the creature&#x27;s health that is gone, 0-100.
+int LegFeatAtk_MissingPercent(object oCreature)
+{
+    int nMax = GetMaxHitPoints(oCreature);
+    if (nMax &lt;= 0) return 0;
+    int nCur = GetCurrentHitPoints(oCreature);
+    if (nCur &gt;= nMax) return 0;
+    if (nCur &lt; 0) nCur = 0;
+    return 100 - ((nCur * 100) / nMax);
+}
+
+// Does the attacker have the Favoured Enemy feat matching this target&#x27;s race?
+// There is no GetIsFavoredEnemy(), and the ranger&#x27;s own bonus is engine-side
+// and invisible to script, so the racial type has to be mapped to the feat by
+// hand. Racial types with no favoured-enemy feat (ooze, and the humanoid
+// catch-alls the module does not use) simply never match.
+int LegFeatAtk_IsFavoured(object oAttacker, object oTarget)
+{
+    int nFeat = -1;
+    switch (GetRacialType(oTarget))
+    {
+        case RACIAL_TYPE_DWARF:              nFeat = FEAT_FAVORED_ENEMY_DWARF; break;
+        case RACIAL_TYPE_ELF:                nFeat = FEAT_FAVORED_ENEMY_ELF; break;
+        case RACIAL_TYPE_GNOME:              nFeat = FEAT_FAVORED_ENEMY_GNOME; break;
+        case RACIAL_TYPE_HALFLING:           nFeat = FEAT_FAVORED_ENEMY_HALFLING; break;
+        case RACIAL_TYPE_HALFELF:            nFeat = FEAT_FAVORED_ENEMY_HALFELF; break;
+        case RACIAL_TYPE_HALFORC:            nFeat = FEAT_FAVORED_ENEMY_HALFORC; break;
+        case RACIAL_TYPE_HUMAN:              nFeat = FEAT_FAVORED_ENEMY_HUMAN; break;
+        case RACIAL_TYPE_ABERRATION:         nFeat = FEAT_FAVORED_ENEMY_ABERRATION; break;
+        case RACIAL_TYPE_ANIMAL:             nFeat = FEAT_FAVORED_ENEMY_ANIMAL; break;
+        case RACIAL_TYPE_BEAST:              nFeat = FEAT_FAVORED_ENEMY_BEAST; break;
+        case RACIAL_TYPE_CONSTRUCT:          nFeat = FEAT_FAVORED_ENEMY_CONSTRUCT; break;
+        case RACIAL_TYPE_DRAGON:             nFeat = FEAT_FAVORED_ENEMY_DRAGON; break;
+        case RACIAL_TYPE_HUMANOID_GOBLINOID: nFeat = FEAT_FAVORED_ENEMY_GOBLINOID; break;
+        case RACIAL_TYPE_HUMANOID_MONSTROUS: nFeat = FEAT_FAVORED_ENEMY_MONSTROUS; break;
+        case RACIAL_TYPE_HUMANOID_ORC:       nFeat = FEAT_FAVORED_ENEMY_ORC; break;
+        case RACIAL_TYPE_HUMANOID_REPTILIAN: nFeat = FEAT_FAVORED_ENEMY_REPTILIAN; break;
+        case RACIAL_TYPE_ELEMENTAL:          nFeat = FEAT_FAVORED_ENEMY_ELEMENTAL; break;
+        case RACIAL_TYPE_FEY:                nFeat = FEAT_FAVORED_ENEMY_FEY; break;
+        case RACIAL_TYPE_GIANT:              nFeat = FEAT_FAVORED_ENEMY_GIANT; break;
+        case RACIAL_TYPE_MAGICAL_BEAST:      nFeat = FEAT_FAVORED_ENEMY_MAGICAL_BEAST; break;
+        case RACIAL_TYPE_OUTSIDER:           nFeat = FEAT_FAVORED_ENEMY_OUTSIDER; break;
+        case RACIAL_TYPE_SHAPECHANGER:       nFeat = FEAT_FAVORED_ENEMY_SHAPECHANGER; break;
+        case RACIAL_TYPE_UNDEAD:             nFeat = FEAT_FAVORED_ENEMY_UNDEAD; break;
+        case RACIAL_TYPE_VERMIN:             nFeat = FEAT_FAVORED_ENEMY_VERMIN; break;
+    }
+    return nFeat &gt;= 0 &amp;&amp; GetHasFeat(nFeat, oAttacker);
+}
+
+// Strip our own tagged effects off a creature. Used before re-applying a
+// stack, because an effect&#x27;s magnitude cannot be read back - the running total
+// is kept in a local int and the effect is rebuilt from it.
+void LegFeatAtk_StripTag(object oCreature, string sTag)
+{
+    effect e = GetFirstEffect(oCreature);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectTag(e) == sTag) RemoveEffect(oCreature, e);
+        e = GetNextEffect(oCreature);
+    }
+}
+
+// Clear a stack counter, but only if no later hit has refreshed it. Each
+// application bumps a generation counter and schedules this with the
+// generation it saw; a refresh makes the older scheduled clear a no-op. Without
+// that, the second hit&#x27;s 18 seconds would be cut short by the first hit&#x27;s
+// expiry.
+void LegFeatAtk_ExpireStack(object oCreature, string sAmtVar, string sGenVar,
+                            string sTag, int nGen)
+{
+    if (GetLocalInt(oCreature, sGenVar) != nGen) return;
+    DeleteLocalInt(oCreature, sAmtVar);
+    LegFeatAtk_StripTag(oCreature, sTag);
+}
+
+void LegFeatAtk_OnAttack(struct NWNX_Damage_AttackEventData data)
+{
+    object oAttacker = OBJECT_SELF;
+    object oTarget   = data.oTarget;
+    if (!GetIsObjectValid(oTarget)) return;
+
+    // Legendary Reaping keys off the kill, not off damage, so it is checked
+    // before the &quot;did this land&quot; test - a killing blow has already landed.
+    if (data.bKillingBlow &amp;&amp; GetHasFeat(FEAT_LEGENDARY_REAPING, oAttacker))
+    {
+        int nAmt = GetLocalInt(oAttacker, LEGFEAT_REAP_AMT) + LEGFEAT_REAP_STEP;
+        if (nAmt &gt; LEGFEAT_REAP_MAX) nAmt = LEGFEAT_REAP_MAX;
+
+        LegFeatAtk_StripTag(oAttacker, LEGFEAT_REAP_TAG);
+        SetLocalInt(oAttacker, LEGFEAT_REAP_AMT, nAmt);
+        int nGen = GetLocalInt(oAttacker, LEGFEAT_REAP_GEN) + 1;
+        SetLocalInt(oAttacker, LEGFEAT_REAP_GEN, nGen);
+
+        effect eAB = TagEffect(EffectAttackIncrease(nAmt), LEGFEAT_REAP_TAG);
+        effect eDm = TagEffect(EffectDamageIncrease(nAmt, DAMAGE_TYPE_BLUDGEONING),
+                               LEGFEAT_REAP_TAG);
+        ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eAB, oAttacker,
+                            LEGFEAT_REAP_DUR);
+        ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eDm, oAttacker,
+                            LEGFEAT_REAP_DUR);
+        DelayCommand(LEGFEAT_REAP_DUR + 0.1,
+                     LegFeatAtk_ExpireStack(oAttacker, LEGFEAT_REAP_AMT,
+                                            LEGFEAT_REAP_GEN, LEGFEAT_REAP_TAG,
+                                            nGen));
+    }
+
+    // Everything below is &quot;this attack landed&quot;. The attack RESULT enum is not
+    // used for that test on purpose: devcrit_atk needs two specific values out
+    // of it, but &quot;did any damage get through&quot; is answered exactly by the damage
+    // the engine already resolved, and that cannot drift if the enum does.
+    int nDealt = LegFeatAtk_Total(data);
+    if (nDealt &lt;= 0) return;
+
+    object oWeapon = LegFeatAtk_Weapon(oAttacker, data.iWeaponAttackType);
+    int nDmgType   = LegFeatAtk_DamageType(oWeapon);
+
+    // --- Legendary Wrath: the closer to death, the harder the blow ---------
+    if (GetHasFeat(FEAT_LEGENDARY_WRATH, oAttacker))
+    {
+        int nBonus = LegFeatAtk_MissingPercent(oAttacker) / 5;
+        if (nBonus &gt; LEGFEAT_WRATH_MAX) nBonus = LEGFEAT_WRATH_MAX;
+        if (nBonus &gt; 0)
+            ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                                EffectDamage(nBonus, nDmgType), oTarget);
+    }
+
+    // --- Legendary Quarry: finish what you hunted --------------------------
+    if (GetHasFeat(FEAT_LEGENDARY_QUARRY, oAttacker)
+        &amp;&amp; GetCurrentHitPoints(oTarget) * 2 &lt;= GetMaxHitPoints(oTarget)
+        &amp;&amp; LegFeatAtk_IsFavoured(oAttacker, oTarget))
+    {
+        int nBonus = nDealt / 2;
+        if (nBonus &gt; 0)
+            ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                                EffectDamage(nBonus, nDmgType), oTarget);
+    }
+
+    // --- Legendary Sundering: ruin the armour ------------------------------
+    //
+    // The cap is the design&#x27;s own: never more than the armour and shield the
+    // target is actually wearing are worth, ignoring enchantment
+    // (GetItemACValue returns the BASE armour value). An unarmoured target has
+    // nothing to sunder, which is intended - it is an armour-shredding feat,
+    // not a universal AC debuff.
+    if (GetHasFeat(FEAT_LEGENDARY_SUNDERING, oAttacker))
+    {
+        int nCap = GetItemACValue(GetItemInSlot(INVENTORY_SLOT_CHEST, oTarget))
+                 + GetItemACValue(GetItemInSlot(INVENTORY_SLOT_LEFTHAND, oTarget));
+        if (nCap &gt; LEGFEAT_SUNDER_MAX) nCap = LEGFEAT_SUNDER_MAX;
+
+        if (nCap &gt; 0)
+        {
+            int nAmt = GetLocalInt(oTarget, LEGFEAT_SUNDER_AMT)
+                     + LEGFEAT_SUNDER_STEP;
+            if (nAmt &gt; nCap) nAmt = nCap;
+
+            LegFeatAtk_StripTag(oTarget, LEGFEAT_SUNDER_TAG);
+            SetLocalInt(oTarget, LEGFEAT_SUNDER_AMT, nAmt);
+            int nGen = GetLocalInt(oTarget, LEGFEAT_SUNDER_GEN) + 1;
+            SetLocalInt(oTarget, LEGFEAT_SUNDER_GEN, nGen);
+
+            effect eAC = TagEffect(EffectACDecrease(nAmt, AC_DODGE_BONUS),
+                                   LEGFEAT_SUNDER_TAG);
+            ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eAC, oTarget,
+                                LEGFEAT_SUNDER_DUR);
+            DelayCommand(LEGFEAT_SUNDER_DUR + 0.1,
+                         LegFeatAtk_ExpireStack(oTarget, LEGFEAT_SUNDER_AMT,
+                                                LEGFEAT_SUNDER_GEN,
+                                                LEGFEAT_SUNDER_TAG, nGen));
+        }
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
