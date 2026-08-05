@@ -76,6 +76,8 @@
 
 #include &quot;x2_inc_switches&quot;
 #include &quot;fat_inc&quot;
+#include &quot;q_ent_inc&quot;
+#include &quot;cg_retype_inc&quot;
 
 int i;
 
@@ -113,6 +115,17 @@ void main()
 // (roadmap: heal-soul-fatigue). Runs before ClearSpells; the real heal impact
 // script still runs after this override returns, and fatigue is delayed past it.
 FAT_OnOverrideSpellCast();
+
+// The Thirteenth Ent (roadmap: thirteenth-ent) - the druid restoration ritual
+// is a cast of Nature&#x27;s Balance whose area of effect covers Leaflock, with a
+// fresh truffle in the pack. Listener only; no spell script is replaced.
+ENT_OnSpellCast();
+
+// Caster Signature Gear - Damage Retyper amulets (roadmap:
+// Gear-to-boost-specific-mage-spells). If the caster is wearing the amulet
+// that names this spell, the death effect is replaced with real typed damage
+// and the original impact script is suppressed. No-op for every other cast.
+CGR_OnOverrideSpellCast();
 
 ClearSpells();
 

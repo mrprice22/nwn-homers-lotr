@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script q_ent_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>q_ent_inc</code></h1><pre class="nss-source"><code>// q_ent_inc.nss - The Thirteenth Ent (roadmap: thirteenth-ent)
+//
+// T4 (level 32 band) restoration quest in Fangorn Forest (area resref
+// &quot;fangornforest&quot;). Leaflock, the thirteenth Ent of Fangorn, has stood so
+// long that he has gone tree-still and forgotten his own name. Two classes
+// can wake him; both end in the same reward, the Draught of the Ent.
+//
+// DRUID BRANCH (druid level &gt;= 20)
+//   * Accepting stamps the questcddb rolling-24h key ENT_CD_DRUID: one
+//     attempt per real-world day, win or lose.
+//   * Truffles of Fangorn are invisible to hands and eyes. They only appear
+//     while a druid with the trial active is standing in the area IN BOAR
+//     FORM (wild shape -- GetAppearanceType == APPEARANCE_TYPE_BOAR). The
+//     area heartbeat (q_ent_hb, on fangornforest) spawns the truffle
+//     placeables at the admin-placed waypoints AP_thirteenthent_2..6 while
+//     such a druid is present and clears them again when none is.
+//   * Rooting one up (q_ent_pick, the placeable OnUsed) gives the truffle
+//     item and opens a SHORT window (ENT_TRUFF_SECS). When it lapses the
+//     truffle crumbles and another must be dug.
+//   * The ritual itself is a cast of Nature&#x27;s Balance whose area of effect
+//     overlaps Leaflock, with the truffle still in the pack. Detected in
+//     ENT_OnSpellCast(), called from stop_spellcheat.nss -- the module&#x27;s
+//     SetModuleOverrideSpellscript hook installed by onmoduleload.nss (the
+//     same non-destructive route fat_inc.nss uses). No stock spell script is
+//     replaced.
+//
+// BARD BRANCH (bard level &gt;= 20)
+//   * Accepting stamps ENT_CD_BARD (rolling 24h) and starts a two-stage
+//     concert. Leaflock gives a visible cue (he stirs / speaks) and the bard
+//     answers it by using the Bard Song feat within ENT_CUE_SECS.
+//   * Each song rolls BOTH Lore and Perform, d20 + skill rank, and prints
+//     every roll to the player. Stage 1 is DC 30 / DC 30, stage 2 is
+//     DC 40 / DC 40. A single failed check ends the attempt (the 24h wait
+//     was already stamped at the start).
+//   * Bard Song is detected in ENT_OnBardSong(), reached from
+//     nw_s2_bardsong.nss (the module&#x27;s own Bard Song override, which is the
+//     real ImpactScript of spells.2da row &quot;Bards_Song&quot;) via
+//     ExecuteScript(&quot;q_ent_song&quot;) -- the song&#x27;s own behaviour is untouched.
+//
+// REWARD - Draught of the Ent (blueprint q_ent_drght, item tag q_ent_drink):
+//   a permanent +1 STR / +1 CON, written into the character&#x27;s BASE scores via
+//   NWNX_Creature (the route legfeat_inc.nss uses for its RAW-kind feats).
+//   Non-farmable at two independent points, both advance-only questcddb
+//   calendar keys that no relog or reboot resets:
+//     ENT_DRAUGHT_K  - the draught is HANDED OUT at most once per character
+//     ENT_DRUNK_K    - the draught is DRUNK for effect at most once per
+//                      character (q_ent_drink.nss re-checks before applying)
+//   and the ritual itself re-verifies truffle possession at grant time, so
+//   the drop-item-mid-conversation farm cannot reach the reward.
+//
+// Everything here no-ops gracefully if the admin has not yet placed the
+// AP_thirteenthent_* waypoints: no Ent, no truffles, no errors.
+
+#include &quot;quest_cd_inc&quot;
+
+// ------------------------------------------------------------
+// Identity
+
+const string ENT_JOURNAL     = &quot;thirteenthent&quot;;   // module.jrl.json category tag
+const string ENT_RES         = &quot;q_ent_13th&quot;;      // Ent blueprint resref
+const string ENT_TAG         = &quot;q_ent_13th&quot;;      // Ent tag
+const string ENT_WP_GIVER    = &quot;AP_thirteenthent_1&quot;;
+const string ENT_WP_TRUFFLE  = &quot;AP_thirteenthent_&quot;;  // + &quot;2&quot;..&quot;6&quot;
+const int    ENT_TRUFFLE_WPS = 6;                 // last truffle waypoint index
+
+const string ENT_TRUFP_RES   = &quot;q_ent_trufp&quot;;     // truffle placeable
+const string ENT_TRUFP_TAG   = &quot;q_ent_trufp&quot;;
+const string ENT_TRUFF_RES   = &quot;q_ent_truff&quot;;     // truffle item
+const string ENT_TRUFF_TAG   = &quot;q_ent_truff&quot;;
+const string ENT_DRAUGHT_RES = &quot;q_ent_drght&quot;;     // draught item blueprint
+const string ENT_DRAUGHT_TAG = &quot;q_ent_drink&quot;;     // ... and its tag-based script
+
+// questcddb keys (all real-world time, survive reboots and relogs)
+const string ENT_CD_DRUID    = &quot;ent13_druid_try&quot;;
+const string ENT_CD_BARD     = &quot;ent13_bard_try&quot;;
+const string ENT_DONE_K      = &quot;ent13_restored&quot;;
+const string ENT_DRAUGHT_K   = &quot;ent13_draught&quot;;
+const string ENT_DRUNK_K     = &quot;ent13_draught_drunk&quot;;
+
+// Per-attempt scratch state, on the PC
+const string ENT_L_DRUID     = &quot;ent13_druid&quot;;        // druid trial active
+const string ENT_L_TRUFFLE   = &quot;ent13_truffle_ok&quot;;   // truffle still fresh
+const string ENT_L_STAGE     = &quot;ent13_bard_stage&quot;;   // 0 / 1 / 2
+const string ENT_L_CUE       = &quot;ent13_cue&quot;;          // cue is live, sing now
+const string ENT_L_SEQ       = &quot;ent13_seq&quot;;          // invalidates stale delays
+
+const int    ENT_MIN_LEVEL   = 20;     // druid or bard class level
+const float  ENT_REACH       = 10.0;   // RADIUS_SIZE_COLOSSAL, &quot;overlaps the Ent&quot;
+const float  ENT_TRUFF_SECS  = 180.0;  // truffle stays fresh this long
+const float  ENT_CUE_DELAY   = 8.0;    // pause before Leaflock gives a cue
+const float  ENT_CUE_SECS    = 90.0;   // how long a cue stays answerable
+const int    ENT_DC_STAGE1   = 30;
+const int    ENT_DC_STAGE2   = 40;
+const int    ENT_TOKEN_CD    = 6390;   // &quot;come back in &lt;CUSTOM6390&gt;&quot;
+
+// ------------------------------------------------------------
+// Small helpers
+
+// TRUE once this character has woken Leaflock (advance-only, forever).
+int ENT_IsRestored(object oPC)
+{
+    return QCD_LastStamp(oPC, ENT_DONE_K) != 0;
+}
+
+int ENT_IsDruid(object oPC)
+{
+    return GetLevelByClass(CLASS_TYPE_DRUID, oPC) &gt;= ENT_MIN_LEVEL;
+}
+
+int ENT_IsBard(object oPC)
+{
+    return GetLevelByClass(CLASS_TYPE_BARD, oPC) &gt;= ENT_MIN_LEVEL;
+}
+
+// The living Ent, or OBJECT_INVALID while the waypoint is unplaced.
+object ENT_GetEnt()
+{
+    return GetObjectByTag(ENT_TAG);
+}
+
+// Leaflock speaks (silently no-ops if he is not spawned).
+void ENT_Say(string sText)
+{
+    object oEnt = ENT_GetEnt();
+    if (GetIsObjectValid(oEnt))
+        AssignCommand(oEnt, SpeakString(sText));
+}
+
+void ENT_Tell(object oPC, string sText)
+{
+    SendMessageToPC(oPC, sText);
+    FloatingTextStringOnCreature(sText, oPC, FALSE);
+}
+
+// Wipe every scratch local of an attempt and invalidate pending delays.
+void ENT_ClearState(object oPC)
+{
+    SetLocalInt(oPC, ENT_L_SEQ, GetLocalInt(oPC, ENT_L_SEQ) + 1);
+    DeleteLocalInt(oPC, ENT_L_DRUID);
+    DeleteLocalInt(oPC, ENT_L_TRUFFLE);
+    DeleteLocalInt(oPC, ENT_L_STAGE);
+    DeleteLocalInt(oPC, ENT_L_CUE);
+}
+
+// Destroy any truffle this PC is carrying (they never outlive an attempt).
+void ENT_BurnTruffles(object oPC)
+{
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        object oNext = GetNextItemInInventory(oPC);
+        if (GetTag(oItem) == ENT_TRUFF_TAG)
+            DestroyObject(oItem);
+        oItem = oNext;
+    }
+}
+
+// ------------------------------------------------------------
+// The Ent himself
+
+// (Re)spawn Leaflock at his waypoint. No-ops until the admin places
+// AP_thirteenthent_1, and never double-spawns.
+void ENT_SpawnEnt()
+{
+    object oWP = GetWaypointByTag(ENT_WP_GIVER);
+    if (GetIsObjectValid(oWP) &amp;&amp; !GetIsObjectValid(GetObjectByTag(ENT_TAG)))
+        CreateObject(OBJECT_TYPE_CREATURE, ENT_RES, GetLocation(oWP));
+}
+
+// ------------------------------------------------------------
+// Truffles
+
+// Are the truffle placeables currently standing?
+int ENT_TrufflesUp()
+{
+    return GetIsObjectValid(GetObjectByTag(ENT_TRUFP_TAG));
+}
+
+// Raise the hidden truffles at AP_thirteenthent_2..N. Idempotent, and a
+// no-op for every waypoint the admin has not placed yet.
+void ENT_SpawnTruffles()
+{
+    int i;
+    for (i = 2; i &lt;= ENT_TRUFFLE_WPS; i++)
+    {
+        object oWP = GetWaypointByTag(ENT_WP_TRUFFLE + IntToString(i));
+        if (!GetIsObjectValid(oWP)) continue;
+
+        // One truffle per waypoint: skip a waypoint that already has one.
+        object oNear = GetNearestObjectByTag(ENT_TRUFP_TAG, oWP, 1);
+        if (GetIsObjectValid(oNear) &amp;&amp; GetDistanceBetween(oNear, oWP) &lt; 1.0)
+            continue;
+
+        CreateObject(OBJECT_TYPE_PLACEABLE, ENT_TRUFP_RES, GetLocation(oWP));
+    }
+}
+
+// Sink them again when no boar-shaped druid is left in the wood.
+void ENT_ClearTruffles(object oArea)
+{
+    object oObj = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oObj))
+    {
+        object oNext = GetNextObjectInArea(oArea);
+        if (GetTag(oObj) == ENT_TRUFP_TAG)
+            DestroyObject(oObj);
+        oObj = oNext;
+    }
+}
+
+// TRUE for a druid who is mid-trial and currently wearing the boar.
+int ENT_IsTruffleHunter(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return FALSE;
+    if (!GetLocalInt(oPC, ENT_L_DRUID)) return FALSE;
+    return GetAppearanceType(oPC) == APPEARANCE_TYPE_BOAR;
+}
+
+// The truffle went stale: crumble it and say so. nSeq guards against an old
+// attempt&#x27;s timer firing into a new one.
+void ENT_TruffleExpire(object oPC, int nSeq)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    if (GetLocalInt(oPC, ENT_L_SEQ) != nSeq) return;
+    if (!GetLocalInt(oPC, ENT_L_TRUFFLE)) return;
+
+    DeleteLocalInt(oPC, ENT_L_TRUFFLE);
+    ENT_BurnTruffles(oPC);
+    ENT_Tell(oPC, &quot;The truffle blackens in your hand and crumbles to dry earth. &quot;
+                + &quot;You will have to root up another.&quot;);
+}
+
+// ------------------------------------------------------------
+// Completion and reward
+
+// Hand over the Draught of the Ent, at most once per character, ever.
+void ENT_GrantDraught(object oPC)
+{
+    if (QCD_LastStamp(oPC, ENT_DRAUGHT_K) != 0)
+    {
+        ENT_Tell(oPC, &quot;Leaflock has no second draught for you -- that gift is &quot;
+                    + &quot;given once and once only.&quot;);
+        return;
+    }
+
+    QCD_Stamp(oPC, ENT_DRAUGHT_K);
+    CreateItemOnObject(ENT_DRAUGHT_RES, oPC, 1);
+    ENT_Tell(oPC, &quot;Leaflock presses a horn cup into your hands: the Draught of the Ent.&quot;);
+}
+
+// The Ent wakes. Shared end of both branches.
+void ENT_Complete(object oPC)
+{
+    ENT_ClearState(oPC);
+    ENT_BurnTruffles(oPC);
+
+    if (!ENT_IsRestored(oPC))
+    {
+        QCD_Stamp(oPC, ENT_DONE_K);
+        AddJournalQuestEntry(ENT_JOURNAL, 4, oPC);
+        GiveXPToCreature(oPC, 4000);
+    }
+
+    object oEnt = ENT_GetEnt();
+    if (GetIsObjectValid(oEnt))
+    {
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_IMP_SUNSTRIKE), oEnt);
+        AssignCommand(oEnt, PlayAnimation(ANIMATION_FIREFORGET_VICTORY1, 1.0, 3.0));
+    }
+
+    ENT_Say(&quot;Hoom, HOM! It comes back to me... Leaflock. Leaflock is my name, and &quot;
+          + &quot;I am awake. Root-friend, you have my thanks, and thanks are slow &quot;
+          + &quot;things here -- take this with them.&quot;);
+
+    ENT_GrantDraught(oPC);
+
+    DelayCommand(9.0, ENT_Say(&quot;Now I will stand a while and listen to the wood. &quot;
+                            + &quot;Not so deep, this time. Not so deep.&quot;));
+}
+
+// ------------------------------------------------------------
+// Druid branch: the Nature&#x27;s Balance ritual
+
+// Called on EVERY spell cast, from stop_spellcheat.nss (the module override
+// spellscript). OBJECT_SELF is the caster.
+void ENT_OnSpellCast()
+{
+    if (GetSpellId() != SPELL_NATURES_BALANCE) return;
+
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+    if (!GetLocalInt(oPC, ENT_L_DRUID)) return;
+
+    object oEnt = ENT_GetEnt();
+    if (!GetIsObjectValid(oEnt)) return;
+
+    location lSpell = GetSpellTargetLocation();
+    if (!GetIsObjectValid(GetAreaFromLocation(lSpell)))
+        lSpell = GetLocation(oPC);
+
+    if (GetDistanceBetweenLocations(lSpell, GetLocation(oEnt)) &gt; ENT_REACH)
+    {
+        ENT_Tell(oPC, &quot;Your Balance settles over the wood -- but not over &quot;
+                    + &quot;Leaflock&#x27;s roots. Cast it where it covers him.&quot;);
+        return;
+    }
+
+    // Reward-and-take: re-verify the truffle AT GRANT TIME. The dialogue
+    // conditional proves nothing here -- a truffle dropped a moment ago must
+    // not buy a draught.
+    object oTruffle = GetItemPossessedBy(oPC, ENT_TRUFF_TAG);
+    if (!GetIsObjectValid(oTruffle))
+    {
+        ENT_Tell(oPC, &quot;The Balance turns about Leaflock&#x27;s roots and finds &quot;
+                    + &quot;nothing to bind it. You are carrying no truffle.&quot;);
+        return;
+    }
+
+    if (!GetLocalInt(oPC, ENT_L_TRUFFLE))
+    {
+        ENT_Tell(oPC, &quot;The truffle in your pack is dead earth now. &quot;
+                    + &quot;Root up a fresh one.&quot;);
+        return;
+    }
+
+    DestroyObject(oTruffle);
+    ENT_Complete(oPC);
+}
+
+// ------------------------------------------------------------
+// Bard branch: the two-stage concert
+
+void ENT_BardFail(object oPC, string sWhy)
+{
+    ENT_ClearState(oPC);
+    ENT_Tell(oPC, sWhy);
+    ENT_Say(&quot;Hoom. No. That is not my name, and this is not my waking. &quot;
+          + &quot;Go away, singer -- I am going down again for a day and a night.&quot;);
+}
+
+// The cue stopped being answerable.
+void ENT_CueExpire(object oPC, int nSeq)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    if (GetLocalInt(oPC, ENT_L_SEQ) != nSeq) return;
+    if (!GetLocalInt(oPC, ENT_L_CUE)) return;
+
+    ENT_BardFail(oPC, &quot;The moment passes unanswered. Leaflock&#x27;s bark closes over.&quot;);
+}
+
+// Leaflock stirs: the bard&#x27;s window to play opens here.
+void ENT_BardCue(object oPC, int nSeq)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    if (GetLocalInt(oPC, ENT_L_SEQ) != nSeq) return;
+
+    int nStage = GetLocalInt(oPC, ENT_L_STAGE);
+    if (nStage &lt;= 0) return;
+
+    SetLocalInt(oPC, ENT_L_CUE, 1);
+
+    if (nStage == 1)
+        ENT_Say(&quot;*the bark of the great Ent shifts, and a long creak runs up &quot;
+              + &quot;through the trunk* Hoom... hoom... something is playing.&quot;);
+    else
+        ENT_Say(&quot;*roots grind in the loam; a voice comes slowly out of the wood* &quot;
+              + &quot;Hoom... more, singer. My name. Fetch me up my name.&quot;);
+
+    ENT_Tell(oPC, &quot;Leaflock stirs. Play now -- use your Bard Song.&quot;);
+    DelayCommand(ENT_CUE_SECS, ENT_CueExpire(oPC, nSeq));
+}
+
+// One skill check, reported to the player. Returns TRUE on a pass.
+int ENT_Check(object oPC, int nSkill, string sLabel, int nDC)
+{
+    int nRoll  = d20();
+    int nRank  = GetSkillRank(nSkill, oPC);
+    int nTotal = nRoll + nRank;
+    int bPass  = nTotal &gt;= nDC;
+
+    ENT_Tell(oPC, sLabel + &quot; check: &quot; + IntToString(nRoll) + &quot; + &quot;
+                + IntToString(nRank) + &quot; = &quot; + IntToString(nTotal)
+                + &quot; vs DC &quot; + IntToString(nDC) + &quot; -- &quot;
+                + (bPass ? &quot;SUCCESS&quot; : &quot;FAILURE&quot;));
+    return bPass;
+}
+
+// Called from q_ent_song.nss, which nw_s2_bardsong.nss executes on every use
+// of the Bard Song feat. OBJECT_SELF there is the bard.
+void ENT_OnBardSong()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    int nStage = GetLocalInt(oPC, ENT_L_STAGE);
+    if (nStage &lt;= 0) return;
+
+    object oEnt = ENT_GetEnt();
+    if (!GetIsObjectValid(oEnt)) return;
+
+    if (GetDistanceBetween(oPC, oEnt) &gt; ENT_REACH)
+    {
+        ENT_Tell(oPC, &quot;Your song does not carry that far into the wood. &quot;
+                    + &quot;Play where Leaflock can hear you.&quot;);
+        return;
+    }
+
+    if (!GetLocalInt(oPC, ENT_L_CUE))
+    {
+        ENT_Tell(oPC, &quot;Leaflock has not stirred yet. Nothing good is said in &quot;
+                    + &quot;a hurry -- wait for his cue.&quot;);
+        return;
+    }
+
+    DeleteLocalInt(oPC, ENT_L_CUE);
+
+    int nDC = (nStage == 1) ? ENT_DC_STAGE1 : ENT_DC_STAGE2;
+    int bLore    = ENT_Check(oPC, SKILL_LORE,    &quot;Lore&quot;,    nDC);
+    int bPerform = ENT_Check(oPC, SKILL_PERFORM, &quot;Perform&quot;, nDC);
+
+    if (!bLore || !bPerform)
+    {
+        ENT_BardFail(oPC, &quot;The song slips its footing and the wood goes quiet.&quot;);
+        return;
+    }
+
+    if (nStage == 1)
+    {
+        SetLocalInt(oPC, ENT_L_STAGE, 2);
+        ENT_Tell(oPC, &quot;Leaflock rises out of the root-sleep. Hold the concert &quot;
+                    + &quot;-- he will stir again.&quot;);
+        ENT_Say(&quot;Hoom... I am listening now. Do not stop, singer.&quot;);
+        DelayCommand(ENT_CUE_DELAY, ENT_BardCue(oPC, GetLocalInt(oPC, ENT_L_SEQ)));
+        return;
+    }
+
+    ENT_Complete(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

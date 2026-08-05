@@ -59,7 +59,7 @@
 <h1>Conversation: <code>q_hob_conv</code></h1>
 <dl class="meta">
 <dt>NPC lines</dt><dd>8</dd>
-<dt>PC replies</dt><dd>12</dd>
+<dt>PC replies</dt><dd>13</dd>
 <dt>NumWords</dt><dd>431</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code></code></dd>
@@ -68,7 +68,8 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/q_hob_odo.html">Odo Proudfoot</a> <code>q_hob_odo</code></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>q_hob_c_o1</code></td><td>active</td><td>✓</td><td></td></tr>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>pw_c_shop</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>q_hob_c_o1</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hob_c_o2</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hob_c_o3</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hob_c_o4</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -82,6 +83,7 @@
 <tr><td><code>q_hob_a2</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hob_a3</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hob_a4</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>pw_shop</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hob_c_mid</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hob_c_day</code></td><td>active</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/concern-hob.html">Concerning Hobbits</a></td><td><code>concern_hob</code></td><td>1, 2</td></tr></tbody></table>
@@ -209,6 +211,10 @@
 <div class="dlg-text">*He waves his quill.* We settled all this already today, my friend -- you&#x27;ve had your five and I&#x27;ve marked my book. Come back tomorrow, <span class="custom-token" title="SetCustomToken(6420, ...) called in: q_hob_c_day">&lt;CUSTOM6420&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_day.html">q_hob_c_day</a>]</sup></span> from now, and I&#x27;ll have a fresh dispute for you. The families never do stop marrying and squabbling, bless them.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>pw_shop</code></span> <small class="muted">(if <code>pw_c_shop</code>)</small> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
+<div class="dlg-text">Have you leaf to sell today, Master Proudfoot?</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #2</span> <a class="dlg-anchor" href="#r2" title="jump to flat reply #2">¶</a></summary>
 <div class="dlg-text">Keep your scrolls, then. Farewell.</div>
 </details>
@@ -225,6 +231,7 @@
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e3">entry #3</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></div>
 </div>
 </details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r12">reply #12</a> <span class="dlg-link-preview">“Have you leaf to sell today, Master Proudfoot?”</span> <small class="muted">(if <code>pw_c_shop</code>)</small></div>
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
 <div class="dlg-text">Family-trees aren&#x27;t my trade. Good day.</div>
@@ -233,8 +240,8 @@
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*A stout, silver-whiskered hobbit looks up from a great unrolled scroll of names, quill behind his ear.* Ah -- a fresh pair of eyes! Odo Proudfoot, at your service, and keeper of the Hobbiton family-books. There is a dispute afoot, you see: the Ivy Bush is fair split over who is cousin to whom, and the argument shifts with every season like the wind off the Hill. I&#x27;ll put five questions of Shire lineage to you -- answer four rightly and I&#x27;ll count you a friend of the family-books and see you rewarded. Will you match wits with an old genealogist?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I&#x27;ll match wits with you, Master Proudfoot. Ask away.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Family-trees aren&#x27;t my trade. Good day.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*He waves his quill.* We settled all this already today, my friend -- you&#x27;ve had your five and I&#x27;ve marked my book. Come back tomorrow, <span class="custom-token" title="SetCustomToken(6420, ...) called in: q_hob_c_day">&lt;CUSTOM6420&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_day.html">q_hob_c_day</a>]</sup></span> from now, and I&#x27;ll have a fresh dispute for you. The families never do stop marrying and squabbling, bless them.</div><ul class="dlg-links"><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Keep your scrolls, then. Farewell.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*A stout, silver-whiskered hobbit looks up from a great unrolled scroll of names, quill behind his ear.* Ah -- a fresh pair of eyes! Odo Proudfoot, at your service, and keeper of the Hobbiton family-books. There is a dispute afoot, you see: the Ivy Bush is fair split over who is cousin to whom, and the argument shifts with every season like the wind off the Hill. I&#x27;ll put five questions of Shire lineage to you -- answer four rightly and I&#x27;ll count you a friend of the family-books and see you rewarded. Will you match wits with an old genealogist?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“I&#x27;ll match wits with you, Master Proudfoot. Ask away.”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Have you leaf to sell today, Master Proudfoot?”</span> <small class="muted">(if <code>pw_c_shop</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Family-trees aren&#x27;t my trade. Good day.”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*He waves his quill.* We settled all this already today, my friend -- you&#x27;ve had your five and I&#x27;ve marked my book. Come back tomorrow, <span class="custom-token" title="SetCustomToken(6420, ...) called in: q_hob_c_day">&lt;CUSTOM6420&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_day.html">q_hob_c_day</a>]</sup></span> from now, and I&#x27;ll have a fresh dispute for you. The families never do stop marrying and squabbling, bless them.</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Have you leaf to sell today, Master Proudfoot?”</span> <small class="muted">(if <code>pw_c_shop</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Keep your scrolls, then. Farewell.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">*Odo taps the scroll.* Now, where were we -- ah yes, the matter under dispute. Let us go on.</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Go on, ask the next.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Question <span class="custom-token" title="SetCustomToken(6421, ...) called in: q_hob_c_lose, q_hob_c_show, q_hob_c_win">&lt;CUSTOM6421&gt;<sup class="token-setters">[<a href="../scripts/q_hob_c_lose.html">q_hob_c_lose</a>, <a href="../scripts/q_hob_c_show.html">q_hob_c_show</a>, <a href="../scripts/q_hob_c_win.html">q_hob_c_win</a>]</sup></span> of five, then. Mind your Bagginses from your Boffins:
 
@@ -256,6 +263,7 @@
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Ah well. Ask the next.</div><ul class="dlg-links"><li><a href="#e3">→ child</a> <span class="dlg-link-preview">“Question  of five, then. Mind your Bagginses from your Boffins:”</span> <small class="muted">(if <code>q_hob_c_show</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">A pleasure, Master Proudfoot. Until tomorrow.</div></div>
 <div class="dlg-node reply" id="r11"><div class="dlg-head"><span class="dlg-id">reply #11</span></div><div class="dlg-text">I&#x27;ll study up. Good day, Master Proudfoot.</div></div>
+<div class="dlg-node reply" id="r12"><div class="dlg-head"><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>pw_shop</code></span></div><div class="dlg-text">Have you leaf to sell today, Master Proudfoot?</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

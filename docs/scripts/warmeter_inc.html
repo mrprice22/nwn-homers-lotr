@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script warmeter_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>warmeter_inc</code></h1><pre class="nss-source"><code>// warmeter_inc.nss - The Isengard war-machine meter (Fangorn tug-of-war)
+//
+// Roadmap: lumber-ent-tugofwar. This is the METER LAYER ONLY - the shared,
+// server-wide contest value that the future Lumber Runners (evil) and Ent-Watch
+// (good) Fangorn dailies will push, and that the Helm&#x27;s Deep event will read.
+// It deliberately contains NO quest content: no giver NPCs, no objectives, and
+// no per-band Helm&#x27;s Deep effects. Those are queued design questions.
+//
+// It is a thin, opinionated wrapper over worldstate_inc.nss - do NOT build a
+// second world-state layer. Everything here ends up in the worldstatedb
+// campaign DB under the single key WM_KEY.
+//
+// ------------------------------------------------------------
+// APPROVED MECHANIC (admin, roadmap design question, 2026-08):
+//
+//   back-end range  0 .. 200   (clamped)
+//   neutral / start 100
+//   step            +/- 5 per qualifying action
+//   decay           1 point per real hour, toward 100
+//   bands           &lt;=25 / 26-74 / 75-125 / 126-174 / &gt;=175
+//
+//   &quot;any in-game mentions of this progress should be normalized to %, as 0 to
+//    100% for one side or the other ... 100% for one faction means either
+//    back end value of 0 or 200&quot;
+//
+// ARITHMETIC CHECK (the display rate the admin asked for falls out exactly):
+//   neutral 100 -&gt; either extreme is exactly 100 back-end points, and each side
+//   spans exactly 100% of its own half. So 1 back-end point == 1 display point,
+//   and the decay of 1 back-end point per real hour IS a display decay of
+//   1% per hour. No scaling factor is needed anywhere.
+//     back-end   0 = 100% to Fangorn
+//     back-end 100 =   0% - neutral
+//     back-end 200 = 100% to Isengard
+//   Higher = Isengard winning (the key is named for Isengard&#x27;s war machine).
+//
+// DISPLAY RULE: never show a player the raw 0..200 number. Use
+// WM_GetPercent() / WM_GetLeader() / WM_GetStatusText(). The one deliberate
+// exception is the admin readout (wm_report.nss), which is gated on
+// Admin_CanAdmin() and prints the raw value on purpose for tuning/UAT.
+//
+// WIRING: WM_Init() is called once from onmoduleload.nss (idempotent - it
+// registers the decay rule and seeds the neutral value only on a virgin DB).
+// The decay itself is applied by worldstate_inc&#x27;s WS_Tick(), already running
+// off the module heartbeat (bleeding.nss) - nothing else to hook up.
+
+#include &quot;worldstate_inc&quot;
+
+// ------------------------------------------------------------
+// Tuning constants - the single place any of these numbers live.
+
+// World-state key. Shared with every future consumer (dailies, Helm&#x27;s Deep).
+const string WM_KEY = &quot;isengard_warmachine&quot;;
+
+const int WM_MIN     = 0;      // 100% to Fangorn
+const int WM_NEUTRAL = 100;    // start / decay target
+const int WM_MAX     = 200;    // 100% to Isengard
+
+// One qualifying action moves the meter this far.
+const int WM_STEP = 5;
+
+// Decay: WM_DECAY_RATE points toward WM_NEUTRAL every WM_DECAY_PERIOD real
+// seconds. 1 point / 3600s == 1% of a side&#x27;s progress per real hour.
+const int WM_DECAY_RATE   = 1;
+const int WM_DECAY_PERIOD = 3600;
+
+// Side names - used in every player-visible string, so they read the same way
+// everywhere. &quot;Fangorn&quot; covers the Ents / Ent-Watch side.
+const string WM_SIDE_ISENGARD = &quot;Isengard&quot;;
+const string WM_SIDE_FANGORN  = &quot;Fangorn&quot;;
+
+// ------------------------------------------------------------
+// Difficulty bands (the five the admin approved), ascending with the meter:
+// band 0 is Fangorn utterly ascendant, band 4 is Isengard utterly ascendant.
+
+const int WM_BAND_FANGORN_ASCENDANT  = 0;   // meter &lt;=  25
+const int WM_BAND_FANGORN_RISING     = 1;   // meter  26 -  74
+const int WM_BAND_BALANCED           = 2;   // meter  75 - 125
+const int WM_BAND_ISENGARD_RISING    = 3;   // meter 126 - 174
+const int WM_BAND_ISENGARD_ASCENDANT = 4;   // meter &gt;= 175
+
+// ------------------------------------------------------------
+// Prototypes
+
+void   WM_Init();
+int    WM_Get();
+int    WM_Adjust(int nSteps);
+int    WM_PushIsengard(int nActions = 1);
+int    WM_PushFangorn(int nActions = 1);
+int    WM_GetBandOf(int nValue);
+int    WM_GetBand();
+string WM_GetBandName(int nBand);
+int    WM_GetPercentOf(int nValue);
+int    WM_GetPercent();
+string WM_GetLeaderOf(int nValue);
+string WM_GetLeader();
+string WM_GetStatusText();
+void   WM_Reset();
+
+// ------------------------------------------------------------
+// Init - idempotent. Safe to call on every module load.
+
+void WM_Init()
+{
+    // Seed the neutral value only when the key has never been written. -1 is
+    // outside the clamped range, so it can only mean &quot;no row yet&quot;.
+    if (WS_GetInt(WM_KEY, -1) == -1)
+        WS_SetInt(WM_KEY, WM_NEUTRAL);
+
+    // Re-registering the same decay rule is an UPSERT; it only re-phases the
+    // rule&#x27;s last_tick, which costs at most one hour of drift per reboot.
+    WS_RegisterDecay(WM_KEY, WM_DECAY_RATE, WM_NEUTRAL, WM_DECAY_PERIOD);
+}
+
+// ------------------------------------------------------------
+// Read / write
+
+// Raw back-end value, 0..200. Callers that show anything to a player must go
+// through WM_GetPercent / WM_GetLeader / WM_GetStatusText instead.
+int WM_Get()
+{
+    return WS_GetInt(WM_KEY, WM_NEUTRAL);
+}
+
+// Move the meter by nSteps qualifying actions (positive = toward Isengard,
+// negative = toward Fangorn). Clamped. Returns the new raw value. This is the
+// ONLY place WM_STEP is applied, so the step size lives in exactly one spot.
+int WM_Adjust(int nSteps)
+{
+    if (nSteps == 0) return WM_Get();
+    return WS_AdjustInt(WM_KEY, nSteps * WM_STEP, WM_MIN, WM_MAX);
+}
+
+// One (or nActions) qualifying action for the Lumber Runners / Isengard side.
+int WM_PushIsengard(int nActions = 1)
+{
+    if (nActions &lt; 0) nActions = 0;
+    return WM_Adjust(nActions);
+}
+
+// One (or nActions) qualifying action for the Ent-Watch / Fangorn side.
+int WM_PushFangorn(int nActions = 1)
+{
+    if (nActions &lt; 0) nActions = 0;
+    return WM_Adjust(-nActions);
+}
+
+// ------------------------------------------------------------
+// Bands
+
+int WM_GetBandOf(int nValue)
+{
+    if (nValue &lt;=  25) return WM_BAND_FANGORN_ASCENDANT;
+    if (nValue &lt;=  74) return WM_BAND_FANGORN_RISING;
+    if (nValue &lt;= 125) return WM_BAND_BALANCED;
+    if (nValue &lt;= 174) return WM_BAND_ISENGARD_RISING;
+    return WM_BAND_ISENGARD_ASCENDANT;
+}
+
+int WM_GetBand()
+{
+    return WM_GetBandOf(WM_Get());
+}
+
+// Player-safe label for a band (carries no raw numbers).
+string WM_GetBandName(int nBand)
+{
+    switch (nBand)
+    {
+        case WM_BAND_FANGORN_ASCENDANT:  return &quot;Fangorn Ascendant&quot;;
+        case WM_BAND_FANGORN_RISING:     return &quot;Fangorn Rising&quot;;
+        case WM_BAND_BALANCED:           return &quot;Balanced&quot;;
+        case WM_BAND_ISENGARD_RISING:    return &quot;Isengard Rising&quot;;
+        case WM_BAND_ISENGARD_ASCENDANT: return &quot;Isengard Ascendant&quot;;
+    }
+    return &quot;Balanced&quot;;
+}
+
+// ------------------------------------------------------------
+// Normalization for display - 0..100% toward whichever side is ahead.
+
+// How far the leading side has pushed, as a percentage of its own half.
+// 0 at neutral, 100 at either extreme.
+int WM_GetPercentOf(int nValue)
+{
+    int nDelta = nValue - WM_NEUTRAL;
+    if (nDelta &lt; 0) nDelta = -nDelta;
+    if (nDelta &gt; 100) nDelta = 100;
+    return nDelta;
+}
+
+int WM_GetPercent()
+{
+    return WM_GetPercentOf(WM_Get());
+}
+
+// Name of the side currently ahead, or &quot;&quot; when the meter sits exactly neutral.
+string WM_GetLeaderOf(int nValue)
+{
+    if (nValue &gt; WM_NEUTRAL) return WM_SIDE_ISENGARD;
+    if (nValue &lt; WM_NEUTRAL) return WM_SIDE_FANGORN;
+    return &quot;&quot;;
+}
+
+string WM_GetLeader()
+{
+    return WM_GetLeaderOf(WM_Get());
+}
+
+// The canonical player-facing sentence. Percent only - never the raw value.
+string WM_GetStatusText()
+{
+    int    nVal    = WM_Get();
+    string sLeader = WM_GetLeaderOf(nVal);
+    if (sLeader == &quot;&quot;)
+        return &quot;The struggle for Fangorn stands even -- neither side holds ground.&quot;;
+    return &quot;The struggle for Fangorn stands at &quot; + IntToString(WM_GetPercentOf(nVal)) +
+           &quot;% to &quot; + sLeader + &quot;.&quot;;
+}
+
+// ------------------------------------------------------------
+// Admin / UAT
+
+// Put the meter back to dead neutral (leaves the decay rule registered).
+void WM_Reset()
+{
+    WS_SetInt(WM_KEY, WM_NEUTRAL);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

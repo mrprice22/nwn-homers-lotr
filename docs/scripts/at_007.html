@@ -62,20 +62,26 @@
 //:: Gondor Scribe -- quest accept: hand over the Annuminas Key.
 //:: The key opens the warded Annuminas chests (KeyRequired + AutoRemoveKey),
 //:: which self-destroy the key on use, so one key opens only one warded chest.
-//:: Guard against stockpiling: give at most one key per login, and never a
-//:: second while one is already held.
+//::
+//:: Anti-farm: the &quot;already granted&quot; flag is PERSISTENT (questcddb campaign
+//:: DB, row uuid+quest via quest_cd_inc), not a session local int, so logging
+//:: out and back in no longer earns a second key. sc_annukey.nss reads the
+//:: same stamp so the scribe stops offering the key at all once it is spent.
 //:://////////////////////////////////////////////
+#include &quot;quest_cd_inc&quot;
+
 void main()
 {
     object oPC = GetPCSpeaker();
 
-    if (GetLocalInt(oPC, &quot;annu_key_given&quot;))
+    // Ever granted on this character? (persists across relogs and reboots)
+    if (QCD_LastStamp(oPC, &quot;annu_key&quot;) != 0)
         return;
     if (GetIsObjectValid(GetItemPossessedBy(oPC, &quot;AnnuminasKey&quot;)))
         return;
 
     CreateItemOnObject(&quot;annuminaskey&quot;, oPC, 1);
-    SetLocalInt(oPC, &quot;annu_key_given&quot;, 1);
+    QCD_Stamp(oPC, &quot;annu_key&quot;);
 }
 </code></pre>
   </main>

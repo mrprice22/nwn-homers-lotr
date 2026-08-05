@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script wm_report</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>wm_report</code></h1><pre class="nss-source"><code>// wm_report.nss - admin readout for the Isengard war-machine meter.
+//
+// Roadmap: lumber-ent-tugofwar. Prints the current state of the Fangorn
+// tug-of-war meter (warmeter_inc.nss over worldstate_inc / worldstatedb):
+// the player-facing normalized sentence, the band, and - because this surface
+// is admin-only - the raw 0..200 back-end value for tuning and UAT.
+//
+// TRIGGER: rest menu / emote wand, Admin Options -&gt; &quot;[Admin] Fangorn war meter&quot;
+// (emotewand.dlg, action-taken script on the reply gated by the _cdkey admindb
+// check on the parent Admin Options node). NOT a DM console command - the admin
+// does not use a DM client; see CLAUDE.md, &quot;The admin has no DM console&quot;.
+//
+// Read-only by design. It never pushes the meter: what pushes it is the quest
+// pair&#x27;s qualifying actions, which are still an open design question.
+
+#include &quot;admin_db&quot;
+#include &quot;warmeter_inc&quot;
+
+void main()
+{
+    // Action-taken script on a dialog reply: the speaker is the admin. Falls
+    // back to OBJECT_SELF so ExecuteScript(&quot;wm_report&quot;, oPC) also works.
+    object oPC = GetPCSpeaker();
+    if (!GetIsObjectValid(oPC)) oPC = OBJECT_SELF;
+
+    if (GetIsPC(oPC) &amp;&amp; !GetIsDM(oPC) &amp;&amp; !Admin_CanAdmin(oPC))
+    {
+        SendMessageToPC(oPC, &quot;You are not authorised to use that.&quot;);
+        return;
+    }
+
+    int nRaw  = WM_Get();
+    int nBand = WM_GetBandOf(nRaw);
+
+    string sMsg = &quot;[Fangorn war meter] &quot; + WM_GetStatusText() +
+                  &quot; Band: &quot; + WM_GetBandName(nBand) +
+                  &quot; (&quot; + IntToString(nBand) + &quot;/4).&quot; +
+                  &quot; Raw (admin only): &quot; + IntToString(nRaw) +
+                  &quot; of &quot; + IntToString(WM_MIN) + &quot;..&quot; + IntToString(WM_MAX) +
+                  &quot;, neutral &quot; + IntToString(WM_NEUTRAL) +
+                  &quot;, decay &quot; + IntToString(WM_DECAY_RATE) + &quot; per &quot; +
+                  IntToString(WM_DECAY_PERIOD) + &quot;s toward neutral.&quot;;
+
+    if (GetIsPC(oPC)) SendMessageToPC(oPC, sMsg);
+    else SendMessageToAllDMs(sMsg);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

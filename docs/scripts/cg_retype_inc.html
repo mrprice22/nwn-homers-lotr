@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cg_retype_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cg_retype_inc</code></h1><pre class="nss-source"><code>// cg_retype_inc - Caster Signature Gear: the Damage Retyper amulets
+// (roadmap: Gear-to-boost-specific-mage-spells)
+//
+// Design page: docs.manual/Draft/CasterGear.html
+//
+// THE PROBLEM
+// High-tier bosses are immune to death magic, so a caster&#x27;s signature
+// save-or-die spell is a wasted slot against exactly the fights it was saved
+// for. The Damage Retyper amulets answer that: while the amulet is worn, the
+// spell it names stops being a death effect and instead deals real damage of
+// an EXISTING damage type the target is not immune to. No new damage type is
+// invented, and the spell is not made stronger against anything that was
+// already vulnerable to it - it is made USABLE against things that were not.
+//
+// HOW IT HOOKS IN
+// stop_spellcheat.nss is the module override spellscript
+// (SetModuleOverrideSpellscript(&quot;stop_spellcheat&quot;) in onmoduleload.nss). It
+// runs on EVERY cast, immediately before the spell&#x27;s own impact script, and
+// calls CGR_OnOverrideSpellCast() with OBJECT_SELF = the caster. When we take
+// a spell over we call SetModuleOverrideSpellScriptFinished(), which makes
+// X2PreSpellCastCode() abort the original impact script - so the death version
+// never runs and the retyped version is the only thing that happens.
+//
+// NOTE ON THE EQUIP HOOK: this module&#x27;s Mod_OnPlrEqItm / Mod_OnPlrUnEqItm
+// event slots in module.ifo.json are EMPTY - nothing is wired to them, so an
+// &quot;equip sets a flag&quot; design would never fire here. Instead the wearer&#x27;s
+// amulet is re-read from the neck slot on every cast. That is strictly safer:
+// there is no persistent flag to desync on relog, death or item swap.
+//
+// ANTI-STACKING (approved policy: hard per-effect cap, no stacking)
+//   1. Only the NECK slot is ever read - a creature has exactly one, so at
+//      most one Damage Retyper can be active at a time. Spares in the pack do
+//      nothing.
+//   2. Each amulet names exactly ONE spell, so two retypes can never apply to
+//      the same cast.
+//   3. Damage is re-derived from scratch each cast; nothing accumulates.
+//   4. A hard damage cap per target per cast (CGR_CAP_*) sits on top of the
+//      caster-level dice, so the effect cannot scale without limit.
+//
+// THE FOUR AMULETS (one per caster class)
+//   cg_amu_cleric  Reliquary of the Unmaking     Implosion            -&gt; divine
+//   cg_amu_druid   Heartwood of the Blighted Grove Finger of Death    -&gt; negative
+//   cg_amu_sorc    Sorrow of the Nine            Wail of the Banshee  -&gt; negative
+//   cg_amu_wiz     Dreamshard of Dol Guldur      Weird                -&gt; magical
+//
+// Each amulet is inert for a character with no levels in its class.
+
+#include &quot;x0_i0_spells&quot;
+
+// Tags - byte-for-byte identical to the .uti Tag / TemplateResRef fields.
+const string CGR_TAG_CLERIC = &quot;cg_amu_cleric&quot;;
+const string CGR_TAG_DRUID  = &quot;cg_amu_druid&quot;;
+const string CGR_TAG_SORC   = &quot;cg_amu_sorc&quot;;
+const string CGR_TAG_WIZ    = &quot;cg_amu_wiz&quot;;
+
+// Hard caps. Caster level feeds the dice count, but never past CGR_DICE_CAP,
+// and the rolled total is clamped to the per-target cap for the spell&#x27;s shape.
+const int CGR_DICE_CAP   = 40;   // max dice, whatever the caster level
+const int CGR_CAP_AOE    = 300;  // per target, area spells
+const int CGR_CAP_SINGLE = 400;  // single-target spells
+
+// Roll the retyped damage: nCasterLvl dice of nSides, metamagic applied,
+// then clamped to nCap.
+int CGR_RollDamage(int nCasterLvl, int nSides, int nCap)
+{
+    int nDice = nCasterLvl;
+    if (nDice &gt; CGR_DICE_CAP) nDice = CGR_DICE_CAP;
+    if (nDice &lt; 1) nDice = 1;
+
+    int nDamage;
+    if (nSides == 8) nDamage = d8(nDice);
+    else             nDamage = d6(nDice);
+
+    int nMeta = GetMetaMagicFeat();
+    if (nMeta == METAMAGIC_MAXIMIZE)     nDamage = nDice * nSides;
+    else if (nMeta == METAMAGIC_EMPOWER) nDamage = nDamage + (nDamage / 2);
+
+    if (nDamage &gt; nCap) nDamage = nCap;
+    return nDamage;
+}
+
+// Resolve the retyped hit on one target.
+//
+// The retype deliberately moves the saving throw off SAVING_THROW_TYPE_DEATH
+// and onto SAVING_THROW_TYPE_SPELL. That is the entire mechanic: a
+// death-immune creature auto-succeeds against a DEATH-subtype save, which is
+// why these spells do nothing to bosses today. As ordinary typed damage on a
+// spell save, the boss rolls like anything else - and a success halves the
+// damage rather than negating the spell.
+//
+// Spell resistance is still checked, exactly as the original spell does.
+void CGR_HitTarget(object oCaster, object oTarget, int nSpell, int nSides,
+                   int nDamageType, int nCap, int nDCBonus, int nVfx,
+                   float fDelay)
+{
+    if (!GetIsObjectValid(oTarget)) return;
+    if (GetObjectType(oTarget) != OBJECT_TYPE_CREATURE) return;
+
+    SignalEvent(oTarget, EventSpellCastAt(oCaster, nSpell));
+
+    if (MyResistSpell(oCaster, oTarget, fDelay)) return;
+
+    int nDamage = CGR_RollDamage(GetCasterLevel(oCaster), nSides, nCap);
+
+    if (MySavingThrow(SAVING_THROW_FORT, oTarget, GetSpellSaveDC() + nDCBonus,
+                      SAVING_THROW_TYPE_SPELL, oCaster, fDelay))
+        nDamage = nDamage / 2;
+
+    if (nDamage &lt; 1) return;
+
+    DelayCommand(fDelay, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(nVfx), oTarget));
+    DelayCommand(fDelay, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectDamage(nDamage, nDamageType), oTarget));
+}
+
+// The amulet is worn by someone with no levels in its class: say so once and
+// let the ordinary spell resolve untouched.
+void CGR_Inert(object oCaster, string sClass)
+{
+    FloatingTextStringOnCreature(
+        &quot;The amulet stays cold - only a &quot; + sClass
+        + &quot; can turn this spell aside from death.&quot;, oCaster, FALSE);
+}
+
+// Entry point. Called from stop_spellcheat.nss on every cast, so bail fast.
+void CGR_OnOverrideSpellCast()
+{
+    int nSpell = GetSpellId();
+    if (nSpell != SPELL_IMPLOSION
+        &amp;&amp; nSpell != SPELL_FINGER_OF_DEATH
+        &amp;&amp; nSpell != SPELL_WAIL_OF_THE_BANSHEE
+        &amp;&amp; nSpell != SPELL_WEIRD) return;
+
+    object oCaster = OBJECT_SELF;
+    if (!GetIsPC(oCaster) || GetIsDM(oCaster)) return;
+
+    // Anti-stacking rule 1: the neck slot, and only the neck slot.
+    object oAmulet = GetItemInSlot(INVENTORY_SLOT_NECK, oCaster);
+    if (!GetIsObjectValid(oAmulet)) return;
+    string sTag = GetTag(oAmulet);
+
+    object oTarget;
+    location lTarget;
+    float fDelay;
+
+    // ---------------------------------------------------------------- Cleric
+    // Implosion: death -&gt; divine, in the same MEDIUM sphere the spell uses.
+    if (nSpell == SPELL_IMPLOSION)
+    {
+        if (sTag != CGR_TAG_CLERIC) return;
+        if (GetLevelByClass(CLASS_TYPE_CLERIC, oCaster) &lt; 1)
+        {
+            CGR_Inert(oCaster, &quot;Cleric&quot;);
+            return;
+        }
+
+        lTarget = GetSpellTargetLocation();
+        ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_FNF_IMPLOSION), lTarget);
+
+        oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_MEDIUM, lTarget);
+        while (GetIsObjectValid(oTarget))
+        {
+            if (oTarget != oCaster
+                &amp;&amp; spellsIsTarget(oTarget, SPELL_TARGET_STANDARDHOSTILE, oCaster))
+            {
+                // The base spell casts its Fortitude save at DC+3; kept.
+                CGR_HitTarget(oCaster, oTarget, nSpell, 6, DAMAGE_TYPE_DIVINE,
+                              CGR_CAP_AOE, 3, VFX_IMP_DIVINE_STRIKE_HOLY,
+                              GetRandomDelay(0.4, 1.2));
+            }
+            oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_MEDIUM, lTarget);
+        }
+
+        FloatingTextStringOnCreature(
+            &quot;The Reliquary unmakes: Implosion lands as divine damage.&quot;,
+            oCaster, FALSE);
+        SetModuleOverrideSpellScriptFinished();
+        return;
+    }
+
+    // ----------------------------------------------------------------- Druid
+    // Finger of Death: death -&gt; negative, single target.
+    if (nSpell == SPELL_FINGER_OF_DEATH)
+    {
+        if (sTag != CGR_TAG_DRUID) return;
+        if (GetLevelByClass(CLASS_TYPE_DRUID, oCaster) &lt; 1)
+        {
+            CGR_Inert(oCaster, &quot;Druid&quot;);
+            return;
+        }
+
+        oTarget = GetSpellTargetObject();
+        if (!GetIsObjectValid(oTarget)) return;
+        if (!spellsIsTarget(oTarget, SPELL_TARGET_SELECTIVEHOSTILE, oCaster)) return;
+
+        CGR_HitTarget(oCaster, oTarget, nSpell, 8, DAMAGE_TYPE_NEGATIVE,
+                      CGR_CAP_SINGLE, 0, VFX_IMP_NEGATIVE_ENERGY, 0.0);
+
+        FloatingTextStringOnCreature(
+            &quot;The blighted heartwood answers: Finger of Death lands as negative damage.&quot;,
+            oCaster, FALSE);
+        SetModuleOverrideSpellScriptFinished();
+        return;
+    }
+
+    // ------------------------------------------------------------- Sorcerer
+    // Wail of the Banshee: death -&gt; negative. The base spell reaches up to
+    // caster-level creatures within 10m of the target point; mirrored here as
+    // a COLOSSAL (10m) sphere with the same headcount limit.
+    if (nSpell == SPELL_WAIL_OF_THE_BANSHEE)
+    {
+        if (sTag != CGR_TAG_SORC) return;
+        if (GetLevelByClass(CLASS_TYPE_SORCERER, oCaster) &lt; 1)
+        {
+            CGR_Inert(oCaster, &quot;Sorcerer&quot;);
+            return;
+        }
+
+        lTarget = GetSpellTargetLocation();
+        ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_FNF_WAIL_O_BANSHEES), lTarget);
+
+        int nLeft = GetCasterLevel(oCaster);
+        oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, lTarget);
+        while (GetIsObjectValid(oTarget) &amp;&amp; nLeft &gt; 0)
+        {
+            if (oTarget != oCaster
+                &amp;&amp; spellsIsTarget(oTarget, SPELL_TARGET_SELECTIVEHOSTILE, oCaster))
+            {
+                CGR_HitTarget(oCaster, oTarget, nSpell, 6, DAMAGE_TYPE_NEGATIVE,
+                              CGR_CAP_AOE, 0, VFX_IMP_DEATH,
+                              GetRandomDelay(0.4, 1.2));
+                nLeft--;
+            }
+            oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, lTarget);
+        }
+
+        FloatingTextStringOnCreature(
+            &quot;Sorrow of the Nine howls: the Wail lands as negative damage.&quot;,
+            oCaster, FALSE);
+        SetModuleOverrideSpellScriptFinished();
+        return;
+    }
+
+    // --------------------------------------------------------------- Wizard
+    // Weird: death (and its mind-affecting gate) -&gt; magical damage, in the
+    // same COLOSSAL sphere. Dropping the mind gate matters as much as the
+    // retype - most high-tier bosses are immune to mind-affecting too.
+    if (nSpell == SPELL_WEIRD)
+    {
+        if (sTag != CGR_TAG_WIZ) return;
+        if (GetLevelByClass(CLASS_TYPE_WIZARD, oCaster) &lt; 1)
+        {
+            CGR_Inert(oCaster, &quot;Wizard&quot;);
+            return;
+        }
+
+        lTarget = GetSpellTargetLocation();
+        ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_FNF_WEIRD), lTarget);
+
+        oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL,
+                                        lTarget, TRUE);
+        while (GetIsObjectValid(oTarget))
+        {
+            if (oTarget != oCaster
+                &amp;&amp; spellsIsTarget(oTarget, SPELL_TARGET_SELECTIVEHOSTILE, oCaster))
+            {
+                CGR_HitTarget(oCaster, oTarget, nSpell, 6, DAMAGE_TYPE_MAGICAL,
+                              CGR_CAP_AOE, 0, VFX_IMP_MAGBLUE,
+                              GetRandomDelay(0.4, 1.2));
+            }
+            oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL,
+                                           lTarget, TRUE);
+        }
+
+        FloatingTextStringOnCreature(
+            &quot;The Dreamshard bites: Weird lands as magical damage.&quot;,
+            oCaster, FALSE);
+        SetModuleOverrideSpellScriptFinished();
+        return;
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

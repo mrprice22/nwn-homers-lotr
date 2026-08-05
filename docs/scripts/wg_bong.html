@@ -56,364 +56,162 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>wg_bong</code></h1><pre class="nss-source"><code>///called from a placeable.. runs a circle around PC in slowmo while he falls, and generates some fx and whatnot.
-///i&#x27;ve noticed a bit of camera angle lag if the module is running lengthy amounts
+<h1>Script: <code>wg_bong</code></h1><pre class="nss-source"><code>// wg_bong.nss - OnUsed on the six water pipes of the Smoking Chamber (area024).
+// (roadmap: concerning-pipeweed)
+//
+// Reworked from the original 2000s-era script. What changed and why:
+//
+//  * It used to hard-check a single item tag (&quot;witchbud&quot;). It now scans for
+//    any of the five Shire strains and lights whichever one the smoker is
+//    carrying, handing the actual effects off to pw_inc.nss so the high is
+//    rest-persistent (a plain temporary effect is scrubbed by rest, which
+//    made the penalty half of every strain free).
+//  * The legacy tag &quot;witchbud&quot; is accepted as an alias for Longbottom Leaf,
+//    so a pouch handed out by Concerning Hobbits is never stranded.
+//  * Witch Weed carries ten charges: smoking it spends ONE CHARGE. The other
+//    four strains are destroyed on use, as before.
+//  * The 20-second forced EffectSleep at the end is GONE. A hard stun on a
+//    hub-area placeable fought the new hour-long buff for no good reason.
+//  * The 100-case ActionSpeakString table is gone. It was modern song lyrics
+//    and off-colour film quotes, and its colour codes were mojibake from a
+//    bad encoding round-trip. Replaced with a short per-strain line set.
+//  * The cutscene camera swing and the smoke VFX are kept -- they are the
+//    good part -- but they are now assigned to the SMOKER. The original
+//    assigned them to OBJECT_SELF, which in a placeable OnUsed is the water
+//    pipe itself, so the camera move could never reach the player.
 
 #include &quot;cameraslowmo&quot;
-#include &quot;lib_witchgrass&quot;
-#include &quot;color&quot;
+#include &quot;pw_inc&quot;
+
+// Tag of the first strain oSmoker is carrying, or &quot;&quot; if none. Order is the
+// order Odo lists them in; &quot;witchbud&quot; is the legacy Longbottom pouch.
+string PipeFindLeafTag(object oSmoker)
+{
+    if (GetIsObjectValid(GetItemPossessedBy(oSmoker, &quot;pw_longbottom&quot;))) return &quot;pw_longbottom&quot;;
+    if (GetIsObjectValid(GetItemPossessedBy(oSmoker, &quot;witchbud&quot;)))      return &quot;witchbud&quot;;
+    if (GetIsObjectValid(GetItemPossessedBy(oSmoker, &quot;pw_oldtoby&quot;)))    return &quot;pw_oldtoby&quot;;
+    if (GetIsObjectValid(GetItemPossessedBy(oSmoker, &quot;pw_southlinch&quot;))) return &quot;pw_southlinch&quot;;
+    if (GetIsObjectValid(GetItemPossessedBy(oSmoker, &quot;pw_hornblower&quot;))) return &quot;pw_hornblower&quot;;
+    if (GetIsObjectValid(GetItemPossessedBy(oSmoker, &quot;pw_witchweed&quot;)))  return &quot;pw_witchweed&quot;;
+    return &quot;&quot;;
+}
+
+// A quiet, in-setting remark once the smoke has settled. Four per strain.
+string PipeLine(string sStrain, int nRoll)
+{
+    if (sStrain == PW_LONGBOTTOM)
+    {
+        switch (nRoll)
+        {
+            case 0: return &quot;*a long breath out* Longbottom. Nothing fancy in it, and nothing wrong with it either.&quot;;
+            case 1: return &quot;You can hear the water in the pipe. You could hear a pin drop in the next room.&quot;;
+            case 2: return &quot;Old Toby grew the first of it, they say, and the Shire has not improved on it since.&quot;;
+            case 3: return &quot;*settles back* Half the trouble in the world would keep, if folk sat down first.&quot;;
+        }
+    }
+    else if (sStrain == PW_OLDTOBY)
+    {
+        switch (nRoll)
+        {
+            case 0: return &quot;*quietly* Roads go ever on... I had the rest of it a moment ago.&quot;;
+            case 1: return &quot;The Southfarthing at its best. You could name every Took back nine generations just now.&quot;;
+            case 2: return &quot;*eyes half closed* Old names. Old songs. They come up out of the smoke like fish.&quot;;
+            case 3: return &quot;There is a great deal to be said for a pipe and a long memory.&quot;;
+        }
+    }
+    else if (sStrain == PW_SOUTHLINCH)
+    {
+        switch (nRoll)
+        {
+            case 0: return &quot;Bree leaf. The Shire will tell you it is no good. The Shire buys it by the cartload.&quot;;
+            case 1: return &quot;*grinning* I could talk a Bracegirdle out of his supper right now, and he would thank me.&quot;;
+            case 2: return &quot;Southlinch, and no apologies for it. Where is the harm in a little Bree-land soil?&quot;;
+            case 3: return &quot;*expansively* Have I told you -- I have the finest idea. The finest. Listen.&quot;;
+        }
+    }
+    else if (sStrain == PW_HORNBLOWER)
+    {
+        switch (nRoll)
+        {
+            case 0: return &quot;*slow and steady* Hornblower&#x27;s own. Let the dark come. I am in no hurry.&quot;;
+            case 1: return &quot;The heart sits easier. The hands are a good deal further away than they were.&quot;;
+            case 2: return &quot;They do not sell this. Somebody owed somebody a favour, and here we are.&quot;;
+            case 3: return &quot;*breathing out* Whatever is waiting out there can wait a little longer.&quot;;
+        }
+    }
+    else if (sStrain == PW_WITCHWEED)
+    {
+        switch (nRoll)
+        {
+            case 0: return &quot;*very fast* That is not leaf. I know what leaf is, and that is not it.&quot;;
+            case 1: return &quot;Everything has gone bright at the edges. I can see how the whole thing fits together.&quot;;
+            case 2: return &quot;*sharply* Where does Odo get this? He will not say. He looks at the door when you ask.&quot;;
+            case 3: return &quot;Somewhere, and I could not tell you why, there is a chicken.&quot;;
+        }
+    }
+    return &quot;&quot;;
+}
 
 void main()
 {
-object oMaster = GetLastUsedBy();
-object oPC = OBJECT_SELF;
-location lLoc;
-float duration = HoursToSeconds(1);
-{
-object oBud = GetItemPossessedBy(oMaster,&quot;witchbud&quot;);
-AssignCommand(oMaster,ClearAllActions());
+    object oSmoker = GetLastUsedBy();
 
-  if( oBud != OBJECT_INVALID )
-{
+    if (!GetIsPC(oSmoker)) return;
 
-SetCutsceneMode(oPC,TRUE);
-    DelayCommand(10.0,SetCutsceneMode(oPC,FALSE));
-    AssignCommand(oPC,StoreCameraFacing());
-    DelayCommand(1.5,AssignCommand(oPC,PlayAnimation(ANIMATION_LOOPING_DEAD_BACK,1.0,8.0)));
-    DelayCommand(1.7,ApplyEffectToObject(DURATION_TYPE_TEMPORARY,EffectVisualEffect(VFX_DUR_FREEZE_ANIMATION),oPC,5.0));
-    GestaltCameraMove(1.7,GetFacing(oPC) + 90.0,18.0,30.0,GetFacing(oPC) + 450.0,12.0,50.0,5.0,40.0,oPC);
+    string sTag = PipeFindLeafTag(oSmoker);
+    if (sTag == &quot;&quot;)
+    {
+        AssignCommand(oSmoker, ActionSpeakString(
+            &quot;*taps out the empty bowl* Nothing to smoke, and no leaf grows in here.&quot;));
+        return;
+    }
 
-effect eSlow = EffectMovementSpeedDecrease(20);
-effect eSpot = EffectSkillIncrease(SKILL_SPOT,2);
-effect eWis = EffectAbilityIncrease(ABILITY_WISDOM,4);
-effect eInt = EffectAbilityDecrease(ABILITY_INTELLIGENCE,2);
+    object oLeaf   = GetItemPossessedBy(oSmoker, sTag);
+    string sStrain = PW_StrainForItemTag(sTag);
+    if (sStrain == &quot;&quot;) return;
 
-     ApplyEffectToObject( DURATION_TYPE_TEMPORARY, eSlow, oPC, duration);
-     ApplyEffectToObject( DURATION_TYPE_TEMPORARY, eSpot, oPC, duration);
-     ApplyEffectToObject( DURATION_TYPE_TEMPORARY, eWis, oPC, duration);
-     ApplyEffectToObject( DURATION_TYPE_TEMPORARY, eInt, oPC, duration);
+    AssignCommand(oSmoker, ClearAllActions());
 
+    // The cutscene: the smoker sinks back while the camera swings around.
+    SetCutsceneMode(oSmoker, TRUE);
+    DelayCommand(10.0, SetCutsceneMode(oSmoker, FALSE));
+    AssignCommand(oSmoker, StoreCameraFacing());
+    DelayCommand(1.5, AssignCommand(oSmoker,
+        PlayAnimation(ANIMATION_LOOPING_DEAD_BACK, 1.0, 8.0)));
+    DelayCommand(1.7, ApplyEffectToObject(DURATION_TYPE_TEMPORARY,
+        EffectVisualEffect(VFX_DUR_FREEZE_ANIMATION), oSmoker, 5.0));
+    GestaltCameraMove(1.7, GetFacing(oSmoker) + 90.0, 18.0, 30.0,
+        GetFacing(oSmoker) + 450.0, 12.0, 50.0, 5.0, 40.0, oSmoker);
 
-switch (d100())
-{
-                case 0:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Mmm, thats the cronic, I gots to get effed up.&quot;)));
-                    break;
-                case 1:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m a dope fiend baby, I dunno why, all I wanna do is get high.&quot;)));
-                    break;
-                case 2:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Now I&#x27;m sleeping on the sidewalk and I know why, yaaay, because I got high, because I got high, because I got hiiiigh.&quot;)));
-                    break;
-                case 3:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;A-E-I-O-U, and sometimes W.&quot;)));
-                    break;
-                case 4:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;What? No. We can&#x27;t stop here. This is bat country.&quot;)));
-                    break;
-                case 5:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Hmm, I wonder if Heaven has got a ghetto.&quot;)));
-                    break;
-                case 6:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Billie Jean is not my lover, she&#x27;s a girl who claims that IIIII am the one... but the kid is not my son...dum chika dow wow&quot;)));
-                    break;
-                case 7:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I like big butts and I cannot lie.&quot;)));
-                    break;
-                case 8:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;My milkshake brings all the boys to the yard.&quot;)));
-                    break;
-                case 9:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Do you wonder what its like, living in a permanent imagination, sleeping to escape reality, but you like it like that.&quot;)));
-                    break;
-                case 10:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;We&#x27;re just two lost souls, swimmming in a fish bowl.&quot;)));
-                    break;
-                case 11:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;If you don&#x27;t eat yer meat, you can&#x27;t have any pudding. How can you have any pudding if you don&#x27;t eat your meat?&quot;)));
-                    break;
-                case 12:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;There is no pain, you are receding. A distant ship�s smoke on the horizon. You are only coming through in waves. Your lips move but I can�t hear what you�re sayin�. When I was a child I had a fever. My hands felt just like two balloons. Now I got that feeling once again. I can�t explain, you would not understand. This is not how I am. I have become comfortably numb.&quot;)));
-                    break;
-                case 13:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Your head is humming and it won&#x27;t go, in case you don&#x27;t know, The piper&#x27;s calling you to join him, Dear lady, can you hear the wind blow, and did you know Your stairway lies on the whispering wind.&quot;)));
-                    break;
-                case 14:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Tangerine, Tangerine, Living reflection from a dream; I was her love, she was my queen, And now a thousand years between.&quot;)));
-                    break;
-                case 15:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Lucy, is an artist. Lucy paints pictures of Barbara Streisand.&quot;)));
-                    break;
-                case 16:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;We&#x27;ve gotta get out of here. I think I&#x27;m getting the fear man.&quot;)));
-                    break;
-                case 17:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;As your attorney, I advise you to take a hit out of the little brown flask in my shaving kit.&quot;)));
-                    break;
-                case 18:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;We were just walking down this trail and I swear there was this noise &#x27;Rawgh!!!&#x27; and it starting moving again.. I almosted crapped myself. No joke.....&quot;)));
-                    break;
-                case 19:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You&#x27;ve gone all sideways, man.&quot;)));
-                    break;
-                case 20:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Did I say two fingers? Better make that three.&quot;)));
-                    break;
-                case 21:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m the backwards man, the backwards man, I can run back as fast as you can.&quot;)));
-                    break;
-                case 22:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m a sophisticated sex robot sent back through time, to change the future for one lucky lady. &quot;)));
-                    break;
-                case 23:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;He was my C.O. in NAM. CIA listed him as M.I.A. but the V.A. ID&#x27;d him and so we put out an APB.&quot;)));
-                    break;
-                case 24:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Let me tell you something, bandejo. You pull any of your crazy stuff with us, you flash a piece out on the lanes, I&#x27;ll take it away from you, stick it up your a** and pull the f*****g trigger &#x27;til it goes &#x27;click.&#x27; &quot;)));
-                    break;
-                case 25:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;What&#x27;s a... pederast, Walter?&quot;)));
-                    break;
-                case 26:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Jackie Treehorn treats objects like women, man.&quot;)));
-                    break;
-                case 27:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Ah - deh sah-sez-fren-forcher, and dah scar-her-cushons, wit dah matsen-seck-way-Core-Ver &quot;)));
-                    break;
-                case 28:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m a mog: half man, half dog. I&#x27;m my own best friend!&quot;)));
-                    break;
-                case 29:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;# 9, # 9, # 9, # 9.....&quot;)));
-                    break;
-                case 30:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Well hello Mister Fancypants. Well, I&#x27;ve got news for you pal, you ain&#x27;t leadin&#x27; but two things: Jack and shit... and Jack just left town.&quot;)));
-                    break;
-                case 31:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Gimme some sugar, baby.&quot;)));
-                    break;
-                case 32:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;It was a space ship. And there was these things, these killer clowns, and they shot popcorn at us! We barely got away!&quot;)));
-                    break;
-                case 33:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;And I like Vicki and she likes me back. And she showed me her boobies and I like them too.&quot;)));
-                    break;
-                case 34:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Oh, but you can&#x27;t expect to wield supreme executive power just because some watery tart threw a sword at you.&quot;)));
-                    break;
-                case 35:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Are you suggesting coconuts migrate?&quot;)));
-                    break;
-                case 36:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Yes, shrubberies are my trade. I am a shrubber. My name is Roger the Shrubber. I arrange, design, and sell shrubberies.&quot;)));
-                    break;
-                case 37:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;All I&#x27;ve ever wanted was an honest week&#x27;s pay for an honest day&#x27;s work.&quot;)));
-                    break;
-                case 38:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You know what the trouble about real life is? There&#x27;s no danger music&quot;)));
-                    break;
-                case 39:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I was born a poor black child, ate grit and catfish fo breakfast.&quot;)));
-                    break;
-                case 40:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m picking out a Thermos for you. Not an ordinary Thermos for you. But the extra best Thermos that you can buy, with vinyl and stripes and a cup built right in. &quot;)));
-                    break;
-                case 41:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Is that a ten-gallon hat, or are you just enjoying the show?&quot;)));
-                    break;
-                case 42:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Time is never wasted when your wasted all the time.&quot;)));
-                    break;
-                case 43:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You can turn your back on a person, but, never turn your back on a drug. Especially when it&#x27;s waving a razor-sharp hunting knife in your eye.&quot;)));
-                    break;
-                case 44:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Your mother was a Hamster and your father smelt of elderberries!&quot;)));
-                    break;
-                case 45:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Good evening Sir, my name is Steve. I come from a rough area. I used to be addicted to crack but now I am off it and trying to stay clean. That is why I am selling magazine subscriptions.&quot;)));
-                    break;
-                case 46:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;He asked me to forcibly insert the Life Line exercise card into my anus.&quot;)));
-                    break;
-                case 47:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Canadians are always dreaming up a lotta ways to ruin our lives. The metric system, for the love of God! Celsius! Neil Young!&quot;)));
-                    break;
-                case 48:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Yes, that&#x27;s right, I saw the Terrance and Phillip movie. Now who wants to touch me? &quot;)));
-                    break;
-                case 49:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;We accidentally replaced your heart with a baked potato. You have about three seconds to live.&quot;)));
-                    break;
-                case 50:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Phew! I haven&#x27;t felt that good since Archie Gemmill scored against Holland in 1978!&quot;)));
-                    break;
-                case 51:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You can get a good look at a T-bone steak by sticking your head up a butcher&#x27;s ass, but wouldn&#x27;t you rather to take his word for it?&quot;)));
-                    break;
-                case 52:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You kids better pray to the god of skinny punks this wind doesn&#x27;t pick up, cuz if it does I&#x27;m gonna sail over there and shove an oar up your ass.&quot;)));
-                    break;
-                case 53:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Do you know where the weight room is? I&#x27;ll check it out.&quot;)));
-                    DelayCommand(5.0f, AssignCommand(oMaster, ActionPlayAnimation(ANIMATION_LOOPING_TALK_FORCEFUL)));
-                    break;
-                case 54:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;ve seen monkey-shyt fights at the zoo that are more organized than this. &quot;)));
-                    break;
-                case 55:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Girls only want boyfriends who have great skills. You know, like nunchuck skills, bowhunting skills, computer hacking skills...&quot;)));
-                    break;
-                case 56:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;This famous linguist once said that of all the phrases in the english language, of all the endless combonations of words in all of history, that cellar door is the most beautiful.&quot;)));
-                    break;
-                case 57:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Excuse me, is your refrigerator running? Because if it is, it probably runs like you, very homosexually.&quot;)));
-                    break;
-                case 58:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I never knew anyone who went crazy before, except for my invisible friend, Col. Schwartz.&quot;)));
-                    break;
-                case 59:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Damn the toilet. It&#x27;s made slaves of you all. It just sits there consuming other people&#x27;s feces while contributing nothing of its own to society. &quot;)));
-                    break;
-                case 60:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;No, you idiot. That&#x27;s not baby powder, that&#x27;s paprika. Ahhhhhh. Take that.&quot;)));
-                    break;
-                case 61:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;If I&#x27;m a child, you know what that makes you? A child molester, and I&#x27;ll be damned if I stand here and get lectured by pervert.&quot;)));
-                    break;
-                case 62:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;HA! That&#x27;s so funny I forgot to laugh! Excluding that first &#x27;ha&#x27;.&quot;)));
-                    break;
-                case 63:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Hello, China? I have something you may want. But it&#x27;s gonna cost ya. That&#x27;s right. All the tea.&quot;)));
-                    break;
-                case 64:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Lost in oblivion. Dark and silent and complete. I found freedom. Losing all hope was freedom.&quot;)));
-                    break;
-                case 65:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt; # 9, #9, # 9, # 9.....&quot;)));
-                    break;
-                case 66:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I dont think you trust in my, self righteous suicide. I cry when angels deserve to DIEEEEE!&quot;)));
-                    break;
-                case 67:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Bright and early for the daily races, going nowhere. The tears are filing up their glasses, no expression.&quot;)));
-                    break;
-                case 68:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You can have my isolation, You can have the hate that it brings, You can have my absence of faith, You can have my everything &quot;)));
-                    break;
-                case 69:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m tearing away. Pieces are falling, I cant seem to make them stay.  You run away. Fasters and faster, you cant seem to get away.... BREAK!&quot;)));
-                    break;
-                case 70:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Gripping the wheel, his knuckles went white with desire! The wheels of his Mustang exploding on the highway like a slug from a .45. True death: 400 horsepower of maximum performance piercing the night... This is, black sunshine.&quot;)));
-                    break;
-                case 71:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;My mouth was a crib and it was growing lies I didn&#x27;t know what love was on that day my heart&#x27;s a tiny bloodclot I picked at it it never heals it never goes away.&quot;)));
-                    break;
-                case 72:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;We were out on a date in my daddy&#x27;s car, we hadn&#x27;t driven very far.  There in the road, straight ahead, a car was stalled, the engine was dead.  I couldnt stop, so I swerved to right. I&#x27;ll never forget the sound that night, the screaming tires, the busting glass.  The painful scream that IIIII heard last.&quot;)));
-                    break;
-                case 73:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;It&#x27;s Bone-N-Biggy, Biggy!! It&#x27;s Bone-N-Biggy, Biggy!! It&#x27;s Bone-N-Biggy, Biggy!! &quot;)));
-                    break;
-                case 74:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;No one knows what it&#x27;s like, To be the bad man, To be the sad man, Behind blue eyes, No one knows what it&#x27;s like, To be hated, To be fated, To telling only lies, But my dreams, They aren&#x27;t as empty, As my conscience seems to be, I have hours, only lonely, My love is vengeance,That&#x27;s never free. &quot;)));
-                    break;
-                case 75:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Gimme that funk, that sweeet, that nasty, that gushy stuff.&quot;)));
-                    break;
-                case 76:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Breathe it in and breath it out and pass it on,it&#x27;s almost out. We&#x27;re so creative,so much more, we&#x27;re high above but on the floor. It&#x27;s not an habit,it&#x27;s cool,I feel alive. If you don&#x27;t have it you&#x27;re on the other side.&quot;)));
-                    break;
-                case 77:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;DU...DU HAST... DU HAST MICH.. DU HAST MICH GEFRAGT... DU HAST MICH GEFRAGT... UND ICH HAB NICHTS GESAGT!!&quot;)));
-                    break;
-                case 78:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Do you know what it&#x27;s like to fall in the mud and get kicked... in the head... with an iron boot? Of course you don&#x27;t, no one does. It never happens. It&#x27;s a dumb question... skip it.&quot;)));
-                    break;
-                case 79:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You stay away from that ficus. That is a jiz-free ficus.&quot;)));
-                    break;
-                case 80:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Sexually transmitted disease? Hello no!! Not me!... &quot;)));
-                    break;
-                case 81:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;...Well, I have been feeling a burning sensation when I go the latrine?&quot;)));
-                    break;
-                case 82:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;No wonder Santa&#x27;s so jolly, he knows where all the bad girls live.&quot;)));
-                    break;
-                case 83:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I wonder why the #2 pencil is still #2.&quot;)));
-                    break;
-                case 84:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;It&#x27;s beer o&#x27;clock, and I&#x27;m buying.&quot;)));
-                    break;
-                case 85:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Five-foot-nine? I didn&#x27;t know they stacked shit that high.&quot;)));
-                    break;
-                case 86:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Noinch, Noinch, Noinch, Schmokin Weed, Schmokin&#x27; Weed, Doin&#x27; Coke, Drinkin&#x27; Beers...&quot;)));
-                    break;
-                case 87:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt; #9, # 9, # 9, # 9... &quot;)));
-                    break;
-                case 88:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m just trying to make a smudge on the collective unconscious. &quot;)));
-                    break;
-                case 89:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Every day I get up and look through the Forbes list of the richest people in America. If I&#x27;m not there, I go to work.&quot;)));
-                    break;
-                case 90:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I like simple pleasures, like Half Dwarfs in black pumps and a matching mini-skirt .&quot;)));
-                    break;
-                case 91:     /////where i gave up
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I like simple pleasures, like butter in my ass, lollipops in my mouth. That&#x27;s just me. That&#x27;s just something that I enjoy. &quot;)));
-                    break;
-                case 92:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;It&#x27;s beer o&#x27;clock, and I&#x27;m buying. &quot;)));
-                    break;
-                case 93:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I&#x27;m the backwards man, the backwards man, I can run back as fast as you can.&quot;)));
-                    break;
-                case 94:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Hail to the king.&quot;)));
-                    break;
-                case 95:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;That&#x27;s just pillow talk, baby&quot;)));
-                    break;
-                case 96:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;You wanta go get some Cantonese Bar B-Q? &quot;)));
-                    break;
-                case 97:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;I never knew anyone who went crazy before, except for my invisible friend, Col. Schwartz.&quot;)));
-                    break;
-                 case 98:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;What&#x27;s a... pederast, Walter?&quot;)));
-                    break;
-                case 99:
-                    DelayCommand(5.0f, AssignCommand(oMaster,ActionSpeakString(&quot;&lt;c � &gt;Are you suggesting coconuts migrate?&quot;)));
-                    break;
-                }
+    // The smoke.
+    DelayCommand(0.3, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_FNF_SMOKE_PUFF), oSmoker));
+    DelayCommand(0.5, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_DUR_GHOSTLY_PULSE), oSmoker));
+    DelayCommand(0.5, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_FNF_SCREEN_BUMP), oSmoker));
 
-DelayCommand(0.3f,ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectVisualEffect(VFX_FNF_SMOKE_PUFF),oMaster));
-DelayCommand(0.5f,ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectVisualEffect(VFX_DUR_GHOSTLY_PULSE),oMaster));
-DelayCommand(0.5f,ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectVisualEffect(VFX_FNF_SCREEN_BUMP),oMaster));
-DestroyObject(oBud);
+    // The high itself -- stored, rest-persistent, one strain at a time.
+    PW_Light(oSmoker, sStrain);
 
-effect eSleep = EffectSleep();
-DelayCommand(40.5f,ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eSleep, oMaster, 20.0f));
-DelayCommand(40.5f,ApplyEffectToObject(DURATION_TYPE_TEMPORARY, EffectVisualEffect(VFX_IMP_SLEEP),oMaster, 20.0f));
+    string sLine = PipeLine(sStrain, Random(4));
+    if (sLine != &quot;&quot;)
+        DelayCommand(5.0, AssignCommand(oSmoker, ActionSpeakString(sLine)));
 
-}
-  else
-     {
-     AssignCommand(oMaster,ActionSpeakString(&quot;I don&#x27;t have anything to smoke! =(&quot;));
-     }
- }
+    // Consumption. Witch Weed is a ten-smoke pouch; everything else is a
+    // single fill and burns up with it.
+    if (sStrain == PW_WITCHWEED)
+    {
+        int nCharges = GetItemCharges(oLeaf);
+        if (nCharges &lt;= 1)
+            DestroyObject(oLeaf);
+        else
+            SetItemCharges(oLeaf, nCharges - 1);
+    }
+    else
+    {
+        DestroyObject(oLeaf);
+    }
 }
 </code></pre>
   </main>

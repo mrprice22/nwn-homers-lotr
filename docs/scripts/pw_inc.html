@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script pw_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>pw_inc</code></h1><pre class="nss-source"><code>// pw_inc.nss - Concerning Pipeweed: the rest-persistent pipe-weed high.
+// (roadmap: concerning-pipeweed)
+//
+// Five strains of Shire leaf, smoked at the water pipes of the Smoking
+// Chamber (area024). Each strain is a trade: a real gift and a real penalty,
+// for one FULL HOUR OF REAL TIME. The whole point of the item is that the
+// penalty is not free -- so the high must survive a rest.
+//
+// Why this is not just ApplyEffectToObject:
+//   Plain DURATION_TYPE_TEMPORARY effects are scrubbed by the engine&#x27;s rest
+//   pass. A player could smoke Old Toby (WIS +4 / CHA -4), rest, and keep
+//   nothing at all -- or, worse, arrange to keep only the half they liked.
+//   So the authoritative state is a stored (strain, expiry) pair and the
+//   effects are merely a *projection* of it, re-derived on every boundary
+//   where the engine might have wiped them (rest finish, client enter).
+//
+// Storage - campaign DB &quot;pipeweeddb&quot;, NOT PC locals:
+//   Locals die with the server process. A pipe costs up to 1200 gp and lasts
+//   a real hour, so a reboot 10 minutes in would silently refund the penalty
+//   and burn the purchase -- exactly the &quot;penalty is half free&quot; bug this
+//   exists to kill. A campaign row keyed on GetObjectUUID (the same identity
+//   key quest_cd_inc and the bestiary use) survives reboots, relogs and
+//   character transfers between them. Locals PW_STRAIN / PW_EXPIRY are still
+//   mirrored on the PC as a cheap read for other systems (e.g. NPCs noticing
+//   the state you are in) -- the DB is the source of truth.
+//
+//   Schema: pipeweed(uuid PK, strain, expires_at, cdkey, char_name)
+//   Time is real-world unix epoch from SQLite, never the game clock: an
+//   in-game hour is about two real minutes at the default clock.
+//
+// One strain at a time. Lighting a second pipe strips the first strain&#x27;s
+// effects before applying the new ones -- no stacking, no mixing.
+//
+// Consumers: wg_bong.nss (the water pipes), on_mod_rest.nss (REST_FINISHED
+// reapply), mod_cliententer.nss (login reapply), onmoduleload.nss (schema).
+
+#include &quot;color&quot;
+
+const string PW_DB         = &quot;pipeweeddb&quot;;
+const string PW_EFFECT_TAG = &quot;PW_STRAIN_EFF&quot;;  // marks every effect we own
+const int    PW_DURATION   = 3600;             // one real hour, in seconds
+
+// Strain ids. These are the values stored in the DB and in PW_STRAIN; they
+// are deliberately not the item tags, so a retag never orphans live state.
+const string PW_LONGBOTTOM = &quot;longbottom&quot;;
+const string PW_OLDTOBY    = &quot;oldtoby&quot;;
+const string PW_SOUTHLINCH = &quot;southlinch&quot;;
+const string PW_HORNBLOWER = &quot;hornblower&quot;;
+const string PW_WITCHWEED  = &quot;witchweed&quot;;
+
+// ------------------------------------------------------------
+// Schema + clock
+
+void PW_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(PW_DB,
+        &quot;CREATE TABLE IF NOT EXISTS pipeweed (&quot; +
+        &quot;uuid TEXT NOT NULL PRIMARY KEY,&quot; +
+        &quot;strain TEXT NOT NULL,&quot; +
+        &quot;expires_at INTEGER NOT NULL,&quot; +
+        &quot;cdkey TEXT,&quot; +
+        &quot;char_name TEXT)&quot;);
+    SqlStep(q);
+}
+
+// Real-world &quot;now&quot; as unix-epoch seconds (from SQLite, not the game clock).
+int PW_Now()
+{
+    sqlquery q = SqlPrepareQueryCampaign(PW_DB,
+        &quot;SELECT CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// ------------------------------------------------------------
+// Strain metadata
+
+// Item tag -&gt; strain id. &quot;witchbud&quot; is the legacy tag handed out by
+// QHOB_PayOut (Concerning Hobbits) and carried by the old witchbud.uti
+// blueprint; it lights as Longbottom Leaf so no old pouch is ever stranded.
+string PW_StrainForItemTag(string sTag)
+{
+    if (sTag == &quot;pw_longbottom&quot; || sTag == &quot;witchbud&quot;) return PW_LONGBOTTOM;
+    if (sTag == &quot;pw_oldtoby&quot;)    return PW_OLDTOBY;
+    if (sTag == &quot;pw_southlinch&quot;) return PW_SOUTHLINCH;
+    if (sTag == &quot;pw_hornblower&quot;) return PW_HORNBLOWER;
+    if (sTag == &quot;pw_witchweed&quot;)  return PW_WITCHWEED;
+    return &quot;&quot;;
+}
+
+string PW_StrainName(string sStrain)
+{
+    if (sStrain == PW_LONGBOTTOM) return &quot;Longbottom Leaf&quot;;
+    if (sStrain == PW_OLDTOBY)    return &quot;Old Toby&quot;;
+    if (sStrain == PW_SOUTHLINCH) return &quot;Southlinch&quot;;
+    if (sStrain == PW_HORNBLOWER) return &quot;Hornblower&#x27;s Garden&quot;;
+    if (sStrain == PW_WITCHWEED)  return &quot;Witch Weed&quot;;
+    return &quot;pipe-weed&quot;;
+}
+
+// One-line summary of the trade, for the message the smoker gets.
+string PW_StrainBlurb(string sStrain)
+{
+    if (sStrain == PW_LONGBOTTOM)
+        return &quot;Wisdom +4, Intelligence -2, Spot and Listen +5&quot;;
+    if (sStrain == PW_OLDTOBY)
+        return &quot;Wisdom +4, Charisma -4, Lore +10&quot;;
+    if (sStrain == PW_SOUTHLINCH)
+        return &quot;Charisma +4, Wisdom -4, Persuade +10&quot;;
+    if (sStrain == PW_HORNBLOWER)
+        return &quot;Constitution +4, Dexterity -2, +2 on saves against fear&quot;;
+    if (sStrain == PW_WITCHWEED)
+        return &quot;Intelligence +4, Wisdom -4&quot;;
+    return &quot;&quot;;
+}
+
+// ------------------------------------------------------------
+// Effects. Every effect we apply is tagged PW_EFFECT_TAG so PW_StripEffects
+// can take back exactly ours and nothing else.
+
+void PW_ApplyOne(object oPC, effect e, float fDur)
+{
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY,
+        TagEffect(e, PW_EFFECT_TAG), oPC, fDur);
+}
+
+void PW_ApplyEffects(object oPC, string sStrain, float fDur)
+{
+    if (fDur &lt;= 0.0) return;
+
+    if (sStrain == PW_LONGBOTTOM)
+    {
+        PW_ApplyOne(oPC, EffectAbilityIncrease(ABILITY_WISDOM, 4), fDur);
+        PW_ApplyOne(oPC, EffectAbilityDecrease(ABILITY_INTELLIGENCE, 2), fDur);
+        PW_ApplyOne(oPC, EffectSkillIncrease(SKILL_SPOT, 5), fDur);
+        PW_ApplyOne(oPC, EffectSkillIncrease(SKILL_LISTEN, 5), fDur);
+    }
+    else if (sStrain == PW_OLDTOBY)
+    {
+        PW_ApplyOne(oPC, EffectAbilityIncrease(ABILITY_WISDOM, 4), fDur);
+        PW_ApplyOne(oPC, EffectAbilityDecrease(ABILITY_CHARISMA, 4), fDur);
+        PW_ApplyOne(oPC, EffectSkillIncrease(SKILL_LORE, 10), fDur);
+    }
+    else if (sStrain == PW_SOUTHLINCH)
+    {
+        PW_ApplyOne(oPC, EffectAbilityIncrease(ABILITY_CHARISMA, 4), fDur);
+        PW_ApplyOne(oPC, EffectAbilityDecrease(ABILITY_WISDOM, 4), fDur);
+        PW_ApplyOne(oPC, EffectSkillIncrease(SKILL_PERSUADE, 10), fDur);
+    }
+    else if (sStrain == PW_HORNBLOWER)
+    {
+        PW_ApplyOne(oPC, EffectAbilityIncrease(ABILITY_CONSTITUTION, 4), fDur);
+        PW_ApplyOne(oPC, EffectAbilityDecrease(ABILITY_DEXTERITY, 2), fDur);
+        PW_ApplyOne(oPC, EffectSavingThrowIncrease(SAVING_THROW_ALL, 2,
+                        SAVING_THROW_TYPE_FEAR), fDur);
+    }
+    else if (sStrain == PW_WITCHWEED)
+    {
+        PW_ApplyOne(oPC, EffectAbilityIncrease(ABILITY_INTELLIGENCE, 4), fDur);
+        PW_ApplyOne(oPC, EffectAbilityDecrease(ABILITY_WISDOM, 4), fDur);
+    }
+}
+
+// Take back every effect we own, and only those.
+void PW_StripEffects(object oPC)
+{
+    effect e = GetFirstEffect(oPC);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectTag(e) == PW_EFFECT_TAG) RemoveEffect(oPC, e);
+        e = GetNextEffect(oPC);
+    }
+}
+
+// ------------------------------------------------------------
+// Persistent state
+
+void PW_Store(object oPC, string sStrain, int nExpiry)
+{
+    sqlquery q = SqlPrepareQueryCampaign(PW_DB,
+        &quot;INSERT INTO pipeweed(uuid,strain,expires_at,cdkey,char_name)&quot; +
+        &quot; VALUES(@u,@s,@e,@k,@n)&quot; +
+        &quot; ON CONFLICT(uuid) DO UPDATE SET&quot; +
+        &quot; strain=excluded.strain,&quot; +
+        &quot; expires_at=excluded.expires_at,&quot; +
+        &quot; cdkey=excluded.cdkey,&quot; +
+        &quot; char_name=excluded.char_name&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@s&quot;, sStrain);
+    SqlBindInt(q,    &quot;@e&quot;, nExpiry);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@n&quot;, GetName(oPC));
+    SqlStep(q);
+
+    SetLocalString(oPC, &quot;PW_STRAIN&quot;, sStrain);
+    SetLocalInt(oPC, &quot;PW_EXPIRY&quot;, nExpiry);
+}
+
+void PW_Forget(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(PW_DB,
+        &quot;DELETE FROM pipeweed WHERE uuid=@u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlStep(q);
+
+    DeleteLocalString(oPC, &quot;PW_STRAIN&quot;);
+    DeleteLocalInt(oPC, &quot;PW_EXPIRY&quot;);
+}
+
+// Stored expiry (unix epoch), 0 if this character has no row.
+int PW_Expiry(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(PW_DB,
+        &quot;SELECT expires_at FROM pipeweed WHERE uuid=@u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// Stored strain id, &quot;&quot; if this character has no row.
+string PW_StoredStrain(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(PW_DB,
+        &quot;SELECT strain FROM pipeweed WHERE uuid=@u&quot;);
+    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    return SqlStep(q) ? SqlGetString(q, 0) : &quot;&quot;;
+}
+
+// The strain oPC is currently under, or &quot;&quot; if none / expired. Side-effect
+// free apart from clearing a row that has run out.
+string PW_ActiveStrain(object oPC)
+{
+    if (!GetIsPC(oPC)) return &quot;&quot;;
+    string sStrain = PW_StoredStrain(oPC);
+    if (sStrain == &quot;&quot;) return &quot;&quot;;
+    if (PW_Expiry(oPC) &lt;= PW_Now())
+    {
+        PW_Forget(oPC);
+        return &quot;&quot;;
+    }
+    return sStrain;
+}
+
+// ------------------------------------------------------------
+// The two operations the rest of the module calls.
+
+// Light a pipe: clear whatever was riding, store the new strain for a real
+// hour, apply its effects, and tell the smoker what the trade is.
+void PW_Light(object oPC, string sStrain)
+{
+    if (!GetIsPC(oPC) || sStrain == &quot;&quot;) return;
+
+    PW_StripEffects(oPC);
+
+    int nExpiry = PW_Now() + PW_DURATION;
+    PW_Store(oPC, sStrain, nExpiry);
+    PW_ApplyEffects(oPC, sStrain, IntToFloat(PW_DURATION));
+
+    SendMessageToPC(oPC, ColorString(
+        &quot;The smoke of &quot; + PW_StrainName(sStrain)
+        + &quot; settles on you for one hour, and resting will not shake it: &quot;
+        + PW_StrainBlurb(sStrain) + &quot;.&quot;, COLOR_GREEN));
+}
+
+// Re-derive the effects from the stored state. Call at every boundary where
+// the engine may have wiped them: rest finish and client enter. Cheap and
+// idempotent -- a character with no row does one SELECT and returns.
+void PW_Refresh(object oPC)
+{
+    if (!GetIsPC(oPC)) return;
+
+    string sStrain = PW_StoredStrain(oPC);
+    if (sStrain == &quot;&quot;)
+    {
+        DeleteLocalString(oPC, &quot;PW_STRAIN&quot;);
+        DeleteLocalInt(oPC, &quot;PW_EXPIRY&quot;);
+        return;
+    }
+
+    int nExpiry = PW_Expiry(oPC);
+    int nLeft   = nExpiry - PW_Now();
+    if (nLeft &lt;= 0)
+    {
+        PW_StripEffects(oPC);
+        PW_Forget(oPC);
+        return;
+    }
+
+    SetLocalString(oPC, &quot;PW_STRAIN&quot;, sStrain);
+    SetLocalInt(oPC, &quot;PW_EXPIRY&quot;, nExpiry);
+
+    PW_StripEffects(oPC);
+    PW_ApplyEffects(oPC, sStrain, IntToFloat(nLeft));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

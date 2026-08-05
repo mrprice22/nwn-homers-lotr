@@ -82,8 +82,10 @@
 #include &quot;quest_cd_inc&quot;
 #include &quot;faction_db&quot;
 #include &quot;worldstate_inc&quot;
+#include &quot;warmeter_inc&quot;
 #include &quot;ammorep_db&quot;
 #include &quot;cbd_db&quot;
+#include &quot;pw_inc&quot;
 
 
 void main()
@@ -227,6 +229,14 @@ Faction_InitDb();
 // See worldstate_inc.nss (roadmap: lumber-ent-tugofwar).
 WS_InitDb();
 
+// Fangorn tug-of-war meter (isengard_warmachine): seed the neutral value on a
+// virgin DB and register its 1-point-per-real-hour decay back toward neutral,
+// so the rule exists on a fresh server. Idempotent - safe on every load. The
+// decay itself is applied by WS_Tick() off the heartbeat. Meter layer only;
+// the quest pair that pushes it is still design-queued.
+// See warmeter_inc.nss (roadmap: lumber-ent-tugofwar).
+WM_Init();
+
 // Quiver of Endless Flight (ammo replicator, Legolas/Angmar drop): ensure the
 // replicators table exists before the first activation reads a use count. Uses
 // are keyed on the ITEM&#x27;s UUID so they follow the quiver when it changes hands.
@@ -238,6 +248,13 @@ AmmoRep_InitDb();
 // dummy&#x27;s own OnSpawn calls this too, so a dummy placed in a module whose load
 // order never reached here still records. See cbd_db.nss (roadmap: combat-dummy).
 Cbd_InitDb();
+
+// Concerning Pipeweed: the pipe-weed high is stored per character (strain +
+// real-world expiry) rather than applied as a plain temporary effect, so that
+// resting cannot scrub the penalty half of the trade. Ensure the table exists
+// before the first pipe is lit or the first login reapply reads it.
+// See pw_inc.nss (roadmap: concerning-pipeweed).
+PW_InitDb();
 
 }   //end of main
 </code></pre>

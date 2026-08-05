@@ -58,7 +58,7 @@
   <main>
 <h1>Conversation: <code>gondorscribe</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>12</dd>
+<dt>NPC lines</dt><dd>13</dd>
 <dt>PC replies</dt><dd>13</dd>
 <dt>NumWords</dt><dd>501</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
@@ -71,6 +71,7 @@
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>at_007</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>at_008</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>sc_annukey</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>at_042</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>at_013</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>sc_003</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -187,13 +188,20 @@
 <div class="dlg-text">Alright, where is this portal?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #8</span> <span class="dlg-action">→ <code>at_007</code></span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<summary><span class="dlg-id">entry #8</span> <span class="dlg-action">→ <code>at_007</code></span> <small class="muted">(if <code>sc_annukey</code>)</small> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
 <div class="dlg-text">Thank you, from the bottom of my heart and my deepest thanks to you! The portal is at the Library, the center of town. Please hurry. Oh and one last thing.... here is the key to some of the chests we have not unlocked, if there is anything of value that could aid you in this take please take it with our thanks. But heed this warning: two of those coffers are bound by an old warding of the Numenoreans -- sealed against any thief&#x27;s craft, so that only this key will ever turn them. And the key... something, something, in the way of magic... it will unlock but a single one before it crumbles away to nothing. So choose with care, for you may claim the treasure of only one of the two warded chests.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>at_042</code></span> <a class="dlg-anchor" href="#r8" title="jump to flat reply #8">¶</a></summary>
 <div class="dlg-text">Thank you I will be on my way.</div>
 </details>
+</div>
+</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #12</span> <a class="dlg-anchor" href="#e12" title="jump to flat entry #12">¶</a></summary>
+<div class="dlg-text">Thank you, from the bottom of my heart and my deepest thanks to you! The portal is at the Library, the center of town. Please hurry. As for the warded coffers -- the key I gave you was the only one we ever recovered, and no other exists. Whatever became of it, that chance is spent.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r8">reply #8</a> <span class="dlg-link-preview">“Thank you I will be on my way.”</span></div>
 </div>
 </details>
 </div>
@@ -242,6 +250,7 @@
 <div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text">You stand before us as a true testament of bravery. Your valiance will go far and be hailed throughout the land.</div></div>
 <div class="dlg-node entry" id="e10"><div class="dlg-head"><span class="dlg-id">entry #10</span> <span class="dlg-action">→ <code>at_008</code></span></div><div class="dlg-text">You have defeated Azagoth!</div><ul class="dlg-links"><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Aye, wasn&#x27;t too tough. A piece of cake really.”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“That demon has been banished from our plain and all may rest at ease.”</span></li></ul></div>
 <div class="dlg-node entry" id="e11"><div class="dlg-head"><span class="dlg-id">entry #11</span></div><div class="dlg-text">My thanks is without measure as we all rejoice that this day has come to pass!</div><ul class="dlg-links"><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Thanks, I hope you can safely research the rest of the Library. Fare well”</span></li></ul></div>
+<div class="dlg-node entry" id="e12"><div class="dlg-head"><span class="dlg-id">entry #12</span></div><div class="dlg-text">Thank you, from the bottom of my heart and my deepest thanks to you! The portal is at the Library, the center of town. Please hurry. As for the warded coffers -- the key I gave you was the only one we ever recovered, and no other exists. Whatever became of it, that chance is spent.</div><ul class="dlg-links"><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Thank you I will be on my way.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">What has befallen this place to turn it so? What are these strange minions?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“The ruins of Annuminas were at one time the greatest libraries of the ancient re…”</span></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Well thats along time ago, what about these minions that run amock now?</div><ul class="dlg-links"><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“The Witch King laid these lands barren long ago, and has since moved on to other…”</span></li></ul></div>
@@ -250,7 +259,7 @@
 <div class="dlg-node reply" id="r4"><div class="dlg-head"><span class="dlg-id">reply #4</span></div><div class="dlg-text">Gees what a place, good thing we discovered it first and the Witch King doesn&#x27;t know it&#x27;s here. Does he....</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“*Wrings her hands and looks down at her feet.*”</span></li></ul></div>
 <div class="dlg-node reply" id="r5"><div class="dlg-head"><span class="dlg-id">reply #5</span></div><div class="dlg-text">Does he!</div><ul class="dlg-links"><li><a href="#e6">→ entry #6</a> <span class="dlg-link-preview">“Alas he knows of the Well of Souls. One of our own expedition was a servant of S…”</span></li></ul></div>
 <div class="dlg-node reply" id="r6"><div class="dlg-head"><span class="dlg-id">reply #6</span></div><div class="dlg-text">Azagoth, who in the world is he?</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“A foul demon of the ancient world, long forgotten since the dawning of the Light…”</span></li></ul></div>
-<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Alright, where is this portal?</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Thank you, from the bottom of my heart and my deepest thanks to you! The portal…”</span></li></ul></div>
+<div class="dlg-node reply" id="r7"><div class="dlg-head"><span class="dlg-id">reply #7</span></div><div class="dlg-text">Alright, where is this portal?</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Thank you, from the bottom of my heart and my deepest thanks to you! The portal…”</span> <small class="muted">(if <code>sc_annukey</code>)</small></li><li><a href="#e12">→ entry #12</a> <span class="dlg-link-preview">“Thank you, from the bottom of my heart and my deepest thanks to you! The portal…”</span></li></ul></div>
 <div class="dlg-node reply" id="r8"><div class="dlg-head"><span class="dlg-id">reply #8</span> <span class="dlg-action">→ <code>at_042</code></span></div><div class="dlg-text">Thank you I will be on my way.</div></div>
 <div class="dlg-node reply" id="r9"><div class="dlg-head"><span class="dlg-id">reply #9</span></div><div class="dlg-text">Woah there lady there ain&#x27;t no way I can best a Demon of that scale. Good luck to you but Im saving my skin.</div></div>
 <div class="dlg-node reply" id="r10"><div class="dlg-head"><span class="dlg-id">reply #10</span></div><div class="dlg-text">That demon has been banished from our plain and all may rest at ease.</div><ul class="dlg-links"><li><a href="#e11">→ child</a> <span class="dlg-link-preview">“My thanks is without measure as we all rejoice that this day has come to pass!”</span></li></ul></div>
