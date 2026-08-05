@@ -32,6 +32,15 @@ you're signing up for (the runbook is authoritative — read it in full before s
    - **New NPC or item → add an appearance UAT `manual_steps` entry** (look right? gear
      stays equipped?), naming any area by its **full toolset Name + resref** (the toolset
      sorts areas by Name).
+   - **Legendary feats need per-feat admin sign-off.** Any `ll-feats-*` *content* item goes
+     to `design` with one `design_question` per feat (name/effect/numbers/prereqs +
+     your recommendation) — never build unapproved feat content; `FEATS` row ids are
+     permanent. Machinery/plumbing is fine.
+   - **Editing an existing placed instance? sync its blueprint** (respawn reverts overrides;
+     `check_divergent_creatures.py` aborts the repack, no allowlist). "Place NPC X in area Y"
+     = a second **instance**, never a duplicated `.utc`.
+   - **Admin-only features need an in-game trigger** — the admin has no DM console; gate on
+     `Admin_Can*()` and hang the trigger off the rest menu's Admin Options or self-arm it.
    - **Reward-and-take scripts must re-check `GetItemPossessedBy`/`HasItem` at grant time**
      (not just the DLG conditional) or players farm them by dropping the item mid-
      conversation; the `check_reward_exploit.py` gate enforces this.
