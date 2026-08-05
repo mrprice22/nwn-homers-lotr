@@ -533,15 +533,33 @@ Both files should be updated in the same commit whenever a quest ships or change
     pickable chests already reproduce the same medium-treasure rolls, so the caster gear is pure
     net-gain and no loot was lost.
 - **Key economy / anti-farm:** `annuminaskey` (Tag `AnnuminasKey`) is `StackSize=1`, granted only by
-  `at_007` (scribe accept node). `at_007` now guards against stockpiling: it gives at most one key per
-  login (`annu_key_given` local int on the PC) and never a second while one is held. `AutoRemoveKey`
-  destroys the key when a warded chest is unlocked, enforcing "one key = one warded chest."
-  **Residual (relog) vector, admin decision:** the accept node (StartingList entry 0) still shows
-  whenever the PC lacks `azagothshead` and `azagothdead != 1`, so a determined player could open one
-  warded chest, **relog** (which clears the `annu_key_given` local int), re-accept for a fresh key, and
-  open the second warded chest. Fully closing this needs a *persistent* flag (a campaign-DB row keyed
-  by CD key/UUID, or advancing the quest so entry 0 no longer fires) rather than a session local int —
-  left as an admin call since it changes the quest's key economy.
+  `at_007` (scribe accept node). `AutoRemoveKey` destroys the key when a warded chest is unlocked,
+  enforcing "one key = one warded chest."
+- **Relog farm closed (2026-08-04, roadmap `gondor-scribe`, admin-approved "harden it"):** the old
+  guard was a session `annu_key_given` local int, which a logout cleared — a player could open one
+  warded chest, relog, re-accept and open the second. The guard is now **persistent, one key per
+  character, forever**:
+  - `at_007.nss` includes `quest_cd_inc` and bails when `QCD_LastStamp(oPC, "annu_key") != 0`;
+    after creating the key it calls `QCD_Stamp(oPC, "annu_key")`. Storage is the existing
+    **`questcddb`** campaign DB (`quest_cd` table, PK `uuid`+`quest`, keyed on `GetObjectUUID`),
+    so no new schema, no new `*_InitDb()` call — `QCD_InitDb()` already runs from `onmoduleload`.
+    The "never a second while one is held" `GetItemPossessedBy` check is kept as a belt-and-braces
+    guard. `quest_cd.times_done` therefore reads 1 for anyone who has drawn a key.
+  - New StartingConditional **`sc_annukey.nss`** (`QCD_LastStamp(...) == 0`) is attached to reply 7
+    ("Alright, where is this portal?") → entry 8 in `gondorscribe.dlg.json`. When the stamp exists
+    the link fails and the reply falls through to new **entry 12**, a Script-less clone of entry 8
+    that repeats the portal directions and says the key is spent. Entry 12 deliberately carries no
+    `Quest`/`QuestEntry`, so re-asking cannot rewind a returning player's journal to entry 1.
+  - **Why not "advance the quest stage" instead** (the admin's parenthetical): yes, that route
+    would have needed the same treatment — journal state is stored in the `.bic`, but the
+    `azagothdead` / `annu_key_given` style local ints that gate the scribe's StartingList are
+    session-scoped, so any stage flag used as the guard would itself have to live in a campaign DB
+    to survive a relog or reboot. Stamping `questcddb` is the same persistence with less blast
+    radius on the existing journal flow.
+  - **Grandfather note:** characters who received a key before this shipped have no `annu_key` row,
+    so each of them can draw exactly one more key; from then on the guard holds. Clearing a stamp
+    for testing: `QCD_Clear(oPC, "annu_key")`, or
+    `sqlite3 questcddb.sqlite3 "DELETE FROM quest_cd WHERE quest='annu_key';"`.
 
 ### Gloison's Heirloom
 
