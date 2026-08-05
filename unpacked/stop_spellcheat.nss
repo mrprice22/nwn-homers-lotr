@@ -18,6 +18,7 @@
 
 #include "x2_inc_switches"
 #include "fat_inc"
+#include "q_ent_inc"
 
 int i;
 
@@ -55,6 +56,11 @@ void main()
 // (roadmap: heal-soul-fatigue). Runs before ClearSpells; the real heal impact
 // script still runs after this override returns, and fatigue is delayed past it.
 FAT_OnOverrideSpellCast();
+
+// The Thirteenth Ent (roadmap: thirteenth-ent) - the druid restoration ritual
+// is a cast of Nature's Balance whose area of effect covers Leaflock, with a
+// fresh truffle in the pack. Listener only; no spell script is replaced.
+ENT_OnSpellCast();
 
 ClearSpells();
 

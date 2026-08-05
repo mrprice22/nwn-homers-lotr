@@ -227,12 +227,6 @@ authoring conventions, and the module compatibility audit.
 
 ### Fangorn Forest
 
-**The Thirteenth Ent** *(One-Off, Lvl 32)*
-> `fangornforest.are.json` / `fangornoutskirts.are.json`. Restore method branches on
-> `GetLevelByClass(CLASS_TYPE_DRUID)` / `BARD` / Lore skill in dialogue conditional.
-> Permanent stat item: UTI with custom spellscript that calls
-> `ApplyEffectToObject(..., EffectAbilityIncrease(...), DURATION_TYPE_PERMANENT)` then `DestroyObject(oItem)`.
-
 **Lumber Runners / Ent-Watch** *(Daily, Lvl 15+)*
 > `isengardouterrim.are.json`. Server-state var: `SetCampaignInt(GetModule(), "isengard_warmachine", n)`.
 > Read at `helmsdeep001.are.json` `OnEnter` to scale the wave count (Hard vs Normal).

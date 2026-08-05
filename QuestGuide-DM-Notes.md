@@ -636,6 +636,64 @@ Both files should be updated in the same commit whenever a quest ships or change
     (journal 1) and a heirloom turn-in (journal 2 + reward) via new scripts `sc_glsn_have` and
     `at_glsn_rwd`.
 
+### The Thirteenth Ent
+
+- **Journal tag:** `thirteenthent` (category Comment `@group 'Lord of the Rings'` / `@order 31`)
+- **Roadmap:** `thirteenth-ent` (built 2026-08-04, epic `quest-overhaul`)
+- **Area:** Fangorn Forest (`fangornforest`). Its `OnEnter` is now the wrapper `q_ent_enter`
+  (chains `leash_to_area`, then `q_ent_spawn`); its previously-empty `OnHeartbeat` is `q_ent_hb`.
+- **Waypoints (admin, toolset):** `AP_thirteenthent_1` = Leaflock's standing spot;
+  `AP_thirteenthent_2` .. `AP_thirteenthent_6` = truffle spots within ~10 m of him. Nothing
+  appears in-game until at least waypoint 1 (giver) and one truffle waypoint exist; every script
+  no-ops gracefully until then.
+- **Blueprints:** Ent `q_ent_13th.utc` (tag `q_ent_13th`, appearance **1492 "Treant 1"** —
+  deliberately distinct from the ordinary Fangorn Ents, which use 1057; Commoner faction, Plot +
+  Immortal, no gear at all so there is nothing for the Jasperre AI to strip and no loot
+  divergence; palette *Monsters > Plants\**). Truffle item `q_ent_truff.uti` (tag `q_ent_truff`,
+  palette *Miscellaneous > Holy Symbol\**, cloned from `q_brn_pelt`). Truffle placeable
+  `q_ent_trufp.utp` (tag `q_ent_trufp`, athelas appearance 82, `OnUsed` = `q_ent_pick`, palette
+  *Parks & Nature > Vegetation\* > Bushes\**). Reward `q_ent_drght.uti` — item **tag
+  `q_ent_drink`**, which is also the tag-based activation script (palette
+  *Miscellaneous > Potions*).
+- **Conversation:** `q_ent_conv.dlg` on the blueprint's `Conversation` field. Five starting nodes,
+  in order: `q_ent_cdone` (already restored), `q_ent_cdru` (druid 20+, off cooldown),
+  `q_ent_cbrd` (bard 20+, off cooldown), `q_ent_ccd` (qualified but waiting — fills **token
+  6390** with `QCD_FmtSpan`), then an unconditional "just a very large tree" node. Accept actions:
+  `q_ent_adru`, `q_ent_abrd`.
+- **Detection hooks (both non-destructive listeners, no stock script replaced):**
+  - *Nature's Balance* — `ENT_OnSpellCast()` is called from `stop_spellcheat.nss`, the module's
+    `SetModuleOverrideSpellscript` handler installed by `onmoduleload.nss` (same route
+    `fat_inc.nss` uses). Filters on `SPELL_NATURES_BALANCE` (124) and requires the spell's target
+    location to be within `ENT_REACH` (10 m) of the Ent.
+  - *Bard Song* — `nw_s2_bardsong.nss` (this module's own Bard Song override, the real
+    `ImpactScript` of spells.2da row `Bards_Song`) now runs `ExecuteScript("q_ent_song")` before
+    its own work; `q_ent_song` calls `ENT_OnBardSong()`.
+  - *Boar wild shape* — `GetAppearanceType(oPC) == APPEARANCE_TYPE_BOAR` (21), polled by the area
+    heartbeat. Truffle placeables exist only while such a druid with the trial active is in the
+    area, and are destroyed when none is.
+- **Cooldowns / persistence:** `quest_cd_inc.nss` / `questcddb`, all rolling-24h real time.
+  Keys: `ent13_druid_try`, `ent13_bard_try` (stamped **at accept**, so a failure costs the day),
+  `ent13_restored` (advance-only completion), `ent13_draught` (draught handed out once ever),
+  `ent13_draught_drunk` (draught *drunk* once ever). Per-attempt scratch lives in locals on the PC
+  (`ent13_druid`, `ent13_truffle_ok`, `ent13_bard_stage`, `ent13_cue`, `ent13_seq` — the sequence
+  int invalidates stale `DelayCommand` callbacks from an earlier attempt).
+- **Bard DCs:** stage 1 Lore 30 / Perform 30, stage 2 Lore 40 / Perform 40; roll is
+  `d20() + GetSkillRank`, and every roll is printed to the player. Cue pause `ENT_CUE_DELAY` 8 s,
+  answer window `ENT_CUE_SECS` 90 s. Truffle freshness `ENT_TRUFF_SECS` 180 s.
+- **Anti-farm (the correctness property — the reward is a permanent stat gain):** three
+  independent gates. (1) `ENT_OnSpellCast` re-verifies `GetItemPossessedBy(oPC, "q_ent_truff")` at
+  grant time and bails before any reward if the truffle was dropped mid-ritual
+  (`tests/check_reward_exploit.py` passes on this shape). (2) `ENT_GrantDraught` refuses a second
+  cup on the `ent13_draught` stamp. (3) `q_ent_drink.nss` refuses to apply anything if
+  `ent13_draught_drunk` is already stamped, *before* touching the scores. The stat gain itself is
+  `NWNX_Creature_SetRawAbilityScore` +1 STR / +1 CON on the **base** scores (the `LEGFEAT_KIND_RAW`
+  route from `legfeat_inc.nss`) followed by `ExportSingleCharacter`.
+- **XP:** 4,000 on completion, once (inside the `ent13_restored` guard).
+- **UAT:** scripted and built; **blocked in-game until `AP_thirteenthent_1` is placed**. Then:
+  druid run (boar form → truffle → Nature's Balance over the Ent), bard run (both stages, DC
+  reporting visible), truffle-expiry path, both 24h refusals, the drop-the-truffle-mid-ritual
+  check, and a second-draught refusal.
+
 ### Kallrist Tiger Hunt
 
 - **Journal tag:** `Kallrist Tiger Hunt`

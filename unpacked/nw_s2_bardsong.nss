@@ -43,6 +43,11 @@ void main()
         return;
     }
 
+    // The Thirteenth Ent (roadmap: thirteenth-ent): Leaflock's two-stage
+    // concert answers the Bard Song feat. Listener only -- it never changes
+    // the song itself, and no-ops unless this bard is mid-concert.
+    ExecuteScript("q_ent_song", OBJECT_SELF);
+
     //Declare major variables
     int nLevel   = GetLevelByClass(CLASS_TYPE_BARD);
     int nPerform = GetSkillRank(SKILL_PERFORM);
