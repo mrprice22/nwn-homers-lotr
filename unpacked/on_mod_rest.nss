@@ -1,4 +1,5 @@
 #include "legfeat_inc"
+#include "csp_inc"
 #include "pw_inc"
 
 void main()
@@ -36,4 +37,12 @@ void main()
     if (nEvent == REST_EVENTTYPE_REST_FINISHED
         && LegFeat_EnsureAllotment(oPC) > 0)
         DelayCommand(2.0, ExecuteScript("legfeat_open", oPC));
+
+    // Caster spell picks: the same recovery path, for the same reason - a
+    // dismissed picker, or a character that levelled past 40 before the feature
+    // existed. Staggered past the legendary-feat window so a pure wizard at 60
+    // that is owed both does not get them on top of each other. See csp_inc.nss.
+    if (nEvent == REST_EVENTTYPE_REST_FINISHED
+        && CSP_EnsureAllotment(oPC) > 0)
+        DelayCommand(4.0, ExecuteScript("csp_open", oPC));
 }

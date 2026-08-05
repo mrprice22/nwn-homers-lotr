@@ -20,6 +20,7 @@
 #include "faction_db"
 #include "nextlvl_inc"
 #include "legfeat_inc"
+#include "csp_inc"
 #include "pw_inc"
 #include "color"
 
@@ -32,6 +33,20 @@ void LegFeatLoginCheck(object oPC)
     SendMessageToPC(oPC, ColorString("You have " + IntToString(nRemaining)
         + " legendary feat pick" + ((nRemaining == 1) ? "" : "s")
         + " to spend. Force Rest to choose.", COLOR_GREEN));
+}
+
+// Caster spell picks: pay for any class level past 40 this character has not
+// been paid for yet - which on a character that levelled before the feature
+// existed is the whole retroactive make-good, in one go and only once - and
+// then nudge if any picks are outstanding. A popup on every login would be
+// intrusive; resting opens one, exactly as legendary feats do.
+void CSPLoginCheck(object oPC)
+{
+    int nRemaining = CSP_EnsureAllotment(oPC);
+    if (nRemaining <= 0) return;
+    SendMessageToPC(oPC, ColorString("You have " + IntToString(nRemaining)
+        + " new spell" + ((nRemaining == 1) ? "" : "s")
+        + " to add to your spellbook. Force Rest to choose.", COLOR_GREEN));
 }
 
 // Death amulet check + persistent state restore. Delayed so the engine's
@@ -182,4 +197,8 @@ void main()
 
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
     DelayCommand(7.5, LegFeatLoginCheck(oPC));
+
+    // Same reasoning as LegFeatLoginCheck, and it must land after the UUID has
+    // been forced above - the entitlement ledger is keyed on GetObjectUUID.
+    DelayCommand(8.5, CSPLoginCheck(oPC));
 }

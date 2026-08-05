@@ -91,13 +91,16 @@ NWNX_Events_SubscribeEvent("NWNX_ON_SET_EXPERIENCE_BEFORE", "boost_xp_evt");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "nextlvl_evt");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, "nextlvl_evt");
 
-// TEMPORARY DIAGNOSTIC -- "casters learn no new spells past 40" (roadmap
-// legendary-caster-spells-on-level-up). Snapshots known-spell counts before a
-// level up and reports the delta after, to establish whether the native level-up
-// spell picker works above 40 at all. Delete these two lines and the three
-// sk_probe_* scripts once the question is answered; see sk_probe_inc.nss.
-NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_BEFORE,  "sk_probe_pre");
-NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "sk_probe_post");
+// Caster spell picker: past CLASS level 40 the game client's own level-up spell
+// page offers nothing but cantrips and then spends the picks anyway, so a
+// wizard silently loses 2 spells a level. The tabs are disabled by a pass in
+// CLIENT code, so no 2DA, hak or plugin option can reach it (roadmap
+// legendary-caster-spells-on-level-up, tests A-D). The module hands the picks
+// out itself and opens its own window instead; see csp_inc.nss.
+//
+// This line replaces the two sk_probe_* subscriptions that established the
+// diagnosis - those scripts are deleted.
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "csp_lvl");
 
 // Legendary Feats: fire the level-60 picker the moment a character reaches 60.
 // The picks cannot come from the engine's own level-up page - that page grants
