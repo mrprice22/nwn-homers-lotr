@@ -1094,6 +1094,17 @@
             },
             {
               "__struct_id": 12,
+              "Index": {
+                "type": "dword",
+                "value": 140
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
+              "__struct_id": 13,
               "Active": {
                 "type": "resref",
                 "value": ""
@@ -9601,6 +9612,47 @@
           "type": "cexolocstring",
           "value": {
             "0": "[Admin] Combat diagnostics on/off"
+          }
+        }
+      },
+      {
+        "__struct_id": 140,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "Admin readout: current state of the Fangorn tug-of-war meter (wm_report -> warmeter_inc / worldstate_inc key isengard_warmachine). Read-only; prints the normalized percentage, the band, and the raw 0-200 value for tuning. Gated by the _cdkey admindb check on the parent Admin Options node. (roadmap lumber-ent-tugofwar)"
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": []
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": "wm_report"
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "[Admin] Fangorn war meter"
           }
         }
       }

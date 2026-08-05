@@ -24,6 +24,7 @@
 #include "quest_cd_inc"
 #include "faction_db"
 #include "worldstate_inc"
+#include "warmeter_inc"
 #include "ammorep_db"
 #include "cbd_db"
 #include "pw_inc"
@@ -169,6 +170,14 @@ Faction_InitDb();
 // read or before the heartbeat's WS_Tick() applies a decay/weekly rule.
 // See worldstate_inc.nss (roadmap: lumber-ent-tugofwar).
 WS_InitDb();
+
+// Fangorn tug-of-war meter (isengard_warmachine): seed the neutral value on a
+// virgin DB and register its 1-point-per-real-hour decay back toward neutral,
+// so the rule exists on a fresh server. Idempotent - safe on every load. The
+// decay itself is applied by WS_Tick() off the heartbeat. Meter layer only;
+// the quest pair that pushes it is still design-queued.
+// See warmeter_inc.nss (roadmap: lumber-ent-tugofwar).
+WM_Init();
 
 // Quiver of Endless Flight (ammo replicator, Legolas/Angmar drop): ensure the
 // replicators table exists before the first activation reads a use count. Uses
