@@ -5,11 +5,15 @@
 # Pauses at the end so failure output stays visible when launched from the
 # GNOME app grid (no parent shell to read).
 #
+# It also regenerates the public roadmap page from roadmap.yaml and pushes the
+# same data to the in-game Recent Updates sign's campaign DB, so the daily cycle
+# carries the backlog with it (see the "roadmap, first" block below).
+#
 # With --publish: run non-interactively and, after a successful regen, commit
-# the regenerated wiki (docs/) and push it. Used by the post-boot systemd
-# service (homers-lotr-wiki-publish.service) so the daily reboot republishes
-# the FULL site — including creature-index/detail kill counts, which the
-# serve-loop activity refresh does not touch.
+# the regenerated wiki (docs/ + docs.manual/Roadmap.html) and push it. Used by
+# the post-boot systemd service (nwn-season-wiki-publish@.service) so the daily
+# reboot republishes the FULL site — including creature-index/detail kill
+# counts, which the serve-loop activity refresh does not touch.
 
 set -o pipefail
 
@@ -65,6 +69,38 @@ LOG_DIR="${NWN_RUN_DIR:-$HOME/.local/state/nwnxee-homer}"
 MAX_LEVEL="${NWN_MAXLEVEL:-40}"
 MAX_ABILITY_BONUS="${NWN_MAX_ABILITY_BONUS:-12}"
 
+# ------------------------------------------------------- roadmap, first ------
+# The public roadmap page and the in-game Recent Updates sign are both built
+# from roadmap.yaml, and until this ran here BOTH were manual: gen-roadmap.py by
+# hand and the sign only from the editor's "Publish to Wiki & DB" button. So
+# anything shipped by an agent or a hand-edit left the website and the sign
+# stale while the wiki around them was republished nightly.
+#
+# gen-roadmap.py must run BEFORE `nwn-manager wiki`, because the wiki build is
+# what folds docs.manual/Roadmap.html into docs/ — including the @menu directive
+# that decides which nav dropdown the page lands in.
+#
+# Neither step may take the wiki down with it: a roadmap.yaml that fails
+# validation is a roadmap problem, not a reason to skip the nightly republish of
+# 287 areas. Both warn and continue.
+if python3 "$PROJECT/bin/gen-roadmap.py" --check >/dev/null 2>&1; then
+  if python3 "$PROJECT/bin/gen-roadmap.py"; then
+    echo "[roadmap] regenerated docs.manual/Roadmap.html"
+  else
+    echo "[roadmap] warn: gen-roadmap.py failed; publishing the existing page" >&2
+  fi
+else
+  echo "[roadmap] warn: roadmap.yaml FAILED validation — leaving Roadmap.html as it is" >&2
+  python3 "$PROJECT/bin/gen-roadmap.py" --check 2>&1 | sed 's/^/[roadmap]   /' >&2
+fi
+
+if python3 "$PROJECT/bin/publish-roadmap-db.py"; then
+  echo "[roadmap] in-game Recent Updates sign refreshed"
+else
+  echo "[roadmap] warn: could not refresh the in-game sign DB" >&2
+fi
+echo
+
 nwn-manager wiki \
   --base-url "$BASE_URL" \
   --exclude-conv-option "[Admin Options]" \
@@ -88,17 +124,20 @@ echo "[done] wiki regenerated → $PROJECT/docs/index.html"
 
 # ----------------------------------------------------------------- publish ---
 if [[ $PUBLISH -eq 1 ]]; then
-  # Stage the regenerated site. docs/ is the published wiki, and it is the ONLY
-  # path this automated publish may commit — the pathspec is repeated on the
-  # commit so unrelated work in the tree (or anything another process has
-  # already staged in the index) can never be swept into the republish.
-  git -C "$PROJECT" add -A -- docs
+  # Stage the regenerated site. docs/ is the published wiki; docs.manual/Roadmap.html
+  # is its git-tracked SOURCE, regenerated above, so it has to travel with it or
+  # the next run rewrites it again from a working tree that never settles. These
+  # two paths are the ONLY ones this automated publish may commit — the pathspec
+  # is repeated on the commit so unrelated work in the tree (or anything another
+  # process has already staged in the index) can never be swept into the republish.
+  PUBPATHS=(docs docs.manual/Roadmap.html)
+  git -C "$PROJECT" add -A -- "${PUBPATHS[@]}"
 
-  if git -C "$PROJECT" diff --cached --quiet -- docs; then
+  if git -C "$PROJECT" diff --cached --quiet -- "${PUBPATHS[@]}"; then
     echo "[publish] no wiki changes to commit"
   else
     msg="Full wiki republish (kill counts + all pages): $(date '+%Y-%m-%d %H:%M')"
-    if ! git -C "$PROJECT" commit -q -m "$msg" -- docs; then
+    if ! git -C "$PROJECT" commit -q -m "$msg" -- "${PUBPATHS[@]}"; then
       echo "[publish] warn: commit failed" >&2
     else
       # Push with retries — the network may still be coming up just after boot.

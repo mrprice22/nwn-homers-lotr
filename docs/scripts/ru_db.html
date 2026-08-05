@@ -48,6 +48,7 @@
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -58,50 +59,78 @@
   <main>
 <h1>Script: <code>ru_db</code></h1><pre class="nss-source"><code>// ru_db.nss - &quot;Recent Updates&quot; sign database helpers.
 //
-// Campaign DB &quot;roadmapdb&quot; (file database/roadmapdb.sqlite3), table recent_updates.
-// The table is written by bin/roadmap-editor.py on the &quot;Publish to Wiki &amp; DB&quot;
-// button: the 10 most recently shipped roadmap ideas (status implemented/awarded)
-// by date desc. In-game we only READ it.
+// Campaign DB &quot;roadmapdb&quot; (file database/roadmapdb.sqlite3), table
+// recent_updates. Written by bin/roadmap_publish.py -- from the roadmap editor&#x27;s
+// &quot;Publish to Wiki &amp; DB&quot; button, from bin/publish-roadmap-db.py, or from the
+// nightly bin/refresh-homers-lotr-wiki run. In-game we only READ it.
 //
-//   rank 0..9 (0 = newest), title, prefix, group_label, player, date, notes
+//   bucket, rank (0 = newest within its bucket), title, prefix, group_label,
+//   player, date, notes
+//
+// Two buckets, chosen from the sign&#x27;s opening menu:
+//   &quot;shipped&quot;  the 10 newest updates that are DONE and validated
+//   &quot;testing&quot;  every update that has shipped but still has an open UAT step --
+//              no cap, so this list can run to many pages. Its notes carry the
+//              outstanding checks and which character can run them, because the
+//              point of showing it to players is that they can help.
 //
 // Browsed 5-per-page in ru_sign.dlg (the Well of Eru sign). Custom tokens:
-//   6200-6204 = list row labels   6210-6214 = drill-down detail fields
+//   6200-6204 = list row labels        6205 = list header + &quot;Page x of y&quot;
+//   6206      = menu: pending count    6210-6214 = drill-down detail fields
 // Per-PC locals:
-//   int &quot;ru_page_off&quot;     row offset (0 or 5)
-//   int &quot;ru_total&quot;        total rows (for [Next page] visibility)
-//   int &quot;ru_slot_N_rank&quot;  rank shown in list slot N (-1 = empty / hidden)
+//   string &quot;ru_bucket&quot;    which bucket is being browsed (&quot;&quot; = shipped)
+//   int    &quot;ru_page_off&quot;  row offset within the bucket
+//   int    &quot;ru_total&quot;     total rows in the bucket (for [Next page] visibility)
+//   int    &quot;ru_slot_N_rank&quot;  rank shown in list slot N (-1 = empty / hidden)
 
-const string RU_DB = &quot;roadmapdb&quot;;
+const string RU_DB      = &quot;roadmapdb&quot;;
+const string RU_SHIPPED = &quot;shipped&quot;;
+const string RU_TESTING = &quot;testing&quot;;
+const int    RU_PER_PAGE = 5;
 
 void RU_InitDb()
 {
     sqlquery q = SqlPrepareQueryCampaign(RU_DB,
         &quot;CREATE TABLE IF NOT EXISTS recent_updates (&quot; +
-        &quot;rank INTEGER PRIMARY KEY,&quot; +
+        &quot;bucket TEXT NOT NULL DEFAULT &#x27;shipped&#x27;,&quot; +
+        &quot;rank INTEGER NOT NULL,&quot; +
         &quot;title TEXT,&quot; +
         &quot;prefix TEXT,&quot; +
         &quot;group_label TEXT,&quot; +
         &quot;player TEXT,&quot; +
         &quot;date TEXT,&quot; +
-        &quot;notes TEXT)&quot;);
+        &quot;notes TEXT,&quot; +
+        &quot;PRIMARY KEY (bucket, rank))&quot;);
     SqlStep(q);
+}
+
+// Which list the PC is browsing. Defaults to the validated updates, so a PC who
+// somehow reaches the list without passing the menu sees the old behaviour.
+string RU_Bucket(object oPC)
+{
+    string sB = GetLocalString(oPC, &quot;ru_bucket&quot;);
+    return (sB == &quot;&quot;) ? RU_SHIPPED : sB;
+}
+
+int RU_CountBucket(string sBucket)
+{
+    sqlquery q = SqlPrepareQueryCampaign(RU_DB,
+        &quot;SELECT COUNT(*) FROM recent_updates WHERE bucket=@b&quot;);
+    SqlBindString(q, &quot;@b&quot;, sBucket);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
 }
 
 // Build the current list page: clears the 5 slots then fills them from the DB
 // at the current offset, and records the total row count for pagination.
 void RU_BuildPage(object oPC)
 {
-    int nOff = GetLocalInt(oPC, &quot;ru_page_off&quot;);
-
-    sqlquery qc = SqlPrepareQueryCampaign(RU_DB,
-        &quot;SELECT COUNT(*) FROM recent_updates&quot;);
-    int nTotal = 0;
-    if (SqlStep(qc)) nTotal = SqlGetInt(qc, 0);
+    string sBucket = RU_Bucket(oPC);
+    int nOff   = GetLocalInt(oPC, &quot;ru_page_off&quot;);
+    int nTotal = RU_CountBucket(sBucket);
     SetLocalInt(oPC, &quot;ru_total&quot;, nTotal);
 
     int i;
-    for (i = 0; i &lt; 5; i++)
+    for (i = 0; i &lt; RU_PER_PAGE; i++)
     {
         SetLocalInt(oPC, &quot;ru_slot_&quot; + IntToString(i) + &quot;_rank&quot;, -1);
         SetCustomToken(6200 + i, &quot;&quot;);
@@ -109,11 +138,12 @@ void RU_BuildPage(object oPC)
 
     sqlquery q = SqlPrepareQueryCampaign(RU_DB,
         &quot;SELECT rank, prefix, title FROM recent_updates&quot; +
-        &quot; ORDER BY rank ASC LIMIT 5 OFFSET @off&quot;);
+        &quot; WHERE bucket=@b ORDER BY rank ASC LIMIT 5 OFFSET @off&quot;);
+    SqlBindString(q, &quot;@b&quot;, sBucket);
     SqlBindInt(q, &quot;@off&quot;, nOff);
 
     i = 0;
-    while (SqlStep(q) &amp;&amp; i &lt; 5)
+    while (SqlStep(q) &amp;&amp; i &lt; RU_PER_PAGE)
     {
         int    nRank   = SqlGetInt(q, 0);
         string sPrefix = SqlGetString(q, 1);
@@ -122,9 +152,27 @@ void RU_BuildPage(object oPC)
         SetCustomToken(6200 + i, sPrefix + sTitle);
         i++;
     }
+
+    // Header: which list this is, and where in it we are. The testing list runs
+    // to many pages, so &quot;Page x of y&quot; is not decoration there.
+    int nPages = (nTotal + RU_PER_PAGE - 1) / RU_PER_PAGE;
+    if (nPages &lt; 1) nPages = 1;
+    int nPage = nOff / RU_PER_PAGE + 1;
+    string sHead;
+    if (sBucket == RU_TESTING)
+        sHead = &quot;These updates are LIVE but still need testing. Play them and &quot;
+              + &quot;tell the admin what you find.&quot;;
+    else
+        sHead = &quot;Recent updates to Middle-earth, tested and done.&quot;;
+    if (nTotal == 0)
+        sHead += &quot;\n(Nothing here right now.)&quot;;
+    else
+        sHead += &quot;\n&quot; + IntToString(nTotal) + (nTotal == 1 ? &quot; entry&quot; : &quot; entries&quot;)
+               + &quot;.  (Page &quot; + IntToString(nPage) + &quot; of &quot; + IntToString(nPages) + &quot;)&quot;;
+    SetCustomToken(6205, sHead);
 }
 
-// Populate the drill-down detail tokens for one idea (by rank).
+// Populate the drill-down detail tokens for one idea (by rank within a bucket).
 void RU_BuildDetail(object oPC, int nRank)
 {
     SetCustomToken(6210, &quot;&quot;);
@@ -135,7 +183,8 @@ void RU_BuildDetail(object oPC, int nRank)
 
     sqlquery q = SqlPrepareQueryCampaign(RU_DB,
         &quot;SELECT title, prefix, group_label, player, date, notes&quot; +
-        &quot; FROM recent_updates WHERE rank=@r&quot;);
+        &quot; FROM recent_updates WHERE bucket=@b AND rank=@r&quot;);
+    SqlBindString(q, &quot;@b&quot;, RU_Bucket(oPC));
     SqlBindInt(q, &quot;@r&quot;, nRank);
     if (!SqlStep(q)) return;
 
@@ -149,6 +198,24 @@ void RU_BuildDetail(object oPC, int nRank)
     string sNotes = SqlGetString(q, 5);
     if (sNotes == &quot;&quot;) sNotes = &quot;(No further details recorded.)&quot;;
     SetCustomToken(6214, sNotes);
+}
+
+// Opening menu: reset the browse state and label the &quot;needs testing&quot; branch with
+// its live count, so a player can see at a glance whether there is work to do.
+void RU_BuildMenu(object oPC)
+{
+    DeleteLocalString(oPC, &quot;ru_bucket&quot;);
+    SetLocalInt(oPC, &quot;ru_page_off&quot;, 0);
+    int nPending = RU_CountBucket(RU_TESTING);
+    SetCustomToken(6206, IntToString(nPending));
+}
+
+// Enter one of the two lists from the menu.
+void RU_OpenBucket(object oPC, string sBucket)
+{
+    SetLocalString(oPC, &quot;ru_bucket&quot;, sBucket);
+    SetLocalInt(oPC, &quot;ru_page_off&quot;, 0);
+    RU_BuildPage(oPC);
 }
 </code></pre>
   </main>

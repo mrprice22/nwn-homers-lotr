@@ -16,13 +16,21 @@ folds into the published `docs/`.
 ```
 edit roadmap.yaml                       # by hand, or with the GUI editor (below)
 python3 bin/gen-roadmap.py              # -> rewrites docs.manual/Roadmap.html
+python3 bin/publish-roadmap-db.py       # -> refreshes the in-game Recent Updates sign
 bin/refresh-homers-lotr-wiki           # -> folds docs.manual/ into published docs/
 ```
 
 `gen-roadmap.py --check` validates without writing (prints `roadmap.yaml OK` or the
 errors). It also joins shipped items to git commit dates (the `commit:` field) and warns
-on likely duplicate ideas. The wiki refresh does **not** call `gen-roadmap.py` — run it
-yourself first.
+on likely duplicate ideas.
+
+**The daily cycle now does the first three for you.** `bin/refresh-homers-lotr-wiki` runs
+`gen-roadmap.py` and `publish-roadmap-db.py` before the wiki build (in that order — the
+wiki build is what folds `docs.manual/` into `docs/`), and both are warn-and-continue so a
+roadmap.yaml that fails validation can never take the nightly wiki republish down with it.
+So an agent that edits `roadmap.yaml` and commits is enough: the public page and the
+in-game sign catch up at the next scheduled refresh. Still **don't** run the wiki refresh
+as part of an edit — running `gen-roadmap.py` alone remains fine and free.
 
 ## `roadmap.yaml` schema
 
@@ -117,9 +125,28 @@ still do, exactly as before. Everything about the rollup is derived:
   in-page links keep working and stay unique.
 - **In game** — `sync_recent_updates_db()` emits one `Project: <Title> (x/y complete)` row
   with an ASCII `[x]`/`[ ]` checklist in the detail text, competing with loose ideas for the
-  same 10 slots. No NWScript change was needed; `unpacked/ru_db.nss` reads the same schema.
+  same 10 slots of the sign's *completed* branch. A child with an open `uat` step is
+  **pulled out of the rollup** and listed on its own in the *needs testing* branch — a
+  progress card is no use to someone trying to reproduce a specific check.
 
 The pivot table at the top of the page still counts the underlying **ideas**, not epics.
+
+### The in-game Recent Updates sign
+
+The Well of Eru sign (placeable tag `recent_updates`, conversation `ru_sign`, scripts
+`unpacked/ru_*.nss`) reads the campaign DB **roadmapdb**, table `recent_updates`, written
+by `bin/roadmap_publish.py`. Its opening menu offers two lists:
+
+| Branch | Contents |
+|--------|----------|
+| *Recent updates — completed and tested* | the **10** newest shipped ideas with **no open `uat` step**; epics collapse to one `x/y complete` card. What the sign has always shown. |
+| *Updates in testing* | **every** shipped idea that still has an open `uat` step, uncapped and paged 5 at a time. Its detail text appends `What still needs testing:` — the open checks in plain text, each prefixed with its `tester`. |
+
+Rows carry a `bucket` column; the pre-bucket schema is dropped and recreated on the first
+publish (every publish rewrites all rows anyway, so nothing is lost). `RU_InitDb()` in
+`unpacked/ru_db.nss` carries the same DDL so whichever side runs first wins the same shape.
+A schema change here needs a **repack + restart**; the row data does not — the server reads
+the campaign DB on each use.
 
 ### The internal fields
 
@@ -149,7 +176,12 @@ The pivot table at the top of the page still counts the underlying **ideas**, no
     manual_steps:
       - step: "Place spawn waypoint at Docks_02"
         status: open        # open | wip | done
+        kind: toolset       # toolset | uat | publish | admin
         blocker: true       # omit when false
+      - step: "UAT: buy from the merchant at reputation -1 and confirm the refusal line."
+        status: open
+        kind: uat
+        tester: "any character with negative Bree reputation"
 ```
 
 **Manual-step states** are `open` → `wip` (started) → `done` (terminal). A step marked
@@ -158,12 +190,46 @@ makes a quest unreachable, say, as opposed to a UAT check. Blockers sort first i
 editor and carry a warning border. Do not write "Blocker:" into `notes` or into the step
 text; set the flag.
 
+**`kind` is what makes the backlog reportable.** It says which *session* a step belongs
+to, so the work can be pulled out by context instead of hunted for item by item:
+
+| kind | what it means | where it surfaces |
+|------|---------------|-------------------|
+| `toolset` | waypoint placement, palette/blueprint work, appearance, portrait, voiceset, icons | editor → **Toolset Queue** |
+| `uat` | in-game verification: log in, spawn it, confirm it reads right | editor → **UAT Queue**, and the in-game sign |
+| `publish` | repack / hak build / nwsync / restart | editor → **Toolset Queue** |
+| `admin` | everything else (DB seeding, hygiene, out-of-band chores) | — |
+
+Absent means `admin` — the fallback bucket, not a claim the step was triaged. An unknown
+value is a **fatal** validation error, because a typo would silently drop the step out of
+both queues. The vocabulary lives in `bin/gen-roadmap.py` (`STEP_KINDS`), which the editor
+imports, so the two can't drift.
+
+**`tester` is free text on a `uat` step** — `any`, `wizard 43+`, `druid or ranger`,
+`level 60 melee`. The UAT Queue groups by it (empty → *Any / unspecified*, sorted last
+because it is the triage pile), and it is what a player sees on the in-game board next to
+each outstanding check. The editor offers a datalist of values already in use so they stay
+consistent; don't invent a fifth spelling of "a high-level caster".
+
+**An open `uat` step is what "not yet validated" means.** `GEN.open_uat_steps(idea)` is the
+one predicate behind it, shared by the queues, the sign and the publisher: a shipped idea
+with one goes into the in-game board's *needs testing* branch, and out again the moment the
+last check is ticked `done`.
+
+**The one-time backfill** is `bin/roadmap-classify-steps.py` (dry-run by default, `--apply`
+to write, `--diff` to see the exact change). It tags any step that has no `kind` yet from
+the conventional prefixes (`UAT`, `PLACE:`, `PUBLISH:`, `ICON UAT/TUNE`) and a keyword
+sweep, so it is safe to re-run after new steps land — it never touches a step you have
+already triaged unless you pass `--retag`. It reuses the editor's comment-preserving
+writer, and refuses to write if it would *introduce* a validation error (pre-existing ones
+are left alone — tagging a step is not the edit that has to fix them).
+
 **Heights.** Every vertically-resizable box in the editor persists its pixel height in the
 YAML — `notes_h`, `impl_notes_h`, and per-sub-item `step_h`, `question_h`, `answer_h` —
 written only when resized away from the default, and ignored by `gen-roadmap.py`.
 
 **Legacy form.** `manual_steps` was originally a plain list of strings. Those still parse
-and are upgraded to `{step, status: open, blocker: false}` on the next save, so no
+and are upgraded to `{step, status: open, kind: admin, blocker: false}` on the next save, so no
 migration is needed.
 
 The admin answers questions, flips step states and flips statuses; the agent only ever
@@ -198,6 +264,12 @@ These are hard rules — follow them exactly:
   admin toolset work → `manual_steps`, one step per check, with `blocker: true` only for
   work the item genuinely cannot ship without. **Never** put a UAT script, a resref or a
   "Blocker:" line into `notes`.
+- **Always set `kind:` on a step you add**, and `tester:` on a `uat` step whenever you know
+  what it takes to run the check ("a wizard past class level 40", "any character with a
+  familiar"). An untagged step defaults to `admin` and falls out of both work queues; an
+  untagged UAT step lands in the *Any / unspecified* pile the admin then has to triage by
+  hand. Both are visible to players on the in-game board, so write the step text so it
+  reads as an instruction to someone who has never seen the code.
 - **Always record the commit hash.** When you ship an item, put the git commit hash of the
   fix in the `commit:` field (short or full, e.g. `commit: f1e0b114d7d`). Commit the code
   first, then write its hash into the item.
@@ -326,6 +398,23 @@ What it does:
 - **Epic + Hidden.** The form has an **Epic** dropdown (next to Type) and a **Hidden**
   checkbox (below Status); the left pane has matching *epic* and *Published / Hidden* filters,
   and hidden or epic-owned rows carry a chip in both the list and the board.
+- **Toolset Queue / UAT Queue** (buttons): the hand-off panel shows one idea's steps;
+  these show one *kind* of step across the whole backlog — which is what you want when
+  you are sitting in the toolset or in the game client rather than in the editor.
+  - **Toolset Queue** — every outstanding `toolset` and `publish` step, grouped
+    *Toolset* / *Publish & deploy*, blockers first. **Copy as checklist** puts the whole
+    view on the clipboard as plain text for a second monitor or a notes file.
+  - **UAT Queue** — every outstanding `uat` step, **grouped by `tester`** so you can see
+    at a glance what a wizard can clear versus what needs a level-60 melee. *Any /
+    unspecified* sorts last and is the triage pile: fill in the tester inline (the input
+    is backed by a datalist of values already in use). That field is also what players
+    read on the in-game board.
+  - Both rows carry the idea's title as a link into the editor form, a `kind` dropdown
+    (fix a mis-tagged step in place) and a status dropdown. Changing any of them writes
+    `roadmap.yaml` immediately through `POST /api/step-status` — a deliberately narrow
+    write that touches exactly one step and **never regenerates or commits**. The step's
+    own text is the concurrency token: if it no longer matches, the write is refused with
+    "reload before ticking" rather than ticking the wrong row.
 - **Manage epics** (button): add an epic (`id` + title + group + optional public blurb),
   retitle/regroup one, or remove one that no idea references. Same modal shape as Manage
   groups; the `id` is the immutable key ideas point at.
@@ -349,8 +438,11 @@ What it does:
   idea's leading section-header comment travels with it by `id`. An unchanged save is a
   byte-for-byte no-op.
 - **Save & regenerate** writes `roadmap.yaml` then runs `gen-roadmap.py`, surfacing its
-  output (including duplicate-idea warnings) in the page. You still run
-  `bin/refresh-homers-lotr-wiki` to publish.
+  output (including duplicate-idea warnings) in the page. **Publish to Wiki & DB**
+  additionally body-swaps the page into `docs/manual/Roadmap.html`, refreshes the in-game
+  sign DB (`bin/roadmap_publish.py`) and commits + pushes. Neither is required any more
+  for the change to reach players — the daily refresh does both — but Publish is how you
+  make it land *now*.
 
 Reordering items in the list reorders them in the file; Add/Delete behave as expected.
 

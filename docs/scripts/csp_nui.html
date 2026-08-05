@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script csp_nui</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>csp_nui</code></h1><pre class="nss-source"><code>// csp_nui.nss - the caster spell picker window (&quot;Spellbook Study&quot;).
+//
+// Opened right after a level-up past class level 40 (csp_lvl -&gt; csp_open) and
+// re-openable by finishing a rest while picks remain (on_mod_rest), which is
+// the recovery path for a window that was dismissed. Event handling is in
+// csp_evt.nss, registered per-window via NuiCreate&#x27;s sEventScript.
+//
+// WHY A CUSTOM WINDOW AT ALL: see the header of csp_inc.nss. The client&#x27;s own
+// spell page is unreachable past class level 40.
+//
+// SHAPE. One spell level at a time, chosen with the row of buttons under the
+// header, because 179 wizard-learnable spells in one list is unreadable and
+// slow to build. The selected level is a local int on the PC (CSP_SEL, stored
+// +1 so that &quot;level 0&quot; is distinguishable from &quot;not set&quot;).
+//
+// The window is REBUILT rather than updated after each pick, exactly as
+// legfeat_nui does: a learned spell leaves the list and the header count drops.
+//
+// Two traps recorded against this repo&#x27;s other NUI windows apply here: resrefs
+// are capped at 16 characters, and nw_inc_nui has no `&amp;` reference parameters.
+// Both are respected. A third, learned from the Legendary Feats picker: EVERY
+// child gets an explicit width and the list group an explicit size, or the
+// group sizes itself to its longest label, grows a horizontal scrollbar and
+// clips the header text.
+
+#include &quot;nw_inc_nui&quot;
+#include &quot;csp_inc&quot;
+
+const string CSP_WIN = &quot;cspells&quot;;      // NuiCreate window id
+const string CSP_TOK = &quot;CSP_TOK&quot;;      // PC local: this window&#x27;s token
+const string CSP_SEL = &quot;CSP_SEL&quot;;      // PC local: selected spell level, +1
+
+const float CSP_WIN_W    = 720.0;
+const float CSP_WIN_H    = 500.0;
+const float CSP_LIST_W   = 680.0;
+const float CSP_LIST_H   = 300.0;
+const float CSP_COL_BTN  = 80.0;
+const float CSP_COL_NAME = 260.0;
+const float CSP_COL_SCH  = 160.0;
+const float CSP_ROW_H    = 30.0;
+const float CSP_HDR_H    = 26.0;
+const float CSP_TAB_W    = 64.0;
+
+json CSP_Window(object oPC);
+void CSP_Open(object oPC);
+void CSP_Close(object oPC);
+
+// Which spell level the window is showing. Defaults to the highest the
+// character can use, which is the one a level-41+ wizard almost always wants.
+int CSP_Selected(object oPC)
+{
+    int nSel = GetLocalInt(oPC, CSP_SEL) - 1;
+    if (nSel &gt;= 0 &amp;&amp; CSP_CanUseSpellLevel(oPC, nSel)) return nSel;
+
+    int nMax = CSP_MaxSpellLevel(oPC);
+    return (nMax &gt;= 0) ? nMax : 0;
+}
+
+// One spell row: a Learn button, the name, and the school.
+json CSP_Row(object oPC, int nSpellId, int nRemaining)
+{
+    string sName = CSP_SpellName(nSpellId);
+    string sTip  = CSP_SpellDesc(nSpellId);
+    if (sTip == &quot;&quot;) sTip = sName;
+
+    json jRow = JsonArray();
+
+    json jBtn = NuiId(NuiButton(JsonString(&quot;Learn&quot;)), &quot;s&quot; + IntToString(nSpellId));
+    // Greyed rather than hidden with no picks left, so the player can still
+    // read the whole list and plan. CSP_Learn re-checks everything.
+    jBtn = NuiEnabled(jBtn, JsonBool(nRemaining &gt; 0));
+    jBtn = NuiTooltip(jBtn, JsonString(sTip));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, CSP_COL_BTN));
+
+    json jName = NuiLabel(JsonString(sName), JsonInt(NUI_HALIGN_LEFT),
+                          JsonInt(NUI_VALIGN_MIDDLE));
+    jName = NuiTooltip(jName, JsonString(sTip));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jName, CSP_COL_NAME));
+
+    json jSch = NuiLabel(JsonString(CSP_SchoolName(nSpellId)),
+                         JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
+    jSch = NuiTooltip(jSch, JsonString(sTip));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jSch, CSP_COL_SCH));
+
+    return NuiHeight(NuiRow(jRow), CSP_ROW_H);
+}
+
+// The spell-level selector. A level the character cannot use at all is greyed;
+// the one being shown is greyed too, so the row doubles as the &quot;you are here&quot;.
+json CSP_Tabs(object oPC, int nSel)
+{
+    json jRow = JsonArray();
+    int i;
+    for (i = 0; i &lt;= 9; i++)
+    {
+        string sTxt = (i == 0) ? &quot;Cantrip&quot; : (&quot;Lvl &quot; + IntToString(i));
+        json jBtn = NuiId(NuiButton(JsonString(sTxt)), &quot;l&quot; + IntToString(i));
+        jBtn = NuiEnabled(jBtn, JsonBool(i != nSel &amp;&amp; CSP_CanUseSpellLevel(oPC, i)));
+        jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, CSP_TAB_W));
+    }
+    return NuiHeight(NuiRow(jRow), CSP_ROW_H);
+}
+
+json CSP_Window(object oPC)
+{
+    int nRemaining = CSP_Remaining(oPC);
+    int nSel = CSP_Selected(oPC);
+
+    json jCol = JsonArray();
+
+    string sHdr;
+    if (nRemaining &gt; 0)
+        sHdr = &quot;You may learn &quot; + IntToString(nRemaining) + &quot; new spell&quot;
+             + ((nRemaining == 1) ? &quot;.&quot; : &quot;s.&quot;);
+    else
+        sHdr = &quot;You have no spells left to learn for now.&quot;;
+
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
+        NuiLabel(JsonString(sHdr), JsonInt(NUI_HALIGN_CENTER),
+                 JsonInt(NUI_VALIGN_MIDDLE)), CSP_LIST_W), CSP_HDR_H));
+
+    jCol = JsonArrayInsert(jCol, CSP_Tabs(oPC, nSel));
+
+    // One pass over spells.2da at the selected level. Rows the character
+    // already knows, cannot cast, or is barred from by its specialisation are
+    // filtered by CSP_IsOffered and never reach the list.
+    int nRows = Get2DARowCount(&quot;spells&quot;);
+    if (nRows &lt;= 0 || nRows &gt; CSP_MAX_SPELL_ROWS) nRows = CSP_MAX_SPELL_ROWS;
+
+    json jList = JsonArray();
+    int nShown = 0;
+    int i;
+    for (i = 0; i &lt; nRows; i++)
+    {
+        if (CSP_SpellLevelOf(i) != nSel) continue;
+        if (!CSP_IsOffered(oPC, i)) continue;
+        jList = JsonArrayInsert(jList, CSP_Row(oPC, i, nRemaining));
+        nShown++;
+    }
+
+    if (nShown == 0)
+    {
+        string sNone = (nSel == 0)
+            ? &quot;You already know every cantrip.&quot;
+            : (&quot;You already know every spell of level &quot; + IntToString(nSel)
+               + &quot; open to you.&quot;);
+        jList = JsonArrayInsert(jList, NuiHeight(NuiRow(JsonArrayInsert(
+            JsonArray(), NuiWidth(NuiLabel(JsonString(sNone),
+                JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE)),
+                CSP_LIST_W - 20.0))), CSP_ROW_H));
+    }
+
+    json jGroup = NuiGroup(NuiCol(jList), TRUE, NUI_SCROLLBARS_Y);
+    jGroup = NuiWidth(jGroup, CSP_LIST_W);
+    jGroup = NuiHeight(jGroup, CSP_LIST_H);
+    jCol = JsonArrayInsert(jCol, jGroup);
+
+    string sFoot = &quot;Rest to reopen this window while spells remain to be chosen.&quot;;
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
+        NuiLabel(JsonString(sFoot), JsonInt(NUI_HALIGN_CENTER),
+                 JsonInt(NUI_VALIGN_MIDDLE)), CSP_LIST_W), CSP_HDR_H));
+
+    json jFoot = JsonArray();
+    jFoot = JsonArrayInsert(jFoot, NuiWidth(
+        NuiId(NuiButton(JsonString(&quot;Close&quot;)), &quot;bclose&quot;), 120.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
+
+    return NuiWindow(NuiCol(jCol), JsonString(&quot;Spellbook Study&quot;),
+        NuiRect(-1.0, -1.0, CSP_WIN_W, CSP_WIN_H),
+        JsonBool(FALSE),   // resizable
+        JsonBool(FALSE),   // collapsed
+        JsonBool(TRUE),    // closable
+        JsonBool(FALSE),   // transparent
+        JsonBool(TRUE));   // border
+}
+
+void CSP_Close(object oPC)
+{
+    int nTok = GetLocalInt(oPC, CSP_TOK);
+    if (nTok) NuiDestroy(oPC, nTok);
+    DeleteLocalInt(oPC, CSP_TOK);
+}
+
+// Open (or re-open) the picker. Destroys any stale instance first, so calling
+// this after a pick is how the list refreshes.
+void CSP_Open(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+    if (CSP_PickerClass(oPC) == CLASS_TYPE_INVALID) return;
+
+    int nOld = NuiFindWindow(oPC, CSP_WIN);
+    if (nOld) NuiDestroy(oPC, nOld);
+
+    int nTok = NuiCreate(oPC, CSP_Window(oPC), CSP_WIN, &quot;csp_evt&quot;);
+    SetLocalInt(oPC, CSP_TOK, nTok);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

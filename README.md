@@ -398,8 +398,19 @@ After adding or editing an opener, recompile (`nwn-manager repack`).
 
 `roadmap.yaml` is the source of truth for the public dev roadmap and the
 merit-tracking backlog — shipped player ideas credit a submitter with Merit.
-Edit it (by hand or with the GUI editor), then
-`python3 bin/gen-roadmap.py` and `bin/refresh-homers-lotr-wiki` to publish.
+Edit it (by hand or with the GUI editor) and commit — the daily wiki refresh
+regenerates the public page and pushes the same data to the in-game Recent
+Updates sign. To make a change land immediately instead, use the editor's
+**Publish to Wiki & DB** button, or run `python3 bin/gen-roadmap.py` +
+`python3 bin/publish-roadmap-db.py`.
+
+Each item's admin to-do list (`manual_steps`) is tagged by **kind** — `toolset`,
+`uat`, `publish`, `admin` — and a `uat` step records which character it takes to
+run it (`tester`). Two panels in the editor read those: the **Toolset Queue**
+(everything waiting on the toolset or a deploy) and the **UAT Queue** (everything
+waiting on an in-game check, grouped by the character needed). The same `uat`
+flag drives the in-game sign's second branch, where players can see — and help
+with — what has shipped but is not yet validated.
 
 To avoid typos in the controlled fields (player names, group ids, statuses,
 `dupe_of`), use the local web editor:
@@ -1119,6 +1130,15 @@ on the way back up. Pieces:
    regenerates the **whole** wiki (so creature-index/detail **kill counts** update,
    not just the activity pages the serve loop touches), commits, and pushes. The
    serve-loop activity refresh still handles intra-day activity updates.
+   It also carries the **roadmap** with it, in this order:
+   `bin/gen-roadmap.py` (rebuilds `docs.manual/Roadmap.html` from `roadmap.yaml`) →
+   `bin/publish-roadmap-db.py` (refills `roadmapdb`, the in-game Recent Updates
+   sign) → the wiki build, which is what folds `docs.manual/` into `docs/`. Both
+   roadmap steps warn and continue: a `roadmap.yaml` that fails validation is a
+   roadmap problem, not a reason to skip republishing 287 areas. Before this, both
+   were manual — `gen-roadmap.py` by hand and the sign only from the editor's
+   *Publish to Wiki & DB* button — so anything shipped by an agent left the public
+   page and the in-game board stale.
 5. **Backup** — moved off its midnight timer into this cycle:
    `homers-lotr-backup.service` now runs once per boot (24h-sentinel-gated), so the
    snapshot is taken right after the reboot when state is quiescent.

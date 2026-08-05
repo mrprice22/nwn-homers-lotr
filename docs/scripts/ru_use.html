@@ -48,6 +48,7 @@
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -56,14 +57,13 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>ru_use</code></h1><pre class="nss-source"><code>// ru_use - Recent Updates sign OnUsed: prime page 1 and open the conversation.
+<h1>Script: <code>ru_use</code></h1><pre class="nss-source"><code>// ru_use - Recent Updates sign OnUsed: open the menu (validated vs in testing).
 #include &quot;ru_db&quot;
 void main()
 {
     object oPC = GetLastUsedBy();
     if (!GetIsPC(oPC)) return;
-    SetLocalInt(oPC, &quot;ru_page_off&quot;, 0);
-    RU_BuildPage(oPC);
+    RU_BuildMenu(oPC);
     ActionStartConversation(oPC, &quot;&quot;, TRUE, FALSE);
 }
 </code></pre>

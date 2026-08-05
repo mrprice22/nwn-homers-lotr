@@ -45,6 +45,7 @@ import yaml
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
 GEN_PATH = REPO / "bin" / "gen-roadmap.py"
+PUBLISH_PATH = REPO / "bin" / "roadmap_publish.py"
 # Palette Finder: standalone map of blueprint -> toolset-palette location. Built
 # on demand by bin/gen-palette-map.py (the "Refresh palette map" button); never
 # part of the wiki build. module-index/ is gitignored, so it may not exist yet.
@@ -94,7 +95,16 @@ def load_gen():
     return mod
 
 
+def load_publish():
+    """Import bin/roadmap_publish.py — the roadmapdb (in-game sign) writer."""
+    spec = importlib.util.spec_from_file_location("roadmap_publish", PUBLISH_PATH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 GEN = load_gen()
+PUB = load_publish()
 # FIELD_ORDER orders the same names gen-roadmap.py validates against. A field
 # added to one and not the other means either a silently unrendered key or a
 # spurious "unrecognised field" warning, so say so loudly at startup.
@@ -162,33 +172,16 @@ MERIT_RATE_FEATURE = 2   # Enhancement
 MERIT_RATE_EXPLOIT = 3   # Exploit
 
 
-def nwn_home_dir() -> Path:
-    """This repo's NWN_HOME_DIR — i.e. THIS season's campaign DB directory.
-
-    The editor is single-instance and always runs from the newest season's repo
-    (season-cutover-prereqs.md item 12), so its campaign DBs must follow that
-    repo. Reading server.env is what makes that true; the old code took
-    $NWN_HOME_DIR or fell back to the literal unnumbered
-    "~/.local/share/Neverwinter Nights", and the systemd unit sets no
-    environment — so after the season 1 -> 2 cutover the editor ran from the
-    season-2 repo and published roadmapdb into SEASON 1's database dir, leaving
-    season 2's Recent Updates sign blank.
-
-    Precedence: explicit env override, then server.env, then the legacy path.
-    """
-    env = os.environ.get("NWN_HOME_DIR")
-    if env:
-        return Path(os.path.expandvars(env))
-    try:
-        for ln in SERVER_ENV.read_text(encoding="utf-8").splitlines():
-            m = re.match(r"\s*(?:export\s+)?NWN_HOME_DIR\s*=\s*(.+?)\s*$", ln)
-            if m:
-                val = m.group(1).strip().strip('"').strip("'")
-                # server.env writes "$HOME/.local/share/..."
-                return Path(os.path.expandvars(val))
-    except OSError:
-        pass
-    return Path(os.path.expanduser("~")) / ".local/share/Neverwinter Nights"
+# The in-game "Recent Updates" sign DB (roadmapdb) is written by
+# bin/roadmap_publish.py, which lives outside this file so the nightly wiki
+# refresh can push the sign without starting a web server. Re-exported here
+# because Publish to Wiki & DB calls it — and because nwn_home_dir() decides
+# which SEASON's campaign DBs the editor touches, meritdb included.
+SHIPPED_STATUSES = PUB.SHIPPED_STATUSES
+nwn_home_dir = PUB.nwn_home_dir
+recent_db_path = PUB.recent_db_path
+html_to_plain = PUB.html_to_plain
+sync_recent_updates_db = PUB.sync_recent_updates_db
 
 
 def merit_db_path() -> Path:
@@ -444,141 +437,6 @@ def award_merit(roadmap_name: str, idea_type: str, idea_id: str,
 
 
 # --------------------------------------------------------------------------
-# In-game "Recent Updates" sign DB (write)
-# --------------------------------------------------------------------------
-# The Well of Eru "Recent Updates" sign (tag recent_updates, conversation
-# ru_sign, read by ru_db.nss) browses a campaign SQLite DB "roadmapdb". On
-# Publish we refill its recent_updates table with the 10 most recently shipped
-# ideas so the in-game board mirrors the website. The DB is NOT git-tracked
-# (it lives under NWN_HOME_DIR); the live server picks up changes on next read.
-SHIPPED_STATUSES = ("implemented", "awarded")
-TYPE_PREFIX = {
-    "Defect":      "Bug fixed: ",
-    "Enhancement": "New feature: ",
-    "Exploit":     "Exploit closed: ",
-}
-DEFAULT_PREFIX = "Update: "
-_TAG_RE = re.compile(r"<[^>]+>")
-_BLANKS_RE = re.compile(r"\n[ \t]*\n[ \t]*\n+")
-
-
-def recent_db_path() -> Path:
-    """Filesystem path to the live roadmapdb campaign database."""
-    return nwn_home_dir() / "database" / "roadmapdb.sqlite3"
-
-
-def html_to_plain(s: str) -> str:
-    """Render an idea's `notes` HTML as NWN-readable plain text."""
-    if not s:
-        return ""
-    t = s.replace("\r\n", "\n")
-    t = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", t)        # <br> -> newline
-    t = re.sub(r"(?i)<\s*li[^>]*>", "\n• ", t)    # <li> -> bullet
-    t = re.sub(r"(?i)<\s*/\s*(div|p|li|ul|ol|h[1-6])\s*>", "\n", t)
-    t = _TAG_RE.sub("", t)            # drop remaining tags, keep their text
-    t = html.unescape(t)             # &amp; &lt; &#39; ...
-    t = t.replace("\\n", "\n")       # any literal backslash-n in the source
-    t = _BLANKS_RE.sub("\n\n", t)    # collapse 3+ newlines
-    return "\n".join(ln.rstrip() for ln in t.split("\n")).strip()
-
-
-def _epic_row(epic: dict, children: list, glabel: dict) -> tuple | None:
-    """One rolled-up sign entry for an epic, or None if nothing shipped yet.
-
-    Mirrors the wiki card: an "x/y complete" headline plus an ASCII checklist of
-    the children (the sign renders plain text through SetCustomToken).
-    """
-    done = [c for c in children if c.get("status") in SHIPPED_STATUSES]
-    if not done:
-        return None
-    players: list[str] = []
-    for c in children:
-        p = c.get("player") or ""
-        p = "Community" if p == "community" else p
-        if p and p not in players:
-            players.append(p)
-    checklist = "\n".join(
-        ("[x] " if c.get("status") in SHIPPED_STATUSES else "[ ] ")
-        + (c.get("title") or "")
-        for c in children)
-    blurb = html_to_plain(epic.get("notes") or "")
-    return (
-        f'{epic.get("title") or epic["id"]} '
-        f'({len(done)}/{len(children)} complete)',
-        "Project: ",
-        glabel.get(epic.get("group"), epic.get("group") or ""),
-        ", ".join(players),
-        max((c.get("date") or "") for c in done),
-        (blurb + "\n\n" if blurb else "") + checklist,
-    )
-
-
-def sync_recent_updates_db(ideas: list, groups: list | None,
-                           epics: list | None = None) -> tuple[bool, str]:
-    """Refill roadmapdb.recent_updates with the 10 most recent shipped entries.
-
-    `hidden` ideas never reach the sign, and an idea belonging to an epic is
-    folded into that epic's single rolled-up row instead of taking a slot of its
-    own — the same collapse the public roadmap page does.
-    """
-    GEN.resolve_dates(ideas)  # explicit date wins; else derived from commit
-    glabel = {g["id"]: html.unescape(g.get("title", g["id"]))
-              for g in (groups or [])}
-    by_epic = {e["id"]: e for e in (epics or [])}
-    visible = [i for i in ideas if not i.get("hidden") and not i.get("dupe_of")]
-
-    kids: dict[str, list] = {}
-    loose = []
-    for idea in visible:
-        eid = idea.get("epic")
-        if eid in by_epic:
-            kids.setdefault(eid, []).append(idea)
-        elif idea.get("status") in SHIPPED_STATUSES:
-            loose.append(idea)
-
-    # (title, prefix, group_label, player, date, notes) — epics and plain ideas
-    # compete for the same 10 slots, newest first.
-    entries: list[tuple] = []
-    for idea in loose:
-        player = idea.get("player") or ""
-        if player == "community":
-            player = "Community"
-        entries.append((
-            idea.get("title") or "",
-            TYPE_PREFIX.get(idea.get("type"), DEFAULT_PREFIX),
-            glabel.get(idea.get("group"), idea.get("group") or ""),
-            player,
-            idea.get("date") or "",
-            html_to_plain(idea.get("notes") or ""),
-        ))
-    for eid, children in kids.items():
-        row = _epic_row(by_epic[eid], children, glabel)
-        if row:
-            entries.append(row)
-    entries.sort(key=lambda e: (e[4], e[0]), reverse=True)
-
-    rows = [(rank,) + entry for rank, entry in enumerate(entries[:10])]
-
-    db = recent_db_path()
-    db.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(str(db))
-    try:
-        con.execute(
-            "CREATE TABLE IF NOT EXISTS recent_updates ("
-            "rank INTEGER PRIMARY KEY, title TEXT, prefix TEXT, "
-            "group_label TEXT, player TEXT, date TEXT, notes TEXT)")
-        con.execute("DELETE FROM recent_updates")
-        con.executemany(
-            "INSERT INTO recent_updates"
-            "(rank,title,prefix,group_label,player,date,notes)"
-            " VALUES(?,?,?,?,?,?,?)", rows)
-        con.commit()
-    finally:
-        con.close()
-    return True, f"synced {len(rows)} recent update(s) to {db.name}."
-
-
-# --------------------------------------------------------------------------
 # Comment-preserving write of the `ideas:` block
 # --------------------------------------------------------------------------
 ITEM_START = re.compile(r"^\s*-\s+id:\s*(\S+)")
@@ -665,12 +523,18 @@ def normalize_step(item) -> dict:
     hand (or by an older autopilot run) keeps working with no migration pass.
     """
     if not isinstance(item, dict):
-        return {"step": str(item), "status": "open", "blocker": False}
+        return {"step": str(item), "status": "open", "blocker": False,
+                "kind": GEN.DEFAULT_STEP_KIND}
+    kind = item.get("kind")
     out = {
         "step": str(item.get("step", "")),
         "status": item.get("status", "open"),
+        "kind": kind if kind in GEN.STEP_KINDS else GEN.DEFAULT_STEP_KIND,
         "blocker": bool(item.get("blocker", False)),
     }
+    tester = item.get("tester")
+    if isinstance(tester, str) and tester.strip():
+        out["tester"] = tester.strip()
     if isinstance(item.get("step_h"), int):
         out["step_h"] = item["step_h"]
     return out
@@ -683,10 +547,10 @@ def normalize_steps(val) -> list:
 def emit_list_field(field: str, val: list) -> list[str]:
     """Emit an internal list field as a YAML block sequence under `field:`.
 
-    manual_steps is a list of {step, status, blocker} mappings; design_questions
-    a list of {question, status, answer}. Both carry optional `*_h` textarea
-    heights. Both are internal (never rendered on the public board) — see
-    CLAUDE-roadmap.md.
+    manual_steps is a list of {step, status, kind, blocker} mappings (plus
+    `tester` on UAT steps); design_questions a list of {question, status,
+    answer}. Both carry optional `*_h` textarea heights. Both are internal
+    (never rendered on the public board) — see CLAUDE-roadmap.md.
     """
     lines = [f"    {field}:"]
     for item in val:
@@ -694,6 +558,9 @@ def emit_list_field(field: str, val: list) -> list[str]:
             item = normalize_step(item)
             lines.append(f'      - step: {dquote(item["step"])}')
             lines.append(f'        status: {item["status"]}')
+            lines.append(f'        kind: {item["kind"]}')
+            if item.get("tester"):
+                lines.append(f'        tester: {dquote(item["tester"])}')
             if item["blocker"]:
                 lines.append("        blocker: true")
             lines.extend(_emit_heights(item, ("step_h",)))
@@ -903,6 +770,14 @@ def validate_internal_fields(ideas) -> list[str]:
                     elif not isinstance(s.get("blocker", False), bool):
                         errs.append(f"'{iid}': manual_step blocker must be "
                                     f"true/false")
+                    elif s.get("kind") is not None \
+                            and s["kind"] not in GEN.STEP_KINDS:
+                        errs.append(f"'{iid}': manual_step kind must be "
+                                    f"{'|'.join(GEN.STEP_KINDS)}, got "
+                                    f"{s['kind']!r}")
+                    elif s.get("tester") is not None \
+                            and not isinstance(s["tester"], str):
+                        errs.append(f"'{iid}': manual_step tester must be text")
         if not isinstance(idea.get(MERIT_FLAG, False), bool):
             errs.append(f"'{iid}': {MERIT_FLAG} must be true/false, got "
                         f"{idea.get(MERIT_FLAG)!r}")
@@ -1012,6 +887,11 @@ def extra_validate(groups, players, epics=None) -> list[str]:
                 errs.append(f"duplicate player '{s}'")
             seen.add(s)
     return errs
+
+
+def _err_class(msg: str) -> str:
+    """A validation error with its counts masked — 'same complaint as before?'."""
+    return re.sub(r"\d+", "#", msg)
 
 
 def validate_document(ideas, groups=None, players=None,
@@ -1231,6 +1111,73 @@ class Handler(BaseHTTPRequestHandler):
     def _json(self, obj, code: int = 200):
         self._send(code, json.dumps(obj).encode("utf-8"), "application/json")
 
+    def _step_write(self, payload):
+        """Tick one manual_step's status/kind/tester from a queue panel.
+
+        A bookkeeping write, deliberately narrower than /api/save: it re-reads
+        roadmap.yaml, touches exactly one step, and never regenerates or commits.
+        The queues are used while you are in the toolset or in the game client,
+        one step at a time — round-tripping the whole document from a browser tab
+        that has been open all afternoon is how you lose someone else's edit.
+
+        The step's own text is the concurrency token: if it no longer matches,
+        something moved underneath us and we refuse rather than tick the wrong row.
+        """
+        iid = payload.get("id")
+        try:
+            index = int(payload.get("index"))
+        except (TypeError, ValueError):
+            return self._json({"ok": False, "errors": ["bad step index"]}, 400)
+
+        data = read_yaml()
+        ideas = data.get("ideas") or []
+        # Baseline complaints, measured on an untouched parse (`ideas` is about
+        # to be mutated in place).
+        before = {_err_class(e)
+                  for e in validate_document(read_yaml().get("ideas") or [])[0]}
+        idea = next((i for i in ideas if i.get("id") == iid), None)
+        if idea is None:
+            return self._json({"ok": False, "errors": [f"no such idea '{iid}'"]}, 404)
+        steps = idea.get("manual_steps") or []
+        if not 0 <= index < len(steps):
+            return self._json({"ok": False, "stale": True,
+                               "message": "That step is gone — reload the queue."},
+                              409)
+        step = steps[index]
+        cur_text = step if isinstance(step, str) else str(step.get("step", ""))
+        if payload.get("step") is not None and payload["step"] != cur_text:
+            return self._json({"ok": False, "stale": True,
+                               "message": ("roadmap.yaml changed underneath this "
+                                           "queue — reload before ticking.")}, 409)
+
+        step = normalize_step(step)
+        steps[index] = step
+        if payload.get("status") in STEP_STATUS:
+            step["status"] = payload["status"]
+        if payload.get("kind") in GEN.STEP_KINDS:
+            step["kind"] = payload["kind"]
+        if payload.get("tester") is not None:
+            tester = str(payload["tester"]).strip()
+            if tester:
+                step["tester"] = tester
+            else:
+                step.pop("tester", None)
+
+        # roadmap.yaml carries some long-standing pipeline complaints (a shipped
+        # item whose blocker steps aren't finished). Ticking a step must not be
+        # the edit that has to fix them, so only errors this write *introduces*
+        # are fatal. Compared with the numbers masked out: "…with 6 unfinished
+        # blocker manual_step(s)" becoming "…with 5" is this queue working, not
+        # a new problem.
+        errors, warnings = validate_document(ideas)
+        errors = [e for e in errors if _err_class(e) not in before]
+        if errors:
+            return self._json({"ok": False, "errors": errors})
+        write_document(ideas)
+        return self._json({"ok": True, "version": yaml_version(),
+                           "warnings": warnings,
+                           "message": f"Updated step {index + 1} of '{iid}'."})
+
     def _merit_write(self, revoke, payload, ideas, groups, players, epics,
                      warnings):
         """Move an idea into/out of 'merit awarded' AND pay/take back the merit.
@@ -1350,6 +1297,12 @@ class Handler(BaseHTTPRequestHandler):
                                "built": load_palette_map()["built"],
                                "message": ("Palette map rebuilt."
                                            if ok else "Palette map refresh FAILED.")})
+        if self.path == "/api/step-status":
+            try:
+                payload = self._read_body()
+            except Exception as e:
+                return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
+            return self._step_write(payload)
         try:
             payload = self._read_body()
         except Exception as e:
@@ -1720,6 +1673,29 @@ PAGE = r"""<!doctype html>
   #pf_results .pf-custom { color:var(--accent); font-weight:600; }
   #pf_results .pf-std { color:var(--muted); }
   .pf-meta { font-size:11px; color:var(--muted); margin-left:auto; }
+  /* work queues (Toolset / UAT) — wider than the other modals: these are read
+     while you work in another window, so the step text must not be a keyhole. */
+  .modal.wide { width:min(1000px,100%); }
+  .qgroup { margin:14px 0 4px; font-size:13px; color:var(--accent);
+            border-bottom:1px solid var(--line); padding-bottom:3px; }
+  .qgroup .n { color:var(--mut); font-weight:400; font-size:11px; margin-left:6px; }
+  .qrow { display:flex; gap:10px; padding:7px 4px; border-bottom:1px solid var(--line);
+          align-items:flex-start; }
+  .qrow.done { opacity:0.45; }
+  .qrow .qmeta { flex:0 0 210px; }
+  .qrow .qtitle { display:block; color:var(--accent); font-size:12px; cursor:pointer;
+                  text-align:left; background:none; border:none; padding:0; width:100%; }
+  .qrow .qtitle:hover { text-decoration:underline; }
+  .qrow .qsub { color:var(--mut); font-size:11px; }
+  .qrow .qtext { flex:1; font-size:12px; white-space:pre-wrap; word-break:break-word; }
+  .qrow .qctl { flex:0 0 250px; display:flex; gap:5px; flex-wrap:wrap;
+                justify-content:flex-end; }
+  .qrow .qctl select, .qrow .qctl input { width:auto; font-size:11px; padding:2px 4px; }
+  .qrow .qctl input.tester { flex:1 1 110px; min-width:70px; }
+  .qblock { color:var(--warn); font-size:10px; font-weight:700; letter-spacing:.5px; }
+  .qbar { display:flex; gap:8px; align-items:center; margin:6px 0; }
+  .qbar input { flex:1; }
+  #qresults { max-height:60vh; overflow:auto; }
   /* view toggle */
   .viewtoggle { display:flex; gap:4px; margin:0 0 8px; }
   .viewtoggle button { padding:4px 12px; font-size:12px; width:auto; }
@@ -1794,6 +1770,8 @@ PAGE = r"""<!doctype html>
       <button id="mplayers" class="linkbtn">Manage players</button>
       <button id="mpending" class="linkbtn">Pending Merit Requests</button>
       <button id="mpalette" class="linkbtn">Palette Finder</button>
+      <button id="mtoolq" class="linkbtn">Toolset Queue</button>
+      <button id="muatq" class="linkbtn">UAT Queue</button>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
@@ -3147,6 +3125,183 @@ async function pfSearch(){
     + '</tbody></table>';
 }
 
+// ---- work queues: Toolset Queue / UAT Queue -------------------------------
+// The hand-off panel shows one idea's steps. These show one KIND of step across
+// the whole backlog, which is what you actually want when you are sitting in
+// the toolset (place these waypoints, tune these portraits) or in the game
+// client (run these checks, and on what character). Rows are read straight from
+// DATA.ideas — no new read endpoint — and each control writes just its own step
+// through /api/step-status.
+const STEP_KINDS = ['toolset','uat','publish','admin'];
+let QUEUE = {kind:'toolset', filter:'', showDone:false};
+
+// Every step of the wanted kinds, flattened, with its owning idea.
+function queueRows(kinds){
+  const out=[];
+  DATA.ideas.forEach(it=>{
+    if (it.hidden) return;
+    (it.manual_steps||[]).forEach((s,i)=>{
+      if (!s || typeof s!=='object') return;
+      const k = STEP_KINDS.indexOf(s.kind)>=0 ? s.kind : 'admin';
+      if (kinds.indexOf(k)<0) return;
+      if (!QUEUE.showDone && s.status==='done') return;
+      out.push({idea:it, step:s, index:i, kind:k});
+    });
+  });
+  // Blockers first, then unstarted before in-progress, then by idea title.
+  const rank = s => s.status==='done' ? 3 : (s.status==='wip' ? 1 : 2);
+  out.sort((a,b)=> (b.step.blocker?1:0)-(a.step.blocker?1:0)
+                || rank(a.step)-rank(b.step)
+                || String(a.idea.title||'').localeCompare(String(b.idea.title||'')));
+  return out;
+}
+
+function testerKey(s){ return (s.tester||'').trim(); }
+
+// Distinct tester values already in use — the datalist that keeps "wizard 43+"
+// from becoming four spellings of the same requirement.
+function knownTesters(){
+  const seen=new Map();
+  DATA.ideas.forEach(it=>(it.manual_steps||[]).forEach(s=>{
+    const t = s && typeof s==='object' ? testerKey(s) : '';
+    if (t && !seen.has(t.toLowerCase())) seen.set(t.toLowerCase(), t);
+  }));
+  return [...seen.values()].sort((a,b)=>a.localeCompare(b));
+}
+
+function queueRowHTML(r, withTester){
+  const s=r.step, g=(DATA.vocab.groups.find(x=>x.id===r.idea.group)||{}).title||r.idea.group||'';
+  const sel = v => `<select class="q_status" data-id="${esc(r.idea.id)}" data-i="${r.index}">`
+    + ['open','wip','done'].map(o=>`<option value="${o}"${v===o?' selected':''}>`
+        + {open:'To do', wip:'In progress', done:'Done'}[o] + '</option>').join('')
+    + '</select>';
+  const kindSel = `<select class="q_kind" data-id="${esc(r.idea.id)}" data-i="${r.index}">`
+    + STEP_KINDS.map(k=>`<option value="${k}"${r.kind===k?' selected':''}>${k}</option>`).join('')
+    + '</select>';
+  const tester = withTester
+    ? `<input class="tester q_tester" list="q_testers" placeholder="who can test?"
+              value="${esc(testerKey(s))}" data-id="${esc(r.idea.id)}" data-i="${r.index}">`
+    : '';
+  return `<div class="qrow${s.status==='done'?' done':''}">
+    <div class="qmeta">
+      <button class="qtitle" data-goto="${esc(r.idea.id)}">${esc(r.idea.title||r.idea.id)}</button>
+      <span class="qsub">${esc(dispAmp(g))}${s.blocker?' · <span class="qblock">BLOCKER</span>':''}</span>
+    </div>
+    <div class="qtext">${esc(s.step||'')}</div>
+    <div class="qctl">${tester}${kindSel}${sel(s.status||'open')}</div>
+  </div>`;
+}
+
+// Plain-text version of what is on screen — for pasting into a toolset session
+// or a notes file, where a browser tab is not welcome.
+function queueChecklist(groups){
+  return groups.map(([label, rows]) => label + '\n'
+    + rows.map(r=>'  [ ] ' + (r.step.blocker?'(BLOCKER) ':'')
+        + (testerKey(r.step)?'('+testerKey(r.step)+') ':'')
+        + (r.idea.title||r.idea.id) + ' — '
+        + String(r.step.step||'').replace(/\s+/g,' ')).join('\n')
+  ).join('\n\n');
+}
+
+function renderQueue(){
+  const box=$('#qresults'); if(!box) return;
+  const uat = QUEUE.kind==='uat';
+  const rows = queueRows(uat ? ['uat'] : ['toolset','publish'])
+    .filter(r=>{
+      const f=QUEUE.filter.toLowerCase(); if(!f) return true;
+      return (r.step.step||'').toLowerCase().includes(f)
+          || (r.idea.title||'').toLowerCase().includes(f)
+          || testerKey(r.step).toLowerCase().includes(f);
+    });
+  // UAT groups by who can run the check; toolset groups by toolset vs deploy.
+  const buckets=new Map();
+  rows.forEach(r=>{
+    const key = uat ? (testerKey(r.step) || 'Any / unspecified')
+                    : (r.kind==='publish' ? 'Publish & deploy' : 'Toolset');
+    if(!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(r);
+  });
+  const order=[...buckets.entries()].sort((a,b)=>{
+    // "Any / unspecified" last: it is the triage pile, not the work.
+    const la=a[0]==='Any / unspecified', lb=b[0]==='Any / unspecified';
+    return (la?1:0)-(lb?1:0) || a[0].localeCompare(b[0]);
+  });
+  $('#q_count').textContent = rows.length + (rows.length===1?' step':' steps')
+    + (QUEUE.showDone?' (including done)':' outstanding');
+  box.innerHTML = order.length
+    ? order.map(([label,rs])=>`<div class="qgroup">${esc(label)}
+        <span class="n">${rs.length}</span></div>`
+        + rs.map(r=>queueRowHTML(r, uat)).join('')).join('')
+    : '<p class="small">Nothing here. '
+      + (QUEUE.filter?'No step matches that filter.':'Queue is clear.') + '</p>';
+  box.dataset.plain = queueChecklist(order);
+}
+
+async function stepWrite(id, index, patch){
+  const it = DATA.ideas.find(x=>x.id===id);
+  const s = it && (it.manual_steps||[])[index];
+  if (!s) return;
+  const body = Object.assign({id, index, step: s.step}, patch);
+  const r = await fetch('/api/step-status',
+    {method:'POST', headers:{'Content-Type':'application/json'},
+     body: JSON.stringify(body)});
+  const res = await r.json();
+  if (!res.ok){
+    banner('bad', res.message || (res.errors||[]).join('\n') || 'Step update failed.');
+    return;
+  }
+  Object.assign(s, patch);           // keep the in-memory copy in step
+  baseVersion = res.version || baseVersion;
+  renderQueue();
+}
+
+function openQueue(kind){
+  QUEUE = {kind, filter:'', showDone:false};
+  const uat = kind==='uat';
+  modalHTML(`<h2>${uat?'UAT Queue':'Toolset Queue'}</h2>
+    <p class="small">${uat
+      ? 'Every shipped item still waiting on an in-game check, grouped by the '
+        + 'character it takes to run it. Fill in <b>who can test</b> on anything '
+        + 'in “Any / unspecified” — that is what the grouping is for, and it is '
+        + 'what players see on the Recent Updates sign.'
+      : 'Everything outstanding that needs the toolset (waypoints, palette, '
+        + 'appearance, portraits, voicesets) or a deploy. Ticking a step here '
+        + 'writes roadmap.yaml immediately — it does not regenerate or publish.'}</p>
+    <div class="qbar">
+      <input id="q_filter" placeholder="filter…" autocomplete="off">
+      <label class="chk"><input type="checkbox" id="q_done"> show done</label>
+      <button id="q_copy">Copy as checklist</button>
+    </div>
+    <div class="qbar" style="margin-top:0;"><span class="pf-meta" id="q_count"></span></div>
+    <datalist id="q_testers">${knownTesters().map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
+    <div id="qresults"></div>
+    <div class="bar"><span class="spacer"></span><button id="q_close">Close</button></div>`);
+  $('#modalbox').classList.add('wide');
+  $('#q_close').onclick=()=>{ $('#modalbox').classList.remove('wide'); closeModal(); };
+  $('#q_filter').oninput=e=>{ QUEUE.filter=e.target.value.trim(); renderQueue(); };
+  $('#q_done').onchange=e=>{ QUEUE.showDone=e.target.checked; renderQueue(); };
+  $('#q_copy').onclick=()=>{
+    const txt=$('#qresults').dataset.plain||'';
+    navigator.clipboard.writeText(txt).then(
+      ()=>banner('ok','Checklist copied to the clipboard.'),
+      ()=>banner('bad','Could not reach the clipboard — copy from the page instead.'));
+  };
+  // Delegated so the handlers survive every re-render.
+  $('#qresults').addEventListener('change', e=>{
+    const t=e.target, id=t.dataset.id, i=+t.dataset.i;
+    if (t.classList.contains('q_status')) stepWrite(id, i, {status:t.value});
+    else if (t.classList.contains('q_kind')) stepWrite(id, i, {kind:t.value});
+    else if (t.classList.contains('q_tester')) stepWrite(id, i, {tester:t.value});
+  });
+  $('#qresults').addEventListener('click', e=>{
+    const b=e.target.closest('[data-goto]'); if(!b) return;
+    $('#modalbox').classList.remove('wide'); closeModal();
+    guard(()=>{ if (view!=='list') setView('list'); selectById(b.dataset.goto, -1); });
+  });
+  renderQueue();
+  $('#q_filter').focus();
+}
+
 function openGroups(){
   const rows = DATA.vocab.groups.map((g,i)=>`
     <div class="mrow" data-i="${i}">
@@ -3352,6 +3507,8 @@ $('#mgroups').onclick=openGroups;
 $('#mplayers').onclick=openPlayers;
 $('#mpending').onclick=openPending;
 $('#mpalette').onclick=openPalette;
+$('#mtoolq').onclick=()=>openQueue('toolset');
+$('#muatq').onclick=()=>openQueue('uat');
 $('#filter').oninput = render;
 $('#view_list').onclick=()=>setView('list');
 $('#view_board').onclick=()=>setView('board');

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script csp_db</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>csp_db</code></h1><pre class="nss-source"><code>// csp_db.nss - persistence for the caster spell picker (roadmap:
+// legendary-caster-spells-on-level-up).
+//
+// Campaign SQLite DB &quot;cspelldb&quot;, keyed on GetObjectUUID() - shaped like
+// legfeatdb / bestiarydb / meritdb.
+//
+// TWO TABLES, AND THE FIRST ONE IS THE WHOLE ANTI-FARM DESIGN.
+//
+//   csp_alloc(pid, class, paid_to, granted)
+//       paid_to is a HIGH-WATER MARK: the class level through which this
+//       character has already been paid its per-level spell picks. It is only
+//       ever raised, never lowered. Everything that makes this feature safe
+//       falls out of that one property:
+//
+//         * The retroactive make-good needs no separate mechanism. A character
+//           that has never been seen has no row, so paid_to seeds at the cap
+//           level (40) and the first check pays every level from 41 to where
+//           the character actually is - 26 picks for a wizard 53. See
+//           CSP_EnsureAllotment in csp_inc.nss.
+//         * It pays exactly ONCE. After that first check paid_to is 53, so the
+//           next check (login, rest, another level) owes nothing.
+//         * It cannot be farmed by de-levelling and re-levelling. Dropping to
+//           45 and climbing back to 53 leaves paid_to at 53 throughout, so the
+//           climb pays nothing. This is the reason the row does not simply
+//           store &quot;levels above 40 times 2&quot; and recompute.
+//
+//   csp_learn(pid, class, spell)
+//       One row per spell this system granted. SPENT IS COUNT(*) OF THIS
+//       TABLE, not a counter, so a double-clicked button cannot burn two picks
+//       on one spell (the PK makes the second insert a no-op) and the ledger
+//       can be audited spell by spell. Spells learned any other way - chargen,
+//       levels 1-40, scribed from a scroll - are deliberately NOT in here:
+//       this table is the record of what WE handed out, nothing else.
+//
+// The spells themselves live in the .bic like any other known spell; this DB
+// only tracks the entitlement, which the .bic has nowhere to keep.
+
+const string CSP_DB = &quot;cspelldb&quot;;
+
+void CSP_InitDb();
+int  CSP_GetPaidTo(object oPC, int nClass, int nDefault);
+int  CSP_GetGranted(object oPC, int nClass);
+void CSP_SetAlloc(object oPC, int nClass, int nPaidTo, int nGranted);
+int  CSP_GetSpent(object oPC, int nClass);
+void CSP_RecordLearn(object oPC, int nClass, int nSpellId);
+int  CSP_HasLearn(object oPC, int nClass, int nSpellId);
+
+// Idempotent - safe to call on every login, level and window open.
+void CSP_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;CREATE TABLE IF NOT EXISTS csp_alloc (&quot; +
+        &quot;pid TEXT NOT NULL, class INTEGER NOT NULL,&quot; +
+        &quot;paid_to INTEGER NOT NULL, granted INTEGER NOT NULL,&quot; +
+        &quot;cdkey TEXT, updated_at TEXT DEFAULT CURRENT_TIMESTAMP,&quot; +
+        &quot;PRIMARY KEY(pid, class))&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;CREATE TABLE IF NOT EXISTS csp_learn (&quot; +
+        &quot;pid TEXT NOT NULL, class INTEGER NOT NULL, spell INTEGER NOT NULL,&quot; +
+        &quot;cdkey TEXT, learned_at TEXT DEFAULT CURRENT_TIMESTAMP,&quot; +
+        &quot;PRIMARY KEY(pid, class, spell))&quot;);
+    SqlStep(q);
+}
+
+// The class level this character has already been paid through. nDefault is
+// returned when there is no row at all - the caller passes the cap level, which
+// is what makes a never-seen character&#x27;s first check pay for every level it
+// gained past the cap while the client was eating the picks.
+int CSP_GetPaidTo(object oPC, int nClass, int nDefault)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;SELECT paid_to FROM csp_alloc WHERE pid=@p AND class=@c LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nClass);
+    if (!SqlStep(q)) return nDefault;
+    return SqlGetInt(q, 0);
+}
+
+int CSP_GetGranted(object oPC, int nClass)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;SELECT granted FROM csp_alloc WHERE pid=@p AND class=@c LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nClass);
+    if (!SqlStep(q)) return 0;
+    return SqlGetInt(q, 0);
+}
+
+// Write the high-water mark and the running total of picks granted.
+//
+// MAX() in the UPDATE is the belt-and-braces half of the anti-farm rule: even
+// if a caller ever computed a lower paid_to (a de-levelled character, a bug),
+// the stored mark cannot go backwards, so no level can be paid for twice.
+void CSP_SetAlloc(object oPC, int nClass, int nPaidTo, int nGranted)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;INSERT INTO csp_alloc(pid, class, paid_to, granted, cdkey)&quot; +
+        &quot; VALUES(@p, @c, @t, @g, @k)&quot; +
+        &quot; ON CONFLICT(pid, class) DO UPDATE SET&quot; +
+        &quot; paid_to=MAX(csp_alloc.paid_to, excluded.paid_to),&quot; +
+        &quot; granted=MAX(csp_alloc.granted, excluded.granted),&quot; +
+        &quot; updated_at=CURRENT_TIMESTAMP&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nClass);
+    SqlBindInt(q, &quot;@t&quot;, nPaidTo);
+    SqlBindInt(q, &quot;@g&quot;, nGranted);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlStep(q);
+}
+
+// Picks spent = spells this system has granted. Counted from the rows rather
+// than kept as a number, so the ledger cannot drift from what was handed out.
+int CSP_GetSpent(object oPC, int nClass)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;SELECT COUNT(*) FROM csp_learn WHERE pid=@p AND class=@c&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nClass);
+    if (!SqlStep(q)) return 0;
+    return SqlGetInt(q, 0);
+}
+
+// INSERT OR IGNORE: the same spell twice is a no-op, not a second charge.
+void CSP_RecordLearn(object oPC, int nClass, int nSpellId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;INSERT OR IGNORE INTO csp_learn(pid, class, spell, cdkey)&quot; +
+        &quot; VALUES(@p, @c, @s, @k)&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nClass);
+    SqlBindInt(q, &quot;@s&quot;, nSpellId);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlStep(q);
+}
+
+int CSP_HasLearn(object oPC, int nClass, int nSpellId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CSP_DB,
+        &quot;SELECT 1 FROM csp_learn WHERE pid=@p AND class=@c AND spell=@s LIMIT 1&quot;);
+    SqlBindString(q, &quot;@p&quot;, GetObjectUUID(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nClass);
+    SqlBindInt(q, &quot;@s&quot;, nSpellId);
+    return SqlStep(q);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script sk_probe_pre</title>
+  <title>Script ru_pick_t</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -48,6 +48,7 @@
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -56,15 +57,11 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>sk_probe_pre</code></h1><pre class="nss-source"><code>// sk_probe_pre.nss -- NWNX_ON_LEVEL_UP_BEFORE handler for the spells-known probe.
-// Snapshots known-spell counts so sk_probe_post.nss can diff them after the level.
-// Subscribed in onmoduleload.nss. See sk_probe_inc.nss for why this exists.
-
-#include &quot;sk_probe_inc&quot;
-
+<h1>Script: <code>ru_pick_t</code></h1><pre class="nss-source"><code>// ru_pick_t - reply action: browse the updates that still need testing.
+#include &quot;ru_db&quot;
 void main()
 {
-    SK_Snapshot(OBJECT_SELF);
+    RU_OpenBucket(GetPCSpeaker(), RU_TESTING);
 }
 </code></pre>
   </main>

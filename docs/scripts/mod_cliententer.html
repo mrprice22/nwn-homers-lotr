@@ -48,6 +48,7 @@
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -78,6 +79,7 @@
 #include &quot;faction_db&quot;
 #include &quot;nextlvl_inc&quot;
 #include &quot;legfeat_inc&quot;
+#include &quot;csp_inc&quot;
 #include &quot;pw_inc&quot;
 #include &quot;color&quot;
 
@@ -90,6 +92,20 @@ void LegFeatLoginCheck(object oPC)
     SendMessageToPC(oPC, ColorString(&quot;You have &quot; + IntToString(nRemaining)
         + &quot; legendary feat pick&quot; + ((nRemaining == 1) ? &quot;&quot; : &quot;s&quot;)
         + &quot; to spend. Force Rest to choose.&quot;, COLOR_GREEN));
+}
+
+// Caster spell picks: pay for any class level past 40 this character has not
+// been paid for yet - which on a character that levelled before the feature
+// existed is the whole retroactive make-good, in one go and only once - and
+// then nudge if any picks are outstanding. A popup on every login would be
+// intrusive; resting opens one, exactly as legendary feats do.
+void CSPLoginCheck(object oPC)
+{
+    int nRemaining = CSP_EnsureAllotment(oPC);
+    if (nRemaining &lt;= 0) return;
+    SendMessageToPC(oPC, ColorString(&quot;You have &quot; + IntToString(nRemaining)
+        + &quot; new spell&quot; + ((nRemaining == 1) ? &quot;&quot; : &quot;s&quot;)
+        + &quot; to add to your spellbook. Force Rest to choose.&quot;, COLOR_GREEN));
 }
 
 // Death amulet check + persistent state restore. Delayed so the engine&#x27;s
@@ -240,6 +256,10 @@ void main()
 
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
     DelayCommand(7.5, LegFeatLoginCheck(oPC));
+
+    // Same reasoning as LegFeatLoginCheck, and it must land after the UUID has
+    // been forced above - the entitlement ledger is keyed on GetObjectUUID.
+    DelayCommand(8.5, CSPLoginCheck(oPC));
 }
 </code></pre>
   </main>

@@ -56,6 +56,48 @@ TYPES = {
 }
 MERIT_POINTS = {"Defect": 1, "Enhancement": 2, "Exploit": 3}
 
+# What kind of session a manual_step belongs to. This is what makes the backlog
+# reportable: "show me everything I can do in this toolset sitting" vs "…in this
+# game-client sitting". Absent means `admin` — the fallback bucket, not a claim
+# that the step was triaged.
+#   toolset  waypoint placement, palette/blueprint work, appearance, portrait,
+#            voiceset, inventory icons — anything done in the NWN toolset
+#   uat      in-game verification: log in, spawn it, confirm it reads right
+#   publish  repack / hak build / nwsync / restart — deploy plumbing
+#   admin    everything else (DB seeding, hygiene, out-of-band chores)
+STEP_KINDS = ("toolset", "uat", "publish", "admin")
+DEFAULT_STEP_KIND = "admin"
+
+
+def step_kind(step) -> str:
+    """The reporting bucket a manual_step belongs to (legacy strings -> admin)."""
+    if not isinstance(step, dict):
+        return DEFAULT_STEP_KIND
+    kind = step.get("kind")
+    return kind if kind in STEP_KINDS else DEFAULT_STEP_KIND
+
+
+def open_steps(idea: dict, kinds=None) -> list[dict]:
+    """Unfinished manual_steps of an idea, optionally filtered to some kinds."""
+    out = []
+    for s in (idea.get("manual_steps") or []):
+        if not isinstance(s, dict) or s.get("status") == "done":
+            continue
+        if kinds is None or step_kind(s) in kinds:
+            out.append(s)
+    return out
+
+
+def open_uat_steps(idea: dict) -> list[dict]:
+    """The predicate behind 'shipped but not validated'.
+
+    A shipped idea with at least one of these is still in testing — that is what
+    splits the in-game Recent Updates board and drives the UAT queue. Shared so
+    the sign, the queue and the wiki can never disagree about what "validated"
+    means.
+    """
+    return open_steps(idea, ("uat",))
+
 # Every field an idea is allowed to carry. Anything else is preserved on save
 # (bin/roadmap-editor.py round-trips it) but nothing renders it, so validate()
 # warns — that is how a stray key like the old `fix:` gets noticed instead of
@@ -175,6 +217,19 @@ def validate(data: dict) -> list[str]:
         if idea.get("hidden") is not None and not isinstance(idea.get("hidden"), bool):
             errors.append(f"'{iid}': hidden must be true/false, got "
                           f"{idea.get('hidden')!r}")
+        # manual_steps carry two reporting keys the queues filter on. A typo in
+        # `kind` would silently drop the step out of both queues, so it is fatal.
+        for step in (idea.get("manual_steps") or []):
+            if not isinstance(step, dict):
+                continue          # legacy bare string; upgraded on next save
+            kind = step.get("kind")
+            if kind is not None and kind not in STEP_KINDS:
+                errors.append(f"'{iid}': unknown manual_step kind {kind!r} "
+                              f"(expected one of {', '.join(STEP_KINDS)})")
+            if step.get("tester") is not None \
+                    and not isinstance(step["tester"], str):
+                errors.append(f"'{iid}': manual_step tester must be text, got "
+                              f"{step['tester']!r}")
         # Advisory, never fatal: the field is kept on save, but no renderer reads
         # it, so it is almost always a typo or a retired experiment.
         for key in idea:

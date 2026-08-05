@@ -48,6 +48,7 @@
 <a href="./manual/LevelingGuide.html">Leveling Guide</a>
 <a href="./manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="./manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="./manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
 <a href="./manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="./manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="./manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -199,6 +200,34 @@
     border: 1px solid var(--accent);
   }
   .community-cta code { user-select: all; }
+
+  /* Archive-edition cards */
+  .archive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1em;
+    margin: 1.2em 0 1em;
+  }
+  .archive-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1em 1.2em;
+  }
+  .archive-card h3 {
+    margin: 0 0 0.15em;
+    font-size: 1.05em;
+    color: var(--accent);
+  }
+  .archive-card .archive-year {
+    display: block;
+    color: var(--muted);
+    font-size: 0.88em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.6em;
+  }
+  .archive-card p { margin: 0 0 0.7em; }
 </style>
 
 <section class="home-hero">
@@ -307,6 +336,52 @@
     <a class="cta-btn" href="https://github.com/mrprice22/nwn-homers-lotr">Source on GitHub</a>
     <a class="cta-btn secondary" href="https://github.com/mrprice22/nwn-homers-lotr/releases">Download Latest Release</a>
     <a class="cta-btn secondary" href="https://github.com/mrprice22/nwn-manager">nwn-manager (build tool)</a>
+  </div>
+</section>
+
+<section class="community-cta">
+  <h2>Where this module came from</h2>
+  <p>
+    Legendary LotR has a long history. Two earlier editions of the module have been
+    preserved exactly as they were, each with its own full wiki &mdash; the same creature,
+    item, store and area documentation you get for the live server, generated from the
+    original <code>.mod</code> files. They're a snapshot of Middle-earth as it was, and
+    a useful reference for anyone curious how the server evolved.
+  </p>
+
+  <div class="archive-grid">
+    <div class="archive-card">
+      <h3>Lord of the Rings</h3>
+      <span class="archive-year">2008 &mdash; the original</span>
+      <p>
+        The module that started it all: 254 areas, 660 creatures and roughly 3,100 items.
+        Much of the geography you walk today was laid down here.
+      </p>
+      <a href="https://lotr.homerslotr.com">lotr.homerslotr.com</a>
+    </div>
+    <div class="archive-card">
+      <h3>Homer's LOTR Edit</h3>
+      <span class="archive-year">2009 &mdash; the first rework</span>
+      <p>
+        Homer's rebuild of the original: 265 areas and 792 creatures, adding the Blue Tower,
+        the Dragon Disciple hall, Tom Bombadil's house and much more.
+      </p>
+      <a href="https://2009.homerslotr.com">2009.homerslotr.com</a>
+    </div>
+  </div>
+
+  <p>
+    Curious what changed &mdash; or what got lost along the way? The
+    <a href="./manual/Draft/ForkDiff.html">Fork Diff report</a> compares both archives
+    against the current module: areas, creatures and items that exist in an older edition
+    but not today, loot that used to be obtainable and no longer is, blueprints that were
+    quietly repurposed, and how the scripts diverged. It's a working document for deciding
+    what's worth bringing back.
+  </p>
+  <div class="cta-actions">
+    <a class="cta-btn" href="./manual/Draft/ForkDiff.html">Read the Fork Diff</a>
+    <a class="cta-btn secondary" href="https://lotr.homerslotr.com">2008 Wiki</a>
+    <a class="cta-btn secondary" href="https://2009.homerslotr.com">2009 Wiki</a>
   </div>
 </section>
 
