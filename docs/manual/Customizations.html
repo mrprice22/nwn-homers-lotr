@@ -1324,39 +1324,50 @@ always have, and <strong>levels 1&ndash;40 are completely unchanged</strong>.</p
 from your level whenever you rest, so log in, rest, and the new slots are simply there.</p>
 </div>
 
-<div class="warning-box">
-<p><strong>Known limitation: you cannot pick new spells on the level-up screen past
-level&nbsp;40.</strong> Casting <em>more</em> spells per day is what the table above changes.
-<em>Choosing</em> new spells is a separate matter, and it runs into a hard limit in the
-<strong>game client itself</strong> &mdash; not in this server's rules. Past level&nbsp;40 the
-level-up screen still asks a wizard to choose two spells, but only the cantrip tab has anything in
-it; every other spell-level tab greys out. There is nothing to pick, and the picks are spent when
-you continue past the screen.</p>
+<h4 id="spellbook-study">Spellbook Study &mdash; choosing spells past level&nbsp;40</h4>
 
-<p>We have exhausted what a server can do about this. It is a limitation of the client's level-up
-window, so no rules table, content pack or server script can reach it &mdash; it needs a fix from the
-game's developers. What that means in practice:</p>
+<p>Casting <em>more</em> spells per day is what the table above changes. <em>Choosing</em> new
+spells is a separate matter, and past level&nbsp;40 it runs into a hard limit in the <strong>game
+client itself</strong> &mdash; not in this server's rules. The level-up screen still asks a wizard
+to choose two spells, but only the cantrip tab has anything in it; every other spell-level tab greys
+out. There is nothing to pick, and the picks were spent anyway when you continued past the screen.
+Every avenue for repairing that screen was tried and none of it works &mdash; it is the client's own
+window, so no rules table, content pack or server script can reach it.</p>
+
+<p><strong>So the server hands the spells out itself.</strong> When a wizard with 41 or more wizard
+levels gains a level, a <strong>Spellbook Study</strong> window opens a few seconds after the
+level-up finishes, listing every arcane spell you do not yet know. Pick a spell level along the top,
+click <em>Learn</em>, and the spell goes straight into your spellbook.</p>
 
 <ul>
-  <li><strong>Wizards</strong> keep learning spells the other way wizards always have: <strong>from
-  scrolls</strong>. Buy or find an arcane scroll and learn it from your inventory. Your spellbook can
-  still grow past level&nbsp;40 &mdash; it just happens at a scroll rather than on the level-up
-  screen.</li>
-  <li><strong>Sorcerers and bards</strong> should treat their repertoire as <strong>locked in at
-  level&nbsp;40</strong>. You keep every spell you know, and you gain more casts per day of all of
-  them, but you cannot swap or add known spells afterwards. <em>Pick your level-40 spell list
-  deliberately &mdash; it is the list you keep.</em></li>
-  <li><strong>Clerics, druids, paladins and rangers are unaffected.</strong> They know their entire
-  class list automatically, so there was never anything to choose.</li>
-  <li><strong>Multiclass casters are unaffected</strong> for any class below 40. The limit only
-  applies to a class you have <strong>40 or more levels in</strong> &mdash; taking a caster class up
-  from a low level at character level 41+ works completely normally.</li>
+  <li><strong>Two spells per wizard level</strong>, exactly the entitlement the level-up screen was
+  eating. Nothing more, nothing less.</li>
+  <li><strong>Nothing you have already earned is lost.</strong> The first time you log in after this
+  goes live, you are paid for every wizard level you gained past&nbsp;40 while the screen was broken
+  &mdash; a wizard&nbsp;53 is owed 26 spells. It is paid once, and re-levelling cannot earn it
+  twice.</li>
+  <li><strong>You do not have to choose on the spot.</strong> Close the window and your picks are
+  still banked. <strong>Finish a rest</strong> and it opens again; a login message tells you how many
+  you still have waiting.</li>
+  <li>The usual rules still apply: you are only offered spells you can actually cast, never one you
+  already know, and a <strong>specialist wizard</strong> is not offered its opposition school.</li>
+  <li><strong>Scrolls still work too.</strong> Scribing from a scroll is unaffected and costs you
+  none of these picks.</li>
 </ul>
 
-<p>The extra casting power for levels 41&ndash;60 is being delivered through the spell slots above
-and through Legendary Feats rather than through a longer spell list. Watch the
-<a href="../manual/Roadmap.html">Roadmap</a> for any change here &mdash; if the client limitation is
-ever lifted, sorcerers and bards get their repertoire back.</p>
+<div class="warning-box">
+<p><strong>Still to come: sorcerers and bards.</strong> For now, treat your repertoire as
+<strong>locked in at level&nbsp;40</strong>. You keep every spell you know and gain more casts per
+day of all of them, but you cannot yet swap a known spell for a better one on level-up. That swap is
+the next piece of this work &mdash; watch the <a href="../manual/Roadmap.html">Roadmap</a>. Nothing
+is being lost in the meantime: sorcerers and bards gain no new spells known past&nbsp;40 under the
+stock rules either, so there are no picks quietly going missing.</p>
+
+<p><strong>Clerics, druids, paladins and rangers are unaffected</strong> &mdash; they know their
+entire class list automatically, so there was never anything to choose. <strong>Multiclass casters
+are unaffected</strong> below 40: the limit only ever applied to a class you have <strong>40 or more
+levels in</strong>, and taking a caster class up from a low level at character level 41+ has always
+worked normally.</p>
 </div>
 
 <h3 id="monk-weapons">Monk Weapons</h3>
