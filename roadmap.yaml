@@ -277,11 +277,23 @@ ideas:
   - id: rancid-skinner-bark-still-not-working
     title: "Rancid Skinner is still shouting 'Helms Deep is under attack' on death"
     group: quests-areas
-    status: confirmed
+    status: manual
     type: Defect
     player: Szescian82
-    date: "2026-07-27"
-    notes: "<div>original idea: rancid-skinner-bark, did not resolve issue</div><div><br></div><div>maybe blueprint was updated but not the instance?</div>"
+    date: "2026-08-04"
+    commit: fae1fa45387a84dd563931c1d9e53c3a89d160d6
+    notes: "<div>original idea: rancid-skinner-bark, did not resolve issue</div><div><br></div><div>maybe blueprint was updated but not the instance?</div><div><br></div><div><b>Fixed 2026-08-04 -- and the reporter's hunch was exactly right.</b> The earlier fix updated the Rancid Skinner's template but not the copy actually standing in Dol Guldur, which kept its own old death script, so nothing changed in game. The placed boss now runs the correct script and shouts <i>\"Dol Guldur is under attack! Rally Servants of Sauron to Dol Guldur!\"</i> As a bonus this also restores his 15-minute respawn: the old script skipped the respawn call, so once killed he stayed dead until the next reboot.</div>"
+    impl_notes: "<div><b>Root cause:</b> the Rancid Skinner is a single placed static creature in unpacked/dolguldurcast001.git.json (Dol Guldur: Tower Of Black Magic Depths, TemplateResRef creature023_2, tag Skinner), and <b>that instance carried its own ScriptDeath value of eowyndeathalert</b>. eowyndeathalert.nss:45 is the offending bark -- SpeakString(\"Helm's Deep is under attack, rally Free People of Middle Earth to Helm's Deep!\", TALKVOLUME_SHOUT) -- reached because the Skinner is evil-aligned and its tag is not in that script's exempt list. The July fix (ebc4a27abcd / a379f902c8e) changed <b>only the blueprint</b> creature023_2.utc.json from eowyndeathalert to skinnerdeath. For a creature already placed in a .git the engine uses the instance's own event fields and never consults the blueprint, so the old script kept firing and the fix appeared to do nothing.</div><div><b>Why no gate caught it:</b> tests/check_divergent_creatures.py compares name, faction, conversation, combat stats, equipment, inventory and droppability -- <b>not event scripts</b>. Worth extending it to cover the Script* fields as a follow-up so this class of divergence fails the repack.</div><div><b>Fix:</b> repointed the instance's ScriptDeath to skinnerdeath so it matches its blueprint, and repointed the unplaced duplicate blueprint creature023.utc.json (an older copy of the same Rancid Skinner, and almost certainly where the instance override came from) so the trap cannot be re-placed. Those two were the only references to eowyndeathalert in the whole tree, so no other creature loses its death handler; the script is left in the tree, now unreferenced.</div><div><b>Bonus bug fixed:</b> skinnerdeath ends with SE_DoCreatureRespawn() and eowyndeathalert does not -- so the Skinner, registered in brd_db.nss:123 with a 900 s respawn for the Roll of the Fallen board, was <b>never respawning after its first kill per reboot</b>. That is now live.</div><div>Build: bare nwn-manager repack, 20/20 smoke tests, 1 script compiled, packed clean.</div>"
+    manual_steps:
+      - step: "This is a .git (placed instance) change, so it only takes effect on a fresh module load -- deploy and restart before testing."
+        status: open
+        blocker: true
+      - step: "UAT: travel to Dol Guldur: Tower Of Black Magic Depths (dolguldurcast001), kill The Rancid Skinner, and confirm the server-wide shout reads 'Dol Guldur is under attack! Rally Servants of Sauron to Dol Guldur!' and NOT the Helm's Deep line."
+        status: open
+      - step: "UAT: confirm the kill announcement ('The Rancid Skinner was killed by ... in Dol Guldur ...') still broadcasts."
+        status: open
+      - step: "UAT respawn regression: wait about 15 minutes in or near the area and confirm the Skinner respawns, and that the Roll of the Fallen board in the Well of Eru shows his countdown correctly."
+        status: open
   - id: shayan-subrace-revivial
     title: "Expore Shayan's Subrace Engine"
     group: combat-classes
