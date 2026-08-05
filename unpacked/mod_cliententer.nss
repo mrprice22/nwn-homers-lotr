@@ -20,6 +20,7 @@
 #include "faction_db"
 #include "nextlvl_inc"
 #include "legfeat_inc"
+#include "pw_inc"
 #include "color"
 
 // Legendary feats: re-derive the allotment (which revokes picks a relevel or a
@@ -172,6 +173,13 @@ void main()
     //    also what revokes picks the character no longer qualifies for.
     //  * The nudge tells a level-60 character with unspent picks how to spend
     //    them. A popup on every login would be intrusive; resting opens one.
+    // Concerning Pipeweed: effects do not survive a logout, but the stored
+    // (strain, real-world expiry) row does - so re-derive the high on login
+    // while the hour is still running, and clear it once it has expired.
+    // Delayed past the login flood, after the UUID above has been forced.
+    // See pw_inc.nss (roadmap: concerning-pipeweed).
+    DelayCommand(8.0, PW_Refresh(oPC));
+
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
     DelayCommand(7.5, LegFeatLoginCheck(oPC));
 }

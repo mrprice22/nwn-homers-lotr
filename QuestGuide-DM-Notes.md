@@ -157,6 +157,64 @@ Both files should be updated in the same commit whenever a quest ships or change
 - **Deferred:** the "Bag End housing access" reward from the original idea is deferred to the admin
   as a design question — this ships the working quiz with a concrete gold/XP/keepsake payout.
 - **UAT:** scripted and built, pending in-game UAT.
+- **Open point (blocks the pipe-weed shop):** `q_hob_inc.nss` does **not** yet stamp the
+  `concern_hob_won` questcddb key. Concerning Pipeweed's shop gate (`pw_c_shop.nss`) tests exactly
+  that key, so Odo's leaf branch is correctly invisible until this piece ships. Add
+  `QCD_Stamp(oPC, "concern_hob_won")` inside the `nWon` branch of `QHOB_Answer` to open it. The
+  existing `concern_hob` key is stamped win *or* lose and cannot serve as the gate.
+
+### Concerning Pipeweed — pipe-weed strains, Odo's shop, Hobbiton fast travel
+
+- **Roadmap:** `concerning-pipeweed` (epic `quest-overhaul`), design signed off 2026-07-30.
+- **Not a quest** — a customization system hung off Concerning Hobbits. Player-facing page is
+  `docs.manual/Customizations.html#pipeweed`.
+- **Fast travel:** `hobbittele.nss`, cloned from `breetele.nss`, attached as the `Script` on the new
+  "The Shire — Hobbiton." reply of `goodtele.dlg` (inserted immediately after "Bree."). Jumps to
+  `GetWaypointByTag("hobtele")`, an existing waypoint in `shirehobbiton001`. Ungated, like all
+  twelve other destinations. The script resref is deliberately *not* `hobtele`, so resref and
+  waypoint tag stay visually distinct. `eviltele` untouched.
+- **Strain blueprints:** `pw_longbottom` (150 gp), `pw_oldtoby` (600), `pw_southlinch` (600),
+  `pw_hornblower` (1200) — all new, BaseItem 311 / ModelPart1 75 / PaletteID 23, **no item
+  properties** (every effect comes from the script). Palette: *Miscellaneous > Other*. The fifth,
+  `item118`, is the salvaged Dirty Hippie stock: resref kept, name "Witch Weed" kept, **retagged
+  `witchbud` → `pw_witchweed`** (which closes the long-standing `witchbud`/`item118` tag conflict),
+  `AddCost` cut from the fabricated 32767 to 2000, and its Cast Spell: Grenade Chicken charges
+  (10) kept.
+- **The high — `pw_inc.nss`:** campaign DB **`pipeweeddb`**, table
+  `pipeweed(uuid PK, strain, expires_at, cdkey, char_name)`, keyed on `GetObjectUUID`. Chosen over
+  PC locals deliberately: a 1200 gp pipe lasting a real hour must survive a reboot, or the penalty
+  half of the trade becomes free — the exact bug the feature exists to prevent. `PW_STRAIN` /
+  `PW_EXPIRY` are also mirrored as PC locals, as a cheap read for future consumers (e.g. NPC
+  reactions); the DB row is the source of truth. Every applied effect is `TagEffect`-marked
+  `PW_STRAIN_EFF`, so `PW_StripEffects` takes back ours and nothing else.
+- **Reapply hooks (wired, not just written):** `PW_InitDb()` from `onmoduleload.nss`;
+  `PW_Refresh(oPC)` from `on_mod_rest.nss` on `REST_EVENTTYPE_REST_FINISHED` (delayed 0.5 s, past
+  the engine's rest effect-wipe, mirroring the existing `SPFAIL_ZONE` line) and from
+  `mod_cliententer.nss` at +8.0 s (past the login flood, after the UUID is forced).
+- **Water pipes — `wg_bong.nss`** (OnUsed on the six `waterbong` placeables in *The Smoking
+  Chamber* (`area024`)): now scans all five strain tags plus the legacy `witchbud` alias
+  (→ Longbottom), hands off to `PW_Light`, and consumes. Witch Weed spends **one of ten charges**;
+  the other four are destroyed. Kept: `GestaltCameraMove` cutscene and smoke VFX — but retargeted
+  from `OBJECT_SELF` (the pipe) to the smoker, which is why the camera swing never worked before.
+  Dropped: the 20-second forced `EffectSleep`, and the 100-case `ActionSpeakString` table of modern
+  song lyrics / film quotes with mojibake colour codes (replaced with four in-setting lines per
+  strain).
+- **Odo's shop:** `pw_odostore.utm.json` — five strains in panel `struct_id 1`, **`MaxBuyPrice 0`
+  (sell-only, Odo buys nothing at all)**, `IdentifyPrice -1`, `MarkUp 100`, `MarkDown 0`,
+  `StoreGold 0`. Opened by `pw_shop.nss` (a reply Script on `q_hob_conv.dlg`) behind
+  `pw_c_shop.nss`. The store object is `CreateObject`'d on demand at Odo's feet and cached in
+  `PW_ODO_STORE` on him — no store instance is positioned in any `.git.json`. Plain `OpenStore`,
+  not `OpenStoreAppr`: with no buy cap there is nothing for Appraise to scale and the
+  "cap: unlimited" line would mislead.
+- **Gate:** `pw_c_shop.nss` returns `QCD_LastStamp(oPC, "concern_hob_won") > 0`. **Closed for
+  everyone today** — see the open point under Concerning Hobbits above. It no-ops gracefully
+  (the reply simply does not render) and starts working the moment the key is stamped.
+- **Dirty Hippie retired:** the `dirtyhippie` entry is removed from `area024`'s `StoreList` (and the
+  parallel `.gic` slot), the `dirtyhippie.utm.json` blueprint is deleted and its `storepalcus` leaf
+  removed. Nothing ever called `OpenStore` on it, so it was unreachable — but its settings
+  (`MaxBuyPrice -1`, `StoreGold -1`, empty `WillOnlyBuy`/`WillNotBuy`) were an unlimited-gold
+  universal fence, and those were deliberately **not** carried into `pw_odostore`.
+- **UAT:** scripted and built, pending in-game UAT.
 
 ### The Unbroken Shield — Fighter line I
 

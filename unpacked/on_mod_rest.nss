@@ -1,4 +1,5 @@
 #include "legfeat_inc"
+#include "pw_inc"
 
 void main()
 {
@@ -17,6 +18,15 @@ void main()
     if (nEvent == REST_EVENTTYPE_REST_FINISHED && GetLocalInt(oPC, "SPFAIL_ZONE"))
         DelayCommand(0.1f, ApplyEffectToObject(DURATION_TYPE_PERMANENT,
             EffectSpellFailure(100), oPC));
+
+    // Concerning Pipeweed: the whole point of the strains is that the penalty
+    // rides with you, so a rest must not scrub the high. The stored (strain,
+    // expiry) pair is the authority; PW_Refresh re-derives the effects from it
+    // and drops them only once the real hour has actually run out. Delayed for
+    // the same reason as the line above - the engine's rest effect-wipe is
+    // still in flight when REST_FINISHED fires. See pw_inc.nss.
+    if (nEvent == REST_EVENTTYPE_REST_FINISHED)
+        DelayCommand(0.5f, PW_Refresh(oPC));
 
     // Legendary Feats: a rest is the recovery path for a picker that was
     // dismissed, and for any level-60 character that has never seen one. This

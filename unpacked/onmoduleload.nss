@@ -26,6 +26,7 @@
 #include "worldstate_inc"
 #include "ammorep_db"
 #include "cbd_db"
+#include "pw_inc"
 
 
 void main()
@@ -180,5 +181,12 @@ AmmoRep_InitDb();
 // dummy's own OnSpawn calls this too, so a dummy placed in a module whose load
 // order never reached here still records. See cbd_db.nss (roadmap: combat-dummy).
 Cbd_InitDb();
+
+// Concerning Pipeweed: the pipe-weed high is stored per character (strain +
+// real-world expiry) rather than applied as a plain temporary effect, so that
+// resting cannot scrub the penalty half of the trade. Ensure the table exists
+// before the first pipe is lit or the first login reapply reads it.
+// See pw_inc.nss (roadmap: concerning-pipeweed).
+PW_InitDb();
 
 }   //end of main
