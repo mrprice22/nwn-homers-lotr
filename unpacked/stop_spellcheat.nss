@@ -19,6 +19,7 @@
 #include "x2_inc_switches"
 #include "fat_inc"
 #include "q_ent_inc"
+#include "cg_retype_inc"
 
 int i;
 
@@ -61,6 +62,12 @@ FAT_OnOverrideSpellCast();
 // is a cast of Nature's Balance whose area of effect covers Leaflock, with a
 // fresh truffle in the pack. Listener only; no spell script is replaced.
 ENT_OnSpellCast();
+
+// Caster Signature Gear - Damage Retyper amulets (roadmap:
+// Gear-to-boost-specific-mage-spells). If the caster is wearing the amulet
+// that names this spell, the death effect is replaced with real typed damage
+// and the original impact script is suppressed. No-op for every other cast.
+CGR_OnOverrideSpellCast();
 
 ClearSpells();
 

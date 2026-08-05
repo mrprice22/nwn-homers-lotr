@@ -74,6 +74,8 @@
     .badge.t-prem  { border-color: #b8860b; color: #b8860b; }
     .badge.t-mid   { border-color: #6b8e9e; color: #6b8e9e; }
     .badge.t-acc   { border-color: var(--muted); }
+    .badge.t-built { border-color: #2e7d32; color: #2e7d32; }
+    .badge.t-draft { border-color: var(--muted); color: var(--muted); }
     .mtag { font-size: 0.8em; color: var(--muted); font-style: italic; }
 
     h2, h3 { scroll-margin-top: 1.5em; }
@@ -107,10 +109,42 @@ stats with one <strong>signature effect</strong> that amplifies, retypes, or sup
 of that class's spells (or its summons).</p>
 
 <div class="warning-box">
-  <p><strong>Design preview — not yet in game.</strong> This page is the design catalogue for a
-  <a href="Roadmap.html#idea-Gear-to-boost-specific-mage-spells">planned</a> feature. Item names,
-  numbers, and drop sources are a <em>starting point</em> and may change before (or during)
-  implementation. Item links below will go live once each piece is built.</p>
+  <p><strong>Mostly design preview.</strong> This page is the design catalogue for an
+  <a href="Roadmap.html#idea-Gear-to-boost-specific-mage-spells">in-progress</a> feature. Every row
+  carrying a <span class="badge t-draft">Draft</span> badge is a <em>starting point</em> — names,
+  numbers, and drop sources may change before (or during) implementation, and those pieces do not
+  exist in game yet.</p>
+  <p>Rows badged <span class="badge t-built">Built</span> are real blueprints that exist in the
+  module today. They are <strong>not obtainable yet</strong>: where each one drops has not been
+  decided, so none of them has been placed on a boss or in a container.</p>
+</div>
+
+<div class="loot-box">
+  <strong>Shipped so far: the four Damage Retyper amulets (one per caster class)</strong>
+  <p>The first slice of this system to be built is the archetype that answers the original
+  complaint head-on — the spells you save for a boss are the ones bosses are immune to. Each of the
+  four amulets below takes one signature <em>save-or-die</em> spell and, while worn, turns it from a
+  command to die (which the great things of the world simply ignore) into real damage of a type they
+  have to survive:</p>
+  <ul>
+    <li><strong>Reliquary of the Unmaking</strong> — Cleric — <strong>Implosion</strong> deals
+    <strong>divine</strong> damage instead of death.</li>
+    <li><strong>Heartwood of the Blighted Grove</strong> — Druid — <strong>Finger of Death</strong>
+    deals <strong>negative</strong> damage instead of death.</li>
+    <li><strong>Sorrow of the Nine</strong> — Sorcerer — <strong>Wail of the Banshee</strong> deals
+    <strong>negative</strong> damage instead of death.</li>
+    <li><strong>Dreamshard of Dol Guldur</strong> — Wizard — <strong>Weird</strong> deals
+    <strong>magical</strong> damage instead of death, and no longer cares whether the target has a
+    mind to terrify.</li>
+  </ul>
+  <p>The rules are the same for all four. The amulet is worn at the <strong>neck</strong> — the one
+  dedicated slot for this whole system, so <strong>only ever one retype can be active</strong> and a
+  second amulet in your pack does nothing. Damage is <strong>one die per caster level</strong>
+  (d6, or d8 for the single-target Finger of Death), capped at <strong>40 dice</strong> and at
+  <strong>300 damage per target</strong> (400 for Finger of Death). Metamagic still applies.
+  Spell resistance is still checked. The target still gets a <strong>Fortitude save</strong> — but
+  now it is an ordinary spell save for <em>half</em> damage, not the death save that immune
+  creatures pass automatically. An amulet worn by someone with no levels in its class stays inert.</p>
 </div>
 
 <!-- ============================================================ -->
@@ -192,10 +226,10 @@ prepares, and every item's tier is shown as a badge in its row:</p>
   <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure cleric</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
   <tbody>
     <tr>
-      <td class="item"><a href="../items/reliquaryunmake.html">Reliquary of the Unmaking</a> <span class="slot">(amulet)</span><br><span class="badge t-prem">Premium</span></td>
-      <td><span class="mtag">Retype.</span> Implosion &amp; Destruction deal <strong>divine damage</strong> instead of death: <strong>1d6 divine / caster level</strong>. Destruction's kill becomes a flat <strong>10&nbsp;×&nbsp;CL</strong> divine. <span class="pure">Pure: 1d8 / CL, Destruction 15&nbsp;×&nbsp;CL.</span></td>
-      <td>+8 Wis; <strong>3× Cleric level-8 + 3× Cleric level-9</strong> bonus slots; SR&nbsp;22</td>
-      <td><a href="../creatures/thecursedone002.html">Heir of Haldor</a> <span class="mtag">(Dimholt)</span></td>
+      <td class="item">Reliquary of the Unmaking <span class="slot">(amulet)</span><br><span class="badge t-built">Built</span> <span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Retype.</span> <strong>Implosion</strong> deals <strong>divine damage</strong> instead of death: <strong>1d6 divine / caster level</strong> (max 40 dice, 300 per target), Fortitude save at DC&nbsp;+3 for half. <span class="mtag">Destruction is still draft and is not part of the built item; the pure-cleric upgrade is not built either.</span></td>
+      <td>+6 Wis. <span class="mtag">The bonus-slot and SR lines are still draft — the final stat line is set when the drop source is.</span></td>
+      <td><span class="mtag">Not decided yet — the item exists but is not placed anywhere.</span> Draft suggestion was <a href="../creatures/thecursedone002.html">Heir of Haldor</a> (Dimholt).</td>
     </tr>
     <tr>
       <td class="item"><a href="../items/censerholyfire.html">Censer of Holy Fire</a> <span class="slot">(helmet)</span><br><span class="badge t-mid">Mid</span></td>
@@ -234,6 +268,12 @@ prepares, and every item's tier is shown as a badge in its row:</p>
 <table class="cg">
   <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure druid</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
   <tbody>
+    <tr>
+      <td class="item">Heartwood of the Blighted Grove <span class="slot">(amulet)</span><br><span class="badge t-built">Built</span> <span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Retype.</span> <strong>Finger of Death</strong> deals <strong>negative damage</strong> instead of death: <strong>1d8 negative / caster level</strong> (max 40 dice, 400 on the target), Fortitude save for half. <span class="mtag">Added for this build — the original catalogue had no Druid retyper.</span></td>
+      <td>+6 Wis. <span class="mtag">Full stat line still to be set with the drop source.</span></td>
+      <td><span class="mtag">Not decided yet — the item exists but is not placed anywhere.</span></td>
+    </tr>
     <tr>
       <td class="item"><a href="../items/radagasttotem.html">Radagast's Totem</a> <span class="slot">(gloves)</span><br><span class="badge t-prem">Premium</span></td>
       <td><span class="mtag">Summon boost.</span> Animal companion &amp; summons gain <strong>+4 attack, +6 damage, +2d6 magical on hit</strong>. <span class="pure">Pure: +8 attack, +12 damage, +4d6 elemental, +1 APR, +50% max HP, Improved Knockdown</span> — the marquee epic-summon-DPS item.</td>
@@ -296,10 +336,10 @@ prepares, and every item's tier is shown as a badge in its row:</p>
       <td><a href="../creatures/drgblue004.html">The Ice Queen</a> <span class="mtag">(Ice Queen: Nest)</span></td>
     </tr>
     <tr>
-      <td class="item"><a href="../items/sorrowofnine.html">Sorrow of the Nine</a> <span class="slot">(amulet)</span><br><span class="badge t-mid">Mid</span></td>
-      <td><span class="mtag">Retype.</span> Wail of the Banshee &amp; Weird deal <strong>magical damage</strong> instead of death: <strong>1d8 / CL</strong>. <span class="pure">Pure: 1d10 / CL, +2 DC.</span></td>
-      <td>+6 Cha; <strong>3× Sorcerer level-9</strong> bonus slots; SR&nbsp;20</td>
-      <td><a href="../creatures/creature007_2.html">Khamûl the Ringwraith</a> <span class="mtag">(Carn Dûm: Throne)</span></td>
+      <td class="item">Sorrow of the Nine <span class="slot">(amulet)</span><br><span class="badge t-built">Built</span> <span class="badge t-mid">Mid</span></td>
+      <td><span class="mtag">Retype.</span> <strong>Wail of the Banshee</strong> deals <strong>negative damage</strong> instead of death: <strong>1d6 negative / caster level</strong> (max 40 dice, 300 per target), Fortitude save for half, reaching up to caster-level targets as the spell normally does. <span class="mtag">Weird moved to the Wizard amulet so every class gets its own retyper.</span></td>
+      <td>+6 Cha. <span class="mtag">Bonus slots / SR still draft — the final stat line is set when the drop source is.</span></td>
+      <td><span class="mtag">Not decided yet — the item exists but is not placed anywhere.</span> Draft suggestion was <a href="../creatures/creature007_2.html">Khamûl the Ringwraith</a> (Carn Dûm: Throne).</td>
     </tr>
     <tr>
       <td class="item"><a href="../items/galastormheart.html">Galadhrim Stormheart</a> <span class="slot">(belt)</span><br><span class="badge t-acc">Accessible</span></td>
@@ -321,8 +361,14 @@ prepares, and every item's tier is shown as a badge in its row:</p>
   <thead><tr><th>Item</th><th>Signature effect <span class="mtag">(base → <span class="pure">pure wizard</span>)</span></th><th>Stats</th><th>Drops from</th></tr></thead>
   <tbody>
     <tr>
-      <td class="item"><a href="../items/branchunmaking.html">Branch of Unmaking</a> <span class="slot">(magic staff)</span><br><span class="badge t-prem">Premium</span></td>
-      <td><span class="mtag">Retype + focus.</span> Finger of Death &amp; Circle of Death deal <strong>magical</strong> instead of death (<strong>1d6 / CL</strong>), +2 Necromancy DC. <span class="pure">Pure: 1d8 / CL, +4 Necromancy DC.</span></td>
+      <td class="item">Dreamshard of Dol Guldur <span class="slot">(amulet)</span><br><span class="badge t-built">Built</span> <span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Retype.</span> <strong>Weird</strong> deals <strong>magical damage</strong> instead of death: <strong>1d6 magical / caster level</strong> (max 40 dice, 300 per target), Fortitude save for half. It also drops the spell's mind-affecting gate, which is the other half of why Weird does nothing to bosses today.</td>
+      <td>+6 Int. <span class="mtag">Bonus slots still draft — the final stat line is set when the drop source is.</span></td>
+      <td><span class="mtag">Not decided yet — the item exists but is not placed anywhere.</span></td>
+    </tr>
+    <tr>
+      <td class="item">Branch of Unmaking <span class="slot">(magic staff)</span><br><span class="badge t-draft">Draft</span> <span class="badge t-prem">Premium</span></td>
+      <td><span class="mtag">Retype + focus.</span> Finger of Death &amp; Circle of Death deal <strong>magical</strong> instead of death (<strong>1d6 / CL</strong>), +2 Necromancy DC. <span class="pure">Pure: 1d8 / CL, +4 Necromancy DC.</span> <span class="mtag">Not built: Finger of Death became the Druid amulet's spell, and the dedicated slot for this system is the amulet, not a staff. Kept here as a candidate for a later Focus-archetype piece.</span></td>
       <td>+8 Int; <strong>6× Wizard level-9</strong> bonus slots</td>
       <td><a href="../creatures/gwathdorlord001.html">Gwathdor Lord of the Dark Arts</a> <span class="mtag">(Gwathdor: Throne)</span></td>
     </tr>
