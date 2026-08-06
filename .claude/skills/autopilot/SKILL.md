@@ -46,9 +46,11 @@ you're signing up for (the runbook is authoritative — read it in full before s
      conversation; the `check_reward_exploit.py` gate enforces this.
 3. Test-build with **bare `nwn-manager repack`** (never the deploy wrappers).
 4. Ship: final code commit → roadmap item to `manual` (with `manual_steps`) — or
-   `implemented` only if zero manual toolset steps remain — with `commit:`, `date:` set to
-   today's actual date, and UAT notes → `gen-roadmap.py` → commit yaml + Roadmap.html →
-   push to origin/main.
+   `implemented` only if zero unfinished `blocker: true` steps remain (**a UAT check is
+   never a blocker**) — with `commit:`, `date:` set to today's actual date, and UAT notes →
+   `python3 bin/roadmap-lint.py` (must be clean — it runs the editor service's own save-time
+   validation; one bad item blocks the admin's every GUI save) → `gen-roadmap.py` → commit
+   yaml + Roadmap.html → push to origin/main.
 5. Repeat until only `planned`/`unlikely` items remain or compute runs out, then report a
    session summary in your final message.
 

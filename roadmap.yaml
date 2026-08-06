@@ -139,7 +139,7 @@ ideas:
   - id: combat-dummy
     title: "combat dummy to measure attacks and damage per round"
     group: combat-classes
-    status: implemented
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-02"
@@ -176,27 +176,22 @@ ideas:
       - step: "UAT (re-test after the Plot fix, BLOCKER): damage per round must now be non-zero and the trial must appear on the sign. The first run measured 0 for every attack because the blueprint was Plot. Also confirm the round lines and the final averages are still in the chat log after the floating text fades."
         status: open
         kind: uat
-        blocker: true
         step_h: 64
       - step: "UAT (self-destruct, round 2): run a full 10 rounds. After the averages are reported the dummy must blow apart, your character must stop attacking on its own, and a fresh dummy must stand up in the same spot ~6s later. Starting a new trial on the replacement must work."
         status: open
         kind: uat
-        blocker: true
         step_h: 64
       - step: "UAT (round 3 refix, BLOCKER): run one 10-round set. Round lines must report damage in the hundreds, not 0, and the recorded DPR must be in the same ballpark as attacks x average hit. The combat log must show per-hit damage again, plus any damage reduction or resistance lines, while the dummy stays at full HP."
         status: open
         kind: uat
-        blocker: true
         step_h: 64
       - step: "UAT (round 3, sign): the header no longer shows the garbage character, the 10-most-recent view shows date AND time in local time, and the two high-score views show the date only (and no longer read a day ahead)."
         status: open
         kind: uat
-        blocker: true
         step_h: 64
       - step: "UAT (low damage, round 2): run 'dm_runscript dbg_combat' to turn the diagnostics on, run one 10-round set, and compare the [CBD_DEBUG] per-packet lines against the combat log. Report which case it is: damage attributed to a source that is not you, damage present in the attack event but missing from the damage event, or packets arriving while the session is not active. Turn it back off with the same command."
         status: open
         kind: uat
-        blocker: true
         step_h: 64
       - step: "UAT (leaderboard): record trials on two characters on the same CD key, then read all three sign views. Every row must show player, character, DPR and date; the server-wide top 20 must list that account only once, and its paging must work across the two pages."
         status: open
@@ -1884,7 +1879,7 @@ ideas:
   - id: devcrit-roll
     title: "Convert Devastating Critical to a roll for bonus damage (or a new 'chaos' damage type)"
     group: combat-classes
-    status: implemented
+    status: manual
     type: Enhancement
     player: "Piskan (Alek Cain)"
     date: "2026-08-02"
@@ -1916,15 +1911,12 @@ ideas:
       - step: "UAT (refix): a devastating critical no longer kills outright and instead adds the bonus dice, for a player AND for an NPC attacker (the rule is symmetric). The first UAT failed this - a dev crit killed the combat dummy through both its damage nulling and its death immunity - which is why the save-or-die is now disabled in baseitems.2da instead of intercepted."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT (refix, the other side): confirm ORDINARY critical hits still work normally and that a character with Devastating Critical for the weapon in hand still gets the +3 dice on them, since attack result 10 no longer occurs. Check unarmed/monk and a creature-weapon NPC too."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: dice size tracks weapon size - d6 small, d8 medium, d10 large - and no other death effect in the module was suppressed by the EffectDeath skip (check a finger of death, a death attack, and a normal HP death)."
         status: open
         kind: uat
-        blocker: true
   - id: ll-modern-leveling
     title: "Replace the conversation-based Legendary Leveler with normal 1-40 leveling (works with 4x multiclass)"
     group: combat-classes
@@ -5474,7 +5466,7 @@ ideas:
     title: "Legendary Feats: feat.2da plumbing and the first proof feats"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-01"
@@ -5500,16 +5492,14 @@ ideas:
       - step: "UAT: grant a legendary feat to a test character by console/toolset (nothing in game hands them out yet) and confirm the name, description and icon all read correctly on the character sheet. A blank name means the hak and TLK are out of step."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: on a level-up at any level, confirm no Legendary feat appears on the engine's own feat-selection page. ALLCLASSESCANUSE=0 should make that impossible, but it is the failure this whole design exists to avoid and it is cheap to eyeball once."
         status: open
         kind: uat
-        blocker: true
   - id: ll-feats-picker
     title: "Legendary Feats: the level-60 picker window"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-01"
@@ -5526,11 +5516,9 @@ ideas:
       - step: "UAT: re-pick. As a level-60 character with picks taken, ask Ping Pong to choose them again — old feats gone, base scores back to their pre-pick values, full allotment offered, level unchanged. Pick different feats and confirm ONLY the new bonuses are on the sheet. Repeat the swap three or four times and confirm the scores return to exactly the same numbers each time (a drift upward is the stat farm this must not be)."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: the re-pick node does NOT appear for a character below level 60, and re-picking is refused while polymorphed (shift, then try)."
         status: open
         kind: uat
-        blocker: true
       - step: "Publish: nwn-manager repack and bin/server-restart. Scripts and a dialog changed; the hak and TLK are already live and need no rebuild or nwsync."
         status: open
         kind: publish
@@ -5538,36 +5526,29 @@ ideas:
       - step: "UAT: allotment is 3 pure Fighter / 2 pure other / 1 mixed. Take a pick and confirm the character sheet's BASE score rose in plain text — no green tint, no buff icon — and that it stacks on a character already at the gear enchantment cap."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: relog and confirm the score is unchanged and NOT doubled. A second +6 after one relog means the login path is re-applying a base-score feat, which is permanent and cumulative."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT, revoke on relevel: as a pure class take both picks, then relevel to 59/1 via Ping Pong. Both feats gone, base scores back to their pre-pick values, 1 pick offered, and a message explaining it. Check no ability score was driven below its true base."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT, revoke on level loss: at 60 with picks taken, drop to 59 (die for the XP loss, or Ping Pong down). Feats gone, scores restored, nothing offered at 59; return to 60 and confirm the picks come back."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT, energy drain does NOT revoke — the case this must not get wrong. At 60 with picks taken, take negative levels (a draining creature or a DM-applied EffectNegativeLevel): the feats and their base-score bonuses stay. Log in while drained and confirm the login check leaves them alone too."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: cancel the picker, then Force Rest — the window reopens. Spend the last pick and rest again — it does not. With picks outstanding, log in and see the nudge message."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: the picker reads cleanly — all six rows visible with no horizontal scrollbar, header not clipped, name/effect/tooltip correct. This doubles as the ll-feats-2da hak/TLK check: a blank name means the hak and TLK are out of step."
         status: open
         kind: uat
-        blocker: true
   - id: ll-feats-ability-martial
     title: "Legendary Feats: ability score and martial feats"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-03"
@@ -5588,26 +5569,21 @@ ideas:
       - step: "UAT: at level 60 the picker lists eight feats. A character without Epic Prowess sees Legendary Prowess greyed with 'Requires: BAB 35+, Epic Prowess' in the effect column; a character below Monk level 30 sees the same for Legendary Onslaught."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: try Legendary Prowess on a character that fails the prereq (pure wizard, no Epic Prowess) - the row is greyed, and clicking anyway from a stale window is refused with the requirement message rather than granting."
         status: open
         kind: uat
       - step: "UAT: Legendary Prowess shows +5 on the character sheet attack bonus, and Legendary Onslaught adds a visible extra attack in the combat log while in melee."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT the CONDITIONAL feat: with Legendary Onslaught, confirm the extra attack is present unarmed and with a melee weapon, DISAPPEARS when a bow or crossbow is equipped, and comes back on switching to melee. This is the only feat in the pool whose effect depends on what is held, and legfeat_equip is the only thing keeping it honest."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT, THE ONE THIS TRANCHE EXISTS TO TEST: relog and confirm both effects come back - this is the first exercise of the login re-apply path (LegFeat_ApplyAll from mod_cliententer). Then relog twice more and confirm the attack bonus is still +5 and not +10 or +15."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT: re-pick via Ping Pong swaps the effect feats cleanly - take Legendary Prowess, respec, take Legendary Strength instead, and confirm no leftover +5 AB (a stale LEGFEAT_EFF effect would be the effect-kind equivalent of the stat farm)."
         status: open
         kind: uat
-        blocker: true
       - step: "PUBLISH THE MARTIAL SET (blocker): python3 bin/gen-legendary-feats.py --apply (done); bin/build-lotr-tlk --apply --install; bin/build-lotr-rules-hak --install; bin/refresh-nwsync; nwn-manager repack; bin/server-restart. The TLK and the hak must go together or the nine new rows read as blank names in the picker."
         status: open
         kind: publish
@@ -5615,34 +5591,27 @@ ideas:
       - step: "UAT: the picker lists 18 feats at level 60, and each of the nine new rows greys correctly for a character that fails its prerequisite (Grip without Ambidexterity, Quarry below Ranger 30, Riposte below 60 Parry ranks, Sundering without Called Shot)."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT the two CONDITIONAL feats, which are the ones that can go stale silently: Legendary Grip's +4 AB/+6 AC must appear with a weapon in each hand, vanish when the off-hand weapon is swapped for a SHIELD or a torch, and come back on re-equipping. Legendary Marksman's extra attack must appear with a bow or crossbow and NOT with a sling or thrown weapon."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT Legendary Juggernaut's disarm half specifically - the four immunities are ordinary effects, but disarm is a skipped NWNX event and is the part that can silently not fire. Have an NPC disarmer (or a PvP partner) attempt a disarm and confirm the weapon stays in hand and the message prints. Confirm disarm still works normally on a character WITHOUT the feat, i.e. legfeat_disarm did not break disarm_catch."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT Legendary Bulwark: with a shield equipped, take a hit and confirm the damage is 10 lower than the same hit without the feat, INCLUDING against a source the character has damage reduction or resistance against (the whole point is that it lands after those). Then unequip the shield and confirm the reduction stops."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT Legendary Riposte: confirm at most one counter-attack per round, that it fires only for a MELEE damager standing next to you (not an archer, not a spell, not a trap), and that the message and the damage agree."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT Legendary Sundering's cap, which is the part most likely to be wrong: hits on a heavily armoured target should stack to -9 AC and stop; hits on an UNARMOURED target should apply nothing at all (the cap is the target's real armour+shield AC, ignoring enchantment). Confirm the AC comes back ~18s after the last hit and does not expire early when a later hit refreshes it."
         status: open
         kind: uat
-        blocker: true
       - step: "UAT Legendary Reaping and Wrath: Reaping's +2/+2 should stack to five kills and drop off 12s after the last one; Wrath should scale with the ATTACKER's missing health (nothing at full HP, +20 at 5% or less). Both add their damage as a separate line in the combat log rather than inside the weapon's damage."
         status: open
         kind: uat
       - step: "UAT the respec path for the hook feats specifically: take Bulwark, confirm the reduction, then respec it away and confirm the reduction is GONE without a relog. LegFeat_ArmHooks clears the per-character damage script, and if that ever regressed the feat would keep working after it was given up."
         status: open
         kind: uat
-        blocker: true
   - id: ll-feats-defense
     title: "Legendary Feats: defensive and survival feats"
     group: combat-classes
@@ -5706,3 +5675,19 @@ ideas:
     player: "HomelessSon (Server Admin)"
     notes: "<div>The exotic Legendary Feats — the odd ones that do not fit the other categories.</div>"
     impl_notes: "<div>Draft section <a>Exotic Feats</a>.</div><div><b>Blocked on <a href=\"#idea-ll-feats-picker\">ll-feats-picker</a></b> (phases 1-3 of the build order: lotr.tlk &rarr; feat.2da &rarr; picker NUI). Once that lands this is a pure content job: add rows to the feat table at the top of bin/gen-legendary-feats.py, then write the behaviour script. Full architecture and the content ordering: <code>CLAUDE-legendary-feats.md</code>.</div><div><br></div><div><b>Content order position: 3 of 7.</b> Ships together with ll-feats-ki-perform-skill.</div>"
+  - id: bard-legendary-prowess-conflict
+    title: "Bard Song grants no attack bonus when Legendary Prowess is taken"
+    group: combat-classes
+    status: planned
+    type: Defect
+    player: Szescian82
+    notes: "<div>Reported: with the Legendary Feat <b>Legendary Prowess</b> taken, <b>Bard Song</b> no longer grants its attack bonus.</div>"
+    impl_notes: "<div>Suspect a <b>bonus-type collision</b>: Legendary Prowess applies a permanent attack-bonus effect (see <a href=\"#idea-ll-feats-ability-martial\">ll-feats-ability-martial</a>), and the engine does not stack two attack bonuses of the same type — the larger wins, so the song's AB silently disappears rather than adding. Check the effect type/source used in the legendary-feat effect application against <code>nw_s2_bardsong</code> (the core impact script — see the override note in the repo) before assuming the song script is at fault. Confirm first whether the song's other bonuses (damage, saves, AC) still land; if only AB is missing, the collision reading is right.</div>"
+  - id: bard-song-consumes-2-uses
+    title: "Bard Song consumes two uses per activation"
+    group: combat-classes
+    status: planned
+    type: Defect
+    player: "-Methonash-"
+    notes: "<div>Reported: using <b>Bard Song</b> spends <b>two</b> daily uses instead of one. <b>Curse Song</b> correctly spends one.</div>"
+    impl_notes: "<div>Curse Song (<code>x2_s2_cursesong</code>) behaving correctly while Bard Song (<code>nw_s2_bardsong</code>) double-decrements points at the song impact script or a wrapper hooked onto it — a second <code>DecrementRemainingFeatUses</code>, or the impact script running twice for one activation. Check any module override/wrapper of <code>nw_s2_bardsong</code> and anything that re-fires it (legendary-feat or leash/AI hooks) before touching the base script; verify the real ImpactScript via <code>nwn_resman_cat spells.2da</code>.</div>"

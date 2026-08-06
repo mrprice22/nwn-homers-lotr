@@ -241,6 +241,14 @@ The admin answers questions, flips step states and flips statuses; the agent onl
 - `status: implemented` / `awarded` must have **no** unfinished blocker step. An item with
   outstanding blocking work belongs in `manual`, which is exactly what that status means.
 
+**Validate every edit with `python3 bin/roadmap-lint.py`.** It imports the editor and calls
+the very same `validate_document()` the service's save handler calls, so the rules can't
+drift between "what an agent checked" and "what the GUI enforces". Run it after *any* change
+to `roadmap.yaml`, before `gen-roadmap.py` and before committing. This matters because
+validation is **whole-file**: a single bad item makes the editor refuse *every* save, so an
+agent that leaves one `implemented`-with-open-blocker item behind silently locks the admin
+out of adding new ideas (this happened — five items, fixed 2026-08-05).
+
 ### Agent rules when editing `roadmap.yaml`
 
 These are hard rules — follow them exactly:

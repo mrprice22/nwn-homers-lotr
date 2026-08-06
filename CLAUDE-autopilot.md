@@ -358,6 +358,7 @@ the daily reboot/refresh cycle reconciles and publishes `docs/`.
         mistaken for working during UAT. (Server-side-dependent items are different: the
         code IS wired in the module, so they ship `implemented` per the rule below.)
 3. **Roadmap commit** (same procedure for rebalance/escape-hatch commits):
+   `python3 bin/roadmap-lint.py` (the editor's own save-time gate — must be clean),
    `python3 bin/gen-roadmap.py --check`, then `python3 bin/gen-roadmap.py`, commit
    `roadmap.yaml` + `docs.manual/Roadmap.html` together. Do **not** run the wiki refresh.
    Reset `autopilot-wip.md` to `id: none` (clear `started`/`stage`/`commit`/`files`/
@@ -439,6 +440,12 @@ and flips the statuses.
 
 Note the save-time gate: an item in `implemented` / `awarded` with an unfinished blocker
 step is a **validation error**. If blocking work remains, the item belongs in `manual`.
+
+**Run `python3 bin/roadmap-lint.py` after every `roadmap.yaml` edit, before committing.** It
+calls the editor service's own `validate_document()`, so it reproduces the save-time gate
+exactly. Validation is whole-file — one item left in `implemented` with an open blocker step
+makes the editor reject *every* save, which locks the admin out of adding new ideas until an
+agent cleans it up.
 
 ## Hard rules — never do these
 
