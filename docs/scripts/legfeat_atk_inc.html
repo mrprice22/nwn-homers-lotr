@@ -86,6 +86,10 @@
 
 #include &quot;nwnx_damage&quot;
 #include &quot;legfeat_ids_inc&quot;
+// Reaping&#x27;s attack and damage bonuses go through the module-wide ledger, or
+// they suppress (and are suppressed by) every other bonus of the same type -
+// Legendary Prowess&#x27;s permanent +5 made the first two kill stacks do nothing.
+#include &quot;bonus_pool_inc&quot;
 
 // Set by LegFeat_ArmHooks on any character holding an attacker-side hook feat,
 // and read by devcrit_atk.nss once per attack. It is declared here rather than
@@ -99,9 +103,10 @@ const float  LEGFEAT_SUNDER_DUR = 18.0;
 const int    LEGFEAT_SUNDER_STEP = 3;
 const int    LEGFEAT_SUNDER_MAX = 9;      // three stacks of three
 
-const string LEGFEAT_REAP_TAG   = &quot;LEGFEAT_REAP&quot;;
-const string LEGFEAT_REAP_AMT   = &quot;legfeat_reap_amt&quot;;
-const string LEGFEAT_REAP_GEN   = &quot;legfeat_reap_gen&quot;;
+// Reaping keeps no tag/amt/gen of its own any more: the ledger owns the running
+// total, the tagged effect and the generation counter (bonus_pool_inc, source
+// key BPOOL_SRC_REAPING). Sundering still has its own set below, because an AC
+// DECREASE on the target is not a bonus and has nothing to pool with.
 const float  LEGFEAT_REAP_DUR   = 12.0;
 const int    LEGFEAT_REAP_STEP  = 2;
 const int    LEGFEAT_REAP_MAX   = 10;     // five stacks of two
@@ -243,25 +248,24 @@ void LegFeatAtk_OnAttack(struct NWNX_Damage_AttackEventData data)
     // before the &quot;did this land&quot; test - a killing blow has already landed.
     if (data.bKillingBlow &amp;&amp; GetHasFeat(FEAT_LEGENDARY_REAPING, oAttacker))
     {
-        int nAmt = GetLocalInt(oAttacker, LEGFEAT_REAP_AMT) + LEGFEAT_REAP_STEP;
+        // The running total is read back out of the ledger, which is now the
+        // only place it is kept. BPool_Set handles the rest: it refreshes the
+        // 12 seconds, bumps the generation so an earlier kill&#x27;s expiry cannot
+        // cut this one short, and rebuilds the one pooled effect from the sum
+        // of every live source.
+        //
+        // The damage half also stops being dice by accident: the old call
+        // passed nAmt straight to EffectDamageIncrease, which takes a
+        // DAMAGE_BONUS_* CONSTANT, so stacks 4 and 5 (+8, +10) were landing as
+        // 1d8 and 2d6. The ledger converts once, on the total.
+        int nAmt = BPool_Get(oAttacker, BPOOL_CH_ATTACK, BPOOL_SRC_REAPING)
+                 + LEGFEAT_REAP_STEP;
         if (nAmt &gt; LEGFEAT_REAP_MAX) nAmt = LEGFEAT_REAP_MAX;
 
-        LegFeatAtk_StripTag(oAttacker, LEGFEAT_REAP_TAG);
-        SetLocalInt(oAttacker, LEGFEAT_REAP_AMT, nAmt);
-        int nGen = GetLocalInt(oAttacker, LEGFEAT_REAP_GEN) + 1;
-        SetLocalInt(oAttacker, LEGFEAT_REAP_GEN, nGen);
-
-        effect eAB = TagEffect(EffectAttackIncrease(nAmt), LEGFEAT_REAP_TAG);
-        effect eDm = TagEffect(EffectDamageIncrease(nAmt, DAMAGE_TYPE_BLUDGEONING),
-                               LEGFEAT_REAP_TAG);
-        ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eAB, oAttacker,
-                            LEGFEAT_REAP_DUR);
-        ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eDm, oAttacker,
-                            LEGFEAT_REAP_DUR);
-        DelayCommand(LEGFEAT_REAP_DUR + 0.1,
-                     LegFeatAtk_ExpireStack(oAttacker, LEGFEAT_REAP_AMT,
-                                            LEGFEAT_REAP_GEN, LEGFEAT_REAP_TAG,
-                                            nGen));
+        BPool_Set(oAttacker, BPOOL_CH_ATTACK, BPOOL_SRC_REAPING, nAmt,
+                  LEGFEAT_REAP_DUR);
+        BPool_Set(oAttacker, BPOOL_CH_DAMAGE, BPOOL_SRC_REAPING, nAmt,
+                  LEGFEAT_REAP_DUR);
     }
 
     // Everything below is &quot;this attack landed&quot;. The attack RESULT enum is not

@@ -255,6 +255,13 @@ void main()
     DelayCommand(8.0, PW_Refresh(oPC));
 
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
+    // The pooled attack/damage effect is a RENDER of the bonus ledger, never the
+    // record, so it can always be redrawn. LegFeat_ApplyAll has just re-registered
+    // the permanent sources; this redraws from whatever the ledger actually holds.
+    // Belt and braces at login (nothing is stale there - effects and locals both
+    // die with the object), and the same call is what would recover the effect
+    // after anything else wipes effects out from under us.
+    DelayCommand(6.6, BPool_Resync(oPC));
     DelayCommand(7.5, LegFeatLoginCheck(oPC));
 
     // Same reasoning as LegFeatLoginCheck, and it must land after the UUID has
