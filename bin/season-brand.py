@@ -23,6 +23,13 @@ therefore matches the *shape* of the target (any host in the homerslotr.com
 family, any name in the "name" field) rather than a specific old value, so
 re-running re-matches the value it just wrote and does nothing.
 
+The "family" is the apex and `season<N>.` ONLY — see WIKI_HOST_RE. Any other
+subdomain of homerslotr.com is an ARCHIVE WIKI for one of the forked modules
+(`lotr.homerslotr.com` = the 2008 original, `2009.homerslotr.com` = Homer's LOTR
+Edit). Those are separate, read-only modules, not seasons of this one: they are
+never rebuilt, never rebranded, and must survive every cutover untouched. Do not
+"fix" a rule so that it reaches them.
+
 NEVER substitute a bare port number. `5121` occurs as a float fraction in at
 least seven .git.json files ("value": 54.5121, -22.5121, …) and as a
 SetListenPattern match-ID in unpacked/roulette_os.nss. A global port

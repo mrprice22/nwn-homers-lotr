@@ -40,6 +40,11 @@ RUNTIME      season N owns  ~/.local/share/Neverwinter Nights S<N>   (home: vaul
                             container  nwnxee-homer-s<N>
 WIKI         homerslotr.com            -> whichever season is LIVE
              season<N>.homerslotr.com  -> season N, permanently (early-access, then archive)
+             lotr.homerslotr.com       -> the 2008 original module      \ FORKED MODULES,
+             2009.homerslotr.com       -> Homer's LOTR Edit (2009)      / NOT seasons:
+             read-only archives of separate modules. Never rebuilt, never rebranded,
+             untouched by every cutover. bin/season-brand.py must never match them
+             (WIKI_HOST_RE is whole-host: apex + season<N>. only).
 SHARED       ~/.local/share/nwn-shared/meritdb.sqlite3    <- account merit + entitlements
              ~/.local/share/nwn-shared/admindb.sqlite3    <- admin whitelist + house records
              (the ONLY cross-season files; both symlinked into every season's database/)
