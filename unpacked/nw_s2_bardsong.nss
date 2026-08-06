@@ -249,5 +249,17 @@ void main()
         oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));
     }
 
-    DecrementRemainingFeatUses(OBJECT_SELF, FEAT_BARD_SONGS);
+    // NO DecrementRemainingFeatUses HERE - and this is not an oversight.
+    //
+    // The engine already spends one FEAT_BARD_SONGS use when the bard activates
+    // the Bard Song feat, so stock nw_s2_bardsong ends without a decrement. Curse
+    // Song is the opposite case: it is its own feat (FEAT_CURSE_SONG) but is meant
+    // to draw from the bard song pool, so stock x2_s2_cursesong decrements
+    // FEAT_BARD_SONGS explicitly - and ours must keep doing so.
+    //
+    // This file was written by copying the customized Curse Song (8c762f5c412),
+    // which carried that line across. The result was two uses spent per song while
+    // Curse Song correctly spent one - reported by -Methonash-, roadmap
+    // bard-song-consumes-2-uses. tests/check_bard_song.py is the build gate that
+    // keeps the two scripts on their respective sides of this rule.
 }

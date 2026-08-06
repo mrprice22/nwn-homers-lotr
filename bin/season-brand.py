@@ -51,7 +51,14 @@ UNPACKED = REPO / "unpacked"
 # The apex domain. Every season's wiki is either this host (the live season) or
 # season<N>.<apex>, which is what makes a single "host family" regex safe.
 APEX_DOMAIN = "homerslotr.com"
-WIKI_HOST_RE = re.compile(r"(?:season\d+\.)?" + re.escape(APEX_DOMAIN))
+# The lookbehind makes this match a WHOLE host only. Without it the pattern also
+# matches the tail of an unrelated subdomain: the archive wikis for the two forked
+# modules (lotr.homerslotr.com, 2009.homerslotr.com — added to the landing page in
+# a819138bb1d) became lotr.season2.homerslotr.com on every season, i.e. the gate
+# demanded a rewrite that breaks the links. Those archives are permanent and are
+# NOT season-scoped. Neither host appears anywhere in unpacked/ or server.env, so
+# nothing the branding actually owns is matched by a partial host.
+WIKI_HOST_RE = re.compile(r"(?<![\w.-])(?:season\d+\.)?" + re.escape(APEX_DOMAIN))
 
 
 # The Well of Eru area, for the Recent Updates board's roadmap link.

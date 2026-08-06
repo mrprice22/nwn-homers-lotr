@@ -134,6 +134,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: bard song feat-use accounting…"
+if python3 "$HERE/check_bard_song.py"; then
+  echo "ok: bard song feat-use accounting"
+else
+  echo "fail: bard song feat-use accounting"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"
