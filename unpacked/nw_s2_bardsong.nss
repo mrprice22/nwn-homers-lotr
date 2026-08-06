@@ -33,11 +33,27 @@
 // Register this listener's share of the song with the bonus ledger, for the
 // song's own duration. Same call for the bard and for an ally, so the two
 // branches below cannot drift apart.
+// THE TIMER IS A BACKSTOP, NOT THE CLOCK. The song's entry ends when the song's
+// own effect does, detected by the ledger's witness check (BPool_Revalidate,
+// driven by bpool_eff on effect removal). It cannot be driven by a duration
+// computed here, for two reasons:
+//
+//   * eff_dur_x2 DOUBLES the duration of every temporary effect a player
+//     applies, so the song on the character really lasts 2x what this script
+//     asks for. A 1x timer would drop the attack bonus halfway through a song
+//     that is visibly still playing.
+//   * A song can end early - death, dispel, a rest - and no timer knows that.
+//     That is the bug this rework exists to fix.
+//
+// So the entry is registered with a deliberately generous safety duration: 3x
+// covers the doubling with room to spare, and exists only so that a missed
+// removal event can never strand a bonus permanently. If the backstop is ever
+// the thing that ends a song's bonus, the witness path is broken.
 void BardSong_Pool(object oTarget, int nAttack, int nDamage, int nDurationRounds)
 {
-    float fDur = RoundsToSeconds(nDurationRounds);
-    BPool_Set(oTarget, BPOOL_CH_ATTACK, BPOOL_SRC_SONG, nAttack, fDur);
-    BPool_Set(oTarget, BPOOL_CH_DAMAGE, BPOOL_SRC_SONG, nDamage, fDur);
+    float fBackstop = RoundsToSeconds(nDurationRounds) * 3.0;
+    BPool_Set(oTarget, BPOOL_CH_ATTACK, BPOOL_SRC_SONG, nAttack, fBackstop);
+    BPool_Set(oTarget, BPOOL_CH_DAMAGE, BPOOL_SRC_SONG, nDamage, fBackstop);
 }
 
 void main()

@@ -77,6 +77,15 @@ NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
 NWNX_Damage_SetAttackEventScript("devcrit_atk");
 NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_BEFORE, "devcrit_eff");
 
+// Attack/damage bonus ledger (bonus_pool_inc): recalculate when a bonus ENDS.
+// Registration and login are not enough - a song that ended early left its
+// attack bonus behind, and a respawn's wholesale RemoveEffects took the
+// permanent feat bonuses away with nothing to put them back. bpool_eff is
+// guarded by a local that only buffed creatures carry, so an effect removal on
+// anyone else costs one GetLocalInt. See its header before editing: rebuilding
+// the ledger strips our own effect and fires this very event.
+NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_REMOVED_AFTER, "bpool_eff");
+
 // Premium 2x gold/XP boost: multiply positive XP gains for players with an active
 // boost (merit redemptions 201-204). Engine combat XP is not script-granted, so
 // XP is intercepted centrally here rather than at kill sites. The event name has

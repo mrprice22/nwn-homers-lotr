@@ -74,6 +74,31 @@ const int    BPOOL_SRC_COUNT   = 5;
 // clamps here too; above it the number simply cannot be represented.
 const int BPOOL_DAMAGE_MAX = 20;
 
+// THE LEDGER MUST RECALCULATE WHEN EFFECTS END, NOT ONLY WHEN THEY START.
+//
+// The first build only ever rebuilt on registration and at login, and UAT found
+// both halves of what that misses:
+//
+//   * A bard song that ended early (death) left its share in the ledger, so the
+//     attack bonus survived after the song icon was gone.
+//   * A respawn (mod_respawn.nss calls RemoveEffects) stripped the pooled
+//     effect, and nothing re-rendered it - so the PERMANENT feat bonuses
+//     vanished too, until the next login.
+//
+// Both are answered by revalidation: a WITNESS decides whether a transient
+// entry is still real, and the render is redrawn from whatever survives.
+// bpool_eff.nss calls this on every effect removal (guarded); mod_respawn calls
+// it after its wholesale strip.
+const string BPOOL_LIVE    = "bpool_live";     // has >=1 entry: the hot-path guard
+const string BPOOL_PENDING = "bpool_pending";  // a revalidate is already queued
+const string BPOOL_BUSY    = "bpool_busy";     // we are mid-rebuild; ignore our own churn
+
+// Bard Song's spell id (spells.2da row 411, "Bards_Song"). The song's entry is
+// only valid while the song's own effect is still on the creature - that is the
+// witness. Sources with no witness (the legendary feats, the summon boost) are
+// permanent and are always re-rendered.
+const int BPOOL_SPELL_BARDSONG = 411;
+
 string BPool_SourceAt(int nIndex);
 string BPool_Tag(int nChannel);
 string BPool_Var(int nChannel, string sSource);
@@ -88,6 +113,9 @@ void   BPool_Set(object oCreature, int nChannel, string sSource, int nAmount,
 void   BPool_Clear(object oCreature, int nChannel, string sSource);
 void   BPool_Expire(object oCreature, int nChannel, string sSource, int nGen);
 void   BPool_Resync(object oCreature);
+void   BPool_UpdateLive(object oCreature);
+void   BPool_Revalidate(object oCreature);
+void   BPool_ClearTransient(object oCreature);
 
 // The walk order of the ledger. Order is irrelevant to the sum; what matters is
 // that every key in the constant list above appears exactly once.
@@ -200,6 +228,14 @@ void BPool_StripTag(object oCreature, string sTag)
 void BPool_Rebuild(object oCreature, int nChannel)
 {
     string sTag = BPool_Tag(nChannel);
+
+    // Stripping our own effect fires NWNX_ON_EFFECT_REMOVED_AFTER, which is
+    // wired to bpool_eff -> BPool_Revalidate -> back in here. Without this flag
+    // that is an endless loop, every rebuild scheduling the next one. The flag
+    // is cleared on the next frame, which is also after the ApplyEffect below.
+    SetLocalInt(oCreature, BPOOL_BUSY, TRUE);
+    DelayCommand(0.0, DeleteLocalInt(oCreature, BPOOL_BUSY));
+
     BPool_StripTag(oCreature, sTag);
 
     int nTotal = BPool_Total(oCreature, nChannel);
@@ -246,6 +282,7 @@ void BPool_Set(object oCreature, int nChannel, string sSource, int nAmount,
     }
 
     SetLocalInt(oCreature, BPool_Var(nChannel, sSource), nAmount);
+    SetLocalInt(oCreature, BPOOL_LIVE, TRUE);
 
     int nGen = GetLocalInt(oCreature, BPool_GenVar(nChannel, sSource)) + 1;
     SetLocalInt(oCreature, BPool_GenVar(nChannel, sSource), nGen);
@@ -262,6 +299,55 @@ void BPool_Clear(object oCreature, int nChannel, string sSource)
     if (!GetIsObjectValid(oCreature)) return;
     DeleteLocalInt(oCreature, BPool_Var(nChannel, sSource));
     BPool_Rebuild(oCreature, nChannel);
+    BPool_UpdateLive(oCreature);
+}
+
+// The hot-path guard bpool_eff reads on every effect removal on the server.
+// Set while this creature carries any entry at all, deleted the moment it does
+// not, so a creature that has never been buffed costs one GetLocalInt.
+void BPool_UpdateLive(object oCreature)
+{
+    if (BPool_Total(oCreature, BPOOL_CH_ATTACK) > 0
+        || BPool_Total(oCreature, BPOOL_CH_DAMAGE) > 0)
+        SetLocalInt(oCreature, BPOOL_LIVE, TRUE);
+    else
+        DeleteLocalInt(oCreature, BPOOL_LIVE);
+}
+
+// Recalculate after something ended - the answer to "the song is over but I
+// still have its attack bonus" AND to "I respawned and lost my feat bonus".
+//
+// A transient source is only as real as its WITNESS. Bard Song's witness is the
+// song's own effect: if that is gone (it ended, it was dispelled, the character
+// died and everything was stripped), the entry goes with it. Sources with no
+// witness are permanent and simply get re-rendered, which is what puts the
+// legendary feats back after a wholesale RemoveEffects.
+void BPool_Revalidate(object oCreature)
+{
+    DeleteLocalInt(oCreature, BPOOL_PENDING);
+    if (!GetIsObjectValid(oCreature)) return;
+
+    if (!GetHasSpellEffect(BPOOL_SPELL_BARDSONG, oCreature))
+    {
+        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, BPOOL_SRC_SONG));
+        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, BPOOL_SRC_SONG));
+    }
+
+    BPool_Resync(oCreature);
+    BPool_UpdateLive(oCreature);
+}
+
+// Drop every non-permanent entry outright. Death is the one event where a
+// transient bonus should not come back on its own merits: a kill streak
+// (Legendary Reaping) has to end when the killer dies, witness or no witness.
+void BPool_ClearTransient(object oCreature)
+{
+    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, BPOOL_SRC_SONG));
+    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, BPOOL_SRC_SONG));
+    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, BPOOL_SRC_REAPING));
+    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, BPOOL_SRC_REAPING));
+    BPool_Resync(oCreature);
+    BPool_UpdateLive(oCreature);
 }
 
 // Scheduled by BPool_Set. A refresh in the meantime bumped the generation, so

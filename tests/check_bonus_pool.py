@@ -131,6 +131,48 @@ elif int(count.group(1)) != len(keys):
         f"are declared. BPool_Total loops to the count, so a low value silently "
         f"drops the last source(s) from every total.")
 
+# --- 4. the ledger recalculates when a bonus ENDS, not only when one starts ---
+# Without this wiring the ledger is write-only: a song that ended early leaves
+# its bonus behind, and a respawn's RemoveEffects takes the permanent feat
+# bonuses away with nothing to put them back. Both were found in UAT.
+modload = read(UNPACKED / "onmoduleload.nss")
+if not re.search(r"NWNX_Events_SubscribeEvent\(\s*NWNX_ON_EFFECT_REMOVED_AFTER\s*,"
+                 r'\s*"bpool_eff"\s*\)', modload):
+    errors.append(
+        "onmoduleload.nss does not subscribe bpool_eff to "
+        "NWNX_ON_EFFECT_REMOVED_AFTER - the ledger would never notice a bonus "
+        "ending, so an ended bard song keeps its attack bonus.")
+
+if not (UNPACKED / "bpool_eff.nss").is_file():
+    errors.append("unpacked/bpool_eff.nss is missing.")
+else:
+    handler = read(UNPACKED / "bpool_eff.nss")
+    # The recursion guard is the one that actually binds: a rebuild strips our
+    # own effect, which fires this same event.
+    if "BPOOL_BUSY" not in handler:
+        errors.append(
+            "bpool_eff.nss dropped the BPOOL_BUSY guard. Rebuilding the ledger "
+            "strips our own effect and fires this event - without the guard "
+            "every rebuild schedules another one, forever.")
+    if "BPOOL_LIVE" not in handler:
+        errors.append(
+            "bpool_eff.nss dropped the BPOOL_LIVE guard. This runs for every "
+            "effect removal on the server; the guard is what keeps it free for "
+            "creatures that carry no bonus.")
+
+if "BPool_ClearTransient" not in read(UNPACKED / "mod_respawn.nss"):
+    errors.append(
+        "mod_respawn.nss no longer clears transient ledger entries. Its "
+        "RemoveEffects() strips the song's witness effect, so without this the "
+        "song's bonus would be re-rendered onto a character who no longer has "
+        "the song.")
+
+if "LegFeat_ApplyAll" not in read(UNPACKED / "mod_respawn.nss"):
+    errors.append(
+        "mod_respawn.nss no longer re-applies legendary feats after its "
+        "wholesale RemoveEffects() - respawning silently strips every "
+        "EFFECT-kind legendary feat until the character's next login.")
+
 if errors:
     print("check_bonus_pool: FAILED", file=sys.stderr)
     for e in errors:

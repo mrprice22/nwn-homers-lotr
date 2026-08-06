@@ -13,6 +13,7 @@ those items are lootable only by the owner PC.
 */
 
 #include "nw_i0_plot"
+#include "legfeat_inc"
 
 //Get PC Gold and apply XP Penalty
 void ApplyPenalty(object oDead)
@@ -55,6 +56,21 @@ void main ()
  object oSpawnPoint = GetObjectByTag(sDestTag) ;
    AssignCommand(oRespawner,JumpToLocation(GetLocation(oSpawnPoint))) ;
    ApplyPenalty(oRespawner) ;
+
+   // RemoveEffects above is a WHOLESALE strip, and nothing used to put the
+   // permanent bonuses back - so a respawned character silently lost every
+   // EFFECT-kind legendary feat (Prowess, Grip, Onslaught, the ability bonuses)
+   // until their next login. Found in UAT of the bonus ledger, but it predates
+   // it and applies to all of them.
+   //
+   // Order matters. ClearTransient first: a bard song and a Legendary Reaping
+   // kill streak are exactly the bonuses that SHOULD die with the character, and
+   // the ledger has to be told, because the song's witness effect was just
+   // stripped from under it. LegFeat_ApplyAll then re-registers and re-renders
+   // everything permanent. Delayed past the respawn's own effect churn so the
+   // rebuild is not undone by it.
+   DelayCommand(2.0, BPool_ClearTransient(oRespawner));
+   DelayCommand(2.5, LegFeat_ApplyAll(oRespawner));
 
         object oDeathAmulet;
      oDeathAmulet = GetFirstItemInInventory(oRespawner);
