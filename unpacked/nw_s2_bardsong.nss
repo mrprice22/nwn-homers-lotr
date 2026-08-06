@@ -28,6 +28,17 @@
 
 #include "x2_i0_spells"
 #include "x2_inc_itemprop"
+#include "bonus_pool_inc"
+
+// Register this listener's share of the song with the bonus ledger, for the
+// song's own duration. Same call for the bard and for an ally, so the two
+// branches below cannot drift apart.
+void BardSong_Pool(object oTarget, int nAttack, int nDamage, int nDurationRounds)
+{
+    float fDur = RoundsToSeconds(nDurationRounds);
+    BPool_Set(oTarget, BPOOL_CH_ATTACK, BPOOL_SRC_SONG, nAttack, fDur);
+    BPool_Set(oTarget, BPOOL_CH_DAMAGE, BPOOL_SRC_SONG, nDamage, fDur);
+}
 
 void main()
 {
@@ -53,8 +64,7 @@ void main()
     int nPerform = GetSkillRank(SKILL_PERFORM);
     int nDuration = 15;
 
-    effect eAttack;
-    effect eDamage;
+    // No eAttack/eDamage: those two go to the bonus ledger, not into the link.
     effect eWill;
     effect eFort;
     effect eReflex;
@@ -176,13 +186,20 @@ void main()
 
     effect eVis = EffectVisualEffect(VFX_DUR_BARD_SONG);
 
-    eAttack = EffectAttackIncrease(nAttack);
-    // EffectDamageIncrease takes a DAMAGE_BONUS_* constant, NOT a flat int: raw
-    // values >5 become dice (6 = 1d4, 8 = 1d8, 10 = 2d6). Map the intended flat
-    // amount to the correct constant (6 -> DAMAGE_BONUS_6 = 16, etc.) so the top
-    // tier delivers flat +6 instead of 1d4.
-    eDamage = EffectDamageIncrease(nDamage > 0 ? IPGetDamageBonusConstantFromNumber(nDamage) : nDamage, DAMAGE_TYPE_BLUDGEONING);
-    effect eLink = EffectLinkEffects(eAttack, eDamage);
+    // ATTACK AND DAMAGE ARE NOT IN THIS LINK. They are registered with the
+    // module-wide ledger per target, below, because the engine applies only the
+    // LARGEST attack bonus of a type: as a plain EffectAttackIncrease the song's
+    // attack bonus was invisible to anyone carrying Legendary Prowess's
+    // permanent +5, which is the bug this rework exists to fix (roadmap:
+    // bard-legendary-prowess-conflict). See bonus_pool_inc.nss - it also owns
+    // the flat-int-vs-DAMAGE_BONUS_* conversion this script used to do inline.
+    //
+    // The link still starts from the duration VFX, so it is never empty: the
+    // "already sung on" guard below is GetHasSpellEffect on this link, and at
+    // tier 1 attack and damage are the ONLY bonuses, so an empty link would
+    // leave every low-level bard re-buffing the same target forever.
+    effect eDur = EffectVisualEffect(VFX_DUR_CESSATE_POSITIVE);
+    effect eLink = eDur;
 
     if (nWill > 0)
     {
@@ -217,8 +234,6 @@ void main()
         eHP = ExtraordinaryEffect(eHP);
     }
 
-    effect eDur = EffectVisualEffect(VFX_DUR_CESSATE_POSITIVE);
-    eLink = EffectLinkEffects(eLink, eDur);
     eLink = ExtraordinaryEffect(eLink);
 
     effect eImpact = EffectVisualEffect(VFX_IMP_HEAD_SONIC);
@@ -237,6 +252,7 @@ void main()
                 ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLinkBard, oTarget, RoundsToSeconds(nDuration));
                 if (nHP > 0)
                     ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eHP, oTarget, RoundsToSeconds(nDuration));
+                BardSong_Pool(oTarget, nAttack, nDamage, nDuration);
             }
             else if (GetIsFriend(oTarget))
             {
@@ -244,6 +260,7 @@ void main()
                 ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLink, oTarget, RoundsToSeconds(nDuration));
                 if (nHP > 0)
                     ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eHP, oTarget, RoundsToSeconds(nDuration));
+                BardSong_Pool(oTarget, nAttack, nDamage, nDuration);
             }
         }
         oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));

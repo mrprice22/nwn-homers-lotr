@@ -280,8 +280,15 @@ void LegFeat_ApplyOne(object oPC, int nFeatId)
 
     switch (nFeatId)
     {
+        // POOLED, not applied as its own effect. As a plain
+        // EffectAttackIncrease this permanent +5 was the largest attack bonus
+        // most characters ever carried, and the engine applies only the largest
+        // of a type - so it silently swallowed Bard Song and the whole attack
+        // half of Legendary Grip. See bonus_pool_inc.nss (roadmap:
+        // bard-legendary-prowess-conflict). The ledger entry is cleared and
+        // rewritten by LegFeat_ApplyAll, so a respec takes it with it.
         case FEAT_LEGENDARY_PROWESS:
-            LegFeat_ApplyEffect(oPC, EffectAttackIncrease(5));
+            BPool_Set(oPC, BPOOL_CH_ATTACK, BPOOL_SRC_PROWESS, 5);
             break;
 
         // CONDITIONAL: melee only. EffectModifyAttacks, not an attack-speed
@@ -306,10 +313,13 @@ void LegFeat_ApplyOne(object oPC, int nFeatId)
         // CONDITIONAL: a weapon in each hand. Dodge AC, so it stacks with worn
         // armour rather than replacing it, and so it does not read as a second
         // suit of armour on the character sheet.
+        // The AC half was always right - dodge AC stacks. The ATTACK half was
+        // the same trap Prowess fell into and was worth exactly zero to any
+        // character holding both feats, so it goes through the ledger.
         case FEAT_LEGENDARY_GRIP:
             if (LegFeat_IsDualWielding(oPC))
             {
-                LegFeat_ApplyEffect(oPC, EffectAttackIncrease(4));
+                BPool_Set(oPC, BPOOL_CH_ATTACK, BPOOL_SRC_GRIP, 4);
                 LegFeat_ApplyEffect(oPC, EffectACIncrease(6, AC_DODGE_BONUS));
             }
             break;
@@ -369,6 +379,15 @@ void LegFeat_ApplyAll(object oPC)
             RemoveEffect(oPC, eOld);
         eOld = GetNextEffect(oPC);
     }
+
+    // The pooled bonuses are NOT tagged LEGFEAT_EFFECT_TAG - they are entries in
+    // the module-wide ledger, and the loop above cannot see them. Clear this
+    // feat set's entries here so the rebuild below is the only thing that puts
+    // them back: without this a character who respecs out of Prowess, or who
+    // sheathes the off-hand weapon Grip is conditional on, keeps the bonus for
+    // the rest of the session.
+    BPool_Clear(oPC, BPOOL_CH_ATTACK, BPOOL_SRC_PROWESS);
+    BPool_Clear(oPC, BPOOL_CH_ATTACK, BPOOL_SRC_GRIP);
 
     int i;
     for (i = 0; i < LEGFEAT_COUNT; i++)

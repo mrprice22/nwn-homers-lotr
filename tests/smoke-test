@@ -134,6 +134,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: attack/damage bonus ledger…"
+if python3 "$HERE/check_bonus_pool.py"; then
+  echo "ok: attack/damage bonus ledger"
+else
+  echo "fail: attack/damage bonus ledger"
+  rc=1
+fi
+
 echo "[smoke-test] running: bard song feat-use accounting…"
 if python3 "$HERE/check_bard_song.py"; then
   echo "ok: bard song feat-use accounting"

@@ -23,6 +23,8 @@
 */
 //:://////////////////////////////////////////////
 
+#include "bonus_pool_inc"
+
 const int SB_MAX_TRIES = 6; // ~3s of 0.5s retries while the master link settles
 
 int clampMax(int n, int nMax) { return (n > nMax) ? nMax : n; }
@@ -93,8 +95,12 @@ void main()
     // Ability boosts raise HP (CON), damage/carry (STR), reflex/AC (DEX) and
     // mind-effect resistance (mentals). Supernatural => cannot be dispelled,
     // matching the module's epic-summon theme.
-    effect eLink = EffectAttackIncrease(nAB);
-    eLink = EffectLinkEffects(eLink, EffectSavingThrowIncrease(SAVING_THROW_ALL, nSave));
+    // The ATTACK bonus is not in this link: it goes to the module-wide ledger
+    // (bonus_pool_inc), because the engine applies only the largest attack
+    // bonus of a type - a boosted pet standing in a bard's song used to get the
+    // larger of the two and never the sum. Permanent entry, no duration: it
+    // lives as long as the summon does, and the summon's locals die with it.
+    effect eLink = EffectSavingThrowIncrease(SAVING_THROW_ALL, nSave);
     eLink = EffectLinkEffects(eLink, EffectACIncrease(nAC, AC_DODGE_BONUS));
     if (nAbil > 0)
     {
@@ -108,6 +114,7 @@ void main()
     eLink = SupernaturalEffect(eLink);
 
     ApplyEffectToObject(DURATION_TYPE_PERMANENT, eLink, oSelf);
+    BPool_Set(oSelf, BPOOL_CH_ATTACK, BPOOL_SRC_SUMMON, nAB);
 
     // Brief spawn-in flourish so the boost is visible.
     ApplyEffectToObject(DURATION_TYPE_INSTANT,
