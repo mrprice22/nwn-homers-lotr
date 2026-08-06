@@ -112,6 +112,19 @@
   in [CLAUDE-nwscript.md](CLAUDE-nwscript.md) for the full pattern and the reserved
   token number table.
 
+- **Same-type attack/damage bonuses DO NOT STACK — never apply one directly.** The
+  engine applies the **highest** bonus of a type and discards the rest, so an
+  `EffectAttackIncrease` outside the ledger doesn't merely fail to stack: it
+  *suppresses* every smaller bonus for as long as it lasts. Legendary Prowess's
+  permanent +5 silently swallowed Bard Song entirely, and made the attack half of
+  Legendary Grip worth exactly zero. Register the amount with
+  `BPool_Set()` (`unpacked/bonus_pool_inc.nss`) instead — the ledger sums the live
+  entries and applies one effect built from the total. `tests/check_bonus_pool.py`
+  is the build gate; exemptions live in its table and must state a reason.
+  Related: `EffectDamageIncrease` takes a **`DAMAGE_BONUS_*` constant, not a flat
+  int** (raw 7 = 1d6, raw 10 = 2d6), which is how Legendary Reaping's top stacks
+  became dice — the ledger converts once, on the total.
+
 - **Don't invent NWScript builtins.** A fabricated identifier in a
   heavily-included header produces one `UNDEFINED IDENTIFIER` error per
   consumer script. Verify every engine function in the Lexicon
