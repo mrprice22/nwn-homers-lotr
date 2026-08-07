@@ -15,14 +15,18 @@ void main()
         return;
     }
 
-    // "i<index>" - show that feat in the detail pane. Rebuilding the window is
-    // how the pane updates, exactly as taking a feat rebuilds the list; the
-    // window is short and this is cheaper than binding the pane's contents.
+    // "i<index>" - show that feat in the detail pane.
+    //
+    // ONE BIND IS UPDATED. THE WINDOW IS NOT REBUILT. Reopening the picker here
+    // was correct but felt broken: it discarded the list's scroll position, and
+    // the client's own cache of that position made it inconsistent - some
+    // clicks snapped back to the top of the pool, some restored the last
+    // remembered offset. Only the pane's contents change, so the list stays put.
     if (GetStringLeft(sElem, 1) == "i")
     {
         LegFeat_Select(oPC,
             StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1)));
-        LegFeat_Open(oPC);
+        LegFeat_RefreshDetail(oPC);
         return;
     }
 

@@ -39,6 +39,10 @@ const string CSP_WIN = "cspells";      // NuiCreate window id
 const string CSP_TOK = "CSP_TOK";      // PC local: this window's token
 const string CSP_SEL = "CSP_SEL";      // PC local: selected spell level, +1
 const string CSP_DTL = "CSP_DTL";      // PC local: detail-pane spell id, +1
+// The detail pane is BOUND rather than baked into the layout, so a "?" click
+// updates it without rebuilding the window - a rebuild discards the list's
+// scroll position, inconsistently, because the client caches it too.
+const string CSP_BIND_DTL = "csp_detail";
 
 const float CSP_WIN_W    = 720.0;
 const float CSP_WIN_H    = 640.0;
@@ -77,6 +81,10 @@ int CSP_DetailSpell(object oPC)
 {
     return GetLocalInt(oPC, CSP_DTL) - 1;
 }
+
+// Push the selected spell's text into the open window's detail pane, without
+// rebuilding the window - see CSP_BIND_DTL.
+void CSP_RefreshDetail(object oPC);
 
 // The full text of one spell, for the detail pane.
 string CSP_DetailText(object oPC, int nSpellId)
@@ -196,8 +204,7 @@ json CSP_Window(object oPC)
     // The detail pane: the only place a spell description is readable now that
     // it has been taken out of the tooltips. Bordered so it reads as a panel,
     // and NUI_SCROLLBARS_AUTO because a TLK description has no length limit.
-    json jDetail = NuiText(JsonString(CSP_DetailText(oPC, CSP_DetailSpell(oPC))),
-                           TRUE, NUI_SCROLLBARS_AUTO);
+    json jDetail = NuiText(NuiBind(CSP_BIND_DTL), TRUE, NUI_SCROLLBARS_AUTO);
     jDetail = NuiWidth(jDetail, CSP_LIST_W);
     jDetail = NuiHeight(jDetail, CSP_DTL_H);
     jCol = JsonArrayInsert(jCol, jDetail);
@@ -245,4 +252,17 @@ void CSP_Open(object oPC)
 
     int nTok = NuiCreate(oPC, CSP_Window(oPC), CSP_WIN, "csp_evt");
     SetLocalInt(oPC, CSP_TOK, nTok);
+
+    // A bound widget starts empty until something writes to it, so seed the
+    // pane - including after a rebuild from learning a spell or switching
+    // level tabs, which should not blank what the player was reading.
+    CSP_RefreshDetail(oPC);
+}
+
+void CSP_RefreshDetail(object oPC)
+{
+    int nTok = GetLocalInt(oPC, CSP_TOK);
+    if (!nTok) return;
+    NuiSetBind(oPC, nTok, CSP_BIND_DTL,
+        JsonString(CSP_DetailText(oPC, CSP_DetailSpell(oPC))));
 }

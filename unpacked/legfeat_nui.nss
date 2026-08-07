@@ -54,6 +54,13 @@ const string LEGFEAT_TOK = "LEGFEAT_TOK";  // PC local: this window's token
 // distinguishable from "nothing selected yet". Same convention as CSP_SEL in
 // csp_nui.nss.
 const string LEGFEAT_SEL = "LEGFEAT_SEL";
+// The detail pane's contents are BOUND, not baked into the layout, so that
+// clicking "?" can update it without rebuilding the window. Rebuilding threw
+// away the list's scroll position - sometimes to the top, sometimes to wherever
+// the client had last cached it - which made the button feel like it was
+// yanking the list around. The bind is the whole reason the pane is not just
+// another JsonString in LegFeat_Window.
+const string LEGFEAT_BIND_DTL = "lf_detail";
 
 // The one line of tunable text under the "you may choose N" header. It exists
 // because where a player re-picks is not settled - the re-pick node is parked on
@@ -124,12 +131,21 @@ int LegFeat_Selected(object oPC)
     return nSel;
 }
 
-// Select a row into the detail pane. The window is rebuilt by the caller.
+// Select a row into the detail pane.
 void LegFeat_Select(object oPC, int nIndex)
 {
     if (nIndex < 0 || nIndex >= LEGFEAT_COUNT) DeleteLocalInt(oPC, LEGFEAT_SEL);
     else SetLocalInt(oPC, LEGFEAT_SEL, nIndex + 1);
 }
+
+// Push the currently selected row's text into the open window's detail pane.
+//
+// This is the ONLY thing a "?" click does - the window is deliberately NOT
+// rebuilt. Rebuilding it lost the list's scroll position, and the client's own
+// cache made that inconsistent: some clicks landed back at the top of the pool,
+// some at the last remembered offset. Updating one bind leaves the list exactly
+// where the player left it.
+void LegFeat_RefreshDetail(object oPC);
 
 // The full text of one feat, for the detail pane: name, description, and the
 // measured requirement clause by clause.
@@ -308,8 +324,7 @@ json LegFeat_Window(object oPC)
     // row, and NUI_SCROLLBARS_AUTO rather than NONE: this is the only place the
     // full description exists, so if it ever outgrows LEGFEAT_DTL_H the player
     // must be able to scroll to the rest instead of silently losing it.
-    json jDetail = NuiText(JsonString(LegFeat_DetailText(oPC, LegFeat_Selected(oPC))),
-                           TRUE, NUI_SCROLLBARS_AUTO);
+    json jDetail = NuiText(NuiBind(LEGFEAT_BIND_DTL), TRUE, NUI_SCROLLBARS_AUTO);
     jDetail = NuiWidth(jDetail, LEGFEAT_LIST_W);
     jDetail = NuiHeight(jDetail, LEGFEAT_DTL_H);
     jCol = JsonArrayInsert(jCol, jDetail);
@@ -349,4 +364,17 @@ void LegFeat_Open(object oPC)
 
     int nTok = NuiCreate(oPC, LegFeat_Window(oPC), LEGFEAT_WIN, "legfeat_evt");
     SetLocalInt(oPC, LEGFEAT_TOK, nTok);
+
+    // A bound widget starts empty until something writes to it, so seed the
+    // pane here. That also means a rebuild after taking a feat comes back
+    // showing whatever the player was reading, rather than blank.
+    LegFeat_RefreshDetail(oPC);
+}
+
+void LegFeat_RefreshDetail(object oPC)
+{
+    int nTok = GetLocalInt(oPC, LEGFEAT_TOK);
+    if (!nTok) return;
+    NuiSetBind(oPC, nTok, LEGFEAT_BIND_DTL,
+        JsonString(LegFeat_DetailText(oPC, LegFeat_Selected(oPC))));
 }
