@@ -136,6 +136,47 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: forge-restrictrion-properties-exploit
+    title: "Forge can counts restrictions as properties that can be removed"
+    group: forge
+    status: manual
+    type: Exploit
+    player: Szescian82
+    date: "2026-08-07"
+    commit: f04935c409760f0e1668fa9972128e1d198a9785
+    notes: "<div><b>Race, class and alignment locks are no longer enchantments.</b> A restriction on a piece of gear - \"usable by dwarves only\", \"fighters only\", \"good characters only\" - used to eat one of your item's enchantment slots, and the forge would happily strike it off for you. Both halves of that are gone. A restricted item now has its <b>full</b> allowance of enchantments free (so a class-locked sword with three locks on it just gained three usable slots), and no forge and no Forge Warden will unmake a lock: the restrictions no longer appear in the list of things you can strip.</div><div><br></div><div><b>Light is free, and can now be unmade.</b> Light never counted toward the limit, but nothing said so and there was no way to remove it once added. The forge's Light enchant now says outright that it does not count toward the limit, and Light appears in the strip list marked <i>(free - no slot)</i> - striking it costs you nothing and frees nothing. Weapon visual effects from the Bree appearance station are unchanged: still free, still not the forge's business.</div><div><br></div><div>The smith tells you which is which. When you bring in a piece carrying either, the forge master's own words now explain that the bindings of blood, creed and calling cost it no slot and cannot be unmade, and that its light is a free gift.</div>"
+    impl_notes: "<div><b>Root cause.</b> The forge tree had exactly one property classifier, <code>ForgeIsCosmeticProp</code> (VISUALEFFECT + LIGHT), and every enumeration in <code>forge_inc.nss</code> repeated the same inline predicate <code>permanent &amp;&amp; !cosmetic</code>. Nothing anywhere filtered <code>ITEM_PROPERTY_USE_LIMITATION_*</code> (types 62-66), so restrictions were counted by <code>ForgeCountProps</code> (the cap, enforced in <code>modifyitem.nss</code>) and listed by <code>ForgeGetPermPropByIndex</code>, which is the list-builder for BOTH strip paths - the Warden's immediate <code>forge_dis_*</code> menu and the staged anvil <code>forge_stg_*</code> menu.</div><div><br></div><div><b>Shape of the fix.</b> The one predicate was three different questions wearing a trenchcoat. They are now three named sets resolved by a single <code>ForgePropInSet(ip, nSel)</code>, with <code>ForgeCountPropsSel</code> / <code>ForgeGetPropByIndexSel</code> as the only enumerators: <b>COUNTED</b> (fills a slot - cap, legality verdict, \"bears N enchantments\"), <b>REMOVABLE</b> (what a player may strike, and therefore what the staged plan's bit indices run over - Light in, restrictions and visual effects out), <b>PRICED</b> (rebuilt gold value + the blueprint tamper check; deliberately identical to the old rule, restrictions included). <code>ForgeCountProps</code> / <code>ForgeGetPermPropByIndex</code> survive as thin COUNTED wrappers so the 15 existing call sites keep their meaning.</div><div><br></div><div><b>The dangerous one.</b> <code>ForgeItemDeviatesFromBlueprint</code> had to go to PRICED on BOTH its outer walk and its <code>oStock</code> indexing. Narrowing it to the counted set would have left a stock item's restrictions unmatchable against its own blueprint's, flagged every class/race-locked drop in the module as deviant, and started jailing legitimate gear through the contraband scan. Same reason <code>forge_legal_inc.nss</code> and <code>bin/gen-forge-legal.py</code> were left alone - the whitelist fingerprint must keep seeing restrictions, so no regen and no whitelist churn.</div><div><br></div><div><b>The subtle one.</b> <code>ForgeProjectedValue</code> prices a blank from PRICED but its <code>n</code> indexes the plan bitmask, which runs over REMOVABLE - two lists that are no longer the same. It now advances the index only on a removable property, always copies restrictions (never droppable, never indexed), and lets Light consume an index without reaching the blank, so planning a Light removal moves the projected worth by exactly zero. <code>ForgeProjectedPropCount</code> was rewritten to walk REMOVABLE while tallying only COUNTED, so a planned Light removal does not fake a drop in the projected property count and cannot make an over-cap plan read as lawful.</div><div><br></div><div><b>Player-facing.</b> <code>ForgeSlotLabel</code> suffixes a cosmetic slot with \"(free - no slot)\"; <code>ForgeUnlistedNote</code> emits one clause per case actually present on the item and is appended to both status strings that render through custom token 6119 (<code>ForgeLegalStatus</code> for the Warden, <code>ForgeProjectedStatus</code> for the anvil), so a player who cannot find a restriction in the list is told why. The <code>setproplight</code> reply in kimli_forge / bellnius_smith / kallrist_forge now reads \"Light. (illumination only - does not count toward the enchantment limit)\"; the ammo \"1d6 Light.\" reply is the Light DAMAGE type and was left alone.</div><div><br></div><div><b>Stamp + gate.</b> <code>FORGE_CLEAN_VER</code> 3 -&gt; 4 forces one re-scan per item under the new counting rules (the change only ever loosens legality, so nothing can newly become contraband). <code>tests/check_forge_disenchant.py</code> was purely structural and would not have caught any of this - it now asserts the restriction classifier covers all five constants, the three selectors exist, no inline \"permanent &amp;&amp; !cosmetic\" enumeration survives, each function uses the right selector, and the Light reply still carries its note. Verified the gate bites by reverting <code>ForgeDisenchantSetup</code> to the old calls - it failed as intended.</div><div><br></div><div><b>Known limitation (pre-existing):</b> the Warden's immediate strip menu has 8 unpaginated slots, so an item with more than 8 removable properties still shows only the first 8 there. The anvil's staged menu paginates.</div>"
+    manual_steps:
+      - step: "UAT (the exploit): take an item with a race/class/alignment restriction to a forge anvil. The restriction must NOT appear in the strip list, and the smith's status line must say the bindings cost it no slot and cannot be unmade."
+        status: open
+        kind: uat
+        tester: any
+        step_h: 64
+      - step: "UAT (slots freed): enchant that same restricted item up to the cap. It must now accept one more enchantment per restriction it carries than it did before this fix."
+        status: open
+        kind: uat
+        tester: any
+        step_h: 64
+      - step: "UAT (Light): add Light at Kimli, Bellnius or Kallrist - the reply text must say it does not count toward the limit. Then strip it at the anvil: it must be listed as '(free - no slot)', and both the projected worth and the property count must not move."
+        status: open
+        kind: uat
+        tester: any
+        step_h: 64
+      - step: "UAT (staged plan): plan a mix of Light plus two real enchantments. The [planned] markers, the projected worth and the 'within the law' verdict must all track the real enchantments only, and the commit must remove exactly the ticked properties - no more, no fewer."
+        status: open
+        kind: uat
+        tester: any
+        step_h: 64
+      - step: "UAT (regression guard - the jailing risk): log in carrying a STOCK restricted item, e.g. a class-locked drop. The FORGE_CLEAN_VER bump forces a re-scan; the item must pass untouched, not be flagged deviant or quarantined. This is the one way this change could go badly wrong."
+        status: open
+        kind: uat
+        tester: any
+        step_h: 64
+      - step: "UAT (Warden jail path): on a genuinely over-cap item, the Forge Warden's strip menu must still work and must list no restrictions."
+        status: open
+        kind: uat
+        tester: any
+        step_h: 64
   - id: combat-dummy
     title: "combat dummy to measure attacks and damage per round"
     group: combat-classes
@@ -5775,7 +5816,8 @@ ideas:
   - id: spell-ab-prowess-stack
     title: "Attack bonus from spells (War Cry, Bless, Prayer...) does nothing when Legendary Prowess is taken"
     group: combat-classes
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-06"
@@ -5786,33 +5828,38 @@ ideas:
       - question: "Pooling the spells raises the obvious balance question: should they stack with EACH OTHER too? MY IMPLEMENTATION (and recommendation) is NO - the ledger grows a GROUP concept: sources in the same group contribute max(entries), groups sum. Every pooled spell sits in one 'spell' group, so Bless + Prayer still gives the better of the two (exactly what the engine did), while the group total adds to Prowess/Grip/Song. That fixes the report without handing out a stacking rule D&D never had. The alternative, giving every spell its own group, would let a cleric stack Bless + Aid + Prayer + Divine Favor + Divine Power for +9ish before any feat - a much bigger power increase than the report asks for. Say the word if you want that instead; it is a one-line table change per spell."
         status: answered
         answer: "Stack them - the admin's call, 2026-08-06: a pooled bonus is a pooled bonus, and a cleric who spends four rounds buffing should feel all four spells. The group layer built for the max-of behaviour was removed again rather than left in place degenerate (one source per group); the ledger is back to a plain sum of every live entry."
+        question_h: 64
+        answer_h: 64
       - question: "Which sources are in scope? I have pooled the seven that grant an ATTACK bonus and are reachable by a player: Bless, Aid, Prayer, War Cry, Divine Favor, Divine Power and Divine Wrath (Divine Champion). Deliberately NOT pooled: (a) the DAMAGE halves of those same spells - damage bonuses of DIFFERENT damage types already stack in the engine, so there is no defect there, and pooling them would flatten slashing/magical/divine into the pool's bludgeoning and change what damage reduction eats; (b) Divine Might (damage only, same reason); (c) Tenser's Transformation (its bonus is tied to the polymorph and must end with it); (d) item attack bonus, which is a property, not an effect. Anything you want added or removed from that list?"
         status: open
         answer: null
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "UAT, THE REPORTED BUG: on a character holding Legendary Prowess, note the character sheet attack bonus, cast/sing War Cry, and confirm attack rises by the FULL +2 (it moved by 0 before). Repeat with Bless (+1) and Divine Favor (+1..+5)."
         status: open
-        kind: uat
-        tester: "level 60 with Legendary Prowess; bard for War Cry, cleric/paladin for Bless/Divine Favor"
+        kind: admin
+        step_h: 64
       - step: "UAT the spells DO stack with each other (admin's call, 2026-08-06): cast Bless (+1) then Prayer (+1) on the same character - attack must rise by 2, not 1. Add Divine Favor at +5 and the three together must read +7, on top of any feat or song bonus."
         status: open
-        kind: uat
-        tester: "any cleric with Bless, Prayer and Divine Favor"
+        kind: admin
+        step_h: 64
       - step: "UAT the baseline for a character with NO legendary feats: every one of the seven spells grants exactly what it always did. This fix must not change what an unfeated character gets from a buff."
         status: open
-        kind: uat
-        tester: "any low/mid-level caster"
+        kind: admin
+        step_h: 64
       - step: "UAT expiry: cast War Cry, let it run out, and confirm the attack bonus drops by exactly its share and the feat bonus survives. Then cast it again and die - on respawn the spell share must be gone and the feat share back."
         status: open
-        kind: uat
-        tester: "any character with Legendary Prowess"
+        kind: admin
+        step_h: 64
       - step: "UAT the NPC side, since these scripts run for monsters too: a hostile cleric casting Bless/Prayer on its allies must still visibly buff them (watch the combat log to-hit rolls), and nothing in the log should show a doubled bonus."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
       - step: "Publish: nwn-manager repack + server restart. Scripts only - no hak, TLK or 2da involved."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
   - id: bard-song-consumes-2-uses
     title: "Bard Song consumes two uses per activation"
     group: combat-classes
