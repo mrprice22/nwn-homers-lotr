@@ -1,20 +1,46 @@
-// fat_inc - soul-fatigue on the Heal spell and Heal potions
-// (roadmap: heal-soul-fatigue).
+// fat_inc - soul-fatigue on the full-heal spells and Heal potions
+// (roadmap: heal-soul-fatigue, heal-soul-fatigue-rebalance).
 //
 // Design spec: docs.manual/boss-updates.html#fatigue.
 //
 // Turns reflexive full-heal spam into a timed resource. When a living PC is
-// healed by the Heal spell (SPELL_HEAL, including potion/item activations -
-// they fire the same spell id through the module override spellscript) or by
-// Mass Heal, three things happen in strict order:
+// healed by one of the three full-HP-restore spells - Heal (including
+// potion/item activations, they fire the same spell id through the module
+// override spellscript), Mass Heal, or Greater Restoration - three things
+// happen in strict order:
 //   1. the heal fully resolves first (we only schedule work AFTER the real
 //      impact script has run),
-//   2. the PC then takes 10% of max HP as damage PER stack that was already
+//   2. the PC then takes 8% of max HP as damage PER stack that was already
 //      active BEFORE this heal - applied after the top-off so the heal can't
-//      erase it. This can kill: at 10 prior stacks the hit is 100% of max HP.
+//      erase it. This can kill: at 13 prior stacks the hit exceeds 100% of
+//      max HP.
 //   3. a new stack is added.
 // Each stack decays on its own independent 3-minute timer. A heal from zero
 // stacks is therefore completely free: full heal, 1 stack, no damage.
+//
+// Persistence - stacks are a PERSONAL DEBT, and there is no way to dodge it:
+//   * They survive a relog. The queue is stored per character in the
+//     "fatiguedb" campaign DB, keyed on GetObjectUUID (same convention as the
+//     bestiary and the pipeweed high), rewritten on every add and every
+//     expiry, and restored at login.
+//   * Decay PAUSES while the character is offline. Each stack carries its
+//     REMAINING seconds, not a wall-clock expiry, and those seconds are only
+//     spent by the per-PC ticker below - which only runs while the PC is in
+//     the world. Logging out to wait the timer down does nothing.
+//   * Death does not clear them either. Nothing in this file (or anywhere
+//     else) resets the queue on death or respawn; dying with a full stack
+//     count means coming back with it.
+// The old implementation used one independent DelayCommand per stack and a
+// plain local int. That decayed in real time whether or not you were logged
+// in, and a relog wiped the lot - both are now closed.
+//
+// Mitigation - the Heal SKILL (this is its end-game utility): the CASTER's
+// total Heal skill (ranks + Wisdom + item bonuses, i.e. GetSkillRank, not base
+// ranks) reduces the fatigue damage by 0.5% per point, counting up to 60
+// points, for a maximum 30% reduction. For a potion or a self-cast the caster
+// is the drinker, so a healer's own investment protects them too. With the cap
+// reached the effective cost is 5.6% per stack and the lethal point moves out
+// to 18 prior stacks (the 19th chained heal inside one 3-minute window).
 //
 // Hook: stop_spellcheat.nss (the SetModuleOverrideSpellscript script installed
 // by onmoduleload.nss, the real Mod_OnModLoad) calls FAT_OnOverrideSpellCast()
@@ -30,49 +56,201 @@
 //     friendly, non-undead targets in a MEDIUM sphere at the target location
 //     (that script staggers its heals by a random <=~1.1 s delay per target,
 //     so the fatigue hit waits FAT_LAND_MASS seconds).
-//   * All delayed work is assigned to the module object so it survives the
-//     caster dying/logging out; every callback re-validates its PC first.
-//   * Stacks live in a local int on the PC (precedent: the brief). They are
-//     wiped by a relog - accepted for now; persist via SQLite later if the
-//     admin wants relogging closed off as an out.
+//   * The damage/stack work is assigned to the module object so it survives
+//     the caster dying/logging out; every callback re-validates its PC first.
+//     The DECAY ticker is deliberately the opposite - see FAT_Kick().
 //
 // Locals used (on the PC):
-//   int fat_stacks   currently active soul-fatigue stacks
+//   int    fat_stacks   currently active soul-fatigue stacks (= entries in the
+//                       queue below; kept as an int so the damage maths and
+//                       any future reader don't have to parse the string)
+//   string fat_queue    the queue itself: one comma-terminated integer per
+//                       stack, its REMAINING seconds, e.g. "180,174,12,"
+//   int    fat_ticking  the ticker's kill switch / double-start guard
 
 const string FAT_VAR        = "fat_stacks";
-const int    FAT_PCT        = 10;     // % of max HP damage per prior stack
-const float  FAT_DECAY      = 180.0;  // seconds a stack lasts (3 minutes)
+const string FAT_QVAR       = "fat_queue";
+const string FAT_RUNVAR     = "fat_ticking";
+const string FAT_DB         = "fatiguedb";
+const string FAT_TICK_SCRIPT = "fat_tick";
+const int    FAT_PCT        = 8;      // % of max HP damage per prior stack
+const int    FAT_DECAY_SEC  = 180;    // seconds a stack lasts (3 minutes)
+const int    FAT_TICK_SEC   = 6;      // ticker granularity, seconds
+const float  FAT_TICK       = 6.0;    // ... the same, as a delay
 const float  FAT_LAND       = 1.0;    // Heal: delay so the heal resolves first
 const float  FAT_LAND_MASS  = 2.0;    // Mass Heal: outlasts its staggered heals
+const int    FAT_SKILL_PER  = 5;      // damage reduction per Heal point, in
+                                      // TENTHS of a percent (5 => 0.5%/point)
+const int    FAT_SKILL_CAP  = 60;     // Heal points counted (=> 30% max off)
 
-// One stack falls off (each stack has its own independent timer).
-void FAT_Decay(object oPC)
+// --- persistence ------------------------------------------------------------
+
+// Idempotent. Called from onmoduleload.nss and again from mod_cliententer.nss,
+// so the table exists even if load ordering never reached the first call.
+void FAT_InitDb()
 {
-    if (!GetIsObjectValid(oPC)) return;
+    sqlquery q = SqlPrepareQueryCampaign(FAT_DB,
+        "CREATE TABLE IF NOT EXISTS fatigue ("
+        + "uuid TEXT PRIMARY KEY,"
+        + "stacks INTEGER NOT NULL DEFAULT 0,"
+        + "queue TEXT NOT NULL DEFAULT '',"
+        + "cdkey TEXT, char_name TEXT, updated_at TEXT)");
+    SqlStep(q);
+}
+
+// Write the live queue back. Called on every change (not just at logout) so a
+// server crash can't be used to shed stacks either.
+void FAT_Save(object oPC)
+{
+    if (!GetIsObjectValid(oPC) || !GetIsPC(oPC) || GetIsDM(oPC)) return;
+
     int nStacks = GetLocalInt(oPC, FAT_VAR);
-    if (nStacks <= 0) return;
-    nStacks--;
-    SetLocalInt(oPC, FAT_VAR, nStacks);
-    if (nStacks > 0)
-        FloatingTextStringOnCreature("A stack of soul-fatigue fades ("
-            + IntToString(nStacks) + " remaining).", oPC, FALSE);
+    if (nStacks <= 0)
+    {
+        // Clean the row out rather than storing an empty queue: a character
+        // with no stacks has nothing to restore, and the table stays small.
+        sqlquery qd = SqlPrepareQueryCampaign(FAT_DB,
+            "DELETE FROM fatigue WHERE uuid=@u");
+        SqlBindString(qd, "@u", GetObjectUUID(oPC));
+        SqlStep(qd);
+        return;
+    }
+
+    sqlquery q = SqlPrepareQueryCampaign(FAT_DB,
+        "INSERT INTO fatigue(uuid,stacks,queue,cdkey,char_name,updated_at)"
+        + " VALUES(@u,@s,@q,@k,@n,datetime('now'))"
+        + " ON CONFLICT(uuid) DO UPDATE SET"
+        + " stacks=excluded.stacks,"
+        + " queue=excluded.queue,"
+        + " cdkey=excluded.cdkey,"
+        + " char_name=excluded.char_name,"
+        + " updated_at=excluded.updated_at");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    SqlBindInt(q,    "@s", nStacks);
+    SqlBindString(q, "@q", GetLocalString(oPC, FAT_QVAR));
+    SqlBindString(q, "@k", GetPCPublicCDKey(oPC));
+    SqlBindString(q, "@n", GetName(oPC));
+    SqlStep(q);
+}
+
+// --- the decay ticker -------------------------------------------------------
+
+// Start (or restart) the per-PC ticker if it isn't already running.
+//
+// Note what this deliberately does NOT do: it does not assign the delay to the
+// module. The DelayCommand rides on the PC, so it simply stops firing when the
+// character leaves the world and is re-armed by FAT_LoginRestore on the way
+// back in. That IS the "decay pauses while logged out" rule - remaining
+// seconds are only ever spent by a tick that actually ran.
+void FAT_Kick(object oPC)
+{
+    if (GetLocalInt(oPC, FAT_RUNVAR)) return;          // already ticking
+    if (GetLocalInt(oPC, FAT_VAR) <= 0) return;        // nothing to decay
+    SetLocalInt(oPC, FAT_RUNVAR, TRUE);
+    AssignCommand(oPC,
+        DelayCommand(FAT_TICK, ExecuteScript(FAT_TICK_SCRIPT, oPC)));
+}
+
+// Age every stack by nSecs and drop the ones that ran out. Returns how many
+// fell off. Rebuilds fat_queue and keeps fat_stacks in step with it.
+int FAT_AgeQueue(object oPC, int nSecs)
+{
+    string sQ = GetLocalString(oPC, FAT_QVAR);
+    string sOut = "";
+    int nGone = 0, nKept = 0;
+
+    int p = FindSubString(sQ, ",");
+    while (p >= 0)
+    {
+        int nRem = StringToInt(GetSubString(sQ, 0, p)) - nSecs;
+        sQ = GetSubString(sQ, p + 1, GetStringLength(sQ) - p - 1);
+        if (nRem > 0)
+        {
+            sOut += IntToString(nRem) + ",";
+            nKept++;
+        }
+        else nGone++;
+        p = FindSubString(sQ, ",");
+    }
+
+    SetLocalString(oPC, FAT_QVAR, sOut);
+    SetLocalInt(oPC, FAT_VAR, nKept);
+    return nGone;
+}
+
+// One tick. Called from fat_tick.nss with OBJECT_SELF = the PC.
+void FAT_Tick(object oPC)
+{
+    if (!GetIsObjectValid(oPC) || !GetIsPC(oPC)) return;
+    if (!GetLocalInt(oPC, FAT_RUNVAR)) return;         // kill switch
+
+    int nGone = FAT_AgeQueue(oPC, FAT_TICK_SEC);
+    int nLeft = GetLocalInt(oPC, FAT_VAR);
+
+    if (nGone > 0)
+    {
+        FAT_Save(oPC);
+        if (nLeft > 0)
+            FloatingTextStringOnCreature("A stack of soul-fatigue fades ("
+                + IntToString(nLeft) + " remaining).", oPC, FALSE);
+        else
+            FloatingTextStringOnCreature(
+                "The soul-fatigue lifts. The next heal is free.", oPC, FALSE);
+    }
+
+    if (nLeft > 0)
+        DelayCommand(FAT_TICK, ExecuteScript(FAT_TICK_SCRIPT, oPC));
     else
-        FloatingTextStringOnCreature(
-            "The soul-fatigue lifts. The next heal is free.", oPC, FALSE);
+        DeleteLocalInt(oPC, FAT_RUNVAR);
+}
+
+// Login: pull the stored queue back onto the PC and re-arm the ticker, so the
+// clock restarts exactly where it stopped. Called from mod_cliententer.nss,
+// delayed past the login flood and past the GetObjectUUID forcing call there.
+void FAT_LoginRestore(object oPC)
+{
+    if (!GetIsObjectValid(oPC) || !GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    sqlquery q = SqlPrepareQueryCampaign(FAT_DB,
+        "SELECT stacks,queue FROM fatigue WHERE uuid=@u");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    if (!SqlStep(q)) return;
+
+    int nStacks = SqlGetInt(q, 0);
+    if (nStacks <= 0) return;
+
+    SetLocalInt(oPC, FAT_VAR, nStacks);
+    SetLocalString(oPC, FAT_QVAR, SqlGetString(q, 1));
+    FAT_Kick(oPC);
+
+    FloatingTextStringOnCreature("You return still soul-weary: "
+        + IntToString(nStacks) + " stack" + (nStacks == 1 ? "" : "s")
+        + " of soul-fatigue. It does not fade while you are away.",
+        oPC, FALSE);
 }
 
 // The ordered mechanic. Runs AFTER the heal has landed on oPC:
 // damage for the stacks held before this heal, then add the new stack.
-void FAT_ApplyToPC(object oPC)
+// nHeal is the CASTER's total Heal skill, captured at cast time (so it still
+// applies if the caster dies or logs out before this lands).
+void FAT_ApplyToPC(object oPC, int nHeal)
 {
     if (!GetIsObjectValid(oPC) || !GetIsPC(oPC) || GetIsDM(oPC)) return;
     if (GetIsDead(oPC)) return;   // died between cast and impact: no stack
+
+    // Clamp the skill: GetSkillRank returns -1 for an untrained non-class
+    // skill, and only the first FAT_SKILL_CAP points count.
+    if (nHeal < 0) nHeal = 0;
+    if (nHeal > FAT_SKILL_CAP) nHeal = FAT_SKILL_CAP;
+    int nCut = nHeal * FAT_SKILL_PER;   // reduction in tenths of a percent
 
     int nPrior = GetLocalInt(oPC, FAT_VAR);
 
     if (nPrior > 0)
     {
+        // Integer maths in thousandths so 0.5%/point is exact - no floats.
         int nDmg = GetMaxHitPoints(oPC) * FAT_PCT * nPrior / 100;
+        nDmg = nDmg * (1000 - nCut) / 1000;
         if (nDmg > 0)
         {
             // Remove the HP directly rather than via EffectDamage. This is the
@@ -100,22 +278,34 @@ void FAT_ApplyToPC(object oPC)
             {
                 SetCurrentHitPoints(oPC, nNew);
             }
+            string sCut = "";
+            if (nCut > 0)
+                sCut = ", -" + IntToString(nCut / 10)
+                     + (nCut % 10 != 0 ? ".5" : "")
+                     + "% from the healer's Heal skill";
+
             FloatingTextStringOnCreature("Soul-fatigue tears at you for "
                 + IntToString(nDmg) + " damage ("
                 + IntToString(nPrior) + " stack" + (nPrior == 1 ? "" : "s")
-                + " x " + IntToString(FAT_PCT) + "% of max HP).", oPC, FALSE);
+                + " x " + IntToString(FAT_PCT) + "% of max HP"
+                + sCut + ").", oPC, FALSE);
         }
     }
 
-    // The new stack - even if the fatigue damage just killed them.
+    // The new stack - even if the fatigue damage just killed them. Death does
+    // not clear the queue; the debt is carried through the respawn.
     int nNow = GetLocalInt(oPC, FAT_VAR) + 1;
     SetLocalInt(oPC, FAT_VAR, nNow);
-    AssignCommand(GetModule(), DelayCommand(FAT_DECAY, FAT_Decay(oPC)));
+    SetLocalString(oPC, FAT_QVAR, GetLocalString(oPC, FAT_QVAR)
+        + IntToString(FAT_DECAY_SEC) + ",");
+    FAT_Save(oPC);
+    FAT_Kick(oPC);
 
     FloatingTextStringOnCreature("Soul-fatigue: " + IntToString(nNow)
         + " stack" + (nNow == 1 ? "" : "s")
-        + ". Another heal within 3 minutes will cost "
-        + IntToString(nNow * FAT_PCT) + "% of your max HP after it lands.",
+        + ". Another heal within 3 minutes will cost up to "
+        + IntToString(nNow * FAT_PCT)
+        + "% of your max HP after it lands (less the healer's Heal skill).",
         oPC, FALSE);
 }
 
@@ -124,9 +314,16 @@ void FAT_ApplyToPC(object oPC)
 void FAT_OnOverrideSpellCast()
 {
     int nSpell = GetSpellId();
-    if (nSpell != SPELL_HEAL && nSpell != SPELL_MASS_HEAL) return;
+    if (nSpell != SPELL_HEAL && nSpell != SPELL_MASS_HEAL
+        && nSpell != SPELL_GREATER_RESTORATION) return;
 
-    if (nSpell == SPELL_HEAL)
+    // The caster's (or potion/item user's) total Heal skill - read once, here,
+    // so it survives the caster dying or logging out before impact.
+    int nHeal = GetSkillRank(SKILL_HEAL, OBJECT_SELF);
+    if (nHeal < 0) nHeal = 0;
+
+    // Heal and Greater Restoration are both single-target full restores.
+    if (nSpell == SPELL_HEAL || nSpell == SPELL_GREATER_RESTORATION)
     {
         object oTarget = GetSpellTargetObject();
         if (!GetIsObjectValid(oTarget)) return;
@@ -134,7 +331,7 @@ void FAT_OnOverrideSpellCast()
         // Heal cast at undead is an attack, not a heal - no fatigue.
         if (GetRacialType(oTarget) == RACIAL_TYPE_UNDEAD) return;
         AssignCommand(GetModule(),
-            DelayCommand(FAT_LAND, FAT_ApplyToPC(oTarget)));
+            DelayCommand(FAT_LAND, FAT_ApplyToPC(oTarget, nHeal)));
         return;
     }
 
@@ -149,7 +346,7 @@ void FAT_OnOverrideSpellCast()
             && GetIsFriend(oT))
         {
             AssignCommand(GetModule(),
-                DelayCommand(FAT_LAND_MASS, FAT_ApplyToPC(oT)));
+                DelayCommand(FAT_LAND_MASS, FAT_ApplyToPC(oT, nHeal)));
         }
         oT = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_MEDIUM, lLoc);
     }

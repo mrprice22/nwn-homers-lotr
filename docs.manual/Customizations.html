@@ -1113,18 +1113,25 @@ Spell Focus). Summons from other classes (e.g. a wizard's) are unaffected.</p>
 </div>
 
 <h3 id="soul-fatigue">Soul-fatigue on Heal</h3>
-<p><strong>Healing is a timed resource, not a button you hold.</strong> Being healed by
-<strong>Heal</strong> or <strong>Mass Heal</strong> — including from <strong>Heal potions</strong> and
-any item that casts it — leaves a stack of <em>soul-fatigue</em> on you. The order of events matters:</p>
+<p><strong>Healing is a timed resource, not a button you hold.</strong> Being healed by one of the
+three full-restore spells — <strong>Heal</strong>, <strong>Mass Heal</strong> or
+<strong>Greater Restoration</strong>, including from <strong>Heal potions</strong> and any item that
+casts them — leaves a stack of <em>soul-fatigue</em> on you. The order of events matters:</p>
 <ol>
   <li><strong>The heal resolves in full first</strong> — you go to 100% HP as normal.</li>
-  <li><strong>You then take 10% of your maximum HP as damage for every stack you were already
-  carrying</strong>, applied <em>after</em> the top-off so the heal cannot erase it.</li>
+  <li><strong>You then take 8% of your maximum HP as damage for every stack you were already
+  carrying</strong>, applied <em>after</em> the top-off so the heal cannot erase it — less whatever
+  the healer's <strong>Heal skill</strong> shaves off (see below).</li>
   <li><strong>One new stack is added.</strong></li>
 </ol>
 <ul>
   <li>Each stack decays on its <strong>own independent 3-minute timer</strong>. You are told on screen
   how many stacks you hold and when each one falls off.</li>
+  <li><strong>Soul-fatigue is a debt you cannot walk away from.</strong> Stacks are saved to your
+  character, so they <strong>survive a logout</strong> — and the timers <strong>pause while you are
+  offline</strong>, so logging out to wait them down achieves nothing. <strong>Dying does not clear
+  them either</strong>: you respawn carrying exactly what you had. The only thing that removes a stack
+  is three minutes of being in the world.</li>
   <li><strong>A heal at zero stacks is completely free</strong> — full benefit, one stack, no damage.
   It is <em>chain</em>-healing that turns dangerous.</li>
   <li>The damage is a <strong>scripted cost, not an attack</strong>: damage resistance, damage
@@ -1138,13 +1145,28 @@ any item that casts it — leaves a stack of <em>soul-fatigue</em> on you. The o
   </thead>
   <tbody>
     <tr><td>0</td><td>100% — free</td></tr>
-    <tr><td>1</td><td>90%</td></tr>
-    <tr><td>2</td><td>80%</td></tr>
-    <tr><td>5</td><td>50%</td></tr>
-    <tr><td>9</td><td>10%</td></tr>
-    <tr><td>10 or more</td><td><strong>Dead</strong> — the hit is 100% of your maximum HP</td></tr>
+    <tr><td>1</td><td>92%</td></tr>
+    <tr><td>2</td><td>84%</td></tr>
+    <tr><td>5</td><td>60%</td></tr>
+    <tr><td>9</td><td>28%</td></tr>
+    <tr><td>12</td><td>4%</td></tr>
+    <tr><td>13 or more</td><td><strong>Dead</strong> — the hit exceeds 100% of your maximum HP</td></tr>
   </tbody>
 </table>
+<p><em>Figures above are for a healer with no Heal skill. Heal skill pushes every row further down
+the table.</em></p>
+<div class="tip-box">
+  <p><strong>The Heal skill is your mitigation — and this is what it is for at high level.</strong>
+  The <em>caster's</em> total Heal skill (ranks <em>plus</em> Wisdom bonus <em>plus</em> item bonuses —
+  the number on your character sheet, not just the ranks you bought) reduces the soul-fatigue damage
+  by <strong>0.5% per point, counting up to 60 points</strong> — a maximum <strong>30% off</strong>.
+  Drinking your own potion or healing yourself counts your own skill, so the investment protects
+  you whether or not you are the party's healer.</p>
+  <p>At the 60-point cap each stack costs <strong>5.6%</strong> of your maximum HP instead of 8%. In
+  concrete terms: chain-healing kills you on the <strong>14th</strong> heal inside one three-minute
+  window with no Heal skill, and on the <strong>19th</strong> at the cap. The on-screen message names
+  the reduction every time it applies, so you can see the skill working.</p>
+</div>
 <div class="tip-box">
   <p><strong>Don't plan on backing off to wait it out.</strong> Against the great bosses, walking away
   from the fight triggers <a href="#boss-enrage">Boss Enrage on Retreat</a> — the boss heals and grows

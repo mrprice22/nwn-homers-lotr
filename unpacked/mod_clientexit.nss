@@ -11,6 +11,7 @@
 #include "pers_state_inc"
 #include "bank_box_inc"
 #include "epic_summon_inc"
+#include "fat_inc"
 
 void main()
 {
@@ -24,6 +25,11 @@ void main()
     CommitStrongBoxes(PC, "client_leave");
     CommitFamilyBoxes(PC, "client_leave");
     PersState_Snapshot(PC);
+    // Soul-fatigue: freeze the stack queue exactly as it stands. fat_inc also
+    // writes on every add and every expiry, so this is belt-and-braces - it
+    // only ever catches the <=6s of ticker granularity since the last write.
+    // Decay does not run while the character is gone.
+    FAT_Save(PC);
     // Force BIC write so the amulet (if any) and any other inventory /
     // BIC-resident state from this session survive a logout that beats
     // the next pc_export_inc auto-save tick.

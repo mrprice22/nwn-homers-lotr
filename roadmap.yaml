@@ -140,7 +140,8 @@ ideas:
     title: "Text goes off the screen for the Legendary Feat Picker UI (both in main feat descriptions and in popup tooltips)"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-07"
@@ -154,33 +155,27 @@ ideas:
         step_h: 64
       - step: "UAT (closes the report): open the picker via the Ping Pong re-pick node in the Well of Eru. The effect column must wrap onto a second line with nothing cut off. Check the Legendary Onslaught row specifically - '-3 target AC per hit, stacks 3, capped at its armour+shield AC' is the 62-character worst case that was being truncated."
         status: open
-        kind: uat
-        tester: "level 60, any class"
+        kind: admin
         step_h: 64
       - step: "UAT (the second fix - closes the tooltip half of the report): click the new '?' button on a row. The panel at the bottom of the window must fill with that feat's full description AND its requirements measured against your character. Nothing should now run off the screen on hover - what is left on hover is only the short effect line. Check the '?' works on a GREYED row too, since that is when it matters most."
         status: open
-        kind: uat
-        tester: "level 60, any class"
+        kind: admin
         step_h: 64
       - step: "UAT (longest text): use '?' on Legendary Butcher - the 263-character description, the worst case the detail pane has to hold. All of it must be readable; the pane has a scrollbar if it overflows, so confirm you can reach the end of the sentence one way or the other."
         status: open
-        kind: uat
-        tester: "level 60, any class"
+        kind: admin
         step_h: 64
       - step: "UAT (no scroll jump): scroll part-way down the feat list, then click a '?'. The list must NOT move - not to the top, not to a remembered offset. Only the panel at the bottom changes. Do it several times at different scroll positions; the earlier build alternated between the two and this is the check that it no longer rebuilds the window."
         status: open
-        kind: uat
-        tester: "level 60, any class"
+        kind: admin
         step_h: 64
       - step: "UAT (layout not regressed): confirm the list has no horizontal scrollbar, the header still reads in full (not clipped to 'You may choose 2 leg'), and taking a feat still turns its row to 'taken' and drops the header count - i.e. the window rebuild works with the extra column and the detail pane."
         status: open
-        kind: uat
-        tester: "level 60 with an unspent legendary pick"
+        kind: admin
         step_h: 64
       - step: "UAT (Spellbook Study): on a level-41+ caster, rest with picks remaining to open the Spellbook Study picker. It has the same new '?' button and detail pane - spell descriptions come from the TLK and are the longest strings either window shows. Confirm '?' fills the pane, that switching spell-level tabs still works, and that Learn still works."
         status: open
-        kind: uat
-        tester: "wizard or sorcerer, class level 41+"
+        kind: admin
         step_h: 64
   - id: legendary-feat-prereq-defect-1
     title: "Legendary Feats Prereqs not clear which one is missing/failing"
@@ -2262,6 +2257,49 @@ ideas:
     commit: f63d978a374, 9d44d0ccbb7
     notes: "<div>Turns reflexive full-heal spam into a timed resource: a heal from zero stacks is free, chain-healing gets progressively lethal (at 10 stacks the post-heal hit is 100% of max HP). Hook is the existing module override spellscript (stop_spellcheat via SetModuleOverrideSpellscript), which already sees potion activations. Design: <a href=\"https://homerslotr.com/manual/boss-updates#fatigue\">boss-updates#fatigue</a>.</div>"
     notes_h: 419
+  - id: heal-soul-fatigue-rebalance
+    title: "Soul-fatigue rebalance: 8% per stack instead of 10%, Greater Restoration now stacks it too, the Heal skill reduces the hit, and stacks now persist across logout and death"
+    group: bosses
+    epic: difficulty-increase
+    status: manual
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-07"
+    notes: "<div>Soul-fatigue eases up, closes a loophole and finally gives the Heal skill a reason to exist at high level. Three changes: each stack you were already carrying now costs <b>8%</b> of your maximum HP instead of 10%; <b>Greater Restoration</b> now leaves a stack like Heal and Mass Heal do (it is a full HP restore, and was a clean way around the whole mechanic); and the <b>caster's Heal skill</b> — ranks plus Wisdom plus item bonuses, the number on your sheet — now cuts the fatigue damage by 0.5% per point up to 60 points, for 30% off at the cap. Drinking your own potion counts your own skill, so it protects solo healers too. In practice chain-healing kills you on the 14th heal inside a three-minute window with no Heal skill, and on the 19th at the cap (it was the 11th). Plain <i>Restoration</i> is untouched — it restores ability damage, not hit points.</div><div><br></div><div>Balancing that, soul-fatigue is now a debt you cannot walk away from. Stacks are <b>saved to your character</b>, so they survive a logout — and the timers <b>pause while you are offline</b>, so logging out to wait them down does nothing. <b>Dying does not clear them either</b>; you respawn carrying exactly what you had. The only thing that removes a stack is three minutes of being in the world. Full detail: <a href=\"https://homerslotr.com/manual/Customizations#soul-fatigue\">Customizations — Soul-fatigue on Heal</a>.</div>"
+    impl_notes: "<div>All in <code>unpacked/fat_inc.nss</code>; no other script needed touching, since <code>stop_spellcheat.nss</code> (the module override spellscript installed by <code>onmoduleload.nss</code>) already calls <code>FAT_OnOverrideSpellCast()</code> first thing.</div><div><br></div><div><code>FAT_PCT</code> 10 -&gt; 8. New <code>FAT_SKILL_PER = 5</code> (reduction per Heal point, in <i>tenths</i> of a percent) and <code>FAT_SKILL_CAP = 60</code>. The reduction is done in integer thousandths — <code>nDmg = nDmg * (1000 - nHeal * FAT_SKILL_PER) / 1000</code> — so 0.5%/point is exact with no float rounding. <code>SPELL_GREATER_RESTORATION</code> (70) routes through the same single-target branch as <code>SPELL_HEAL</code>, same 1.0s landing delay.</div><div><br></div><div>The caster's skill is read <b>once at cast time</b> (<code>GetSkillRank(SKILL_HEAL, OBJECT_SELF)</code> in <code>FAT_OnOverrideSpellCast</code>, clamped at 0 because GetSkillRank returns -1 for an untrained non-class skill) and passed as a parameter into the delayed <code>FAT_ApplyToPC(oPC, nHeal)</code>, so it still applies if the healer dies or logs out before the fatigue lands. The direct <code>SetCurrentHitPoints</code> + explicit <code>EffectDeath</code> path is deliberately unchanged (commit 8f4095e22c2): the cost must bypass DR, resistance and immunity.</div><div><br></div><div><b>Persistence rework.</b> The old decay — one independent 180s <code>DelayCommand</code> per stack, count in a PC local int — ran in real time whether or not the player was logged in, and a relog wiped everything. Replaced by a queue of <i>remaining seconds</i> (<code>fat_queue</code>, one comma-terminated int per stack, e.g. \"180,174,12,\") aged by a single per-PC self-rescheduling ticker at 6s granularity (<code>fat_tick.nss</code> + <code>FAT_Tick</code>/<code>FAT_AgeQueue</code>/<code>FAT_Kick</code>, in the <code>_spfail_cycle.nss</code> shape). The ticker's DelayCommand rides on the <b>PC, not the module</b> — that is the whole pause-while-offline mechanism, since a logged-out PC's delayed commands never fire, and <code>FAT_LoginRestore</code> re-arms it at login.</div><div><br></div><div>New campaign DB <code>fatiguedb</code>, table <code>fatigue(uuid PK, stacks, queue, cdkey, char_name, updated_at)</code>, keyed on <code>GetObjectUUID</code> per the bestiary/pipeweed convention. <code>FAT_InitDb()</code> from <code>onmoduleload.nss</code> and again from <code>mod_cliententer.nss</code>; <code>FAT_LoginRestore</code> at the 9.0s login slot (after the UUID-forcing call); <code>FAT_Save</code> from <code>mod_clientexit.nss</code> before <code>ExportSingleCharacter</code>. Saves also happen on every add and every expiry, so a crash can't be used to shed stacks. Nothing clears the queue on death — the stack is added even when the fatigue hit is what killed the PC.</div>"
+    manual_steps:
+      - step: "UAT baseline: with a caster who has no Heal skill, chain two Heal potions. The second must cost 8% of max HP and the floating text must read \"x 8% of max HP\" with no mitigation clause."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT Heal skill: repeat with a caster at 60+ total Heal skill. The floating text must name \"-30% from the healer's Heal skill\" and the damage must be 0.7x the unmitigated figure."
+        status: open
+        kind: uat
+        tester: "cleric/druid 40+ with 60+ total Heal skill"
+      - step: "UAT partial mitigation: a caster at an odd Heal skill (e.g. 45) must show \"-22.5%\" — confirms the tenths-of-a-percent formatting."
+        status: open
+        kind: uat
+        tester: "any caster with Heal skill between 1 and 59"
+      - step: "UAT Greater Restoration: cast it on a PC already holding stacks. It must both deal the fatigue hit and add a stack, exactly like Heal."
+        status: open
+        kind: uat
+        tester: "cleric 26+ (Greater Restoration is a 7th-level cleric spell)"
+      - step: "UAT decay unchanged: a stack must still fall off 3 minutes after it was applied, with the \"a stack of soul-fatigue fades\" message (now up to 6s late, the ticker granularity)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT persistence: take 2-3 stacks, log out, wait well past 3 minutes, log back in. The login message must report the same stack count, and the timers must resume from where they stopped rather than having decayed while away."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT death: take 2-3 stacks, die, respawn. The stacks must still be there and still decaying."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT clean exit: let all stacks decay to zero, then log out and back in. No stale \"you return still soul-weary\" message, and the fatiguedb row for that character must have been deleted."
+        status: open
+        kind: uat
+        tester: "any"
   - id: encounter-density-reused-mobs
     title: "Encounter density: bump per-instance spawn counts 1 to 2 for creatures used by more than one encounter (cap 2, never solo boss encounters)"
     group: bosses

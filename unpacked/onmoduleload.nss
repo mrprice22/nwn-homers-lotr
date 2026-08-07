@@ -28,6 +28,7 @@
 #include "ammorep_db"
 #include "cbd_db"
 #include "pw_inc"
+#include "fat_inc"
 
 
 void main()
@@ -209,5 +210,12 @@ Cbd_InitDb();
 // before the first pipe is lit or the first login reapply reads it.
 // See pw_inc.nss (roadmap: concerning-pipeweed).
 PW_InitDb();
+
+// Soul-fatigue on the full-heal spells: stacks now persist per character and
+// their decay pauses while the player is offline, so the queue lives in a
+// campaign DB rather than a local int. Ensure the table exists before the
+// first heal lands or the first login tries to restore a queue.
+// See fat_inc.nss (roadmap: heal-soul-fatigue-rebalance).
+FAT_InitDb();
 
 }   //end of main

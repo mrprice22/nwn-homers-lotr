@@ -22,6 +22,7 @@
 #include "legfeat_inc"
 #include "csp_inc"
 #include "pw_inc"
+#include "fat_inc"
 #include "color"
 
 // Legendary feats: re-derive the allotment (which revokes picks a relevel or a
@@ -194,6 +195,16 @@ void main()
     // Delayed past the login flood, after the UUID above has been forced.
     // See pw_inc.nss (roadmap: concerning-pipeweed).
     DelayCommand(8.0, PW_Refresh(oPC));
+
+    // Soul-fatigue: restore this character's stack queue and re-arm the decay
+    // ticker where it stopped. Stacks are a persistent debt - they survive a
+    // relog and a death, and their decay is paused while the player is away,
+    // so logging out is not a way to shed them. Must land after the UUID has
+    // been forced above (the queue is keyed on GetObjectUUID); 9.0 keeps it
+    // clear of the login flood and of PW_Refresh's floating text.
+    // See fat_inc.nss (roadmap: heal-soul-fatigue-rebalance).
+    FAT_InitDb();
+    DelayCommand(9.0, FAT_LoginRestore(oPC));
 
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
     // The pooled attack/damage effect is a RENDER of the bonus ledger, never the
