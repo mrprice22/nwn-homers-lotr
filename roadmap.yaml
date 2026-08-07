@@ -136,12 +136,49 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
-  - id: legendary-feat-prereq-defect-1
-    title: "Legendary Prowess Prereq check not allowing exactly 35 AB when requires 35+"
+  - id: legendary-nui-wrapping
+    title: "Text goes off the screen for the Legendary Feat Picker UI (both in main feat descriptions and in popup tooltips)"
     group: combat-classes
     epic: legendary-levels
     status: manual
     type: Defect
+    player: Szescian82
+    date: "2026-08-07"
+    commit: 298a21a6a91
+    notes: "<div><b>Nothing in the Legendary Feat picker runs off the screen any more.</b> The effect column now wraps onto a second line instead of quietly dropping the end of the sentence, so the feats with the longest descriptions - the ones whose text was being cut in half - finally read in full. The name column gave up the width to pay for it; no feat name was ever close to needing what it had.</div><div><br></div><div>Hovering a row is readable too. A description plus its requirements could run to three hundred characters, and the game drew all of it on a single line straight off the side of the screen. Tooltips are now broken into lines like a paragraph.</div><div><br></div><div>The Spellbook Study picker got the same treatment - its tooltips carry full spell descriptions, which are longer still.</div>"
+    impl_notes: "<div><b>Two unrelated causes reported as one defect.</b> NUI offers three ways to show a string and each fails differently: a <i>label</i> aligns but never wraps - it clips its tail with no visual cue; <i>text</i> wraps but takes no alignment; a <i>tooltip</i> does neither, rendering one line with no width limit and no clipping. The picker used a label where it needed text, and a tooltip as though it were a paragraph.</div><div><br></div><div><b>The effect column</b> (legfeat_nui.nss LegFeat_Row) was NuiLabel in a 340px cell. LegFeat_EffectAt tops out at 62 characters (row 17, \"-3 target AC per hit, stacks 3, capped at its armour+shield AC\"), about 430px - so roughly a third of it was gone. It is now NuiText, borderless, NUI_SCROLLBARS_NONE. Geometry: name 240 -&gt; 200, effect 340 -&gt; 380 (longest name is 22 chars, so 200 is ample), row 30 -&gt; 46 for the second line, list 320 -&gt; 380 and window 470 -&gt; 530 to keep the same rows on screen. Columns still sum to 660 &lt; LEGFEAT_LIST_W 680 - the invariant that keeps the horizontal scrollbar away. NUI_SCROLLBARS_NONE means the row height, not a scrollbar, is what guarantees line two is visible.</div><div><br></div><div><b>The tooltip</b> was built flat as DescAt + \"  (Requires: \" + PrereqStatusAt + \")\" - 79-263 chars plus clauses, worst case ~300 on one unwrapped line. The comment asserting \"the tooltip has no width limit, so it carries every clause\" was the false premise that produced it; it is now corrected in place rather than deleted. Wrapped once where sTip is built, so all three attach points (Take button, name, effect) get it.</div><div><br></div><div><b>New include unpacked/nui_wrap_inc.nss</b> - NuiWrapText(sText, nCols) / NuiWrapLine, greedy word wrap at NUI_WRAP_COLS = 60, breaking only at spaces. A word longer than the budget is left intact on its own line rather than split (prose reads worse broken mid-word). Newlines already present are preserved as hard breaks and each line between them wrapped independently, with a trailing CR stripped - which is what makes it safe on TLK text. ASCII only (the recorded .nss trap) and no `&amp;` reference parameters (nw_inc_nui has none). 60 rather than the header's 80 because a tooltip is a floating box, and because a player on a larger UI scale fits fewer characters per line than the builder does.</div><div><br></div><div><b>csp_nui.nss</b> (Spellbook Study) had the tooltip half in a worse form - CSP_SpellDesc returns full TLK spell descriptions - and now wraps them. Its columns hold short strings, so no geometry change there.</div><div><br></div><div><b>The one assumption</b> is that the client honours \\n inside a NUI tooltip. That is what the hover UAT step below checks. If it does not, the fallback is to truncate sTip at two lines with a trailing \"...\" - the description is still readable in the row and in legfeat_evt's chat dump - not to revert the wrapper.</div><div><br></div><div><b>Scope:</b> presentation only. bin/gen-legendary-feats.py and the generated legfeat_ids_inc.nss are untouched - the strings were fine, their rendering was not. No hak, no feat.2da, no lotr.tlk, no nwsync. Repack passed 22/22 smoke tests including the LegFeat_FirstUnmetAt call-site gate (the effect column still calls it) and the ASCII gate; legfeat_evt and csp_evt compile clean against the new include.</div>"
+    manual_steps:
+      - step: "Repack and restart the server. Script-side only - no hak, TLK or nwsync rebuild is needed."
+        status: open
+        kind: admin
+        step_h: 64
+      - step: "UAT (closes the report): open the picker via the Ping Pong re-pick node in the Well of Eru. The effect column must wrap onto a second line with nothing cut off. Check the Legendary Onslaught row specifically - '-3 target AC per hit, stacks 3, capped at its armour+shield AC' is the 62-character worst case that was being truncated."
+        status: open
+        kind: uat
+        tester: "level 60, any class"
+        step_h: 64
+      - step: "UAT (the one assumption): hover any row. The tooltip must render as a paragraph several lines tall, NOT one long line running off the side of the screen. If the newlines come through as literal junk or are ignored, report it - the fallback is to truncate the tooltip rather than wrap it."
+        status: open
+        kind: uat
+        tester: "level 60, any class"
+        step_h: 64
+      - step: "UAT (layout not regressed): confirm the list has no horizontal scrollbar, the header still reads in full (not clipped to 'You may choose 2 leg'), and taking a feat still turns its row to 'taken' and drops the header count - i.e. the window rebuild works at the new row height."
+        status: open
+        kind: uat
+        tester: "level 60 with an unspent legendary pick"
+        step_h: 64
+      - step: "UAT (Spellbook Study): on a level-41+ caster, rest with picks remaining to open the Spellbook Study picker and hover a spell row. Its tooltips carry full TLK spell descriptions - the longest strings either window shows - and must wrap the same way."
+        status: open
+        kind: uat
+        tester: "wizard or sorcerer, class level 41+"
+        step_h: 64
+  - id: legendary-feat-prereq-defect-1
+    title: "Legendary Feats Prereqs not clear which one is missing/failing"
+    group: combat-classes
+    epic: legendary-levels
+    status: awarded
+    merit_awarded: true
+    type: Enhancement
     player: Szescian82
     date: "2026-08-07"
     commit: 35bffb76ef3
@@ -150,19 +187,20 @@ ideas:
     manual_steps:
       - step: "Repack and restart the server. No hak, TLK or nwsync rebuild is needed - the change is script-side only."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
       - step: "UAT (closes the report): on PiC Testerrrr, open the picker via the Ping Pong re-pick node in the Well of Eru. The Legendary Prowess row must read 'Needs: Epic Prowess' - NOT a BAB number - and clicking it must put 'BAB 35+ (you have N) [ok], Epic Prowess [X]' in the chat log. That names the clause the character's .bic actually lacks."
         status: open
-        kind: uat
-        tester: "PiC Testerrrr (level 60)"
+        kind: admin
+        step_h: 64
       - step: "UAT (measured numbers): check a row that fails on a NUMBER rather than a feat - Legendary Riposte wants Parry 60+ ranks. It must show the character's own rank, e.g. 'Needs: Parry 60+ ranks (you have 12)'. Report the BAB figure the Prowess tooltip prints: that number decides whether the three BAB 35+ gates get retuned."
         status: open
-        kind: uat
-        tester: "any level 60"
+        kind: admin
+        step_h: 64
       - step: "UAT (honest refusals): confirm no refusal misreports itself any more. Take a feat legitimately, then click its row again - 'You already have that legendary feat' must appear only when the feat is genuinely already held, never for an unmet prerequisite."
         status: open
-        kind: uat
-        tester: "any level 60"
+        kind: admin
+        step_h: 64
   - id: forge-restrictrion-properties-exploit
     title: "Forge can counts restrictions as properties that can be removed"
     group: forge
