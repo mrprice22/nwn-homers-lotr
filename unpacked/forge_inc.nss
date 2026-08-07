@@ -265,7 +265,7 @@ const int FORGE_STG_WORDS = 6;
 // after a rules update. Forge masters clear the stamp when they modify an item
 // (see modifyitem.nss / forge_dis_go.nss). Legality is intrinsic to the item,
 // so a clean stamp is valid across owners - trading can't launder gear.
-const int FORGE_CLEAN_VER = 3;
+const int FORGE_CLEAN_VER = 4;
 
 // Tri-state result of ForgeItemLegality.
 const int FORGE_LEG_LEGAL         = 0;  // confirmed within the law
@@ -291,6 +291,89 @@ int ForgeIsCosmeticProp(itemproperty ip)
     int nType = GetItemPropertyType(ip);
     return nType == ITEM_PROPERTY_VISUALEFFECT
         || nType == ITEM_PROPERTY_LIGHT;
+}
+
+// Use limitations (alignment group, class, racial type, specific alignment,
+// tileset) are RESTRICTIONS, not enchantments: they make an item WEAKER, not
+// stronger. They are never counted toward the property cap and are never
+// offered for removal - stripping one used to be the cheapest way to free a
+// slot AND to make class/race-locked gear usable by a character it was never
+// meant for (roadmap forge-restrictrion-properties-exploit). They ARE still
+// priced and still fingerprinted, so an item's assessed worth and its identity
+// against the stock blueprint are unchanged - see FORGE_SEL_PRICED below.
+int ForgeIsRestrictionProp(itemproperty ip)
+{
+    int nType = GetItemPropertyType(ip);
+    return nType == ITEM_PROPERTY_USE_LIMITATION_ALIGNMENT_GROUP
+        || nType == ITEM_PROPERTY_USE_LIMITATION_CLASS
+        || nType == ITEM_PROPERTY_USE_LIMITATION_RACIAL_TYPE
+        || nType == ITEM_PROPERTY_USE_LIMITATION_SPECIFIC_ALIGNMENT
+        || nType == ITEM_PROPERTY_USE_LIMITATION_TILESET;
+}
+
+// Three DIFFERENT questions the forge asks about a property, which used to
+// share one predicate (permanent && !cosmetic) and no longer can. Every
+// enumeration in this file goes through ForgePropInSet with one of these -
+// never re-inline the condition, or the sets silently drift apart.
+//
+//   COUNTED   what fills an enchantment slot: the property cap, the "bears N
+//             enchantments" messages, the legality verdict.
+//   REMOVABLE what a player may strike at a forge / in the Warden's jail, and
+//             therefore what the staged plan's bit indices count. Light IS
+//             removable (it just costs no slot); weapon visual effects are not
+//             (they come from the Bree appearance station, not the forge).
+//   PRICED    what contributes to the rebuilt gold value and what identifies
+//             the item against its stock blueprint. Identical to the old
+//             permanent && !cosmetic rule - pricing and fingerprints must not
+//             move when the counting rules change.
+const int FORGE_SEL_COUNTED   = 0;
+const int FORGE_SEL_REMOVABLE = 1;
+const int FORGE_SEL_PRICED    = 2;
+
+int ForgePropInSet(itemproperty ip, int nSel)
+{
+    if (GetItemPropertyDurationType(ip) != DURATION_TYPE_PERMANENT)
+        return FALSE;
+    if (nSel == FORGE_SEL_REMOVABLE)
+        return GetItemPropertyType(ip) != ITEM_PROPERTY_VISUALEFFECT
+            && !ForgeIsRestrictionProp(ip);
+    if (ForgeIsCosmeticProp(ip))
+        return FALSE;
+    if (nSel == FORGE_SEL_PRICED)
+        return TRUE;
+    return !ForgeIsRestrictionProp(ip);  // FORGE_SEL_COUNTED
+}
+
+int ForgeCountPropsSel(object oItem, int nSel)
+{
+    int nCount = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (ForgePropInSet(ip, nSel))
+            nCount++;
+        ip = GetNextItemProperty(oItem);
+    }
+    return nCount;
+}
+
+// Nth (0-based) property of the given set, in GetFirstItemProperty order.
+itemproperty ForgeGetPropByIndexSel(object oItem, int nIndex, int nSel)
+{
+    int nCount = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (ForgePropInSet(ip, nSel))
+        {
+            if (nCount == nIndex)
+                return ip;
+            nCount++;
+        }
+        ip = GetNextItemProperty(oItem);
+    }
+    itemproperty ipInvalid;
+    return ipInvalid;
 }
 
 // Creature items (natural weapons / hide) are equipped by the engine into the
@@ -371,8 +454,7 @@ int ForgeRebuildValue(object oItem)
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
-        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
-            && !ForgeIsCosmeticProp(ip))
+        if (ForgePropInSet(ip, FORGE_SEL_PRICED))
             AddItemProperty(DURATION_TYPE_PERMANENT, ip, oBlank);
         ip = GetNextItemProperty(oItem);
     }
@@ -642,18 +724,11 @@ void ForgeExpandDo(object oPC)
         + IntToString(FORGE_TOKEN_MAX_SLOTS) + " runes now bound).");
 }
 
+// How many enchantment slots oItem has filled - the number the property cap is
+// measured against. Cosmetics and restrictions are free (FORGE_SEL_COUNTED).
 int ForgeCountProps(object oItem)
 {
-    int nCount = 0;
-    itemproperty ip = GetFirstItemProperty(oItem);
-    while (GetIsItemPropertyValid(ip))
-    {
-        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
-            && !ForgeIsCosmeticProp(ip))
-            nCount++;
-        ip = GetNextItemProperty(oItem);
-    }
-    return nCount;
+    return ForgeCountPropsSel(oItem, FORGE_SEL_COUNTED);
 }
 
 // Same matcher CustomAddProperty (itemprocs) uses to replace-instead-of-add:
@@ -675,24 +750,12 @@ int ForgePropMatchesExisting(object oItem, itemproperty ip)
     return FALSE;
 }
 
-// Nth (0-based) permanent property, in GetFirstItemProperty order.
+// Nth (0-based) SLOT-FILLING property, in GetFirstItemProperty order. This is
+// the cap's view of the item; the strip menus index the REMOVABLE set instead
+// (ForgeGetPropByIndexSel with FORGE_SEL_REMOVABLE), which is a different list.
 itemproperty ForgeGetPermPropByIndex(object oItem, int nIndex)
 {
-    int nCount = 0;
-    itemproperty ip = GetFirstItemProperty(oItem);
-    while (GetIsItemPropertyValid(ip))
-    {
-        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
-            && !ForgeIsCosmeticProp(ip))
-        {
-            if (nCount == nIndex)
-                return ip;
-            nCount++;
-        }
-        ip = GetNextItemProperty(oItem);
-    }
-    itemproperty ipInvalid;
-    return ipInvalid;
+    return ForgeGetPropByIndexSel(oItem, nIndex, FORGE_SEL_COUNTED);
 }
 
 // Human-readable property label from the 2das, e.g.
@@ -761,14 +824,20 @@ int ForgeItemDeviatesFromBlueprint(object oItem)
         return TRUE;
     }
 
+    // Tamper detection uses the PRICED set - the full permanent, non-cosmetic
+    // footprint, restrictions included. It must NOT narrow to the counted set:
+    // a stock item's restrictions have to stay matchable against the blueprint's,
+    // or every class/race-locked drop in the module reads as deviant and the
+    // contraband scan starts jailing legitimate gear.
     int bDeviates = FALSE;
-    if (ForgeCountProps(oItem) != ForgeCountProps(oStock))
+    if (ForgeCountPropsSel(oItem, FORGE_SEL_PRICED)
+        != ForgeCountPropsSel(oStock, FORGE_SEL_PRICED))
         bDeviates = TRUE;
     else
     {
         // Every property on oItem must consume a distinct match on oStock.
         // Track consumed stock properties by index in a flag string.
-        int nStock = ForgeCountProps(oStock);
+        int nStock = ForgeCountPropsSel(oStock, FORGE_SEL_PRICED);
         string sUsed; // one char per stock prop: "0" free, "1" consumed
         int i;
         for (i = 0; i < nStock; i++)
@@ -777,15 +846,15 @@ int ForgeItemDeviatesFromBlueprint(object oItem)
         itemproperty ip = GetFirstItemProperty(oItem);
         while (!bDeviates && GetIsItemPropertyValid(ip))
         {
-            if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
-                && !ForgeIsCosmeticProp(ip))
+            if (ForgePropInSet(ip, FORGE_SEL_PRICED))
             {
                 int bMatched = FALSE;
                 for (i = 0; i < nStock && !bMatched; i++)
                 {
                     if (GetSubString(sUsed, i, 1) == "0")
                     {
-                        itemproperty ipS = ForgeGetPermPropByIndex(oStock, i);
+                        itemproperty ipS = ForgeGetPropByIndexSel(oStock, i,
+                                                        FORGE_SEL_PRICED);
                         if (GetItemPropertyType(ipS) == GetItemPropertyType(ip)
                             && GetItemPropertySubType(ipS) == GetItemPropertySubType(ip)
                             && GetItemPropertyCostTableValue(ipS) == GetItemPropertyCostTableValue(ip)
@@ -972,6 +1041,50 @@ int ForgeRevertAllIllegal(object oPC)
     return nFail;
 }
 
+// Menu label for one strip-list slot. A cosmetic property is listed (so it can
+// be unmade) but marked free, because striking it frees no slot and returns no
+// worth - without the marker a player would spend a click expecting a slot back.
+string ForgeSlotLabel(itemproperty ip)
+{
+    string sName = ForgePropName(ip);
+    if (GetIsItemPropertyValid(ip) && ForgeIsCosmeticProp(ip))
+        sName += " (free - no slot)";
+    return sName;
+}
+
+// The sentence that explains what a player can SEE on the item but will not
+// find in the strip list, or will not be charged a slot for. Emitted only for
+// the cases the item actually presents, and appended to the status line both
+// strip menus render through custom token 6119.
+string ForgeUnlistedNote(object oItem)
+{
+    if (!GetIsObjectValid(oItem))
+        return "";
+    int bRestrict = FALSE;
+    int bLight = FALSE;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT)
+        {
+            if (ForgeIsRestrictionProp(ip))
+                bRestrict = TRUE;
+            else if (GetItemPropertyType(ip) == ITEM_PROPERTY_LIGHT)
+                bLight = TRUE;
+        }
+        ip = GetNextItemProperty(oItem);
+    }
+    string s = "";
+    if (bRestrict)
+        s += " The bindings of blood, creed and calling upon it are no"
+            + " enchantment: they cost it no slot, and no forge of mine will"
+            + " unmake them.";
+    if (bLight)
+        s += " Its light is a free gift - it fills no slot, and unmaking it"
+            + " frees none.";
+    return s;
+}
+
 // Player-facing summary of what still makes oItem unlawful (for the Forge
 // Warden's dialog), or a confirmation that it is now within the law.
 string ForgeLegalStatus(object oItem)
@@ -994,7 +1107,8 @@ string ForgeLegalStatus(object oItem)
         return "It is within the law now: " + IntToString(nProps)
             + " enchantments of the " + IntToString(nMaxProps)
             + " allowed, and a worth of " + ForgeGold(nValue)
-            + " gold under the lawful " + ForgeGold(nValueCeil) + ".";
+            + " gold under the lawful " + ForgeGold(nValueCeil) + "."
+            + ForgeUnlistedNote(oItem);
     string s = "";
     if (bProps)
         s += "It still bears " + IntToString(nProps) + " enchantments where the "
@@ -1006,7 +1120,7 @@ string ForgeLegalStatus(object oItem)
         s += "ts worth, " + ForgeGold(nValue) + " gold, still exceeds the lawful "
             + ForgeGold(nValueCeil) + ".";
     }
-    return s;
+    return s + ForgeUnlistedNote(oItem);
 }
 
 // Prime the disenchant sub-conversation: target item on the PC, property
@@ -1017,7 +1131,9 @@ void ForgeDisenchantSetup(object oPC, object oTarget)
     int nCount = 0;
     if (GetIsObjectValid(oTarget))
     {
-        nCount = ForgeCountProps(oTarget);
+        // The LIST is the removable set, not the counted set: restrictions are
+        // never offered, Light is offered but free.
+        nCount = ForgeCountPropsSel(oTarget, FORGE_SEL_REMOVABLE);
         SetCustomToken(100, GetName(oTarget));
     }
     SetLocalInt(oPC, "FORGE_DIS_COUNT", nCount);
@@ -1026,7 +1142,8 @@ void ForgeDisenchantSetup(object oPC, object oTarget)
     {
         string sLabel = "";
         if (n < nCount)
-            sLabel = ForgePropName(ForgeGetPermPropByIndex(oTarget, n));
+            sLabel = ForgeSlotLabel(ForgeGetPropByIndexSel(oTarget, n,
+                                                    FORGE_SEL_REMOVABLE));
         SetCustomToken(6110 + n, sLabel);
     }
 }
@@ -1118,16 +1235,21 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
-        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
-            && !ForgeIsCosmeticProp(ip))
+        // The plan's bit indices run over the REMOVABLE set, but the blank is
+        // priced from the PRICED set, and the two are no longer the same list.
+        // So: only a removable property consumes an index (and may be dropped);
+        // a restriction is always kept and never advances n; Light advances n
+        // but never reaches the blank, so planning it costs zero gold.
+        int bDrop = FALSE;
+        if (ForgePropInSet(ip, FORGE_SEL_REMOVABLE))
         {
-            int bDrop = ForgeStageGetBit(oPC, n);
+            bDrop = ForgeStageGetBit(oPC, n);
             if (n == nToggleIdx)
                 bDrop = !bDrop;
-            if (!bDrop)
-                AddItemProperty(DURATION_TYPE_PERMANENT, ip, oBlank);
             n++;
         }
+        if (!bDrop && ForgePropInSet(ip, FORGE_SEL_PRICED))
+            AddItemProperty(DURATION_TYPE_PERMANENT, ip, oBlank);
         ip = GetNextItemProperty(oItem);
     }
     int nValue = GetGoldPieceValue(oBlank);
@@ -1135,16 +1257,28 @@ int ForgeProjectedValue(object oPC, object oItem, int nToggleIdx = -1)
     return nValue;
 }
 
-// Permanent-property count remaining after the planned removals.
+// Slot-filling property count remaining after the planned removals. Walks the
+// removable set (which the plan bits index) but only tallies properties that
+// actually fill a slot, so planning a Light removal moves this by nothing.
 int ForgeProjectedPropCount(object oPC, object oItem)
 {
-    int nCount = ForgeCountProps(oItem);
-    int nRemoved = 0;
-    int n;
-    for (n = 0; n < nCount; n++)
-        if (ForgeStageGetBit(oPC, n))
-            nRemoved++;
-    return nCount - nRemoved;
+    int nRemain = 0;
+    int n = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        int bCounted = ForgePropInSet(ip, FORGE_SEL_COUNTED);
+        if (ForgePropInSet(ip, FORGE_SEL_REMOVABLE))
+        {
+            if (bCounted && !ForgeStageGetBit(oPC, n))
+                nRemain++;
+            n++;
+        }
+        else if (bCounted)
+            nRemain++;  // counted but not removable - nothing can strike it
+        ip = GetNextItemProperty(oItem);
+    }
+    return nRemain;
 }
 
 // Player-facing running status of the planned result (header token 6119): the
@@ -1169,14 +1303,16 @@ string ForgeProjectedStatus(object oPC, object oItem)
         s = "With your plan struck, the " + GetName(oItem) + " would be worth "
             + ForgeGold(nVal) + " gold";
     if (nVal <= nCeil && nProps <= nMaxProps)
-        return s + " - within the lawful " + ForgeGold(nCeil) + ".";
+        return s + " - within the lawful " + ForgeGold(nCeil) + "."
+            + ForgeUnlistedNote(oItem);
     if (nVal > nCeil)
         s += ", still " + ForgeGold(nVal - nCeil) + " over the lawful "
             + ForgeGold(nCeil);
     if (nProps > nMaxProps)
         s += ", and bears " + IntToString(nProps) + " enchantments where the law "
             + "allows but " + IntToString(nMaxProps);
-    return s + ". Strike more to bring it within the law.";
+    return s + ". Strike more to bring it within the law."
+        + ForgeUnlistedNote(oItem);
 }
 
 // TRUE when the plan is non-empty AND the projected result is lawful (worth
@@ -1206,7 +1342,9 @@ void ForgeStageSetupCued(object oPC, object oItem)
     int nCount = 0;
     if (GetIsObjectValid(oItem))
     {
-        nCount = ForgeCountProps(oItem);
+        // Same removable set the plan bits index (see ForgeProjectedValue):
+        // restrictions are never listed, Light is listed but free.
+        nCount = ForgeCountPropsSel(oItem, FORGE_SEL_REMOVABLE);
         SetCustomToken(100, GetName(oItem));
     }
     SetLocalInt(oPC, "FORGE_DIS_COUNT", nCount);
@@ -1229,7 +1367,8 @@ void ForgeStageSetupCued(object oPC, object oItem)
         if (a < nCount)
         {
             int bStaged = ForgeStageGetBit(oPC, a);
-            string sName = ForgePropName(ForgeGetPermPropByIndex(oItem, a));
+            string sName = ForgeSlotLabel(ForgeGetPropByIndexSel(oItem, a,
+                                                    FORGE_SEL_REMOVABLE));
             // Name only, with the red [planned] marker when staged for removal.
             // The running projected worth + lawful check is the header (token
             // 6119); per-slot worth previews were dropped to keep the menu to one
@@ -1291,13 +1430,14 @@ void ForgeStageCommit(object oPC, object oItem)
 {
     if (!GetIsObjectValid(oItem))
         return;
-    int nCount = ForgeCountProps(oItem);
+    int nCount = ForgeCountPropsSel(oItem, FORGE_SEL_REMOVABLE);
     int n;
     for (n = nCount - 1; n >= 0; n--)
     {
         if (ForgeStageGetBit(oPC, n))
         {
-            itemproperty ip = ForgeGetPermPropByIndex(oItem, n);
+            itemproperty ip = ForgeGetPropByIndexSel(oItem, n,
+                                                    FORGE_SEL_REMOVABLE);
             if (GetIsItemPropertyValid(ip))
             {
                 ForgeLog("stage-disenchant: PC=" + GetName(oPC) + " item='"

@@ -211,6 +211,112 @@ def check_scripts(errs):
             errs.append(f"missing script source: {s}.nss")
 
 
+def check_property_sets(errs):
+    """The three property sets the forge distinguishes must stay distinct.
+
+    Restrictions (use limitations) are not enchantments: counting them toward
+    the cap AND offering them for removal is roadmap
+    forge-restrictrion-properties-exploit - stripping a class/race lock freed a
+    slot and made the gear usable by a character it was never meant for. Light
+    is listed but free. Pricing and blueprint identity must keep the old full
+    view, or every restricted stock drop reads as tampered and gets jailed.
+    """
+    path = os.path.join(UNPACKED, "forge_inc.nss")
+    with open(path, encoding="utf-8") as f:
+        src = f.read()
+
+    def body(fn):
+        m = re.search(r"^\w[\w ]*?\b" + fn + r"\s*\([^)]*\)\s*\n\{(.*?)^\}",
+                      src, re.S | re.M)
+        return m.group(1) if m else None
+
+    for const in ("FORGE_SEL_COUNTED", "FORGE_SEL_REMOVABLE", "FORGE_SEL_PRICED"):
+        if not re.search(r"const int %s\s*=" % const, src):
+            errs.append(f"forge_inc: missing selector constant {const}")
+
+    restr = body("ForgeIsRestrictionProp")
+    if restr is None:
+        errs.append("forge_inc: ForgeIsRestrictionProp is gone - restrictions "
+                    "would be counted and strippable again")
+    else:
+        for c in ("ALIGNMENT_GROUP", "CLASS", "RACIAL_TYPE",
+                  "SPECIFIC_ALIGNMENT", "TILESET"):
+            if f"ITEM_PROPERTY_USE_LIMITATION_{c}" not in restr:
+                errs.append(f"forge_inc: ForgeIsRestrictionProp does not cover "
+                            f"USE_LIMITATION_{c}")
+
+    cosm = body("ForgeIsCosmeticProp")
+    if cosm is None:
+        errs.append("forge_inc: ForgeIsCosmeticProp is gone")
+    else:
+        for c in ("ITEM_PROPERTY_VISUALEFFECT", "ITEM_PROPERTY_LIGHT"):
+            if c not in cosm:
+                errs.append(f"forge_inc: ForgeIsCosmeticProp no longer covers {c}")
+
+    inset = body("ForgePropInSet")
+    if inset is None:
+        errs.append("forge_inc: ForgePropInSet is gone")
+    for fn in ("ForgeCountPropsSel", "ForgeGetPropByIndexSel"):
+        if body(fn) is None:
+            errs.append(f"forge_inc: {fn} is gone")
+
+    # Every enumeration must route through a selector. A hand-rolled
+    # `permanent && !cosmetic` loop is exactly how the three sets drift apart.
+    strays = [m.start() for m in re.finditer(r"!ForgeIsCosmeticProp\(", src)]
+    allowed = body("ForgePropInSet") or ""
+    if len([s for s in strays]) and "!ForgeIsCosmeticProp(" not in allowed:
+        errs.append("forge_inc: ForgePropInSet no longer consults "
+                    "ForgeIsCosmeticProp")
+    extra = re.findall(r"DURATION_TYPE_PERMANENT\s*\n?\s*&&\s*!ForgeIsCosmeticProp",
+                       src)
+    if extra:
+        errs.append(f"forge_inc: {len(extra)} inline 'permanent && !cosmetic' "
+                    "enumeration(s) left - use ForgePropInSet instead")
+
+    # Right selector in the right place.
+    for fn, sel in (("ForgeItemDeviatesFromBlueprint", "FORGE_SEL_PRICED"),
+                    ("ForgeRebuildValue", "FORGE_SEL_PRICED"),
+                    ("ForgeDisenchantSetup", "FORGE_SEL_REMOVABLE"),
+                    ("ForgeStageSetupCued", "FORGE_SEL_REMOVABLE"),
+                    ("ForgeStageCommit", "FORGE_SEL_REMOVABLE")):
+        b = body(fn)
+        if b is None:
+            errs.append(f"forge_inc: {fn} not found")
+        elif sel not in b:
+            errs.append(f"forge_inc: {fn} must enumerate with {sel}")
+
+    # The strip list and the plan bits must index the SAME set, or a commit
+    # removes a different property than the one the player ticked.
+    b = body("ForgeProjectedValue")
+    if b is None:
+        errs.append("forge_inc: ForgeProjectedValue not found")
+    else:
+        if "FORGE_SEL_REMOVABLE" not in b or "FORGE_SEL_PRICED" not in b:
+            errs.append("forge_inc: ForgeProjectedValue must index the removable "
+                        "set and price the priced set")
+    b = body("ForgeProjectedPropCount")
+    if b is None:
+        errs.append("forge_inc: ForgeProjectedPropCount not found")
+    elif "FORGE_SEL_COUNTED" not in b or "FORGE_SEL_REMOVABLE" not in b:
+        errs.append("forge_inc: ForgeProjectedPropCount must walk the removable "
+                    "set but tally only counted properties")
+
+    if body("ForgeUnlistedNote") is None:
+        errs.append("forge_inc: ForgeUnlistedNote is gone - players lose the "
+                    "explanation for restrictions/Light not being in the list")
+
+
+def check_light_note(errs):
+    """The forge's own Light enchant must say it costs no slot."""
+    for name in ANVIL:
+        d = load(name)
+        for nd in d["ReplyList"]["value"]:
+            if script(nd) == "setproplight":
+                if "does not count" not in text0(nd):
+                    errs.append(f"{name}: the Light enchant reply must tell the "
+                                f"player it does not count toward the limit")
+
+
 def check_warden(errs):
     d = load(WARDEN)
     allnodes = d["EntryList"]["value"] + d["ReplyList"]["value"]
@@ -227,6 +333,8 @@ def main():
     for name in ANVIL:
         check_anvil(name, errs)
     check_scripts(errs)
+    check_property_sets(errs)
+    check_light_note(errs)
     check_warden(errs)
 
     if errs:
