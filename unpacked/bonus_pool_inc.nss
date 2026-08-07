@@ -32,10 +32,16 @@
 //
 // WHAT IS AND IS NOT POOLED
 //
-// Only sources the module itself owns. Stock spells (Bless, Aid, Prayer, Divine
-// Favor) and item attack bonus stay engine-typed and still take max-of-two
-// against the pooled total - this makes OUR sources stack with each other,
-// which is what was asked for, and it does not rewrite the game's rule.
+// The module's own sources, and - since spell-ab-prowess-stack, 2026-08-06 -
+// the seven buff SPELLS that grant an attack bonus, which are forked into
+// unpacked/ for the purpose (nw_s0_bless, nw_s0_aid, nw_s0_prayer,
+// nw_s0_warcry, nw_s0_divpower, x0_s0_divfav, x2_s2_divwrath). Everything in
+// the ledger adds up, spells included: to a character carrying Legendary
+// Prowess's permanent +5 an engine-typed buff spell was worth +0, and the admin
+// ruled that a pooled bonus is a pooled bonus.
+// Still OUTSIDE the ledger and therefore still max-of against the pooled total:
+// item attack bonus (a property, not an effect), the stock spells not forked
+// here, and the deliberate exemptions below.
 // tests/check_bonus_pool.py is the build gate: a new EffectAttackIncrease or
 // EffectDamageIncrease in a module-owned script must come through here or be
 // listed as a deliberate exemption. An unpooled bonus is invisible - it
@@ -68,10 +74,17 @@ const string BPOOL_SRC_GRIP    = "grip";   // Legendary Grip,     permanent, dua
 const string BPOOL_SRC_REAPING = "reap";   // Legendary Reaping,  12s, refreshing
 const string BPOOL_SRC_SONG    = "song";   // Bard Song,          song duration
 const string BPOOL_SRC_SUMMON  = "summ";   // summon/companion boost, permanent
-// Buff SPELLS, all in the one 'spell' group below (attack channel only - see
-// the group note). Added for the follow-up report spell-ab-prowess-stack:
-// pooling the module's own sources still left every buff spell in the game
-// reading as +0 to anyone carrying Legendary Prowess's permanent +5.
+// Buff SPELLS (attack channel only - see BPool_SpellAttack). Added for the
+// follow-up report spell-ab-prowess-stack: pooling the module's own sources
+// still left every buff spell in the game reading as +0 to anyone carrying
+// Legendary Prowess's permanent +5.
+//
+// THESE STACK WITH EACH OTHER TOO - admin's call, 2026-08-06. The first build
+// put them all in one max-of group so Bless and Prayer kept giving the better
+// of the two, as the engine did; the admin ruled that a pooled bonus is a
+// pooled bonus and they should add. So the group layer is gone again and every
+// entry simply sums. A cleric who spends four rounds buffing is meant to feel
+// all four spells.
 const string BPOOL_SRC_BLESS   = "bles";   // Bless,              spell duration
 const string BPOOL_SRC_AID     = "aid_";   // Aid,                spell duration
 const string BPOOL_SRC_PRAYER  = "pray";   // Prayer,             spell duration
@@ -80,29 +93,6 @@ const string BPOOL_SRC_DIVFAV  = "dfav";   // Divine Favor,       spell duration
 const string BPOOL_SRC_DIVPOW  = "dpow";   // Divine Power,       spell duration
 const string BPOOL_SRC_DIVWRA  = "dwra";   // Divine Wrath,       ability duration
 const int    BPOOL_SRC_COUNT   = 12;
-
-// GROUPS: SOURCES IN THE SAME GROUP TAKE THE MAX, GROUPS SUM.
-//
-// The first build summed every entry, which is right for the module's own
-// sources - a feat, a song and a kill streak are meant to add up. It is NOT
-// right for the buff spells: Bless, Aid, Prayer and Divine Favor never stacked
-// with each other in the engine and pooling them naively would have handed out
-// a stacking rule D&D never had (a cleric self-buffing to +9 before any feat).
-//
-// So each spell keeps its own key - it has its own duration, its own witness
-// and its own caster - but they all share ONE group, and the group contributes
-// only its largest live entry. Between groups the totals add, which is what
-// makes a spell felt on top of Legendary Prowess at last.
-//
-// Adding a source means adding a case to BPool_GroupAt as well as
-// BPool_SourceAt; the build gate checks both walks.
-const int BPOOL_GRP_PROWESS = 0;
-const int BPOOL_GRP_GRIP    = 1;
-const int BPOOL_GRP_REAPING = 2;
-const int BPOOL_GRP_SONG    = 3;
-const int BPOOL_GRP_SUMMON  = 4;
-const int BPOOL_GRP_SPELL   = 5;   // every pooled buff spell shares this one
-const int BPOOL_GRP_COUNT   = 6;
 
 // Flat damage bonus the engine can express. IPGetDamageBonusConstantFromNumber
 // clamps here too; above it the number simply cannot be represented.
@@ -148,7 +138,6 @@ const int BPOOL_SPELL_DIVPOW   = 42;   // Divine_Power
 const int BPOOL_SPELL_DIVWRA   = 622;  // DC_Divine_Wrath
 
 string BPool_SourceAt(int nIndex);
-int    BPool_GroupAt(int nIndex);
 int    BPool_WitnessAt(int nIndex);
 string BPool_Tag(int nChannel);
 string BPool_Var(int nChannel, string sSource);
@@ -189,30 +178,6 @@ string BPool_SourceAt(int nIndex)
         case 11: return BPOOL_SRC_DIVWRA;
     }
     return "";
-}
-
-// Which group each source contributes to. Same index space as BPool_SourceAt.
-// Everything the module owns has a group to itself (they add up, as before);
-// every buff spell shares BPOOL_GRP_SPELL, so they take the max among
-// themselves and that best spell adds to the module's sources.
-int BPool_GroupAt(int nIndex)
-{
-    switch (nIndex)
-    {
-        case 0: return BPOOL_GRP_PROWESS;
-        case 1: return BPOOL_GRP_GRIP;
-        case 2: return BPOOL_GRP_REAPING;
-        case 3: return BPOOL_GRP_SONG;
-        case 4: return BPOOL_GRP_SUMMON;
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-        case 10:
-        case 11: return BPOOL_GRP_SPELL;
-    }
-    return BPOOL_GRP_SPELL;
 }
 
 // The spell whose presence keeps a transient entry alive, or 0 for a permanent
@@ -297,27 +262,19 @@ int BPool_Get(object oCreature, int nChannel, string sSource)
     return GetLocalInt(oCreature, BPool_Var(nChannel, sSource));
 }
 
-// GROUPS SUM; WITHIN A GROUP THE LARGEST ENTRY WINS.
-//
-// The inner walk is what preserves the engine's own rule between buff spells
-// (Bless and Prayer give the better of the two, not both) while the outer sum
-// is what makes that best spell add to Legendary Prowess instead of vanishing
-// behind it.
+// EVERY LIVE ENTRY ADDS. That is the whole point of the ledger: the engine
+// keeps only the largest same-type attack bonus, so anything that is meant to
+// be felt alongside something else has to be summed here and rendered as one
+// effect. Buff spells stack with each other as well as with the feats and the
+// song - admin's call, 2026-08-06 (roadmap: spell-ab-prowess-stack).
 int BPool_Total(object oCreature, int nChannel)
 {
     int nTotal = 0;
-    int nGroup;
-    for (nGroup = 0; nGroup < BPOOL_GRP_COUNT; nGroup++)
+    int i;
+    for (i = 0; i < BPOOL_SRC_COUNT; i++)
     {
-        int nBest = 0;
-        int i;
-        for (i = 0; i < BPOOL_SRC_COUNT; i++)
-        {
-            if (BPool_GroupAt(i) != nGroup) continue;
-            int n = GetLocalInt(oCreature, BPool_Var(nChannel, BPool_SourceAt(i)));
-            if (n > nBest) nBest = n;
-        }
-        nTotal += nBest;
+        int n = GetLocalInt(oCreature, BPool_Var(nChannel, BPool_SourceAt(i)));
+        if (n > 0) nTotal += n;
     }
     return nTotal;
 }

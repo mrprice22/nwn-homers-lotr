@@ -162,39 +162,6 @@ elif int(count.group(1)) != len(keys):
         f"are declared. BPool_Total loops to the count, so a low value silently "
         f"drops the last source(s) from every total.")
 
-# --- 3b. every source index is also placed in a group ------------------------
-# BPool_Total walks GROUPS and takes the largest entry within each one. A source
-# index missing from BPool_GroupAt falls through to the default group, which
-# would silently make it max-of with the buff spells instead of adding.
-group_walk = re.search(r"int BPool_GroupAt\(int nIndex\)\s*\{(.*?)\n\}", pool, re.S)
-if not group_walk:
-    errors.append(f"{POOL}: BPool_GroupAt is missing - BPool_Total cannot group.")
-else:
-    cases = {int(n) for n in re.findall(r"case (\d+):", group_walk.group(1))}
-    n_sources = int(count.group(1)) if count else 0
-    missing = sorted(set(range(n_sources)) - cases)
-    if missing:
-        errors.append(
-            f"{POOL}: BPool_GroupAt has no case for source index(es) {missing}. "
-            f"An ungrouped source falls into the default group and stops adding "
-            f"to the total - it would be max-of'd against the buff spells.")
-
-groups = re.findall(r"^const int BPOOL_GRP_(?!COUNT)(\w+)\s*=", pool, re.M)
-gcount = re.search(r"^const int\s+BPOOL_GRP_COUNT\s*=\s*(\d+)", pool, re.M)
-if not gcount:
-    errors.append(f"{POOL}: BPOOL_GRP_COUNT is missing.")
-elif int(gcount.group(1)) != len(groups):
-    errors.append(
-        f"{POOL}: BPOOL_GRP_COUNT is {gcount.group(1)} but {len(groups)} groups "
-        f"are declared. BPool_Total loops to the count, so a low value drops the "
-        f"last group's bonus from every total.")
-
-if not re.search(r"if \(BPool_GroupAt\(i\) != nGroup\) continue;", pool):
-    errors.append(
-        f"{POOL}: BPool_Total no longer filters by group. Without the grouping "
-        f"every buff spell would stack with every other one - Bless + Aid + "
-        f"Prayer + Divine Favor at once, which the engine never allowed.")
-
 # --- 3c. every pooled buff spell registers, and can be seen to end -----------
 # A pooled spell needs BOTH halves: the registration (or its bonus is gone
 # altogether, which is worse than the bug) and a witness spell id (or the entry
