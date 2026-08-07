@@ -65,6 +65,35 @@ EXEMPT = {
                            "end exactly when the form does",
 }
 
+# Scripts allowed to apply a DAMAGE bonus directly but NOT an attack bonus: the
+# seven stock buff spells forked into the module for spell-ab-prowess-stack.
+# Their attack halves are pooled; their damage halves deliberately are not.
+# Damage-bonus effects of DIFFERENT damage types already stack in the engine, so
+# there is no defect to fix on that channel, and pooling would flatten this
+# spell's slashing/magical/divine into the pool's bludgeoning and change what
+# damage reduction eats.
+DAMAGE_ONLY_REASON = ("forked buff spell: attack half is pooled, damage half "
+                      "stays engine-typed to keep its damage type")
+EXEMPT_DAMAGE = {
+    "nw_s0_prayer.nss": DAMAGE_ONLY_REASON,
+    "nw_s0_warcry.nss": DAMAGE_ONLY_REASON,
+    "x0_s0_divfav.nss": DAMAGE_ONLY_REASON,
+    "x2_s2_divwrath.nss": DAMAGE_ONLY_REASON,
+}
+
+# The forked buff spells, and the ledger source key each one must register
+# under. A fork that stops registering is a spell whose attack bonus silently
+# disappears altogether - strictly worse than the bug this fixed.
+POOLED_SPELLS = {
+    "nw_s0_bless.nss": "BPOOL_SRC_BLESS",
+    "nw_s0_aid.nss": "BPOOL_SRC_AID",
+    "nw_s0_prayer.nss": "BPOOL_SRC_PRAYER",
+    "nw_s0_warcry.nss": "BPOOL_SRC_WARCRY",
+    "x0_s0_divfav.nss": "BPOOL_SRC_DIVFAV",
+    "nw_s0_divpower.nss": "BPOOL_SRC_DIVPOW",
+    "x2_s2_divwrath.nss": "BPOOL_SRC_DIVWRA",
+}
+
 APPLY_RE = re.compile(r"^[^/\n]*\b(EffectAttackIncrease|EffectDamageIncrease)\s*\(",
                       re.M)
 
@@ -84,6 +113,8 @@ for path in sorted(UNPACKED.glob("*.nss")):
     if path.name == POOL or path.name in EXEMPT:
         continue
     hits = APPLY_RE.findall(read(path))
+    if path.name in EXEMPT_DAMAGE:
+        hits = [h for h in hits if h != "EffectDamageIncrease"]
     if hits:
         errors.append(
             f"{path.name} calls {'/'.join(sorted(set(hits)))} directly. Register "
@@ -130,6 +161,79 @@ elif int(count.group(1)) != len(keys):
         f"{POOL}: BPOOL_SRC_COUNT is {count.group(1)} but {len(keys)} source keys "
         f"are declared. BPool_Total loops to the count, so a low value silently "
         f"drops the last source(s) from every total.")
+
+# --- 3b. every source index is also placed in a group ------------------------
+# BPool_Total walks GROUPS and takes the largest entry within each one. A source
+# index missing from BPool_GroupAt falls through to the default group, which
+# would silently make it max-of with the buff spells instead of adding.
+group_walk = re.search(r"int BPool_GroupAt\(int nIndex\)\s*\{(.*?)\n\}", pool, re.S)
+if not group_walk:
+    errors.append(f"{POOL}: BPool_GroupAt is missing - BPool_Total cannot group.")
+else:
+    cases = {int(n) for n in re.findall(r"case (\d+):", group_walk.group(1))}
+    n_sources = int(count.group(1)) if count else 0
+    missing = sorted(set(range(n_sources)) - cases)
+    if missing:
+        errors.append(
+            f"{POOL}: BPool_GroupAt has no case for source index(es) {missing}. "
+            f"An ungrouped source falls into the default group and stops adding "
+            f"to the total - it would be max-of'd against the buff spells.")
+
+groups = re.findall(r"^const int BPOOL_GRP_(?!COUNT)(\w+)\s*=", pool, re.M)
+gcount = re.search(r"^const int\s+BPOOL_GRP_COUNT\s*=\s*(\d+)", pool, re.M)
+if not gcount:
+    errors.append(f"{POOL}: BPOOL_GRP_COUNT is missing.")
+elif int(gcount.group(1)) != len(groups):
+    errors.append(
+        f"{POOL}: BPOOL_GRP_COUNT is {gcount.group(1)} but {len(groups)} groups "
+        f"are declared. BPool_Total loops to the count, so a low value drops the "
+        f"last group's bonus from every total.")
+
+if not re.search(r"if \(BPool_GroupAt\(i\) != nGroup\) continue;", pool):
+    errors.append(
+        f"{POOL}: BPool_Total no longer filters by group. Without the grouping "
+        f"every buff spell would stack with every other one - Bless + Aid + "
+        f"Prayer + Divine Favor at once, which the engine never allowed.")
+
+# --- 3c. every pooled buff spell registers, and can be seen to end -----------
+# A pooled spell needs BOTH halves: the registration (or its bonus is gone
+# altogether, which is worse than the bug) and a witness spell id (or the entry
+# can only be ended by its backstop timer, stranding the bonus after a dispel,
+# a death or an early end).
+witness_walk = re.search(r"int BPool_WitnessAt\(int nIndex\)\s*\{(.*?)\n\}", pool, re.S)
+witnessed = witness_walk.group(1) if witness_walk else ""
+
+for name, key in sorted(POOLED_SPELLS.items()):
+    src = UNPACKED / name
+    if not src.is_file():
+        errors.append(
+            f"unpacked/{name} is missing. It is the module's fork of a stock "
+            f"buff spell; without it the game falls back to the stock script "
+            f"and the spell's attack bonus is invisible behind Legendary "
+            f"Prowess again.")
+        continue
+    body = read(src)
+    if f"BPool_SpellAttack(" not in body or key not in body:
+        errors.append(
+            f"{name} no longer registers its attack bonus with "
+            f"BPool_SpellAttack(..., {key}, ...). The fork removed the bonus "
+            f"from the effect link, so a fork that does not register grants "
+            f"NOTHING.")
+    if key not in pool:
+        errors.append(f"{POOL}: {key} is gone but {name} still registers it.")
+
+src_index = {k: int(n) for n, k in
+             re.findall(r"case (\d+):\s*return (BPOOL_SRC_\w+);",
+                        walk.group(1) if walk else "")}
+for key in re.findall(r"^const string (BPOOL_SRC_\w+)", pool, re.M):
+    if key in POOLED_SPELLS.values():
+        idx = src_index.get(key)
+        if idx is not None and f"case {idx}:" not in witnessed:
+            errors.append(
+                f"{POOL}: {key} (source index {idx}) has no witness spell id in "
+                f"BPool_WitnessAt. A buff spell's entry must end when the "
+                f"spell's own effect does - the backstop timer is 3x the "
+                f"duration and is not a clock.")
 
 # --- 4. the ledger recalculates when a bonus ENDS, not only when one starts ---
 # Without this wiring the ledger is write-only: a song that ended early leaves

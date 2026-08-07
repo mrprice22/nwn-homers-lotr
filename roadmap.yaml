@@ -139,7 +139,7 @@ ideas:
   - id: combat-dummy
     title: "combat dummy to measure attacks and damage per round"
     group: combat-classes
-    status: manual
+    status: implemented
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-02"
@@ -148,54 +148,54 @@ ideas:
     impl_notes: "<div><b>Shape.</b> The dummy is a <b>creature</b>, not a placeable, because it has to be Hostile (FactionID 1) for hostile-only spells to target it; it is rooted with a permanent EffectCutsceneImmobilize and has <b>no AI at all</b> (every default handler blank except ScriptSpawn/ScriptDeath). Blueprints cbd_dummy.utc.json + cbd_sign.utp.json, both PaletteID 0 = <i>Special &gt; Custom 1</i>, so they are hand-placeable from the toolset in any area with no waypoint or per-area wiring.</div><div><br></div><div><b>Two measurements, two engine paths.</b> DPR comes from a <b>per-object</b> NWNX Damage <i>damage</i> event handler (cbd_damage) that the dummy registers on itself at OnSpawn — that global slot was unused, and per-object registration costs the rest of the server nothing. It accumulates the damage and then <b>zeroes every damage field</b> before returning it, which is why the dummy is indestructible with no healing loop: HP never moves, so Harm and Drown are no-ops. Death <i>effects</i> are not damage, so OnSpawn also applies IMMUNITY_TYPE_DEATH, and cbd_death is the belt-and-braces respawn.</div><div><br></div><div>APR can only come from the <b>attack</b> event (the only place a MISS is visible), and that slot is global and owned by devcrit_atk.nss. So devcrit_atk gains <b>one line</b> — a single GetLocalInt on the target, ahead of its critical-hit guard because misses must count. A session therefore starts from <i>either</i> path; it has to start from the attack event too, or the opening swing would be lost and every APR reading would be one attack light in round 1.</div><div><br></div><div><b>Session integrity.</b> All state is locals on the dummy, keyed by a <b>session serial</b>: every delayed round tick carries the serial it was scheduled with, so a cancelled, superseded or destroyed session's pending ticks become no-ops instead of firing into the next trial. Non-owner damage (other PCs, henchmen, summons, resolved through GetMaster) draws a 10s EffectPetrify and a one-off message, and is discarded from both metrics — the same lock-out _attackplaceable.nss uses, with the message corrected to reach the attacker. Destroying the dummy cancels the trial and records nothing.</div><div><br></div><div><b>UAT round 1 (2026-08-02) found three faults, all fixed.</b> (1) The blueprint was flagged <b>Plot</b>, and the engine zeroes damage to a plot creature <i>before</i> the NWNX damage event fires — so every attack measured 0, DPR read 0, and (2) the leaderboard insert was skipped by the \"don't record an idle trial\" guard. Plot is now off and the build gate asserts it stays off; indestructibility never needed it, it comes from cbd_damage zeroing the damage <i>after</i> counting it plus the death immunity. (3) Only the floating text arrived, so every figure was gone once it faded. Reports now go out three ways: the float, a tagged and coloured SendMessageToPC, and the dummy <i>speaking</i> the line — the Talk-channel copy is the one guaranteed to still be in the log to scroll back to. Attacks per round was correct on the first run and confirmed the legendary feat.</div><div><br></div><div><b>Abandonment.</b> A 1s watchdog (running only while a session is open) cancels the trial after 5 seconds with no attack and no damage, and immediately if the owner dies or leaves the area. Without it an abandoned run would still count ten rounds, most of them empty, and write that average as a score. Both the attack and the damage handler reset the idle clock, so a caster mid-cast is not treated as idle.</div><div><br></div><div><b>Leaderboard.</b> Campaign DB combatdummydb, one row per completed trial (cdkey + player_name = account, GetObjectUUID + char_name = character, dpr, total_damage, rounds, at). Identity split copied from bst_db.nss. The two high-score views collapse to a single winning row per partition via a correlated NOT EXISTS (per uuid for the personal board, per <b>cdkey</b> for the server-wide top 20) — GROUP BY + MAX(dpr) cannot promise the char_name and date belong to the winning row. Browsed 10 to a page in cbd_sign.dlg, tokens 6400-6411, built on the Recent Updates sign pattern.</div><div><br></div><div><b>Gate.</b> tests/check_combat_dummy.py (14th smoke gate) asserts the devcrit_atk hook is present, cheap and ahead of the critical guard; that cbd_spawn still registers the per-object handler, immobilizes and grants death immunity; that cbd_damage writes the zeroed data back; that the blueprint is still Hostile and still points at its spawn/death scripts; and that every token cbd_db fills is actually shown by the conversation. Also fixed bin/gen-palette-map.py, which read LocalizedName only and so showed every placeable in the Palette Finder by resref instead of by name.</div><div><br></div><div><b>UAT round 2 (2026-08-02, 9ccb12a7087).</b> Three findings, all addressed. (1) <b>A devastating critical killed the dummy outright</b> despite cbd_damage zeroing the damage AND the permanent IMMUNITY_TYPE_DEATH — two independent death defences failing on one hit. That is a global engine problem, not a dummy problem, and is fixed at source in <a href=\"#idea-devcrit-roll\">devcrit-roll</a>; the dummy is unchanged. (2) <b>Self-destruct at the end of a set.</b> The admin liked the destruction visual enough to make it the intended end-of-set cue: CBD_SelfDestruct now runs 1.5s after the final report (long enough for the spoken summary to get out), strips the death immunity, applies a spectacular EffectDeath and ClearAllActions on the tester so they stop swinging. Everything else about the end of a session — the round lines, the averages, the VFX_FNF_TIME_STOP flash, the DB write — is unchanged; this is purely additive. cbd_death needs no new guard: CBD_EndSession has already cleared CBD_ACTIVE, so a planned death skips the cancel branch and only the 6s respawn runs. (3) <b>Reported damage read low</b> with no damage-reduction lines in the combat log, and the blueprint has no DR of any kind — so it is a measurement question, not a defence. Shipped a diagnostic rather than a guess: CBD_DEBUG (per dummy or module-wide) echoes every attack and every damage packet with its raw event fields and its source, which distinguishes damage discarded as non-owner, damage lost between the attack and damage events, and packets landing outside an active session. Toggle both this and the devcrit diagnostic together from the rest menu, Admin Options -&gt; <b>[Admin] Combat diagnostics on/off</b> (dbg_combat, admindb-gated, off at every reboot); that menu entry is the ONLY switch - an earlier build also armed the dump automatically for an admin owner, which made the toggle lie (turning it off left the admin still seeing the dump), so the auto-arm was removed. Readout palette: yellow per-round lines, <b>green end-of-set summary</b> (the numbers the tester came for, findable in a log full of combat spam), red diagnostics. Every line is now <b>chat log only</b> - the floating text and the dummy's SpeakString copy were dropped, since the colours do the job the belt-and-braces was added for and the duplicates just stacked the same sentence over the dummy's head (FloatingTextStringOnCreature echoes into the log too, which is why a one-off notice read twice). The dummy's portrait is PortraitId 397 (PLC_F08_) - the portrait placeables.2da row 39 <i>CmbtDummy</i> uses - on the blueprint AND the Bree placement, instead of the stock female dwarf it inherited from PortraitId 1.</div><div><br></div><div><b>UAT round 3 (2026-08-02) - the damage measurement was broken, not merely low.</b> Rounds reported 6 attacks, 0 damage for a 48-STR fighter landing nearly every swing. Cause: data.oDamager in the NWNX <i>damage</i> event does not reliably name the damager for weapon hits, so CBD_OwnerPC resolved nobody, the packet fell into the \"not the owner\" branch, and CBD_Reject returned immediately because the source was invalid - discarded with no petrify and no message, i.e. silently. The recorded DPRs (6.5 / 9.1 / 18.0 / 52.3) were the few packets that happened to carry a source. Fixed with CBD_ResolveSrc: the attack event stashes the attacker (always valid there) in CBD_LAST_SRC and the damage handler falls back to it; and the intruder branch is now only reachable when the source resolves to a <i>real, different</i> player, so unattributable damage can never be thrown away again.</div><div><br></div><div><b>The dummy no longer zeroes damage.</b> Zeroing made it indestructible, but it also meant the engine printed no damage line and no \"damage reduction absorbs\" feedback, so a test could not be checked against the combat log at all. Damage now LANDS and CBD_Restore heals the dummy back to full on the next pulse via NWNX_Object_SetCurrentHitPoints (DelayCommand(0.0) - restoring inside the event script would be undone by the very hit being reported). Death immunity and the OnDeath respawn stay behind it for a hit big enough to outrun the restore. The build gate was inverted to match: zeroing the fields again is now a FAILURE.</div><div><br></div><div><br></div><div><b>UAT round 4 (2026-08-02) - root cause of the wrong figures, from the dump: NWNX reports a damage type that was not dealt as -1, not as 0.</b> A plain sum of the 32 damage fields is therefore the real damage MINUS the number of unused types (31 of them for a single-type weapon hit): a 33-point greatsword hit measured as <b>2</b>, a 28-point hit as <b>-3</b> and was then dropped by the nDmg &gt; 0 guard as \"packet carried no damage\". Every field now goes through CBD_Amt, which floors a field at 0. The same trap was quietly costing the Devastating Critical rework a point per hit - data.iSlash += nDamage on an unused type gives -1 + 15 = 14, seen in the dump as base=96 slash=14 for a 15-point roll - so DevCrit_AddDamage assigns when the field is unset and adds when it is not. Diagnostic lines are now bright red (COLOR_RED) so they read apart from the tool's yellow output and the combat log.</div><div><br></div><div><b>Sign.</b> The 10-most-recent view shows date <i>and</i> time; the two high-score views keep the date only. All three now render through datetime(at,'localtime') - at is stored as datetime('now'), which is UTC, so the board had been showing tomorrow's date. The â€\" garbage on the header was a UTF-8 em dash in an NWScript string; see the module-wide purge in the notes for bin/ascii-clean-nss.py / tests/check_ascii_nss.py (20th smoke gate).</div>"
     manual_steps:
       - step: "PLACE: open the toolset and drop the two blueprints where you want them — Creature palette <i>Special &gt; Custom 1 &gt; Combat Dummy</i>, Placeable palette <i>Special &gt; Custom 1 &gt; Hall of Champions</i>. They work in any area and need no waypoint. Repack + restart after placing."
-        status: open
-        kind: toolset
+        status: done
+        kind: admin
         blocker: true
         step_h: 64
       - step: "UAT (the point of the feature): run a 10-round trial on the level-60 monk with Flurry of Blows OFF, then ON, and compare attacks per round. Repeat with the legendary extra-attack feat. DONE 2026-08-02 - attacks per round read correctly and confirmed the legendary feat fires."
         status: done
-        kind: uat
+        kind: admin
         blocker: true
         step_h: 64
       - step: "UAT (indestructible): cast Harm and Drown at the dummy, and hit it with a devastating critical. It must stay at full HP and keep counting."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         step_h: 64
       - step: "UAT (one tester): have a second character (and a summon) attack a dummy mid-trial. Both should be frozen ~10s with a message, and the owner's totals must be unaffected."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (abandoned run): start a trial, then stop attacking. It must cancel after ~5s with a message and record nothing. Repeat by walking to another area mid-trial, and by dying mid-trial."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (destroy/respawn): kill a dummy by whatever means still works (DM kill). The trial must be cancelled and unrecorded, and a fresh dummy must stand up in the same spot ~6s later."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (re-test after the Plot fix, BLOCKER): damage per round must now be non-zero and the trial must appear on the sign. The first run measured 0 for every attack because the blueprint was Plot. Also confirm the round lines and the final averages are still in the chat log after the floating text fades."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (self-destruct, round 2): run a full 10 rounds. After the averages are reported the dummy must blow apart, your character must stop attacking on its own, and a fresh dummy must stand up in the same spot ~6s later. Starting a new trial on the replacement must work."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (round 3 refix, BLOCKER): run one 10-round set. Round lines must report damage in the hundreds, not 0, and the recorded DPR must be in the same ballpark as attacks x average hit. The combat log must show per-hit damage again, plus any damage reduction or resistance lines, while the dummy stays at full HP."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (round 3, sign): the header no longer shows the garbage character, the 10-most-recent view shows date AND time in local time, and the two high-score views show the date only (and no longer read a day ahead)."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (low damage, round 2): run 'dm_runscript dbg_combat' to turn the diagnostics on, run one 10-round set, and compare the [CBD_DEBUG] per-packet lines against the combat log. Report which case it is: damage attributed to a source that is not you, damage present in the attack event but missing from the damage event, or packets arriving while the session is not active. Turn it back off with the same command."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT (leaderboard): record trials on two characters on the same CD key, then read all three sign views. Every row must show player, character, DPR and date; the server-wide top 20 must list that account only once, and its paging must work across the two pages."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
   - id: legendary-caster-spell-slots
     title: "casters gain no new spell slots past level 40"
@@ -335,7 +335,8 @@ ideas:
   - id: rancid-skinner-bark-still-not-working
     title: "Rancid Skinner is still shouting 'Helms Deep is under attack' on death"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-05"
@@ -344,18 +345,22 @@ ideas:
     impl_notes: "<div><b>Root cause:</b> the Rancid Skinner is a single placed static creature in unpacked/dolguldurcast001.git.json (Dol Guldur: Tower Of Black Magic Depths, TemplateResRef creature023_2, tag Skinner), and <b>that instance carried its own ScriptDeath value of eowyndeathalert</b>. eowyndeathalert.nss:45 is the offending bark -- SpeakString(\"Helm's Deep is under attack, rally Free People of Middle Earth to Helm's Deep!\", TALKVOLUME_SHOUT) -- reached because the Skinner is evil-aligned and its tag is not in that script's exempt list. The July fix (ebc4a27abcd / a379f902c8e) changed <b>only the blueprint</b> creature023_2.utc.json from eowyndeathalert to skinnerdeath. For a creature already placed in a .git the engine uses the instance's own event fields and never consults the blueprint, so the old script kept firing and the fix appeared to do nothing.</div><div><b>Why no gate caught it:</b> tests/check_divergent_creatures.py compares name, faction, conversation, combat stats, equipment, inventory and droppability -- <b>not event scripts</b>. Worth extending it to cover the Script* fields as a follow-up so this class of divergence fails the repack.</div><div><b>Fix:</b> repointed the instance's ScriptDeath to skinnerdeath so it matches its blueprint, and repointed the unplaced duplicate blueprint creature023.utc.json (an older copy of the same Rancid Skinner, and almost certainly where the instance override came from) so the trap cannot be re-placed. Those two were the only references to eowyndeathalert in the whole tree, so no other creature loses its death handler; the script is left in the tree, now unreferenced.</div><div><b>Bonus bug fixed:</b> skinnerdeath ends with SE_DoCreatureRespawn() and eowyndeathalert does not -- so the Skinner, registered in brd_db.nss:123 with a 900 s respawn for the Roll of the Fallen board, was <b>never respawning after its first kill per reboot</b>. That is now live.</div><div>Build: bare nwn-manager repack, 20/20 smoke tests, 1 script compiled, packed clean.</div>"
     manual_steps:
       - step: "This is a .git (placed instance) change, so it only takes effect on a fresh module load -- deploy and restart before testing."
-        status: open
+        status: done
         kind: admin
         blocker: true
+        step_h: 64
       - step: "UAT: travel to Dol Guldur: Tower Of Black Magic Depths (dolguldurcast001), kill The Rancid Skinner, and confirm the server-wide shout reads 'Dol Guldur is under attack! Rally Servants of Sauron to Dol Guldur!' and NOT the Helm's Deep line."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: confirm the kill announcement ('The Rancid Skinner was killed by ... in Dol Guldur ...') still broadcasts."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT respawn regression: wait about 15 minutes in or near the area and confirm the Skinner respawns, and that the Roll of the Fallen board in the Well of Eru shows his countdown correctly."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
   - id: shayan-subrace-revivial
     title: "Expore Shayan's Subrace Engine"
     group: combat-classes
@@ -674,7 +679,8 @@ ideas:
   - id: gondor-scribe
     title: "Well of Souls Quest: No Gondor Scribe"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-08-05"
@@ -695,46 +701,52 @@ ideas:
     manual_steps:
       - step: "UAT Hanee-first path: accept from Hanee in Bree -> kill Azagoth in the Ruins of Annuminas -> back to Hanee (+5k XP, keeps head, no repeat on re-talk) -> Gondor Scribe in the Tower ground floor (+10k XP, head consumed, Well of Souls stage 2)."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT cold-start path: a fresh character talks to the scribe -> accept grants journal + Annuminas Key; a later head turn-in pays 10k."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT regression: Hanee's plain greeting is unchanged without the head, and the scribe is unkillable."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT appearance: spawn/loot the 6 new caster items (sorc_robe_annu, sorc_amul_annu, sorc_ring_annu, wiz_robe_annu, wiz_amul_annu, wiz_ring_annu) and confirm each looks right, equips on a caster, and its properties display (ability score, bonus spell slots, resistances). Palette: robes -> Armor > Clothing; amulets -> Miscellaneous > Jewelry > Amulets; rings -> Miscellaneous > Jewelry > Rings."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT one-key-one-chest: in Ruins of Annuminas (ruinsofannuminas), get the Annuminas Key from the Gondor Scribe (Tower of the High Wizard: Ground Floor / area011), open ONE warded chest (Sorcerer's Warded Coffer @ X71.23/Y50.06 or Wizard's Sealed Reliquary @ X76.24/Y49.98), and confirm the key is consumed and the OTHER warded chest can no longer be opened (unpickable + no key)."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT pickable chests: confirm the two remaining Annuminas chests (Placeable-List idx 9 @ X62.34/Y54.80 and idx 10 @ X62.09/Y44.90) are still lockpickable and still generate medium treasure on open."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT first key: on a character that has never taken the key, talk to the Gondor Scribe in Tower of the High Wizard: Ground Floor (area011), pick 'Alright, where is this portal?' and confirm exactly one Annuminas Key is granted and the journal opens at entry 1."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT same-session repeat: without relogging, talk to the scribe again and pick the same reply -- she must give the directions-only line (the key was the only one recovered) and grant NO second key."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT relog (this is the fix): log out fully, log back in, talk to the scribe and pick the same reply -- still directions-only, still no key."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT journal regression: a character who already has Well of Souls entry 2 ('Azagoth is dead...') must keep it after re-asking the scribe about the portal -- the fallback node must not rewind the journal to entry 1."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT DB check: sqlite3 on questcddb -- SELECT uuid,quest FROM quest_cd WHERE quest='annu_key'; should show exactly one row per character that drew a key."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "Note: characters who already received a key before 2026-08-05 have no annu_key row, so each can draw one more key (one-time grandfather window). Accept it, or clear those characters manually."
         status: open
         kind: admin
+        step_h: 64
   - id: unlock-more-inacessible-creature
     title: "Unlock Inacessible creatures, beef up stats, give them areas to live in"
     group: bosses
@@ -1879,44 +1891,55 @@ ideas:
   - id: devcrit-roll
     title: "Convert Devastating Critical to a roll for bonus damage (or a new 'chaos' damage type)"
     group: combat-classes
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "Piskan (Alek Cain)"
     date: "2026-08-02"
     commit: b2e7a2058fb
     notes: "<div><b>A devastating critical no longer kills you outright.</b> It now lands as a very large hit instead: <b>three extra dice of damage</b>, of the same kind your weapon already deals, scaled to the weapon you are swinging — <b>d6</b> for a small weapon, <b>d8</b> for a medium one, <b>d10</b> for a large one.</div><div><br></div><div><b>This cuts both ways.</b> The rule is the same for you and for everything you fight, so no more losing a level-60 character to a lucky swing from a random mob — and no more deleting a boss with one. Nothing else about the feat changed: same threat range, same prerequisites.</div><div><br></div><div>There is also a new level-60 feat for those who want to lean into it. <b>Legendary Butcher</b> adds <b>five more dice on any critical hit</b>, not just a devastating one, and it <b>stacks</b>. A large weapon in the hands of someone with both lands <b>eight extra d10</b>. It requires Devastating Critical with some weapon.</div><div><br></div><div>One cosmetic side effect of taking the instant kill out at the root: the combat log no longer announces a \"devastating critical\" by name. The hit shows as a critical hit, with the extra dice rolled into it.</div><div><br></div><div>Original request from Piskan (Alek Cain).</div>"
-    impl_notes: "<div><b>SHIPPED 2026-08-02</b> (b2e7a2058fb), to the design below, with Legendary Butcher in the same change.</div><div><br></div><div><b>REOPENED AND REFIXED 2026-08-02 (9ccb12a7087) after UAT: the first fix did not remove the save-or-die at all.</b> A devastating critical against the Combat Dummy rolled its Fortitude save and killed it outright, even though the dummy also carries a permanent EffectImmunity(IMMUNITY_TYPE_DEATH). Two independent death defences failing on the same hit means the engine's dev-crit kill is <b>not</b> an ordinary applied death effect, so devcrit_eff.nss — and the whole 'refuse the EffectDeath' theory this shipped on — never worked. It was silent because the bonus-dice half worked perfectly.</div><div><br></div><div><b>The real fix is upstream, in a 2DA.</b> The engine only considers a devastating critical when the wielder has the feat named in the weapon's baseitems.2da row, column EpicWeaponDevastatingCriticalFeat (CNWSCreatureStats::GetEpicWeaponDevastatingCritical). <b>That column is now blank on every row of hak_2da/baseitems.2da</b>, so the check can never succeed: no save is rolled and no kill happens, for players and NPCs alike, with no NWNX and no C# involved. Overwhelming Critical, improved critical, weapon focus and specialisation are separate columns and are untouched — ordinary criticals behave exactly as before.</div><div><br></div><div><b>Consequence: iAttackResult 10 no longer occurs</b>, so the bonus dice now ride on an <b>ordinary critical</b> (result 3) for an attacker holding the Devastating Critical feat matching the weapon in hand. That mapping <i>was</i> the column we blanked, so bin/gen-devcrit-map.py moves it into a generated include, unpacked/devcrit_map_inc.nss (67 base items), and blanks the column in the same run — idempotent, and it reads the mapping back out of the include once the 2DA is blank. Same rule as legfeat_ids_inc: never hardcode the feat ids. Unarmed and creature attacks fall back to the UNARMED / CREATURE feat constants.</div><div><br></div><div>devcrit_eff.nss and the no-kill flag are <b>kept as a safety net for a stale hak</b>: a server or client still running the old baseitems.2da can still resolve an engine devastating critical, and result 10 then grants the same dice (the two do not stack). Both files now say plainly that the flag route is not what stops the kill.</div><div><br></div><div><b>Gate.</b> tests/check_devcrit.py grew a sixth section: the column must be blank on every row, and the generated include must still hold ~67 mappings. Either half alone is a silent failure — re-extracting baseitems.2da from game data brings the instant kill back, and an empty include takes the replacement dice away from every weapon. <b>Deploy note: the 2DA change does nothing until the hak is rebuilt and republished</b> (bin/build-lotr-rules-hak --install, bin/refresh-nwsync, restart).</div><div><br></div><div>Also added unpacked/dbg_combat.nss: an admindb-gated dm_runscript dbg_combat toggle that turns on both this feature's effect-type diagnostic and the Combat Dummy's per-packet dump. Off at every reboot, and it is a diagnostic rather than a system — delete it and its two debug blocks once the questions are closed.</div><div><br></div><div><b>Files.</b> devcrit_inc.nss (constants + helpers), devcrit_atk.nss (NWNX Damage attack event, registered server-wide with no oOwner so the rule is symmetric), devcrit_eff.nss (NWNX_ON_EFFECT_APPLIED_BEFORE, skips the dev-crit EffectDeath), both registered from onmoduleload.nss. Plugin enabled: nwnx_damage.nss copied into unpacked/ and NWNX_DAMAGE_SKIP=n added to server.env.</div><div><br></div><div><b>The death-effect discriminator.</b> NWNX_ON_EFFECT_APPLIED_*'s TYPE is the <i>internal</i> NWNXLib enum and does <b>not</b> match the NWScript EFFECT_TYPE_* constants. The value used, <b>19</b>, is EffectTrueType::Death read out of NWNXLib/API/Constants/Effect.hpp in nwnxee/unified — verified against the header, not inferred. Guessing it would either do nothing or silently suppress an unrelated class of effect server-wide. The handler additionally requires the attack handler's short-lived flag on the victim, so Finger of Death, Death Attack, scripted deaths and DM kills are untouched.</div><div><br></div><div><b>Deviation from the design note, recorded deliberately.</b> The design said the bonus dice would be subject to the target's physical damage reduction. They are <b>not</b>: nwnx_damage.nss documents that \"immunities and damage will have already been resolved by the time the attack event script is ran\", so damage added to the attack event's per-type fields lands <i>after</i> DR and resistance. The alternative, NWNX_Damage_DealDamage, would go through DR but applies as a <b>second</b> damage packet — a second combat-log line and, more seriously, a second OnDamaged firing, which the bestiary kill-tracker hooks. One packet was judged the safer trade. Net effect: the bonus is slightly stronger against heavily armoured targets than the note implied.</div><div><br></div><div><b>Legendary Butcher</b> is feat <b>1124</b> and the first LEGFEAT_KIND_HOOK feat — a new kind that grants nothing at pick time or at login, because the damage hook reads it with GetHasFeat. LegFeat_ApplyAll skips HOOK feats outright. Its prerequisite is Devastating Critical <i>with any weapon</i>, which is 40 separate feat ids (495-532 contiguous, plus 955 dwarven waraxe and 996 whip); the generator emits LegFeat_HasAnyDevCrit() for it, because legfeat_ids_inc.nss has no includes and a prereq expression may only use builtins.</div><div><br></div><div><b>Gates.</b> New tests/check_devcrit.py: the include and the env flip moved together, both handlers registered, the iAttackResult early-return still the first thing the attack handler does (it runs on every attack on the server), the death handler discriminating on both type <i>and</i> flag, and the dice constants still matching this card. Negative-tested both ways. tests/check_legendary_feats.py extended: a HOOK feat must be read by <i>something</i> under unpacked/, which is the mirror image of the existing \"EFFECT feat with no case in LegFeat_ApplyOne\" check — same silent failure, opposite cause.</div><div><br></div><div><b>The crit-immunity audit shipped as CLAUDE-devcrit-immunity-audit.md</b>, generated by bin/audit-crit-immunity.py. Measured 2026-08-02: <b>91 item blueprints</b>, <b>178 creature blueprints</b> (215 rows) and 180 placed instances; <b>no script</b> grants it. Nothing was stripped — see <a href=\"#idea-remove-crit-immunity\">remove-crit-immunity</a>. Two droppable leaks turned up: the Witch King's Boots of Quickening (<b>allowed to stay, admin decision</b>, and the Witch King keeps his immunity) and bilbobaggins's equipped bilbosdefense in shirebilbohouse, which has <b>not</b> been ruled on. The earlier first-pass figures on this card (181 creatures, one droppable item) were close but were counted with a coarser filter; the generated document supersedes them.</div><div><br></div><div>--- the design as settled 2026-08-01 ---</div><div><b>Design settled 2026-08-01</b>, alongside the Legendary Feats martial pass (CLAUDE-legendary-feats-triage.md). Devastating Critical stops being save-or-die and becomes <b>flat bonus physical damage on a devastating critical</b>, typed to the weapon's base damage type (bludgeoning / piercing / slashing).</div><div><br></div><div><b>The numbers, and the dice scale with the weapon:</b></div><ul><li><b>Devastating Critical: +3 dice.</b></li><li><b>Legendary Butcher: +5 dice</b>, and it <b>stacks</b> with Devastating Critical rather than replacing it (the legendary feat takes Devastating Critical as its prerequisite).</li><li><b>Die size by weapon size</b> — <b>d6</b> small, <b>d8</b> medium, <b>d10</b> large. So a large weapon wielded by a character with both lands <b>+8d10 physical</b> on a devastating critical.</li></ul><div><b>Route: the NWNX Damage plugin</b>, which this change is the reason to enable. The include is already staged at .nwnx_includes/nwnx_damage.nss and the server runs the nwnxee/unified image, which ships every standard plugin, so enabling is: copy the include into unpacked/, set NWNX_DAMAGE_SKIP=n in server.env, restart. NWNX_Damage_AttackEventData.iAttackResult reports <b>10 = devastating crit</b> (3 = ordinary critical), and the per-type damage values are modifiable before they land.</div><div><br></div><div><b>Killing the instant kill is a second mechanism, not the same one.</b> The engine applies the dev-crit kill as an EffectDeath, not as damage, so the damage event cannot suppress it. NWNX_ON_EFFECT_APPLIED_BEFORE plus NWNX_Events_SkipEvent() can — the module already subscribes the _AFTER variant of that same event for eff_dur_x2, so the pattern is proven here. Discriminating a dev-crit death from any other death effect: the attack event sets a short-lived flag on the target when iAttackResult is 10, and the effect handler skips a death effect only while that flag is set.</div><div><br></div><div><b>Weapon size</b> is not exposed by NWScript (there is no GetWeaponSize); read it from Get2DAString(\"baseitems\", \"WeaponSize\", GetBaseItemType(oWeapon)).</div><div><br></div><div><b>The caution:</b> the damage event script intercepts <b>every point of damage on the server</b>, so a bug in it is a bug in all combat. It wants its own build gate and a handler that returns early when nothing applies.</div><div><br></div><div>Related:"
+    impl_notes: "<div><b>SHIPPED 2026-08-02</b> (b2e7a2058fb), to the design below, with Legendary Butcher in the same change.</div><div><br></div><div><b>REOPENED AND REFIXED 2026-08-02 (9ccb12a7087) after UAT: the first fix did not remove the save-or-die at all.</b> A devastating critical against the Combat Dummy rolled its Fortitude save and killed it outright, even though the dummy also carries a permanent EffectImmunity(IMMUNITY_TYPE_DEATH). Two independent death defences failing on the same hit means the engine's dev-crit kill is <b>not</b> an ordinary applied death effect, so devcrit_eff.nss — and the whole 'refuse the EffectDeath' theory this shipped on — never worked. It was silent because the bonus-dice half worked perfectly.</div><div><br></div><div><b>The real fix is upstream, in a 2DA.</b> The engine only considers a devastating critical when the wielder has the feat named in the weapon's baseitems.2da row, column EpicWeaponDevastatingCriticalFeat (CNWSCreatureStats::GetEpicWeaponDevastatingCritical). <b>That column is now blank on every row of hak_2da/baseitems.2da</b>, so the check can never succeed: no save is rolled and no kill happens, for players and NPCs alike, with no NWNX and no C# involved. Overwhelming Critical, improved critical, weapon focus and specialisation are separate columns and are untouched — ordinary criticals behave exactly as before.</div><div><br></div><div><b>Consequence: iAttackResult 10 no longer occurs</b>, so the bonus dice now ride on an <b>ordinary critical</b> (result 3) for an attacker holding the Devastating Critical feat matching the weapon in hand. That mapping <i>was</i> the column we blanked, so bin/gen-devcrit-map.py moves it into a generated include, unpacked/devcrit_map_inc.nss (67 base items), and blanks the column in the same run — idempotent, and it reads the mapping back out of the include once the 2DA is blank. Same rule as legfeat_ids_inc: never hardcode the feat ids. Unarmed and creature attacks fall back to the UNARMED / CREATURE feat constants.</div><div><br></div><div>devcrit_eff.nss and the no-kill flag are <b>kept as a safety net for a stale hak</b>: a server or client still running the old baseitems.2da can still resolve an engine devastating critical, and result 10 then grants the same dice (the two do not stack). Both files now say plainly that the flag route is not what stops the kill.</div><div><br></div><div><b>Gate.</b> tests/check_devcrit.py grew a sixth section: the column must be blank on every row, and the generated include must still hold ~67 mappings. Either half alone is a silent failure — re-extracting baseitems.2da from game data brings the instant kill back, and an empty include takes the replacement dice away from every weapon. <b>Deploy note: the 2DA change does nothing until the hak is rebuilt and republished</b> (bin/build-lotr-rules-hak --install, bin/refresh-nwsync, restart).</div><div><br></div><div>Also added unpacked/dbg_combat.nss: an admindb-gated dm_runscript dbg_combat toggle that turns on both this feature's effect-type diagnostic and the Combat Dummy's per-packet dump. Off at every reboot, and it is a diagnostic rather than a system — delete it and its two debug blocks once the questions are closed.</div><div><br></div><div><b>Files.</b> devcrit_inc.nss (constants + helpers), devcrit_atk.nss (NWNX Damage attack event, registered server-wide with no oOwner so the rule is symmetric), devcrit_eff.nss (NWNX_ON_EFFECT_APPLIED_BEFORE, skips the dev-crit EffectDeath), both registered from onmoduleload.nss. Plugin enabled: nwnx_damage.nss copied into unpacked/ and NWNX_DAMAGE_SKIP=n added to server.env.</div><div><br></div><div><b>The death-effect discriminator.</b> NWNX_ON_EFFECT_APPLIED_*'s TYPE is the <i>internal</i> NWNXLib enum and does <b>not</b> match the NWScript EFFECT_TYPE_* constants. The value used, <b>19</b>, is EffectTrueType::Death read out of NWNXLib/API/Constants/Effect.hpp in nwnxee/unified — verified against the header, not inferred. Guessing it would either do nothing or silently suppress an unrelated class of effect server-wide. The handler additionally requires the attack handler's short-lived flag on the victim, so Finger of Death, Death Attack, scripted deaths and DM kills are untouched.</div><div><br></div><div><b>Deviation from the design note, recorded deliberately.</b> The design said the bonus dice would be subject to the target's physical damage reduction. They are <b>not</b>: nwnx_damage.nss documents that \"immunities and damage will have already been resolved by the time the attack event script is ran\", so damage added to the attack event's per-type fields lands <i>after</i> DR and resistance. The alternative, NWNX_Damage_DealDamage, would go through DR but applies as a <b>second</b> damage packet — a second combat-log line and, more seriously, a second OnDamaged firing, which the bestiary kill-tracker hooks. One packet was judged the safer trade. Net effect: the bonus is slightly stronger against heavily armoured targets than the note implied.</div><div><br></div><div><b>Legendary Butcher</b> is feat <b>1124</b> and the first LEGFEAT_KIND_HOOK feat — a new kind that grants nothing at pick time or at login, because the damage hook reads it with GetHasFeat. LegFeat_ApplyAll skips HOOK feats outright. Its prerequisite is Devastating Critical <i>with any weapon</i>, which is 40 separate feat ids (495-532 contiguous, plus 955 dwarven waraxe and 996 whip); the generator emits LegFeat_HasAnyDevCrit() for it, because legfeat_ids_inc.nss has no includes and a prereq expression may only use builtins.</div><div><br></div><div><b>Gates.</b> New tests/check_devcrit.py: the include and the env flip moved together, both handlers registered, the iAttackResult early-return still the first thing the attack handler does (it runs on every attack on the server), the death handler discriminating on both type <i>and</i> flag, and the dice constants still matching this card. Negative-tested both ways. tests/check_legendary_feats.py extended: a HOOK feat must be read by <i>something</i> under unpacked/, which is the mirror image of the existing \"EFFECT feat with no case in LegFeat_ApplyOne\" check — same silent failure, opposite cause.</div><div><br></div><div><b>The crit-immunity audit shipped as CLAUDE-devcrit-immunity-audit.md</b>, generated by bin/audit-crit-immunity.py. Measured 2026-08-02: <b>91 item blueprints</b>, <b>178 creature blueprints</b> (215 rows) and 180 placed instances; <b>no script</b> grants it. Nothing was stripped — see <a href=\"#idea-remove-crit-immunity\">remove-crit-immunity</a>. Two droppable leaks turned up: the Witch King's Boots of Quickening (<b>allowed to stay, admin decision</b>, and the Witch King keeps his immunity) and bilbobaggins's equipped bilbosdefense in shirebilbohouse, which has <b>not</b> been ruled on. The earlier first-pass figures on this card (181 creatures, one droppable item) were close but were counted with a coarser filter; the generated document supersedes them.</div><div><br></div><div>--- the design as settled 2026-08-01 ---</div><div><b>Design settled 2026-08-01</b>, alongside the Legendary Feats martial pass (CLAUDE-legendary-feats-triage.md). Devastating Critical stops being save-or-die and becomes <b>flat bonus physical damage on a devastating critical</b>, typed to the weapon's base damage type (bludgeoning / piercing / slashing).</div><div><br></div><div><b>The numbers, and the dice scale with the weapon:</b></div><ul><li><b>Devastating Critical: +3 dice.</b></li><li><b>Legendary Butcher: +5 dice</b>, and it <b>stacks</b> with Devastating Critical rather than replacing it (the legendary feat takes Devastating Critical as its prerequisite).</li><li><b>Die size by weapon size</b> — <b>d6</b> small, <b>d8</b> medium, <b>d10</b> large. So a large weapon wielded by a character with both lands <b>+8d10 physical</b> on a devastating critical.</li></ul><div><b>Route: the NWNX Damage plugin</b>, which this change is the reason to enable. The include is already staged at .nwnx_includes/nwnx_damage.nss and the server runs the nwnxee/unified image, which ships every standard plugin, so enabling is: copy the include into unpacked/, set NWNX_DAMAGE_SKIP=n in server.env, restart. NWNX_Damage_AttackEventData.iAttackResult reports <b>10 = devastating crit</b> (3 = ordinary critical), and the per-type damage values are modifiable before they land.</div><div><br></div><div><b>Killing the instant kill is a second mechanism, not the same one.</b> The engine applies the dev-crit kill as an EffectDeath, not as damage, so the damage event cannot suppress it. NWNX_ON_EFFECT_APPLIED_BEFORE plus NWNX_Events_SkipEvent() can — the module already subscribes the _AFTER variant of that same event for eff_dur_x2, so the pattern is proven here. Discriminating a dev-crit death from any other death effect: the attack event sets a short-lived flag on the target when iAttackResult is 10, and the effect handler skips a death effect only while that flag is set.</div><div><br></div><div><b>Weapon size</b> is not exposed by NWScript (there is no GetWeaponSize); read it from Get2DAString(\"baseitems\", \"WeaponSize\", GetBaseItemType(oWeapon)).</div><div><br></div><div><b>The caution:</b> the damage event script intercepts <b>every point of damage on the server</b>, so a bug in it is a bug in all combat. It wants its own build gate and a handler that returns early when nothing applies.</div><div><br></div><div>Related:</div>"
     design_questions:
       - question: "Should the reworked Devastating Critical apply to NPCs as well as players? Proposed: yes, symmetric. It is a straight quality-of-life win for players (no more losing a level-60 character to a random mob save-or-die), and an asymmetric rule is a second code path and a second thing to explain. The alternative — players keep the bonus damage while NPC dev crits still kill outright — keeps the danger but is the version players are asking to be rid of."
         status: answered
         answer: "Yes — symmetric. The rework applies to NPCs and players alike (admin, 2026-08-01)."
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "Review the crit-immunity audit and decide which NPCs, if any, keep immunity to critical hits. The full table shipped as CLAUDE-devcrit-immunity-audit.md with a 'keep?' column per creature, sorted by CR. The recipe for keeping it on a hand-picked boss without a 178-creature sweep is in the document: strip the property from the shared blueprint, mint a variant (e.g. bossring_ci) for the bosses that keep it, and swap the resref on the .utc AND the .git instance in lockstep."
-        status: open
-        kind: toolset
+        status: done
+        kind: admin
+        step_h: 64
       - step: "FIXED 2026-08-02: bilbobaggins's placed instance in shirebilbohouse had bilbosdefense equipped with Dropable=1 while the blueprint said undroppable - an instance/blueprint divergence, not a loot decision. The instance now matches. check_divergent_creatures.py could not catch it (it compares equipment by slot and resref and ignores Dropable); there are ~301 such Dropable-only divergences module-wide across 45 blueprints, so tightening that gate is its own piece of work."
         status: done
-        kind: toolset
+        kind: admin
+        step_h: 64
       - step: "Separately, Bilbo's instance also makes sting and item089 droppable where the blueprint does not. Left alone - those look like deliberate loot rather than an oversight, unlike the armour, but they are the same kind of divergence and revert on respawn."
-        status: open
-        kind: toolset
+        status: done
+        kind: admin
+        step_h: 64
       - step: "Enable the NWNX Damage plugin: copy .nwnx_includes/nwnx_damage.nss into unpacked/, set NWNX_DAMAGE_SKIP=n in server.env, restart. Forgetting the env flip gives per-call 'Plugin not loaded' errors and nothing else."
         status: done
         kind: admin
         blocker: true
+        step_h: 64
       - step: "REBUILD AND REPUBLISH THE HAK (blocker for the refix): the blank EpicWeaponDevastatingCriticalFeat column only takes effect once clients and the server load the new baseitems.2da. Run bin/build-lotr-rules-hak --install, then bin/refresh-nwsync, then restart the server. A client on a stale hak still resolves its own devastating criticals."
-        status: open
-        kind: publish
+        status: done
+        kind: admin
         blocker: true
+        step_h: 64
       - step: "UAT (refix): a devastating critical no longer kills outright and instead adds the bonus dice, for a player AND for an NPC attacker (the rule is symmetric). The first UAT failed this - a dev crit killed the combat dummy through both its damage nulling and its death immunity - which is why the save-or-die is now disabled in baseitems.2da instead of intercepted."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
+        step_h: 64
       - step: "UAT (refix, the other side): confirm ORDINARY critical hits still work normally and that a character with Devastating Critical for the weapon in hand still gets the +3 dice on them, since attack result 10 no longer occurs. Check unarmed/monk and a creature-weapon NPC too."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: dice size tracks weapon size - d6 small, d8 medium, d10 large - and no other death effect in the module was suppressed by the EffectDeath skip (check a finger of death, a death attack, and a normal HP death)."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
   - id: ll-modern-leveling
     title: "Replace the conversation-based Legendary Leveler with normal 1-40 leveling (works with 4x multiclass)"
     group: combat-classes
@@ -2278,7 +2301,8 @@ ideas:
     title: "Endgame NPCs get +12 to every ability score and +10 natural armour class, answering the flat +10 attack bonus every level-60 build gained"
     group: bosses
     epic: difficulty-increase
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-30"
@@ -2288,30 +2312,38 @@ ideas:
     manual_steps:
       - step: "Build bin/bump-legendary-npcs.py per the spec above, review the dry-run report, then --apply. DONE: 213 blueprints / 201 placements across 54 areas / 1 baked blueprint / 5 skipped as player-summonable / 0 clamps."
         status: done
-        kind: toolset
+        kind: admin
         blocker: true
+        step_h: 64
       - step: "Confirm the repack passes tests/check_divergent_creatures.py — blueprint and every static placement must match after the bump. DONE: 1002 static placements across 342 blueprints all respawn faithfully; full repack green at 13/13 smoke tests."
         status: done
-        kind: publish
+        kind: admin
         blocker: true
+        step_h: 64
       - step: "Re-run the script with --apply a second time and confirm zero diff (idempotence). DONE: reports \"up to date — nothing to change\", git diff clean."
         status: done
         kind: admin
+        step_h: 64
       - step: "UAT: examine a bumped boss in game and confirm armour class is ~16 higher and saves ~6 higher than the season-1 figure."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT persistence: kill and respawn a bumped boss (e.g. the Witch King) and confirm the respawned copy keeps the bump."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT ulmothevalar: it now runs on the baked ulmothevalar_2 blueprint in area022 — confirm it spawns, examines as bumped, and is still bumped after a death and respawn (this is the one creature whose bump depended on a new blueprint)."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT collateral: confirm a bumped friendly/merchant NPC (methonashmart, mw_jocko, modreddm) still converses, sells and behaves normally."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT player-side regression: cast Dragon Knight and Mummy Dust and sound the Horn of the Fell Beast — all three summons must examine exactly as they did before this pass."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
   - id: boss-monk-sr-levels
     title: "+15 monk levels for endgame NPCs that already have monk, raising Diamond Soul spell resistance on the server's main spell-resistant bosses"
     group: bosses
@@ -2729,8 +2761,9 @@ ideas:
   - id: p000-duplicate-ferny-journal
     title: "Legacy p000 plot fires a duplicate Bill Ferny journal track"
     group: quests-areas
-    status: implemented
+    status: awarded
     hidden: true
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
@@ -2745,16 +2778,16 @@ ideas:
         answer_h: 64
     manual_steps:
       - step: "UAT: after the next wiki refresh, confirm the Quests index no longer lists 'Assassination (no proof required)' (tag p000) under Lord of the Rings, and that docs/quests/p000.html is gone."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         step_h: 64
       - step: "UAT: on a character mid-way through Ferny's Ring, confirm the journal still shows Ferny's Ring entries 1-4 normally and no placeholder [Villain]/[Plot Giver] entry appears."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT: run Ferny's Return (Guardian of Bree -> impostor in Ferny's house -> report back) and confirm entries 1-3 still fire and it closes out; it shares the group heading that was edited."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "Optional cleanup, not required for this fix: the unreachable p000 content (nw_innkeeper023, nw_bandit030, p000c000ct_plotg.dlg, p000*.nss) can be deleted from unpacked/ if you want the leftovers gone rather than just hidden."
         status: open
@@ -5158,7 +5191,9 @@ ideas:
     title: "Character validation with a level 60 cap"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
+    hidden: true
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-27"
@@ -5167,17 +5202,17 @@ ideas:
     impl_notes: "<div>Verified 2026-07-25 — no login-validation change needed: server.env runs NWN_ELC=0 and NWN_ILR=0, so no connecting character is re-validated and a level 41+ character cannot be rejected or clamped. hak_2da/classes.2da was diffed field-by-field against stock: all 11 player base classes already carry MaxLevel 0 and EpicLevel -1, so no 2DA edit is needed for a 60 cap; the remaining non-zero MaxLevel values are stock prestige-class limits unreachable inside a 60-level budget. The README's claim that those columns were part of the cap lever was wrong and has been corrected.</div><div><b>Update 2026-07-27:</b> the <b>NWNX_ELC plugin is now loaded</b> (NWNX_ELC_SKIP=n) — not for validation, but because NWNX_MaxLevel requires it to bypass the engine's level-40 restriction. Loading the plugin is not NWN_ELC=1: the server still does not re-validate characters, nothing in unpacked/ subscribes to NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE/_AFTER, and no custom validation script exists. This is the one thing to watch in UAT — if a legendary character is ever refused at login, this plugin is the first suspect. Rolled out on season 2, whose servervault is the isolated test vault (2 accounts), not the season 1 vault.</div>"
     manual_steps:
       - step: "UAT: log in an existing level-40 character after the restart and confirm it loads at 40 with no 'character rejected'/'invalid character' message and no XP loss — this is the check that the newly loaded NWNX_ELC plugin has not started validating anyone."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         blocker: true
         step_h: 64
       - step: "UAT: level a test character to 41 and relog — confirm it comes back at 41 with its XP intact (nothing clamped back to 40)."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         step_h: 64
       - step: "UAT: log in from a client that has NOT yet pulled the refreshed nwsync hak and confirm the only symptom is the character sheet clamping at 40 (not a rejected login) — the fix is bin/refresh-nwsync, not an ELC change."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "Do NOT set NWN_ELC=1 or NWN_ILR=1 while levels 41-60 are live; that is the server's own validation and would re-check legendary characters against the 2DAs. The NWNX_ELC plugin being loaded is unrelated and must stay."
         status: open
@@ -5185,7 +5220,7 @@ ideas:
         step_h: 64
       - step: "Hak rebuild: lotr_rules.hak now packs ruleset + baseitems + classes + exptable, and bin/build-lotr-rules-hak verifies that list on every build. Installed and verified 2026-07-27."
         status: done
-        kind: publish
+        kind: admin
         step_h: 64
   - id: ll-xp-award-balance
     title: "Retune XP awards for the 41-60 band"
@@ -5448,7 +5483,8 @@ ideas:
     title: "Legendary Feats: build a custom lotr.tlk"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-30"
@@ -5458,10 +5494,12 @@ ideas:
     manual_steps:
       - step: "Publish: build and install tlk/lotr.tlk, bin/refresh-nwsync, nwn-manager repack (the .mod is what names the TLK — nwsync will not carry it otherwise), bin/server-restart."
         status: done
-        kind: publish
+        kind: admin
+        step_h: 64
       - step: "UAT: with the TLK swapped and BEFORE any feat row existed, confirm CEP item and creature names still read correctly. PASSED 2026-08-01 — no index slip, phase 2 unblocked."
         status: done
-        kind: uat
+        kind: admin
+        step_h: 64
   - id: ll-feats-2da
     title: "Legendary Feats: feat.2da plumbing and the first proof feats"
     group: combat-classes
@@ -5678,7 +5716,8 @@ ideas:
   - id: bard-legendary-prowess-conflict
     title: "Bard Song grants no attack bonus when Legendary Prowess is taken"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-05"
@@ -5689,49 +5728,95 @@ ideas:
       - question: "Legendary Prowess's +5 does not stack with any other attack-bonus EFFECT - Bard Song, Legendary Grip (+4, worth nothing to a Prowess holder), Legendary Reaping's first three stacks, Tenser's. Which way do we go? (a) ACCEPT: leave the code alone and rewrite the feat description to say it does not stack with other attack bonuses. Zero risk, but it leaves Legendary Grip's AB half permanently dead for the builds most likely to take it. (b) RE-SCOPE Prowess to a benefit that cannot collide - e.g. flat +5 DAMAGE, or a smaller AB plus something else. One table edit in bin/gen-legendary-feats.py plus the effect in legfeat_inc.nss; no TLK or 2da churn, and existing picks keep working. (c) MAKE IT STACK by moving the bonus off effects entirely (an attack-bonus item property on a hidden creature-hide item, the usual PW trick). This is real new plumbing - hide creation, re-apply on login, unwind on respec - and it touches every character's equipment, so it is the expensive answer. MY RECOMMENDATION: (b). It fixes the bard report and the Grip overlap in one move, keeps the feat's fantasy ('every blow finds its mark' reads fine as damage), and needs no new subsystem. If you want to keep it as attack bonus, (a) is honest and (c) is not worth the surface area."
         status: answered
         answer: "Option (d), the admin's own proposal and better than the three offered: keep applying the bonus, but stop expressing each source as its own effect. Every module-owned source registers an amount in a per-creature ledger and one effect is built from the sum. No cap on the attack total. Built as bonus_pool_inc.nss."
+        question_h: 64
+        answer_h: 64
       - question: "If we go with (b) or (c): does the same rule apply to Legendary Grip's +4 attack bonus, which collides with Prowess for exactly the same reason and is the more invisible of the two (it is conditional on dual-wielding, so a player cannot even A/B test it easily)? I would fix both together or neither - fixing only Prowess leaves Grip silently worthless."
         status: answered
         answer: "Yes - Grip is pooled in the same change, along with Reaping, Bard Song and the summon boost. Fixing Prowess alone would have left Grip's attack half silently worthless."
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "UAT, THE REPORTED BUG: on a level-60 bard holding Legendary Prowess, note the character sheet attack bonus, then sing. It must rise by the song's FULL amount (+1 to +6 by tier), not by 1 and not by 0."
         status: open
-        kind: uat
-        tester: "level 60 bard with Legendary Prowess"
+        kind: admin
+        step_h: 64
       - step: "UAT the baseline did not move: on a bard WITHOUT Legendary Prowess, the song's attack and damage bonuses read exactly as they did before this change. The fix must not change what a bard alone gets."
         status: open
-        kind: uat
-        tester: "any bard"
+        kind: admin
+        step_h: 64
       - step: "UAT Legendary Grip, which was worth nothing before: dual-wielding with both Grip and Prowess, attack must show +9 from the two feats together. Sheathe the off-hand weapon and it must drop back to +5 (LegFeat_ApplyAll clears the ledger entry on the equip hook)."
         status: open
-        kind: uat
-        tester: "level 60 dual-wielder with Grip + Prowess"
+        kind: admin
+        step_h: 64
       - step: "UAT Legendary Reaping stacks: kill five things inside 12s of each other and confirm attack AND damage climb +2 per kill on top of any other bonus. Watch the combat log on stacks 4 and 5 - the damage must be FLAT (+8, +10), not a dice roll. It was rolling 1d8/2d6 before this change."
         status: open
-        kind: uat
-        tester: "level 60 with Legendary Reaping"
+        kind: admin
+        step_h: 64
       - step: "UAT expiry, the case generation counters exist for: with a song running AND Reaping stacks up, let the Reaping stacks lapse (12s without a kill). The total must drop by exactly Reaping's share and the song's share must survive to its own end. Then let the song end and confirm only the permanent feat bonuses remain."
         status: open
-        kind: uat
-        tester: "level 60 bard with Reaping"
+        kind: admin
+        step_h: 64
       - step: "UAT relog: log out mid-song and back in. The song is gone (unchanged - effects never survived a logout), Legendary Prowess/Grip come back, and attack reads the pre-logout value minus the song. Specifically confirm it is NOT doubled - the ledger must not be re-added on top of itself."
         status: open
-        kind: uat
-        tester: "level 60 bard with Legendary Prowess"
+        kind: admin
+        step_h: 64
       - step: "UAT non-PCs, since the ledger runs on any creature: a druid/ranger pet still gets its empowerment message and bonus at spawn, and standing in a bard's song it gets BOTH (the pet's attack bonus should rise while the song plays)."
         status: open
-        kind: uat
-        tester: "druid or ranger"
+        kind: admin
+        step_h: 64
       - step: "UAT respec: take Prowess, confirm +5, then re-pick it away via Ping Pong and confirm the +5 is gone immediately - not lingering until logout."
         status: open
+        kind: admin
+        step_h: 64
+      - step: "Publish: nwn-manager repack + server restart. Scripts only - no hak, TLK or 2da involved."
+        status: open
+        kind: admin
+        step_h: 64
+  - id: spell-ab-prowess-stack
+    title: "Attack bonus from spells (War Cry, Bless, Prayer...) does nothing when Legendary Prowess is taken"
+    group: combat-classes
+    status: manual
+    type: Defect
+    player: Szescian82
+    date: "2026-08-06"
+    notes: "<div>Follow-up to <a href=\"#idea-bard-legendary-prowess-conflict\">the Bard Song report</a>: the same cancelling-out still happened with <b>spells</b>. Casting <b>War Cry</b>, <b>Bless</b>, <b>Aid</b>, <b>Prayer</b>, <b>Divine Favor</b>, <b>Divine Power</b> or a Divine Champion's <b>Divine Wrath</b> moved your attack bonus by <b>nothing at all</b> if you were carrying Legendary Prowess's permanent +5 - the game only ever applies the single largest attack bonus, and the feat was always the largest.</div><div><br></div><div>These spells now add on top of your feats and your bard song. They still do not stack with <i>each other</i> - casting Bless and Prayer on the same character gives you the better of the two, exactly as the core game rules say - but whichever of them is in play is now felt in full alongside Legendary Prowess, Legendary Grip and the song.</div>"
+    impl_notes: "<div><b>Same root cause as <a href=\"#idea-bard-legendary-prowess-conflict\">bard-legendary-prowess-conflict</a>, the half that was deliberately left out.</b> That fix pooled the module's OWN attack-bonus sources (Prowess, Grip, Reaping, Bard Song, the summon boost) and explicitly accepted that stock spells stay engine-typed and take max-of-two against the pooled total. Szescian82's follow-up is that from a player's seat that acceptance IS the bug: a +5 permanent feat makes every buff spell in the game read as +0.</div><div><br></div><div><b>The ledger grew a GROUP concept</b> (bonus_pool_inc.nss). Sources in the same group contribute only their LARGEST live entry; groups sum. The module's own five sources keep a group each (they add up, exactly as before); the seven buff spells share one 'spell' group. That is what lets a spell be felt on top of Legendary Prowess while Bless and Prayer still give the better of the two rather than both - the engine's own rule between spells, preserved deliberately rather than by accident. BPool_Total is now a nested walk (groups outer, sources inner); everything else about the ledger - the render, the generation counters, the BPOOL_LIVE hot-path guard - is untouched.</div><div><br></div><div><b>Seven stock spell scripts are now forked into unpacked/</b>: nw_s0_bless, nw_s0_aid, nw_s0_prayer, nw_s0_warcry, nw_s0_divpower, x0_s0_divfav, x2_s2_divwrath. Each one is the stock BioWare script with ONE change: the EffectAttackIncrease comes out of the effect link and the amount is registered through the new BPool_SpellAttack instead. Each carries a MODULE FORK header saying so. Everything else in them - durations, metamagic, VFX, the bolt branch in Bless, the whole hostile half of Prayer - is stock and must stay that way.</div><div><br></div><div><b>Witnesses are now a table, not a special case.</b> BPool_Revalidate used to hard-code Bard Song's spell id; it now walks BPool_WitnessAt for every source, so a spell's entry ends when the spell's own effect does - dispelled, ended early, stripped by death. Each fork deliberately leaves a NON-attack effect in its link (the save bonus, the damage bonus, the duration VFX) precisely so the witness has something to be. The registered duration is a 3x BACKSTOP only, for the same reason Bard Song's is: eff_dur_x2 doubles player-applied temporary effects, so a 1x timer would drop the bonus mid-buff. BPool_ClearTransient is table-driven for the same reason.</div><div><br></div><div><b>Divine Wrath's witness is spell id 622, not the 621 the stock script signals</b> - row 621 in spells.2da is PADDING. Verified against the game's own spells.2da (nwn_resman_cat), as was every other id here; the stock SignalEvent is left as found.</div><div><br></div><div><b>Attack channel only.</b> The damage halves of these spells stay engine-typed: damage-bonus effects of DIFFERENT damage types already stack, so there is no defect on that channel, and pooling would flatten slashing/magical/divine into the pool's bludgeoning and change what damage reduction eats. The four forks that still call EffectDamageIncrease are a new DAMAGE-ONLY exemption class in the gate, which still refuses them an unpooled attack bonus.</div><div><br></div><div><b>Gate additions</b> (tests/check_bonus_pool.py, all three negative-tested): every source index must have a case in BPool_GroupAt and BPOOL_GRP_COUNT must match the declared groups (an ungrouped source silently stops adding); BPool_Total must still filter by group (without it every buff spell would stack with every other one); and each of the seven forks must register through BPool_SpellAttack under its own key AND have a witness id. That last pair is the new silent failure: a fork that removed the bonus from the link but stopped registering grants NOTHING, which is worse than the bug it fixed.</div>"
+    design_questions:
+      - question: "Pooling the spells raises the obvious balance question: should they stack with EACH OTHER too? MY IMPLEMENTATION (and recommendation) is NO - the ledger grows a GROUP concept: sources in the same group contribute max(entries), groups sum. Every pooled spell sits in one 'spell' group, so Bless + Prayer still gives the better of the two (exactly what the engine did), while the group total adds to Prowess/Grip/Song. That fixes the report without handing out a stacking rule D&D never had. The alternative, giving every spell its own group, would let a cleric stack Bless + Aid + Prayer + Divine Favor + Divine Power for +9ish before any feat - a much bigger power increase than the report asks for. Say the word if you want that instead; it is a one-line table change per spell."
+        status: open
+        answer: null
+      - question: "Which sources are in scope? I have pooled the seven that grant an ATTACK bonus and are reachable by a player: Bless, Aid, Prayer, War Cry, Divine Favor, Divine Power and Divine Wrath (Divine Champion). Deliberately NOT pooled: (a) the DAMAGE halves of those same spells - damage bonuses of DIFFERENT damage types already stack in the engine, so there is no defect there, and pooling them would flatten slashing/magical/divine into the pool's bludgeoning and change what damage reduction eats; (b) Divine Might (damage only, same reason); (c) Tenser's Transformation (its bonus is tied to the polymorph and must end with it); (d) item attack bonus, which is a property, not an effect. Anything you want added or removed from that list?"
+        status: open
+        answer: null
+    manual_steps:
+      - step: "UAT, THE REPORTED BUG: on a character holding Legendary Prowess, note the character sheet attack bonus, cast/sing War Cry, and confirm attack rises by the FULL +2 (it moved by 0 before). Repeat with Bless (+1) and Divine Favor (+1..+5)."
+        status: open
         kind: uat
-        tester: "level 60 with picks to spend"
+        tester: "level 60 with Legendary Prowess; bard for War Cry, cleric/paladin for Bless/Divine Favor"
+      - step: "UAT the spells still do NOT stack with each other: cast Bless (+1) then Prayer (+1) on the same character - total must rise by 1, not 2. Then Divine Favor at +5 on top: the spell group's share must become 5, not 7."
+        status: open
+        kind: uat
+        tester: "any cleric with Bless, Prayer and Divine Favor"
+      - step: "UAT the baseline for a character with NO legendary feats: every one of the seven spells grants exactly what it always did. This fix must not change what an unfeated character gets from a buff."
+        status: open
+        kind: uat
+        tester: "any low/mid-level caster"
+      - step: "UAT expiry: cast War Cry, let it run out, and confirm the attack bonus drops by exactly its share and the feat bonus survives. Then cast it again and die - on respawn the spell share must be gone and the feat share back."
+        status: open
+        kind: uat
+        tester: "any character with Legendary Prowess"
+      - step: "UAT the NPC side, since these scripts run for monsters too: a hostile cleric casting Bless/Prayer on its allies must still visibly buff them (watch the combat log to-hit rolls), and nothing in the log should show a doubled bonus."
+        status: open
+        kind: uat
+        tester: any
       - step: "Publish: nwn-manager repack + server restart. Scripts only - no hak, TLK or 2da involved."
         status: open
         kind: publish
   - id: bard-song-consumes-2-uses
     title: "Bard Song consumes two uses per activation"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-08-05"
@@ -5741,12 +5826,13 @@ ideas:
     manual_steps:
       - step: "UAT: on a bard, note the remaining Bard Song uses, sing once, and confirm exactly ONE use is spent (rest to refill and repeat). The song's bonuses, duration and radius must be unchanged."
         status: open
-        kind: uat
-        tester: "bard"
+        kind: admin
+        step_h: 64
       - step: "UAT: Curse Song still spends exactly one bard song use - it shares the same pool and its script was deliberately left alone, so this is the check that the fix did not overshoot."
         status: open
-        kind: uat
-        tester: "bard 4+ (Curse Song)"
+        kind: admin
+        step_h: 64
       - step: "Publish: nwn-manager repack + server restart. Script-only change, no hak, TLK or 2da involved."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
