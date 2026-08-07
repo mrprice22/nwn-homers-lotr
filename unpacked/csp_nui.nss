@@ -23,7 +23,14 @@
 // group sizes itself to its longest label, grows a horizontal scrollbar and
 // clips the header text.
 
+// A fourth, learned from legendary-nui-wrapping: a NUI tooltip renders its
+// string as ONE line and never clips it, so a long one draws off the edge of
+// the screen. The spell descriptions this window hangs off its rows are the
+// longest strings either picker shows - they come straight from the TLK - so
+// every one of them goes through NuiWrapText before it is attached.
+
 #include "nw_inc_nui"
+#include "nui_wrap_inc"
 #include "csp_inc"
 
 const string CSP_WIN = "cspells";      // NuiCreate window id
@@ -62,6 +69,11 @@ json CSP_Row(object oPC, int nSpellId, int nRemaining)
     string sName = CSP_SpellName(nSpellId);
     string sTip  = CSP_SpellDesc(nSpellId);
     if (sTip == "") sTip = sName;
+    // Wrapped, not truncated: a TLK spell description is hundreds of characters
+    // and a tooltip will happily draw every one of them on a single line, past
+    // the window and past the viewport. NuiWrapText keeps the newlines the TLK
+    // text already carries and wraps the long lines between them.
+    sTip = NuiWrapText(sTip, NUI_WRAP_COLS);
 
     json jRow = JsonArray();
 

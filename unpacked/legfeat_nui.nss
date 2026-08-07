@@ -26,8 +26,17 @@
 // precedent - one group, explicit NuiHeight. The row widths below sum to less
 // than LEGFEAT_LIST_W, and the group scrolls vertically only, so no amount of
 // content can reintroduce a horizontal scrollbar.
+//
+// NOTHING IN THIS WINDOW MAY RELY ON A WIDGET WRAPPING BY ITSELF. A `label`
+// clips its tail silently and a tooltip runs off the edge of the screen; only
+// `text` wraps, and only within a box you have sized. Both failures were
+// reported together as roadmap legendary-nui-wrapping - the effect column lost
+// its tail, and a hovered description ran several screen widths wide. So the
+// effect column is a sized `text` widget, and every tooltip string goes through
+// NuiWrapText (nui_wrap_inc) before it is attached.
 
 #include "nw_inc_nui"
+#include "nui_wrap_inc"
 #include "legfeat_inc"
 
 const string LEGFEAT_WIN = "legfeats";     // NuiCreate window id
@@ -64,16 +73,22 @@ const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
 // characters per line than you do.
 const int LEGFEAT_HDR_WRAP_AT = 80;
 
-// Geometry. The three row columns sum to 660, comfortably inside the list
-// group's 680, which is what keeps the horizontal scrollbar away.
+// Geometry. The three row columns sum to 660 (80 + 200 + 380), comfortably
+// inside the list group's 680, which is what keeps the horizontal scrollbar
+// away. Keep that sum under LEGFEAT_LIST_W if you retune any of them.
+//
+// The name column gives 40 of its width to the effect column: the longest feat
+// name is 22 characters and fits 200 easily, while the longest effect string is
+// 62 and was being cut off at 340. The row is tall enough for the effect to
+// take two lines, which is what that string needs even at 380.
 const float LEGFEAT_WIN_W   = 720.0;
-const float LEGFEAT_WIN_H   = 470.0;
+const float LEGFEAT_WIN_H   = 530.0;
 const float LEGFEAT_LIST_W  = 680.0;
-const float LEGFEAT_LIST_H  = 320.0;
+const float LEGFEAT_LIST_H  = 380.0;
 const float LEGFEAT_COL_BTN = 80.0;
-const float LEGFEAT_COL_NAME = 240.0;
-const float LEGFEAT_COL_EFF  = 340.0;
-const float LEGFEAT_ROW_H    = 30.0;
+const float LEGFEAT_COL_NAME = 200.0;
+const float LEGFEAT_COL_EFF  = 380.0;
+const float LEGFEAT_ROW_H    = 46.0;   // two lines of wrapped effect text
 const float LEGFEAT_HDR_H    = 26.0;   // one centred line
 const float LEGFEAT_SUB_H    = 40.0;   // two lines, wrapped fallback
 
@@ -99,11 +114,21 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     // one flat string cannot say which half failed, and a player reads the half
     // they can check - which is how a character with a qualifying BAB and no
     // Epic Prowess came to report that 35 was being rejected
-    // (roadmap legendary-feat-prereq-defect-1). The tooltip has no width limit,
-    // so it carries every clause.
+    // (roadmap legendary-feat-prereq-defect-1). The tooltip carries every
+    // clause.
+    //
+    // AND IS WRAPPED BEFORE IT IS ATTACHED. "The tooltip has no width limit"
+    // was written here as though it were a licence to make the string as long
+    // as the information needed; it is the opposite. A NUI tooltip renders what
+    // it is given as ONE line and never clips, so the longest description plus
+    // its requirement clauses - around 300 characters - drew several screen
+    // widths wide and off the edge of the viewport (roadmap
+    // legendary-nui-wrapping). Wrapping it once here covers all three attach
+    // points below, since they all show the same string.
     string sTip = LegFeat_DescAt(nIndex);
     string sPrereq = LegFeat_PrereqStatusAt(oPC, nIndex);
     if (sPrereq != "") sTip += "  (Requires: " + sPrereq + ")";
+    sTip = NuiWrapText(sTip, NUI_WRAP_COLS);
 
     json jRow = JsonArray();
     if (bTaken)
@@ -136,14 +161,26 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     // column the eye is already on beats a tooltip nobody hovers.
     //
     // ONE clause - the first unmet one, with the player's own value - not the
-    // whole requirement. A NUI label clips silently rather than wrapping (see
-    // the header note), so a three-clause string loses its tail exactly when the
-    // player most needs to read it. The full list is in the tooltip.
+    // whole requirement, which would make the row several lines tall for the
+    // three-clause feats. The full list is in the tooltip.
     string sEff = LegFeat_EffectAt(nIndex);
     if (!bTaken && !bQualified)
         sEff = "Needs: " + LegFeat_FirstUnmetAt(oPC, nIndex);
-    json jEff = NuiLabel(JsonString(sEff),
-                         JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
+
+    // A `text` widget, NOT a label: this is the one column whose contents can
+    // outrun their width, and a label answers that by dropping the tail with no
+    // visual cue - "-3 target AC per hit, stacks 3, capped at its armour+shield
+    // AC" is 62 characters and was arriving as roughly two thirds of a sentence
+    // (roadmap legendary-nui-wrapping). Borderless with no scrollbar so it still
+    // reads as a table cell rather than a box; LEGFEAT_ROW_H is what guarantees
+    // the second line has somewhere to go, since NUI_SCROLLBARS_NONE means
+    // anything past the box height would be clipped instead.
+    //
+    // The price is alignment: NUI text takes none, so this column no longer
+    // sits vertically centred against the button and the name. That is the same
+    // trade the header makes above, and it is the right way round - a
+    // misaligned sentence still reads, a truncated one does not.
+    json jEff = NuiText(JsonString(sEff), FALSE, NUI_SCROLLBARS_NONE);
     jEff = NuiTooltip(jEff, JsonString(sTip));
     jRow = JsonArrayInsert(jRow, NuiWidth(jEff, LEGFEAT_COL_EFF));
 
@@ -188,7 +225,11 @@ json LegFeat_Window(object oPC)
     }
 
     // Explicitly sized, vertical scrollbars only: the list can grow to the whole
-    // feat pool without the layout changing shape or scrolling sideways.
+    // feat pool without the layout changing shape or scrolling sideways. The
+    // whole pool already overflows it - 18 rows at LEGFEAT_ROW_H is well past
+    // LEGFEAT_LIST_H - which is what the vertical scrollbar is for; the group
+    // and window heights are sized for how many rows land on screen at once,
+    // not to fit them all.
     json jList = JsonArray();
     int i;
     for (i = 0; i < LEGFEAT_COUNT; i++)
