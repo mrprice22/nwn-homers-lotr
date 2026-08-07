@@ -82,23 +82,43 @@
 // group sizes itself to its longest label, grows a horizontal scrollbar and
 // clips the header text.
 
+// A fourth, learned from legendary-nui-wrapping: A NUI TOOLTIP CANNOT HOLD A
+// LONG STRING. It renders one line, never clips it - so it draws straight off
+// the edge of the screen - and it strips any newline you put in it, so it
+// cannot be pre-wrapped either. Pre-wrapping was tried first and came back from
+// in-game testing completely unchanged. The spell descriptions this window used
+// to hang off every row are the longest strings either picker shows, straight
+// out of the TLK, so they now go in a detail pane at the bottom - a `text`
+// widget, which does wrap - reached by the &quot;?&quot; button on each row.
+
 #include &quot;nw_inc_nui&quot;
 #include &quot;csp_inc&quot;
 
 const string CSP_WIN = &quot;cspells&quot;;      // NuiCreate window id
 const string CSP_TOK = &quot;CSP_TOK&quot;;      // PC local: this window&#x27;s token
 const string CSP_SEL = &quot;CSP_SEL&quot;;      // PC local: selected spell level, +1
+const string CSP_DTL = &quot;CSP_DTL&quot;;      // PC local: detail-pane spell id, +1
+// The detail pane is BOUND rather than baked into the layout, so a &quot;?&quot; click
+// updates it without rebuilding the window - a rebuild discards the list&#x27;s
+// scroll position, inconsistently, because the client caches it too.
+const string CSP_BIND_DTL = &quot;csp_detail&quot;;
 
 const float CSP_WIN_W    = 720.0;
-const float CSP_WIN_H    = 500.0;
+const float CSP_WIN_H    = 640.0;
 const float CSP_LIST_W   = 680.0;
 const float CSP_LIST_H   = 300.0;
 const float CSP_COL_BTN  = 80.0;
+const float CSP_COL_INFO = 40.0;       // the &quot;?&quot; detail button
 const float CSP_COL_NAME = 260.0;
 const float CSP_COL_SCH  = 160.0;
 const float CSP_ROW_H    = 30.0;
 const float CSP_HDR_H    = 26.0;
 const float CSP_TAB_W    = 64.0;
+// The detail pane. A TLK spell description can run to several hundred
+// characters, and unlike the feat pool there is no bound on it, so this gets an
+// automatic scrollbar as well as a generous height: it is the only place the
+// description exists, and anything it drops is gone.
+const float CSP_DTL_H    = 150.0;
 
 json CSP_Window(object oPC);
 void CSP_Open(object oPC);
@@ -115,12 +135,33 @@ int CSP_Selected(object oPC)
     return (nMax &gt;= 0) ? nMax : 0;
 }
 
-// One spell row: a Learn button, the name, and the school.
+// Which spell the detail pane is showing, or -1 for none.
+int CSP_DetailSpell(object oPC)
+{
+    return GetLocalInt(oPC, CSP_DTL) - 1;
+}
+
+// Push the selected spell&#x27;s text into the open window&#x27;s detail pane, without
+// rebuilding the window - see CSP_BIND_DTL.
+void CSP_RefreshDetail(object oPC);
+
+// The full text of one spell, for the detail pane.
+string CSP_DetailText(object oPC, int nSpellId)
+{
+    if (nSpellId &lt; 0)
+        return &quot;Click the \&quot;?\&quot; beside a spell to read what it does.&quot;;
+
+    string sOut = CSP_SpellName(nSpellId) + &quot;  (&quot;
+                + CSP_SchoolName(nSpellId) + &quot;)&quot;;
+    string sDesc = CSP_SpellDesc(nSpellId);
+    if (sDesc != &quot;&quot;) sOut += &quot;\n&quot; + sDesc;
+    return sOut;
+}
+
+// One spell row: a Learn button, a &quot;?&quot; detail button, the name, and the school.
 json CSP_Row(object oPC, int nSpellId, int nRemaining)
 {
     string sName = CSP_SpellName(nSpellId);
-    string sTip  = CSP_SpellDesc(nSpellId);
-    if (sTip == &quot;&quot;) sTip = sName;
 
     json jRow = JsonArray();
 
@@ -128,17 +169,22 @@ json CSP_Row(object oPC, int nSpellId, int nRemaining)
     // Greyed rather than hidden with no picks left, so the player can still
     // read the whole list and plan. CSP_Learn re-checks everything.
     jBtn = NuiEnabled(jBtn, JsonBool(nRemaining &gt; 0));
-    jBtn = NuiTooltip(jBtn, JsonString(sTip));
+    jBtn = NuiTooltip(jBtn, JsonString(&quot;Learn this spell&quot;));
     jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, CSP_COL_BTN));
+
+    // The description used to hang off all three of these as a tooltip. It is
+    // one &quot;?&quot; click away instead - see the header note on why a tooltip could
+    // never have held it. What is left on them is short and bounded.
+    json jInfo = NuiId(NuiButton(JsonString(&quot;?&quot;)), &quot;i&quot; + IntToString(nSpellId));
+    jInfo = NuiTooltip(jInfo, JsonString(&quot;Show the full description below&quot;));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jInfo, CSP_COL_INFO));
 
     json jName = NuiLabel(JsonString(sName), JsonInt(NUI_HALIGN_LEFT),
                           JsonInt(NUI_VALIGN_MIDDLE));
-    jName = NuiTooltip(jName, JsonString(sTip));
     jRow = JsonArrayInsert(jRow, NuiWidth(jName, CSP_COL_NAME));
 
     json jSch = NuiLabel(JsonString(CSP_SchoolName(nSpellId)),
                          JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
-    jSch = NuiTooltip(jSch, JsonString(sTip));
     jRow = JsonArrayInsert(jRow, NuiWidth(jSch, CSP_COL_SCH));
 
     return NuiHeight(NuiRow(jRow), CSP_ROW_H);
@@ -214,6 +260,14 @@ json CSP_Window(object oPC)
     jGroup = NuiHeight(jGroup, CSP_LIST_H);
     jCol = JsonArrayInsert(jCol, jGroup);
 
+    // The detail pane: the only place a spell description is readable now that
+    // it has been taken out of the tooltips. Bordered so it reads as a panel,
+    // and NUI_SCROLLBARS_AUTO because a TLK description has no length limit.
+    json jDetail = NuiText(NuiBind(CSP_BIND_DTL), TRUE, NUI_SCROLLBARS_AUTO);
+    jDetail = NuiWidth(jDetail, CSP_LIST_W);
+    jDetail = NuiHeight(jDetail, CSP_DTL_H);
+    jCol = JsonArrayInsert(jCol, jDetail);
+
     string sFoot = &quot;Rest to reopen this window while spells remain to be chosen.&quot;;
     jCol = JsonArrayInsert(jCol, NuiHeight(NuiWidth(
         NuiLabel(JsonString(sFoot), JsonInt(NUI_HALIGN_CENTER),
@@ -238,6 +292,11 @@ void CSP_Close(object oPC)
     int nTok = GetLocalInt(oPC, CSP_TOK);
     if (nTok) NuiDestroy(oPC, nTok);
     DeleteLocalInt(oPC, CSP_TOK);
+    // The detail pane starts empty next time rather than on whatever spell was
+    // last inspected. CSP_SEL (the spell level) deliberately survives - coming
+    // back to the level you were browsing is useful; coming back to one spell&#x27;s
+    // description is not.
+    DeleteLocalInt(oPC, CSP_DTL);
 }
 
 // Open (or re-open) the picker. Destroys any stale instance first, so calling
@@ -252,6 +311,19 @@ void CSP_Open(object oPC)
 
     int nTok = NuiCreate(oPC, CSP_Window(oPC), CSP_WIN, &quot;csp_evt&quot;);
     SetLocalInt(oPC, CSP_TOK, nTok);
+
+    // A bound widget starts empty until something writes to it, so seed the
+    // pane - including after a rebuild from learning a spell or switching
+    // level tabs, which should not blank what the player was reading.
+    CSP_RefreshDetail(oPC);
+}
+
+void CSP_RefreshDetail(object oPC)
+{
+    int nTok = GetLocalInt(oPC, CSP_TOK);
+    if (!nTok) return;
+    NuiSetBind(oPC, nTok, CSP_BIND_DTL,
+        JsonString(CSP_DetailText(oPC, CSP_DetailSpell(oPC))));
 }
 </code></pre>
   </main>

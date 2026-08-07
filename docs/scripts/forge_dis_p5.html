@@ -64,8 +64,8 @@ void main()
 {
     object oPC = GetPCSpeaker();
     SetLocalInt(oPC, &quot;FORGE_DIS_PICK&quot;, 5);
-    SetCustomToken(6118, ForgePropName(ForgeGetPermPropByIndex(
-        GetLocalObject(oPC, &quot;FORGE_DIS_ITEM&quot;), 5)));
+    SetCustomToken(6118, ForgeSlotLabel(ForgeGetPropByIndexSel(
+        GetLocalObject(oPC, &quot;FORGE_DIS_ITEM&quot;), 5, FORGE_SEL_REMOVABLE)));
 }
 </code></pre>
   </main>

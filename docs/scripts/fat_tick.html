@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script forge_dis_p3</title>
+  <title>Script fat_tick</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,15 +57,23 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_dis_p3</code></h1><pre class="nss-source"><code>// Pick disenchant slot 3 and stage its name in token 6118 for the confirm.
-#include &quot;forge_inc&quot;
+<h1>Script: <code>fat_tick</code></h1><pre class="nss-source"><code>// fat_tick - the soul-fatigue decay ticker, one running instance per PC that
+// currently holds stacks (roadmap: heal-soul-fatigue-rebalance).
+//
+// Self-rescheduling loop in the module&#x27;s usual shape (cf. _spfail_cycle.nss):
+// armed by FAT_Kick(), guarded by the fat_ticking local, and it stops itself
+// once the queue empties. It runs on the PC rather than the module ON PURPOSE
+// - a logged-out PC&#x27;s delayed commands never fire, which is precisely how
+// soul-fatigue decay pauses while a character is offline.
+//
+// All the work is in fat_inc.nss; this file exists only because a
+// self-rescheduling loop needs a script resref to call.
+
+#include &quot;fat_inc&quot;
 
 void main()
 {
-    object oPC = GetPCSpeaker();
-    SetLocalInt(oPC, &quot;FORGE_DIS_PICK&quot;, 3);
-    SetCustomToken(6118, ForgeSlotLabel(ForgeGetPropByIndexSel(
-        GetLocalObject(oPC, &quot;FORGE_DIS_ITEM&quot;), 3, FORGE_SEL_REMOVABLE)));
+    FAT_Tick(OBJECT_SELF);
 }
 </code></pre>
   </main>

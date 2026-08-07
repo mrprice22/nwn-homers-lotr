@@ -74,6 +74,21 @@ void main()
         return;
     }
 
+    // &quot;i&lt;index&gt;&quot; - show that feat in the detail pane.
+    //
+    // ONE BIND IS UPDATED. THE WINDOW IS NOT REBUILT. Reopening the picker here
+    // was correct but felt broken: it discarded the list&#x27;s scroll position, and
+    // the client&#x27;s own cache of that position made it inconsistent - some
+    // clicks snapped back to the top of the pool, some restored the last
+    // remembered offset. Only the pane&#x27;s contents change, so the list stays put.
+    if (GetStringLeft(sElem, 1) == &quot;i&quot;)
+    {
+        LegFeat_Select(oPC,
+            StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1)));
+        LegFeat_RefreshDetail(oPC);
+        return;
+    }
+
     // &quot;t&lt;index&gt;&quot; - take the feat at that picker index.
     if (GetStringLeft(sElem, 1) != &quot;t&quot;) return;
     int nIndex = StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1));
@@ -81,15 +96,32 @@ void main()
     if (!LegFeat_Take(oPC, nIndex))
     {
         // Every rejection is a state the window should already have prevented
-        // (no picks left, prerequisite unmet, feat already held, not level 60),
-        // so say which.
-        if (LegFeat_Remaining(oPC) &lt;= 0)
+        // (no picks left, prerequisite unmet, feat already held, not level 60,
+        // polymorphed), so say which - and say the RIGHT one.
+        //
+        // These branches mirror LegFeat_Take&#x27;s own rejection order exactly. They
+        // used to stop after two, so a refusal for being under level 60 or for
+        // being polymorphed fell through to &quot;You already have that legendary
+        // feat.&quot; - a message that sends the player looking for a feat they do
+        // not have.
+        if (LegFeat_TrueLevel(oPC) &lt; LEGFEAT_LEVEL)
+            SendMessageToPC(oPC, &quot;Legendary feats are chosen at level &quot;
+                + IntToString(LEGFEAT_LEVEL) + &quot;.&quot;);
+        else if (LegFeat_Remaining(oPC) &lt;= 0)
             SendMessageToPC(oPC, &quot;You have no legendary feat picks remaining.&quot;);
-        else if (!LegFeat_MeetsPrereq(oPC, nIndex))
-            SendMessageToPC(oPC, LegFeat_NameAt(nIndex) + &quot; requires: &quot;
-                + LegFeat_PrereqAt(nIndex) + &quot;.&quot;);
-        else
+        else if (LegFeat_HasPick(oPC, LegFeat_IdAt(nIndex))
+                 || GetHasFeat(LegFeat_IdAt(nIndex), oPC))
             SendMessageToPC(oPC, &quot;You already have that legendary feat.&quot;);
+        else if (LegFeat_IsPolymorphed(oPC))
+            SendMessageToPC(oPC, &quot;You cannot choose a legendary feat while &quot;
+                + &quot;polymorphed. Return to your own shape and try again.&quot;);
+        else
+            // The FULL measured requirement, clause by clause - this is the one
+            // surface with no width limit, and it lands in the chat log where
+            // the player can quote it back. Naming which clause failed is the
+            // whole of roadmap legendary-feat-prereq-defect-1.
+            SendMessageToPC(oPC, LegFeat_NameAt(nIndex) + &quot; requires: &quot;
+                + LegFeat_PrereqStatusAt(oPC, nIndex) + &quot;.&quot;);
         return;
     }
 

@@ -372,6 +372,40 @@ resource</em> rather than a spam button. The order of operations matters — the
 wait out the stacks, return). It only becomes <em>tactical</em> when paired with enrage-on-retreat below —
 which removes the "wait it out" option — so the two ship together.</p>
 
+<div class="tip-box">
+  <p><strong>Rebalance, August 2026</strong> (roadmap <code>heal-soul-fatigue-rebalance</code>). The
+  mechanic shipped as specified above and proved a little sharper in play than intended. Three changes,
+  all in <code>unpacked/fat_inc.nss</code>; the shape of the mechanic and the 3-minute independent-timer
+  decay are unchanged:</p>
+  <ol>
+    <li><strong>Per-stack cost 10% → 8%</strong> of max HP. The lethal point moves from the 11th
+    chained heal to the 14th.</li>
+    <li><strong>Greater Restoration now stacks fatigue too.</strong> It is the third full-HP-restore
+    spell in the game and was a clean way around the entire mechanic. Plain <em>Restoration</em> is
+    deliberately excluded — it restores ability damage, not hit points, and taxing it would punish a
+    non-healing utility spell.</li>
+    <li><strong>The Heal skill is now the mitigation lever</strong>, giving that skill a real end-game
+    use it did not previously have. The <em>caster's</em> total Heal skill (<code>GetSkillRank</code>,
+    so ranks + Wisdom + item bonuses) cuts the fatigue damage by <strong>0.5% per point up to 60
+    points</strong>, a 30% maximum reduction. At the cap the effective cost is 5.6% per stack and the
+    lethal point is the 19th chained heal — still roughly one heal every nine seconds sustained for
+    three minutes, so the ceiling remains real. Because a potion's "caster" is the drinker, the
+    investment protects solo self-healers as well as party healers.</li>
+    <li><strong>Stacks now persist, and their decay pauses while the player is offline.</strong> The
+    original build kept the count in a local int with one <code>DelayCommand</code> per stack, so it
+    decayed in real time whether or not you were logged in — and a relog wiped the lot. Both were
+    escape hatches on a mechanic whose entire point is that the cost has to be paid. The queue now
+    lives in a <code>fatiguedb</code> campaign DB keyed on <code>GetObjectUUID</code>, each entry
+    holding its <em>remaining</em> seconds rather than a wall-clock expiry, spent only by a per-PC
+    ticker that runs on the PC (so it simply stops when they leave the world) and is re-armed at
+    login. Death clears nothing. Together with enrage-on-retreat, that closes the last version of
+    "wait it out".</li>
+  </ol>
+  <p>The skill value is read once at cast time and carried into the delayed damage, so it still applies
+  if the healer dies or logs out before the fatigue lands. Player-facing copy:
+  <a href="../Customizations.html#soul-fatigue">Customizations — Soul-fatigue on Heal</a>.</p>
+</div>
+
 <h3 id="enrage">2. Enrage-on-retreat</h3>
 <p>The direct counter to soul-fatigue's escape hatch and to the tank-and-retreat duo. Applies to
 <strong>qualified bosses only</strong> — the CR&gt;60 single-instance set on the
@@ -660,7 +694,7 @@ endgame hub and populated with unspawned blueprints tuned on placement.</p>
   <li><strong>Boss tuning:</strong> edit the <code>fortbonus</code>/<code>refbonus</code>/<code>willbonus</code>/<code>NaturalAC</code>
   fields (and <code>Equip_ItemList</code> for immunity gear) directly in each <code>unpacked/&lt;resref&gt;.utc.json</code>.</li>
   <li><strong>Soul-fatigue on Heal:</strong> extend the module override spellscript (currently
-  <code>stop_spellcheat.nss</code>, wired via <code>on_module_load.nss</code>) — branch on
+  <code>stop_spellcheat.nss</code>, wired via <code>onmoduleload.nss</code>) — branch on
   <code>GetSpellId()</code> for Heal + mass-heal. Order: let the heal resolve, then (post-heal) apply
   10%-max-HP damage per already-active stack, then add a stack with a 180s <code>DelayCommand</code> decay.
   Potions are covered by the same hook.</li>

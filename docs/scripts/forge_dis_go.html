@@ -68,7 +68,7 @@ void main()
     int nPick = GetLocalInt(oPC, &quot;FORGE_DIS_PICK&quot;);
     if (!GetIsObjectValid(oItem))
         return;
-    itemproperty ip = ForgeGetPermPropByIndex(oItem, nPick);
+    itemproperty ip = ForgeGetPropByIndexSel(oItem, nPick, FORGE_SEL_REMOVABLE);
     if (GetIsItemPropertyValid(ip))
     {
         ForgeLog(&quot;disenchant: PC=&quot; + GetName(oPC) + &quot; item=&#x27;&quot; + GetName(oItem)

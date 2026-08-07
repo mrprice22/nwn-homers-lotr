@@ -141,6 +141,18 @@ string LegFeat_EffectAt(int n);
 int    LegFeat_MeetsPrereq(object oPC, int n);
 // Player-facing prerequisite text, or &quot;&quot; when the feat has none.
 string LegFeat_PrereqAt(int n);
+// The same requirement MEASURED against this character: every clause,
+// each marked [ok] or [X], and each numeric one carrying the player&#x27;s own
+// value - &quot;BAB 35+ (you have 34) [X], Epic Prowess [ok]&quot;. A player who
+// cannot see WHICH clause failed reports the one they can see; that is
+// roadmap item legendary-feat-prereq-defect-1, where a character with a
+// qualifying BAB but no Epic Prowess read a greyed row as &quot;35 is not
+// accepted&quot;. Returns &quot;&quot; when the feat has no prerequisite.
+string LegFeat_PrereqStatusAt(object oPC, int n);
+// Just the FIRST unmet clause, with its measured value - short enough for
+// the picker&#x27;s effect column, which clips silently rather than wrapping.
+// &quot;&quot; when the character qualifies (or the feat has no prerequisite).
+string LegFeat_FirstUnmetAt(object oPC, int n);
 
 int LegFeat_IdAt(int n)
 {
@@ -304,25 +316,65 @@ string LegFeat_EffectAt(int n)
     return &quot;&quot;;
 }
 
-// Each case is the feat&#x27;s `prereq` expression from the generator&#x27;s table,
-// rendered verbatim. A feat with no prerequisite emits no case and falls
-// through to TRUE.
+// --- clause renderers ----------------------------------------------------
+// The three functions below turn ONE clause into text. They exist so that
+// what the picker shows and what the picker tests come out of the same
+// declaration in the generator - the two used to be independent hand-typed
+// strings, which is how a player with a qualifying BAB and no Epic Prowess
+// came to report that &quot;35 is not accepted&quot; (legendary-feat-prereq-defect-1).
+
+// The ask, unmeasured: &quot;BAB 35+&quot;, &quot;Discipline 30+ ranks&quot;.
+string LegFeat_ReqAsk(string sLabel, int nMin, string sUnit)
+{
+    string s = sLabel + &quot; &quot; + IntToString(nMin) + &quot;+&quot;;
+    if (sUnit != &quot;&quot;) s += &quot; &quot; + sUnit;
+    return s;
+}
+
+// The ask with this character&#x27;s own value: &quot;BAB 35+ (you have 34)&quot;.
+string LegFeat_ReqHave(string sLabel, int nMin, string sUnit, int nHave)
+{
+    return LegFeat_ReqAsk(sLabel, nMin, sUnit)
+         + &quot; (you have &quot; + IntToString(nHave) + &quot;)&quot;;
+}
+
+// Pass/fail marker. ASCII on purpose - a non-ASCII byte in a .nss is a
+// recorded trap in this repo, and this string reaches the NUI and the chat
+// log both.
+string LegFeat_ReqMark(string sBody, int bMet)
+{
+    return sBody + (bMet ? &quot; [ok]&quot; : &quot; [X]&quot;);
+}
+
+// A numeric clause, fully rendered. nHave is passed in so the generator can
+// evaluate the getter exactly once at the call site.
+string LegFeat_ReqNum(string sLabel, int nMin, string sUnit, int nHave)
+{
+    return LegFeat_ReqMark(LegFeat_ReqHave(sLabel, nMin, sUnit, nHave),
+                           nHave &gt;= nMin);
+}
+
+// Each case ANDs the feat&#x27;s clauses from the generator&#x27;s table. A numeric
+// clause is always emitted as `(expr) &gt;= minimum` - the generator cannot
+// express `&gt;`, which is what makes &quot;treated as &gt;=, not &gt;&quot; a property of the
+// build rather than a habit. A feat with no prerequisite emits no case and
+// falls through to TRUE.
 int LegFeat_MeetsPrereq(object oPC, int n)
 {
     switch (n)
     {
-        case 6: return (GetBaseAttackBonus(oPC) &gt;= 35 &amp;&amp; GetHasFeat(FEAT_EPIC_PROWESS, oPC));
-        case 7: return (GetBaseAttackBonus(oPC) &gt;= 30 &amp;&amp; GetLevelByClass(CLASS_TYPE_MONK, oPC) &gt;= 30);
+        case 6: return ((GetBaseAttackBonus(oPC)) &gt;= 35 &amp;&amp; GetHasFeat(FEAT_EPIC_PROWESS, oPC));
+        case 7: return ((GetBaseAttackBonus(oPC)) &gt;= 30 &amp;&amp; (GetLevelByClass(CLASS_TYPE_MONK, oPC)) &gt;= 30);
         case 8: return (LegFeat_HasAnyDevCrit(oPC));
-        case 9: return (GetBaseAttackBonus(oPC) &gt;= 20 &amp;&amp; GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE) &gt;= 30);
+        case 9: return ((GetBaseAttackBonus(oPC)) &gt;= 20 &amp;&amp; (GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE)) &gt;= 30);
         case 10: return (GetHasFeat(FEAT_AMBIDEXTERITY, oPC) &amp;&amp; GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC) &amp;&amp; GetHasFeat(FEAT_WEAPON_FINESSE, oPC));
-        case 11: return (GetHasFeat(FEAT_RAPID_SHOT, oPC) &amp;&amp; GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC) &amp;&amp; GetBaseAttackBonus(oPC) &gt;= 30);
-        case 12: return (GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC) &amp;&amp; GetBaseAttackBonus(oPC) &gt;= 15);
-        case 13: return (GetSkillRank(SKILL_PARRY, oPC, TRUE) &gt;= 60);
-        case 14: return (GetHasFeat(FEAT_GREAT_CLEAVE, oPC) &amp;&amp; GetBaseAttackBonus(oPC) &gt;= 35);
-        case 15: return (GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE) &gt;= 21);
-        case 16: return (GetLevelByClass(CLASS_TYPE_RANGER, oPC) &gt;= 30);
-        case 17: return (GetBaseAttackBonus(oPC) &gt;= 35 &amp;&amp; GetHasFeat(FEAT_CALLED_SHOT, oPC));
+        case 11: return (GetHasFeat(FEAT_RAPID_SHOT, oPC) &amp;&amp; GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC) &amp;&amp; (GetBaseAttackBonus(oPC)) &gt;= 30);
+        case 12: return (GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC) &amp;&amp; (GetBaseAttackBonus(oPC)) &gt;= 15);
+        case 13: return ((GetSkillRank(SKILL_PARRY, oPC, TRUE)) &gt;= 60);
+        case 14: return (GetHasFeat(FEAT_GREAT_CLEAVE, oPC) &amp;&amp; (GetBaseAttackBonus(oPC)) &gt;= 35);
+        case 15: return ((GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE)) &gt;= 21);
+        case 16: return ((GetLevelByClass(CLASS_TYPE_RANGER, oPC)) &gt;= 30);
+        case 17: return ((GetBaseAttackBonus(oPC)) &gt;= 35 &amp;&amp; GetHasFeat(FEAT_CALLED_SHOT, oPC));
     }
     return TRUE;
 }
@@ -334,15 +386,121 @@ string LegFeat_PrereqAt(int n)
         case 6: return &quot;BAB 35+, Epic Prowess&quot;;
         case 7: return &quot;BAB 30+, Monk level 30+&quot;;
         case 8: return &quot;Devastating Critical (any weapon)&quot;;
-        case 9: return &quot;BAB 20+, Discipline 30 ranks&quot;;
+        case 9: return &quot;BAB 20+, Discipline 30+ ranks&quot;;
         case 10: return &quot;Ambidexterity, Improved Two-Weapon Fighting, Weapon Finesse&quot;;
         case 11: return &quot;Rapid Shot, Point Blank Shot, BAB 30+&quot;;
         case 12: return &quot;Shield Proficiency, BAB 15+&quot;;
-        case 13: return &quot;Parry 60 ranks&quot;;
+        case 13: return &quot;Parry 60+ ranks&quot;;
         case 14: return &quot;Great Cleave, BAB 35+&quot;;
         case 15: return &quot;Constitution 21+ (base)&quot;;
         case 16: return &quot;Ranger level 30+&quot;;
         case 17: return &quot;BAB 35+, Called Shot&quot;;
+    }
+    return &quot;&quot;;
+}
+
+string LegFeat_PrereqStatusAt(object oPC, int n)
+{
+    switch (n)
+    {
+        case 6: return LegFeat_ReqNum(&quot;BAB&quot;, 35, &quot;&quot;, GetBaseAttackBonus(oPC))
+                 + &quot;, &quot; + LegFeat_ReqMark(&quot;Epic Prowess&quot;, GetHasFeat(FEAT_EPIC_PROWESS, oPC));
+        case 7: return LegFeat_ReqNum(&quot;BAB&quot;, 30, &quot;&quot;, GetBaseAttackBonus(oPC))
+                 + &quot;, &quot; + LegFeat_ReqNum(&quot;Monk level&quot;, 30, &quot;&quot;, GetLevelByClass(CLASS_TYPE_MONK, oPC));
+        case 8: return LegFeat_ReqMark(&quot;Devastating Critical (any weapon)&quot;, LegFeat_HasAnyDevCrit(oPC));
+        case 9: return LegFeat_ReqNum(&quot;BAB&quot;, 20, &quot;&quot;, GetBaseAttackBonus(oPC))
+                 + &quot;, &quot; + LegFeat_ReqNum(&quot;Discipline&quot;, 30, &quot;ranks&quot;, GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE));
+        case 10: return LegFeat_ReqMark(&quot;Ambidexterity&quot;, GetHasFeat(FEAT_AMBIDEXTERITY, oPC))
+                 + &quot;, &quot; + LegFeat_ReqMark(&quot;Improved Two-Weapon Fighting&quot;, GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC))
+                 + &quot;, &quot; + LegFeat_ReqMark(&quot;Weapon Finesse&quot;, GetHasFeat(FEAT_WEAPON_FINESSE, oPC));
+        case 11: return LegFeat_ReqMark(&quot;Rapid Shot&quot;, GetHasFeat(FEAT_RAPID_SHOT, oPC))
+                 + &quot;, &quot; + LegFeat_ReqMark(&quot;Point Blank Shot&quot;, GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC))
+                 + &quot;, &quot; + LegFeat_ReqNum(&quot;BAB&quot;, 30, &quot;&quot;, GetBaseAttackBonus(oPC));
+        case 12: return LegFeat_ReqMark(&quot;Shield Proficiency&quot;, GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC))
+                 + &quot;, &quot; + LegFeat_ReqNum(&quot;BAB&quot;, 15, &quot;&quot;, GetBaseAttackBonus(oPC));
+        case 13: return LegFeat_ReqNum(&quot;Parry&quot;, 60, &quot;ranks&quot;, GetSkillRank(SKILL_PARRY, oPC, TRUE));
+        case 14: return LegFeat_ReqMark(&quot;Great Cleave&quot;, GetHasFeat(FEAT_GREAT_CLEAVE, oPC))
+                 + &quot;, &quot; + LegFeat_ReqNum(&quot;BAB&quot;, 35, &quot;&quot;, GetBaseAttackBonus(oPC));
+        case 15: return LegFeat_ReqNum(&quot;Constitution&quot;, 21, &quot;(base)&quot;, GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE));
+        case 16: return LegFeat_ReqNum(&quot;Ranger level&quot;, 30, &quot;&quot;, GetLevelByClass(CLASS_TYPE_RANGER, oPC));
+        case 17: return LegFeat_ReqNum(&quot;BAB&quot;, 35, &quot;&quot;, GetBaseAttackBonus(oPC))
+                 + &quot;, &quot; + LegFeat_ReqMark(&quot;Called Shot&quot;, GetHasFeat(FEAT_CALLED_SHOT, oPC));
+    }
+    return &quot;&quot;;
+}
+
+string LegFeat_FirstUnmetAt(object oPC, int n)
+{
+    switch (n)
+    {
+        case 6:
+            if (!((GetBaseAttackBonus(oPC)) &gt;= 35))
+                return LegFeat_ReqHave(&quot;BAB&quot;, 35, &quot;&quot;, GetBaseAttackBonus(oPC));
+            if (!(GetHasFeat(FEAT_EPIC_PROWESS, oPC)))
+                return &quot;Epic Prowess&quot;;
+            break;
+        case 7:
+            if (!((GetBaseAttackBonus(oPC)) &gt;= 30))
+                return LegFeat_ReqHave(&quot;BAB&quot;, 30, &quot;&quot;, GetBaseAttackBonus(oPC));
+            if (!((GetLevelByClass(CLASS_TYPE_MONK, oPC)) &gt;= 30))
+                return LegFeat_ReqHave(&quot;Monk level&quot;, 30, &quot;&quot;, GetLevelByClass(CLASS_TYPE_MONK, oPC));
+            break;
+        case 8:
+            if (!(LegFeat_HasAnyDevCrit(oPC)))
+                return &quot;Devastating Critical (any weapon)&quot;;
+            break;
+        case 9:
+            if (!((GetBaseAttackBonus(oPC)) &gt;= 20))
+                return LegFeat_ReqHave(&quot;BAB&quot;, 20, &quot;&quot;, GetBaseAttackBonus(oPC));
+            if (!((GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE)) &gt;= 30))
+                return LegFeat_ReqHave(&quot;Discipline&quot;, 30, &quot;ranks&quot;, GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE));
+            break;
+        case 10:
+            if (!(GetHasFeat(FEAT_AMBIDEXTERITY, oPC)))
+                return &quot;Ambidexterity&quot;;
+            if (!(GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC)))
+                return &quot;Improved Two-Weapon Fighting&quot;;
+            if (!(GetHasFeat(FEAT_WEAPON_FINESSE, oPC)))
+                return &quot;Weapon Finesse&quot;;
+            break;
+        case 11:
+            if (!(GetHasFeat(FEAT_RAPID_SHOT, oPC)))
+                return &quot;Rapid Shot&quot;;
+            if (!(GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC)))
+                return &quot;Point Blank Shot&quot;;
+            if (!((GetBaseAttackBonus(oPC)) &gt;= 30))
+                return LegFeat_ReqHave(&quot;BAB&quot;, 30, &quot;&quot;, GetBaseAttackBonus(oPC));
+            break;
+        case 12:
+            if (!(GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC)))
+                return &quot;Shield Proficiency&quot;;
+            if (!((GetBaseAttackBonus(oPC)) &gt;= 15))
+                return LegFeat_ReqHave(&quot;BAB&quot;, 15, &quot;&quot;, GetBaseAttackBonus(oPC));
+            break;
+        case 13:
+            if (!((GetSkillRank(SKILL_PARRY, oPC, TRUE)) &gt;= 60))
+                return LegFeat_ReqHave(&quot;Parry&quot;, 60, &quot;ranks&quot;, GetSkillRank(SKILL_PARRY, oPC, TRUE));
+            break;
+        case 14:
+            if (!(GetHasFeat(FEAT_GREAT_CLEAVE, oPC)))
+                return &quot;Great Cleave&quot;;
+            if (!((GetBaseAttackBonus(oPC)) &gt;= 35))
+                return LegFeat_ReqHave(&quot;BAB&quot;, 35, &quot;&quot;, GetBaseAttackBonus(oPC));
+            break;
+        case 15:
+            if (!((GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE)) &gt;= 21))
+                return LegFeat_ReqHave(&quot;Constitution&quot;, 21, &quot;(base)&quot;, GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE));
+            break;
+        case 16:
+            if (!((GetLevelByClass(CLASS_TYPE_RANGER, oPC)) &gt;= 30))
+                return LegFeat_ReqHave(&quot;Ranger level&quot;, 30, &quot;&quot;, GetLevelByClass(CLASS_TYPE_RANGER, oPC));
+            break;
+        case 17:
+            if (!((GetBaseAttackBonus(oPC)) &gt;= 35))
+                return LegFeat_ReqHave(&quot;BAB&quot;, 35, &quot;&quot;, GetBaseAttackBonus(oPC));
+            if (!(GetHasFeat(FEAT_CALLED_SHOT, oPC)))
+                return &quot;Called Shot&quot;;
+            break;
     }
     return &quot;&quot;;
 }

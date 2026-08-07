@@ -85,12 +85,41 @@
 // precedent - one group, explicit NuiHeight. The row widths below sum to less
 // than LEGFEAT_LIST_W, and the group scrolls vertically only, so no amount of
 // content can reintroduce a horizontal scrollbar.
+//
+// WHERE LONG TEXT MAY AND MAY NOT GO. NUI&#x27;s three ways of showing a string each
+// fail differently, and roadmap legendary-nui-wrapping was two of those failures
+// reported as one defect:
+//
+//   label    - aligns, never wraps. CLIPS SILENTLY, no visual cue at all. This
+//              is what made the header read &quot;You may choose 2 leg&quot; and what was
+//              cutting the effect column off mid-sentence.
+//   text     - wraps, honours &quot;\n&quot;, scrolls. Takes no alignment.
+//   tooltip  - neither wraps NOR clips: it draws one line as wide as it likes,
+//              straight off the edge of the screen. AND IT STRIPS NEWLINES, so
+//              it cannot be pre-wrapped either - that was tried first, shipped,
+//              and came back unchanged from in-game testing.
+//
+// Therefore: every string in this window that can exceed its space is a sized
+// `text` widget - the effect column and the detail pane. Tooltips carry only
+// short bounded strings. A long string must never be attached to a tooltip
+// again, and there is no wrapper that would make it safe to.
 
 #include &quot;nw_inc_nui&quot;
 #include &quot;legfeat_inc&quot;
 
 const string LEGFEAT_WIN = &quot;legfeats&quot;;     // NuiCreate window id
 const string LEGFEAT_TOK = &quot;LEGFEAT_TOK&quot;;  // PC local: this window&#x27;s token
+// PC local: which row the detail pane is showing, stored +1 so that row 0 is
+// distinguishable from &quot;nothing selected yet&quot;. Same convention as CSP_SEL in
+// csp_nui.nss.
+const string LEGFEAT_SEL = &quot;LEGFEAT_SEL&quot;;
+// The detail pane&#x27;s contents are BOUND, not baked into the layout, so that
+// clicking &quot;?&quot; can update it without rebuilding the window. Rebuilding threw
+// away the list&#x27;s scroll position - sometimes to the top, sometimes to wherever
+// the client had last cached it - which made the button feel like it was
+// yanking the list around. The bind is the whole reason the pane is not just
+// another JsonString in LegFeat_Window.
+const string LEGFEAT_BIND_DTL = &quot;lf_detail&quot;;
 
 // The one line of tunable text under the &quot;you may choose N&quot; header. It exists
 // because where a player re-picks is not settled - the re-pick node is parked on
@@ -123,22 +152,92 @@ const string LEGFEAT_SUBTITLE = &quot;Can repick with Ping Pong in Well of Eru&q
 // characters per line than you do.
 const int LEGFEAT_HDR_WRAP_AT = 80;
 
-// Geometry. The three row columns sum to 660, comfortably inside the list
-// group&#x27;s 680, which is what keeps the horizontal scrollbar away.
+// Geometry. The four row columns sum to 660 (80 + 40 + 200 + 340), comfortably
+// inside the list group&#x27;s 680, which is what keeps the horizontal scrollbar
+// away. Keep that sum under LEGFEAT_LIST_W if you retune any of them.
+//
+// The name column gave 40 of its width to the effect column: the longest feat
+// name is 22 characters and fits 200 easily, while the longest effect string is
+// 62 and was being cut off at 340. The row is tall enough for the effect to
+// take two lines, which is what that string needs.
 const float LEGFEAT_WIN_W   = 720.0;
-const float LEGFEAT_WIN_H   = 470.0;
+const float LEGFEAT_WIN_H   = 570.0;
 const float LEGFEAT_LIST_W  = 680.0;
-const float LEGFEAT_LIST_H  = 320.0;
+const float LEGFEAT_LIST_H  = 300.0;
 const float LEGFEAT_COL_BTN = 80.0;
-const float LEGFEAT_COL_NAME = 240.0;
+const float LEGFEAT_COL_INFO = 40.0;   // the &quot;?&quot; detail button
+const float LEGFEAT_COL_NAME = 200.0;
 const float LEGFEAT_COL_EFF  = 340.0;
-const float LEGFEAT_ROW_H    = 30.0;
+const float LEGFEAT_ROW_H    = 46.0;   // two lines of wrapped effect text
 const float LEGFEAT_HDR_H    = 26.0;   // one centred line
 const float LEGFEAT_SUB_H    = 40.0;   // two lines, wrapped fallback
+// The detail pane. Sized for the worst case it has to hold - the 263-character
+// description plus a three-clause measured requirement, about seven lines at
+// this width - and given an automatic scrollbar anyway, because it is the one
+// surface in the window that MUST NOT lose text: there is nowhere left to put
+// what it drops.
+const float LEGFEAT_DTL_H    = 130.0;
 
 json LegFeat_Window(object oPC);
 void LegFeat_Open(object oPC);
 void LegFeat_Close(object oPC);
+
+// Which row the detail pane is showing, or -1 for none.
+int LegFeat_Selected(object oPC)
+{
+    int nSel = GetLocalInt(oPC, LEGFEAT_SEL) - 1;
+    if (nSel &lt; 0 || nSel &gt;= LEGFEAT_COUNT) return -1;
+    return nSel;
+}
+
+// Select a row into the detail pane.
+void LegFeat_Select(object oPC, int nIndex)
+{
+    if (nIndex &lt; 0 || nIndex &gt;= LEGFEAT_COUNT) DeleteLocalInt(oPC, LEGFEAT_SEL);
+    else SetLocalInt(oPC, LEGFEAT_SEL, nIndex + 1);
+}
+
+// Push the currently selected row&#x27;s text into the open window&#x27;s detail pane.
+//
+// This is the ONLY thing a &quot;?&quot; click does - the window is deliberately NOT
+// rebuilt. Rebuilding it lost the list&#x27;s scroll position, and the client&#x27;s own
+// cache made that inconsistent: some clicks landed back at the top of the pool,
+// some at the last remembered offset. Updating one bind leaves the list exactly
+// where the player left it.
+void LegFeat_RefreshDetail(object oPC);
+
+// The full text of one feat, for the detail pane: name, description, and the
+// measured requirement clause by clause.
+//
+// This is where the long strings ended up once it turned out a tooltip strips
+// newlines and refuses to wrap. A `text` widget honours both, so this one is
+// free to use &quot;\n&quot; and to run as long as it needs to.
+string LegFeat_DetailText(object oPC, int nIndex)
+{
+    if (nIndex &lt; 0)
+        return &quot;Click the \&quot;?\&quot; beside a feat to read what it does and exactly &quot;
+             + &quot;what it requires.&quot;;
+
+    string sOut = LegFeat_NameAt(nIndex) + &quot;\n&quot; + LegFeat_DescAt(nIndex);
+
+    // MEASURED, not just stated: &quot;BAB 35+ (you have 34) [X], Epic Prowess [ok]&quot;
+    // rather than &quot;BAB 35+, Epic Prowess&quot;. A multi-clause requirement rendered
+    // as one flat string cannot say which half failed, and a player reads the
+    // half they can check - which is how a character with a qualifying BAB and
+    // no Epic Prowess came to report that 35 was being rejected (roadmap
+    // legendary-feat-prereq-defect-1).
+    //
+    // Shown whether or not it is met, because a player deciding how to spend two
+    // picks needs to see that Onslaught wants Assault BEFORE taking something
+    // else.
+    string sPrereq = LegFeat_PrereqStatusAt(oPC, nIndex);
+    if (sPrereq != &quot;&quot;) sOut += &quot;\nRequires: &quot; + sPrereq;
+
+    if (LegFeat_HasPick(oPC, LegFeat_IdAt(nIndex)))
+        sOut += &quot;\nYou have taken this feat.&quot;;
+
+    return sOut;
+}
 
 // One list entry: either a &quot;Take&quot; button (id &quot;t&lt;index&gt;&quot;) or, once taken, a
 // plain line saying so.
@@ -148,13 +247,30 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     int bTaken  = LegFeat_HasPick(oPC, nFeatId);
     int bQualified = LegFeat_MeetsPrereq(oPC, nIndex);
 
-    // The tooltip carries the prerequisite as well as the description, on every
-    // row and whether or not it is met - a player deciding how to spend two
-    // picks needs to see that Onslaught wants Assault BEFORE taking something
-    // else. A greyed row with no visible reason is the complaint this avoids.
-    string sTip = LegFeat_DescAt(nIndex);
-    string sPrereq = LegFeat_PrereqAt(nIndex);
-    if (sPrereq != &quot;&quot;) sTip += &quot;  (Requires: &quot; + sPrereq + &quot;)&quot;;
+    // NOTHING LONG GOES IN A TOOLTIP. A NUI tooltip renders its string as one
+    // line, never clips it, and - measured in game, which is the only way to
+    // find this out - SILENTLY STRIPS ANY NEWLINE YOU PUT IN IT. So it cannot
+    // be wrapped, cannot be broken up, and cannot be relied on for anything
+    // longer than fits across the screen at whatever position it pops up.
+    //
+    // The first attempt at roadmap legendary-nui-wrapping pre-wrapped the
+    // string; the breaks were discarded and the tooltip drew exactly as wide as
+    // before. The full description and the measured requirement list live in the
+    // detail pane instead (LegFeat_Detail below), and the tooltip is reduced to
+    // the same short line the row already shows - which cannot overflow, because
+    // it is bounded by the same 62-character worst case the effect column is.
+    string sEff = LegFeat_EffectAt(nIndex);
+    if (!bTaken &amp;&amp; !bQualified)
+        // An unqualified row shows what it wants instead of what it gives: the
+        // effect is moot until the prerequisite is met, and &quot;Needs: ...&quot; in the
+        // column the eye is already on beats a detail pane nobody opened.
+        //
+        // ONE clause - the first unmet one, with the player&#x27;s own value - not
+        // the whole requirement, which would make the row several lines tall for
+        // the three-clause feats. The full list is one &quot;?&quot; click away.
+        sEff = &quot;Needs: &quot; + LegFeat_FirstUnmetAt(oPC, nIndex);
+
+    string sTip = sEff;
 
     json jRow = JsonArray();
     if (bTaken)
@@ -175,21 +291,36 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
         jRow = JsonArrayInsert(jRow, NuiWidth(jBtn, LEGFEAT_COL_BTN));
     }
 
-    // Name and a short effect summary. The full description is the tooltip on
-    // both - an inline description is what forced the horizontal scrollbar.
+    // The &quot;?&quot; button (id &quot;i&lt;index&gt;&quot;) - the only way to read a full description
+    // now that a tooltip cannot hold one. It selects this row into the detail
+    // pane below the list, and it is deliberately ALWAYS enabled: a player most
+    // needs to read what a feat does when the row is greyed out and they are
+    // deciding whether it is worth qualifying for.
+    json jInfo = NuiId(NuiButton(JsonString(&quot;?&quot;)), &quot;i&quot; + IntToString(nIndex));
+    jInfo = NuiTooltip(jInfo, JsonString(&quot;Show the full description below&quot;));
+    jRow = JsonArrayInsert(jRow, NuiWidth(jInfo, LEGFEAT_COL_INFO));
+
+    // Name and a short effect summary. The full description is in the detail
+    // pane - an inline description is what forced the horizontal scrollbar.
     json jName = NuiLabel(JsonString(LegFeat_NameAt(nIndex)),
                           JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
     jName = NuiTooltip(jName, JsonString(sTip));
     jRow = JsonArrayInsert(jRow, NuiWidth(jName, LEGFEAT_COL_NAME));
 
-    // An unqualified row shows what it wants instead of what it gives: the
-    // effect is moot until the prerequisite is met, and &quot;Requires: ...&quot; in the
-    // column the eye is already on beats a tooltip nobody hovers. Kept short -
-    // a NUI label clips silently rather than wrapping (see the header note).
-    string sEff = LegFeat_EffectAt(nIndex);
-    if (!bTaken &amp;&amp; !bQualified) sEff = &quot;Requires: &quot; + sPrereq;
-    json jEff = NuiLabel(JsonString(sEff),
-                         JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
+    // A `text` widget, NOT a label: this is the one column whose contents can
+    // outrun their width, and a label answers that by dropping the tail with no
+    // visual cue - &quot;-3 target AC per hit, stacks 3, capped at its armour+shield
+    // AC&quot; is 62 characters and was arriving as roughly two thirds of a sentence
+    // (roadmap legendary-nui-wrapping). Borderless with no scrollbar so it still
+    // reads as a table cell rather than a box; LEGFEAT_ROW_H is what guarantees
+    // the second line has somewhere to go, since NUI_SCROLLBARS_NONE means
+    // anything past the box height would be clipped instead.
+    //
+    // The price is alignment: NUI text takes none, so this column no longer
+    // sits vertically centred against the button and the name. That is the same
+    // trade the header makes above, and it is the right way round - a
+    // misaligned sentence still reads, a truncated one does not.
+    json jEff = NuiText(JsonString(sEff), FALSE, NUI_SCROLLBARS_NONE);
     jEff = NuiTooltip(jEff, JsonString(sTip));
     jRow = JsonArrayInsert(jRow, NuiWidth(jEff, LEGFEAT_COL_EFF));
 
@@ -234,7 +365,11 @@ json LegFeat_Window(object oPC)
     }
 
     // Explicitly sized, vertical scrollbars only: the list can grow to the whole
-    // feat pool without the layout changing shape or scrolling sideways.
+    // feat pool without the layout changing shape or scrolling sideways. The
+    // whole pool already overflows it - 18 rows at LEGFEAT_ROW_H is well past
+    // LEGFEAT_LIST_H - which is what the vertical scrollbar is for; the group
+    // and window heights are sized for how many rows land on screen at once,
+    // not to fit them all.
     json jList = JsonArray();
     int i;
     for (i = 0; i &lt; LEGFEAT_COUNT; i++)
@@ -243,6 +378,15 @@ json LegFeat_Window(object oPC)
     jGroup = NuiWidth(jGroup, LEGFEAT_LIST_W);
     jGroup = NuiHeight(jGroup, LEGFEAT_LIST_H);
     jCol = JsonArrayInsert(jCol, jGroup);
+
+    // The detail pane. Bordered, so it reads as a panel rather than as another
+    // row, and NUI_SCROLLBARS_AUTO rather than NONE: this is the only place the
+    // full description exists, so if it ever outgrows LEGFEAT_DTL_H the player
+    // must be able to scroll to the rest instead of silently losing it.
+    json jDetail = NuiText(NuiBind(LEGFEAT_BIND_DTL), TRUE, NUI_SCROLLBARS_AUTO);
+    jDetail = NuiWidth(jDetail, LEGFEAT_LIST_W);
+    jDetail = NuiHeight(jDetail, LEGFEAT_DTL_H);
+    jCol = JsonArrayInsert(jCol, jDetail);
 
     json jFoot = JsonArray();
     jFoot = JsonArrayInsert(jFoot, NuiWidth(
@@ -263,6 +407,9 @@ void LegFeat_Close(object oPC)
     int nTok = GetLocalInt(oPC, LEGFEAT_TOK);
     if (nTok) NuiDestroy(oPC, nTok);
     DeleteLocalInt(oPC, LEGFEAT_TOK);
+    // The detail pane starts empty next time rather than on whatever row was
+    // last inspected, possibly several level-ups ago.
+    DeleteLocalInt(oPC, LEGFEAT_SEL);
 }
 
 // Open (or re-open) the picker. Destroys any stale instance first, so calling
@@ -276,6 +423,19 @@ void LegFeat_Open(object oPC)
 
     int nTok = NuiCreate(oPC, LegFeat_Window(oPC), LEGFEAT_WIN, &quot;legfeat_evt&quot;);
     SetLocalInt(oPC, LEGFEAT_TOK, nTok);
+
+    // A bound widget starts empty until something writes to it, so seed the
+    // pane here. That also means a rebuild after taking a feat comes back
+    // showing whatever the player was reading, rather than blank.
+    LegFeat_RefreshDetail(oPC);
+}
+
+void LegFeat_RefreshDetail(object oPC)
+{
+    int nTok = GetLocalInt(oPC, LEGFEAT_TOK);
+    if (!nTok) return;
+    NuiSetBind(oPC, nTok, LEGFEAT_BIND_DTL,
+        JsonString(LegFeat_DetailText(oPC, LegFeat_Selected(oPC))));
 }
 </code></pre>
   </main>

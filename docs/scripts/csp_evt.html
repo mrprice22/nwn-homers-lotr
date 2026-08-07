@@ -81,7 +81,22 @@ void main()
         int nLvl = StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1));
         if (nLvl &lt; 0 || nLvl &gt; 9) return;
         SetLocalInt(oPC, CSP_SEL, nLvl + 1);
+        // The pane is showing a spell that is about to leave the list, so drop
+        // it rather than leave a description with no row to match it.
+        DeleteLocalInt(oPC, CSP_DTL);
         CSP_Open(oPC);
+        return;
+    }
+
+    // &quot;i&lt;spellid&gt;&quot; - show that spell in the detail pane. ONE BIND IS UPDATED,
+    // the window is NOT rebuilt: a rebuild throws away where the player had
+    // scrolled to in the spell list, and inconsistently, because the client
+    // caches that position as well.
+    if (GetStringLeft(sElem, 1) == &quot;i&quot;)
+    {
+        SetLocalInt(oPC, CSP_DTL,
+            StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1)) + 1);
+        CSP_RefreshDetail(oPC);
         return;
     }
 
