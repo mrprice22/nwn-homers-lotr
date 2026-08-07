@@ -91,10 +91,16 @@
 //
 // WHAT IS AND IS NOT POOLED
 //
-// Only sources the module itself owns. Stock spells (Bless, Aid, Prayer, Divine
-// Favor) and item attack bonus stay engine-typed and still take max-of-two
-// against the pooled total - this makes OUR sources stack with each other,
-// which is what was asked for, and it does not rewrite the game&#x27;s rule.
+// The module&#x27;s own sources, and - since spell-ab-prowess-stack, 2026-08-06 -
+// the seven buff SPELLS that grant an attack bonus, which are forked into
+// unpacked/ for the purpose (nw_s0_bless, nw_s0_aid, nw_s0_prayer,
+// nw_s0_warcry, nw_s0_divpower, x0_s0_divfav, x2_s2_divwrath). Everything in
+// the ledger adds up, spells included: to a character carrying Legendary
+// Prowess&#x27;s permanent +5 an engine-typed buff spell was worth +0, and the admin
+// ruled that a pooled bonus is a pooled bonus.
+// Still OUTSIDE the ledger and therefore still max-of against the pooled total:
+// item attack bonus (a property, not an effect), the stock spells not forked
+// here, and the deliberate exemptions below.
 // tests/check_bonus_pool.py is the build gate: a new EffectAttackIncrease or
 // EffectDamageIncrease in a module-owned script must come through here or be
 // listed as a deliberate exemption. An unpooled bonus is invisible - it
@@ -127,7 +133,25 @@ const string BPOOL_SRC_GRIP    = &quot;grip&quot;;   // Legendary Grip,     perm
 const string BPOOL_SRC_REAPING = &quot;reap&quot;;   // Legendary Reaping,  12s, refreshing
 const string BPOOL_SRC_SONG    = &quot;song&quot;;   // Bard Song,          song duration
 const string BPOOL_SRC_SUMMON  = &quot;summ&quot;;   // summon/companion boost, permanent
-const int    BPOOL_SRC_COUNT   = 5;
+// Buff SPELLS (attack channel only - see BPool_SpellAttack). Added for the
+// follow-up report spell-ab-prowess-stack: pooling the module&#x27;s own sources
+// still left every buff spell in the game reading as +0 to anyone carrying
+// Legendary Prowess&#x27;s permanent +5.
+//
+// THESE STACK WITH EACH OTHER TOO - admin&#x27;s call, 2026-08-06. The first build
+// put them all in one max-of group so Bless and Prayer kept giving the better
+// of the two, as the engine did; the admin ruled that a pooled bonus is a
+// pooled bonus and they should add. So the group layer is gone again and every
+// entry simply sums. A cleric who spends four rounds buffing is meant to feel
+// all four spells.
+const string BPOOL_SRC_BLESS   = &quot;bles&quot;;   // Bless,              spell duration
+const string BPOOL_SRC_AID     = &quot;aid_&quot;;   // Aid,                spell duration
+const string BPOOL_SRC_PRAYER  = &quot;pray&quot;;   // Prayer,             spell duration
+const string BPOOL_SRC_WARCRY  = &quot;wcry&quot;;   // War Cry,            spell duration
+const string BPOOL_SRC_DIVFAV  = &quot;dfav&quot;;   // Divine Favor,       spell duration
+const string BPOOL_SRC_DIVPOW  = &quot;dpow&quot;;   // Divine Power,       spell duration
+const string BPOOL_SRC_DIVWRA  = &quot;dwra&quot;;   // Divine Wrath,       ability duration
+const int    BPOOL_SRC_COUNT   = 12;
 
 // Flat damage bonus the engine can express. IPGetDamageBonusConstantFromNumber
 // clamps here too; above it the number simply cannot be represented.
@@ -152,13 +176,28 @@ const string BPOOL_LIVE    = &quot;bpool_live&quot;;     // has &gt;=1 entry: th
 const string BPOOL_PENDING = &quot;bpool_pending&quot;;  // a revalidate is already queued
 const string BPOOL_BUSY    = &quot;bpool_busy&quot;;     // we are mid-rebuild; ignore our own churn
 
-// Bard Song&#x27;s spell id (spells.2da row 411, &quot;Bards_Song&quot;). The song&#x27;s entry is
-// only valid while the song&#x27;s own effect is still on the creature - that is the
-// witness. Sources with no witness (the legendary feats, the summon boost) are
-// permanent and are always re-rendered.
-const int BPOOL_SPELL_BARDSONG = 411;
+// WITNESS SPELL IDS (spells.2da row numbers, verified against the game&#x27;s own
+// spells.2da rather than from memory). A transient entry is only as real as the
+// spell effect that justifies it: if the creature no longer carries an effect
+// from that spell - it ended, it was dispelled, the character died and
+// everything was stripped - the entry goes with it. Sources with a witness of 0
+// are permanent (the legendary feats, the summon boost) and are always
+// re-rendered.
+//
+// Each pooled spell script keeps a non-attack effect in its link (the saving
+// throw bonus, the duration VFX), so removing the attack effect from the link
+// never leaves the witness with nothing to be.
+const int BPOOL_SPELL_BARDSONG = 411;  // Bards_Song
+const int BPOOL_SPELL_BLESS    = 6;    // Bless
+const int BPOOL_SPELL_AID      = 1;    // Aid
+const int BPOOL_SPELL_PRAYER   = 133;  // Prayer
+const int BPOOL_SPELL_WARCRY   = 373;  // War_Cry
+const int BPOOL_SPELL_DIVFAV   = 414;  // Divine_Favor
+const int BPOOL_SPELL_DIVPOW   = 42;   // Divine_Power
+const int BPOOL_SPELL_DIVWRA   = 622;  // DC_Divine_Wrath
 
 string BPool_SourceAt(int nIndex);
+int    BPool_WitnessAt(int nIndex);
 string BPool_Tag(int nChannel);
 string BPool_Var(int nChannel, string sSource);
 string BPool_GenVar(int nChannel, string sSource);
@@ -175,6 +214,8 @@ void   BPool_Resync(object oCreature);
 void   BPool_UpdateLive(object oCreature);
 void   BPool_Revalidate(object oCreature);
 void   BPool_ClearTransient(object oCreature);
+void   BPool_SpellAttack(object oCreature, string sSource, int nAmount,
+                         float fDuration);
 
 // The walk order of the ledger. Order is irrelevant to the sum; what matters is
 // that every key in the constant list above appears exactly once.
@@ -187,8 +228,34 @@ string BPool_SourceAt(int nIndex)
         case 2: return BPOOL_SRC_REAPING;
         case 3: return BPOOL_SRC_SONG;
         case 4: return BPOOL_SRC_SUMMON;
+        case 5: return BPOOL_SRC_BLESS;
+        case 6: return BPOOL_SRC_AID;
+        case 7: return BPOOL_SRC_PRAYER;
+        case 8: return BPOOL_SRC_WARCRY;
+        case 9: return BPOOL_SRC_DIVFAV;
+        case 10: return BPOOL_SRC_DIVPOW;
+        case 11: return BPOOL_SRC_DIVWRA;
     }
     return &quot;&quot;;
+}
+
+// The spell whose presence keeps a transient entry alive, or 0 for a permanent
+// source. Same index space again.
+int BPool_WitnessAt(int nIndex)
+{
+    switch (nIndex)
+    {
+        case 3:  return BPOOL_SPELL_BARDSONG;
+        case 5:  return BPOOL_SPELL_BLESS;
+        case 6:  return BPOOL_SPELL_AID;
+        case 7:  return BPOOL_SPELL_PRAYER;
+        case 8:  return BPOOL_SPELL_WARCRY;
+        case 9:  return BPOOL_SPELL_DIVFAV;
+        case 10: return BPOOL_SPELL_DIVPOW;
+        case 11: return BPOOL_SPELL_DIVWRA;
+    }
+    return 0;   // permanent: Prowess, Grip, the summon boost - and Reaping,
+                // whose clock is its own 12s refresh, not an effect.
 }
 
 string BPool_Tag(int nChannel)
@@ -254,6 +321,11 @@ int BPool_Get(object oCreature, int nChannel, string sSource)
     return GetLocalInt(oCreature, BPool_Var(nChannel, sSource));
 }
 
+// EVERY LIVE ENTRY ADDS. That is the whole point of the ledger: the engine
+// keeps only the largest same-type attack bonus, so anything that is meant to
+// be felt alongside something else has to be summed here and rendered as one
+// effect. Buff spells stack with each other as well as with the feats and the
+// song - admin&#x27;s call, 2026-08-06 (roadmap: spell-ab-prowess-stack).
 int BPool_Total(object oCreature, int nChannel)
 {
     int nTotal = 0;
@@ -386,10 +458,15 @@ void BPool_Revalidate(object oCreature)
     DeleteLocalInt(oCreature, BPOOL_PENDING);
     if (!GetIsObjectValid(oCreature)) return;
 
-    if (!GetHasSpellEffect(BPOOL_SPELL_BARDSONG, oCreature))
+    int i;
+    for (i = 0; i &lt; BPOOL_SRC_COUNT; i++)
     {
-        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, BPOOL_SRC_SONG));
-        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, BPOOL_SRC_SONG));
+        int nSpell = BPool_WitnessAt(i);
+        if (nSpell == 0) continue;                            // permanent
+        if (GetHasSpellEffect(nSpell, oCreature)) continue;   // still real
+        string sSource = BPool_SourceAt(i);
+        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, sSource));
+        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, sSource));
     }
 
     BPool_Resync(oCreature);
@@ -401,10 +478,18 @@ void BPool_Revalidate(object oCreature)
 // (Legendary Reaping) has to end when the killer dies, witness or no witness.
 void BPool_ClearTransient(object oCreature)
 {
-    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, BPOOL_SRC_SONG));
-    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, BPOOL_SRC_SONG));
-    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, BPOOL_SRC_REAPING));
-    DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, BPOOL_SRC_REAPING));
+    // Everything with a witness (the song, every buff spell) plus Reaping,
+    // whose kill streak has to end with the killer and has no witness effect
+    // to lose. The permanent sources are left alone: BPool_Resync below is
+    // exactly what puts the legendary feats back after the wholesale strip.
+    int i;
+    for (i = 0; i &lt; BPOOL_SRC_COUNT; i++)
+    {
+        string sSource = BPool_SourceAt(i);
+        if (BPool_WitnessAt(i) == 0 &amp;&amp; sSource != BPOOL_SRC_REAPING) continue;
+        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_ATTACK, sSource));
+        DeleteLocalInt(oCreature, BPool_Var(BPOOL_CH_DAMAGE, sSource));
+    }
     BPool_Resync(oCreature);
     BPool_UpdateLive(oCreature);
 }
@@ -415,6 +500,29 @@ void BPool_Expire(object oCreature, int nChannel, string sSource, int nGen)
 {
     if (GetLocalInt(oCreature, BPool_GenVar(nChannel, sSource)) != nGen) return;
     BPool_Clear(oCreature, nChannel, sSource);
+}
+
+// The one call every pooled buff spell makes, so the seven overridden spell
+// scripts cannot drift apart on the details.
+//
+// THE TIMER IS A BACKSTOP, NOT THE CLOCK - the same rule Bard Song follows.
+// eff_dur_x2 doubles the duration of every temporary effect a player applies,
+// so the spell on the character really lasts longer than the duration its own
+// script asks for, and a 1x timer would drop the attack bonus halfway through a
+// buff that is visibly still running. The entry really ends when the spell&#x27;s
+// own effect does, which BPool_Revalidate sees through the witness; 3x exists
+// only so a missed removal event cannot strand a bonus forever.
+//
+// ATTACK CHANNEL ONLY, deliberately. These spells&#x27; DAMAGE bonuses carry real
+// damage types (slashing, magical, divine) and effects of different damage
+// types already stack in the engine, so there is nothing to fix there - and
+// pooling them would flatten those types into the pool&#x27;s bludgeoning and change
+// what damage reduction eats.
+void BPool_SpellAttack(object oCreature, string sSource, int nAmount,
+                       float fDuration)
+{
+    if (nAmount &lt;= 0) return;
+    BPool_Set(oCreature, BPOOL_CH_ATTACK, sSource, nAmount, fDuration * 3.0);
 }
 
 // Rebuild both channels from the ledger. For anything that wipes effects out

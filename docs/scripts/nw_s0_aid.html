@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>nw_skelwarr01</title>
+  <title>Script nw_s0_aid</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,45 +57,90 @@
     </nav>
   </header>
   <main>
-<h1>nw_skelwarr01</h1>
-<dl class="meta">
-<dt>ResRef</dt><dd>nw_skelwarr01</dd>
-<dt>Tag</dt><dd></dd>
-<dt>Race</dt><dd></dd>
-<dt>Appearance</dt><dd>Skeleton: Warrior 1</dd>
-<dt>Class(es)</dt><dd></dd>
-<dt>HP</dt><dd></dd>
-<dt>CR</dt><dd>6.0</dd>
-<dt>Faction</dt><dd></dd>
-<dt>Conversation</dt><dd>—</dd>
-</dl>
-<h2>Kills</h2><table class="data"><thead><tr><th>Total</th><th>Solo</th><th>Party</th></tr></thead><tbody><tr><td>3</td><td>3</td><td>0</td></tr></tbody></table>
-<h3>Top Killers</h3><table class="data"><thead><tr><th>#</th><th>Player</th><th>Character</th><th>Solo</th><th>Party</th><th>Total</th><th>Last Kill</th></tr></thead><tbody><tr><td>1</td><td>Vert Patter</td><td>Samir Swift</td><td>3</td><td>0</td><td>3</td><td>2026-08-07</td></tr></tbody></table>
-<h2>Where to find</h2>
-<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/cryptsofthelosts.html">Esgaroth Crypts</a></td><td>nw_undeadall</td><td><code>nw_undeadall</code></td></tr>
-<tr><td><a href="../areas/greateastroadb.html">Great East Road</a></td><td>nw_undeadmed</td><td><code>nw_undeadmed</code></td></tr>
-<tr><td><a href="../areas/greenwaysouth.html">Greenway (South)</a></td><td>nw_undeadall</td><td><code>nw_undeadall</code></td></tr>
-<tr><td><a href="../areas/kallristcryptlow.html">Kallrist Crypt</a></td><td>undeadmed</td><td><code>undeadmed</code></td></tr>
-<tr><td><a href="../areas/kallristcryptupp.html">Kallrist Crypt</a></td><td>undeadmed</td><td><code>undeadmed</code></td></tr></tbody></table>
-<h2>Abilities</h2>
-<table class="data"><tr><th>Str</th><td></td><th>Dex</th><td></td><th>Con</th><td></td><th>Int</th><td></td><th>Wis</th><td></td><th>Cha</th><td></td></tr></table>
-<h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td></td><th>AC</th><td>10 <small class="muted">(10 base + +0 Dex)</small></td><th>BAB</th><td>+0</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+0</td><th>Will</th><td>+0</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h2>Scripts</h2>
-<table class="data"><thead><tr><th>Event</th><th>Script</th></tr></thead><tbody><tr><td>ScriptHeartbeat</td><td></td></tr>
-<tr><td>ScriptOnNotice</td><td></td></tr>
-<tr><td>ScriptEndRound</td><td></td></tr>
-<tr><td>ScriptDialogue</td><td></td></tr>
-<tr><td>ScriptAttacked</td><td></td></tr>
-<tr><td>ScriptDamaged</td><td></td></tr>
-<tr><td>ScriptDeath</td><td></td></tr>
-<tr><td>ScriptDisturbed</td><td></td></tr>
-<tr><td>ScriptSpawn</td><td></td></tr>
-<tr><td>ScriptRested</td><td></td></tr>
-<tr><td>ScriptSpellAt</td><td></td></tr>
-<tr><td>ScriptUserDefine</td><td></td></tr>
-<tr><td>ScriptOnBlocked</td><td></td></tr></tbody></table>
+<h1>Script: <code>nw_s0_aid</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Aid
+//:: NW_S0_Aid.nss
+//:: Copyright (c) 2001 Bioware Corp.
+//:://////////////////////////////////////////////
+/*
+    Target creature gains +1 to attack rolls and
+    saves vs fear. Also gain +1d8 temporary HP.
+*/
+//:://////////////////////////////////////////////
+//:: Created By: Preston Watamaniuk
+//:: Created On: Sept 6, 2001
+//:://////////////////////////////////////////////
+//:: VFX Pass By: Preston W, On: June 20, 2001
+
+//:: MODULE FORK, 2026-08-06 (roadmap: spell-ab-prowess-stack).
+//:: The +1 attack bonus is registered with the per-creature bonus ledger
+//:: instead of being linked as an effect: same-type attack-bonus effects do not
+//:: stack, so this +1 was invisible to anyone holding Legendary Prowess. The
+//:: save bonus and the temporary hit points are stock, and the save bonus is
+//:: what the ledger uses as its witness that Aid is still running.
+#include &quot;x2_inc_spellhook&quot;
+#include &quot;bonus_pool_inc&quot;
+
+void main()
+{
+
+/* 
+  Spellcast Hook Code 
+  Added 2003-06-23 by GeorgZ
+  If you want to make changes to all spells,
+  check x2_inc_spellhook.nss to find out more
+  
+*/
+
+    if (!X2PreSpellCastCode())
+    {
+	// If code within the PreSpellCastHook (i.e. UMD) reports FALSE, do not run this spell
+        return;
+    }
+
+// End of Spell Cast Hook
+
+
+    //Declare major variables
+    int nDuration = GetCasterLevel(OBJECT_SELF);
+    int nBonus = d8(1);
+    int nMetaMagic = GetMetaMagicFeat();
+    effect eDur = EffectVisualEffect(VFX_DUR_CESSATE_POSITIVE);
+
+    //Enter Metamagic conditions
+    if (nMetaMagic == METAMAGIC_MAXIMIZE)
+    {
+    	nBonus = 8;//Damage is at max
+    }
+    else if (nMetaMagic == METAMAGIC_EMPOWER)
+    {
+    	nBonus = nBonus + (nBonus/2); //Damage/Healing is +50%
+    }
+    else if (nMetaMagic == METAMAGIC_EXTEND)
+    {
+    	nDuration = nDuration *2; //Duration is +100%
+    }
+    int nAttack = 1;   // pooled, not linked - see the header note
+    effect eSave = EffectSavingThrowIncrease(SAVING_THROW_ALL, 1, SAVING_THROW_TYPE_FEAR);
+
+    effect eHP = EffectTemporaryHitpoints(nBonus);
+
+    effect eVis = EffectVisualEffect(VFX_IMP_HOLY_AID);
+    object oTarget = GetSpellTargetObject();
+    
+    effect eLink = EffectLinkEffects(eSave, eDur);
+
+    //Fire cast spell at event for the specified target
+    SignalEvent(oTarget, EventSpellCastAt(OBJECT_SELF, SPELL_AID, FALSE));
+
+    //Apply the VFX impact and effects
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLink, oTarget, TurnsToSeconds(nDuration));
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eHP, oTarget, TurnsToSeconds(nDuration));
+    BPool_SpellAttack(oTarget, BPOOL_SRC_AID, nAttack, TurnsToSeconds(nDuration));
+}
+
+</code></pre>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

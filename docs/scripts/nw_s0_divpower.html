@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script nw_s0_divpower</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>nw_s0_divpower</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Divine Power
+//:: NW_S0_DivPower.nss
+//:: Copyright (c) 2001 Bioware Corp.
+//:://////////////////////////////////////////////
+/*
+    Improves the Clerics attack to be the
+    equivalent of a Fighter&#x27;s BAB of the same level,
+    +1 HP per level and raises their strength to
+    18 if is not already there.
+*/
+//:://////////////////////////////////////////////
+//:: Created By: Preston Watamaniuk
+//:: Created On: Oct 21, 2001
+//:://////////////////////////////////////////////
+
+/*
+bugfix by Kovi 2002.07.22
+- temporary hp was stacked
+- loosing temporary hp resulted in loosing the other bonuses
+- number of attacks was not increased (should have been a BAB increase)
+still problem:
+~ attacks are better still approximation (the additional attack is at full BAB)
+~ attack/ability bonuses count against the limits
+*/
+
+//:: MODULE FORK, 2026-08-06 (roadmap: spell-ab-prowess-stack).
+//:: Divine Power&#x27;s attack bonus is registered with the per-creature bonus
+//:: ledger instead of being linked as an effect, so it is felt alongside
+//:: Legendary Prowess rather than hidden behind it. NOTE this bonus is computed
+//:: as &quot;raise BAB to character level&quot; and is therefore ZERO for most level-60
+//:: characters already - pooling it changes nothing for them; it is the low-BAB
+//:: caster who was losing the whole spell.
+//:: The extra attacks (EffectModifyAttacks) and the strength bonus stay in the
+//:: link, which is also what the ledger witnesses.
+#include &quot;nw_i0_spells&quot;
+
+
+#include &quot;x2_inc_spellhook&quot;
+#include &quot;bonus_pool_inc&quot;
+
+void main()
+{
+
+/*
+  Spellcast Hook Code
+  Added 2003-06-23 by GeorgZ
+  If you want to make changes to all spells,
+  check x2_inc_spellhook.nss to find out more
+
+*/
+
+    if (!X2PreSpellCastCode())
+    {
+        // If code within the PreSpellCastHook (i.e. UMD) reports FALSE, do not run this spell
+        return;
+    }
+
+// End of Spell Cast Hook
+
+    //Declare major variables
+    object oTarget = GetSpellTargetObject();
+
+    RemoveEffectsFromSpell(oTarget, GetSpellId());
+    RemoveTempHitPoints();
+
+    int nCasterLevel = GetCasterLevel(OBJECT_SELF);
+    int nTotalCharacterLevel = GetHitDice(OBJECT_SELF);
+    int nBAB = GetBaseAttackBonus(OBJECT_SELF);
+    int nEpicPortionOfBAB = ( nTotalCharacterLevel - 19 ) / 2;
+
+    if ( nEpicPortionOfBAB &lt; 0 )
+    {
+        nEpicPortionOfBAB = 0;
+    }
+
+    int nExtraAttacks = 0;
+    int nAttackIncrease = 0;
+
+    if ( nTotalCharacterLevel &gt; 20 )
+    {
+        nAttackIncrease = 20 + nEpicPortionOfBAB;
+        if( nBAB - nEpicPortionOfBAB &lt; 11 )
+        {
+            nExtraAttacks = 2;
+        }
+        else if( nBAB - nEpicPortionOfBAB &gt; 10 &amp;&amp; nBAB - nEpicPortionOfBAB &lt; 16)
+        {
+            nExtraAttacks = 1;
+        }
+    }
+    else
+    {
+        nAttackIncrease = nTotalCharacterLevel;
+        nExtraAttacks = ( ( nTotalCharacterLevel - 1 ) / 5 ) - ( ( nBAB - 1 ) / 5 );
+    }
+    nAttackIncrease -= nBAB;
+
+    if ( nAttackIncrease &lt; 0 )
+    {
+        nAttackIncrease = 0;
+    }
+
+    int nStr = GetAbilityScore(oTarget, ABILITY_STRENGTH);
+    int nStrengthIncrease = (nStr - 18) * -1;
+    if( nStrengthIncrease &lt; 0 )
+    {
+        nStrengthIncrease = 0;
+    }
+
+    effect eVis = EffectVisualEffect(VFX_IMP_SUPER_HEROISM);
+    effect eStrength = EffectAbilityIncrease(ABILITY_STRENGTH, nStrengthIncrease);
+    effect eHP = EffectTemporaryHitpoints(nCasterLevel);
+    // nAttackIncrease is pooled, not linked - see the header note.
+    effect eAttackMod = EffectModifyAttacks(nExtraAttacks);
+    effect eDur = EffectVisualEffect(VFX_DUR_CESSATE_POSITIVE);
+    effect eLink = EffectLinkEffects(eAttackMod, eDur);
+
+    //Make sure that the strength modifier is a bonus
+    if( nStrengthIncrease &gt; 0 )
+    {
+        eLink = EffectLinkEffects(eLink, eStrength);
+    }
+
+    //Meta-Magic
+    int nMetaMagic = GetMetaMagicFeat();
+    if( nMetaMagic == METAMAGIC_EXTEND )
+    {
+        nCasterLevel *= 2;
+    }
+
+    //Fire cast spell at event for the specified target
+    SignalEvent(oTarget, EventSpellCastAt(OBJECT_SELF, SPELL_DIVINE_POWER, FALSE));
+
+    //Apply Link and VFX effects to the target
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLink, oTarget, RoundsToSeconds(nCasterLevel));
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eHP, oTarget, RoundsToSeconds(nCasterLevel));
+    BPool_SpellAttack(oTarget, BPOOL_SRC_DIVPOW, nAttackIncrease, RoundsToSeconds(nCasterLevel));
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
+}
+
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

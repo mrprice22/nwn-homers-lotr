@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script x2_s2_divwrath</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>x2_s2_divwrath</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Divine Wrath
+//:: x2_s2_DivWrath
+//:: Copyright (c) 2003 Bioware Corp.
+//:://////////////////////////////////////////////
+/*
+    The Divine Champion is able to channel a portion
+    of their gods power once per day giving them a +3
+    bonus on attack rolls, damage, and saving throws
+    for a number of rounds equal to their Charisma
+    bonus. They also gain damage reduction of +1/5.
+    At 10th level, an additional +2 is granted to
+    attack rolls and saving throws.
+
+    Epic Progression
+    Every five levels past 10 an additional +2
+    on attack rolls, damage and saving throws is added. As well the damage
+    reduction increases by 5 and the damage power required to penetrate
+    damage reduction raises by +1 (to a maximum of /+5).
+*/
+//:://////////////////////////////////////////////
+//:: Created By: Andrew Nobbs
+//:: Created On: Feb 05, 2003
+//:: Updated On: Jul 21, 2003 Georg Zoeller -
+//                            Epic Level progession
+//:://////////////////////////////////////////////
+
+//:: MODULE FORK, 2026-08-06 (roadmap: spell-ab-prowess-stack).
+//:: The Divine Champion&#x27;s attack bonus (+3, rising by +2 every five class
+//:: levels) is registered with the per-creature bonus ledger instead of being
+//:: linked as an effect - as a plain EffectAttackIncrease the whole to-hit half
+//:: of the ability was worth nothing to a character carrying Legendary
+//:: Prowess&#x27;s permanent +5. The saves, the damage bonus and the damage
+//:: reduction stay in the supernatural link, which is what the ledger
+//:: witnesses.
+//:: WITNESS SPELL ID IS 622, not the 621 this script&#x27;s SignalEvent passes -
+//:: row 621 in spells.2da is PADDING and 622 is DC_Divine_Wrath. The effects
+//:: carry the id of the ability actually cast, so 622 is what
+//:: GetHasSpellEffect answers to; the stock SignalEvent constant is a BioWare
+//:: off-by-one and is left exactly as found.
+#include &quot;nw_i0_spells&quot;
+#include &quot;bonus_pool_inc&quot;
+
+void main()
+{
+    //Declare major variables
+    object oTarget = OBJECT_SELF;
+    int nDuration = GetAbilityModifier(ABILITY_CHARISMA, OBJECT_SELF);
+    //Check that if nDuration is not above 0, make it 1.
+    if(nDuration &lt;= 0)
+    {
+        FloatingTextStrRefOnCreature(100967,OBJECT_SELF);
+        return;
+    }
+
+    effect eVis = EffectVisualEffect(VFX_IMP_HEAD_HOLY);
+    eVis = EffectLinkEffects(EffectVisualEffect(VFX_IMP_GOOD_HELP),eVis);
+    effect eDamage, eSaving, eReduction;
+    //Fire cast spell at event for the specified target
+    SignalEvent(oTarget, EventSpellCastAt(OBJECT_SELF, 621, FALSE));
+
+    int nAttackB = 3;
+    int nDamageB = DAMAGE_BONUS_3;
+    int nSaveB = 3 ;
+    int nDmgRedB = 5;
+    int nDmgRedP = DAMAGE_POWER_PLUS_ONE;
+
+    // --------------- Epic Progression ---------------------------
+
+    int nLevel = GetLevelByClass(CLASS_TYPE_DIVINECHAMPION,oTarget) ;
+    int nLevelB = (nLevel / 5)-1;
+    if (nLevelB &lt;=0)
+    {
+        nLevelB =0;
+    }
+    else
+    {
+        nAttackB += (nLevelB*2); // +2 to attack every 5 levels past 5
+        nSaveB += (nLevelB*2); // +2 to saves every 5 levels past 5
+    }
+
+    if (nLevelB &gt;6 )
+    {
+        nDmgRedP = DAMAGE_POWER_PLUS_FIVE;
+        nDmgRedB = 7*5;
+        nDamageB = DAMAGE_BONUS_17;
+    }
+    else if (nLevelB &gt;5 )
+    {
+        nDmgRedP = DAMAGE_POWER_PLUS_FIVE;
+        nDmgRedB = 6*5;
+        nDamageB = DAMAGE_BONUS_15;
+    }
+    else if (nLevelB &gt;4 )
+    {
+        nDmgRedP = DAMAGE_POWER_PLUS_FIVE;
+        nDmgRedB = 5*5;
+        nDamageB = DAMAGE_BONUS_13;
+    }
+    else if (nLevelB &gt;3)
+    {
+        nDmgRedP = DAMAGE_POWER_PLUS_FOUR;
+        nDmgRedB = 4*5;
+        nDamageB = DAMAGE_BONUS_11;
+    }
+    else if (nLevelB &gt;2)
+    {
+        nDmgRedP = DAMAGE_POWER_PLUS_THREE;
+        nDmgRedB = 3*5;
+        nDamageB = DAMAGE_BONUS_9;
+    }
+    else if (nLevelB &gt;1)
+    {
+        nDmgRedP = DAMAGE_POWER_PLUS_TWO;
+        nDmgRedB = 2*5;
+        nDamageB = DAMAGE_BONUS_7;
+    }
+    else if (nLevelB &gt;0)
+    {
+        nDamageB = DAMAGE_BONUS_5;
+    }
+    //--------------------------------------------------------------
+    //
+    //--------------------------------------------------------------
+
+    // nAttackB is pooled, not linked - see the header note.
+    eDamage = EffectDamageIncrease(nDamageB, DAMAGE_TYPE_DIVINE);
+    eSaving = EffectSavingThrowIncrease(SAVING_THROW_ALL,nSaveB, SAVING_THROW_TYPE_ALL);
+    eReduction = EffectDamageReduction(nDmgRedB, nDmgRedP);
+    effect eDur = EffectVisualEffect(VFX_DUR_CESSATE_POSITIVE);
+
+    effect eLink = EffectLinkEffects(eSaving, eDamage);
+    eLink = EffectLinkEffects(eReduction,eLink);
+    eLink = EffectLinkEffects(eDur,eLink);
+    eLink = SupernaturalEffect(eLink);
+
+    // prevent stacking with self
+    RemoveEffectsFromSpell(oTarget, GetSpellId());
+
+
+    //Apply the armor bonuses and the VFX impact
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLink, oTarget, RoundsToSeconds(nDuration));
+    BPool_SpellAttack(oTarget, BPOOL_SRC_DIVWRA, nAttackB, RoundsToSeconds(nDuration));
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

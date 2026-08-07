@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script nw_s0_bless</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>nw_s0_bless</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: Bless
+//:: NW_S0_Bless.nss
+//:: Copyright (c) 2001 Bioware Corp.
+//:://////////////////////////////////////////////
+/*
+    All allies within 30ft of the caster gain a
+    +1 attack bonus and a +1 save bonus vs fear
+    effects
+
+    also can be cast on crossbow bolts to bless them
+    in order to slay rakshasa
+*/
+//:://////////////////////////////////////////////
+//:: Created By: Preston Watamaniuk
+//:: Created On: July 24, 2001
+//:://////////////////////////////////////////////
+//:: VFX Pass By: Preston W, On: June 20, 2001
+//:: Added Bless item ability: Georg Z, On: June 20, 2001
+//:: MODULE FORK, 2026-08-06 (roadmap: spell-ab-prowess-stack).
+//:: The +1 attack bonus is NO LONGER part of the effect link - it is registered
+//:: with the per-creature bonus ledger instead. Same-type attack-bonus effects
+//:: do not stack in NWN (the engine keeps only the largest), so as a plain
+//:: EffectAttackIncrease this +1 was worth exactly nothing to anyone carrying
+//:: Legendary Prowess&#x27;s permanent +5. Everything else about the spell - the
+//:: save bonus, the bolt branch, the durations, the VFX - is stock.
+//:: The save bonus stays in the link on purpose: it is the ledger&#x27;s WITNESS
+//:: that the spell is still running.
+#include &quot;NW_I0_SPELLS&quot;
+
+#include &quot;x2_inc_spellhook&quot;
+#include &quot;bonus_pool_inc&quot;
+
+void main()
+{
+
+    /*
+      Spellcast Hook Code
+      Added 2003-06-23 by GeorgZ
+      If you want to make changes to all spells,
+      check x2_inc_spellhook.nss to find out more
+
+    */
+
+    if (!X2PreSpellCastCode())
+    {
+    // If code within the PreSpellCastHook (i.e. UMD) reports FALSE, do not run this spell
+        return;
+    }
+
+    // End of Spell Cast Hook
+
+
+    //Declare major variables
+    object oTarget = GetSpellTargetObject();
+    int nDuration = 1 + GetCasterLevel(OBJECT_SELF);
+
+    effect eVis = EffectVisualEffect(VFX_IMP_HEAD_HOLY);
+    effect eDur = EffectVisualEffect(VFX_DUR_CESSATE_POSITIVE);
+    // ---------------- TARGETED ON BOLT  -------------------
+    if(GetIsObjectValid(oTarget) &amp;&amp; GetObjectType(oTarget) == OBJECT_TYPE_ITEM)
+    {
+        // special handling for blessing crossbow bolts that can slay rakshasa&#x27;s
+        if (GetBaseItemType(oTarget) ==  BASE_ITEM_BOLT)
+        {
+           SignalEvent(GetItemPossessor(oTarget), EventSpellCastAt(OBJECT_SELF, GetSpellId(), FALSE));
+           IPSafeAddItemProperty(oTarget, ItemPropertyOnHitCastSpell(123,1), RoundsToSeconds(nDuration), X2_IP_ADDPROP_POLICY_KEEP_EXISTING );
+           ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, GetItemPossessor(oTarget));
+           ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eDur, GetItemPossessor(oTarget), TurnsToSeconds(nDuration));
+           return;
+        }
+    }
+
+
+    effect eImpact = EffectVisualEffect(VFX_FNF_LOS_HOLY_30);
+    int nAttack = 1;   // pooled, not linked - see the header note
+    effect eSave = EffectSavingThrowIncrease(SAVING_THROW_ALL, 1, SAVING_THROW_TYPE_FEAR);
+
+    effect eLink = EffectLinkEffects(eSave, eDur);
+
+    int nMetaMagic = GetMetaMagicFeat();
+    float fDelay;
+    //Metamagic duration check
+    if (nMetaMagic == METAMAGIC_EXTEND)
+    {
+        nDuration = nDuration *2;   //Duration is +100%
+    }
+
+    //Apply Impact
+    ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eImpact, GetSpellTargetLocation());
+
+    //Get the first target in the radius around the caster
+    oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));
+    while(GetIsObjectValid(oTarget))
+    {
+        if(GetIsReactionTypeFriendly(oTarget) || GetFactionEqual(oTarget))
+        {
+            fDelay = GetRandomDelay(0.4, 1.1);
+            //Fire spell cast at event for target
+            SignalEvent(oTarget, EventSpellCastAt(OBJECT_SELF, SPELL_BLESS, FALSE));
+            //Apply VFX impact and bonus effects
+            DelayCommand(fDelay, ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget));
+            DelayCommand(fDelay, ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLink, oTarget, TurnsToSeconds(nDuration)));
+            // Scheduled at the same delay and AFTER the apply, so the witness
+            // effect is already on the target when the entry is registered.
+            DelayCommand(fDelay, BPool_SpellAttack(oTarget, BPOOL_SRC_BLESS, nAttack, TurnsToSeconds(nDuration)));
+        }
+        //Get the next target in the specified area around the caster
+        oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));
+    }
+}
+
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
