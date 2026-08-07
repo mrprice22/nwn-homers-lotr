@@ -217,6 +217,110 @@ def check_ids_include(problems, gen):
             "wrong feat id. Re-run: python3 bin/gen-legendary-feats.py --apply")
 
 
+def check_prereqs(problems, gen):
+    """Prerequisites must compare with >=, say what they compare, and be shown.
+
+    Roadmap item legendary-feat-prereq-defect-1: a level-60 character with a
+    qualifying BAB but no Epic Prowess saw Legendary Prowess greyed out behind
+    one flat string, "Requires: BAB 35+, Epic Prowess", and reported it as "35 is
+    not accepted". Two separate weaknesses made that report unanswerable, and
+    both are gated here:
+
+    1. **The comparison direction was a typing convention.** Nothing stopped a
+       `>` being written where `>=` was meant. The generator now emits the
+       operator itself, so the only way a `>` can appear is if someone hand-writes
+       one back into a clause's `expr` — which is what the first two checks catch.
+    2. **The display text and the test were independent strings.** A `>= 35` could
+       be advertised as anything at all. They now come from one Req, and the
+       threshold check below is what keeps a future refactor from splitting them
+       again.
+
+    The last check is the picker side: generating a measured readout that no
+    surface displays would leave the player exactly as blind as before.
+    """
+    if gen is None:
+        return
+    include = gen.nss_include()
+
+    def body(name):
+        """The DEFINITION's body, not the forward declaration's.
+
+        Every one of these functions is declared near the top of the include and
+        defined further down, so a plain split on the name finds the prototype
+        and returns nothing — which reads as "this feat has no text" for every
+        feat at once. Anchor on the `{` that only a definition has.
+        """
+        match = re.search(rf"^{re.escape(name)}\([^)]*\)\n\{{\n(.*?)\n\}}",
+                          include, re.S | re.M)
+        return match.group(1) if match else ""
+
+    # 1 + 2. Comparison direction, over the generated test function only. A bare
+    #        `>` or any `<` here is a prerequisite that rejects a character who
+    #        exactly meets its stated number — the reported defect, literally.
+    tests = body("int LegFeat_MeetsPrereq")
+    if not tests:
+        problems.append(
+            "legfeat_ids_inc.nss has no LegFeat_MeetsPrereq body — the "
+            "prerequisite gate is not being generated at all")
+    for line in tests.splitlines():
+        stripped = re.sub(r">=", "", line)
+        if ">" in stripped:
+            problems.append(
+                "a legendary feat prerequisite compares with `>` rather than "
+                f"`>=`, so a character on exactly the stated number is refused: "
+                f"{line.strip()}")
+        if "<" in line:
+            problems.append(
+                "a legendary feat prerequisite compares with `<`, which inverts "
+                f"the clause the picker prints: {line.strip()}")
+
+    # 3. Every threshold in the test must appear in the text for the SAME feat.
+    #    "BAB 35+" describing a `>= 30` is worse than no text at all.
+    shown = body("string LegFeat_PrereqAt")
+    text_by_case = dict(re.findall(r'case (\d+): return "([^"]*)";', shown))
+    for case, expr in re.findall(r"case (\d+): return \((.*)\);", tests):
+        thresholds = re.findall(r">=\s*(\d+)", expr)
+        text = text_by_case.get(case)
+        if text is None:
+            if thresholds:
+                problems.append(
+                    f"legendary feat {case} tests a prerequisite but "
+                    "LegFeat_PrereqAt has no text for it — the picker would grey "
+                    "the row with no reason given")
+            continue
+        for value in thresholds:
+            if not re.search(rf"\b{value}\+", text):
+                problems.append(
+                    f"legendary feat {case} requires {value} or more but its "
+                    f"player-facing text is {text!r} — the number the player is "
+                    "told is not the number they are tested against")
+
+    # 4. The measured readout has to reach a surface. Generating it and showing
+    #    the old flat string is the defect with extra steps.
+    for path, func, what in (
+        (UNPACKED / "legfeat_nui.nss", "LegFeat_FirstUnmetAt",
+         "the picker's effect column would show no clause and no value"),
+        (UNPACKED / "legfeat_evt.nss", "LegFeat_PrereqStatusAt",
+         "a refused pick would not say which clause failed"),
+    ):
+        if not path.exists():
+            problems.append(f"{path} is missing")
+            continue
+        if func not in strip_line_comments(path.read_text(encoding="latin-1")):
+            problems.append(
+                f"{path.name} does not call {func} — {what} "
+                "(roadmap legendary-feat-prereq-defect-1)")
+
+    # 5. ASCII only. The readout reaches the NUI and the chat log, and a
+    #    non-ASCII byte in a .nss is a recorded trap in this repo.
+    try:
+        include.encode("ascii")
+    except UnicodeEncodeError as exc:
+        problems.append(
+            f"legfeat_ids_inc.nss contains a non-ASCII character ({exc.reason} "
+            f"at byte {exc.start}) — keep generated NWScript to plain ASCII")
+
+
 def check_wiring(problems):
     """The three hooks without which the feature is silently inert or lossy."""
     for name in LEGFEAT_SCRIPTS:
@@ -492,6 +596,7 @@ def main():
             check_stock_overrides(problems, gen, rows, header)
         check_not_selectable(problems, gen)
         check_ids_include(problems, gen)
+        check_prereqs(problems, gen)
         check_effect_payloads(problems, gen)
         check_hook_arming(problems, gen)
     check_packed(problems)

@@ -90,6 +90,73 @@ FIRST_ROW = BASE_ROWS          # our first feat ID
 BLANK = "****"
 
 
+@dataclass(frozen=True)
+class Req:
+    """One prerequisite clause.
+
+    A prerequisite used to be two independent hand-typed strings - an NWScript
+    expression and a display string - with nothing checking that the second
+    described the first. Roadmap item legendary-feat-prereq-defect-1 is what that
+    cost: a player at BAB 35 who lacked Epic Prowess saw the whole requirement
+    ("Requires: BAB 35+, Epic Prowess") greyed out with no way to tell WHICH half
+    had failed, and reported it as "35 is not being accepted". Clauses exist so
+    the comparison, the display text and the player's own measured value all come
+    out of ONE declaration.
+
+    `minimum is None` -> BOOLEAN clause. `expr` is the whole test; `label` is how
+        the picker names it ("Epic Prowess"). Nothing is measured to show.
+    `minimum` set     -> NUMERIC clause. `expr` yields a value; the generator
+        emits `(expr) >= minimum` and the text "<label> <minimum>+ <unit>", and
+        the picker shows the player's evaluated `expr` beside it.
+
+    A numeric clause CANNOT express `>` - the operator is generated, not typed.
+    That is the general ask on legendary-feat-prereq-defect-1 ("any X value
+    requirement should be >=, not >") made structural rather than conventional,
+    and tests/check_legendary_feats.py asserts it on the generated output.
+
+    Read BASE ability scores (GetAbilityScore(..., TRUE)) and not the buffed
+    ones: a prerequisite met by swapping on a +12 belt for the duration of one
+    button press is not a prerequisite.
+    """
+    label: str
+    expr: str
+    minimum: int | None = None
+    unit: str = ""             # "ranks" on skill clauses; "" everywhere else
+
+    @property
+    def is_numeric(self) -> bool:
+        return self.minimum is not None
+
+    def nss_test(self) -> str:
+        """The NWScript boolean test for this clause."""
+        if not self.is_numeric:
+            return self.expr
+        return f"({self.expr}) >= {self.minimum}"
+
+    def text(self) -> str:
+        """How the picker names this clause when it is not showing a value."""
+        if not self.is_numeric:
+            return self.label
+        s = f"{self.label} {self.minimum}+"
+        return f"{s} {self.unit}" if self.unit else s
+
+
+def REQ_BAB(minimum: int) -> Req:
+    """The BAB clause, spelled once.
+
+    A BAB prerequisite below ~30 is decorative at this level cap: levels 21-60
+    grant +1 BAB every 2 levels, so every level-60 character clears 20. A martial
+    prerequisite that means anything is 30+ or 35+ — a pure level-60 Fighter
+    reaches 40, a pure 3/4-BAB class reaches exactly 35, and what separates
+    builds is levels 1-20.
+
+    Note this is BASE attack bonus, not the character sheet's total. The label
+    says "BAB" for that reason, and the picker now prints the measured number
+    beside it so the two can never be confused again.
+    """
+    return Req("BAB", "GetBaseAttackBonus(oPC)", minimum)
+
+
 @dataclass
 class Feat:
     """One legendary feat. `effect` is documentation for now - phase 3's picker
@@ -118,17 +185,13 @@ class Feat:
     # first. LegFeat_ApplyAll must leave these alone; applying an effect for one
     # would double the benefit.
     kind: str = "effect"
-    # Prerequisite, as an NWScript boolean expression over `oPC`, rendered
-    # verbatim into LegFeat_MeetsPrereq. Empty = no prerequisite. The picker
-    # greys a row whose expression is FALSE and LegFeat_Take refuses it, so
-    # this is the ONLY place a prerequisite is written down — feat.2da gates
-    # nothing (see the architecture note at the top of this file).
-    #
-    # Read BASE ability scores (GetAbilityScore(..., TRUE)) and not the
-    # buffed ones: a prerequisite met by swapping on a +12 belt for the
-    # duration of one button press is not a prerequisite.
-    prereq: str = ""
-    prereq_text: str = ""      # how the picker spells it out to the player
+    # Prerequisite, as a tuple of Req clauses ANDed together. Empty = no
+    # prerequisite. The picker greys a row whose clauses do not all pass and
+    # LegFeat_Take refuses it, so this is the ONLY place a prerequisite is
+    # written down — feat.2da gates nothing (see the architecture note at the
+    # top of this file). See Req above for the clause forms and why the
+    # comparison operator is generated rather than typed.
+    reqs: tuple[Req, ...] = ()
 
 
 # ---------------------------------------------------------------------------
@@ -177,18 +240,18 @@ FEATS: list[Feat] = [
     # LegFeat_ApplyAll. Everything else martial needs a combat hook, a spell
     # script or an engine behaviour that is not scriptable — see
     # CLAUDE-legendary-feats-triage.md for the route each one takes.
-    # A BAB prerequisite below ~30 is decorative at this level cap: levels 21-60
-    # grant +1 BAB every 2 levels, so every level-60 character clears 20. A
-    # martial prerequisite that means anything is 30+ or 35+ (a pure level-60
-    # Fighter reaches 40, and what separates builds is levels 1-20).
+    # On why the BAB thresholds sit where they do, see REQ_BAB above.
     Feat("LEGENDARY_PROWESS", "Legendary Prowess",
          "Every blow you aim finds its mark. You gain a permanent +5 bonus to "
          "your attack rolls.",
          "ife_X2EpicProw", effect="+5 attack bonus",
          category="Martial",
-         prereq="GetBaseAttackBonus(oPC) >= 35 "
-                "&& GetHasFeat(FEAT_EPIC_PROWESS, oPC)",
-         prereq_text="BAB 35+, Epic Prowess"),
+         # 35 is exactly what a pure 3/4-BAB level-60 character has (stock
+         # cls_atk_2 row 59), so this gate is cleared by a hair or not at all —
+         # which is precisely why the SECOND clause has to be visible. See
+         # roadmap legendary-feat-prereq-defect-1.
+         reqs=(REQ_BAB(35),
+               Req("Epic Prowess", "GetHasFeat(FEAT_EPIC_PROWESS, oPC)"))),
     # Melee counterpart to Legendary Marksman: the extra attack is CONDITIONAL on
     # what is in hand, so it is applied and dropped by the equip hook
     # (legfeat_equip.nss) rather than sitting there permanently. Unarmed counts as
@@ -202,9 +265,8 @@ FEATS: list[Feat] = [
          # said "monk" without saying it — and a prerequisite the player has to
          # reverse-engineer is a prerequisite they will misread. A CLASS LEVEL
          # is not a purity test: a 30/30 monk/rogue qualifies, which is intended.
-         prereq="GetBaseAttackBonus(oPC) >= 30 "
-                "&& GetLevelByClass(CLASS_TYPE_MONK, oPC) >= 30",
-         prereq_text="BAB 30+, Monk level 30+"),
+         reqs=(REQ_BAB(30),
+               Req("Monk level", "GetLevelByClass(CLASS_TYPE_MONK, oPC)", 30))),
     # The first LEGFEAT_KIND_HOOK feat: it applies nothing and is never rebuilt
     # at login. unpacked/devcrit_atk.nss reads GetHasFeat in the NWNX Damage
     # attack event and does all the work, which is also the only place a
@@ -227,8 +289,8 @@ FEATS: list[Feat] = [
          # to resolve. We ship no new art yet.
          "ife_X1GCleave", effect="+5 damage dice on a critical",
          category="Martial", kind="hook",
-         prereq="LegFeat_HasAnyDevCrit(oPC)",
-         prereq_text="Devastating Critical (any weapon)"),
+         reqs=(Req("Devastating Critical (any weapon)",
+                   "LegFeat_HasAnyDevCrit(oPC)"),)),
 
     # --- Martial replacement set (approved 2026-08-03) --------------------
     # The reviewed replacements for the six martial feats the engine owns and
@@ -254,9 +316,9 @@ FEATS: list[Feat] = [
          category="Martial",
          # Discipline is read as BASE ranks: a Discipline requirement met by a
          # +10 skill cloak is met by taking the cloak off again.
-         prereq="GetBaseAttackBonus(oPC) >= 20 "
-                "&& GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE) >= 30",
-         prereq_text="BAB 20+, Discipline 30 ranks"),
+         reqs=(REQ_BAB(20),
+               Req("Discipline", "GetSkillRank(SKILL_DISCIPLINE, oPC, TRUE)",
+                   30, "ranks"))),
     # CONDITIONAL, like Onslaught: a weapon in each hand. Dropping the off-hand
     # must drop the bonus, which is legfeat_equip.nss's job.
     Feat("LEGENDARY_GRIP", "Legendary Grip",
@@ -264,11 +326,10 @@ FEATS: list[Feat] = [
          "gain +4 to your attack rolls and +6 to your Armour Class.",
          "ife_twoweap", effect="+4 attack, +6 AC while dual-wielding",
          category="Martial",
-         prereq="GetHasFeat(FEAT_AMBIDEXTERITY, oPC) "
-                "&& GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC) "
-                "&& GetHasFeat(FEAT_WEAPON_FINESSE, oPC)",
-         prereq_text="Ambidexterity, Improved Two-Weapon Fighting, "
-                     "Weapon Finesse"),
+         reqs=(Req("Ambidexterity", "GetHasFeat(FEAT_AMBIDEXTERITY, oPC)"),
+               Req("Improved Two-Weapon Fighting",
+                   "GetHasFeat(FEAT_IMPROVED_TWO_WEAPON_FIGHTING, oPC)"),
+               Req("Weapon Finesse", "GetHasFeat(FEAT_WEAPON_FINESSE, oPC)"))),
     # CONDITIONAL, and the ranged counterpart to Legendary Onslaught. Bows and
     # crossbows only - not slings, not thrown - so it cannot be held alongside
     # Onslaught's melee attack by holding one of each.
@@ -277,10 +338,9 @@ FEATS: list[Feat] = [
          "additional attack each round while wielding a bow or a crossbow.",
          "ife_rapidshot", effect="+1 ranged attack per round (bow/crossbow)",
          category="Martial",
-         prereq="GetHasFeat(FEAT_RAPID_SHOT, oPC) "
-                "&& GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC) "
-                "&& GetBaseAttackBonus(oPC) >= 30",
-         prereq_text="Rapid Shot, Point Blank Shot, BAB 30+"),
+         reqs=(Req("Rapid Shot", "GetHasFeat(FEAT_RAPID_SHOT, oPC)"),
+               Req("Point Blank Shot", "GetHasFeat(FEAT_POINT_BLANK_SHOT, oPC)"),
+               REQ_BAB(30))),
     # HOOK (defender side): legfeat_dmg.nss, the NWNX Damage event script that
     # LegFeat_ArmHooks registers on the character. Reduction happens AFTER the
     # engine has finished with damage reduction, resistance and immunity, which
@@ -291,9 +351,9 @@ FEATS: list[Feat] = [
          "points, after all other reductions and resistances.",
          "ife_sh_prof", effect="-10 damage taken while a shield is equipped",
          category="Martial", kind="hook",
-         prereq="GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC) "
-                "&& GetBaseAttackBonus(oPC) >= 15",
-         prereq_text="Shield Proficiency, BAB 15+"),
+         reqs=(Req("Shield Proficiency",
+                   "GetHasFeat(FEAT_SHIELD_PROFICIENCY, oPC)"),
+               REQ_BAB(15))),
     # HOOK (defender side), same script as Bulwark.
     #
     # 60 RANKS of Parry, not 60 modified Parry: at this level cap the modified
@@ -304,17 +364,16 @@ FEATS: list[Feat] = [
          "weapon's damage. You do not stop attacking to do it.",
          "ife_impparry", effect="1/round counter-attack when hit in melee",
          category="Martial", kind="hook",
-         prereq="GetSkillRank(SKILL_PARRY, oPC, TRUE) >= 60",
-         prereq_text="Parry 60 ranks"),
+         reqs=(Req("Parry", "GetSkillRank(SKILL_PARRY, oPC, TRUE)",
+                   60, "ranks"),)),
     # HOOK (attacker side): legfeat_atk_inc.nss, called from devcrit_atk.nss.
     Feat("LEGENDARY_REAPING", "Legendary Reaping",
          "Killing feeds you. Each enemy you fell grants +2 to your attack rolls "
          "and +2 damage for 12 seconds, stacking up to five times.",
          "ife_cleave", effect="+2 attack/+2 damage per kill, 12s, stacks 5",
          category="Martial", kind="hook",
-         prereq="GetHasFeat(FEAT_GREAT_CLEAVE, oPC) "
-                "&& GetBaseAttackBonus(oPC) >= 35",
-         prereq_text="Great Cleave, BAB 35+"),
+         reqs=(Req("Great Cleave", "GetHasFeat(FEAT_GREAT_CLEAVE, oPC)"),
+               REQ_BAB(35))),
     # HOOK (attacker side). Scales off the attacker's OWN missing health, so it
     # is at its best exactly when the character is closest to dying.
     Feat("LEGENDARY_WRATH", "Legendary Wrath",
@@ -324,8 +383,9 @@ FEATS: list[Feat] = [
          category="Martial", kind="hook",
          # CON is read as the BASE score for the usual reason - a belt is not a
          # constitution.
-         prereq="GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE) >= 21",
-         prereq_text="Constitution 21+ (base)"),
+         reqs=(Req("Constitution",
+                   "GetAbilityScore(oPC, ABILITY_CONSTITUTION, TRUE)",
+                   21, "(base)"),)),
     # HOOK (attacker side). The only feat in the pool that reads the target's
     # race, and the only one that pays off a class's own mechanic.
     Feat("LEGENDARY_QUARRY", "Legendary Quarry",
@@ -334,8 +394,8 @@ FEATS: list[Feat] = [
          "ife_trackstep", effect="+50% damage to favoured enemies below 50% HP",
          category="Martial", kind="hook",
          # A class level, not a purity test: a 30/30 ranger/rogue qualifies.
-         prereq="GetLevelByClass(CLASS_TYPE_RANGER, oPC) >= 30",
-         prereq_text="Ranger level 30+"),
+         reqs=(Req("Ranger level", "GetLevelByClass(CLASS_TYPE_RANGER, oPC)",
+                   30),)),
     # HOOK (attacker side). The cap is the good part of the design: the armour
     # a target is actually wearing is the most it can be stripped of, so this
     # cannot shred an unarmoured or naturally-armoured enemy to nothing.
@@ -346,9 +406,8 @@ FEATS: list[Feat] = [
          "ife_disarm", effect="-3 target AC per hit, stacks 3, capped at its "
                               "armour+shield AC",
          category="Martial", kind="hook",
-         prereq="GetBaseAttackBonus(oPC) >= 35 "
-                "&& GetHasFeat(FEAT_CALLED_SHOT, oPC)",
-         prereq_text="BAB 35+, Called Shot"),
+         reqs=(REQ_BAB(35),
+               Req("Called Shot", "GetHasFeat(FEAT_CALLED_SHOT, oPC)"))),
 ]
 
 
@@ -444,6 +503,18 @@ def nss_include():
         "int    LegFeat_MeetsPrereq(object oPC, int n);",
         "// Player-facing prerequisite text, or \"\" when the feat has none.",
         "string LegFeat_PrereqAt(int n);",
+        "// The same requirement MEASURED against this character: every clause,",
+        "// each marked [ok] or [X], and each numeric one carrying the player's own",
+        "// value - \"BAB 35+ (you have 34) [X], Epic Prowess [ok]\". A player who",
+        "// cannot see WHICH clause failed reports the one they can see; that is",
+        "// roadmap item legendary-feat-prereq-defect-1, where a character with a",
+        "// qualifying BAB but no Epic Prowess read a greyed row as \"35 is not",
+        "// accepted\". Returns \"\" when the feat has no prerequisite.",
+        "string LegFeat_PrereqStatusAt(object oPC, int n);",
+        "// Just the FIRST unmet clause, with its measured value - short enough for",
+        "// the picker's effect column, which clips silently rather than wrapping.",
+        "// \"\" when the character qualifies (or the feat has no prerequisite).",
+        "string LegFeat_FirstUnmetAt(object oPC, int n);",
         "",
         "int LegFeat_IdAt(int n)",
         "{",
@@ -528,17 +599,58 @@ def nss_include():
         '    return "";',
         "}",
         "",
-        "// Each case is the feat's `prereq` expression from the generator's table,",
-        "// rendered verbatim. A feat with no prerequisite emits no case and falls",
-        "// through to TRUE.",
+        "// --- clause renderers ----------------------------------------------------",
+        "// The three functions below turn ONE clause into text. They exist so that",
+        "// what the picker shows and what the picker tests come out of the same",
+        "// declaration in the generator - the two used to be independent hand-typed",
+        "// strings, which is how a player with a qualifying BAB and no Epic Prowess",
+        "// came to report that \"35 is not accepted\" (legendary-feat-prereq-defect-1).",
+        "",
+        "// The ask, unmeasured: \"BAB 35+\", \"Discipline 30+ ranks\".",
+        "string LegFeat_ReqAsk(string sLabel, int nMin, string sUnit)",
+        "{",
+        '    string s = sLabel + " " + IntToString(nMin) + "+";',
+        '    if (sUnit != "") s += " " + sUnit;',
+        "    return s;",
+        "}",
+        "",
+        "// The ask with this character's own value: \"BAB 35+ (you have 34)\".",
+        "string LegFeat_ReqHave(string sLabel, int nMin, string sUnit, int nHave)",
+        "{",
+        "    return LegFeat_ReqAsk(sLabel, nMin, sUnit)",
+        '         + " (you have " + IntToString(nHave) + ")";',
+        "}",
+        "",
+        "// Pass/fail marker. ASCII on purpose - a non-ASCII byte in a .nss is a",
+        "// recorded trap in this repo, and this string reaches the NUI and the chat",
+        "// log both.",
+        "string LegFeat_ReqMark(string sBody, int bMet)",
+        "{",
+        '    return sBody + (bMet ? " [ok]" : " [X]");',
+        "}",
+        "",
+        "// A numeric clause, fully rendered. nHave is passed in so the generator can",
+        "// evaluate the getter exactly once at the call site.",
+        "string LegFeat_ReqNum(string sLabel, int nMin, string sUnit, int nHave)",
+        "{",
+        "    return LegFeat_ReqMark(LegFeat_ReqHave(sLabel, nMin, sUnit, nHave),",
+        "                           nHave >= nMin);",
+        "}",
+        "",
+        "// Each case ANDs the feat's clauses from the generator's table. A numeric",
+        "// clause is always emitted as `(expr) >= minimum` - the generator cannot",
+        "// express `>`, which is what makes \"treated as >=, not >\" a property of the",
+        "// build rather than a habit. A feat with no prerequisite emits no case and",
+        "// falls through to TRUE.",
         "int LegFeat_MeetsPrereq(object oPC, int n)",
         "{",
         "    switch (n)",
         "    {",
     ]
     for offset, feat in enumerate(FEATS):
-        if feat.prereq:
-            lines.append(f"        case {offset}: return ({feat.prereq});")
+        if feat.reqs:
+            test = " && ".join(r.nss_test() for r in feat.reqs)
+            lines.append(f"        case {offset}: return ({test});")
     lines += [
         "    }",
         "    return TRUE;",
@@ -550,9 +662,57 @@ def nss_include():
         "    {",
     ]
     for offset, feat in enumerate(FEATS):
-        if feat.prereq_text:
-            text = feat.prereq_text.replace('"', "'")
+        if feat.reqs:
+            text = ", ".join(r.text() for r in feat.reqs).replace('"', "'")
             lines.append(f'        case {offset}: return "{text}";')
+    lines += [
+        "    }",
+        '    return "";',
+        "}",
+        "",
+        "string LegFeat_PrereqStatusAt(object oPC, int n)",
+        "{",
+        "    switch (n)",
+        "    {",
+    ]
+    for offset, feat in enumerate(FEATS):
+        if not feat.reqs:
+            continue
+        parts = []
+        for r in feat.reqs:
+            label = r.label.replace('"', "'")
+            unit = r.unit.replace('"', "'")
+            if r.is_numeric:
+                parts.append(f'LegFeat_ReqNum("{label}", {r.minimum}, '
+                             f'"{unit}", {r.expr})')
+            else:
+                parts.append(f'LegFeat_ReqMark("{label}", {r.expr})')
+        joined = '\n                 + ", " + '.join(parts)
+        lines.append(f"        case {offset}: return {joined};")
+    lines += [
+        "    }",
+        '    return "";',
+        "}",
+        "",
+        "string LegFeat_FirstUnmetAt(object oPC, int n)",
+        "{",
+        "    switch (n)",
+        "    {",
+    ]
+    for offset, feat in enumerate(FEATS):
+        if not feat.reqs:
+            continue
+        lines.append(f"        case {offset}:")
+        for r in feat.reqs:
+            label = r.label.replace('"', "'")
+            unit = r.unit.replace('"', "'")
+            lines.append(f"            if (!({r.nss_test()}))")
+            if r.is_numeric:
+                lines.append(f'                return LegFeat_ReqHave("{label}", '
+                             f'{r.minimum}, "{unit}", {r.expr});')
+            else:
+                lines.append(f'                return "{label}";')
+        lines.append("            break;")
     lines += [
         "    }",
         '    return "";',
@@ -754,13 +914,26 @@ def main():
 
     # A prerequisite the player is never told about is indistinguishable from a
     # broken picker ("why is that row greyed out?"), and prose with no test
-    # behind it is a prerequisite that is not enforced. Neither half is optional.
+    # behind it is a prerequisite that is not enforced. A Req carries both
+    # halves, so the two can no longer be written separately — what is left to
+    # check is that each clause is well formed.
     for feat in FEATS:
-        if bool(feat.prereq) != bool(feat.prereq_text):
-            print(f"error: {feat.label} sets only one of prereq / prereq_text — "
-                  "a prerequisite needs both the test and the text",
-                  file=sys.stderr)
-            return 1
+        for req in feat.reqs:
+            if not req.label or not req.expr:
+                print(f"error: {feat.label} has a clause missing its label or "
+                      "its test", file=sys.stderr)
+                return 1
+            if req.is_numeric and req.minimum <= 0:
+                print(f"error: {feat.label} clause {req.label!r} has a "
+                      f"non-positive minimum ({req.minimum}) — a numeric clause "
+                      "renders as \"N+\" and is meaningless at or below zero",
+                      file=sys.stderr)
+                return 1
+            if not req.is_numeric and req.unit:
+                print(f"error: {feat.label} clause {req.label!r} sets a unit but "
+                      "has no minimum — units only render on numeric clauses",
+                      file=sys.stderr)
+                return 1
 
     preamble, header, rows, newline = read_2da(source)
     check_base(source, preamble, header, rows)

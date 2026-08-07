@@ -22,15 +22,32 @@ void main()
     if (!LegFeat_Take(oPC, nIndex))
     {
         // Every rejection is a state the window should already have prevented
-        // (no picks left, prerequisite unmet, feat already held, not level 60),
-        // so say which.
-        if (LegFeat_Remaining(oPC) <= 0)
+        // (no picks left, prerequisite unmet, feat already held, not level 60,
+        // polymorphed), so say which - and say the RIGHT one.
+        //
+        // These branches mirror LegFeat_Take's own rejection order exactly. They
+        // used to stop after two, so a refusal for being under level 60 or for
+        // being polymorphed fell through to "You already have that legendary
+        // feat." - a message that sends the player looking for a feat they do
+        // not have.
+        if (LegFeat_TrueLevel(oPC) < LEGFEAT_LEVEL)
+            SendMessageToPC(oPC, "Legendary feats are chosen at level "
+                + IntToString(LEGFEAT_LEVEL) + ".");
+        else if (LegFeat_Remaining(oPC) <= 0)
             SendMessageToPC(oPC, "You have no legendary feat picks remaining.");
-        else if (!LegFeat_MeetsPrereq(oPC, nIndex))
-            SendMessageToPC(oPC, LegFeat_NameAt(nIndex) + " requires: "
-                + LegFeat_PrereqAt(nIndex) + ".");
-        else
+        else if (LegFeat_HasPick(oPC, LegFeat_IdAt(nIndex))
+                 || GetHasFeat(LegFeat_IdAt(nIndex), oPC))
             SendMessageToPC(oPC, "You already have that legendary feat.");
+        else if (LegFeat_IsPolymorphed(oPC))
+            SendMessageToPC(oPC, "You cannot choose a legendary feat while "
+                + "polymorphed. Return to your own shape and try again.");
+        else
+            // The FULL measured requirement, clause by clause - this is the one
+            // surface with no width limit, and it lands in the chat log where
+            // the player can quote it back. Naming which clause failed is the
+            // whole of roadmap legendary-feat-prereq-defect-1.
+            SendMessageToPC(oPC, LegFeat_NameAt(nIndex) + " requires: "
+                + LegFeat_PrereqStatusAt(oPC, nIndex) + ".");
         return;
     }
 

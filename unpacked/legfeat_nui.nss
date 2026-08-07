@@ -93,8 +93,16 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     // row and whether or not it is met - a player deciding how to spend two
     // picks needs to see that Onslaught wants Assault BEFORE taking something
     // else. A greyed row with no visible reason is the complaint this avoids.
+    //
+    // MEASURED, not just stated: "BAB 35+ (you have 34) [X], Epic Prowess [ok]"
+    // rather than "BAB 35+, Epic Prowess". A multi-clause requirement rendered as
+    // one flat string cannot say which half failed, and a player reads the half
+    // they can check - which is how a character with a qualifying BAB and no
+    // Epic Prowess came to report that 35 was being rejected
+    // (roadmap legendary-feat-prereq-defect-1). The tooltip has no width limit,
+    // so it carries every clause.
     string sTip = LegFeat_DescAt(nIndex);
-    string sPrereq = LegFeat_PrereqAt(nIndex);
+    string sPrereq = LegFeat_PrereqStatusAt(oPC, nIndex);
     if (sPrereq != "") sTip += "  (Requires: " + sPrereq + ")";
 
     json jRow = JsonArray();
@@ -124,11 +132,16 @@ json LegFeat_Row(object oPC, int nIndex, int nRemaining)
     jRow = JsonArrayInsert(jRow, NuiWidth(jName, LEGFEAT_COL_NAME));
 
     // An unqualified row shows what it wants instead of what it gives: the
-    // effect is moot until the prerequisite is met, and "Requires: ..." in the
-    // column the eye is already on beats a tooltip nobody hovers. Kept short -
-    // a NUI label clips silently rather than wrapping (see the header note).
+    // effect is moot until the prerequisite is met, and "Needs: ..." in the
+    // column the eye is already on beats a tooltip nobody hovers.
+    //
+    // ONE clause - the first unmet one, with the player's own value - not the
+    // whole requirement. A NUI label clips silently rather than wrapping (see
+    // the header note), so a three-clause string loses its tail exactly when the
+    // player most needs to read it. The full list is in the tooltip.
     string sEff = LegFeat_EffectAt(nIndex);
-    if (!bTaken && !bQualified) sEff = "Requires: " + sPrereq;
+    if (!bTaken && !bQualified)
+        sEff = "Needs: " + LegFeat_FirstUnmetAt(oPC, nIndex);
     json jEff = NuiLabel(JsonString(sEff),
                          JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE));
     jEff = NuiTooltip(jEff, JsonString(sTip));

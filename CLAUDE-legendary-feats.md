@@ -12,6 +12,40 @@ This document records the architecture and the order the pieces must be built in
 so the sequencing does not have to be re-derived. Roadmap items: `ll-feats-tlk`,
 `ll-feats-2da`, `ll-feats-picker`, then the seven `ll-feats-*` category stories.
 
+## Prerequisites are clauses, not strings — 2026-08-07
+
+Roadmap `legendary-feat-prereq-defect-1` was reported as "Legendary Prowess won't
+accept exactly 35 AB", with the general ask that every numeric requirement be
+`>=` rather than `>`. **Every prerequisite was already `>=`** — there was no
+off-by-one. The reporter's character (`PiC Testerrrr`, Monk 13 / Bard 30 / WM 7 /
+DD 10) simply **did not have Epic Prowess**, the second clause. The picker showed
+one flat string, `"Requires: BAB 35+, Epic Prowess"`, on a greyed row, so the
+player checked the half they could check and reported that.
+
+Two things changed, and both are worth keeping in mind before touching a
+prerequisite again:
+
+- **A prerequisite is now a tuple of `Req` clauses** on `Feat`, replacing the
+  `prereq` / `prereq_text` string pair. One declaration produces the NWScript
+  test, the display text, and a **measured** readout. A numeric clause writes a
+  label, a getter and a minimum — **it cannot express `>`**, because the
+  generator emits the operator. That is the roadmap's general ask made
+  structural. `tests/check_legendary_feats.py::check_prereqs` asserts it on the
+  generated output, along with "every threshold in the test appears in the text"
+  and "the readout actually reaches a surface"; all four were negative-tested.
+- **The picker measures.** `LegFeat_PrereqStatusAt` renders every clause with the
+  player's own value and an ASCII `[ok]` / `[X]` marker (tooltip, and the chat
+  message on a refused pick); `LegFeat_FirstUnmetAt` renders just the first
+  failing clause for the effect column, which clips rather than wraps.
+  `legfeat_evt.nss` also now mirrors `LegFeat_Take`'s full rejection order — a
+  refusal for being under level 60 or polymorphed used to be reported as "You
+  already have that legendary feat."
+
+**The `BAB 35+` gates were left at 35 deliberately.** Stock `cls_atk_2` row 59
+gives a pure 3/4-BAB level-60 character exactly 35, so Prowess, Reaping and
+Sundering are cleared by a margin of zero and lost to any multiclass split.
+Retune only against a value the readout has actually shown — not from the table.
+
 ## Checkpoint — 2026-08-03 (third session)
 
 **The martial replacement set is built: nine feats, rows 1125–1133, taking the
@@ -114,9 +148,9 @@ not approval to build it.
 
 ### Built and published this session
 
-- **Prerequisites** (`prereq` / `prereq_text` on `Feat` → generated
-  `LegFeat_MeetsPrereq` / `LegFeat_PrereqAt`), enforced in both the picker and
-  `LegFeat_Take`.
+- **Prerequisites** (`reqs` on `Feat` → generated `LegFeat_MeetsPrereq` /
+  `LegFeat_PrereqAt`), enforced in both the picker and `LegFeat_Take`.
+  Superseded 2026-08-07 — see "Prerequisites are clauses" below.
 - **The first two `LEGFEAT_KIND_EFFECT` feats**, rows 1122-1123, **approved:**
   - *Legendary Prowess* — +5 attack bonus. Prereq **BAB 35+ and Epic Prowess**.
   - *Legendary Onslaught* — +1 attack per round, **melee and unarmed only**.
