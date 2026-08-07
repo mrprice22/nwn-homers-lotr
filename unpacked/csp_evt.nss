@@ -26,6 +26,16 @@ void main()
         return;
     }
 
+    // "i<spellid>" - show that spell in the detail pane. Rebuilding the window
+    // is how the pane updates, same as the level tabs above.
+    if (GetStringLeft(sElem, 1) == "i")
+    {
+        SetLocalInt(oPC, CSP_DTL,
+            StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1)) + 1);
+        CSP_Open(oPC);
+        return;
+    }
+
     // "s<spellid>" - learn that spell.
     if (GetStringLeft(sElem, 1) != "s") return;
     int nSpellId = StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1));

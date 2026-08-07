@@ -15,6 +15,17 @@ void main()
         return;
     }
 
+    // "i<index>" - show that feat in the detail pane. Rebuilding the window is
+    // how the pane updates, exactly as taking a feat rebuilds the list; the
+    // window is short and this is cheaper than binding the pane's contents.
+    if (GetStringLeft(sElem, 1) == "i")
+    {
+        LegFeat_Select(oPC,
+            StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1)));
+        LegFeat_Open(oPC);
+        return;
+    }
+
     // "t<index>" - take the feat at that picker index.
     if (GetStringLeft(sElem, 1) != "t") return;
     int nIndex = StringToInt(GetSubString(sElem, 1, GetStringLength(sElem) - 1));
