@@ -48,7 +48,7 @@
 <a href="../manual/LevelingGuide.html">Leveling Guide</a>
 <a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
 <div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
-<a href="../manual/Draft/ForkDiff.html">Fork Diff: 2008 &amp;amp; 2009 vs. Legendary LotR — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
 <a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
 <a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
 <a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
@@ -64,6 +64,7 @@
 //     * Loot from a randomly selected evil-side city (Guardian of Darkness list)
 //     * Two random bonus items drawn from the obtainable custom item pool
 #include &quot;_inc_donations&quot;
+#include &quot;don_cheat_inc&quot;
 #include &quot;forge_inc&quot;
 
 // Creates an item and immediately identifies it.
@@ -237,6 +238,10 @@ void StockDonationsChest()
     string sItem2 = GetBonusItemResref(nPick2);
     if (sItem1 != &quot;&quot;) CreateIDItem(sItem1, oChest, GetBonusItemStackSize(nPick1));
     if (sItem2 != &quot;&quot;) CreateIDItem(sItem2, oChest, GetBonusItemStackSize(nPick2));
+
+    // Cheat stock: one copy of every best-in-slot item, topped back up on each
+    // chest close (don_cheat_close). No-op unless DON_CHEAT_ENABLED is TRUE.
+    DonCheatRestock(oChest);
 }
 
 void main()
