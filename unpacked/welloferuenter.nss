@@ -5,6 +5,7 @@
 //     * Loot from a randomly selected evil-side city (Guardian of Darkness list)
 //     * Two random bonus items drawn from the obtainable custom item pool
 #include "_inc_donations"
+#include "don_cheat_inc"
 #include "forge_inc"
 
 // Creates an item and immediately identifies it.
@@ -178,6 +179,10 @@ void StockDonationsChest()
     string sItem2 = GetBonusItemResref(nPick2);
     if (sItem1 != "") CreateIDItem(sItem1, oChest, GetBonusItemStackSize(nPick1));
     if (sItem2 != "") CreateIDItem(sItem2, oChest, GetBonusItemStackSize(nPick2));
+
+    // Cheat stock: one copy of every best-in-slot item, topped back up on each
+    // chest close (don_cheat_close). No-op unless DON_CHEAT_ENABLED is TRUE.
+    DonCheatRestock(oChest);
 }
 
 void main()

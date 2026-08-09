@@ -699,6 +699,12 @@ teardown — it is a role and port swap between two servers that are already run
      Only run `bin/seed-admindb.sh` if you are *adding* a new admin or tier.
    - Republish `roadmapdb` from `roadmap.yaml` (roadmap editor → *Publish to Wiki &
      DB*), or the Well of Eru "Recent Updates" sign comes up blank.
+   - **Turn off the Donations Chest cheat stock** — set `DON_CHEAT_ENABLED = FALSE`
+     in `unpacked/don_cheat_inc.nss` and repack. It is a test-realm convenience:
+     with it on, the Well of Eru Donations Chest holds one copy of every
+     best-in-slot item in the game and tops itself back up every time the chest is
+     closed. Leave it on and the live season launches with free endgame gear.
+     (Item table: `bin/gen-cheat-chest.py` → `unpacked/don_cheat_data.nss`.)
    - **Full wiki regen + push** (`bin/refresh-…-wiki --publish`). `docs/` is
      **tracked in git**, so the new season's repo is carrying committed pages full
      of early-access kill counts, server-firsts and activity charts. The DB wipe
