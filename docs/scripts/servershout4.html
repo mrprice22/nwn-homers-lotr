@@ -69,6 +69,7 @@
 // (Do not copy merit_redeem.nss&#x27;s MERIT_PH: its 0xFF was mangled into the
 // UTF-8 replacement char long ago, so it emits five bytes where three belong.)
 #include &quot;color&quot;
+#include &quot;season_prof_inc&quot;
 
 void main()
 {
@@ -84,10 +85,26 @@ if (DoOnce==TRUE) return;
 SetLocalInt(oPC, GetTag(OBJECT_SELF), TRUE);
 
 FloatingTextStringOnCreature(&quot;Join the discord at https://discord.gg/VpAtSpe - check the Announcements channel for recent updates and new codes you can use ingame for rewards!&quot;, oPC);
-FloatingTextStringOnCreature(&quot;View the Wiki at season2.homerslotr.com&quot;, oPC);
+FloatingTextStringOnCreature(&quot;View the Wiki at dev.homerslotr.com&quot;, oPC);
 
-FloatingTextStringOnCreature(ColorString(&quot;*** SEASON 2 TEST REALM *** Everything you do here - characters, levels, gear, gold, banks, bestiary, boss kills, teleport slots - WILL BE WIPED when Season 2 goes live on the evening of August 5th, 2026. Season 1 stays online on port 5121.&quot;, COLOR_LIGHT_BLUE), oPC);
-FloatingTextStringOnCreature(ColorString(&quot;Merit you earn in early access DOES still count. But do NOT redeem merit for the 2x gold/XP boosts or for tournament gear until after go-live - you would pay the merit and lose the reward in the wipe. Teleport unlocks, graffiti, the wallet, Become a DM and player homes are safe to redeem any time.&quot;, COLOR_LIGHT_BLUE), oPC);
+// The early-access wipe warning. Shown only where progress really is
+// temporary: SP_WIPE_NOTICE is TRUE for SEASON_ROLE=test and FALSE everywhere
+// else (see bin/season-profile.py).
+//
+// This block used to be DELETED by hand at go-live, which was the single most
+// confusing thing the cutover could ship if forgotten - a live realm telling
+// every player their progress is about to be erased. It is a flag now because
+// dev and production share this file: a hand deletion in production would be
+// restored by dev&#x27;s copy at the next promotion.
+//
+// The TEXT is still hand-written - dates and ports change every season, and a
+// generated script has no business authoring a player announcement. Only
+// whether it appears is derived.
+if (SP_WIPE_NOTICE)
+{
+    FloatingTextStringOnCreature(ColorString(&quot;*** SEASON 2 TEST REALM *** Everything you do here - characters, levels, gear, gold, banks, bestiary, boss kills, teleport slots - WILL BE WIPED when Season 2 goes live on the evening of August 5th, 2026. Season 1 stays online on port 5121.&quot;, COLOR_LIGHT_BLUE), oPC);
+    FloatingTextStringOnCreature(ColorString(&quot;Merit you earn in early access DOES still count. But do NOT redeem merit for the 2x gold/XP boosts or for tournament gear until after go-live - you would pay the merit and lose the reward in the wipe. Teleport unlocks, graffiti, the wallet, Become a DM and player homes are safe to redeem any time.&quot;, COLOR_LIGHT_BLUE), oPC);
+}
 
 }
 </code></pre>
