@@ -70,20 +70,18 @@ done
 # every button. Role first, number second (same rule as the OneDrive build dir
 # in nwn_manager/bin/repack-project.sh).
 #
-# Season 1 predates the numbering and keeps the unnumbered filenames, so its
-# existing shortcuts stay where they are rather than being duplicated.
+# Season 1 used to keep unnumbered filenames, matching its legacy module name.
+# Both are gone: every realm is named uniformly now (Homer's LOTR Season <N>,
+# or Homer's LOTR TEST), so every shortcut set is named the same way too.
 if [[ ${SEASON_ROLE:-} == dev ]]; then
-  PREFIX="nwn-homers-lotr-dev"
-  MON="homers-lotr-monitor-dev"
-elif [[ ${SEASON_NUM:-} == 1 ]]; then
-  PREFIX="nwn-homers-lotr"
-  MON="homers-lotr-monitor"
+  PREFIX="nwn-homers-lotr-test"
+  MON="homers-lotr-monitor-test"
 else
   PREFIX="nwn-homers-lotr-s${SEASON_NUM:-x}"
   MON="homers-lotr-monitor-s${SEASON_NUM:-x}"
 fi
 if [[ ${SEASON_ROLE:-} == dev ]]; then
-  LABEL="DEV realm"
+  LABEL="TEST realm"
 else
   LABEL="Season ${SEASON_NUM:-?} (${SEASON_ROLE:-?})"
 fi
@@ -97,7 +95,7 @@ MONITOR_AUTO="$AUTOSTART/$MON.desktop"
 # the ops entries above, season 1 had no per-season dev files to preserve, and
 # leaving them unlabelled is the ambiguity this set exists to remove.
 if [[ ${SEASON_ROLE:-} == dev ]]; then
-  DEV_PREFIX="nwn-homers-lotr-dev"
+  DEV_PREFIX="nwn-homers-lotr-test"
 else
   DEV_PREFIX="nwn-homers-lotr-s${SEASON_NUM:-x}"
 fi

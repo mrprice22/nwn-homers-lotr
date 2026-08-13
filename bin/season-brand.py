@@ -14,12 +14,20 @@ ROLES. `SEASON_ROLE` is one of `live | test | dev | archive`:
     live     this season is production, reachable at the apex. Its own
              season<N>. subdomain 301s to the apex (src/index.js).
     test     an early-access realm on the alternate port, at season<N>.
-    dev      the PERMANENT dev realm — never a season, never production.
-             All of its names are number-independent (homers_lotr_dev.mod,
-             dev.homerslotr.com), because SEASON_NUM here tracks whichever
-             season dev currently feeds and bumping it must not rename the
-             module out from under a saved server entry.
+    dev      the PERMANENT test realm — never a season, never production.
+             All of its names are number-independent (homers_lotr_test.mod,
+             "Homer's LOTR TEST", dev.homerslotr.com), because SEASON_NUM here
+             tracks whichever season it currently feeds and bumping it must
+             not rename the module.
     archive  a retired season, frozen at its own season<N>. subdomain.
+
+NAMING is uniform across every realm, with no exemptions:
+
+    seasons (live/test/archive)   homers_lotr_s<N>.mod   "Homer's LOTR Season <N>"
+    the dev realm                 homers_lotr_test.mod   "Homer's LOTR TEST"
+
+NWN_MODULE must equal the installed .mod filename minus the extension, or
+nwserver exits at boot with module-not-found; this script writes them as a pair.
 
 Only ONE repo may hold each of `live` and `dev`. Development happens in the
 dev repo and reaches production through bin/season-promote.sh, which re-runs
@@ -168,7 +176,6 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
         "num": num,
         "role": role,
         "live_wiki_url": live_wiki_url,
-        "legacy_names": env.get("SEASON_LEGACY_NAMES", "0") in ("1", "true", "yes"),
         "wiki_url": wiki_url,
         "wiki_host": wiki_host,
         "worker_name": need("SEASON_WORKER_NAME"),
@@ -176,23 +183,22 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
         "container": need("NWN_CONTAINER_NAME"),
     }
 
-    # Season 1 keeps its legacy names: renaming a live module leaves every
-    # player's saved server entry pointing at a module that no longer exists.
-    if cfg["legacy_names"]:
-        cfg["package_name"] = None      # signals "don't touch"
-        cfg["mod_file"] = None
-        cfg["nwn_module"] = None
-        cfg["nwn_servername"] = None
-    elif role == "dev":
-        # The dev realm is PERMANENT and is never a season, so none of its names
-        # carry the season number. SEASON_NUM still tracks whichever season dev
-        # currently feeds (2 now, 3 later) because season-profile.py and the
-        # promote script want to know — but bumping it must not rename the dev
-        # module out from under a saved server entry, so nothing here reads it.
-        cfg["package_name"] = "homers_lotr_dev"
-        cfg["mod_file"] = "homers_lotr_dev.mod"
-        cfg["nwn_module"] = "Homer's LOTR DEV"
-        cfg["nwn_servername"] = "Homer's LOTR - DEV REALM (password required)"
+    # Names are standardized across every realm — see the rule block further
+    # down for why the old SEASON_LEGACY_NAMES exemption was safe to drop.
+    if role == "dev":
+        # The test realm is PERMANENT and is never a season, so none of its
+        # names carry the season number. SEASON_NUM still tracks whichever
+        # season it currently feeds (2 now, 3 later) because season-profile.py
+        # and the promote script want to know — but bumping it must not rename
+        # the module, so nothing here reads it.
+        #
+        # It is branded TEST rather than DEV: "dev" is the internal role name,
+        # but what a player sees in the module list and the server browser is
+        # the realm they are choosing, and TEST says what it is to them.
+        cfg["package_name"] = "homers_lotr_test"
+        cfg["mod_file"] = "homers_lotr_test.mod"
+        cfg["nwn_module"] = "Homer's LOTR TEST"
+        cfg["nwn_servername"] = "Homer's LOTR - TEST REALM (password required)"
     else:
         suffix = {"test": " (EARLY ACCESS)", "archive": " (ARCHIVED)", "live": ""}[role]
         cfg["package_name"] = f"homers_lotr_s{num}"
@@ -416,8 +422,18 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
 
     text_edit(REPO / "bin" / "watch-server", watch)
 
-    # --- module + server names (season 2 onward) ----------------------------
-    if not cfg["legacy_names"]:
+    # --- module and server names --------------------------------------------
+    # Unconditional. SEASON_LEGACY_NAMES used to exempt season 1 from the
+    # derived names, on the reasoning that renaming a live module is dangerous.
+    # It is not: the servervault is per-NWN_HOME_DIR and campaign DBs are scoped
+    # by their own name, so nothing player-owned is keyed to the module name,
+    # and a saved server entry addresses host:port. The only hard requirement is
+    # that NWN_MODULE match the installed .mod filename exactly, which this
+    # writes as a pair. Every realm is named the same way now:
+    #
+    #     seasons     homers_lotr_s<N>.mod    "Homer's LOTR Season <N>"
+    #     test realm  homers_lotr_test.mod    "Homer's LOTR TEST"
+    if True:
         def nasher(s, notes):
             new, _ = re.subn(r'(^name\s*=\s*")[^"]*(")', rf'\g<1>{cfg["package_name"]}\g<2>',
                              s, count=1, flags=re.M)
@@ -508,7 +524,7 @@ def main() -> int:
         print(f"season-brand: error: {e}", file=sys.stderr)
         return 2
 
-    names = "legacy (season 1)" if cfg["legacy_names"] else f'{cfg["nwn_module"]!r}'
+    names = f'{cfg["nwn_module"]!r}'
     print(f'season {cfg["num"]} role={cfg["role"]} '
           f'wiki={cfg["wiki_host"]} connect={cfg["connect"]} names={names}')
     print()
