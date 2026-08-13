@@ -198,15 +198,30 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
         cfg["package_name"] = "homers_lotr_test"
         cfg["mod_file"] = "homers_lotr_test.mod"
         cfg["nwn_module"] = "Homer's LOTR TEST"
-        cfg["nwn_servername"] = "Homer's LOTR - TEST REALM (password required)"
     else:
-        suffix = {"test": " (EARLY ACCESS)", "archive": " (ARCHIVED)", "live": ""}[role]
         cfg["package_name"] = f"homers_lotr_s{num}"
         cfg["mod_file"] = f"homers_lotr_s{num}.mod"
         cfg["nwn_module"] = f"Homer's LOTR Season {num}"
-        # ASCII hyphen, not an em dash: this string is passed through the
-        # container env to nwserver and on to the master server browser.
-        cfg["nwn_servername"] = f"Homer's LOTR - Season {num}{suffix}"
+
+    # THE SERVER BROWSER NAME IS THE MODULE NAME. Not "derived from" it, not
+    # "based on" it - identical, character for character.
+    #
+    # It used to add a separator and a role suffix: "Homer's LOTR - Season 2
+    # (EARLY ACCESS)" / " (ARCHIVED)" / " - TEST REALM (password required)".
+    # The game client truncates this string in the server browser, and those
+    # extra characters pushed the part that actually identifies the realm - the
+    # season number - past the cut. The result was a browser listing three
+    # servers whose visible names were indistinguishable, which is the one job
+    # this string has.
+    #
+    # So role is NOT encoded here. A realm's status reaches players through
+    # channels that do not truncate: the module description, the Well of Eru
+    # notice board, and the login messages. Do not reintroduce a suffix.
+    #
+    # ASCII hyphen only if one is ever needed again: this string is passed
+    # through the container env to nwserver and on to the master server browser,
+    # where a UTF-8 dash would be mangled.
+    cfg["nwn_servername"] = cfg["nwn_module"]
     return cfg
 
 
