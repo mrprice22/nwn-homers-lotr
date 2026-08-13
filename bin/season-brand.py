@@ -443,6 +443,53 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
     return edits
 
 
+def docs_stale(cfg) -> list[str]:
+    """Report where the PUBLISHED wiki disagrees with the season block.
+
+    `index.html` at the repo root is the hand-maintained source this script
+    owns. `docs/index.html` is GENERATED from it by the wiki build, which
+    injects the header/footer around it - so rebranding updates the source and
+    leaves the published page untouched until someone runs a full wiki refresh.
+
+    Nothing else notices that gap, and it is publicly visible the whole time.
+    It bit the season 1 -> 2 cutover: the dev realm was rebranded onto port
+    5123, but dev.homerslotr.com kept telling visitors to connect on 5122 -
+    production's port - because docs/ still held the early-access build.
+
+    Deliberately an ADVISORY, not a build gate. docs/ legitimately lags between
+    a rebrand and the next scheduled wiki publish, and failing `--check` here
+    would block a module repack over a stale wiki, which is the wrong coupling.
+    It is printed loudly right after the rebrand instead, which is the moment
+    the operator can act on it.
+    """
+    docs_index = REPO / "docs" / "index.html"
+    if not docs_index.exists():
+        return []
+    try:
+        published = docs_index.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+
+    problems: list[str] = []
+    connect = str(cfg["connect"])
+    host = str(cfg["wiki_host"])
+
+    # The connect string is host:port; a stale one points players at another
+    # environment's server, which is the damaging case.
+    found_conn = set(re.findall(
+        re.escape(connect.rsplit(":", 1)[0]) + r":\d+", published))
+    if found_conn and found_conn != {connect}:
+        wrong = ", ".join(sorted(found_conn - {connect}))
+        problems.append(f"advertises {wrong} but this environment is {connect}")
+
+    # WIKI_HOST_RE has no capturing groups, so findall yields whole hosts.
+    found_hosts = set(WIKI_HOST_RE.findall(published))
+    if found_hosts and found_hosts != {host}:
+        wrong = ", ".join(sorted(found_hosts - {host}))
+        problems.append(f"links to {wrong} but this environment's wiki is {host}")
+    return problems
+
+
 # ------------------------------------------------------------------- main ---
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
@@ -466,8 +513,22 @@ def main() -> int:
           f'wiki={cfg["wiki_host"]} connect={cfg["connect"]} names={names}')
     print()
 
+    def published_advisory() -> None:
+        """Warn if the live wiki still carries another environment's values."""
+        stale = docs_stale(cfg)
+        if not stale:
+            return
+        print()
+        print("  !! PUBLISHED WIKI IS STALE — docs/index.html still:")
+        for s in stale:
+            print(f"       {s}")
+        print("     docs/ is generated, so rebranding does not touch it. Until a")
+        print("     full refresh runs, the live site advertises the old values:")
+        print("       bin/refresh-homers-lotr-wiki --publish")
+
     if not edits:
         print("up to date — nothing to change")
+        published_advisory()
         return 0
 
     for path, old, new, notes in edits:
@@ -495,6 +556,7 @@ def main() -> int:
         path.write_text(new, encoding="utf-8")
     print(f"wrote {len(edits)} file(s).")
     print("Next: repack and deploy. A second --apply must produce no diff.")
+    published_advisory()
     return 0
 
 

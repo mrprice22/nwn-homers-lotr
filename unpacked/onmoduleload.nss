@@ -35,6 +35,51 @@
 void main()
 {
 
+// ---------------------------------------------------------------------------
+// Dev-only NPCs. FIRST thing in main(), deliberately: everything below this is
+// database init that could fail or hit the instruction limit, and none of it
+// may be allowed to stand between a live season and the removal of a cheat NPC.
+//
+// SP_DEV_TOOLS is generated from SEASON_ROLE by bin/season-profile.py - on for
+// the dev and early-access realms, off for a live or archived season.
+//
+// The NPC is DESTROYED here rather than removed from thewelloferu.git.json,
+// deliberately: dev and production share one source tree and bin/season-
+// promote.sh copies dev's over production's on every release, so an area file
+// that differed between them would be reverted by the next deploy. Behaviour
+// that differs between environments has to be a runtime decision.
+//
+// BUTCHA is "Ping Pong", the Ultimate PC Builder: set any level 1-60, hand out
+// gold, destroy equipment. Its dialog _pc_builder_v1 holds nothing
+// player-facing (the legendary-feat re-pick moved to Halmir the Grey).
+//
+// THE PLOT FLAG IS WHY THIS FAILED ONCE. Season 2 launched with Ping Pong
+// still standing in the Well of Eru: the creature is flagged Plot + Immortal,
+// and DestroyObject() silently refuses a plot creature - no error, no log line,
+// the NPC simply stays. Clear both flags before destroying, and never assume
+// DestroyObject succeeded on a blueprint you did not author.
+//
+// The conversation is independently gated by sp_devgate (a StartingConditional
+// returning SP_DEV_TOOLS), so a copy of this NPC that survives - spawned by a
+// DM, or flagged in some way that defeats the destroy again - still offers
+// nothing. Two independent guards, because this one has already been wrong.
+if (!SP_DEV_TOOLS)
+{
+    int nNth = 0;
+    object oDev = GetObjectByTag("BUTCHA", nNth);
+    while (GetIsObjectValid(oDev))
+    {
+        SetPlotFlag(oDev, FALSE);
+        SetImmortal(oDev, FALSE);
+        DestroyObject(oDev);
+        // DestroyObject is deferred to the end of this script, so the NPC is
+        // still enumerable and the index must advance past it.
+        oDev = GetObjectByTag("BUTCHA", ++nNth);
+    }
+}
+// ---------------------------------------------------------------------------
+
+
 //****************************************************************************
 //PCs Autosaving function
 pc_export_onmoduleload();
@@ -218,33 +263,5 @@ PW_InitDb();
 // first heal lands or the first login tries to restore a queue.
 // See fat_inc.nss (roadmap: heal-soul-fatigue-rebalance).
 FAT_InitDb();
-
-// Dev-only NPCs. SP_DEV_TOOLS is generated from SEASON_ROLE by
-// bin/season-profile.py - on for the dev and early-access realms, off for a
-// live or archived season.
-//
-// The NPC is DESTROYED here rather than removed from thewelloferu.git.json,
-// deliberately: dev and production share one source tree and bin/season-
-// promote.sh copies dev's over production's on every release, so an area file
-// that differed between them would be reverted by the next deploy. Behaviour
-// that differs between environments has to be a runtime decision, not a
-// content difference. (Same reason the Donations Chest cheat stock and the
-// early-access login notice are flags now - see season-profile.py.)
-//
-// BUTCHA is "Ping Pong", the Ultimate PC Builder: set any level 1-60, hand out
-// gold, destroy equipment. Its dialog _pc_builder_v1 must hold nothing
-// player-facing for this to be safe to remove.
-if (!SP_DEV_TOOLS)
-{
-    int nNth = 0;
-    object oDev = GetObjectByTag("BUTCHA", nNth);
-    while (GetIsObjectValid(oDev))
-    {
-        DestroyObject(oDev);
-        // DestroyObject is deferred to the end of this script, so the NPC is
-        // still enumerable and the index must advance past it.
-        oDev = GetObjectByTag("BUTCHA", ++nNth);
-    }
-}
 
 }   //end of main

@@ -104,6 +104,10 @@ WIRING: list[tuple[str, str, str]] = [
      "the PC-builder level setter must be guarded by SP_DEV_TOOLS"),
     ("onmoduleload.nss", "SP_DEV_TOOLS",
      "the module load script must run the dev-tool purge"),
+    ("sp_devgate.nss", "SP_DEV_TOOLS",
+     "the dev-tool conversation gate must read SP_DEV_TOOLS - this is the "
+     "guard that holds when the module-load purge does not, as it did not at "
+     "the season 2 launch (DestroyObject refuses a Plot creature)"),
 ]
 
 
