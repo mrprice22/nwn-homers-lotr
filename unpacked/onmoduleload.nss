@@ -50,30 +50,45 @@ void main()
 // that differs between environments has to be a runtime decision.
 //
 // BUTCHA is "Ping Pong", the Ultimate PC Builder: set any level 1-60, hand out
-// gold, destroy equipment. Its dialog _pc_builder_v1 holds nothing
-// player-facing (the legendary-feat re-pick moved to Halmir the Grey).
+// gold, destroy equipment.
 //
-// THE PLOT FLAG IS WHY THIS FAILED ONCE. Season 2 launched with Ping Pong
-// still standing in the Well of Eru: the creature is flagged Plot + Immortal,
-// and DestroyObject() silently refuses a plot creature - no error, no log line,
-// the NPC simply stays. Clear both flags before destroying, and never assume
-// DestroyObject succeeded on a blueprint you did not author.
+// THERE ARE TWO OF HIM, identical in every respect the engine can see - same
+// resref (butcha), same tag (BUTCHA), same conversation (_pc_builder_v1).
+// Only the AREA tells them apart:
 //
-// The conversation is independently gated by sp_devgate (a StartingConditional
-// returning SP_DEV_TOOLS), so a copy of this NPC that survives - spawned by a
-// DM, or flagged in some way that defeats the destroy again - still offers
-// nothing. Two independent guards, because this one has already been wrong.
+//   TheWellofEru    the PLAYER-facing one. Must not exist in a live season.
+//   HouseofDispair  "House of Homer", the DM-only build room. No area
+//                   transition anywhere in the module leads to it, so it is
+//                   reachable only by DM teleport. This one STAYS - it is the
+//                   admin's own tool, and removing it took a working DM
+//                   facility away with no way to get it back.
+//
+// So the purge is scoped by area, not by tag. Destroying every BUTCHA is what
+// the first version of this did, and it silently took the DM copy with it.
+//
+// THE PLOT FLAG IS WHY THIS FAILED ONCE BEFORE. Season 2 launched with the Well
+// of Eru copy still standing: the creature is flagged Plot + Immortal, and
+// DestroyObject() silently refuses a plot creature - no error, no log line.
+// Clear both flags before destroying, and never assume DestroyObject succeeded
+// on a blueprint you did not author.
+//
+// The conversation is independently gated by sp_devgate, which also permits
+// DMs - so the House of Homer copy remains usable even where SP_DEV_TOOLS is
+// off, and a stray player-side copy would still offer nothing.
 if (!SP_DEV_TOOLS)
 {
     int nNth = 0;
     object oDev = GetObjectByTag("BUTCHA", nNth);
     while (GetIsObjectValid(oDev))
     {
-        SetPlotFlag(oDev, FALSE);
-        SetImmortal(oDev, FALSE);
-        DestroyObject(oDev);
+        if (GetTag(GetArea(oDev)) == "TheWellofEru")
+        {
+            SetPlotFlag(oDev, FALSE);
+            SetImmortal(oDev, FALSE);
+            DestroyObject(oDev);
+        }
         // DestroyObject is deferred to the end of this script, so the NPC is
-        // still enumerable and the index must advance past it.
+        // still enumerable and the index must advance past it either way.
         oDev = GetObjectByTag("BUTCHA", ++nNth);
     }
 }
