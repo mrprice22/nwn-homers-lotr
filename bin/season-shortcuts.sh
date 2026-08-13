@@ -63,26 +63,44 @@ done
 # shellcheck disable=SC1091
 . "$PROJECT_ROOT/server.env"
 
+# The dev realm is keyed on its ROLE, not its number. It is permanent and never
+# a season, but it carries SEASON_NUM = whichever season it currently feeds — so
+# a number-keyed prefix would give dev and that season's production repo the
+# SAME .desktop filenames, and whichever ran --install last would silently own
+# every button. Role first, number second (same rule as the OneDrive build dir
+# in nwn_manager/bin/repack-project.sh).
+#
 # Season 1 predates the numbering and keeps the unnumbered filenames, so its
 # existing shortcuts stay where they are rather than being duplicated.
-if [[ ${SEASON_NUM:-} == 1 ]]; then
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  PREFIX="nwn-homers-lotr-dev"
+  MON="homers-lotr-monitor-dev"
+elif [[ ${SEASON_NUM:-} == 1 ]]; then
   PREFIX="nwn-homers-lotr"
   MON="homers-lotr-monitor"
 else
   PREFIX="nwn-homers-lotr-s${SEASON_NUM:-x}"
   MON="homers-lotr-monitor-s${SEASON_NUM:-x}"
 fi
-LABEL="Season ${SEASON_NUM:-?} (${SEASON_ROLE:-?})"
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  LABEL="DEV realm"
+else
+  LABEL="Season ${SEASON_NUM:-?} (${SEASON_ROLE:-?})"
+fi
 
 RESTART="$APPS/$PREFIX-server.desktop"
 STOP="$APPS/$PREFIX-server-stop.desktop"
 MONITOR="$APPS/$MON.desktop"
 MONITOR_AUTO="$AUTOSTART/$MON.desktop"
 
-# Dev entries are always season-suffixed, even for season 1 — unlike the ops
-# entries above, season 1 had no per-season dev files to preserve, and leaving
-# them unlabelled is the ambiguity this set exists to remove.
-DEV_PREFIX="nwn-homers-lotr-s${SEASON_NUM:-x}"
+# Build/dev entries are always environment-suffixed, even for season 1 — unlike
+# the ops entries above, season 1 had no per-season dev files to preserve, and
+# leaving them unlabelled is the ambiguity this set exists to remove.
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  DEV_PREFIX="nwn-homers-lotr-dev"
+else
+  DEV_PREFIX="nwn-homers-lotr-s${SEASON_NUM:-x}"
+fi
 LOGS="$APPS/$DEV_PREFIX-logs.desktop"
 UNPACK="$APPS/$DEV_PREFIX-unpack.desktop"
 REPACK="$APPS/$DEV_PREFIX-repack.desktop"

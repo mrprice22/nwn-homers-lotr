@@ -786,14 +786,20 @@ things from one list: the `hak_2da/feat.2da` rows, the strings
 
 ### Re-choosing legendary feats (players)
 
-Talk to **Ping Pong** → *"Let me choose my legendary feats again."* The node only
-appears for a level-60 character (`legfeat_cond`). It hands every legendary feat
-back and reopens the picker with the full allotment; **the character's level does
-not change**. This is the intended way to follow a growing feat pool or a change
-of gear without rerolling and levelling to 60 again.
+Talk to **Halmir the Grey** — the keeper of the old orders, in the Well of Eru —
+→ *"Let me choose my legendary feats again."* The node only appears for a
+level-60 character (`legfeat_cond`). It hands every legendary feat back and
+reopens the picker with the full allotment; **the character's level does not
+change**. This is the intended way to follow a growing feat pool or a change of
+gear without rerolling and levelling to 60 again.
 
-The node is parked on Ping Pong for now — the scripts do not care where it lives,
-so moving it to the rest menu or another NPC is a dialog edit and nothing else.
+The node lives on Halmir (`prsg_conv.dlg`) because it is a **player** feature.
+It used to sit on Ping Pong, and that was only ever safe while every realm was
+also a dev realm: Ping Pong is a dev-only NPC, and `onmoduleload` destroys it
+wherever `SP_DEV_TOOLS` is off (see `bin/season-profile.py`), so leaving the
+re-pick there would have deleted it from every live season. The scripts still do
+not care where the node lives — moving it again is a dialog edit and nothing
+else — but it must stay on an NPC that exists in production.
 
 **The invariant that keeps this from being an exploit:** giving a feat back has
 to be exactly as complete as taking it — the feat *and* the base ability points.
@@ -811,12 +817,17 @@ The text after *"You may choose N legendary feats."* is a single constant at the
 top of `unpacked/legfeat_nui.nss`:
 
 ```c
-const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
+const string LEGFEAT_SUBTITLE = "Can repick with Halmir in Well of Eru";
 ```
 
 Edit it, repack, restart. `""` drops it. It exists because where a player
-re-picks is not settled — the node is parked on Ping Pong and will likely move —
-and the window should not need editing when it does.
+re-picks was not settled, and the window should not need editing when it moves —
+which it since has, off Ping Pong and onto Halmir the Grey (see above).
+
+His first name is used deliberately: the longest header state is *"Your
+legendary picks are all spent."* (35 characters) plus a two-space join, leaving
+the subtitle 43. *"Halmir the Grey in Well of Eru"* spends 46 and would drop that
+one state to the left-justified fallback while every other reads centred.
 
 **It shares the header's line, centred.** Keep **header + subtitle together under
 80 characters** (`LEGFEAT_HDR_WRAP_AT`) and it stays one centred line. The
@@ -1174,6 +1185,22 @@ inflated economies. The per-season runbook is
 [`season-cutover-guide.md`](season-cutover-guide.md); the one-time engineering it
 depends on is [`season-cutover-prereqs.md`](season-cutover-prereqs.md).
 
+### This repo is the DEV realm
+
+**`nwn_homers_lotr` is never production.** It is the permanent dev realm — port
+5123, `dev.homerslotr.com`, password-gated, cheat gear and the Ping Pong builder
+NPC switched on — and it is the only repo anything is authored in. Each season
+lives in its own `nwn_homers_lotr_s<N>`, and a season repo is a *derived* copy of
+this tree plus its own season block. Nothing is hand-edited there:
+
+```bash
+bin/season-promote.sh --to ../nwn_homers_lotr_s<N> --apply --season <N>
+```
+
+rsyncs this tree in with `--delete`, then rebrands and re-profiles the target
+from its own `server.env`. An edit made directly in a season repo is destroyed by
+the next promotion, deliberately — see the guide's §5a and §5c.
+
 ### The season block in `server.env`
 
 Every season-scoped value in this repo derives from one block at the bottom of
@@ -1182,17 +1209,34 @@ Every season-scoped value in this repo derives from one block at the bottom of
 | Var | Meaning |
 |-----|---------|
 | `SEASON_NUM` | This environment's season number |
-| `SEASON_ROLE` | `live` \| `test` \| `archive` — drives the server name and the in-game status sign |
+| `SEASON_ROLE` | `live` \| `test` \| `dev` \| `archive` — drives the server name, the in-game status sign, **and behaviour** (cheat chest, dev NPCs, wipe notice) via `season-profile.py` |
 | `SEASON_LEGACY_NAMES` | Season 1 only: suppress the derived module/server names (see below) |
-| `SEASON_WIKI_URL` | `https://homerslotr.com/` for the live season, `https://season<N>.homerslotr.com/` otherwise |
+| `SEASON_WIKI_URL` | This environment's own wiki: `https://homerslotr.com/` for the live season, `https://dev.homerslotr.com/` for dev, `https://season<N>.homerslotr.com/` otherwise |
+| `SEASON_LIVE_WIKI_URL` | Where *production* publishes. Only differs from the above off the live season; lets dev's roadmap editor link to the live roadmap. Defaults to the apex |
 | `SEASON_WORKER_NAME` | Cloudflare worker serving `docs/`. **Must be unique per season** — two repos deploying the same worker name collide |
 | `SEASON_CONNECT_HOST` | Host half of the module description's `Connect:` line |
 
-`SEASON_NUM` and `SEASON_ROLE` are the only authored facts. Everything else —
-module name, server name, worker name, every in-game URL and both season signs —
-is **derived and written** by `python3 bin/season-brand.py --apply`. Edit the
-block, re-run the script, repack. Never hand-edit the values it owns; the
-`check_season_brand` build gate fails the repack if the tree drifts.
+`SEASON_NUM` and `SEASON_ROLE` are the only authored facts. Everything else is
+**derived and written** by two scripts, and neither's output may be hand-edited:
+
+| Script | Owns | Gate |
+|---|---|---|
+| `bin/season-brand.py --apply` | **strings and URLs** — module name, server name, worker name, every in-game URL, the apex redirect, both season signs | `tests/check_season_brand.py` |
+| `bin/season-profile.py --apply` | **behaviour flags** — `unpacked/season_prof_inc.nss`: cheat chest, dev NPCs, early-access wipe notice | `tests/check_season_profile.py` |
+
+Edit the block, re-run both, repack. Both gates run on every repack, so a tree
+that has drifted from its season block cannot be packed.
+
+The profile split exists because dev and production share one source tree. "Turn
+the cheat chest off before go-live" used to be a hand edit to
+`don_cheat_inc.nss`; with a dev realm promoting into production on every release,
+that edit would be reverted by the next successful deploy and the live season
+would start handing out best-in-slot gear silently. Deriving it from the role
+makes it unforgettable rather than merely documented.
+
+For dev, **the names carry no season number** (`homers_lotr_dev.mod`,
+`dev.homerslotr.com`). `SEASON_NUM` in the dev repo only records which season it
+currently feeds, so bumping it at a cutover renames nothing.
 
 The two in-game cutover notices are **not** driven by this block, and are not
 placeables `season-brand.py` manages — that design was retired (see
@@ -1217,11 +1261,15 @@ Three names get confused constantly. In NWN **the module name *is* the installed
 | `NWN_MODULE` | `server.env` — the installed filename, **no `.mod`** | `Homer's LOTR Season <N>` |
 | `NWN_SERVERNAME` | `server.env` — server-browser name, free text | role-dependent ↓ |
 
-| `SEASON_ROLE` | `NWN_SERVERNAME` |
-|------|-------------|
-| `test` | `Homer's LOTR — Season <N> (EARLY ACCESS)` |
-| `live` | `Homer's LOTR — Season <N>` |
-| `archive` | `Homer's LOTR — Season <N> (ARCHIVED)` |
+| `SEASON_ROLE` | `NWN_SERVERNAME` | Build artifact |
+|------|-------------|---|
+| `test` | `Homer's LOTR - Season <N> (EARLY ACCESS)` | `homers_lotr_s<N>.mod` |
+| `live` | `Homer's LOTR - Season <N>` | `homers_lotr_s<N>.mod` |
+| `archive` | `Homer's LOTR - Season <N> (ARCHIVED)` | `homers_lotr_s<N>.mod` |
+| `dev` | `Homer's LOTR - DEV REALM (password required)` | `homers_lotr_dev.mod` |
+
+The dash is an ASCII hyphen, not an em dash: the string is passed through the
+container env to `nwserver` and on to the master server browser.
 
 **Season 1 keeps its legacy names** — `homers_lotr_v3.mod`, module
 `Homer's LOTR VEL v3`, server name `Homer's LOTR Very Easy Leveling` — which is

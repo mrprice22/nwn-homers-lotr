@@ -19,6 +19,7 @@
 //:: ever retuned in exptable.2da, the fallback table here must be retuned
 //:: with it.
 //:://////////////////////////////////////////////
+#include "season_prof_inc"
 
 // Cumulative XP required for character level nLevel (41 <= nLevel <= 60),
 // or 0 if nLevel is outside that range.
@@ -67,6 +68,15 @@ int BuildLegendaryXP(int nLevel)
 
 void BuildSetLegendaryLevel(int nLevel)
 {
+    // Belt and braces. onmoduleload destroys the Ping Pong NPC outright where
+    // SP_DEV_TOOLS is off, so this should be unreachable in production - but
+    // "should be unreachable" is doing a lot of work for a function that sets a
+    // character to level 60, and a DM-spawned copy of the NPC or a stray
+    // reference to this dialog would route straight here. All 20 legendary
+    // _build_level_* scripts funnel through this one function, so one guard
+    // covers the whole tier.
+    if (!SP_DEV_TOOLS) return;
+
     object oPC = GetPCSpeaker();
     if (!GetIsObjectValid(oPC)) return;
 

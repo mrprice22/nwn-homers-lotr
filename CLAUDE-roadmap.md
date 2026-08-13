@@ -452,6 +452,25 @@ What it does:
   for the change to reach players — the daily refresh does both — but Publish is how you
   make it land *now*.
 
+  **Publish reaches THIS realm only — the dev realm.** The editor runs in the dev repo
+  (`WorkingDirectory` on it), so `docs/` and `roadmapdb` are dev's: the page it pushes
+  goes to `dev.homerslotr.com`, and the in-game sign it refreshes is the dev server's.
+  Production gets the roadmap when you promote:
+  `bin/season-promote.sh --to ../nwn_homers_lotr_s<N> --apply --season <N>` carries
+  `roadmap.yaml` across and re-runs `gen-roadmap.py` + `publish-roadmap-db.py` **in the
+  target**, which is the only place that can write the live season's `roadmapdb` (it
+  lives under that season's own `NWN_HOME_DIR`).
+
+  That is deliberate, not a gap: release notes ship with the release. If you need a
+  roadmap-only correction live without promoting a module build, run the publish in the
+  target repo directly.
+
+  **Merit is the exception, and it is not one.** Award/Revoke write `meritdb`, which is a
+  symlink into `~/.local/share/nwn-shared/` from *every* environment — so merit awarded
+  from the dev editor lands in the same ledger production reads, immediately. The editor
+  now refuses the write if that symlink is missing (`merit_db_problem()`), because a
+  plain file there would accept awards that the next cutover silently discards.
+
 Reordering items in the list reorders them in the file; Add/Delete behave as expected.
 
 **LAN access:** the editor binds `0.0.0.0` by default, so it's reachable from any device

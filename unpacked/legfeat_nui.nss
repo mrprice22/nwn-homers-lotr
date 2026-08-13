@@ -63,17 +63,24 @@ const string LEGFEAT_SEL = "LEGFEAT_SEL";
 const string LEGFEAT_BIND_DTL = "lf_detail";
 
 // The one line of tunable text under the "you may choose N" header. It exists
-// because where a player re-picks is not settled - the re-pick node is parked on
-// Ping Pong and will likely move - and the window should not have to be edited
-// when it does. Set it to "" to drop the line entirely.
+// because where a player re-picks was not settled, and the window should not
+// have to be edited when it moves. It has now moved once: off Ping Pong, who is
+// a dev-only NPC that onmoduleload destroys wherever SP_DEV_TOOLS is off (see
+// bin/season-profile.py), and onto Halmir the Grey, the prestige/class-line
+// keeper spawned at AP_prestigehub_1 in the Well of Eru. A player feature must
+// not hang off a dev NPC. Set it to "" to drop the line entirely.
 //
 // It is appended to the "You may choose N legendary feats." header and shown on
 // the SAME centred line, wrapping onto a second line only if the two together
 // are too long - see LEGFEAT_HDR_WRAP_AT below for what that costs.
 //
 // BUDGET: header + subtitle together should stay under ~80 characters. See
-// README.md "Tuning the picker's subtitle".
-const string LEGFEAT_SUBTITLE = "Can repick with Ping Pong in Well of Eru";
+// README.md "Tuning the picker's subtitle". The longest header is "Your
+// legendary picks are all spent." (35) plus the two-space join, so the
+// subtitle has 43 to play with. "Halmir the Grey in Well of Eru" would spend
+// 46 and drop this state alone to the left-justified fallback; his first name
+// is unambiguous and fits.
+const string LEGFEAT_SUBTITLE = "Can repick with Halmir in Well of Eru";
 
 // Where the header stops being one line.
 //

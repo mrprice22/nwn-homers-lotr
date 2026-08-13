@@ -184,9 +184,56 @@ html_to_plain = PUB.html_to_plain
 sync_recent_updates_db = PUB.sync_recent_updates_db
 
 
+SHARED_DB_DIR = Path(
+    os.environ.get("NWN_SHARED_DIR", Path.home() / ".local/share/nwn-shared"))
+
+
 def merit_db_path() -> Path:
-    """Filesystem path to the live meritdb campaign database."""
+    """Filesystem path to the live meritdb campaign database.
+
+    This resolves through THIS repo's NWN_HOME_DIR, which is correct only
+    because meritdb is a cross-season shared file: every environment's
+    database/meritdb.sqlite3 is an absolute symlink to
+    ~/.local/share/nwn-shared/meritdb.sqlite3 (bin/season-shared-dbs.sh). So an
+    award written from the dev realm lands in the same ledger production reads,
+    which is the whole reason merit survives a cutover.
+
+    It is also exactly the kind of assumption that breaks silently. If the
+    symlink is missing -- a new season booted before season-shared-dbs.sh ran,
+    so nwserver created a plain file -- then this path still exists, still
+    opens, and still accepts writes. Merit would be awarded into a per-season
+    file that nothing else reads and the next cutover discards, and the editor
+    would report success every time.
+
+    That failure has a precedent in this codebase: the roadmapdb publisher's
+    fallback path silently wrote season 1's database dir after the cutover (see
+    roadmap_publish.nwn_home_dir). Do not leave the shared case to chance.
+    """
     return nwn_home_dir() / "database" / "meritdb.sqlite3"
+
+
+def merit_db_problem() -> str:
+    """Return '' if meritdb is safe to write, else a human-readable reason.
+
+    Checked before every award/revoke, not at startup: the symlink can be
+    replaced under a running editor by a server boot.
+    """
+    db = merit_db_path()
+    if not db.exists():
+        return f"meritdb not found at {db}"
+    if not db.is_symlink():
+        return (f"{db} is a REGULAR FILE, not a symlink into {SHARED_DB_DIR}. "
+                "Merit written here is per-season and will be lost at the next "
+                "cutover. Fix: stop the server and run bin/season-shared-dbs.sh "
+                "--apply, then confirm the balances.")
+    target = db.resolve()
+    try:
+        target.relative_to(SHARED_DB_DIR.resolve())
+    except ValueError:
+        return (f"{db} resolves to {target}, which is outside the shared DB "
+                f"directory {SHARED_DB_DIR}. Refusing to write merit to an "
+                "unexpected location.")
+    return ""
 
 
 def _merit_connect():
@@ -977,23 +1024,48 @@ def server_tz() -> str:
     return "America/Chicago"
 
 
+class ServerEnvError(Exception):
+    """server.env did not answer a question we must not guess at."""
+
+
 def container_name() -> str:
-    """Read NWN_CONTAINER_NAME from server.env (same source watch-server uses),
-    defaulting to the known container name."""
+    """Read NWN_CONTAINER_NAME from server.env (same source watch-server uses).
+
+    NO FALLBACK, deliberately. This used to default to the literal
+    "nwnxee-homer-s2", which was harmless while that was the only container on
+    the box and actively wrong the moment it was not: there are now three
+    environments (dev, the live season, an archived season), each with its own
+    container, and a default silently tails SOMEONE ELSE'S SERVER. An admin
+    reading the monitor page would be watching the wrong realm's log while
+    believing it was this one - and log output looks plausible either way, so
+    nothing about the screen would give it away.
+
+    Guessing is what caused the roadmapdb misrouting incident recorded in
+    roadmap_publish.nwn_home_dir(). A loud failure is strictly better than a
+    confident wrong answer.
+    """
     try:
         for ln in SERVER_ENV.read_text(encoding="utf-8").splitlines():
             m = re.match(r"\s*(?:export\s+)?NWN_CONTAINER_NAME\s*=\s*(.+?)\s*$", ln)
             if m:
-                return m.group(1).strip().strip('"').strip("'")
-    except OSError:
-        pass
-    return "nwnxee-homer-s2"
+                val = m.group(1).strip().strip('"').strip("'")
+                if val:
+                    return val
+    except OSError as e:
+        raise ServerEnvError(f"cannot read {SERVER_ENV}: {e}") from e
+    raise ServerEnvError(
+        f"NWN_CONTAINER_NAME is not set in {SERVER_ENV}. Refusing to guess - "
+        "with several environments on this host, a guessed container name "
+        "shows another realm's logs.")
 
 
 def server_log_tail(tail: int = 400) -> tuple[bool, str]:
     """Return recent container logs (podman logs --tail), the web equivalent of
     `bin/watch-server`. podman writes the log stream to stderr, so merge both."""
-    name = container_name()
+    try:
+        name = container_name()
+    except ServerEnvError as e:
+        return False, f"Cannot determine which server to watch.\n\n{e}"
     exists = subprocess.run(["podman", "container", "exists", name],
                             capture_output=True)
     if exists.returncode != 0:
@@ -1190,7 +1262,17 @@ class Handler(BaseHTTPRequestHandler):
           * merit lands but the YAML write blows up -> the merit is immediately
             taken back again, so the DB never records a payment the roadmap
             has no memory of.
+
+        Both halves assume the merit DB is the SHARED, cross-season one. That
+        is checked here rather than assumed: writing merit into a per-season
+        file succeeds, reports success, and is discarded at the next cutover
+        (see merit_db_problem).
         """
+        problem = merit_db_problem()
+        if problem:
+            return self._json({"ok": False, "error": f"merit DB unsafe: {problem}"},
+                              code=409)
+
         iid = payload.get("idea_id") or ""
         idea = next((i for i in ideas if i.get("id") == iid), None)
         if idea is None:
@@ -1260,7 +1342,14 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError:
                 tail = 400
             ok, text = server_log_tail(tail)
-            self._json({"ok": ok, "container": container_name(), "log": text})
+            # container_name() raises when server.env cannot answer; the tail
+            # above has already turned that into the displayed message, so the
+            # label just goes unknown rather than 500-ing the monitor page.
+            try:
+                cname = container_name()
+            except ServerEnvError:
+                cname = "(unknown)"
+            self._json({"ok": ok, "container": cname, "log": text})
         elif self.path == "/api/data":
             data = read_yaml()
             self._json({"ideas": data.get("ideas", []) or [], "vocab": vocab(data),
@@ -1725,9 +1814,17 @@ PAGE = r"""<!doctype html>
 <div id="left">
   <div class="pad">
     <h1>Roadmap / Merit Backlog</h1>
+    <!-- Two wikis, deliberately. The editor runs in the DEV repo, so its
+         Publish button reaches this realm's wiki only; production gets the
+         roadmap at the next bin/season-promote.sh. Linking both makes that
+         distinction visible instead of leaving "Public wiki" ambiguous about
+         which site you are about to check your change on. Both hrefs are
+         rewritten by bin/season-brand.py from SEASON_WIKI_URL and
+         SEASON_LIVE_WIKI_URL. -->
     <div class="extlinks">
-      <a href="https://season2.homerslotr.com/" target="_blank" rel="noopener">Public wiki ↗</a>
-      <a href="https://season2.homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Public roadmap ↗</a>
+      <a data-brand="wiki" href="https://dev.homerslotr.com/" target="_blank" rel="noopener">This realm's wiki ↗</a>
+      <a data-brand="roadmap" href="https://dev.homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">This realm's roadmap ↗</a>
+      <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">LIVE roadmap ↗</a>
       <a href="/monitor" target="_blank" rel="noopener">Server monitor ↗</a>
     </div>
     <div class="viewtoggle">

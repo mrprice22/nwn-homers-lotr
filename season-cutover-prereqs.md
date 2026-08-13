@@ -5,6 +5,25 @@ the per-season runbook, re-run every 3–4 months. **This** file is the one-time
 engineering that makes the runbook possible: build it once, and every future
 cutover is a checklist rather than a project.
 
+> ## ⚠ Partly superseded by the dev-realm refactor (guide v3.0)
+>
+> This file is a **historical record of work already done**, written against the
+> v2 model where `nwn_homers_lotr` was the newest season and *became* production
+> at Phase 2. It is now the permanent **dev realm** and never becomes production.
+> The items below still describe real, still-installed machinery — but where one
+> contradicts the guide, **the guide wins**. Specifically:
+>
+> | Item | Status under v3 |
+> |---|---|
+> | **4** — de-hard-code `refresh-homers-lotr-wiki` | Done differently in the end: the shared `nwn_manager` copy is now a **refusing stub**. With three environments there is no correct default `--base-url`/`--log-dir` to fall back to. Use each repo's own copy. |
+> | **8** — the branded-string completeness grep | Still correct, but `season-brand.py` now owns strings/URLs **only**. Behaviour (cheat chest, dev NPCs, wipe notice) moved to `bin/season-profile.py`, gated by `tests/check_season_profile.py`. |
+> | **11** — per-season dev shortcuts | Superseded again. Shortcuts key on **role first, number second** (`-dev` vs `-s<N>`), because dev carries the season number it feeds and would otherwise collide with that season's own set. |
+> | **13** — the Cloudflare build connection | Still the one piece of state no script owns, but much less exposed: dev keeps its own worker permanently, so Phase 1 only *adds* a worker instead of re-pointing two. |
+> | The roadmap-editor note at the end | Editor still single-instance, now on the **dev** repo. Its Publish reaches dev only; production gets the roadmap at the next promotion. |
+>
+> Nothing here needs redoing. Read it for *why* something is the way it is, not
+> for what to do next.
+
 Items 1–2 touch live player data and must be finished before the first Phase 1;
 items 2b–12 are tooling and can land any time before it.
 

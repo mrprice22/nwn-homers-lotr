@@ -9,6 +9,29 @@ worker name and
 redirect target, the roadmap editor's links, and (from season 2 on) the module
 and server names in nasher.cfg and server.env.
 
+ROLES. `SEASON_ROLE` is one of `live | test | dev | archive`:
+
+    live     this season is production, reachable at the apex. Its own
+             season<N>. subdomain 301s to the apex (src/index.js).
+    test     an early-access realm on the alternate port, at season<N>.
+    dev      the PERMANENT dev realm — never a season, never production.
+             All of its names are number-independent (homers_lotr_dev.mod,
+             dev.homerslotr.com), because SEASON_NUM here tracks whichever
+             season dev currently feeds and bumping it must not rename the
+             module out from under a saved server entry.
+    archive  a retired season, frozen at its own season<N>. subdomain.
+
+Only ONE repo may hold each of `live` and `dev`. Development happens in the
+dev repo and reaches production through bin/season-promote.sh, which re-runs
+this script in the target so the promoted tree is rebranded for wherever it
+landed. That is why every rule here is shape-matched: promotion copies a tree
+branded for one environment into another, and this pass has to correct it in
+full, from whatever it previously said.
+
+Behaviour that differs between dev and production (cheat gear, dev NPCs, the
+early-access wipe notice) is NOT here — see bin/season-profile.py. This script
+owns strings and URLs; that one owns flags.
+
 Usage:
     python3 bin/season-brand.py              # dry run — show what would change
     python3 bin/season-brand.py --apply      # write
@@ -65,7 +88,13 @@ APEX_DOMAIN = "homerslotr.com"
 # demanded a rewrite that breaks the links. Those archives are permanent and are
 # NOT season-scoped. Neither host appears anywhere in unpacked/ or server.env, so
 # nothing the branding actually owns is matched by a partial host.
-WIKI_HOST_RE = re.compile(r"(?<![\w.-])(?:season\d+\.)?" + re.escape(APEX_DOMAIN))
+#
+# `dev.` is in the family because the permanent dev realm is branded by this same
+# script (SEASON_ROLE=dev -> dev.homerslotr.com). It has to be MATCHED, not just
+# written: rehost() re-matches the value it last wrote, which is what makes a
+# second --apply a no-op. Leave it out and every dev rebrand is a fresh diff.
+WIKI_HOST_RE = re.compile(
+    r"(?<![\w.-])(?:season\d+\.|dev\.)?" + re.escape(APEX_DOMAIN))
 
 
 # The Well of Eru area, for the Recent Updates board's roadmap link.
@@ -80,7 +109,7 @@ def load_env(path: Path) -> dict[str, str]:
     """Parse KEY=VALUE lines. The values this script needs carry no shell
     interpolation, so a full `bash -c . server.env` is unnecessary — but the
     trailing-comment handling does have to match bash, because the season block
-    documents each value inline (`SEASON_ROLE=live   # live | test | archive`)
+    documents each value inline (`SEASON_ROLE=live   # live | test | dev | archive`)
     and bash strips that."""
     env: dict[str, str] = {}
     if not path.exists():
@@ -114,8 +143,8 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
 
     num = need("SEASON_NUM")
     role = need("SEASON_ROLE")
-    if role not in ("live", "test", "archive"):
-        raise BrandError(f"SEASON_ROLE must be live|test|archive, got {role!r}")
+    if role not in ("live", "test", "dev", "archive"):
+        raise BrandError(f"SEASON_ROLE must be live|test|dev|archive, got {role!r}")
 
     wiki_url = need("SEASON_WIKI_URL")
     if not wiki_url.endswith("/"):
@@ -126,9 +155,19 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
     wiki_host = m.group(1)
 
 
+    # Where PRODUCTION publishes, which is not the same question as
+    # SEASON_WIKI_URL (this environment's own wiki). The dev realm needs it so
+    # its roadmap editor can link to the live roadmap; a live season's copy is
+    # simply its own URL. Defaults to the apex, which is true by definition:
+    # the apex is bound to whichever season is live.
+    live_wiki_url = env.get("SEASON_LIVE_WIKI_URL") or f"https://{APEX_DOMAIN}/"
+    if not live_wiki_url.endswith("/"):
+        live_wiki_url += "/"
+
     cfg: dict[str, object] = {
         "num": num,
         "role": role,
+        "live_wiki_url": live_wiki_url,
         "legacy_names": env.get("SEASON_LEGACY_NAMES", "0") in ("1", "true", "yes"),
         "wiki_url": wiki_url,
         "wiki_host": wiki_host,
@@ -144,6 +183,16 @@ def season_config(env: dict[str, str]) -> dict[str, object]:
         cfg["mod_file"] = None
         cfg["nwn_module"] = None
         cfg["nwn_servername"] = None
+    elif role == "dev":
+        # The dev realm is PERMANENT and is never a season, so none of its names
+        # carry the season number. SEASON_NUM still tracks whichever season dev
+        # currently feeds (2 now, 3 later) because season-profile.py and the
+        # promote script want to know — but bumping it must not rename the dev
+        # module out from under a saved server entry, so nothing here reads it.
+        cfg["package_name"] = "homers_lotr_dev"
+        cfg["mod_file"] = "homers_lotr_dev.mod"
+        cfg["nwn_module"] = "Homer's LOTR DEV"
+        cfg["nwn_servername"] = "Homer's LOTR - DEV REALM (password required)"
     else:
         suffix = {"test": " (EARLY ACCESS)", "archive": " (ARCHIVED)", "live": ""}[role]
         cfg["package_name"] = f"homers_lotr_s{num}"
@@ -164,19 +213,6 @@ def dump_json(obj) -> str:
     """Match nwn_gff's JSON formatting exactly, so a rebrand diff shows only the
     strings it changed and never a whole-file reformat."""
     return json.dumps(obj, indent=2, ensure_ascii=False) + "\n"
-
-
-def sub_in_function(src: str, func: str, pattern: str, repl: str) -> str:
-    """Apply a substitution only inside `def <func>(...)`'s body — from its `def`
-    line to the next top-level `def`/`class`. Keeps a narrow rule from matching
-    a similar-looking line elsewhere in a 3000-line file."""
-    m = re.search(rf"^def {re.escape(func)}\(", src, flags=re.M)
-    if not m:
-        raise BrandError(f"function {func}() not found — season-brand rule is stale")
-    end = re.search(r"^(?:def |class )", src[m.end():], flags=re.M)
-    stop = m.end() + (end.start() if end else len(src) - m.end())
-    body = src[m.start():stop]
-    return src[:m.start()] + re.sub(pattern, repl, body, count=1) + src[stop:]
 
 
 # ------------------------------------------------------------------ rules ---
@@ -308,28 +344,65 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
 
     text_edit(REPO / "wrangler.jsonc", wrangler)
 
+    # The worker owns two generated constants: the canonical host, and the list
+    # of hosts that 301 to it. The list is non-empty only for the LIVE season,
+    # which is reachable at both the apex and its own season<N>. subdomain —
+    # serving the same site at two addresses splits inbound links and the SEO
+    # for no gain, so the subdomain folds into the apex. Archiving the season
+    # empties the list and season<N>. serves its frozen wiki again.
     def index_js(s, notes):
-        new, n = re.subn(r"(url\.hostname\s*=\s*')[^']*(')", rf"\g<1>{host}\g<2>", s, count=1)
-        if n and new != s:
-            notes.append(f"workers.dev redirect -> {host}")
-        return new
+        new, n = re.subn(r"(const CANONICAL\s*=\s*')[^']*(')",
+                         rf"\g<1>{host}\g<2>", s, count=1)
+        if not n:
+            raise BrandError("src/index.js: CANONICAL constant not found — "
+                             "season-brand rule is stale")
+        if new != s:
+            notes.append(f"canonical host -> {host}")
+
+        folded = [f"season{cfg['num']}.{APEX_DOMAIN}"] if cfg["role"] == "live" else []
+        # Keep the literal shape a JS array of single-quoted strings, so the
+        # rule re-matches what it just wrote (idempotence).
+        want = ", ".join(f"'{h}'" for h in folded)
+        after, n = re.subn(r"(const REDIRECT_HOSTS\s*=\s*\[)[^\]]*(\])",
+                           rf"\g<1>{want}\g<2>", new, count=1)
+        if not n:
+            raise BrandError("src/index.js: REDIRECT_HOSTS constant not found — "
+                             "season-brand rule is stale")
+        if after != new:
+            notes.append(f"redirect hosts -> [{want}]")
+        return after
 
     text_edit(REPO / "src" / "index.js", index_js)
 
-    # --- roadmap editor: public links + container fallback ------------------
+    # --- roadmap editor: public links ---------------------------------------
+    # There used to be a second rule here that rewrote container_name()'s
+    # hardcoded fallback. The fallback is GONE: with a dev realm plus two
+    # seasons on one host, a guessed container name silently shows another
+    # realm's logs, so container_name() now raises instead of defaulting.
+    # Nothing to keep in sync, so no rule.
+    #
+    # The links are rewritten by data-brand attribute, NOT by a blanket
+    # rehost(). The editor runs in the dev repo but shows a link to the LIVE
+    # roadmap as well as this realm's, and a blanket host substitution would
+    # rewrite the live link to dev's host too - pointing the one link whose
+    # entire purpose is "go and look at production" back at dev.
     def editor(s, notes):
-        new = rehost(s)
+        def href(src: str, key: str, url: str) -> str:
+            pat = rf'(<a data-brand="{key}" href=")[^"]*(")'
+            out, n = re.subn(pat, lambda m: m.group(1) + url + m.group(2),
+                             src, count=1)
+            if not n:
+                raise BrandError(
+                    f'roadmap-editor.py: no <a data-brand="{key}"> link - '
+                    "season-brand rule is stale")
+            return out
+
+        new = href(s,   "wiki",          wiki)
+        new = href(new, "roadmap",       f"{wiki}manual/Roadmap")
+        new = href(new, "live-roadmap",  f'{cfg["live_wiki_url"]}manual/Roadmap')
         if new != s:
             notes.append("public wiki/roadmap links")
-        # Scope the fallback rewrite to container_name()'s own body. A bare
-        # `return "..."` regex over the whole file matches server_tz()'s
-        # "America/Chicago" first — which is exactly what it did on the first
-        # run of this script.
-        out = sub_in_function(new, "container_name",
-                              r'(return ")[^"]*(")', rf'\g<1>{cfg["container"]}\g<2>')
-        if out != new:
-            notes.append("container-name fallback")
-        return out
+        return new
 
     text_edit(REPO / "bin" / "roadmap-editor.py", editor)
 

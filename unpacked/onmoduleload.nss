@@ -12,6 +12,7 @@
 
 //PCs Autosaving
 #include "pc_export_inc"
+#include "season_prof_inc"
 #include "color"
 #include "nwnx_admin"
 #include "nwnx_events"
@@ -217,5 +218,33 @@ PW_InitDb();
 // first heal lands or the first login tries to restore a queue.
 // See fat_inc.nss (roadmap: heal-soul-fatigue-rebalance).
 FAT_InitDb();
+
+// Dev-only NPCs. SP_DEV_TOOLS is generated from SEASON_ROLE by
+// bin/season-profile.py - on for the dev and early-access realms, off for a
+// live or archived season.
+//
+// The NPC is DESTROYED here rather than removed from thewelloferu.git.json,
+// deliberately: dev and production share one source tree and bin/season-
+// promote.sh copies dev's over production's on every release, so an area file
+// that differed between them would be reverted by the next deploy. Behaviour
+// that differs between environments has to be a runtime decision, not a
+// content difference. (Same reason the Donations Chest cheat stock and the
+// early-access login notice are flags now - see season-profile.py.)
+//
+// BUTCHA is "Ping Pong", the Ultimate PC Builder: set any level 1-60, hand out
+// gold, destroy equipment. Its dialog _pc_builder_v1 must hold nothing
+// player-facing for this to be safe to remove.
+if (!SP_DEV_TOOLS)
+{
+    int nNth = 0;
+    object oDev = GetObjectByTag("BUTCHA", nNth);
+    while (GetIsObjectValid(oDev))
+    {
+        DestroyObject(oDev);
+        // DestroyObject is deferred to the end of this script, so the NPC is
+        // still enumerable and the index must advance past it.
+        oDev = GetObjectByTag("BUTCHA", ++nNth);
+    }
+}
 
 }   //end of main

@@ -158,4 +158,16 @@ else
   rc=1
 fi
 
+# Keep this LAST and keep it loud. It is the gate that stops a live season
+# being packed with cheat gear, the dev builder NPC or an early-access wipe
+# warning still switched on — the one failure in this file that reaches every
+# player at once. See tests/check_season_profile.py.
+echo "[smoke-test] running: season profile (behaviour flags)…"
+if python3 "$HERE/check_season_profile.py"; then
+  echo "ok: season profile"
+else
+  echo "fail: season profile"
+  rc=1
+fi
+
 exit $rc

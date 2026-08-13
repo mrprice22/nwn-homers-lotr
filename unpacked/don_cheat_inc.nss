@@ -1,4 +1,5 @@
 #include "don_cheat_data"
+#include "season_prof_inc"
 
 // don_cheat_inc.nss
 // Donations Chest "cheat stock" - keeps exactly one copy of every best-in-slot
@@ -9,16 +10,26 @@
 // copy of any listed item at a time.
 //
 // ---------------------------------------------------------------------------
-//  MASTER SWITCH - flip this to FALSE and repack to turn the cheat chest off.
+//  MASTER SWITCH - derived from SEASON_ROLE, not authored here.
 // ---------------------------------------------------------------------------
-//  TRUE  = the chest restocks itself with the best-in-slot table (test/dev).
+//  TRUE  = the chest restocks itself with the best-in-slot table (dev/test).
 //  FALSE = nothing is ever created; the normal per-reset donations loot in
 //          welloferuenter.nss carries on as usual. Items already handed out
 //          are NOT reclaimed - this is an "off from now on" switch.
 //
-//  This is the one line to change before a season goes live.
+//  This USED to be the one line to change before a season went live. It is not
+//  any more, and must not become one again: dev and production share this
+//  source tree, and bin/season-promote.sh overwrites production with dev's copy
+//  on every release - so a hand-edited FALSE here would be silently reverted to
+//  dev's TRUE by the next successful deploy, and the live season would start
+//  handing out best-in-slot gear with nothing to signal it.
+//
+//  SP_CHEAT_CHEST comes from unpacked/season_prof_inc.nss, which is
+//  generated from SEASON_ROLE by bin/season-profile.py (off for live and
+//  archive, on for dev and test). To change it, change the role.
+//  season-profile.py --check asserts this line still reads the constant.
 // ---------------------------------------------------------------------------
-const int DON_CHEAT_ENABLED = TRUE;
+const int DON_CHEAT_ENABLED = SP_CHEAT_CHEST;
 
 // Tops the chest back up: creates any listed item that is not already inside it.
 // Safe to call repeatedly - one pass marks what is present, the second pass only

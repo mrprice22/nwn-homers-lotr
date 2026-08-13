@@ -243,6 +243,21 @@
               "__struct_id": 13,
               "Active": {
                 "type": "resref",
+                "value": "legfeat_cond"
+              },
+              "Index": {
+                "type": "dword",
+                "value": 111
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
+              "__struct_id": 14,
+              "Active": {
+                "type": "resref",
                 "value": ""
               },
               "Index": {
@@ -11942,6 +11957,47 @@
           "type": "cexolocstring",
           "value": {
             "0": "Not yet, keeper."
+          }
+        }
+      },
+      {
+        "__struct_id": 111,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "Legendary Feats re-pick. Gated by legfeat_cond (level 60 only); legfeat_respec hands the feats and their base ability points back and reopens the picker. Level is not changed. Lives here, on the prestige/class-line keeper, because it is a PLAYER feature: it used to sit on Ping Pong, which is a dev-only NPC that onmoduleload destroys wherever SP_DEV_TOOLS is off (see bin/season-profile.py), so leaving it there would have deleted it from every live season."
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": []
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": "legfeat_respec"
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "Let me choose my legendary feats again."
           }
         }
       }
