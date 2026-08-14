@@ -186,6 +186,19 @@ Autopilot-specific rules:
   - *Exceptions* (these are fine): pins managed by `bin/gen-map-notes.py`, edits to
     **existing** placed instances, and coordinates copied from an existing instance in the
     same area (e.g. swapping a creature at a spot that's already occupied).
+- **2DA changes need a hak rebuild AND an NWSync publish — as `manual_steps`, never
+  run by you.** Editing anything in `hak_2da/` changes nothing in game until
+  `bin/build-lotr-rules-hak --install` packs it and `bin/refresh-nwsync` publishes it
+  to clients; a client on a stale hak silently reads the old tables. File both as
+  `kind: publish` steps with `blocker: true` — the item genuinely does not work
+  without them — and say which 2DA changed and what stays wrong until it ships.
+  A change under `unpacked/` alone needs **neither**: `refresh-nwsync` deliberately
+  runs without `--with-module`, so clients download haks and the TLK, never the
+  `.mod`. Which mode to name in the step: plain `bin/refresh-nwsync` (incremental,
+  the normal case), `--force` **only** for corruption recovery, `--prune`
+  occasionally for housekeeping. Never propose deleting the NWSync repo — it is a
+  persistent content-addressed store behind a live nginx bind mount. Full table in
+  [CLAUDE.md](CLAUDE.md), "Publishing to clients".
 - **Server-side-dependent items.** If the item needs a server.env / NWNX flag flip, an
   Anvil C# plugin build + DLL deploy, or a server restart to take effect: implement the
   repo-safe part fully, record the server-side step as a `manual_steps` entry, and ship

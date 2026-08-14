@@ -56,6 +56,41 @@ per small fix. Full schema + workflow: [CLAUDE-roadmap.md](CLAUDE-roadmap.md). *
 
 **`docs/` is a human-readable reference**: `docs/index.html` (area map), `docs/creatures/`, `docs/areas/`, `docs/conversations/`, `docs/items/`, `docs/stores/`, `docs/factions.html`, `docs/journal.html`. Use it to look up module content before parsing JSON by hand.
 
+### Publishing to clients: when to rebuild the hak, when to refresh NWSync
+
+**A module-only change never needs NWSync.** `bin/refresh-nwsync` runs without
+`--with-module` on purpose — this is a persistent world, so clients download the
+**haks and the TLK**, never the `.mod`. Edit `unpacked/`, repack, restart: done.
+
+**NWSync is required only when `hak_2da/` or `tlk/` changed**, i.e. after
+`bin/build-lotr-rules-hak --install` or a TLK rebuild. A client holding a stale
+hak silently reads the old tables (a character sheet that clamps at level 40, a
+kill paying the old XP, blank legendary feat names). Order is always:
+
+```
+bin/build-lotr-rules-hak --install   # 2DA sources -> lotr_rules.hak -> NWN home
+bin/refresh-nwsync                   # publish the hak to clients
+bin/server-restart                   # the server re-reads the hak on load
+```
+
+Which NWSync mode:
+
+| command | when | cost |
+|---|---|---|
+| `bin/refresh-nwsync` | **the default — use this.** Content-addressed and incremental: only resources whose SHA1 changed are written. | Still rehashes the whole store to find what changed — 88,693 resrefs / 4.15 GiB on the dev realm, so 10+ min. |
+| `bin/refresh-nwsync --force` | **corruption recovery only.** Rewrites every blob even when identical. Reach for it when a client reports a bad download that a normal refresh does not fix. | Slowest; rewrites gigabytes. |
+| `bin/refresh-nwsync --prune` | **occasional housekeeping.** Garbage-collects blobs no manifest references any more (self-protecting for data under two weeks old). Incremental writes leave orphans behind from superseded manifests. | Cheap; run it now and then, not every refresh. |
+
+There is deliberately **no "clean rebuild"**. Never `rm -rf` the NWSync repo: it
+is a persistent content-addressed store, and nginx serves it through a live bind
+mount, so the directory inode has to stay stable. Recreating it would break the
+running container and force every client to re-download everything.
+
+**Run it detached.** Even the incremental path exceeds ten minutes on a full CEP
+store (4+ GiB of CEP), so it will blow through a short command timeout — and a killed run leaves
+`latest` pointing at the previous manifest (safe, but nothing was published, so
+it must be re-run).
+
 ### Build artifacts (gitignored, do not commit)
 
 - `dist/` — packed `.mod` output
