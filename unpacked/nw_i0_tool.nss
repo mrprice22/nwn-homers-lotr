@@ -158,7 +158,12 @@ void DoGiveXP(string sJournalTag, int nPercentage, object oTarget, int QuestAlig
         nRewardMod = 0.75;
     }
 
+    // xp_script marks this as a deliberate script grant so the kill cap in
+    // boost_xp_evt.nss leaves it alone -- a computed quest reward could otherwise
+    // land inside the engine-award window and be silently clamped to 6,000.
+    SetLocalInt(oTarget, "xp_script", 1);
     GiveXPToCreature(oTarget, FloatToInt(nRewardMod * nXP));
+    DeleteLocalInt(oTarget, "xp_script");
 }
 
 
@@ -212,18 +217,24 @@ void RewardPartyXP(int XP, object oTarget,int bAllParty=TRUE)
     // * cycle through them and
     // * and give them the appropriate reward
     // * HACK FOR NOW
+    // xp_script: deliberate script grant, exempt from the engine kill cap in
+    // boost_xp_evt.nss (see DoGiveXP above).
     if (bAllParty == TRUE)
     {
         object oPartyMember = GetFirstFactionMember(oTarget, TRUE);
         while (GetIsObjectValid(oPartyMember) == TRUE)
         {
+            SetLocalInt(oPartyMember, "xp_script", 1);
             GiveXPToCreature(oPartyMember, XP);
+            DeleteLocalInt(oPartyMember, "xp_script");
             oPartyMember = GetNextFactionMember(oTarget, TRUE);
         }
     }
     else
     {
+     SetLocalInt(oTarget, "xp_script", 1);
      GiveXPToCreature(oTarget, XP);
+     DeleteLocalInt(oTarget, "xp_script");
     }
 }
 

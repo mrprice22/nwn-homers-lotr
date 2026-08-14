@@ -51,6 +51,11 @@ EXPTABLE = REPO / "hak_2da" / "exptable.2da"
 CLASSES = REPO / "hak_2da" / "classes.2da"
 BUILD_INC = REPO / "unpacked" / "_build_lvl_inc.nss"
 CODE_REDEEM = REPO / "unpacked" / "code_redeem.nss"
+LL_XP_INC = REPO / "unpacked" / "ll_xp_inc.nss"
+XPTABLE = REPO / "hak_2da" / "xptable.2da"
+# 6,000 XP hard cap / Mod_XPScale of 150 applied as /10 (x15). If Mod_XPScale
+# ever changes, this and ll_xp_inc.nss's XP_KILL_CAP must move together.
+XPTABLE_CAP_RAW = 400
 
 LEVEL_40_XP = 780000
 FIRST_STEP = 48800          # level 40 -> 41
@@ -187,6 +192,107 @@ def check_code_redeem(problems, table):
         problems.append(
             f"code_redeem.nss: XP_LEVEL_60 is {m.group(1)}, exptable.2da says "
             f"{want} — the freelegendary code would set the wrong level"
+        )
+
+
+def check_xptable(problems):
+    """xptable.2da is the kill-AWARD table, and it is hand-corrected.
+
+    Two properties, both of which a stock re-extraction would silently undo:
+
+    1. Every cell <= XPTABLE_CAP_RAW. Stock peaks at 600, which is 9,000 XP at
+       Mod_XPScale 150 -- above the admin's 6,000 hard cap on a single kill.
+    2. Each CR column is non-increasing with level. Stock rises and then falls
+       (a bell curve), so a level 1 character was paid LESS than a level 6 for
+       the identical kill. A lower-level player must never be paid less.
+    """
+    if not XPTABLE.exists():
+        problems.append(f"{XPTABLE} is missing -- kill awards revert to stock")
+        return
+    header, rows = read_2da(XPTABLE)
+    if not rows:
+        problems.append("xptable.2da: no data rows")
+        return
+
+    # cells[0] is the row index and cells[1] the Level label, so the CR columns
+    # C0..C40 start at cells[2]. Comparing from cells[1] instead compares the
+    # Level column with itself and reports 39 phantom failures.
+    FIRST_CR = 2
+    rowidx = sorted(rows)
+    ncol = min(len(rows[r]) for r in rowidx)
+    over = []
+    for r in rowidx:
+        for c in range(FIRST_CR, ncol):
+            try:
+                v = float(rows[r][c])
+            except ValueError:
+                continue
+            if v > XPTABLE_CAP_RAW:
+                over.append(f"level {r + 1} CR {c - FIRST_CR} = {v:g}")
+    if over:
+        problems.append(
+            f"xptable.2da: {len(over)} cell(s) above the {XPTABLE_CAP_RAW} cap "
+            f"({XPTABLE_CAP_RAW * 15:,} XP) -- e.g. {', '.join(over[:3])}"
+        )
+
+    # Every level must have SOME creature that pays the full award. The engine
+    # clamps a creature's CR to the last column, so once the level's difficulty
+    # tier climbs past that column nothing in the game can pay full again --
+    # silently, with no error. Stock stops at C40; this copy runs to C200 because
+    # the tier ladder reaches 147 by level 40. Caught exactly this on 2026-08-13,
+    # where 6,000 was reachable only at levels 1-5.
+    starved = [
+        r + 1 for r in rowidx
+        if max((float(v) for v in rows[r][FIRST_CR:ncol]
+                if v.replace(".", "", 1).replace("-", "", 1).isdigit()),
+               default=0.0) < XPTABLE_CAP_RAW - 1e-9
+    ]
+    if starved:
+        problems.append(
+            f"xptable.2da: {len(starved)} level(s) cannot reach the "
+            f"{XPTABLE_CAP_RAW * 15:,} XP cap at ANY CR -- the last CR column is "
+            f"below the level's difficulty tier (levels {starved[:5]})"
+        )
+
+    rising = []
+    for c in range(FIRST_CR, ncol):
+        for a, b in zip(rowidx, rowidx[1:]):
+            try:
+                va, vb = float(rows[a][c]), float(rows[b][c])
+            except ValueError:
+                continue
+            if vb > va + 1e-9:
+                rising.append(
+                    f"CR {c - FIRST_CR}: level {a + 1} pays {va:g} "
+                    f"but level {b + 1} pays {vb:g}"
+                )
+    if rising:
+        problems.append(
+            f"xptable.2da: {len(rising)} case(s) where a HIGHER level is paid more "
+            f"for the same CR -- e.g. {rising[0]}"
+        )
+
+
+def check_ll_xp_inc(problems, table):
+    """ll_xp_inc.nss's LLXP_LEVEL_60_XP is the fourth copy of the same number.
+
+    It is the ceiling the legendary kill award splits on: XP above it is
+    deposited into the family reserve instead of being written to the sheet. A
+    stale constant here would either strand XP below the real ceiling or bank
+    nothing at all, and it fails silently in both directions.
+    """
+    if not LL_XP_INC.exists():
+        return                      # optional consumer; nothing to reconcile
+    src = LL_XP_INC.read_text(encoding="utf-8")
+    m = re.search(r"const\s+int\s+LLXP_LEVEL_60_XP\s*=\s*(\d+)\s*;", src)
+    if not m:
+        problems.append("ll_xp_inc.nss: LLXP_LEVEL_60_XP constant not found")
+        return
+    want = table.get(MAX_LEVEL)
+    if want is not None and int(m.group(1)) != want:
+        problems.append(
+            f"ll_xp_inc.nss: LLXP_LEVEL_60_XP is {m.group(1)}, exptable.2da says "
+            f"{want} — legendary kill XP would bank at the wrong ceiling"
         )
 
 
@@ -380,6 +486,8 @@ def main() -> int:
     table = check_exptable(problems)
     check_fallback(problems, table)
     check_code_redeem(problems, table)
+    check_ll_xp_inc(problems, table)
+    check_xptable(problems)
     check_level_cap(problems, table)
     check_classes(problems)
     casters = check_caster_slots(problems)

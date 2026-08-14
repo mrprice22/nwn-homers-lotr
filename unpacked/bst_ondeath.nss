@@ -8,6 +8,7 @@
 
 #include "bst_db"
 #include "brd_db"
+#include "ll_xp_inc"
 
 // Walk the master chain to the owning PC; returns OBJECT_INVALID if none is a PC.
 object Bst_OwningPC(object o)
@@ -99,6 +100,15 @@ void main()
 
         string sUuid = GetObjectUUID(m);
         Bst_RecordKill(sUuid, GetPCPublicCDKey(m), GetName(m), sCan, bParty);
+
+        // Legendary-tier kill XP (roadmap: ll-xp-award-balance). The engine pays
+        // nothing above level 40 because xptable.2da was never extended, so 41+
+        // characters are paid here instead. No-op at level 40 and below, where
+        // the engine is still paying. Full award to each contributor rather than
+        // a split (admin's call 2026-08-13), matching RewardPartyXP semantics --
+        // this loop is already the correct contributor set, with summons,
+        // henchmen, DMs and environmental deaths excluded above.
+        LlXp_GiveKillXP(m, fCR);
 
         int nTotal = Bst_GetTotal(sUuid, sCan);
         SendMessageToPC(m, "[Bestiary] You have slain " + IntToString(nTotal) + " "
