@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Ghast</title>
+  <title>Script sp_devgate</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,49 +57,41 @@
     </nav>
   </header>
   <main>
-<h1>Ghast</h1>
-<dl class="meta">
-<dt>ResRef</dt><dd>nw_ghast</dd>
-<dt>Tag</dt><dd></dd>
-<dt>Race</dt><dd></dd>
-<dt>Appearance</dt><dd>Ghast</dd>
-<dt>Class(es)</dt><dd></dd>
-<dt>HP</dt><dd></dd>
-<dt>CR</dt><dd>4.0</dd>
-<dt>Faction</dt><dd></dd>
-<dt>Conversation</dt><dd>—</dd>
-</dl>
-<h2>Kills</h2><table class="data"><thead><tr><th>Total</th><th>Solo</th><th>Party</th></tr></thead><tbody><tr><td>5</td><td>5</td><td>0</td></tr></tbody></table>
-<h3>Top Killers</h3><table class="data"><thead><tr><th>#</th><th>Player</th><th>Character</th><th>Solo</th><th>Party</th><th>Total</th><th>Last Kill</th></tr></thead><tbody><tr><td>1</td><td>Vert Patter</td><td>Samir Swift</td><td>2</td><td>0</td><td>2</td><td>2026-08-01</td></tr>
-<tr><td>2</td><td>HomelessSon</td><td>Shand Lannemen</td><td>2</td><td>0</td><td>2</td><td>2026-08-13</td></tr>
-<tr><td>3</td><td>HomelessSon</td><td>Slap Wagon</td><td>1</td><td>0</td><td>1</td><td>2026-08-13</td></tr></tbody></table>
-<h2>Where to find</h2>
-<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/bree.html">Bree</a></td><td>nw_undeadlow</td><td><code>nw_undeadlow</code></td></tr>
-<tr><td><a href="../areas/breecrypt.html">Bree Crypt</a></td><td>nw_undeadlow</td><td><code>nw_undeadlow</code></td></tr>
-<tr><td><a href="../areas/breecrypt.html">Bree Crypt</a></td><td>Undead, Low Group</td><td><code>undeadlow001</code></td></tr>
-<tr><td><a href="../areas/breecryptlowerle.html">Bree Crypt Lower Level</a></td><td>Undead, Low Group</td><td><code>undeadlow001</code></td></tr>
-<tr><td><a href="../areas/cryptsofthelosts.html">Esgaroth Crypts</a></td><td>nw_undeadall</td><td><code>nw_undeadall</code></td></tr>
-<tr><td><a href="../areas/greenwaysouth.html">Greenway (South)</a></td><td>nw_undeadall</td><td><code>nw_undeadall</code></td></tr>
-<tr><td><a href="../areas/roadtobaraddur.html">Road to Barad-Dûr</a></td><td>Undead, Low Group</td><td><code>undeadlow001</code></td></tr></tbody></table>
-<h2>Abilities</h2>
-<table class="data"><tr><th>Str</th><td></td><th>Dex</th><td></td><th>Con</th><td></td><th>Int</th><td></td><th>Wis</th><td></td><th>Cha</th><td></td></tr></table>
-<h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td></td><th>AC</th><td>10 <small class="muted">(10 base + +0 Dex)</small></td><th>BAB</th><td>+0</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+0</td><th>Will</th><td>+0</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h2>Scripts</h2>
-<table class="data"><thead><tr><th>Event</th><th>Script</th></tr></thead><tbody><tr><td>ScriptHeartbeat</td><td></td></tr>
-<tr><td>ScriptOnNotice</td><td></td></tr>
-<tr><td>ScriptEndRound</td><td></td></tr>
-<tr><td>ScriptDialogue</td><td></td></tr>
-<tr><td>ScriptAttacked</td><td></td></tr>
-<tr><td>ScriptDamaged</td><td></td></tr>
-<tr><td>ScriptDeath</td><td></td></tr>
-<tr><td>ScriptDisturbed</td><td></td></tr>
-<tr><td>ScriptSpawn</td><td></td></tr>
-<tr><td>ScriptRested</td><td></td></tr>
-<tr><td>ScriptSpellAt</td><td></td></tr>
-<tr><td>ScriptUserDefine</td><td></td></tr>
-<tr><td>ScriptOnBlocked</td><td></td></tr></tbody></table>
+<h1>Script: <code>sp_devgate</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: sp_devgate - StartingConditional for dev-tool conversations
+//::
+//:: Shows the dialogue when dev tools are enabled for this realm (SP_DEV_TOOLS,
+//:: see bin/season-profile.py), OR to a whitelisted admin anywhere.
+//::
+//:: The admin test is Admin_CanAdmin - the SAME admindb CD-key whitelist that
+//:: gates the rest menu&#x27;s Admin Options and its teleport to House of Homer
+//:: (_restemo_admin.nss / _cdkey.nss). It must be the same check: the only way
+//:: to reach that room is that teleport, so anyone standing in front of this
+//:: NPC already passed it. A different test can only disagree, and it did -
+//:: this used GetIsDM(), which is TRUE only for an actual DM-client login, so
+//:: an admin who reached the room as a normal player found the NPC mute.
+//::
+//:: Whitelisted keys live in the admindb campaign database (admins.can_admin),
+//:: seeded out of band by bin/seed-admindb.sh; they never ship inside the .mod.
+//::
+//:: WHY THIS EXISTS AT ALL. There are two Ping Pong NPCs, identical to the
+//:: engine - same resref, same tag, same conversation. One stands in the Well
+//:: of Eru and must not exist in a live season; onmoduleload destroys that one
+//:: by area tag. The other is in &quot;House of Homer&quot; (HouseofDispair), a DM-only
+//:: build room no area transition leads to, and it stays. This gate is what
+//:: makes any surviving copy inert to a non-admin, and it is the guard that
+//:: holds when the purge does not - as it did not at the season 2 launch,
+//:: because DestroyObject() silently refuses a Plot creature.
+//:://////////////////////////////////////////////
+#include &quot;season_prof_inc&quot;
+#include &quot;admin_db&quot;
+
+int StartingConditional()
+{
+    if (SP_DEV_TOOLS) return TRUE;
+    return Admin_CanAdmin(GetPCSpeaker());
+}
+</code></pre>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

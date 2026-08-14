@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script ll_xp_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>ll_xp_inc</code></h1><pre class="nss-source"><code>// ll_xp_inc.nss -- kill XP for the legendary tier (character levels 41-60).
+//
+// WHY THIS EXISTS (roadmap: ll-xp-award-balance)
+//
+// Raising the level cap to 60 extended exptable.2da, which is the COST of a
+// level. It did not extend xptable.2da, which is the AWARD for a kill, and that
+// table is stock: 40 rows (levels 1-40) x 41 columns (CR 0-40). Kill XP is
+// xptable.2da[earned level][CR] x XPScale x party penalty, so a level 41+
+// character indexes a row that does not exist and the engine awards ZERO. That
+// was measured in game: a level 55 character killing endgame content gained
+// nothing at all, which made levels 41-60 unfinishable by combat.
+//
+// Fixing it in the 2DA would need 20 new rows AND columns out to CR 1461 plus a
+// hak rebuild and an nwsync/client publish, and a 2DA cannot express a level
+// gate -- so the award is paid here in script instead, and xptable.2da stays
+// stock and deliberately out of hak_2da/RULES_2DA.
+//
+// THE GATE. Below level 41 the engine still pays normally, so this must not.
+// LLXP_MIN_LEVEL is the first level the engine stops paying at; paying at or
+// below 40 would double up with the engine&#x27;s own award.
+//
+// THE BOOST. The premium 2x boost is applied HERE rather than by the usual
+// NWNX_ON_SET_EXPERIENCE_BEFORE handler, because at the level-60 ceiling
+// GiveXPToCreature can clamp the write and the boosted remainder would be
+// silently lost. We read the multiplier ourselves, hand the total to
+// Boost_GiveXPNoBoost so boost_xp_evt.nss does not double it a second time, and
+// force the write if the engine refused it (see LlXp_GiveKillXP).
+//
+// PAST LEVEL 60 the XP keeps accumulating ON THE CHARACTER. It is not diverted
+// into the XP bank and it is not dropped -- a character simply carries a total
+// above the level-60 threshold, which is already a state characters reach.
+
+#include &quot;boost_inc&quot;
+
+// THE FORMULA -- a CR-versus-level curve, not a flat CR one.
+//
+// What the engine does below 41: award = xptable.2da[level][min(CR,40)] x
+// XPScale/10. That table is stock and authored at slider 10, so Mod_XPScale 150
+// means x15, and its level-40 row saturates at 400 -- which is where the familiar
+// 6,000 per kill comes from (400 x 15). The important part is that the table is
+// indexed by LEVEL as well as CR: at level 20 a CR 10 mob pays 4.2 while CR 27+
+// pays the full 600. You outgrow content. That is the property continued here.
+//
+// The curve: each level has a difficulty tier, the CR at which a kill pays the
+// full award.
+//
+//     tier(L) = LLXP_TIER_BASE x LLXP_TIER_STEP ^ (L - LLXP_MIN_LEVEL)
+//     r       = CR / tier(L)
+//     award   = PEAK                              when r &gt;= 1
+//               FLOOR                             when r &lt;= KNEE
+//               FLOOR + (PEAK-FLOOR) x f^KNEE_EXP otherwise,
+//                                                 f = (r-KNEE)/(1-KNEE)
+//
+// The ladder walks a player up through the endgame zones rather than letting one
+// of them carry the whole band: full value needs CR 150 at level 41, CR 201 at
+// 49, and CR 300 at 60 -- Wold/Ettenmoors, then Mordor, then Gondor.
+//
+// KNEE_EXP &gt; 1 makes the ramp convex, so on-tier content stays clearly the best
+// use of time even though below-tier content still pays something.
+//
+// KNOWN BOUNDARY STEP: softening the knee (admin&#x27;s call 2026-08-13) necessarily
+// pays below-tier content MORE than the engine does at level 40 -- a CR 30 mob
+// pays 2,408 at level 37 and 500 at level 41 -- the softened knee keeps below-
+// tier content paying something on the way down instead of dropping straight to
+// the floor the moment you outgrow it.
+//
+// BALANCE, APPROVED BY THE ADMIN 2026-08-13 (&quot;option A&quot;). Roughly 9.9 hours solo
+// unboosted for 41-&gt;60, ~5.0 with the 2x boost, at 90 kills/hour.
+//
+// A 20-hour target was considered first and abandoned as arithmetically
+// impossible alongside the other requirements. 41-&gt;60 costs 2,752,200 XP, so at
+// the 6,000 cap the floor is 459 kills == 5.1 hours if every kill pays full. 20
+// hours needs 1,800 kills, i.e. an average of 1,529 -- only 25% of the cap --
+// which means most kills must NOT pay full. That directly contradicts wanting
+// full value to be reachable on farmable content, and softening the knee pushes
+// the average UP, shortening the band rather than lengthening it. The only lever
+// that delivers 20 hours is raising the 41-60 cost curve in exptable.2da, which
+// de-levels every existing 41+ character, so it was declined.
+//
+// tier(60) is 300 because that is what is actually FARMABLE. Measured from
+// module-index/creature_index.json against module-index/bosses.json: non-boss
+// endgame content tops out at CR 701, and above CR 800 all six instances are
+// registry bosses on respawn timers. There are 54 farmable non-boss instances at
+// CR 300+. An earlier tuning put tier(60) at 770 and was rejected for exactly
+// this reason -- full value was boss-only, i.e. not farmable at all.
+//
+// THE ANCHORS. The whole 1-60 curve is fitted to four numbers the admin chose
+// directly (2026-08-13). The first two live in hak_2da/xptable.2da, the last two
+// here:
+//
+//     level  1, CR  5 -&gt;   2,000      level  1, CR 30 -&gt; 6,000 (full)
+//     level 21, CR  5 -&gt;     100      level 41, CR 30 -&gt;   500
+//
+// Those pin the tier ladder to 30 (L1) -&gt; 99.8 (L21) -&gt; 150 (L41) -&gt; 300 (L60)
+// and both exponents. LLXP_TIER_BASE is the L41 anchor and LLXP_TIER_STEP is
+// (300/150)^(1/19); LLXP_KNEE_EXP is solved from the level 41 / CR 30 anchor.
+// Change an anchor and BOTH halves have to be refitted together, or the 40-&gt;41
+// boundary stops being monotonic.
+//
+// KNOWN CONSEQUENCE, accepted 2026-08-13: pinning CR 30 to 500 at level 41 drags
+// the whole low-CR end of the legendary band down with it. A fresh level 41
+// fighting its natural Wold/Ettenmoors content (CR 45-80) is paid 964-2,350, not
+// the flat 6,000 it used to get, and full value needs CR 150. Steepening this way
+// does NOT lengthen the band (still ~9.9 h): the top of every column is
+// unchanged, so an optimising player farms CR 200+ and is unaffected. What it
+// changes is that low-CR farming stops being viable.
+//
+// RETUNING: LLXP_TIER_STEP is the grind dial. Re-run the calibration against
+// creature_index.json + bosses.json before changing it, and record the new target
+// on the roadmap item; the target is a balance decision, not an implementation
+// detail (see CLAUDE-autopilot.md, &quot;The target IS the balance decision&quot;).
+
+// MODULE-WIDE HARD CAP on a single kill, BEFORE the 2x boost -- so a boosted kill
+// pays at most 12,000 and an unboosted one at most 6,000. Admin decision
+// 2026-08-13: &quot;6k XP HARD CAP, period.&quot; This binds BOTH award paths:
+//   * levels 41-60, where LLXP_PEAK below is this cap; and
+//   * levels 1-40, where the ENGINE pays up to 9,000 and boost_xp_evt.nss clamps
+//     it back down (a level 1-3 character killing anything CR 21+ is paid the
+//     table&#x27;s global peak of 600 x 15 = 9,000).
+const int   XP_KILL_CAP    = 6000;
+
+// The most the engine can possibly pay for one kill: xptable.2da&#x27;s global peak
+// (600) x Mod_XPScale/10 (15). boost_xp_evt.nss uses this to tell an engine kill
+// award apart from a script grant without every grant site needing a flag --
+// nothing in unpacked/ grants between XP_KILL_CAP and this (the literals jump
+// from 5,000 straight to 10,000), so a delta inside that window is an engine
+// award. Re-check that gap if Mod_XPScale ever changes.
+const int   XP_ENGINE_MAX  = 9000;
+
+const int   LLXP_MIN_LEVEL = 41;      // first level the engine pays nothing at
+const int   LLXP_PEAK      = XP_KILL_CAP;   // per kill, BEFORE the boost
+const int   LLXP_FLOOR     = 60;      // what the level-40 row pays for trash
+const float LLXP_TIER_BASE = 150.0;   // CR paying full value at LLXP_MIN_LEVEL
+const float LLXP_TIER_STEP = 1.03716; // tier growth per level -- THE GRIND DIAL
+const float LLXP_KNEE      = 0.05;    // fraction of tier where the ramp starts
+const float LLXP_KNEE_EXP  = 1.41;    // &gt;1 keeps on-tier content dominant
+
+// The CR that pays the full award at this character level.
+float LlXp_Tier(int nLevel)
+{
+    if (nLevel &lt; LLXP_MIN_LEVEL) nLevel = LLXP_MIN_LEVEL;
+    return LLXP_TIER_BASE * pow(LLXP_TIER_STEP, IntToFloat(nLevel - LLXP_MIN_LEVEL));
+}
+
+// The award for this CR at this character level, before the boost and before any
+// ceiling split.
+int LlXp_Award(int nLevel, float fCR)
+{
+    float fR = fCR / LlXp_Tier(nLevel);
+    if (fR &gt;= 1.0)       return LLXP_PEAK;
+    if (fR &lt;= LLXP_KNEE) return LLXP_FLOOR;
+
+    float fF = pow((fR - LLXP_KNEE) / (1.0 - LLXP_KNEE), LLXP_KNEE_EXP);
+    return LLXP_FLOOR + FloatToInt(IntToFloat(LLXP_PEAK - LLXP_FLOOR) * fF);
+}
+
+// Pay one contributor for one kill. Safe to call for any PC at any level: it is
+// a no-op below LLXP_MIN_LEVEL, where the engine is still paying.
+void LlXp_GiveKillXP(object oPC, float fCR)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    int nLevel = GetHitDice(oPC);
+    if (nLevel &lt; LLXP_MIN_LEVEL) return;
+
+    int nTotal = LlXp_Award(nLevel, fCR) * Boost_Mult(oPC);
+    if (nTotal &lt;= 0) return;
+
+    // Boost already applied above -- Boost_GiveXPNoBoost raises the boost_no_xp
+    // flag so boost_xp_evt.nss leaves this write at face value.
+    int nBefore = GetXP(oPC);
+    Boost_GiveXPNoBoost(oPC, nTotal);
+
+    // XP KEEPS ACCUMULATING PAST LEVEL 60 (admin&#x27;s call 2026-08-13). It stays on
+    // the character -- it is NOT diverted into the XP bank, and nothing is
+    // dropped for being at the cap.
+    //
+    // GiveXPToCreature can refuse to carry a character past the top of
+    // exptable.2da, which would silently swallow the award for exactly the
+    // players who have been here longest. If the grant did not land in full,
+    // write the total directly. Sitting above the level-60 threshold is a
+    // supported state, not damage to repair: characters already do (samirswift
+    // was at 3,598,450 against a 3,581,000 ceiling before any of this shipped).
+    // The same boost_no_xp flag brackets the write so the boost handler does not
+    // apply the multiplier a second time.
+    int nShort = nTotal - (GetXP(oPC) - nBefore);
+    if (nShort &gt; 0)
+    {
+        SetLocalInt(oPC, &quot;boost_no_xp&quot;, 1);
+        SetXP(oPC, nBefore + nTotal);
+        DeleteLocalInt(oPC, &quot;boost_no_xp&quot;);
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
