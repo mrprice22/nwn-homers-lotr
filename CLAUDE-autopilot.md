@@ -135,6 +135,39 @@ admin's call.
 When in doubt about whether something is a judgment call, it is — queue it. A shipped-but-
 bland quest is worse than one held for a one-line admin decision.
 
+**The target IS the balance decision — never write one as a premise.** Queuing the formula
+is not enough if you picked the goal it was tuned to. Hours to level, XP or gold per hour,
+kills to a milestone, drop rates, price points, damage budgets: these are the admin's call
+*before* any number is derived from them. Ask the target as its **own** `design_questions`
+entry, first, with the measured status quo next to your suggestion — never as a "Target:"
+line inside `impl_notes` or as the setup for a question about something else.
+
+> Why this rule exists (2026-08-13): `ll-xp-award-balance` proposed an XP formula built on
+> "Target: 100-125 solo play-hours for 41-60". The admin had never approved that target and
+> first saw it while debugging an unrelated defect, nine days later — by which point a
+> coefficient, a clamp, a boss multiplier and a party rule had all been derived from it and
+> written up as a decision-ready proposal. The number the game actually paid at level 40 was
+> ~5 hours' worth per the same arithmetic, so the proposal was 20x off the status quo and
+> nobody had agreed to the goal that made it look right.
+
+**Measure the status quo before proposing a change to it.** Any balance proposal must state
+what the game pays **today**, taken from the live data — extract the 2DA
+(`nwn_resman_cat`/`nwn_resman_extract`), read the blueprints, count the roster — not from a
+prior write-up, a comment, or recall. Put that measurement in the design question itself. A
+proposal that cannot say what it is changing *from* is not decision-ready.
+
+**Never attribute a constraint to the admin without a citation.** The same item recorded an
+"Admin constraint recorded 2026-08-04: module-wide 6,000 XP cap on creature kills". There is
+no such cap — 6,000 is `xptable.2da`'s level-40 row (400) times `Mod_XPScale / 10` (15), i.e.
+the top of the stock table, which every creature at CR 40+ already hit. That misreading was
+then load-bearing for the clamp *and* the boss multiplier. If you write something down as the
+admin's decision or as an engine constraint, cite where it came from (date, message, file and
+line); if you inferred it, say so and make it a design question.
+
+**A `design_questions` entry must be answerable without reading `impl_notes`.** The admin
+filters on `status: design` and reads the questions — analysis blobs are reference, not the
+ask. Every number the decision turns on goes in the question text.
+
 Work the item following the existing docs ([CLAUDE-recipes.md](CLAUDE-recipes.md),
 [CLAUDE-gotchas.md](CLAUDE-gotchas.md), [CLAUDE-nwscript.md](CLAUDE-nwscript.md), etc.).
 Autopilot-specific rules:
@@ -474,6 +507,10 @@ agent cleans it up.
   numbers, prerequisites, your recommendation — then move on. Building the *machinery*
   (picker, plumbing, generators) is fine; building the *content* is not. Also never
   hand-edit `hak_2da/feat.2da` or `tlk/lotr.tlk` — edit the generator table and re-run it.
+- **Never state a balance target as settled.** Hours-to-level, XP/gold per hour, drop rates,
+  price points, damage budgets — if the admin has not answered a `design_question` approving
+  the number, it does not appear anywhere as a premise, a "Target:" line, or the basis of a
+  derived proposal. See "The target IS the balance decision" in step 3.
 - **Never edit the `meta:`/`redemption:`/`housing:`/`epics:`/`players:` blocks** of
   `roadmap.yaml`. If the item you shipped carries an `epic:` key, leave it alone — the
   epic's progress, date, status and credit are all derived from its children.
