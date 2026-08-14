@@ -271,6 +271,92 @@ def check_xptable(problems):
             f"for the same CR -- e.g. {rising[0]}"
         )
 
+    check_xptable_model(problems, rows)
+
+
+def load_xptable_model():
+    """Import bin/gen-xptable.py, which owns the levels 1-40 award model.
+
+    Same reasoning as load_caster_rules(): the table shipped once with no
+    generator and the model existed only as 8,040 numbers, which is how the
+    low-CR defect below went unnoticed. Import it; never transcribe it.
+    """
+    path = REPO / "bin" / "gen-xptable.py"
+    if not path.exists():
+        return None
+    spec = importlib.util.spec_from_file_location("gen_xptable", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_xptable_model(problems, rows):
+    """The 2DA must be exactly what bin/gen-xptable.py generates, and its low-CR
+    end must still pay a starting character properly.
+
+    THE LOW-CR CHECK is the regression this exists to catch. The award falls off
+    below the level's difficulty tier and floors at 60 -- correct at high level
+    ("you outgrow content"), but the knee was a flat 5% of tier at EVERY level, so
+    at level 1 it sat at CR 1.5 and swallowed the starter content itself. A level 1
+    character killed a CR 0.5 skeleton for the same 60 a level 55 got, and the
+    level-1 row jumped 12x between CR 1 (60) and CR 2 (746). A future retune that
+    reintroduces a flat knee would silently do it again.
+    """
+    gen = load_xptable_model()
+    if gen is None:
+        problems.append(
+            "bin/gen-xptable.py is missing -- nothing owns the levels 1-40 kill "
+            "award model, and xptable.2da becomes 8,040 unexplained numbers"
+        )
+        return
+
+    want = gen.build()
+    drift = []
+    for level, awards in want.items():
+        row = rows.get(level - 1)
+        if row is None:
+            problems.append(f"xptable.2da: no row for level {level}")
+            continue
+        for col, xp in enumerate(awards):
+            cell = gen.cell(xp)
+            if col + 2 >= len(row):
+                drift.append(f"level {level} has no C{col}")
+            elif row[col + 2] != cell:
+                drift.append(
+                    f"level {level} C{col} is {row[col + 2]}, generator says {cell}"
+                )
+    if drift:
+        problems.append(
+            f"xptable.2da: {len(drift)} cell(s) differ from bin/gen-xptable.py -- "
+            f"re-run it with --apply instead of hand-editing "
+            f"(e.g. {drift[0]})"
+        )
+
+    # C0 is the "below CR 1" bucket, where the starter content lives.
+    starter = want[1][0]
+    if starter < 250:
+        problems.append(
+            f"xptable.2da: a level 1 character is paid {starter} XP for the "
+            f"lowest-CR kill in the game -- the knee has swallowed the starter "
+            f"content again (expected ~300; see bin/gen-xptable.py)"
+        )
+
+    # No cliff on the level 1 row: adjacent CR columns must not jump more than 3x
+    # while the award is still climbing. 60 -> 746 between CR 1 and CR 2 was the
+    # symptom players actually hit.
+    row1 = want[1]
+    for col in range(len(row1) - 1):
+        lo, hi = row1[col], row1[col + 1]
+        if hi >= gen.PEAK_XP:
+            break
+        if hi > lo * 3:
+            problems.append(
+                f"xptable.2da: level 1 jumps {lo} -> {hi} XP between CR "
+                f"{gen.column_cr(col):g} and CR {gen.column_cr(col + 1):g} -- a "
+                f"low-CR cliff on the row every new character plays"
+            )
+            break
+
 
 def check_level_cap(problems, table):
     """server.env's two level caps must agree with each other and the table.

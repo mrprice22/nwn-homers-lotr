@@ -728,6 +728,18 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
   apart. For the caster tables it imports `bin/gen-caster-slots.py`'s own cadence
   table rather than transcribing the numbers twice, and it asserts level 40 still
   equals level 20 so an edit to the sub-40 band is caught too.
+- `hak_2da/xptable.2da` is the **kill award** table (`exptable.2da` is the *cost*
+  of a level) and covers levels 1–40; levels 41–60 are paid in script by
+  `unpacked/ll_xp_inc.nss`, which has no rows to index. **Both halves are one
+  model** — a CR-versus-level curve where each level has a difficulty tier and the
+  award falls off below it — fitted to five anchors the admin chose directly.
+  `bin/gen-xptable.py` owns the 1–40 half; run it with `--apply` and never
+  hand-edit the 2DA. `check_epic_tables.py` re-derives the table from the
+  generator, and also enforces the 6,000 per-kill cap, that a lower level is never
+  paid less for the same kill, that every level can reach the cap at some CR, and
+  that the level-1 row still pays a starting character properly at low CR (the
+  knee used to be a flat 5 % of tier, which at level 1 sat on CR 1.5 and paid the
+  60 floor for the starter content itself).
 - **`classes.2da` needs no change for the 60 cap.** (Earlier revisions of this
   section claimed its `MaxLevel`/`EpicLevel` columns were part of the lever — they
   are not.) In `hak_2da/classes.2da` every player base class already has
