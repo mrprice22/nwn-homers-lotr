@@ -112,6 +112,40 @@ OPS_FILES=("$RESTART" "$STOP" "$MONITOR" "$MONITOR_AUTO" "$LOGS")
 DEV_FILES=("$UNPACK" "$REPACK" "$REPACK_CLEAN" "$REPACK_TEST" "$WIKI"
            "$NWSYNC" "$NWSYNC_FORCE")
 
+# ## The app-grid folder — one tile per season, not eleven loose icons
+#
+# Two seasons' sets are near-identical (same icons, same labels bar the trailing
+# realm tag) and one of the buttons is "Shut Down Server". On 2026-08-13 the TEST
+# set was left unfoldered beside Season 2's folder and the wrong Shut Down was
+# clicked: dev went down, live season 2 stayed up. Foldering keeps the live stop
+# button away from the test one, so it ships with the shortcuts rather than being
+# a thing to tidy up afterwards.
+#
+# MONITOR_AUTO is deliberately absent: it is an autostart file in ~/.config/
+# autostart, not an app-grid entry. Order here is the order in the folder.
+FOLDER_APPS=("$(basename "$RESTART")" "$(basename "$STOP")" "$(basename "$MONITOR")"
+             "$(basename "$REPACK")" "$(basename "$REPACK_TEST")"
+             "$(basename "$REPACK_CLEAN")" "$(basename "$UNPACK")"
+             "$(basename "$WIKI")" "$(basename "$NWSYNC")"
+             "$(basename "$NWSYNC_FORCE")" "$(basename "$LOGS")")
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  FOLDER_ID="nwn-test"
+  FOLDER_NAME="TEST realm NWN"
+else
+  FOLDER_ID="nwn-s${SEASON_NUM:-x}"
+  FOLDER_NAME="Season ${SEASON_NUM:-?} NWN"
+fi
+# Season 1 predates this and lives in a folder called `NWN`; season 2's was made
+# by hand in the GNOME UI and carries a UUID. season-appfolder.py adopts whatever
+# folder already holds our entries rather than minting a second one, so FOLDER_ID
+# only ever applies to a season that has no folder yet.
+appfolder() {  # $1 = --apply | --remove
+  local helper="$PROJECT_ROOT/bin/season-appfolder.py"
+  [[ -x $helper || -f $helper ]] || { echo "note: $helper missing — no app folder"; return 0; }
+  python3 "$helper" --id "$FOLDER_ID" --name "$FOLDER_NAME" \
+    "$1" --apps "${FOLDER_APPS[@]}" || echo "note: app folder step failed (shortcuts are still installed)"
+}
+
 # The nwn_manager wrappers that accept --project.
 MGR="${NWN_MANAGER_BIN:-/var/home/james/GIT/nwn_manager}/bin"
 
@@ -125,13 +159,21 @@ echo
 
 if [[ $MODE == remove ]]; then
   rm -fv "${OPS_FILES[@]}" "${DEV_FILES[@]}"
+  appfolder --remove
   update-desktop-database "$APPS" 2>/dev/null || true
   echo "done. (The roadmap editor is untouched — it is single-instance and tracks"
   echo "the newest repo; see season-cutover-prereqs.md item 12.)"
   exit 0
 fi
 
+echo "app folder      : $FOLDER_NAME (id $FOLDER_ID)"
+echo
+
 if [[ $MODE == dry ]]; then
+  # The helper is dry-run by default too, so this previews the folder change.
+  python3 "$PROJECT_ROOT/bin/season-appfolder.py" --id "$FOLDER_ID" \
+    --name "$FOLDER_NAME" --apps "${FOLDER_APPS[@]}" || true
+  echo
   echo "DRY RUN — re-run with --install to write, --remove to delete."
   exit 0
 fi
@@ -279,5 +321,8 @@ write_hold_entry "$NWSYNC_FORCE" \
 
 update-desktop-database "$APPS" 2>/dev/null || true
 echo
-echo "done. Every entry is season-labelled and season-scoped. The roadmap editor"
-echo "is untouched: single-instance on the newest repo (prereqs item 12)."
+appfolder --apply
+echo
+echo "done. Every entry is season-labelled, season-scoped, and in this season's"
+echo "own app-grid folder. The roadmap editor is untouched: single-instance on"
+echo "the newest repo (prereqs item 12)."
