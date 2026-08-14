@@ -33,7 +33,7 @@
           <a href="../items/index.html">Accessible</a>
           <a href="../items/inaccessible/index.html">Inaccessible</a>
           <a href="../items/properties/index.html">By Property</a>
-          <a href="../items/search.html">Search</a>
+          <a href="../items/search.html" class="nav-current" aria-current="page">Search</a>
         </div>
       </div>
       <a href="../stores/index.html">Stores</a>
@@ -58,18 +58,6 @@
   </header>
   <main>
 <h1>Search Items</h1><p>All conditions must be satisfied simultaneously. Leave fields blank to skip.</p><form id="sf" class="item-search-form"><div class="search-row"><label for="fb">Base item</label><select id="fb"><option value="">— all —</option></select><label for="fo">Sort by</label><select id="fo"><option value="cost">Cost</option><option value="value">Property Value</option><option value="name">Name</option></select><select id="fd"><option value="desc">Descending</option><option value="asc">Ascending</option></select><label class="checkbox-label" title="Include items carried by NPCs that have no Dropable=1 flag — they exist in the module but cannot be looted"><input type="checkbox" id="fnd"> Include non-droppable items</label><label class="checkbox-label"><input type="checkbox" id="fpp"> Pickpocketable only</label><button type="submit">Search</button></div><div class="prop-rows"><div class="prop-row"><label>Property 1</label><select id="fp1" class="prop-sel"><option value="">— any —</option></select><select id="fs1" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv1" type="number" min="0" placeholder="min value"></div><div class="prop-row"><label>Property 2</label><select id="fp2" class="prop-sel"><option value="">— any —</option></select><select id="fs2" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv2" type="number" min="0" placeholder="min value"></div><div class="prop-row"><label>Property 3</label><select id="fp3" class="prop-sel"><option value="">— any —</option></select><select id="fs3" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv3" type="number" min="0" placeholder="min value"></div><div class="prop-row"><label>Property 4</label><select id="fp4" class="prop-sel"><option value="">— any —</option></select><select id="fs4" class="subtype-sel" disabled><option value="">— any —</option></select><input id="fv4" type="number" min="0" placeholder="min value"></div></div></form><div id="sr"><p class="muted">Use the filters above and click Search.</p></div><script>(function(){
-var N=4,data=[],form=document.getElementById('sf'),results=document.getElementById('sr');
-var propSels=[],subSels=[],minVals=[];
-for(var i=1;i<=N;i++){
-  propSels.push(document.getElementById('fp'+i));
-  subSels.push(document.getElementById('fs'+i));
-  minVals.push(document.getElementById('fv'+i));
-}
-
-fetch('search-index.json').then(function(r){return r.json();}).then(function(d){
-  data=d; populateFilters();
-});
-
 var _FIXED_VALS={
   'Heavy Armor':1,'Medium Armor':1,'Light Armor':1,'Cloth & Robes':1,
   'Small Shields':1,'Large Shields':1,'Tower Shields':1,
@@ -88,17 +76,10 @@ function _addOpts(grp,opts,bisSet){
   return added;
 }
 
-function populateFilters(){
-  var bisSet={},props={},subs={};
-  data.forEach(function(it){
-    bisSet[it.base_item]=1;
-    it.properties.forEach(function(p){
-      props[p.prop]=1;
-      if(p.subtype){if(!subs[p.prop])subs[p.prop]={};subs[p.prop][p.subtype]=1;}
-    });
-  });
-  window._subs=subs;
-  var biSel=document.getElementById('fb');
+function populateFilters(data,u){
+  var bisSet={};
+  data.forEach(function(it){bisSet[it.base_item]=1;});
+  var biSel=u.$('fb');
 
   var GROUPS=[
     {label:'Armor',opts:[
@@ -150,69 +131,34 @@ function populateFilters(){
     }
     if(added>0)biSel.appendChild(grp);
   });
-
-  var propOpts=Object.keys(props).sort();
-  propSels.forEach(function(sel){
-    propOpts.forEach(function(p){sel.appendChild(new Option(p,p));});
-  });
 }
 
-propSels.forEach(function(sel,idx){
-  sel.addEventListener('change',function(){
-    var chosen=sel.value,sub=(window._subs||{})[chosen]||{};
-    subSels[idx].innerHTML='<option value="">— any —</option>';
-    Object.keys(sub).sort().forEach(function(s){subSels[idx].appendChild(new Option(s,s));});
-    subSels[idx].disabled=!chosen||!Object.keys(sub).length;
-  });
-});
+function readForm(u){
+  return {
+    bi:u.$('fb').value,
+    sortBy:u.$('fo').value,
+    asc:u.$('fd').value==='asc',
+    inclNonDrop:u.$('fnd').checked,
+    ppOnly:u.$('fpp').checked
+  };
+}
 
-form.addEventListener('submit',function(e){
-  e.preventDefault();
-  var bi=document.getElementById('fb').value;
-  var sortBy=document.getElementById('fo').value;
-  var asc=document.getElementById('fd').value==='asc';
-  var inclNonDrop=document.getElementById('fnd').checked;
-  var ppOnly=document.getElementById('fpp').checked;
-  var conds=[];
-  for(var i=0;i<N;i++){
-    var prop=propSels[i].value,sub=subSels[i].value;
-    var minv=parseInt(minVals[i].value,10)||0;
-    if(prop||sub||minv>0)conds.push({prop:prop,sub:sub,minv:minv});
-  }
-  var out=[];
-  data.forEach(function(it){
-    if(!it.accessible&&!inclNonDrop)return;
-    if(ppOnly&&!it.pickpocketable)return;
-    if(bi){
-      if(it.base_item!==bi)return;
-    }
-    var matched=[];
-    var ok=!conds.length||conds.every(function(c){
-      var mp=it.properties.filter(function(p){
-        if(c.prop&&p.prop!==c.prop)return false;
-        if(c.sub&&p.subtype!==c.sub)return false;
-        if(c.minv>0&&p.value_num<c.minv)return false;
-        return true;
-      });
-      if(!mp.length)return false;
-      matched.push(mp[0]);
-      return true;
-    });
-    if(!ok)return;
-    if(!matched.length&&it.properties.length)matched=[it.properties[0]];
-    out.push({it:it,matched:matched});
-  });
-  out.sort(function(a,b){
-    var v;
-    if(sortBy==='cost')v=a.it.cost-b.it.cost;
-    else if(sortBy==='value')v=(a.matched[0]?a.matched[0].value_num:0)-(b.matched[0]?b.matched[0].value_num:0);
-    else v=a.it.name.localeCompare(b.it.name);
-    return asc?v:-v;
-  });
-  render(out,!!conds.length,inclNonDrop);
-});
+function filterItem(it,f){
+  if(!it.accessible&&!f.inclNonDrop)return false;
+  if(f.ppOnly&&!it.pickpocketable)return false;
+  if(f.bi&&it.base_item!==f.bi)return false;
+  return true;
+}
 
-function render(rows,showProps,showAccess){
+function compare(a,b,f){
+  if(f.sortBy==='cost')return a.rec.cost-b.rec.cost;
+  if(f.sortBy==='value')return (a.matched[0]?a.matched[0].value_num:0)-(b.matched[0]?b.matched[0].value_num:0);
+  return a.rec.name.localeCompare(b.rec.name);
+}
+
+function render(rows,f,conds,u){
+  var esc=u.esc,results=u.results;
+  var showProps=conds.length>0,showAccess=f.inclNonDrop;
   if(!rows.length){results.innerHTML='<p class="muted">No items match.</p>';return;}
   var cols='<th>Name</th>'
     +(showAccess?'<th>Reachable</th>':'')
@@ -242,26 +188,32 @@ function render(rows,showProps,showAccess){
       }
       return '<span>'+propLink+detail+'</span>';
     }).join('<br>');
-    var idxBase=r.it.accessible?'index.html':'inaccessible/index.html';
-    var biHref=idxBase+'#'+esc(r.it.base_item_anchor||'');
-    var biCell=r.it.base_item_anchor
-      ?'<a href="'+biHref+'">'+esc(r.it.base_item)+'</a>'
-      :esc(r.it.base_item);
-    var dropBadge=(!showAccess&&!r.it.accessible)?' <span class="badge-no-drop" title="Carried by NPCs but not flagged as droppable \u2014 cannot be looted">no drop</span>':'';
-    var accessCell=showAccess?(r.it.accessible?'<td>Yes</td>':'<td><span class="muted">No</span></td>'):'';
-    html+='<tr><td><a href="'+esc(r.it.url)+'">'+esc(r.it.name)+'</a>'+dropBadge+'</td>'
+    var idxBase=r.rec.accessible?'index.html':'inaccessible/index.html';
+    var biHref=idxBase+'#'+esc(r.rec.base_item_anchor||'');
+    var biCell=r.rec.base_item_anchor
+      ?'<a href="'+biHref+'">'+esc(r.rec.base_item)+'</a>'
+      :esc(r.rec.base_item);
+    var dropBadge=(!showAccess&&!r.rec.accessible)?' <span class="badge-no-drop" title="Carried by NPCs but not flagged as droppable \u2014 cannot be looted">no drop</span>':'';
+    var accessCell=showAccess?(r.rec.accessible?'<td>Yes</td>':'<td><span class="muted">No</span></td>'):'';
+    html+='<tr><td><a href="'+esc(r.rec.url)+'">'+esc(r.rec.name)+'</a>'+dropBadge+'</td>'
          +accessCell
          +'<td>'+biCell+'</td>'
          +(showProps?'<td>'+props+'</td>':'')
-         +'<td>'+(r.it.cost?r.it.cost.toLocaleString()+' gp':'\u2014')+'</td></tr>';
+         +'<td>'+(r.rec.cost?r.rec.cost.toLocaleString()+' gp':'\u2014')+'</td></tr>';
   });
   results.innerHTML=html+'</tbody></table>';
 }
 
-function esc(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+document.addEventListener('DOMContentLoaded',function(){
+  initSearch({
+    formId:'sf',resultsId:'sr',
+    ids:{prop:'fp',sub:'fs',min:'fv'},
+    keys:{list:'properties',prop:'prop',sub:'subtype',val:'value_num'},
+    fillFirstMatch:true,
+    populate:populateFilters,readForm:readForm,filter:filterItem,
+    compare:compare,render:render
+  });
+});
 })();</script>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
