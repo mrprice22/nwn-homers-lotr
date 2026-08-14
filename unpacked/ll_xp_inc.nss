@@ -20,11 +20,15 @@
 // below 40 would double up with the engine's own award.
 //
 // THE BOOST. The premium 2x boost is applied HERE rather than by the usual
-// NWNX_ON_SET_EXPERIENCE_BEFORE handler, because at the level-60 ceiling the
-// engine clamps the write and the boosted remainder would be silently lost
-// before it could be banked. We read the multiplier ourselves, split the total
-// between sheet and bank, and hand the sheet portion to Boost_GiveXPNoBoost so
-// boost_xp_evt.nss does not double it a second time.
+// NWNX_ON_SET_EXPERIENCE_BEFORE handler, because at the level-60 ceiling
+// GiveXPToCreature can clamp the write and the boosted remainder would be
+// silently lost. We read the multiplier ourselves, hand the total to
+// Boost_GiveXPNoBoost so boost_xp_evt.nss does not double it a second time, and
+// force the write if the engine refused it (see LlXp_GiveKillXP).
+//
+// PAST LEVEL 60 the XP keeps accumulating ON THE CHARACTER. It is not diverted
+// into the XP bank and it is not dropped -- a character simply carries a total
+// above the level-60 threshold, which is already a state characters reach.
 
 #include "boost_inc"
 
@@ -47,24 +51,21 @@
 //               FLOOR + (PEAK-FLOOR) x f^KNEE_EXP otherwise,
 //                                                 f = (r-KNEE)/(1-KNEE)
 //
-// tier(41) is 40, so level 41 pays exactly what level 40 paid for the same
-// CR 40+ kill and the boundary is seamless at the top of the range. By level 50
-// you need CR 162 for full value, by 60 CR 770 -- which walks a player from the
-// Wold/Ettenmoors tier up through Mordor and Gondor rather than letting one zone
-// carry the whole band.
+// The ladder walks a player up through the endgame zones rather than letting one
+// of them carry the whole band: full value needs CR 150 at level 41, CR 201 at
+// 49, and CR 300 at 60 -- Wold/Ettenmoors, then Mordor, then Gondor.
 //
 // KNEE_EXP > 1 makes the ramp convex, so on-tier content stays clearly the best
 // use of time even though below-tier content still pays something.
 //
 // KNOWN BOUNDARY STEP: softening the knee (admin's call 2026-08-13) necessarily
 // pays below-tier content MORE than the engine does at level 40 -- a CR 30 mob
-// pays 60 at level 40 and ~2,450 at level 41. The window is self-closing: by
-// level 44 that same mob is under the knee again and back to 60. This was
-// accepted deliberately so low-tier content stays farmable for a few levels
-// after 40 instead of dying at the boundary.
+// pays 2,408 at level 37 and 500 at level 41 -- the softened knee keeps below-
+// tier content paying something on the way down instead of dropping straight to
+// the floor the moment you outgrow it.
 //
-// BALANCE, APPROVED BY THE ADMIN 2026-08-13 ("option A"). Roughly 9.5 hours solo
-// unboosted for 41->60, ~4.8 with the 2x boost, at 90 kills/hour.
+// BALANCE, APPROVED BY THE ADMIN 2026-08-13 ("option A"). Roughly 9.9 hours solo
+// unboosted for 41->60, ~5.0 with the 2x boost, at 90 kills/hour.
 //
 // A 20-hour target was considered first and abandoned as arithmetically
 // impossible alongside the other requirements. 41->60 costs 2,752,200 XP, so at
@@ -108,6 +109,7 @@
 // creature_index.json + bosses.json before changing it, and record the new target
 // on the roadmap item; the target is a balance decision, not an implementation
 // detail (see CLAUDE-autopilot.md, "The target IS the balance decision").
+
 // MODULE-WIDE HARD CAP on a single kill, BEFORE the 2x boost -- so a boosted kill
 // pays at most 12,000 and an unboosted one at most 6,000. Admin decision
 // 2026-08-13: "6k XP HARD CAP, period." This binds BOTH award paths:
@@ -140,16 +142,6 @@ float LlXp_Tier(int nLevel)
     return LLXP_TIER_BASE * pow(LLXP_TIER_STEP, IntToFloat(nLevel - LLXP_MIN_LEVEL));
 }
 
-// Cumulative XP for character level 60 -- exptable.2da's top real row. Also
-// transcribed in grant_lvl60.nss, code_redeem.nss (XP_LEVEL_60) and the fallback
-// switch in _build_lvl_inc.nss; tests/check_epic_tables.py cross-checks them
-// against the 2DA, so retune all of them together or the gate fails the build.
-const int   LLXP_LEVEL_60_XP = 3581000;
-
-// Family XP reserve, shared with the XP bank. Same campaign DB and key that
-// bank_xp_deposit.nss writes on retirement and the xp_withdraw_* scripts read.
-const string LLXP_BANK_DB = "bankdb";
-
 // The award for this CR at this character level, before the boost and before any
 // ceiling split.
 int LlXp_Award(int nLevel, float fCR)
@@ -174,29 +166,28 @@ void LlXp_GiveKillXP(object oPC, float fCR)
     int nTotal = LlXp_Award(nLevel, fCR) * Boost_Mult(oPC);
     if (nTotal <= 0) return;
 
-    // Split at the level-60 ceiling. Room can be negative if a character is
-    // somehow above the ceiling (a legacy grant), so clamp before using it.
-    int nRoom = LLXP_LEVEL_60_XP - GetXP(oPC);
-    if (nRoom < 0) nRoom = 0;
-
-    int nToSheet = nTotal;
-    if (nToSheet > nRoom) nToSheet = nRoom;
-    int nToBank = nTotal - nToSheet;
-
     // Boost already applied above -- Boost_GiveXPNoBoost raises the boost_no_xp
     // flag so boost_xp_evt.nss leaves this write at face value.
-    if (nToSheet > 0) Boost_GiveXPNoBoost(oPC, nToSheet);
+    int nBefore = GetXP(oPC);
+    Boost_GiveXPNoBoost(oPC, nTotal);
 
-    // Overflow at the ceiling goes to the family reserve UNTAXED (admin's call
-    // 2026-08-13): the 15% in bank_xp_deposit.nss is a retirement fee paid on
-    // XP the player chose to give up, and overflow was never theirs to keep.
-    if (nToBank > 0)
+    // XP KEEPS ACCUMULATING PAST LEVEL 60 (admin's call 2026-08-13). It stays on
+    // the character -- it is NOT diverted into the XP bank, and nothing is
+    // dropped for being at the cap.
+    //
+    // GiveXPToCreature can refuse to carry a character past the top of
+    // exptable.2da, which would silently swallow the award for exactly the
+    // players who have been here longest. If the grant did not land in full,
+    // write the total directly. Sitting above the level-60 threshold is a
+    // supported state, not damage to repair: characters already do (samirswift
+    // was at 3,598,450 against a 3,581,000 ceiling before any of this shipped).
+    // The same boost_no_xp flag brackets the write so the boost handler does not
+    // apply the multiplier a second time.
+    int nShort = nTotal - (GetXP(oPC) - nBefore);
+    if (nShort > 0)
     {
-        string sKey = "fam_xp_" + GetPCPublicCDKey(oPC);
-        SetCampaignInt(LLXP_BANK_DB, sKey,
-            GetCampaignInt(LLXP_BANK_DB, sKey) + nToBank);
-
-        SendMessageToPC(oPC, "[XP Bank] You are at the level 60 ceiling -- "
-            + IntToString(nToBank) + " XP was deposited into your family reserve.");
+        SetLocalInt(oPC, "boost_no_xp", 1);
+        SetXP(oPC, nBefore + nTotal);
+        DeleteLocalInt(oPC, "boost_no_xp");
     }
 }

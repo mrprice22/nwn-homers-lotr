@@ -51,7 +51,6 @@ EXPTABLE = REPO / "hak_2da" / "exptable.2da"
 CLASSES = REPO / "hak_2da" / "classes.2da"
 BUILD_INC = REPO / "unpacked" / "_build_lvl_inc.nss"
 CODE_REDEEM = REPO / "unpacked" / "code_redeem.nss"
-LL_XP_INC = REPO / "unpacked" / "ll_xp_inc.nss"
 XPTABLE = REPO / "hak_2da" / "xptable.2da"
 # 6,000 XP hard cap / Mod_XPScale of 150 applied as /10 (x15). If Mod_XPScale
 # ever changes, this and ll_xp_inc.nss's XP_KILL_CAP must move together.
@@ -273,29 +272,6 @@ def check_xptable(problems):
         )
 
 
-def check_ll_xp_inc(problems, table):
-    """ll_xp_inc.nss's LLXP_LEVEL_60_XP is the fourth copy of the same number.
-
-    It is the ceiling the legendary kill award splits on: XP above it is
-    deposited into the family reserve instead of being written to the sheet. A
-    stale constant here would either strand XP below the real ceiling or bank
-    nothing at all, and it fails silently in both directions.
-    """
-    if not LL_XP_INC.exists():
-        return                      # optional consumer; nothing to reconcile
-    src = LL_XP_INC.read_text(encoding="utf-8")
-    m = re.search(r"const\s+int\s+LLXP_LEVEL_60_XP\s*=\s*(\d+)\s*;", src)
-    if not m:
-        problems.append("ll_xp_inc.nss: LLXP_LEVEL_60_XP constant not found")
-        return
-    want = table.get(MAX_LEVEL)
-    if want is not None and int(m.group(1)) != want:
-        problems.append(
-            f"ll_xp_inc.nss: LLXP_LEVEL_60_XP is {m.group(1)}, exptable.2da says "
-            f"{want} — legendary kill XP would bank at the wrong ceiling"
-        )
-
-
 def check_level_cap(problems, table):
     """server.env's two level caps must agree with each other and the table.
 
@@ -486,7 +462,6 @@ def main() -> int:
     table = check_exptable(problems)
     check_fallback(problems, table)
     check_code_redeem(problems, table)
-    check_ll_xp_inc(problems, table)
     check_xptable(problems)
     check_level_cap(problems, table)
     check_classes(problems)
