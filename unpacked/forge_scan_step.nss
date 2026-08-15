@@ -14,6 +14,13 @@
 //                stops; draining the queue clean sets FORGE_WARDEN_DIRTY=0.
 //                Either way FORGE_WARDEN_READY=1 marks the verdict as known, so
 //                forge_ward_c_il / forge_ward_c_ok read it in O(1).
+//   2 = REVERT  - the Warden's "revert all to stock" action. Every illegal item
+//                is reverted to its stock blueprint; this mode does NOT stop on
+//                the first one, it drains the whole queue. Items with no known
+//                blueprint tally into FORGE_RVT_FAIL and stay illegal. On drain,
+//                a zero tally releases the player from the Pit Prison; a
+//                non-zero one leaves the dirty verdict standing so the dialog's
+//                "remains unlawful" branch (forge_ward_c_il) shows.
 //
 // Items confirmed legal are stamped FORGE_CLEAN = FORGE_CLEAN_VER (both modes)
 // so later scans skip them. INDETERMINATE items (valuation infrastructure
@@ -42,17 +49,31 @@ void main()
         int nVerdict = ForgeItemLegality(oItem);
         if (nVerdict == FORGE_LEG_ILLEGAL)
         {
-            if (nMode == 1)
+            if (nMode == 2)
+            {
+                // Revert-all: fix it and keep going. A missing blueprint is the
+                // only failure - tally it and leave the item alone.
+                if (!GetIsObjectValid(ForgeRevertToBlueprint(oItem, oPC)))
+                {
+                    SetLocalInt(oPC, "FORGE_RVT_FAIL",
+                        GetLocalInt(oPC, "FORGE_RVT_FAIL") + 1);
+                    SetLocalObject(oPC, "FORGE_ILLEGAL_ITEM", oItem);
+                }
+            }
+            else if (nMode == 1)
             {
                 SetLocalObject(oPC, "FORGE_ILLEGAL_ITEM", oItem);
                 SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", TRUE);
                 SetLocalInt(oPC, "FORGE_WARDEN_READY", TRUE);
+                return; // stop scanning - verdict is dirty
             }
             else
+            {
                 ForgeJailForItem(oPC, oItem);
-            return; // stop scanning - verdict is dirty
+                return; // stop scanning - verdict is dirty
+            }
         }
-        if (nVerdict == FORGE_LEG_LEGAL)
+        else if (nVerdict == FORGE_LEG_LEGAL)
             SetLocalInt(oItem, "FORGE_CLEAN", FORGE_CLEAN_VER);
         // INDETERMINATE: leave unstamped, re-evaluate next scan.
     }
@@ -63,7 +84,20 @@ void main()
         return;
     }
 
-    // Queue drained with no illegal item found.
+    // Queue drained.
+    if (nMode == 2)
+    {
+        int nFail = GetLocalInt(oPC, "FORGE_RVT_FAIL");
+        ForgeLog("forge_scan_step: revert-all drained for " + GetName(oPC)
+            + ", " + IntToString(nFail) + " item(s) had no blueprint");
+        SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", nFail > 0);
+        SetLocalInt(oPC, "FORGE_WARDEN_READY", TRUE);
+        if (nFail > 0)
+            return; // items remain unlawful - the warden keeps them here
+        DeleteLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
+        ForgeReleaseFromJail(oPC);
+        return;
+    }
     if (nMode == 1)
     {
         SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", FALSE);

@@ -1019,27 +1019,8 @@ object ForgeRevertToBlueprint(object oItem, object oPC)
     return oNew;
 }
 
-// Revert every illegal item on the PC to its stock blueprint. Returns how
-// many could NOT be reverted (no known blueprint); those stay illegal.
-// Every visited item is stamped with this pass's run id BEFORE the revert,
-// so the loop terminates even if DestroyObject is deferred past the rescan.
-int ForgeRevertAllIllegal(object oPC)
-{
-    int nRun = GetLocalInt(oPC, "FORGE_RVT_RUN") + 1;
-    SetLocalInt(oPC, "FORGE_RVT_RUN", nRun);
-    int nFail = 0;
-    int nGuard = 0;
-    object oBad = ForgeFindIllegalItem(oPC, TRUE);
-    while (GetIsObjectValid(oBad) && nGuard < 100)
-    {
-        nGuard++;
-        SetLocalInt(oBad, "FORGE_RVT_SKIP", nRun);
-        if (!GetIsObjectValid(ForgeRevertToBlueprint(oBad, oPC)))
-            nFail++;
-        oBad = ForgeFindIllegalItem(oPC, TRUE);
-    }
-    return nFail;
-}
+// (Revert-all lives further down as ForgeBeginRevertAll - it is chunked through
+// forge_scan_step and so must be declared after ForgeEnqueueScan.)
 
 // Menu label for one strip-list slot. A cosmetic property is listed (so it can
 // be unmade) but marked free, because striking it frees no slot and returns no
@@ -1607,4 +1588,60 @@ void ForgeBeginWardenScan(object oPC)
     SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", FALSE);
     DeleteLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
     SetLocalInt(oPC, "FORGE_WARDEN_READY", TRUE);
+}
+
+// Send a now-lawful player from the Pit Prison back to the Well of Eru. Delayed
+// so the warden's parting line is on screen before the jump ends the
+// conversation. No-op (with a log line) when the waypoint is missing - never
+// leave the player mid-jump on infrastructure failure.
+void ForgeReleaseFromJail(object oPC)
+{
+    object oWP = GetWaypointByTag("secondchance");
+    if (!GetIsObjectValid(oWP))
+    {
+        ForgeLog("ForgeReleaseFromJail: waypoint 'secondchance' missing!");
+        return;
+    }
+    location lWell = GetLocation(oWP);
+    DelayCommand(2.5, AssignCommand(oPC, ClearAllActions()));
+    DelayCommand(2.5, AssignCommand(oPC, JumpToLocation(lWell)));
+}
+
+// Revert every illegal item on the PC to its stock blueprint, ONE ITEM PER
+// DELAYED STEP (forge_scan_step in mode 2). Each step gets a fresh NWScript
+// instruction budget, so a full inventory of high-end gear cannot overflow.
+//
+// This used to be a synchronous while-loop (ForgeRevertAllIllegal) that called
+// ForgeFindIllegalItem once per revert, re-evaluating the whole unscanned
+// inventory on every iteration. Because the LOGIN scan stops at the first
+// illegal item, almost nothing carries a FORGE_CLEAN stamp when the jailed
+// player reaches the Warden, so the short-circuit that was supposed to make
+// that cheap never applied. The result was TOO MANY INSTRUCTIONS in
+// forge_ward_rva: the one action that frees a jailed player was the one action
+// that could not run, leaving them stuck in the Pit Prison with no way out.
+// Same trap, and same fix, as the dialog gates in ForgeBeginWardenScan.
+//
+// Unlike the scan modes this does NOT stop at the first illegal item - the
+// whole queue is drained, reverting as it goes. The running count of items with
+// no known blueprint lives in FORGE_RVT_FAIL; forge_scan_step reads it at drain
+// to decide between releasing the player and leaving the "still unlawful"
+// verdict standing for forge_ward_c_il.
+void ForgeBeginRevertAll(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC))
+        return;
+    SetLocalInt(oPC, "FORGE_SCAN_MODE", 2); // revert-all mode
+    SetLocalInt(oPC, "FORGE_RVT_FAIL", 0);
+    SetLocalInt(oPC, "FORGE_WARDEN_READY", FALSE); // verdict pending until drain
+    int n = ForgeEnqueueScan(oPC);
+    if (n > 0)
+    {
+        DelayCommand(0.1, ExecuteScript("forge_scan_step", oPC));
+        return;
+    }
+    // Nothing to revert: trivially clean, release immediately.
+    SetLocalInt(oPC, "FORGE_WARDEN_DIRTY", FALSE);
+    SetLocalInt(oPC, "FORGE_WARDEN_READY", TRUE);
+    DeleteLocalObject(oPC, "FORGE_ILLEGAL_ITEM");
+    ForgeReleaseFromJail(oPC);
 }
