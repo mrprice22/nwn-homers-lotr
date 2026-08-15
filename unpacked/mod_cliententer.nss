@@ -203,6 +203,15 @@ void main()
     // been forced above (the queue is keyed on GetObjectUUID); 9.0 keeps it
     // clear of the login flood and of PW_Refresh's floating text.
     // See fat_inc.nss (roadmap: heal-soul-fatigue-rebalance).
+    //
+    // The clear is UNDELAYED on purpose, and it is the fix for the relog bug: a
+    // reconnecting player's PC object comes back from the server's player TURD
+    // with its local variables intact, including fat_ticking - a ticker guard
+    // whose ticker died with the previous object. Left in place it blocks
+    // FAT_Kick forever, so the stacks never decay again. Clearing it here, ahead
+    // of any spell the player could cast, means nothing ever reads the stale
+    // counters either; FAT_LoginRestore below re-derives them from the DB.
+    FAT_ClearLocals(oPC);
     FAT_InitDb();
     DelayCommand(9.0, FAT_LoginRestore(oPC));
 

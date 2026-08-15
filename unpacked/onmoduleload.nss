@@ -278,5 +278,10 @@ PW_InitDb();
 // first heal lands or the first login tries to restore a queue.
 // See fat_inc.nss (roadmap: heal-soul-fatigue-rebalance).
 FAT_InitDb();
+// ... and then clear it. Soul-fatigue does not survive a reboot: no combat did.
+// Every boss and creature that ran a player's stacks up has just been reset by
+// this very load, so the healing debt resets with them. Stacks persist across a
+// LOGOUT (that is the anti-dodge rule), never across a restart.
+FAT_WipeAll();
 
 }   //end of main

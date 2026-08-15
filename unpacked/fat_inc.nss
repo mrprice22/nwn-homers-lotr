@@ -30,6 +30,10 @@
 //   * Death does not clear them either. Nothing in this file (or anywhere
 //     else) resets the queue on death or respawn; dying with a full stack
 //     count means coming back with it.
+//   * A SERVER REBOOT does clear them, for everyone - FAT_WipeAll() from
+//     onmoduleload.nss. No combat survived the restart: every boss and creature
+//     that caused the stacks is reset at load, so the debt resets with them.
+//     This is the one and only way out of the queue besides waiting it down.
 // The old implementation used one independent DelayCommand per stack and a
 // plain local int. That decayed in real time whether or not you were logged
 // in, and a relog wiped the lot - both are now closed.
@@ -133,6 +137,42 @@ void FAT_Save(object oPC)
     SqlStep(q);
 }
 
+// Wipe the whole table. Called from onmoduleload.nss: soul-fatigue does not
+// survive a reboot, because no combat did - every boss and creature that caused
+// the stacks is reset at load, so the debt resets with them.
+void FAT_WipeAll()
+{
+    sqlquery q = SqlPrepareQueryCampaign(FAT_DB, "DELETE FROM fatigue");
+    SqlStep(q);
+}
+
+// Drop every fatigue local from a PC.
+//
+// This exists because of the player TURD: when a player disconnects, the server
+// keeps a serialised copy of the PC object - LOCAL VARIABLES INCLUDED - for the
+// rest of the server session, and restores it when the same player reconnects.
+// The delayed-command chain that was doing the ticking died with the old object,
+// but fat_ticking comes back TRUE, and FAT_Kick's "already ticking" guard then
+// blocks the ticker FOREVER: no login restore and no later heal can ever re-arm
+// it. That is the relog bug - stacks frozen for the life of the character.
+// So the guard (and the counters, which the DB is authoritative for) is cleared
+// on the way in, before anything can read it.
+void FAT_ClearLocals(object oPC)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    DeleteLocalInt(oPC, FAT_VAR);
+    DeleteLocalString(oPC, FAT_QVAR);
+    DeleteLocalInt(oPC, FAT_RUNVAR);
+}
+
+// Clear just the ticker guard, for the logout path - so the TURD is never even
+// written with a guard that has no ticker behind it.
+void FAT_ClearTickGuard(object oPC)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    DeleteLocalInt(oPC, FAT_RUNVAR);
+}
+
 // --- the decay ticker -------------------------------------------------------
 
 // Start (or restart) the per-PC ticker if it isn't already running.
@@ -149,6 +189,22 @@ void FAT_Kick(object oPC)
     SetLocalInt(oPC, FAT_RUNVAR, TRUE);
     AssignCommand(oPC,
         DelayCommand(FAT_TICK, ExecuteScript(FAT_TICK_SCRIPT, oPC)));
+}
+
+// How many stacks a queue string holds - one comma-terminated entry each.
+// Same scan shape as FAT_AgeQueue below; used to keep fat_stacks in step when
+// two queues are merged at login.
+int FAT_CountQueue(string sQ)
+{
+    int nCount = 0;
+    int p = FindSubString(sQ, ",");
+    while (p >= 0)
+    {
+        nCount++;
+        sQ = GetSubString(sQ, p + 1, GetStringLength(sQ) - p - 1);
+        p = FindSubString(sQ, ",");
+    }
+    return nCount;
 }
 
 // Age every stack by nSecs and drop the ones that ran out. Returns how many
@@ -207,26 +263,53 @@ void FAT_Tick(object oPC)
 // Login: pull the stored queue back onto the PC and re-arm the ticker, so the
 // clock restarts exactly where it stopped. Called from mod_cliententer.nss,
 // delayed past the login flood and past the GetObjectUUID forcing call there.
+//
+// The campaign DB is AUTHORITATIVE here, never the locals on the object: after
+// a reconnect those may be whatever the player TURD carried over (see
+// FAT_ClearLocals), and after a reboot wipe they would resurrect stacks that no
+// longer exist. The one thing worth keeping off the object is a stack earned
+// since this character entered - a heal can land inside the login window, ahead
+// of this call - so that queue is merged in rather than overwritten.
 void FAT_LoginRestore(object oPC)
 {
     if (!GetIsObjectValid(oPC) || !GetIsPC(oPC) || GetIsDM(oPC)) return;
 
+    string sInterim = GetLocalString(oPC, FAT_QVAR);
+
+    // Never leave a guard with no ticker behind it - this is the relog fix.
+    DeleteLocalInt(oPC, FAT_RUNVAR);
+
+    string sStored = "";
     sqlquery q = SqlPrepareQueryCampaign(FAT_DB,
         "SELECT stacks,queue FROM fatigue WHERE uuid=@u");
     SqlBindString(q, "@u", GetObjectUUID(oPC));
-    if (!SqlStep(q)) return;
+    if (SqlStep(q) && SqlGetInt(q, 0) > 0) sStored = SqlGetString(q, 1);
 
-    int nStacks = SqlGetInt(q, 0);
-    if (nStacks <= 0) return;
+    string sQueue = sStored + sInterim;
+    int nStacks = FAT_CountQueue(sQueue);
 
+    SetLocalString(oPC, FAT_QVAR, sQueue);
     SetLocalInt(oPC, FAT_VAR, nStacks);
-    SetLocalString(oPC, FAT_QVAR, SqlGetString(q, 1));
+
+    if (nStacks <= 0)
+    {
+        // Nothing stored and nothing earned since entering. Clear the locals out
+        // rather than leaving an empty queue behind, and say nothing.
+        FAT_ClearLocals(oPC);
+        return;
+    }
+
+    // Keep the row in step with the merge (and re-create it if a stack was
+    // earned in the login window with no row stored).
+    FAT_Save(oPC);
     FAT_Kick(oPC);
 
-    FloatingTextStringOnCreature("You return still soul-weary: "
-        + IntToString(nStacks) + " stack" + (nStacks == 1 ? "" : "s")
-        + " of soul-fatigue. It does not fade while you are away.",
-        oPC, FALSE);
+    int nRestored = FAT_CountQueue(sStored);
+    if (nRestored > 0)
+        FloatingTextStringOnCreature("You return still soul-weary: "
+            + IntToString(nRestored) + " stack" + (nRestored == 1 ? "" : "s")
+            + " of soul-fatigue. It does not fade while you are away.",
+            oPC, FALSE);
 }
 
 // The ordered mechanic. Runs AFTER the heal has landed on oPC:

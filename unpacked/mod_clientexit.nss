@@ -30,6 +30,11 @@ void main()
     // only ever catches the <=6s of ticker granularity since the last write.
     // Decay does not run while the character is gone.
     FAT_Save(PC);
+    // Drop the ticker guard before the object is serialised: the server keeps a
+    // player TURD for the session and hands these locals back on reconnect, and
+    // a guard with no ticker behind it wedges decay permanently. mod_cliententer
+    // clears it again on the way in - this just stops it ever being stored.
+    FAT_ClearTickGuard(PC);
     // Force BIC write so the amulet (if any) and any other inventory /
     // BIC-resident state from this session survive a logout that beats
     // the next pc_export_inc auto-save tick.
