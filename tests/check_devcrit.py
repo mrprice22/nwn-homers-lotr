@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Build gate: the Devastating Critical rework (roadmap devcrit-roll) is wired.
 
-unpacked/devcrit_atk.nss runs on EVERY attack on the server and
-unpacked/devcrit_eff.nss on every effect applied. A mistake in either is a
-mistake in all combat, and every failure mode is silent: the plugin simply is
+unpacked/devcrit_atk.nss runs on EVERY attack on the server. A mistake in it is
+a mistake in all combat, and every failure mode is silent: the plugin simply is
 not loaded, or the handler is not registered, or the guard that makes the hot
 path cheap has been edited away, and combat carries on looking normal while the
 feature does nothing. This checks the things that cannot be seen from the game.
@@ -12,22 +11,33 @@ feature does nothing. This checks the things that cannot be seen from the game.
      unpacked/ AND server.env sets NWNX_DAMAGE_SKIP=n. Copying the include
      without the env flip gives per-call "Plugin not loaded" errors and nothing
      else.
-  2. onmoduleload.nss registers both handlers, and both scripts exist.
+  2. onmoduleload.nss registers the attack handler, and the scripts exist.
   3. devcrit_atk.nss still returns early on anything that is not a critical,
      before it does any other work.
-  4. devcrit_eff.nss discriminates on the internal effect type AND on the
-     attack handler's flag. Skipping death effects on the type alone would
-     suppress Finger of Death, Death Attack and every scripted death in the
-     module.
+  4. The unarmed/creature half of the kill is still disabled (roadmap
+     devcrit-unarmed-save-or-die). Those two feats are the only devastating
+     criticals the engine resolves WITHOUT reading baseitems.2da, so blanking
+     the column cannot reach them and DevCrit_ArmNoDevCrit stripping the feat
+     is the only thing that stops the save-or-die for a fist build. Checks the
+     helper exists, that it is armed from login, level-up AND creature spawn,
+     that the dice still ride on the snapshot it leaves behind, and that
+     LegFeat_HasAnyDevCrit reads the same two local names — a typo there costs
+     every monk the Legendary Butcher prerequisite, silently.
   5. The published numbers in roadmap.yaml's devcrit-roll card still match the
      constants in devcrit_inc.nss, so the code and the player-facing design
      cannot drift apart.
-  6. The save-or-die is still disabled AT SOURCE: hak_2da/baseitems.2da's
-     EpicWeaponDevastatingCriticalFeat column is blank on every row, and the
-     mapping it used to hold still exists in the generated
+  6. The save-or-die is still disabled AT SOURCE for weapon attacks:
+     hak_2da/baseitems.2da's EpicWeaponDevastatingCriticalFeat column is blank
+     on every row, and the mapping it used to hold still exists in the generated
      unpacked/devcrit_map_inc.nss. Either half alone is a silent failure — a
      re-extracted baseitems.2da brings the instant kill back, and an empty
      include takes the replacement dice away from every weapon.
+
+devcrit_eff.nss (an NWNX_ON_EFFECT_APPLIED_BEFORE subscriber that tried to
+refuse the engine's death effect) was deleted along with its section of this
+gate: UAT proved it never caught the kill, and as a per-effect global hook it
+was charged with TOO MANY INSTRUCTIONS whenever an unrelated script overran its
+VM budget.
 """
 import re
 import sys
@@ -68,17 +78,18 @@ if 'NWNX_Damage_SetAttackEventScript("devcrit_atk")' not in modload:
         'NWNX_Damage_SetAttackEventScript("devcrit_atk") — the bonus damage '
         "never fires.")
 
-if not re.search(r"NWNX_Events_SubscribeEvent\(\s*NWNX_ON_EFFECT_APPLIED_BEFORE\s*,"
-                 r'\s*"devcrit_eff"\s*\)', modload):
+if re.search(r"NWNX_Events_SubscribeEvent\(\s*NWNX_ON_EFFECT_APPLIED_BEFORE\s*,"
+             r'\s*"devcrit_eff"\s*\)', modload):
     errors.append(
-        "onmoduleload.nss does not subscribe devcrit_eff to "
-        "NWNX_ON_EFFECT_APPLIED_BEFORE — devastating criticals would add the "
-        "bonus damage AND still kill outright.")
+        "onmoduleload.nss still subscribes devcrit_eff to "
+        "NWNX_ON_EFFECT_APPLIED_BEFORE. That handler was deleted: it never "
+        "caught the engine's kill, and a per-effect global hook is charged "
+        "with TOO MANY INSTRUCTIONS every time any other script overruns.")
 
 if '#include "nwnx_damage"' not in modload:
     errors.append('onmoduleload.nss is missing #include "nwnx_damage".')
 
-for name in ("devcrit_atk.nss", "devcrit_eff.nss", "devcrit_inc.nss"):
+for name in ("devcrit_atk.nss", "devcrit_arm.nss", "devcrit_inc.nss"):
     if not (UNPACKED / name).is_file():
         errors.append(f"unpacked/{name} is missing.")
 
@@ -107,25 +118,88 @@ if "return" not in "".join(statements[:guard + 2] if guard is not None else []):
         "devcrit_atk.nss's iAttackResult guard does not return — a "
         "non-critical attack must leave the script immediately.")
 
-# --- 4. the death-effect discrimination -------------------------------------
-eff = re.sub(r"//[^\n]*", "", read(UNPACKED / "devcrit_eff.nss"))
+# --- 4. the unarmed / creature half -----------------------------------------
+# Comments stripped throughout: a check that prose alone can satisfy is no check.
+inc = read(UNPACKED / "devcrit_inc.nss")
+inc_code = re.sub(r"//[^\n]*", "", inc)
 
-if "DEVCRIT_EFFTYPE_DEATH" not in eff:
+# The two snapshot names are the contract between devcrit_inc.nss and the
+# GENERATED legfeat_ids_inc.nss, which has no includes and must repeat them as
+# literals. A drift here is silent in both directions.
+snapshot_names = {}
+for const_name, expected in (("DEVCRIT_VAR_HAD_UNARMED", "DEVCRIT_HAD_UNARMED"),
+                             ("DEVCRIT_VAR_HAD_CREATURE", "DEVCRIT_HAD_CREATURE")):
+    match = re.search(rf'const\s+string\s+{const_name}\s*=\s*"([^"]*)"\s*;', inc_code)
+    if not match:
+        errors.append(
+            f"devcrit_inc.nss no longer defines {const_name} — the snapshot is "
+            "what keeps the replacement dice after the feat is stripped.")
+    else:
+        snapshot_names[const_name] = match.group(1)
+        if match.group(1) != expected:
+            errors.append(
+                f"{const_name} is \"{match.group(1)}\", not \"{expected}\". "
+                "legfeat_ids_inc.nss repeats these as literals (it has no "
+                "includes); change bin/gen-legendary-feats.py in the same "
+                "commit or every monk silently loses the Legendary Butcher "
+                "prerequisite.")
+
+if "NWNX_Creature_RemoveFeat" not in inc_code:
     errors.append(
-        "devcrit_eff.nss does not test DEVCRIT_EFFTYPE_DEATH — it must only "
-        "look at death effects.")
+        "devcrit_inc.nss no longer calls NWNX_Creature_RemoveFeat. Stripping "
+        "FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED / _CREATURE is the ONLY thing "
+        "that stops the save-or-die on an unarmed or creature-weapon attack — "
+        "the engine resolves those without reading baseitems.2da, so the blank "
+        "column cannot reach them (roadmap devcrit-unarmed-save-or-die).")
 
-if "DevCrit_IsNoKill" not in eff:
+if not re.search(r"^\s*NWNX_CREATURE_SKIP=n\s*$", server_env, re.M):
     errors.append(
-        "devcrit_eff.nss does not test DevCrit_IsNoKill — without the attack "
-        "handler's flag it would suppress EVERY death effect in the module "
-        "(Finger of Death, Death Attack, scripted deaths, DM kills).")
+        "server.env does not set NWNX_CREATURE_SKIP=n — NWNX_Creature_RemoveFeat "
+        "fails with 'Plugin not loaded' and the unarmed save-or-die comes back.")
 
-if "NWNX_Events_SkipEvent" not in eff:
-    errors.append("devcrit_eff.nss never calls NWNX_Events_SkipEvent.")
+for path, why in (
+        ("mod_cliententer.nss", "a player logging in keeps the feat"),
+        ("legfeat_lvl.nss",
+         "a level-up hands the feat back — the engine offers a feat the "
+         "character no longer holds, so it can be re-picked"),
+        ("nw_c2_default9.nss", "every NPC that spawns keeps the feat")):
+    hook = re.sub(r"//[^\n]*", "", read(UNPACKED / path))
+    armed = ("DevCrit_ArmNoDevCrit" in hook) or ('"devcrit_arm"' in hook)
+    if not armed:
+        errors.append(
+            f"unpacked/{path} does not arm DevCrit_ArmNoDevCrit — {why}, and "
+            "its devastating criticals still kill outright.")
+
+# The dice must ride on the snapshot, not on a feat that has just been removed.
+for helper in ("DevCrit_HadUnarmed", "DevCrit_HadCreature"):
+    if f"return {helper}(oAttacker)" not in inc_code:
+        errors.append(
+            f"DevCrit_HasDevCrit no longer resolves through {helper}. Once the "
+            "feat is stripped, GetHasFeat alone returns FALSE and the "
+            "replacement dice quietly stop paying out for fists and claws.")
+
+legfeat_ids = re.sub(r"//[^\n]*", "", read(UNPACKED / "legfeat_ids_inc.nss"))
+for const_name, literal in snapshot_names.items():
+    if f'GetLocalInt(oPC, "{literal}")' not in legfeat_ids:
+        errors.append(
+            f'legfeat_ids_inc.nss (GENERATED) does not read "{literal}" in '
+            "LegFeat_HasAnyDevCrit — regenerate it with "
+            "bin/gen-legendary-feats.py --apply. Without it, stripping the feat "
+            "costs the character the Legendary Butcher prerequisite.")
+
+# The alarm must not be behind the debug flag: it fires on a live realm, days
+# before anyone reads the log, and it is the whole diagnosis in one line.
+if "DevCrit_AlarmEngineCrit" not in atk_code:
+    errors.append(
+        "devcrit_atk.nss no longer calls DevCrit_AlarmEngineCrit on "
+        "iAttackResult 10. That branch is meant to be unreachable; if it ever "
+        "runs it is the only evidence of which lookup leaked.")
+if "WriteTimestampedLogEntry" not in inc_code:
+    errors.append(
+        "DevCrit_AlarmEngineCrit no longer writes to the server log — a "
+        "message to whoever is online is not a record.")
 
 # --- 5. code matches the published design -----------------------------------
-inc = read(UNPACKED / "devcrit_inc.nss")
 
 
 def const(name):
@@ -221,6 +295,7 @@ if errors:
         print(f"  - {err}")
     sys.exit(1)
 
-print("check_devcrit: ok (NWNX Damage enabled, both handlers wired, "
+print("check_devcrit: ok (NWNX Damage enabled, attack handler wired, "
+      "unarmed/creature feats stripped at login+level-up+spawn, "
       "dice match the published design)")
 sys.exit(0)

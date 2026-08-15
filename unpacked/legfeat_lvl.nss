@@ -17,11 +17,19 @@
 // into that is one the player cannot interact with.
 
 #include "legfeat_inc"
+#include "devcrit_inc"
 
 void main()
 {
     object oPC = OBJECT_SELF;
     if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+
+    // A level-up is the one moment a character can get Devastating Critical
+    // (Unarmed) / (Creature) back - either by picking it for the first time or
+    // by re-picking one that was stripped at login, since the engine offers a
+    // feat the character no longer holds. Re-strip immediately; it is a no-op
+    // for everybody else. Roadmap: devcrit-unarmed-save-or-die.
+    DevCrit_ArmNoDevCrit(oPC);
 
     // Runs in both directions: this is the revoke path as well as the grant.
     int nRemaining = LegFeat_EnsureAllotment(oPC);

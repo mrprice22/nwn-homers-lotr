@@ -23,6 +23,7 @@
 #include "csp_inc"
 #include "pw_inc"
 #include "fat_inc"
+#include "devcrit_inc"
 #include "color"
 
 // Legendary feats: re-derive the allotment (which revokes picks a relevel or a
@@ -214,6 +215,15 @@ void main()
     FAT_ClearLocals(oPC);
     FAT_InitDb();
     DelayCommand(9.0, FAT_LoginRestore(oPC));
+
+    // Take Devastating Critical (Unarmed) / (Creature) off the character, having
+    // recorded that it had them. Those two are the only devastating criticals
+    // the engine resolves without reading the blanked baseitems.2da column, so
+    // this is the whole of what stops the save-or-die for a fist build - see
+    // devcrit_inc.nss and roadmap devcrit-unarmed-save-or-die. Ahead of
+    // LegFeat_ApplyAll because the Legendary Butcher prerequisite reads the
+    // snapshot this leaves behind.
+    DelayCommand(6.4, DevCrit_ArmNoDevCrit(oPC));
 
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
     // The pooled attack/damage effect is a RENDER of the bonus ledger, never the

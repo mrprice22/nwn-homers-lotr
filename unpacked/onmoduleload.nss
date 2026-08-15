@@ -127,17 +127,24 @@ ExecuteScript("gwathlab_wire", GetModule());
 // Double the duration of every temporary effect a player creates (eff_dur_x2).
 NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_AFTER, "eff_dur_x2");
 
-// Devastating Critical rework (roadmap: devcrit-roll). Two halves, because the
-// engine uses two mechanisms: devcrit_atk adds the bonus physical damage in the
-// NWNX Damage attack event (the only place iAttackResult == 10 is visible), and
-// devcrit_eff refuses the EffectDeath the engine applies separately. The rule is
-// symmetric - no oOwner on the attack script, so it covers NPCs as well as
-// players. Both handlers return immediately on anything that is not their case;
-// see the warnings in their headers before editing either, and note that
-// NWNX_DAMAGE_SKIP=n in server.env is the other half of the plugin being
-// available at all. tests/check_devcrit.py gates all of this.
+// Devastating Critical rework (roadmap: devcrit-roll, devcrit-unarmed-save-or-die).
+// devcrit_atk adds the bonus physical damage that replaces the save-or-die, in
+// the NWNX Damage attack event. The rule is symmetric - no oOwner on the attack
+// script, so it covers NPCs as well as players. It returns immediately on
+// anything that is not a critical; read the warning in its header before
+// editing it, and note that NWNX_DAMAGE_SKIP=n in server.env is the other half
+// of the plugin being available at all. tests/check_devcrit.py gates this.
+//
+// The kill itself is stopped WITHOUT any handler here: the blank
+// EpicWeaponDevastatingCriticalFeat column in hak_2da/baseitems.2da for weapon
+// attacks, and DevCrit_ArmNoDevCrit (mod_cliententer / legfeat_lvl /
+// nw_c2_default9) stripping the unarmed and creature feats for the attacks that
+// never read that column. There WAS a third handler, devcrit_eff, subscribed to
+// NWNX_ON_EFFECT_APPLIED_BEFORE to refuse the engine's EffectDeath: it was
+// deleted, because UAT proved it never caught the kill and, being a per-effect
+// global subscriber, it was charged with TOO MANY INSTRUCTIONS every time an
+// unrelated script (Curse Song's colossal-sphere loop) overran its VM budget.
 NWNX_Damage_SetAttackEventScript("devcrit_atk");
-NWNX_Events_SubscribeEvent(NWNX_ON_EFFECT_APPLIED_BEFORE, "devcrit_eff");
 
 // Attack/damage bonus ledger (bonus_pool_inc): recalculate when a bonus ENDS.
 // Registration and login are not enough - a song that ended early left its

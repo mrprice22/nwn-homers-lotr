@@ -311,4 +311,14 @@ void main()
     // Bestiary kill-tracking: install the OnDamaged/OnDeath wrappers (idempotent).
     // Also covers x2_def_spawn creatures, which chain to this script.
     ExecuteScript("bst_install", OBJECT_SELF);
+
+    // Devastating Critical on an unarmed or creature-weapon attack is resolved
+    // by the engine WITHOUT reading the blanked baseitems.2da column, so the
+    // only way to stop the save-or-die is to take the feat off the creature.
+    // devcrit_arm records the entitlement first, so the replacement dice are
+    // unchanged. The two GetHasFeat calls keep this free for the ~500 blueprints
+    // that hold neither feat. Roadmap: devcrit-unarmed-save-or-die.
+    if (GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_UNARMED, OBJECT_SELF) ||
+        GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE, OBJECT_SELF))
+        ExecuteScript("devcrit_arm", OBJECT_SELF);
 }

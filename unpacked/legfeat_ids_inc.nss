@@ -48,12 +48,25 @@ const int FEAT_LEGENDARY_SUNDERING = 1133;
 // to 532 contiguous, plus 955 (dwarven waraxe) and 996 (whip) bolted on
 // later by the expansions. Anything gated on 'has Devastating Critical'
 // has to test the lot.
+//
+// Two of them are not on the character any more: the unarmed and creature
+// devastating criticals are STRIPPED at login/spawn, because they are the
+// only ones the engine resolves without reading the blanked
+// baseitems.2da column (roadmap devcrit-unarmed-save-or-die). The strip
+// leaves a snapshot local behind, and it counts as holding the feat here -
+// otherwise the fix would quietly cost every monk the Legendary Butcher
+// prerequisite. The two names are DEVCRIT_VAR_HAD_* in devcrit_inc.nss,
+// repeated as literals because this file has no includes;
+// tests/check_devcrit.py asserts the spellings still match.
 int LegFeat_HasAnyDevCrit(object oPC)
 {
     int nFeat;
     for (nFeat = FEAT_EPIC_DEVASTATING_CRITICAL_CLUB;
          nFeat <= FEAT_EPIC_DEVASTATING_CRITICAL_CREATURE; nFeat++)
         if (GetHasFeat(nFeat, oPC)) return TRUE;
+
+    if (GetLocalInt(oPC, "DEVCRIT_HAD_UNARMED")) return TRUE;
+    if (GetLocalInt(oPC, "DEVCRIT_HAD_CREATURE")) return TRUE;
 
     return GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_DWAXE, oPC)
         || GetHasFeat(FEAT_EPIC_DEVASTATING_CRITICAL_WHIP, oPC);
