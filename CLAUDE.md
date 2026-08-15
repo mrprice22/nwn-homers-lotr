@@ -164,6 +164,27 @@ two indistinguishable palette leaves and an orphan blueprint that drifts, and no
 the build catches it. Recipe: "Place an existing NPC in another area" in
 [CLAUDE-recipes.md](CLAUDE-recipes.md).
 
+**Editing a blueprint is only half the job — find every instance too.** Whenever you
+change a creature, item or store, the change is not delivered until **every place that
+houses, equips, uses or spawns it** is updated as well: placed instances in `<area>.git.json`,
+equipment and carried inventory on creatures, store inventories, container contents,
+encounter pools and any script that spawns or hands out the resref. Grep the resref across
+`unpacked/` before you call it done. **A `.git.json` instance wins at runtime** — the
+blueprint is a template the module only reads when something is created *fresh* from it.
+
+The trap that keeps biting: **placed stores embed whole item structs, not resrefs.**
+A `.utm` blueprint's `ItemList` holds `InventoryRes` + `Infinite`, but the store instance
+inside `<area>.git.json` carries a full copy of each item (`TemplateResRef`, `Cost`,
+`StackSize`, `Infinite`, `Repos_Pos*`, the lot). Adding stock to the `.utm` alone changes
+nothing in game — the shop the player opens is the instance. Add it in both, and keep the
+grid positions in step. Same shape as creature equipment: bulk packs follow the
+`it_mpotion029` (1x) / `it_mpotion032` (10x) convention — one blueprint per pack size,
+keeping the **stock item's `Tag`**, with `Cost` set to the whole stack's price.
+
+**There is no build gate for this** beyond creatures. `tests/check_divergent_creatures.py`
+covers creature instances only; **stores, containers and encounter pools are ungated**, so
+nothing will fail the repack if you update one side and not the other. Check by hand.
+
 **Placed instances don't track their blueprint, but respawn does.** `se_respawn_inc.nss`
 recreates a dead static creature from the blueprint, so any unsynced instance override
 silently reverts after its first death. `tests/check_divergent_creatures.py` is the
