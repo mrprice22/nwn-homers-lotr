@@ -5502,3 +5502,22 @@ ideas:
         status: open
         kind: admin
         step_h: 64
+  - id: store-blueprint-audit
+    title: "Store audit: 19 store blueprints are placed in no area, and 44 merchant scripts open a store tag that no placed store answers to"
+    group: quests-areas
+    status: later
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    notes: "<div>Housekeeping pass over the module's shops, spun out of the store-divergence build gate. Two separate piles, both found by scanning rather than by anyone reporting a broken merchant, so the player impact still has to be confirmed shop by shop.</div>"
+    impl_notes: "<div><b>Pile 1 — 19 local .utm blueprints placed in no area.</b> A store blueprint that is never placed is unreachable unless a script creates it, so editing it does nothing (the same class of trap as <a href=\"#idea-heal-soul-fatigue-rebalance\">the Well-Mart potions</a>, which went into the blueprint and never appeared in game). Three sub-cases: <b>(a) legitimately runtime-created</b> — pw_odostore is built by CreateObject in pw_shop.nss and cached on Odo, so the blueprint IS live; <b>(b) real stock, no way in</b> — houseofhealarmor (215 items), watchmans4real (184), tournamentmercha (129), houseofhealmage (123), houseofhealtempe (110), darkstar (10), marks_shop (10); <b>(c) empty shells</b> — blueprint, blueprint001, deadmenguild, gondormerc, gondortemple, minasarc, minasarc001, stealstore, the three firstbankofmi* (0 items each), which are probably just retired.</div><div><br></div><div><b>Pile 2 — 44 store-opener scripts whose tag matches no placed store</b> (case-insensitive). Every one of them falls through to ActionSpeakStringByStrRef(53090), i.e. the merchant says he has nothing rather than opening a shop. Includes three openers each for houseofhealarmor and watchmans4real (openstore021/030/035, openstore024/031/032), openstore022/023/033/034 for the other two House of Healing counters, openstore053 (firstbankofmiddleearth), openstore054 (deadmenguild), openstore058/059/060 (WellMart — note the live Well-Mart opener is openstore061, tag wellshop, which does work), plus at_056, at_062, at_074, at_lagnar02, dunharrow_shop, radagastshopys, tagget_merchant and the NW_STORE* family. Most are wired to a conversation node, so each needs checking against whether that NPC is even placed before deciding between placing the store, retiring the script, or repointing the tag.</div><div><br></div><div>Neither pile fails the build: tests/check_divergent_stores.py only reports unplaced blueprints as an advisory line, and does not look at opener scripts at all. Worth a gate of its own once the piles are cleared, otherwise it would fail on day one.</div>"
+    manual_steps:
+      - step: "Decide per shop in pile 1(b) whether the stock is meant to be reachable — place the store in the right area, or retire the blueprint. 215-item houseofhealarmor is the big one."
+        status: open
+        kind: admin
+      - step: "For pile 2, cross-check each opener against its conversation and the NPC's placement before touching anything: a dead script on an unplaced NPC needs no fix."
+        status: open
+        kind: admin
+      - step: "UAT any shop that gets placed or repointed: talk to the merchant, confirm the store opens and the buy cap/mark-up behave."
+        status: open
+        kind: uat
+        tester: "any"

@@ -50,6 +50,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UNPACKED = os.path.join(ROOT, "unpacked")
 KNOWN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "known_store_divergence.json")
+STOCK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "stock_item_stacks.json")
 
 # Trading fields the instance overrides independently of the item list. A
 # MaxBuyPrice or MarkUp that differs between blueprint and placement is the same
@@ -72,15 +74,44 @@ def sub_list(struct, key):
 
 
 _UTI_STACK = {}
+_STOCK_STACKS = None
+
+
+def stock_stacks():
+    """Stock resref -> StackSize for the items that don't ship at 1.
+
+    Committed table, built by bin/gen-stock-item-stacks.py from the install's
+    BIF archives, so the gate never needs a local NWN install. Assuming 1 here
+    was wrong and produced 21 false divergences: stock ammunition ships at 99
+    and throwing weapons at 50, which is exactly what the placements sell.
+    """
+    global _STOCK_STACKS
+    if _STOCK_STACKS is None:
+        try:
+            with open(STOCK_PATH, encoding="utf-8") as fh:
+                _STOCK_STACKS = json.load(fh).get("stacks", {})
+        except (OSError, json.JSONDecodeError):
+            _STOCK_STACKS = {}
+    return _STOCK_STACKS
 
 
 def item_stack(resref):
-    """StackSize of a local item blueprint, or None when it isn't one of ours."""
+    """The stack a blueprint store entry would hand out for this resref.
+
+    A `.utm` entry is a resref, not an item, so its stack size is whatever the
+    item blueprint says: the local `.uti` when we have one, else the stock table
+    above, else 1. A placement selling a resref at a stack its blueprint would
+    not hand out is a real divergence -- the module's convention for bulk is a
+    separate pack blueprint carrying the stack (`it_mpotion029` 1x /
+    `it_mpotion032` 10x), not an instance-level override.
+    """
     if resref not in _UTI_STACK:
         p = os.path.join(UNPACKED, f"{resref}.uti.json")
-        _UTI_STACK[resref] = (fld(json.load(open(p, encoding="utf-8")), "StackSize")
-                              if os.path.exists(p) else None)
-    return _UTI_STACK[resref]
+        if os.path.exists(p):
+            _UTI_STACK[resref] = fld(json.load(open(p, encoding="utf-8")), "StackSize")
+        else:
+            _UTI_STACK[resref] = stock_stacks().get(resref, 1)
+    return _UTI_STACK[resref] or 1
 
 
 def pages(store, embedded):
@@ -127,12 +158,10 @@ def compare_page(bp_entries, inst_entries):
         inst_inf = sorted(inf for (_s, inf), n in inst.items() for _ in range(n))
         if bp_inf != inst_inf:
             diffs.append(f"{resref}: Infinite blueprint={bp_inf} placement={inst_inf}")
-        # Stack sizes, only where the blueprint side is knowable (local .uti).
-        bp_stk = sorted(s for (s, _i), n in bp.items() for _ in range(n) if s is not None)
-        if bp_stk:
-            inst_stk = sorted(s for (s, _i), n in inst.items() for _ in range(n))
-            if len(bp_stk) == len(inst_stk) and bp_stk != inst_stk:
-                diffs.append(f"{resref}: StackSize blueprint={bp_stk} placement={inst_stk}")
+        bp_stk = sorted(s for (s, _i), n in bp.items() for _ in range(n))
+        inst_stk = sorted(s for (s, _i), n in inst.items() for _ in range(n))
+        if bp_stk != inst_stk:
+            diffs.append(f"{resref}: StackSize blueprint={bp_stk} placement={inst_stk}")
     return diffs
 
 
