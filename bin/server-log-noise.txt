@@ -63,3 +63,12 @@ Anvil\.Plugins\.(LocalPluginSource|PluginManager)\] Loading
 # The image ships without inotify-tools and says so twice per boot. Harmless,
 # and nothing here can act on it.
 inotifywait: command not found
+
+# -- Anvil shutdown block, the exact mirror of the startup inventory -----------
+# ~17 lines every reboot: "Unloading anvil services...", "Unloading core service
+# "X"", "Unloading plugins...", "Unloading DotNET plugin "X" - "...dll"". One
+# anchor catches them all, because both readers strip the logger name first.
+# What survives on purpose, and is the whole shutdown as far as a human is
+# concerned: "(Server) Server shutting down", "Server is shutting down..." and
+# "Server: Exiting...". None of them begins with this word.
+^Unloading

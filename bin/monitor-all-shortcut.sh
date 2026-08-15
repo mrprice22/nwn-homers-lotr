@@ -28,6 +28,8 @@ UNIT_SRC="$PROJECT_ROOT/systemd/$UNIT_NAME"
 UNIT_DST="$UNITS/$UNIT_NAME"
 TILE="$APPS/homers-lotr-monitor-all.desktop"
 WATCH="$PROJECT_ROOT/bin/watch-all-servers"
+# What the unit runs: the retrying, idempotent wrapper, not ptyxis directly.
+LAUNCH="$PROJECT_ROOT/bin/monitor-window"
 
 # The per-season autostart files this replaces. Any season that still has one
 # would open a redundant single-realm window (and hit the same portal race).
@@ -48,9 +50,11 @@ for a in "$@"; do
 done
 
 [[ -x $WATCH ]] || { echo "error: $WATCH missing or not executable" >&2; exit 1; }
+[[ -x $LAUNCH ]] || { echo "error: $LAUNCH missing or not executable" >&2; exit 1; }
 [[ -f $UNIT_SRC ]] || { echo "error: $UNIT_SRC missing" >&2; exit 1; }
 
 echo "monitor script  : $WATCH"
+echo "window launcher : $LAUNCH"
 echo "app tile        : $TILE"
 echo "autostart unit  : $UNIT_DST"
 echo "legacy autostart:"
@@ -107,5 +111,7 @@ systemctl --user enable "$UNIT_NAME"
 update-desktop-database "$APPS" 2>/dev/null || true
 
 echo
+echo
 echo "done. The window opens at the next login/reboot. To open one now:"
 echo "  systemctl --user start $UNIT_NAME"
+echo "Is one open? $LAUNCH --check"

@@ -20,6 +20,16 @@
 # instance. Ordering after the portal (and waiting on its bus name below) is the
 # fix; a unit is also the only way to express that ordering.
 #
+# ## Why ExecStart is a wrapper and not ptyxis
+#
+# Waiting on the portal was necessary but not sufficient: ptyxis also has to
+# spawn its ptyxis-agent over the session bus, and on the 03:00 reboot -- three
+# NWN servers, the backup and the wiki publish all starting at once -- that
+# round trip times out and ptyxis dumps core, with no retry and no window.
+# bin/monitor-window retries with backoff until the session settles, and is
+# idempotent, so it can never open a second window. Full journal evidence is in
+# that script's header.
+#
 # Install:  bin/monitor-all-shortcut.sh --install
 # Logs:     journalctl --user -b -u nwn-monitor-all.service
 Description=Homer's LotR — combined all-realm server monitor window
@@ -28,17 +38,18 @@ PartOf=graphical-session.target
 After=graphical-session.target xdg-desktop-portal.service
 
 [Service]
-# oneshot, not simple: ptyxis is D-Bus activated, so `--new-window` hands the
-# window to the ptyxis instance and returns straight away. The monitor lives in
-# that window (its own ptyxis-spawn-*.scope), not in this unit — so "this unit
-# is inactive" is the correct steady state, and `simple` would just make it look
-# like something had died.
+# oneshot, not simple: the wrapper blocks until a window actually exists and
+# then exits. The monitor lives in that window (its own ptyxis-spawn-*.scope),
+# not in this unit — so "this unit is inactive" is the correct steady state, and
+# `simple` would just make it look like something had died.
 Type=oneshot
-# Belt and braces with After= above: After only orders the START of the portal
-# unit, not the moment it owns its bus name. ptyxis fails on the latter.
-ExecStartPre=/usr/bin/gdbus wait --session --timeout 180 org.freedesktop.portal.Desktop
-ExecStart=/usr/bin/ptyxis --new-window -- /var/home/james/GIT/nwn_homers_lotr/bin/watch-all-servers
-# Nothing to restart, and a restart would only spawn duplicate windows.
+# The portal wait now lives inside the wrapper, so a hand-run behaves the same
+# as the boot run. Long enough for the wrapper's full retry budget (6 attempts x
+# 60s + backoff, after up to 180s waiting on the portal) to play out.
+TimeoutStartSec=900
+ExecStart=/var/home/james/GIT/nwn_homers_lotr/bin/monitor-window
+# The wrapper does its own retrying and refuses to open a second window, so a
+# systemd-level restart would add nothing.
 Restart=no
 
 [Install]

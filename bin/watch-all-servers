@@ -9,11 +9,11 @@
 #
 # Two things happen to the raw container stream before you see it:
 #
-#   * NOISE IS DROPPED. ~93% of the log is boilerplate a human never wants
-#     (per-object NWNX_Damage hook churn, Anvil service registration, plugin
-#     load lists, forge chest opens). The blocklist is NOISE_PATTERNS below --
-#     it is a blocklist, not an allowlist, so an unrecognised message always
-#     prints, and W/E lines are never dropped. `--raw` turns all of this off.
+#   * NOISE IS DROPPED. ~95% of the log is boilerplate a human never wants
+#     (per-object NWNX_Damage hook churn, Anvil service load/unload, plugin
+#     lists, forge chest opens). The patterns are in bin/server-log-noise.txt,
+#     shared with the editor's /monitor page -- a blocklist, not an allowlist,
+#     so unknown lines and W/E always print. `--raw` turns all of this off.
 #
 #   * THE BACKLOG IS TIME-MERGED. Every realm's history is collected first,
 #     sorted into one chronological stream, and only then does the live follow
@@ -32,7 +32,7 @@
 # Usage:
 #   bin/watch-all-servers                 # every realm found
 #   bin/watch-all-servers --only s2,dev   # just those (tags, case-insensitive)
-#   bin/watch-all-servers --tail 300      # backlog per realm (default 100)
+#   bin/watch-all-servers --tail 300      # merged backlog depth (default 600)
 #   bin/watch-all-servers --raw           # no filtering, no merge, no reformat
 #   bin/watch-all-servers --show-dropped  # ONLY the lines the filter removed
 #   bin/watch-all-servers --no-color      # plain text (also the default in a pipe)
@@ -41,7 +41,9 @@ set -uo pipefail
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 GIT_ROOT=$(dirname "$PROJECT_ROOT")
 
-TAIL=100
+# Default matches the tail= the editor's /monitor page requests, so both views
+# open on the same history.
+TAIL=600
 ONLY=""
 COLOR=auto
 RAW=0
@@ -54,7 +56,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --only) ONLY="${2:-}"; shift 2 ;;
     --only=*) ONLY="${1#*=}"; shift ;;
-    --tail) TAIL="${2:-100}"; shift 2 ;;
+    --tail) TAIL="${2:-600}"; shift 2 ;;
     --tail=*) TAIL="${1#*=}"; shift ;;
     --raw) RAW=1; shift ;;
     --show-dropped) MODE=dropped; shift ;;
@@ -353,9 +355,20 @@ prefix_for() { paint "${COLORS[$1]}" "$(printf '[%-*s]' "$TAGW" "${TAGS[$1]}")" 
 # stream. Done any other way (the followers each dumping their own --tail) the
 # backlogs race and interleave by kernel scheduling, which is what made the
 # window open with 03:12 above 07:37 above 03:12.
+#
+# --tail counts lines you SEE, across all realms -- not raw lines per realm.
+# The blocklist throws away ~95% of the stream, so asking podman for N and then
+# filtering leaves about N/20: `--tail 100` used to open on 48 lines while the
+# editor's /monitor page showed 141 of the same history, which read as the
+# terminal monitor "missing" things. So over-fetch, filter, then trim -- the
+# same 12x-capped-at-6000 arithmetic as server_log_tail_all() in
+# bin/roadmap-editor.py. Keep the two in step; they are meant to open on the
+# identical view.
 if (( ! RAW )); then
+  fetch=$(( TAIL * 12 )); (( fetch > 6000 )) && fetch=6000
+
   for i in "${!TAGS[@]}"; do
-    ( podman logs --tail "$TAIL" "${CONTAINERS[$i]}" > "$WORKDIR/$i.raw" 2>&1 ) &
+    ( podman logs --tail "$fetch" "${CONTAINERS[$i]}" > "$WORKDIR/$i.raw" 2>&1 ) &
   done
   wait
 
@@ -364,7 +377,7 @@ if (( ! RAW )); then
     tidy sort "$(prefix_for "$i")" "${COLORS[$i]}" < "$WORKDIR/$i.raw" > "$WORKDIR/$i.keyed"
   done
   # -s keeps same-timestamp lines in the order the container printed them.
-  cat "$WORKDIR"/*.keyed 2>/dev/null | sort -s -t$'\t' -k1,1 | cut -f2-
+  cat "$WORKDIR"/*.keyed 2>/dev/null | sort -s -t$'\t' -k1,1 | tail -n "$TAIL" | cut -f2-
   echo "$(paint 90 "--- live ---")"
 fi
 

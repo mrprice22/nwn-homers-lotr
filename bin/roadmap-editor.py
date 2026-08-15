@@ -1756,9 +1756,19 @@ const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;
 // defaults to visible.
 const shown = {};
 let colors = {}, tagW = 3;
+// Signatures of what is already on screen. A poll that changes nothing must not
+// touch the DOM at all: rewriting innerHTML every 3s threw away the reader's
+// text selection and (with the old unconditional scrollTo) yanked the view back
+// to the bottom while they were reading something further up.
+let lastLogSig = null, lastBarSig = null, firstPaint = true, forceBottom = false;
 
 // The server's own severity letter beats guessing from the words; W/E lines are
 // also the ones the noise filter never drops, so they should look different.
+// Largest scrollY the document allows. body vs documentElement disagree
+// depending on the `height:100%` above, so take whichever is taller.
+const maxScroll = () => Math.max(document.documentElement.scrollHeight,
+                                 document.body.scrollHeight) - window.innerHeight;
+
 function severity(line, sev) {
   if (sev === 'E') return 'err';
   if (sev === 'W') return 'warn';
@@ -1770,6 +1780,10 @@ function severity(line, sev) {
 }
 
 function renderBar(realms) {
+  // Rebuilding the checkboxes on every tick steals focus mid-click.
+  const sig = JSON.stringify(realms.map(r => [r.tag, r.ok, r.color, r.label]));
+  if (sig === lastBarSig) return;
+  lastBarSig = sig;
   realmsEl.innerHTML = realms.map(r => {
     if (!(r.tag in shown)) shown[r.tag] = true;
     return `<span class="realm" title="${esc(r.label)} — ${esc(r.container)}">`
@@ -1801,7 +1815,12 @@ async function poll() {
                                     tagW = Math.max(tagW, x.tag.length); });
     renderBar(d.realms || []);
     errEl.textContent = (d.realms || []).length ? '' : 'no realms found';
-    logEl.innerHTML = (d.lines || []).map(l => {
+    // Was the reader parked at the tail? Measure BEFORE the DOM changes, with
+    // the same metric the scroll below uses, so "at the bottom" and "go to the
+    // bottom" can't disagree. 4px of slack absorbs sub-pixel layout and zoom.
+    // Scrolling back down silently re-arms following; scrolling up disarms it.
+    const atBottom = window.scrollY >= maxScroll() - 4;
+    const html = (d.lines || []).map(l => {
       const tag = (l.tag || '').padEnd(tagW);
       const col = colors[l.tag] || '#c8c8c8';
       const sev = severity(l.text || '', l.sev || '');
@@ -1810,14 +1829,23 @@ async function poll() {
         + `<span class="g" style="color:${esc(col)}">${l.tag ? '[' + esc(tag) + ']' : ''}</span>`
         + `<span class="m" style="color:${esc(col)}">${esc(l.text || '')}</span></div>`;
     }).join('');
+    if (html === lastLogSig && !forceBottom) return;   // nothing new happened
+    lastLogSig = html;
+    logEl.innerHTML = html;
     applyFilter();
-    if (autoEl.checked) window.scrollTo(0, document.body.scrollHeight);
+    // Jump to the bottom only when there is no reading position to protect:
+    // the first paint, or a "show all" flip that replaced the whole buffer.
+    if (firstPaint || forceBottom || (autoEl.checked && atBottom)) {
+      window.scrollTo(0, maxScroll());
+    }
+    firstPaint = false; forceBottom = false;
   } catch (e) {
     errEl.textContent = 'monitor unreachable';
   }
 }
 poll();
-rawEl.onchange = poll;          // don't make the admin wait out the interval
+// don't make the admin wait out the interval, and land at the tail afterwards
+rawEl.onchange = () => { forceBottom = true; poll(); };
 setInterval(poll, 3000);
 </script>
 </body></html>"""

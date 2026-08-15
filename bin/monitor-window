@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# monitor-window — open the all-realms monitor window (bin/watch-all-servers in
+# a ptyxis window), reliably, at login.
+#
+# ## Why this exists rather than calling ptyxis straight from the unit
+#
+# nwn-monitor-all.service used to be `ExecStart=ptyxis --new-window -- watch…`
+# with a `gdbus wait` on the portal in front of it. That fixed the FIRST race
+# (gnome-session firing XDG autostart before xdg-desktop-portal owns its bus
+# name) but not the second one. Journal, 2026-08-15 boot:
+#
+#   03:06:00 systemd: Starting nwn-monitor-all.service...        (portal wait OK)
+#   03:07:36 ptyxis: Failed to spawn ptyxis-agent on the host system.
+#                    Trying again within Flatpak namespace.
+#   03:08:26 ptyxis: Failed to spawn ptyxis-agent in sandbox: Timeout was reached
+#   03:08:28 systemd-coredump: Process 3816 (ptyxis) dumped core.
+#
+# ptyxis owns its terminal through a separate ptyxis-agent process, and spawning
+# that agent is a D-Bus round trip with its own timeout. This box reboots at
+# 03:00 and immediately starts three NWN servers, the backup and the wiki
+# publish, so the session bus is at its least responsive exactly when the unit
+# fires — the agent spawn times out and ptyxis aborts. One attempt, no retry,
+# no window until someone notices in the morning.
+#
+# So: retry with backoff until the session settles, and treat "a
+# watch-all-servers process exists" as the success test — the window may end up
+# owned by an already-running primary ptyxis instance, so the exit status of the
+# `ptyxis` we launch proves nothing.
+#
+# Idempotent: if a monitor is already running (this unit, the app-grid tile, or
+# a plain `bin/watch-all-servers` in some terminal) it exits 0 and opens
+# nothing. That is what makes it safe to retry, and safe to re-run by hand.
+#
+# Usage:
+#   bin/monitor-window            # open one if none is running
+#   bin/monitor-window --check    # exit 0 if a monitor is running, 1 if not
+set -uo pipefail
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+WATCH="$PROJECT_ROOT/bin/watch-all-servers"
+
+# ~8 minutes of trying, then give up loudly. Overridable so the retry path can
+# be exercised in seconds against a stub ptyxis instead of in real time.
+ATTEMPTS=${MONITOR_ATTEMPTS:-6}     # tries before giving up
+WAIT_EACH=${MONITOR_WAIT:-60}       # seconds to let one attempt produce a window
+BACKOFF=${MONITOR_BACKOFF:-20}      # seconds between attempts
+
+log() { printf 'monitor-window: %s\n' "$*" >&2; }
+
+# The window is whatever ends up running the script; don't look at ptyxis, whose
+# process may or may not be the one that owns the terminal.
+monitor_running() { pgrep -u "$(id -u)" -f 'bin/watch-all-servers' >/dev/null 2>&1; }
+
+if [[ ${1:-} == --check ]]; then
+  monitor_running && { echo "a monitor is running"; exit 0; }
+  echo "no monitor running"; exit 1
+fi
+[[ ${1:-} == -h || ${1:-} == --help ]] && { sed -n '2,45p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'; exit 0; }
+
+[[ -x $WATCH ]] || { log "error: $WATCH missing or not executable"; exit 1; }
+
+if monitor_running; then
+  log "a monitor is already running — nothing to do"
+  exit 0
+fi
+
+# ptyxis needs the portal. Ordering the unit After= it only orders the START of
+# that unit, not the moment it owns its bus name, which is what ptyxis blocks
+# on. Harmless and instant once it is up, so it lives here rather than in the
+# unit, and a hand-run gets the same treatment.
+gdbus wait --session --timeout 180 org.freedesktop.portal.Desktop \
+  || log "warning: portal did not appear within 180s — trying anyway"
+
+for attempt in $(seq 1 "$ATTEMPTS"); do
+  log "attempt $attempt/$ATTEMPTS: opening the monitor window"
+  ptyxis --new-window -- "$WATCH" &
+  pid=$!
+
+  for (( i = 0; i < WAIT_EACH; i++ )); do
+    sleep 1
+    if monitor_running; then
+      log "window is up (attempt $attempt)"
+      exit 0
+    fi
+  done
+
+  # Nothing appeared. Clear the stuck attempt away before trying again,
+  # otherwise a hung ptyxis and its successor race for the primary instance.
+  kill "$pid" 2>/dev/null
+  wait "$pid" 2>/dev/null
+  log "attempt $attempt produced no window; retrying in ${BACKOFF}s"
+  sleep "$BACKOFF"
+done
+
+log "giving up after $ATTEMPTS attempts — no monitor window."
+log "run 'bin/monitor-window' by hand once the desktop is settled, or open the"
+log "'Homer's LotR Server Monitor - All Realms' tile."
+exit 1

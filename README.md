@@ -1224,6 +1224,15 @@ is unambiguous mid-scroll. Useful flags: `--only s2,dev`, `--tail N`,
 `--no-color`. Each realm reconnects independently across restarts, so a
 reboot-on-empty on one does not disturb the others' streams.
 
+**`--tail N` counts lines you see, across all realms** — not raw lines per
+realm. The blocklist below throws away ~95% of the stream, so asking podman for
+N and filtering afterwards leaves about N/20: the terminal window opened on 48
+lines while `/monitor` showed 141 of the same history, which read as the
+terminal monitor "missing" things. Both now over-fetch (12x, capped at 6000),
+filter, and trim to N, and both default to 600 — so the two views open on the
+identical backlog. Verify with a `comm` of the two rendered as `tag|message`;
+it must be a zero-line diff.
+
 **It is a filtered, time-merged view, not the raw stream.** Two things happen to
 `podman logs` output before it reaches the window:
 
@@ -1247,6 +1256,11 @@ reboot-on-empty on one does not disturb the others' streams.
   * The editor reads the file fresh whenever its mtime changes, so editing the
     blocklist does not need a service restart — but changing the *code* does
     (`systemctl --user restart roadmap-editor.service`).
+  * Both halves of a restart are covered: the Anvil startup inventory and the
+    matching `Unloading …` shutdown block. What survives a reboot is the
+    lifecycle itself — `Server shutting down`, `Server is shutting down...`,
+    `Server: Exiting...`, `Server: Loading…`, `Module loaded`,
+    `{Masterserver Advisory}`.
 * **The backlog is merge-sorted by timestamp.** Every realm's history is
   collected first, resolved to a common clock, and printed as one chronological
   stream before the live follow starts. Without that step the realms' backlogs
@@ -1283,6 +1297,29 @@ Timeout was reached`, ptyxis dumping core) and had to be started by hand. The
 unit orders itself after the portal *and* waits on its bus name. Installing it
 removes those three dead files. It belongs to no season, so no cutover phase
 creates or retires it.
+
+**Waiting on the portal turned out to be necessary but not sufficient**, so
+`ExecStart` is [`bin/monitor-window`](bin/monitor-window), not ptyxis. ptyxis
+owns its terminal through a separate `ptyxis-agent` process, and spawning that
+agent is a D-Bus round trip with its own timeout — on the 03:00 reboot, with
+three NWN servers, the backup and the wiki publish all starting at once, that
+round trip times out and ptyxis dumps core:
+
+```
+03:06:00 systemd: Starting nwn-monitor-all.service...        (portal wait OK)
+03:07:36 ptyxis: Failed to spawn ptyxis-agent on the host system.
+03:08:26 ptyxis: Failed to spawn ptyxis-agent in sandbox: Timeout was reached
+03:08:28 systemd-coredump: Process 3816 (ptyxis) dumped core.
+```
+
+One attempt, no retry, no window until someone noticed in the morning.
+`monitor-window` retries with backoff (6 x 60s) until the session settles, and
+tests success by looking for a **`watch-all-servers` process**, not by ptyxis's
+exit status — the window can end up owned by an already-running primary ptyxis
+instance, so that status proves nothing. It is idempotent: if any monitor is
+already running (the unit, the app tile, or a bare `bin/watch-all-servers` in
+some terminal) it opens nothing and exits 0, which is what makes retrying safe.
+`bin/monitor-window --check` answers "is one open?".
 
 ## Season identity & rotation
 
