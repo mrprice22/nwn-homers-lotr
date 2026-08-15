@@ -62,10 +62,14 @@
 // area OnEnter wrapper (q_drd_enter). No-ops gracefully until the admin places
 // waypoint AP_druidlineearly_1 in rhosgobel (see roadmap manual_steps) and
 // never double-spawns.
+#include &quot;qline_gate_inc&quot;
 #include &quot;q_drd_inc&quot;
 
 void main()
 {
+    // Pulled back 2026-08-14 for creative rework -- see qline_gate_inc.nss.
+    if (QL_LineOff(&quot;drd&quot;)) return;
+
     DRD_SpawnKeeper();
 }
 </code></pre>

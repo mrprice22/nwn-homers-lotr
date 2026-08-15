@@ -62,10 +62,14 @@
 // Fired from the area OnEnter wrapper (q_sor_enter). No-ops gracefully until
 // the admin places waypoint AP_sorcererlineearly_1 in ruinsofannuminas (Ruins
 // of Annuminas -- see roadmap manual_steps) and never double-spawns.
+#include &quot;qline_gate_inc&quot;
 #include &quot;q_sor_inc&quot;
 
 void main()
 {
+    // Pulled back 2026-08-14 for creative rework -- see qline_gate_inc.nss.
+    if (QL_LineOff(&quot;sor&quot;)) return;
+
     SOR_SpawnMaster();
 }
 </code></pre>

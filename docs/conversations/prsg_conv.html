@@ -59,8 +59,8 @@
   <main>
 <h1>Conversation: <code>prsg_conv</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>87</dd>
-<dt>PC replies</dt><dd>112</dd>
+<dt>NPC lines</dt><dd>92</dd>
+<dt>PC replies</dt><dd>122</dd>
 <dt>NumWords</dt><dd>1218</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code></code></dd>
@@ -69,7 +69,9 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/prsg_trainer.html">Halmir the Grey</a> <code>prsg_trainer</code></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>prsg_c_harper</code></td><td>active</td><td>✓</td><td></td></tr>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>legfeat_cond</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>prsg_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>prsg_c_harper</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>prsg_c_pdk</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>prsg_c_pale</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>prsg_c_shadow</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -81,7 +83,6 @@
 <tr><td><code>prsg_c_divch</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>prsg_c_dwdef</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>prsg_c_shift</code></td><td>active</td><td>✓</td><td></td></tr>
-<tr><td><code>legfeat_cond</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_hrp_c_noh</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>q_kwn_c_off</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -169,31 +170,118 @@
 <tr><td><code>q_bkg_start</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>legfeat_respec</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Items checked</h2><p class="muted">These items' tags are checked via <code>GetItemPossessedBy</code> in this conversation's scripts:</p><ul><li><a href="../items/q_hrp_pin.html">Harper Pin</a></li></ul>
-<h2>Quest entries granted</h2><table class="data"><thead><tr><th>Quest</th><th>Tag</th><th>Step(s)</th></tr></thead><tbody><tr><td><a href="../quests/pc-pdk.html">The Banner of the West</a></td><td><code>pc_pdk</code></td><td>1, 6</td></tr>
-<tr><td><a href="../quests/pc-harper.html">The Cipher in the Inn</a></td><td><code>pc_harper</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-blackguard.html">The Fall</a></td><td><code>pc_blackguard</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-dragondisciple.html">The Old Wyrm&#x27;s Fire</a></td><td><code>pc_dragondisciple</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-assassin.html">The Quiet Knives</a></td><td><code>pc_assassin</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-shifter.html">The Second Skin</a></td><td><code>pc_shifter</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-divinechampion.html">The Shield of Others</a></td><td><code>pc_divinechampion</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-weaponmaster.html">The Sworn Blade</a></td><td><code>pc_weaponmaster</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-palemaster.html">The Twenty-First Tomb</a></td><td><code>pc_palemaster</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-dwarvendefender.html">The Unbroken Stone</a></td><td><code>pc_dwarvendefender</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-shadowdancer.html">The Unlit Deep</a></td><td><code>pc_shadowdancer</code></td><td>1, 3</td></tr>
-<tr><td><a href="../quests/pc-arcanearcher.html">The Warden&#x27;s Mark</a></td><td><code>pc_arcanearcher</code></td><td>1, 3</td></tr></tbody></table>
 <h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6381&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr></tbody></table>
 <h2>Starting entries</h2><ul>
-<li><a href="#e0">entry #0</a> — *An old man in a road-worn grey cloak looks up from a long roll of parchment* I …</li>
+<li><a href="#e0">entry #0</a> — *An old man in a grey cloak looks up from a long roll of parchment* I keep the r…</li>
 </ul>
 <h2>Conversation flow</h2>
 <p class="muted">Each starting entry is expanded recursively. Repeated nodes (cycles, shared continuations) appear inline as <code>↩ link</code> backrefs to the first occurrence.</p>
 <div class="dlg-tree">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #0</span> <a class="dlg-anchor" href="#e0" title="jump to flat entry #0">¶</a></summary>
-<div class="dlg-text">*An old man in a road-worn grey cloak looks up from a long roll of parchment* I am Halmir the Grey, keeper of the rolls of the old orders — the twelve disciplines that endure from the elder days. Each keeps its own trials, and each is particular about the names it will hear. Ask, and I will tell you where you stand.</div>
+<div class="dlg-text">*An old man in a grey cloak looks up from a long roll of parchment* I keep the roll of deeds still open in these lands. Tell me your measure, and I will tell you where the work is.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #0</span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<summary><span class="dlg-id">reply #112</span> <a class="dlg-anchor" href="#r112" title="jump to flat reply #112">¶</a></summary>
+<div class="dlg-text">I am new to these lands.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #87</span> <a class="dlg-anchor" href="#e87" title="jump to flat entry #87">¶</a></summary>
+<div class="dlg-text">Then keep to Bree and the Shire a while. Bill Ferny&#x27;s Ring, and Ferny&#x27;s Return after it -- Bill Ferny and the Guardian of Bree, both in Bree. The Miller&#x27;s Son, and his other son after -- Han the Bree Miller. Concerning Hobbits -- Odo Proudfoot, in Hobbiton. Feeding Tharbad -- the cleric of the Temple of Iluvatar.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #117</span> <a class="dlg-anchor" href="#r117" title="jump to flat reply #117">¶</a></summary>
+<div class="dlg-text">Tell me of another road.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #113</span> <a class="dlg-anchor" href="#r113" title="jump to flat reply #113">¶</a></summary>
+<div class="dlg-text">I have some road behind me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #88</span> <a class="dlg-anchor" href="#e88" title="jump to flat entry #88">¶</a></summary>
+<div class="dlg-text">Then go further out. Pass the Pass -- Baldor the Caravan-Master, in the foothills of the Misty Mountains. Spider Silk Harvest -- Thranduil, in his hall in Mirkwood. Beorn&#x27;s Garden -- Grimbeorn the Old, at the homestead. Kallrist Tiger Hunt -- Sald, on Kallrist Island. Sowing Discord in Bree -- Bill Ferny again, in the market, if your heart is not too white for it. The Twentieth Plot of Mazarbul -- Frar the Restless, in the Chamber of Records. And Elrond&#x27;s Request -- Elrond himself.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #118</span> <a class="dlg-anchor" href="#r118" title="jump to flat reply #118">¶</a></summary>
+<div class="dlg-text">Tell me of another road.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #114</span> <a class="dlg-anchor" href="#r114" title="jump to flat reply #114">¶</a></summary>
+<div class="dlg-text">I am well seasoned.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #89</span> <a class="dlg-anchor" href="#e89" title="jump to flat entry #89">¶</a></summary>
+<div class="dlg-text">Then you are wanted by better men. Glorfindel&#x27;s Curative -- Glorfindel, in Rivendell. Ruin of Annuminas -- Hanee the Loon, in Bree. The Well of Souls -- the Gondor Scribe, in the Tower of the High Wizard. The Thirteenth Ent -- Leaflock, deep in Fangorn, and he will hear only a druid or a bard of long practice.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #119</span> <a class="dlg-anchor" href="#r119" title="jump to flat reply #119">¶</a></summary>
+<div class="dlg-text">Tell me of another road.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #115</span> <a class="dlg-anchor" href="#r115" title="jump to flat reply #115">¶</a></summary>
+<div class="dlg-text">There is little left to test me.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #90</span> <a class="dlg-anchor" href="#e90" title="jump to flat entry #90">¶</a></summary>
+<div class="dlg-text">Little, but not nothing. Paths of the Dead -- Aragorn, at the gates of Minas Tirith. Gloison&#x27;s Heirloom -- Gloin, King under the Mountain, in Erebor. And the Forbidden Realms, which no one gives you: it begins when the key finds you, at Noirinan in Numenor.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #120</span> <a class="dlg-anchor" href="#r120" title="jump to flat reply #120">¶</a></summary>
+<div class="dlg-text">Tell me of another road.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #116</span> <a class="dlg-anchor" href="#r116" title="jump to flat reply #116">¶</a></summary>
+<div class="dlg-text">What can be walked at any strength?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #91</span> <a class="dlg-anchor" href="#e91" title="jump to flat entry #91">¶</a></summary>
+<div class="dlg-text">These keep no reckoning of your years. The Last Drop at Frogmorton Inn -- Rigrin, at the Whitfurrow Inn. Hobbit Post -- Posco Whitfoot, in Hobbiton. The Riddle Game -- the Whispering Wretch, in the Bree cave. And the Path of Meaning -- seven guides, scattered wide; find one and it will point you at the rest.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #121</span> <a class="dlg-anchor" href="#r121" title="jump to flat reply #121">¶</a></summary>
+<div class="dlg-text">Tell me of another road.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e0">entry #0</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #111</span> <span class="dlg-action">→ <code>legfeat_respec</code></span> <small class="muted">(if <code>legfeat_cond</code>)</small> <a class="dlg-anchor" href="#r111" title="jump to flat reply #111">¶</a></summary>
+<div class="dlg-text">Let me choose my legendary feats again.</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <small class="muted">(if <code>prsg_c_off</code>)</small> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
 <div class="dlg-text">Which of the old orders would hear my name as I stand?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
@@ -1262,10 +1350,6 @@
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #111</span> <span class="dlg-action">→ <code>legfeat_respec</code></span> <small class="muted">(if <code>legfeat_cond</code>)</small> <a class="dlg-anchor" href="#r111" title="jump to flat reply #111">¶</a></summary>
-<div class="dlg-text">Let me choose my legendary feats again.</div>
-</details>
-<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
 <div class="dlg-text">Another time, keeper.</div>
 </details>
@@ -1273,7 +1357,7 @@
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*An old man in a road-worn grey cloak looks up from a long roll of parchment* I am Halmir the Grey, keeper of the rolls of the old orders — the twelve disciplines that endure from the elder days. Each keeps its own trials, and each is particular about the names it will hear. Ask, and I will tell you where you stand.</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Which of the old orders would hear my name as I stand?”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Speak to me of the Harper Scouts.”</span> <small class="muted">(if <code>prsg_c_harper</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Speak to me of the Knights of Westernesse.”</span> <small class="muted">(if <code>prsg_c_pdk</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Speak to me of the Pale Masters.”</span> <small class="muted">(if <code>prsg_c_pale</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Speak to me of the Shadowdancers.”</span> <small class="muted">(if <code>prsg_c_shadow</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Speak to me of the Arcane Archers.”</span> <small class="muted">(if <code>prsg_c_archer</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Speak to me of the Red Dragon Disciples.”</span> <small class="muted">(if <code>prsg_c_rdd</code>)</small></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Speak to me of the Assassins.”</span> <small class="muted">(if <code>prsg_c_assn</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Speak to me of the Weapon Masters.”</span> <small class="muted">(if <code>prsg_c_wm</code>)</small></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Speak to me of the Blackguards.”</span> <small class="muted">(if <code>prsg_c_bg</code>)</small></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Speak to me of the Divine Champions.”</span> <small class="muted">(if <code>prsg_c_divch</code>)</small></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Speak to me of the Dwarven Defenders.”</span> <small class="muted">(if <code>prsg_c_dwdef</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Speak to me of the Shifters.”</span> <small class="muted">(if <code>prsg_c_shift</code>)</small></li><li><a href="#r111">→ reply #111</a> <span class="dlg-link-preview">“Let me choose my legendary feats again.”</span> <small class="muted">(if <code>legfeat_cond</code>)</small></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Another time, keeper.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">*An old man in a grey cloak looks up from a long roll of parchment* I keep the roll of deeds still open in these lands. Tell me your measure, and I will tell you where the work is.</div><ul class="dlg-links"><li><a href="#r112">→ reply #112</a> <span class="dlg-link-preview">“I am new to these lands.”</span></li><li><a href="#r113">→ reply #113</a> <span class="dlg-link-preview">“I have some road behind me.”</span></li><li><a href="#r114">→ reply #114</a> <span class="dlg-link-preview">“I am well seasoned.”</span></li><li><a href="#r115">→ reply #115</a> <span class="dlg-link-preview">“There is little left to test me.”</span></li><li><a href="#r116">→ reply #116</a> <span class="dlg-link-preview">“What can be walked at any strength?”</span></li><li><a href="#r111">→ reply #111</a> <span class="dlg-link-preview">“Let me choose my legendary feats again.”</span> <small class="muted">(if <code>legfeat_cond</code>)</small></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Which of the old orders would hear my name as I stand?”</span> <small class="muted">(if <code>prsg_c_off</code>)</small></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Speak to me of the Harper Scouts.”</span> <small class="muted">(if <code>prsg_c_harper</code>)</small></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Speak to me of the Knights of Westernesse.”</span> <small class="muted">(if <code>prsg_c_pdk</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Speak to me of the Pale Masters.”</span> <small class="muted">(if <code>prsg_c_pale</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Speak to me of the Shadowdancers.”</span> <small class="muted">(if <code>prsg_c_shadow</code>)</small></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“Speak to me of the Arcane Archers.”</span> <small class="muted">(if <code>prsg_c_archer</code>)</small></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“Speak to me of the Red Dragon Disciples.”</span> <small class="muted">(if <code>prsg_c_rdd</code>)</small></li><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Speak to me of the Assassins.”</span> <small class="muted">(if <code>prsg_c_assn</code>)</small></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Speak to me of the Weapon Masters.”</span> <small class="muted">(if <code>prsg_c_wm</code>)</small></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Speak to me of the Blackguards.”</span> <small class="muted">(if <code>prsg_c_bg</code>)</small></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Speak to me of the Divine Champions.”</span> <small class="muted">(if <code>prsg_c_divch</code>)</small></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Speak to me of the Dwarven Defenders.”</span> <small class="muted">(if <code>prsg_c_dwdef</code>)</small></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“Speak to me of the Shifters.”</span> <small class="muted">(if <code>prsg_c_shift</code>)</small></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“Another time, keeper.”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">*He runs a finger down the roll* As you stand today, these would hear your name: <span class="custom-token custom-token-unknown" title="SetCustomToken(6381, ...) — no setter found in static analysis">&lt;CUSTOM6381&gt;</span>. When an order makes its trial ready, word will reach me here at the well — the masters have not yet sent word for any, but the day comes. Return, and often.</div><ul class="dlg-links"><li><a href="#r14">→ reply #14</a> <span class="dlg-link-preview">“Then I will return. Keep your rolls well, Halmir.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">The quiet watchers of the North — song-keepers and cipher-readers who walk the roads of Eriador unremarked and forget nothing. They have marked you already; they mark everyone. *He folds the roll and studies you a moment*</div><ul class="dlg-links"><li><a href="#r27">→ reply #27</a> <span class="dlg-link-preview">“I already walk their roads, keeper. How may I be counted among them?”</span> <small class="muted">(if <code>q_hrp_c_off</code>)</small></li><li><a href="#r28">→ reply #28</a> <span class="dlg-link-preview">“How does one come to walk with them?”</span> <small class="muted">(if <code>q_hrp_c_noh</code>)</small></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“Then I will listen for it. Farewell.”</span></li></ul></div>
 <div class="dlg-node entry" id="e3"><div class="dlg-head"><span class="dlg-id">entry #3</span></div><div class="dlg-text">Banner-knights in the old Númenórean line — captains who hold other men steady when the field turns. Theirs is a trial of command on open ground, not of the sword alone. But no summons has come from the White City yet — the trial is not ready. Return when the banners move.</div><ul class="dlg-links"><li><a href="#r34">→ reply #34</a> <span class="dlg-link-preview">“I ride in their line already, keeper. How may I be counted among the banner-knig…”</span> <small class="muted">(if <code>q_kwn_c_off</code>)</small></li><li><a href="#r40">→ reply #40</a> <span class="dlg-link-preview">“How does one come to ride under that banner?”</span> <small class="muted">(if <code>q_kwn_c_noh</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“I will await the summons.”</span></li></ul></div>
@@ -1360,6 +1444,11 @@
 <div class="dlg-node entry" id="e84"><div class="dlg-head"><span class="dlg-id">entry #84</span></div><div class="dlg-text">*He is silent a moment, and does not look up from the page* The Black Captain&#x27;s sworn -- those who broke a bright oath and swore a darker one in its place. I keep their page because a keeper keeps every page, even the ones that shame the book. The fall is not a thing I offer. It is a thing a man does, out in the dark, and then comes to me to have it written down.</div><ul class="dlg-links"><li><a href="#r107">→ reply #107</a> <span class="dlg-link-preview">“My bright oath is already broken, keeper. Write me among the fallen.”</span> <small class="muted">(if <code>q_bkg_c_off</code>)</small></li><li><a href="#r108">→ reply #108</a> <span class="dlg-link-preview">“How does one come to be counted among the Blackguards?”</span> <small class="muted">(if <code>q_bkg_c_noh</code>)</small></li><li><a href="#r24">→ reply #24</a> <span class="dlg-link-preview">“I will await the call to vows.”</span></li></ul></div>
 <div class="dlg-node entry" id="e85"><div class="dlg-head"><span class="dlg-id">entry #85</span></div><div class="dlg-text">*He turns to a page that smells of cold iron and old ash* Then hear how the fall is written. Go to the Dark Tower -- the Keep of Barad-Dur, where the instruments of cruelty still stand -- and lay your hand on the torture-rack. Swear the Black Oath upon it: no quarter given, none asked, the light you carried spent for good. But come to it bleeding: the oath takes blood freely given, or it takes nothing. What the iron brands into your hand, carry back to me.</div><ul class="dlg-links"><li><a href="#r109">→ reply #109</a> <span class="dlg-link-preview">“I am already fallen. I will swear the Black Oath at the Dark Tower.”</span></li><li><a href="#r110">→ reply #110</a> <span class="dlg-link-preview">“Not yet, keeper.”</span></li></ul></div>
 <div class="dlg-node entry" id="e86"><div class="dlg-head"><span class="dlg-id">entry #86</span></div><div class="dlg-text">*He does not turn the page* One is not appointed to that page -- one falls to it. Break your bright oath in deed, take up the Black Captain&#x27;s discipline, and the rack in Barad-Dur will answer to your hand. Until then it is only cold iron, and it has nothing to say to you.</div><ul class="dlg-links"><li><a href="#r24">→ child</a> <span class="dlg-link-preview">“I will await the call to vows.”</span></li></ul></div>
+<div class="dlg-node entry" id="e87"><div class="dlg-head"><span class="dlg-id">entry #87</span></div><div class="dlg-text">Then keep to Bree and the Shire a while. Bill Ferny&#x27;s Ring, and Ferny&#x27;s Return after it -- Bill Ferny and the Guardian of Bree, both in Bree. The Miller&#x27;s Son, and his other son after -- Han the Bree Miller. Concerning Hobbits -- Odo Proudfoot, in Hobbiton. Feeding Tharbad -- the cleric of the Temple of Iluvatar.</div><ul class="dlg-links"><li><a href="#r117">→ reply #117</a> <span class="dlg-link-preview">“Tell me of another road.”</span></li></ul></div>
+<div class="dlg-node entry" id="e88"><div class="dlg-head"><span class="dlg-id">entry #88</span></div><div class="dlg-text">Then go further out. Pass the Pass -- Baldor the Caravan-Master, in the foothills of the Misty Mountains. Spider Silk Harvest -- Thranduil, in his hall in Mirkwood. Beorn&#x27;s Garden -- Grimbeorn the Old, at the homestead. Kallrist Tiger Hunt -- Sald, on Kallrist Island. Sowing Discord in Bree -- Bill Ferny again, in the market, if your heart is not too white for it. The Twentieth Plot of Mazarbul -- Frar the Restless, in the Chamber of Records. And Elrond&#x27;s Request -- Elrond himself.</div><ul class="dlg-links"><li><a href="#r118">→ reply #118</a> <span class="dlg-link-preview">“Tell me of another road.”</span></li></ul></div>
+<div class="dlg-node entry" id="e89"><div class="dlg-head"><span class="dlg-id">entry #89</span></div><div class="dlg-text">Then you are wanted by better men. Glorfindel&#x27;s Curative -- Glorfindel, in Rivendell. Ruin of Annuminas -- Hanee the Loon, in Bree. The Well of Souls -- the Gondor Scribe, in the Tower of the High Wizard. The Thirteenth Ent -- Leaflock, deep in Fangorn, and he will hear only a druid or a bard of long practice.</div><ul class="dlg-links"><li><a href="#r119">→ reply #119</a> <span class="dlg-link-preview">“Tell me of another road.”</span></li></ul></div>
+<div class="dlg-node entry" id="e90"><div class="dlg-head"><span class="dlg-id">entry #90</span></div><div class="dlg-text">Little, but not nothing. Paths of the Dead -- Aragorn, at the gates of Minas Tirith. Gloison&#x27;s Heirloom -- Gloin, King under the Mountain, in Erebor. And the Forbidden Realms, which no one gives you: it begins when the key finds you, at Noirinan in Numenor.</div><ul class="dlg-links"><li><a href="#r120">→ reply #120</a> <span class="dlg-link-preview">“Tell me of another road.”</span></li></ul></div>
+<div class="dlg-node entry" id="e91"><div class="dlg-head"><span class="dlg-id">entry #91</span></div><div class="dlg-text">These keep no reckoning of your years. The Last Drop at Frogmorton Inn -- Rigrin, at the Whitfurrow Inn. Hobbit Post -- Posco Whitfoot, in Hobbiton. The Riddle Game -- the Whispering Wretch, in the Bree cave. And the Path of Meaning -- seven guides, scattered wide; find one and it will point you at the rest.</div><ul class="dlg-links"><li><a href="#r121">→ reply #121</a> <span class="dlg-link-preview">“Tell me of another road.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span></div><div class="dlg-text">Which of the old orders would hear my name as I stand?</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“*He runs a finger down the roll* As you stand today, these would hear your name:…”</span> <small class="muted">(if <code>prsg_c_sum</code>)</small></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">Speak to me of the Harper Scouts.</div><ul class="dlg-links"><li><a href="#e19">→ entry #19</a> <span class="dlg-link-preview">“*He does not look up, but the corner of his mouth moves* The rolls keep your nam…”</span> <small class="muted">(if <code>q_hrp_c_st3</code>)</small></li><li><a href="#e17">→ entry #17</a> <span class="dlg-link-preview">“*He sets down the roll* You carry road-dust — and something better, unless I mis…”</span> <small class="muted">(if <code>q_hrp_c_st2</code>)</small></li><li><a href="#e16">→ entry #16</a> <span class="dlg-link-preview">“*He glances up from the roll* The corner table at the Prancing Pony, in Bree. A…”</span> <small class="muted">(if <code>q_hrp_c_st1</code>)</small></li><li><a href="#e2">→ entry #2</a> <span class="dlg-link-preview">“The quiet watchers of the North — song-keepers and cipher-readers who walk the r…”</span></li></ul></div>
@@ -1473,6 +1562,16 @@
 <div class="dlg-node reply" id="r109"><div class="dlg-head"><span class="dlg-id">reply #109</span> <span class="dlg-action">→ <code>q_bkg_start</code></span></div><div class="dlg-text">I am already fallen. I will swear the Black Oath at the Dark Tower.</div></div>
 <div class="dlg-node reply" id="r110"><div class="dlg-head"><span class="dlg-id">reply #110</span></div><div class="dlg-text">Not yet, keeper.</div></div>
 <div class="dlg-node reply" id="r111"><div class="dlg-head"><span class="dlg-id">reply #111</span> <span class="dlg-action">→ <code>legfeat_respec</code></span></div><div class="dlg-text">Let me choose my legendary feats again.</div></div>
+<div class="dlg-node reply" id="r112"><div class="dlg-head"><span class="dlg-id">reply #112</span></div><div class="dlg-text">I am new to these lands.</div><ul class="dlg-links"><li><a href="#e87">→ entry #87</a> <span class="dlg-link-preview">“Then keep to Bree and the Shire a while. Bill Ferny&#x27;s Ring, and Ferny&#x27;s Return a…”</span></li></ul></div>
+<div class="dlg-node reply" id="r113"><div class="dlg-head"><span class="dlg-id">reply #113</span></div><div class="dlg-text">I have some road behind me.</div><ul class="dlg-links"><li><a href="#e88">→ entry #88</a> <span class="dlg-link-preview">“Then go further out. Pass the Pass -- Baldor the Caravan-Master, in the foothill…”</span></li></ul></div>
+<div class="dlg-node reply" id="r114"><div class="dlg-head"><span class="dlg-id">reply #114</span></div><div class="dlg-text">I am well seasoned.</div><ul class="dlg-links"><li><a href="#e89">→ entry #89</a> <span class="dlg-link-preview">“Then you are wanted by better men. Glorfindel&#x27;s Curative -- Glorfindel, in Riven…”</span></li></ul></div>
+<div class="dlg-node reply" id="r115"><div class="dlg-head"><span class="dlg-id">reply #115</span></div><div class="dlg-text">There is little left to test me.</div><ul class="dlg-links"><li><a href="#e90">→ entry #90</a> <span class="dlg-link-preview">“Little, but not nothing. Paths of the Dead -- Aragorn, at the gates of Minas Tir…”</span></li></ul></div>
+<div class="dlg-node reply" id="r116"><div class="dlg-head"><span class="dlg-id">reply #116</span></div><div class="dlg-text">What can be walked at any strength?</div><ul class="dlg-links"><li><a href="#e91">→ entry #91</a> <span class="dlg-link-preview">“These keep no reckoning of your years. The Last Drop at Frogmorton Inn -- Rigrin…”</span></li></ul></div>
+<div class="dlg-node reply" id="r117"><div class="dlg-head"><span class="dlg-id">reply #117</span></div><div class="dlg-text">Tell me of another road.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></li></ul></div>
+<div class="dlg-node reply" id="r118"><div class="dlg-head"><span class="dlg-id">reply #118</span></div><div class="dlg-text">Tell me of another road.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></li></ul></div>
+<div class="dlg-node reply" id="r119"><div class="dlg-head"><span class="dlg-id">reply #119</span></div><div class="dlg-text">Tell me of another road.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></li></ul></div>
+<div class="dlg-node reply" id="r120"><div class="dlg-head"><span class="dlg-id">reply #120</span></div><div class="dlg-text">Tell me of another road.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></li></ul></div>
+<div class="dlg-node reply" id="r121"><div class="dlg-head"><span class="dlg-id">reply #121</span></div><div class="dlg-text">Tell me of another road.</div><ul class="dlg-links"><li><a href="#e0">→ child</a> <span class="dlg-link-preview">“*An old man in a grey cloak looks up from a long roll of parchment* I keep the r…”</span></li></ul></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

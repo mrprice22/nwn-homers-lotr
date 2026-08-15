@@ -62,10 +62,14 @@
 // from the area OnEnter wrapper (q_pld_enter). No-ops gracefully until the
 // admin places waypoint AP_paladinlineearly_1 in area005 (Minas Tirith: Keep --
 // see roadmap manual_steps) and never double-spawns.
+#include &quot;qline_gate_inc&quot;
 #include &quot;q_pld_inc&quot;
 
 void main()
 {
+    // Pulled back 2026-08-14 for creative rework -- see qline_gate_inc.nss.
+    if (QL_LineOff(&quot;pld&quot;)) return;
+
     PLD_SpawnKeeper();
 }
 </code></pre>
