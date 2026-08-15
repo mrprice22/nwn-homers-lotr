@@ -1024,59 +1024,248 @@ def server_tz() -> str:
     return "America/Chicago"
 
 
-class ServerEnvError(Exception):
-    """server.env did not answer a question we must not guess at."""
+# --------------------------------------------------------------------------
+# Server log monitor — every realm on this box, interleaved
+# --------------------------------------------------------------------------
+# NO FALLBACK CONTAINER NAME, deliberately, anywhere below. This page used to
+# tail a single container defaulting to the literal "nwnxee-homer-s2", which was
+# harmless while that was the only container on the box and actively wrong the
+# moment it was not: there are three environments (dev, the live season, an
+# archived season), each with its own container, and a default silently tails
+# SOMEONE ELSE'S SERVER. An admin reading the monitor page would be watching the
+# wrong realm's log while believing it was this one — and log output looks
+# plausible either way, so nothing about the screen would give it away. That is
+# also why every line here carries its realm tag.
+#
+# Guessing is what caused the roadmapdb misrouting incident recorded in
+# roadmap_publish.nwn_home_dir(). A loud failure is strictly better than a
+# confident wrong answer.
 
 
-def container_name() -> str:
-    """Read NWN_CONTAINER_NAME from server.env (same source watch-server uses).
+# Colours match bin/watch-all-servers' ANSI palette (cyan / yellow / green).
+_REALM_COLORS = {"DEV": "#56d4dd", "S1": "#d29922", "S2": "#3fb950"}
+_EXTRA_COLORS = ["#d2a8ff", "#79c0ff", "#ff7b72"]
 
-    NO FALLBACK, deliberately. This used to default to the literal
-    "nwnxee-homer-s2", which was harmless while that was the only container on
-    the box and actively wrong the moment it was not: there are now three
-    environments (dev, the live season, an archived season), each with its own
-    container, and a default silently tails SOMEONE ELSE'S SERVER. An admin
-    reading the monitor page would be watching the wrong realm's log while
-    believing it was this one - and log output looks plausible either way, so
-    nothing about the screen would give it away.
 
-    Guessing is what caused the roadmapdb misrouting incident recorded in
-    roadmap_publish.nwn_home_dir(). A loud failure is strictly better than a
-    confident wrong answer.
+def realms() -> list[dict]:
+    """Every Homer's LotR realm on this box, newest season first.
+
+    A realm is a sibling repo of this one (nwn_homers_lotr, _s1, _s2, ...) whose
+    server.env sets NWN_CONTAINER_NAME. Same discovery rule, same no-guessing
+    rule and the same tag rule (dev is keyed on ROLE, seasons on NUM) as
+    bin/watch-all-servers and bin/season-shortcuts.sh — the three must agree or
+    the terminal monitor and this page label the same log differently.
+
+    Repos without a server.env (nwn_homers_lotr_2009) drop out on their own.
+    """
+    def env_get(text: str, key: str) -> str:
+        m = None
+        for ln in text.splitlines():
+            hit = re.match(rf"\s*(?:export\s+)?{key}\s*=\s*(.+?)\s*$", ln)
+            if hit:
+                m = hit
+        if not m:
+            return ""
+        val = m.group(1).strip()
+        # Strip a trailing comment only when the value is not quoted.
+        if not val.startswith(('"', "'")):
+            val = val.split("#", 1)[0].strip()
+        return val.strip('"').strip("'")
+
+    out, extra = [], 0
+    for repo in sorted(REPO.parent.glob("nwn_homers_lotr*")):
+        env_file = repo / "server.env"
+        try:
+            text = env_file.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        container = env_get(text, "NWN_CONTAINER_NAME")
+        if not container:
+            continue
+        role = env_get(text, "SEASON_ROLE")
+        num = env_get(text, "SEASON_NUM")
+        if role == "dev":
+            tag, label, color = "DEV", "TEST realm", _REALM_COLORS["DEV"]
+        else:
+            tag = f"S{num or '?'}"
+            label = f"Season {num or '?'} ({role or '?'})"
+            color = _REALM_COLORS.get(tag)
+            if color is None:
+                color = _EXTRA_COLORS[extra % len(_EXTRA_COLORS)]
+                extra += 1
+        out.append({"tag": tag, "label": label, "container": container,
+                    "color": color, "repo": repo.name})
+    # Live season above dev in the legend; dev is the noisiest and least urgent.
+    out.sort(key=lambda r: (r["tag"] == "DEV", r["tag"]))
+    return out
+
+
+# podman --timestamps prefixes each line with RFC3339 nanoseconds, e.g.
+# "2026-08-14T06:50:10.345643000-05:00 I [06:50:10] ...".
+_TS_RE = re.compile(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?"
+                    r"(?:Z|[+-]\d\d:?\d\d))\s?(.*)$", re.S)
+
+# --- noise filter: the same blocklist bin/watch-all-servers uses --------------
+# Roughly 95% of what the servers print is machinery talking to itself. The
+# patterns live in bin/server-log-noise.txt so this page and the terminal
+# monitor can never disagree about what a "clean" log looks like — see that
+# file for the format and the rules on editing it.
+NOISE_FILE = REPO / "bin" / "server-log-noise.txt"
+_noise_cache: dict = {}
+
+# Severity letters NWNX/Anvil actually emit: I=info N=notice W=warn E=error
+# D=debug. W and E are exempt from the filter, always.
+_SEV_RE = re.compile(r"^([IWEDN]) \[")
+_FULL_TS_RE = re.compile(r"^\[\d{4}/\d\d/\d\d \d\d:\d\d:\d\d\.\d\d\d\] ")
+_SHORT_TS_RE = re.compile(r"^\[\d\d:\d\d:\d\d\] ")
+_LOGGER_RE = re.compile(r"^\[([A-Za-z][A-Za-z0-9_.]*)\] ")
+_CPP_RE = re.compile(r"^\[[A-Za-z_]+\.cpp:\d+\] ")
+# nwserver and NWNX share one fd, so records arrive welded together, e.g.
+# `Server: Loading module "X"I [07:37:35] [NWNX_ServerLogRedirector] ...`.
+_GLUE_RE = re.compile(r"(?<=.)(?=[IWEDN] \[\d)")
+
+
+def noise_re() -> "re.Pattern | None":
+    """Compiled blocklist, recompiled when the file changes on disk.
+
+    Keyed on (mtime, size) rather than cached once: the editor is a long-lived
+    systemd service, and an admin who edits the blocklist should not have to
+    restart it to see the effect.
     """
     try:
-        for ln in SERVER_ENV.read_text(encoding="utf-8").splitlines():
-            m = re.match(r"\s*(?:export\s+)?NWN_CONTAINER_NAME\s*=\s*(.+?)\s*$", ln)
+        st = NOISE_FILE.stat()
+        key = (st.st_mtime_ns, st.st_size)
+    except OSError:
+        return None
+    if _noise_cache.get("key") != key:
+        pats = [ln.strip() for ln in
+                NOISE_FILE.read_text(encoding="utf-8").splitlines()]
+        pats = [p for p in pats if p and not p.startswith("#")]
+        _noise_cache.clear()
+        _noise_cache["key"] = key
+        _noise_cache["re"] = re.compile("|".join(pats)) if pats else None
+    return _noise_cache.get("re")
+
+
+def tidy_log_line(raw: str, keep_noise: bool = False) -> list[tuple[str, str]]:
+    """One raw container line -> the (severity, message) rows worth showing.
+
+    Drops boilerplate, splits welded records, and strips the parts this page
+    already shows in its own columns: the severity letter, the engine's own
+    timestamp (podman's stamp is more accurate and is the sort key), and the
+    logger name. Message tags we emit ourselves — [FORGE], [Bestiary],
+    [ServerRestart] — are deliberately kept: a logger is a dotted namespace or
+    an NWNX_* plugin, nothing else.
+
+    Returns [] when the whole line was noise.
+    """
+    noise = None if keep_noise else noise_re()
+    out: list[tuple[str, str]] = []
+    for rec in _GLUE_RE.split(raw):
+        rec = rec.lstrip(".")          # module-load progress dots
+        if not rec.strip():
+            continue
+        sev, body = "", rec
+        if _SEV_RE.match(rec):
+            sev, body = rec[0], rec[2:]
+            for pat in (_FULL_TS_RE, _SHORT_TS_RE):
+                m = pat.match(body)
+                if m:
+                    body = body[m.end():]
+                    break
+        msg = body
+        m = _LOGGER_RE.match(msg)
+        if m and ("." in m.group(1) or m.group(1).startswith("NWNX")):
+            msg = msg[m.end():]
+            msg = _CPP_RE.sub("", msg)
+        if msg.startswith("(Server) "):
+            msg = msg[len("(Server) "):]
+        # Match with the logger attached AND stripped: some patterns key off the
+        # logger, others anchor on the bare message.
+        if (noise is not None and sev not in ("W", "E")
+                and (noise.search(body) or noise.search(msg))):
+            continue
+        out.append((sev, msg))
+    return out
+
+
+def server_log_tail_all(tail: int = 400,
+                        raw: bool = False) -> tuple[list[dict], list[dict]]:
+    """Recent logs from EVERY realm, interleaved chronologically and filtered.
+
+    The web equivalent of `bin/watch-all-servers`, and filtered by the same
+    blocklist (see tidy_log_line) so the two monitors show the same log. `raw`
+    turns the filter off, the page's "raw" checkbox.
+
+    `--timestamps` is what makes a true interleave possible: the container
+    streams share no other clock, so without it "combined" would just mean three
+    blocks stacked. Lines with no stamp are continuations and inherit the
+    previous line's time, which keeps a multi-line stack trace together.
+
+    Because the blocklist drops ~95% of the stream, `tail` is raised before it
+    is applied — otherwise "last 600 lines" would mean about 30 useful ones.
+
+    Returns (realm status rows, log lines).
+    """
+    found = realms()
+    if not found:
+        return [], [{"tag": "", "time": "", "text": (
+            "No realms found. A realm is a sibling repo of "
+            f"{REPO.name} with NWN_CONTAINER_NAME set in its server.env. "
+            "Refusing to guess a container name — a wrong guess silently shows "
+            "another realm's server.")}]
+
+    # Ask podman for far more than we intend to show, because the blocklist is
+    # about to throw most of it away. Capped so a busy realm can't blow the
+    # response up.
+    fetch = tail if raw else min(6000, tail * 12)
+
+    status, rows = [], []
+    for r in found:
+        up = subprocess.run(["podman", "container", "exists", r["container"]],
+                            capture_output=True).returncode == 0
+        status.append({**{k: r[k] for k in ("tag", "label", "container", "color")},
+                       "ok": up})
+        if not up:
+            # \uffff sorts after every timestamp, so a down realm's notice sits
+            # at the bottom of the stream where it is read last, rather than
+            # buried somewhere in yesterday's log.
+            rows.append(("\uffff" + r["tag"], r["tag"], "W",
+                         f"container '{r['container']}' is not running — "
+                         "waiting for it to come up..."))
+            continue
+        proc = subprocess.run(
+            ["podman", "logs", "--timestamps", "--tail", str(fetch),
+             r["container"]],
+            capture_output=True, text=True,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        last = ""
+        for line in text.rstrip("\n").splitlines():
+            m = _TS_RE.match(line)
             if m:
-                val = m.group(1).strip().strip('"').strip("'")
-                if val:
-                    return val
-    except OSError as e:
-        raise ServerEnvError(f"cannot read {SERVER_ENV}: {e}") from e
-    raise ServerEnvError(
-        f"NWN_CONTAINER_NAME is not set in {SERVER_ENV}. Refusing to guess - "
-        "with several environments on this host, a guessed container name "
-        "shows another realm's logs.")
+                last, body = m.group(1), m.group(2)
+            else:
+                body = line
+            # Sort key is the stamp; continuation lines reuse the previous one,
+            # and a realm with no stamps at all sorts to the top rather than
+            # crashing the merge. One raw line can yield several rows (welded
+            # records) or none at all (noise).
+            for sev, msg in tidy_log_line(body, keep_noise=raw):
+                rows.append((last, r["tag"], sev, msg))
 
-
-def server_log_tail(tail: int = 400) -> tuple[bool, str]:
-    """Return recent container logs (podman logs --tail), the web equivalent of
-    `bin/watch-server`. podman writes the log stream to stderr, so merge both."""
-    try:
-        name = container_name()
-    except ServerEnvError as e:
-        return False, f"Cannot determine which server to watch.\n\n{e}"
-    exists = subprocess.run(["podman", "container", "exists", name],
-                            capture_output=True)
-    if exists.returncode != 0:
-        return False, (f"Server container '{name}' is not running.\n"
-                       "Waiting for it to come up...")
-    proc = subprocess.run(
-        ["podman", "logs", "--tail", str(tail), name],
-        capture_output=True, text=True,
-    )
-    out = (proc.stdout or "") + (proc.stderr or "")
-    return proc.returncode == 0, out.rstrip("\n") or "(no log output yet)"
+    # Lexicographic on the RFC3339 stamp is a correct chronological sort here
+    # because every realm is a container on THIS host, so all stamps carry the
+    # same UTC offset. (Cross-host realms would need real parsing.)
+    rows.sort(key=lambda t: t[0])
+    rows = rows[-tail:]                 # `tail` counts lines the admin SEES
+    lines = [{"tag": tag, "time": (ts[11:19] if len(ts) >= 19 and ts[10:11] == "T"
+                                   else ""), "sev": sev, "text": body}
+             for ts, tag, sev, body in rows]
+    if not lines:
+        lines = [{"tag": "", "time": "", "sev": "",
+                  "text": "(no log output yet)"}]
+    return status, lines
 
 
 def now_stamp() -> str:
@@ -1341,15 +1530,13 @@ class Handler(BaseHTTPRequestHandler):
                 tail = max(1, min(2000, int(q.get("tail", ["400"])[0])))
             except ValueError:
                 tail = 400
-            ok, text = server_log_tail(tail)
-            # container_name() raises when server.env cannot answer; the tail
-            # above has already turned that into the displayed message, so the
-            # label just goes unknown rather than 500-ing the monitor page.
-            try:
-                cname = container_name()
-            except ServerEnvError:
-                cname = "(unknown)"
-            self._json({"ok": ok, "container": cname, "log": text})
+            # All realms at once now (bin/watch-all-servers' web twin), so the
+            # per-realm status lives in `realms` and every line carries the tag
+            # it came from. MONITOR_PAGE is the only consumer.
+            raw = q.get("raw", ["0"])[0] not in ("", "0", "false")
+            status, lines = server_log_tail_all(tail, raw=raw)
+            self._json({"ok": any(r["ok"] for r in status),
+                        "realms": status, "lines": lines})
         elif self.path == "/api/data":
             data = read_yaml()
             self._json({"ideas": data.get("ideas", []) or [], "vocab": vocab(data),
@@ -1505,8 +1692,13 @@ class Handler(BaseHTTPRequestHandler):
 # --------------------------------------------------------------------------
 # Browser UI (single inline page, no build step, no external deps)
 # --------------------------------------------------------------------------
-# Live server-log monitor — the web equivalent of `bin/watch-server`. Black
-# terminal-style page that polls /api/serverlog and rides through restarts.
+# Live server-log monitor — the web equivalent of `bin/watch-all-servers`, and
+# filtered by the same blocklist (bin/server-log-noise.txt), so the two monitors
+# never disagree about what a clean log looks like. Black terminal-style page
+# that polls /api/serverlog and rides through restarts. Every realm on the box
+# is interleaved into one chronological stream, each line tagged and coloured by
+# realm; the realm checkboxes filter client-side, "show all" re-fetches with the
+# noise filter off.
 MONITOR_PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1515,53 +1707,117 @@ MONITOR_PAGE = r"""<!doctype html>
   html, body { margin:0; height:100%; background:#000; color:#c8c8c8;
     font:13px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   #bar { position:sticky; top:0; display:flex; align-items:center; gap:14px;
-    padding:8px 14px; background:#0a0a0a; border-bottom:1px solid #1e1e1e; }
+    padding:8px 14px; background:#0a0a0a; border-bottom:1px solid #1e1e1e;
+    flex-wrap:wrap; }
   #bar h1 { margin:0; font-size:13px; font-weight:600; color:#9ecbff;
     letter-spacing:.02em; }
-  #stat { color:#7d7d7d; }
-  #stat.live::before { content:"●"; color:#3fb950; margin-right:5px; }
-  #stat.down::before { content:"●"; color:#f85149; margin-right:5px; }
-  label { color:#7d7d7d; cursor:pointer; }
-  #log { padding:12px 14px; white-space:pre-wrap; word-break:break-word; }
-  #log .join { color:#3fb950; } #log .leave { color:#d29922; }
-  #log .err  { color:#f85149; } #log .dm { color:#9ecbff; }
+  label { color:#7d7d7d; cursor:pointer; white-space:nowrap; }
+  .realm { display:inline-flex; align-items:center; gap:5px; }
+  .realm .dot::before { content:"●"; }
+  .realm .dot.up { color:#3fb950; } .realm .dot.down { color:#f85149; }
+  #err { color:#f85149; }
+  #log { padding:12px 14px; }
+  /* One row per line: time, tag, message. The realm colour is set inline from
+     the API so the terminal monitor and this page never drift apart. */
+  .ln { display:flex; gap:8px; white-space:pre-wrap; word-break:break-word;
+        border-left:2px solid transparent; padding-left:6px; }
+  .ln .t { color:#4d4d4d; flex:none; }
+  .ln .g { flex:none; font-weight:600; }
+  .ln .m { flex:1 1 auto; }
+  /* Severity is a stripe + weight, never a text colour — the text colour is
+     already carrying which realm the line came from. */
+  .ln.err   { border-left-color:#f85149; font-weight:600; }
+  .ln.warn  { border-left-color:#d29922; font-weight:600; }
+  .ln.join  { border-left-color:#3fb950; }
+  .ln.leave { border-left-color:#d29922; }
+  .ln.dm    { border-left-color:#9ecbff; }
 </style></head>
 <body>
   <div id="bar">
-    <h1>Homer's LotR — Server Monitor</h1>
-    <span id="stat">connecting…</span>
-    <label style="margin-left:auto"><input type="checkbox" id="auto" checked>
+    <h1>Homer's LotR — Server Monitor (all realms)</h1>
+    <span id="realms">connecting…</span>
+    <span id="err"></span>
+    <label style="margin-left:auto"
+           title="Show every line the servers print, including the ~95% of
+boilerplate the blocklist in bin/server-log-noise.txt normally hides.">
+      <input type="checkbox" id="raw"> show all</label>
+    <label><input type="checkbox" id="auto" checked>
       auto-scroll</label>
   </div>
-  <div id="log">Loading server log…</div>
+  <div id="log">Loading server logs…</div>
 <script>
 const logEl = document.getElementById('log');
-const statEl = document.getElementById('stat');
+const realmsEl = document.getElementById('realms');
+const errEl = document.getElementById('err');
 const autoEl = document.getElementById('auto');
-function colorize(text) {
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  return text.split('\n').map(line => {
-    let cls = '';
-    if (/error|exception|fail|traceback/i.test(line)) cls = 'err';
-    else if (/join|enter|added to|logged in|connect/i.test(line)) cls = 'join';
-    else if (/leav|left|remov|drop|disconnect|logout/i.test(line)) cls = 'leave';
-    else if (/\bDM\b|dungeon master/i.test(line)) cls = 'dm';
-    return cls ? `<span class="${cls}">${esc(line)}</span>` : esc(line);
-  }).join('\n');
+const rawEl = document.getElementById('raw');
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// Which realms are shown. Survives polls; a realm seen for the first time
+// defaults to visible.
+const shown = {};
+let colors = {}, tagW = 3;
+
+// The server's own severity letter beats guessing from the words; W/E lines are
+// also the ones the noise filter never drops, so they should look different.
+function severity(line, sev) {
+  if (sev === 'E') return 'err';
+  if (sev === 'W') return 'warn';
+  if (/error|exception|fail|traceback/i.test(line)) return 'err';
+  if (/join|enter|added to|logged in|connect/i.test(line)) return 'join';
+  if (/leav|left|remov|drop|disconnect|logout/i.test(line)) return 'leave';
+  if (/\bDM\b|dungeon master/i.test(line)) return 'dm';
+  return '';
 }
+
+function renderBar(realms) {
+  realmsEl.innerHTML = realms.map(r => {
+    if (!(r.tag in shown)) shown[r.tag] = true;
+    return `<span class="realm" title="${esc(r.label)} — ${esc(r.container)}">`
+      + `<span class="dot ${r.ok ? 'up' : 'down'}"></span>`
+      + `<label><input type="checkbox" data-tag="${esc(r.tag)}"`
+      + `${shown[r.tag] ? ' checked' : ''}> `
+      + `<span style="color:${esc(r.color)};font-weight:600">${esc(r.tag)}</span>`
+      + `</label></span>`;
+  }).join(' ');
+  realmsEl.querySelectorAll('input[data-tag]').forEach(cb => {
+    cb.onchange = () => { shown[cb.dataset.tag] = cb.checked; applyFilter(); };
+  });
+}
+
+function applyFilter() {
+  logEl.querySelectorAll('.ln').forEach(el => {
+    const t = el.dataset.tag;
+    el.style.display = (!t || shown[t] !== false) ? '' : 'none';
+  });
+}
+
 async function poll() {
   try {
-    const r = await fetch('/api/serverlog?tail=600', {cache:'no-store'});
+    const r = await fetch('/api/serverlog?tail=600'
+                          + (rawEl.checked ? '&raw=1' : ''), {cache:'no-store'});
     const d = await r.json();
-    logEl.innerHTML = colorize(d.log || '');
-    if (d.ok) { statEl.textContent = d.container + ' — live'; statEl.className = 'live'; }
-    else { statEl.textContent = d.container + ' — down'; statEl.className = 'down'; }
+    colors = {}; tagW = 3;
+    (d.realms || []).forEach(x => { colors[x.tag] = x.color;
+                                    tagW = Math.max(tagW, x.tag.length); });
+    renderBar(d.realms || []);
+    errEl.textContent = (d.realms || []).length ? '' : 'no realms found';
+    logEl.innerHTML = (d.lines || []).map(l => {
+      const tag = (l.tag || '').padEnd(tagW);
+      const col = colors[l.tag] || '#c8c8c8';
+      const sev = severity(l.text || '', l.sev || '');
+      return `<div class="ln ${sev}" data-tag="${esc(l.tag || '')}">`
+        + `<span class="t">${esc(l.time || '')}</span>`
+        + `<span class="g" style="color:${esc(col)}">${l.tag ? '[' + esc(tag) + ']' : ''}</span>`
+        + `<span class="m" style="color:${esc(col)}">${esc(l.text || '')}</span></div>`;
+    }).join('');
+    applyFilter();
     if (autoEl.checked) window.scrollTo(0, document.body.scrollHeight);
   } catch (e) {
-    statEl.textContent = 'monitor unreachable'; statEl.className = 'down';
+    errEl.textContent = 'monitor unreachable';
   }
 }
 poll();
+rawEl.onchange = poll;          // don't make the admin wait out the interval
 setInterval(poll, 3000);
 </script>
 </body></html>"""
@@ -1825,7 +2081,7 @@ PAGE = r"""<!doctype html>
       <a data-brand="wiki" href="https://dev.homerslotr.com/" target="_blank" rel="noopener">This realm's wiki ↗</a>
       <a data-brand="roadmap" href="https://dev.homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">This realm's roadmap ↗</a>
       <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">LIVE roadmap ↗</a>
-      <a href="/monitor" target="_blank" rel="noopener">Server monitor ↗</a>
+      <a href="/monitor" target="_blank" rel="noopener">Server monitor (all realms) ↗</a>
     </div>
     <div class="viewtoggle">
       <button id="view_board" class="on">Board</button>

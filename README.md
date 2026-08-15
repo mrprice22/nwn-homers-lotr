@@ -1145,9 +1145,12 @@ on the way back up. Pieces:
    sudo systemctl daemon-reload
    sudo systemctl enable --now nwn-reboot.timer
    ```
-3. **Auto-start on boot** — already handled by the XDG autostart entry
-   (`~/.config/autostart/nwn-homers-lotr-server.desktop`) + user lingering; the
-   server comes back without intervention (~5 min).
+3. **Auto-start on boot** — one `nwn-season-server@<repo>.service` per realm
+   (installed by `bin/season-units.sh`) + user lingering; every server comes back
+   without intervention (~5 min). The old XDG autostart entry for this is dead
+   (`~/.config/autostart/nwn-homers-lotr-server.desktop.disabled`) — a user unit
+   starts before login and orders itself properly, an autostart `.desktop` does
+   neither.
 4. **Full wiki republish on boot** — `homers-lotr-wiki-publish.service` (user,
    runs once per boot) calls `bin/refresh-homers-lotr-wiki --publish`, which
    regenerates the **whole** wiki (so creature-index/detail **kill counts** update,
@@ -1165,6 +1168,10 @@ on the way back up. Pieces:
 5. **Backup** — moved off its midnight timer into this cycle:
    `homers-lotr-backup.service` now runs once per boot (24h-sentinel-gated), so the
    snapshot is taken right after the reboot when state is quiescent.
+6. **The monitor window** — `nwn-monitor-all.service` opens one ptyxis window
+   running `bin/watch-all-servers`: every realm's log in one interleaved stream,
+   each line tagged and coloured by realm (`[DEV]` cyan, `[S1]` yellow,
+   `[S2]` green). See "Watching the servers" below.
 
 Install the user services (one-time):
 ```sh
@@ -1188,6 +1195,94 @@ joiners an on-login notice; once the server is empty for ~45s it saves + shuts d
 cleanly and the host `homers-lotr-empty-restart.path` unit restarts **just the
 server service** onto the new module. Cancel with `bin/reboot-on-empty off`. Full
 setup + one-time unit install: [`rebootSchedule.md`](rebootSchedule.md#adhoc-reboot-on-empty-push-an-update-without-kicking-players).
+
+## Watching the servers
+
+Three realms run side by side on this box (see "Season identity & rotation"),
+each in its own repo with its own podman container. There are two ways to watch
+them, and both are strictly **read-only** — closing a monitor never stops a
+server.
+
+| | what it shows | how to open |
+|---|---|---|
+| `bin/watch-server` | **one** realm — whichever repo the copy lives in | that season's *Server Monitor* app-grid tile; also what `bin/server-restart` drops you into |
+| `bin/watch-all-servers` | **every** realm, interleaved | the *Server Monitor - All Realms* tile, or automatically at login |
+| roadmap editor `/monitor` | every realm, interleaved, in a browser | <http://localhost:8765/monitor> (LAN-reachable, same as the editor) |
+
+`watch-all-servers` and the `/monitor` page are the **consolidated, filtered**
+views and share one blocklist file, so they can never disagree about what a
+clean log looks like (details below). `bin/watch-server` is the raw single-realm
+fallback.
+
+`watch-all-servers` discovers realms by scanning sibling `nwn_homers_lotr*` repos
+for a `server.env` with `NWN_CONTAINER_NAME` set — the same rule the editor's
+`realms()` uses, and the same *never guess a container name* rule as everything
+else here: on a box with three servers, a guessed name silently tails somebody
+else's log and the output looks entirely plausible either way. Each line is
+prefixed and coloured by realm (`[DEV]` cyan, `[S1]` yellow, `[S2]` green) so it
+is unambiguous mid-scroll. Useful flags: `--only s2,dev`, `--tail N`,
+`--no-color`. Each realm reconnects independently across restarts, so a
+reboot-on-empty on one does not disturb the others' streams.
+
+**It is a filtered, time-merged view, not the raw stream.** Two things happen to
+`podman logs` output before it reaches the window:
+
+* **Boilerplate is dropped.** Roughly 95% of what the servers print is machinery
+  talking to itself — per-object `NWNX_Damage` hook churn (1805 lines in a
+  19-hour sample, on its own), Anvil service registration, the NWNX plugin
+  inventory, forge-chest bookkeeping. The patterns live in
+  [`bin/server-log-noise.txt`](bin/server-log-noise.txt), one extended regex per
+  line, **read at runtime by both the terminal monitor and the `/monitor` page**
+  — never copy them into either program, or an admin who sees a line in one view
+  and not the other has no way to tell which is lying. It is a **blocklist, not
+  an allowlist**: a message nobody has classified still prints, so a new line
+  from a new script can never vanish silently, and `W`/`E` severity is exempt
+  outright. A reboot renders as ~10 lifecycle lines (`Server: Loading…` →
+  `Module loaded` → `{Masterserver Advisory}`) instead of ~250.
+  * `--raw` turns all of it off — no filter, no merge, no reformatting. The
+    browser page's **show all** checkbox is the same switch (`?raw=1`).
+  * `--show-dropped` prints **only** what the filter removed, which is how you
+    audit the blocklist after editing it (or check that a line you expected
+    really was noise).
+  * The editor reads the file fresh whenever its mtime changes, so editing the
+    blocklist does not need a service restart — but changing the *code* does
+    (`systemctl --user restart roadmap-editor.service`).
+* **The backlog is merge-sorted by timestamp.** Every realm's history is
+  collected first, resolved to a common clock, and printed as one chronological
+  stream before the live follow starts. Without that step the realms' backlogs
+  race each other and the window opens with 03:12 above 07:37 above 03:12. The
+  two engine timestamp formats (`[HH:MM:SS]` from NWNX, `[YYYY/MM/DD
+  HH:MM:SS.mmm]` from Anvil, nothing at all from `nwserver`) are reconciled by
+  carrying the date forward per realm — which is why dropped lines still have to
+  advance the clock before the filter sees them. (The `/monitor` page has it
+  easier: it asks podman for `--timestamps` and sorts on those, since it is not
+  streaming.)
+
+Both views also tidy each line: the severity letter, the engine's own redundant
+timestamp and the logger name come off, leaving `HH:MM:SS` plus the message.
+Message tags we emit ourselves — `[FORGE]`, `[Bestiary]`, `[ServerRestart]` —
+are deliberately kept, and welded records (nwserver and NWNX share one fd, so
+`Server: Loading module "X"I [07:37:35] [NWNX_…]` arrives as a single line) are
+split apart first.
+
+`bin/watch-server` deliberately stays **unfiltered**: when you need to see
+everything for one realm, that is the raw fallback.
+
+The login window is `systemd/nwn-monitor-all.service`, installed with:
+
+```sh
+bin/monitor-all-shortcut.sh            # dry run
+bin/monitor-all-shortcut.sh --install  # writes the unit + app tile, enables it
+```
+
+It is **not** an XDG autostart entry, and that is the whole point: gnome-session
+fires autostart entries before `xdg-desktop-portal` owns its bus name, ptyxis
+needs the portal, and the three per-season autostart monitors that used to live
+in `~/.config/autostart/` therefore died at every boot (`Failed to register:
+Timeout was reached`, ptyxis dumping core) and had to be started by hand. The
+unit orders itself after the portal *and* waits on its bus name. Installing it
+removes those three dead files. It belongs to no season, so no cutover phase
+creates or retires it.
 
 ## Season identity & rotation
 

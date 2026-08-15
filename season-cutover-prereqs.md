@@ -663,6 +663,28 @@ the roadmap editor are never touched; they already track the newest repo.
 > - Paths inside the `bash -lc '…'` wrapper are double-quoted; writing
 >   `--project '$PROJECT_ROOT'` closes and reopens the single quote and only
 >   works by luck while no repo path contains a space.
+>
+> ### 2026-08-14: the monitor autostart is no longer per season
+>
+> `season-shortcuts.sh` now renders **10** entries — the per-season monitor
+> **autostart** entry is gone. It never worked: gnome-session fires XDG autostart
+> before `xdg-desktop-portal` owns its bus name, ptyxis needs the portal, and
+> every boot logged `Failed to register: Timeout was reached` (ptyxis even dumped
+> core), so the monitors had to be started by hand after each reboot. Three
+> simultaneous `ptyxis --new-window` calls at t+0 also raced to be the primary
+> instance.
+>
+> Replaced by **one cross-realm window**: `bin/watch-all-servers` interleaves
+> every realm's container log into a single colour- and tag-prefixed stream,
+> launched at login by `systemd/nwn-monitor-all.service` (ordered after
+> `xdg-desktop-portal.service` *and* waiting on its bus name), installed by
+> `bin/monitor-all-shortcut.sh --install`. It belongs to no season, lives only in
+> the unnumbered dev repo, and **no cutover phase creates or retires it** — the
+> Phase 3 step is now "delete the retired season's ops/dev tiles", full stop.
+>
+> The per-season **app-grid** monitor tile stays: watching one realm on its own
+> is still often what you want. `$MONITOR_AUTO` stays in `OPS_FILES` so
+> `--remove` still cleans up any stale pre-2026-08-14 autostart file.
 
 ## 12. Roadmap editor stays single-instance (no work — a guard note)
 

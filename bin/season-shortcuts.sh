@@ -246,13 +246,21 @@ write_entry "$MONITOR" \
   "utilities-terminal" "Game;Network;Monitor;" \
   "Keywords=nwn;neverwinter;server;log;monitor;homer;lotr;season${SEASON_NUM:-};"
 
-write_entry "$MONITOR_AUTO" \
-  "Homer's LotR Server Monitor - $LABEL" \
-  "NWN Server Live Log" \
-  "Auto-open this season's live server view on login. Read-only — closing it does not stop the server." \
-  "$PROJECT_ROOT/bin/watch-server" \
-  "utilities-terminal" "Game;Network;Monitor;" \
-  "X-GNOME-Autostart-enabled=true"
+# NO per-season autostart entry any more. Two reasons it is gone:
+#
+#  1. It never worked. gnome-session fires XDG autostart before
+#     xdg-desktop-portal owns its bus name, and ptyxis needs the portal: every
+#     boot logged "Failed to register: Timeout was reached", ptyxis dumped core,
+#     and the monitors had to be started by hand. Three simultaneous ptyxis
+#     launches at t+0 also raced to be the primary instance.
+#  2. Three windows for three realms was the wrong shape anyway.
+#
+# Replaced by ONE cross-realm window: bin/watch-all-servers, launched by
+# systemd/nwn-monitor-all.service (ordered after the portal), installed by
+# bin/monitor-all-shortcut.sh. It is not per season, so it is not written here.
+#
+# $MONITOR_AUTO stays in OPS_FILES below so --remove still cleans up any stale
+# file a pre-2026-08-14 install left behind.
 
 # The live server logs are in the RUN dir (nwserver runs with
 # -userdirectory /nwn/run), not the home dir. The pre-season shortcut opened

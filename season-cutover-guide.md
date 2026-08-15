@@ -785,7 +785,8 @@ built once — see `season-cutover-prereqs.md` items 2b, 7, 11.
 | Empty-restart watch (`.path`/`.service`) | **per-season** | its watch path is the instance's run dir — do not let a clone keep the old path, and that run dir needs a **real** `anvil/` (§5a) |
 | Anvil plugins (`anvil/Plugins/`) | **per-season** | deploy `DungeonSolitaire.Nwn` to the new season's run dir — it carries `ServerRestartManager`, so without it the season has no daily restart and no reboot-on-empty (§5b) |
 | Dev shortcuts (unpack / repack / wiki / nwsync) | **per environment** — `bin/season-shortcuts.sh` keys them on the role (`-dev`) or number (`-s<N>`), so dev and a same-numbered season cannot collide | Phase 1 creates the new season's set; dev's never change |
-| Ops shortcuts (restart / stop / monitor) | **per-season** | Phase 1 create the new set; Phase 3 delete the retired set + its monitor autostart |
+| Ops shortcuts (restart / stop / monitor) | **per-season** | Phase 1 create the new set; Phase 3 delete the retired set |
+| Combined all-realm monitor (`bin/watch-all-servers`, `nwn-monitor-all.service`) | **single**, the DEV repo | none — one window shows every realm; no phase creates or retires it |
 | Roadmap editor (`:8765`) | **single**, the DEV repo | none — one backlog, ever (§11) |
 | OneDrive build folder | **per environment** — `Season<N>/`, or `Dev/` when `SEASON_ROLE=dev` | none; the split exists so a dev build is never unpacked into a season |
 
@@ -1068,8 +1069,10 @@ Once `_s<N>` is consistently empty for a decent stretch:
    season's own board, which stops being reachable when its server stops. So no
    rebrand, repack or deploy is needed at Phase 3.
 5. **Delete the retired season's *ops* app-grid shortcuts** (its restart / stop /
-   monitor `.desktop` files) and its monitor autostart entry — the server they
-   drove is gone (§6a). Leave the dev shortcuts and the roadmap editor; they track
+   monitor `.desktop` files) — the server they drove is gone (§6a). The combined
+   all-realm monitor is **not** touched: it belongs to no season, and it stops
+   showing the retired realm on its own once that container is gone. Leave the
+   dev shortcuts and the roadmap editor; they track
    the newest repo and never pointed at the archived season. The retired season's
    backup subfolder `…/backups/s<N>/` stays as its frozen history.
 
@@ -1154,7 +1157,7 @@ Copy this into the announcement/tracking issue for each cutover.
 - [ ] Season-N server + NWSync stopped and disabled
 - [ ] Its wiki-publish and backup units disabled
 - [ ] Season-N GitHub repo archived read-only (`gh repo archive`); its Workers Build disconnected
-- [ ] Retired season's ops + build app-grid shortcuts and monitor autostart deleted (§6a); **dev's left alone**
+- [ ] Retired season's ops + build app-grid shortcuts deleted (§6a); **dev's and the combined all-realm monitor left alone**
 - [ ] Frozen wiki confirmed serving at `season<N>.homerslotr.com`
 - [ ] Its slot recorded as free for season N+2
 

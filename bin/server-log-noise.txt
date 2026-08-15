@@ -1,0 +1,65 @@
+# server-log-noise.txt — the server-monitor noise blocklist.
+#
+# ONE source of truth, read at runtime by both monitors:
+#   * bin/watch-all-servers          (the terminal window / login monitor)
+#   * bin/roadmap-editor.py          (the browser view at /monitor)
+# They must agree: an admin who sees a line in one and not the other has no way
+# to tell which view is lying. Never copy these patterns into either program.
+#
+# FORMAT: one extended regex per line. Blank lines and #-comments are ignored.
+# Each pattern is tried against the message twice -- once with the logger name
+# still attached ("[NWNX_Damage] [Damage.cpp:152] Clearing ...") and once with
+# it stripped ("Clearing ...") -- because the engine is wildly inconsistent
+# about which of its lines carry a logger at all. Anchor with ^ only when you
+# mean the bare message. The severity letter and timestamp are already off the
+# front by the time these are applied.
+#
+# RULES FOR EDITING:
+#   * This is a BLOCKLIST, never an allowlist. Anything unmatched still prints,
+#     so a new message from a new script can never vanish silently.
+#   * W and E severity are exempt in both readers -- a warning is never noise.
+#   * Audit a change with `bin/watch-all-servers --show-dropped`, which prints
+#     exactly the lines these patterns removed. Do that before committing one.
+#   * Keep the syntax to the POSIX ERE subset Python's `re` also understands
+#     (no backreferences, no (?...) groups) -- awk and Python both compile this.
+#
+# Over ~19h of all three containers these drop 2817 of 2946 records.
+
+# -- in-game churn, the bulk of a busy day -------------------------------------
+# Per-object damage-hook install/teardown: one or two lines per creature that
+# ever takes damage. 1805 lines of a 2332-line sample, on its own.
+\[NWNX_Damage\].*(Clearing|Set) .*(DAMAGE|ATTACK) Event Script
+# Forge chest bookkeeping: one line every time anyone opens the anvil.
+\[FORGE\] removeallitems:
+
+# -- Anvil (.NET) startup inventory, ~170 lines every boot ---------------------
+AnvilServiceManager\] (Registered service|Loading anvil services|Initialising)
+AnvilCoreServiceManager\] (Loading|Initialising) core service
+Anvil\.Services\.ScriptHandler\] Registered Script Handler
+Anvil\.Plugins\.(LocalPluginSource|PluginManager)\] Loading
+
+# -- NWNX (C++) startup inventory ----------------------------------------------
+# Plugin .so list, command registration, per-script event subscriptions, and the
+# plugins that announce their own settings.
+\[NWNXLib\] \[(Plugin|Commands)\.cpp
+\[NWNX_Core\].*(Skipping plugin|Loading NWNX)
+\[NWNX_Events\].*subscribed to event
+\[NWNX_Tweaks\]
+\[NWNX_MaxLevel\].*Max Level increased
+# ServerLogRedirector's own banner block (rule-off dashes, "Messages for:", the
+# date line), plus its duplicate of the module name -- nwserver already printed
+# `Server: Loading module "..."` one line earlier.
+\[NWNX_ServerLogRedirector\].*\(Server\) (-{5,}|Messages for:|[A-Z][a-z][a-z] [A-Z][a-z][a-z] |Loading Module:)
+
+# -- container entrypoint + engine boot banner ---------------------------------
+# Identical every single boot. The lines that actually tell you the server came
+# up are deliberately NOT here: Server: Loading... / Running... / Module loaded,
+# the module name, NWSync's advertised hash, and {Masterserver Advisory}.
+^\[\*\]
+^(Starting NWNX |Neverwinter Nights Server|Build: |Copyright BioWare|Registering crash signal handlers|Loading plugins from:|Loaded libnethost\.so)
+^(Managed code bootstrapped|Using default configuration|Prelinking |Loading NWN\.Anvil |Checking OpenSSL version)
+^(Initialising core service|Working Directory For |Setting up [Rr]esource [Dd]irectory|Skipping initialization of Paket|Loaded DotNET plugin )
+^stdin closed, not accepting interactive commands
+# The image ships without inotify-tools and says so twice per boot. Harmless,
+# and nothing here can act on it.
+inotifywait: command not found
