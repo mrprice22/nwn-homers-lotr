@@ -253,6 +253,70 @@ ideas:
         status: open
         kind: admin
         step_h: 64
+  - id: forge-caps-only-apply-to-forged-items
+    title: "Powerful stock gear was jailed as contraband after a blueprint rebalance"
+    group: forge
+    status: implemented
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-15"
+    commit: 6c6f213447f
+    notes: "<div><b>You can no longer be jailed for gear you never forged.</b> Walking into the world with a legitimately-obtained item could land you in the Pit Prison accused of unlawful enchantment - even if you had never taken that item to a forge in your life. Powerful drops, quest rewards and boss loot were all at risk.</div><div><br></div><div><b>What was really going on.</b> The law was never meant to cap how good an item can be - plenty of the server's own gear carries dozens of enchantments and is worth a fortune, and all of it is legitimate. The ceiling exists for one purpose: to stop a player forging a piece past it. But the check worked out whether you had forged something by comparing the item against its current blueprint - so whenever a rebalance changed that blueprint, every copy already in players' hands suddenly looked \"modified\", and anything above the ceiling was treated as contraband. The August crit-immunity pass and the earlier attack/enhancement cleanup each rewrote several high-end items, which is what set this off.</div><div><br></div><div>The forge now remembers, on the item itself, whether a player actually changed it. The caps apply to those pieces and to nothing else, so rebalancing an item can never again criminalise the copies already out in the world.</div>"
+    impl_notes: "<div><b>Root cause.</b> ForgeItemLegality used ForgeItemDeviatesFromBlueprint as a proxy for \"a player made this what it is\". The proxy is invalidated by any blueprint edit: f82a9e882b5 (crit immunity, 2026-08-02) stripped 31 lines each from bossring001 and superdeluxering; a026a118b6f / abf8a18f222 (2026-06-23) collapsed AB+Enhancement on item061, item082, it_crewpsp024 and jubmaghica001. Every instance minted before those commits deviates from current stock through no act of the player, and every one of them is far over ForgeLegalMaxProps() (7) / ForgeLegalMaxValue() (900,000) - the cheat-chest set alone runs 15-72 properties and 170M-1.3B gp - so all of them read FORGE_LEG_ILLEGAL.</div><div><br></div><div><b>Fix.</b> New FORGE_TOUCHED item-local stamp plus ForgeIsPlayerModified(oItem), and ForgeItemLegality now returns LEGAL for anything over the caps that is not player-modified, checked BEFORE the blueprint compare (O(1), and the compare instantiates the blueprint). Stamped by every path that lets a player change an item: modifyitem.nss (enchant), forge_dis_go.nss (Warden strip) and ForgeStageCommit (staged anvil strip). FORGE_GP_INVESTED &gt; 0 is honoured as the legacy signal, covering items enchanted before the stamp existed. ForgeRevertToBlueprint mints a fresh item so it carries no stamp - reverting still makes a piece lawful. The blueprint compare is retained as a second conjunct so a hand-reverted forged item also reads legal.</div><div><br></div><div><b>Known trade-off (deliberate):</b> an item forged before FORGE_GP_INVESTED existed, or enchanted at zero net cost, carries no marker and is now grandfathered legal. Accepted in exchange for zero false positives - jailing an innocent player is far worse than missing an old exploit item, and the Warden can still strip anything found by hand.</div><div><br></div><div>FORGE_CLEAN_VER 4 -&gt; 5 forces one re-scan under the new rules. The change only ever loosens the law, so nothing can newly become contraband and anyone already wrongly jailed is cleared on next login.</div>"
+    manual_steps:
+      - step: "UAT (the report): take cheat-chest gear (superdeluxering, bossring001, theuntouchable, denethorsplat001, zomgwtfbbqhax - all rewritten by the Aug 2 crit-immunity pass) and log in. You must NOT be sent to the Pit Prison."
+        status: open
+        kind: uat
+        tester: "admin with cheat-chest access"
+      - step: "UAT (the law still bites): forge an item past the ceiling at a forge, then log out and back in. That item MUST still jail you - the caps have to keep working for genuinely forged gear."
+        status: open
+        kind: uat
+        tester: "any character with forge gold"
+      - step: "UAT (revert clears it): with a genuinely over-cap forged item, use the Forge Warden's revert-to-stock. The replacement must read lawful and release you."
+        status: open
+        kind: uat
+        tester: any
+      - step: "Consider whether the grandfathering hole matters: items forged before FORGE_GP_INVESTED existed now read legal. If any known over-cap exploit items are still in circulation, they need finding by hand - there is no longer an automatic sweep that catches them."
+        status: open
+        kind: admin
+  - id: forge-blueprint-compare-instruction-cap
+    title: "Legality check silently aborted on items carrying many enchantments"
+    group: forge
+    status: implemented
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-15"
+    commit: 6c6f213447f
+    notes: "<div><b>The contraband check could quietly give up half way through your inventory.</b> On an item carrying a large number of enchantments the check was so expensive that the engine cut the script off mid-calculation. Nothing was reported: the scan simply stopped, leaving the rest of the inventory unexamined. It also made the results look arbitrary - a mid-sized item would be flagged while a far more extreme one was passed over, purely because the bigger one aborted before it could finish.</div>"
+    impl_notes: "<div><b>Root cause.</b> ForgeItemDeviatesFromBlueprint was O(n^3) in property count: for each property on the item it looped over every stock property index, and called ForgeGetPropByIndexSel per candidate, which re-walks the stock list from the start. superdeluxering carries 72 priced properties, giving roughly 72 x 36 x 36 inner steps with engine calls on each - into the millions of instructions, well past the 524,288 cap. TMI aborts the script, so the failure was invisible: the item never got a FORGE_CLEAN stamp and forge_scan_step's reschedule never ran, silently killing the scan chain part-way through the queue. This is why one item jailed the player while larger ones passed unnoticed.</div><div><br></div><div><b>Fix.</b> The stock side is packed ONCE into a \"|sig|sig|sig|\" string keyed on the same (type, subtype, costtablevalue, param1value) tuple, via the new ForgePropSig helper; each item property looks its signature up with FindSubString and consumes that one token. O(n) property walks plus O(n) string searches. The rewrite also closed a real gap: the old code only guarded on counts being equal up front, so it is now explicit that an item with FEWER priced properties than stock deviates too.</div>"
+    manual_steps:
+      - step: "UAT: carry several 40+ property items at once (superdeluxering has 72, theuntouchable 70, denethorsplat001 65) and log in. The scan must run to completion over the whole inventory - no silent stop, and no TOO MANY INSTRUCTIONS in the log."
+        status: open
+        kind: uat
+        tester: "admin with cheat-chest access"
+      - step: "UAT (deviation still detected): forge a property onto an item, then confirm the Warden still reports it as differing from stock - the faster compare must not have made it blind."
+        status: open
+        kind: uat
+        tester: any
+  - id: forge-warden-revert-all-instruction-cap
+    title: "Forge Warden's revert-all failed with a script error, stranding jailed players"
+    group: forge
+    status: implemented
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-15"
+    commit: b80238bce06
+    notes: "<div><b>The way out of the Pit Prison could fail.</b> Asking the Forge Warden to revert all your gear to stock would die with a script error if you were carrying a large inventory - and since that is the one action that frees a jailed player, failing it left you locked up with no way out at all.</div><div><br></div><div>The Warden now works through your gear a piece at a time and lets you out when it is done.</div>"
+    impl_notes: "<div><b>Root cause.</b> ForgeRevertAllIllegal was a synchronous while-loop calling ForgeFindIllegalItem once per revert, re-evaluating the whole unscanned inventory on every iteration - O(items^2) on top of an already expensive per-item legality check. Its comment claimed FORGE_CLEAN stamps made this cheap, but the LOGIN scan stops at the first illegal item, so almost nothing is stamped by the time a jailed player reaches the Warden and the short-circuit never applies.</div><div><br></div><div><b>Fix.</b> Replaced with ForgeBeginRevertAll plus a third mode in forge_scan_step, reusing the queue machinery that already fixed this exact trap for the dialog gates (ForgeBeginWardenScan, see forge_ward_c_il's comment). Mode 2 reverts ONE item per delayed step so each step gets a fresh instruction budget. Unlike the scan modes it does not stop at the first illegal item: it drains the queue, tallying blueprint-less items into FORGE_RVT_FAIL, and at drain either releases the player (tally zero) or leaves the dirty verdict standing for forge_ward_c_il. The jail-release jump moved out of forge_ward_rva into a shared ForgeReleaseFromJail so the drain step can perform it.</div>"
+    manual_steps:
+      - step: "UAT: get jailed with a large inventory of forged gear, then use the Warden's 'revert all to stock'. It must complete without a script error and drop you at the Well of Eru."
+        status: open
+        kind: uat
+        tester: "any character with a full inventory"
+      - step: "UAT (partial failure path): carry an item whose blueprint no longer exists alongside revertible gear. Revert-all must fix what it can, keep you in the prison, and show the 'remains unlawful' branch rather than releasing you."
+        status: open
+        kind: uat
+        tester: any
   - id: forge-glove-damage-bonus
     title: "Damage enchantments could not be forged onto gloves; Tagget's forge offered options the item could not use"
     group: forge
