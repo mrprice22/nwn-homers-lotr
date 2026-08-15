@@ -18,6 +18,9 @@ void main()
         // Disenchanting changes the item's legality footprint - drop its "clean"
         // stamp so the next login contraband scan re-evaluates it.
         DeleteLocalInt(oItem, "FORGE_CLEAN");
+        // Stripping is a player modification too - stamp it so the
+        // caps keep applying to a piece the player has reshaped.
+        SetLocalInt(oItem, FORGE_TOUCHED, TRUE);
     }
     // Refresh the list tokens for the re-shown menu.
     ForgeDisenchantSetup(oPC, oItem);

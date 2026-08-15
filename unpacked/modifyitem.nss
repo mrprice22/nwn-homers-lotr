@@ -128,6 +128,10 @@ void main()
         // Enchanting changes the item's legality footprint - drop its "clean"
         // stamp so the next login contraband scan re-evaluates it.
         DeleteLocalInt(oItem, "FORGE_CLEAN");
+        // Record that a PLAYER made this item what it is. The caps are only
+        // ever applied to stamped items, so this is what separates a forged
+        // piece from stock gear that merely happens to be powerful.
+        SetLocalInt(oItem, FORGE_TOUCHED, TRUE);
         // If this lawful enchant carried the item above the default global
         // ceiling (the player's Appraise allowed it), record the lawful ceiling
         // on the item so the contraband scan / Warden never jail it later, even

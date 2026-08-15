@@ -32,6 +32,12 @@ const int FORGE_APPRAISE_MAX_BONUS = 500000;
 // contraband scan / Forge Warden honor it regardless of who later holds the item
 // (legality stays intrinsic to the item - see FORGE_CLEAN note below).
 const string FORGE_CEIL = "FORGE_CEIL";
+// Stamped on any item a player has actually changed at a forge (enchanted at an
+// anvil, or stripped at an anvil / by the Warden). Persists in the player's .bic
+// like FORGE_CEIL, so it survives logout and travels with the item if traded.
+// ForgeRevertToBlueprint mints a FRESH item, which carries no stamp - that is
+// how reverting makes a piece lawful again.
+const string FORGE_TOUCHED = "FORGE_TOUCHED";
 
 // Appraise-extended value bonus for oPC (0..FORGE_APPRAISE_MAX_BONUS).
 int ForgeAppraiseBonus(object oPC)
@@ -265,7 +271,11 @@ const int FORGE_STG_WORDS = 6;
 // after a rules update. Forge masters clear the stamp when they modify an item
 // (see modifyitem.nss / forge_dis_go.nss). Legality is intrinsic to the item,
 // so a clean stamp is valid across owners - trading can't launder gear.
-const int FORGE_CLEAN_VER = 4;
+// 5: the caps now apply only to items a player actually forged
+//    (ForgeIsPlayerModified / FORGE_TOUCHED). This only ever LOOSENS the law -
+//    nothing can newly become contraband - so the forced re-scan is safe and
+//    clears the players wrongly jailed under version 4.
+const int FORGE_CLEAN_VER = 5;
 
 // Tri-state result of ForgeItemLegality.
 const int FORGE_LEG_LEGAL         = 0;  // confirmed within the law
@@ -805,10 +815,29 @@ string ForgePropName(itemproperty ip)
     return sName;
 }
 
+// Identity of one property for blueprint comparison: (type, subtype,
+// costtablevalue, param1value). Delimited so it can be matched as a whole token
+// inside the packed signature string built below.
+string ForgePropSig(itemproperty ip)
+{
+    return IntToString(GetItemPropertyType(ip)) + ":"
+        + IntToString(GetItemPropertySubType(ip)) + ":"
+        + IntToString(GetItemPropertyCostTableValue(ip)) + ":"
+        + IntToString(GetItemPropertyParam1Value(ip));
+}
+
 // Compare oItem's permanent properties against its pristine blueprint
 // (instantiated by resref). Order-insensitive multiset compare keyed on
-// (type, subtype, costtablevalue, param1value). Unknown resref counts as
-// deviating - conservative by design.
+// ForgePropSig. Unknown resref counts as deviating - conservative by design.
+//
+// The stock side is packed ONCE into a "|sig|sig|sig|" string and each match
+// consumes its token. The previous version re-walked the stock property list
+// inside a nested loop (ForgeGetPropByIndexSel per candidate), which is O(n^3)
+// in property count: on the module's high-end gear - superdeluxering carries 72
+// properties - that ran to millions of instructions and blew the NWScript
+// instruction cap INSIDE the legality check, silently killing the contraband
+// scan chain part-way through an inventory. Now O(n) property walks plus O(n)
+// string searches.
 int ForgeItemDeviatesFromBlueprint(object oItem)
 {
     object oHolder = ForgeHolder();
@@ -829,51 +858,65 @@ int ForgeItemDeviatesFromBlueprint(object oItem)
     // a stock item's restrictions have to stay matchable against the blueprint's,
     // or every class/race-locked drop in the module reads as deviant and the
     // contraband scan starts jailing legitimate gear.
-    int bDeviates = FALSE;
-    if (ForgeCountPropsSel(oItem, FORGE_SEL_PRICED)
-        != ForgeCountPropsSel(oStock, FORGE_SEL_PRICED))
-        bDeviates = TRUE;
-    else
+    string sStock = "|";
+    int nStock = 0;
+    itemproperty ipS = GetFirstItemProperty(oStock);
+    while (GetIsItemPropertyValid(ipS))
     {
-        // Every property on oItem must consume a distinct match on oStock.
-        // Track consumed stock properties by index in a flag string.
-        int nStock = ForgeCountPropsSel(oStock, FORGE_SEL_PRICED);
-        string sUsed; // one char per stock prop: "0" free, "1" consumed
-        int i;
-        for (i = 0; i < nStock; i++)
-            sUsed += "0";
-
-        itemproperty ip = GetFirstItemProperty(oItem);
-        while (!bDeviates && GetIsItemPropertyValid(ip))
+        if (ForgePropInSet(ipS, FORGE_SEL_PRICED))
         {
-            if (ForgePropInSet(ip, FORGE_SEL_PRICED))
-            {
-                int bMatched = FALSE;
-                for (i = 0; i < nStock && !bMatched; i++)
-                {
-                    if (GetSubString(sUsed, i, 1) == "0")
-                    {
-                        itemproperty ipS = ForgeGetPropByIndexSel(oStock, i,
-                                                        FORGE_SEL_PRICED);
-                        if (GetItemPropertyType(ipS) == GetItemPropertyType(ip)
-                            && GetItemPropertySubType(ipS) == GetItemPropertySubType(ip)
-                            && GetItemPropertyCostTableValue(ipS) == GetItemPropertyCostTableValue(ip)
-                            && GetItemPropertyParam1Value(ipS) == GetItemPropertyParam1Value(ip))
-                        {
-                            sUsed = GetStringLeft(sUsed, i) + "1"
-                                + GetSubString(sUsed, i + 1, nStock - i - 1);
-                            bMatched = TRUE;
-                        }
-                    }
-                }
-                if (!bMatched)
-                    bDeviates = TRUE;
-            }
-            ip = GetNextItemProperty(oItem);
+            sStock += ForgePropSig(ipS) + "|";
+            nStock++;
         }
+        ipS = GetNextItemProperty(oStock);
     }
     DestroyObject(oStock);
+
+    int bDeviates = FALSE;
+    int nItem = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (!bDeviates && GetIsItemPropertyValid(ip))
+    {
+        if (ForgePropInSet(ip, FORGE_SEL_PRICED))
+        {
+            nItem++;
+            string sTok = "|" + ForgePropSig(ip) + "|";
+            int nPos = FindSubString(sStock, sTok);
+            if (nPos < 0)
+                bDeviates = TRUE;      // property the blueprint does not have
+            else
+                // Consume this one occurrence: drop "sig|", keeping the leading
+                // "|" so the remaining tokens stay delimited on both sides.
+                sStock = GetStringLeft(sStock, nPos + 1)
+                    + GetSubString(sStock, nPos + GetStringLength(sTok),
+                        GetStringLength(sStock) - nPos - GetStringLength(sTok));
+        }
+        ip = GetNextItemProperty(oItem);
+    }
+    // Counts must agree too: fewer properties than stock is just as much a
+    // deviation as more (a stripped item no longer matches its blueprint).
+    if (!bDeviates && nItem != nStock)
+        bDeviates = TRUE;
     return bDeviates;
+}
+
+// TRUE when a player has changed this item at a forge. This - NOT the
+// blueprint comparison - is the authoritative answer to "did a player make this
+// what it is", and the caps only ever apply to items for which it is true.
+//
+// There is deliberately no module-wide limit on an item's gold value or
+// property count: the module's own gear runs to 70+ properties and hundreds of
+// millions of gp, and all of it is legitimate. The ceiling exists to stop a
+// player FORGING past it, nothing else.
+//
+// FORGE_TOUCHED is the explicit stamp. FORGE_GP_INVESTED is honoured as the
+// legacy signal so items enchanted before the stamp existed are still judged -
+// it has been set on every paid enchant for a long time, so it covers the
+// history that matters.
+int ForgeIsPlayerModified(object oItem)
+{
+    return GetLocalInt(oItem, FORGE_TOUCHED)
+        || GetLocalInt(oItem, "FORGE_GP_INVESTED") > 0;
 }
 
 // Tri-state legality verdict. Illegal = exceeds the global legal ceiling
@@ -903,6 +946,15 @@ int ForgeItemLegality(object oItem)
         nValueCeil = nStamp;
     if (ForgeCountProps(oItem) <= ForgeItemMaxProps(oItem)
         && nValue <= nValueCeil)
+        return FORGE_LEG_LEGAL;
+    // Over the ceiling is not by itself an offence - only forging past it is.
+    // An item no player has touched at a forge is legitimate no matter how
+    // absurd, so it is never judged against the caps. Checked BEFORE the
+    // blueprint compare because it is O(1) and the compare instantiates the
+    // blueprint. This is also what stops a blueprint edit from retroactively
+    // criminalising gear players already carry: a rebalance changes what the
+    // blueprint says, but it cannot change who forged the item.
+    if (!ForgeIsPlayerModified(oItem))
         return FORGE_LEG_LEGAL;
     if (!ForgeItemDeviatesFromBlueprint(oItem))
         return FORGE_LEG_LEGAL;
@@ -1430,6 +1482,8 @@ void ForgeStageCommit(object oPC, object oItem)
     // Footprint changed - drop the stale clean stamp, then re-stamp the lawful
     // ceiling + clean mark on the now-lawful result.
     DeleteLocalInt(oItem, "FORGE_CLEAN");
+    // Stripping is a player modification too (see FORGE_TOUCHED).
+    SetLocalInt(oItem, FORGE_TOUCHED, TRUE);
     ForgeStampLawful(oPC, oItem);
     ForgeStageClear(oPC);
     DeleteLocalInt(oPC, "FORGE_STG_PAGE");
