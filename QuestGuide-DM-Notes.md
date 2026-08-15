@@ -216,6 +216,20 @@ Both files should be updated in the same commit whenever a quest ships or change
   universal fence, and those were deliberately **not** carried into `pw_odostore`.
 - **UAT:** scripted and built, pending in-game UAT.
 
+> **DISABLED 2026-08-14 — pulled back for creative rework.** Applies to all ten base-class lines in this section (fighter, wizard, rogue, cleric, ranger, druid, paladin, monk, bard, sorcerer). All the detail below
+> is kept deliberately: the resrefs, campaign-DB keys, gates and waypoint tags are exactly
+> what a redesign will need. Nothing was deleted — scripts, includes, giver blueprints,
+> conversations, reward items, campaign DBs and the placed `AP_` waypoints are all still in
+> the tree, and the journal categories are `@hidden` rather than removed.
+>
+> **The switch is `unpacked/qline_gate_inc.nss`.** `QL_LineOff()` holds one token per line;
+> the giver spawn scripts (`q_*_spawn.nss`) bail on it, so no giver NPC ever appears. **To bring a line back,
+> delete its token from that list — nothing else.**
+>
+> Public pages no longer list any of this: the `docs.manual/QuestGuide.html` sections were
+> removed, and all 43 roadmap items are back at `status: planned` with their UAT steps
+> archived into `impl_notes`.
+
 ### The Unbroken Shield — Fighter line I
 
 - **Journal tag:** `ftr_shield`
@@ -726,6 +740,20 @@ Both files should be updated in the same commit whenever a quest ships or change
   (`thevalleyofriven.git.json`).
 - **Note:** undocumented before the 2026-07-11 audit.
 
+> **DISABLED 2026-08-14 — pulled back for creative rework.** Applies to the hub and all twelve order trials in this section. All the detail below
+> is kept deliberately: the resrefs, campaign-DB keys, gates and waypoint tags are exactly
+> what a redesign will need. Nothing was deleted — scripts, includes, giver blueprints,
+> conversations, reward items, campaign DBs and the placed `AP_` waypoints are all still in
+> the tree, and the journal categories are `@hidden` rather than removed.
+>
+> **The switch is `unpacked/qline_gate_inc.nss`.** `QL_LineOff()` holds one token per line;
+> the giver spawn scripts (`q_*_spawn.nss`) bail on it, and the twelve StartingConditionals on Halmir's root (`prsg_c_*.nss`, plus the new `prsg_c_off.nss` for the order-summary reply) return FALSE, so the order branches stay wired but never show. `prsg_spawn.nss` is deliberately **not** gated — Halmir still spawns, reworked as the general quest signpost (roadmap: `halmir-quest-guide`), and he still carries the Legendary Feats re-pick. **To bring a line back,
+> delete its token from that list — nothing else.**
+>
+> Public pages no longer list any of this: the `docs.manual/QuestGuide.html` sections were
+> removed, and all 43 roadmap items are back at `status: planned` with their UAT steps
+> archived into `impl_notes`.
+
 ### Prestige-Order Hub (Halmir the Grey)
 
 - **Journal tag:** none — the hub itself tracks nothing.
@@ -742,6 +770,25 @@ Both files should be updated in the same commit whenever a quest ships or change
   and a documented `prestigedb` campaign-DB stage idiom (`PRSG_GetStage` / `PRSG_SetStage`).
   Summary line is token 6381.
 - **UAT:** scripted and built, pending in-game UAT.
+- **Halmir's second life (2026-08-14, roadmap `halmir-quest-guide`).** He is the one piece of
+  this section still running. `prsg_spawn` is **not** gated, so he still stands at
+  `AP_prestigehub_1` — but his root conversation is now a **quest signpost**, the in-game
+  counterpart of `docs.manual/QuestGuide.html`. Five new replies (`prsg_conv.dlg.json`
+  replies 112–116 → entries 87–91, each with a "Tell me of another road" reply 117–121 that
+  links back to entry 0 with `IsChild=1`) name the remaining quests, their giver and their
+  location, grouped by level band — **names and places only, never objectives or rewards.**
+  The root entry text was cut right down; the old one was a wall.
+  - The band lists are **authored text, not generated**: adding or retiring a quest means
+    editing those five entries by hand, and the QuestGuide summary table is the source they
+    were taken from.
+  - The Legendary Feats re-pick (reply 111, `legfeat_cond` → `legfeat_respec`) is untouched
+    and must stay on Halmir — Ping Pong is dev-only and `onmoduleload` destroys it wherever
+    `SP_DEV_TOOLS` is off, so it would vanish from every live season. `legfeat_nui.nss:83`
+    advertises "Can repick with Halmir in Well of Eru".
+  - The twelve order replies and the order-summary reply are still wired into the tree, just
+    permanently false. **Gating the conditionals rather than deleting the replies is
+    deliberate**: no orphan nodes for the repack's dialog-integrity gate to trip on, and
+    re-enabling is one token in `qline_gate_inc.nss`.
 
 ### The Cipher in the Inn (Harper Scout initiation)
 
