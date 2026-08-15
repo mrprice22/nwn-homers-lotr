@@ -150,6 +150,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: door auto-close coverage…"
+if python3 "$HERE/check_door_autoclose.py"; then
+  echo "ok: door auto-close coverage"
+else
+  echo "fail: door auto-close coverage"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"
