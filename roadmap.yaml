@@ -136,6 +136,13 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: ring-bearer-quest
+    title: "Quest of the Ring Bearer"
+    group: quests-areas
+    status: wip
+    player: "Rajmund (Ray)"
+    date: "2026-08-15"
+    notes: "<span>I think there should be a ring bearing quest. PvP of course, good faction to deliver the ring vs evil to catch them. Would be so LOTRish</span>"
   - id: doors-auto-close-and-methshop-broken
     title: "Doors should auto close themselves and shop in methonash's place is broken."
     group: quests-areas
@@ -246,6 +253,44 @@ ideas:
         status: open
         kind: admin
         step_h: 64
+  - id: forge-glove-damage-bonus
+    title: "Damage enchantments could not be forged onto gloves; Tagget's forge offered options the item could not use"
+    group: forge
+    status: confirmed
+    type: Defect
+    player: "-Methonash-"
+    date: "2026-08-15"
+    notes: "<div><b>Gloves can now be given damage.</b> You could always take a pair of gloves to a forge and put a plain enchantment on them - a +10 pair was never a problem - but the smiths would not offer <i>Damage Bonus</i> at all, so there was no way to put 1d6 fire (or any other damage) on them. Unarmed fighters were quietly locked out of the one enchantment that mattered most to them. Gloves are now treated as the unarmed fighter's weapon at every forge, and take damage on the same terms a sword does.</div><div><br></div><div><b>Bows and crossbows too.</b> The same menu had drifted to melee-only at Rivendell and in Moria, so archers could not forge damage onto a bow or crossbow there either. That is fixed in the same pass.</div><div><br></div><div><b>Each forge keeps its own limits.</b> Nothing about the damage tiers changed - gloves and bows get exactly what that forge already offered: Tagget's 1, 2, 3, 1d4, 1d6 (slashing, bludgeoning, piercing); Rivendell 1d8, 1d10, 1d12 (adds fire, cold); Moria and Methonash's Place 2d6, 2d8, 2d10 (adds acid, lightning, sonic); the Kallrist Crypt +4, 2d4, 1d6, 1d10, 1d12 of negative energy.</div><div><br></div><div><b>One tightening.</b> Tagget's and the Kallrist Crypt were previously offering damage on <i>anything</i> laid on the anvil - rings, cloaks, amulets, belts, boots, helms, armour. Damage is now a weapons-and-gloves enchantment everywhere, so those slots no longer take it at any forge.</div><div><br></div><div><b>Tagget's now only offers what your item can actually use.</b> The other forges have long hidden enchantments that make no sense for the piece on the anvil - no Unlimited Ammo on a helmet, no Keen on a cloak. Tagget's never got that treatment and would list every option for every item, so a new player could pay for an enchantment that did nothing. Tagget's menu now filters by item type exactly as Rivendell and Moria do: Attack Bonus and Massive Criticals on weapons, Keen, On-Hit and Vampiric Regeneration on melee weapons, Mighty and Unlimited Ammo on ranged weapons. Its low-tier damage dice and its lack of Damage Immunity are unchanged.</div><div><br></div><div><b>Slings are ranged weapons.</b> A sling was listed among the melee weapons, so it could be given Keen, On-Hit Properties and Vampiric Regeneration - all of which are melee-only enchantments. It is now treated as the ranged weapon it is, and still takes Mighty, Unlimited Ammo and a damage bonus as before.</div>"
+    impl_notes: "<div><b>Root cause.</b> The forge never checks base-item type in NWScript at all. itemprocs.nss dispatches \"Damage Bonus\" -&gt; ItemPropertyDamageBonus() and modifyitem.nss applies whatever the dialog staged; a scripted AddItemProperty is not validated against baseitems.2da, so the only thing deciding which items may take a property is which StartingConditional sits on the dialog menu link. ismeleeweapon.nss lists 31 base types and has no BASE_ITEM_GLOVES (36) - that single omission was the whole bug.</div><div><br></div><div><b>The trap.</b> The authoritative gate is the <b>link-level</b> Active on the reply link inside the parent entry's RepliesList, NOT the Active on the top-level ReplyList node. All four forge dlgs carry stale node-level mirrors left behind by 0558395c7ed (\"FORGE x 3 revisions balancing\", 2026-06-04) that disagree with the live link value - reading the node Active tells you \"isweapon\" on a link that actually says \"ismeleeweapon\". Only 73 of the module's 5,998 replies carry a node Active at all; the forge dlgs and npc_banker are the whole set.</div><div><br></div><div><b>Audit before the fix</b> - the rule was different at every forge: forge_item_mid (Tagget's) entry 5 -&gt; R99 ungated (anything on the anvil); kimli_forge (Rivendell) entry 4 -&gt; R156 ismeleeweapon; bellnius_smith (Moria + Methonash's Place) entry 4 -&gt; R156 ismeleeweapon; kallrist_forge entry 4 -&gt; R251 (Negative-Energy, its only damage path) ungated. kallrist_forge R156 \"Damage Bonus.\" is orphaned - no entry links it - left from the menu trim in 8cbb321f68c.</div><div><br></div><div><b>Fix.</b> New conditional isweaponorglove.nss = isweapon.nss's 35 base types (melee + crossbows/bows/sling) plus BASE_ITEM_GLOVES, set as the link Active on the damage reply in all four dlgs, unifying the rule. Kept separate from isweapon.nss deliberately: that one also gates Attack Bonus and Massive Criticals, which stay weapons-only. The stale node mirrors on those three nodes were set to the same value so the JSON stops contradicting the live gate; no IsChild/Index link-only field was added to any node (the dialog-integrity corruption mode).</div><div><br></div><div><b>Nothing else needed changing.</b> Per-forge dice ceilings are already fixed by each dlg's own damage-amount entry with out-of-tier dice suppressed by forge_never, so gloves and bows inherit the tier for free. calcmodvalue2.nss prices the delta off ForgeItemValue() on a probe copy and forge_inc.nss / modifyitem.nss enforce FORGE_MAX_VALUE / FORGE_MAX_PROPS from the area - none of it is base-item aware. forge_blank_36.uti.json (gloves) already exists so the probe-copy path works, and forge_legal_inc.nss has no base-item or damage-type rules, so a damage-forged glove cannot be flagged contraband by the Warden.</div><div><br></div><div><b>Second pass - Tagget's brought to parity.</b> forge_item_mid entry 5 had empty link Actives on every option: the June-2026 balancing pass (0558395c7ed) re-gated kimli/bellnius but never Tagget's. Seven links now carry the same conditional the other two forges use - R132 Attack Bonus and R62 Massive Criticals isweapon; R39 On Hit, R63 Keen and R11 Vampiric Regeneration ismeleeweapon; R61 Mighty and R12 Unlimited Ammo israngedweapon. Verified by diffing all three menus option-by-option: the only remaining difference is R176 Damage Immunity forge_never at Tagget's, which is correct tier suppression (the low tier has no damage immunity). Link Actives only - the reply-node mirrors were left exactly as kimli/bellnius have them so all three trees stay consistent, including the pre-existing node/link disagreement on Keen and On Hit.</div><div><br></div><div><b>Third pass - sling reclassified.</b> ismeleeweapon.nss listed BASE_ITEM_SLING among the 31 melee types, so slings were eligible for Keen, On-Hit Properties and Vampiric Regeneration. Removed (30 types now), with a comment recording why. Slings were already in israngedweapon.nss, so Mighty and Unlimited Ammo are unaffected, and isweaponorglove still includes them for damage. Note this narrows what a sling can be given at Rivendell and Moria as well as Tagget's.</div>"
+    manual_steps:
+      - step: "UAT (the report): lay gloves on the anvil at Tagget's, Rivendell, Moria/Methonash's Place and the Kallrist Crypt. 'Damage Bonus.' (at Kallrist, 'Negative-Energy Damage') must now be offered at all four, and the dice list must be that forge's usual tier - Tagget's 1/2/3/1d4/1d6, Rivendell 1d8/1d10/1d12, Moria 2d6/2d8/2d10, Kallrist +4/2d4/1d6/1d10/1d12."
+        status: open
+        kind: uat
+        tester: "any character with a pair of gloves and forge gold"
+      - step: "UAT (ranged regression fix): lay a longbow or crossbow on the anvil at Rivendell and in Moria. Damage Bonus must now be offered - ismeleeweapon was blocking it at both."
+        status: open
+        kind: uat
+        tester: "any archer with forge gold"
+      - step: "UAT (no regression on weapons): lay a longsword on the anvil at all four forges. Damage Bonus must still be offered, with the same dice and damage types as before."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (the tightening): lay a ring, cloak or suit of armour on the anvil at Tagget's and at the Kallrist Crypt. Damage Bonus must now be ABSENT - both were previously offering it on any base item. Confirm no other menu option disappeared at either forge."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (forge law): take a glove that has been given damage to the Forge Warden and confirm it is not flagged as contraband, and that the damage actually applies while fighting unarmed."
+        status: open
+        kind: uat
+        tester: "any monk or unarmed build"
+      - step: "UAT (Tagget's parity): at Tagget's, lay a helmet or cloak on the anvil - Attack Bonus, Massive Criticals, Keen, On-Hit, Vampiric Regeneration, Mighty and Unlimited Ammo must all now be ABSENT. Then lay a longsword (Attack/Massive/Keen/On-Hit/Vampiric appear, Mighty and Unlimited Ammo do not) and a longbow (Mighty and Unlimited Ammo appear, Keen/On-Hit/Vampiric do not). Confirm the low-tier dice and the absence of Damage Immunity are unchanged."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (sling): lay a sling on the anvil at any forge. Keen, On-Hit Properties and Vampiric Regeneration must now be ABSENT; Mighty, Unlimited Ammo and Damage Bonus must still be offered. Check an existing sling that already carries one of the removed enchantments still works - this change only gates the menu, it does not strip anything already forged."
+        status: open
+        kind: uat
+        tester: any
   - id: forge-restrictrion-properties-exploit
     title: "Forge can counts restrictions as properties that can be removed"
     group: forge

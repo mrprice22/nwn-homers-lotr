@@ -1,3 +1,6 @@
+// Forge gate for the melee-only enchantments: On Hit Properties, Keen and
+// Vampiric Regeneration. BASE_ITEM_SLING is deliberately NOT in this list --
+// it is a ranged weapon and belongs to israngedweapon.nss.
 int StartingConditional()
 {
     object oItem = GetLocalObject(GetPCSpeaker(), "MODIFY_ITEM");
@@ -31,7 +34,6 @@ int StartingConditional()
         (iTyp == BASE_ITEM_SHORTSPEAR ) ||
         (iTyp == BASE_ITEM_SHORTSWORD ) ||
         (iTyp == BASE_ITEM_SICKLE ) ||
-        (iTyp == BASE_ITEM_SLING ) ||
         (iTyp == BASE_ITEM_WARHAMMER ) ||
         (iTyp == BASE_ITEM_WHIP )
         );
