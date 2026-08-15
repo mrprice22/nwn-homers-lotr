@@ -256,7 +256,8 @@ ideas:
   - id: forge-caps-only-apply-to-forged-items
     title: "Powerful stock gear was jailed as contraband after a blueprint rebalance"
     group: forge
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-15"
@@ -266,26 +267,29 @@ ideas:
     manual_steps:
       - step: "UAT (the report): take cheat-chest gear (superdeluxering, bossring001, theuntouchable, denethorsplat001, zomgwtfbbqhax - all rewritten by the Aug 2 crit-immunity pass) and log in. You must NOT be sent to the Pit Prison."
         status: open
-        kind: uat
-        tester: "admin with cheat-chest access"
+        kind: admin
+        step_h: 64
       - step: "UAT (the law still bites): forge an item past the ceiling at a forge, then log out and back in. That item MUST still jail you - the caps have to keep working for genuinely forged gear."
         status: open
-        kind: uat
-        tester: "any character with forge gold"
+        kind: admin
+        step_h: 64
       - step: "UAT (revert clears it): with a genuinely over-cap forged item, use the Forge Warden's revert-to-stock. The replacement must read lawful and release you."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
       - step: "Grandfathering hole reviewed and CLEARED BY AUDIT (2026-08-15). Reasoning first: the FORGE_GP_INVESTED marker landed 2026-06-04 and the contraband system only went live 2026-06-14, so every item forged while the caps existed carries a mark, and the old (stricter) rule had two months to catch anything older. Then verified rather than assumed, with the new bin/audit-character-drift.py over all 35 dev characters (587 items): 274 CLEAN, 272 UNKNOWN_BP (stock Bioware/CEP resrefs, not judgeable offline), 33 FORGED (carry a stamp, as expected), 4 PLACED_VARIANT, 3 REBALANCED, and exactly 1 SUSPECT - orb_lvldrain, 0 properties and 0 cost, i.e. an item that LOST properties and gained no power. No SUSPECT item is over the caps. Nothing in circulation looks like gear forged past the ceiling before the stamps existed."
         status: done
         kind: admin
+        step_h: 64
       - step: "Re-run bin/audit-character-drift.py against the LIVE season-2 vault before this rule reaches production - the audit above covers the dev vault only, and production has the real player population."
         status: open
         kind: admin
+        step_h: 64
   - id: forge-blueprint-compare-instruction-cap
     title: "Legality check silently aborted on items carrying many enchantments"
     group: forge
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-15"
@@ -295,16 +299,17 @@ ideas:
     manual_steps:
       - step: "UAT: carry several 40+ property items at once (superdeluxering has 72, theuntouchable 70, denethorsplat001 65) and log in. The scan must run to completion over the whole inventory - no silent stop, and no TOO MANY INSTRUCTIONS in the log."
         status: open
-        kind: uat
-        tester: "admin with cheat-chest access"
+        kind: admin
+        step_h: 64
       - step: "UAT (deviation still detected): forge a property onto an item, then confirm the Warden still reports it as differing from stock - the faster compare must not have made it blind."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
   - id: forge-warden-revert-all-instruction-cap
     title: "Forge Warden's revert-all failed with a script error, stranding jailed players"
     group: forge
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-15"
@@ -314,16 +319,17 @@ ideas:
     manual_steps:
       - step: "UAT: get jailed with a large inventory of forged gear, then use the Warden's 'revert all to stock'. It must complete without a script error and drop you at the Well of Eru."
         status: open
-        kind: uat
-        tester: "any character with a full inventory"
+        kind: admin
+        step_h: 64
       - step: "UAT (partial failure path): carry an item whose blueprint no longer exists alongside revertible gear. Revert-all must fix what it can, keep you in the prison, and show the 'remains unlawful' branch rather than releasing you."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
   - id: forge-glove-damage-bonus
     title: "Damage enchantments could not be forged onto gloves; Tagget's forge offered options the item could not use"
     group: forge
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "-Methonash-"
     date: "2026-08-15"
@@ -333,32 +339,32 @@ ideas:
     manual_steps:
       - step: "UAT (the report): lay gloves on the anvil at Tagget's, Rivendell, Moria/Methonash's Place and the Kallrist Crypt. 'Damage Bonus.' (at Kallrist, 'Negative-Energy Damage') must now be offered at all four, and the dice list must be that forge's usual tier - Tagget's 1/2/3/1d4/1d6, Rivendell 1d8/1d10/1d12, Moria 2d6/2d8/2d10, Kallrist +4/2d4/1d6/1d10/1d12."
         status: open
-        kind: uat
-        tester: "any character with a pair of gloves and forge gold"
+        kind: admin
+        step_h: 64
       - step: "UAT (ranged regression fix): lay a longbow or crossbow on the anvil at Rivendell and in Moria. Damage Bonus must now be offered - ismeleeweapon was blocking it at both."
         status: open
-        kind: uat
-        tester: "any archer with forge gold"
+        kind: admin
+        step_h: 64
       - step: "UAT (no regression on weapons): lay a longsword on the anvil at all four forges. Damage Bonus must still be offered, with the same dice and damage types as before."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
       - step: "UAT (the tightening): lay a ring, cloak or suit of armour on the anvil at Tagget's and at the Kallrist Crypt. Damage Bonus must now be ABSENT - both were previously offering it on any base item. Confirm no other menu option disappeared at either forge."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
       - step: "UAT (forge law): take a glove that has been given damage to the Forge Warden and confirm it is not flagged as contraband, and that the damage actually applies while fighting unarmed."
         status: open
-        kind: uat
-        tester: "any monk or unarmed build"
+        kind: admin
+        step_h: 64
       - step: "UAT (Tagget's parity): at Tagget's, lay a helmet or cloak on the anvil - Attack Bonus, Massive Criticals, Keen, On-Hit, Vampiric Regeneration, Mighty and Unlimited Ammo must all now be ABSENT. Then lay a longsword (Attack/Massive/Keen/On-Hit/Vampiric appear, Mighty and Unlimited Ammo do not) and a longbow (Mighty and Unlimited Ammo appear, Keen/On-Hit/Vampiric do not). Confirm the low-tier dice and the absence of Damage Immunity are unchanged."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
       - step: "UAT (sling): lay a sling on the anvil at any forge. Keen, On-Hit Properties and Vampiric Regeneration must now be ABSENT; Mighty, Unlimited Ammo and Damage Bonus must still be offered. Check an existing sling that already carries one of the removed enchantments still works - this change only gates the menu, it does not strip anything already forged."
         status: open
-        kind: uat
-        tester: any
+        kind: admin
+        step_h: 64
   - id: forge-restrictrion-properties-exploit
     title: "Forge can counts restrictions as properties that can be removed"
     group: forge
@@ -398,7 +404,8 @@ ideas:
   - id: combat-dummy
     title: "combat dummy to measure attacks and damage per round"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-02"
@@ -4906,7 +4913,8 @@ ideas:
     title: "Retune XP awards for the 41-60 band"
     group: combat-classes
     epic: legendary-levels
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-13"
@@ -4917,45 +4925,56 @@ ideas:
       - question: "THE RETUNE ITSELF -- approve the numbers. Target: 100-125 solo play-hours for 41-60, with a 5 x CR award clamped to [100, 3000] paid only at level 41+."
         status: answered
         answer: "REJECTED, and the target with it -- it was never approved and was seen for the first time on 2026-08-13. The admin set the shape instead: a 6,000 hard cap per kill (12,000 boosted), an award that scales with CR versus the player's own level, and a curve fitted to four anchors he chose directly -- level 1/CR 5 = 2,000, level 1/CR 30 = 6,000 (full), level 21/CR 5 = 100, level 41/CR 30 = 500. Resulting pace is ~9.9 h solo unboosted; a 20 h target was costed and declined as incompatible with full value being farmable."
+        question_h: 64
+        answer_h: 64
       - question: "PARTY SPLIT OR FULL-TO-EACH? Proposal: the full award to each contributor."
         status: answered
         answer: "APPROVED as proposed -- the full award to each contributor, matching RewardPartyXP semantics. Paid from bst_ondeath's existing contributor loop, which already excludes summons, henchmen, DMs and environmental deaths."
+        question_h: 64
+        answer_h: 64
       - question: "BOSSES -- do they get a multiplier?"
         status: answered
         answer: "NO multiplier. Bosses are for loot; the CR-versus-level curve already pays them the full 6,000 at any level where they are on-tier."
+        question_h: 64
+        answer_h: 64
       - question: "DOES THE SCRIPT AWARD STACK ON TOP OF THE ENGINE'S?"
         status: answered
         answer: "No -- the measurement came back case A (the engine pays literally zero past level 40), so there is nothing to stack on. The award is gated at level 41+ so it never doubles with the engine below that, and levels 1-40 are handled by the rebuilt xptable.2da rather than by script."
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "UAT: on the TEST realm, kill one creature with a level 41+ character and confirm XP is granted. The dev realm logs an [xpdbg] line per XP write (gated on SP_DEV_TOOLS, so this is silent on a live season) -- the line should show the award and, if a boost is active, the doubling."
         status: open
-        kind: uat
-        tester: "level 41+"
+        kind: admin
+        step_h: 64
       - step: "UAT: with a level 60 character, kill something and confirm the XP total keeps climbing PAST 3,581,000 rather than stopping. This is the case GiveXPToCreature can silently refuse, so it has a direct SetXP fallback -- worth confirming in game."
         status: open
-        kind: uat
-        tester: "level 60"
+        kind: admin
+        step_h: 64
       - step: "UAT: with a low-level character, confirm the rebuilt 1-40 table pays as documented -- e.g. at level 1 a CR 30 kill should pay the full 6,000 and a CR 5 kill 2,000. Clients must have pulled the new hak over NWSync for the table to apply."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "Promote to production: the fix is deployed to the TEST realm only. Production needs bin/season-promote.sh, then bin/build-lotr-rules-hak --install, bin/refresh-nwsync and a restart on that realm -- xptable.2da is a hak change, so clients re-download. See CLAUDE.md 'Publishing to clients'."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
       - step: "Housekeeping, admin's call: unpacked/attackxp.nss grants 50,000 XP to GetLastHostileActor() and is referenced by nothing. Harmless today but a live grenade if it is ever attached to an event -- delete it, or keep it deliberately?"
         status: open
         kind: admin
+        step_h: 64
       - step: "SECOND PASS publish to the TEST realm -- xptable.2da changed, so a client holding the old hak silently reads the old awards: bin/build-lotr-rules-hak --install, then bin/refresh-nwsync (run DETACHED, 10+ min), then bin/server-restart."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
       - step: "SECOND PASS UAT: with a LEVEL 1 character, kill a Bree graveyard skeleton (CR 0.5, blueprint skeleton001) and confirm roughly 300 XP rather than 60. This doubles as proof the new hak reached the client -- the old table pays exactly 60 here."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "SECOND PASS UAT: the same CR 0.5 skeleton killed by a level 41+ character must STILL pay the 60 floor. That half of the curve was never wrong and must not move."
         status: open
-        kind: uat
-        tester: "level 41+"
+        kind: admin
+        step_h: 64
   - id: ll-hgll-remove-scripts
     title: "Remove the HGLL leveler scripts"
     group: combat-classes
