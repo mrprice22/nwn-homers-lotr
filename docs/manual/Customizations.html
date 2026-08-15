@@ -214,6 +214,7 @@
             <li><a href="#legendary-levels">Legendary Levels: 41–60</a></li>
             <li><a href="#legendary-caster-slots">&mdash; Spell slots at legendary levels</a></li>
             <li><a href="#monk-weapons">Monk Weapons</a></li>
+            <li><a href="#critical-hits">Critical Hits &amp; Devastating Critical</a></li>
           </ol>
         </li>
         <li><a href="#death">Death, Dying &amp; Respawn</a>
@@ -862,7 +863,7 @@ ceiling, so taking an item to a higher tier raises the limits.</p>
     <tr><td>Enhancement Bonus</td><td>+1 to +5</td><td>+1 to +10</td><td>+9 to +14</td></tr>
     <tr><td>Ability Bonus (all 6 stats)</td><td>+1 to +4</td><td>+4 to +8</td><td>+8 to +12</td></tr>
     <tr><td>Mighty <sup title="Adds STR modifier to ranged weapon damage rolls">†</sup></td><td>+1 to +5</td><td>+1 to +10</td><td>+10 to +15</td></tr>
-    <tr><td>Damage Bonus — types</td><td>Slashing, Bludgeoning, Piercing</td><td>Slash, Bludg, Pierce, Fire, Cold</td><td>Slash, Bludg, Pierce, Fire, Cold, Acid, Lightning, Sonic</td></tr>
+    <tr><td>Damage Bonus — types <sup title="Can be forged onto melee weapons, ranged weapons and gloves. Gloves count as the unarmed fighter's weapon; the bonus applies only while no weapon is held. No other slot takes a damage bonus.">†</sup></td><td>Slashing, Bludgeoning, Piercing</td><td>Slash, Bludg, Pierce, Fire, Cold</td><td>Slash, Bludg, Pierce, Fire, Cold, Acid, Lightning, Sonic</td></tr>
     <tr><td>Damage Bonus — dice</td><td>1, 2, 3, 1d4, 1d6</td><td>1d8, 1d10, 1d12</td><td>2d6, 2d8, 2d10</td></tr>
     <tr><td>Massive Criticals <sup title="Extra damage added on a critical hit">†</sup></td><td>1, 2, 3, 1d4, 1d6</td><td>1d8, 1d10, 1d12</td><td>2d6, 2d8, 2d10</td></tr>
     <tr><td>Damage Resistance — amount</td><td>5, 10 per round</td><td>15, 20 per round</td><td>20, 25 per round</td></tr>
@@ -1452,6 +1453,50 @@ worked normally.</p>
   <li><strong>Katana</strong> — counts as a monk weapon, but still requires <em>Exotic Weapon Proficiency</em>; does <strong>not</strong> benefit from Weapon Finesse.</li>
 </ul>
 
+<h3 id="critical-hits">Critical Hits &amp; Devastating Critical</h3>
+<p><strong>A devastating critical no longer kills outright.</strong> The stock save-or-die is gone —
+for melee weapons, ranged weapons, <em>and</em> unarmed and creature attacks alike. In its place, a
+devastating critical lands as a very large hit: <strong>three extra dice of damage</strong>, of the
+same damage type your weapon already deals, scaled to the weapon you are swinging.</p>
+
+<table class="data change-table">
+  <thead><tr><th>Weapon size</th><th>Extra die</th><th>Devastating Critical</th><th>With Legendary Butcher</th></tr></thead>
+  <tbody>
+    <tr><td>Small (dagger, shuriken, unarmed…)</td><td>d6</td><td>+3d6</td><td>+8d6</td></tr>
+    <tr><td>Medium (longsword, mace…)</td><td>d8</td><td>+3d8</td><td>+8d8</td></tr>
+    <tr><td>Large (greatsword, halberd…)</td><td>d10</td><td>+3d10</td><td>+8d10</td></tr>
+  </tbody>
+</table>
+
+<p><strong>This cuts both ways.</strong> The rule is symmetric — it applies to every creature in the
+module exactly as it applies to you. No more losing a level&nbsp;60 character to one lucky swing from
+a random mob, and no more deleting a boss with one. Nothing else about the feat changed: same threat
+range, same prerequisites.</p>
+
+<div class="tip-box">
+  <p><strong>Legendary Butcher</strong> — a level&nbsp;60 <a href="#legendary-levels">Legendary
+  Feat</a> for those who want to lean into critting. It adds <strong>five extra dice on
+  <em>any</em> critical hit</strong>, not just a devastating one, using the same size scale, and it
+  <strong>stacks</strong> with the devastating-critical dice. A large weapon in the hands of someone
+  with both lands <strong>+8d10</strong>. It requires Devastating Critical with some weapon.</p>
+</div>
+
+<p>Two things worth knowing:</p>
+<ul>
+  <li><strong>The extra damage is typed physical</strong> (piercing/slashing/bludgeoning, matching
+      your weapon), on purpose — so heavy damage reduction and physical immunity eat part of it,
+      just like the rest of your weapon damage.</li>
+  <li><strong>The combat log no longer announces "devastating critical" by name.</strong> Taking the
+      instant kill out at the root also took the message with it. The hit shows as an ordinary
+      critical, with the extra dice rolled into its damage.</li>
+</ul>
+
+<p><strong>Immunity to critical hits is no longer the default on tough enemies.</strong> It went out
+with the same change — once a devastating critical stopped being an instant kill, there was no reason
+to keep blanket immunity on everything dangerous. It now survives only where it makes thematic sense:
+<strong>undead</strong>, and the <strong>Nazgûl</strong>, plus a small hand-picked set of bosses. A
+critical build is a viable build against most of the module.</p>
+
 <hr>
 
 <!-- ============================================================ -->
@@ -1503,8 +1548,8 @@ return; your state is saved across the logout, so there is no relog trick to rec
     <dt>Feats, skills, BAB &amp; saves</dt>
     <dd>Standard progression. Levels 41–60 continue that same progression as real character levels rather than replacing it — see <a href="#legendary-levels">Legendary Levels: 41–60</a>.</dd>
 
-    <dt>Critical hits &amp; Devastating Critical</dt>
-    <dd>Critical threat ranges, confirmation rolls, and the <strong>Devastating Critical</strong> feat all work exactly as stock NWN — no nerfs, caps, or house rules.</dd>
+    <dt>Critical threat ranges &amp; confirmation rolls</dt>
+    <dd>Standard. Keen, Improved Critical and the weapon's own threat range work exactly as stock NWN. <strong>Devastating Critical itself has been reworked</strong> — see <a href="#critical-hits">Critical Hits &amp; Devastating Critical</a>.</dd>
   </dl>
 </div>
 
