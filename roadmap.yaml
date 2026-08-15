@@ -276,8 +276,11 @@ ideas:
         status: open
         kind: uat
         tester: any
-      - step: "Grandfathering hole reviewed and closed out (admin call, 2026-08-15): items forged before the FORGE_GP_INVESTED marker existed now read legal. Judged not to matter - the marker landed 2026-06-04 and the contraband system only went live 2026-06-14, so every item forged while the caps existed carries it, and the old (stricter) rule had two months to catch anything older. The system was over-jailing, not under-jailing, so no illicit gear is believed to be in circulation. Residual caveat if this is ever revisited: the O(n^3) instruction-cap bug meant the old rule silently skipped the highest-property items, so it was not a complete sweep in exactly the band an exploit item would occupy."
+      - step: "Grandfathering hole reviewed and CLEARED BY AUDIT (2026-08-15). Reasoning first: the FORGE_GP_INVESTED marker landed 2026-06-04 and the contraband system only went live 2026-06-14, so every item forged while the caps existed carries a mark, and the old (stricter) rule had two months to catch anything older. Then verified rather than assumed, with the new bin/audit-character-drift.py over all 35 dev characters (587 items): 274 CLEAN, 272 UNKNOWN_BP (stock Bioware/CEP resrefs, not judgeable offline), 33 FORGED (carry a stamp, as expected), 4 PLACED_VARIANT, 3 REBALANCED, and exactly 1 SUSPECT - orb_lvldrain, 0 properties and 0 cost, i.e. an item that LOST properties and gained no power. No SUSPECT item is over the caps. Nothing in circulation looks like gear forged past the ceiling before the stamps existed."
         status: done
+        kind: admin
+      - step: "Re-run bin/audit-character-drift.py against the LIVE season-2 vault before this rule reaches production - the audit above covers the dev vault only, and production has the real player population."
+        status: open
         kind: admin
   - id: forge-blueprint-compare-instruction-cap
     title: "Legality check silently aborted on items carrying many enchantments"

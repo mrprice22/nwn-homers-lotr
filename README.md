@@ -279,8 +279,14 @@ before relying on a full sync.
 ## Forge legal-variant whitelist
 
 The Forge contraband system (`unpacked/forge_inc.nss`) jails players who carry
-items that exceed the legal caps (6 properties / 750,000 gp) **and** deviate
-from their stock blueprint. But the module legitimately places many such items:
+items that exceed the legal caps (7 properties / 900,000 gp — the maximum
+achievable, including the top boss-kill bonus) **and** deviate from their stock
+blueprint **and** were actually modified by a player at a forge
+(`ForgeIsPlayerModified`, see the next section). There is deliberately **no**
+module-wide limit on an item's value or property count on its own: plenty of
+the module's own gear runs to 70+ properties and hundreds of millions of gp,
+and all of it is legitimate. But the module also legitimately places many
+items that differ from their blueprint:
 stores, creature loot, and containers embedded in area files carry full item
 structs whose properties differ from the `.uti` blueprint of the same resref
 (see `module-index/item_tag_conflicts.json`). Without a guard, a player who
@@ -311,6 +317,62 @@ returns the item if the claim holds. If a dispute turns out to be a genuine
 false positive, fix it permanently by re-running the generator (or
 investigating why the fingerprint didn't match — see the normalization notes
 in `bin/gen-forge-legal.py`).
+
+## Auditing player gear for blueprint drift
+
+`bin/audit-character-drift.py` reads the character vault directly (via
+`nwn_gff`) and reports every item whose properties no longer match its
+blueprint — **and works out why**. It is the offline counterpart to the live
+contraband scan, and the way to answer "is there illicit gear in circulation?"
+with evidence instead of inference.
+
+It exists because the live check now applies the caps only to items a player
+actually forged, which it knows from an item-local stamp (`FORGE_TOUCHED`, or
+the older `FORGE_GP_INVESTED` / `FORGE_CEIL`). Anything forged before those
+stamps existed carries none of them and can no longer be judged in game. This
+script does not trust the stamps at all — it compares properties.
+
+The important subtlety it encodes: **"differs from the blueprint" is not the
+same as "a player modified it."** Editing a blueprint makes every copy already
+in circulation differ, through no act of the player — that is exactly what
+caused the August 2026 wave of wrongly-jailed players. So when an item does not
+match the current blueprint, the script replays that blueprint's **git history**
+and checks whether the item matches any past version.
+
+Verdicts, worst first:
+
+| Verdict | Meaning |
+|---|---|
+| `SUSPECT` | Matches no blueprint version, no placed variant, and carries no forge stamp. **The only verdict that needs a human.** |
+| `FORGED` | No match, but carries a forge stamp — expected; a player enchanted it. Check props/value against the caps. |
+| `PLACED_VARIANT` | Matches a variant the module itself places; legally obtainable. Same allowance the live check makes via `ForgeIsKnownLegalVariant`. |
+| `REBALANCED` | Matches a **historical** blueprint version — benign, and names the commit that changed it. |
+| `CLEAN` | Matches the current blueprint. |
+| `UNKNOWN_BP` | Resref has no blueprint in `unpacked/` (stock Bioware/CEP item) — cannot be judged offline. |
+
+```sh
+# audit the dev vault against this repo (defaults)
+python3 bin/audit-character-drift.py
+
+# audit the LIVE season-2 vault against ITS OWN module tree
+python3 bin/audit-character-drift.py \
+  --vault "$HOME/.local/share/Neverwinter Nights S2/servervault" \
+  --repo  ../nwn_homers_lotr_s2
+
+python3 bin/audit-character-drift.py --verdict ALL --json drift.json
+```
+
+**Always pass `--repo` for a season vault.** Comparing live gear against the
+dev tree's blueprints would flag every difference between the two module
+versions as drift. The script prints which tree it is comparing against.
+
+It is **read-only** — it never writes to the vault, and is safe to run against
+production while the server is up.
+
+The line that matters is the last one: whether any `SUSPECT` item is also over
+the caps. Those are the items that would have been contraband under the old
+rule and are now grandfathered — i.e. the only place genuinely illicit gear
+could still be hiding.
 
 ## Appraise-scaled merchants & forge ceilings
 

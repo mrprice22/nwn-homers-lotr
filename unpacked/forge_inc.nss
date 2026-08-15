@@ -909,14 +909,21 @@ int ForgeItemDeviatesFromBlueprint(object oItem)
 // millions of gp, and all of it is legitimate. The ceiling exists to stop a
 // player FORGING past it, nothing else.
 //
-// FORGE_TOUCHED is the explicit stamp. FORGE_GP_INVESTED is honoured as the
-// legacy signal so items enchanted before the stamp existed are still judged -
-// it has been set on every paid enchant for a long time, so it covers the
-// history that matters.
+// FORGE_TOUCHED is the explicit stamp. Two older marks are honoured as legacy
+// signals, so items enchanted before the stamp existed are still judged:
+//   FORGE_GP_INVESTED  gold paid at an anvil - set on every paid enchant since
+//                      2026-06-04, which predates the contraband law itself.
+//   FORGE_CEIL         the raised ceiling a forge records when it lawfully
+//                      enchants a piece past the default one. Nothing but a
+//                      forge ever writes it, so its presence is proof.
+// This can only ever narrow the set of items the caps apply to relative to the
+// old blueprint-deviation rule, so no item that was lawful under that rule can
+// become contraband under this one.
 int ForgeIsPlayerModified(object oItem)
 {
     return GetLocalInt(oItem, FORGE_TOUCHED)
-        || GetLocalInt(oItem, "FORGE_GP_INVESTED") > 0;
+        || GetLocalInt(oItem, "FORGE_GP_INVESTED") > 0
+        || GetLocalInt(oItem, FORGE_CEIL) > 0;
 }
 
 // Tri-state legality verdict. Illegal = exceeds the global legal ceiling
