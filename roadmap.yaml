@@ -5653,3 +5653,37 @@ ideas:
         status: open
         kind: uat
         tester: "any"
+  - id: gondor-scribe-findability
+    title: "Well of Souls Quest: cannot find the Gondor Scribe in the High Wizard tower"
+    group: quests-areas
+    status: manual
+    type: Defect
+    player: Szescian82
+    date: "2026-08-15"
+    commit: 1413efac746
+    notes: "<div><b>The Gondor Scribe is easy to find now.</b> She was always there — she was just standing around the corner by the stairs, wearing the wrong body. The game had her down as a halfling villager, which also meant her scribe's robe never appeared on her at all, so what you actually walked past was a small woman in plain clothes tucked out of sight in a Gondorian wizard's tower. She is now a robed human woman standing out in the open on the tower's ground floor, and she looks like what she is.</div><div><br></div><div><b>Your journal also tells you who to ask for.</b> Hanee's entry used to send you to \"the fancy wizard folk at the Tower of the High Wizard\" and leave it there — so people quite reasonably went hunting for a wizard, found four of them with nothing to say, and climbed to the top of the tower for nothing. It now names the Gondor Scribe and says she is on the ground floor.</div><div><br></div><div>Nothing about the quest itself changed: the head still turns in for 10,000 XP, and starting cold at the scribe still works. Details: <a href=\"QuestGuide.html#well-of-souls\">Quest Guide → Well of Souls</a>.</div>"
+    impl_notes: "<div><b>She was never missing, and nothing was corrupt.</b> gondorscribe has been placed in area011 since 580bfd30ca4 (2026-07-13) and was never removed. Confirmed by extracting area011.git out of all three built .mod files — dev, S1 and the live S2 module — with nwn_erf; she is in the creature list of all three, so this was not a stale deploy. Her conversation was intact throughout (StartingList: entry 10 / sc_003 → at_008 head turn-in, entry 9 / sc_007, unconditional fallback entry 0), no spawn script, no encounter, no gating. Structural audit came back clean on every axis: the blueprint's field set is identical to its base comfemale002 (68 fields, 27-entry SkillList like 750 of 779 blueprints), the instance did not diverge from the blueprint, area011.gic.json was aligned with __struct_id 4 on all four creature comments, and her palette leaf was well-formed (CR/FACTION/NAME/RESREF, the shape 224 of 238 siblings use) and filed in the category whose ID is 44, matching her PaletteID.</div><div><br></div><div><b>Root cause 1 — a static NPC model.</b> Appearance_Type was <b>250 = \"Halfling: Female\"</b> (hak_2da/appearance.2da, model c_ynpc_a_f01). Static NPC models do not render equipment, so her equipped nw_cloth024 robe was invisible — she was a halfling villager standing among two appearance-6 (Dynamic) Human Gondorian Wizards. Her PortraitId 92 was already hu_f_99_ (human female), so the portrait and the model had disagreed since she was created. Fixed by copying the appearance block verbatim from <b>gondorianwiza001 (Sarah the Librarian)</b> — a human female one floor up in the same tower, so the look is already proven in this tileset: Appearance_Type 6, Appearance_Head 104, Color_Hair 7, Color_Skin 0, Color_Tattoo1/2 53, and her full BodyPart_* set (Torso/Pelvis/Neck/L+R Bicep/FArm/Hand/Shin/Thigh + LFoot = 1, L+R Shoul and Belt = 0). <b>Equipment deliberately untouched:</b> nw_cloth024 is stock BaseItem 16 (robe) with zero properties, so it simply starts rendering — no loot or balance change. Sarah's own gondorianrobe001 was rejected as a donor robe: 1.19M gold, 9 properties. Applied to the blueprint <b>and</b> the area011 instance, because the instance wins at runtime and the blueprint is what se_respawn_inc.nss rebuilds from — and tests/check_divergent_creatures.py does <b>not</b> gate appearance, portrait or voiceset, so that sync is manual and ungated.</div><div><br></div><div><b>Root cause 2 — position.</b> X40/Y11 put her around the corner by the stairs, off to the side of the two wizards. Moved to the admin-supplied X33.8 / Y47.47 / Z0, bearing 181.4° (XOrientation -0.999701, YOrientation -0.024432 = cos/sin). Nearest instance is gondorianguar0_3 at 8.75 units; area011 is 7×6 tiles (70×60). No .gic change and no gen-map-notes.py re-run needed — she is not a transition or a teleporter.</div><div><br></div><div><b>Root cause 3 — the journal never named her.</b> Ruin of Annuminas entry 2 said only \"the fancy wizard folk at the Tower of the High Wizard in Gondor\". Every other NPC in the tower — both gondorianwizar_2, gondorianwiza001 (Sarah) and highwizardofgo_2 (High Wizard of Gondor) — has an <b>empty Conversation field</b>, so a player looking for \"wizard folk\" clicks four mute NPCs and climbs to a dead end. Entry 2 now names the Gondor Scribe and the ground floor. The mute wizards were left mute by decision — the journal does the signposting.</div><div><br></div><div><b>Admin's toolset error was the old module, not corruption.</b> The \"corrupt or missing blueprint/creature\" message and the scribe's absence from the toolset came from a pre-July .mod, which predates 580bfd30ca4 and therefore has neither gondorscribe.utc nor its palette leaf. That copy must not be saved or repacked — it would revert a month of work.</div><div><br></div><div>Repack passed 25/25 smoke tests with dialog integrity clean; the packed dev module was re-extracted to confirm appearance 6 / head 104 / X33.8 / Y47.47 / bearing 181.40. Module-only — no hak, TLK or NWSync rebuild.</div>"
+    manual_steps:
+      - step: "UAT (closes the report): enter the Tower of the High Wizard ground floor from Minas Tirith. The Gondor Scribe must be visible in the open — not around the corner by the stairs — at roughly X33.8/Y47.47, and must render as a ROBED HUMAN WOMAN, not a halfling. Her name plate reads 'Gondor Scribe'."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (head turn-in unchanged): carrying azagothshead, talk to her — entry 10 fires at_008, awards 10,000 XP and consumes the head."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (cold start unchanged): talk to her WITHOUT the head — the Well of Souls briefing still runs and the Annuminas Key path (sc_annukey / at_007) still grants exactly one key per character, ever."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (still unkillable): attack her and confirm Plot=1 survived the reskin — she cannot be killed."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (journal): after handing Azagoth's head to Hanee in Bree, read Ruin of Annuminas entry 2 — it must name the Gondor Scribe and say she is on the tower's ground floor."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Repack and restart the server. Module-only — no hak, TLK or NWSync rebuild is needed."
+        status: open
+        kind: publish
