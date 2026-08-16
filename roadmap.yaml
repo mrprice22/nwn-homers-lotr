@@ -2511,7 +2511,7 @@ ideas:
     date: "2026-07-18"
     commit: 6b2999e550b
     notes: "<div>The Forbidden Realms Key has been stealable from Summanus for as long as anyone can remember, and until now it opened precisely nothing. It opens something now. Come by the key and a journal opens telling you what the seven marks cut into its ward actually are — grave-wards. The stone that answers it is a sealed slab in Númenor: Noirinan, and beyond it lie the <b>Tombs of the Lost Souls</b>: not a ruin but a court, whose lords have not gone quiet. The Weathertop King, his Queen and their Archer still hold their places. Bring a party. Full walkthrough: <a href=\"QuestGuide.html#forbidden-realms\">QuestGuide → The Forbidden Realms</a>.</div>"
-    impl_notes: "<div>Opens gravesofthelostk, which had zero connections of any kind, and spawns three previously-unspawned blueprints. New: q_frk_inc.nss (all logic), q_frk_enter/q_frk_tomb (OnEnter wrappers on falseheaven/gravesofthelostk, chaining ent and leash_to_area), q_frk_gate.utp + q_frk_gate.nss (one gate blueprint serving both ends; direction via local string FRK_DEST; the return leg deliberately does not demand the key so a lost key cannot entomb a player), q_frk_death.nss (ScriptDeath on weathertopkin003/que003/arc002, chaining x2_def_ondeath, party-credited). Journal category frk_tombs (@group 'Lord of the Rings', @order 90), entries 1/2/3/10. Hooks: acquireditem_tag on Tag ForbiddenRealmsKey, plus a retroactive FRK_LoginCheck in hgll_cliententer for characters who stole the key before this shipped. Persistence: campaign DB forbiddendb, per character (frk_stage 0-3, advance-only).</div><div><br></div><div>Court picked as the highest non-outlier CR variant of each: King weathertopkin003 (454, rejecting the CR-1514 kin004), Queen weathertopque003 (594), Archer weathertoparc002 (337) — one-line constants at the top of q_frk_inc.nss. Spawn guards are area-scoped by resref, not module-wide by tag, because the court tags are shared with the placed Weathertop variants. Script-spawned creatures are not in gen-boss-registry.py's placed-instance registry, so the court does not appear on the Roll of the Fallen. No new loot was authored — the court drops whatever is on the blueprints, which may be thin for an end-game tier. Gates passed: 7/7 smoke tests, check_boss_registry unchanged at 78, dialog integrity clean. Admin half documented in QuestGuide-DM-Notes.md.</div>"
+    impl_notes: "<div>Opens gravesofthelostk, which had zero connections of any kind, and spawns three previously-unspawned blueprints. New: q_frk_inc.nss (all logic), q_frk_enter/q_frk_tomb (OnEnter wrappers on falseheaven/gravesofthelostk, chaining ent and leash_to_area), q_frk_gate.utp + q_frk_gate.nss (one gate blueprint serving both ends; direction via local string FRK_DEST; the return leg deliberately does not demand the key so a lost key cannot entomb a player), q_frk_death.nss (ScriptDeath on weathertopkin003/que003/arc002, chaining x2_def_ondeath, party-credited). Journal category frk_tombs (@group 'Lord of the Rings', @order 90), entries 1/2/3/10. Hooks: acquireditem_tag on Tag ForbiddenRealmsKey, plus a retroactive FRK_LoginCheck in hgll_cliententer for characters who stole the key before this shipped. Persistence: campaign DB forbiddendb, per character (frk_stage 0-3, advance-only).</div><div><br></div><div>Court picked as the highest non-outlier CR variant of each: King weathertopkin003 (454, rejecting the CR-1514 kin004), Queen weathertopque003 (594), Archer weathertoparc002 (337) — one-line constants at the top of q_frk_inc.nss. Spawn guards are area-scoped by resref, not module-wide by tag, because the court tags are shared with the placed Weathertop variants. Script-spawned creatures are not in gen-boss-registry.py's placed-instance registry, so the court does not appear on the Roll of the Fallen. No new loot was authored — the court drops whatever is on the blueprints, which may be thin for an end-game tier. Gates passed: 7/7 smoke tests, check_boss_registry unchanged at 78, dialog integrity clean. Admin half documented in QuestGuide-DM-Notes.md.</div><div><br></div><div><b>2026-08-15 — route replaced by hand-built areas.</b> The admin built the tier in the toolset in a module copy taken at 5705c158032 (2026-07-25) and it has now been migrated in. This <b>replaces</b> the Noirinan-gate routing above; the AP_forbiddenrealmskeytier_1-5 waypoints will never be placed. New: <b>area026 \"Weather Top (Amon Sûl)\"</b> (tag WeatherTopAmonSul, ttr01, 12x12, 70 placeables — ruined pillars, defaced statue, evil altar, waterfall, fog) linked to weatherhills by three newtransition triggers in each direction, carrying 11 wtop_spawn + 4 wtop_zombie spawn waypoints and two doors (wtop_wolfcave to area027, wtop_hiddencave still unlinked and reserved for the royal court area); and <b>area027 \"Forbidden Realms: Enter\"</b> (tag ForbiddenRealmsEnter, tdm01, 5x5, night) holding ForbiddenRealmsDoor — a plain locked+KeyRequired door that opens the far half of the room rather than an area transition, so a party without the key just walks back. Migration fixes: OnEnter/OnExit set to leash_to_area/cleanup on both new areas (they came out of the toolset blank), close_door added to both transition doors by bin/fix-door-autoclose.py, and ForbiddenRealmsDoor's KeyName corrected from the resref forbiddenrealmsk to the item Tag ForbiddenRealmsKey. Rejected from the merge: a Mod_Entry_Area change pointing new characters at area026 instead of thewelloferu, plus toolset churn in falseheaven/heavensdisdain (GenericType to GenericType_New, encounter CR recalcs) that would have rolled back later repo work. 25/25 smoke tests pass, area list 291 to 293.</div>"
     design_questions:
       - question: "Should the barrow-court respawn? It currently re-forms whenever a PC enters and that member is not standing — so the fight is farmable, though the journal completes only once. One guard swap in FRK_SpawnCourtMember makes it a once-per-server or once-per-character kill instead."
         status: answered
@@ -2529,20 +2529,49 @@ ideas:
         question_h: 64
         answer_h: 64
     manual_steps:
-      - step: "Place waypoint AP_forbiddenrealmskeytier_1 in falseheaven (Númenor: Noirinan) — suggested against a hillside/wall near where Summanus walks. The sealed barrow-gate placeable spawns here. Until it exists the quest opens but has no door and the tier is unreachable."
+      - step: "SUPERSEDED — the AP_forbiddenrealmskeytier_1 waypoint in falseheaven (Númenor: Noirinan) will not be placed. The admin built the entrance by hand instead: Weather Hills → Weather Top (Amon Sûl, area026) → the wolf cave → Forbidden Realms: Enter (area027). The Noirinan sealed-slab gate is retired."
+        status: done
+        kind: toolset
+        step_h: 64
+      - step: "SUPERSEDED — AP_forbiddenrealmskeytier_2 in gravesofthelostk is not needed. The key no longer teleports anyone: ForbiddenRealmsDoor is an ordinary locked door inside area027 that opens the far half of the room. Without the key a party simply turns around and walks back to Weathertop."
+        status: done
+        kind: toolset
+        step_h: 64
+      - step: "SUPERSEDED — AP_forbiddenrealmskeytier_3 / _4 / _5 in gravesofthelostk are not needed. The court moves out of gravesofthelostk: guards and archers spawn at the 11 wtop_spawn waypoints and zombies at the 4 wtop_zombie waypoints on Amon Sûl, and the King and Queen move to a new area reached through the hidden cave (wtop_hiddencave, already placemarked in area026 and not yet linked)."
+        status: done
+        kind: toolset
+        step_h: 64
+      - step: "Author the Amon Sûl spawner: Weathertop guards/fighters and archers at the 11 wtop_spawn waypoints, and Weathertop zombies at the 4 wtop_zombie waypoints. Nothing references either tag yet, so area026 is currently empty of creatures."
+        status: open
+        kind: admin
+        blocker: true
+        step_h: 64
+      - step: "Give the guards an on-attack taunt line — \"For the royal court!\" and similar — fired occasionally rather than every round."
+        status: open
+        kind: admin
+        step_h: 64
+      - step: "Build the royal court area for the Weathertop King and Queen and link it to wtop_hiddencave in area026. Per the answered design question the King and Queen should out-scale Summanus and appear on the Roll of the Fallen, which needs real placed instances rather than waypoint spawns; the archers/fighters stay multi-instance and therefore stay off the board."
         status: open
         kind: toolset
         blocker: true
         step_h: 64
-      - step: "Place waypoint AP_forbiddenrealmskeytier_2 in gravesofthelostk (Tombs of the Lost Souls), just inside the entrance. It is both the arrival point and where the return gate spawns. Until it exists the gate in Noirinan refuses to fire."
+      - step: "Link the second door in area026 tagged wtop_hiddencave — it is placed but LinkedTo is empty, so it is currently a dead prop."
         status: open
         kind: toolset
         blocker: true
         step_h: 64
-      - step: "Place waypoints AP_forbiddenrealmskeytier_3 / _4 / _5 in gravesofthelostk for the Weathertop King, Queen and Archer respectively — spread them across the barrow so the court is not a single pull. Each spawns independently; a missing one simply means that member never appears."
+      - step: "Decide what the three stub triggers in area027 do — ForbiddenRealmsWelcome, ForbidRealmsLghtShaft and ForbidRealms_TBD are all placed with empty OnEnter scripts."
         status: open
-        kind: toolset
+        kind: admin
+        step_h: 64
+      - step: "Retire the shipped Noirinan half: q_frk_gate spawn on falseheaven, the FRK_DEST return leg and the gravesofthelostk OnEnter wrapper (q_frk_tomb) are all still wired to the old route and should be reworked or removed once the Amon Sûl route is finished."
+        status: open
+        kind: admin
         blocker: true
+        step_h: 64
+      - step: "Re-run bin/gen-map-notes.py --apply once the daily wiki refresh has regenerated module-index/area_graph.json — the index predates area026/area027, so the six new transitions have no destination map-note pins yet."
+        status: open
+        kind: admin
         step_h: 64
       - step: "UAT: on a test character, pickpocket or spawn the Forbidden Realms Key and confirm journal 'The Forbidden Realms' entry 1 appears immediately."
         status: open
@@ -2552,17 +2581,20 @@ ideas:
         status: open
         kind: uat
         step_h: 64
-      - step: "UAT: use the gate in Noirinan without the key — expect the seven-marks refusal message and no teleport."
+      - step: "UAT: walk Weather Hills → Amon Sûl through each of the three new transitions and back, then Amon Sûl → wolf cave → Forbidden Realms: Enter and back. Both doors should auto-close behind you."
         status: open
         kind: uat
+        tester: any
         step_h: 64
-      - step: "UAT: use it with the key — expect entry 2, the seal-gives-way message, and arrival in the Tombs with entry 3."
+      - step: "UAT: try ForbiddenRealmsDoor in area027 without the key — expect it to stay locked, with no way through to the far half of the room and no lock-pick bypass (KeyRequired is set)."
         status: open
         kind: uat
+        tester: any
         step_h: 64
-      - step: "UAT: use the return gate inside the Tombs while NOT carrying the key and confirm it still returns you to Noirinan."
+      - step: "UAT: try it carrying the Forbidden Realms Key — expect it to open. The door's KeyName was corrected from the resref 'forbiddenrealmsk' to the item's Tag 'ForbiddenRealmsKey' during migration; NWN matches doors to keys by tag, so as the admin placed it the key would never have worked."
         status: open
         kind: uat
+        tester: any
         step_h: 64
       - step: "UAT: kill all three court members with a party present and confirm every party member in the area gets journal entry 10 (Completed)."
         status: open
