@@ -5719,3 +5719,34 @@ ideas:
       - step: "Repack and restart the server. Module-only — no hak, TLK or NWSync rebuild is needed."
         status: open
         kind: publish
+  - id: ambiguous-transition-tags
+    title: "Duplicate and generic area-transition tags: one Dol Guldur exit may lead to the wrong area, and 16 Gwathdor transitions have no destination map pins"
+    group: travel
+    status: confirmed
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-15"
+    notes: "<div>Two related problems with the way some area transitions are labelled. In <b>Dol Guldur</b>, the exit from the Tower of Black Magic Main Hall points at a destination name that exists in two different places at once, so it is not certain which one it actually drops you in. In the <b>Gwathdor</b> deeps, tombs and caves, sixteen transitions all share the same generic name, which is why those doorways show no destination label on your map — you cannot tell where a passage goes until you walk through it.</div>"
+    impl_notes: "<div>Surfaced by bin/gen-map-notes.py, which reports them as \"ambiguous source tags\" and skips them (no pin written). Confirmed by hand 2026-08-15; <b>no .nss script references any of these tags</b>, so retagging is safe.</div><div><br></div><div><b>1. Dol Guldur — a real routing risk, not cosmetic.</b> The door <code>Dolin2Dolout</code> in <code>dolguldurcastle</code> (Dol Guldur: Tower Of Black Magic Main Hall) at (25.0, 10.0) has <code>LinkedTo = Dolout2Dolin</code>, and <b>two different objects carry that tag</b>: a <code>newtransition</code> trigger in <code>dolguldur001</code> (Dol Guldur) at (89.5, 70.8), and an <code>nw_door_ttr_18</code> door in <code>dolguldurcity</code> (Dol Guldur City) at (65.0, 127.0). NWN resolves LinkedTo by tag, so the destination is whichever the engine finds first. <code>LinkedToFlags = 1</code> (door) probably biases it toward the Dol Guldur City door, but that is an inference, not a guarantee — it needs an in-game check before anything is changed.</div><div><br></div><div><b>2. Gwathdor — cosmetic, map pins only.</b> Sixteen triggers across four areas all carry the toolset default tag <code>AreaTransition</code>. Every one has a distinct and correct <code>LinkedTo</code>, so <b>gameplay is fine</b>; only the map-note generator is defeated, because it keys pins by source tag and cannot tell two same-tagged triggers apart. Affected: <code>gwathdorcave</code> (Gwathdor: Cave) 2 triggers → GwathTW0 (Outskirts), GwathTW3 (East Deeps); <code>gwathdordeeps</code> (Gwathdor: East Deeps) 6 → GwathTW2 (Cave) + GwathTW5a-e (West Deeps); <code>gwathwest</code> (Gwathdor: West Deeps) 6 → GwathTW4a-e (East Deeps) + GwathTW7 (Tomb); <code>gwathtomb</code> (Gwathdor: Tomb) 2 → GwathTW6 (West Deeps), GwathTW9 (Throne of the Lord).</div><div><br></div><div>Unrelated to the Gwathdor Labyrinth: that maze is <code>area025</code> and is driven by <code>GwathLab*</code> tags plus the MAZE_DEST local string in gwathlab_wire/door/trig.nss. It shares no tags with these four areas.</div><div><br></div><div><code>AreaTransition</code> is used 27 times across 12 areas in total. The other 11 instances are single-per-area (area012, castleexterior, gwaththrone, hennethannun, hennethannun002, roadtoharad, thewelloferu) or all share one destination (cryptsofthelosts, 4), so they resolve unambiguously and are not part of this defect — though retagging them too would make the convention uniform.</div>"
+    manual_steps:
+      - step: "UAT FIRST (do this before any edit): walk out of Dol Guldur: Tower Of Black Magic Main Hall through the Dolin2Dolout door and record which area you actually land in — Dol Guldur (dolguldur001) or Dol Guldur City (dolguldurcity). Everything else about the Dol Guldur half depends on this answer."
+        status: open
+        kind: uat
+        tester: any
+      - step: "Decide which area the Tower main hall is SUPPOSED to exit to, then rename the losing Dolout2Dolin instance to something unique (suggested: Dolcity2Dolin on the dolguldurcity door, or Dolout2Dolin_city) and repoint anything that links to it. Renaming the one the door should NOT use is the smaller change."
+        status: open
+        kind: toolset
+        blocker: true
+      - step: "UAT: after the rename, walk the Dol Guldur loop in both directions and confirm each transition lands where its map pin says."
+        status: open
+        kind: uat
+        tester: any
+      - step: "Retag the 16 generic AreaTransition triggers in gwathdorcave / gwathdordeeps / gwathwest / gwathtomb to unique names. Suggested scheme, mirroring the destination waypoints they already point at: gwath_to_GwathTW0, gwath_to_GwathTW5a, and so on — one trigger, one tag, name derived from LinkedTo. No script reads these tags, so this is a pure .git.json edit."
+        status: open
+        kind: toolset
+      - step: "Re-run python3 bin/gen-map-notes.py --apply afterwards and confirm the ambiguous-source-tag list drops from 5 to 0 and the Gwathdor passages gain destination pins."
+        status: open
+        kind: admin
+      - step: "Optional consistency pass: retag the remaining 11 generic AreaTransition instances (area012, castleexterior, cryptsofthelosts x4, gwaththrone, hennethannun, hennethannun002, roadtoharad, thewelloferu). They already resolve correctly, so this is tidiness rather than a fix."
+        status: open
+        kind: toolset
