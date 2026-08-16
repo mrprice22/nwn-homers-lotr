@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script mod_clientexit</title>
+  <title>Script devcrit_arm</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,47 +57,33 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>mod_clientexit</code></h1><pre class="nss-source"><code>// mod_clientexit - the module&#x27;s Mod_OnClientLeav handler.
+<h1>Script: <code>devcrit_arm</code></h1><pre class="nss-source"><code>// devcrit_arm.nss - strip Devastating Critical (Unarmed) / (Creature) from the
+// creature running it, keeping the entitlement as a snapshot local.
 //
-// Split out of hgll_client_exit.nss (roadmap: ll-hgll-split-cliententer). None
-// of this is legendary-leveler work: it dismisses lingering epic summons,
-// commits any Bank of Bree storage box still carried, snapshots persistent
-// state and forces the .bic write.
+// Roadmap: devcrit-unarmed-save-or-die. Those two feats are the only
+// devastating criticals the engine resolves WITHOUT reading the weapon&#x27;s
+// baseitems.2da row, so the blank EpicWeaponDevastatingCriticalFeat column that
+// devcrit-roll shipped cannot reach them: a fist build or a clawing monster was
+// still rolling the old save-or-die months after the &quot;fix&quot;. Possession of the
+// feat is the only thing left to take away - see devcrit_inc.nss.
 //
-// The leveler itself was deleted in full (roadmap: ll-hgll-remove-scripts), so
-// there are no staged level-up picks to drop before the export any more.
+// This exists as a script rather than a call inside nw_c2_default9.nss so that
+// the OnSpawn handler of every creature in the module does not have to compile
+// devcrit_inc&#x27;s include tree. Same shape as bst_install, which it sits next to.
+//
+// Called from:
+//   nw_c2_default9.nss  - the common OnSpawn, and only for a creature that
+//                         actually holds one of the two feats.
+// Players are armed from mod_cliententer.nss and re-armed from legfeat_lvl.nss
+// (a level-up can hand the feat back).
+//
+// Idempotent: DevCrit_ArmNoDevCrit does nothing once the feat is gone.
 
-#include &quot;pers_state_inc&quot;
-#include &quot;bank_box_inc&quot;
-#include &quot;epic_summon_inc&quot;
-#include &quot;fat_inc&quot;
+#include &quot;devcrit_inc&quot;
 
 void main()
 {
-    object PC = GetExitingObject();
-    // Epic summons live in the henchman slot and don&#x27;t auto-despawn on logout
-    // like summoned associates do -- clean up any lingering one here.
-    EpicSummon_Dismiss(PC);
-    // Safety net: if the player logs out mid-session with a Bank of Bree storage
-    // box still in inventory (i.e. before finishing the banker dialog), commit it
-    // here so the contents are not lost. No-op when no box is carried.
-    CommitStrongBoxes(PC, &quot;client_leave&quot;);
-    CommitFamilyBoxes(PC, &quot;client_leave&quot;);
-    PersState_Snapshot(PC);
-    // Soul-fatigue: freeze the stack queue exactly as it stands. fat_inc also
-    // writes on every add and every expiry, so this is belt-and-braces - it
-    // only ever catches the &lt;=6s of ticker granularity since the last write.
-    // Decay does not run while the character is gone.
-    FAT_Save(PC);
-    // Drop the ticker guard before the object is serialised: the server keeps a
-    // player TURD for the session and hands these locals back on reconnect, and
-    // a guard with no ticker behind it wedges decay permanently. mod_cliententer
-    // clears it again on the way in - this just stops it ever being stored.
-    FAT_ClearTickGuard(PC);
-    // Force BIC write so the amulet (if any) and any other inventory /
-    // BIC-resident state from this session survive a logout that beats
-    // the next pc_export_inc auto-save tick.
-    ExportSingleCharacter(PC);
+    DevCrit_ArmNoDevCrit(OBJECT_SELF);
 }
 </code></pre>
   </main>

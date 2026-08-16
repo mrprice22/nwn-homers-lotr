@@ -57,36 +57,24 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>forge_ward_rva</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>secondchance</code> (<a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a>)</dd></dl><pre class="nss-source"><code>// Forge Warden: revert ALL illegal gear to stock blueprints and, when that
+<h1>Script: <code>forge_ward_rva</code></h1><pre class="nss-source"><code>// Forge Warden: revert ALL illegal gear to stock blueprints and, when that
 // leaves the PC clean, release them to the Well of Eru. Items with no known
 // blueprint stay illegal - the dialog branches to a remains-unlawful entry
 // (gated by forge_ward_c_il) and the player must strip those by hand.
+//
+// The work is chunked: ForgeBeginRevertAll queues the inventory and
+// forge_scan_step (mode 2) reverts ONE item per delayed step, tallying
+// blueprint-less items into FORGE_RVT_FAIL and doing the release itself when
+// the queue drains clean. Doing it synchronously here is what caused TOO MANY
+// INSTRUCTIONS on a large inventory - which stranded the player in the Pit
+// Prison, because this is the script that lets them out.
 #include &quot;forge_inc&quot;
 
 void main()
 {
     object oPC = GetPCSpeaker();
-    int nFail = ForgeRevertAllIllegal(oPC);
-    ForgeLog(&quot;forge_ward_rva: &quot; + GetName(oPC) + &quot; revert-all, &quot;
-        + IntToString(nFail) + &quot; item(s) had no blueprint&quot;);
-    // Refresh the cached gate verdict off the hot path. When items remain
-    // (nFail &gt; 0) this lets the &quot;still unlawful&quot; branch reflect reality on the
-    // next click; when clean we still release immediately below.
-    ForgeBeginWardenScan(oPC);
-    if (nFail &gt; 0)
-        return;
-    DeleteLocalObject(oPC, &quot;FORGE_ILLEGAL_ITEM&quot;);
-    object oWP = GetWaypointByTag(&quot;secondchance&quot;);
-    if (!GetIsObjectValid(oWP))
-    {
-        ForgeLog(&quot;forge_ward_rva: waypoint &#x27;secondchance&#x27; missing!&quot;);
-        return;
-    }
-    location lWell = GetLocation(oWP);
-    // Delayed so the warden&#x27;s parting line is on screen before the jump
-    // ends the conversation.
-    DelayCommand(2.5, AssignCommand(oPC, ClearAllActions()));
-    DelayCommand(2.5, AssignCommand(oPC, JumpToLocation(lWell)));
+    ForgeLog(&quot;forge_ward_rva: &quot; + GetName(oPC) + &quot; requested revert-all&quot;);
+    ForgeBeginRevertAll(oPC);
 }
 </code></pre>
   </main>

@@ -82,6 +82,7 @@
 #include &quot;csp_inc&quot;
 #include &quot;pw_inc&quot;
 #include &quot;fat_inc&quot;
+#include &quot;devcrit_inc&quot;
 #include &quot;color&quot;
 
 // Legendary feats: re-derive the allotment (which revokes picks a relevel or a
@@ -262,8 +263,26 @@ void main()
     // been forced above (the queue is keyed on GetObjectUUID); 9.0 keeps it
     // clear of the login flood and of PW_Refresh&#x27;s floating text.
     // See fat_inc.nss (roadmap: heal-soul-fatigue-rebalance).
+    //
+    // The clear is UNDELAYED on purpose, and it is the fix for the relog bug: a
+    // reconnecting player&#x27;s PC object comes back from the server&#x27;s player TURD
+    // with its local variables intact, including fat_ticking - a ticker guard
+    // whose ticker died with the previous object. Left in place it blocks
+    // FAT_Kick forever, so the stacks never decay again. Clearing it here, ahead
+    // of any spell the player could cast, means nothing ever reads the stale
+    // counters either; FAT_LoginRestore below re-derives them from the DB.
+    FAT_ClearLocals(oPC);
     FAT_InitDb();
     DelayCommand(9.0, FAT_LoginRestore(oPC));
+
+    // Take Devastating Critical (Unarmed) / (Creature) off the character, having
+    // recorded that it had them. Those two are the only devastating criticals
+    // the engine resolves without reading the blanked baseitems.2da column, so
+    // this is the whole of what stops the save-or-die for a fist build - see
+    // devcrit_inc.nss and roadmap devcrit-unarmed-save-or-die. Ahead of
+    // LegFeat_ApplyAll because the Legendary Butcher prerequisite reads the
+    // snapshot this leaves behind.
+    DelayCommand(6.4, DevCrit_ArmNoDevCrit(oPC));
 
     DelayCommand(6.5, LegFeat_ApplyAll(oPC));
     // The pooled attack/damage effect is a RENDER of the bonus ledger, never the

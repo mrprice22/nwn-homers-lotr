@@ -57,7 +57,10 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>ismeleeweapon</code></h1><pre class="nss-source"><code>int StartingConditional()
+<h1>Script: <code>ismeleeweapon</code></h1><pre class="nss-source"><code>// Forge gate for the melee-only enchantments: On Hit Properties, Keen and
+// Vampiric Regeneration. BASE_ITEM_SLING is deliberately NOT in this list --
+// it is a ranged weapon and belongs to israngedweapon.nss.
+int StartingConditional()
 {
     object oItem = GetLocalObject(GetPCSpeaker(), &quot;MODIFY_ITEM&quot;);
     int iTyp = GetBaseItemType(oItem);
@@ -90,7 +93,6 @@
         (iTyp == BASE_ITEM_SHORTSPEAR ) ||
         (iTyp == BASE_ITEM_SHORTSWORD ) ||
         (iTyp == BASE_ITEM_SICKLE ) ||
-        (iTyp == BASE_ITEM_SLING ) ||
         (iTyp == BASE_ITEM_WARHAMMER ) ||
         (iTyp == BASE_ITEM_WHIP )
         );

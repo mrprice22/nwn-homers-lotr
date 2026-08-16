@@ -133,19 +133,18 @@ void main()
     // this weapon nor Legendary Butcher: nothing to do.
     if (nDice &lt;= 0) return;
 
-    // iAttackResult 10 should now be unreachable: hak_2da/baseitems.2da has a
-    // blank EpicWeaponDevastatingCriticalFeat column, so the engine never
-    // considers a devastating critical at all (bin/gen-devcrit-map.py). This
-    // branch is the belt-and-braces for the one case that can still produce it
-    // - a server or client running a stale hak - and is what devcrit_eff.nss
-    // needs to refuse the kill.
+    // iAttackResult 10 means THE ENGINE RESOLVED A DEVASTATING CRITICAL OF ITS
+    // OWN, which is meant to be impossible: hak_2da/baseitems.2da has a blank
+    // EpicWeaponDevastatingCriticalFeat column and the unarmed/creature feats
+    // are stripped (DevCrit_ArmNoDevCrit). It is therefore an ALARM, not a
+    // branch - DevCrit_AlarmEngineCrit writes one line to the server log with
+    // everything needed to tell which of the two routes leaked, and tells any
+    // admin online. See roadmap devcrit-unarmed-save-or-die.
     if (nResult == 10)
     {
         DevCrit_FlagNoKill(data.oTarget, oAttacker);
-        if (DevCrit_IsDebug())
-            DevCrit_Debug(data.oTarget, &quot;devastating critical from &quot; +
-                          GetName(oAttacker) +
-                          &quot; - STALE HAK? no-kill window open&quot;);
+        DevCrit_AlarmEngineCrit(oAttacker, data.oTarget, oWeapon,
+                                data.iWeaponAttackType);
     }
 
     int nDamage = DevCrit_Roll(nDice, DevCrit_DieSize(oWeapon));
