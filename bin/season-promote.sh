@@ -248,7 +248,26 @@ echo
 if (( BUILD )); then
   echo "rebuilding target module..."
   BUILD_LOG=$(mktemp)
-  if ! "$NWN_MANAGER_BIN/repack-homers-lotr" --project "$TARGET" >"$BUILD_LOG" 2>&1; then
+  # </dev/null and REPACK_NO_PAUSE: the wrapper ends with a "Press Enter to
+  # close" pause for its desktop-shortcut use. repack-homers-lotr now skips that
+  # when stdin is not a terminal, but belt-and-braces here too, because a hang
+  # lands in the WORST possible place - after the module is built and installed
+  # into the live modules directory, but before the compile-error gate below and
+  # before the promotion is recorded. That is exactly what happened promoting to
+  # season 2 on 2026-08-15: prod sat on an ungated module for twenty minutes and
+  # the run looked merely slow.
+  #
+  # timeout turns a future hang into a loud failure instead of a silent stall.
+  # 1800s is ~25x the observed build time, so it can only fire on a real wedge.
+  BUILD_RC=0
+  REPACK_NO_PAUSE=1 timeout 1800 \
+    "$NWN_MANAGER_BIN/repack-homers-lotr" --project "$TARGET" \
+    >"$BUILD_LOG" 2>&1 </dev/null || BUILD_RC=$?
+  if (( BUILD_RC == 124 )); then
+    sed 's/^/    /' "$BUILD_LOG" | tail -20
+    die "repack TIMED OUT in target after 1800s. The module may already be installed - do NOT start the server on it until you have checked $BUILD_LOG."
+  fi
+  if (( BUILD_RC != 0 )); then
     sed 's/^/    /' "$BUILD_LOG" | tail -30
     die "repack failed in target - production NOT updated"
   fi
