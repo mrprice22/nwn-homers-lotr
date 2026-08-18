@@ -143,8 +143,32 @@ fi
 # Blobs first, additively. --delete is never passed: a content-addressed store
 # tolerates a blob nothing references (refresh-nwsync --prune collects those)
 # but never a referenced blob that is missing.
-echo "copying blobs (additive; nothing is deleted)..."
-rsync -a --info=stats2 "$SRC_STORE/data/" "$TGT_STORE/data/" | grep -E "Number of .*files transferred|Total transferred" | sed 's/^/    /' || true
+#
+# COPY ONLY WHAT IS MISSING, BY NAME. A blob's filename IS its SHA1 and blobs
+# are immutable, so a filename set difference is not an approximation - it is
+# exact, and computing it reads no file contents at all.
+#
+# The obvious `rsync -a src/ dst/` is a trap here, and was measured as one on
+# the first production run: it walks and stat-compares ~86,000 files on BOTH
+# sides to discover that 19 of them are new. That took over 25 minutes - longer
+# than the refresh-nwsync it exists to replace, with the season down waiting on
+# it. Listing both trees and diffing the names takes about 8 seconds.
+echo "finding blobs this store is missing..."
+SRC_LIST=$(mktemp); TGT_LIST=$(mktemp); MISSING=$(mktemp)
+trap 'rm -f "$SRC_LIST" "$TGT_LIST" "$MISSING"' EXIT
+# LC_ALL=C so both sorts agree byte for byte; comm depends on that.
+find "$SRC_STORE/data" -type f -printf '%P\n' | LC_ALL=C sort > "$SRC_LIST"
+find "$TGT_STORE/data" -type f -printf '%P\n' | LC_ALL=C sort > "$TGT_LIST"
+comm -23 "$SRC_LIST" "$TGT_LIST" > "$MISSING"
+n_missing=$(wc -l < "$MISSING")
+note "$n_missing blob(s) to copy (source has $(wc -l < "$SRC_LIST"), target has $(wc -l < "$TGT_LIST"))"
+
+if (( n_missing > 0 )); then
+  # --files-from with an explicit list: rsync copies exactly these and never
+  # walks the tree. It creates the intermediate sha1/xx/yy directories itself.
+  rsync -a --files-from="$MISSING" "$SRC_STORE/data/" "$TGT_STORE/data/"
+  note "blobs copied"
+fi
 
 echo "copying manifest $MANIFEST..."
 mkdir -p "$TGT_STORE/manifests"
