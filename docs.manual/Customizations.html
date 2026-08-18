@@ -106,6 +106,7 @@
     <nav class="toc" aria-label="Page contents">
       <h2>Contents</h2>
       <ol>
+        <li><a href="#not-a-bug">Looks Like a Bug &mdash; Isn't</a></li>
         <li><a href="#systems">Notable Custom Systems</a>
           <ol>
             <li><a href="#appraise-selling">Appraise &amp; Selling to Merchants</a></li>
@@ -162,6 +163,7 @@
             <li><a href="#legendary-levels">Legendary Levels: 41–60</a></li>
             <li><a href="#legendary-caster-slots">&mdash; Spell slots at legendary levels</a></li>
             <li><a href="#legendary-caster-feats">&mdash; Caster feats at legendary levels</a></li>
+            <li><a href="#duplicate-caster-feats">&mdash; Why a feat can show twice</a></li>
             <li><a href="#monk-weapons">Monk Weapons</a></li>
             <li><a href="#critical-hits">Critical Hits &amp; Devastating Critical</a></li>
           </ol>
@@ -192,6 +194,58 @@ under <em>Server&nbsp;Info → Module Customizations</em>.</p>
   <a href="../manual/LevelingGuide.html">Leveling Guide</a> and the
   <a href="../manual/QuestGuide.html">Quest Guide</a>.</p>
 </div>
+
+<hr>
+
+<!-- ============================================================ -->
+<div class="section-header" id="not-a-bug">
+  <h2>Looks Like a Bug &mdash; Isn't</h2>
+</div>
+
+<p>A handful of things on this server look broken the first time you meet them and are
+working exactly as intended. If one of these just happened to you, you are not the first
+&mdash; follow the link for the full explanation.</p>
+
+<dl>
+  <dt>A feat is listed <strong>twice</strong> on my character sheet, and I only picked it once</dt>
+  <dd>Expected for casters at class level&nbsp;40 and above. One of the two is an inert
+  stand-in that exists so the level-up screen stops offering you a feat you already own.
+  You get the benefit once, and it can appear on its own without you picking anything.
+  See <a href="#duplicate-caster-feats">Why a feat can show twice</a>.</dd>
+
+  <dt>Level-up offers me <strong>no spells to choose</strong> past 40 &mdash; every tab is empty</dt>
+  <dd>That screen belongs to the game client and cannot be repaired from the server.
+  <strong>Do not worry about it &mdash; just finish the level-up and wait a few seconds.</strong>
+  A <em>Spellbook Study</em> window opens by itself and hands you every pick the screen
+  ate. Close it and your picks are still banked; finish a rest and it opens again.
+  See <a href="#spellbook-study">Spellbook Study</a>.</dd>
+
+  <dt>My sorcerer or bard <strong>cannot swap known spells</strong> past 40</dt>
+  <dd>A known limitation of the same client screen, not something you have done wrong.
+  You keep every spell you know and gain more casts per day of all of them. Tracked on
+  the <a href="../manual/Roadmap.html">Roadmap</a> &mdash; see
+  <a href="#spellbook-study">Spellbook Study</a>.</dd>
+
+  <dt>The boss <strong>healed itself and got stronger</strong> when I backed off</dt>
+  <dd>Deliberate, and only the unique bosses do it. Disengaging from one of them is meant
+  to cost you. See <a href="#boss-enrage">Boss Enrage on Retreat</a>.</dd>
+
+  <dt><strong>Devastating Critical stopped killing</strong> things outright</dt>
+  <dd>The stock save-or-die was removed on purpose, for you and for everything you fight.
+  It now lands as a very large hit instead. See
+  <a href="#critical-hits">Critical Hits &amp; Devastating Critical</a>.</dd>
+
+  <dt>I was healed and then <strong>could not be healed again</strong> for a while</dt>
+  <dd>Full-restore healing is a timed resource here rather than a button you can hold.
+  See <a href="#soul-fatigue">Soul-fatigue on Heal</a>.</dd>
+
+  <dt>An item I picked up <strong>vanished into a roll window</strong></dt>
+  <dd>Nobody stole it. Valuable drops go to a Need / Greed / Pass roll when party members
+  are nearby. See <a href="#party-loot">Party Loot Rolls</a>.</dd>
+</dl>
+
+<p>Something not on this list and genuinely wrong? Report it &mdash; shipped bug reports
+earn <a href="#merit">Merit</a>.</p>
 
 <hr>
 
@@ -1289,6 +1343,9 @@ threshold, and nothing is lost for being at the cap.</p>
 <em>real character levels</em>. The experience table below is final and already in the build; the
 level-cap lift and the per-class feat allotments are still being worked on, so the climb past 40 is
 not open yet. Progress is tracked on the <a href="../manual/Roadmap.html">Roadmap</a>.</p>
+<p><strong>Casters:</strong> two things past level&nbsp;40 look broken and are not &mdash; an empty
+spell-selection screen (see <a href="#spellbook-study">Spellbook Study</a>) and feats listed twice
+on your sheet (see <a href="#duplicate-caster-feats">Why a feat can show twice</a>).</p>
 </div>
 
 <p>Standard NWN stops at level 40. On this server, levels 41 to 60 are an extension of the game's
@@ -1410,30 +1467,71 @@ feat. <strong>Every requirement is unchanged</strong>: Automatic Still Spell sti
 Spell and 27 ranks of Spellcraft, Epic Spell Focus still wants Greater Spell Focus in that school.
 Nothing became easier to get &mdash; it became <em>possible</em> to get.</p>
 
+<h4 id="duplicate-caster-feats">Why a feat can show twice</h4>
+
+<p><strong>A caster at class level&nbsp;40 or above will see some feats listed twice on the
+character sheet, under the same name.</strong> A level&nbsp;48 wizard, for instance, shows
+<em>Extend Spell</em>, <em>Still Spell</em> and <em>Combat Casting</em> twice each. This is
+expected and there is nothing to fix.</p>
+
+<p>One of the pair is the real feat. The other is an <strong>inert stand-in</strong> &mdash; the
+replacement entry described above, which carries the real feat's own name and description rather
+than a made-up one. Holding both is the point:</p>
+
+<ul>
+  <li><strong>It is not a double benefit.</strong> The effect applies once. Nothing stacks, and
+  nothing is being counted twice.</li>
+  <li><strong>It did not cost you a second pick.</strong> You spent one feat slot, exactly as you
+  meant to.</li>
+  <li><strong>It is what stops you wasting a pick.</strong> The level-up screen never offers a feat
+  you already hold &mdash; so by giving you both halves, the server makes sure neither half is ever
+  dangled in front of you again.</li>
+  <li><strong>There is nothing to do about it.</strong> No action, no cleanup, and it cannot be
+  turned off.</li>
+</ul>
+
 <div class="tip-box">
-<p><strong>Levels 1&ndash;40 are completely unchanged.</strong> Below 41 you are picking from
-exactly the same list you always were. The replacement entries do not appear at all until the
-class itself reaches 41, so there is nothing new to learn and nothing to plan around.</p>
+<p><strong>It can appear on its own, without you picking anything.</strong> If you already had one
+of these feats from below level&nbsp;40, the matching stand-in is added the moment that class
+reaches&nbsp;40 &mdash; so a duplicate can turn up at a level-up or a login where you chose nothing
+at all. That is the pairing being applied in the other direction, and it is the whole reason the
+level-up screen stops offering you feats you own.</p>
+<p><strong>Below class level&nbsp;40 none of this exists.</strong> A level&nbsp;1 wizard or sorcerer
+sees each feat exactly once, and levels 1&ndash;40 pick from exactly the list they always did.</p>
 </div>
 
-<p><strong>You will see the feat twice on your character sheet</strong> &mdash; once as the
-replacement entry you picked and once as the real feat it granted you. That is expected and
-harmless. It is also deliberate: it is what stops the level-up screen offering you a feat you
-already own and letting you waste the pick on it. You get the benefit exactly once.</p>
+<h4 id="caster-feats-reach">How far each class reaches</h4>
+
+<p>A feat that demands you cast spells of a given level is still barred if your class never gets
+there &mdash; that is the original rule, not a new restriction. It is why a bard sees fewer
+replacement entries than a wizard, and no <em>Epic Spell Focus</em> at all.</p>
+
+<table class="data">
+  <thead><tr><th>Class</th><th>Highest spell level</th><th>What that means</th></tr></thead>
+  <tbody>
+    <tr><td>Wizard, Sorcerer, Cleric, Druid</td><td>9th</td><td>The full set, including Epic Spell Focus and the Automatic Still / Silent / Quicken Spell chains.</td></tr>
+    <tr><td>Bard</td><td>6th</td><td>Spell Focus and the metamagic feats. No Epic Spell Focus, no Automatic metamagic &mdash; both need 9th-level spells.</td></tr>
+    <tr><td>Paladin, Ranger</td><td>4th</td><td>The feats that ask for 4th-level spells or less.</td></tr>
+  </tbody>
+</table>
 
 <div class="warning-box">
-<p><strong>Wizards first.</strong> This is live for <strong>wizard</strong> now. Sorcerer, cleric,
-druid, bard, paladin and ranger use the same machinery and follow shortly &mdash; watch the
-<a href="../manual/Roadmap.html">Roadmap</a>. Until then those classes keep the behaviour described
-above past their own level&nbsp;40.</p>
+<p><strong>This keys on your class level, not your caster level.</strong> The replacement entries
+unlock when your <em>wizard</em> (or cleric, or druid&hellip;) level itself reaches&nbsp;41.
+<strong>Caster levels granted by a prestige class do not count toward that number</strong>, and no
+amount of prestige levelling brings the entries forward.</p>
 
-<p><strong>One thing to plan around: this keys on your class level, not your caster level.</strong>
-The replacement entries unlock when your <em>wizard</em> (or cleric, or druid&hellip;) level itself
-reaches&nbsp;41. <strong>Caster levels granted by a prestige class do not count toward that
-number.</strong> In practice this should never cost you a feat &mdash; a class that has reached 41
-is already casting at the highest spell level it will ever reach, and no prestige class lifts it
-higher &mdash; but it is the rule, so build with it in mind rather than discovering it at a
-level-up.</p>
+<p><strong>Pale Master is the only class in the game that advances spellcasting at all</strong>
+&mdash; one arcane caster level for every two Pale Master levels. It will happily let you cast
+higher-level spells sooner than your wizard level alone would, and the ordinary feats below&nbsp;41
+respect that exactly as they always have. What it will not do is unlock the replacement entries
+early. <strong>Dragon Disciple grants no spellcasting advancement whatsoever</strong> in NWN, so it
+has no bearing here in either direction.</p>
+
+<p><strong>In practice this costs nobody a feat.</strong> The client fault these entries work around
+also only begins once a casting class passes&nbsp;40 &mdash; below that the ordinary feats are
+offered normally. The rule is worth knowing so you build with it in mind, not because there is a
+trap in it.</p>
 </div>
 
 <h3 id="monk-weapons">Monk Weapons</h3>

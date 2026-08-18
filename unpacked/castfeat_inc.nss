@@ -33,9 +33,33 @@
 // took the stock feat years ago must already hold the proxy BEFORE the level-up
 // to 41, because the client builds that level's list before any of our code
 // runs. Logging in is what puts it there in time.
+//
+// THE TWO DIRECTIONS ARE NOT SYMMETRIC
+// ------------------------------------
+// Every casting class has its OWN proxy for the same feat - Silent Spell has
+// seven. So the map is many-to-one on the real side, and the two directions
+// have to be written differently:
+//
+//   proxy -> real   unconditional. Whichever class's proxy the player picked,
+//                   there is exactly one real feat behind it.
+//   real -> proxy   ONLY for a class the character is actually near 41 in.
+//                   Walking this direction blind would see a wizard holding
+//                   Silent Spell and grant him the sorcerer, cleric, druid,
+//                   bard, paladin and ranger proxies too - six junk rows on
+//                   the character sheet, one per class he has never taken.
+//
+// The threshold is 40 rather than 41 on purpose. The proxy has to be in place
+// BEFORE the level-up that could offer it, and a character sitting at class
+// level 40 is exactly one level-up away from that. Both hooks reach them in
+// time: the level-up to 40 fires castfeat_lvl, and any login re-runs the sweep.
 
 #include "castfeat_ids"
 #include "nwnx_creature"
+
+// Class level at which a character starts carrying the inert proxies for that
+// class. One below the level the proxies unlock at, so they are already in
+// place when the client builds the level-41 feat list.
+const int CASTFEAT_PAIR_LEVEL = 40;
 
 // TRUE when lotr_rules.hak's feat.2da is the one loaded.
 int CastFeat_HaveTable();
@@ -80,13 +104,19 @@ void CastFeat_Resolve(object oPC)
         if (bProxy)
         {
             // The player picked the proxy. This is the grant that makes the
-            // whole mechanism work.
+            // whole mechanism work, and it needs no class test: only one class
+            // could ever have been offered this particular proxy row.
             NWNX_Creature_AddFeatByLevel(oPC, nReal, nLevel);
         }
         else
         {
-            // The player already had the real feat. The proxy is inert; it is
-            // added only so the level-up page stops offering it.
+            // The player already had the real feat. Grant the inert proxy so
+            // the level-up page stops offering it - but ONLY for a class this
+            // character is actually about to be offered it in. See "THE TWO
+            // DIRECTIONS ARE NOT SYMMETRIC" above: without this test a wizard
+            // with Silent Spell collects all six other classes' proxies.
+            if (GetLevelByClass(CastFeat_ClassAt(i), oPC) < CASTFEAT_PAIR_LEVEL)
+                continue;
             NWNX_Creature_AddFeatByLevel(oPC, nProxy, nLevel);
         }
         nGranted++;

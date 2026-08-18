@@ -336,20 +336,34 @@ def check_proxy_include(problems, expected, mod):
 
     got_proxy = cases("CastFeat_ProxyAt")
     got_real = cases("CastFeat_RealAt")
+    got_class = cases("CastFeat_ClassAt")
     if got_proxy != [p.row for p in expected]:
         problems.append(f"{path.name}'s CastFeat_ProxyAt does not match the "
                         "generated rows — re-run the generator")
     if got_real != [p.stock_id for p in expected]:
         problems.append(f"{path.name}'s CastFeat_RealAt does not match the "
                         "generated rows — re-run the generator")
+    if got_class != [p.cls.class_id for p in expected]:
+        problems.append(f"{path.name}'s CastFeat_ClassAt does not match the "
+                        "generated rows — the reverse direction of the pairing "
+                        "invariant reads it, and a wrong class there hands a "
+                        "character another class's proxies")
 
-    # The resolver walks the map in both directions, so a repeat on either side
-    # would pair one feat with two partners and grant the wrong one.
-    for name, values in (("proxy", got_proxy or []), ("real", got_real or [])):
-        if len(set(values)) != len(values):
-            problems.append(
-                f"{path.name} repeats a {name} feat id — the pairing invariant "
-                "walks this map both ways and needs it to be one-to-one")
+    # The map is deliberately MANY-to-one on the real side: every casting class
+    # gets its own proxy for the same feat, so Silent Spell has seven. What must
+    # be unique is the proxy row (it is a feat id) and the (class, real) pair —
+    # two proxies for one feat in one class would grant that class's character
+    # a duplicate.
+    if len(set(got_proxy or [])) != len(got_proxy or []):
+        problems.append(
+            f"{path.name} repeats a proxy feat id — each proxy row is a distinct "
+            "feat and must appear once")
+    pairs = list(zip(got_class or [], got_real or []))
+    if len(set(pairs)) != len(pairs):
+        dupes = sorted({p for p in pairs if pairs.count(p) > 1})
+        problems.append(
+            f"{path.name} has more than one proxy for the same feat in the same "
+            f"class {dupes} — the reverse direction would grant both")
 
 
 def check_packed(problems):

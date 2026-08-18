@@ -108,12 +108,20 @@ PROXY_CLASSES: list[ProxyClass] = [
     ProxyClass("Ranger",    7, "RANG", "cls_feat_rang",  "cls_spgn_rang"),
 ]
 
-# Which of them are actually emitted. Wizard alone is the probe: it fixes the
-# reporting player's character outright and settles the one open risk - whether
-# the client honours MinLevel above 40 at all, which stock never exercises
-# (its only uses of the column sit at value 4). Widen to every class once UAT
-# confirms proxies appear at 41+ and stay hidden at level 3.
-SHIPPED_CLASSES = ["Wizard"]
+# Which of them are actually emitted.
+#
+# Wizard shipped alone first, as a probe for the one thing that could not be
+# settled offline: whether the client honours MinLevel above 40 at all. Stock
+# never exercises it there - its only uses of the column sit at value 4, well
+# below the boundary where this client is known to clamp. UAT 2026-08-18
+# confirmed it does (proxies offered at 41+, absent on a low-level wizard), so
+# the remaining six casting classes are enabled.
+#
+# Order comes from PROXY_CLASSES, and Wizard is first there, so enabling the
+# rest APPENDED rows 1167+ and left the already-published wizard ids 1134-1166
+# exactly where they were. Never reorder PROXY_CLASSES: a proxy's row index is
+# a feat id and is baked into a .bic the moment a character takes it.
+SHIPPED_CLASSES = [c.name for c in PROXY_CLASSES]
 
 # MINSPELLLVL values at or above this are "never selectable" sentinels rather
 # than a real spell-level requirement - stock Sap carries 100. They are not a
