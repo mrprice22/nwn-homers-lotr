@@ -784,6 +784,25 @@ that compounds by 1.1x. Rows for levels 1–40 are byte-identical to stock.
     spells, from `spells.2da`'s `Wiz_Sorc` column (**179** total, and no hak in the
     NWN home overrides `spells.2da`): `L0:7 L1:22 L2:28 L3:23 L4:21 L5:18 L6:20
     L7:13 L8:13 L9:14`.
+- **The same clamp eats the FEAT list, and that half IS fixable from here.**
+  `feat.2da`'s `MINSPELLLVL` column ("must be able to cast spells of this level")
+  is filtered by the client against the same maximum-castable-spell-level it
+  resolves as 0 past class level 40, so every feat carrying one drops out of both
+  the class-bonus and the general feat pick. Measured on a pure Wizard 46: the
+  only three feats still offered were the three with a blank `MINSPELLLVL`.
+  Losses per class are wizard 34, sorcerer/cleric/druid/bard 26, paladin/ranger
+  16, and **zero** for barbarian/fighter/monk/rogue — which is why the martial
+  classes looked healthy. Unlike the spell picker this is data-driven, so it is
+  fixed by publishing each affected feat a second time as an inert per-class
+  **proxy row** the filter cannot see, gated by `MinLevelClass`/`MinLevel` and
+  carrying every real prerequisite verbatim; `unpacked/castfeat_inc.nss` grants
+  the real feat and keeps the two paired in both directions. **The stock rows are
+  not touched**, so levels 1-40 are unchanged. Owned by
+  `bin/spellfeat_proxies.py` (the derivation and the full argument) and rendered
+  by `bin/gen-legendary-feats.py`; gated by `check_caster_proxies` in
+  `tests/check_legendary_feats.py`. Roadmap `ll-bonus-feat-lists`.
+  **This needs the seven `cls_feat_*.2da` in the hak as well as `feat.2da`** —
+  the class bonus list is drawn strictly from those.
 - `tests/check_epic_tables.py` (smoke-test gate) keeps `exptable.2da`, the
   transcribed fallback switch in `unpacked/_build_lvl_inc.nss`, `classes.2da`'s
   zeroed `XPPenalty` and the seven `cls_spgn_*.2da` caster tables from drifting

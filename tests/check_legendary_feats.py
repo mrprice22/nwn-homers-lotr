@@ -117,7 +117,12 @@ def check_table(problems, gen):
 
     index = {col: pos for pos, col in enumerate(header)}
     refs = gen.strrefs()
-    owned = sorted(i for i in rows if i >= gen.FIRST_ROW)
+    # Rows at or above FIRST_ROW are two families: the legendary feats, then
+    # the caster feat proxies appended after them (roadmap ll-bonus-feat-lists).
+    # Only the legendary half is checked here; check_caster_proxies owns the
+    # rest, which is derived rather than hand-authored.
+    proxy_first = gen.FIRST_ROW + len(gen.FEATS)
+    owned = sorted(i for i in rows if gen.FIRST_ROW <= i < proxy_first)
     expected = [gen.FIRST_ROW + n for n in range(len(gen.FEATS))]
     if owned != expected:
         # Bounded: a stray CEP table puts ~23,000 row numbers in this list.
@@ -168,13 +173,183 @@ def check_not_selectable(problems, gen):
     """
     owned = {str(gen.FIRST_ROW + n) for n in range(len(gen.FEATS))}
     for path in sorted(HAK_2DA_DIR.glob("cls_feat_*.2da")):
-        _, rows = read_2da(path)
+        header, rows = read_2da(path)
+        # cells[0] is the row index; FeatIndex is one right of its header slot.
+        # This used to read cells[1], which is FeatLabel — so the check compared
+        # feat ids against names and could never fire. It went unnoticed because
+        # no cls_feat_*.2da was vendored here until the caster proxies arrived.
+        fi = 1 + header.index("FeatIndex")
         for row_index, cells in rows.items():
-            if len(cells) > 1 and cells[1] in owned:
+            if len(cells) > fi and cells[fi] in owned:
                 problems.append(
                     f"{path.name} row {row_index} lists feat {cells[1]}, which "
                     "is a legendary feat — that puts it back on a class's "
                     "level-up page")
+
+
+def check_caster_proxies(problems, gen):
+    """The caster feat proxies (roadmap ll-bonus-feat-lists).
+
+    These rows exist because the client hides every feat with a MINSPELLLVL from
+    a caster past class level 40. A proxy is the stock row with three columns
+    moved, so what this gate really asserts is that NOTHING ELSE moved: the
+    moment a proxy's prerequisites drift from its stock row, the proxy stops
+    being the same feat and becomes a way to buy a feat you did not earn.
+
+    It also asserts the stock rows are still untouched. The whole design rests
+    on levels 1-40 continuing to use them exactly as before.
+    """
+    if not FEAT_2DA.exists():
+        return
+    header, rows = read_2da(FEAT_2DA)
+    index = {col: pos for pos, col in enumerate(header)}
+    stock_cells = {i: c[1:] for i, c in rows.items() if i < gen.BASE_ROWS}
+
+    mod = gen.load_proxies()
+    proxy_first = gen.FIRST_ROW + len(gen.FEATS)
+    expected = mod.proxies(proxy_first, header, {i: rows[i] for i in stock_cells})
+
+    found = sorted(i for i in rows if i >= proxy_first)
+    if found != [p.row for p in expected]:
+        shown = found[:8] + (["..."] if len(found) > 8 else [])
+        problems.append(
+            f"feat.2da has {len(found)} row(s) at or above {proxy_first} "
+            f"({shown or '(none)'}), the derivation wants {len(expected)} — "
+            "re-run: python3 bin/gen-legendary-feats.py --apply")
+        return
+
+    # Every column that expresses a REQUIREMENT must be identical to the stock
+    # row. This list is deliberately explicit rather than "all but three": a new
+    # column added to feat.2da should fail this gate and be classified by hand.
+    carried = ("FEAT", "DESCRIPTION", "ICON", "MINATTACKBONUS", "MINSTR",
+               "MINDEX", "MININT", "MINWIS", "MINCON", "MINCHA", "PREREQFEAT1",
+               "PREREQFEAT2", "GAINMULTIPLE", "EFFECTSSTACK", "ALLCLASSESCANUSE",
+               "CATEGORY", "MAXCR", "SPELLID", "CRValue", "USESPERDAY",
+               "MASTERFEAT", "TARGETSELF", "OrReqFeat0", "OrReqFeat1",
+               "OrReqFeat2", "OrReqFeat3", "OrReqFeat4", "REQSKILL",
+               "ReqSkillMinRanks", "REQSKILL2", "ReqSkillMinRanks2",
+               "TOOLSCATEGORIES", "HostileFeat", "MaxLevel", "MinFortSave",
+               "PreReqEpic", "ReqAction")
+
+    for proxy in expected:
+        cells = rows[proxy.row][1:]
+        stock = stock_cells[proxy.stock_id]
+
+        def cell(col, source=cells):
+            pos = index.get(col)
+            return source[pos] if pos is not None and pos < len(source) else None
+
+        for col in carried:
+            if cell(col) != cell(col, stock):
+                problems.append(
+                    f"feat.2da row {proxy.row} ({mod.proxy_label(proxy)}) has "
+                    f"{col}={cell(col)}, its stock row {proxy.stock_id} "
+                    f"({proxy.stock_label}) has {cell(col, stock)} — a proxy "
+                    "must carry every requirement of the feat it stands in for")
+
+        if cell("MINSPELLLVL") != gen.BLANK:
+            problems.append(
+                f"feat.2da row {proxy.row} ({mod.proxy_label(proxy)}) still has "
+                f"MINSPELLLVL={cell('MINSPELLLVL')} — that is the column the "
+                "client mis-evaluates past class level 40, so the proxy would "
+                "be hidden exactly like the row it exists to replace")
+        if cell("MinLevel") != str(mod.PROXY_MIN_LEVEL):
+            problems.append(
+                f"feat.2da row {proxy.row} ({mod.proxy_label(proxy)}) has "
+                f"MinLevel={cell('MinLevel')}, expected {mod.PROXY_MIN_LEVEL} — "
+                "without it the proxy is offered below 41 as a duplicate of a "
+                "stock row that already works there")
+        if cell("MinLevelClass") != str(proxy.cls.class_id):
+            problems.append(
+                f"feat.2da row {proxy.row} ({mod.proxy_label(proxy)}) has "
+                f"MinLevelClass={cell('MinLevelClass')}, expected "
+                f"{proxy.cls.class_id} ({proxy.cls.name}) — the proxy would be "
+                "offered to a class that cannot cast at the required level")
+
+        # The stock row must still say what it always said.
+        if cell("MINSPELLLVL", stock) != str(proxy.min_spell_level):
+            problems.append(
+                f"feat.2da stock row {proxy.stock_id} ({proxy.stock_label}) has "
+                f"MINSPELLLVL={cell('MINSPELLLVL', stock)}, expected "
+                f"{proxy.min_spell_level} — levels 1-40 are supposed to keep "
+                "using the stock row unchanged")
+
+    # A proxy that is not in its class's feat table can never be offered as a
+    # CLASS BONUS feat, which is the half of the defect that was reported.
+    for cls in mod.PROXY_CLASSES:
+        wanted = {p.row for p in expected
+                  if p.cls.name == cls.name and p.list_value is not None}
+        if not wanted:
+            continue
+        path = HAK_2DA_DIR / f"{cls.feat_table}.2da"
+        if not path.exists():
+            problems.append(f"{path.name} is missing — {len(wanted)} "
+                            f"{cls.name} proxy row(s) have nowhere to be listed")
+            continue
+        table_header, table = read_2da(path)
+        # cells[0] is the row index, so the FeatIndex column sits one to the
+        # right of its header position. cells[1] is FeatLabel, not an id.
+        fi = 1 + table_header.index("FeatIndex")
+        listed = {int(c[fi]) for c in table.values()
+                  if len(c) > fi and c[fi].isdigit()}
+        missing = sorted(wanted - listed)
+        if missing:
+            problems.append(
+                f"{path.name} does not list proxy row(s) {missing} — a feat "
+                "missing from the class table cannot appear as a class bonus "
+                "feat, which is the half of this defect that was reported")
+
+    check_proxy_include(problems, expected, mod)
+
+
+def check_proxy_include(problems, expected, mod):
+    """unpacked/castfeat_ids.nss must be the same map, in the same order.
+
+    The resolver walks this include, not the 2DA. If the two disagree, a pick
+    grants the wrong feat - silently, and permanently, into the .bic.
+    """
+    path = REPO / "unpacked" / "castfeat_ids.nss"
+    if not path.exists():
+        if expected:
+            problems.append(f"{path.name} is missing — nothing pairs the "
+                            "proxies with the feats they stand in for")
+        return
+    text = path.read_text(encoding="utf-8")
+
+    declared = re.search(r"const int CASTFEAT_COUNT = (\d+);", text)
+    if not declared or int(declared.group(1)) != len(expected):
+        problems.append(
+            f"{path.name} declares CASTFEAT_COUNT="
+            f"{declared.group(1) if declared else 'nothing'}, the derivation "
+            f"has {len(expected)} proxy row(s) — re-run the generator")
+        return
+
+    def cases(function):
+        # Anchored on the DEFINITION. Splitting on the signature would match the
+        # forward declaration first and swallow both functions' bodies.
+        body = re.search(rf"int {function}\(int nIndex\)\s*\{{(.*?)\n\}}",
+                         text, re.S)
+        if body is None:
+            return None
+        return [int(m) for m in re.findall(r"case \d+: return (\d+);",
+                                           body.group(1))]
+
+    got_proxy = cases("CastFeat_ProxyAt")
+    got_real = cases("CastFeat_RealAt")
+    if got_proxy != [p.row for p in expected]:
+        problems.append(f"{path.name}'s CastFeat_ProxyAt does not match the "
+                        "generated rows — re-run the generator")
+    if got_real != [p.stock_id for p in expected]:
+        problems.append(f"{path.name}'s CastFeat_RealAt does not match the "
+                        "generated rows — re-run the generator")
+
+    # The resolver walks the map in both directions, so a repeat on either side
+    # would pair one feat with two partners and grant the wrong one.
+    for name, values in (("proxy", got_proxy or []), ("real", got_real or [])):
+        if len(set(values)) != len(values):
+            problems.append(
+                f"{path.name} repeats a {name} feat id — the pairing invariant "
+                "walks this map both ways and needs it to be one-to-one")
 
 
 def check_packed(problems):
@@ -599,6 +774,7 @@ def main():
         check_prereqs(problems, gen)
         check_effect_payloads(problems, gen)
         check_hook_arming(problems, gen)
+        check_caster_proxies(problems, gen)
     check_packed(problems)
     check_wiring(problems)
 
@@ -609,9 +785,16 @@ def main():
         return 1
     count = len(gen.FEATS) if gen else 0
     overridden = len(gen.stock_overrides()) if gen else 0
+    proxies = 0
+    if gen:
+        header, rows = read_2da(FEAT_2DA)
+        stock = {i: rows[i] for i in rows if i < gen.BASE_ROWS}
+        proxies = len(gen.load_proxies().proxies(
+            gen.FIRST_ROW + len(gen.FEATS), header, stock))
     print(f"ok: legendary feats coherent ({count} rows from "
           f"{gen.FIRST_ROW}, stock base intact, {overridden} stock row(s) "
-          "repointed, none selectable at level-up, picker wired)")
+          "repointed, none selectable at level-up, picker wired; "
+          f"{proxies} caster proxy row(s) carry their stock prerequisites)")
     return 0
 
 

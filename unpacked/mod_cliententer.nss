@@ -24,6 +24,7 @@
 #include "pw_inc"
 #include "fat_inc"
 #include "devcrit_inc"
+#include "castfeat_inc"
 #include "color"
 
 // Legendary feats: re-derive the allotment (which revokes picks a relevel or a
@@ -165,6 +166,14 @@ void main()
     // Delayed so the player is fully connected before the override is sent;
     // nextlvl_evt.nss keeps it current on every level up / level down.
     DelayCommand(2.0, NextLevel_FixTlk(oPC));
+
+    // Caster feat proxies (roadmap ll-bonus-feat-lists): keep each proxy paired
+    // with the real feat it stands in for. This is not just a safety net for a
+    // missed level-up event - a character who took the stock feat before ever
+    // reaching 41 must already hold the proxy BEFORE the level-up to 41, because
+    // the client builds that level's feat list before any server script runs.
+    // Logging in is the only thing that can put it there in time.
+    DelayCommand(2.5, CastFeat_Resolve(oPC));
 
     // Build stamp: nwn-manager generates "nwnmgr_bstamp" at repack with the module's
     // last-edited timestamp + git revision. Resolved at runtime, so it safely no-ops

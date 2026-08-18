@@ -191,6 +191,13 @@ NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "csp_lvl");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "legfeat_lvl");
 NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_DOWN_AFTER, "legfeat_lvl");
 
+// Caster feat proxies (roadmap ll-bonus-feat-lists). The client hides every feat
+// with a MINSPELLLVL from a caster past class level 40, so those feats are also
+// published as inert per-class proxy rows the filter cannot see. This keeps the
+// proxy and the real feat paired in both directions, which is what stops the
+// engine offering a player a feat they already hold. See castfeat_inc.nss.
+NWNX_Events_SubscribeEvent(NWNX_ON_LEVEL_UP_AFTER,   "castfeat_lvl");
+
 // Some legendary feats are CONDITIONAL on what the character is holding -
 // Legendary Onslaught grants its extra attack for melee and unarmed but not for
 // a bow. legfeat_equip rebuilds those on every weapon swap; without it the
