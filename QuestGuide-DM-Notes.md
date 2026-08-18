@@ -1058,6 +1058,55 @@ no-ops gracefully until they exist (no gate spawns, no court spawns, quest sits 
   need real placed instances instead.
 - No new loot was authored — the court drops whatever is on the blueprints.
 
+#### Amon Sûl garrison + the entry-room triggers (2026-08-17)
+
+The Noirinan gate route above is superseded by the hand-built `area026` → `area027`. What is now
+wired on the new areas:
+
+| Piece | Resref | Hooked as |
+|---|---|---|
+| area026 OnEnter wrapper (chains `leash_to_area`) | `wtop_enter.nss` | `area026.are` `OnEnter` |
+| Garrison spawner | `wtop_spawn.nss` | `ExecuteScript` from `wtop_enter` |
+| Guard taunt (chains `x2_def_attacked`) | `wtop_taunt.nss` | `ScriptAttacked` on `weathertopfighte`, `weathertoparc001` |
+| Barrow-wight blueprint | `wtop_zombie.utc` — "Barrow-wight of Amon Sûl", Tag `WtopBarrowWight` | spawned at the 4 `wtop_zombie` posts |
+| area027 trigger scripts | `wtop_fr_welcome.nss` / `wtop_fr_shaft.nss` / `wtop_fr_deep.nss` | `ScriptOnEnter` on `ForbiddenRealmsWelcome` / `ForbidRealmsLghtShaft` / `ForbidRealms_TBD` |
+
+**Garrison composition** — the 11 `wtop_spawn` posts alternate **6 × `weathertoparc001` (Archer) /
+5 × `weathertopfighte` (Fighter)**. That ratio comes from the two forked modules: both
+`nwn_homers_lotr_2009` and `nwn_lordoftherings` have a `wheathertop` area (this module never did)
+garrisoned 11–12 archers to 7–8 fighters, with the King and Queen side by side at the far end.
+`weathertoparc001` is also the archer in this module's own never-placed `weathertop.ute`.
+
+**The King and Queen are deliberately not spawned here.** They belong to the royal court area behind
+`wtop_hiddencave`, which is still unbuilt — copy the forks' layout (the two adjacent, at the deep end)
+when it is. The answered design question also wants `weathertopkin004` (CR 1514) over the CR-454
+`weathertopkin003` that `FRK_RR_KING` in `q_frk_inc.nss` still names; change it with the court area,
+not before.
+
+**Spawner invariants** (they are the easy things to break):
+- Repeated waypoint tags need the **nth-object** form `GetObjectByTag(sTag, n)` — `GetWaypointByTag`
+  only ever returns the first of the 11.
+- Each post is filled **once per server run**, flagged by the local int `WTOP_FILLED` on the waypoint.
+  Respawn is owned by the module standard (`x2_def_ondeath` → `nw_c2_default7` →
+  `SE_DoCreatureRespawn`, 900s). **Without the once-per-run guard**, a party re-entering inside the
+  900s window spawns a second creature and the pending respawn then doubles the post up.
+- The spawner pins each new creature's `"spawn"` LocalLocation to the waypoint. `x2_def_spawn` already
+  records one via `nw_c2_default9`, so this is belt and braces — but it is what guarantees a kited
+  guard is leashed back to *its post* and respawns there rather than where it died.
+
+**`wtop_zombie` tuning** — reskin of `zombieofdolguldu`, moved to Hostile (1), **`WalkRate` 1
+(VerySlow)**, HP 990 → 4000, Str 107 → 120, NaturalAC 13 → 24, CR 200. The brief was "more for
+flavour, should just move super slow but be really strong". Multi-instance, so it stays off the Roll
+of the Fallen. `Appearance_Type` kept at the donor's 199 (never guess an appearance id); 186 from
+`lesserbarrowwigh` is the in-module alternative if a wight look is wanted.
+
+**Not adopted:** the forks carry beefier stat lines for the same garrison resrefs (fork Fighter CR 199
+/ HP 3550 vs live CR 100 / HP 1450; Archer CR 272 vs 198). Left for the boss tuning pass.
+
+**`ForbidRealms_TBD` keeps its placeholder tag.** `wtop_fr_deep.nss` foreshadows the unbuilt court —
+a wall raised in haste from the other side. Rename the trigger when the court area exists; that is
+toolset work.
+
 ### Unjournaled quests
 
 Several quest scripts called `AddJournalQuestEntry` with tags that had no matching journal category.
