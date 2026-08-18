@@ -95,19 +95,32 @@ PROFILE: dict[str, dict[str, bool]] = {
 # ordinary edits to the surrounding code don't trip them, and deliberately
 # fatal, because the thing they protect against is exactly the edit that looks
 # harmless in review.
-WIRING: list[tuple[str, str, str]] = [
+#
+# The second element may be a TUPLE of acceptable symbols, for a consumer that
+# legitimately reads the flag through a shared helper rather than directly. That
+# is not a loophole: the helper itself is listed here too, so the flag is still
+# checked at every hop, and a consumer that drops its guard entirely still
+# fails. sp_devgate_inc.nss exists because the two Ping Pong consumers MUST
+# agree - when they disagreed, the conversation gate admitted an admin on a live
+# season and the level setter then refused them in silence.
+WIRING: list[tuple[str, str | tuple[str, ...], str]] = [
     ("don_cheat_inc.nss", "SP_CHEAT_CHEST",
      "the Donations Chest cheat stock must read SP_CHEAT_CHEST, not a literal"),
     ("servershout4.nss", "SP_WIPE_NOTICE",
      "the early-access login block must be guarded by SP_WIPE_NOTICE"),
-    ("_build_lvl_inc.nss", "SP_DEV_TOOLS",
-     "the PC-builder level setter must be guarded by SP_DEV_TOOLS"),
+    ("_build_lvl_inc.nss", ("SP_DEV_TOOLS", "SP_DevToolsFor"),
+     "the PC-builder level setter must be guarded by SP_DEV_TOOLS, directly or "
+     "through SP_DevToolsFor"),
     ("onmoduleload.nss", "SP_DEV_TOOLS",
      "the module load script must run the dev-tool purge"),
-    ("sp_devgate.nss", "SP_DEV_TOOLS",
-     "the dev-tool conversation gate must read SP_DEV_TOOLS - this is the "
-     "guard that holds when the module-load purge does not, as it did not at "
-     "the season 2 launch (DestroyObject refuses a Plot creature)"),
+    ("sp_devgate.nss", ("SP_DEV_TOOLS", "SP_DevToolsFor"),
+     "the dev-tool conversation gate must read SP_DEV_TOOLS, directly or "
+     "through SP_DevToolsFor - this is the guard that holds when the "
+     "module-load purge does not, as it did not at the season 2 launch "
+     "(DestroyObject refuses a Plot creature)"),
+    ("sp_devgate_inc.nss", "SP_DEV_TOOLS",
+     "the shared dev-tool predicate is where both Ping Pong consumers now read "
+     "the flag - if it stops reading SP_DEV_TOOLS, both of them silently open"),
 ]
 
 
@@ -191,9 +204,11 @@ def check_wiring() -> list[str]:
             problems.append(f"{filename}: missing - {why}")
             continue
         code = strip_comments(path.read_text(encoding="utf-8"))
-        if not re.search(rf"\b{re.escape(const)}\b", code):
+        wanted = (const,) if isinstance(const, str) else const
+        if not any(re.search(rf"\b{re.escape(c)}\b", code) for c in wanted):
             problems.append(
-                f"{filename}: no reference to {const} in code - {why}")
+                f"{filename}: no reference to {' or '.join(wanted)} in code "
+                f"- {why}")
     return problems
 
 
