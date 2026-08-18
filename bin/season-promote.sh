@@ -37,6 +37,11 @@
 #   bin/season-promote.sh --to DIR --apply --season N   # promote, rebrand, rebuild
 #   ...  --allow-hot    target's server is running and you mean it
 #   ...  --no-build     sync + rebrand only, no repack
+#   ...  --fast-nwsync "msg"
+#                       build the target's hak, verify it publishes the same
+#                       content as dev, and arm reboot-on-empty to COPY dev's
+#                       manifest during the down window instead of spending ~20
+#                       minutes rebuilding an identical one. See below.
 #
 # --season N is mandatory with --apply and must match the target's SEASON_NUM.
 # It is the guard against a mistyped --to landing on the wrong live server.
@@ -50,6 +55,8 @@ APPLY=0
 ALLOW_HOT=0
 BUILD=1
 WANT_SEASON=""
+FAST_NWSYNC=0
+REBOOT_MSG=""
 
 while (($#)); do
   case "$1" in
@@ -58,6 +65,7 @@ while (($#)); do
     --apply)     APPLY=1; shift ;;
     --allow-hot) ALLOW_HOT=1; shift ;;
     --no-build)  BUILD=0; shift ;;
+    --fast-nwsync) FAST_NWSYNC=1; REBOOT_MSG=${2:-}; shift 2 ;;
     -h|--help)   sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'; exit 0 ;;
     *) echo "error: unknown arg: $1" >&2; exit 2 ;;
   esac
@@ -286,6 +294,42 @@ if (( BUILD )); then
   fi
   grep -iE 'Results:|Success: packed|installed to' "$BUILD_LOG" | sed 's/^/    /' || true
   rm -f "$BUILD_LOG"
+  echo
+fi
+
+# ------------------------------------------------------- fast nwsync + reboot --
+# A hak change is not delivered until clients can download it, and rebuilding the
+# target's manifest costs ~20 minutes of downtime — a SHA1 pass over 4.15 GiB
+# that runs no matter how little changed. But the target is a derived copy of
+# this tree, so once its hak is rebuilt it publishes the SAME content as dev and
+# therefore the SAME manifest hash. So: build its hak, prove the two realms
+# match, and let the down-window handler publish dev's manifest by copy.
+#
+# The proof happens HERE as well as at copy time. Failing now means the operator
+# finds out immediately, with the server still up, instead of discovering it in
+# the down window when the fallback silently costs the 20 minutes anyway.
+if (( FAST_NWSYNC )); then
+  echo "preparing fast NWSync handover..."
+
+  # The manifest describes the haks, so the target's hak must be rebuilt from
+  # the sources that just landed before anything can be said about it.
+  if ! ( cd "$TARGET" && ./bin/build-lotr-rules-hak --install ) >/dev/null 2>&1; then
+    die "target hak build failed - not arming the reboot. Fix, then re-run."
+  fi
+  note "target hak rebuilt from the promoted hak_2da"
+
+  if ! ( cd "$TARGET" && ./bin/nwsync-copy-from "$DEV_ROOT" --check ) >/dev/null 2>&1; then
+    echo "  the copy guard refused; running it again to show why:" >&2
+    ( cd "$TARGET" && ./bin/nwsync-copy-from "$DEV_ROOT" --check ) 2>&1 | sed 's/^/    /' >&2 || true
+    die "target would not publish the same manifest as dev. Arm with plain --nwsync instead (slower, always correct)."
+  fi
+  note "verified: target publishes the same content as dev @${DEV_SHA}"
+
+  if [[ -z $REBOOT_MSG ]]; then
+    REBOOT_MSG="Server updated. Rebooting once the realm is empty."
+  fi
+  ( cd "$TARGET" && ./bin/reboot-on-empty --nwsync-copy "$DEV_ROOT" "$REBOOT_MSG" ) \
+    | sed 's/^/    /' || die "failed to arm reboot-on-empty in the target"
   echo
 fi
 

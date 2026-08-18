@@ -3,9 +3,18 @@
 # Anvil plugin drops the `restart-server` flag after a reboot-on-empty shutdown.
 #
 # Runs in the window *after* the server process has exited (clean shutdown) and
-# *before* it comes back: it optionally rebuilds the NWSync manifest, then
-# restarts the server user service, which relaunches bin/serve onto the current
-# (freshly deployed) module.
+# *before* it comes back: it optionally republishes NWSync, then restarts the
+# server user service, which relaunches bin/serve onto the current (freshly
+# deployed) module.
+#
+# Two NWSync modes, armed by bin/reboot-on-empty:
+#   reboot-on-empty-nwsync       rebuild the manifest here (~20 min of downtime)
+#   reboot-on-empty-nwsync-copy  publish the manifest another realm already built
+#                                (seconds). The file holds that realm's repo path.
+# The copy is guarded and refuses if the two realms' haks do not match; if it
+# refuses, this falls back to the full rebuild. Slow and correct beats fast and
+# wrong: leaving a stale manifest while the haks on disk have changed is the
+# client/server hak mismatch the whole publish step exists to prevent.
 #
 # Not meant to be run by hand — the systemd .path unit fires it. Reads
 # NWN_RUN_DIR from ../server.env (the server's userdirectory / Anvil PluginData
@@ -25,6 +34,7 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 PLUGIN_DATA="$(season_anvil_dir "$NWN_RUN_DIR")/PluginData" || exit 1
 REQUEST_FILE="$PLUGIN_DATA/restart-server"
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
+NWSYNC_COPY_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync-copy"
 
 # Consume the trigger flag first so the .path unit re-arms for next time and we
 # never loop on a stale flag.
@@ -32,14 +42,29 @@ rm -f "$REQUEST_FILE"
 
 echo "[empty-restart] reboot-on-empty triggered."
 
-if [[ -f $NWSYNC_FILE ]]; then
-  rm -f "$NWSYNC_FILE"
+nwsync_rebuild() {
   echo "[empty-restart] rebuilding NWSync manifest before relaunch..."
   if "$PROJECT_ROOT/bin/refresh-nwsync" --silent; then
     echo "[empty-restart] NWSync manifest rebuilt."
   else
     echo "[empty-restart] WARNING: refresh-nwsync failed; restarting server anyway." >&2
   fi
+}
+
+if [[ -f $NWSYNC_COPY_FILE ]]; then
+  SRC=$(cat "$NWSYNC_COPY_FILE")
+  rm -f "$NWSYNC_COPY_FILE"
+  echo "[empty-restart] publishing NWSync manifest copied from $SRC ..."
+  if [[ -x $PROJECT_ROOT/bin/nwsync-copy-from ]] \
+     && "$PROJECT_ROOT/bin/nwsync-copy-from" "$SRC"; then
+    echo "[empty-restart] NWSync manifest published by copy."
+  else
+    echo "[empty-restart] WARNING: manifest copy refused or failed — falling back to a full rebuild." >&2
+    nwsync_rebuild
+  fi
+elif [[ -f $NWSYNC_FILE ]]; then
+  rm -f "$NWSYNC_FILE"
+  nwsync_rebuild
 fi
 
 # Restart the server unit belonging to THIS repo's season instance. With two

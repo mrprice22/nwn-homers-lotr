@@ -43,6 +43,9 @@ ANVIL_DIR=$(season_anvil_dir "$NWN_RUN_DIR")     # fails loudly if it is a symli
 PLUGIN_DATA="$ANVIL_DIR/PluginData"
 ARM_FILE="$PLUGIN_DATA/reboot-on-empty"
 NWSYNC_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync"
+# Holds the path of the realm to copy a manifest FROM. Mutually exclusive with
+# NWSYNC_FILE: one rebuilds the manifest, the other publishes one already built.
+NWSYNC_COPY_FILE="$PLUGIN_DATA/reboot-on-empty-nwsync-copy"
 
 # ServerRestartManager ships inside the DungeonSolitaire.Nwn plugin — without it
 # nothing ever reads the arm file, so arming would be a silent no-op.
@@ -59,24 +62,37 @@ for ~45s it saves characters, shuts down cleanly, and a host systemd .path unit
 restarts just the server onto the new module (optionally rebuilding NWSync first).
 
 Usage:
-  bin/reboot-on-empty [--nwsync] "Custom message shown to players"   # arm
-  bin/reboot-on-empty off                                            # cancel
-  bin/reboot-on-empty status                                         # show state (also the no-arg default)
-  bin/reboot-on-empty --help                                         # this help
+  bin/reboot-on-empty [--nwsync | --nwsync-copy DIR] "Message"   # arm
+  bin/reboot-on-empty off                                        # cancel
+  bin/reboot-on-empty status                                     # show state (also the no-arg default)
+  bin/reboot-on-empty --help                                     # this help
 
-  --nwsync   also rebuild the NWSync manifest (bin/refresh-nwsync) during the
-             down window — use when the update changed haks/tlk that clients download.
+  --nwsync        rebuild the NWSync manifest (bin/refresh-nwsync) during the down
+                  window — use when the update changed haks/tlk clients download.
+                  Correct anywhere, but costs ~20 minutes of extra downtime: the
+                  SHA1 pass over 4.15 GiB runs whether or not anything changed.
+
+  --nwsync-copy DIR
+                  publish the manifest DIR has ALREADY built, instead of building
+                  an identical one (bin/nwsync-copy-from). Seconds rather than
+                  ~20 minutes, so the realm comes back that much sooner. Valid
+                  because a season repo is a derived copy of dev's tree, so after
+                  a promotion both realms publish the same content and therefore
+                  the same manifest hash. Guarded: the copy verifies the two
+                  realms' hak/tlk really do match and refuses otherwise, and the
+                  handler falls back to a full rebuild if it does.
 USAGE
     exit 0
     ;;
   off|cancel|disarm)
-    rm -f "$ARM_FILE" "$NWSYNC_FILE"
+    rm -f "$ARM_FILE" "$NWSYNC_FILE" "$NWSYNC_COPY_FILE"
     echo "[reboot-on-empty] disarmed. Players will be told the reboot was cancelled."
     ;;
   status|"")
     if [[ -f $ARM_FILE ]]; then
       echo "[reboot-on-empty] ARMED"
       [[ -f $NWSYNC_FILE ]] && echo "  nwsync: will rebuild manifest before restart"
+      [[ -f $NWSYNC_COPY_FILE ]] && echo "  nwsync: will copy the manifest from $(cat "$NWSYNC_COPY_FILE") before restart"
       echo "  message: $(cat "$ARM_FILE")"
     else
       echo "[reboot-on-empty] not armed"
@@ -84,7 +100,18 @@ USAGE
     ;;
   *)
     NWSYNC=0
-    if [[ ${1:-} == --nwsync ]]; then NWSYNC=1; shift; fi
+    NWSYNC_COPY=""
+    if [[ ${1:-} == --nwsync ]]; then
+      NWSYNC=1; shift
+    elif [[ ${1:-} == --nwsync-copy ]]; then
+      shift
+      [[ $# -gt 0 ]] || { echo "--nwsync-copy needs the source repo directory" >&2; exit 2; }
+      NWSYNC_COPY=$(cd "$1" 2>/dev/null && pwd) || { echo "--nwsync-copy: no such directory: $1" >&2; exit 2; }
+      [[ -x $PROJECT_ROOT/bin/nwsync-copy-from ]] || {
+        echo "--nwsync-copy needs bin/nwsync-copy-from, which is not in this repo." >&2
+        echo "Promote it first, or arm with --nwsync to rebuild instead." >&2; exit 2; }
+      shift
+    fi
     MSG="$*"
     if [[ ! -f $PLUGIN_DLL ]]; then
       echo "[reboot-on-empty] WARNING: $PLUGIN_DLL is missing — the" >&2
@@ -94,13 +121,17 @@ USAGE
     fi
     mkdir -p "$PLUGIN_DATA"
     printf '%s' "$MSG" > "$ARM_FILE"
+    # Exactly one nwsync mode is armed at a time; arming either clears the other.
     if [[ $NWSYNC -eq 1 ]]; then
-      : > "$NWSYNC_FILE"
+      : > "$NWSYNC_FILE"; rm -f "$NWSYNC_COPY_FILE"
+    elif [[ -n $NWSYNC_COPY ]]; then
+      printf '%s' "$NWSYNC_COPY" > "$NWSYNC_COPY_FILE"; rm -f "$NWSYNC_FILE"
     else
-      rm -f "$NWSYNC_FILE"
+      rm -f "$NWSYNC_FILE" "$NWSYNC_COPY_FILE"
     fi
     echo "[reboot-on-empty] ARMED — the server will reboot when it next empties."
     [[ $NWSYNC -eq 1 ]] && echo "  nwsync: manifest will be rebuilt during the down window"
+    [[ -n $NWSYNC_COPY ]] && echo "  nwsync: manifest will be copied from $NWSYNC_COPY during the down window"
     echo "  message: ${MSG:-（none）}"
     echo "  cancel with: bin/reboot-on-empty off"
     ;;

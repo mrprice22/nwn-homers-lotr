@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+# nwsync-copy-from — publish another realm's already-built NWSync manifest here,
+# instead of spending twenty minutes recomputing an identical one.
+#
+# WHY THIS IS SOUND
+# -----------------
+# A NWSync manifest is content-addressed: the manifest file's SHA1 *is* its
+# filename, and the season's name is not in it — that lives in the .json sidecar
+# beside it. So two realms publishing the same haks and TLK produce the SAME
+# manifest hash, bit for bit.
+#
+# That is not a theory. Before the caster-feat hak change, dev and season 2 were
+# both sitting on manifest 9f09c0ce18fbc75998a382b4c71f0d1242ec8c95, and their
+# file counts differed by exactly the number of resources that had changed.
+# A season repo is a derived copy of dev's tree (bin/season-promote.sh), so
+# after a promotion the two realms' hak/tlk sets are identical by construction.
+#
+# WHY IT SAVES THE TIME IT DOES
+# -----------------------------
+# The expensive part of refresh-nwsync is not writing blobs — a routine refresh
+# writes ~50 KB. It is the SHA1 read pass over 4.15 GiB of hak content, which
+# takes ~20 minutes regardless of how little changed. Copying the blobs alone
+# would save nothing; copying the MANIFEST is what skips the hashing.
+#
+# WHAT THIS DELIBERATELY NEVER DOES
+# ---------------------------------
+# **It never deletes anything, and never recreates the store directory.** nginx
+# serves the store through a live bind mount, so the directory inode has to stay
+# stable; recreating it breaks the running container and forces every client to
+# re-download everything. Blobs are rsynced in ADDITIVELY. A content-addressed
+# store tolerates extra blobs (that is what `refresh-nwsync --prune` is for) but
+# never a missing one.
+#
+# `latest` is written LAST, and atomically. Until it moves, clients keep fetching
+# the previous manifest, so an interrupted run publishes nothing rather than a
+# half-populated manifest.
+#
+# Usage:
+#   bin/nwsync-copy-from /path/to/dev/repo            # verify, then publish
+#   bin/nwsync-copy-from /path/to/dev/repo --check    # verify only, change nothing
+#
+# Run it from the TARGET repo (the one receiving the manifest).
+set -euo pipefail
+
+TARGET_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+SOURCE_ROOT=""
+CHECK_ONLY=0
+
+while (($#)); do
+  case "$1" in
+    --check) CHECK_ONLY=1; shift ;;
+    -h|--help) sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'; exit 0 ;;
+    -*) echo "nwsync-copy-from: unknown flag: $1" >&2; exit 2 ;;
+    *)  SOURCE_ROOT=$1; shift ;;
+  esac
+done
+
+die() { echo "nwsync-copy-from: error: $*" >&2; exit 1; }
+note() { echo "  $*"; }
+
+[[ -n $SOURCE_ROOT ]] || die "usage: nwsync-copy-from SOURCE_REPO [--check]"
+SOURCE_ROOT=$(cd "$SOURCE_ROOT" 2>/dev/null && pwd) || die "source repo not found"
+[[ $SOURCE_ROOT != "$TARGET_ROOT" ]] || die "source and target are the same repo"
+
+# Read a KEY=VALUE out of a server.env without sourcing it (the two files define
+# the same names, so sourcing both would clobber the first).
+read_var() {
+  sed -n "s/^[[:space:]]*\(export[[:space:]]\+\)\?$2[[:space:]]*=[[:space:]]*//p" "$1" \
+    | head -1 | sed 's/[[:space:]]\+#.*$//; s/^"\(.*\)"$/\1/; s/^'\''\(.*\)'\''$/\1/'
+}
+expand() { eval "echo \"$1\""; }
+
+for r in "$SOURCE_ROOT" "$TARGET_ROOT"; do
+  [[ -f $r/server.env ]] || die "no server.env in $r"
+done
+
+SRC_STORE=$(expand "$(read_var "$SOURCE_ROOT/server.env" NWNSYNC_REPO)")
+TGT_STORE=$(expand "$(read_var "$TARGET_ROOT/server.env" NWNSYNC_REPO)")
+SRC_HOME=$(expand "$(read_var "$SOURCE_ROOT/server.env" NWN_HOME_DIR)")
+TGT_HOME=$(expand "$(read_var "$TARGET_ROOT/server.env" NWN_HOME_DIR)")
+TGT_NAME=$(read_var "$TARGET_ROOT/server.env" NWN_SERVERNAME)
+
+echo "nwsync-copy-from"
+echo "  source: $SOURCE_ROOT"
+echo "  target: $TARGET_ROOT"
+echo
+
+[[ -d $SRC_STORE ]] || die "source store missing: $SRC_STORE"
+[[ -d $TGT_STORE ]] || die "target store missing: $TGT_STORE (this tool publishes into an EXISTING store; it must never create one)"
+[[ -s $SRC_STORE/latest ]] || die "source has no published manifest ($SRC_STORE/latest)"
+
+MANIFEST=$(cat "$SRC_STORE/latest")
+[[ $MANIFEST =~ ^[0-9a-f]{40}$ ]] || die "source 'latest' is not a manifest hash: $MANIFEST"
+[[ -f $SRC_STORE/manifests/$MANIFEST ]] || die "source manifest $MANIFEST is missing from its own store"
+
+# --------------------------------------------------------------- the guards --
+# A copied manifest is a PROMISE about what the target's haks and TLK contain.
+# If that promise is wrong, clients download resources the server does not have
+# — the hak-mismatch failure this whole tool has to avoid. So verify before
+# publishing, not after.
+echo "checking the two realms publish the same content..."
+
+# 1. Same set of files, same sizes, across everything nwsync scans. Backups are
+#    excluded because nwsync ignores them (proven: the realms' file counts
+#    differ by exactly the changed resources, not by the backup count).
+list_scanned() {
+  local home=$1 d
+  for d in hak tlk; do
+    [[ -d $home/$d ]] || continue
+    find "$home/$d" -maxdepth 1 -type f ! -name '*.bak-*' -printf '%f %s\n'
+  done | sort
+}
+if ! diff_out=$(diff <(list_scanned "$SRC_HOME") <(list_scanned "$TGT_HOME")); then
+  echo "$diff_out" | head -20 | sed 's/^/    /' >&2
+  die "the realms' hak/tlk sets differ (name or size). They must publish identical content for a copied manifest to be valid — rebuild the target's hak, or fall back to a full refresh-nwsync."
+fi
+note "hak/tlk file set matches ($(list_scanned "$SRC_HOME" | wc -l) files)"
+
+# 2. Full SHA1 on the two files this project actually BUILDS. Everything else in
+#    those directories is static third-party content (CEP), already matched by
+#    name and size above — and hashing 8 GiB of it here would reintroduce exactly
+#    the cost this tool exists to avoid.
+for f in hak/lotr_rules.hak tlk/lotr.tlk; do
+  [[ -f $SRC_HOME/$f && -f $TGT_HOME/$f ]] || die "missing $f in one of the realms"
+  a=$(sha1sum "$SRC_HOME/$f" | cut -d' ' -f1)
+  b=$(sha1sum "$TGT_HOME/$f" | cut -d' ' -f1)
+  [[ $a == "$b" ]] || die "$f differs between the realms ($a vs $b). The target's hak is stale — run bin/build-lotr-rules-hak --install there first."
+  note "$f matches ($a)"
+done
+echo
+
+if (( CHECK_ONLY )); then
+  echo "OK — target may publish source manifest $MANIFEST."
+  exit 0
+fi
+
+if [[ -f $TGT_STORE/latest && $(cat "$TGT_STORE/latest") == "$MANIFEST" ]]; then
+  echo "target already publishes $MANIFEST — nothing to do."
+  exit 0
+fi
+
+# ---------------------------------------------------------------- publish ----
+# Blobs first, additively. --delete is never passed: a content-addressed store
+# tolerates a blob nothing references (refresh-nwsync --prune collects those)
+# but never a referenced blob that is missing.
+echo "copying blobs (additive; nothing is deleted)..."
+rsync -a --info=stats2 "$SRC_STORE/data/" "$TGT_STORE/data/" | grep -E "Number of .*files transferred|Total transferred" | sed 's/^/    /' || true
+
+echo "copying manifest $MANIFEST..."
+mkdir -p "$TGT_STORE/manifests"
+cp -f "$SRC_STORE/manifests/$MANIFEST" "$TGT_STORE/manifests/$MANIFEST"
+
+# The sidecar is the one season-specific part: it names the realm the manifest
+# was built for. Rewrite it, or production advertises the dev realm's name.
+if [[ -f $SRC_STORE/manifests/$MANIFEST.json ]]; then
+  python3 - "$SRC_STORE/manifests/$MANIFEST.json" "$TGT_STORE/manifests/$MANIFEST.json" "$TGT_NAME" <<'PY'
+import json, sys
+src, dst, name = sys.argv[1], sys.argv[2], sys.argv[3]
+meta = json.load(open(src))
+if name:
+    meta["module_name"] = name
+json.dump(meta, open(dst, "w"), indent=2)
+PY
+  note "sidecar rewritten: module_name = ${TGT_NAME:-unchanged}"
+fi
+
+# LAST, and atomically. Until this moves, clients keep fetching the previous
+# manifest — so a run interrupted anywhere above publishes nothing.
+printf '%s' "$MANIFEST" > "$TGT_STORE/latest.tmp"
+mv -f "$TGT_STORE/latest.tmp" "$TGT_STORE/latest"
+
+echo
+echo "published $MANIFEST to $(basename "$TGT_STORE")."
