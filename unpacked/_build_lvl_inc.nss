@@ -19,7 +19,7 @@
 //:: ever retuned in exptable.2da, the fallback table here must be retuned
 //:: with it.
 //:://////////////////////////////////////////////
-#include "season_prof_inc"
+#include "sp_devgate_inc"
 
 // Cumulative XP required for character level nLevel (41 <= nLevel <= 60),
 // or 0 if nLevel is outside that range.
@@ -68,17 +68,27 @@ int BuildLegendaryXP(int nLevel)
 
 void BuildSetLegendaryLevel(int nLevel)
 {
-    // Belt and braces. onmoduleload destroys the Ping Pong NPC outright where
-    // SP_DEV_TOOLS is off, so this should be unreachable in production - but
-    // "should be unreachable" is doing a lot of work for a function that sets a
-    // character to level 60, and a DM-spawned copy of the NPC or a stray
-    // reference to this dialog would route straight here. All 20 legendary
-    // _build_level_* scripts funnel through this one function, so one guard
-    // covers the whole tier.
-    if (!SP_DEV_TOOLS) return;
-
     object oPC = GetPCSpeaker();
     if (!GetIsObjectValid(oPC)) return;
+
+    // Belt and braces for a function that sets a character to level 60: a
+    // DM-spawned copy of the NPC, or a stray reference to this dialog, would
+    // route straight here. All 20 legendary _build_level_* scripts funnel
+    // through this one function, so one guard covers the whole tier.
+    //
+    // It uses the SAME predicate as the conversation's StartingConditional
+    // (sp_devgate). It used to test SP_DEV_TOOLS alone, which is STRICTER than
+    // the gate that let the player in: on a live season an admin could open the
+    // menu, choose a legendary level, and get silence - while levels 1-40, which
+    // carry no guard at all, worked. A guard stricter than the door it stands
+    // behind is not extra safety, it is a dead end.
+    if (!SP_DevToolsFor(oPC))
+    {
+        // Never fail silently. That silence was the whole defect.
+        SendMessageToPC(oPC, "Ping Pong: the legendary levels are closed on "
+                             + "this realm.");
+        return;
+    }
 
     int nXP = BuildLegendaryXP(nLevel);
     if (nXP <= 0)

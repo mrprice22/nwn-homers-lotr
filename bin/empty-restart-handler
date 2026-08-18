@@ -42,6 +42,42 @@ rm -f "$REQUEST_FILE"
 
 echo "[empty-restart] reboot-on-empty triggered."
 
+UNIT=$(season_server_unit "$PROJECT_ROOT")
+if [[ -z ${UNIT:-} ]]; then
+  # Without a unit name there is nothing to stop and nothing to start, and the
+  # stop/start pair below would silently target "". Say so and let systemd's own
+  # restart policy handle the server, rather than pretending we are in control.
+  echo "[empty-restart] ERROR: could not resolve this season's server unit; leaving the server to systemd and skipping the NWSync step." >&2
+  exit 1
+fi
+
+# HOLD THE SERVER DOWN UNTIL NWSYNC IS PUBLISHED.
+#
+# The server unit is Restart=on-failure and the clean shutdown does not reliably
+# exit 0, so systemd brings the server back ON ITS OWN without waiting for
+# anything here. Measured on the season 2 deploy of 2026-08-18: this handler
+# started at 11:04:33 and the server was serving again at 11:05:04 - 31 seconds
+# later, manifest still unpublished. For that window the realm ran new haks
+# while clients were handed the old manifest, which is exactly the client/server
+# mismatch this step exists to prevent. With the --nwsync rebuild instead of the
+# copy, that window is ~20 minutes rather than 31 seconds.
+#
+# `stop` is what closes it: it marks the unit intentionally down, so the restart
+# policy cannot race us. The trap guarantees the realm comes back even if the
+# NWSync step dies or this script is killed - a season left offline is a far
+# worse failure than a stale manifest.
+NWSYNC_DONE=0
+bring_server_back() {
+  echo "[empty-restart] starting $UNIT..."
+  systemctl --user start "$UNIT"
+  (( NWSYNC_DONE )) || echo "[empty-restart] WARNING: server started WITHOUT a completed NWSync step - clients may be served a stale manifest. Check the log above." >&2
+  echo "[empty-restart] done."
+}
+trap bring_server_back EXIT
+
+echo "[empty-restart] holding $UNIT down until NWSync is settled..."
+systemctl --user stop "$UNIT" || true
+
 nwsync_rebuild() {
   echo "[empty-restart] rebuilding NWSync manifest before relaunch..."
   if "$PROJECT_ROOT/bin/refresh-nwsync" --silent; then
@@ -66,12 +102,9 @@ elif [[ -f $NWSYNC_FILE ]]; then
   rm -f "$NWSYNC_FILE"
   nwsync_rebuild
 fi
+NWSYNC_DONE=1
 
-# Restart the server unit belonging to THIS repo's season instance. With two
-# seasons running, a hard-coded unit name here would bounce the wrong server.
-# (season-unit.sh is already sourced above for season_anvil_dir.)
-UNIT=$(season_server_unit "$PROJECT_ROOT")
-
-echo "[empty-restart] restarting $UNIT..."
-systemctl --user restart "$UNIT"
-echo "[empty-restart] done."
+# The server comes back in the EXIT trap above, so it is started on every path
+# out of this script - including a failure in the NWSync step. UNIT is resolved
+# at the top by season_server_unit: with several seasons running, a hard-coded
+# unit name here would bounce the wrong server.

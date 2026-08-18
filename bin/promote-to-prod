@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# promote-to-prod — app-grid front end for bin/season-promote.sh.
+#
+# The promotion command has four operands that are easy to get wrong and
+# expensive to get wrong: the target directory, the season number that must
+# match it, whether the target's server is running, and how NWSync gets
+# republished. Typing them into a terminal at the end of a long session is how
+# a mistyped --to lands on the wrong live server. So each sensible combination
+# gets its own labelled button, and this script resolves the target itself.
+#
+# THE TARGET IS DISCOVERED, NOT TYPED. It scans sibling repos for the one with
+# SEASON_ROLE=live and reads its SEASON_NUM, so the --to/--season pair can never
+# disagree. If there is more than one live season (a cutover overlap) it refuses
+# and asks you to run season-promote.sh by hand, because at that moment "prod"
+# is genuinely ambiguous and no button should guess.
+#
+# Modes (one shortcut each):
+#   dry       preview only - nothing is written                    [safe]
+#   apply     promote + rebuild. Target's server must be stopped.
+#   hot       ... with --allow-hot, for a target that is running.
+#   fast      ... --allow-hot + --fast-nwsync: builds the target's hak, proves
+#               it publishes the same content as dev, and arms reboot-on-empty
+#               to COPY dev's manifest in the down window (~2s, not ~20min).
+#   nobuild   sync + rebrand only, no repack. For a tooling-only change.
+#
+# Every mode except `dry` prints what it is about to do and waits for you to
+# type the season number back. That is the same guard season-promote.sh's
+# --season flag provides, surfaced to a button that would otherwise supply it
+# silently.
+set -uo pipefail
+
+DEV_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+MODE=${1:-dry}
+
+die() { echo; echo "promote-to-prod: $*" >&2; exit 1; }
+
+read_var() {
+  sed -n "s/^[[:space:]]*\(export[[:space:]]\+\)\?$2[[:space:]]*=[[:space:]]*//p" "$1" \
+    | head -1 | sed 's/[[:space:]]\+#.*$//; s/^"\(.*\)"$/\1/; s/^'\''\(.*\)'\''$/\1/'
+}
+
+[[ -f $DEV_ROOT/server.env ]] || die "no server.env in $DEV_ROOT"
+[[ $(read_var "$DEV_ROOT/server.env" SEASON_ROLE) == dev ]] || die \
+  "this repo is not the dev realm. Promotion runs FROM dev only."
+
+# --------------------------------------------------------- find the target --
+mapfile -t LIVE < <(
+  for d in "$DEV_ROOT"/../*/; do
+    d=${d%/}
+    [[ -f $d/server.env ]] || continue
+    [[ $(read_var "$d/server.env" SEASON_ROLE) == live ]] || continue
+    echo "$d"
+  done
+)
+case ${#LIVE[@]} in
+  0) die "found no sibling repo with SEASON_ROLE=live. Is production checked out beside this one?" ;;
+  1) ;;
+  *) printf '  %s\n' "${LIVE[@]}" >&2
+     die "found ${#LIVE[@]} live seasons. During a cutover overlap 'prod' is ambiguous - run bin/season-promote.sh by hand with an explicit --to." ;;
+esac
+TARGET=$(cd "${LIVE[0]}" && pwd)
+TGT_NUM=$(read_var "$TARGET/server.env" SEASON_NUM)
+TGT_NAME=$(read_var "$TARGET/server.env" NWN_SERVERNAME)
+
+ARGS=(--to "$TARGET")
+case "$MODE" in
+  dry)     DESC="DRY RUN - preview only, nothing is written" ;;
+  apply)   DESC="PROMOTE and rebuild";              ARGS+=(--apply --season "$TGT_NUM") ;;
+  hot)     DESC="PROMOTE and rebuild UNDER A RUNNING SERVER"
+           ARGS+=(--apply --season "$TGT_NUM" --allow-hot) ;;
+  nobuild) DESC="SYNC + REBRAND only (no repack)"
+           ARGS+=(--apply --season "$TGT_NUM" --no-build) ;;
+  fast)    DESC="PROMOTE, then arm a fast NWSync handover on reboot"
+           ARGS+=(--apply --season "$TGT_NUM" --allow-hot) ;;
+  *) die "unknown mode '$MODE' (dry|apply|hot|fast|nobuild)" ;;
+esac
+
+cat <<BANNER
+
+  ===============================================================
+   PROMOTE TO PRODUCTION
+  ===============================================================
+   from   : $DEV_ROOT  (dev)
+   to     : $TARGET
+   season : $TGT_NUM  -  $TGT_NAME
+   action : $DESC
+  ===============================================================
+
+BANNER
+
+if [[ $MODE == fast ]]; then
+  # reboot-on-empty is a flag the Anvil plugin reads inside the RUNNING server.
+  # Arming it against a stopped realm looks like it worked and then never fires,
+  # so say so rather than let the operator wait for a reboot that cannot happen.
+  echo "  Note: --fast-nwsync arms reboot-on-empty, which only fires while the"
+  echo "  server is UP. If $TGT_NAME is stopped, publish directly instead:"
+  echo "      cd $TARGET && bin/build-lotr-rules-hak --install"
+  echo "      bin/nwsync-copy-from $DEV_ROOT"
+  echo
+  read -rp "  Message players will see on the reboot warning: " REBOOT_MSG
+  [[ -n ${REBOOT_MSG:-} ]] || REBOOT_MSG="Server updated. Rebooting once the realm is empty."
+  ARGS+=(--fast-nwsync "$REBOOT_MSG")
+  echo
+fi
+
+if [[ $MODE != dry ]]; then
+  read -rp "  Type the season number ($TGT_NUM) to confirm, or anything else to abort: " CONFIRM
+  [[ $CONFIRM == "$TGT_NUM" ]] || die "aborted - you typed '${CONFIRM:-}'."
+  echo
+fi
+
+echo "  running: bin/season-promote.sh ${ARGS[*]}"
+echo
+"$DEV_ROOT/bin/season-promote.sh" "${ARGS[@]}"
+rc=$?
+
+echo
+if (( rc == 0 )) && [[ $MODE != dry ]]; then
+  cat <<NEXT
+  ---------------------------------------------------------------
+  Next, if the hak changed (feat.2da, cls_feat_*, baseitems, ...):
+    the clients need it too. Either let the armed reboot do it
+    (mode: fast), or publish directly while the realm is down:
+        cd $TARGET
+        bin/build-lotr-rules-hak --install
+        bin/nwsync-copy-from $DEV_ROOT
+  ---------------------------------------------------------------
+NEXT
+fi
+exit $rc

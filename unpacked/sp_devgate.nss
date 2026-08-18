@@ -24,11 +24,11 @@
 //:: holds when the purge does not - as it did not at the season 2 launch,
 //:: because DestroyObject() silently refuses a Plot creature.
 //:://////////////////////////////////////////////
-#include "season_prof_inc"
-#include "admin_db"
+//:: The test itself now lives in sp_devgate_inc so the level-setting script
+//:: cannot drift from it - see that file for what happened when it did.
+#include "sp_devgate_inc"
 
 int StartingConditional()
 {
-    if (SP_DEV_TOOLS) return TRUE;
-    return Admin_CanAdmin(GetPCSpeaker());
+    return SP_DevToolsFor(GetPCSpeaker());
 }

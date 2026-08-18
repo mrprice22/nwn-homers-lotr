@@ -108,9 +108,25 @@ WIKI="$APPS/$DEV_PREFIX-wiki.desktop"
 NWSYNC="$APPS/$DEV_PREFIX-refresh-nwsync.desktop"
 NWSYNC_FORCE="$APPS/$DEV_PREFIX-refresh-nwsync-force.desktop"
 
+# Promotion buttons — DEV REALM ONLY. bin/season-promote.sh refuses to run from
+# anywhere but dev, so giving a season's folder a "Promote to Prod" tile would
+# only ever produce an error, and next to a live season's Shut Down button that
+# is a tile nobody should be tempted to click. One per override, because the
+# overrides are exactly what is easy to get wrong under time pressure.
+PROMOTE_FILES=()
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  PROMOTE_DRY="$APPS/$DEV_PREFIX-promote-dry.desktop"
+  PROMOTE="$APPS/$DEV_PREFIX-promote.desktop"
+  PROMOTE_HOT="$APPS/$DEV_PREFIX-promote-hot.desktop"
+  PROMOTE_FAST="$APPS/$DEV_PREFIX-promote-fast.desktop"
+  PROMOTE_NOBUILD="$APPS/$DEV_PREFIX-promote-nobuild.desktop"
+  PROMOTE_FILES=("$PROMOTE_DRY" "$PROMOTE" "$PROMOTE_HOT" "$PROMOTE_FAST"
+                 "$PROMOTE_NOBUILD")
+fi
+
 OPS_FILES=("$RESTART" "$STOP" "$MONITOR" "$MONITOR_AUTO" "$LOGS")
 DEV_FILES=("$UNPACK" "$REPACK" "$REPACK_CLEAN" "$REPACK_TEST" "$WIKI"
-           "$NWSYNC" "$NWSYNC_FORCE")
+           "$NWSYNC" "$NWSYNC_FORCE" "${PROMOTE_FILES[@]}")
 
 # ## The app-grid folder — one tile per season, not eleven loose icons
 #
@@ -128,6 +144,9 @@ FOLDER_APPS=("$(basename "$RESTART")" "$(basename "$STOP")" "$(basename "$MONITO
              "$(basename "$REPACK_CLEAN")" "$(basename "$UNPACK")"
              "$(basename "$WIKI")" "$(basename "$NWSYNC")"
              "$(basename "$NWSYNC_FORCE")" "$(basename "$LOGS")")
+# Promotion tiles go LAST in the folder, after the everyday build buttons: they
+# are the only ones here that change another realm.
+for f in "${PROMOTE_FILES[@]}"; do FOLDER_APPS+=("$(basename "$f")"); done
 if [[ ${SEASON_ROLE:-} == dev ]]; then
   FOLDER_ID="nwn-test"
   FOLDER_NAME="TEST realm NWN"
@@ -326,6 +345,47 @@ write_hold_entry "$NWSYNC_FORCE" \
   "Force a full rebuild of this season's NWSync manifest. Slow (hashes every hak)." \
   "\"$PROJECT_ROOT/bin/refresh-nwsync\" --force" \
   "folder-remote" "Development;Network;"
+
+# ---------------------------------------------------------------- promotion --
+# Dev realm only (PROMOTE_FILES is empty elsewhere). bin/promote-to-prod finds
+# the live season itself and makes you type its number back, so the tile carries
+# no season in its Exec and cannot go stale after a cutover.
+if ((${#PROMOTE_FILES[@]})); then
+  write_hold_entry "$PROMOTE_DRY" \
+    "Promote to Prod - DRY RUN" \
+    "NWN Season Promotion" \
+    "Preview what promoting this dev tree to the live season would change. Writes nothing. Always safe - start here." \
+    "\"$PROJECT_ROOT/bin/promote-to-prod\" dry" \
+    "document-print-preview" "Development;"
+
+  write_hold_entry "$PROMOTE" \
+    "Promote to Prod" \
+    "NWN Season Promotion" \
+    "Promote this dev tree to the live season and rebuild its module. For a target whose server is STOPPED. Asks you to confirm the season number." \
+    "\"$PROJECT_ROOT/bin/promote-to-prod\" apply" \
+    "software-update-available" "Development;"
+
+  write_hold_entry "$PROMOTE_HOT" \
+    "Promote to Prod (server running)" \
+    "NWN Season Promotion" \
+    "As Promote to Prod, but for a live season whose server is UP (--allow-hot). The new module is installed under the running server and takes effect at its next restart." \
+    "\"$PROJECT_ROOT/bin/promote-to-prod\" hot" \
+    "software-update-urgent" "Development;"
+
+  write_hold_entry "$PROMOTE_FAST" \
+    "Promote to Prod (fast NWSync + reboot)" \
+    "NWN Season Promotion" \
+    "Promote, rebuild the target's hak, verify it publishes the same content as dev, then arm reboot-on-empty to COPY dev's manifest during the down window - seconds instead of a ~20 minute rebuild. Use when the hak changed. Prompts for the message players see." \
+    "\"$PROJECT_ROOT/bin/promote-to-prod\" fast" \
+    "clock" "Development;"
+
+  write_hold_entry "$PROMOTE_NOBUILD" \
+    "Promote to Prod (no rebuild)" \
+    "NWN Season Promotion" \
+    "Sync and rebrand the target only - no repack. For a change that touches tooling or docs but not the module." \
+    "\"$PROJECT_ROOT/bin/promote-to-prod\" nobuild" \
+    "emblem-synchronizing" "Development;"
+fi
 
 update-desktop-database "$APPS" 2>/dev/null || true
 echo
