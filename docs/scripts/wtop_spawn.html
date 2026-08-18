@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Golem</title>
+  <title>Script wtop_spawn</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,42 +57,92 @@
     </nav>
   </header>
   <main>
-<h1>Golem</h1>
-<dl class="meta">
-<dt>ResRef</dt><dd>x2_golem002</dd>
-<dt>Tag</dt><dd></dd>
-<dt>Race</dt><dd></dd>
-<dt>Appearance</dt><dd>Golem: Adamantium</dd>
-<dt>Class(es)</dt><dd></dd>
-<dt>HP</dt><dd></dd>
-<dt>CR</dt><dd>32.0</dd>
-<dt>Faction</dt><dd></dd>
-<dt>Conversation</dt><dd>—</dd>
-</dl>
-<h2>Kills</h2><table class="data"><thead><tr><th>Total</th><th>Solo</th><th>Party</th></tr></thead><tbody><tr><td>13</td><td>13</td><td>0</td></tr></tbody></table>
-<h3>Top Killers</h3><table class="data"><thead><tr><th>#</th><th>Player</th><th>Character</th><th>Solo</th><th>Party</th><th>Total</th><th>Last Kill</th></tr></thead><tbody><tr><td>1</td><td>Vert Patter</td><td>picksy</td><td>12</td><td>0</td><td>12</td><td>2026-08-18</td></tr>
-<tr><td>2</td><td>szescian82</td><td>PiC Red Wizard</td><td>1</td><td>0</td><td>1</td><td>2026-07-25</td></tr></tbody></table>
-<h2>Where to find</h2>
-<h3>Encounter pools</h3><table class="data"><thead><tr><th>Area</th><th>Encounter</th><th>Encounter ResRef</th></tr></thead><tbody><tr><td><a href="../areas/ruinsofannuminas.html">Ruins of Annuminas</a></td><td>Construct, All Encounter</td><td><code>golem002</code></td></tr></tbody></table>
-<h2>Abilities</h2>
-<table class="data"><tr><th>Str</th><td></td><th>Dex</th><td></td><th>Con</th><td></td><th>Int</th><td></td><th>Wis</th><td></td><th>Cha</th><td></td></tr></table>
-<h2>Combat</h2>
-<table class="data"><tr><th>HP</th><td></td><th>AC</th><td>10 <small class="muted">(10 base + +0 Dex)</small></td><th>BAB</th><td>+0</td></tr><tr><th>Fort</th><td>+0</td><th>Ref</th><td>+0</td><th>Will</th><td>+0</td></tr></table>
-<p class="muted">Saves shown = stored bonus + ability mod + item bonuses (Saving Throw Bonus: Specific); class-table progression and feat bonuses (Great Fortitude, etc.) are applied at runtime.</p>
-<h2>Scripts</h2>
-<table class="data"><thead><tr><th>Event</th><th>Script</th></tr></thead><tbody><tr><td>ScriptHeartbeat</td><td></td></tr>
-<tr><td>ScriptOnNotice</td><td></td></tr>
-<tr><td>ScriptEndRound</td><td></td></tr>
-<tr><td>ScriptDialogue</td><td></td></tr>
-<tr><td>ScriptAttacked</td><td></td></tr>
-<tr><td>ScriptDamaged</td><td></td></tr>
-<tr><td>ScriptDeath</td><td></td></tr>
-<tr><td>ScriptDisturbed</td><td></td></tr>
-<tr><td>ScriptSpawn</td><td></td></tr>
-<tr><td>ScriptRested</td><td></td></tr>
-<tr><td>ScriptSpellAt</td><td></td></tr>
-<tr><td>ScriptUserDefine</td><td></td></tr>
-<tr><td>ScriptOnBlocked</td><td></td></tr></tbody></table>
+<h1>Script: <code>wtop_spawn</code></h1><pre class="nss-source"><code>// Weather Top / Amon Sul garrison spawner (roadmap: forbidden-realms-key-tier)
+//
+// area026 ships with 15 empty spawn markers and no creatures at all. This fills
+// them the first time a player walks in after a server start:
+//
+//   11 x tag &quot;wtop_spawn&quot;  -- the summit ring, Z ~15-17. Alternating
+//                             weathertoparc001 (Weathertop Archer) and
+//                             weathertopfighte (Weathertop Fighter), 6 archers
+//                             to 5 fighters. That archer-heavy mix is how the
+//                             hill is garrisoned in both forked modules&#x27;
+//                             &quot;wheathertop&quot; area (11-12 archers to 7-8
+//                             fighters), and weathertoparc001 is also the
+//                             archer in this module&#x27;s own weathertop.ute.
+//    4 x tag &quot;wtop_zombie&quot; -- the low ground by the Weather Hills transitions.
+//                             wtop_zombie (Barrow-wight of Amon Sul): very slow
+//                             walk rate, very high HP. Flavour on the approach.
+//
+// The King and Queen are NOT here -- they belong to the royal court area behind
+// wtop_hiddencave, which is not built yet.
+//
+// Called from wtop_enter.nss (area026 OnEnter) after the anti-kiting leash.
+//
+// Respawn is NOT handled here. Each creature&#x27;s OnDeath (x2_def_ondeath -&gt;
+// nw_c2_default7 -&gt; SE_DoCreatureRespawn in se_respawn_inc.nss) puts it back on
+// the module-standard 900s timer. We therefore fill each post exactly once per
+// server run, flagged by the local int WTOP_FILLED on the waypoint itself --
+// without that guard a player re-entering inside the 900s window would spawn a
+// second creature and the respawn would then double the post up.
+//
+// Both leash_to_area.nss and SE_DoCreatureRespawn read the creature&#x27;s &quot;spawn&quot;
+// LocalLocation -- the first to send it home if it is kited out of the area, the
+// second to decide where it comes back. The blueprints&#x27; x2_def_spawn chains
+// nw_c2_default9, which already records it, so setting it here is belt and
+// braces: it pins the home to the waypoint itself and keeps working if a
+// blueprint&#x27;s OnSpawn is ever changed. Same one-liner as leash_spawn.nss.
+
+const string WTOP_WP_GUARD  = &quot;wtop_spawn&quot;;
+const string WTOP_WP_ZOMBIE = &quot;wtop_zombie&quot;;
+
+const string WTOP_RR_ARCHER  = &quot;weathertoparc001&quot;;   // Weathertop Archer,  CR 198
+const string WTOP_RR_FIGHTER = &quot;weathertopfighte&quot;;   // Weathertop Fighter, CR 100
+const string WTOP_RR_ZOMBIE  = &quot;wtop_zombie&quot;;        // Barrow-wight of Amon Sul
+
+const string WTOP_FILLED = &quot;WTOP_FILLED&quot;;
+
+// Create sResRef at oWP unless that post has already been filled this run.
+void WtopFillPost(object oWP, string sResRef)
+{
+    if (!GetIsObjectValid(oWP)) return;
+    if (GetLocalInt(oWP, WTOP_FILLED)) return;
+
+    location lPost = GetLocation(oWP);
+    object oCre = CreateObject(OBJECT_TYPE_CREATURE, sResRef, lPost);
+    if (!GetIsObjectValid(oCre)) return;        // bad resref -- leave unflagged
+
+    // Home for leash_to_area and for SE_DoCreatureRespawn.
+    SetLocalLocation(oCre, &quot;spawn&quot;, lPost);
+
+    SetLocalInt(oWP, WTOP_FILLED, TRUE);
+}
+
+// Walk every waypoint carrying sTag. GetWaypointByTag only ever returns the
+// first, so use the nth-object form (same idiom as q_brn_inc.nss / mw_hall_exit).
+// nAlternate: when TRUE, even posts get sResRef and odd posts get sResRefAlt.
+void WtopFillPosts(string sTag, string sResRef, string sResRefAlt, int nAlternate)
+{
+    int n = 0;
+    object oWP = GetObjectByTag(sTag, n);
+
+    while (GetIsObjectValid(oWP))
+    {
+        if (nAlternate &amp;&amp; (n % 2))
+            WtopFillPost(oWP, sResRefAlt);
+        else
+            WtopFillPost(oWP, sResRef);
+
+        oWP = GetObjectByTag(sTag, ++n);
+    }
+}
+
+void main()
+{
+    WtopFillPosts(WTOP_WP_GUARD,  WTOP_RR_ARCHER, WTOP_RR_FIGHTER, TRUE);
+    WtopFillPosts(WTOP_WP_ZOMBIE, WTOP_RR_ZOMBIE, &quot;&quot;,              FALSE);
+}
+</code></pre>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script castfeat_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>castfeat_inc</code></h1><pre class="nss-source"><code>// castfeat_inc.nss - the caster feat proxies (roadmap ll-bonus-feat-lists).
+//
+// THE DEFECT
+// ----------
+// feat.2da&#x27;s MINSPELLLVL column means &quot;you must be able to cast spells of this
+// level&quot;, and the CLIENT filters the level-up feat list on it. Under the NWNX
+// MaxLevel plugin the client resolves a caster&#x27;s maximum castable spell level as
+// 0 once that class passes level 40 - the same clamp README.md &quot;Levels 41-60&quot;
+// already records for the spell-known picker. So every feat with MINSPELLLVL &gt;= 1
+// disappears from both the class-bonus and the general feat list. A pure wizard
+// at 47 was left with Brew Potion, Craft Wand and Epic Spell.
+//
+// THE FIX
+// -------
+// bin/spellfeat_proxies.py adds an inert PROXY row per (feat, class) that the
+// broken filter cannot see, gated to the class at level 41 by MinLevelClass /
+// MinLevel and carrying every real prerequisite verbatim. This script is the
+// other half: the proxy grants nothing by itself, so something has to hand the
+// player the feat they actually picked.
+//
+// THE PAIRING INVARIANT - HOLD EITHER, HOLD BOTH
+// ----------------------------------------------
+// A proxy and its stock row are different feat ids, so the engine will happily
+// offer one to a character who already holds the other and let them spend a pick
+// on a feat they own. Both directions are real: took the stock feat at level 30
+// and gets offered the proxy at 41+, or took the proxy and later sees the stock
+// row. So the resolver walks the map BOTH ways - proxy without real grants the
+// real, real without proxy grants the proxy - and because the engine never
+// offers a feat you already have, that alone closes the double-pick with no
+// change to the stock rows and nothing to strip back off a player.
+//
+// This is also why the login sweep is not just belt-and-braces. A character who
+// took the stock feat years ago must already hold the proxy BEFORE the level-up
+// to 41, because the client builds that level&#x27;s list before any of our code
+// runs. Logging in is what puts it there in time.
+
+#include &quot;castfeat_ids&quot;
+#include &quot;nwnx_creature&quot;
+
+// TRUE when lotr_rules.hak&#x27;s feat.2da is the one loaded.
+int CastFeat_HaveTable();
+
+// Restore the pairing invariant on oPC. Idempotent and safe to call on anyone.
+void CastFeat_Resolve(object oPC);
+
+
+int CastFeat_HaveTable()
+{
+    if (CASTFEAT_COUNT &lt;= 0) return FALSE;
+
+    // The proxy rows live above stock feat.2da&#x27;s last row, so a server reading
+    // the stock table gets &quot;&quot; here. Granting a feat id that does not exist is
+    // how you put an unreadable feat on a character sheet - bail instead.
+    return Get2DAString(&quot;feat&quot;, &quot;LABEL&quot;, CastFeat_ProxyAt(0)) != &quot;&quot;;
+}
+
+void CastFeat_Resolve(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+    if (!CastFeat_HaveTable()) return;
+
+    // AddFeatByLevel files the feat under a level in the .bic&#x27;s level list,
+    // which is what makes it survive a relog. The current level is the honest
+    // place for it: it is the level the player was standing on when they earned
+    // the pick, or - for the reverse direction - when we noticed the pairing
+    // was broken.
+    int nLevel = GetHitDice(oPC);
+    int nGranted = 0;
+    int i;
+
+    for (i = 0; i &lt; CASTFEAT_COUNT; i++)
+    {
+        int nProxy = CastFeat_ProxyAt(i);
+        int nReal  = CastFeat_RealAt(i);
+
+        int bProxy = GetHasFeat(nProxy, oPC, TRUE);
+        int bReal  = GetHasFeat(nReal,  oPC, TRUE);
+        if (bProxy == bReal) continue;
+
+        if (bProxy)
+        {
+            // The player picked the proxy. This is the grant that makes the
+            // whole mechanism work.
+            NWNX_Creature_AddFeatByLevel(oPC, nReal, nLevel);
+        }
+        else
+        {
+            // The player already had the real feat. The proxy is inert; it is
+            // added only so the level-up page stops offering it.
+            NWNX_Creature_AddFeatByLevel(oPC, nProxy, nLevel);
+        }
+        nGranted++;
+    }
+
+    if (nGranted &gt; 0)
+        WriteTimestampedLogEntry(&quot;[castfeat] &quot; + GetName(oPC) + &quot;: paired &quot;
+                                 + IntToString(nGranted) + &quot; caster feat(s)&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
