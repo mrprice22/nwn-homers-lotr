@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script sp_devgate</title>
+  <title>Script sp_devgate_inc</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,39 +57,42 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>sp_devgate</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
-//:: sp_devgate - StartingConditional for dev-tool conversations
+<h1>Script: <code>sp_devgate_inc</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: sp_devgate_inc - who may use the dev-tool NPCs
 //::
-//:: Shows the dialogue when dev tools are enabled for this realm (SP_DEV_TOOLS,
-//:: see bin/season-profile.py), OR to a whitelisted admin anywhere.
+//:: ONE predicate, used by both halves of the gate:
+//::   sp_devgate.nss      the StartingConditional that shows the conversation
+//::   _build_lvl_inc.nss  the script that actually sets a legendary level
 //::
-//:: The admin test is Admin_CanAdmin - the SAME admindb CD-key whitelist that
-//:: gates the rest menu&#x27;s Admin Options and its teleport to House of Homer
-//:: (_restemo_admin.nss / _cdkey.nss). It must be the same check: the only way
-//:: to reach that room is that teleport, so anyone standing in front of this
-//:: NPC already passed it. A different test can only disagree, and it did -
-//:: this used GetIsDM(), which is TRUE only for an actual DM-client login, so
-//:: an admin who reached the room as a normal player found the NPC mute.
+//:: They must agree. When they did not, the result was the worst kind of bug:
+//:: on season 2 an admin could open Ping Pong in House of Homer, pick a level
+//:: between 41 and 60, and NOTHING HAPPENED - no effect, no message, no reason
+//:: given. The conversation gate allowed the admin through, and then the level
+//:: script bailed on a bare SP_DEV_TOOLS test that knew nothing about admins.
+//:: Levels 1-40 worked the whole time, which made it look even more arbitrary.
 //::
-//:: Whitelisted keys live in the admindb campaign database (admins.can_admin),
-//:: seeded out of band by bin/seed-admindb.sh; they never ship inside the .mod.
+//:: THE RULE. Dev tools are open to everyone on a realm that has them enabled
+//:: (dev / early access), and to a whitelisted admin ANYWHERE - including a
+//:: live season. That is deliberate: House of Homer is reachable only by the
+//:: rest menu&#x27;s admin teleport, which is gated on the SAME admindb whitelist,
+//:: so anyone standing in front of the NPC has already passed this test once.
 //::
-//:: WHY THIS EXISTS AT ALL. There are two Ping Pong NPCs, identical to the
-//:: engine - same resref, same tag, same conversation. One stands in the Well
-//:: of Eru and must not exist in a live season; onmoduleload destroys that one
-//:: by area tag. The other is in &quot;House of Homer&quot; (HouseofDispair), a DM-only
-//:: build room no area transition leads to, and it stays. This gate is what
-//:: makes any surviving copy inert to a non-admin, and it is the guard that
-//:: holds when the purge does not - as it did not at the season 2 launch,
-//:: because DestroyObject() silently refuses a Plot creature.
+//:: Admin_CanAdmin reads admins.can_admin from the admindb campaign database
+//:: (seeded out of band by bin/seed-admindb.sh); no CD key ever ships in the
+//:: .mod. Do NOT substitute GetIsDM() - it is TRUE only for an actual DM-client
+//:: login, and this server&#x27;s admin has no DM console, so it would make the NPC
+//:: mute for the one person who is supposed to use it.
 //:://////////////////////////////////////////////
-//:: The test itself now lives in sp_devgate_inc so the level-setting script
-//:: cannot drift from it - see that file for what happened when it did.
-#include &quot;sp_devgate_inc&quot;
+#include &quot;season_prof_inc&quot;
+#include &quot;admin_db&quot;
 
-int StartingConditional()
+// TRUE if oPC may use the dev-tool NPCs on this realm.
+int SP_DevToolsFor(object oPC);
+
+int SP_DevToolsFor(object oPC)
 {
-    return SP_DevToolsFor(GetPCSpeaker());
+    if (SP_DEV_TOOLS) return TRUE;
+    return Admin_CanAdmin(oPC);
 }
 </code></pre>
   </main>
