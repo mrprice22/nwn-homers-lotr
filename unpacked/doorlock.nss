@@ -1,5 +1,9 @@
+// doorlock - OnOpen auto-close + re-lock, module baseline delay.
+// The lock hangs off the door actually being shut, so it can never end up
+// standing open AND locked. See door_inc.nss.
+#include "door_inc"
+
 void main()
 {
-DelayCommand(5.0, ActionCloseDoor(OBJECT_SELF));
-DelayCommand(5.5, SetLocked(OBJECT_SELF, TRUE));
+    DoorAutoClose(8.0, TRUE);
 }

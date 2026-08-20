@@ -1,6 +1,8 @@
+// sc_delay_lock - OnOpen auto-close + re-lock on a short delay.
+// The lock hangs off the door actually being shut. See door_inc.nss.
+#include "door_inc"
+
 void main()
 {
-    DelayCommand(3.0, ActionCloseDoor(OBJECT_SELF));
-    DelayCommand(3.5, ActionLockObject(OBJECT_SELF));
-    return;
+    DoorAutoClose(6.0, TRUE);
 }

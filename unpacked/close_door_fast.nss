@@ -1,5 +1,7 @@
+// close_door_fast - OnOpen auto-close on the short delay. See door_inc.nss.
+#include "door_inc"
+
 void main()
 {
-DelayCommand(2.0, ActionCloseDoor(OBJECT_SELF));
-
+    DoorAutoClose(5.0);
 }

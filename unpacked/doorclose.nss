@@ -1,5 +1,7 @@
+// doorclose - OnOpen auto-close, module baseline delay. See door_inc.nss.
+#include "door_inc"
+
 void main()
 {
-DelayCommand(5.0, ActionCloseDoor(OBJECT_SELF));
-
+    DoorAutoClose(8.0);
 }
