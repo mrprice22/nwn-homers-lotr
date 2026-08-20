@@ -166,6 +166,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: roadmap note nesting…"
+if python3 "$HERE/check_roadmap_notes.py"; then
+  echo "ok: roadmap note nesting"
+else
+  echo "fail: roadmap note nesting"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

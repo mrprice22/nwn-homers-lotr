@@ -82,38 +82,87 @@ def _clean_attrs(tag: str, attrs: list[tuple[str, str | None]]) -> str:
     return "".join(out)
 
 
+# Tags that end an open <p> when they start, the way a browser does. Emitting
+# the </p> ourselves keeps our output tree and the browser's identical.
+BLOCK_TAGS = {"div", "p", "ul", "ol", "blockquote", "hr"}
+LIST_TAGS = {"ul", "ol"}
+
+
 class _Sanitizer(HTMLParser):
+    """Whitelist filter that also GUARANTEES a well-nested result.
+
+    The whitelist alone is not enough, and a real page proved it: a Discord
+    paste carried bare <li> elements sitting inside <div>s, with no list around
+    them. `li` is on the whitelist, so they were emitted verbatim into the card
+    template's own <li class="rm-item">. In the HTML5 parsing algorithm a <li>
+    start tag CLOSES the open list item and everything inside it, so the card
+    ended early and the trailing </div>s of the note went on to close the page's
+    layout container: 168 of 192 cards escaped the content column and rendered
+    as flex siblings of the sidebar. Nothing in the source looked wrong - the
+    tags balance, and a lenient parser (html.parser, libxml2) rebuilds the tree
+    the intended way. Only a browser diverges.
+
+    So the parser keeps a stack and enforces three invariants:
+      * a `li` outside any list is unwrapped (its content survives);
+      * an end tag with no matching open tag is dropped, never emitted;
+      * anything still open at the end is closed.
+    Together those make the output well-nested by construction, which is what
+    the page layout actually depends on.
+    """
+
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.parts: list[str] = []
+        self.stack: list[str] = []
 
+    # -- helpers ----------------------------------------------------------
+    def _close_through(self, tag: str) -> None:
+        """Close `tag` and everything opened inside it."""
+        while self.stack:
+            top = self.stack.pop()
+            self.parts.append(f"</{top}>")
+            if top == tag:
+                return
+
+    def _open(self, tag: str, attrs) -> None:
+        attr_str = _clean_attrs(tag, attrs)
+        if tag in BLOCK_TAGS and "p" in self.stack:
+            self._close_through("p")
+        self.parts.append(f"<{tag}{attr_str}>")
+        if tag not in VOID_TAGS:
+            self.stack.append(tag)
+
+    # -- HTMLParser hooks -------------------------------------------------
     def handle_starttag(self, tag, attrs):
         tag = tag.lower()
         if tag not in ALLOWED_TAGS:
             return  # unwrap: drop the tag, keep its children's text
-        attr_str = _clean_attrs(tag, attrs)
-        if tag in VOID_TAGS:
-            self.parts.append(f"<{tag}{attr_str}>")
-        else:
-            self.parts.append(f"<{tag}{attr_str}>")
+        if tag == "li" and not (set(self.stack) & LIST_TAGS):
+            return  # bare list item: unwrap it rather than break the page
+        self._open(tag, attrs)
 
     def handle_startendtag(self, tag, attrs):
         tag = tag.lower()
         if tag not in ALLOWED_TAGS:
             return
-        attr_str = _clean_attrs(tag, attrs)
-        self.parts.append(f"<{tag}{attr_str}>")
+        if tag == "li" and not (set(self.stack) & LIST_TAGS):
+            return
+        self.parts.append(f"<{tag}{_clean_attrs(tag, attrs)}>")
 
     def handle_endtag(self, tag):
         tag = tag.lower()
         if tag not in ALLOWED_TAGS or tag in VOID_TAGS:
             return
-        self.parts.append(f"</{tag}>")
+        if tag not in self.stack:
+            return  # stray close: it would pop one of OUR containers instead
+        self._close_through(tag)
 
     def handle_data(self, data):
         self.parts.append(escape(data, quote=False))
 
     def result(self) -> str:
+        while self.stack:
+            self.parts.append(f"</{self.stack.pop()}>")
         return "".join(self.parts)
 
 
