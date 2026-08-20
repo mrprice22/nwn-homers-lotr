@@ -31,6 +31,31 @@ from roadmap_sanitize import sanitize_notes  # noqa: E402
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
 OUT_PATH = REPO / "docs.manual" / "Roadmap.html"
+SERVER_ENV = REPO / "server.env"
+
+
+def season_role() -> str:
+    """This repo's SEASON_ROLE (live | test | dev | archive), "" if unknown.
+
+    Same one-line parse as bin/roadmap_publish.py's nwn_home_dir() and
+    bin/promote-to-prod: last assignment wins, quotes and trailing comment
+    stripped. A repo with no server.env (fresh clone, CI) returns "".
+    """
+    try:
+        text = SERVER_ENV.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    val = ""
+    for ln in text.splitlines():
+        m = re.match(r"\s*(?:export\s+)?SEASON_ROLE\s*=\s*(.+?)\s*$", ln)
+        if m:
+            val = m.group(1).strip()
+    # A quoted value ends at its closing quote (server.env comments inline
+    # after it); an unquoted one ends at the '#'.
+    if val[:1] in ('"', "'"):
+        end = val.find(val[0], 1)
+        return val[1:end] if end != -1 else val[1:]
+    return val.split("#", 1)[0].strip()
 
 # Status -> (badge label, css modifier, which board it belongs to).
 # board "shipped" = Recently Shipped timeline; "roadmap" = In Progress / Up Next.
@@ -828,6 +853,8 @@ def build_html(data: dict) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--check", action="store_true", help="validate only, write nothing")
+    ap.add_argument("--force", action="store_true",
+                    help="render even on a non-dev realm (see the realm guard below)")
     args = ap.parse_args()
 
     data = yaml.safe_load(YAML_PATH.read_text(encoding="utf-8"))
@@ -843,6 +870,27 @@ def main() -> int:
 
     if args.check:
         print("roadmap.yaml OK")
+        return 0
+
+    # ---------------------------------------------------------- realm guard --
+    # ONLY THE DEV REALM RENDERS THIS PAGE. The roadmap editor runs in dev, and
+    # its "Publish to Wiki & DB" button now copies the page it renders into the
+    # LIVE realm's docs/ as well, so a player sees a reported issue tracked on
+    # homerslotr.com immediately instead of at the next promotion.
+    #
+    # A season repo must therefore not re-render it: its roadmap.yaml is only as
+    # new as the last bin/season-promote.sh, and resolve_dates() reads shipped
+    # dates out of LOCAL git — promotion copies the tree, not the history, so
+    # dev's commit hashes do not exist there and the dates would degrade. Left
+    # unguarded, that realm's nightly bin/refresh-homers-lotr-wiki would quietly
+    # overwrite every publish with an older, worse page.
+    #
+    # Exit 0, not an error: refresh-homers-lotr-wiki and season-promote.sh both
+    # print a WARN on a non-zero exit, and skipping here is normal, not a fault.
+    role = season_role()
+    if role and role != "dev" and not args.force:
+        print(f"skipped: this realm is SEASON_ROLE={role}; {OUT_PATH.name} is "
+              "published from the dev realm (use --force to override)")
         return 0
 
     html = build_html(data)

@@ -403,10 +403,17 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
     # Nothing to keep in sync, so no rule.
     #
     # The links are rewritten by data-brand attribute, NOT by a blanket
-    # rehost(). The editor runs in the dev repo but shows a link to the LIVE
-    # roadmap as well as this realm's, and a blanket host substitution would
-    # rewrite the live link to dev's host too - pointing the one link whose
-    # entire purpose is "go and look at production" back at dev.
+    # rehost(). The editor runs in the dev repo but its ROADMAP link points at
+    # the LIVE site, and a blanket host substitution would rewrite it to dev's
+    # host too - pointing the one link whose entire purpose is "go and look at
+    # production" back at dev.
+    #
+    # There used to be a third link, data-brand="roadmap", for this realm's own
+    # roadmap page. It went when Publish started pushing the page into the live
+    # realm's docs/ too (roadmap-editor.publish_to_live_realm): with production
+    # current the moment you publish, a per-realm roadmap link only raised the
+    # question of which of the two was the real one. Unpublished work is
+    # previewed from the editor itself at /preview.
     def editor(s, notes):
         def href(src: str, key: str, url: str) -> str:
             pat = rf'(<a data-brand="{key}" href=")[^"]*(")'
@@ -419,7 +426,6 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
             return out
 
         new = href(s,   "wiki",          wiki)
-        new = href(new, "roadmap",       f"{wiki}manual/Roadmap")
         new = href(new, "live-roadmap",  f'{cfg["live_wiki_url"]}manual/Roadmap')
         if new != s:
             notes.append("public wiki/roadmap links")

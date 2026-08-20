@@ -242,9 +242,18 @@ python3 "$TARGET/bin/season-profile.py" --check >/dev/null || die "target still 
 echo
 
 # ------------------------------------------------------------------- roadmap --
-# roadmap.yaml rode along in the sync. Regenerate the target's public page and
-# push the same data into ITS in-game Recent Updates sign - roadmapdb lives
-# under the target's own NWN_HOME_DIR, so this cannot be done from dev.
+# roadmap.yaml rode along in the sync. The in-game Recent Updates SIGN is the
+# real work here: roadmapdb lives under the target's own NWN_HOME_DIR, so it
+# cannot be written from dev, and it is deliberately the one half of the roadmap
+# that waits for a promotion - it announces shipped code, which is only true of
+# production once this script has run.
+#
+# The public PAGE no longer waits: the roadmap editor's Publish button copies it
+# into the live realm's docs/ as it is written, so players see a reported issue
+# tracked right away. gen-roadmap.py below therefore SKIPS on a non-dev realm
+# (its realm guard) and prints a skip line; that is the normal outcome and not a
+# failure. It stays in the call for a --force-style manual repair and for a
+# target that is not a season at all.
 echo "refreshing target roadmap..."
 ( cd "$TARGET" && python3 bin/gen-roadmap.py >/dev/null 2>&1 ) \
   || echo "    WARN: gen-roadmap.py failed in target (page not regenerated)"

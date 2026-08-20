@@ -522,6 +522,18 @@ Updates sign. To make a change land immediately instead, use the editor's
 **Publish to Wiki & DB** button, or run `python3 bin/gen-roadmap.py` +
 `python3 bin/publish-roadmap-db.py`.
 
+**Publish reaches the public site straight away.** The editor runs in the dev
+repo, but Publish copies the page it renders into the **live season's** repo as
+well and pushes it, so a player who reports a problem sees it tracked on
+`homerslotr.com` now instead of at the next release. What still waits for
+`bin/season-promote.sh` is `roadmap.yaml` itself and therefore the live server's
+in-game Recent Updates sign — that board announces **shipped** work, which is
+only true of production once the build is promoted. The live realm is
+discovered, not configured (the sibling repo with `SEASON_ROLE=live`, the same
+rule `bin/promote-to-prod` uses), and `bin/gen-roadmap.py` renders the page on
+the **dev realm only** so a season's nightly refresh cannot overwrite a publish
+with its own older copy. Details: [CLAUDE-roadmap.md](CLAUDE-roadmap.md).
+
 Each item's admin to-do list (`manual_steps`) is tagged by **kind** — `toolset`,
 `uat`, `publish`, `admin` — and a `uat` step records which character it takes to
 run it (`tester`). Two panels in the editor read those: the **Toolset Queue**
@@ -1294,7 +1306,9 @@ on the way back up. Pieces:
    not just the activity pages the serve loop touches), commits, and pushes. The
    serve-loop activity refresh still handles intra-day activity updates.
    It also carries the **roadmap** with it, in this order:
-   `bin/gen-roadmap.py` (rebuilds `docs.manual/Roadmap.html` from `roadmap.yaml`) →
+   `bin/gen-roadmap.py` (rebuilds `docs.manual/Roadmap.html` from `roadmap.yaml`;
+   on a season realm it prints a skip line instead — only the dev realm renders
+   that page, and the roadmap editor publishes it across) →
    `bin/publish-roadmap-db.py` (refills `roadmapdb`, the in-game Recent Updates
    sign) → the wiki build, which is what folds `docs.manual/` into `docs/`. Both
    roadmap steps warn and continue: a `roadmap.yaml` that fails validation is a
@@ -1493,7 +1507,7 @@ Every season-scoped value in this repo derives from one block at the bottom of
 | `SEASON_ROLE` | `live` \| `test` \| `dev` \| `archive` — drives the server name, the in-game status sign, **and behaviour** (cheat chest, dev NPCs, wipe notice) via `season-profile.py` |
 | `SEASON_LEGACY_NAMES` | Season 1 only: suppress the derived module/server names (see below) |
 | `SEASON_WIKI_URL` | This environment's own wiki: `https://homerslotr.com/` for the live season, `https://dev.homerslotr.com/` for dev, `https://season<N>.homerslotr.com/` otherwise |
-| `SEASON_LIVE_WIKI_URL` | Where *production* publishes. Only differs from the above off the live season; lets dev's roadmap editor link to the live roadmap. Defaults to the apex |
+| `SEASON_LIVE_WIKI_URL` | Where *production* publishes. Only differs from the above off the live season; it is the one roadmap link the editor shows, and the editor warns if it disagrees with the live realm's own `SEASON_WIKI_URL`. Defaults to the apex |
 | `SEASON_WORKER_NAME` | Cloudflare worker serving `docs/`. **Must be unique per season** — two repos deploying the same worker name collide |
 | `SEASON_CONNECT_HOST` | Host half of the module description's `Connect:` line |
 

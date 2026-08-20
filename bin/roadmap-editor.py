@@ -1047,6 +1047,94 @@ _REALM_COLORS = {"DEV": "#56d4dd", "S1": "#d29922", "S2": "#3fb950"}
 _EXTRA_COLORS = ["#d2a8ff", "#79c0ff", "#ff7b72"]
 
 
+def env_get(text: str, key: str) -> str:
+    """One assignment out of a server.env, last one wins.
+
+    Shared by realms() and live_repo(); same parse as bin/promote-to-prod's
+    read_var() and bin/roadmap_publish.py's nwn_home_dir(), so the three never
+    disagree about which realm a repo is.
+    """
+    m = None
+    for ln in text.splitlines():
+        hit = re.match(rf"\s*(?:export\s+)?{key}\s*=\s*(.+?)\s*$", ln)
+        if hit:
+            m = hit
+    if not m:
+        return ""
+    val = m.group(1).strip()
+    # A quoted value ends at its closing quote, and server.env comments most of
+    # its season block INLINE after the quote:
+    #     SEASON_WIKI_URL="https://homerslotr.com/"   # apex for the live season
+    # Taking the quoted span (rather than stripping quotes off the whole line)
+    # is what keeps that comment out of the value.
+    if val[:1] in ('"', "'"):
+        end = val.find(val[0], 1)
+        return val[1:end] if end != -1 else val[1:]
+    return val.split("#", 1)[0].strip()
+
+
+def live_repo() -> tuple["Path | None", str]:
+    """The production repo to publish the roadmap page into: (path, message).
+
+    THE TARGET IS DISCOVERED, NOT CONFIGURED — the same rule bin/promote-to-prod
+    uses: sibling nwn_homers_lotr* checkouts whose server.env says
+    SEASON_ROLE=live. (None, msg) when there is nothing to do or the answer is
+    ambiguous:
+
+      * this repo IS the live realm — the ordinary publish already did it;
+      * no live sibling — a dev box with no production checked out beside it;
+      * more than one live realm — during a cutover overlap "production" is
+        genuinely ambiguous, and a button may not guess which site the public
+        roadmap belongs on.
+    """
+    if env_get(SERVER_ENV.read_text(encoding="utf-8") if SERVER_ENV.exists() else "",
+               "SEASON_ROLE") == "live":
+        return None, "live realm publish: skipped — this repo IS the live realm."
+    found = []
+    for repo in sorted(REPO.parent.glob("nwn_homers_lotr*")):
+        if repo == REPO:
+            continue
+        env_file = repo / "server.env"
+        try:
+            text = env_file.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if env_get(text, "SEASON_ROLE") == "live":
+            found.append(repo)
+    if not found:
+        return None, "live realm publish: skipped — no sibling repo has SEASON_ROLE=live."
+    if len(found) > 1:
+        names = ", ".join(r.name for r in found)
+        return None, ("live realm publish: SKIPPED — several live realms "
+                      f"({names}). Publish by hand during a cutover overlap.")
+    return found[0], ""
+
+
+def live_target_mismatch(target: Path) -> str:
+    """Warn when the roadmap link and the publish target disagree about which
+    site production is — "" when they agree or either side is unset.
+
+    Two independent facts have to name the same wiki: SEASON_LIVE_WIKI_URL here
+    (what the editor's one roadmap link points at, written by season-brand.py)
+    and SEASON_WIKI_URL over in the realm we just published into. They are set
+    by different steps of a season cutover, so they can drift for exactly as
+    long as it takes someone to notice — and the failure is silent: the page
+    lands on one host while the admin checks the other.
+    """
+    def env(repo: Path, key: str) -> str:
+        f = repo / "server.env"
+        try:
+            return env_get(f.read_text(encoding="utf-8"), key)
+        except OSError:
+            return ""
+    ours = env(REPO, "SEASON_LIVE_WIKI_URL")
+    theirs = env(target, "SEASON_WIKI_URL")
+    if not ours or not theirs or ours.rstrip("/") == theirs.rstrip("/"):
+        return ""
+    return (f" WARNING: this repo calls production {ours} but {target.name} "
+            f"publishes to {theirs} — re-run bin/season-brand.py.")
+
+
 def realms() -> list[dict]:
     """Every Homer's LotR realm on this box, newest season first.
 
@@ -1058,20 +1146,6 @@ def realms() -> list[dict]:
 
     Repos without a server.env (nwn_homers_lotr_2009) drop out on their own.
     """
-    def env_get(text: str, key: str) -> str:
-        m = None
-        for ln in text.splitlines():
-            hit = re.match(rf"\s*(?:export\s+)?{key}\s*=\s*(.+?)\s*$", ln)
-            if hit:
-                m = hit
-        if not m:
-            return ""
-        val = m.group(1).strip()
-        # Strip a trailing comment only when the value is not quoted.
-        if not val.startswith(('"', "'")):
-            val = val.split("#", 1)[0].strip()
-        return val.strip('"').strip("'")
-
     out, extra = [], 0
     for repo in sorted(REPO.parent.glob("nwn_homers_lotr*")):
         env_file = repo / "server.env"
@@ -1300,55 +1374,129 @@ def stamp_as_of() -> str:
 # --------------------------------------------------------------------------
 # Publish to wiki: body-swap docs.manual/Roadmap.html into docs/manual/, then
 # commit (roadmap.yaml + both Roadmap.html) and push.
+#
+# The same two steps run TWICE: once in this repo, and once in the live season's
+# repo (see publish_to_live_realm below), because each realm's wiki is served
+# from its OWN docs/ by its own Cloudflare worker and a git push is the deploy.
 # --------------------------------------------------------------------------
-def publish_roadmap_to_docs() -> tuple[bool, str]:
+def roadmap_body() -> str:
+    """The <body> of the page gen-roadmap.py just wrote — what gets swapped into
+    a published wiki page's outer <main>."""
+    src = SRC_ROADMAP.read_text(encoding="utf-8")
+    m = re.search(r"<body[^>]*>(.*?)</body>", src, re.IGNORECASE | re.DOTALL)
+    return (m.group(1) if m else src).strip("\n")
+
+
+def publish_roadmap_to_docs(repo: Path = REPO, body: str | None = None) -> tuple[bool, str]:
     """Replicate nwn-wiki's manual-page publish for the roadmap alone: take the
     freshly generated source body and swap it into the already-published page's
     outer <main>, preserving the wiki header/footer/nav from the last full build.
-    """
-    if not DOCS_ROADMAP.exists():
-        return False, (f"{DOCS_ROADMAP.relative_to(REPO)} does not exist — run a "
-                       "full `nwn-manager wiki` build once before publishing.")
-    src = SRC_ROADMAP.read_text(encoding="utf-8")
-    m = re.search(r"<body[^>]*>(.*?)</body>", src, re.IGNORECASE | re.DOTALL)
-    body = (m.group(1) if m else src).strip("\n")
 
-    published = DOCS_ROADMAP.read_text(encoding="utf-8")
+    `repo` may be another realm's checkout, in which case `body` is THIS repo's
+    freshly rendered body: only the dev realm renders the page (see the realm
+    guard in bin/gen-roadmap.py), so the target keeps its own header/nav and
+    takes dev's content.
+    """
+    docs_roadmap = repo / "docs" / "manual" / "Roadmap.html"
+    if not docs_roadmap.exists():
+        return False, (f"{docs_roadmap} does not exist — run a "
+                       "full `nwn-manager wiki` build once before publishing.")
+    if body is None:
+        body = roadmap_body()
+
+    published = docs_roadmap.read_text(encoding="utf-8")
     # Greedy: <main> appears only in the body region, so this spans the first
     # <main> to the last </main> (the outer wiki <main>).
     swapped, n = re.subn(r"<main>.*</main>",
                          lambda _: f"<main>\n{body}\n  </main>",
                          published, count=1, flags=re.DOTALL)
     if not n:
-        return False, "could not find <main> block in published Roadmap.html"
-    DOCS_ROADMAP.write_text(swapped, encoding="utf-8")
-    return True, f"published {DOCS_ROADMAP.relative_to(REPO)}"
+        return False, f"could not find <main> block in {docs_roadmap}"
+    docs_roadmap.write_text(swapped, encoding="utf-8")
+    try:
+        shown = docs_roadmap.relative_to(REPO.parent)
+    except ValueError:
+        shown = docs_roadmap
+    return True, f"published {shown}"
 
 
-def _git(*args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", *args], cwd=str(REPO),
+def _git(*args: str, repo: Path = REPO) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=str(repo),
                           capture_output=True, text=True)
 
 
-def git_publish() -> tuple[bool, str]:
-    """Stage roadmap.yaml + both Roadmap.html, commit with the standard message,
-    and push. 'Nothing to commit' is treated as success (nothing to publish)."""
-    paths = ["roadmap.yaml", "docs.manual/Roadmap.html", "docs/manual/Roadmap.html"]
-    add = _git("add", "--", *paths)
+# roadmap.yaml is deliberately absent from the live realm's pathspec: production
+# gets the backlog file itself at the next bin/season-promote.sh, and that is
+# what keeps its in-game Recent Updates sign showing PROMOTED work only.
+LIVE_PUBLISH_PATHS = ["docs.manual/Roadmap.html", "docs/manual/Roadmap.html"]
+DEV_PUBLISH_PATHS = ["roadmap.yaml", *LIVE_PUBLISH_PATHS]
+
+
+def git_publish(repo: Path = REPO, paths: list[str] | None = None,
+                rebase_first: bool = False) -> tuple[bool, str]:
+    """Stage `paths`, commit with the standard message, and push. 'Nothing to
+    commit' is treated as success (nothing to publish).
+
+    `rebase_first` is for another realm's repo: its own wiki publisher commits
+    and pushes to the same branch on a timer ("Auto Wiki Activity Refresh"), so
+    a straight push can lose a race this repo never sees.
+    """
+    paths = paths or DEV_PUBLISH_PATHS
+    label = "" if repo == REPO else f"[{repo.name}] "
+    add = _git("add", "--", *paths, repo=repo)
     if add.returncode != 0:
-        return False, f"git add failed:\n{(add.stdout + add.stderr).strip()}"
+        return False, f"{label}git add failed:\n{(add.stdout + add.stderr).strip()}"
     # Anything staged among our paths?
-    staged = _git("diff", "--cached", "--quiet", "--", *paths)
+    staged = _git("diff", "--cached", "--quiet", "--", *paths, repo=repo)
     if staged.returncode == 0:
-        return True, "nothing to commit — docs already up to date."
-    commit = _git("commit", "-m", PUBLISH_COMMIT_MSG, "--", *paths)
+        return True, f"{label}nothing to commit — docs already up to date."
+    commit = _git("commit", "-m", PUBLISH_COMMIT_MSG, "--", *paths, repo=repo)
     if commit.returncode != 0:
-        return False, f"git commit failed:\n{(commit.stdout + commit.stderr).strip()}"
-    push = _git("push")
+        return False, f"{label}git commit failed:\n{(commit.stdout + commit.stderr).strip()}"
+    if rebase_first:
+        # --autostash because the target realm is a WORKING repo, not a deploy
+        # slot: its own wiki publisher leaves docs/ churn in the tree, and a
+        # plain `pull --rebase` refuses outright on unstaged changes, which
+        # would turn a routine race into a failed publish.
+        _git("pull", "--rebase", "--autostash", "--quiet", repo=repo)
+    push = _git("push", repo=repo)
     out = (commit.stdout + push.stdout + push.stderr).strip()
     if push.returncode != 0:
-        return False, f"committed but push failed:\n{out}"
-    return True, f"committed + pushed.\n{out}"
+        return False, f"{label}committed but push failed:\n{out}"
+    return True, f"{label}committed + pushed.\n{out}"
+
+
+def publish_to_live_realm(body: str) -> tuple[bool, str]:
+    """Copy the page this realm just rendered into the LIVE season's wiki, and
+    push it — a git push to that repo IS the Cloudflare deploy.
+
+    Why this exists: a player who reports a problem should see it tracked on the
+    public roadmap right away, not at the next promotion. The PAGE travels now;
+    roadmap.yaml and therefore the in-game Recent Updates sign still wait for
+    bin/season-promote.sh, because those announce shipped code that production
+    is not running yet.
+
+    Both files are written: docs/manual/Roadmap.html is what the live site serves
+    right now, and docs.manual/Roadmap.html is the source its next FULL wiki
+    build folds back into docs/ — write only one and the nightly build undoes
+    the publish.
+
+    Never fatal. Everything here is a second realm on the same box, and no
+    problem with it may cost this realm its own publish.
+    """
+    target, why = live_repo()
+    if target is None:
+        return True, why
+    src = target / "docs.manual" / "Roadmap.html"
+    if not src.parent.exists():
+        return False, f"live realm publish FAILED: {src.parent} does not exist."
+    ok, msg = publish_roadmap_to_docs(target, body)
+    if not ok:
+        return False, f"live realm publish FAILED: {msg}"
+    src.write_text(SRC_ROADMAP.read_text(encoding="utf-8"), encoding="utf-8")
+    git_ok, git_msg = git_publish(target, LIVE_PUBLISH_PATHS, rebase_first=True)
+    return git_ok, (f"live realm ({target.name}): {msg}; {git_msg}"
+                    + live_target_mismatch(target))
 
 
 # --------------------------------------------------------------------------
@@ -1521,6 +1669,19 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/" or self.path.startswith("/index"):
             self._send(200, PAGE.encode("utf-8"), "text/html; charset=utf-8")
+        elif self.path == "/preview":
+            # The page as gen-roadmap.py last rendered it, BEFORE any publish -
+            # docs.manual/Roadmap.html is a complete standalone document, so it
+            # renders as-is. It carries the roadmap's own styling but not the
+            # wiki's chrome, and links to sibling pages (QuestGuide.html and
+            # friends) 404 here: this is a proof of the content, not of the site.
+            try:
+                html = SRC_ROADMAP.read_bytes()
+            except OSError as e:
+                self._send(404, f"no generated roadmap yet: {e}".encode("utf-8"),
+                           "text/plain; charset=utf-8")
+                return
+            self._send(200, html, "text/html; charset=utf-8")
         elif self.path == "/monitor" or self.path.startswith("/monitor?"):
             self._send(200, MONITOR_PAGE.encode("utf-8"),
                        "text/html; charset=utf-8")
@@ -1681,11 +1842,26 @@ class Handler(BaseHTTPRequestHandler):
             steps.append(db_msg)
             git_ok, git_msg = git_publish()
             steps.append(git_msg)
+            # And into the LIVE season's wiki, so a player sees the change on
+            # homerslotr.com now rather than at the next promotion. Non-fatal
+            # for the same reason the DB sync is: this realm's publish already
+            # succeeded, and a second repo's problem must not report it as
+            # failed. Its own message says what happened.
+            try:
+                live_ok, live_msg = publish_to_live_realm(roadmap_body())
+            except Exception as e:
+                live_ok, live_msg = False, f"live realm publish FAILED: {e}"
+            steps.append(live_msg)
+            if git_ok:
+                message = ("Published to wiki + pushed to git."
+                           if live_ok else
+                           "Published here; the LIVE wiki did NOT update — see output.")
+            else:
+                message = "Publish/push FAILED."
             return self._json({"ok": git_ok, "warnings": warnings,
                                "version": yaml_version(),
                                "output": "\n".join(steps),
-                               "message": ("Published to wiki + pushed to git."
-                                           if git_ok else "Publish/push FAILED.")})
+                               "message": message})
         return self._json({"ok": False, "errors": ["unknown endpoint"]}, 404)
 
 
@@ -2098,17 +2274,21 @@ PAGE = r"""<!doctype html>
 <div id="left">
   <div class="pad">
     <h1>Roadmap / Merit Backlog</h1>
-    <!-- Two wikis, deliberately. The editor runs in the DEV repo, so its
-         Publish button reaches this realm's wiki only; production gets the
-         roadmap at the next bin/season-promote.sh. Linking both makes that
-         distinction visible instead of leaving "Public wiki" ambiguous about
-         which site you are about to check your change on. Both hrefs are
-         rewritten by bin/season-brand.py from SEASON_WIKI_URL and
-         SEASON_LIVE_WIKI_URL. -->
+    <!-- ONE roadmap link, and it points at PRODUCTION. There used to be two -
+         this realm's and the live one - because Publish reached this realm's
+         wiki only and production waited for the next bin/season-promote.sh.
+         Publish now pushes the page into the live season's docs/ as well
+         (publish_to_live_realm), so the public roadmap IS the roadmap and a
+         second link would only ask "which one is real?".
+         Unpublished work has its own answer: /preview, served straight from
+         docs.manual/Roadmap.html by this editor - no round trip through
+         dev.homerslotr.com, which is an admin surface, not a player one.
+         The two data-brand hrefs are rewritten by bin/season-brand.py from
+         SEASON_WIKI_URL and SEASON_LIVE_WIKI_URL. -->
     <div class="extlinks">
       <a data-brand="wiki" href="https://dev.homerslotr.com/" target="_blank" rel="noopener">This realm's wiki ↗</a>
-      <a data-brand="roadmap" href="https://dev.homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">This realm's roadmap ↗</a>
-      <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">LIVE roadmap ↗</a>
+      <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Roadmap (live site) ↗</a>
+      <a href="/preview" target="_blank" rel="noopener">Preview unpublished ↗</a>
       <a href="/monitor" target="_blank" rel="noopener">Server monitor (all realms) ↗</a>
     </div>
     <div class="viewtoggle">
@@ -3880,7 +4060,7 @@ $('#f_showawarded').onchange=render;
 // work from the Board view too (commit() folds the open form in when in List).
 $('#regen').onclick = ()=>commit('/api/regenerate');
 $('#publish').onclick = ()=>{
-  if(!confirm('Regenerate, publish the roadmap into docs/, sync the in-game Recent Updates DB, commit & git push?')) return;
+  if(!confirm('Regenerate, publish the roadmap into the local docs/ AND the LIVE public wiki, sync the local in-game Recent Updates DB, commit & git push both repos?')) return;
   commit('/api/publish');
 };
 $('#mepics').onclick=openEpics;

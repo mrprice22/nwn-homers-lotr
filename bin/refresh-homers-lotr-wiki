@@ -84,8 +84,12 @@ MAX_ABILITY_BONUS="${NWN_MAX_ABILITY_BONUS:-12}"
 # validation is a roadmap problem, not a reason to skip the nightly republish of
 # 287 areas. Both warn and continue.
 if python3 "$PROJECT/bin/gen-roadmap.py" --check >/dev/null 2>&1; then
-  if python3 "$PROJECT/bin/gen-roadmap.py"; then
-    echo "[roadmap] regenerated docs.manual/Roadmap.html"
+  # Print the generator's own line: on a season realm it SKIPS (only the dev
+  # realm renders the page - the roadmap editor's Publish copies it into the
+  # live realm's docs/ directly), and claiming "regenerated" there would be a
+  # lie that hides the skip.
+  if roadmap_out=$(python3 "$PROJECT/bin/gen-roadmap.py" 2>&1); then
+    echo "[roadmap] ${roadmap_out}"
   else
     echo "[roadmap] warn: gen-roadmap.py failed; publishing the existing page" >&2
   fi

@@ -24,6 +24,12 @@ bin/refresh-homers-lotr-wiki           # -> folds docs.manual/ into published do
 errors). It also joins shipped items to git commit dates (the `commit:` field) and warns
 on likely duplicate ideas.
 
+**It renders on the dev realm only.** In a repo whose `server.env` says `SEASON_ROLE` is
+anything but `dev` it prints a skip line and exits 0 without writing (`--force` overrides).
+A season repo's `roadmap.yaml` is only as new as the last promotion, and its git history
+does not contain dev's `commit:` hashes, so re-rendering there would replace the page the
+roadmap editor publishes with an older, worse one.
+
 **The daily cycle now does the first three for you.** `bin/refresh-homers-lotr-wiki` runs
 `gen-roadmap.py` and `publish-roadmap-db.py` before the wiki build (in that order — the
 wiki build is what folds `docs.manual/` into `docs/`), and both are warn-and-continue so a
@@ -446,24 +452,45 @@ What it does:
   idea's leading section-header comment travels with it by `id`. An unchanged save is a
   byte-for-byte no-op.
 - **Save & regenerate** writes `roadmap.yaml` then runs `gen-roadmap.py`, surfacing its
-  output (including duplicate-idea warnings) in the page. **Publish to Wiki & DB**
-  additionally body-swaps the page into `docs/manual/Roadmap.html`, refreshes the in-game
-  sign DB (`bin/roadmap_publish.py`) and commits + pushes. Neither is required any more
-  for the change to reach players — the daily refresh does both — but Publish is how you
-  make it land *now*.
+  output (including duplicate-idea warnings) in the page. It is local and fast: no git, no
+  network, nothing published. Preview the result at the editor's **/preview** route, which
+  serves `docs.manual/Roadmap.html` straight off disk.
 
-  **Publish reaches THIS realm only — the dev realm.** The editor runs in the dev repo
-  (`WorkingDirectory` on it), so `docs/` and `roadmapdb` are dev's: the page it pushes
-  goes to `dev.homerslotr.com`, and the in-game sign it refreshes is the dev server's.
-  Production gets the roadmap when you promote:
-  `bin/season-promote.sh --to ../nwn_homers_lotr_s<N> --apply --season <N>` carries
-  `roadmap.yaml` across and re-runs `gen-roadmap.py` + `publish-roadmap-db.py` **in the
-  target**, which is the only place that can write the live season's `roadmapdb` (it
-  lives under that season's own `NWN_HOME_DIR`).
+- **Publish to Wiki & DB** additionally body-swaps the page into `docs/manual/Roadmap.html`,
+  refreshes the in-game sign DB (`bin/roadmap_publish.py`), commits + pushes — **and
+  publishes the same page into the LIVE season's repo** (`publish_to_live_realm`), so the
+  public roadmap on `homerslotr.com` is current the moment you click it.
 
-  That is deliberate, not a gap: release notes ship with the release. If you need a
-  roadmap-only correction live without promoting a module build, run the publish in the
-  target repo directly.
+  **The page goes live now; the in-game sign still waits for the promote.** That split is
+  the whole point:
+
+  | | reaches production when |
+  |---|---|
+  | public roadmap page (`docs/manual/Roadmap.html` + its `docs.manual/` source) | you click Publish |
+  | `roadmap.yaml` itself | `bin/season-promote.sh` |
+  | in-game Recent Updates sign (`roadmapdb`) | `bin/season-promote.sh` |
+
+  A player who reports a bug should see it tracked immediately — that is a *page*, and it
+  costs nothing to be honest about early. The sign announces **shipped** work, which is
+  only true of production once the module build is promoted, so it rides with the release.
+
+  **The live realm is discovered, never configured.** `live_repo()` scans sibling
+  `nwn_homers_lotr*` checkouts for `SEASON_ROLE=live` — the same rule
+  `bin/promote-to-prod` uses — so season 3 becomes the target by flipping its
+  `SEASON_ROLE`, with no edit here. It refuses when **two** realms are live (a cutover
+  overlap: "production" is genuinely ambiguous), when there is no live sibling, and when
+  the editor is itself running in the live repo. Every one of those is reported in the
+  output pane and **never fails the local publish** — same rule as the DB sync. It also
+  warns when `SEASON_LIVE_WIKI_URL` here and `SEASON_WIKI_URL` there disagree about which
+  host production is.
+
+  **Only the dev realm renders the page.** `gen-roadmap.py` skips (exit 0, with a skip
+  line) on any realm whose `SEASON_ROLE` is not `dev`; `--force` overrides. Two reasons: a
+  season repo's `roadmap.yaml` is only as new as the last promotion, and `resolve_dates()`
+  reads shipped dates out of **local git** — promotion copies the tree, not the history,
+  so dev's `commit:` hashes do not resolve there. Without that guard the live realm's
+  nightly `bin/refresh-homers-lotr-wiki` would overwrite every publish with an older,
+  worse page.
 
   **Merit is the exception, and it is not one.** Award/Revoke write `meritdb`, which is a
   symlink into `~/.local/share/nwn-shared/` from *every* environment — so merit awarded
