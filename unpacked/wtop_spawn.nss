@@ -12,8 +12,10 @@
 //                             fighters), and weathertoparc001 is also the
 //                             archer in this module's own weathertop.ute.
 //    4 x tag "wtop_zombie" -- the low ground by the Weather Hills transitions.
-//                             wtop_zombie (Barrow-wight of Amon Sul): very slow
+//                             wtop_zombie (Barrow-wight of Amon Sul): normal
 //                             walk rate, very high HP. Flavour on the approach.
+//                             (Was creaturespeed.2da row 1 = Immobile, which
+//                             froze them on the spot -- row 4 = Normal now.)
 //
 // The King and Queen are NOT here -- they belong to the royal court area behind
 // wtop_hiddencave, which is not built yet.
