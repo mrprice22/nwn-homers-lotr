@@ -95,6 +95,7 @@ players:
   - "Zambro (Xil)"
   - "Rajmund (Ray)"
   - Szescian82
+  - "Sync (Shync)"
 epics:
   - id: quest-overhaul
     title: "Quest Overhaul"
@@ -136,6 +137,15 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: shifter-stats-defect
+    title: "Shifter stats defect (stats go down after shifting)"
+    group: combat-classes
+    status: planned
+    type: Defect
+    player: "Sync (Shync)"
+    date: "2026-08-20"
+    notes: "<li><div><div><div><span>Sync:<br>The uncapped stats vs the shapes set stats</span></div></div></div></li><div><div> <div><span>Makes it so the shapes actually have worse stats (ac/ab) than being unshifted</span></div></div></div><div><div> <div><span>Even dragon shape is pretty much the same as well</span></div></div></div><div><div> <div><span>Also noticed that shapes without a weapon (unarmed, claws, etc) dont get the actual weapon enhancement bonus (they do get the regular damages)</span></div><div><span>Dont know if its intended or not but obviously makes them even worse</span></div><div><span><br></span></div><div><span>Admin:</span><div><div><div><span>So it's worse with uncapped stats? that means that you're more gear dependent with a shifter on this module, but have a higher ceiling compared to standard shifters. Some classes will be better than others here for unlocking gear, so far sorcerers/wizards scale the best without gear, the legendary spells have been buffed on top of that. if you have cash you can start enchanting your gear at taggets smith shop in bree</span></div><div><span><br></span></div><div><span>Sync:<br></span><li><div><div><div><span>I dont know exactly why but even with gear i have the same stats unshifted</span></div></div></div></li><div><div> <div><span>The point of the shapes are usually higher stats/ac and shifter shapes somehow end below</span></div></div></div><div><div> <div><span>Which has always been the same with vanilla nwn anyways </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div></div><li><div><div> <div><span>Dragon shape is the only one with a bit more ac/ab even tho its still losing weapon +9 enhancement<br><br>Admin: <br>Okay; unshifted stats should not be going down after you shift, they should either stay or go up, this is not working as expected. Should not be losing the +9 enchantmnets. </span></div></div></div></li><br></div></div></div></div></div></div>"
+    notes_h: 298
   - id: lake-town-forge-not-working
     title: "Lake Town forge not working"
     group: forge
@@ -261,31 +271,31 @@ ideas:
       - step: "UAT (the exploit): bring Basilisk Visage to a forge anvil. The strip list must show 15 entries, not 20 - the four -3 ability penalties and the -5 universal saves must be absent - and the smith's status line must say the bane fills no slot and cannot be lifted."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
       - step: "UAT (slots freed): the forge's property count for Basilisk Visage must read five lower than before, and the item must accept five more enchantments than it did."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
       - step: "UAT (pricing frozen): the quoted worth and the value-cap text for a drawback item must be UNCHANGED from before this fix. If they moved, the PRICED set was narrowed by mistake."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
       - step: "UAT (staged plan): tick several properties on a drawback item, page back and forth, then commit. Exactly the ticked properties must be removed - the plan's bit indices run over the removable set, which just got smaller."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
       - step: "UAT (Warden): take a drawback item to the Forge Warden's jail menu - it must offer no drawbacks for removal either."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
       - step: "UAT (retroactive): log in carrying an item whose drawbacks were stripped before this fix. The re-scan (FORGE_CLEAN_VER 6) must flag it, the Warden must say the bane was struck from it, and reverting to blueprint must restore it."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
       - step: "UAT (regression guard - the jailing risk): log in carrying STOCK drawback gear that was never forged. It must pass the forced re-scan untouched and never be quarantined. This is the one way this change could go badly wrong."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
   - id: curse-song-too-many-instructions
     title: "Cuse Song gives too many instructions error"
     group: combat-classes
@@ -322,11 +332,33 @@ ideas:
   - id: door-opening-time
     title: "Extend Door  Opening Time"
     group: quests-areas
-    status: planned
+    status: manual
     type: Enhancement
     player: Szescian82
-    date: "2026-08-18"
-    notes: "Door to theoden closes too fast, requesting to extend duration (e.g. by 3 sec) for all doors module wide"
+    date: "2026-08-20"
+    commit: 0196fa7b6f6
+    notes: "Doors now wait longer before shutting themselves behind you. Every door that used to close after 5 seconds - including the door into Theoden's hall at Edoras - now stays open for 8, and the handful of quick-closing doors went from 2 seconds to 5. Doors that re-lock themselves now do so only once the door has actually shut, so you can no longer find one standing open and locked at the same time. Doors that already waited 10 seconds or more are unchanged."
+    impl_notes: "Eleven near-identical OnOpen auto-close scripts had accumulated, each with its own hard-coded DelayCommand and its own re-lock idea, so retuning door timing meant editing eleven files. New include unpacked/door_inc.nss now holds the one real implementation: the bounded retry from close_door.nss (ActionCloseDoor fails SILENTLY when a creature blocks the doorway - a single attempt is how doors end up stuck open on a populated realm) plus a re-lock guarded on !GetIsOpen, which makes the open-AND-locked state unreachable. The seven sub-6s scripts are now two-line wrappers and gained +3s: close_door / doorclose / _closedoor / doorlock 5.0 -> 8.0; close_door_lock / close_door_fast 2.0 -> 5.0; sc_delay_lock 3.0 -> 6.0. The three former one-shot scripts (doorclose, _closedoor, close_door_fast) gain the retry, and doorlock / sc_delay_lock trade an unconditional timed lock for close-then-lock. Deliberately untouched: close_relock (10s, 28 doors), pl_au_close / pl_au_close_lock (10s, 5 doors), oi (CEP gate placeable, 12s, 3 doors) - already generous, nobody complained; close_relock's immediate SetLocked is the same latent bug but changing it risks stranding players behind AutoRemoveKey doors, so that is its own item. A door instance may carry a local float DOOR_CLOSE_DELAY (toolset Variables tab) to override the script default - no twelfth script needed. Script-only change: no .git.json instance touched, the 786-door OnOpen census is byte-identical, and bin/fix-door-autoclose.py + tests/check_door_autoclose.py only care about which resref is assigned, not its body. Test build clean, 26/26 smoke tests passed."
+    manual_steps:
+      - step: "UAT (the report): walk from Edoras into Theoden's hall (door tag edoras2hall) and back out through hall2edoras. Each door must stay open about 8 seconds - noticeably longer than before - and must still shut on its own afterwards."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (the retry): open that same door, stand in the doorway past the 8-second mark, then step clear. The door must still close - it retries up to 5 times at 6-second intervals."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (re-locking doors): open a close_door_lock door (e.g. a Prancing Pony room door in theprancingpo002) and watch the order - it must CLOSE first and only then lock. A door left standing open and locked means the guard regressed."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (per-door override): in the toolset set the local float DOOR_CLOSE_DELAY to 20.0 on one test door, repack, and confirm that door waits 20 seconds while its neighbours still wait 8."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Repack the dev realm and let bin/reboot-on-empty cycle it (never force-restart dev - the admin is usually logged in)."
+        status: open
+        kind: publish
   - id: summanus-chest-items
     title: "summanus-chest-items"
     group: items-gear
@@ -342,19 +374,19 @@ ideas:
     type: Defect
     player: Szescian82
     date: "2026-08-20"
-    commit: 3edc4ec3ff2
+    commit: 754815dd5d6
     notes: "<div>Weathertop area and related have no area transition map makers</div><div>current code for placing map markers would produce duplicates ,need to lax the radius check for existing map markers, and then add a build gate to check for missing markers, and a way in the toolset to flag area transitions as map marker hidden when the need arises, so that map markers are not included and do not throw errors in the build gate (maybe as a key-word in the comments field on the door or trigger or waypoint?)</div><div><br></div><div><b>Fixed 2026-08-20.</b></div><div><br></div><div><b>Weathertop is on the map.</b> All three crossings between Weather Hills and Weather Top now carry a pin, in both directions, as does the wolf cave into the Forbidden Realms and the door back out of it. Nine crossings in all had no marker; they were invisible on the area map, so there was no way to tell from the map where any of them led.</div><div><br></div><div><b>The three Weather Hills crossings stayed three pins.</b> They are separate ways up, 27 to 42 metres apart, and each is marked. Only pins that genuinely sit on top of one another were merged - five across the whole module, in Tharbad, Carn Dum, Cirith Ungol, Angmar and the Well of Eru portal room, where two markers were reading the same words in the same spot.</div><div><br></div><div><b>Thirty-odd markers now name the right place.</b> Pins that had drifted out of date were corrected against where the transition actually goes - Minas Tirith's four inner doors, Lothlorien's tree level, the Ithilien forest quadrants, Bree's shops and gates among them.</div><div><br></div><div><b>It cannot silently rot again.</b> The build now refuses to pack the module while any area transition is missing its marker.</div>"
-    impl_notes: "<div><b>Three defects, only one of which was the reported one.</b> bin/gen-map-notes.py already knew about all nine missing pins - they had simply never been applied, because the tool could not be run safely.</div><div><br></div><div><b>(1) The churn bug that made the tool unrunnable.</b> upsert() compared a stored pin position against the recomputed one for EXACT equality at round-5. But unpacked/ is regenerated by nwn_gff on every `nwn-manager unpack`, which re-serialises floats at ~6 significant digits - a pin written as 10.76286 comes back as 10.7629. The comparison therefore could never hold for a trigger, so every run reported all 245 trigger pins as 'updated' and --apply rewrote 135 .git/.gic pairs with no semantic change. Now compared with a 1cm tolerance (POS_EPSILON); updated went 245 -> 0 and areas touched 135 -> 10.</div><div><br></div><div><b>(2) Duplicate suppression, keyed on TEXT not destination.</b> MANUAL_RADIUS 8m -> 12m, and a pin duplicating one already within that radius is now SKIPPED if new and REMOVED if a previous run created it (index-parallel .gic struct deleted with it; refused outright when that area's git/gic lists are already desynced). Keying on the destination instead was the obvious implementation and is wrong: Weather Hills' three crossings share a destination and must each keep a pin. Tie-break is fixed rather than order-dependent - a hand-placed pin always outranks an auto one, and between two auto pins the lower-sorting tag stays. Exactly 5 pins removed, all enumerated in the commit message.</div><div><br></div><div><b>(3) The gate + the toolset escape hatch.</b> tests/check_map_notes.py imports gen-map-notes.py's own scan() (same arrangement as check_door_autoclose.py / fix-door-autoclose.py) so the gate can never disagree with the tool about what counts as covered. Registered in tests/smoke-test; 23/23 local, 26/26 under repack. Directives are read from the object's toolset Comment box, which lives in the parallel &lt;area&gt;.gic.json struct at the same index - @nomapnote suppresses a pin (and removes an existing one, and satisfies the gate), @mapnote Some Text relabels it. Both case-insensitive, anywhere in the comment, rest of the comment untouched. No such directive convention existed in .git/.gic before this.</div><div><br></div><div><b>The gate stands down rather than blocks in two cases</b>, because module-index/area_graph.json is a gitignored WIKI artefact it may not rebuild: graph missing (fresh clone) skips; graph predating an area that exists in unpacked/ warns. Staleness compares AREA SETS, not mtimes - a git checkout, an unpack and --apply itself all restamp unpacked/, so an mtime test would read 'stale' constantly, including immediately after the tool had brought the tree fully up to date, quietly disarming the gate.</div><div><br></div><div><b>Deliberately NOT done: stripping colour codes.</b> Some area names embed &lt;c..&gt; tokens, so a few pins read like &lt;c?o?&gt; \"Well of Eru\". That is NWN's own colour markup and renders as colour in game - stripping it would be the regression, not the fix. Admin's call. Stray leading/trailing whitespace IS trimmed ('Bank of Bree ').</div><div><br></div><div><b>Also surfaced, report-only:</b> 52 placed transitions whose LinkedTo names a tag that exists nowhere in the module - they lead nowhere in game and can never be pinned. Two are in the reported area: weatherhills' weatherhills2amonsul -&gt; whills2amonsul, and gravesofthelostk's gravestoweather -&gt; WP_Weathertop1. Printed by every run, not a gate failure, not fixed here.</div>"
+    impl_notes: "<div><b>Three defects, only one of which was the reported one.</b> bin/gen-map-notes.py already knew about all nine missing pins - they had simply never been applied, because the tool could not be run safely.</div><div><br></div><div><b>(1) The churn bug that made the tool unrunnable.</b> upsert() compared a stored pin position against the recomputed one for EXACT equality at round-5. But unpacked/ is regenerated by nwn_gff on every `nwn-manager unpack`, which re-serialises floats at ~6 significant digits - a pin written as 10.76286 comes back as 10.7629. The comparison therefore could never hold for a trigger, so every run reported all 245 trigger pins as 'updated' and --apply rewrote 135 .git/.gic pairs with no semantic change. Now compared with a 1cm tolerance (POS_EPSILON); updated went 245 -&gt; 0 and areas touched 135 -&gt; 10.</div><div><br></div><div><b>(2) Duplicate suppression, keyed on TEXT not destination.</b> MANUAL_RADIUS 8m -&gt; 12m, and a pin duplicating one already within that radius is now SKIPPED if new and REMOVED if a previous run created it (index-parallel .gic struct deleted with it; refused outright when that area's git/gic lists are already desynced). Keying on the destination instead was the obvious implementation and is wrong: Weather Hills' three crossings share a destination and must each keep a pin. Tie-break is fixed rather than order-dependent - a hand-placed pin always outranks an auto one, and between two auto pins the lower-sorting tag stays. Exactly 5 pins removed, all enumerated in the commit message.</div><div><br></div><div><b>(3) The gate + the toolset escape hatch.</b> tests/check_map_notes.py imports gen-map-notes.py's own scan() (same arrangement as check_door_autoclose.py / fix-door-autoclose.py) so the gate can never disagree with the tool about what counts as covered. Registered in tests/smoke-test; 23/23 local, 26/26 under repack. Directives are read from the object's toolset Comment box, which lives in the parallel &lt;area&gt;.gic.json struct at the same index - @nomapnote suppresses a pin (and removes an existing one, and satisfies the gate), @mapnote Some Text relabels it. Both case-insensitive, anywhere in the comment, rest of the comment untouched. No such directive convention existed in .git/.gic before this.</div><div><br></div><div><b>The gate stands down rather than blocks in two cases</b>, because module-index/area_graph.json is a gitignored WIKI artefact it may not rebuild: graph missing (fresh clone) skips; graph predating an area that exists in unpacked/ warns. Staleness compares AREA SETS, not mtimes - a git checkout, an unpack and --apply itself all restamp unpacked/, so an mtime test would read 'stale' constantly, including immediately after the tool had brought the tree fully up to date, quietly disarming the gate.</div><div><br></div><div><b>Deliberately NOT done: stripping colour codes.</b> Some area names embed &lt;c..&gt; tokens, so a few pins read like &lt;c?o?&gt; \"Well of Eru\". That is NWN's own colour markup and renders as colour in game - stripping it would be the regression, not the fix. Admin's call. Stray leading/trailing whitespace IS trimmed ('Bank of Bree ').</div><div><br></div><div><b>Also surfaced, report-only:</b> 52 placed transitions whose LinkedTo names a tag that exists nowhere in the module - they lead nowhere in game and can never be pinned. Two are in the reported area: weatherhills' weatherhills2amonsul -&gt; whills2amonsul, and gravesofthelostk's gravestoweather -&gt; WP_Weathertop1. Printed by every run, not a gate failure, not fixed here.</div>"
     manual_steps:
       - step: "UAT (the reported case): walk Weather Hills <-> Weather Top. All THREE crossings must show a pin on each side (Weather Hills shows 'Weather Top (Amon Sul)' x3, Weather Top shows 'Weather Hills' x3), plus the wolf cave -> 'Forbidden Realms: Enter' and the door back -> 'Weather Top (Amon Sul)'."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
         step_h: 64
       - step: "UAT (the five merged pins): confirm no crossing lost its label where a duplicate was removed - thardbadeast (Temple of Illuvatar), carndumcity (Carn Dum: Throne), cirithungol (Orc Armory), theangmarmountai (Angmar Dungeon), area042 (Well of Eru portal). Each should still show exactly one marker, not zero."
         status: open
         kind: uat
-        tester: any
+        tester: "any"
         step_h: 64
       - step: "UAT (relabelled hand pins): ~30 hand-placed markers were corrected to the true destination. A few read blunter than the hand text they replaced - Bree's 'Appearance Changer and Character Modifying Area' (was 'Bree Merchant'), 'Taggets Smith Shop' (lost its apostrophe), 'The Prancing Pony Ground Floor' (was 'The Prancing Pony Inn'). If any read worse in game, put '@mapnote <preferred text>' in that door/trigger's Comment box in the toolset - that is what the directive is for."
         status: open
