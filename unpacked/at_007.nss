@@ -1,27 +1,20 @@
 //::///////////////////////////////////////////////
 //:: FileName at_007
 //:://////////////////////////////////////////////
-//:: Gondor Scribe -- quest accept: hand over the Annuminas Key.
-//:: The key opens the warded Annuminas chests (KeyRequired + AutoRemoveKey),
-//:: which self-destroy the key on use, so one key opens only one warded chest.
+//:: Gondor Scribe -- quest ACCEPT ("Alright, where is this portal?").
 //::
-//:: Anti-farm: the "already granted" flag is PERSISTENT (questcddb campaign
-//:: DB, row uuid+quest via quest_cd_inc), not a session local int, so logging
-//:: out and back in no longer earns a second key. sc_annukey.nss reads the
-//:: same stamp so the scribe stops offering the key at all once it is spent.
+//:: This node used to hand over the Annuminas Key. It no longer does: the key
+//:: is a completion reward now, granted by at_008 when Azagoth's head is turned
+//:: in. Giving it at accept -- before the player had done anything -- is what
+//:: made re-accepting the quest worth farming.
+//::
+//:: All this does now is record the stage. WOS_Accept stamps questcddb and
+//:: writes journal "The Well of Souls" entry 1 in one call, and is a no-op if
+//:: the character has already accepted or already finished.
 //:://////////////////////////////////////////////
-#include "quest_cd_inc"
+#include "wos_inc"
 
 void main()
 {
-    object oPC = GetPCSpeaker();
-
-    // Ever granted on this character? (persists across relogs and reboots)
-    if (QCD_LastStamp(oPC, "annu_key") != 0)
-        return;
-    if (GetIsObjectValid(GetItemPossessedBy(oPC, "AnnuminasKey")))
-        return;
-
-    CreateItemOnObject("annuminaskey", oPC, 1);
-    QCD_Stamp(oPC, "annu_key");
+    WOS_Accept(GetPCSpeaker());
 }

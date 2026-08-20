@@ -1,18 +1,21 @@
 //::///////////////////////////////////////////////
 //:: FileName sc_003
 //:://////////////////////////////////////////////
-//:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 9/21/2002 11:48:43 AM
+//:: Gondor Scribe -- TRUE while this character is carrying Azagoth's head AND
+//:: has not already been paid for it. Gates the turn-in entry (at_008).
+//::
+//:: The !WOS_Done half matters because Azagoth respawns: without it, a second
+//:: head would re-open the 10,000 XP node forever.
 //:://////////////////////////////////////////////
 #include "nw_i0_tool"
+#include "wos_inc"
 
 int StartingConditional()
 {
+    object oPC = GetPCSpeaker();
 
-    // Make sure the PC speaker has these items in their inventory
-    if(!CheckPlayerForItem(GetPCSpeaker(), "azagothshead"))
-        return FALSE;
+    if (WOS_Done(oPC))                              return FALSE;
+    if (!CheckPlayerForItem(oPC, "azagothshead"))   return FALSE;
 
     return TRUE;
 }

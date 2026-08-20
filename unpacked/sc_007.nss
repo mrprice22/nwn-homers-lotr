@@ -1,16 +1,15 @@
 //::///////////////////////////////////////////////
 //:: FileName sc_007
 //:://////////////////////////////////////////////
+//:: Gondor Scribe -- TRUE once this character has turned in Azagoth's head.
+//:: Gates the post-completion greeting.
+//::
+//:: Was GetLocalInt(oPC, "azagothdead") -- session-scoped, so it forgot on
+//:: relog. Now reads the persistent stage (questcddb).
 //:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 9/26/2002 4:52:49 PM
-//:://////////////////////////////////////////////
+#include "wos_inc"
+
 int StartingConditional()
 {
-
-	// Inspect local variables
-	if(!(GetLocalInt(GetPCSpeaker(), "azagothdead") == 1))
-		return FALSE;
-
-	return TRUE;
+    return WOS_Done(GetPCSpeaker());
 }
