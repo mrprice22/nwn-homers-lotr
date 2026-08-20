@@ -33,6 +33,11 @@ Signatures this script reports, per CD key
 3. **Explicit "+dupes" commits** -- post-fix rows where the commit helper found
    and destroyed extra same-tagged boxes.  These are direct evidence.
 
+Pick the right realm. The three realms keep separate bankdb files and the
+unnumbered NWN home directory is the *season 1 archive*, so `--realm s2` (the
+default) is what you want when investigating the live server. Row counts are
+*commits*, not items -- one vault session writes one row per box.
+
 Everything here is READ-ONLY: the DB is opened in immutable mode and nothing is
 written.  Output is for human review -- no automated action is taken, and a hit
 is a lead, not a conviction (a player who legitimately opens and closes the
@@ -47,11 +52,28 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 
-def default_db_path() -> str:
-    home = os.environ.get("NWN_HOME_DIR") or os.path.join(
-        os.path.expanduser("~"), ".local", "share", "Neverwinter Nights"
-    )
+# Realm -> NWN home directory. There are three on this machine and they do NOT
+# share a bankdb, so picking the wrong one silently reports the wrong season.
+# The unnumbered home is the SEASON 1 ARCHIVE, not the live realm and not dev --
+# it is the obvious-looking default and it is almost never the one you want.
+REALMS = {
+    "s1":  "Neverwinter Nights",       # season 1 archive (read-only history)
+    "s2":  "Neverwinter Nights S2",    # LIVE
+    "dev": "Neverwinter Nights Dev",   # dev/test realm
+}
+
+
+def realm_db_path(realm: str) -> str:
+    home = os.path.join(os.path.expanduser("~"), ".local", "share", REALMS[realm])
     return os.path.join(home, "database", "bankdb.sqlite3")
+
+
+def default_db_path() -> str:
+    """NWN_HOME_DIR wins if set; otherwise the LIVE realm, not the archive."""
+    home = os.environ.get("NWN_HOME_DIR")
+    if home:
+        return os.path.join(home, "database", "bankdb.sqlite3")
+    return realm_db_path("s2")
 
 
 def parse_ts(value):
@@ -156,8 +178,11 @@ def fmt(r):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--realm", choices=sorted(REALMS),
+                    help="which realm's bankdb to read: s2 (LIVE, the default), "
+                         "dev, or s1 (season 1 archive). Overrides --db.")
     ap.add_argument("--db", default=default_db_path(),
-                    help="path to bankdb.sqlite3 (default: %(default)s)")
+                    help="explicit path to bankdb.sqlite3 (default: the live realm)")
     ap.add_argument("--days", type=int, default=0,
                     help="only consider rows from the last N days (0 = all)")
     ap.add_argument("--window", type=int, default=300,
@@ -166,6 +191,8 @@ def main():
                     help="commits of one box inside the window to flag [default: 4]")
     ap.add_argument("--cdkey", help="restrict the report to one CD key")
     args = ap.parse_args()
+    if args.realm:
+        args.db = realm_db_path(args.realm)
 
     if not os.path.exists(args.db):
         sys.exit(f"error: no such file: {args.db}\n"
@@ -176,7 +203,12 @@ def main():
     if args.cdkey:
         rows = [r for r in rows if r["cdkey"] == args.cdkey]
 
-    print(f"bankaudit: {len(rows)} rows from {args.db}")
+    realm = next((r for r, home in REALMS.items()
+                  if os.sep + home + os.sep in args.db), "?")
+    label = {"s1": "SEASON 1 ARCHIVE", "s2": "SEASON 2 (LIVE)",
+             "dev": "DEV/TEST"}.get(realm, "UNKNOWN REALM")
+    print(f"bankaudit: {len(rows)} commit rows  --  {label}")
+    print(f"           {args.db}")
     if not rows:
         return
     stamps = [parse_ts(r["ts"]) for r in rows if parse_ts(r["ts"])]
