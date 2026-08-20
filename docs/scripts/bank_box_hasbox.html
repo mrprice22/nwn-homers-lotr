@@ -57,15 +57,36 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bank_box_hasbox</code></h1><pre class="nss-source"><code>int StartingConditional()
-{
-int iFlag;
-object oPC = GetPCSpeaker();
+<h1>Script: <code>bank_box_hasbox</code></h1><pre class="nss-source"><code>// bank_box_hasbox.nss - StartingConditional: is the PC carrying a strongbox?
+//
+// Scans all five box indices, like bank_fam_hasbox does. It used to test only
+// the highest index (the account size), so a player with a 3-box account who was
+// carrying boxes 1-2 but not 3 read as &quot;no box&quot; and dropped through to the
+// normal greeting - which, before the open scripts were made idempotent, was the
+// personal-vault half of the duplication exploit
+// (roadmap banking-duplicate-exploit).
+//
+// NOTE: the illegal-item purge below is load-bearing side-effect code. This
+// conditional sits on the banker&#x27;s StartingList, so it runs on every banker
+// conversation start; that is what sweeps the listed banned items out of player
+// inventories. Do not move or drop it.
 
-if(GetItemPossessedBy(oPC, &quot;az_strongbox_&quot; + GetPCPublicCDKey(oPC) + &quot;_&quot; + IntToString(GetCampaignInt(&quot;bankdb&quot;, &quot;bank_account&quot;, oPC))) != OBJECT_INVALID)
-   {iFlag = 1;}
-   else
-   {iFlag = 0;}
+int StartingConditional()
+{
+int iFlag = 0;
+object oPC = GetPCSpeaker();
+string sCDKey = GetPCPublicCDKey(oPC);
+
+int iCounter = 1;
+while(iCounter &lt;= 5)
+   {
+   if(GetItemPossessedBy(oPC, &quot;az_strongbox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter)) != OBJECT_INVALID)
+      {
+      iFlag = 1;
+      break;
+      }
+   iCounter = iCounter + 1;
+   }
 
     object oDupe = GetFirstItemInInventory(oPC);
     while (GetIsObjectValid(oDupe ))
@@ -83,10 +104,6 @@ if(GetItemPossessedBy(oPC, &quot;az_strongbox_&quot; + GetPCPublicCDKey(oPC) + &
     // ChosenFist
     // EpicGauntletofGollum
     // DMsHelper
-    // ChickyChickyGauntlet
-
-
-
 
 return iFlag;
 }

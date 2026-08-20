@@ -64,21 +64,32 @@
     Hanee the Loon (Bree) - intermediate reward for
     bringing back Azagoth&#x27;s Head: 5,000 XP, one time.
     She does NOT take the head - the player carries it
-    on to the Gondor Scribe (Tower of the High Wizard)
-    for the 10,000 XP turn-in. Advances the
-    &quot;Ruin of Annuminas&quot; journal to entry 2.
+    on to a Gondor Scribe (Tower of the High Wizard, or
+    the one keeping camp in the Ruins of Annuminas) for
+    the 10,000 XP turn-in. Advances the &quot;Ruin of
+    Annuminas&quot; journal to entry 2.
     (roadmap: gondor-scribe)
+
+    The one-time gate used to be a session local int
+    (&quot;hanee_head_reward&quot;), which meant a relog cleared it
+    and the 5,000 XP could be collected again on the same
+    head - Hanee never takes it. It is now a questcddb
+    stamp, so it survives logout and reboots. Same fix,
+    and same reason, as the scribe&#x27;s own quest state.
 */
 //:://////////////////////////////////////////////
 #include &quot;nw_i0_tool&quot;
+#include &quot;quest_cd_inc&quot;
 
 void main()
 {
     object oPC = GetPCSpeaker();
 
-    // Intermediate reward - one time only (flag checked by sc_hanee_head)
+    // Intermediate reward - once per character, ever (gate: sc_hanee_head)
+    if (QCD_LastStamp(oPC, &quot;hanee_head&quot;) != 0) return;
+
     RewardPartyXP(5000, oPC);
-    SetLocalInt(oPC, &quot;hanee_head_reward&quot;, 1);
+    QCD_Stamp(oPC, &quot;hanee_head&quot;);
 
     // Hand off to the Gondor wizards - keep the head on the player
     AddJournalQuestEntry(&quot;Ruin of Annuminas&quot;, 2, oPC);

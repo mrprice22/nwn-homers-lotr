@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script wos_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>wos_inc</code></h1><pre class="nss-source"><code>// wos_inc.nss -- &quot;The Well of Souls&quot; quest state (Gondor Scribe / Azagoth)
+// (roadmap: gondor-scribe)
+//
+// WHY THIS EXISTS
+// ---------------
+// NWScript has no getter for journal state -- nwscript.nss exposes only
+// AddJournalQuestEntry and RemoveJournalQuestEntry -- so the journal cannot be
+// the gate. Everything this quest used to call &quot;quest state&quot; was a session
+// local int (azagothdead, azgiven, hanee_head_reward), cleared on relog, which
+// is why the whole briefing chain replayed forever and the Annuminas Key could
+// be re-earned.
+//
+// So: the campaign DB is the gate, the journal is the display. Every stage
+// helper below stamps the DB and mirrors the matching journal entry in one
+// call, so the two can never drift apart.
+//
+// STORAGE
+// -------
+// The existing questcddb / quest_cd table via quest_cd_inc -- no new schema and
+// no new init (QCD_InitDb already runs from onmoduleload.nss). &quot;Once ever&quot; is
+// QCD_LastStamp(...) == 0, the same idiom q_ent_drink.nss and q_sow_pay.nss use.
+//
+//   wos_accept  briefing heard, quest taken   -&gt; journal &quot;The Well of Souls&quot; 1
+//   wos_done    Azagoth&#x27;s head turned in      -&gt; journal &quot;The Well of Souls&quot; 2
+//   annu_key    Annuminas Key granted         -&gt; (no journal entry)
+//
+// The annu_key row PREDATES this include (commit aaf3e1c6f0b) -- the name is
+// kept so characters who already drew a key are still recognised and cannot
+// draw a second one.
+//
+// THE KEY IS A COMPLETION REWARD. It used to be handed out at accept, before
+// the player had done anything, which is what made it worth farming. It is now
+// granted by the head turn-in, once per character ever. One key opens exactly
+// one of the two warded Annuminas coffers (KeyRequired + AutoRemoveKey), so
+// the choice between the sorcerer and the wizard hoard stays permanent.
+//
+// Both Gondor Scribes -- gondorscribe in the Ruins of Annuminas and
+// gondorscribetwr in the Tower of the High Wizard -- share this state, so the
+// quest can be accepted at either and turned in at either.
+
+#include &quot;quest_cd_inc&quot;
+
+const string WOS_JOURNAL   = &quot;The Well of Souls&quot;;  // journal category Tag
+const string WOS_K_ACCEPT  = &quot;wos_accept&quot;;
+const string WOS_K_DONE    = &quot;wos_done&quot;;
+const string WOS_K_KEY     = &quot;annu_key&quot;;           // pre-existing key, do not rename
+
+const string WOS_KEY_RES   = &quot;annuminaskey&quot;;       // blueprint resref
+const string WOS_KEY_TAG   = &quot;AnnuminasKey&quot;;       // item Tag (case differs from resref)
+
+// ------------------------------------------------------------
+// Stage reads
+
+// TRUE once oPC has taken the quest from either scribe.
+int WOS_Accepted(object oPC)
+{
+    return QCD_LastStamp(oPC, WOS_K_ACCEPT) != 0;
+}
+
+// TRUE once oPC has handed Azagoth&#x27;s head to either scribe.
+int WOS_Done(object oPC)
+{
+    return QCD_LastStamp(oPC, WOS_K_DONE) != 0;
+}
+
+// TRUE once oPC has ever been given the Annuminas Key.
+int WOS_KeyGiven(object oPC)
+{
+    return QCD_LastStamp(oPC, WOS_K_KEY) != 0;
+}
+
+// ------------------------------------------------------------
+// Stage writes. Both stamp only once, so re-running a dialogue node cannot
+// bump times_done or rewind the journal.
+//
+// AddJournalQuestEntry is deliberately called with bAllPartyMembers = FALSE
+// and bAllPlayers = FALSE (matching acquireditem_tag.nss) so a party member
+// standing nearby is not dragged into a stage they have not reached.
+
+void WOS_Accept(object oPC)
+{
+    if (WOS_Accepted(oPC) || WOS_Done(oPC)) return;
+    QCD_Stamp(oPC, WOS_K_ACCEPT);
+    AddJournalQuestEntry(WOS_JOURNAL, 1, oPC, FALSE, FALSE);
+}
+
+void WOS_Complete(object oPC)
+{
+    if (WOS_Done(oPC)) return;
+    // A player who walked in cold and killed Azagoth before ever taking the
+    // quest still needs the accept stamp, or the briefing would offer itself
+    // again after completion.
+    if (!WOS_Accepted(oPC)) QCD_Stamp(oPC, WOS_K_ACCEPT);
+    QCD_Stamp(oPC, WOS_K_DONE);
+    AddJournalQuestEntry(WOS_JOURNAL, 2, oPC, FALSE, FALSE);
+}
+
+// ------------------------------------------------------------
+// The reward key. Returns TRUE only when a key was actually created.
+
+int WOS_GiveKey(object oPC)
+{
+    if (WOS_KeyGiven(oPC)) return FALSE;
+    // Belt and braces: never hand out a second key while one is still carried.
+    if (GetIsObjectValid(GetItemPossessedBy(oPC, WOS_KEY_TAG))) return FALSE;
+
+    CreateItemOnObject(WOS_KEY_RES, oPC, 1);
+    QCD_Stamp(oPC, WOS_K_KEY);
+    return TRUE;
+}
+
+// TRUE when oPC finished the quest but has never drawn the key -- the claim
+// path for characters who completed it before the key moved to the turn-in.
+int WOS_CanClaimKey(object oPC)
+{
+    return WOS_Done(oPC) &amp;&amp; !WOS_KeyGiven(oPC);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

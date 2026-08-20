@@ -334,7 +334,13 @@ const int FORGE_STG_WORDS = 6;
 //    (ForgeIsPlayerModified / FORGE_TOUCHED). This only ever LOOSENS the law -
 //    nothing can newly become contraband - so the forced re-scan is safe and
 //    clears the players wrongly jailed under version 4.
-const int FORGE_CLEAN_VER = 5;
+// 6: drawbacks are no longer enchantments (ForgeIsDetrimentalProp). The
+//    counting half only loosens the law, but the new
+//    ForgeMissingBlueprintDrawback rule CAN newly condemn an item - a piece a
+//    player forged after striking off its bane - and those items sit under both
+//    caps, so without this bump their existing clean stamps would hide them
+//    forever.
+const int FORGE_CLEAN_VER = 6;
 
 // Tri-state result of ForgeItemLegality.
 const int FORGE_LEG_LEGAL         = 0;  // confirmed within the law
@@ -380,21 +386,51 @@ int ForgeIsRestrictionProp(itemproperty ip)
         || nType == ITEM_PROPERTY_USE_LIMITATION_TILESET;
 }
 
+// Drawbacks (ability/AC/attack/damage/enhancement/save/skill penalties, damage
+// vulnerability, no damage, weight increase, arcane spell failure) are the
+// price an item&#x27;s power was balanced against - the bane on a Basilisk Visage,
+// not an enchantment on it. Like restrictions they make an item WEAKER, so they
+// cost no slot and no forge will unmake them: striking one off used to turn a
+// balanced piece into a pure upgrade for the cost of a disenchant, and free a
+// slot for a real enchantment on top (roadmap
+// smith-can-disenchant-negative-abilities). They ARE still priced and still
+// fingerprinted - a drawback lowers an item&#x27;s assessed worth, and removing it
+// from the pricing would re-value every cursed piece upward and could jail gear
+// that is lawful today. See FORGE_SEL_PRICED below.
+int ForgeIsDetrimentalProp(itemproperty ip)
+{
+    int nType = GetItemPropertyType(ip);
+    return nType == ITEM_PROPERTY_DECREASED_ABILITY_SCORE
+        || nType == ITEM_PROPERTY_DECREASED_AC
+        || nType == ITEM_PROPERTY_DECREASED_ATTACK_MODIFIER
+        || nType == ITEM_PROPERTY_DECREASED_DAMAGE
+        || nType == ITEM_PROPERTY_DECREASED_ENHANCEMENT_MODIFIER
+        || nType == ITEM_PROPERTY_DECREASED_SAVING_THROWS
+        || nType == ITEM_PROPERTY_DECREASED_SAVING_THROWS_SPECIFIC
+        || nType == ITEM_PROPERTY_DECREASED_SKILL_MODIFIER
+        || nType == ITEM_PROPERTY_DAMAGE_VULNERABILITY
+        || nType == ITEM_PROPERTY_NO_DAMAGE
+        || nType == ITEM_PROPERTY_WEIGHT_INCREASE
+        || nType == ITEM_PROPERTY_ARCANE_SPELL_FAILURE;
+}
+
 // Three DIFFERENT questions the forge asks about a property, which used to
 // share one predicate (permanent &amp;&amp; !cosmetic) and no longer can. Every
 // enumeration in this file goes through ForgePropInSet with one of these -
 // never re-inline the condition, or the sets silently drift apart.
 //
 //   COUNTED   what fills an enchantment slot: the property cap, the &quot;bears N
-//             enchantments&quot; messages, the legality verdict.
+//             enchantments&quot; messages, the legality verdict. Neither
+//             restrictions nor drawbacks are enchantments, so neither counts.
 //   REMOVABLE what a player may strike at a forge / in the Warden&#x27;s jail, and
 //             therefore what the staged plan&#x27;s bit indices count. Light IS
-//             removable (it just costs no slot); weapon visual effects are not
-//             (they come from the Bree appearance station, not the forge).
+//             removable (it just costs no slot); weapon visual effects,
+//             restrictions and drawbacks are not.
 //   PRICED    what contributes to the rebuilt gold value and what identifies
 //             the item against its stock blueprint. Identical to the old
 //             permanent &amp;&amp; !cosmetic rule - pricing and fingerprints must not
-//             move when the counting rules change.
+//             move when the counting rules change, so restrictions AND
+//             drawbacks stay in this set.
 const int FORGE_SEL_COUNTED   = 0;
 const int FORGE_SEL_REMOVABLE = 1;
 const int FORGE_SEL_PRICED    = 2;
@@ -405,12 +441,14 @@ int ForgePropInSet(itemproperty ip, int nSel)
         return FALSE;
     if (nSel == FORGE_SEL_REMOVABLE)
         return GetItemPropertyType(ip) != ITEM_PROPERTY_VISUALEFFECT
-            &amp;&amp; !ForgeIsRestrictionProp(ip);
+            &amp;&amp; !ForgeIsRestrictionProp(ip)
+            &amp;&amp; !ForgeIsDetrimentalProp(ip);
     if (ForgeIsCosmeticProp(ip))
         return FALSE;
     if (nSel == FORGE_SEL_PRICED)
         return TRUE;
-    return !ForgeIsRestrictionProp(ip);  // FORGE_SEL_COUNTED
+    return !ForgeIsRestrictionProp(ip)
+        &amp;&amp; !ForgeIsDetrimentalProp(ip);  // FORGE_SEL_COUNTED
 }
 
 int ForgeCountPropsSel(object oItem, int nSel)
@@ -959,6 +997,67 @@ int ForgeItemDeviatesFromBlueprint(object oItem)
     return bDeviates;
 }
 
+// TRUE when oItem&#x27;s stock blueprint carries a permanent drawback that oItem no
+// longer has. This is the retroactive half of
+// smith-can-disenchant-negative-abilities: drawbacks can no longer be struck
+// off, but items stripped before the fix are already out there, and they sit
+// comfortably under both caps (removing a penalty LOWERS an item&#x27;s worth), so
+// the ordinary ceiling checks would never notice them. A player-modified piece
+// missing its bane is contraband, and the Warden&#x27;s revert-to-blueprint is the
+// cure - the forge cannot put a drawback back.
+//
+// Same packed-signature technique as ForgeItemDeviatesFromBlueprint: pack the
+// stock side once, consume tokens, O(n) walks - never a nested property loop
+// (that is what blew the instruction cap inside the legality check before).
+// Missing blueprint or no holder returns FALSE: never jail on an
+// infrastructure failure or on an item with no stock to compare against.
+int ForgeMissingBlueprintDrawback(object oItem)
+{
+    object oHolder = ForgeHolder();
+    if (!GetIsObjectValid(oHolder))
+        return FALSE;
+    object oStock = CreateItemOnObject(GetResRef(oItem), oHolder);
+    if (!GetIsObjectValid(oStock))
+        return FALSE;
+
+    // Pack the item&#x27;s OWN drawbacks, then look for each stock drawback in it.
+    string sHas = &quot;|&quot;;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT
+            &amp;&amp; ForgeIsDetrimentalProp(ip))
+            sHas += ForgePropSig(ip) + &quot;|&quot;;
+        ip = GetNextItemProperty(oItem);
+    }
+
+    int bMissing = FALSE;
+    itemproperty ipS = GetFirstItemProperty(oStock);
+    while (!bMissing &amp;&amp; GetIsItemPropertyValid(ipS))
+    {
+        if (GetItemPropertyDurationType(ipS) == DURATION_TYPE_PERMANENT
+            &amp;&amp; ForgeIsDetrimentalProp(ipS))
+        {
+            string sTok = &quot;|&quot; + ForgePropSig(ipS) + &quot;|&quot;;
+            int nPos = FindSubString(sHas, sTok);
+            if (nPos &lt; 0)
+                bMissing = TRUE;
+            else
+                // Consume this one occurrence, keeping the leading &quot;|&quot; so the
+                // remaining tokens stay delimited on both sides.
+                sHas = GetStringLeft(sHas, nPos + 1)
+                    + GetSubString(sHas, nPos + GetStringLength(sTok),
+                        GetStringLength(sHas) - nPos - GetStringLength(sTok));
+        }
+        ipS = GetNextItemProperty(oStock);
+    }
+    DestroyObject(oStock);
+    if (bMissing)
+        ForgeLog(&quot;MissingBlueprintDrawback: &#x27;&quot; + GetName(oItem) + &quot;&#x27; (&quot;
+            + GetResRef(oItem) + &quot;) has lost a drawback its blueprint carries.&quot;);
+    return bMissing;
+}
+
 // TRUE when a player has changed this item at a forge. This - NOT the
 // blueprint comparison - is the authoritative answer to &quot;did a player make this
 // what it is&quot;, and the caps only ever apply to items for which it is true.
@@ -1003,6 +1102,16 @@ int ForgeItemLegality(object oItem)
     int nValue = ForgeItemValue(oItem, TRUE); // per-unit: the cap is per item, not per stack
     if (nValue &lt; 0)
         return FORGE_LEG_INDETERMINATE; // no valuation infrastructure - never judge blind
+    // A drawback struck off before the fix landed leaves an item BELOW both
+    // caps, so it must be judged before the within-caps early return. Gated on
+    // the O(1) player-modified stamp so the login scan only pays for the
+    // blueprint instantiation on items a player actually forged, and cleared by
+    // the same known-legal-variant escape hatch as the deviation check (the
+    // module does place drawback-free variants of its own gear).
+    if (ForgeIsPlayerModified(oItem)
+        &amp;&amp; ForgeMissingBlueprintDrawback(oItem)
+        &amp;&amp; !ForgeIsKnownLegalVariant(oItem))
+        return FORGE_LEG_ILLEGAL;
     // A forge stamps FORGE_CEIL on an item it lawfully enchanted above the
     // default ceiling because the forger&#x27;s Appraise allowed it; honor that
     // higher per-item ceiling for everyone (legality is intrinsic to the item).
@@ -1161,6 +1270,7 @@ string ForgeUnlistedNote(object oItem)
         return &quot;&quot;;
     int bRestrict = FALSE;
     int bLight = FALSE;
+    int bBane = FALSE;
     itemproperty ip = GetFirstItemProperty(oItem);
     while (GetIsItemPropertyValid(ip))
     {
@@ -1168,12 +1278,18 @@ string ForgeUnlistedNote(object oItem)
         {
             if (ForgeIsRestrictionProp(ip))
                 bRestrict = TRUE;
+            else if (ForgeIsDetrimentalProp(ip))
+                bBane = TRUE;
             else if (GetItemPropertyType(ip) == ITEM_PROPERTY_LIGHT)
                 bLight = TRUE;
         }
         ip = GetNextItemProperty(oItem);
     }
     string s = &quot;&quot;;
+    if (bBane)
+        s += &quot; The bane laid upon it is no enchantment of mine: it is the price&quot;
+            + &quot; its power was forged against. It fills no slot, and no forge&quot;
+            + &quot; will lift it.&quot;;
     if (bRestrict)
         s += &quot; The bindings of blood, creed and calling upon it are no&quot;
             + &quot; enchantment: they cost it no slot, and no forge of mine will&quot;
@@ -1202,6 +1318,15 @@ string ForgeLegalStatus(object oItem)
     int nMaxProps = ForgeItemMaxProps(oItem);
     int bProps = nProps &gt; nMaxProps;
     int bValue = nValue &gt; nValueCeil;
+    // A bane struck off before the fix is an offence on its own, and one the
+    // forge cannot undo - say so plainly, because reverting to the blueprint is
+    // the only cure and the player has no other way to put the drawback back.
+    if (ForgeIsPlayerModified(oItem)
+        &amp;&amp; ForgeMissingBlueprintDrawback(oItem)
+        &amp;&amp; !ForgeIsKnownLegalVariant(oItem))
+        return &quot;The bane it was forged with has been struck from it. That is no&quot;
+            + &quot; honest smithing, and no forge of mine can lay it back on: only&quot;
+            + &quot; restoring the piece as it was made will set it right.&quot;;
     if (!bProps &amp;&amp; !bValue)
         return &quot;It is within the law now: &quot; + IntToString(nProps)
             + &quot; enchantments of the &quot; + IntToString(nMaxProps)

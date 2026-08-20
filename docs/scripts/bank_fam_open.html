@@ -57,18 +57,37 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bank_fam_open</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>bank_fam_open</code></h1><pre class="nss-source"><code>// bank_fam_open.nss - hand out the player&#x27;s family strongboxes
+//
+// The retrieve is per-index idempotent: if the PC is already carrying family box
+// N (because a previous vault session was broken off with ESC, or because the
+// dialog looped back to this reply), we do NOT retrieve a second copy. Doing so
+// used to duplicate items - RetrieveCampaignObject does not clear or lock the DB
+// row, so re-opening spawned another box loaded from the unchanged snapshot
+// while the emptied one was still in the pack (roadmap banking-duplicate-exploit).
+
+#include &quot;bank_box_inc&quot;
+
+void main()
 {
 object oPC = GetPCSpeaker();
 string sCDKey = GetPCPublicCDKey(oPC);
 object oVault = GetNearestObjectByTag(&quot;pl_vaultstorage&quot;);
 int iBoxNum = GetCampaignInt(&quot;bankdb&quot;, &quot;fam_account_&quot; + sCDKey);
 int iCounter = 1;
+int nOpened = 0;
 while(iCounter &lt;= iBoxNum)
    {
-   RetrieveCampaignObject(&quot;bankdb&quot;, &quot;fam_box_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter), GetLocation(oVault), oPC);
+   string sBoxTag = &quot;az_familybox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter);
+   if(!GetIsObjectValid(GetItemPossessedBy(oPC, sBoxTag)))
+      {
+      RetrieveCampaignObject(&quot;bankdb&quot;, &quot;fam_box_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter), GetLocation(oVault), oPC);
+      if(GetIsObjectValid(GetItemPossessedBy(oPC, sBoxTag)))
+         nOpened = nOpened + 1;
+      }
    iCounter = iCounter + 1;
    }
+Bank_LogOpen(oPC, &quot;family&quot;, iBoxNum, nOpened, &quot;open_family&quot;);
 }
 </code></pre>
   </main>

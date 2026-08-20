@@ -60,15 +60,19 @@
 <h1>Script: <code>at_013</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
 //:: FileName at_013
 //:://////////////////////////////////////////////
+//:: Gondor Scribe -- the player signs off after the turn-in.
+//::
+//:: Used to be SetLocalInt(oPC, &quot;azagothdead&quot;, 1) -- a session local, so the
+//:: &quot;you have already done this&quot; greeting vanished on relog and the whole
+//:: briefing chain became available again. Now it advances the persistent
+//:: stage instead; WOS_Complete is idempotent, so reaching this after at_008
+//:: has already run costs nothing.
 //:://////////////////////////////////////////////
-//:: Created By: Script Wizard
-//:: Created On: 9/26/2002 4:51:13 PM
-//:://////////////////////////////////////////////
+#include &quot;wos_inc&quot;
+
 void main()
 {
-	// Set the variables
-	SetLocalInt(GetPCSpeaker(), &quot;azagothdead&quot;, 1);
-
+    WOS_Complete(GetPCSpeaker());
 }
 </code></pre>
   </main>

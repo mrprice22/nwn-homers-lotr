@@ -74,6 +74,15 @@
 // Each successful store is recorded in the bankaudit table (same bankdb file) so
 // future loss reports can be investigated - the previous DB had no timestamps or
 // transaction log, so past losses could not be confirmed.
+//
+// Duplicate boxes: the pre-fix open scripts retrieved unconditionally, so a
+// player who broke off the vault dialog and re-opened it ended up carrying
+// several boxes with the same tag, each loaded from the same (unchanged) DB
+// snapshot - a working item dupe (roadmap banking-duplicate-exploit). The open
+// scripts are now per-index idempotent, and the commit helpers below drain every
+// copy of a tag rather than just the first: the copy holding the most items is
+// stored, the rest are destroyed, and the audit row&#x27;s source is suffixed
+// &quot;+dupes&quot; so the cleanup is visible.
 
 const string BANK_DB = &quot;bankdb&quot;;
 
@@ -91,7 +100,7 @@ void Bank_InitAudit()
         &quot;box_type TEXT,&quot; +       // &quot;family&quot; | &quot;strong&quot;
         &quot;box_num INTEGER,&quot; +
         &quot;item_count INTEGER,&quot; +
-        &quot;source TEXT)&quot;);         // &quot;dialog&quot; | &quot;area_exit&quot; | &quot;client_leave&quot;
+        &quot;source TEXT)&quot;);         // &quot;dialog&quot; | &quot;area_exit&quot; | &quot;client_leave&quot; | &quot;open_*&quot;
     SqlStep(q);
 }
 
@@ -110,6 +119,16 @@ void Bank_LogCommit(string sCDKey, string sCharName, string sBoxType,
     SqlStep(q);
 }
 
+// Record a vault *open*. nBoxNum is the size of the account, nOpened the number
+// of boxes actually handed over this time (0 when the player was already
+// carrying them all). Repeated opens by the same CD key are the signature the
+// duplication exploit left behind, so they are worth a row.
+void Bank_LogOpen(object oPC, string sBoxType, int nBoxNum, int nOpened, string sSource)
+{
+    Bank_InitAudit();
+    Bank_LogCommit(GetPCPublicCDKey(oPC), GetName(oPC), sBoxType, nBoxNum, nOpened, sSource);
+}
+
 // Count of items currently inside a container object.
 int Bank_CountItems(object oBox)
 {
@@ -124,6 +143,88 @@ int Bank_CountItems(object oBox)
 }
 
 // ------------------------------------------------------------
+// Commit one box tag
+//
+// Stores the copy of sBoxTag holding the most items into sDbKey (owner oOwner,
+// OBJECT_INVALID for the global family keys), destroys every copy, and writes
+// one bankaudit row. Returns the number of duplicate copies destroyed.
+//
+// The inventory is walked once to collect the copies as object-id strings before
+// anything is counted or destroyed, so no inventory iterator is ever nested and
+// DestroyObject&#x27;s end-of-script deferral cannot confuse the scan.
+
+int Bank_CommitBoxTag(object oPC, string sBoxTag, string sDbKey, object oOwner,
+                      string sBoxType, int nBoxNum, string sSource)
+{
+    string sList = &quot;&quot;;
+    int nCopies = 0;
+
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        if (GetTag(oItem) == sBoxTag)
+        {
+            sList = sList + ObjectToString(oItem) + &quot;,&quot;;
+            nCopies++;
+        }
+        oItem = GetNextItemInInventory(oPC);
+    }
+
+    if (nCopies == 0)
+        return 0;
+
+    // Pick the fullest copy as the survivor - committing an arbitrary one could
+    // store an emptied box and destroy the full one.
+    object oBest    = OBJECT_INVALID;
+    int    nBestQty = -1;
+    string sScan    = sList;
+    while (GetStringLength(sScan) &gt; 0)
+    {
+        int nSep = FindSubString(sScan, &quot;,&quot;);
+        if (nSep &lt; 0)
+            break;
+        object oCopy = StringToObject(GetStringLeft(sScan, nSep));
+        sScan = GetStringRight(sScan, GetStringLength(sScan) - nSep - 1);
+        if (!GetIsObjectValid(oCopy))
+            continue;
+        int nQty = Bank_CountItems(oCopy);
+        if (nQty &gt; nBestQty)
+        {
+            nBestQty = nQty;
+            oBest    = oCopy;
+        }
+    }
+
+    if (!GetIsObjectValid(oBest))
+        return 0;
+
+    int nExtras = nCopies - 1;
+    StoreCampaignObject(BANK_DB, sDbKey, oBest, oOwner);
+    Bank_LogCommit(GetPCPublicCDKey(oPC), GetName(oPC), sBoxType, nBoxNum,
+                   nBestQty, nExtras &gt; 0 ? sSource + &quot;+dupes&quot; : sSource);
+
+    // Destroy every copy, survivor included - it is now safely in the DB.
+    sScan = sList;
+    while (GetStringLength(sScan) &gt; 0)
+    {
+        int nSep = FindSubString(sScan, &quot;,&quot;);
+        if (nSep &lt; 0)
+            break;
+        object oCopy = StringToObject(GetStringLeft(sScan, nSep));
+        sScan = GetStringRight(sScan, GetStringLength(sScan) - nSep - 1);
+        if (GetIsObjectValid(oCopy))
+            DestroyObject(oCopy);
+    }
+
+    if (nExtras &gt; 0)
+        WriteTimestampedLogEntry(&quot;BANK: destroyed &quot; + IntToString(nExtras) +
+            &quot; duplicate &quot; + sBoxType + &quot; box(es) &#x27;&quot; + sBoxTag + &quot;&#x27; for &quot; +
+            GetName(oPC) + &quot; [&quot; + GetPCPublicCDKey(oPC) + &quot;] on &quot; + sSource);
+
+    return nExtras;
+}
+
+// ------------------------------------------------------------
 // Commit loops
 //
 // sSource identifies the calling path for the audit log (&quot;dialog&quot;, &quot;area_exit&quot;,
@@ -134,19 +235,13 @@ void CommitFamilyBoxes(object oPC, string sSource)
 {
     Bank_InitAudit();
     string sCDKey = GetPCPublicCDKey(oPC);
-    string sName  = GetName(oPC);
     int iCounter;
     for (iCounter = 1; iCounter &lt;= 5; iCounter++)
     {
-        string sBoxTag = &quot;az_familybox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter);
-        object oBox = GetItemPossessedBy(oPC, sBoxTag);
-        if (GetIsObjectValid(oBox))
-        {
-            int nItems = Bank_CountItems(oBox);
-            StoreCampaignObject(BANK_DB, &quot;fam_box_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter), oBox);
-            Bank_LogCommit(sCDKey, sName, &quot;family&quot;, iCounter, nItems, sSource);
-            DestroyObject(oBox);
-        }
+        Bank_CommitBoxTag(oPC,
+            &quot;az_familybox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter),
+            &quot;fam_box_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter),
+            OBJECT_INVALID, &quot;family&quot;, iCounter, sSource);
     }
 }
 
@@ -154,19 +249,13 @@ void CommitStrongBoxes(object oPC, string sSource)
 {
     Bank_InitAudit();
     string sCDKey = GetPCPublicCDKey(oPC);
-    string sName  = GetName(oPC);
     int iCounter;
     for (iCounter = 1; iCounter &lt;= 5; iCounter++)
     {
-        string sBoxTag = &quot;az_strongbox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter);
-        object oBox = GetItemPossessedBy(oPC, sBoxTag);
-        if (GetIsObjectValid(oBox))
-        {
-            int nItems = Bank_CountItems(oBox);
-            StoreCampaignObject(BANK_DB, &quot;bank_box_&quot; + IntToString(iCounter), oBox, oPC);
-            Bank_LogCommit(sCDKey, sName, &quot;strong&quot;, iCounter, nItems, sSource);
-            DestroyObject(oBox);
-        }
+        Bank_CommitBoxTag(oPC,
+            &quot;az_strongbox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter),
+            &quot;bank_box_&quot; + IntToString(iCounter),
+            oPC, &quot;strong&quot;, iCounter, sSource);
     }
 }
 </code></pre>

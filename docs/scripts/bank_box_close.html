@@ -57,24 +57,21 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bank_box_close</code></h1><pre class="nss-source"><code>void main()
-{
-object oPC = GetPCSpeaker();
-object oBox;
+<h1>Script: <code>bank_box_close</code></h1><pre class="nss-source"><code>// bank_box_close.nss - &quot;I am done with my vault&quot; / &quot;Yes.&quot; (close strongboxes)
+//
+// Delegates to the shared commit helper so the personal strongbox path gets the
+// same treatment as the family path: the box that is actually possessed is the
+// one stored (the old code re-resolved it with a module-wide GetObjectByTag,
+// which could grab the wrong same-tagged copy), duplicate boxes left behind by
+// the pre-fix open path are drained, and every commit writes a bankaudit row.
 
-int iCounter = 1;
-while(iCounter &lt;= 5)
-   {
-   if(GetItemPossessedBy(oPC, &quot;az_strongbox_&quot; + GetPCPublicCDKey(oPC) + &quot;_&quot; + IntToString(iCounter)) != OBJECT_INVALID)
-      {
-      oBox = GetObjectByTag(&quot;az_strongbox_&quot; + GetPCPublicCDKey(oPC) + &quot;_&quot; + IntToString(iCounter));
-      StoreCampaignObject(&quot;bankdb&quot;, &quot;bank_box_&quot; + IntToString(iCounter), oBox, oPC);
-      DestroyObject(oBox);
-      }
-   iCounter = iCounter + 1;
-   }
-ExportSingleCharacter(oPC);
-return;
+#include &quot;bank_box_inc&quot;
+
+void main()
+{
+    object oPC = GetPCSpeaker();
+    CommitStrongBoxes(oPC, &quot;dialog&quot;);
+    ExportSingleCharacter(oPC);
 }
 </code></pre>
   </main>

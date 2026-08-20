@@ -60,19 +60,23 @@
 <h1>Script: <code>sc_annukey</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
 //:: FileName sc_annukey
 //:://////////////////////////////////////////////
-//:: Gondor Scribe -- TRUE while this character has never been given the
-//:: Annuminas Key. Gates the &quot;here is the key&quot; accept entry in
-//:: gondorscribe.dlg so a relog cannot buy a second key; the fallback entry
-//:: right below it repeats the directions without the key.
+//:: Gondor Scribe -- TRUE when this character has finished the quest but has
+//:: never been given the Annuminas Key. Gates the &quot;claim your key&quot; entry
+//:: (at_007_key).
 //::
-//:: The stamp lives in the questcddb campaign DB (quest_cd row uuid+&quot;annu_key&quot;,
-//:: written by at_007.nss), so it survives logout and server reboots.
+//:: This is the grandfather path. The key used to come at quest accept; it now
+//:: comes with the head turn-in, and the head is consumed, so anyone who
+//:: finished before the change has no way back to the reward node. They get one
+//:: chance here, and the annu_key stamp closes it behind them.
+//::
+//:: The stamp lives in the questcddb campaign DB (quest_cd row ident+&quot;annu_key&quot;)
+//:: so it survives logout and server reboots.
 //:://////////////////////////////////////////////
-#include &quot;quest_cd_inc&quot;
+#include &quot;wos_inc&quot;
 
 int StartingConditional()
 {
-    return (QCD_LastStamp(GetPCSpeaker(), &quot;annu_key&quot;) == 0);
+    return WOS_CanClaimKey(GetPCSpeaker());
 }
 </code></pre>
   </main>

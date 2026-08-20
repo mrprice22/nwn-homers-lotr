@@ -65,9 +65,11 @@
 //
 // Schema:  quest_cd(uuid, quest, cdkey, char_name, stamped_at, times_done,
 //                   PRIMARY KEY (uuid, quest))
-//          Character identity is GetObjectUUID (persists in the .bic, same
-//          key the bestiary uses); cdkey/char_name are stored for out-of-band
-//          inspection with sqlite3 only - lookups never use them.
+//          Character identity is QCD_Ident: GetObjectUUID (persists in the
+//          .bic, same key the bestiary uses), falling back to CD key + name
+//          for an unsaved character whose UUID is still empty. cdkey/char_name
+//          are stored for out-of-band inspection with sqlite3 only - lookups
+//          never use those columns.
 //
 // This is the shared gate for every Daily/Weekly repeatable quest. Time is
 // real-world wall-clock (SQLite strftime(&#x27;%s&#x27;,&#x27;now&#x27;)), NOT the game calendar,
@@ -132,6 +134,26 @@ void QCD_InitDb()
 // ------------------------------------------------------------
 // Small helpers
 
+// ------------------------------------------------------------
+// Character identity for the quest_cd primary key.
+//
+// Normally GetObjectUUID: it is minted once and persists in the .bic, so it
+// survives relogs and reboots. But an UNSAVED character (offline toolset
+// testing, or a PC the server has not exported yet) can hand back an empty
+// string, and an empty uuid means every lookup misses -- which reads in game
+// as &quot;the once-ever gate does not work&quot; while the live server is fine.
+// Fall back to CD key + character name in that case: still per-character,
+// still stable within a session, and it keeps a test build honest.
+//
+// Backward compatible: a saved character always has a UUID, so existing rows
+// keep matching.
+string QCD_Ident(object oPC)
+{
+    string sUuid = GetObjectUUID(oPC);
+    if (sUuid != &quot;&quot;) return sUuid;
+    return &quot;k:&quot; + GetPCPublicCDKey(oPC) + &quot;|&quot; + GetName(oPC);
+}
+
 // Real-world &quot;now&quot; as unix-epoch seconds (from SQLite, not the game clock).
 int QCD_Now()
 {
@@ -160,7 +182,7 @@ int QCD_LastStamp(object oPC, string sQuest)
 {
     sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
         &quot;SELECT stamped_at FROM quest_cd WHERE uuid=@u AND quest=@q&quot;);
-    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@u&quot;, QCD_Ident(oPC));
     SqlBindString(q, &quot;@q&quot;, sQuest);
     if (!SqlStep(q)) return 0;
     return SqlGetInt(q, 0);
@@ -178,7 +200,7 @@ void QCD_Stamp(object oPC, string sQuest)
         &quot; times_done=times_done+1,&quot; +
         &quot; cdkey=excluded.cdkey,&quot; +
         &quot; char_name=excluded.char_name&quot;);
-    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@u&quot;, QCD_Ident(oPC));
     SqlBindString(q, &quot;@q&quot;, sQuest);
     SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
     SqlBindString(q, &quot;@n&quot;, GetName(oPC));
@@ -214,7 +236,7 @@ int QCD_IsDoneToday(object oPC, string sQuest)
     sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
         &quot;SELECT 1 FROM quest_cd WHERE uuid=@u AND quest=@q&quot; +
         &quot; AND date(stamped_at,&#x27;unixepoch&#x27;) = date(&#x27;now&#x27;)&quot;);
-    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@u&quot;, QCD_Ident(oPC));
     SqlBindString(q, &quot;@q&quot;, sQuest);
     return SqlStep(q);
 }
@@ -225,7 +247,7 @@ int QCD_IsDoneThisWeek(object oPC, string sQuest)
     sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
         &quot;SELECT 1 FROM quest_cd WHERE uuid=@u AND quest=@q&quot; +
         &quot; AND strftime(&#x27;%Y-%W&#x27;, stamped_at,&#x27;unixepoch&#x27;) = strftime(&#x27;%Y-%W&#x27;,&#x27;now&#x27;)&quot;);
-    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@u&quot;, QCD_Ident(oPC));
     SqlBindString(q, &quot;@q&quot;, sQuest);
     return SqlStep(q);
 }
@@ -238,7 +260,7 @@ void QCD_Clear(object oPC, string sQuest)
 {
     sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
         &quot;DELETE FROM quest_cd WHERE uuid=@u AND quest=@q&quot;);
-    SqlBindString(q, &quot;@u&quot;, GetObjectUUID(oPC));
+    SqlBindString(q, &quot;@u&quot;, QCD_Ident(oPC));
     SqlBindString(q, &quot;@q&quot;, sQuest);
     SqlStep(q);
 }

@@ -57,19 +57,35 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>bank_box_open</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>bank_box_open</code></h1><pre class="nss-source"><code>// bank_box_open.nss - hand out the player&#x27;s personal strongboxes
+//
+// Per-index idempotent, for the same reason as bank_fam_open: re-opening a vault
+// the PC is still carrying used to mint a second same-tagged box from the
+// unchanged DB snapshot, duplicating its contents
+// (roadmap banking-duplicate-exploit).
+
+#include &quot;bank_box_inc&quot;
+
+void main()
 {
 object oPC = GetPCSpeaker();
+string sCDKey = GetPCPublicCDKey(oPC);
 object oVault = GetNearestObjectByTag(&quot;pl_vaultstorage&quot;);
-
-int iCounter = 1;
 int iBoxNum = GetCampaignInt(&quot;bankdb&quot;, &quot;bank_account&quot;, oPC);
+int iCounter = 1;
+int nOpened = 0;
 while(iCounter &lt;= iBoxNum)
    {
-   RetrieveCampaignObject(&quot;bankdb&quot;, &quot;bank_box_&quot; + IntToString(iCounter), GetLocation(oVault), oPC, oPC);
+   string sBoxTag = &quot;az_strongbox_&quot; + sCDKey + &quot;_&quot; + IntToString(iCounter);
+   if(!GetIsObjectValid(GetItemPossessedBy(oPC, sBoxTag)))
+      {
+      RetrieveCampaignObject(&quot;bankdb&quot;, &quot;bank_box_&quot; + IntToString(iCounter), GetLocation(oVault), oPC, oPC);
+      if(GetIsObjectValid(GetItemPossessedBy(oPC, sBoxTag)))
+         nOpened = nOpened + 1;
+      }
    iCounter = iCounter + 1;
    }
-return;
+Bank_LogOpen(oPC, &quot;strong&quot;, iBoxNum, nOpened, &quot;open_strong&quot;);
 }
 </code></pre>
   </main>

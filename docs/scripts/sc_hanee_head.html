@@ -65,9 +65,15 @@
     Fires when the PC returns carrying Azagoth&#x27;s Head
     and has not yet collected the intermediate reward.
     (roadmap: gondor-scribe)
+
+    The &quot;already paid&quot; flag is the questcddb stamp
+    &quot;hanee_head&quot;, not a session local - Hanee does not
+    take the head, so a forgetful gate meant a relog
+    bought another 5,000 XP off the same trophy.
 */
 //:://////////////////////////////////////////////
 #include &quot;nw_i0_tool&quot;
+#include &quot;quest_cd_inc&quot;
 
 int StartingConditional()
 {
@@ -77,8 +83,8 @@ int StartingConditional()
     if(!CheckPlayerForItem(oPC, &quot;azagothshead&quot;))
         return FALSE;
 
-    // One-time reward - Hanee does not take the head, so gate on a flag
-    if(GetLocalInt(oPC, &quot;hanee_head_reward&quot;))
+    // One-time reward - persists across relogs and reboots
+    if(QCD_LastStamp(oPC, &quot;hanee_head&quot;) != 0)
         return FALSE;
 
     return TRUE;
