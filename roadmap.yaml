@@ -196,12 +196,49 @@ ideas:
   - id: banking-duplicate-exploit
     title: "Bank items duplicate exploit"
     group: banking
-    status: confirmed
+    status: manual
     type: Exploit
     player: "Rajmund (Ray)"
     date: "2026-08-19"
-    notes: "Steps to reproduce:<li><div><div><div><span>Open vault, put in what you want copied. Close vault normally through conversation. </span></div></div></div></li><li><div><div><div><span>Open vault, take the item out, but hit escape to break conversation. </span></div></div></div></li><li><div><div><div><span>Click teller and open family vault: you have the original content, you can take the item out again.Drawback, you end up with lots of boxes </span><span><img src=\"https://discord.com/assets/744deec4104c34a5.svg\" alt=\"😆\"></span><span><br></span></div></div></div></li><li><div><div><div><span>And finally click teller and choose 'I am done with my family vault'.</span></div></div></div></li><li><div><div><div><span> Repeat until this option is no longer available. Now you got no boxes but you can enjoy duped stuff.\nPossible workaround: from teller conversation, check if player has open vault, then disable open family vault.\nProbably that would fix it</span></div></div></div></li>"
-    notes_h: 223
+    commit: 0bceec3f52f
+    notes: "<div><b>The Bank of Bree vault no longer hands out a second copy of your box.</b> It was possible to open your family vault, take an item out, break off the conversation, and open the vault again -- the banker would hand you a fresh set of boxes still holding everything you had just removed, so the contents could be taken over and over. That is fixed: the banker will not give you a box you are already carrying.</div><div><br></div><div><b>Nothing changes for normal use.</b> You still carry your boxes around with the conversation closed, and your items are still saved when you say you are done, when you leave the bank, and when you log out. If a box failed to appear because your pack was full, you can still ask the banker again and only the missing box is handed over.</div><div><br></div><div><b>Your personal strongbox got the same treatment</b>, along with a related bug: if you had several strongboxes and were carrying only some of them, the banker sometimes forgot you had any and skipped straight past the option to put them away.</div><div><br></div><div><b>Leftover duplicate boxes are cleaned up.</b> If you are still carrying more than one copy of the same box from before this fix, the next time you close your vault the fullest one is kept and stored and the spares are removed. Reported by Rajmund (Ray).</div>"
+    impl_notes: "<div><b>Root cause.</b> <code>bank_fam_open.nss</code> / <code>bank_box_open.nss</code> called <code>RetrieveCampaignObject</code> unconditionally. Both vault types are container <i>items</i> in the PC's inventory (<code>az_familybox_&lt;CDKey&gt;_N</code> -&gt; bankdb key <code>fam_box_&lt;CDKey&gt;_N</code>, global; <code>az_strongbox_&lt;CDKey&gt;_N</code> -&gt; <code>bank_box_N</code>, owner-scoped), and RetrieveCampaignObject neither clears nor locks the row -- so the DB stays a stale snapshot for as long as the box is carried, and re-opening minted a second same-tagged box from it. ESC was not required: EntryList[1] loops back to the open reply inside one conversation.</div><div><br></div><div><b>Why the guard is in the scripts, not the dialogue.</b> <code>bank_fam_nobox</code>/<code>bank_box_nobox</code> already existed but were wired as the Active on the <i>failure</i> entry (E22/E5, \"make room in your inventory\"), i.e. evaluated after the open script had already run; ReplyList[44] was gated only by <code>bank_fam_hasacc</code> and ReplyList[4] by nothing at all. A per-index idempotent retrieve was chosen over adding a dialog-level Active: it also covers the loop-back path, still allows topping up a box that failed to spawn on a full pack, and avoids editing <code>npc_banker.dlg.json</code>. Committing in the abort hook was rejected -- <code>EndConverAbort</code> is <code>bank_convexit</code>, which is also <code>EndConversation</code>, so the normal open path (E4/E21 is a leaf) would commit and destroy the box the instant it was handed over.</div><div><br></div><div><b>bank_box_inc.nss.</b> New <code>Bank_CommitBoxTag()</code> drains every copy of a tag instead of the one <code>GetItemPossessedBy</code> returns: the copy with the most items is stored (an arbitrary pick could store an emptied box and destroy the full one), all copies are destroyed, source is suffixed <code>+dupes</code> and a <code>WriteTimestampedLogEntry</code> line is written. The inventory is walked once into an <code>ObjectToString</code> list before anything is counted or destroyed, so no inventory iterator is nested and DestroyObject's end-of-script deferral cannot confuse the scan. New <code>Bank_LogOpen()</code> records opens (<code>open_family</code>/<code>open_strong</code>); no schema change, <code>Bank_InitAudit</code> is already CREATE TABLE IF NOT EXISTS.</div><div><br></div><div><b>Two latent bugs found alongside.</b> <code>bank_box_close.nss</code> detected the box with GetItemPossessedBy but re-resolved it with a module-wide <code>GetObjectByTag</code> (wrong copy with duplicates in play) and wrote no audit row -- it now just calls <code>CommitStrongBoxes(oPC, \"dialog\")</code> like <code>bank_fam_close</code>. <code>bank_box_hasbox.nss</code> tested only the highest box index, so a 3-box account carrying boxes 1-2 fell through the StartingList redirect at E13 to the normal greeting -- the personal-vault half of the same exploit; it now scans 1..5. The illegal-item purge loop in that conditional is load-bearing (it runs on every banker conversation start) and was preserved verbatim.</div><div><br></div><div><b>Forensics.</b> New <code>bin/audit-bank-dupes.py</code>, read-only over bankdb's <code>bankaudit</code> table (immutable open, windows-1252 text factory for NWN character names). <b>Its two historical signatures are weak and should not be treated as evidence:</b> repeat commits of one box in a short window, and item_count dropping then recovering, are exactly what a family vault used as an alt-to-alt transfer chest looks like, and the table holds no per-item detail to separate them (2015 rows on the dev DB flag 7 CD keys, dominated by heavy multi-alt users). The one conclusive signature -- commits that had to destroy duplicate boxes -- only exists from this build forward.</div><div><br></div><div><b>Build.</b> Module-only; no hak, TLK or NWSync rebuild. 25/25 smoke tests, check-dlg-integrity clean, installed to the DEV realm only.</div>"
+    manual_steps:
+      - step: "UAT (the reported repro, must now fail): in the Bank of Bree with a family account, open the family vault, take an item out of a box, then press ESC to break the conversation. Talk to the banker again and choose \"Open my family vault please.\" -- NO second set of boxes may appear and the item you took must NOT be back in the box."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (the one-conversation variant): open the family vault, then from \"Is there anything else you need?\" choose \"Open my family vault please.\" again without leaving the conversation. Again no second set of boxes."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (normal use still works): after the ESC above, choose \"I am done with my family vault.\" The boxes leave your inventory. Re-open -- the contents must match what you left, with the withdrawn item absent."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (personal strongbox, same four steps): repeat the repro against \"Open my bank-vault please.\" / \"Are you ready to close your vault?\"."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (bank_box_hasbox fix): with an account of 3+ strongboxes, carry only box 1 and talk to the banker. He must open with \"Are you ready to close your vault?\" rather than the normal greeting."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (top-up still possible): fill your pack so a box cannot spawn, open the vault, then drop something and ask again -- only the missing box should be handed over, not a duplicate of one you hold."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (duplicate cleanup, needs a pre-fix character): if any player is still carrying two copies of the same box, closing the vault must keep the fullest, store it, and remove the spares. Check the server log for the \"BANK: destroyed N duplicate\" line."
+        status: open
+        kind: uat
+        tester: any
+      - step: "UAT (safety nets unchanged): with a box in hand, walk out of the bank area, and separately log out -- items must still be committed as before."
+        status: open
+        kind: uat
+        tester: any
+      - step: "Admin: run python3 bin/audit-bank-dupes.py against the live bankdb and review the flagged CD keys. Treat signatures 1 and 2 as leads only -- they cannot distinguish the exploit from ordinary alt-to-alt vault use. No automated action is taken."
+        status: open
+        kind: admin
   - id: smith-can-disenchant-negative-abilities
     title: "smith can disenchant negative abilities"
     group: forge
