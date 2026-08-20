@@ -18,6 +18,11 @@
 // from the duration parameter. The copy keeps the original creator (PackEffect bakes
 // m_oidCreator), so dispel/attribution are preserved.
 //
+// A LINKED effect is re-applied AS A LINK. Its components all share one id and
+// RemoveEffectById takes every one of them, so the copy has to be rebuilt from all of
+// them, not from the first one that matched. Getting this wrong destroys N-1 of N
+// components silently -- see the long comment in X2Dur_ReTime.
+//
 // Stacks with the Extend metamagic (Extended buffs become 4x base) -- intended.
 //
 // Debug: set the module local int "x2dur_debug" to log one line per doubling.
@@ -64,18 +69,38 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
         return;
     }
 
-    // ONE pass, not two. A LINKED effect surfaces as several true-effects that all
-    // share the same id. Link-sensitive effects (improved invisibility, invisibility,
-    // concealment, sanctuary, etherealness) rely on the engine link staying intact --
-    // our remove+reapply would split it and corrupt it (e.g. attacking would strip the
-    // concealment instead of just dropping invisibility). So EVERY component sharing
-    // this id has to be inspected before anything is applied -- checking only the first
-    // match is not enough, since the excluded component may not be the one the loop
-    // hits first (roadmap improved-invis-issues-part2). Hence: collect the first
-    // matching index, keep scanning for a link-sensitive sibling, and decide after the
-    // loop. Use GetEffectType (script EFFECT_TYPE_* constants), NOT e.nType (raw engine
-    // enum). See docs.manual/Customizations.html#spell-duration.
-    int nFirst = -1;
+    // ONE pass that COLLECTS THE WHOLE LINK. This is the part that has to be right.
+    //
+    // A LINKED effect surfaces as several true-effects that ALL SHARE ONE id, and
+    // RemoveEffectById removes every one of them. This script used to re-apply only the
+    // FIRST matching component, so a link went in with N components and came back with
+    // 1 -- the other N-1 were destroyed outright. That is what broke Curse Song down to
+    // nothing but its attack decrease, Bard Song down to the ledger's attack and damage,
+    // and Taunt and Wounding Whispers to nothing at all (reported by -Methonash- and
+    // Sync). It also predates all of that: it is the same corruption behind roadmap
+    // improved-invis-issues-part2, and the spell-id exclusions in main() are patches
+    // over it. It only stopped being invisible when the work moved off the caller's
+    // instruction budget -- before that the script was being KILLED by TOO MANY
+    // INSTRUCTIONS on exactly these paths, and dying before the remove+re-apply was the
+    // only thing keeping the link whole.
+    //
+    // Note NWNX_Effect_GetTrueEffect resolves with __NWNX_Effect_ResolveUnpack(FALSE),
+    // i.e. bLink = FALSE, so each component comes back with its link fields cleared and
+    // PackEffect gives a single UNLINKED effect. The link cannot be recovered from one
+    // component -- it has to be rebuilt from all of them, which is what this does:
+    // collect every component sharing the id and EffectLinkEffects them back together in
+    // index order (which is application order, so the rebuilt link keeps the original
+    // component order).
+    //
+    // The pass doubles as the link-sensitive guard (improved invisibility, invisibility,
+    // concealment, sanctuary, etherealness), which relies on the ENGINE's own link and
+    // must never be rebuilt by us. Bailing part-way through the collect costs nothing
+    // because nothing is applied until after the loop. Use GetEffectType (script
+    // EFFECT_TYPE_* constants), NOT e.nType (raw engine enum).
+    // See docs.manual/Customizations.html#spell-duration.
+    effect eAll;
+    int bHave  = FALSE;
+    int nParts = 0;
     int i;
 
     for (i = 0; i < nCount; i++)
@@ -92,29 +117,41 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
             nFx == EFFECT_TYPE_ETHEREAL)
             return;
 
-        if (nFirst < 0)
-            nFirst = i;
+        // Faithful per-component copy. nSubType (extraordinary/supernatural), nSpellId
+        // and the creator all ride along in the unpacked struct, so ExtraordinaryEffect
+        // status, dispel attribution and the GetHasSpellEffect(GetSpellId(), ...)
+        // "already sung on" guards keep working on the rebuilt link.
+        e.fDuration = fDur * 2.0;                    // cosmetic; the apply param rules
+        effect eComponent = NWNX_Effect_PackEffect(e);
+
+        if (!bHave)
+        {
+            eAll  = eComponent;
+            bHave = TRUE;
+        }
+        else
+        {
+            eAll = EffectLinkEffects(eAll, eComponent);
+        }
+        nParts++;
     }
 
-    if (nFirst < 0)
+    if (!bHave)
         return;     // effect already gone -- see the header note on deferral
-
-    struct NWNX_EffectUnpacked eKeep = NWNX_Effect_GetTrueEffect(oTarget, nFirst);
-    eKeep.fDuration = fDur * 2.0;                    // cosmetic; the apply param rules
-    effect eNew = NWNX_Effect_PackEffect(eKeep);     // faithful copy, keeps creator
 
     // The busy flag has to be set HERE, around the synchronous apply, not around the
     // DelayCommand that scheduled us -- our own re-applied copy fires the event again
     // on this very stack, and main() must see the flag set when it does.
     SetLocalInt(oTarget, "x2dur_busy", TRUE);
     NWNX_Effect_RemoveEffectById(oTarget, sUID);
-    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eNew, oTarget, fDur * 2.0);
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eAll, oTarget, fDur * 2.0);
     DeleteLocalInt(oTarget, "x2dur_busy");
 
     if (nDebug)
         WriteTimestampedLogEntry("[x2dur] target=" + GetName(oTarget) +
             " creator=" + GetName(oCreator) +
             " spellId=" + sSpellId +
+            " parts=" + IntToString(nParts) +
             " dur=" + FloatToString(fDur, 0, 1) +
             " -> " + FloatToString(fDur * 2.0, 0, 1));
 }
