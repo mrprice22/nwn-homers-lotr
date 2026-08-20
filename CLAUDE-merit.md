@@ -155,6 +155,37 @@ intact.
   When changing the appearance/name, edit **both** the
   blueprint `merit_keeper.utc.json` **and** the placed instance in
   `theprancingpo001.git.json` (the instance carries full overrides).
+### Realm gating - the shop trades on production only
+
+The redemption shop is open to **everyone on `SEASON_ROLE=live`, and to
+whitelisted admins (`Admin_CanAdmin`) on every other realm** - dev, early access
+and retired seasons alike. Merit is account-wide and spending escrows against a
+real `meritdb` balance, so a non-production realm redeeming rewards writes
+`merit_ledger` rows against merit the live season owes the player.
+
+The switch is `SP_MERIT_SHOP`, **generated** into `unpacked/season_prof_inc.nss`
+from `SEASON_ROLE` by `bin/season-profile.py` - never authored, because
+`bin/season-promote.sh` copies dev's tree over production's on every release and
+would revert a hand edit. Both halves read one predicate,
+`SP_MeritShopFor(oPC)` in `unpacked/sp_meritgate_inc.nss`:
+
+- **Conversation (UX).** Entry `e_stats` offers "I'd like to redeem a reward."
+  gated on `merit_gate` (shows the catalogue) and, beside it, the same line gated
+  on `merit_gate_no` leading to `e_shop_closed`, which says the shop only trades
+  on the live realm. The option is never silently absent, and the stats and
+  "how do I earn merit?" branches stay open to everyone everywhere.
+- **Authoritative.** `Merit_RequestById`, `Merit_GrantInstant` and
+  `Merit_GrantTournament` each bail on `!SP_MeritShopFor(oPC)` **before** any
+  `Merit_Spend` or `CreateItemOnObject`, so a blocked player is never charged.
+  This one guard covers `merit_finalize.nss` and all nine `merit_tgrant_<i>.nss`.
+
+`bin/season-profile.py --check` (a repack build gate, `tests/check_season_profile.py`)
+fails the build if either `sp_meritgate_inc.nss` stops reading `SP_MERIT_SHOP` or
+`merit_redeem.nss` stops calling `SP_MeritShopFor` - the failure mode being a
+literal creeping back in and opening the shop everywhere. The DM/EmoteWand side
+(awarding merit, fulfilling and cancelling requests) is **not** gated: it is
+already admin-only, and a DM must be able to clear a pending request anywhere.
+
 - **DM:** the EmoteWand conversation `emotewand.dlg.json`. Branch
   *[Admin] Merit Awards* (existing, grants points) and *[Admin] Merit Redemptions*
   (new): paged pending list (`merit_rlist_pg`, `merit_rpage_n/p`,

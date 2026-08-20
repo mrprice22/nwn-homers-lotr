@@ -135,7 +135,7 @@
               "__struct_id": 0,
               "Active": {
                 "type": "resref",
-                "value": ""
+                "value": "merit_gate"
               },
               "Index": {
                 "type": "dword",
@@ -150,11 +150,11 @@
               "__struct_id": 1,
               "Active": {
                 "type": "resref",
-                "value": ""
+                "value": "merit_gate_no"
               },
               "Index": {
                 "type": "dword",
-                "value": 4
+                "value": 55
               },
               "IsChild": {
                 "type": "byte",
@@ -169,7 +169,7 @@
               },
               "Index": {
                 "type": "dword",
-                "value": 5
+                "value": 4
               },
               "IsChild": {
                 "type": "byte",
@@ -178,6 +178,21 @@
             },
             {
               "__struct_id": 3,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
+                "value": 5
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            },
+            {
+              "__struct_id": 4,
               "Active": {
                 "type": "resref",
                 "value": ""
@@ -1177,6 +1192,78 @@
           "type": "cexolocstring",
           "value": {
             "0": "Easy enough! Report a bug or suggest a feature - if a DM ships it, you earn merit. Defects are worth 1, features 2, exploits 3.\n\n  Wiki:    dev.homerslotr.com  (see Customizations > Merit Reward System)\n  Discord: report issues & ideas there - that's where it all starts.\n\nNo merit yet? No worries at all - pitch in, and come back once a DM's credited you."
+          }
+        }
+      },
+      {
+        "__struct_id": 8,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "e_shop_closed"
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "RepliesList": {
+          "type": "list",
+          "value": [
+            {
+              "__struct_id": 0,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
+                "value": 12
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 1
+              }
+            },
+            {
+              "__struct_id": 1,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
+                "value": 6
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 1
+              }
+            }
+          ]
+        },
+        "Script": {
+          "type": "resref",
+          "value": ""
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "Ah - the shelves are bare on this one, friend. The merit shop only trades on the live realm; this here's the testing house, and I'll not have folk spending hard-earned merit on a round that doesn't count.\n\nYour tally's safe where it is. Come see me on the live realm and I'll set out the whole catalogue."
           }
         }
       }
@@ -4213,6 +4300,63 @@
           "type": "cexolocstring",
           "value": {
             "0": "Farewell."
+          }
+        }
+      },
+      {
+        "__struct_id": 55,
+        "Animation": {
+          "type": "dword",
+          "value": 0
+        },
+        "AnimLoop": {
+          "type": "byte",
+          "value": 1
+        },
+        "Comment": {
+          "type": "cexostring",
+          "value": "r_redeem_closed"
+        },
+        "Delay": {
+          "type": "dword",
+          "value": 4294967295
+        },
+        "EntriesList": {
+          "type": "list",
+          "value": [
+            {
+              "__struct_id": 0,
+              "Active": {
+                "type": "resref",
+                "value": ""
+              },
+              "Index": {
+                "type": "dword",
+                "value": 8
+              },
+              "IsChild": {
+                "type": "byte",
+                "value": 0
+              }
+            }
+          ]
+        },
+        "Quest": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "Script": {
+          "type": "resref",
+          "value": ""
+        },
+        "Sound": {
+          "type": "resref",
+          "value": ""
+        },
+        "Text": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "I'd like to redeem a reward."
           }
         }
       }

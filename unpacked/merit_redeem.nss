@@ -31,6 +31,7 @@
 
 #include "merit_db"
 #include "boost_inc"
+#include "sp_meritgate_inc"
 
 // Red "[PLACEHOLDER] " prefix. MERITREDOPEN is replaced post-write with the raw
 // colour bytes "<c" + FF 01 01 + ">" (null-free bright red, repo convention).
@@ -179,6 +180,18 @@ void Merit_NotifyOnline(string sCdKey, string sMsg)
 // Returns TRUE if a pending request was created (cost escrowed).
 int Merit_RequestById(object oPC, int nId)
 {
+    // REALM GATE. The shop is open to everyone on production and to whitelisted
+    // admins anywhere else (sp_meritgate_inc). The conversation branch is only
+    // UX - this is the check that stops a non-production realm writing real
+    // spends into the account-wide meritdb. It sits FIRST, before any
+    // Merit_Spend or item creation, so a blocked player is never charged.
+    if (!SP_MeritShopFor(oPC))
+    {
+        SendMessageToPC(oPC, "[Merit] The merit shop is open on the live realm "
+            + "only. This realm is for testing.");
+        return FALSE;
+    }
+
     struct merit_reward r = Merit_GetReward(nId);
     if (!r.valid)
     {
@@ -583,6 +596,18 @@ void Merit_PrepConfirm(object oPC, int nId)
 
 int Merit_GrantInstant(object oPC, int nId)
 {
+    // REALM GATE. The shop is open to everyone on production and to whitelisted
+    // admins anywhere else (sp_meritgate_inc). The conversation branch is only
+    // UX - this is the check that stops a non-production realm writing real
+    // spends into the account-wide meritdb. It sits FIRST, before any
+    // Merit_Spend or item creation, so a blocked player is never charged.
+    if (!SP_MeritShopFor(oPC))
+    {
+        SendMessageToPC(oPC, "[Merit] The merit shop is open on the live realm "
+            + "only. This realm is for testing.");
+        return FALSE;
+    }
+
     struct merit_reward r = Merit_GetReward(nId);
     if (!r.valid) return FALSE;
 
@@ -663,6 +688,18 @@ int Merit_GrantInstant(object oPC, int nId)
 // Tournament instant grant - like Merit_GrantInstant but delivers a chosen item.
 int Merit_GrantTournament(object oPC, string sResref, string sItemName)
 {
+    // REALM GATE. The shop is open to everyone on production and to whitelisted
+    // admins anywhere else (sp_meritgate_inc). The conversation branch is only
+    // UX - this is the check that stops a non-production realm writing real
+    // spends into the account-wide meritdb. It sits FIRST, before any
+    // Merit_Spend or item creation, so a blocked player is never charged.
+    if (!SP_MeritShopFor(oPC))
+    {
+        SendMessageToPC(oPC, "[Merit] The merit shop is open on the live realm "
+            + "only. This realm is for testing.");
+        return FALSE;
+    }
+
     struct merit_reward r = Merit_GetReward(302);
 
     string sCdKey = GetPCPublicCDKey(oPC);

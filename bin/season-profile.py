@@ -3,7 +3,9 @@
 
 `bin/season-brand.py` owns strings and URLs. This script owns *flags*: the
 handful of things that must be ON in a dev or early-access realm and OFF in
-production — cheat gear, the dev builder NPC, the early-access wipe notice.
+production — cheat gear, the dev builder NPC, the early-access wipe notice — and
+the one that runs the other way, the merit shop, which is open to everyone in
+production and to admins only anywhere else.
 
 ## Why this exists
 
@@ -71,19 +73,33 @@ class ProfileError(Exception):
 #   SP_CHEAT_CHEST  the Donations Chest best-in-slot restock (don_cheat_inc).
 #   SP_WIPE_NOTICE  the cyan early-access "everything here is wiped" login
 #                   block in servershout4.nss.
-FLAGS = ("SP_DEV_TOOLS", "SP_CHEAT_CHEST", "SP_WIPE_NOTICE")
+#   SP_MERIT_SHOP   Barliman's merit redemption shop in the Prancing Pony. OFF
+#                   everywhere but production, where OFF means "admins only"
+#                   rather than "gone" - see sp_meritgate_inc.nss. Merit is
+#                   account-wide and its spends are escrowed in meritdb, so a
+#                   non-production realm redeeming rewards is writing real
+#                   ledger rows for test play.
+FLAGS = ("SP_DEV_TOOLS", "SP_CHEAT_CHEST", "SP_WIPE_NOTICE", "SP_MERIT_SHOP")
 
 PROFILE: dict[str, dict[str, bool]] = {
     # dev: permanent test realm, password-gated, never public progress.
-    "dev":     {"SP_DEV_TOOLS": True,  "SP_CHEAT_CHEST": True,  "SP_WIPE_NOTICE": False},
+    "dev":     {"SP_DEV_TOOLS": True,  "SP_CHEAT_CHEST": True,  "SP_WIPE_NOTICE": False,
+                "SP_MERIT_SHOP": False},
     # test: early-access realm. Same tools as dev, plus the wipe warning,
     # because its players are real players whose progress really is temporary.
-    "test":    {"SP_DEV_TOOLS": True,  "SP_CHEAT_CHEST": True,  "SP_WIPE_NOTICE": True},
-    # live: production. Everything off. This row is the one that matters.
-    "live":    {"SP_DEV_TOOLS": False, "SP_CHEAT_CHEST": False, "SP_WIPE_NOTICE": False},
+    "test":    {"SP_DEV_TOOLS": True,  "SP_CHEAT_CHEST": True,  "SP_WIPE_NOTICE": True,
+                "SP_MERIT_SHOP": False},
+    # live: production. Everything off - except the merit shop, which is the one
+    # flag whose TRUE row is production: merit is earned by real contributions
+    # and spent for real, so the shop is open to everyone HERE and nowhere else.
+    "live":    {"SP_DEV_TOOLS": False, "SP_CHEAT_CHEST": False, "SP_WIPE_NOTICE": False,
+                "SP_MERIT_SHOP": True},
     # archive: a retired season, still playable. Progress is real (it was a
-    # live season), so no wipe notice and no cheats.
-    "archive": {"SP_DEV_TOOLS": False, "SP_CHEAT_CHEST": False, "SP_WIPE_NOTICE": False},
+    # live season), so no wipe notice and no cheats. The merit shop is admin-only
+    # here too: merit is account-wide, so a retired season redeeming against the
+    # same balances would spend merit the live season owes.
+    "archive": {"SP_DEV_TOOLS": False, "SP_CHEAT_CHEST": False, "SP_WIPE_NOTICE": False,
+                "SP_MERIT_SHOP": False},
 }
 
 # --- wiring checks ----------------------------------------------------------
@@ -121,6 +137,14 @@ WIRING: list[tuple[str, str | tuple[str, ...], str]] = [
     ("sp_devgate_inc.nss", "SP_DEV_TOOLS",
      "the shared dev-tool predicate is where both Ping Pong consumers now read "
      "the flag - if it stops reading SP_DEV_TOOLS, both of them silently open"),
+    ("sp_meritgate_inc.nss", "SP_MERIT_SHOP",
+     "the shared merit-shop predicate must read SP_MERIT_SHOP - if it stops, "
+     "the shop opens to everyone on every realm"),
+    ("merit_redeem.nss", "SP_MeritShopFor",
+     "the three committing functions (Merit_RequestById / Merit_GrantInstant / "
+     "Merit_GrantTournament) must read the flag through SP_MeritShopFor - the "
+     "conversation gate is UX only, this is the check that actually protects "
+     "meritdb"),
 ]
 
 
