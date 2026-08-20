@@ -245,6 +245,22 @@ def check_property_sets(errs):
                 errs.append(f"forge_inc: ForgeIsRestrictionProp does not cover "
                             f"USE_LIMITATION_{c}")
 
+    detr = body("ForgeIsDetrimentalProp")
+    if detr is None:
+        errs.append("forge_inc: ForgeIsDetrimentalProp is gone - drawbacks "
+                    "would be counted and strippable again "
+                    "(smith-can-disenchant-negative-abilities)")
+    else:
+        for c in ("DECREASED_ABILITY_SCORE", "DECREASED_AC",
+                  "DECREASED_ATTACK_MODIFIER", "DECREASED_DAMAGE",
+                  "DECREASED_ENHANCEMENT_MODIFIER", "DECREASED_SAVING_THROWS",
+                  "DECREASED_SAVING_THROWS_SPECIFIC", "DECREASED_SKILL_MODIFIER",
+                  "DAMAGE_VULNERABILITY", "NO_DAMAGE", "WEIGHT_INCREASE",
+                  "ARCANE_SPELL_FAILURE"):
+            if f"ITEM_PROPERTY_{c}" not in detr:
+                errs.append(f"forge_inc: ForgeIsDetrimentalProp does not cover "
+                            f"ITEM_PROPERTY_{c}")
+
     cosm = body("ForgeIsCosmeticProp")
     if cosm is None:
         errs.append("forge_inc: ForgeIsCosmeticProp is gone")
@@ -256,6 +272,24 @@ def check_property_sets(errs):
     inset = body("ForgePropInSet")
     if inset is None:
         errs.append("forge_inc: ForgePropInSet is gone")
+    else:
+        # Drawbacks must leave BOTH the removable and the counted set: the
+        # removable branch returns early, so each needs its own exclusion.
+        removable, _, counted = inset.partition("if (ForgeIsCosmeticProp(ip))")
+        if "ForgeIsDetrimentalProp" not in removable:
+            errs.append("forge_inc: ForgePropInSet's REMOVABLE branch no longer "
+                        "excludes drawbacks - a smith could strip them again")
+        if "ForgeIsDetrimentalProp" not in counted:
+            errs.append("forge_inc: ForgePropInSet's COUNTED branch no longer "
+                        "excludes drawbacks - drawbacks would eat slots again")
+        # Pricing and the blueprint fingerprint must NOT move: the PRICED branch
+        # stays an unconditional TRUE. Narrowing it re-values every cursed piece
+        # upward and can jail gear that is lawful today.
+        if not re.search(r"if \(nSel == FORGE_SEL_PRICED\)\s*\n\s*return TRUE;",
+                         inset):
+            errs.append("forge_inc: ForgePropInSet's PRICED branch is no longer "
+                        "an unconditional 'return TRUE' - pricing and "
+                        "fingerprints must not move when counting rules change")
     for fn in ("ForgeCountPropsSel", "ForgeGetPropByIndexSel"):
         if body(fn) is None:
             errs.append(f"forge_inc: {fn} is gone")
@@ -301,9 +335,27 @@ def check_property_sets(errs):
         errs.append("forge_inc: ForgeProjectedPropCount must walk the removable "
                     "set but tally only counted properties")
 
-    if body("ForgeUnlistedNote") is None:
+    b = body("ForgeUnlistedNote")
+    if b is None:
         errs.append("forge_inc: ForgeUnlistedNote is gone - players lose the "
                     "explanation for restrictions/Light not being in the list")
+    elif "ForgeIsDetrimentalProp" not in b:
+        errs.append("forge_inc: ForgeUnlistedNote must explain drawbacks too - "
+                    "otherwise they simply vanish from the strip list with no "
+                    "word of why")
+
+    # Retroactive half: items stripped before the fix sit UNDER both caps, so
+    # only this rule catches them.
+    b = body("ForgeMissingBlueprintDrawback")
+    if b is None:
+        errs.append("forge_inc: ForgeMissingBlueprintDrawback is gone - items "
+                    "stripped of their drawbacks before the fix go unnoticed")
+    b = body("ForgeItemLegality")
+    if b is None:
+        errs.append("forge_inc: ForgeItemLegality not found")
+    elif "ForgeMissingBlueprintDrawback" not in b:
+        errs.append("forge_inc: ForgeItemLegality must consult "
+                    "ForgeMissingBlueprintDrawback")
 
 
 def check_light_note(errs):
