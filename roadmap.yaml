@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-08-20 08:00 CDT"
+  as_of: "2026-08-20 11:00 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -137,10 +137,19 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: shifter-weapon-stats-for-unarmed-shapes
+    title: "Shifter weapon status for unarmed shapes"
+    group: combat-classes
+    status: confirmed
+    type: Enhancement
+    player: "Sync (Shync)"
+    date: "2026-08-20"
+    notes: "<div>Right now your bonuses on weapons before shift only trasnfer to the shifted shape if that shape/form is holding a weapon. </div><div>Even if the unshifted user has gloves that have damage bonus, this does not transfer to shapes that are considered unarmed -- this is what needs to change with this idea/story.</div>"
   - id: shifter-stats-defect
     title: "Shifter stats defect (stats go down after shifting)"
     group: combat-classes
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Sync (Shync)"
     date: "2026-08-20"
@@ -148,26 +157,26 @@ ideas:
     notes: "<div><b>Shifting now adds the shape's bonus to your own stats instead of replacing them.</b> Every form used to overwrite your Strength, Constitution and Dexterity with the animal's own scores, so on this server a geared character came out of the change weaker than they went in -- less attack, less damage, less AC. Now you keep your own scores and gain what the shape is worth on top: a brown bear is +15 Strength / +7 Constitution / +1 Dexterity over whatever you already had, Dragon Shape is +36 / +20 / +24. Weak shapes stay weak (a badger still gives no Strength), but no shape can ever leave you worse off than unshifted.</div><div><br></div><div><b>Your armour's own protection comes with you.</b> Plate and shield stop being worn while shifted, and only their magic used to carry over -- the armour's base protection was simply lost. It is handed back on top of the form's natural armour now, so your AC while shifted is your normal AC plus what the shape adds.</div><div><br></div><div><b>Claw and bite forms finally get your weapon's enhancement bonus.</b> A +9 weapon merged into a shape with no hands was paying out its extra damage but none of its +9 to hit or to damage, which is why unarmed forms felt so far behind the ones that carry a weapon. That +9 now lands on every natural attack.</div><div><br></div><div>All of it applies to druid Wild Shape and Elemental Shape, every Shifter shape, and to Polymorph Self, Shapechange and Tenser's Transformation. The bonuses end the moment the form does.</div>"
     impl_notes: "<div><b>Two independent causes, neither fixed by wildshape-shifter-item-merge (ed70869c581), which merged item properties only and left form base stats alone.</b></div><div><br></div><div><b>1. EffectPolymorph SETS base STR/CON/DEX from polymorph.2da</b> (wolf 13/15/15 natAC 4, brown bear 27/19/13 natAC 2, ancient dragon 48/32/36 natAC 20). With max-ability-bonus 24 (server.env, patched into settings.tml by bin/serve) and levels to 60, every form's numbers sit at or below a real character's base scores. The form's NATURALACBONUS also never repaid the BASE AC of armour and shield -- only their properties merge onto the hide.</div><div><br></div><div><b>2. Creature weapons ignore ITEM_PROPERTY_ENHANCEMENT_BONUS</b> for attack and damage rolls (it only buys DR bypass), so a merged +9 landed on the claws and did nothing. Confirmed by the reporters: enhancements pass through for shapes with weapons, the rest only get the damage.</div><div><br></div><div><b>New in shape_merge_inc.nss: ShapeMergeStatFloor(oShifter, nPoly, ePoly, gear).</b> Reads the form's own row with Get2DAString(\"polymorph\", ...) -- a blank column means the form keeps your score, so it is skipped. Per ability: target = own base + max(0, form - SHAPE_BASE_ANCHOR), top-up = target - form (the engine is about to set base to the form value). SHAPE_BASE_ANCHOR is 12, the stock-rules caster score each form's bonus is measured from -- the admin's rule for this item: a geared character gets the same shape bonus a naked one would get under stock rules, CON included in full. AC: EffectACIncrease(form natAC + GetItemACValue(armour) + GetItemACValue(shield), AC_NATURAL_BONUS) -- natural is the same type the form's own bonus uses and only the highest of a type counts, so it supersedes rather than stacks, and it sidesteps MAX_AC_DODGE_MOD 20 in hak_2da/ruleset.2da which would eat an AC_DODGE_BONUS.</div><div><br></div><div><b>Exploit-proofing.</b> Every top-up is EffectLinkEffects'd into the polymorph effect BEFORE it is applied, so unshifting, dispel, death or duration expiry removes them with the form -- there is no separate cleanup path to get wrong and nothing can survive into unshifted play. The three druid/shifter callers re-wrap the finished link in ExtraordinaryEffect so the top-ups are undispellable like the form itself; nw_s0_tenstrans floors its existing eLink (which already carries the polymorph).</div><div><br></div><div><b>Cap trap.</b> A single EffectAbilityIncrease counts against max-ability-bonus 24 -- the finding that made Legendary Feats switch to NWNX_Creature_SetRawAbilityScore (legfeat_inc.nss). Raw writes are unsafe while polymorphed (legfeat_inc refuses them: base scores are swapped out, and a wrong guess about what the engine restores would be a permanent free-stat exploit), so the top-up is emitted in SHAPE_TOPUP_CHUNK=6 stacked effects, the mw_unlock_inc.nss technique. UAT must confirm the sheet shows the full score, not a clamp.</div><div><br></div><div><b>ShapeCopyToCreatureWeapon()</b> replaces the three creature-slot IPWildShapeCopyItemProperties calls: same copy, plus each ITEM_PROPERTY_ENHANCEMENT_BONUS n re-expressed as ItemPropertyAttackBonus(n) + ItemPropertyDamageBonus(claw's physical type, n), keeping the original property for DR bypass. The amount maps through IP_CONST_DAMAGEBONUS_* (1-5 = 1..5, 6-10 = 16..20), NOT the DAMAGE_BONUS_* effect table that IPGetDamageBonusConstantFromNumber returns, where 6..15 are DICE -- the trap bonus_pool_inc documents. Ranged mismatch is still guarded, and manufactured right-hand weapons keep the plain vanilla copy since enhancement already works there (translating would double-count). Tunable SHAPE_MERGE_ENH_AS_ATTACK flips it off in one line.</div><div><br></div><div><b>Build.</b> Module-only -- no polymorph.2da in the hak, so no hak rebuild, no NWSync, no client download (a fixed 2DA number cannot floor an uncapped character anyway, and blanking the columns would nerf low-level druids). All six polymorph scripts compile; full repack green (28/28 smoke, check-dlg-integrity 0 failing); installed to the DEV realm only.</div>"
     manual_steps:
-      - kind: uat
+      - step: "Record STR/CON/DEX, AC and AB unshifted, then Wild Shape to a brown bear (form 27/19/13, natural AC 2). Sheet must read own STR +15, CON +7, DEX +1, and AC = unshifted AC + 2. Nothing may be lower than unshifted."
         status: open
-        tester: "druid 12+ in full plate with a shield and a +9 weapon"
-        step: "Record STR/CON/DEX, AC and AB unshifted, then Wild Shape to a brown bear (form 27/19/13, natural AC 2). Sheet must read own STR +15, CON +7, DEX +1, and AC = unshifted AC + 2. Nothing may be lower than unshifted."
-      - kind: uat
+        kind: admin
+        step_h: 64
+      - step: "BLOCKER for the design, not for shipping: confirm the sheet shows the FULL floored score, not a value clamped at +24 over the form's. A clamp means the chunked EffectAbilityIncrease is not beating max-ability-bonus and SHAPE_TOPUP_CHUNK needs re-testing."
         status: open
-        tester: "level 50+ character (the bigger the base scores, the better the test)"
-        step: "BLOCKER for the design, not for shipping: confirm the sheet shows the FULL floored score, not a value clamped at +24 over the form's. A clamp means the chunked EffectAbilityIncrease is not beating max-ability-bonus and SHAPE_TOPUP_CHUNK needs re-testing."
-      - kind: uat
+        kind: admin
+        step_h: 64
+      - step: "Check the claw attack's AB and damage moved by exactly +9, not +18. +18 would mean the engine does honour creature-weapon enhancement after all - flip SHAPE_MERGE_ENH_AS_ATTACK to FALSE."
         status: open
-        tester: "druid or shifter with a +9 weapon, in a claw/bite form"
-        step: "Check the claw attack's AB and damage moved by exactly +9, not +18. +18 would mean the engine does honour creature-weapon enhancement after all - flip SHAPE_MERGE_ENH_AS_ATTACK to FALSE."
-      - kind: uat
+        kind: admin
+        step_h: 64
+      - step: "Unshift and re-check the sheet: stats and AC must be EXACTLY the pre-shift values. This is the exploit check - the linked top-ups must all be gone. Repeat after dying while shifted."
         status: open
-        tester: any
-        step: "Unshift and re-check the sheet: stats and AC must be EXACTLY the pre-shift values. This is the exploit check - the linked top-ups must all be gone. Repeat after dying while shifted."
-      - kind: uat
+        kind: admin
+        step_h: 64
+      - step: "Dragon Shape: expect +36 STR / +20 CON / +24 DEX and a large HP jump - confirm it feels right in boss combat. Badger: expect NO Strength bonus and still no drop below your own base. Spot-check one arcane self-polymorph (Polymorph Self / Shapechange / Tenser's) for the same behaviour."
         status: open
-        tester: "shifter 30+ (Dragon Shape) and any low-level druid"
-        step: "Dragon Shape: expect +36 STR / +20 CON / +24 DEX and a large HP jump - confirm it feels right in boss combat. Badger: expect NO Strength bonus and still no drop below your own base. Spot-check one arcane self-polymorph (Polymorph Self / Shapechange / Tenser's) for the same behaviour."
+        kind: admin
+        step_h: 64
   - id: lake-town-forge-not-working
     title: "Lake Town forge not working"
     group: forge
@@ -179,7 +188,8 @@ ideas:
   - id: gondor-scribe-key-exploit
     title: "Well of Souls: quest re-acceptable and Annuminas Key farmable"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Exploit
     player: "HomelessSon (Server Admin)"
     date: "2026-08-19"
@@ -189,54 +199,57 @@ ideas:
     manual_steps:
       - step: "UAT re-accept (the core fix): with a fresh character, take the quest from the TOWER scribe. Talk to her again immediately, and again after a full logout/login -- she must give the short reminder + portal directions only. The full briefing must be unreachable and the journal must stay at entry 1."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT no key at accept: after accepting, confirm NO Annuminas Key is in your inventory."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT turn-in grants the key: kill Azagoth, turn the head in at either scribe. Expect +10,000 XP, the head consumed, journal 'The Well of Souls' entry 2, the quest showing as COMPLETED, and exactly one Annuminas Key."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT no second reward: talk to her again after the turn-in and again after a relog -- post-completion greeting only, no second key, no second XP payout. Then kill Azagoth again and bring a second head: it must NOT re-open the turn-in node."
         status: open
-        kind: uat
-        tester: "level able to kill Azagoth twice"
+        kind: admin
+        step_h: 64
       - step: "UAT grandfather claim: on a character that finished the quest BEFORE this build, talk to a scribe -- she offers the key once, and never again after that."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT cross-scribe: accept at the tower and turn in at the ruins, and the reverse. Both must work, and the state must be shared."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT prose: the RUINS scribe must talk like she is in the ruins (fireside, 'the portal is at the Library'); the TOWER scribe must talk like she is in Minas Tirith (dispatches at her desk, 'go north up the Greenway'). Neither may refer to standing where she is not."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT one-key-one-chest still holds: open ONE warded coffer in the Ruins of Annuminas, confirm the key is consumed and the OTHER coffer can no longer be opened."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT Hanee: turn the head in to Hanee in Bree for 5,000 XP, then relog and talk to her again carrying the same head -- no second payout."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT both scribes still unkillable (Plot=1) after the blueprint split."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "DB check: sqlite3 questcddb -- SELECT uuid,quest,times_done FROM quest_cd WHERE quest IN ('wos_accept','wos_done','annu_key','hanee_head'); at most one row per character per key, times_done 1."
         status: open
         kind: admin
+        step_h: 64
       - step: "PRE-EXISTING, not caused by this item: check_ascii_nss fails on the auto-generated nwnmgr_bstamp.nss (nwn-manager writes an em dash into it) and check_season_profile fails because commit d1133f240b4 deleted unpacked/sp_devgate_inc.nss during a toolset round-trip. Both block a clean smoke run for every future repack and need a decision."
         status: open
         kind: admin
+        step_h: 64
   - id: banking-duplicate-exploit
     title: "Bank items duplicate exploit"
     group: banking
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Exploit
     player: "Rajmund (Ray)"
     date: "2026-08-19"
@@ -246,43 +259,45 @@ ideas:
     manual_steps:
       - step: "UAT (the reported repro, must now fail): in the Bank of Bree with a family account, open the family vault, take an item out of a box, then press ESC to break the conversation. Talk to the banker again and choose \"Open my family vault please.\" -- NO second set of boxes may appear and the item you took must NOT be back in the box."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (the one-conversation variant): open the family vault, then from \"Is there anything else you need?\" choose \"Open my family vault please.\" again without leaving the conversation. Again no second set of boxes."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (normal use still works): after the ESC above, choose \"I am done with my family vault.\" The boxes leave your inventory. Re-open -- the contents must match what you left, with the withdrawn item absent."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (personal strongbox, same four steps): repeat the repro against \"Open my bank-vault please.\" / \"Are you ready to close your vault?\"."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (bank_box_hasbox fix): with an account of 3+ strongboxes, carry only box 1 and talk to the banker. He must open with \"Are you ready to close your vault?\" rather than the normal greeting."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (top-up still possible): fill your pack so a box cannot spawn, open the vault, then drop something and ask again -- only the missing box should be handed over, not a duplicate of one you hold."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (duplicate cleanup, needs a pre-fix character): if any player is still carrying two copies of the same box, closing the vault must keep the fullest, store it, and remove the spares. Check the server log for the \"BANK: destroyed N duplicate\" line."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (safety nets unchanged): with a box in hand, walk out of the bank area, and separately log out -- items must still be committed as before."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "Admin: run python3 bin/audit-bank-dupes.py against the live bankdb and review the flagged CD keys. Treat signatures 1 and 2 as leads only -- they cannot distinguish the exploit from ordinary alt-to-alt vault use. No automated action is taken."
         status: open
         kind: admin
+        step_h: 64
   - id: smith-can-disenchant-negative-abilities
     title: "smith can disenchant negative abilities"
     group: forge
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Exploit
     player: "Rajmund (Ray)"
     date: "2026-08-19"
@@ -292,32 +307,32 @@ ideas:
     manual_steps:
       - step: "UAT (the exploit): bring Basilisk Visage to a forge anvil. The strip list must show 15 entries, not 20 - the four -3 ability penalties and the -5 universal saves must be absent - and the smith's status line must say the bane fills no slot and cannot be lifted."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (slots freed): the forge's property count for Basilisk Visage must read five lower than before, and the item must accept five more enchantments than it did."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (pricing frozen): the quoted worth and the value-cap text for a drawback item must be UNCHANGED from before this fix. If they moved, the PRICED set was narrowed by mistake."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (staged plan): tick several properties on a drawback item, page back and forth, then commit. Exactly the ticked properties must be removed - the plan's bit indices run over the removable set, which just got smaller."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (Warden): take a drawback item to the Forge Warden's jail menu - it must offer no drawbacks for removal either."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (retroactive): log in carrying an item whose drawbacks were stripped before this fix. The re-scan (FORGE_CLEAN_VER 6) must flag it, the Warden must say the bane was struck from it, and reverting to blueprint must restore it."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (regression guard - the jailing risk): log in carrying STOCK drawback gear that was never forged. It must pass the forced re-scan untouched and never be quarantined. This is the one way this change could go badly wrong."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
   - id: curse-song-too-many-instructions
     title: "Cuse Song gives too many instructions error"
     group: combat-classes
@@ -354,7 +369,8 @@ ideas:
   - id: door-opening-time
     title: "Extend Door  Opening Time"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Szescian82
     date: "2026-08-20"
@@ -364,23 +380,24 @@ ideas:
     manual_steps:
       - step: "UAT (the report): walk from Edoras into Theoden's hall (door tag edoras2hall) and back out through hall2edoras. Each door must stay open about 8 seconds - noticeably longer than before - and must still shut on its own afterwards."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (the retry): open that same door, stand in the doorway past the 8-second mark, then step clear. The door must still close - it retries up to 5 times at 6-second intervals."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (re-locking doors): open a close_door_lock door (e.g. a Prancing Pony room door in theprancingpo002) and watch the order - it must CLOSE first and only then lock. A door left standing open and locked means the guard regressed."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (per-door override): in the toolset set the local float DOOR_CLOSE_DELAY to 20.0 on one test door, repack, and confirm that door waits 20 seconds while its neighbours still wait 8."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "Repack the dev realm and let bin/reboot-on-empty cycle it (never force-restart dev - the admin is usually logged in)."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
   - id: summanus-chest-items
     title: "summanus-chest-items"
     group: items-gear
@@ -392,7 +409,8 @@ ideas:
   - id: missing-map-markers
     title: "Missing map markers (add build gate)"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-20"
@@ -402,21 +420,19 @@ ideas:
     manual_steps:
       - step: "UAT (the reported case): walk Weather Hills <-> Weather Top. All THREE crossings must show a pin on each side (Weather Hills shows 'Weather Top (Amon Sul)' x3, Weather Top shows 'Weather Hills' x3), plus the wolf cave -> 'Forbidden Realms: Enter' and the door back -> 'Weather Top (Amon Sul)'."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
         step_h: 64
       - step: "UAT (the five merged pins): confirm no crossing lost its label where a duplicate was removed - thardbadeast (Temple of Illuvatar), carndumcity (Carn Dum: Throne), cirithungol (Orc Armory), theangmarmountai (Angmar Dungeon), area042 (Well of Eru portal). Each should still show exactly one marker, not zero."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
         step_h: 64
       - step: "UAT (relabelled hand pins): ~30 hand-placed markers were corrected to the true destination. A few read blunter than the hand text they replaced - Bree's 'Appearance Changer and Character Modifying Area' (was 'Bree Merchant'), 'Taggets Smith Shop' (lost its apostrophe), 'The Prancing Pony Ground Floor' (was 'The Prancing Pony Inn'). If any read worse in game, put '@mapnote <preferred text>' in that door/trigger's Comment box in the toolset - that is what the directive is for."
         status: open
-        kind: toolset
+        kind: admin
         step_h: 96
       - step: "Backlog, not this item: 52 area transitions have a LinkedTo pointing at a waypoint tag that exists nowhere, so they lead nowhere in game. Listed by every `python3 bin/gen-map-notes.py` run. Includes weatherhills2amonsul and gravesofthelostk's gravestoweather. Decide per case whether to repoint or delete."
         status: open
-        kind: toolset
+        kind: admin
         step_h: 240
   - id: lake-town-bank-not-working
     title: "Lake Town Bank not working"
@@ -6046,7 +6062,8 @@ ideas:
   - id: gondor-scribe-findability
     title: "Well of Souls Quest: cannot find the Gondor Scribe in the High Wizard tower"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-15"
@@ -6056,27 +6073,28 @@ ideas:
     manual_steps:
       - step: "UAT (closes the report): enter the Tower of the High Wizard ground floor from Minas Tirith. The Gondor Scribe must be visible in the open — not around the corner by the stairs — at roughly X33.8/Y47.47, and must render as a ROBED HUMAN WOMAN, not a halfling. Her name plate reads 'Gondor Scribe'."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (head turn-in unchanged): carrying azagothshead, talk to her — entry 10 fires at_008, awards 10,000 XP and consumes the head."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (cold start unchanged): talk to her WITHOUT the head — the Well of Souls briefing still runs and the Annuminas Key path (sc_annukey / at_007) still grants exactly one key per character, ever."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (still unkillable): attack her and confirm Plot=1 survived the reskin — she cannot be killed."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (journal): after handing Azagoth's head to Hanee in Bree, read Ruin of Annuminas entry 2 — it must name the Gondor Scribe and say she is on the tower's ground floor."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "Repack and restart the server. Module-only — no hak, TLK or NWSync rebuild is needed."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
   - id: ambiguous-transition-tags
     title: "Duplicate and generic area-transition tags: one Dol Guldur exit may lead to the wrong area, and 16 Gwathdor transitions have no destination map pins"
     group: travel
