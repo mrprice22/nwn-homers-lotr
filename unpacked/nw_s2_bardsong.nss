@@ -254,9 +254,15 @@ void main()
 
     effect eImpact = EffectVisualEffect(VFX_IMP_HEAD_SONIC);
     effect eFNF = EffectVisualEffect(VFX_FNF_LOS_NORMAL_30);
-    ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eFNF, GetLocation(OBJECT_SELF));
+    // The singer's location, computed ONCE. It used to be rebuilt on every
+    // iteration of the sphere walk below, which on a crowded fight is a fresh
+    // location struct per creature for no reason (roadmap
+    // curse-song-too-many-instructions).
+    location lSinger = GetLocation(OBJECT_SELF);
 
-    object oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));
+    ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eFNF, lSinger);
+
+    object oTarget = GetFirstObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, lSinger);
     while (GetIsObjectValid(oTarget))
     {
         if (!GetHasSpellEffect(GetSpellId(), oTarget))
@@ -279,7 +285,7 @@ void main()
                 BardSong_Pool(oTarget, nAttack, nDamage, nDuration);
             }
         }
-        oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, GetLocation(OBJECT_SELF));
+        oTarget = GetNextObjectInShape(SHAPE_SPHERE, RADIUS_SIZE_COLOSSAL, lSinger);
     }
 
     // NO DecrementRemainingFeatUses HERE - and this is not an oversight.

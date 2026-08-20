@@ -21,17 +21,111 @@
 // Stacks with the Extend metamagic (Extended buffs become 4x base) -- intended.
 //
 // Debug: set the module local int "x2dur_debug" to log one line per doubling.
+//
+// DEFERRED, and that is the whole point of the second half of this script.
+// This subscriber fires INSIDE the caller's VM frame, and NWN charges a nested
+// execution's instructions to the parent. Curse Song walks a colossal sphere
+// applying a 7-component linked debuff per hostile (x2_s2_cursesong.nss), so the
+// inline version cost targets x components x the true-effect scan below, all on
+// one budget -- the reported "X2_S2_CurseSong / eff_dur_x2 TOO MANY INSTRUCTIONS"
+// pair (roadmap curse-song-too-many-instructions). The same overrun is what got
+// devcrit_eff deleted; see the note in onmoduleload.nss. So main() does only the
+// cheap event-data guards and hands the scan + remove + reapply to
+// X2Dur_ReTime() on a DelayCommand, which runs as its own script situation with
+// its own fresh instruction budget. Same discipline as bpool_eff.nss.
+//
+// Deferring is safe because the effect is identified by its UNIQUE_ID, not by a
+// handle: if it is gone by the time the deferred pass runs (dispelled, target
+// died, target left), no true-effect matches the id and the pass is a no-op.
 
 #include "nwnx_events"
 #include "nwnx_effect"
+
+// Backstop. A target carrying more true-effects than this is pathological; the
+// scan is skipped rather than allowed to become the next budget overrun. Logged
+// under x2dur_debug so it is visible if it ever trips.
+const int X2DUR_MAX_SCAN = 250;
+
+// The scan + remove + reapply, run on its own instruction budget. sUID is the
+// UNIQUE_ID of the effect that fired the event; fDur its original duration.
+void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, string sSpellId)
+{
+    if (!GetIsObjectValid(oTarget))
+        return;
+
+    int nDebug = GetLocalInt(GetModule(), "x2dur_debug");
+    int nCount = NWNX_Effect_GetTrueEffectCount(oTarget);
+
+    if (nCount > X2DUR_MAX_SCAN)
+    {
+        if (nDebug)
+            WriteTimestampedLogEntry("[x2dur] SKIPPED target=" + GetName(oTarget) +
+                " trueEffects=" + IntToString(nCount) + " over X2DUR_MAX_SCAN");
+        return;
+    }
+
+    // ONE pass, not two. A LINKED effect surfaces as several true-effects that all
+    // share the same id. Link-sensitive effects (improved invisibility, invisibility,
+    // concealment, sanctuary, etherealness) rely on the engine link staying intact --
+    // our remove+reapply would split it and corrupt it (e.g. attacking would strip the
+    // concealment instead of just dropping invisibility). So EVERY component sharing
+    // this id has to be inspected before anything is applied -- checking only the first
+    // match is not enough, since the excluded component may not be the one the loop
+    // hits first (roadmap improved-invis-issues-part2). Hence: collect the first
+    // matching index, keep scanning for a link-sensitive sibling, and decide after the
+    // loop. Use GetEffectType (script EFFECT_TYPE_* constants), NOT e.nType (raw engine
+    // enum). See docs.manual/Customizations.html#spell-duration.
+    int nFirst = -1;
+    int i;
+
+    for (i = 0; i < nCount; i++)
+    {
+        struct NWNX_EffectUnpacked e = NWNX_Effect_GetTrueEffect(oTarget, i);
+        if (e.sID != sUID)
+            continue;
+
+        int nFx = GetEffectType(NWNX_Effect_PackEffect(e));
+        if (nFx == EFFECT_TYPE_INVISIBILITY ||
+            nFx == EFFECT_TYPE_IMPROVEDINVISIBILITY ||
+            nFx == EFFECT_TYPE_CONCEALMENT ||
+            nFx == EFFECT_TYPE_SANCTUARY ||
+            nFx == EFFECT_TYPE_ETHEREAL)
+            return;
+
+        if (nFirst < 0)
+            nFirst = i;
+    }
+
+    if (nFirst < 0)
+        return;     // effect already gone -- see the header note on deferral
+
+    struct NWNX_EffectUnpacked eKeep = NWNX_Effect_GetTrueEffect(oTarget, nFirst);
+    eKeep.fDuration = fDur * 2.0;                    // cosmetic; the apply param rules
+    effect eNew = NWNX_Effect_PackEffect(eKeep);     // faithful copy, keeps creator
+
+    // The busy flag has to be set HERE, around the synchronous apply, not around the
+    // DelayCommand that scheduled us -- our own re-applied copy fires the event again
+    // on this very stack, and main() must see the flag set when it does.
+    SetLocalInt(oTarget, "x2dur_busy", TRUE);
+    NWNX_Effect_RemoveEffectById(oTarget, sUID);
+    ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eNew, oTarget, fDur * 2.0);
+    DeleteLocalInt(oTarget, "x2dur_busy");
+
+    if (nDebug)
+        WriteTimestampedLogEntry("[x2dur] target=" + GetName(oTarget) +
+            " creator=" + GetName(oCreator) +
+            " spellId=" + sSpellId +
+            " dur=" + FloatToString(fDur, 0, 1) +
+            " -> " + FloatToString(fDur * 2.0, 0, 1));
+}
 
 void main()
 {
     object oTarget = OBJECT_SELF;
 
     // Our own re-applied copy fires this event again; never double it twice.
-    // ApplyEffectToObject applies synchronously, so this flag is set while the
-    // nested event runs.
+    // X2Dur_ReTime sets this flag across its apply, and that apply is synchronous,
+    // so the flag is set while the nested event runs.
     if (GetLocalInt(oTarget, "x2dur_busy"))
         return;
 
@@ -54,21 +148,22 @@ void main()
     // GetHasFeatEffect() reads to block re-casting stays doubled. Confirmed by
     // disassembling the vanilla x0_s2_divmight/x0_s2_divshield scripts. Leave both at
     // natural duration rather than risk the same corruption.
-    int nSpellId = StringToInt(NWNX_Events_GetEventData("SPELL_ID"));
+    string sSpellId = NWNX_Events_GetEventData("SPELL_ID");
+    int nSpellId = StringToInt(sSpellId);
     if (nSpellId == SPELL_DIVINE_MIGHT || nSpellId == SPELL_DIVINE_SHIELD)
         return;
 
     // The invisibility/illusion family is also applied as LINKED effects (see the
-    // effect-type guard in the loop below). The type guard alone is NOT enough:
+    // effect-type guard in X2Dur_ReTime). The type guard alone is NOT enough:
     // Improved Invisibility links its EffectInvisibility with a duration visual, and
-    // the linked components share the same effect id, so the loop's "inspect the first
-    // matching component" check can land on the non-excluded visual, bypass the guard,
-    // strip the whole link via RemoveEffectById, and reapply only one component --
-    // exactly the corruption reported in roadmap item improved-invis-issues-part2.
-    // Exclude the whole spell by id up front (the same approach that fixed Divine
-    // Might/Shield), which also covers item-cast sources (potions/wands/scrolls) since
-    // they carry the spell id. Direct script-applied invis with no spell id is still
-    // caught by the effect-type guard below.
+    // the linked components share the same effect id, so a "inspect the first matching
+    // component" check can land on the non-excluded visual, bypass the guard, strip the
+    // whole link via RemoveEffectById, and reapply only one component -- exactly the
+    // corruption reported in roadmap item improved-invis-issues-part2. Exclude the whole
+    // spell by id up front (the same approach that fixed Divine Might/Shield), which also
+    // covers item-cast sources (potions/wands/scrolls) since they carry the spell id.
+    // Direct script-applied invis with no spell id is still caught by the effect-type
+    // guard in X2Dur_ReTime.
     if (nSpellId == SPELL_IMPROVED_INVISIBILITY ||
         nSpellId == SPELL_INVISIBILITY ||
         nSpellId == SPELL_INVISIBILITY_SPHERE ||
@@ -77,59 +172,10 @@ void main()
         nSpellId == SPELL_ETHEREALNESS)
         return;
 
+    // UNIQUE_ID and the unpacked sID are both std::to_string(m_nID), so this identifies
+    // the exact effect that just fired, and survives the hand-off below.
     string sUID = NWNX_Events_GetEventData("UNIQUE_ID");
 
-    // UNIQUE_ID and the unpacked sID are both std::to_string(m_nID), so this matches
-    // the exact effect that just fired.
-    int nCount = NWNX_Effect_GetTrueEffectCount(oTarget);
-    int i;
-
-    // Guard pass: a LINKED effect surfaces as several true-effects that all share the
-    // same id. Link-sensitive effects (improved invisibility, invisibility, concealment,
-    // sanctuary, etherealness) rely on the engine link staying intact -- our
-    // remove+reapply would split it and corrupt it (e.g. attacking would strip the
-    // concealment instead of just dropping invisibility). So scan EVERY component that
-    // shares this id and bail if ANY of them is link-sensitive -- inspecting only the
-    // first matching component is not enough, since the excluded component may not be
-    // the one the loop hits first. Use GetEffectType (script EFFECT_TYPE_* constants),
-    // NOT e.nType (raw engine enum). See docs.manual/Customizations.html#spell-duration.
-    for (i = 0; i < nCount; i++)
-    {
-        struct NWNX_EffectUnpacked e = NWNX_Effect_GetTrueEffect(oTarget, i);
-        if (e.sID != sUID)
-            continue;
-
-        int nFx = GetEffectType(NWNX_Effect_PackEffect(e));
-        if (nFx == EFFECT_TYPE_INVISIBILITY ||
-            nFx == EFFECT_TYPE_IMPROVEDINVISIBILITY ||
-            nFx == EFFECT_TYPE_CONCEALMENT ||
-            nFx == EFFECT_TYPE_SANCTUARY ||
-            nFx == EFFECT_TYPE_ETHEREAL)
-            return;
-    }
-
-    // Apply pass: re-time the matching effect.
-    for (i = 0; i < nCount; i++)
-    {
-        struct NWNX_EffectUnpacked e = NWNX_Effect_GetTrueEffect(oTarget, i);
-        if (e.sID != sUID)
-            continue;
-
-        e.fDuration = fDur * 2.0;                 // cosmetic; the apply param below rules
-        effect eNew = NWNX_Effect_PackEffect(e);  // faithful copy, keeps creator
-
-        SetLocalInt(oTarget, "x2dur_busy", TRUE);
-        NWNX_Effect_RemoveEffectById(oTarget, sUID);
-        ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eNew, oTarget, fDur * 2.0);
-        DeleteLocalInt(oTarget, "x2dur_busy");
-
-        if (GetLocalInt(GetModule(), "x2dur_debug"))
-            WriteTimestampedLogEntry("[x2dur] target=" + GetName(oTarget) +
-                " creator=" + GetName(oCreator) +
-                " spellId=" + NWNX_Events_GetEventData("SPELL_ID") +
-                " dur=" + FloatToString(fDur, 0, 1) +
-                " -> " + FloatToString(fDur * 2.0, 0, 1));
-
-        break;
-    }
+    // Everything expensive happens off this frame. See the header.
+    DelayCommand(0.0, X2Dur_ReTime(oTarget, sUID, fDur, oCreator, sSpellId));
 }

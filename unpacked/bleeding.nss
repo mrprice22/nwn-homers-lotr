@@ -19,12 +19,18 @@
 // calling it on every 6s heartbeat pulse is cheap. See worldstate_inc.nss.
 #include "worldstate_inc"
 
+// SP_DEV_TOOLS gates the petrification trace below: on for the dev/test realm,
+// off for a live season automatically, so the per-PC log lines can never fill a
+// production log. Generated from SEASON_ROLE in server.env.
+#include "season_prof_inc"
+
 /*
  * I like to put all the things I can "tweak" in one place.  You could put
  * each behavior into the function in which it's used, but it's far easier
  * to find them this way.
  */
-// --- LOTR petrification timeout (roadmap petrification-timeout-2) ---
+// --- LOTR petrification timeout (roadmap petrification-timeout-2,
+//     petrification-respawn-defect-round-3) ---
 // The original fix (commit 46aa7efaa1e) edited DoPetrification() in the module's
 // x0_i0_spells.nss include, but in-game petrification comes from base-game
 // precompiled gaze/flesh-to-stone scripts that inline the STOCK DoPetrification,
@@ -34,6 +40,13 @@
 // via EffectDeath (routing through ondeath020 -> death/respawn GUI), with
 // escalating warnings both in chat and as floating text every PETRIFY_WARN_BUCKET
 // seconds. The heartbeat fires every HB_INTERVAL seconds (standard module HB).
+//
+// Round 3: the watcher was there but never counted, because it guarded on
+// GetIsDead() and this server's NWN_DIFFICULTY=3 puts a petrified PC into the
+// engine's statue state, which reads as dead. See the long comment in
+// petrifyCheck() - that guard is gone, kill-once is a flag of ours, and the
+// petrify is stripped BEFORE the kill so the death panel comes back with its
+// Respawn button enabled (ondeath020 now says so explicitly).
 const float HB_INTERVAL        = 6.0;
 const float PETRIFY_TIMEOUT    = 120.0;
 const int   PETRIFY_WARN_BUCKET = 15;
@@ -49,16 +62,56 @@ int HasPetrify(object o)
     return FALSE;
 }
 
+// Remove the petrification. RemoveEffect on ANY component of a linked effect drops
+// the whole link, so this also takes the VFX_DUR_CESSATE_NEGATIVE that stock
+// DoPetrification links to the EffectPetrify. Returns how many were removed, which
+// the trace logs -- a zero here on a PC that HasPetrify() said was stone is the
+// signature of an effect we cannot reach from script.
+int StripPetrify(object o)
+{
+    int nRemoved = 0;
+    effect e = GetFirstEffect(o);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_PETRIFY)
+        {
+            RemoveEffect(o, e);
+            nRemoved++;
+        }
+        e = GetNextEffect(o);
+    }
+    return nRemoved;
+}
+
+void PetrifyLog(string sMsg)
+{
+    if (SP_DEV_TOOLS) WriteTimestampedLogEntry("[petrify] " + sMsg);
+}
+
 void petrifyCheck(object pc)
 {
     if (!HasPetrify(pc))
     {
-        // Not petrified (never was, or cured e.g. via Stone-to-Flesh) - reset.
+        // Not petrified (never was, or cured e.g. via Stone-to-Flesh, or we just
+        // killed them and the strip took) - reset every tracker.
+        if (GetLocalInt(pc, "PETRIFY_HB") || GetLocalInt(pc, "PETRIFY_KILLED"))
+            PetrifyLog("clear pc=" + GetName(pc));
         DeleteLocalInt(pc, "PETRIFY_HB");
         DeleteLocalInt(pc, "PETRIFY_BUCKET");
+        DeleteLocalInt(pc, "PETRIFY_KILLED");
         return;
     }
-    if (GetIsDead(pc)) return;
+
+    // THERE IS DELIBERATELY NO GetIsDead() GUARD HERE (roadmap
+    // petrification-respawn-defect-round-3). The server runs NWN_DIFFICULTY=3, which
+    // takes the bShowPopup branch of stock DoPetrification: a PERMANENT petrify plus
+    // PopUpDeathGUIPanel(oTarget, FALSE, TRUE, 40579) - a death panel whose Respawn
+    // button the ENGINE disabled. A PC held in that statue state reads as dead, so the
+    // round-2 guard returned on every single heartbeat and this watcher never counted
+    // to anything - "still not killing after 3 min", with the disabled panel the player
+    // saw. Kill-once is tracked with our own flag instead, so a corpse is never
+    // re-killed and the guard cannot be defeated by the engine's idea of dead.
+    if (GetLocalInt(pc, "PETRIFY_KILLED")) return;
 
     int nHB = GetLocalInt(pc, "PETRIFY_HB") + 1;
     SetLocalInt(pc, "PETRIFY_HB", nHB);
@@ -66,7 +119,21 @@ void petrifyCheck(object pc)
 
     if (fElapsed >= PETRIFY_TIMEOUT)
     {
+        // ORDER MATTERS. Strip the stone FIRST, kill SECOND. EffectDeath on a creature
+        // the engine still holds as a statue is the likely no-op, and a corpse that is
+        // still carrying the petrify is the other candidate for the greyed-out Respawn
+        // button. Stripping first leaves an ordinary living PC for EffectDeath to kill
+        // through the normal pipeline (ondeath020 -> death/respawn GUI).
+        int nStripped = StripPetrify(pc);
+        SetLocalInt(pc, "PETRIFY_KILLED", TRUE);
         ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), pc);
+
+        PetrifyLog("timeout kill pc=" + GetName(pc) +
+            " hb=" + IntToString(nHB) +
+            " stripped=" + IntToString(nStripped) +
+            " stillStone=" + IntToString(HasPetrify(pc)) +
+            " isDead=" + IntToString(GetIsDead(pc)));
+
         DeleteLocalInt(pc, "PETRIFY_HB");
         DeleteLocalInt(pc, "PETRIFY_BUCKET");
         return;
@@ -88,6 +155,11 @@ void petrifyCheck(object pc)
 
     SendMessageToPC(pc, sMsg);
     FloatingTextStringOnCreature(sMsg, pc, FALSE);
+
+    PetrifyLog("tick pc=" + GetName(pc) +
+        " hb=" + IntToString(nHB) +
+        " elapsed=" + FloatToString(fElapsed, 0, 1) +
+        " isDead=" + IntToString(GetIsDead(pc)));
 }
 
 
