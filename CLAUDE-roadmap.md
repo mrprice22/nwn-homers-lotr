@@ -453,8 +453,11 @@ What it does:
   byte-for-byte no-op.
 - **Save & regenerate** writes `roadmap.yaml` then runs `gen-roadmap.py`, surfacing its
   output (including duplicate-idea warnings) in the page. It is local and fast: no git, no
-  network, nothing published. Preview the result at the editor's **/preview** route, which
-  serves `docs.manual/Roadmap.html` straight off disk.
+  network, nothing published. There is **no preview of the unpublished page** — a `/preview`
+  route serving `docs.manual/Roadmap.html` raw was tried and removed, because that file is a
+  page fragment dressed as a document (no wiki chrome, no stylesheet at that path, every
+  cross-page link 404) and looked broken while telling you nothing the editor's own board
+  does not. Publish is cheap and reversible.
 
 - **Publish to Wiki & DB** additionally body-swaps the page into `docs/manual/Roadmap.html`,
   refreshes the in-game sign DB (`bin/roadmap_publish.py`), commits + pushes — **and

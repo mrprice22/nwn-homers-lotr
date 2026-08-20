@@ -1669,19 +1669,6 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/" or self.path.startswith("/index"):
             self._send(200, PAGE.encode("utf-8"), "text/html; charset=utf-8")
-        elif self.path == "/preview":
-            # The page as gen-roadmap.py last rendered it, BEFORE any publish -
-            # docs.manual/Roadmap.html is a complete standalone document, so it
-            # renders as-is. It carries the roadmap's own styling but not the
-            # wiki's chrome, and links to sibling pages (QuestGuide.html and
-            # friends) 404 here: this is a proof of the content, not of the site.
-            try:
-                html = SRC_ROADMAP.read_bytes()
-            except OSError as e:
-                self._send(404, f"no generated roadmap yet: {e}".encode("utf-8"),
-                           "text/plain; charset=utf-8")
-                return
-            self._send(200, html, "text/html; charset=utf-8")
         elif self.path == "/monitor" or self.path.startswith("/monitor?"):
             self._send(200, MONITOR_PAGE.encode("utf-8"),
                        "text/html; charset=utf-8")
@@ -2280,15 +2267,17 @@ PAGE = r"""<!doctype html>
          Publish now pushes the page into the live season's docs/ as well
          (publish_to_live_realm), so the public roadmap IS the roadmap and a
          second link would only ask "which one is real?".
-         Unpublished work has its own answer: /preview, served straight from
-         docs.manual/Roadmap.html by this editor - no round trip through
-         dev.homerslotr.com, which is an admin surface, not a player one.
+         There is deliberately NO preview of unpublished work here. A /preview
+         route serving docs.manual/Roadmap.html raw was tried and removed: that
+         file is a page fragment dressed as a document - no wiki chrome, no
+         stylesheet at that path, every cross-page link 404 - so it looked
+         broken and told you nothing the editor's own board does not. Publish is
+         cheap and reversible; use it.
          The two data-brand hrefs are rewritten by bin/season-brand.py from
          SEASON_WIKI_URL and SEASON_LIVE_WIKI_URL. -->
     <div class="extlinks">
       <a data-brand="wiki" href="https://dev.homerslotr.com/" target="_blank" rel="noopener">This realm's wiki ↗</a>
       <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Roadmap (live site) ↗</a>
-      <a href="/preview" target="_blank" rel="noopener">Preview unpublished ↗</a>
       <a href="/monitor" target="_blank" rel="noopener">Server monitor (all realms) ↗</a>
     </div>
     <div class="viewtoggle">

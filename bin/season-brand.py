@@ -412,8 +412,7 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
     # roadmap page. It went when Publish started pushing the page into the live
     # realm's docs/ too (roadmap-editor.publish_to_live_realm): with production
     # current the moment you publish, a per-realm roadmap link only raised the
-    # question of which of the two was the real one. Unpublished work is
-    # previewed from the editor itself at /preview.
+    # question of which of the two was the real one.
     def editor(s, notes):
         def href(src: str, key: str, url: str) -> str:
             pat = rf'(<a data-brand="{key}" href=")[^"]*(")'
