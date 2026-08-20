@@ -91,6 +91,19 @@ store (4+ GiB of CEP), so it will blow through a short command timeout — and a
 `latest` pointing at the previous manifest (safe, but nothing was published, so
 it must be re-run).
 
+### Prod characters on the dev realm
+
+`bin/sync-vault-from-prod` copies player `.bic` files **one way, live realm → dev
+realm**, additively, every 30 s (`systemd/nwn-season-vault-sync@.timer`, armed by
+`bin/season-units.sh` on the `SEASON_ROLE=dev` instance only). It exists so a player
+who hit a bug on prod can log out, hop to the test realm and retest a fix with the
+**same character** instead of re-rolling. Prod always wins on conflict; it **never
+deletes**, so dev-only test characters survive; and it syncs `.bic` files **only** —
+bank/bestiary/house-chest/legendary-feat state lives in per-season campaign DBs and
+does not come across. Never point it the other way: it refuses to run unless this
+repo is `dev` and the source is `live`, and that guard is the whole safety story.
+Details + `--status` in `README.md` "Pulling prod characters into the dev realm".
+
 ### Build artifacts (gitignored, do not commit)
 
 - `dist/` — packed `.mod` output
@@ -220,8 +233,15 @@ it owns — wiki URL, connect host/port, module/server name, worker name, the tw
 Well of Eru season signs), run `python3 bin/season-brand.py --apply`. It is
 idempotent and dry-run by default; `tests/check_season_brand.py` fails the
 repack until the tree matches the block. Never hand-edit the strings it owns —
-the list is in the script's rule table. See `README.md` "Season identity &
-rotation" and [season-cutover-prereqs.md](season-cutover-prereqs.md).
+the list is in the script's rule table. The one exception is the wiki landing
+page (`index.html` at the repo root), where a **deliberate** cross-environment
+reference — the live season advertising the permanent dev realm's wiki, port and
+password — is wrapped in `<!-- season-brand:ignore … --> … <!-- /season-brand:ignore -->`
+so neither the rewrite nor the published-wiki advisory touches it. Use that
+marker only for another environment's strings; a season's own strings must stay
+branded or the next cutover leaves them pointing at the old realm. See
+`README.md` "Season identity & rotation" and
+[season-cutover-prereqs.md](season-cutover-prereqs.md).
 
 **After adding or changing areas/transitions**, re-run `python3 bin/gen-map-notes.py`
 (then `--apply`) to keep destination map-note pins on the area map in sync — it

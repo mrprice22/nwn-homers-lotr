@@ -105,6 +105,36 @@ WIKI_HOST_RE = re.compile(
     r"(?<![\w.-])(?:season\d+\.|dev\.)?" + re.escape(APEX_DOMAIN))
 
 
+# --- opt-out regions on the landing page ------------------------------------
+# The landing page is the one place that legitimately advertises ANOTHER
+# environment: the live season's front page points testers at the permanent dev
+# realm (dev.homerslotr.com, its own port, its own password). Both landing-page
+# rules are shape-matched by design, so they would happily rewrite that block
+# into this season's own host and port — i.e. silently send testers to
+# production and the gate would then demand it stay that way. Anything between
+# these markers is left exactly as authored, by the rewrite AND by the
+# published-wiki advisory:
+#
+#   <!-- season-brand:ignore (why) --> … <!-- /season-brand:ignore -->
+#
+# Use it ONLY for a deliberate cross-environment reference. A season's own
+# strings must stay branded, or a cutover leaves them pointing at the old realm.
+BRAND_IGNORE_RE = re.compile(
+    r"<!--\s*season-brand:ignore\b.*?-->.*?<!--\s*/season-brand:ignore\s*-->",
+    re.S)
+
+
+def outside_ignored(s: str, fn) -> str:
+    """Apply `fn` to every part of `s` outside a season-brand:ignore region."""
+    out, pos = [], 0
+    for m in BRAND_IGNORE_RE.finditer(s):
+        out.append(fn(s[pos:m.start()]))
+        out.append(m.group(0))
+        pos = m.end()
+    out.append(fn(s[pos:]))
+    return "".join(out)
+
+
 # The Well of Eru area, for the Recent Updates board's roadmap link.
 WELL_OF_ERU = UNPACKED / "thewelloferu.git.json"
 
@@ -314,16 +344,29 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
     # The connect string is matched as the CONNECT-HOST:PORT shape, never as a
     # bare port (see the module docstring — a bare 5121 substitution corrupts
     # float coordinates and a listen pattern).
+    # Everything outside a season-brand:ignore region is rebranded; the regions
+    # themselves are left alone (see BRAND_IGNORE_RE).
     def landing(s, notes):
-        new = rehost(s)
-        if new != s:
-            notes.append("wiki host link(s)")
         connect_re = re.compile(
             re.escape(str(cfg["connect"]).rsplit(":", 1)[0]) + r":\d+")
-        after, n = connect_re.subn(str(cfg["connect"]), new)
-        if n and after != new:
-            notes.append(f"direct-connect string x{n}")
-        return after
+        hosts = conns = 0
+
+        def brand_segment(seg: str) -> str:
+            nonlocal hosts, conns
+            rehosted = rehost(seg)
+            if rehosted != seg:
+                hosts += 1
+            after, n = connect_re.subn(str(cfg["connect"]), rehosted)
+            if n and after != rehosted:
+                conns += n
+            return after
+
+        new = outside_ignored(s, brand_segment)
+        if hosts:
+            notes.append("wiki host link(s)")
+        if conns:
+            notes.append(f"direct-connect string x{conns}")
+        return new
 
     landing_page = REPO / "index.html"
     if landing_page.exists():
@@ -505,6 +548,12 @@ def docs_stale(cfg) -> list[str]:
         published = docs_index.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return []
+
+    # HTML comments survive into the generated page, so the same opt-out that
+    # spares the dev-realm block from the rewrite spares it from this audit —
+    # otherwise a correctly authored cross-environment link would be reported
+    # as a stale wiki forever.
+    published = BRAND_IGNORE_RE.sub("", published)
 
     problems: list[str] = []
     connect = str(cfg["connect"])

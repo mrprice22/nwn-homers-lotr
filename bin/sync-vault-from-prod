@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# sync-vault-from-prod — pull player characters from the LIVE realm's servervault
+# into THIS (dev/test) realm's servervault, one way, additively.
+#
+# Why: a servervault is keyed to NWN_HOME_DIR, so every season/realm has its own
+# characters. Without this, a player who hits a bug on production has to re-roll
+# from scratch to retest a fix on the test realm. With it the loop is: fix lands
+# on dev -> player logs out of prod -> within ~30s their character is sitting in
+# the dev vault -> they connect to the test port and carry on with the SAME
+# character.
+#
+# The contract, deliberately:
+#   * ONE DIRECTION, always prod -> dev. It refuses to run unless THIS repo is
+#     SEASON_ROLE=dev and the source is SEASON_ROLE=live. A live vault is never
+#     a write target of this script, ever.
+#   * PROD WINS. An existing dev copy is overwritten whenever it differs. Any
+#     progress made on the dev copy of a synced character is disposable — that
+#     is the point: the player wants prod's character, not dev's stale one.
+#   * NEVER DELETES. Dev-only test characters (including ones sharing a CD-key
+#     folder with prod characters) are left alone, and a character deleted on
+#     prod keeps its stale dev copy.
+#   * .bic FILES ONLY. Bank, house chest, bestiary kills and legendary-feat picks
+#     live in per-season campaign DBs and do NOT come across. meritdb/admindb are
+#     already shared across realms by symlink (bin/season-shared-dbs.sh).
+#
+# A prod .bic on disk is only current after the server EXPORTS it — i.e. at the
+# player's logout, or the 03:00 ExportAllCharacters. That matches the intended
+# workflow ("log out of prod, then hop to test"), but it does mean a still
+# logged-in player's latest state is not on disk and cannot be synced.
+#
+# Usage:
+#   bin/sync-vault-from-prod                 # dry run — list what would copy
+#   bin/sync-vault-from-prod --apply         # do it
+#   bin/sync-vault-from-prod --apply --quiet # timer mode: log only on transfers
+#   bin/sync-vault-from-prod --status        # what's over, what's stale/missing
+#   bin/sync-vault-from-prod --from ~/GIT/nwn_homers_lotr_s2 ...
+#
+# Runs every 30s from systemd/nwn-season-vault-sync@.timer (installed and armed
+# for the dev instance only by bin/season-units.sh). README.md "Pulling prod
+# characters into the dev realm" has the operator docs.
+set -euo pipefail
+shopt -s nullglob
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+ENV_FILE="$PROJECT_ROOT/server.env"
+LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
+
+[[ -f $ENV_FILE ]] || { echo "error: $ENV_FILE not found" >&2; exit 1; }
+# shellcheck disable=SC1090
+. "$ENV_FILE"
+# shellcheck disable=SC1090
+[[ -f $LOCAL_ENV_FILE ]] && . "$LOCAL_ENV_FILE"
+
+: "${NWN_HOME_DIR:?server.env must define NWN_HOME_DIR}"
+: "${NWN_RUN_DIR:?server.env must define NWN_RUN_DIR}"
+: "${SEASON_ROLE:?server.env must define SEASON_ROLE}"
+
+# Seconds a source .bic must have been untouched before we copy it, so we never
+# grab a file mid-export. Same idea as ab-enhance-fix-bic.py's --recent-min.
+: "${VAULT_SYNC_SETTLE_SECS:=5}"
+: "${VAULT_SYNC_LOG:=$NWN_RUN_DIR/vault-sync.log}"
+
+APPLY=0; QUIET=0; STATUS=0; FROM=""
+while (($#)); do
+  case "$1" in
+    --apply)  APPLY=1 ;;
+    --quiet)  QUIET=1 ;;
+    --status) STATUS=1 ;;
+    --from)   FROM=${2:-}; [[ -n $FROM ]] || { echo "error: --from needs a repo path" >&2; exit 2; }; shift ;;
+    -h|--help) sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'; exit 0 ;;
+    *) echo "error: unknown arg: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+note() { ((QUIET)) || echo "[vault-sync] $*"; }
+die()  { echo "[vault-sync] $1" >&2; exit "${2:-1}"; }
+log() {  # real events: always to stdout AND the log file, even under --quiet
+  local line="[vault-sync] $(date '+%Y-%m-%d %H:%M:%S') $*"
+  echo "$line"
+  { mkdir -p "$(dirname "$VAULT_SYNC_LOG")" && echo "$line" >> "$VAULT_SYNC_LOG"; } 2>/dev/null || true
+}
+
+# Never source another repo's server.env — it would clobber our own vars.
+read_var() {
+  sed -n "s/^[[:space:]]*\(export[[:space:]]\+\)\?$2[[:space:]]*=[[:space:]]*//p" "$1" \
+    | head -1 | sed 's/[[:space:]]\+#.*$//; s/^"\(.*\)"$/\1/; s/^'\''\(.*\)'\''$/\1/'
+}
+
+# read_var hands back the literal text, so "$HOME/..." arrives unexpanded.
+expand_home() {
+  local v=$1
+  v=${v//\$HOME/$HOME}
+  v=${v//\$\{HOME\}/$HOME}
+  [[ $v == "~"* ]] && v="$HOME${v#\~}"
+  echo "$v"
+}
+
+# ------------------------------------------------------------- this realm ---
+[[ $SEASON_ROLE == dev ]] || die \
+  "this repo is SEASON_ROLE=$SEASON_ROLE, not dev. The sync only ever writes INTO a dev vault." 3
+
+# The run dir's servervault is a container-internal symlink (host-dangling by
+# design, see bin/serve and season-cutover-guide.md) — the real one is under
+# NWN_HOME_DIR.
+DST_VAULT="$NWN_HOME_DIR/servervault"
+
+# ------------------------------------------------------- the source realm ---
+if [[ -n $FROM ]]; then
+  [[ -d $FROM ]] || die "--from: no such directory: $FROM" 3
+  SRC_ROOT=$(cd "$FROM" && pwd)
+else
+  mapfile -t LIVE < <(
+    for d in "$PROJECT_ROOT"/../*/; do
+      d=${d%/}
+      [[ -f $d/server.env ]] || continue
+      [[ $(read_var "$d/server.env" SEASON_ROLE) == live ]] || continue
+      echo "$d"
+    done
+  )
+  case ${#LIVE[@]} in
+    0) die "found no sibling repo with SEASON_ROLE=live. Is production checked out beside this one?" 3 ;;
+    1) ;;
+    *) printf '  %s\n' "${LIVE[@]}" >&2
+       die "found ${#LIVE[@]} live seasons — 'prod' is ambiguous. Re-run with --from <repo>." 3 ;;
+  esac
+  SRC_ROOT=$(cd "${LIVE[0]}" && pwd)
+fi
+
+[[ -f $SRC_ROOT/server.env ]] || die "no server.env in $SRC_ROOT" 3
+SRC_ROLE=$(read_var "$SRC_ROOT/server.env" SEASON_ROLE)
+[[ $SRC_ROLE == live ]] || die "source realm $SRC_ROOT is SEASON_ROLE=$SRC_ROLE, not live." 3
+SRC_NUM=$(read_var "$SRC_ROOT/server.env" SEASON_NUM)
+SRC_HOME=$(expand_home "$(read_var "$SRC_ROOT/server.env" NWN_HOME_DIR)")
+[[ -n $SRC_HOME ]] || die "could not read NWN_HOME_DIR from $SRC_ROOT/server.env" 3
+SRC_VAULT="$SRC_HOME/servervault"
+
+[[ -d $SRC_VAULT ]] || die "source vault does not exist: $SRC_VAULT" 3
+[[ -d $DST_VAULT ]] || die "destination vault does not exist: $DST_VAULT" 3
+[[ $(cd "$SRC_VAULT" && pwd -P) != $(cd "$DST_VAULT" && pwd -P) ]] || die \
+  "source and destination vaults are the same path — refusing." 3
+
+# ------------------------------------------------------------------ status --
+if ((STATUS)); then
+  echo "source : season ${SRC_NUM:-?} (live)  $SRC_VAULT"
+  echo "target : season ${SEASON_NUM:-?} (dev)   $DST_VAULT"
+  if [[ -f $VAULT_SYNC_LOG ]]; then
+    echo "last   : $(tail -1 "$VAULT_SYNC_LOG")"
+  else
+    echo "last   : no sync logged yet ($VAULT_SYNC_LOG)"
+  fi
+  echo
+  printf '%-12s %-28s %s\n' CDKEY CHARACTER STATE
+  missing=0; stale=0; synced=0
+  while IFS= read -r rel; do
+    src="$SRC_VAULT/$rel"; dst="$DST_VAULT/$rel"
+    if [[ ! -f $dst ]]; then
+      state=MISSING; missing=$((missing+1))
+    elif [[ $src -nt $dst ]] || [[ $(stat -c %s "$src") != $(stat -c %s "$dst") ]]; then
+      state=STALE; stale=$((stale+1))
+    else
+      state=synced; synced=$((synced+1))
+    fi
+    [[ $state == synced ]] && continue
+    printf '%-12s %-28s %s\n' "${rel%%/*}" "$(basename "$rel" .bic)" "$state"
+  done < <(cd "$SRC_VAULT" && find . -type f -name '*.bic' -printf '%P\n' | sort)
+  echo
+  echo "$synced up to date, $stale stale, $missing not yet copied"
+  # Dev-only characters are never touched; show them so the vault isn't a mystery.
+  dev_only=$(comm -13 \
+    <(cd "$SRC_VAULT" && find . -type f -name '*.bic' -printf '%P\n' | sort) \
+    <(cd "$DST_VAULT" && find . -type f -name '*.bic' -printf '%P\n' | sort) | wc -l)
+  echo "$dev_only dev-only character(s) present that prod does not have (never touched)"
+  exit 0
+fi
+
+# -------------------------------------------------------------------- sync --
+# One run at a time: a tick that overran its 30s slot must not race the next.
+LOCK="$NWN_RUN_DIR/.vault-sync.lock"
+mkdir -p "$NWN_RUN_DIR" 2>/dev/null || true
+exec 9>"$LOCK"
+flock -n 9 || { note "another sync is running — skipping this tick."; exit 0; }
+
+LIST=$(mktemp); trap 'rm -f "$LIST"' EXIT
+(cd "$SRC_VAULT" && find . -type f -name '*.bic' \
+    ! -newermt "-${VAULT_SYNC_SETTLE_SECS} seconds" -printf '%P\n') | sort > "$LIST"
+
+if [[ ! -s $LIST ]]; then
+  note "no settled .bic files in $SRC_VAULT — nothing to do."
+  exit 0
+fi
+
+note "source : season ${SRC_NUM:-?} (live)  $SRC_VAULT"
+note "target : season ${SEASON_NUM:-?} (dev)   $DST_VAULT"
+note "candidates: $(wc -l < "$LIST") .bic file(s)"
+
+# No --delete (additive), no --update (prod always wins). -a's size+mtime quick
+# check makes an unchanged tick a no-op.
+RSYNC_ARGS=(-a --itemize-changes --files-from="$LIST" "$SRC_VAULT/" "$DST_VAULT/")
+
+if ((APPLY == 0)); then
+  echo "would transfer:"
+  rsync --dry-run "${RSYNC_ARGS[@]}" | sed 's/^/  /'
+  echo
+  echo "DRY RUN — re-run with --apply."
+  exit 0
+fi
+
+out=$(rsync "${RSYNC_ARGS[@]}")
+n=$(printf '%s\n' "$out" | grep -c '^>f' || true)
+if ((n > 0)); then
+  log "copied $n character file(s) from season ${SRC_NUM:-?}:"
+  while IFS= read -r line; do
+    [[ $line == '>f'* ]] || continue
+    log "  ${line#* }"
+  done <<< "$out"
+else
+  note "already up to date — 0 files transferred."
+fi

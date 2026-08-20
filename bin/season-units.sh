@@ -37,6 +37,8 @@ TEMPLATES=(
   "nwn-season-backup@.service"
   "nwn-season-wiki-publish@.service"
   "nwn-season-empty-restart@.service"
+  "nwn-season-vault-sync@.service"
+  "nwn-season-vault-sync@.timer"
 )
 DROPINS=(
   "nwn-season-server@.service.d"
@@ -50,7 +52,6 @@ ENABLE_UNITS=(
   "nwn-season-wiki-publish@$INSTANCE.service"
   "nwn-season-empty-restart@$INSTANCE.path"
 )
-
 MODE=dry
 for a in "$@"; do
   case "$a" in
@@ -78,6 +79,15 @@ if [[ $PROJECT_ROOT != "$HOME/GIT/$INSTANCE" && $PROJECT_ROOT != "$(readlink -f 
 fi
 
 PATH_UNIT="nwn-season-empty-restart@$INSTANCE.path"
+
+# The prod->dev character vault sync only ever writes INTO a dev realm, so its
+# timer is armed for the dev instance alone. The template is still installed
+# everywhere (they are shared, and bin/sync-vault-from-prod refuses to run
+# outside dev anyway) - this just keeps a live/archive season from carrying a
+# timer that could only ever refuse.
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  ENABLE_UNITS+=("nwn-season-vault-sync@$INSTANCE.timer")
+fi
 
 echo "season instance : $INSTANCE"
 echo "project         : $PROJECT_ROOT"
@@ -183,6 +193,13 @@ if [[ $MODE == enable ]]; then
   # deliberate manual step below).
   systemctl --user start "nwn-season-empty-restart@$INSTANCE.path"
   echo "started nwn-season-empty-restart@$INSTANCE.path (watchers only watch while active)"
+
+  # Same story for the vault-sync timer: enable queues it for the next boot, so
+  # start it now or prod characters stop flowing until the machine reboots.
+  if [[ ${SEASON_ROLE:-} == dev ]]; then
+    systemctl --user start "nwn-season-vault-sync@$INSTANCE.timer"
+    echo "started nwn-season-vault-sync@$INSTANCE.timer (prod -> dev character vault sync, every 30s)"
+  fi
 
   echo
   echo "Enabled. The server is NOT started — start it when ready:"

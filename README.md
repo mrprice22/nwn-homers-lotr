@@ -1272,6 +1272,68 @@ bin/backup-homers-lotr --force     # back up now, ignoring the 24h gate
      intend to roll those back too (they're usually fine as-is).
 4. Restart with `bin/serve`.
 
+## Pulling prod characters into the dev realm
+
+A servervault is keyed to `NWN_HOME_DIR`, so every realm has its own characters.
+Without help, a player who hits a bug on production has to re-roll from scratch to
+retest the fix on the test realm. `bin/sync-vault-from-prod` closes that gap: it
+copies `.bic` files one way, **live realm → dev realm**, every 30 seconds.
+
+The player-facing loop is: fix lands on dev → you tell the player it's in test →
+they **log out of prod** (that logout is what makes the server write their `.bic`)
+→ within ~30 s the character is in the dev vault → they connect on the test port and
+retest with the same character. The dev server needs no restart; the vault is read at
+character select.
+
+The contract, deliberately:
+
+- **One direction, prod → dev.** The script refuses (exit 3) unless *this* repo is
+  `SEASON_ROLE=dev` and the source realm is `SEASON_ROLE=live`. A live vault is never
+  a write target. The source realm is discovered by scanning sibling repos for
+  `SEASON_ROLE=live` (same idiom as `bin/promote-to-prod`); `--from <repo>` overrides.
+- **Prod wins.** An existing dev copy is overwritten whenever it differs — progress
+  made on the *dev* copy of a synced character is disposable, which is the point.
+- **Never deletes.** Dev-only test characters survive, including ones sharing a
+  CD-key folder with prod characters. A character deleted on prod keeps its stale dev
+  copy; remove it by hand if that matters.
+- **`.bic` files only.** Bank, house chest, bestiary kills and legendary-feat picks
+  live in per-season campaign DBs and do **not** come across. `meritdb`/`admindb` are
+  already shared across realms by symlink (`bin/season-shared-dbs.sh`).
+- A source file modified within the last `VAULT_SYNC_SETTLE_SECS` (default 5) is
+  skipped, so a `.bic` is never grabbed mid-export.
+
+```sh
+bin/sync-vault-from-prod                 # dry run — list what would copy
+bin/sync-vault-from-prod --apply         # do it now
+bin/sync-vault-from-prod --status        # per-character: synced / STALE / MISSING
+                                         # + how many dev-only characters exist
+```
+
+### How it runs
+
+`systemd/nwn-season-vault-sync@.timer` fires `…@.service`
+(`bin/sync-vault-from-prod --apply --quiet`) every 30 s. `AccuracySec=1s` keeps
+systemd from coalescing it into a one-minute window, and `OnActiveSec=30s` primes a
+timer enabled mid-session (`OnBootSec` alone never fires on an already-booted
+machine). `--quiet` keeps the journal silent on no-op ticks; a tick that actually
+copies logs each file to the journal and to `$NWN_RUN_DIR/vault-sync.log`. Runs are
+serialised with `flock`, so a slow tick can never race the next.
+
+`bin/season-units.sh` installs the template for every season but **arms the timer only
+on the dev instance** (`SEASON_ROLE=dev`), and `--enable` starts it immediately —
+enabling alone would only queue it for the next boot.
+
+```sh
+bin/season-units.sh --install    # link the units
+bin/season-units.sh --enable     # enable + start (dev instance only)
+systemctl --user list-timers 'nwn-season-vault-sync@*'
+journalctl --user -u nwn-season-vault-sync@nwn_homers_lotr.service -f
+```
+
+**Caveat:** a prod `.bic` on disk is only current after the server exports it — at the
+player's logout, or the 03:00 `ExportAllCharacters()`. A still-logged-in player's
+latest state is not on disk and cannot be synced.
+
 ## Daily restart & reboot
 
 The host reboots itself once a day at **03:00 local** for a clean slate, with

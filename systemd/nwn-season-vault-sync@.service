@@ -1,0 +1,16 @@
+[Unit]
+Description=Pull live-realm player characters into the dev realm's servervault (season instance %i)
+Documentation=file://%h/GIT/%i/bin/sync-vault-from-prod
+# One-way, prod -> dev, additive. The script itself refuses to run unless THIS
+# instance is SEASON_ROLE=dev and the source realm is SEASON_ROLE=live, so a
+# stray-enabled instance can never write into a live vault.
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/GIT/%i
+# --quiet keeps the journal silent on no-op ticks (2880 of them a day); a tick
+# that actually copies characters still logs each file, here and to
+# $NWN_RUN_DIR/vault-sync.log.
+ExecStart=%h/GIT/%i/bin/sync-vault-from-prod --apply --quiet
+Nice=10
+IOSchedulingClass=idle

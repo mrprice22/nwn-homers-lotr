@@ -1,0 +1,20 @@
+[Unit]
+Description=Pull live-realm characters into the dev vault every 30s (season instance %i)
+Documentation=file://%h/GIT/%i/bin/sync-vault-from-prod
+
+[Timer]
+Unit=nwn-season-vault-sync@%i.service
+OnBootSec=2min
+# OnBootSec alone never fires on a machine that booted long ago, and
+# OnUnitActiveSec needs a previous activation to count from — so without
+# OnActiveSec a timer enabled mid-session sits with NEXT="-" forever. This one
+# primes it: 30s after the timer itself starts.
+OnActiveSec=30s
+OnUnitActiveSec=30s
+# Without this systemd coalesces timers to a 1-minute window and the 30s cadence
+# becomes a lie. The job is an rsync over a few hundred small files, so waking
+# on time costs nothing.
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
