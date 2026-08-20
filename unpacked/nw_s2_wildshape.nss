@@ -103,6 +103,12 @@ void main()
     // per-form polymorph.2da MergeW/MergeI/MergeA flags.
     struct ShapeMergeGear gear = ShapeMergeSnapshot(OBJECT_SELF);
 
+    // shifter-stats-defect: the form's stock bonus on top of the druid's own
+    // stats, linked into ePoly so it ends exactly when the form does. Wrap the
+    // finished link, not the bare polymorph, so the top-ups are extraordinary
+    // (undispellable) too.
+    ePoly = ExtraordinaryEffect(ShapeMergeStatFloor(OBJECT_SELF, nPoly, ePoly, gear));
+
     //Apply the VFX impact and effects
     ClearAllActions(); // prevents an exploit
     ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, OBJECT_SELF);

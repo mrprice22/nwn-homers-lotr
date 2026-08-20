@@ -101,6 +101,11 @@ void main()
     // (shape_merge_inc); vanilla merged nothing for arcane polymorphs.
     struct ShapeMergeGear gear = ShapeMergeSnapshot(OBJECT_SELF);
 
+    // shifter-stats-defect: the Doom Knight form's stock bonus on top of the
+    // caster's own stats. eLink already carries the polymorph, so the top-ups
+    // ride the same link and end exactly when the form does.
+    eLink = ShapeMergeStatFloor(OBJECT_SELF, 28, eLink, gear);
+
     ClearAllActions(); // prevents an exploit
     ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, OBJECT_SELF);
     ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eHP, OBJECT_SELF, RoundsToSeconds(nDuration));
