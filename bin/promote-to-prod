@@ -21,6 +21,10 @@
 #   fast      ... --allow-hot + --fast-nwsync: builds the target's hak, proves
 #               it publishes the same content as dev, and arms reboot-on-empty
 #               to COPY dev's manifest in the down window (~2s, not ~20min).
+#   reboot    ... --allow-hot + --reboot-on-empty: no NWSync work at all, just
+#               arms the target to cycle onto the new module when it next
+#               empties. THE MODULE-ONLY CASE, and the common one - clients
+#               download haks and the TLK, never the .mod.
 #   nobuild   sync + rebrand only, no repack. For a tooling-only change.
 #
 # Every mode except `dry` prints what it is about to do and waits for you to
@@ -72,7 +76,9 @@ case "$MODE" in
            ARGS+=(--apply --season "$TGT_NUM" --no-build) ;;
   fast)    DESC="PROMOTE, then arm a fast NWSync handover on reboot"
            ARGS+=(--apply --season "$TGT_NUM" --allow-hot) ;;
-  *) die "unknown mode '$MODE' (dry|apply|hot|fast|nobuild)" ;;
+  reboot)  DESC="PROMOTE, then arm reboot-on-empty (module-only, no NWSync)"
+           ARGS+=(--apply --season "$TGT_NUM" --allow-hot) ;;
+  *) die "unknown mode '$MODE' (dry|apply|hot|fast|reboot|nobuild)" ;;
 esac
 
 cat <<BANNER
@@ -100,6 +106,24 @@ if [[ $MODE == fast ]]; then
   read -rp "  Message players will see on the reboot warning: " REBOOT_MSG
   [[ -n ${REBOOT_MSG:-} ]] || REBOOT_MSG="Server updated. Rebooting once the realm is empty."
   ARGS+=(--fast-nwsync "$REBOOT_MSG")
+  echo
+fi
+
+if [[ $MODE == reboot ]]; then
+  # Same note as `fast`: the flag is read by the Anvil plugin inside the RUNNING
+  # server, so arming a stopped realm looks like it worked and then never fires.
+  echo "  Note: reboot-on-empty only fires while the server is UP. If $TGT_NAME"
+  echo "  is stopped, just start it - it will load the promoted module anyway."
+  echo
+  echo "  This message is broadcast to players online, shouted in game, and shown"
+  echo "  to anyone who logs in before the realm empties. Say what changed."
+  echo
+  read -rp "  Message players will see on the reboot warning: " REBOOT_MSG
+  [[ -n ${REBOOT_MSG:-} ]] || REBOOT_MSG="Server updated. Rebooting once the realm is empty."
+  ARGS+=(--reboot-on-empty "$REBOOT_MSG")
+  echo
+  echo "  Players will be told:"
+  echo "      $REBOOT_MSG"
   echo
 fi
 

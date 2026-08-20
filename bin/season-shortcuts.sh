@@ -119,9 +119,10 @@ if [[ ${SEASON_ROLE:-} == dev ]]; then
   PROMOTE="$APPS/$DEV_PREFIX-promote.desktop"
   PROMOTE_HOT="$APPS/$DEV_PREFIX-promote-hot.desktop"
   PROMOTE_FAST="$APPS/$DEV_PREFIX-promote-fast.desktop"
+  PROMOTE_REBOOT="$APPS/$DEV_PREFIX-promote-reboot.desktop"
   PROMOTE_NOBUILD="$APPS/$DEV_PREFIX-promote-nobuild.desktop"
   PROMOTE_FILES=("$PROMOTE_DRY" "$PROMOTE" "$PROMOTE_HOT" "$PROMOTE_FAST"
-                 "$PROMOTE_NOBUILD")
+                 "$PROMOTE_REBOOT" "$PROMOTE_NOBUILD")
 fi
 
 OPS_FILES=("$RESTART" "$STOP" "$MONITOR" "$MONITOR_AUTO" "$LOGS")
@@ -378,6 +379,13 @@ if ((${#PROMOTE_FILES[@]})); then
     "Promote, rebuild the target's hak, verify it publishes the same content as dev, then arm reboot-on-empty to COPY dev's manifest during the down window - seconds instead of a ~20 minute rebuild. Use when the hak changed. Prompts for the message players see." \
     "\"$PROJECT_ROOT/bin/promote-to-prod\" fast" \
     "clock" "Development;"
+
+  write_hold_entry "$PROMOTE_REBOOT" \
+    "Promote to Prod (reboot when empty)" \
+    "NWN Season Promotion" \
+    "Promote to the live season under a RUNNING server, then arm reboot-on-empty so the realm cycles onto the new module the moment the last player leaves. No NWSync - this is the module-only case (clients download haks and the TLK, never the .mod). Prompts for the message players see, then asks you to confirm the season number." \
+    "\"$PROJECT_ROOT/bin/promote-to-prod\" reboot" \
+    "system-reboot" "Development;"
 
   write_hold_entry "$PROMOTE_NOBUILD" \
     "Promote to Prod (no rebuild)" \

@@ -42,6 +42,13 @@
 #                       content as dev, and arm reboot-on-empty to COPY dev's
 #                       manifest during the down window instead of spending ~20
 #                       minutes rebuilding an identical one. See below.
+#   ...  --reboot-on-empty "msg"
+#                       arm reboot-on-empty in the target with no NWSync work at
+#                       all, so the realm picks up the new module the moment it
+#                       next empties. This is the MODULE-ONLY case: clients
+#                       download haks and the TLK, never the .mod, so a change
+#                       confined to unpacked/ needs no manifest touched. Mutually
+#                       exclusive with --fast-nwsync.
 #
 # --season N is mandatory with --apply and must match the target's SEASON_NUM.
 # It is the guard against a mistyped --to landing on the wrong live server.
@@ -56,6 +63,7 @@ ALLOW_HOT=0
 BUILD=1
 WANT_SEASON=""
 FAST_NWSYNC=0
+REBOOT_ON_EMPTY=0
 REBOOT_MSG=""
 
 while (($#)); do
@@ -66,6 +74,7 @@ while (($#)); do
     --allow-hot) ALLOW_HOT=1; shift ;;
     --no-build)  BUILD=0; shift ;;
     --fast-nwsync) FAST_NWSYNC=1; REBOOT_MSG=${2:-}; shift 2 ;;
+    --reboot-on-empty) REBOOT_ON_EMPTY=1; REBOOT_MSG=${2:-}; shift 2 ;;
     -h|--help)   sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'; exit 0 ;;
     *) echo "error: unknown arg: $1" >&2; exit 2 ;;
   esac
@@ -73,6 +82,9 @@ done
 
 die() { echo "season-promote: error: $*" >&2; exit 1; }
 note() { echo "  $*"; }
+
+(( FAST_NWSYNC && REBOOT_ON_EMPTY )) && die \
+  "--fast-nwsync and --reboot-on-empty both arm the same flag - pick one. Use --fast-nwsync when the hak or TLK changed, --reboot-on-empty when only unpacked/ did."
 
 [[ -n $TARGET ]] || die "--to DIR is required"
 TARGET=$(cd "$TARGET" 2>/dev/null && pwd) || die "target dir not found: $TARGET"
@@ -339,6 +351,27 @@ if (( FAST_NWSYNC )); then
   fi
   ( cd "$TARGET" && ./bin/reboot-on-empty --nwsync-copy "$DEV_ROOT" "$REBOOT_MSG" ) \
     | sed 's/^/    /' || die "failed to arm reboot-on-empty in the target"
+  echo
+fi
+
+# ------------------------------------------------- plain reboot-on-empty --
+# The module-only case, and the common one. A persistent world's clients
+# download the haks and the TLK, never the .mod, so a change confined to
+# unpacked/ is delivered the moment the server reloads the module - no manifest
+# is involved and there is nothing for NWSync to publish. Arming here rather
+# than restarting is the whole point: the admin is usually logged in testing,
+# and the realm cycles by itself once the last player leaves.
+if (( REBOOT_ON_EMPTY )); then
+  echo "arming reboot-on-empty in the target..."
+  if [[ -z $REBOOT_MSG ]]; then
+    REBOOT_MSG="Server updated. Rebooting once the realm is empty."
+  fi
+  # Only fires while the server is UP - the Anvil plugin reads the flag from
+  # inside the running process. Say so rather than leave a stopped realm armed
+  # with a reboot that can never happen.
+  if ! ( cd "$TARGET" && ./bin/reboot-on-empty "$REBOOT_MSG" ) | sed 's/^/    /'; then
+    die "failed to arm reboot-on-empty in the target"
+  fi
   echo
 fi
 
