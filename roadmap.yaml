@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-08-19 16:58 CDT"
+  as_of: "2026-08-20 08:00 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -140,7 +140,7 @@ ideas:
   - id: shifter-stats-defect
     title: "Shifter stats defect (stats go down after shifting)"
     group: combat-classes
-    status: planned
+    status: confirmed
     type: Defect
     player: "Sync (Shync)"
     date: "2026-08-20"
@@ -311,7 +311,7 @@ ideas:
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-08-18"
-    notes: "The death window just pops up again after 3 min but you can't click respawn button, it was disabled"
+    notes: "<div>The death window just pops up again after 3 min but you can't click respawn button, it was disabled</div><div><br></div><div>For testing, make the dragon statues inside castle homeless become non-static, and on-clicked/interacted with, they cast the highest dc petrification effect on the user; choose an appropriate vfx to trigger when this happens</div>"
   - id: feat for more damage dice to spells
     title: "+1 die for damage spells, could be taken 10 times?"
     group: forge
@@ -338,7 +338,7 @@ ideas:
     date: "2026-08-20"
     commit: 0196fa7b6f6
     notes: "Doors now wait longer before shutting themselves behind you. Every door that used to close after 5 seconds - including the door into Theoden's hall at Edoras - now stays open for 8, and the handful of quick-closing doors went from 2 seconds to 5. Doors that re-lock themselves now do so only once the door has actually shut, so you can no longer find one standing open and locked at the same time. Doors that already waited 10 seconds or more are unchanged."
-    impl_notes: "Eleven near-identical OnOpen auto-close scripts had accumulated, each with its own hard-coded DelayCommand and its own re-lock idea, so retuning door timing meant editing eleven files. New include unpacked/door_inc.nss now holds the one real implementation: the bounded retry from close_door.nss (ActionCloseDoor fails SILENTLY when a creature blocks the doorway - a single attempt is how doors end up stuck open on a populated realm) plus a re-lock guarded on !GetIsOpen, which makes the open-AND-locked state unreachable. The seven sub-6s scripts are now two-line wrappers and gained +3s: close_door / doorclose / _closedoor / doorlock 5.0 -> 8.0; close_door_lock / close_door_fast 2.0 -> 5.0; sc_delay_lock 3.0 -> 6.0. The three former one-shot scripts (doorclose, _closedoor, close_door_fast) gain the retry, and doorlock / sc_delay_lock trade an unconditional timed lock for close-then-lock. Deliberately untouched: close_relock (10s, 28 doors), pl_au_close / pl_au_close_lock (10s, 5 doors), oi (CEP gate placeable, 12s, 3 doors) - already generous, nobody complained; close_relock's immediate SetLocked is the same latent bug but changing it risks stranding players behind AutoRemoveKey doors, so that is its own item. A door instance may carry a local float DOOR_CLOSE_DELAY (toolset Variables tab) to override the script default - no twelfth script needed. Script-only change: no .git.json instance touched, the 786-door OnOpen census is byte-identical, and bin/fix-door-autoclose.py + tests/check_door_autoclose.py only care about which resref is assigned, not its body. Test build clean, 26/26 smoke tests passed."
+    impl_notes: "Eleven near-identical OnOpen auto-close scripts had accumulated, each with its own hard-coded DelayCommand and its own re-lock idea, so retuning door timing meant editing eleven files. New include unpacked/door_inc.nss now holds the one real implementation: the bounded retry from close_door.nss (ActionCloseDoor fails SILENTLY when a creature blocks the doorway - a single attempt is how doors end up stuck open on a populated realm) plus a re-lock guarded on !GetIsOpen, which makes the open-AND-locked state unreachable. The seven sub-6s scripts are now two-line wrappers and gained +3s: close_door / doorclose / _closedoor / doorlock 5.0 -&gt; 8.0; close_door_lock / close_door_fast 2.0 -&gt; 5.0; sc_delay_lock 3.0 -&gt; 6.0. The three former one-shot scripts (doorclose, _closedoor, close_door_fast) gain the retry, and doorlock / sc_delay_lock trade an unconditional timed lock for close-then-lock. Deliberately untouched: close_relock (10s, 28 doors), pl_au_close / pl_au_close_lock (10s, 5 doors), oi (CEP gate placeable, 12s, 3 doors) - already generous, nobody complained; close_relock's immediate SetLocked is the same latent bug but changing it risks stranding players behind AutoRemoveKey doors, so that is its own item. A door instance may carry a local float DOOR_CLOSE_DELAY (toolset Variables tab) to override the script default - no twelfth script needed. Script-only change: no .git.json instance touched, the 786-door OnOpen census is byte-identical, and bin/fix-door-autoclose.py + tests/check_door_autoclose.py only care about which resref is assigned, not its body. Test build clean, 26/26 smoke tests passed."
     manual_steps:
       - step: "UAT (the report): walk from Edoras into Theoden's hall (door tag edoras2hall) and back out through hall2edoras. Each door must stay open about 8 seconds - noticeably longer than before - and must still shut on its own afterwards."
         status: open
