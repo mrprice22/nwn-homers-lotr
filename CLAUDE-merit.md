@@ -7,13 +7,27 @@ Player-facing copy and the full reward catalogue live on the wiki:
 
 ## Storage — campaign DB `meritdb` (SQLite)
 
-Two tables, both created idempotently by `Merit_InitDb()` (called on login from
+Three tables, all created idempotently by `Merit_InitDb()` (called on login from
 `mod_cliententer.nss`, the module's `Mod_OnClientEntr` handler). All access goes
 through `SqlPrepareQueryCampaign`.
 
-- **`players`** — `cdkey PK, name, last_login, bugs, exploits, features, merit_spent`.
+- **`players`** — `cdkey PK, name, last_login, bugs, exploits, features, uat,
+  merit_spent`.
   - **Earned merit is never stored or decremented.** It is computed on demand:
-    `earned = bugs*1 + exploits*3 + features*2` (defect 1, feature 2, exploit 3).
+    `earned = bugs*1 + exploits*3 + features*2 + uat*1`
+    (defect 1, feature 2, exploit 3, UAT 1).
+  - **`uat` credits VALIDATION, not reporting.** It is the one counter not tied
+    to submitting an idea: it pays whoever helped verify a fix. Several players
+    can be credited for the same roadmap item, and none of them need be the
+    reporter — which is why it is its own column with its own flat rate rather
+    than a fourth idea `type`.
+  - **`uat` is added by an `ALTER TABLE` migration**, not by `CREATE TABLE IF NOT
+    EXISTS` (which never alters an existing table). It is guarded by a
+    `PRAGMA table_info(players)` check, copying the older `redemptions.item_tag`
+    pattern directly above it. Because `meritdb` is the **shared, cross-season**
+    database, the column appears for every realm as soon as *any* of them loads a
+    module carrying this `merit_db.nss` — so anything reading it must tolerate
+    its absence until then (`bin/roadmap-editor.py` does, via `_has_uat_column()`).
   - **Spending is tracked only by `merit_spent`** (the escrow counter).
   - `available = earned - merit_spent` → `Merit_Available(cdkey)`.
 - **`redemptions`** — `id PK, cdkey, player_name, reward_id, reward_label, cost,
@@ -23,7 +37,8 @@ through `SqlPrepareQueryCampaign`.
 - **`merit_ledger`** — append-only audit log of every merit movement: `id, cdkey,
   player_name, delta` (`<0` spent, `>0` refunded/awarded), `balance_after,
   reason, redemption_id, created_at`. Written by `Merit_Ledger(...)` on every
-  request/instant/tournament spend, every cancel refund, and every DM award, so
+  request/instant/tournament spend, every cancel refund, every DM award and
+  every UAT credit (`award: UAT validation`), so
   spends are always recoverable even after a reward's placeholder is removed.
   Never pruned; lives in the same `meritdb.sqlite3` so the daily backup covers it.
 
@@ -42,10 +57,14 @@ they can't afford it, says so up front (no "Yes" offered).
   0). A player may cancel only their own; a DM may cancel any.
 - **Instant** → **Grant** (`Merit_GrantInstant`, or `Merit_GrantTournament` for
   tournament gear): affordability check, `Merit_Spend`, a row inserted already
-  `fulfilled`/`auto`, ledger entry. *This pass only Tournament gear actually
-  delivers an item* (`CreateItemOnObject`); teleports/premium are "nominal" —
-  spent + recorded, with the real mechanic still to be wired (they keep the red
-  `[PLACEHOLDER]` prefix). The ledger is why nominal spends remain auditable.
+  `fulfilled`/`auto`, ledger entry. Tournament gear delivers an item
+  (`CreateItemOnObject`); **teleports and premium boosts are no longer nominal** —
+  `Merit_GrantInstant` enforces teleport unlock ordering/ownership
+  (`Merit_IsTeleReward` / `Merit_TeleOwned` / `Merit_TelePrereqMet`, ownership
+  recorded as a `fulfilled` redemptions row per CD key) and enqueues real 2x
+  gold/XP subscriptions for 201-204 via `Boost_Reconcile` / `Boost_Enqueue`, both
+  wired at login from `mod_cliententer.nss`. The ledger is why any remaining
+  nominal spend stays auditable.
   - **`Merit_GrantTournament` is delivery-safe / spend-last:** it creates the
     item and checks `GetIsObjectValid(oItem)` **before** calling `Merit_Spend`.
     Only a truly failed creation (bad blueprint → invalid object) aborts with
@@ -123,6 +142,7 @@ it in `Merit_GetReward` if a reward changes class. Keep the `Merit_Spend` /
 |---|---|
 | 5001–5010 | DM **award** list (`Merit_BuildPage`, `merit_db.nss`) |
 | 5011      | DM award: selected player name |
+| 5028-5029 | Player stat block: UAT validations, and the points they are worth |
 | 5020–5027 | Player stat block (`Merit_SetNpcTokens`) |
 | 5037      | Player **confirmation** prompt (`Merit_PrepConfirm`) |
 | 5038      | DM **redemption** detail: selected request |
@@ -187,7 +207,10 @@ literal creeping back in and opening the shop everywhere. The DM/EmoteWand side
 already admin-only, and a DM must be able to clear a pending request anywhere.
 
 - **DM:** the EmoteWand conversation `emotewand.dlg.json`. Branch
-  *[Admin] Merit Awards* (existing, grants points) and *[Admin] Merit Redemptions*
+  *[Admin] Merit Awards* (existing, grants points — pick a player, then one of
+  *Award Defect Report (+1)* / *Exploit Report (+3)* / *Feature Implementation
+  (+2)* / **UAT Validation (+1)**, backed by `merit_award_bug/exp/ftr/uat.nss`)
+  and *[Admin] Merit Redemptions*
   (new): paged pending list (`merit_rlist_pg`, `merit_rpage_n/p`,
   `merit_rhas_next/prev`, `merit_dsel_<i>`) → fulfil (`merit_rfulfill`) or cancel
   + refund (`merit_rcancel`). Each new request also fires a `SendMessageToAllDMs`
@@ -200,6 +223,14 @@ already admin-only, and a DM must be able to clear a pending request anywhere.
   INSERTs a `players` row (rows are created on login by `Merit_RecordLogin`); an
   unresolvable submitter is an error, and the roadmap status change is rolled
   back with it. See [CLAUDE-roadmap.md](CLAUDE-roadmap.md) → "Pipeline buttons".
+- **UAT credit, out of game:** the roadmap editor's per-idea **UAT validators**
+  list (`uat_credits` in `roadmap.yaml`) has an *Award +1* / *Revoke* button per
+  validator, routed through `/api/uat-award` and `/api/uat-revoke` to the same
+  `award_merit(..., kind="uat")`. It is deliberately **per-entry, not per-idea**:
+  one idea can pay several validators, each exactly once, guarded by that entry's
+  `awarded: true` flag the way the submitter award is guarded by `merit_awarded`.
+  The in-game wand branch has **no roadmap-item picker** — the DM is standing
+  next to the tester, so it is a flat +1 and the ledger reason carries no idea id.
 
 ## Build notes
 

@@ -1,14 +1,20 @@
 // merit_db.nss - Merit Award System database helpers
 //
 // Campaign DB: "meritdb" (SQLite)
-// Schema:  players(cdkey PK, name, last_login, bugs, exploits, features, merit_spent)
+// Schema:  players(cdkey PK, name, last_login, bugs, exploits, features,
+//                  uat, merit_spent)
 //
-// Merit rates: defect=1pt  exploit=3pts  feature=2pts
+// Merit rates: defect=1pt  exploit=3pts  feature=2pts  uat=1pt
+//
+// `uat` credits a player for helping VALIDATE a fix, which is independent of
+// who reported it: several players can be credited for the same roadmap item,
+// and none of them need be the submitter.
 
 const string MERIT_DB            = "meritdb";
 const int    MERIT_BUG_VALUE     = 1;
 const int    MERIT_EXPLOIT_VALUE = 3;
 const int    MERIT_FEATURE_VALUE = 2;
+const int    MERIT_UAT_VALUE     = 1;
 
 const int MERIT_COST_1 = 5;
 const int MERIT_COST_2 = 10;
@@ -29,6 +35,7 @@ void Merit_InitDb()
         "bugs INTEGER DEFAULT 0," +
         "exploits INTEGER DEFAULT 0," +
         "features INTEGER DEFAULT 0," +
+        "uat INTEGER DEFAULT 0," +
         "merit_spent INTEGER DEFAULT 0)");
     SqlStep(q);
 
@@ -66,6 +73,21 @@ void Merit_InitDb()
         SqlStep(qa);
     }
 
+    // Migration: the players table predates the `uat` column. Same shape as the
+    // item_tag migration above - CREATE TABLE IF NOT EXISTS will not add a
+    // column to a table that already exists, and meritdb is the SHARED
+    // cross-season database, so this is the only thing that backfills it.
+    int bHasUat = FALSE;
+    sqlquery qpu = SqlPrepareQueryCampaign(MERIT_DB, "PRAGMA table_info(players)");
+    while (SqlStep(qpu))
+        if (SqlGetString(qpu, 1) == "uat") { bHasUat = TRUE; break; }
+    if (!bHasUat)
+    {
+        sqlquery qau = SqlPrepareQueryCampaign(MERIT_DB,
+            "ALTER TABLE players ADD COLUMN uat INTEGER DEFAULT 0");
+        SqlStep(qau);
+    }
+
     // Transaction ledger - every merit movement (spend/refund/award) with the
     // resulting available balance, for audit and recovery. Never pruned.
     sqlquery ql = SqlPrepareQueryCampaign(MERIT_DB,
@@ -98,7 +120,7 @@ void Merit_RecordLogin(object oPC)
 void Merit_LoginMessage(object oPC)
 {
     sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
-        "SELECT bugs, exploits, features, merit_spent FROM players WHERE cdkey=@k");
+        "SELECT bugs, exploits, features, merit_spent, uat FROM players WHERE cdkey=@k");
     SqlBindString(q, "@k", GetPCPublicCDKey(oPC));
     if (!SqlStep(q)) return;
 
@@ -106,12 +128,14 @@ void Merit_LoginMessage(object oPC)
     int nExp   = SqlGetInt(q, 1);
     int nFtr   = SqlGetInt(q, 2);
     int nSpent = SqlGetInt(q, 3);
+    int nUat   = SqlGetInt(q, 4);
 
-    if (nBugs + nExp + nFtr == 0) return;
+    if (nBugs + nExp + nFtr + nUat == 0) return;
 
     int nEarned = nBugs  * MERIT_BUG_VALUE
                 + nExp   * MERIT_EXPLOIT_VALUE
-                + nFtr   * MERIT_FEATURE_VALUE;
+                + nFtr   * MERIT_FEATURE_VALUE
+                + nUat   * MERIT_UAT_VALUE;
     int nAvail  = nEarned - nSpent;
 
     SendMessageToPC(oPC,
@@ -119,6 +143,7 @@ void Merit_LoginMessage(object oPC)
         "  Defects reported:    " + IntToString(nBugs) + "\n" +
         "  Exploits reported:   " + IntToString(nExp)  + "\n" +
         "  Features implemented:" + IntToString(nFtr)  + "\n" +
+        "  Fixes validated:     " + IntToString(nUat)  + "\n" +
         "Merit balance: " + IntToString(nAvail) + " pts available to spend.\n" +
         "Visit Barliman the barkeep in the Prancing Pony to redeem rewards.");
 }
@@ -150,22 +175,34 @@ void Merit_AwardFeature(string sCdKey)
     SqlStep(q);
 }
 
+// Credit one UAT / validation pass. Unlike the three above this is not tied to
+// reporting an idea - it pays whoever helped verify the fix.
+void Merit_AwardUat(string sCdKey)
+{
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        "UPDATE players SET uat=uat+1 WHERE cdkey=@k");
+    SqlBindString(q, "@k", sCdKey);
+    SqlStep(q);
+}
+
 // ------------------------------------------------------------
 // Balance
 
 int Merit_Available(string sCdKey)
 {
     sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
-        "SELECT bugs, exploits, features, merit_spent FROM players WHERE cdkey=@k");
+        "SELECT bugs, exploits, features, merit_spent, uat FROM players WHERE cdkey=@k");
     SqlBindString(q, "@k", sCdKey);
     if (!SqlStep(q)) return 0;
     int nBugs  = SqlGetInt(q, 0);
     int nExp   = SqlGetInt(q, 1);
     int nFtr   = SqlGetInt(q, 2);
     int nSpent = SqlGetInt(q, 3);
+    int nUat   = SqlGetInt(q, 4);
     return nBugs  * MERIT_BUG_VALUE
          + nExp   * MERIT_EXPLOIT_VALUE
          + nFtr   * MERIT_FEATURE_VALUE
+         + nUat   * MERIT_UAT_VALUE
          - nSpent;
 }
 
@@ -218,31 +255,34 @@ void Merit_Refund(string sCdKey, int nCost)
 }
 
 // ------------------------------------------------------------
-// NPC conversation tokens (5020-5027)
+// NPC conversation tokens (5020-5029)
 // Call from reply action scripts; tokens are set before the next entry renders.
 
 void Merit_SetNpcTokens(object oPC)
 {
     sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
-        "SELECT bugs, exploits, features, merit_spent FROM players WHERE cdkey=@k");
+        "SELECT bugs, exploits, features, merit_spent, uat FROM players WHERE cdkey=@k");
     SqlBindString(q, "@k", GetPCPublicCDKey(oPC));
 
     int nBugs  = 0;
     int nExp   = 0;
     int nFtr   = 0;
     int nSpent = 0;
+    int nUat   = 0;
     if (SqlStep(q))
     {
         nBugs  = SqlGetInt(q, 0);
         nExp   = SqlGetInt(q, 1);
         nFtr   = SqlGetInt(q, 2);
         nSpent = SqlGetInt(q, 3);
+        nUat   = SqlGetInt(q, 4);
     }
 
     int nBugPts = nBugs  * MERIT_BUG_VALUE;
     int nExpPts = nExp   * MERIT_EXPLOIT_VALUE;
     int nFtrPts = nFtr   * MERIT_FEATURE_VALUE;
-    int nEarned = nBugPts + nExpPts + nFtrPts;
+    int nUatPts = nUat   * MERIT_UAT_VALUE;
+    int nEarned = nBugPts + nExpPts + nFtrPts + nUatPts;
     int nAvail  = nEarned - nSpent;
 
     SetCustomToken(5020, IntToString(nBugs));
@@ -253,6 +293,8 @@ void Merit_SetNpcTokens(object oPC)
     SetCustomToken(5025, IntToString(nFtrPts));
     SetCustomToken(5026, IntToString(nEarned));
     SetCustomToken(5027, IntToString(nAvail));
+    SetCustomToken(5028, IntToString(nUat));
+    SetCustomToken(5029, IntToString(nUatPts));
 }
 
 // ------------------------------------------------------------
@@ -282,7 +324,7 @@ void Merit_BuildPage(object oDM)
     }
 
     sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
-        "SELECT cdkey, name, bugs, exploits, features, merit_spent" +
+        "SELECT cdkey, name, bugs, exploits, features, merit_spent, uat" +
         " FROM players ORDER BY last_login DESC LIMIT 9 OFFSET @off");
     SqlBindInt(q, "@off", nOff);
 
@@ -295,9 +337,11 @@ void Merit_BuildPage(object oDM)
         int nExp       = SqlGetInt(q, 3);
         int nFtr       = SqlGetInt(q, 4);
         int nSpent     = SqlGetInt(q, 5);
+        int nUat       = SqlGetInt(q, 6);
         int nAvail     = nBugs  * MERIT_BUG_VALUE
                        + nExp   * MERIT_EXPLOIT_VALUE
                        + nFtr   * MERIT_FEATURE_VALUE
+                       + nUat   * MERIT_UAT_VALUE
                        - nSpent;
 
         SetLocalString(oDM, "merit_slot_" + IntToString(i) + "_cdkey", sCdKey);
@@ -307,6 +351,7 @@ void Merit_BuildPage(object oDM)
             + " [D:" + IntToString(nBugs)
             + " E:" + IntToString(nExp)
             + " F:" + IntToString(nFtr)
+            + " U:" + IntToString(nUat)
             + " bal:" + IntToString(nAvail) + "]";
         SetCustomToken(5001 + i, sLabel);
         i++;

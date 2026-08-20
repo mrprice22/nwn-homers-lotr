@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """Apply a JSON patch of per-idea fields to roadmap.yaml.
 
-One-off helper for the notes/impl_notes/manual_steps split. The patch is
-{id: {field: value, ...}}; a null value deletes the field. Writing goes through
-the roadmap editor's own serializer, so the output is byte-identical to what the
-GUI would produce (comments preserved, canonical field order) and is validated
-before anything is written.
+**This is how an agent writes to roadmap.yaml — never by hand-editing the file.**
+The patch is {id: {field: value, ...}}; a null value deletes the field. Writing
+goes through the roadmap editor's own serializer, so the output is byte-identical
+to what the GUI would produce (comments preserved, canonical field order) and is
+validated before anything is written.
+
+Why it matters that agents come through here: the write takes the same file lock
+the editor holds, and it rewrites only the ideas named in the patch. The admin
+can therefore be editing some *other* item in the GUI at the same time and their
+save will merge cleanly instead of hitting a conflict. A hand-edit of the whole
+file defeats both of those.
 
     python3 bin/roadmap-apply-patch.py patch.json [--dry-run]
 """
@@ -37,12 +43,19 @@ def main() -> int:
     import yaml
 
     path = REPO / "roadmap.yaml"
-    text = path.read_text()
-    doc = yaml.safe_load(text)
+    # Held across read→validate→write, so a GUI save landing mid-patch can't be
+    # lost (and vice versa). Same lock bin/roadmap-editor.py takes on every POST.
+    with ed.yaml_lock(timeout=60.0):
+        return _apply(ed, yaml, path, args[0], dry)
+
+
+def _apply(ed, yaml, path, patch_file, dry) -> int:
+    text = path.read_text(encoding="utf-8")
+    doc = yaml.load(text, Loader=ed._YamlLoader)
     ideas = doc["ideas"]
     by_id = {i["id"]: i for i in ideas}
 
-    patch = json.loads(Path(args[0]).read_text())
+    patch = json.loads(Path(patch_file).read_text())
     unknown = [k for k in patch if k not in by_id]
     if unknown:
         print(f"error: unknown idea id(s): {unknown}")
@@ -73,12 +86,12 @@ def main() -> int:
     head, prefixes, trailing = ed.split_head_and_prefixes(text)
     body = ed.serialize_ideas(ideas, prefixes, trailing)
     new = ed.replace_block(text, "ideas", body)
-    yaml.safe_load(new)  # the emitter is hand-rolled; prove it still parses
+    yaml.load(new, Loader=ed._YamlLoader)  # hand-rolled emitter; prove it parses
 
     if dry:
         print(f"dry run OK — {len(patch)} idea(s) would change")
         return 0
-    path.write_text(new)
+    path.write_text(new, encoding="utf-8")
     print(f"patched {len(patch)} idea(s) in roadmap.yaml")
     return 0
 

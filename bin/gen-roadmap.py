@@ -25,6 +25,13 @@ from pathlib import Path
 
 import yaml
 
+# libyaml's CSafeLoader parses roadmap.yaml ~12x faster than the pure-Python
+# SafeLoader (0.17 s vs 2.0 s on an 800 KB file). Fall back when unavailable.
+try:
+    from yaml import CSafeLoader as _YamlLoader
+except ImportError:                                  # pragma: no cover
+    from yaml import SafeLoader as _YamlLoader
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from roadmap_sanitize import sanitize_notes  # noqa: E402
 
@@ -132,7 +139,7 @@ IDEA_FIELDS = {
     "id", "title", "group", "epic", "status", "hidden", "merit_awarded",
     "type", "player",
     "date", "commit", "notes", "notes_h", "impl_notes", "impl_notes_h",
-    "dupe_of", "design_questions", "manual_steps",
+    "dupe_of", "design_questions", "manual_steps", "uat_credits",
 }
 
 PLAYER_LABEL = {"community": "Community"}
@@ -269,15 +276,25 @@ def validate(data: dict) -> list[str]:
             errors.append(f"'{idea.get('id')}': dupe_of points to unknown id '{dof}'")
 
     # Similar-title warning among non-merged ideas (duplicate-idea guard).
+    # Still every pair, but norm_title() (two regexes + a set build) is computed
+    # once per idea instead of twice per *pair* — it was ~1.2 s of every save.
+    # The same-group test is hoisted to the top of the loop for the same reason.
+    # Pair order is unchanged, so the warning list is byte-identical.
     canon = [i for i in ideas if not i.get("dupe_of")]
+    words = [set(norm_title(i["title"]).split()) for i in canon]
+    groups_of = [i["group"] for i in canon]
     for a in range(len(canon)):
+        wa, ga = words[a], groups_of[a]
+        if not wa:
+            continue
         for b in range(a + 1, len(canon)):
-            na, nb = norm_title(canon[a]["title"]), norm_title(canon[b]["title"])
-            if not na or not nb:
+            if groups_of[b] != ga:
                 continue
-            wa, wb = set(na.split()), set(nb.split())
+            wb = words[b]
+            if not wb:
+                continue
             overlap = len(wa & wb) / max(1, min(len(wa), len(wb)))
-            if overlap >= 0.7 and canon[a]["group"] == canon[b]["group"]:
+            if overlap >= 0.7:
                 print(f"  [warn] possible duplicate ideas (set dupe_of?): "
                       f"'{canon[a]['id']}' ~ '{canon[b]['id']}'", file=sys.stderr)
     return errors
@@ -857,7 +874,7 @@ def main() -> int:
                     help="render even on a non-dev realm (see the realm guard below)")
     args = ap.parse_args()
 
-    data = yaml.safe_load(YAML_PATH.read_text(encoding="utf-8"))
+    data = yaml.load(YAML_PATH.read_text(encoding="utf-8"), Loader=_YamlLoader)
 
     errors = validate(data)
     if errors:

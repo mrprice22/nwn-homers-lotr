@@ -34,6 +34,13 @@ from pathlib import Path
 
 import yaml
 
+# libyaml's CSafeLoader parses roadmap.yaml ~12x faster than the pure-Python
+# SafeLoader (0.17 s vs 2.0 s on an 800 KB file). Fall back when unavailable.
+try:
+    from yaml import CSafeLoader as _YamlLoader
+except ImportError:                                  # pragma: no cover
+    from yaml import SafeLoader as _YamlLoader
+
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
 SERVER_ENV = REPO / "server.env"
@@ -73,7 +80,8 @@ def main() -> int:
                     help="bypass the SEASON_ROLE=archive guard")
     args = ap.parse_args()
 
-    doc = yaml.safe_load(YAML_PATH.read_text(encoding="utf-8")) or {}
+    doc = yaml.load(YAML_PATH.read_text(encoding="utf-8"),
+                    Loader=_YamlLoader) or {}
     ideas = doc.get("ideas") or []
     epics = doc.get("epics") or []
 

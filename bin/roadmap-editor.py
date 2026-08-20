@@ -20,6 +20,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
+import copy
+import fcntl
 import hashlib
 import html
 import importlib.util
@@ -32,6 +35,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.parse
 import webbrowser
 from contextlib import redirect_stderr
@@ -64,7 +68,8 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "merit_awarded", "type",
                "player", "date", "commit", "notes", "notes_h", "impl_notes",
-               "impl_notes_h", "dupe_of", "design_questions", "manual_steps"]
+               "impl_notes_h", "dupe_of", "design_questions", "manual_steps",
+               "uat_credits"]
 # `merit_awarded` records that meritdb was really credited for this idea, which
 # `status: awarded` alone cannot: status can bounce back to `implemented` and
 # forward again, and the merit must be granted exactly once. Written only by the
@@ -73,7 +78,12 @@ FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
 MERIT_FLAG = "merit_awarded"
 # Internal fields — admin-only, never rendered on the public board. `notes` is
 # the player-facing release note; everything here is the builder's own record.
-LIST_FIELDS = {"design_questions", "manual_steps"}
+LIST_FIELDS = {"design_questions", "manual_steps", "uat_credits"}
+# Players credited with validating this idea's fix — one merit each, awarded
+# independently of who reported it, so several players can appear on one item.
+# `awarded: true` is the same kind of idempotence flag as MERIT_FLAG: it records
+# that meritdb was really credited, and is written ONLY by the UAT award button.
+UAT_FIELD = "uat_credits"
 INTERNAL_FIELDS = LIST_FIELDS | {"impl_notes", "impl_notes_h"}
 # Fields always rendered as YAML double-quoted scalars.
 QUOTED_FIELDS = {"title", "notes", "impl_notes", "date"}
@@ -120,8 +130,143 @@ sanitize_notes = GEN.sanitize_notes  # whitelist sanitizer for idea `notes`
 # --------------------------------------------------------------------------
 # roadmap.yaml read / vocab
 # --------------------------------------------------------------------------
+# PyYAML's pure-Python SafeLoader parses this file in ~2.0 s; libyaml's
+# CSafeLoader does the same job in ~0.17 s. A save used to parse twice, which is
+# most of where the old 5-6 s save went. Fall back if libyaml isn't compiled in.
+try:
+    from yaml import CSafeLoader as _YamlLoader
+except ImportError:                                  # pragma: no cover
+    from yaml import SafeLoader as _YamlLoader
+
+# Parsed-document cache, keyed on the file's identity+mtime+size. Callers mutate
+# what they get back (validate_document overlays the posted blocks), so every
+# hit hands out a deep copy — the cache holds the pristine parse.
+_YAML_CACHE: dict = {"key": None, "doc": None}
+
+
+def _yaml_key():
+    try:
+        st = YAML_PATH.stat()
+    except OSError:
+        return None
+    return (st.st_ino, st.st_mtime_ns, st.st_size)
+
+
 def read_yaml() -> dict:
-    return yaml.safe_load(YAML_PATH.read_text(encoding="utf-8")) or {}
+    """Parse roadmap.yaml, reusing the last parse while the file is untouched."""
+    key = _yaml_key()
+    if key is not None and _YAML_CACHE["key"] == key:
+        return copy.deepcopy(_YAML_CACHE["doc"])
+    doc = yaml.load(YAML_PATH.read_text(encoding="utf-8"), Loader=_YamlLoader) or {}
+    # Re-stat: if the file moved under us mid-read, don't cache a torn parse.
+    if key is not None and _yaml_key() == key:
+        _YAML_CACHE["key"], _YAML_CACHE["doc"] = key, copy.deepcopy(doc)
+    return doc
+
+
+# --------------------------------------------------------------------------
+# Per-idea fingerprints — the basis of the three-way merge
+# --------------------------------------------------------------------------
+# The whole-file version token below can only answer "did anything change?".
+# That made every external edit — Claude touching one unrelated item — invalidate
+# the admin's entire in-page session: the conflict banner's only offers were
+# "Reload" (lose your edits) or "Force" (lose Claude's). Fingerprinting each idea
+# lets a save that touched *different* ids merge cleanly and land silently.
+#
+# Both sides of the comparison are hashed HERE, in Python, and the browser only
+# stores and echoes back the opaque map it was given. Hashing client-side would
+# mean reproducing Python's canonical JSON in JS, and any disagreement would make
+# every item look changed on both sides — i.e. permanent false conflicts.
+
+
+def _idea_fingerprint(idea: dict) -> str:
+    """Stable hash of one idea's meaningful content.
+
+    Empty values are pruned first so "absent" and "present but empty" hash the
+    same — the serializer omits both, so they are not a real difference and must
+    not read as an edit.
+    """
+    pruned = {k: v for k, v in idea.items()
+              if not (v is None or v == "" or v == [] or v is False)}
+    canon = json.dumps(pruned, sort_keys=True, separators=(",", ":"),
+                       ensure_ascii=False, default=str)
+    return hashlib.sha1(canon.encode("utf-8")).hexdigest()[:16]
+
+
+def block_fingerprint(value) -> str:
+    """Fingerprint of a whole groups/players/epics block, for the same purpose."""
+    canon = json.dumps(value or [], sort_keys=True, separators=(",", ":"),
+                       ensure_ascii=False, default=str)
+    return hashlib.sha1(canon.encode("utf-8")).hexdigest()[:16]
+
+
+def vocab_fingerprints(data: dict) -> dict:
+    """Baseline hashes for the vocab blocks, in the shape the CLIENT holds them.
+
+    Must hash vocab()'s projection, not the raw file blocks: the browser is given
+    (and posts back) `{id,title,order}` groups, a merged player roster and
+    trimmed epics. Hashing the raw block instead would never match, so every
+    save would look like a vocab edit and quietly overwrite an external one.
+    """
+    v = vocab(data)
+    return {k: block_fingerprint(v.get(k) or [])
+            for k in ("groups", "players", "epics")}
+
+
+def fingerprints(ideas) -> dict:
+    """{id: fingerprint} for a list of ideas. Ideas with no id are skipped."""
+    return {i["id"]: _idea_fingerprint(i) for i in (ideas or []) if i.get("id")}
+
+
+def changed_ids(base: dict, now) -> set:
+    """Ids that differ between a fingerprint baseline and a list of ideas.
+
+    Covers edits (fingerprint moved), additions (id absent from the baseline)
+    and deletions (id in the baseline but gone now).
+    """
+    fps = fingerprints(now)
+    return ({i for i, fp in fps.items() if base.get(i) != fp}
+            | {i for i in base if i not in fps})
+
+
+def merge_ideas(base: dict, client_ideas, disk_ideas):
+    """Three-way merge of the client's ideas onto what is now on disk.
+
+    Returns (merged_ideas, overlapping_ids). A non-empty overlap means both
+    sides edited the same idea and the caller must refuse the write; the merge
+    result is meaningless in that case.
+    """
+    mine = changed_ids(base, client_ideas)
+    theirs = changed_ids(base, disk_ideas)
+    overlap = sorted(mine & theirs)
+    if overlap:
+        return None, overlap
+    client_by_id = {i["id"]: i for i in client_ideas if i.get("id")}
+    deleted = {i for i in mine if i not in client_by_id}
+    merged, seen = [], set()
+    # Disk order wins for everything that survives, so an external reordering or
+    # insertion is preserved rather than being undone by our stale copy.
+    for idea in disk_ideas:
+        iid = idea.get("id")
+        if iid in deleted:
+            continue
+        if iid in mine:                 # our edit to an item they left alone
+            merged.append(client_by_id[iid])
+        else:                           # theirs, or untouched by both
+            merged.append(idea)
+        seen.add(iid)
+    # Anything we added (or that they deleted and we still edited) goes in at the
+    # position it holds in our copy, so a new idea lands next to its neighbours.
+    for pos, idea in enumerate(client_ideas):
+        iid = idea.get("id")
+        if iid in seen or iid in deleted:
+            continue
+        at = next((n for n, m in enumerate(merged)
+                   if m.get("id") == (client_ideas[pos - 1].get("id")
+                                      if pos else None)), None)
+        merged.insert(at + 1 if at is not None else len(merged), idea)
+        seen.add(iid)
+    return merged, []
 
 
 def yaml_version() -> str:
@@ -170,6 +315,7 @@ def vocab(data: dict) -> dict:
 MERIT_RATE_BUG = 1       # Defect
 MERIT_RATE_FEATURE = 2   # Enhancement
 MERIT_RATE_EXPLOIT = 3   # Exploit
+MERIT_RATE_UAT = 1       # one UAT / validation credit (not tied to idea type)
 
 
 # The in-game "Recent Updates" sign DB (roadmapdb) is written by
@@ -246,6 +392,29 @@ def _merit_connect():
     return con
 
 
+def _has_uat_column(con) -> bool:
+    """Whether meritdb's players table has the `uat` column yet.
+
+    The column is added by Merit_InitDb() at module load (unpacked/merit_db.nss),
+    so between deploying this editor and the server's next reboot — and on the
+    live realm, which shares this database but loads its own module — it may not
+    exist. Every read must therefore treat it as optional rather than throw.
+    """
+    try:
+        return any(r[1] == "uat" for r in
+                   con.execute("PRAGMA table_info(players)").fetchall())
+    except sqlite3.Error:
+        return False
+
+
+def _row_uat(row) -> int:
+    """players.uat for a row that may predate the column."""
+    try:
+        return row["uat"] or 0
+    except (IndexError, KeyError):
+        return 0
+
+
 def _name_candidates(roadmap_name: str) -> list[str]:
     """Strings to try matching a roadmap player name against players.name.
 
@@ -290,9 +459,10 @@ def merit_for_player(roadmap_name: str) -> dict:
         bugs = row["bugs"] or 0
         exploits = row["exploits"] or 0
         features = row["features"] or 0
+        uat = _row_uat(row)
         spent = row["merit_spent"] or 0
         earned = (bugs * MERIT_RATE_BUG + features * MERIT_RATE_FEATURE
-                  + exploits * MERIT_RATE_EXPLOIT)
+                  + exploits * MERIT_RATE_EXPLOIT + uat * MERIT_RATE_UAT)
         txns = [dict(r) for r in con.execute(
             "SELECT reward_label, reward_id, item_tag, cost, status, "
             "requested_at, resolved_at, needs_dm FROM redemptions "
@@ -302,6 +472,7 @@ def merit_for_player(roadmap_name: str) -> dict:
             "available": True, "matched": True,
             "matched_name": row["name"], "last_login": row["last_login"],
             "bugs": bugs, "exploits": exploits, "features": features,
+            "uat": uat,
             "earned": earned, "spent": spent, "balance": earned - spent,
             "transactions": txns,
         }
@@ -343,6 +514,11 @@ MERIT_POINTS = {"Defect": MERIT_RATE_BUG, "Enhancement": MERIT_RATE_FEATURE,
 MERIT_REASON = {"Defect": "defect report",
                 "Enhancement": "feature implementation",
                 "Exploit": "exploit report"}
+# A UAT credit pays whoever helped VALIDATE the fix. It is independent of the
+# idea's type (and of who reported it), so it has its own column, its own flat
+# rate, and its own ledger wording — matching merit_award_uat.nss in game.
+UAT_COLUMN = "uat"
+UAT_REASON = "UAT validation"
 # Roadmap player name -> meritdb cdkey, for names the fuzzy matcher can't reach
 # ("Piskan (Alec Cain)" vs the DB's "Alek Cain"). Written when you pick a player
 # by hand in the award dialog, so the same name resolves silently next time.
@@ -372,13 +548,16 @@ def merit_players() -> dict:
         return {"available": False, "rows": [],
                 "reason": f"meritdb not found at {merit_db_path()}"}
     try:
+        uat_col = ", uat" if _has_uat_column(con) else ""
         rows = [dict(r) for r in con.execute(
             "SELECT cdkey, name, last_login, bugs, exploits, features, "
-            "merit_spent FROM players ORDER BY last_login DESC").fetchall()]
+            f"merit_spent{uat_col} FROM players ORDER BY last_login DESC").fetchall()]
         for r in rows:
+            r.setdefault("uat", 0)
             r["earned"] = ((r["bugs"] or 0) * MERIT_RATE_BUG
                            + (r["features"] or 0) * MERIT_RATE_FEATURE
-                           + (r["exploits"] or 0) * MERIT_RATE_EXPLOIT)
+                           + (r["exploits"] or 0) * MERIT_RATE_EXPLOIT
+                           + (r["uat"] or 0) * MERIT_RATE_UAT)
             r["balance"] = r["earned"] - (r["merit_spent"] or 0)
         return {"available": True, "rows": rows}
     finally:
@@ -388,11 +567,13 @@ def merit_players() -> dict:
 def _earned(row) -> int:
     return ((row["bugs"] or 0) * MERIT_RATE_BUG
             + (row["features"] or 0) * MERIT_RATE_FEATURE
-            + (row["exploits"] or 0) * MERIT_RATE_EXPLOIT)
+            + (row["exploits"] or 0) * MERIT_RATE_EXPLOIT
+            + _row_uat(row) * MERIT_RATE_UAT)
 
 
 def award_merit(roadmap_name: str, idea_type: str, idea_id: str,
-                cdkey: str = "", revoke: bool = False) -> dict:
+                cdkey: str = "", revoke: bool = False,
+                kind: str = "submit") -> dict:
     """Credit (or take back) one idea's merit in the live meritdb.
 
     One BEGIN IMMEDIATE transaction: resolve the player row, move the counter,
@@ -404,14 +585,17 @@ def award_merit(roadmap_name: str, idea_type: str, idea_id: str,
     (Merit_RecordLogin), and inventing one here would mint merit for a cdkey
     that may not exist. An unmatched name is an error, not a new player.
     """
-    col = MERIT_COLUMN.get(idea_type)
-    if not col:
-        return {"ok": False,
-                "reason": f"idea type {idea_type or '(none)'} carries no merit value"}
+    if kind == "uat":
+        col, points, reason = UAT_COLUMN, MERIT_RATE_UAT, UAT_REASON
+    else:
+        col = MERIT_COLUMN.get(idea_type)
+        if not col:
+            return {"ok": False,
+                    "reason": f"idea type {idea_type or '(none)'} carries no merit value"}
+        points, reason = MERIT_POINTS[idea_type], MERIT_REASON[idea_type]
     db = merit_db_path()
     if not db.exists():
         return {"ok": False, "reason": f"meritdb not found at {db}"}
-    points = MERIT_POINTS[idea_type]
     step = -1 if revoke else 1
     verb = "revoke" if revoke else "award"
     try:
@@ -423,6 +607,11 @@ def award_merit(roadmap_name: str, idea_type: str, idea_id: str,
     con.isolation_level = None      # we drive the transaction by hand
     try:
         con.execute("BEGIN IMMEDIATE")
+        if kind == "uat" and not _has_uat_column(con):
+            return {"ok": False,
+                    "reason": "meritdb has no `uat` column yet — it is added by "
+                              "Merit_InitDb() at module load, so repack and let "
+                              "the server reboot before awarding UAT merit"}
         row = None
         if cdkey:
             row = con.execute("SELECT * FROM players WHERE cdkey = ?",
@@ -463,7 +652,7 @@ def award_merit(roadmap_name: str, idea_type: str, idea_id: str,
             "INSERT INTO merit_ledger (cdkey, player_name, delta, balance_after, "
             "reason, redemption_id) VALUES (?, ?, ?, ?, ?, 0)",
             (key, name, step * points, balance,
-             f"{verb}: {MERIT_REASON[idea_type]} (roadmap:{idea_id})"))
+             f"{verb}: {reason} (roadmap:{idea_id})"))
         con.execute("COMMIT")
         return {"ok": True, "matched": True, "cdkey": key, "matched_name": name,
                 "points": points, "delta": step * points, "column": col,
@@ -591,16 +780,39 @@ def normalize_steps(val) -> list:
     return [normalize_step(s) for s in val] if isinstance(val, list) else val
 
 
+def normalize_uat_credit(item) -> dict:
+    """One uat_credits entry in stored form. A bare string is the shorthand."""
+    if isinstance(item, str):
+        item = {"player": item}
+    return {"player": str(item.get("player", "")).strip(),
+            "awarded": bool(item.get("awarded", False)),
+            "date": str(item.get("date") or "").strip()}
+
+
+def normalize_uat_credits(val) -> list:
+    return ([normalize_uat_credit(c) for c in val]
+            if isinstance(val, list) else val)
+
+
 def emit_list_field(field: str, val: list) -> list[str]:
     """Emit an internal list field as a YAML block sequence under `field:`.
 
     manual_steps is a list of {step, status, kind, blocker} mappings (plus
     `tester` on UAT steps); design_questions a list of {question, status,
-    answer}. Both carry optional `*_h` textarea heights. Both are internal
-    (never rendered on the public board) — see CLAUDE-roadmap.md.
+    answer}; uat_credits a list of {player, awarded, date}. They carry optional
+    `*_h` textarea heights. All are internal (never rendered on the public
+    board) — see CLAUDE-roadmap.md.
     """
     lines = [f"    {field}:"]
     for item in val:
+        if field == UAT_FIELD:
+            item = normalize_uat_credit(item)
+            lines.append(f'      - player: {dquote(item["player"])}')
+            if item["awarded"]:
+                lines.append("        awarded: true")
+            if item.get("date"):
+                lines.append(f'        date: {dquote(item["date"])}')
+            continue
         if field == "manual_steps":
             item = normalize_step(item)
             lines.append(f'      - step: {dquote(item["step"])}')
@@ -763,6 +975,38 @@ def replace_ideas_block(text: str, ideas: list[dict]) -> str:
     return head + serialize_ideas(ideas, prefixes, trailing)
 
 
+# Serializes every writer of roadmap.yaml: this server's request threads and
+# bin/roadmap-apply-patch.py alike. Without it there is a multi-second window
+# between the read that a merge is computed from and the os.replace() that
+# commits it, and an external write landing inside that window is lost with no
+# error anywhere.
+LOCK_PATH = REPO / ".roadmap.yaml.lock"
+
+
+@contextlib.contextmanager
+def yaml_lock(timeout: float = 15.0):
+    """Exclusive advisory lock on roadmap.yaml, held across read→merge→write."""
+    deadline = time.monotonic() + timeout
+    fh = open(LOCK_PATH, "a+")
+    try:
+        while True:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(
+                        f"another process has held {LOCK_PATH.name} for "
+                        f"{timeout:g}s")
+                time.sleep(0.05)
+        yield
+    finally:
+        try:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        finally:
+            fh.close()
+
+
 def write_document(ideas: list[dict], groups: list[dict] | None = None,
                    players: list[str] | None = None,
                    epics: list[dict] | None = None) -> None:
@@ -780,7 +1024,10 @@ def write_document(ideas: list[dict], groups: list[dict] | None = None,
             text = ensure_block(text, "epics", before="ideas")
             text = replace_block(text, "epics", serialize_epics(epics))
     new_text = replace_ideas_block(text, ideas)
-    fd, tmp = tempfile.mkstemp(dir=str(REPO), prefix=".roadmap.", suffix=".tmp")
+    # Same directory as the target: os.replace() is only atomic within a
+    # filesystem, and a tmp dir elsewhere fails outright across devices.
+    fd, tmp = tempfile.mkstemp(dir=str(YAML_PATH.parent), prefix=".roadmap.",
+                               suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(new_text)
@@ -825,6 +1072,33 @@ def validate_internal_fields(ideas) -> list[str]:
                     elif s.get("tester") is not None \
                             and not isinstance(s["tester"], str):
                         errs.append(f"'{iid}': manual_step tester must be text")
+        credits = idea.get(UAT_FIELD)
+        if credits is not None:
+            if not isinstance(credits, list):
+                errs.append(f"'{iid}': {UAT_FIELD} must be a list")
+            else:
+                seen_players = set()
+                for c in credits:
+                    if isinstance(c, str):      # bare-name shorthand
+                        c = {"player": c}
+                    if not isinstance(c, dict) or not str(c.get("player", "")).strip():
+                        errs.append(f"'{iid}': each {UAT_FIELD} entry needs a "
+                                    f"'player'")
+                        continue
+                    if not isinstance(c.get("awarded", False), bool):
+                        errs.append(f"'{iid}': {UAT_FIELD} awarded must be "
+                                    f"true/false, got {c.get('awarded')!r}")
+                    date = str(c.get("date") or "").strip()
+                    if date and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+                        errs.append(f"'{iid}': {UAT_FIELD} date must be "
+                                    f"YYYY-MM-DD, got {date!r}")
+                    # One credit per player per idea — merit is paid per entry,
+                    # so a duplicate name is a double payment waiting to happen.
+                    name = str(c["player"]).strip().lower()
+                    if name in seen_players:
+                        errs.append(f"'{iid}': {UAT_FIELD} lists "
+                                    f"'{c['player']}' more than once")
+                    seen_players.add(name)
         if not isinstance(idea.get(MERIT_FLAG, False), bool):
             errs.append(f"'{iid}': {MERIT_FLAG} must be true/false, got "
                         f"{idea.get(MERIT_FLAG)!r}")
@@ -939,6 +1213,50 @@ def extra_validate(groups, players, epics=None) -> list[str]:
 def _err_class(msg: str) -> str:
     """A validation error with its counts masked — 'same complaint as before?'."""
     return re.sub(r"\d+", "#", msg)
+
+
+def normalize_ideas(ideas, groups=None) -> None:
+    """Coerce posted ideas (and group orders) in place into their stored form.
+
+    Runs before both fingerprinting and validation: the three-way merge compares
+    posted ideas against ideas read from disk, which are already in stored form,
+    so normalizing only one side would make untouched items read as edited.
+    """
+    if groups is not None:
+        for g in groups:
+            if str(g.get("order", "")).strip() != "":
+                try:
+                    g["order"] = int(g["order"])
+                except (TypeError, ValueError):
+                    pass
+    for it in ideas:
+        # Heights arrive as JS numbers/strings; coerce to int, and drop the
+        # key entirely rather than persisting junk that would fail validation.
+        # Must run BEFORE normalize_steps, which keeps step_h only when it is
+        # already an int and would otherwise discard the browser's float.
+        for holder in ([it] + list(it.get("design_questions") or [])
+                       + [s for s in (it.get("manual_steps") or [])
+                          if isinstance(s, dict)]):
+            for key in HEIGHT_KEYS:
+                if key not in holder:
+                    continue
+                if str(holder.get(key, "")).strip() == "":
+                    holder.pop(key, None)
+                    continue
+                try:
+                    holder[key] = int(float(holder[key]))
+                except (TypeError, ValueError):
+                    holder.pop(key, None)
+        if it.get("manual_steps"):
+            it["manual_steps"] = normalize_steps(it["manual_steps"])
+        if it.get(UAT_FIELD):
+            it[UAT_FIELD] = normalize_uat_credits(it[UAT_FIELD])
+        if it.get("impl_notes"):
+            it["impl_notes"] = sanitize_notes(it["impl_notes"])
+        # Strip any pasted chrome (e.g. Discord DOM) down to the whitelist
+        # so the YAML — and every regenerate/publish from it — stays clean.
+        if it.get("notes"):
+            it["notes"] = sanitize_notes(it["notes"])
 
 
 def validate_document(ideas, groups=None, players=None,
@@ -1587,6 +1905,82 @@ class Handler(BaseHTTPRequestHandler):
                            "warnings": warnings,
                            "message": f"Updated step {index + 1} of '{iid}'."})
 
+    def _uat_write(self, revoke, payload, ideas, groups, players, epics,
+                   warnings):
+        """Pay (or take back) one player's UAT credit on one idea.
+
+        Same both-or-neither contract as _merit_write: the meritdb counter and
+        the `awarded` flag on that uat_credits entry must agree, so if the YAML
+        write fails the merit is immediately reversed.
+
+        Unlike a submitter award this is per-ENTRY, not per-idea: an idea can
+        carry several validators and each is paid once. The entry's `awarded`
+        flag is the idempotence guard — the same thing MERIT_FLAG is for the
+        submitter — so a second click can never pay the same person twice.
+        """
+        problem = merit_db_problem()
+        if problem:
+            return self._json({"ok": False, "error": f"merit DB unsafe: {problem}"},
+                              code=409)
+
+        iid = payload.get("idea_id") or ""
+        who = (payload.get("player") or "").strip()
+        idea = next((i for i in ideas if i.get("id") == iid), None)
+        if idea is None:
+            return self._json({"ok": False,
+                               "errors": [f"idea '{iid}' not found in payload"]})
+        credits = idea.get(UAT_FIELD) or []
+        entry = next((c for c in credits
+                      if str(c.get("player", "")).strip().lower() == who.lower()),
+                     None)
+        if entry is None:
+            return self._json({"ok": False,
+                               "errors": [f"'{who}' is not a UAT validator on "
+                                          f"'{iid}'"]})
+        if revoke and not entry.get("awarded"):
+            return self._json({"ok": False,
+                               "errors": [f"'{who}' has no awarded UAT credit on "
+                                          f"'{iid}' to take back"]})
+        if not revoke and entry.get("awarded"):
+            return self._json({"ok": False,
+                               "errors": [f"'{who}' was already paid for "
+                                          f"validating '{iid}'"]})
+
+        cdkey = (payload.get("cdkey") or "").strip()
+        res = award_merit(who, "", iid, cdkey=cdkey, revoke=revoke, kind="uat")
+        if not res.get("ok"):
+            # Nothing was paid, so the flag stays as it was; the rest of the
+            # form is still saved, exactly as _merit_write does.
+            write_document(ideas, groups, players, epics)
+            return self._json({
+                "ok": False, "warnings": warnings, "version": yaml_version(),
+                "matched": res.get("matched"), "reverted": True,
+                "errors": [res.get("reason", "merit update failed"),
+                           "Your other edits were saved."]})
+
+        if revoke:
+            entry.pop("awarded", None)
+            entry.pop("date", None)
+        else:
+            entry["awarded"] = True
+            entry["date"] = datetime.now().strftime("%Y-%m-%d")
+        try:
+            write_document(ideas, groups, players, epics)
+        except Exception as e:
+            back = award_merit(who, "", iid, cdkey=res.get("cdkey", ""),
+                               revoke=not revoke, kind="uat")
+            undo = (" Merit change was rolled back."
+                    if back.get("ok")
+                    else f" MERIT NOT ROLLED BACK: {back.get('reason')}")
+            return self._json({"ok": False, "version": yaml_version(),
+                               "errors": [f"could not write roadmap.yaml: {e}"
+                                          + undo]})
+        if res.get("cdkey") and cdkey and who:
+            write_merit_alias(who, res["cdkey"])
+        return self._json({"ok": True, "warnings": warnings,
+                           "version": yaml_version(),
+                           "message": res.get("message", "Saved.")})
+
     def _merit_write(self, revoke, payload, ideas, groups, players, epics,
                      warnings):
         """Move an idea into/out of 'merit awarded' AND pay/take back the merit.
@@ -1687,7 +2081,14 @@ class Handler(BaseHTTPRequestHandler):
                         "realms": status, "lines": lines})
         elif self.path == "/api/data":
             data = read_yaml()
-            self._json({"ideas": data.get("ideas", []) or [], "vocab": vocab(data),
+            ideas = data.get("ideas", []) or []
+            # base_hashes is the client's merge baseline. It is computed here,
+            # server-side, and the browser only stores and echoes it back — see
+            # the fingerprint section above for why it is never hashed in JS.
+            normalize_ideas(ideas)
+            self._json({"ideas": ideas, "vocab": vocab(data),
+                        "base_hashes": fingerprints(ideas),
+                        "base_vocab": vocab_fingerprints(data),
                         "version": yaml_version()})
         elif self.path == "/api/version":
             self._json({"version": yaml_version()})
@@ -1713,6 +2114,22 @@ class Handler(BaseHTTPRequestHandler):
         return json.loads(self.rfile.read(n) or b"{}")
 
     def do_POST(self):
+        """Serialize every POST that can write roadmap.yaml.
+
+        The lock is held for the whole read→merge→validate→write cycle, closing
+        the window in which an external write could land between the read a
+        merge was computed from and the os.replace() that commits it.
+        """
+        if self.path == "/api/palette/refresh":     # never touches roadmap.yaml
+            return self._do_POST_locked()
+        try:
+            with yaml_lock(timeout=60.0):
+                return self._do_POST_locked()
+        except TimeoutError as e:
+            return self._json({"ok": False, "errors": [f"roadmap.yaml is busy: {e}"]},
+                              503)
+
+    def _do_POST_locked(self):
         # Palette-map refresh needs no body/validation: rerun the standalone
         # generator and hand back its summary. Never touches the roadmap or git.
         if self.path == "/api/palette/refresh":
@@ -1736,51 +2153,56 @@ class Handler(BaseHTTPRequestHandler):
         players = payload.get("players")
         epics = payload.get("epics")
         base_version = payload.get("base_version")
+        base_hashes = payload.get("base_hashes")
         force = bool(payload.get("force"))
-        # Anti-clobber: if the file changed on disk since the client loaded it
-        # (external edit — Claude, a hand-edit, another tab) and the user hasn't
-        # explicitly chosen Force, refuse the write so the external edit isn't
-        # silently overwritten.
+        # Normalize before anything compares these ideas to what is on disk —
+        # the disk copy is already in stored form (see normalize_ideas).
+        normalize_ideas(ideas, groups)
+        # Anti-clobber. The file changing on disk is NOT by itself a conflict:
+        # an agent editing some other item is the common case, and refusing the
+        # write there is what forced the admin to reload and redo their edits.
+        # So when the client sent a fingerprint baseline we three-way merge, and
+        # only a genuine same-idea collision is reported as a conflict.
         if (base_version is not None and not force
                 and base_version != yaml_version()):
-            return self._json({
-                "ok": False, "conflict": True, "version": yaml_version(),
-                "message": ("roadmap.yaml changed on disk since you opened it "
-                            "(external edit detected). Reload to pull those "
-                            "changes, or Force save to overwrite them.")})
-        if groups is not None:
-            for g in groups:
-                if str(g.get("order", "")).strip() != "":
-                    try:
-                        g["order"] = int(g["order"])
-                    except (TypeError, ValueError):
-                        pass
-        for it in ideas:
-            # Heights arrive as JS numbers/strings; coerce to int, and drop the
-            # key entirely rather than persisting junk that would fail validation.
-            # Must run BEFORE normalize_steps, which keeps step_h only when it is
-            # already an int and would otherwise discard the browser's float.
-            for holder in ([it] + list(it.get("design_questions") or [])
-                           + [s for s in (it.get("manual_steps") or [])
-                              if isinstance(s, dict)]):
-                for key in HEIGHT_KEYS:
-                    if key not in holder:
-                        continue
-                    if str(holder.get(key, "")).strip() == "":
-                        holder.pop(key, None)
-                        continue
-                    try:
-                        holder[key] = int(float(holder[key]))
-                    except (TypeError, ValueError):
-                        holder.pop(key, None)
-            if it.get("manual_steps"):
-                it["manual_steps"] = normalize_steps(it["manual_steps"])
-            if it.get("impl_notes"):
-                it["impl_notes"] = sanitize_notes(it["impl_notes"])
-            # Strip any pasted chrome (e.g. Discord DOM) down to the whitelist
-            # so the YAML — and every regenerate/publish from it — stays clean.
-            if it.get("notes"):
-                it["notes"] = sanitize_notes(it["notes"])
+            disk = read_yaml()
+            disk_ideas = disk.get("ideas") or []
+            if not isinstance(base_hashes, dict):
+                # An old tab with no baseline: nothing to merge against, so fall
+                # back to the original all-or-nothing prompt.
+                return self._json({
+                    "ok": False, "conflict": True, "version": yaml_version(),
+                    "message": ("roadmap.yaml changed on disk since you opened "
+                                "it (external edit detected). Reload to pull "
+                                "those changes, or Force save to overwrite "
+                                "them.")})
+            normalize_ideas(disk_ideas)
+            merged, overlap = merge_ideas(base_hashes, ideas, disk_ideas)
+            if overlap:
+                names = ", ".join(overlap[:5]) + ("…" if len(overlap) > 5 else "")
+                return self._json({
+                    "ok": False, "conflict": True, "version": yaml_version(),
+                    "overlap": overlap,
+                    "message": (f"roadmap.yaml changed on disk and the same "
+                                f"item(s) were edited on both sides: {names}. "
+                                f"Reload to pull those changes, or Force save "
+                                f"to overwrite them.")})
+            ideas = merged
+            # Same rule for the small vocab blocks: one the client did not touch
+            # must come from disk, not from its stale copy, or the merge would
+            # silently revert an external edit to the group/player/epic lists.
+            base_vocab = payload.get("base_vocab") or {}
+            disk_vocab = vocab(disk)
+            posted = {"groups": groups, "players": players, "epics": epics}
+            for key in ("groups", "players", "epics"):
+                if posted[key] is None:
+                    continue
+                unchanged_by_us = (base_vocab.get(key) ==
+                                   block_fingerprint(posted[key]))
+                if unchanged_by_us:
+                    posted[key] = disk_vocab.get(key) or []
+            groups, players, epics = (posted["groups"], posted["players"],
+                                      posted["epics"])
         errors, warnings = validate_document(ideas, groups, players, epics)
         if errors:
             return self._json({"ok": False, "errors": errors, "warnings": warnings})
@@ -1793,6 +2215,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path in ("/api/award", "/api/revoke"):
             return self._merit_write(self.path == "/api/revoke", payload, ideas,
                                      groups, players, epics, warnings)
+        if self.path in ("/api/uat-award", "/api/uat-revoke"):
+            return self._uat_write(self.path == "/api/uat-revoke", payload, ideas,
+                                   groups, players, epics, warnings)
         if self.path == "/api/regenerate":
             write_document(ideas, groups, players, epics)
             stamp = stamp_as_of()
@@ -2052,6 +2477,7 @@ PAGE = r"""<!doctype html>
   .tbadge.defect      { background:#4a2626; color:#f0b8b8; border-color:#7a3a3a; }
   .tbadge.enhancement { background:#23364f; color:#b8d2f0; border-color:#36567a; }
   .tbadge.exploit     { background:#3c2a4f; color:#d8b8f0; border-color:#5c3a7a; }
+  .tbadge.uat         { background:#1f4038; color:#b0e6d4; border-color:#2f6455; }
   label { display:block; margin:10px 0 3px; color:var(--mut); font-size:12px; }
   input,select,textarea { width:100%; padding:7px 9px; background:var(--panel);
            color:var(--ink); border:1px solid var(--line); border-radius:6px;
@@ -2156,6 +2582,7 @@ PAGE = r"""<!doctype html>
   /* Scrolling pick-one list (merit player picker). */
   .picklist { border:1px solid var(--line); border-radius:6px; margin:8px 0;
               max-height:46vh; overflow:auto; }
+  .pick-off { opacity:.45; cursor:default; }
   .pick { display:flex; gap:10px; align-items:baseline; padding:6px 9px;
           border-bottom:1px solid var(--line); cursor:pointer; }
   .pick:last-child { border-bottom:none; }
@@ -2337,6 +2764,8 @@ PAGE = r"""<!doctype html>
 let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}};
 let sel = -1;
 let baseVersion = null;      // hash of roadmap.yaml as we last loaded/saved it
+let baseHashes = null;   // {id: fingerprint} merge baseline from /api/data
+let baseVocab = null;    // same, for the groups/players/epics blocks
 // Serialized form state as of the last render — the baseline "unsaved changes"
 // is measured against. Comparing a snapshot beats listening for input events:
 // the rich-text editors fire plenty of events while initialising, and none of
@@ -2389,6 +2818,11 @@ function groupTitle(id){
 async function load(){
   const r = await fetch('/api/data'); DATA = await r.json();
   baseVersion = DATA.version || null;
+  // Opaque per-idea fingerprints from the server. We never compute these — we
+  // hold them and hand them back on save so the server can tell *which* items
+  // we changed and merge around anyone else's edits to other items.
+  baseHashes = DATA.base_hashes || null;
+  baseVocab = DATA.base_vocab || null;
   populateFilters();
   if (view==='board'){ const f=$('#form'); if (f) f.style.display='none'; renderBoard(); }
   else { renderList(); if (DATA.ideas.length) select(0); }
@@ -2874,31 +3308,39 @@ function revokeMerit(){
 
 // Lifetime merit for a submitter: count their *awarded* (totally done) ideas by
 // type and weight them Defect=1, Enhancement=2, Exploit=3.
-const MERIT_POINTS = {Defect:1, Enhancement:2, Exploit:3};
+const MERIT_POINTS = {Defect:1, Enhancement:2, Exploit:3, UAT:1};
 function playerMerit(name){
-  const c={Defect:0, Enhancement:0, Exploit:0}; let untyped=0;
+  const c={Defect:0, Enhancement:0, Exploit:0}; let untyped=0, uat=0;
+  const lc=(name||'').toLowerCase();
   DATA.ideas.forEach(it=>{
+    // UAT credit is independent of who reported the idea and of its status, so
+    // it is counted across EVERY idea, not just this player's awarded ones.
+    (it.uat_credits||[]).forEach(u=>{
+      if(u && u.awarded && (u.player||'').toLowerCase()===lc) uat++;
+    });
     if(it.status!=='awarded' || (it.player||'')!==name) return;
     if(c[it.type]!=null) c[it.type]++; else untyped++;
   });
   const total=c.Defect*MERIT_POINTS.Defect + c.Enhancement*MERIT_POINTS.Enhancement
-            + c.Exploit*MERIT_POINTS.Exploit;
-  return {c, untyped, total};
+            + c.Exploit*MERIT_POINTS.Exploit + uat*MERIT_POINTS.UAT;
+  return {c, untyped, uat, total};
 }
 
 function renderMerit(name){
   const box=$('#merit'); if(!box) return;
   if(!name){ box.innerHTML=''; return; }
-  const {c, untyped, total}=playerMerit(name);
+  const {c, untyped, uat, total}=playerMerit(name);
   const awarded=c.Defect+c.Enhancement+c.Exploit;
   const chip=(t,n)=>`<span class="tbadge ${t.toLowerCase()}">${t}: ${n}</span>`;
   const note = untyped>0
     ? `<div class="note">${untyped} awarded item(s) for this player have no type set — not counted.</div>` : '';
   box.innerHTML=`<div class="merit">
     <h3>Lifetime merit — <span class="who">${esc(name)}</span></h3>
-    <div class="counts">${chip('Defect',c.Defect)} ${chip('Enhancement',c.Enhancement)} ${chip('Exploit',c.Exploit)}</div>
+    <div class="counts">${chip('Defect',c.Defect)} ${chip('Enhancement',c.Enhancement)} ${chip('Exploit',c.Exploit)}
+      ${uat?`<span class="tbadge uat">UAT: ${uat}</span>`:''}</div>
     <div class="pts">Total awarded points: <b>${total}</b></div>
-    <div class="sub">${awarded} awarded idea(s) · Defect=1, Enhancement=2, Exploit=3.</div>
+    <div class="sub">${awarded} awarded idea(s)${uat?` · ${uat} fix${uat>1?'es':''} validated`:''}
+      · Defect=1, Enhancement=2, Exploit=3, UAT=1.</div>
     ${note}
   </div>`;
 }
@@ -2947,7 +3389,8 @@ function renderMeritIngame(name){
         : `<div class="sub">No merit-spending transactions.</div>`;
       box.innerHTML=`<div class="merit">
         <h3>In-game merit — <span class="who">${esc(d.matched_name)}</span></h3>
-        <div class="counts">${chip('Defect',d.bugs)} ${chip('Enhancement',d.features)} ${chip('Exploit',d.exploits)}</div>
+        <div class="counts">${chip('Defect',d.bugs)} ${chip('Enhancement',d.features)} ${chip('Exploit',d.exploits)}
+          ${d.uat?`<span class="tbadge uat">UAT: ${d.uat}</span>`:''}</div>
         <div class="pts">Earned: <b>${d.earned}</b> · Spent: ${d.spent} · Available: <b class="bal">${d.balance}</b></div>
         <div class="sub">Live from meritdb (account-wide). Defect=1, Enhancement=2, Exploit=3.</div>
         ${table}
@@ -3200,7 +3643,7 @@ function bindPlayerHint(){
 // ---- Admin hand-off panel: design_questions + manual_steps -----------------
 // These are the admin's to-do surface (the retired admin-action-required.md).
 // They are internal: never rendered on the public board, edited only here.
-let HO = {design_questions: [], manual_steps: []};
+let HO = {design_questions: [], manual_steps: [], uat_credits: []};
 
 const HO_DEFAULT_H = 48;           // px; the old rows="2"
 const STEP_LABEL = {open:'Open', wip:'In progress', done:'Complete'};
@@ -3222,6 +3665,13 @@ function initHandoff(it){
         ? {step:s, status:'open', blocker:false, step_h:null}
         : {step:s.step||'', status:s.status||'open', blocker:!!s.blocker,
            step_h:s.step_h||null}),
+    // `awarded`/`date` are server-written (see UAT_FIELD in the Python half) and
+    // no input owns them — carried through verbatim so an unrelated edit to this
+    // form can never clear a paid credit.
+    uat_credits: (it.uat_credits||[]).map(c=>
+      (typeof c === 'string')
+        ? {player:c, awarded:false, date:''}
+        : {player:c.player||'', awarded:!!c.awarded, date:c.date||''}),
   };
   renderHandoff();
 }
@@ -3281,6 +3731,21 @@ function renderHandoff(){
       <textarea class="ho-st" data-i="${i}"
                 style="height:${hpx(s.step_h)}">${esc(s.step)}</textarea>
     </div>`).join('');
+  const paid = HO.uat_credits.filter(c=>c.awarded).length;
+  const uc = HO.uat_credits.map((c,i)=>`
+    <div class="ho-item ${c.awarded?'ho-done':''}">
+      <div class="ho-row">
+        <b style="flex:1">${esc(c.player)}</b>
+        ${c.awarded
+          ? `<span class="small">paid +1${c.date?' · '+esc(c.date):''}</span>
+             <button type="button" class="ho-uatr" data-i="${i}"
+                     title="Take the merit back">Revoke</button>`
+          : `<button type="button" class="ho-uata" data-i="${i}"
+                     title="Credit 1 merit in the live merit database">Award +1</button>`}
+        <button type="button" class="ho-del" data-kind="u" data-i="${i}"
+                title="Remove this validator">&times;</button>
+      </div>
+    </div>`).join('');
   const gates = [];
   if(open) gates.push(`${open} unanswered design question${open>1?'s':''}`);
   if(blocked) gates.push(`${blocked} unfinished blocker step${blocked>1?'s':''}`);
@@ -3296,6 +3761,12 @@ function renderHandoff(){
         ${blocked?`<span class="ho-badge">${blocked} blocking</span>`:''}</label>
       ${ms||'<p class="small">None.</p>'}
       <button type="button" id="ho_adds">+ Add step</button>
+      <label style="margin-top:10px">UAT validators
+        ${paid?`<span class="ho-badge">${paid} paid</span>`:''}
+        <span class="small">(1 merit each — anyone who helped verify the fix,
+        not just the reporter)</span></label>
+      ${uc||'<p class="small">None.</p>'}
+      <button type="button" id="ho_addu">+ Add validator</button>
       ${gates.length?`<p class="small ho-gate">Autopilot will not resume this item:
         ${gates.join(' and ')}.</p>`:''}
     </div>`;
@@ -3303,6 +3774,11 @@ function renderHandoff(){
     HO.design_questions.push({question:'', status:'open', answer:null}); renderHandoff(); };
   $('#ho_adds').onclick = ()=>{
     HO.manual_steps.push({step:'', status:'open', blocker:false}); renderHandoff(); };
+  $('#ho_addu').onclick = ()=>addUatValidator();
+  el.querySelectorAll('.ho-uata').forEach(b=>b.onclick = e=>
+    uatAward(HO.uat_credits[+e.target.dataset.i].player, false));
+  el.querySelectorAll('.ho-uatr').forEach(b=>b.onclick = e=>
+    uatAward(HO.uat_credits[+e.target.dataset.i].player, true));
   el.querySelectorAll('.ho-qs').forEach(s=>s.onchange = e=>{
     HO.design_questions[+e.target.dataset.i].status = e.target.value; renderHandoff(); });
   el.querySelectorAll('.ho-ss').forEach(s=>s.onchange = e=>{
@@ -3320,8 +3796,75 @@ function renderHandoff(){
     const i = +e.target.dataset.i;
     syncHandoffHeights();
     if(e.target.dataset.kind==='q') HO.design_questions.splice(i,1);
+    else if(e.target.dataset.kind==='u'){
+      if(HO.uat_credits[i].awarded &&
+         !confirm('“'+HO.uat_credits[i].player+'” has already been paid for this.'
+           + '\n\nRemoving the row does NOT take the merit back — use Revoke '
+           + 'for that. Remove anyway?')) return;
+      HO.uat_credits.splice(i,1);
+    }
     else HO.manual_steps.splice(i,1);
     renderHandoff(); });
+}
+
+// ---- UAT validators: add a player, and pay/take back their 1 merit --------
+// A UAT credit is independent of who reported the idea, so the picker is the
+// whole meritdb roster (a tester may never have submitted anything), not the
+// roadmap's own player list.
+async function addUatValidator(){
+  let res = {};
+  try { res = await (await fetch('/api/meritplayers')).json(); } catch(e){ res={}; }
+  const rows = res.rows || [];
+  if (!rows.length){
+    banner('bad', 'No merit database players to choose from'
+      + (res.reason ? ' — '+res.reason : '') + '.');
+    return;
+  }
+  const taken = new Set(HO.uat_credits.map(c=>(c.player||'').toLowerCase()));
+  modalHTML(`<h2>Who helped validate this?</h2>
+    <p class="small">They get <b>1 merit</b> for verifying the fix — whether or not
+      they reported it. Add as many validators as you like; each is paid once.</p>
+    <input id="uv_q" placeholder="Filter by name…" style="width:100%">
+    <div id="uv_list" class="picklist"></div>
+    <div class="bar"><span class="spacer"></span><button id="uv_close">Cancel</button></div>`);
+  const draw = ()=>{
+    const q = ($('#uv_q').value||'').toLowerCase();
+    const hits = rows.filter(r=>!q || (r.name||'').toLowerCase().includes(q));
+    $('#uv_list').innerHTML = hits.slice(0,200).map(r=>{
+      const dupe = taken.has((r.name||'').toLowerCase());
+      return `<div class="pick${dupe?' pick-off':''}" data-i="${rows.indexOf(r)}">
+        <b>${esc(r.name||'(no name)')}</b>
+        <span class="small">${dupe ? 'already listed'
+          : 'balance '+r.balance+' · last login '+esc(r.last_login||'—')}</span></div>`;
+    }).join('') || '<p class="small">No match.</p>';
+    $('#uv_list').querySelectorAll('.pick').forEach(d=>{
+      d.onclick = ()=>{
+        const r = rows[+d.dataset.i];
+        if (taken.has((r.name||'').toLowerCase())) return;
+        closeModal();
+        HO.uat_credits.push({player:r.name, awarded:false, date:''});
+        renderHandoff();
+      };
+    });
+  };
+  $('#uv_q').oninput = draw;
+  $('#uv_close').onclick = closeModal;
+  draw();
+  $('#uv_q').focus();
+}
+
+// Pay (or take back) one validator's merit. Like the submitter Award button,
+// the live merit DB is written first and the YAML flag only moves if that
+// succeeded — the server does both halves in one request.
+function uatAward(who, revoke){
+  const it = DATA.ideas[curIdx()]; if (!it) return;
+  if (!confirm((revoke ? 'Take back the 1 merit point awarded to '
+                       : 'Grant 1 merit point to ') + who
+    + (revoke ? ' for validating this idea?' : ' for validating this idea?')
+    + '\n\nThe game DB is written now; the roadmap only records it if that '
+    + 'write succeeds.')) return;
+  return commit(revoke ? '/api/uat-revoke' : '/api/uat-award', false,
+                {stay:true, extra:{idea_id: it.id, player: who}});
 }
 
 // Drop blanks so an empty row never trips validation, and normalize answer.
@@ -3336,7 +3879,14 @@ function handoffOut(){
     .filter(s=>(s.step||'').trim())
     .map(s=>keepH({step:s.step.trim(), status:s.status, blocker:!!s.blocker},
                   s, ['step_h']));
-  return {design_questions: qs.length?qs:null, manual_steps: ms.length?ms:null};
+  const uc = HO.uat_credits
+    .filter(c=>(c.player||'').trim())
+    .map(c=>{ const o = {player:c.player.trim()};
+              if(c.awarded) o.awarded = true;
+              if(c.date) o.date = c.date;
+              return o; });
+  return {design_questions: qs.length?qs:null, manual_steps: ms.length?ms:null,
+          uat_credits: uc.length?uc:null};
 }
 
 function readForm(){
@@ -3371,6 +3921,7 @@ function readForm(){
     // Internal admin-only fields, edited in the hand-off panel below Notes.
     design_questions: ho.design_questions,
     manual_steps: ho.manual_steps,
+    uat_credits: ho.uat_credits,
   };
 }
 
@@ -3379,7 +3930,7 @@ function readForm(){
 // idea untouched — readForm() only knows about the form, so without this merge
 // the unknown key would be gone before the save even leaves the browser.
 // Mirrors emit_unknown()/serialize_ideas() in the Python half.
-const FORM_FIELDS = ['id','title','group','epic','status','hidden','merit_awarded','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps'];
+const FORM_FIELDS = ['id','title','group','epic','status','hidden','merit_awarded','type','player','date','commit','notes','notes_h','impl_notes','impl_notes_h','dupe_of','design_questions','manual_steps','uat_credits'];
 function pruneEmpty(o, src){
   const r={};
   for (const k of FORM_FIELDS)
@@ -3516,10 +4067,11 @@ async function commit(endpoint, force, opts){
     body: JSON.stringify(Object.assign(
       {ideas: DATA.ideas, groups: DATA.vocab.groups,
        players: DATA.vocab.players, epics: DATA.vocab.epics,
-       base_version: baseVersion, force: !!force}, opts.extra||{}))});
+       base_version: baseVersion, base_hashes: baseHashes,
+       base_vocab: baseVocab, force: !!force}, opts.extra||{}))});
   const res = await r.json();
   if (res.version) baseVersion = res.version;   // rebase our baseline
-  if (res.conflict){ conflictBanner(endpoint); return false; }
+  if (res.conflict){ conflictBanner(endpoint, res.message); return false; }
   if (!res.ok){
     banner('bad', 'Not saved:\n• ' + (res.errors||['unknown error']).join('\n• ')
       + (res.warnings&&res.warnings.length ? '\n\nWarnings:\n• '+res.warnings.join('\n• '):''));
@@ -3549,12 +4101,13 @@ function reselect(id){
 
 // External-edit conflict: the file changed on disk since we loaded it. Offer to
 // Reload the latest (losing in-page edits) or Force-overwrite it.
-function conflictBanner(endpoint){
+function conflictBanner(endpoint, conflictMsg){
   const b=$('#banner'); b.className='warn';
   b.innerHTML='';
   const msg=document.createElement('div');
-  msg.textContent='⚠ roadmap.yaml changed on disk since you opened it '
-    +'(external edit detected). Reload to pull those changes, or Force save to overwrite them.';
+  msg.textContent = conflictMsg
+    || '⚠ roadmap.yaml changed on disk since you opened it (external edit '
+       + 'detected). Reload to pull those changes, or Force save to overwrite them.';
   const bar=document.createElement('div'); bar.className='bar';
   const reload=document.createElement('button'); reload.textContent='Reload latest';
   reload.onclick=()=>{ b.className=''; b.textContent=''; load(); };
@@ -4075,8 +4628,9 @@ setInterval(async ()=>{
     if (d.version && baseVersion && d.version!==baseVersion){
       const b=$('#banner');
       if (!b.querySelector('button')){   // don't stomp an active conflict banner
-        banner('warn','⚠ roadmap.yaml changed on disk (external edit) — Reload '
-          +'to see it. Your next Save will warn before overwriting.');
+        banner('warn','roadmap.yaml changed on disk (external edit) — Reload '
+          +'to see it. Your edits are safe: a Save merges around changes to '
+          +'other items, and only warns if the same item was edited on both sides.');
       }
     }
   }catch(e){}

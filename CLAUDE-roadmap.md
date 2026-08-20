@@ -71,6 +71,7 @@ Each entry under `ideas:` is one backlog item:
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
 | `design_questions` | no | **Internal — never player-visible.** List of `{question, status, answer}`; `status` is `open` or `answered`. See below. |
 | `manual_steps` | no | **Internal — never player-visible.** List of `{step, status, blocker}`: toolset work only the admin can do (waypoint placement, loot placement) and UAT scripts. See below. |
+| `uat_credits` | no | **Internal — never player-visible.** List of `{player, awarded, date}`: the players who helped **validate** this item's fix, each worth **1 merit**. Independent of `player`/`type` — a validator need not be the reporter, and several can be credited on one item. `awarded: true` is the same kind of idempotence flag as `merit_awarded`: **never hand-edit it and never set it from an agent** — it is written only by the editor's per-validator **Award +1** / **Revoke** buttons, which do the `meritdb` write first. Adding a *name* to the list is safe and unpaid; only the button pays. |
 
 **Unknown fields.** A key outside this table is **preserved** on save (the editor emits it
 after the known fields; it used to be dropped in silence — that is how three ideas' retired
@@ -264,7 +265,8 @@ These are hard rules — follow them exactly:
   finishing) with the outstanding toolset work listed in `manual_steps`. Set `implemented`
   **only if you can confirm zero manual toolset steps remain** — if you are uncertain,
   choose `manual`. **Never** set `awarded` (or otherwise mark an item "done"), and never
-  touch `merit_awarded` — that step credits Merit to the player in the live game database
+  touch `merit_awarded` (nor any `uat_credits[].awarded`) — those steps credit Merit
+  to a player in the live game database
   and is the admin's call, made with the editor's **Award merit** button.
 - **Blocked on a design decision → `status: design`.** If an item needs a call only the
   admin can make (mechanics, balance, lore, pricing, UX), set `status: design` and append
