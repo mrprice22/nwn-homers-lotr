@@ -134,11 +134,15 @@ This is the most invasive change.
 6. **Re-run the map-note sync** so the new transitions get destination pins on
    the area map: `python3 bin/gen-map-notes.py` (audit) then `--apply`. It adds a
    destination-labeled map note on each new door/trigger/portal and a POI note at
-   any teleporter NPC; it's idempotent so it won't touch existing notes. See the
-   "Map notes on area transitions" section in `README.md`. (The tool reads
-   `module-index/area_graph.json`, which is wiki-generated — if you added areas
-   since the last wiki build it will warn the graph is stale; the full sync lands
-   after the next wiki refresh.)
+   any teleporter NPC; it's idempotent so it won't touch existing notes. **Not
+   optional** — `tests/check_map_notes.py` fails the repack while a transition
+   has no pin. If a transition is meant to stay off the map (a back way in, a
+   secret door), put `@nomapnote` in its Comment box in the toolset instead;
+   `@mapnote Some Text` relabels a pin. See the "Map notes on area transitions"
+   section in `README.md`. (The tool reads `module-index/area_graph.json`, which
+   is wiki-generated — if you added areas since the last wiki build it warns
+   which areas the graph can't see, and the gate stands down rather than
+   blocking; the full sync lands after the next wiki refresh.)
 
 ## Add or edit a conversation
 

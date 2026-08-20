@@ -158,6 +158,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: map-note coverage…"
+if python3 "$HERE/check_map_notes.py"; then
+  echo "ok: map-note coverage"
+else
+  echo "fail: map-note coverage"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"

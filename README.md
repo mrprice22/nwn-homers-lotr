@@ -256,16 +256,72 @@ python3 bin/gen-map-notes.py                   # dry-run audit (default)
 python3 bin/gen-map-notes.py --verbose         # + every per-note action
 python3 bin/gen-map-notes.py --apply           # write the .git/.gic edits
 python3 bin/gen-map-notes.py --update-manual   # also rewrite disagreeing hand notes
+python3 bin/gen-map-notes.py --no-dead-links   # skip the broken-transition report
 ```
 
 Transition resolution (which door goes where, edge kinds) comes from
 `module-index/area_graph.json`; object positions and NPC names come from
 `unpacked/`. The tool is **idempotent** — auto notes carry deterministic tags
 (`mnx_<object-tag>` for transfers, `mnp_<npc-tag>` for NPC POIs) that it updates
-in place, so re-running never creates overlapping duplicates. It **defers to
-hand-placed notes** within 8 m of a transition (reported, not overwritten unless
-`--apply --update-manual`) and **skips ambiguous multi-destination tags** (e.g.
-the Gwathdor maze, whose destinations are randomized at reboot).
+in place, so re-running never creates overlapping duplicates. It **skips
+ambiguous multi-destination tags** (e.g. the Gwathdor maze, whose destinations
+are randomized at reboot).
+
+### Steering it from the toolset: `@nomapnote` and `@mapnote`
+
+Put either directive in a door / trigger / placeable / NPC's **Comment** box in
+the toolset (it is stored in the parallel `<area>.gic.json` struct). Both are
+case-insensitive, may appear anywhere in the comment, and leave the rest of the
+comment alone:
+
+| Directive | Effect |
+|-----------|--------|
+| `@nomapnote` | This transition gets **no pin** — and the build gate stops asking for one. Removes a pin an earlier run created. Use it for back ways in, secret doors, and anything that shouldn't be advertised on the map. |
+| `@mapnote Some Text` | Label the pin **Some Text** instead of the destination area's name. |
+
+```
+Toolset ▸ Trigger Properties ▸ Comment
+
+    back way into the cellar, deliberately not on the map
+    @nomapnote
+```
+
+### Duplicate pins
+
+Two pins reading the **same text** within 12 m of each other are a visible
+duplicate on the area map, so the tool skips the second (or removes it, if an
+earlier run created it). A **hand-placed pin always wins** over an auto one;
+between two auto pins the lower-sorting tag stays, so which one survives never
+depends on the order the graph happens to hand them over.
+
+This is keyed on the pin **text**, deliberately **not** on the destination:
+several transitions in one area may legitimately lead to the same place from
+far-apart spots — Weather Hills has three separate crossings into Weathertop,
+27–42 m apart — and each of those deserves its own pin.
+
+### The build gate
+
+`tests/check_map_notes.py` runs in `tests/smoke-test` and **fails the repack**
+when a transition has neither a pin nor an `@nomapnote`. It imports the tool's
+own `scan()`, so an exemption added in the toolset automatically teaches the gate
+about it. It stands down instead of blocking in exactly two cases, both because
+`module-index/` is a gitignored wiki artefact it may not rebuild: the graph is
+**missing** (fresh clone — skip), or the graph **predates an area** that exists in
+`unpacked/` (warn, so a builder who adds an area and repacks before the daily
+refresh isn't blocked by an index that can't see it yet).
+
+Note the staleness test compares **area sets**, not mtimes: a `git checkout`, an
+`nwn-manager unpack` and `--apply` itself all restamp every file in `unpacked/`,
+so an mtime comparison would report "stale" constantly — including right after
+the tool had brought the tree fully up to date, quietly disarming the gate.
+
+### Broken transitions
+
+Every run also lists placed transitions whose `LinkedTo` names a tag that exists
+**nowhere** in the module — they lead nowhere in game, so they can never carry a
+meaningful pin. 52 exist today (e.g. `weatherhills`'s `weatherhills2amonsul` →
+`whills2amonsul`). **Report only**: not a gate failure, and not this tool's job
+to fix.
 
 **Re-run it whenever you add or change areas / transitions.** After adding a new
 area, door, trigger, portal placeable, or teleporter NPC, run
@@ -273,8 +329,8 @@ area, door, trigger, portal placeable, or teleporter NPC, run
 notes. It's on-demand like `gen-boss-registry.py` / `gen-roadmap.py`, not part of
 the wiki refresh. Note: `area_graph.json` is a wiki-generated index, so it must
 reflect the new areas — if you added areas since the last wiki build, the tool
-warns that the graph is stale; refresh the wiki (or wait for the daily refresh)
-before relying on a full sync.
+warns which areas the graph can't see; refresh the wiki (or wait for the daily
+refresh) before relying on a full sync.
 
 ## Forge legal-variant whitelist
 

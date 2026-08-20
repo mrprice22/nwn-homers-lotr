@@ -226,9 +226,12 @@ rotation" and [season-cutover-prereqs.md](season-cutover-prereqs.md).
 **After adding or changing areas/transitions**, re-run `python3 bin/gen-map-notes.py`
 (then `--apply`) to keep destination map-note pins on the area map in sync — it
 annotates every door/trigger/portal with its destination area name and each
-teleporter NPC with its name, idempotently. See the "Map notes on area
-transitions" section in `README.md` and step 6 of the "Add a new area" recipe in
-[CLAUDE-recipes.md](CLAUDE-recipes.md).
+teleporter NPC with its name, idempotently. **This is gated**:
+`tests/check_map_notes.py` aborts the repack until every transition has a pin or
+carries `@nomapnote` in its toolset Comment box (`@mapnote Some Text` relabels a
+pin instead). The gate imports the tool's own `scan()`, so it never disagrees
+with it. See the "Map notes on area transitions" section in `README.md` and step
+6 of the "Add a new area" recipe in [CLAUDE-recipes.md](CLAUDE-recipes.md).
 
 ## Admin authorization & secrets — never hard-code CD keys
 
