@@ -108,6 +108,8 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
     int    nIdSpell   = -1;
     int    nIdSubType = 0;
     int    nIdCaster  = 0;
+    int    nIdExpose  = TRUE;
+    int    nIdIcon    = TRUE;
     object oIdCreator = OBJECT_INVALID;
 
     for (i = 0; i < nCount; i++)
@@ -139,6 +141,8 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
             nIdSpell   = e.nSpellId;
             nIdSubType = e.nSubType;
             nIdCaster  = e.nCasterLevel;
+            nIdExpose  = e.bExpose;
+            nIdIcon    = e.bShowIcon;
             oIdCreator = e.oCreator;
         }
         else
@@ -177,11 +181,23 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
     // is why nothing noticed until the link rebuild landed. Unpacking the finished link
     // and writing the identity back gives us both: the whole link AND the original
     // spell's identity on it.
+    // bExpose and bShowIcon are part of that identity, and they are what the
+    // CLIENT reads. Lose them and the buff keeps working while its icon does not
+    // come back: the icon already on screen is stale (the NWNX removal above
+    // never told the client), so nothing looks wrong until the next area load
+    // rebuilds the client's list from the server - and then every doubled buff
+    // silently loses its icon while the character sheet stays correct. Reported
+    // in UAT on bard-song-issues-round-2: "teleport to the Well of Eru, the buff
+    // icons go away but the sheet stays buffed". Re-casting cannot fix it either,
+    // because the spell IS still running and its own "already applied" guard
+    // correctly refuses.
     struct NWNX_EffectUnpacked eLinked = NWNX_Effect_UnpackEffect(eAll);
-    eLinked.nSpellId    = nIdSpell;
-    eLinked.nSubType    = nIdSubType;
+    eLinked.nSpellId     = nIdSpell;
+    eLinked.nSubType     = nIdSubType;
     eLinked.nCasterLevel = nIdCaster;
-    eLinked.oCreator    = oIdCreator;
+    eLinked.bExpose      = nIdExpose;
+    eLinked.bShowIcon    = nIdIcon;
+    eLinked.oCreator     = oIdCreator;
     eAll = NWNX_Effect_PackEffect(eLinked);
 
     // The busy flag has to be set HERE, around the synchronous apply, not around the

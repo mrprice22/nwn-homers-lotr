@@ -39,8 +39,11 @@ Checks:
   2. The apply is fed the accumulated link, not a single packed component.
   3. The collect loop has no `break` - every component sharing the id must be
      visited, both to rebuild the link and to honour the link-sensitive guard.
-  4. The rebuilt link is re-stamped with the original nSpellId and oCreator
-     before it is applied.
+  4. The rebuilt link is re-stamped with the original nSpellId, oCreator and
+     icon flags (bShowIcon/bExpose) before it is applied. The icon flags are the
+     half the CLIENT reads: lose them and the buff works but its icon vanishes
+     at the next area load, with no way to get it back short of ending the
+     spell.
 """
 import re
 import sys
@@ -111,7 +114,7 @@ else:
             "effect it applies - the identity re-stamp is incomplete.")
     else:
         struct_var, body = restamp.group(1), restamp.group(3)
-        for field in ("nSpellId", "oCreator"):
+        for field in ("nSpellId", "oCreator", "bShowIcon", "bExpose"):
             if not re.search(rf"{struct_var}\s*\.\s*{field}\s*=", body):
                 errors.append(
                     f"eff_dur_x2.nss does not restore .{field} on the rebuilt link. "
