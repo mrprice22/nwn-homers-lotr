@@ -36,6 +36,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 import urllib.parse
 import webbrowser
 from contextlib import redirect_stderr
@@ -2120,14 +2121,26 @@ class Handler(BaseHTTPRequestHandler):
         the window in which an external write could land between the read a
         merge was computed from and the os.replace() that commits it.
         """
-        if self.path == "/api/palette/refresh":     # never touches roadmap.yaml
-            return self._do_POST_locked()
         try:
+            if self.path == "/api/palette/refresh":   # never touches roadmap.yaml
+                return self._do_POST_locked()
             with yaml_lock(timeout=60.0):
                 return self._do_POST_locked()
         except TimeoutError as e:
             return self._json({"ok": False, "errors": [f"roadmap.yaml is busy: {e}"]},
                               503)
+        except Exception:
+            # Never let an unhandled exception kill the connection: the browser
+            # reports that only as a bare "NetworkError", with the real cause
+            # buried in the service journal. Hand back the traceback's last line
+            # so the banner names what actually broke.
+            tb = traceback.format_exc()
+            print(tb, file=sys.stderr)
+            last = tb.strip().splitlines()[-1]
+            return self._json({"ok": False, "errors": [
+                f"server error handling {self.path}: {last}",
+                "Nothing was written. The full traceback is in the service log "
+                "(journalctl --user -u roadmap-editor)."]}, 500)
 
     def _do_POST_locked(self):
         # Palette-map refresh needs no body/validation: rerun the standalone

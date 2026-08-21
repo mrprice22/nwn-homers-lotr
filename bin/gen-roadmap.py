@@ -238,6 +238,14 @@ def validate(data: dict) -> list[str]:
         if iid in seen:
             errors.append(f"duplicate id '{iid}' (also at index {seen[iid]})")
         seen[iid] = i
+        # `title` is required (it IS the public description). It was never
+        # checked here, so an untitled idea instead crashed the similar-title
+        # scan below with a KeyError — which, in the editor, surfaced as a bare
+        # "NetworkError" when the handler died mid-request. The editor's
+        # pruneEmpty() drops an empty title entirely, so a brand-new idea saved
+        # before it is filled in arrives with no `title` key at all.
+        if not str(idea.get("title") or "").strip():
+            errors.append(f"'{iid}': needs a title")
         if idea.get("status") not in STATUS:
             errors.append(f"'{iid}': unknown status {idea.get('status')!r}")
         if idea.get("group") not in group_ids:
@@ -281,7 +289,7 @@ def validate(data: dict) -> list[str]:
     # The same-group test is hoisted to the top of the loop for the same reason.
     # Pair order is unchanged, so the warning list is byte-identical.
     canon = [i for i in ideas if not i.get("dupe_of")]
-    words = [set(norm_title(i["title"]).split()) for i in canon]
+    words = [set(norm_title(i.get("title") or "").split()) for i in canon]
     groups_of = [i["group"] for i in canon]
     for a in range(len(canon)):
         wa, ga = words[a], groups_of[a]
