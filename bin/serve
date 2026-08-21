@@ -119,7 +119,7 @@ echo "[serve] activity monitor started (PID $_SERVE_PID)"
 # so the server reads our values but cannot overwrite them.
 _settings="$NWN_RUN_DIR/settings.tml"
 if [[ -f "$_settings" ]]; then
-  python3 - "$_settings" "${NWN_MAXLEVEL:-40}" <<'PYEOF'
+  python3 - "$_settings" "${NWN_MAXLEVEL:-40}" "${NWN_MAX_ATTACK_BONUS:-40}" <<'PYEOF'
 import re, sys
 txt = open(sys.argv[1]).read()
 
@@ -149,9 +149,24 @@ if re.search(r'(?m)^[ \t]*max-ability-bonus[ \t]*=', txt):
     txt = re.sub(r'(max-ability-bonus\s*=\s*)\d+', r'\g<1>24', txt, count=1)
 else:                                                     # key missing: insert it
     txt = re.sub(r'(?m)^(\t\[ruleset\.combat\]\n)', r'\g<1>\t\tmax-ability-bonus = 24\n', txt, count=1)
+
+# Force the attack-bonus ceiling under [ruleset.combat] (engine default 20).
+# The engine clamps the SUM of item attack bonus and effect attack bonus to this
+# value, so a +15 weapon left only +5 of headroom for Bard Song / Legendary
+# Prowess / War Cry and everything past +20 was silently eaten (roadmap:
+# attack-bonus-cap-20). Nothing in ruleset.2da exposes it -- this key and the
+# NWScript SetAttackBonusLimit() are the only levers. Same replace-or-insert
+# shape as max-ability-bonus above, and the same \g<1> discipline: a bare r'\140'
+# would be read as the octal escape for '`'.
+atkbonus = sys.argv[3]
+if re.search(r'(?m)^[ \t]*max-attack-bonus[ \t]*=', txt):
+    txt = re.sub(r'(max-attack-bonus\s*=\s*)\d+', r'\g<1>' + atkbonus, txt, count=1)
+else:                                                     # key missing: insert it
+    txt = re.sub(r'(?m)^(\t\[ruleset\.combat\]\n)',
+                 r'\g<1>\t\tmax-attack-bonus = ' + atkbonus + '\n', txt, count=1)
 open(sys.argv[1], 'w').write(txt)
 PYEOF
-  echo "[serve] patched settings.tml: sticky-modes=true, always-roll-max-hitpoints-on-levelup=true, max-ability-bonus=24, max-character-level=${NWN_MAXLEVEL:-40}"
+  echo "[serve] patched settings.tml: sticky-modes=true, always-roll-max-hitpoints-on-levelup=true, max-ability-bonus=24, max-attack-bonus=${NWN_MAX_ATTACK_BONUS:-40}, max-character-level=${NWN_MAXLEVEL:-40}"
 fi
 
 # Cross-season shared campaign DBs (meritdb, admindb) live outside every

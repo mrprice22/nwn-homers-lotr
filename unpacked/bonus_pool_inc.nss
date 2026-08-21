@@ -39,9 +39,21 @@
 // the ledger adds up, spells included: to a character carrying Legendary
 // Prowess's permanent +5 an engine-typed buff spell was worth +0, and the admin
 // ruled that a pooled bonus is a pooled bonus.
-// Still OUTSIDE the ledger and therefore still max-of against the pooled total:
-// item attack bonus (a property, not an effect), the stock spells not forked
-// here, and the deliberate exemptions below.
+// Still OUTSIDE the ledger: item attack bonus (a property, not an effect), the
+// stock spells not forked here, and the deliberate exemptions below. Effects
+// among themselves are max-of, which is what the ledger exists to defeat.
+//
+// ITEM ATTACK BONUS IS NOT MAX-OF AGAINST THE POOL - IT ADDS, AND THEN THE
+// ENGINE CLAMPS THE SUM. The ceiling is GetAttackBonusLimit(), engine default
+// 20, i.e. weapon plus pooled total together. That is why Sync's +15 weapon
+// made Bard Song / Prowess / War Cry look broken while unarmed testing looked
+// perfect: unarmed there was headroom, armed there was +5 of it and everything
+// past +20 was silently eaten (roadmap: attack-bonus-cap-20). This realm raises
+// the ceiling to 40 via server.env NWN_MAX_ATTACK_BONUS -> settings.tml
+// [ruleset.combat] max-attack-bonus (patched by bin/serve). Nothing in
+// ruleset.2da exposes it. Keep the pool's totals in mind against that ceiling:
+// the ledger can sum past it, and the engine will not tell you it truncated.
+//
 // tests/check_bonus_pool.py is the build gate: a new EffectAttackIncrease or
 // EffectDamageIncrease in a module-owned script must come through here or be
 // listed as a deliberate exemption. An unpooled bonus is invisible - it

@@ -138,6 +138,32 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: attack-bonus-cap-20
+    title: "Attack bonus capped at +20 once a weapon is equipped"
+    group: combat-classes
+    status: manual
+    type: Defect
+    player: "Sync (Shync)"
+    date: "2026-08-21"
+    notes: "<div><b>The server's attack-bonus ceiling has been raised from +20 to +40.</b> If you were wielding a high-plus weapon, everything else that adds to your attack - Bard Song, Legendary Prowess, Legendary Grip, Legendary Reaping, War Cry, Bless, Prayer, Divine Favor and the rest - stopped counting the moment your total reached +20. That is why the recent bard song work looked perfect unarmed and looked broken again the second you drew a +15 weapon: unarmed you had room under the ceiling, armed you had five points of it.</div><div><br></div><div>Nothing about the buffs themselves changed - the ceiling did. Reported by Sync.</div>"
+    impl_notes: "<div><b>Root cause: the engine's attack-bonus limit, not the module.</b> NWN:EE clamps the SUM of item attack bonus and effect attack bonus to settings.tml [ruleset.combat] max-attack-bonus, engine default 20 (NWScript GetAttackBonusLimit / SetAttackBonusLimit; ini label AttackBonusLimit, Server Options). A +15 weapon therefore left +5 of headroom for the whole bonus ledger, and the engine truncates silently - no log line, no feedback. Unarmed testing never hit it, which is exactly why the bard-song round-2 UAT passed while play did not.</div><div><br></div><div><b>Fix:</b> server.env NWN_MAX_ATTACK_BONUS=40, patched into settings.tml by bin/serve in the same replace-or-insert block that already forces max-ability-bonus=24, with the same g&lt;1&gt; discipline (a bare backreference there is an octal escape - the stray-T bug). The schema constraint on this key is already max=255, so unlike max-character-level there is no second line to bump. Verified idempotent: patching a live copy twice changes exactly one line, 20 -&gt; 40.</div><div><br></div><div><b>Not a ruleset.2da row</b> - nothing in the stock or hak table exposes this limit - so no hak rebuild and NO NWSync refresh. The value is read at server start, so it needs a restart and nothing else. Deliberately attack only: max-saving-throw-bonus (20), max-skill-bonus (50), max-damage-bonus (100) left alone.</div><div><br></div><div><b>Doc correction (bonus_pool_inc.nss header):</b> it claimed item attack bonus was max-of against the pooled total. It is not - item AB and the pooled effect ADD, and the engine clamps the sum. The header now says so, and names the ceiling, so the next reader does not re-derive this from a bug report.</div>"
+    manual_steps:
+      - step: "Arm bin/reboot-on-empty so the dev realm picks up the new settings.tml. The cap is read at server start, so nothing changes in game until the realm cycles. Never force-restart the dev realm."
+        status: open
+        kind: publish
+        blocker: true
+      - step: "UAT the reported bug: equip a +15 weapon, note the logged attack roll, then stack Bard Song / Legendary Prowess / War Cry and confirm the roll keeps climbing past +20 of bonus instead of flatlining. Read the COMBAT LOG, not the character sheet."
+        status: open
+        kind: uat
+        tester: "Sync, level 60 melee or bard with a +15 weapon"
+      - step: "UAT the new ceiling itself: pile on enough sources to exceed +40 of attack bonus and confirm it stops there rather than somewhere lower. This is the check that proves the setting took, not just that something improved."
+        status: open
+        kind: uat
+        tester: "level 60 with a high-plus weapon and full buffs"
+      - step: "UAT the character sheet: the sheet is drawn client-side, so check whether its attack number tracks the new ceiling or still clamps at the old one. If the two disagree the combat log is the source of truth - report it rather than treating it as a regression."
+        status: open
+        kind: uat
+        tester: "any"
   - id: bard-song-issues-round-2
     title: "Bard song issues round 2"
     group: combat-classes
