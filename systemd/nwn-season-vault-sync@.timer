@@ -1,20 +1,23 @@
 [Unit]
-Description=Pull live-realm characters into the dev vault every 30s (season instance %i)
+Description=Pull live-realm characters into the dev vault once per boot (season instance %i)
 Documentation=file://%h/GIT/%i/bin/sync-vault-from-prod
 
 [Timer]
 Unit=nwn-season-vault-sync@%i.service
-OnBootSec=2min
-# OnBootSec alone never fires on a machine that booted long ago, and
-# OnUnitActiveSec needs a previous activation to count from — so without
-# OnActiveSec a timer enabled mid-session sits with NEXT="-" forever. This one
-# primes it: 30s after the timer itself starts.
-OnActiveSec=30s
-OnUnitActiveSec=30s
-# Without this systemd coalesces timers to a 1-minute window and the 30s cadence
-# becomes a lie. The job is an rsync over a few hundred small files, so waking
-# on time costs nothing.
-AccuracySec=1s
+# ONCE PER BOOT, not on a cadence. This used to fire every 30s; two players
+# reported lag on the dev realm and a 2880-runs-a-day rsync over the vault was a
+# plausible enough contributor that it was retired (see README, "Pulling prod
+# characters into the dev realm"). The host reboots itself daily at 03:03, a few
+# minutes after the live realm's 03:00 ExportAllCharacters() flushes every .bic
+# to disk -- so once per boot IS once per day, reading the freshest possible
+# export. Dev copies up to 24h stale are fine; run
+# `bin/sync-vault-from-prod --apply` by hand when a player needs their character
+# sooner.
+#
+# 5 minutes in: the server unit and the boot backup are done with the disk, and
+# the deferred wiki republish has not started yet. NWN re-reads the servervault
+# on every login, so nothing has to land before the server does.
+OnBootSec=5min
 
 [Install]
 WantedBy=timers.target

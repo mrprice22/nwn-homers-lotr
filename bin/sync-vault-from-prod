@@ -31,12 +31,15 @@
 # Usage:
 #   bin/sync-vault-from-prod                 # dry run — list what would copy
 #   bin/sync-vault-from-prod --apply         # do it
-#   bin/sync-vault-from-prod --apply --quiet # timer mode: log only on transfers
+#   bin/sync-vault-from-prod --apply --quiet # boot mode: log only on transfers
 #   bin/sync-vault-from-prod --status        # what's over, what's stale/missing
 #   bin/sync-vault-from-prod --from ~/GIT/nwn_homers_lotr_s2 ...
 #
-# Runs every 30s from systemd/nwn-season-vault-sync@.timer (installed and armed
-# for the dev instance only by bin/season-units.sh). README.md "Pulling prod
+# Runs ONCE PER BOOT from systemd/nwn-season-vault-sync@.timer (installed and
+# armed for the dev instance only by bin/season-units.sh) -- i.e. once a day, in
+# the 03:03 reboot's wake. It used to run every 30s; that was retired on
+# 2026-08-21 as a suspect in player-reported dev-realm lag. Run this by hand when
+# someone needs their character copied over sooner. README.md "Pulling prod
 # characters into the dev realm" has the operator docs.
 set -euo pipefail
 shopt -s nullglob

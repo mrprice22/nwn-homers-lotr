@@ -195,10 +195,12 @@ if [[ $MODE == enable ]]; then
   echo "started nwn-season-empty-restart@$INSTANCE.path (watchers only watch while active)"
 
   # Same story for the vault-sync timer: enable queues it for the next boot, so
-  # start it now or prod characters stop flowing until the machine reboots.
+  # start it now. It only fires OnBootSec, so starting it mid-session schedules
+  # nothing further today -- run bin/sync-vault-from-prod --apply by hand if you
+  # want the characters now.
   if [[ ${SEASON_ROLE:-} == dev ]]; then
     systemctl --user start "nwn-season-vault-sync@$INSTANCE.timer"
-    echo "started nwn-season-vault-sync@$INSTANCE.timer (prod -> dev character vault sync, every 30s)"
+    echo "started nwn-season-vault-sync@$INSTANCE.timer (prod -> dev character vault sync, once per boot)"
   fi
 
   echo

@@ -102,7 +102,8 @@ it must be re-run).
 ### Prod characters on the dev realm
 
 `bin/sync-vault-from-prod` copies player `.bic` files **one way, live realm → dev
-realm**, additively, every 30 s (`systemd/nwn-season-vault-sync@.timer`, armed by
+realm**, additively, **once per boot** — i.e. once a day, in the wake of the 03:03
+reboot (`systemd/nwn-season-vault-sync@.timer`, armed by
 `bin/season-units.sh` on the `SEASON_ROLE=dev` instance only). It exists so a player
 who hit a bug on prod can log out, hop to the test realm and retest a fix with the
 **same character** instead of re-rolling. Prod always wins on conflict; it **never

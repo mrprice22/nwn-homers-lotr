@@ -1312,12 +1312,19 @@ bin/sync-vault-from-prod --status        # per-character: synced / STALE / MISSI
 ### How it runs
 
 `systemd/nwn-season-vault-sync@.timer` fires `…@.service`
-(`bin/sync-vault-from-prod --apply --quiet`) every 30 s. `AccuracySec=1s` keeps
-systemd from coalescing it into a one-minute window, and `OnActiveSec=30s` primes a
-timer enabled mid-session (`OnBootSec` alone never fires on an already-booted
-machine). `--quiet` keeps the journal silent on no-op ticks; a tick that actually
-copies logs each file to the journal and to `$NWN_RUN_DIR/vault-sync.log`. Runs are
-serialised with `flock`, so a slow tick can never race the next.
+(`bin/sync-vault-from-prod --apply --quiet`) **once per boot**, `OnBootSec=5min`.
+Since the host reboots itself daily at 03:03 — a few minutes after the live realm's
+03:00 `ExportAllCharacters()` writes every `.bic` — once per boot is once per day,
+off the freshest export on disk. `--quiet` keeps the journal silent when nothing
+copies; a run that does copy logs each file to the journal and to
+`$NWN_RUN_DIR/vault-sync.log`. Runs are serialised with `flock`.
+
+> **Why not every 30 s?** It used to be. Two players reported lag on the dev realm
+> on 2026-08-21 and a 2880-runs-a-day rsync over the vault was a plausible enough
+> contributor to retire the cadence. Dev copies up to 24 h stale are fine for the
+> retest-your-bug use case; when someone needs their character sooner, run
+> `bin/sync-vault-from-prod --apply` by hand (or
+> `systemctl --user start nwn-season-vault-sync@nwn_homers_lotr.service`).
 
 `bin/season-units.sh` installs the template for every season but **arms the timer only
 on the dev instance** (`SEASON_ROLE=dev`), and `--enable` starts it immediately —
