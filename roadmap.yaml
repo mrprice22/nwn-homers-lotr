@@ -141,46 +141,47 @@ ideas:
   - id: bard-song-issues-round-2
     title: "Bard song issues round 2"
     group: combat-classes
-    status: manual
+    status: implemented
     type: Defect
     player: "Sync (Shync)"
     date: "2026-08-21"
     commit: d4a25792b2a
     notes: "<div><b>Bard Song's attack bonus lands again, and so does every buff spell's.</b> Singing was showing the bonus on your character sheet but not applying it to a single attack roll, and War Cry's +2 appeared for about two seconds and then went away. Everything else the song gives - saves, AC, skills, temporary hit points - was working the whole time, which is why it was hard to see.</div><div><br></div><div>The cause was the module's spell-duration doubler. When it stretched a buff to twice its length it was quietly re-issuing it as an anonymous effect, so the system that adds your attack bonuses up no longer recognised the song (or Bless, Aid, Prayer, War Cry, Divine Favor, Divine Power, Divine Wrath) as still running, and dropped its share about a second after you sang. Your buffs keep their identity now.</div><div><br></div><div>Two related problems went with it: a bard carrying <b>Legendary Prowess</b> could find themselves unable to re-sing on themselves, and casting <b>War Cry</b> could strip every pooled attack bonus you had, not just its own.</div><div><br></div><div>The attack-bonus icon staying up through a rest or a death is not a bug - that buff is deliberately built to survive both.</div>"
-    notes_h: 393
-    impl_notes: "<div><b>Root cause: the duration doubler was stripping the identity off every buff it re-timed.</b> eff_dur_x2.nss re-times an effect by removing it and re-applying a copy, and since curse-song-too-many-instructions (2026-08-20) it rebuilds a LINKED effect as a link - which is correct, and is also the first time that remove+re-apply has actually run, since it was previously being killed by TOO MANY INSTRUCTIONS on exactly these paths. EffectLinkEffects builds a NEW parent effect, in a delayed script with no spell context, and the engine hands the parent's creator / spell id / subtype down to its children. So a faithful per-component copy came back out as \"spell -1, cast by nobody\".</div><div><br></div><div><b>What that broke:</b> the bonus ledger keeps a transient entry alive by a WITNESS - BPool_Revalidate deletes a source whose spell effect is no longer on the creature (GetHasSpellEffect 411 for Bard Song, 373 for War Cry). bpool_eff schedules that revalidate 1.0s after any effect removal. The doubler's own removal fires it; one second later the witness reads FALSE and the entry is gone. That 1s is exactly the reported \"shows on char sheet for like 2 seconds\". The song's saves/AC/skills/temp HP are unaffected because they ride in the link, not the ledger - \"rest of the buffs seemed normal\". The stale char-sheet number is the client's cached effect list; the combat log was right.</div><div><br></div><div><b>Fix 1 (eff_dur_x2.nss):</b> capture nSpellId / nSubType / nCasterLevel / oCreator off the first component and stamp them back onto the finished link (NWNX_Effect_UnpackEffect -&gt; set -&gt; PackEffect) before applying. Fixes every GetHasSpellEffect consumer at once - the ledger's witness, both songs' \"already sung on\" guards, RemoveSpellEffects, dispel attribution - not just the bard. The x2dur_debug line now prints the re-applied spell id.</div><div><br></div><div><b>Fix 2 (bpool_eff.nss):</b> ignore removals inside the doubler's x2dur_busy window. A remove-and-immediately-re-apply is not an effect ending, and revalidating off it reads the witness in the one instant it is deliberately absent. Defence in depth behind fix 1.</div><div><br></div><div><b>Two further defects found in the same read</b>, both from BPool_Rebuild rendering the pooled effect inline in a caller's SPELL context. An effect is stamped with the spell id of the script that creates it, and the pooled effect is PERMANENT, so it kept that identity forever: (a) it satisfied the ledger's own witness - GetHasSpellEffect(411) is true forever if the pooled effect IS a spell-411 effect - and the song's re-sing guard, so a bard carrying Legendary Prowess could be silently unable to re-sing on themselves; (b) nw_s0_warcry opens every cast with RemoveSpellEffects(GetSpellId(), ...), which would sweep the WHOLE pooled bonus - every source, not just War Cry's - while leaving the ledger untouched. A second, independent path to \"War Cry takes the AB away\". <b>Fix 3 (bonus_pool_inc.nss):</b> the render moves into BPool_Render, called through DelayCommand(0.0, ...) - a script situation with no spell context - so the pooled effect belongs to nobody but the ledger. BPOOL_BUSY is set before the strip and cleared in a command queued after the render, so it still covers our own churn.</div><div><br></div><div><b>Not a bug, do not chase it:</b> the AB icon surviving rest and death is by design - the pooled effect is permanent and supernatural, and mod_respawn re-renders it deliberately.</div><div><br></div><div><b>Gates.</b> check_effect_doubler now asserts the rebuilt link is re-stamped with nSpellId and oCreator before the apply; check_bonus_pool asserts the render is deferred and that bpool_eff keeps the x2dur_busy guard. Both invariants are invisible in review: the broken version compiles, runs, logs a cheerful \"doubled\" line, and the only symptom is an ability quietly doing less than it says.</div><div><br></div><div><b>Build.</b> Module-only - no hak, TLK or 2da, so no NWSync. Repack green (29/29 smoke, 0 failing dialogs), installed to the DEV realm only.</div><div><br></div><div><b>If UAT still shows no attack bonus</b>, the remaining reading is that the ledger and its effect are intact but the engine is not counting the pooled EffectAttackIncrease in attack rolls, which needs a different render (attack bonus as an item property on a hidden hide). Scope that separately - the three fixes above are correct either way.</div>"
+    notes_h: 276
+    impl_notes: "<div><b>Root cause: the duration doubler was stripping the identity off every buff it re-timed.</b> eff_dur_x2.nss re-times an effect by removing it and re-applying a copy, and since curse-song-too-many-instructions (2026-08-20) it rebuilds a LINKED effect as a link - which is correct, and is also the first time that remove+re-apply has actually run, since it was previously being killed by TOO MANY INSTRUCTIONS on exactly these paths. EffectLinkEffects builds a NEW parent effect, in a delayed script with no spell context, and the engine hands the parent's creator / spell id / subtype down to its children. So a faithful per-component copy came back out as \\\"spell -1, cast by nobody\\\".</div><div><br></div><div><b>What that broke:</b> the bonus ledger keeps a transient entry alive by a WITNESS - BPool_Revalidate deletes a source whose spell effect is no longer on the creature (GetHasSpellEffect 411 for Bard Song, 373 for War Cry). bpool_eff schedules that revalidate 1.0s after any effect removal. The doubler's own removal fires it; one second later the witness reads FALSE and the entry is gone. That 1s is exactly the reported \\\"shows on char sheet for like 2 seconds\\\". The song's saves/AC/skills/temp HP are unaffected because they ride in the link, not the ledger - \\\"rest of the buffs seemed normal\\\". The stale char-sheet number is the client's cached effect list; the combat log was right.</div><div><br></div><div><b>Fix 1 (eff_dur_x2.nss):</b> capture nSpellId / nSubType / nCasterLevel / oCreator off the first component and stamp them back onto the finished link (NWNX_Effect_UnpackEffect -&gt; set -&gt; PackEffect) before applying. Fixes every GetHasSpellEffect consumer at once - the ledger's witness, both songs' \\\"already sung on\\\" guards, RemoveSpellEffects, dispel attribution - not just the bard. The x2dur_debug line now prints the re-applied spell id.</div><div><br></div><div><b>Fix 2 (bpool_eff.nss):</b> ignore removals inside the doubler's x2dur_busy window. A remove-and-immediately-re-apply is not an effect ending, and revalidating off it reads the witness in the one instant it is deliberately absent. Defence in depth behind fix 1.</div><div><br></div><div><b>Two further defects found in the same read</b>, both from BPool_Rebuild rendering the pooled effect inline in a caller's SPELL context. An effect is stamped with the spell id of the script that creates it, and the pooled effect is PERMANENT, so it kept that identity forever: (a) it satisfied the ledger's own witness - GetHasSpellEffect(411) is true forever if the pooled effect IS a spell-411 effect - and the song's re-sing guard, so a bard carrying Legendary Prowess could be silently unable to re-sing on themselves; (b) nw_s0_warcry opens every cast with RemoveSpellEffects(GetSpellId(), ...), which would sweep the WHOLE pooled bonus - every source, not just War Cry's - while leaving the ledger untouched. A second, independent path to \\\"War Cry takes the AB away\\\". <b>Fix 3 (bonus_pool_inc.nss):</b> the render moves into BPool_Render, called through DelayCommand(0.0, ...) - a script situation with no spell context - so the pooled effect belongs to nobody but the ledger. BPOOL_BUSY is set before the strip and cleared in a command queued after the render, so it still covers our own churn.</div><div><br></div><div><b>Not a bug, do not chase it:</b> the AB icon surviving rest and death is by design - the pooled effect is permanent and supernatural, and mod_respawn re-renders it deliberately.</div><div><br></div><div><b>Gates.</b> check_effect_doubler now asserts the rebuilt link is re-stamped with nSpellId and oCreator before the apply; check_bonus_pool asserts the render is deferred and that bpool_eff keeps the x2dur_busy guard. Both invariants are invisible in review: the broken version compiles, runs, logs a cheerful \\\"doubled\\\" line, and the only symptom is an ability quietly doing less than it says.</div><div><br></div><div><b>Build.</b> Module-only - no hak, TLK or 2da, so no NWSync. Repack green (29/29 smoke, 0 failing dialogs), installed to the DEV realm only.</div><div><br></div><div><b>If UAT still shows no attack bonus</b>, the remaining reading is that the ledger and its effect are intact but the engine is not counting the pooled EffectAttackIncrease in attack rolls, which needs a different render (attack bonus as an item property on a hidden hide). Scope that separately - the three fixes above are correct either way.</div><div><br></div><div><b>UAT follow-up (5af4e117937): the buff ICON, one field further in the same root cause.</b> A running buff kept working but lost its icon after an area transition (reported on teleporting into the Well of Eru), and re-casting could not bring it back - only resting or dying first. bExpose and bShowIcon are part of the identity the rebuilt link does not inherit, and they are the half the CLIENT reads. The icon on screen right after casting is stale, because the NWNX removal never told the client, so nothing looks wrong until the next area load rebuilds the client's effect list from the server. Re-casting correctly refuses because the spell really is still running - that guard only started working again with the spell-id restore above, which is why this surfaced now. X2Dur_ReTime now captures bExpose/bShowIcon off the first component alongside the spell id and creator and stamps them back onto the finished link; check_effect_doubler covers both new fields. Expect the effect to be area-load-wide rather than Well of Eru-specific - any area transition rebuilds that list.</div>"
     manual_steps:
-      - step: "UAT, THE REPORTED BUG - read it off the COMBAT LOG, not the character sheet. Level-60 bard, 120 Perform: note the logged attack roll unbuffed, sing, and confirm the roll rises by the tier amount (+6) AND is still risen 10 seconds later. The sheet was never the problem; the log was."
-        status: open
-        kind: uat
-        tester: "bard 30+"
-      - step: "UAT with Legendary Prowess: the song's attack bonus must be ON TOP of the feat's +5, not instead of it (the invariant from bard-legendary-prowess-conflict)."
-        status: open
-        kind: uat
-        tester: "bard 30+ with Legendary Prowess"
-      - step: "UAT the buff spells, broken the same way: War Cry, Bless, Prayer and Divine Favor must each move the logged attack roll and KEEP it for the spell's full (doubled) duration."
-        status: open
-        kind: uat
-        tester: "any caster"
+      - step: "UAT, THE REPORTED BUG - read it off the COMBAT LOG, not the character sheet. Level-60 bard, 120 Perform: note the logged attack roll unbuffed, sing, and confirm the roll rises by the tier amount (+6) AND is still risen 10 seconds later. The sheet was never the problem; the log was.\n\nConfirmed: No buffs, AB 68/63/58, after bard song: 74, 69, 64 --> Also shows correctly on character sheet"
+        status: done
+        kind: admin
+        step_h: 113
+      - step: "UAT with Legendary Prowess: the song's attack bonus must be ON TOP of the feat's +5, not instead of it (the invariant from bard-legendary-prowess-conflict).\n\nWith bard song and legendary prowess, AB now 79, 74, 69, exactly 5 more than with bard song but no legendary prowess. Char sheet and combat log aligned."
+        status: done
+        kind: admin
+        step_h: 120
+      - step: "UAT the buff spells, broken the same way: War Cry, Bless, Prayer and Divine Favor must each move the logged attack roll and KEEP it for the spell's full (doubled) duration.\n\nWar cry cranks ab from 79  to 81 -- duration seems okay, but not gonna wait 60 rounds"
+        status: done
+        kind: admin
+        step_h: 64
       - step: "UAT the re-sing guard: with a song already running on yourself, singing again must do nothing. This was broken while the pooled effect masqueraded as the song."
-        status: open
-        kind: uat
-        tester: "bard 30+"
+        status: done
+        kind: admin
+        step_h: 64
       - step: "UAT War Cry does not sweep other bonuses: with a bard song running (or Legendary Prowess), cast War Cry and confirm the total attack bonus GOES UP by 2 rather than collapsing."
-        status: open
-        kind: uat
-        tester: "bard 30+ with War Cry"
-      - step: "UAT expiry still works: let the song lapse and confirm the attack bonus drops by exactly the song's share while permanent feat bonuses remain. Then die and confirm transients clear and the feat bonuses come back."
-        status: open
-        kind: uat
-        tester: "bard 30+"
+        status: done
+        kind: admin
+        step_h: 64
+      - step: "UAT expiry still works: let the song lapse and confirm the attack bonus drops by exactly the song's share while permanent feat bonuses remain. Then die and confirm transients clear and the feat bonuses come back.\n\nResult: This has some visual issues: When I die, or rest, the buff icons go away and char sheet returns to looking unbuffed. However, if, while buffed with bard song, I teleport to WELL OF ERU, the buff icons go away, but my char sheet remains buffed as expected. This seems to only happen if I teleport into well of eru. When buff icons are gone like this, re-casting the effect (bard song) does not make them re-appear, I have to rest or die first, and then recast to get the visual indicators back."
+        status: wip
+        kind: admin
+        step_h: 193
       - step: "UAT yesterday's fix did not regress: set the module local int x2dur_debug, sing, and confirm the [x2dur] lines still show parts greater than 1, doubled durations, and now reappliedSpellId=411 (not -1). Curse Song must still land all seven components with no TOO MANY INSTRUCTIONS."
         status: open
-        kind: uat
-        tester: "bard 30+"
+        kind: admin
+        step_h: 64
       - step: "Publish: already repacked and installed to the DEV realm; bin/reboot-on-empty is armed so the realm picks it up when it next empties. Script-only change - no hak, TLK or NWSync."
-        status: open
-        kind: publish
+        status: done
+        kind: admin
+        step_h: 64
   - id: henchmen-avoid-friendly-fire
     title: "MW Henchmen to avoid friendly fire with AoE (Area of effect spells)"
     group: meaningwave
@@ -423,43 +424,48 @@ ideas:
     manual_steps:
       - step: "UAT (the regression -Methonash- and Sync reported): Curse Song a target and confirm ALL of it lands - attack decrease, damage decrease, all three save penalties, AC penalty and skill penalty. Attack decrease alone means the link is still collapsing."
         status: open
-        kind: uat
-        tester: "bard 30+"
+        kind: admin
+        step_h: 64
       - step: "UAT: Bard Song and confirm the saves, AC and skill bonuses appear IN ADDITION to the ledger's attack and damage. Attack+damage alone is the same collapse seen from the other side."
         status: open
-        kind: uat
-        tester: "bard 30+"
+        kind: admin
+        step_h: 64
       - step: "UAT: Taunt actually taunts, and Wounding Whispers actually damages. Both are stock precompiled scripts using linked effects, so they were collateral, not bard-specific."
         status: open
-        kind: uat
-        tester: "bard 30+"
+        kind: admin
+        step_h: 64
       - step: "UAT (the fix must not quietly stop doubling - it would pass every check above and still be wrong): set the module local int x2dur_debug, sing, and confirm the [x2dur] lines show parts=N with N greater than 1 AND dur doubling. Then confirm a buff really does last twice as long."
         status: open
-        kind: uat
-        tester: "any caster"
+        kind: admin
+        step_h: 64
       - step: "UAT regression: an ordinary buff with a duration visual (Bull's Strength) should now keep BOTH the stat bonus and the visual - previously one of the two was eaten every time."
         status: open
-        kind: uat
-        tester: "any caster"
+        kind: admin
+        step_h: 64
       - step: "UAT: sing Curse Song into a pack of 8+ hostiles, then grep the dev nwengineLog.txt - there must be no TOO MANY INSTRUCTIONS lines for eff_dur_x2 or X2_S2_CurseSong."
         status: open
-        kind: uat
-        tester: "bard 30+"
+        kind: admin
+        step_h: 64
       - step: "UAT (the regression the defer could cause): set the module local int x2dur_debug, sing, and confirm the [x2dur] log lines still show each debuff re-timed to DOUBLE its duration. A debuff landing at natural duration means the doubling was lost."
         status: open
-        kind: uat
-        tester: "bard 30+"
+        kind: admin
+        step_h: 64
       - step: "UAT regression: cast Improved Invisibility and Divine Might on yourself and confirm both behave normally - these are the link-sensitive exclusions the rewritten single-pass guard has to keep honouring."
         status: open
-        kind: uat
-        tester: "any caster"
+        kind: admin
+        step_h: 64
       - step: "UAT regression: confirm Bard Song still costs exactly one song use and Curse Song exactly one (the GetLocation hoist touched both scripts)."
         status: open
-        kind: uat
-        tester: "bard 30+"
+        kind: admin
+        step_h: 64
       - step: "Publish: nwn-manager repack + server restart. Script-only change - no hak, TLK or 2da involved, so no NWSync refresh."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
+    uat_credits:
+      - player: "Shync"
+        awarded: true
+        date: "2026-08-21"
   - id: petrification-respawn-defect-round-3
     title: "Petrification still not killing after 3 min"
     group: combat-classes
