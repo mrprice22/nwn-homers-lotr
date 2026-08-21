@@ -3137,6 +3137,55 @@ function refreshFormbar(){
   bindFormbar();
 }
 
+// ---- id autofill from the title -----------------------------------------
+// An id is a stable key: `dupe_of` points at it, the in-page merge fingerprints
+// by it, and `#idea-<id>` anchors are linked from other notes. So this only ever
+// FILLS AN EMPTY id — it never rewrites one that already exists, no matter how
+// the title later changes.
+
+function slugifyId(title){
+  return (title||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // "Théoden" -> "Theoden"
+    .toLowerCase()
+    .replace(/['\u2019]/g, '')            // don't let "boss's" become "boss-s"
+    .replace(/[^a-z0-9]+/g, '-')          // everything else becomes a separator
+    .replace(/^-+|-+$/g, '');
+}
+
+// Trim to a sane length on a word boundary — ids show up in URLs, dupe_of
+// pickers and conflict messages, and a 200-char one is unusable there.
+function shortenId(slug, max){
+  if (slug.length <= max) return slug;
+  const cut = slug.slice(0, max);
+  const at = cut.lastIndexOf('-');
+  return (at > max/2 ? cut.slice(0, at) : cut).replace(/-+$/, '');
+}
+
+// Append -2, -3, … until nothing else in the file uses it. `skipIdx` is the row
+// being edited, so an id never collides with itself.
+function uniqueIdeaId(base, skipIdx){
+  // Case-insensitive: the file still carries a few mixed-case ids (e.g.
+  // `Commoner-troll-faction`), and minting a lowercase twin of one would give
+  // two ids that differ only in case — ambiguous in dupe_of and as an anchor.
+  const taken = new Set(DATA.ideas
+    .map((x,j)=> j===skipIdx ? null : (x.id||'').toLowerCase())
+    .filter(Boolean));
+  if (!taken.has(base)) return base;
+  for (let n=2; ; n++){
+    const cand = base + '-' + n;
+    if (!taken.has(cand)) return cand;
+  }
+}
+
+function autofillIdFromTitle(){
+  const idEl = $('#f_id'), titleEl = $('#f_title');
+  if (!idEl || !titleEl) return;
+  if (idEl.value.trim()) return;          // never overwrite an existing id
+  const slug = shortenId(slugifyId(titleEl.value), 60);
+  if (!slug) return;                      // title was punctuation only
+  idEl.value = uniqueIdeaId(slug, curIdx());
+}
+
 function select(i){
   sel = i; formSnapshot = null; selRef = DATA.ideas[i] || null; renderList();
   const it = DATA.ideas[i]; if (!it) { $('#form').innerHTML=''; return; }
@@ -3211,6 +3260,8 @@ function select(i){
     const v=e.target.value.trim();
     renderMerit(v); renderMeritIngame(v);
   });
+  // Fill the id when the admin tabs/clicks out of an empty-id new idea.
+  $('#f_title').addEventListener('blur', autofillIdFromTitle);
   $('#up').onclick = ()=>move(-1);
   $('#down').onclick = ()=>move(1);
   bindFormbar();
