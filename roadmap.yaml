@@ -185,21 +185,20 @@ ideas:
     manual_steps:
       - step: "Arm bin/reboot-on-empty so the dev realm picks up the new settings.tml. The cap is read at server start, so nothing changes in game until the realm cycles. Never force-restart the dev realm.\n\nArmed 2026-08-21 (bin/reboot-on-empty). Waiting for the realm to empty; mark done once the server has come back up and GetAttackBonusLimit reads 40."
         status: done
-        kind: admin
+        kind: publish
         blocker: true
-        step_h: 64
       - step: "UAT the reported bug: equip a +15 weapon, note the logged attack roll, then stack Bard Song / Legendary Prowess / War Cry and confirm the roll keeps climbing past +20 of bonus instead of flatlining. Read the COMBAT LOG, not the character sheet."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "Sync, level 60 melee or bard with a +15 weapon"
       - step: "UAT the new ceiling itself: pile on enough sources to exceed +40 of attack bonus and confirm it stops there rather than somewhere lower. This is the check that proves the setting took, not just that something improved."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 with a high-plus weapon and full buffs"
       - step: "UAT the character sheet: the sheet is drawn client-side, so check whether its attack number tracks the new ceiling or still clamps at the old one. If the two disagree the combat log is the source of truth - report it rather than treating it as a regression."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
   - id: bard-song-issues-round-2
     title: "Bard song issues round 2"
     group: combat-classes
@@ -224,27 +223,25 @@ ideas:
       - step: "UAT the buff spells, broken the same way: War Cry, Bless, Prayer and Divine Favor must each move the logged attack roll and KEEP it for the spell's full (doubled) duration.\n\nWar cry cranks ab from 79  to 81 -- duration seems okay, but not gonna wait 60 rounds"
         status: done
         kind: admin
-        step_h: 64
       - step: "UAT the re-sing guard: with a song already running on yourself, singing again must do nothing. This was broken while the pooled effect masqueraded as the song."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "UAT War Cry does not sweep other bonuses: with a bard song running (or Legendary Prowess), cast War Cry and confirm the total attack bonus GOES UP by 2 rather than collapsing."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+ with War Cry"
       - step: "UAT expiry still works: let the song lapse and confirm the attack bonus drops by exactly the song's share while permanent feat bonuses remain. Then die and confirm transients clear and the feat bonuses come back.\n\nResult: This has some visual issues: When I die, or rest, the buff icons go away and char sheet returns to looking unbuffed. However, if, while buffed with bard song, I teleport to WELL OF ERU, the buff icons go away, but my char sheet remains buffed as expected. This seems to only happen if I teleport into well of eru. When buff icons are gone like this, re-casting the effect (bard song) does not make them re-appear, I have to rest or die first, and then recast to get the visual indicators back."
         status: wip
         kind: admin
         step_h: 193
       - step: "UAT yesterday's fix did not regress: set the module local int x2dur_debug, sing, and confirm the [x2dur] lines still show parts greater than 1, doubled durations, and now reappliedSpellId=411 (not -1). Curse Song must still land all seven components with no TOO MANY INSTRUCTIONS."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "Publish: already repacked and installed to the DEV realm; bin/reboot-on-empty is armed so the realm picks it up when it next empties. Script-only change - no hak, TLK or NWSync."
         status: done
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: henchmen-avoid-friendly-fire
     title: "MW Henchmen to avoid friendly fire with AoE (Area of effect spells)"
     group: meaningwave
@@ -300,24 +297,24 @@ ideas:
     manual_steps:
       - step: "Record STR/CON/DEX, AC and AB unshifted, then Wild Shape to a brown bear (form 27/19/13, natural AC 2). Sheet must read own STR +15, CON +7, DEX +1, and AC = unshifted AC + 2. Nothing may be lower than unshifted."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "druid 12+ in full plate with a shield and a +9 weapon"
       - step: "BLOCKER for the design, not for shipping: confirm the sheet shows the FULL floored score, not a value clamped at +24 over the form's. A clamp means the chunked EffectAbilityIncrease is not beating max-ability-bonus and SHAPE_TOPUP_CHUNK needs re-testing."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 50+ character (the bigger the base scores, the better the test)"
       - step: "Check the claw attack's AB and damage moved by exactly +9, not +18. +18 would mean the engine does honour creature-weapon enhancement after all - flip SHAPE_MERGE_ENH_AS_ATTACK to FALSE."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "druid or shifter with a +9 weapon, in a claw/bite form"
       - step: "Unshift and re-check the sheet: stats and AC must be EXACTLY the pre-shift values. This is the exploit check - the linked top-ups must all be gone. Repeat after dying while shifted."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Dragon Shape: expect +36 STR / +20 CON / +24 DEX and a large HP jump - confirm it feels right in boss combat. Badger: expect NO Strength bonus and still no drop below your own base. Spot-check one arcane self-polymorph (Polymorph Self / Shapechange / Tenser's) for the same behaviour."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "shifter 30+ (Dragon Shape) and any low-level druid"
   - id: lake-town-forge-not-working
     title: "Lake Town forge not working"
     group: forge
@@ -340,52 +337,50 @@ ideas:
     manual_steps:
       - step: "UAT re-accept (the core fix): with a fresh character, take the quest from the TOWER scribe. Talk to her again immediately, and again after a full logout/login -- she must give the short reminder + portal directions only. The full briefing must be unreachable and the journal must stay at entry 1."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT no key at accept: after accepting, confirm NO Annuminas Key is in your inventory."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT turn-in grants the key: kill Azagoth, turn the head in at either scribe. Expect +10,000 XP, the head consumed, journal 'The Well of Souls' entry 2, the quest showing as COMPLETED, and exactly one Annuminas Key."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT no second reward: talk to her again after the turn-in and again after a relog -- post-completion greeting only, no second key, no second XP payout. Then kill Azagoth again and bring a second head: it must NOT re-open the turn-in node."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level able to kill Azagoth twice"
       - step: "UAT grandfather claim: on a character that finished the quest BEFORE this build, talk to a scribe -- she offers the key once, and never again after that."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT cross-scribe: accept at the tower and turn in at the ruins, and the reverse. Both must work, and the state must be shared."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT prose: the RUINS scribe must talk like she is in the ruins (fireside, 'the portal is at the Library'); the TOWER scribe must talk like she is in Minas Tirith (dispatches at her desk, 'go north up the Greenway'). Neither may refer to standing where she is not."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT one-key-one-chest still holds: open ONE warded coffer in the Ruins of Annuminas, confirm the key is consumed and the OTHER coffer can no longer be opened."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT Hanee: turn the head in to Hanee in Bree for 5,000 XP, then relog and talk to her again carrying the same head -- no second payout."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT both scribes still unkillable (Plot=1) after the blueprint split."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "DB check: sqlite3 questcddb -- SELECT uuid,quest,times_done FROM quest_cd WHERE quest IN ('wos_accept','wos_done','annu_key','hanee_head'); at most one row per character per key, times_done 1."
         status: open
         kind: admin
-        step_h: 64
       - step: "PRE-EXISTING, not caused by this item: check_ascii_nss fails on the auto-generated nwnmgr_bstamp.nss (nwn-manager writes an em dash into it) and check_season_profile fails because commit d1133f240b4 deleted unpacked/sp_devgate_inc.nss during a toolset round-trip. Both block a clean smoke run for every future repack and need a decision."
         status: open
         kind: admin
-        step_h: 64
   - id: banking-duplicate-exploit
     title: "Bank items duplicate exploit"
     group: banking
@@ -400,40 +395,39 @@ ideas:
     manual_steps:
       - step: "UAT (the reported repro, must now fail): in the Bank of Bree with a family account, open the family vault, take an item out of a box, then press ESC to break the conversation. Talk to the banker again and choose \"Open my family vault please.\" -- NO second set of boxes may appear and the item you took must NOT be back in the box."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (the one-conversation variant): open the family vault, then from \"Is there anything else you need?\" choose \"Open my family vault please.\" again without leaving the conversation. Again no second set of boxes."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (normal use still works): after the ESC above, choose \"I am done with my family vault.\" The boxes leave your inventory. Re-open -- the contents must match what you left, with the withdrawn item absent."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (personal strongbox, same four steps): repeat the repro against \"Open my bank-vault please.\" / \"Are you ready to close your vault?\"."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (bank_box_hasbox fix): with an account of 3+ strongboxes, carry only box 1 and talk to the banker. He must open with \"Are you ready to close your vault?\" rather than the normal greeting."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (top-up still possible): fill your pack so a box cannot spawn, open the vault, then drop something and ask again -- only the missing box should be handed over, not a duplicate of one you hold."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (duplicate cleanup, needs a pre-fix character): if any player is still carrying two copies of the same box, closing the vault must keep the fullest, store it, and remove the spares. Check the server log for the \"BANK: destroyed N duplicate\" line."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (safety nets unchanged): with a box in hand, walk out of the bank area, and separately log out -- items must still be committed as before."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Admin: run python3 bin/audit-bank-dupes.py against the live bankdb and review the flagged CD keys. Treat signatures 1 and 2 as leads only -- they cannot distinguish the exploit from ordinary alt-to-alt vault use. No automated action is taken."
         status: open
         kind: admin
-        step_h: 64
   - id: smith-can-disenchant-negative-abilities
     title: "smith can disenchant negative abilities"
     group: forge
@@ -448,32 +442,32 @@ ideas:
     manual_steps:
       - step: "UAT (the exploit): bring Basilisk Visage to a forge anvil. The strip list must show 15 entries, not 20 - the four -3 ability penalties and the -5 universal saves must be absent - and the smith's status line must say the bane fills no slot and cannot be lifted."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (slots freed): the forge's property count for Basilisk Visage must read five lower than before, and the item must accept five more enchantments than it did."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (pricing frozen): the quoted worth and the value-cap text for a drawback item must be UNCHANGED from before this fix. If they moved, the PRICED set was narrowed by mistake."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (staged plan): tick several properties on a drawback item, page back and forth, then commit. Exactly the ticked properties must be removed - the plan's bit indices run over the removable set, which just got smaller."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (Warden): take a drawback item to the Forge Warden's jail menu - it must offer no drawbacks for removal either."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (retroactive): log in carrying an item whose drawbacks were stripped before this fix. The re-scan (FORGE_CLEAN_VER 6) must flag it, the Warden must say the bane was struck from it, and reverting to blueprint must restore it."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (regression guard - the jailing risk): log in carrying STOCK drawback gear that was never forged. It must pass the forced re-scan untouched and never be quarantined. This is the one way this change could go badly wrong."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
   - id: curse-song-too-many-instructions
     title: "Cuse Song gives too many instructions error"
     group: combat-classes
@@ -488,44 +482,43 @@ ideas:
     manual_steps:
       - step: "UAT (the regression -Methonash- and Sync reported): Curse Song a target and confirm ALL of it lands - attack decrease, damage decrease, all three save penalties, AC penalty and skill penalty. Attack decrease alone means the link is still collapsing."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "UAT: Bard Song and confirm the saves, AC and skill bonuses appear IN ADDITION to the ledger's attack and damage. Attack+damage alone is the same collapse seen from the other side."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "UAT: Taunt actually taunts, and Wounding Whispers actually damages. Both are stock precompiled scripts using linked effects, so they were collateral, not bard-specific."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "UAT (the fix must not quietly stop doubling - it would pass every check above and still be wrong): set the module local int x2dur_debug, sing, and confirm the [x2dur] lines show parts=N with N greater than 1 AND dur doubling. Then confirm a buff really does last twice as long."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any caster"
       - step: "UAT regression: an ordinary buff with a duration visual (Bull's Strength) should now keep BOTH the stat bonus and the visual - previously one of the two was eaten every time."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any caster"
       - step: "UAT: sing Curse Song into a pack of 8+ hostiles, then grep the dev nwengineLog.txt - there must be no TOO MANY INSTRUCTIONS lines for eff_dur_x2 or X2_S2_CurseSong."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "UAT (the regression the defer could cause): set the module local int x2dur_debug, sing, and confirm the [x2dur] log lines still show each debuff re-timed to DOUBLE its duration. A debuff landing at natural duration means the doubling was lost."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "UAT regression: cast Improved Invisibility and Divine Might on yourself and confirm both behave normally - these are the link-sensitive exclusions the rewritten single-pass guard has to keep honouring."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any caster"
       - step: "UAT regression: confirm Bard Song still costs exactly one song use and Curse Song exactly one (the GetLocation hoist touched both scripts)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 30+"
       - step: "Publish: nwn-manager repack + server restart. Script-only change - no hak, TLK or 2da involved, so no NWSync refresh."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
     uat_credits:
       - player: "Shync"
         awarded: true
@@ -544,36 +537,34 @@ ideas:
     manual_steps:
       - step: "UAT: click a dragon statue in Castle Homeless (Ground Floor). You should be turned to stone with a dust burst, and the death window with the DISABLED Respawn button should appear - the rig is only correct if it reproduces the original bug."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (this is the step that proves the diagnosis): read the dev log for [petrify] lines. They must show 'tick' lines COUNTING heartbeats. If they are absent the watcher is still returning early and the GetIsDead theory was wrong - reopen with the log."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT: at ~2 minutes the escalating warnings appear in chat AND as floating text, then the PC dies and the death window returns with Respawn ENABLED. Click it and confirm a normal respawn at the bind point with no lingering petrify and no stone appearance."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT: repeat against a real basilisk/medusa (basilisk00x) rather than the statue, to prove the fix is not rig-only."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT: have someone cast Stone to Flesh mid-countdown and confirm the watcher stops with no spurious death afterwards."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any caster"
       - step: "UAT regression (ondeath020 runs on EVERY player death): die normally, not petrified, and confirm the death window's Respawn button is still enabled and works."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Decide whether the two Castle Homeless statues stay clickable after UAT. They are currently open to anyone - a player who clicks one gets two minutes as a statue. Gating them behind Admin_CanAdmin() in pet_test_stn.nss is a two-line change if that becomes a nuisance."
         status: open
         kind: admin
-        step_h: 64
       - step: "Publish: nwn-manager repack + server restart. Script and area-instance change - no hak, TLK or 2da involved, so no NWSync refresh."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: feat-for-more-damage-dice-to-spells
     title: "+1 die for damage spells, could be taken 10 times?"
     group: forge
@@ -605,24 +596,23 @@ ideas:
     manual_steps:
       - step: "UAT (the report): walk from Edoras into Theoden's hall (door tag edoras2hall) and back out through hall2edoras. Each door must stay open about 8 seconds - noticeably longer than before - and must still shut on its own afterwards."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (the retry): open that same door, stand in the doorway past the 8-second mark, then step clear. The door must still close - it retries up to 5 times at 6-second intervals."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (re-locking doors): open a close_door_lock door (e.g. a Prancing Pony room door in theprancingpo002) and watch the order - it must CLOSE first and only then lock. A door left standing open and locked means the guard regressed."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (per-door override): in the toolset set the local float DOOR_CLOSE_DELAY to 20.0 on one test door, repack, and confirm that door waits 20 seconds while its neighbours still wait 8."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Repack the dev realm and let bin/reboot-on-empty cycle it (never force-restart dev - the admin is usually logged in)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: summanus-chest-items
     title: "summanus-chest-items"
     group: items-gear
@@ -645,19 +635,19 @@ ideas:
     manual_steps:
       - step: "UAT (the reported case): walk Weather Hills <-> Weather Top. All THREE crossings must show a pin on each side (Weather Hills shows 'Weather Top (Amon Sul)' x3, Weather Top shows 'Weather Hills' x3), plus the wolf cave -> 'Forbidden Realms: Enter' and the door back -> 'Weather Top (Amon Sul)'."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (the five merged pins): confirm no crossing lost its label where a duplicate was removed - thardbadeast (Temple of Illuvatar), carndumcity (Carn Dum: Throne), cirithungol (Orc Armory), theangmarmountai (Angmar Dungeon), area042 (Well of Eru portal). Each should still show exactly one marker, not zero."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (relabelled hand pins): ~30 hand-placed markers were corrected to the true destination. A few read blunter than the hand text they replaced - Bree's 'Appearance Changer and Character Modifying Area' (was 'Bree Merchant'), 'Taggets Smith Shop' (lost its apostrophe), 'The Prancing Pony Ground Floor' (was 'The Prancing Pony Inn'). If any read worse in game, put '@mapnote <preferred text>' in that door/trigger's Comment box in the toolset - that is what the directive is for."
         status: open
-        kind: admin
+        kind: toolset
         step_h: 96
       - step: "Backlog, not this item: 52 area transitions have a LinkedTo pointing at a waypoint tag that exists nowhere, so they lead nowhere in game. Listed by every `python3 bin/gen-map-notes.py` run. Includes weatherhills2amonsul and gravesofthelostk's gravestoweather. Decide per case whether to repoint or delete."
         status: open
-        kind: admin
+        kind: toolset
         step_h: 240
   - id: lake-town-bank-not-working
     title: "Lake Town Bank not working"
@@ -681,37 +671,34 @@ ideas:
     manual_steps:
       - step: "Publish: bin/build-lotr-rules-hak --install (feat.2da + the seven new cls_feat_*.2da), then bin/refresh-nwsync DETACHED (10+ min), then repack, then arm bin/reboot-on-empty. BLOCKER - the proxy rows only exist in the hak, so nothing works until clients have it. No TLK rebuild needed: the rows point at stock strrefs."
         status: done
-        kind: admin
+        kind: publish
         blocker: true
-        step_h: 64
       - step: "UAT (the reported case): on the Fireberry copy in the dev servervault (pure Wizard 47, Spellcraft 48). At the next level the bonus feat list must offer Automatic Still Spell I, Automatic Quicken Spell I, Silent Spell and the eight Spell Focus schools alongside Brew Potion / Craft Wand / Epic Spell."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "wizard 41+"
       - step: "UAT (the control that proves prerequisites still bite): Automatic SILENT Spell I must still be ABSENT - he has Quicken and Still Spell but not Silent Spell (feat 33). If it appears, the requirement columns were not copied faithfully and the fix is a cheat."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "wizard 41+"
       - step: "UAT (the grant): take one proxy, confirm the real feat lands on the character sheet (you should see the feat twice - that is correct), that the effect actually works in play, and that it survives a relog."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "wizard 41+"
       - step: "UAT (sub-40 control - THIS IS THE OPEN RISK): a fresh wizard at level 3 must see NO duplicate entries in either the general or the bonus list. Stock only ever uses MinLevel at value 4 and never above the level-40 boundary where this client clamps, so whether it is honoured at 41 is unproven. If duplicates appear at low level, MinLevel is being ignored and the fallback is a NUI picker (one row per class) instead of 178 rows."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (pairing invariant, both directions): on a caster who already holds one of the 33 stock feats from the 21-40 band, logging in must add the matching proxy, and the next 41+ level-up must NOT offer it. Then the forward direction: after taking a proxy, it is never offered again either."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "wizard 41+"
       - step: "Widen to the other six casting classes once the sub-40 control passes: set SHIPPED_CLASSES in bin/spellfeat_proxies.py to all seven, re-run bin/gen-legendary-feats.py --apply (33 rows becomes 178, appended - nothing renumbers), re-run the gate, republish the hak. Sorcerer/cleric/druid get 33 each, bard 16, paladin/ranger 15."
         status: open
         kind: admin
-        step_h: 64
       - step: "Reply to Rajmund - he reported it, confirmed it again at 48, and supplied the character that made the root cause provable."
         status: open
         kind: admin
-        step_h: 64
   - id: antidupe_craft_container_invisible
     title: "Odd \"Anti-Duping Craft Container (Invisible)\" Object(s)"
     group: forge
@@ -741,32 +728,30 @@ ideas:
     manual_steps:
       - step: "Repack the dev/test realm and restart it (or arm reboot-on-empty). Script and data only - no hak, TLK or NWSync rebuild. DONE: repacked 2026-08-14, 25/25 smoke tests."
         status: done
-        kind: admin
-        step_h: 64
+        kind: publish
       - step: "UAT - the reported doors. Walk from Bree into Methonash's Place and back out; the inside door must swing shut a few seconds behind you. Same for the Appearance Changer door (BOTH sides - it was unscripted on both) and the inside of Tagget's Smith."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT - the blocked-doorway case, which is the actual root cause of the season-2-vs-test difference. Open a door, then STAND IN THE DOORWAY. The close must fail and then retry, shutting the door once you step clear (within ~35s). This is what a bare ActionCloseDoor could never do."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT - locked doors re-lock only where the key survives. blackgatge MorannonTempleDoor (key TempleKey, pick DC 8) must close AND re-lock. area010 BPtempleboss1 (key BPkey, CONSUMED on use) must close and stay UNLOCKED - if it re-locks, a player who spent the key is sealed out."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT - script-opened doors must NOT slam shut. Pull the fire-giant bridge lever (M34G06_LeverDoor) and confirm the door it opens stays open. Same for a Gladiator arena gate if convenient."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT - closes the store half. Talk to the Well-Mart NPC in Methonash's Place: the greeting must now offer 'Yes, show me your wares.' and the store window must OPEN, with the Appraise-scaled buy cap (100k base). Record what it did BEFORE the fix too if you get the chance - the old behaviour was a race and may not reproduce every time."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Promotion to season 2 is NOT done and must not happen without the admin's explicit word. When it does, pair it with reboot-on-empty and a release note - the live realm is where -Methonash- actually reported this."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: legendary-nui-wrapping
     title: "Text goes off the screen for the Legendary Feat Picker UI (both in main feat descriptions and in popup tooltips)"
     group: combat-classes
@@ -783,31 +768,30 @@ ideas:
       - step: "Repack and restart the server. Script-side only - no hak, TLK or nwsync rebuild is needed."
         status: open
         kind: admin
-        step_h: 64
       - step: "UAT (closes the report): open the picker via the Ping Pong re-pick node in the Well of Eru. The effect column must wrap onto a second line with nothing cut off. Check the Legendary Onslaught row specifically - '-3 target AC per hit, stacks 3, capped at its armour+shield AC' is the 62-character worst case that was being truncated."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60, any class"
       - step: "UAT (the second fix - closes the tooltip half of the report): click the new '?' button on a row. The panel at the bottom of the window must fill with that feat's full description AND its requirements measured against your character. Nothing should now run off the screen on hover - what is left on hover is only the short effect line. Check the '?' works on a GREYED row too, since that is when it matters most."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60, any class"
       - step: "UAT (longest text): use '?' on Legendary Butcher - the 263-character description, the worst case the detail pane has to hold. All of it must be readable; the pane has a scrollbar if it overflows, so confirm you can reach the end of the sentence one way or the other."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60, any class"
       - step: "UAT (no scroll jump): scroll part-way down the feat list, then click a '?'. The list must NOT move - not to the top, not to a remembered offset. Only the panel at the bottom changes. Do it several times at different scroll positions; the earlier build alternated between the two and this is the check that it no longer rebuilds the window."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60, any class"
       - step: "UAT (layout not regressed): confirm the list has no horizontal scrollbar, the header still reads in full (not clipped to 'You may choose 2 leg'), and taking a feat still turns its row to 'taken' and drops the header count - i.e. the window rebuild works with the extra column and the detail pane."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 with an unspent legendary pick"
       - step: "UAT (Spellbook Study): on a level-41+ caster, rest with picks remaining to open the Spellbook Study picker. It has the same new '?' button and detail pane - spell descriptions come from the TLK and are the longest strings either window shows. Confirm '?' fills the pane, that switching spell-level tabs still works, and that Learn still works."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "wizard or sorcerer, class level 41+"
   - id: legendary-feat-prereq-defect-1
     title: "Legendary Feats Prereqs not clear which one is missing/failing"
     group: combat-classes
@@ -823,20 +807,19 @@ ideas:
     manual_steps:
       - step: "Repack and restart the server. No hak, TLK or nwsync rebuild is needed - the change is script-side only."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
       - step: "UAT (closes the report): on PiC Testerrrr, open the picker via the Ping Pong re-pick node in the Well of Eru. The Legendary Prowess row must read 'Needs: Epic Prowess' - NOT a BAB number - and clicking it must put 'BAB 35+ (you have N) [ok], Epic Prowess [X]' in the chat log. That names the clause the character's .bic actually lacks."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "PiC Testerrrr (level 60)"
       - step: "UAT (measured numbers): check a row that fails on a NUMBER rather than a feat - Legendary Riposte wants Parry 60+ ranks. It must show the character's own rank, e.g. 'Needs: Parry 60+ ranks (you have 12)'. Report the BAB figure the Prowess tooltip prints: that number decides whether the three BAB 35+ gates get retuned."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any level 60"
       - step: "UAT (honest refusals): confirm no refusal misreports itself any more. Take a feat legitimately, then click its row again - 'You already have that legendary feat' must appear only when the feat is genuinely already held, never for an unmet prerequisite."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any level 60"
   - id: forge-caps-only-apply-to-forged-items
     title: "Powerful stock gear was jailed as contraband after a blueprint rebalance"
     group: forge
@@ -851,24 +834,22 @@ ideas:
     manual_steps:
       - step: "UAT (the report): take cheat-chest gear (superdeluxering, bossring001, theuntouchable, denethorsplat001, zomgwtfbbqhax - all rewritten by the Aug 2 crit-immunity pass) and log in. You must NOT be sent to the Pit Prison."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "admin with cheat-chest access"
       - step: "UAT (the law still bites): forge an item past the ceiling at a forge, then log out and back in. That item MUST still jail you - the caps have to keep working for genuinely forged gear."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any character with forge gold"
       - step: "UAT (revert clears it): with a genuinely over-cap forged item, use the Forge Warden's revert-to-stock. The replacement must read lawful and release you."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Grandfathering hole reviewed and CLEARED BY AUDIT (2026-08-15). Reasoning first: the FORGE_GP_INVESTED marker landed 2026-06-04 and the contraband system only went live 2026-06-14, so every item forged while the caps existed carries a mark, and the old (stricter) rule had two months to catch anything older. Then verified rather than assumed, with the new bin/audit-character-drift.py over all 35 dev characters (587 items): 274 CLEAN, 272 UNKNOWN_BP (stock Bioware/CEP resrefs, not judgeable offline), 33 FORGED (carry a stamp, as expected), 4 PLACED_VARIANT, 3 REBALANCED, and exactly 1 SUSPECT - orb_lvldrain, 0 properties and 0 cost, i.e. an item that LOST properties and gained no power. No SUSPECT item is over the caps. Nothing in circulation looks like gear forged past the ceiling before the stamps existed."
         status: done
         kind: admin
-        step_h: 64
       - step: "Re-run bin/audit-character-drift.py against the LIVE season-2 vault before this rule reaches production - the audit above covers the dev vault only, and production has the real player population."
         status: open
         kind: admin
-        step_h: 64
   - id: forge-blueprint-compare-instruction-cap
     title: "Legality check silently aborted on items carrying many enchantments"
     group: forge
@@ -883,12 +864,12 @@ ideas:
     manual_steps:
       - step: "UAT: carry several 40+ property items at once (superdeluxering has 72, theuntouchable 70, denethorsplat001 65) and log in. The scan must run to completion over the whole inventory - no silent stop, and no TOO MANY INSTRUCTIONS in the log."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "admin with cheat-chest access"
       - step: "UAT (deviation still detected): forge a property onto an item, then confirm the Warden still reports it as differing from stock - the faster compare must not have made it blind."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
   - id: forge-warden-revert-all-instruction-cap
     title: "Forge Warden's revert-all failed with a script error, stranding jailed players"
     group: forge
@@ -903,12 +884,12 @@ ideas:
     manual_steps:
       - step: "UAT: get jailed with a large inventory of forged gear, then use the Warden's 'revert all to stock'. It must complete without a script error and drop you at the Well of Eru."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any character with a full inventory"
       - step: "UAT (partial failure path): carry an item whose blueprint no longer exists alongside revertible gear. Revert-all must fix what it can, keep you in the prison, and show the 'remains unlawful' branch rather than releasing you."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
   - id: forge-glove-damage-bonus
     title: "Damage enchantments could not be forged onto gloves; Tagget's forge offered options the item could not use"
     group: forge
@@ -923,32 +904,32 @@ ideas:
     manual_steps:
       - step: "UAT (the report): lay gloves on the anvil at Tagget's, Rivendell, Moria/Methonash's Place and the Kallrist Crypt. 'Damage Bonus.' (at Kallrist, 'Negative-Energy Damage') must now be offered at all four, and the dice list must be that forge's usual tier - Tagget's 1/2/3/1d4/1d6, Rivendell 1d8/1d10/1d12, Moria 2d6/2d8/2d10, Kallrist +4/2d4/1d6/1d10/1d12."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any character with a pair of gloves and forge gold"
       - step: "UAT (ranged regression fix): lay a longbow or crossbow on the anvil at Rivendell and in Moria. Damage Bonus must now be offered - ismeleeweapon was blocking it at both."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any archer with forge gold"
       - step: "UAT (no regression on weapons): lay a longsword on the anvil at all four forges. Damage Bonus must still be offered, with the same dice and damage types as before."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (the tightening): lay a ring, cloak or suit of armour on the anvil at Tagget's and at the Kallrist Crypt. Damage Bonus must now be ABSENT - both were previously offering it on any base item. Confirm no other menu option disappeared at either forge."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (forge law): take a glove that has been given damage to the Forge Warden and confirm it is not flagged as contraband, and that the damage actually applies while fighting unarmed."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any monk or unarmed build"
       - step: "UAT (Tagget's parity): at Tagget's, lay a helmet or cloak on the anvil - Attack Bonus, Massive Criticals, Keen, On-Hit, Vampiric Regeneration, Mighty and Unlimited Ammo must all now be ABSENT. Then lay a longsword (Attack/Massive/Keen/On-Hit/Vampiric appear, Mighty and Unlimited Ammo do not) and a longbow (Mighty and Unlimited Ammo appear, Keen/On-Hit/Vampiric do not). Confirm the low-tier dice and the absence of Damage Immunity are unchanged."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (sling): lay a sling on the anvil at any forge. Keen, On-Hit Properties and Vampiric Regeneration must now be ABSENT; Mighty, Unlimited Ammo and Damage Bonus must still be offered. Check an existing sling that already carries one of the removed enchantments still works - this change only gates the menu, it does not strip anything already forged."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
   - id: forge-restrictrion-properties-exploit
     title: "Forge can counts restrictions as properties that can be removed"
     group: forge
@@ -963,28 +944,28 @@ ideas:
     manual_steps:
       - step: "UAT (the exploit): take an item with a race/class/alignment restriction to a forge anvil. The restriction must NOT appear in the strip list, and the smith's status line must say the bindings cost it no slot and cannot be unmade."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (slots freed): enchant that same restricted item up to the cap. It must now accept one more enchantment per restriction it carries than it did before this fix."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (Light): add Light at Kimli, Bellnius or Kallrist - the reply text must say it does not count toward the limit. Then strip it at the anvil: it must be listed as '(free - no slot)', and both the projected worth and the property count must not move."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (staged plan): plan a mix of Light plus two real enchantments. The [planned] markers, the projected worth and the 'within the law' verdict must all track the real enchantments only, and the commit must remove exactly the ticked properties - no more, no fewer."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (regression guard - the jailing risk): log in carrying a STOCK restricted item, e.g. a class-locked drop. The FORGE_CLEAN_VER bump forces a re-scan; the item must pass untouched, not be flagged deviant or quarantined. This is the one way this change could go badly wrong."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (Warden jail path): on a genuinely over-cap item, the Forge Warden's strip menu must still work and must list no restrictions."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
   - id: combat-dummy
     title: "combat dummy to measure attacks and damage per round"
     group: combat-classes
@@ -999,54 +980,42 @@ ideas:
     manual_steps:
       - step: "PLACE: open the toolset and drop the two blueprints where you want them — Creature palette <i>Special &gt; Custom 1 &gt; Combat Dummy</i>, Placeable palette <i>Special &gt; Custom 1 &gt; Hall of Champions</i>. They work in any area and need no waypoint. Repack + restart after placing."
         status: done
-        kind: admin
+        kind: toolset
         blocker: true
-        step_h: 64
       - step: "UAT (the point of the feature): run a 10-round trial on the level-60 monk with Flurry of Blows OFF, then ON, and compare attacks per round. Repeat with the legendary extra-attack feat. DONE 2026-08-02 - attacks per round read correctly and confirmed the legendary feat fires."
         status: done
-        kind: admin
+        kind: uat
         blocker: true
-        step_h: 64
       - step: "UAT (indestructible): cast Harm and Drown at the dummy, and hit it with a devastating critical. It must stay at full HP and keep counting."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (one tester): have a second character (and a summon) attack a dummy mid-trial. Both should be frozen ~10s with a message, and the owner's totals must be unaffected."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (abandoned run): start a trial, then stop attacking. It must cancel after ~5s with a message and record nothing. Repeat by walking to another area mid-trial, and by dying mid-trial."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (destroy/respawn): kill a dummy by whatever means still works (DM kill). The trial must be cancelled and unrecorded, and a fresh dummy must stand up in the same spot ~6s later."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (re-test after the Plot fix, BLOCKER): damage per round must now be non-zero and the trial must appear on the sign. The first run measured 0 for every attack because the blueprint was Plot. Also confirm the round lines and the final averages are still in the chat log after the floating text fades."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (self-destruct, round 2): run a full 10 rounds. After the averages are reported the dummy must blow apart, your character must stop attacking on its own, and a fresh dummy must stand up in the same spot ~6s later. Starting a new trial on the replacement must work."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (round 3 refix, BLOCKER): run one 10-round set. Round lines must report damage in the hundreds, not 0, and the recorded DPR must be in the same ballpark as attacks x average hit. The combat log must show per-hit damage again, plus any damage reduction or resistance lines, while the dummy stays at full HP."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (round 3, sign): the header no longer shows the garbage character, the 10-most-recent view shows date AND time in local time, and the two high-score views show the date only (and no longer read a day ahead)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (low damage, round 2): run 'dm_runscript dbg_combat' to turn the diagnostics on, run one 10-round set, and compare the [CBD_DEBUG] per-packet lines against the combat log. Report which case it is: damage attributed to a source that is not you, damage present in the attack event but missing from the damage event, or packets arriving while the session is not active. Turn it back off with the same command."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (leaderboard): record trials on two characters on the same CD key, then read all three sign views. Every row must show player, character, DPR and date; the server-wide top 20 must list that account only once, and its paging must work across the two pages."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: legendary-caster-spell-slots
     title: "casters gain no new spell slots past level 40"
     group: combat-classes
@@ -1062,34 +1031,26 @@ ideas:
       - question: "Spell slot cadence for 41-60 (answered before implementation)."
         status: answered
         answer: "Every 4 levels: +1 slot at every castable spell level at 44/48/52/56/60, i.e. +5 by level 60. Bard gets the full cadence; paladin and ranger get a gentler 50/60 (+2), since 41-60 is mostly a martial payoff for them already."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "PUBLISH: bin/build-lotr-rules-hak --install, bin/refresh-nwsync, restart. DONE 2026-07-29 — hak 19:42 (all 11 2DAs), nwsync 20:03 (manifest d3f09ca35 carries cls_spgn_wiz/sorc + exptable), restart 21:04."
         status: done
         kind: publish
-        step_h: 64
       - step: "UAT (threshold, STILL OUTSTANDING — this is the whole verification): level a wizard to 43, rest, count slots per spell level; then to 44, rest, count again — expect exactly +1 at every spell level. Then repeat at 48 and 60 (a wizard should read 9 across at 60). Level 41 cannot show this: the first increment is at 44, which is why the 2026-07-29 level-41 test proved nothing either way."
         status: done
         kind: uat
         blocker: true
-        step_h: 64
       - step: "UAT (no regression): a level 20 and a level 40 caster must show exactly their pre-change slots. This is the check that the sub-40 band really is untouched."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT (half cadence): paladin/ranger unchanged at 49, +1 at 50, +2 at 60, and spell level 0 still shows no cantrips (the **** column)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT (level down): drain a caster back below 40 via death XP loss and confirm slots fall back correctly and the nextlvl_inc.nss 'Next Level' display still behaves."
         status: open
         kind: uat
-        step_h: 64
       - step: "Hygiene: the local toolset home (~/.local/share/Neverwinter Nights) still has a July 1 3-file lotr_rules.hak with no exptable.2da and no cls_spgn_*, so the toolset disagrees with the server on the rules. Fix with bin/build-lotr-rules-hak --install --home \"$HOME/.local/share/Neverwinter Nights\"."
         status: open
         kind: publish
-        step_h: 64
   - id: legendary-caster-spells-on-level-up
     title: "casters not getting spells after level 40"
     group: combat-classes
@@ -1105,111 +1066,84 @@ ideas:
       - question: "Sorcerers and bards gain slots but reportedly cannot pick NEW spells known past 40 (upstream says no client UI). Ship slots only, or build a scripted picker?"
         status: answered
         answer: "Not sure what you mean by (no client UI) -- there is an existing UI for bards and sorcerers to re-pick their spells on level up for normal 1-40 levels. If we can't reuse that then fine, slots only. [Follow-up 1: wizards are affected too. Resolution: measure the native GUI before building anything. Follow-up 2, after the UAT: using scrolls or items outside the level-up screen feels janky -- keep digging on making the native level-up screen itself work. Hence tests A-D above.]"
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "REPACK the .mod so sk_probe_*.nss actually runs. Publishing the hak alone does NOT deploy scripts; this was missed the first time and is why the first UAT produced no probe output. DONE 2026-07-29 21:04 (13/13 smoke, dialog integrity clean, both subscriptions verified present in the compiled onmoduleload.ncs)."
         status: done
-        kind: admin
-        step_h: 64
+        kind: publish
       - step: "DIAGNOSTIC (native GUI): DONE 2026-07-29 — at level 41 only the cantrip tab is populated, every other spell-level tab empty, strref 10278; levels 1-40 fine; level-up completes with the picks unspent."
         status: done
         kind: admin
-        step_h: 64
       - step: "TEST A: DONE 2026-07-29 — PASS. A fresh caster class (sorcerer 1) taken at character level 41 offers spells normally, so the cap keys on CLASS level > 40, not character level. Multiclass casters are unaffected; only 40+ levels in one casting class hits this."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "TEST B: DONE 2026-07-29 — FAIL. With both cls_spkn tables packed and published (manifest 3705b2d03f2), a sorcerer past class level 40 shows the identical cantrips-only failure. No data lever reaches this. Tables removed from RULES_2DA and deleted."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "TEST C: MOOT, never run — B was its precondition and B failed, so routing Wizard through a known-spells table cannot help. Deliberately skipped to avoid a risky change and a publish cycle."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "TEST D: DONE 2026-07-29 — FAIL. classes.2da Wizard MaxLevel 0 -> 60 changed nothing; reverted, and classes.2da is byte-identical to its pre-test state."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "ROOT CAUSE FOUND (admin observation): the spell-level tabs render ENABLED for ~1 frame, then are hidden/greyed. The client computes the correct tab set from the 2DA data, then a LATER client-code pass disables it — which is why no 2DA, hak, plugin option or server script can fix it, and why B and D failed. Closed as unfixable from this repo pending a client build."
         status: done
-        kind: admin
-        step_h: 64
+        kind: publish
       - step: "RETROACTIVE make-good — SCOPED 2026-07-29, far smaller than first feared. The picks are not recoverable natively: nothing stores an 'owed picks' count (ComputeNumberKnownSpellsLeft is derived, and is exposed neither to NWScript nor NWNX), and a past level-up cannot be reopened. But the affected population is tiny: season 1 runs NWNX_MAXLEVEL_SKIP=y so it is capped at 40 and NONE of its 181 characters can be affected; only the season 2 test vault can. Audited all 17 season 2 .bic files — exactly ONE character is actually owed anything: picwizardrix (Wizard 53) has lost 2 x 13 = 26 picks. norisallennall (Sorcerer 44) is owed nothing under the shipped 'repertoire locks at 40' rule, and merinetaswift (Wizard 40) is at the boundary with nothing lost. Everyone else at level 60 is multiclass with no single class at 40+. So this needs a one-off top-up for one test character, not a system: if wizard scroll-scribing works past 40 (unverified, see the blocker above) hand that character 26 scrolls or the gold for them and the ledger is square."
         status: open
         kind: admin
-        step_h: 64
       - step: "CLEANUP once the fix lands: delete unpacked/sk_probe_inc.nss, sk_probe_pre.nss, sk_probe_post.nss and the two NWNX_ON_LEVEL_UP_* subscriptions for them in onmoduleload.nss. The cls_spkn tables are already deleted."
         status: open
         kind: admin
-        step_h: 64
       - step: "STOPPING RULE REACHED, DECISION MADE 2026-07-29: build a custom NUI spell picker that pops up immediately after level up (option a). Chosen because it fires as part of finishing a level rather than sending the player to an NPC, scroll or item, and because being server-side it also fixes the stock prestige-class arcane re-pick gap at every level."
         status: done
         kind: admin
-        step_h: 64
       - step: "BUILD the post-level-up NUI spell picker. Three jobs in one window: wizards pick 2 new spells per level past class level 40; sorcerers/bards re-pick known spells past 40 (restoring the stock rule in dialog.tlk 64332); and sorcerers re-pick when a prestige class advances arcane spellcasting (a stock gap at ALL levels, unrelated to the cap). Design, reusable pieces and guardrails are in impl_notes. Budget: wizard 2/level, sorcerer 1/level, bard 1 per 2 levels."
         status: done
         kind: admin
         blocker: true
-        step_h: 64
       - step: "DESIGN QUESTION to settle before building the bonus: scope the prestige-class re-pick to PrCs that ALREADY advance arcane casting, or pair it with flipping NWNX_Tweaks ADD_PRESTIGECLASS_CASTER_LEVELS (currently off on purpose — it also changes 1-40 balance, see ll-nwnx-tweaks-audit)?"
         status: open
         kind: admin
-        step_h: 64
       - step: "WIKI follow-up when the picker ships: Customizations.html currently tells sorcerers/bards their repertoire is locked in at 40 and to pick deliberately. That becomes wrong the moment the picker lands — rewrite that bullet and the wizards-use-scrolls bullet at the same time."
         status: open
         kind: admin
-        step_h: 64
       - step: "VERIFY THE WIZARD SCROLL CLAIM before players rely on it. Customizations.html now tells wizards to keep learning from scrolls past 40, but scroll-scribing above class level 40 has NOT been tested here. It is a different code path from the level-up panel so it probably works, but if it refuses with dialog.tlk 64457 'You have not achieved the required level to learn that spell' then wizards have no route at all and that wiki paragraph must be corrected. One arcane scroll the character does not know is the whole test."
         status: done
-        kind: admin
+        kind: uat
         blocker: true
-        step_h: 64
       - step: "REPORT UPSTREAM: not tracked at Beamdog/nwn-issues and listed as a known issue with no workaround in the NWNX MaxLevel doc. A help request for the nwnxee channel on the NWVault Discord has been drafted; file a Beamdog issue too if nobody there has a workaround, since only a client fix can restore the native page."
         status: open
         kind: admin
-        step_h: 64
       - step: "UAT: log in a wizard already past class level 40 (picwizardrix, Wizard 53) and confirm the login message offers exactly 26 spells -- (class level - 40) x 2."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT pays once: after spending or closing the Spellbook Study window, log out and back in -- the offer must be only what is unspent, never a fresh 26. Then level once more and confirm exactly 2 more are added."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT non-farmable: drop a wizard below class level 41 and level back up -- the climb must grant no picks at all."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: level a wizard past 40 and confirm the Spellbook Study window opens on its own a few seconds after the level-up completes."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: learn a spell, then relog and confirm it is still in the spellbook (known spells live in the .bic)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: close the window without picking, then Force Rest -- it must reopen with the picks intact."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT specialist: on a specialist wizard, confirm the opposition school is absent from every spell-level list."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: confirm a spell already known is never listed, and that scribing from a scroll still works and consumes none of these picks."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT inert cases: a sorcerer or bard past class level 40 must get NO window, no login message and no lost picks -- nothing may be silently spent while their half is unbuilt."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT no collision: a pure wizard reaching level 60 gets the Legendary Feats window and then the Spellbook Study window, one after the other, both usable."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: rancid-skinner-bark-still-not-working
     title: "Rancid Skinner is still shouting 'Helms Deep is under attack' on death"
     group: quests-areas
@@ -1226,19 +1160,15 @@ ideas:
         status: done
         kind: admin
         blocker: true
-        step_h: 64
       - step: "UAT: travel to Dol Guldur: Tower Of Black Magic Depths (dolguldurcast001), kill The Rancid Skinner, and confirm the server-wide shout reads 'Dol Guldur is under attack! Rally Servants of Sauron to Dol Guldur!' and NOT the Helm's Deep line."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: confirm the kill announcement ('The Rancid Skinner was killed by ... in Dol Guldur ...') still broadcasts."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT respawn regression: wait about 15 minutes in or near the area and confirm the Skinner respawns, and that the Roll of the Fallen board in the Well of Eru shows his countdown correctly."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: shayan-subrace-revivial
     title: "Expore Shayan's Subrace Engine"
     group: combat-classes
@@ -1304,47 +1234,36 @@ ideas:
       - step: "No waypoint needed for fast travel — shirehobbiton001 already has one tagged hobtele (\"Hobbiton Teleport\"). Confirm it still sits somewhere sensible on the Hobbiton green before shipping."
         status: open
         kind: toolset
-        step_h: 64
       - step: "UAT fast travel: a level-1 character talks to the Guardian of Light at the Well of Eru, picks Hobbiton, and lands on the green with the Green Dragon and Bag End doors both in sight."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT shop gate: before winning Concerning Hobbits, Odo has no leaf branch; after a win he does, and it is still there after a relog."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT sell-only: Odo's store window offers no way to sell him anything — not leaf, not loot. This is the check that the Dirty Hippie fence did not come along with the merge."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT each strain: buy it, smoke it at a Smoking Chamber water pipe, and confirm the stat swing matches the table (Longbottom WIS+4/INT-2, Old Toby WIS+4/CHA-4, Southlinch CHA+4/WIS-4, Hornblower CON+4/DEX-2, Witch Weed INT+4/WIS-4)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT Witch Weed charges: smoking it spends one of ten charges instead of destroying the pouch, and the Grenade Chicken property still fires when the item is used directly."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT rest-persistence: smoke, rest, re-check — both the bonus AND the penalty are still on you. Then relog inside the hour and check again."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT replacement: smoke two different strains in a row — only the second is active, with no leftover effects from the first."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT expiry: wait out the hour and confirm every effect drops cleanly with no stuck icons."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT bong regression: using a water pipe with no leaf gives the polite refusal, and the cutscene camera swing still plays. Confirm the 20-second forced sleep is gone, and that a legacy witchbud pouch still lights as Longbottom Leaf."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT retirement: the dirtyhippie entry is gone from area024's StoreList and nothing in the Smoking Chamber opens a store. Confirm module-index/item_tag_conflicts.json no longer lists the witchbud conflict after the next wiki refresh."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT bong cutscene: the GestaltCameraMove swing was previously assigned to the placeable rather than the smoker, so it never reached the player -- it is now retargeted. Confirm the camera actually swings when you light a pipe."
         status: open
         kind: uat
@@ -1363,19 +1282,15 @@ ideas:
       - step: "UAT: activate the Bestiary of Middle-earth. Index page shows \"Great foes felled: N of 78.\" and a third option \"Great foes I have yet to fell.\""
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: open that list - rows read \"<name>  (CR n)  - <lair area>\", sorted by CR descending, and none of them is a boss the character has already killed."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: page forward/back through the boss list, then [Back to the index] - the progress line is recomputed, and the two creature lists still page correctly."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: kill a tracked boss, reopen the book - the felled count rises by one and that boss is gone from the list."
         status: open
         kind: uat
-        step_h: 64
   - id: wiki-charts-by-week
     title: "wiki charts update for days vs weeks"
     group: wiki-tools
@@ -1392,7 +1307,6 @@ ideas:
       - step: "After the next scheduled wiki refresh, open the Activity page and confirm both daily charts show 35 bars with a weekly roll-up chart directly beneath each."
         status: open
         kind: admin
-        step_h: 64
   - id: season2-test-announce
     title: "Season 2 Test Realm is Live"
     group: wiki-tools
@@ -1418,19 +1332,15 @@ ideas:
       - step: "UAT: with a high Open-Lock PC, pick each of the 3 Setti coffers at DC 117 and confirm a level-appropriate belt / ring / shield appears; repeat across opens to confirm pool variety."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: pickpocket Setti Belt/Ring/Shield Key off Summanus, and separately kill Summanus, confirming the keys are both stealable and drop on death; open a coffer with its key and confirm the key is consumed (AutoRemoveKey)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT cooldown: loot a coffer, take the item, close it; re-open within the hour and confirm it is EMPTY and stays UNLOCKED (no wasted key/pick). Leave and re-enter the area after the hour and confirm the coffer is RE-LOCKED and mints fresh loot."
         status: open
         kind: uat
-        step_h: 64
       - step: "Req-3 follow-up (tracked in the check_container_keys KNOWN baseline, NOT shipped here): DiviningPool (diviningpl.utp) is KeyRequired with missing key 'divinekey' and no OnOpen loot &mdash; decide create key+source vs drop KeyRequired. loogazlair Chest1/Chest2 reference missing 'loogazkey' but are pickable at DC 18 &mdash; clear the phantom KeyName when convenient."
         status: open
         kind: admin
-        step_h: 64
   - id: petrification-timeout-2
     title: "Petrification timeout not working as expected"
     group: combat-classes
@@ -1446,19 +1356,15 @@ ideas:
       - step: "UAT: get a low-level PC petrified by a basilisk/medusa (basilisk00x spawn); confirm escalating warnings appear both in the chat log AND as floating text above the character roughly every 15s."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: confirm that at ~2 minutes the petrified PC dies and the respawn GUI panel appears (not a stuck statue)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: kill the petrifying creature BEFORE the 2 minutes elapse and confirm the timeout still fires (proves the OBJECT_SELF-cancellation bug is gone)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: have a MeaningWave guide (or any Stone-to-Flesh) cure the PC mid-countdown and confirm the watcher stops (no spurious death after cure)."
         status: open
         kind: uat
-        step_h: 64
   - id: mw-questgiver-ignore-combat
     title: "Meaningwave quest givers to ignore and be ignored in combat"
     group: combat-classes
@@ -1492,7 +1398,6 @@ ideas:
       - step: "UAT: open the roadmap/merit editor, click Palette Finder, click Refresh palette map, then search a known blueprint (e.g. a creature resref) and confirm it reports a sensible Top > Sub > category path."
         status: open
         kind: uat
-        step_h: 64
   - id: hgll-banked-skillpoints-lost
     title: "HGLL pre level 41 skill points banked do not carry over"
     group: combat-classes
@@ -1517,15 +1422,12 @@ ideas:
       - step: "UAT: summon an epic, kick it from the party -> it should puff away within ~6s."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: immediately cast the other epic -> it spawns normally."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT regressions: an epic plus a normal animal summon still coexist; a second epic still replaces the first; duration expiry still despawns it; Meaningwave guide dismissal is unchanged; and logging out with an epic active leaves nothing lingering."
         status: open
         kind: uat
-        step_h: 64
   - id: hgll-skill-point-exploit
     title: "Legendary Level Skill Points Exploit"
     group: combat-classes
@@ -1575,56 +1477,43 @@ ideas:
         status: answered
         answer: "Harden it: Okay to use the campign-db. Wouldn't advancing quest stage also need hardened if we went that approach to also use campaign db so the quest stage persisted through reboots?"
         question_h: 123
-        answer_h: 64
     manual_steps:
       - step: "UAT Hanee-first path: accept from Hanee in Bree -> kill Azagoth in the Ruins of Annuminas -> back to Hanee (+5k XP, keeps head, no repeat on re-talk) -> Gondor Scribe in the Tower ground floor (+10k XP, head consumed, Well of Souls stage 2)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT cold-start path: a fresh character talks to the scribe -> accept grants journal + Annuminas Key; a later head turn-in pays 10k."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT regression: Hanee's plain greeting is unchanged without the head, and the scribe is unkillable."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT appearance: spawn/loot the 6 new caster items (sorc_robe_annu, sorc_amul_annu, sorc_ring_annu, wiz_robe_annu, wiz_amul_annu, wiz_ring_annu) and confirm each looks right, equips on a caster, and its properties display (ability score, bonus spell slots, resistances). Palette: robes -> Armor > Clothing; amulets -> Miscellaneous > Jewelry > Amulets; rings -> Miscellaneous > Jewelry > Rings."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT one-key-one-chest: in Ruins of Annuminas (ruinsofannuminas), get the Annuminas Key from the Gondor Scribe (Tower of the High Wizard: Ground Floor / area011), open ONE warded chest (Sorcerer's Warded Coffer @ X71.23/Y50.06 or Wizard's Sealed Reliquary @ X76.24/Y49.98), and confirm the key is consumed and the OTHER warded chest can no longer be opened (unpickable + no key)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT pickable chests: confirm the two remaining Annuminas chests (Placeable-List idx 9 @ X62.34/Y54.80 and idx 10 @ X62.09/Y44.90) are still lockpickable and still generate medium treasure on open."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT first key: on a character that has never taken the key, talk to the Gondor Scribe in Tower of the High Wizard: Ground Floor (area011), pick 'Alright, where is this portal?' and confirm exactly one Annuminas Key is granted and the journal opens at entry 1."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT same-session repeat: without relogging, talk to the scribe again and pick the same reply -- she must give the directions-only line (the key was the only one recovered) and grant NO second key."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT relog (this is the fix): log out fully, log back in, talk to the scribe and pick the same reply -- still directions-only, still no key."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT journal regression: a character who already has Well of Souls entry 2 ('Azagoth is dead...') must keep it after re-asking the scribe about the portal -- the fallback node must not rewind the journal to entry 1."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT DB check: sqlite3 on questcddb -- SELECT uuid,quest FROM quest_cd WHERE quest='annu_key'; should show exactly one row per character that drew a key."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "Note: characters who already received a key before 2026-08-05 have no annu_key row, so each can draw one more key (one-time grandfather window). Accept it, or clear those characters manually."
         status: open
         kind: admin
-        step_h: 64
   - id: unlock-more-inacessible-creature
     title: "Unlock Inacessible creatures, beef up stats, give them areas to live in"
     group: bosses
@@ -1639,8 +1528,6 @@ ideas:
       - question: "The original ask (write the plan) is complete and the concrete work now lives in the two linked slices, so this umbrella needs an admin call: close it as implemented (as was done for the endgame-ceiling umbrella), or keep it open until the slices ship?"
         status: answered
         answer: "ok to close"
-        question_h: 64
-        answer_h: 64
   - id: higher-difficulty-ceiling-revamp
     title: "New end game bosses/higher difficulty ceiling (Epic)"
     group: bosses
@@ -1758,8 +1645,6 @@ ideas:
       - question: "Cost + bolt coverage follow-ups (optional). Divine Arrows/Bullets stay at the store's MarkUp 350 (~6-7m each) — lower the MarkUp if the price is still a concern? And the store sells crossbows but no bolts; add a divine-tier bolt (base 25) ammo type so crossbow users are covered? Both are content/balance calls left untouched by the availability fix."
         status: answered
         answer: "Keep markup rate the same for that store. Add divine tier bolts that mirror the arrows."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "ICON UAT/TUNE (Quiver of Endless Flight): pull ammoreplicator from the Castle Homeless cheat chest and look at its inventory icon. It is a misc-medium item (base item 29) currently on the placeholder ModelPart1 = 11. If that does not read as a QUIVER, cycle candidate misc-medium models in the toolset item editor until one does, then write the final value into unpacked/ammoreplicator.uti.json. No CEP hak was readable at build time, so the model could only be guessed."
         status: done
@@ -1769,39 +1654,30 @@ ideas:
       - step: "UAT drop: kill Angmar (area009, Angmar's Lair) and confirm the Quiver of Endless Flight is on the corpse. Then kill Legolas Greenleaf (area023, Mirkwoods - Halls of Greenleafs, encounter-spawned) and confirm the same."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT menu: carry several kinds of arrows/bolts/bullets, activate the quiver, and confirm the list is sorted by PER-UNIT worth descending (a big stack of cheap arrows must NOT outrank a small stack of expensive ones) and the stack counts shown are correct."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT grant: pick one entry and confirm exactly 500 more of that same ammunition arrive, with enchantments intact, spilling into a second stack only if the 999 cap is exceeded."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT expiry: use the quiver a second time. The grant must land AND the quiver must then be destroyed; a third activation must be impossible. Relog between the two uses to prove the count survives in ammorepdb."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT transfer persistence: use a quiver once, then hand it to a second player (and separately: drop it / have it pickpocketed / leave it in a chest for another character). The new holder must see 1 use left, not a fresh 2, and using it must destroy it. Relog both characters first."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT independence: hold two quivers (one from each boss) and confirm each carries its own 2 uses."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT promo code: type Code:GottaHaveMoreAmmo in chat -> one Quiver of Endless Flight arrives, the line is not broadcast to the server, and a second attempt on the same CD key is refused. Code expires 2026-08-08."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT Divine Bolts: in Númenor: The Great Forge Of Númenor (heavensfoundry), buy Divine Bolts from the Numenorian Armorer repeatedly (unlimited), and confirm they load and fire from a crossbow and match the Divine Arrows' enchantments."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: in Númenor: The Great Forge Of Númenor (heavensfoundry), open the Numenorian Armorer's store (x2_storeweap003) and confirm Divine Arrows and Divine Bullets can be bought repeatedly (more than one 99-stack) without the entry running out."
         status: open
         kind: uat
-        step_h: 64
   - id: normal-and-epic-summons
     title: "Allow epic summons + normal summons out at same time"
     group: forge
@@ -2095,12 +1971,10 @@ ideas:
         status: answered
         answer: "accept proposed -- add draft backlog ideas for the other types of items (if they don't exist yet)"
         question_h: 87
-        answer_h: 64
       - question: "SLOT / CAP / STACKING POLICY (needed before any archetype ships). Proposed: ONE dedicated equip slot for this whole system (suggest amulet OR ring - which?), a hard per-effect cap (e.g. Amplifier +25% max, Focus +2 caster level / +2 DC max), and NO stacking of the same effect (two Evocation amplifiers do not add). This keeps casters relevant without trivialising bosses. Approve the slot choice + caps, or set your own numbers?"
         status: answered
         answer: "yes, dedicated equip slot: amulet"
         question_h: 76
-        answer_h: 64
       - question: "CATALOGUE SOURCE. A 20-item 'Caster Signature Gear' starter catalogue (5 each for Cleric/Druid/Sorcerer/Wizard, with signature effects, scaling, per-boss drops, and a pure-single-class bonus pillar) already exists on the wiki (Customizations -> Caster Signature Gear). Should the MVP build a scoped SUBSET of that catalogue (e.g. just the 3 Damage Retyper amulets above, each from its listed boss), or do you want to revise the catalogue first? Confirm the drop sources are still the intended bosses before anything is placed."
         status: answered
         answer: "the 20 catalog draft is a decent starting point but nothing in there has to be final: I want a damage retyper for each class with the first shipment. Propose new item(s) to fill the gap to meet this, and review draft boss drops for these and suggest if you think they make sense, or if not then propose other places or methods to get the items. We do have class-specific quest lines WIP that we could lean on or integrate with, e.g. at level 40 the quest lines tell you which boss has that class gear (and when you fight that boss with the quest active; the boss fight is changed slightly, maybe the boss as dialogue lines it says in combat, or has additional minions, or player has to use a specific item they got earlier in their class quest line to make the boss vulnerable before it can be damaged) -- could also be a new unique boss or bringing in an otherwise unused/inaccessible boss."
@@ -2119,7 +1993,6 @@ ideas:
       - step: "On approval this becomes a scripting build (equip-flag include + spell-cast-hook interception + the approved item blueprints + boss-drop placement) - re-promote to confirmed. The item blueprints will need palette filing and appearance/equip UAT; boss-drop placement is a per-boss .utc ItemList edit (existing bosses, no new areas)."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT appearance: spawn cg_amu_cleric (Reliquary of the Unmaking; palette Miscellaneous > Jewelry > Amulets), equip it in the neck slot and confirm the amulet model renders and the item text reads correctly."
         status: open
         kind: uat
@@ -2280,8 +2153,6 @@ ideas:
       - question: "Four 0-gp event tokens exist as blueprints referenced by nothing (contestofcham001, ttv_deathtoken, rollplaytoken, tournamenttoken) &mdash; presumably DM-spawned event props. Confirm that is intentional, or retire them. (Top orphans by value are admin god-gear and should stay unplaced.)"
         status: open
         answer: null
-        question_h: 64
-        answer_h: 64
 
   # ---- SHIPPED: Forge & crafting -------------------------------------------
   - id: forge-zero-value-exploit
@@ -2781,43 +2652,33 @@ ideas:
       - question: "Should the reworked Devastating Critical apply to NPCs as well as players? Proposed: yes, symmetric. It is a straight quality-of-life win for players (no more losing a level-60 character to a random mob save-or-die), and an asymmetric rule is a second code path and a second thing to explain. The alternative — players keep the bonus damage while NPC dev crits still kill outright — keeps the danger but is the version players are asking to be rid of."
         status: answered
         answer: "Yes — symmetric. The rework applies to NPCs and players alike (admin, 2026-08-01)."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "Review the crit-immunity audit and decide which NPCs, if any, keep immunity to critical hits. The full table shipped as CLAUDE-devcrit-immunity-audit.md with a 'keep?' column per creature, sorted by CR. The recipe for keeping it on a hand-picked boss without a 178-creature sweep is in the document: strip the property from the shared blueprint, mint a variant (e.g. bossring_ci) for the bosses that keep it, and swap the resref on the .utc AND the .git instance in lockstep."
         status: done
-        kind: admin
-        step_h: 64
+        kind: toolset
       - step: "FIXED 2026-08-02: bilbobaggins's placed instance in shirebilbohouse had bilbosdefense equipped with Dropable=1 while the blueprint said undroppable - an instance/blueprint divergence, not a loot decision. The instance now matches. check_divergent_creatures.py could not catch it (it compares equipment by slot and resref and ignores Dropable); there are ~301 such Dropable-only divergences module-wide across 45 blueprints, so tightening that gate is its own piece of work."
         status: done
-        kind: admin
-        step_h: 64
+        kind: toolset
       - step: "Separately, Bilbo's instance also makes sting and item089 droppable where the blueprint does not. Left alone - those look like deliberate loot rather than an oversight, unlike the armour, but they are the same kind of divergence and revert on respawn."
         status: done
-        kind: admin
-        step_h: 64
+        kind: toolset
       - step: "Enable the NWNX Damage plugin: copy .nwnx_includes/nwnx_damage.nss into unpacked/, set NWNX_DAMAGE_SKIP=n in server.env, restart. Forgetting the env flip gives per-call 'Plugin not loaded' errors and nothing else."
         status: done
         kind: admin
         blocker: true
-        step_h: 64
       - step: "REBUILD AND REPUBLISH THE HAK (blocker for the refix): the blank EpicWeaponDevastatingCriticalFeat column only takes effect once clients and the server load the new baseitems.2da. Run bin/build-lotr-rules-hak --install, then bin/refresh-nwsync, then restart the server. A client on a stale hak still resolves its own devastating criticals."
         status: done
-        kind: admin
+        kind: publish
         blocker: true
-        step_h: 64
       - step: "UAT (refix): a devastating critical no longer kills outright and instead adds the bonus dice, for a player AND for an NPC attacker (the rule is symmetric). The first UAT failed this - a dev crit killed the combat dummy through both its damage nulling and its death immunity - which is why the save-or-die is now disabled in baseitems.2da instead of intercepted."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT (refix, the other side): confirm ORDINARY critical hits still work normally and that a character with Devastating Critical for the weapon in hand still gets the +3 dice on them, since attack result 10 no longer occurs. Check unarmed/monk and a creature-weapon NPC too."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: dice size tracks weapon size - d6 small, d8 medium, d10 large - and no other death effect in the module was suppressed by the EffectDeath skip (check a finger of death, a death attack, and a normal HP death)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: ll-modern-leveling
     title: "Replace the conversation-based Legendary Leveler with normal 1-40 leveling (works with 4x multiclass)"
     group: combat-classes
@@ -2965,27 +2826,21 @@ ideas:
       - step: "Follow-up noted but not done (beyond pure-data scope): a damage rider for Theoden's Chosen &mdash; his low AB offense remains."
         status: open
         kind: admin
-        step_h: 64
       - step: "UAT: the Witch King should examine at ~AC 86 (was 56) and resist Knockdown / save-or-die."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: Smaug no longer auto-fails Reflex spells, and Hold Monster on Summanus now needs a real DC."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT power curve: a ~+70 AB character should whiff most swings on Sauron / Gandalf / Boromir / Denethor / Temple Mistress, while a maxed +85-90 build still connects."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT immunities: Temple Mistress, Legolas and Theoden's Chosen visibly resist ~50% of single-type physical damage."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT persistence: kill and respawn one boss (e.g. the Witch King) and confirm the respawned copy keeps the tuned stats."
         status: open
         kind: uat
-        step_h: 64
   - id: boss-enrage-on-retreat
     title: "Enrage-on-retreat: registry bosses taunt, gain +2 all stats for that life, and heal 25% of missing HP when a player disengages"
     group: bosses
@@ -3002,23 +2857,18 @@ ideas:
       - step: "UAT: damage a registry boss, then run >40m or leave the area &mdash; within ~12-18s it should taunt you by name, flash a VFX, regain HP and examine at +2 stats."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT stacking: retreat again and confirm the +2 stacks."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT respawn: kill it and wait out the respawn &mdash; base stats, no carried enrage."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT party: a second player still fighting while the first retreats &mdash; enrage still fires."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT negatives: dying to it fires nothing, and retreating from a non-registry high-CR mob does nothing."
         status: done
         kind: uat
-        step_h: 64
   - id: heal-soul-fatigue
     title: "Soul-fatigue stacks on the Heal spell and potions: the heal lands first, then 10% max-HP damage per prior stack, 3-minute decay"
     group: bosses
@@ -3046,48 +2896,48 @@ ideas:
     manual_steps:
       - step: "UAT baseline: with a caster who has no Heal skill, chain two Heal potions. The second must cost 8% of max HP and the floating text must read \"x 8% of max HP\" with no mitigation clause."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT Heal skill: repeat with a caster at 60+ total Heal skill. The floating text must name \"-30% from the healer's Heal skill\" and the damage must be 0.7x the unmitigated figure."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "cleric/druid 40+ with 60+ total Heal skill"
       - step: "UAT partial mitigation: a caster at an odd Heal skill (e.g. 45) must show \"-22.5%\" — confirms the tenths-of-a-percent formatting."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any caster with Heal skill between 1 and 59"
       - step: "UAT Greater Restoration: cast it on a PC already holding stacks. It must both deal the fatigue hit and add a stack, exactly like Heal."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "cleric 26+ (Greater Restoration is a 7th-level cleric spell)"
       - step: "UAT decay unchanged: a stack must still fall off 3 minutes after it was applied, with the \"a stack of soul-fatigue fades\" message (now up to 6s late, the ticker granularity)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT persistence: take 2-3 stacks, log out, wait well past 3 minutes, log back in. The login message must report the same stack count, and the timers must resume from where they stopped rather than having decayed while away."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT death: take 2-3 stacks, die, respawn. The stacks must still be there and still decaying."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT clean exit: let all stacks decay to zero, then log out and back in. No stale \"you return still soul-weary\" message, and the fatiguedb row for that character must have been deleted."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT relog decay (the 2026-08-15 fix): take 2-3 stacks, log out and back in WITHOUT a reboot in between (the player TURD must still be live — that is the exact reproduction). The login message must report the same count, and then each stack must fade on its own timer with the \"A stack of soul-fatigue fades\" message, ending in \"The soul-fatigue lifts\". Before the fix no fade message ever arrived."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT stacking after a relog: immediately after the relog check above, take one more stack and confirm it decays on its own 3-minute timer too."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT reboot wipe: take stacks, reboot the server, log back in. No \"soul-weary\" message, and the next heal must be free (no fatigue damage). The fatigue table in fatiguedb.sqlite3 must be empty straight after load."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
   - id: encounter-density-reused-mobs
     title: "Encounter density: bump per-instance spawn counts 1 to 2 for creatures used by more than one encounter (cap 2, never solo boss encounters)"
     group: bosses
@@ -3102,19 +2952,15 @@ ideas:
       - step: "Correct the design brief's solo-encounter figure at the next design edit: it says 19, the module actually has 61 solo instances (9 registry encounter-bosses)."
         status: open
         kind: admin
-        step_h: 64
       - step: "UAT: look for pairs of giant spiders in Alterwald and Old Back Road, and denser packs in The Wold, Wold South and the Kallrist shores."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT regression: the Balrog of Moria and Summanus still spawn exactly one each and track normally on the Roll of the Fallen."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT perf: impact should be negligible (+1 creature on 32 triggers module-wide)."
         status: open
         kind: uat
-        step_h: 64
   - id: forbidden-realms-key-tier
     title: "Forbidden Realms Key tier: journal quest and a Númenor gate opening the orphaned Tombs of the Lost Souls as the Weathertop court's barrow"
     group: bosses
@@ -3130,62 +2976,46 @@ ideas:
       - question: "Should the barrow-court respawn? It currently re-forms whenever a PC enters and that member is not standing — so the fight is farmable, though the journal completes only once. One guard swap in FRK_SpawnCourtMember makes it a once-per-server or once-per-character kill instead."
         status: answered
         answer: "1.5 hr respawn"
-        question_h: 64
-        answer_h: 64
       - question: "Should the court appear on the Roll of the Fallen board? Script-spawned creatures are invisible to the boss registry; tracking them needs real placed instances (toolset work) instead of waypoint spawns."
         status: answered
         answer: "Add the king and queen to the board; they should be made strong enough to well overpass requirements to be on the board, and be tougher than summunus boss. \nThere should be multiple other minions (archers/fighters) supporting the king and queen, but their multiplicity will prevent them from showing up on the board."
-        question_h: 64
-        answer_h: 64
       - question: "Are the CR picks right? The highest non-outlier variant of each was taken (King 454 / Queen 594 / Archer 337), skipping the CR-1514 King. Related: no new loot was authored for the tier."
         status: answered
         answer: "CR-1514 King sounds more appropriate than the 454 king.. Going for a TOUGH boss fight, new end-game tier\nPropose new boss loot."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "SUPERSEDED — the AP_forbiddenrealmskeytier_1 waypoint in falseheaven (Númenor: Noirinan) will not be placed. The admin built the entrance by hand instead: Weather Hills → Weather Top (Amon Sûl, area026) → the wolf cave → Forbidden Realms: Enter (area027). The Noirinan sealed-slab gate is retired."
         status: done
         kind: toolset
-        step_h: 64
       - step: "SUPERSEDED — AP_forbiddenrealmskeytier_2 in gravesofthelostk is not needed. The key no longer teleports anyone: ForbiddenRealmsDoor is an ordinary locked door inside area027 that opens the far half of the room. Without the key a party simply turns around and walks back to Weathertop."
         status: done
         kind: toolset
-        step_h: 64
       - step: "SUPERSEDED — AP_forbiddenrealmskeytier_3 / _4 / _5 in gravesofthelostk are not needed. The court moves out of gravesofthelostk: guards and archers spawn at the 11 wtop_spawn waypoints and zombies at the 4 wtop_zombie waypoints on Amon Sûl, and the King and Queen move to a new area reached through the hidden cave (wtop_hiddencave, already placemarked in area026 and not yet linked)."
         status: done
         kind: toolset
-        step_h: 64
       - step: "Author the Amon Sûl spawner: Weathertop guards/fighters and archers at the 11 wtop_spawn waypoints, and Weathertop zombies at the 4 wtop_zombie waypoints. Nothing references either tag yet, so area026 is currently empty of creatures."
         status: done
         kind: admin
-        step_h: 64
       - step: "Give the guards an on-attack taunt line — \"For the royal court!\" and similar — fired occasionally rather than every round."
         status: done
         kind: admin
-        step_h: 64
       - step: "Build the royal court area for the Weathertop King and Queen and link it to wtop_hiddencave in area026. Per the answered design question the King and Queen should out-scale Summanus and appear on the Roll of the Fallen, which needs real placed instances rather than waypoint spawns; the archers/fighters stay multi-instance and therefore stay off the board."
         status: open
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "Link the second door in area026 tagged wtop_hiddencave — it is placed but LinkedTo is empty, so it is currently a dead prop."
         status: open
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "Decide what the three stub triggers in area027 do — ForbiddenRealmsWelcome, ForbidRealmsLghtShaft and ForbidRealms_TBD are all placed with empty OnEnter scripts."
         status: done
         kind: admin
-        step_h: 64
       - step: "Retire the shipped Noirinan half: q_frk_gate spawn on falseheaven, the FRK_DEST return leg and the gravesofthelostk OnEnter wrapper (q_frk_tomb) are all still wired to the old route and should be reworked or removed once the Amon Sûl route is finished."
         status: open
         kind: admin
         blocker: true
-        step_h: 64
       - step: "Re-run bin/gen-map-notes.py --apply once the daily wiki refresh has regenerated module-index/area_graph.json — the index predates area026/area027, so the six new transitions have no destination map-note pins yet."
         status: open
         kind: admin
-        step_h: 64
       - step: "UAT: enter Amon Sûl (area026) from Weather Hills and confirm 6 Weathertop Archers + 5 Weathertop Fighters stand on the summit and 4 Barrow-wights of Amon Sûl on the low ground. Leave and re-enter immediately — nothing should double up."
         status: open
         kind: uat
@@ -3205,34 +3035,27 @@ ideas:
       - step: "UAT: on a test character, pickpocket or spawn the Forbidden Realms Key and confirm journal 'The Forbidden Realms' entry 1 appears immediately."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: log in a character that already carried the key from before this build and confirm entry 1 arrives ~7s after login."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: walk Weather Hills → Amon Sûl through each of the three new transitions and back, then Amon Sûl → wolf cave → Forbidden Realms: Enter and back. Both doors should auto-close behind you."
         status: open
         kind: uat
         tester: "any"
-        step_h: 64
       - step: "UAT: try ForbiddenRealmsDoor in area027 without the key — expect it to stay locked, with no way through to the far half of the room and no lock-pick bypass (KeyRequired is set)."
         status: open
         kind: uat
         tester: "any"
-        step_h: 64
       - step: "UAT: try it carrying the Forbidden Realms Key — expect it to open. The door's KeyName was corrected from the resref 'forbiddenrealmsk' to the item's Tag 'ForbiddenRealmsKey' during migration; NWN matches doors to keys by tag, so as the admin placed it the key would never have worked."
         status: open
         kind: uat
         tester: "any"
-        step_h: 64
       - step: "UAT: kill all three court members with a party present and confirm every party member in the area gets journal entry 10 (Completed)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: leave and re-enter the Tombs and confirm the court re-forms exactly once (no doubling when a party trickles in one player at a time)."
         status: open
         kind: uat
-        step_h: 64
   - id: tier-areas-moria-nazgul
     title: "Open two finished-but-unreachable endgame areas: Moria Deep Caverns below the Balrog, and the Temple of Nazgûl off Dol Guldur"
     group: bosses
@@ -3296,38 +3119,30 @@ ideas:
     manual_steps:
       - step: "Build bin/bump-legendary-npcs.py per the spec above, review the dry-run report, then --apply. DONE: 213 blueprints / 201 placements across 54 areas / 1 baked blueprint / 5 skipped as player-summonable / 0 clamps."
         status: done
-        kind: admin
+        kind: toolset
         blocker: true
-        step_h: 64
       - step: "Confirm the repack passes tests/check_divergent_creatures.py — blueprint and every static placement must match after the bump. DONE: 1002 static placements across 342 blueprints all respawn faithfully; full repack green at 13/13 smoke tests."
         status: done
-        kind: admin
+        kind: publish
         blocker: true
-        step_h: 64
       - step: "Re-run the script with --apply a second time and confirm zero diff (idempotence). DONE: reports \"up to date — nothing to change\", git diff clean."
         status: done
         kind: admin
-        step_h: 64
       - step: "UAT: examine a bumped boss in game and confirm armour class is ~16 higher and saves ~6 higher than the season-1 figure."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT persistence: kill and respawn a bumped boss (e.g. the Witch King) and confirm the respawned copy keeps the bump."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT ulmothevalar: it now runs on the baked ulmothevalar_2 blueprint in area022 — confirm it spawns, examines as bumped, and is still bumped after a death and respawn (this is the one creature whose bump depended on a new blueprint)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT collateral: confirm a bumped friendly/merchant NPC (methonashmart, mw_jocko, modreddm) still converses, sells and behaves normally."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT player-side regression: cast Dragon Knight and Mummy Dust and sound the Horn of the Fell Beast — all three summons must examine exactly as they did before this pass."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: boss-monk-sr-levels
     title: "+15 monk levels for endgame NPCs that already have monk, raising Diamond Soul spell resistance on the server's main spell-resistant bosses"
     group: bosses
@@ -3383,34 +3198,26 @@ ideas:
       - question: "Which boss(es) should drop the Rune of Expansion, and at what rarity? The mechanic ships fully wired and DM-testable but the rune is in no loot table yet, because drop source and rarity are a taste call."
         status: answered
         answer: "Gandalf the Gray, Summanus, and Theoden's Chosen"
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "LOOT PLACEMENT: add slot_token to the chosen boss loot via the toolset / the module's loot system once the drop-source design question is answered. Until then the rune is unobtainable in normal play."
         status: done
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "UAT: DM-spawn a Rune of Expansion (resref slot_token / tag SlotToken)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT binding: at any Forge of Wonders, lay an item on the anvil, keep a Rune of Expansion in your pack, and choose &ldquo;Expand a property slot&rdquo; &mdash; the item's allowed forge property count rises by 1 (a forge capped at 4/5/6 now allows 5/6/7 on that item) and one rune is consumed. Repeat up to 3; the 4th attempt refuses without consuming. With no rune in pack, the smith asks for one as reagent (nothing consumed)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT legality: forge the newly-allowed extra property onto the item, then confirm the contraband/legality scan does NOT jail it."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT regression: an un-attuned item still caps at the normal per-forge limit, and the forge value cap, pricing and disenchant behavior are unchanged."
         status: open
         kind: uat
-        step_h: 64
       - step: "Retune FORGE_TOKEN_MAX_SLOTS in unpacked/forge_inc.nss if +3 proves too generous or too stingy (a fully-runed item at a top-tier forge can reach 10 enchantments)."
         status: open
         kind: admin
-        step_h: 64
   - id: forge-limits-progressive
     title: "Tie forge limits to boss-kill progress (kill more bosses to earn a slight gear edge)"
     group: forge
@@ -3427,23 +3234,18 @@ ideas:
       - step: "UAT low tier: a character with under 10 registry boss kills sees a progress hint and unchanged caps."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT tier 1: a 10+ distinct-boss character sees the +5% floating text and the raised ceiling quoted by the smith (Tagget 262,500)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT transferability: trade an above-750k forged piece to a fresh character and walk into the Well of Eru &mdash; it must NOT jail them."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT enforcement: the Warden still jails genuinely tampered gear above 900k / 7 props."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: disenchant status lines cite the 900k figure."
         status: open
         kind: uat
-        step_h: 64
 
   # ---- Teleports & travel ---------------------------------------------------
   - id: teleport-expansion
@@ -3522,31 +3324,24 @@ ideas:
       - step: "UAT purchase: buy a chisel at the Well Mart (25,000 gp, Miscellaneous panel)."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT guard: activate with no weapon equipped -> refusal."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT happy path: with a weapon equipped, chat a name -> weapon renamed, chisel gone, and other players do not see the line."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT name rules: 'cancel', 41+ chars, and a <b>-style name are all refused with the chisel kept."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT regression: Code: redemption still works."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT persistence: relog and confirm the name persists."
         status: open
         kind: uat
-        step_h: 64
       - step: "Customize appearance/icon of the chisel item (looks like a bowl currently)"
         status: open
         kind: toolset
-        step_h: 64
   - id: item-morph-type
     title: "Change an item's type/subtype while keeping its properties (e.g. bastard sword -> kama)"
     group: items-gear
@@ -3697,7 +3492,6 @@ ideas:
       - step: "UAT: log in with any character and confirm the Guild-creation-rules journal does NOT appear (it is retired on purpose), while Server Rules and Website still do."
         status: open
         kind: uat
-        step_h: 64
 
   - id: p000-duplicate-ferny-journal
     title: "Legacy p000 plot fires a duplicate Bill Ferny journal track"
@@ -3715,25 +3509,19 @@ ideas:
       - question: "Retire the legacy p000 journal category, or retire the custom 'Ferny's Ring' category? Both cover the same plot and one has to go."
         status: answered
         answer: "Neither — the premise was wrong. The two Ferny quests are distinct (Ring = cave/ring/ambush; Return = the later impostor plot) and both stay. The thing to retire was journal category p000, a stock BioWare plot-wizard template whose creatures are placed nowhere, so it could never fire; it is now @hidden. Flip to answered to confirm."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "UAT: after the next wiki refresh, confirm the Quests index no longer lists 'Assassination (no proof required)' (tag p000) under Lord of the Rings, and that docs/quests/p000.html is gone."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: on a character mid-way through Ferny's Ring, confirm the journal still shows Ferny's Ring entries 1-4 normally and no placeholder [Villain]/[Plot Giver] entry appears."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: run Ferny's Return (Guardian of Bree -> impostor in Ferny's house -> report back) and confirm entries 1-3 still fire and it closes out; it shares the group heading that was edited."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "Optional cleanup, not required for this fix: the unreachable p000 content (nw_innkeeper023, nw_bandit030, p000c000ct_plotg.dlg, p000*.nss) can be deleted from unpacked/ if you want the leftovers gone rather than just hidden."
         status: open
         kind: admin
-        step_h: 64
 
   # ---- Quest infrastructure (build first; unblocks many) -------------------
   - id: quest-cooldown-lib
@@ -3752,7 +3540,6 @@ ideas:
       - step: "UAT infrastructure: after the next reboot, database/questcddb.sqlite3 should exist with an empty quest_cd table. Full behavioral UAT lands with the consumer quests (frogmorton-last-drop was the first)."
         status: open
         kind: uat
-        step_h: 64
 
   - id: prestige-trainer-hub
     title: "Prestige-class quest trainer hub near the Well of Eru"
@@ -3781,39 +3568,28 @@ ideas:
       - question: "FACTION ROSTER."
         status: answered
         answer: "Do NOT add 10-15 named factions. Keep just 2 (Good and Evil), aligning with how the Well of Eru teleporters already set faction hostility. This is NOT tied to character alignment, so e.g. druids stay Neutral (alignment) and can still pick either faction's quests."
-        question_h: 64
-        answer_h: 64
       - question: "Enemy default stance toward the PC."
         status: answered
         answer: "Hostile on sight (0) - the opposing faction attacks immediately; standing must be earned. (Already the effect of the existing -100 AdjustReputation.)"
-        question_h: 64
-        answer_h: 64
       - question: "Persistence of standing."
         status: answered
         answer: "Persist per-character in a factiondb campaign DB, re-applied on login, so allegiance/standing survives relog and reboot."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "UAT persistence: use a Well of Eru Good (or Evil) teleporter to take that allegiance, confirm the opposing faction's NPCs turn hostile, relog, and confirm the allegiance + hostility PERSIST (previously they reset). Then use the opposite teleporter and confirm the flip also persists."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT alignment independence: on a True-Neutral-alignment character, take a Good allegiance and confirm it works (allegiance is faction-based, not GetAlignment)."
         status: open
         kind: uat
-        step_h: 64
       - step: "Confirm the anchor NPCs tagged Goodfaction/Evilfaction/Neutralfaction exist and are placed (the whole system keys off them). Note their area(s) at build time."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT oath-lock: swear the Paladin Oath of the West (Hallas, Minas Tirith Keep / area005) and confirm the EVIL light-shaft (solred) now refuses with a message and does not switch you, while the GOOD shaft still works. Symmetric: swear the Blackguard Black Oath (rack in Keep of Barad-dur / baraddurkeep) and confirm the GOOD shaft (zep_lightshft009) refuses."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT dual standing + bleed: as DM, Faction_AdjustStanding(oPC,\"Good\",100) then Faction_AdjustStanding(oPC,\"Evil\",100) and confirm BOTH good_standing and evil_standing are non-zero (playing both sides is not punished), and that the Evil grant reduced good_standing by ~25 (25% bleed) but never below 0 / never reset."
         status: open
         kind: uat
-        step_h: 64
 
   - id: faction-rally-rescue
     title: "Faction rally: pre-death muster call + timed rescue quest"
@@ -3829,23 +3605,16 @@ ideas:
       - question: "HP threshold + rescue window. Proposed: the pre-death rally fires when the landmark defender drops below 50% HP, and the rescue window is 60s (aligned players who reach the area within 60s and help complete it). Approve 50% / 60s, or set different values?"
         status: open
         answer: null
-        question_h: 64
-        answer_h: 64
       - question: "Which creatures rally, and how are they flagged? Proposed: reuse the existing set that already rally-shouts on death (keyed by side from their current ScriptDeath), plus re-wire the 3 orphan scripts (Helm's Deep / Minas Tirith / Lothlorien). Flag them with a creature local var (e.g. RALLY_SIDE = Good/Evil) set at spawn so bst_ondamage knows who is a landmark defender. Approve, or should only a hand-picked list of named landmark bosses trigger it (to avoid trash mobs spamming rally calls)?"
         status: open
         answer: null
-        question_h: 64
-        answer_h: 64
       - question: "Reward + completion rule. Proposed per successful rescue: modest XP + gold scaled to the creature's CR, and +50 faction standing (via Faction_AdjustStanding, so the -25% opposite bleed applies). Completion = the rescuer arrives AND the defender is still alive when the wave is beaten (not merely arriving). Approve the amounts + &lsquo;arrive and win&rsquo; rule, or prefer &lsquo;arrive in time&rsquo; only / different numbers?"
         status: open
         answer: null
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "On approval this is a scripting build (bst_ondamage hook + a rally include over worldstate_inc + a rescue quest journal category + reward). No new blueprints expected; wave/creature flags are blueprint/spawn edits. Re-promote to confirmed after the design questions are answered."
         status: open
         kind: toolset
-        step_h: 64
   - id: pvp-faction-points
     title: "Faction points for PVP kills during active rally calls"
     group: quests-areas
@@ -4043,40 +3812,31 @@ ideas:
         status: done
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "Place waypoints AP_mazarbul20_2, _3 and _4 for the three crypt-seal braziers (one in chamberofrecords, two flanking Balin's Tomb). Without all three the quest cannot be completed."
         status: done
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "OPTIONAL: place waypoint AP_mazarbul20_5 anywhere with fighting room &mdash; the wraith arena. The quest is completable without it."
         status: done
         kind: toolset
-        step_h: 64
       - step: "UAT spawning: enter the areas -> Frar and the braziers appear, no duplicates on re-entry."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT gating: sub-18 refused; accept at 18+ -> stage 1; touching braziers before accepting gives a cold-brazier floaty."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT seal sequence: light all three in any order &mdash; counts persist across relog, lit braziers refuse re-lighting, and the third seal raises the wraith."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT kill credit: kill the wraith (a party member in the area also advances) -> stage 3."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT turn-in: 1,200 gp / 2,000 XP / ring, journal ends, epilogue-only on re-talk, and no re-run after relog."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT regression: Elrond's Request untouched; Chamber leash and Balin's Tomb Meaningwave spawn still work; Moria encounters unaffected."
         status: open
         kind: uat
-        step_h: 64
 
   - id: tharbad-bridge-watcher
     title: "Quest: The Watcher of Tharbad Bridge"
@@ -4350,23 +4110,18 @@ ideas:
       - step: "UAT gating: a non-Good L15+ character gets the offer; a Good character or one below L15 must not."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT stealth: an unstealthed plant gives the fail message; stealthed plants work; the same table twice is refused."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT ambush: the third plant advances the journal, and the sheriff + deputy spawn ~18s later and attack only the planter."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT turn-in: pays gold/XP, plus the cloak on the first completion only. Re-talk shows the cooldown greeting with time remaining, and the 'other business' reply still reaches his ring-quest dialogue."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT persistence: relog mid-job both with letters in hand and after planting but before payout &mdash; both must resume correctly."
         status: open
         kind: uat
-        step_h: 64
 
   - id: sarumans-voice
     title: "Faction quest (Evil): Saruman's Voice (social, no combat)"
@@ -4425,37 +4180,29 @@ ideas:
         status: done
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "Place waypoint AP_passthepass_3 in mistymountainsb (Wilrun the Quartermaster, the turn-in). Script-spawn-only, so the quest cannot be paid out until this exists."
         status: done
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "OPTIONAL: place waypoint AP_passthepass_2 in mistymountainsa for the mid-pass ambush spawn. The quest is completable without it, just with no ambush."
         status: done
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "UAT: Baldor offers three difficulty tiers."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: accepting opens the journal and (if AP_passthepass_2 is placed) spawns the tier-scaled ambush; Hard adds the Stone-Giant."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT turn-in: Wilrun pays nDiff*200 gp + nDiff*150 XP and closes the journal."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT cooldown: re-talk Baldor the same day -> countdown line; re-offers the next UTC day. DM can reset with QCD_Clear."
         status: open
         kind: uat
-        step_h: 64
       - step: "Sanity-check the reward balance for a T2 L10+ daily and retune nDiff*200 / nDiff*150 if it feels off."
         status: open
         kind: uat
-        step_h: 64
 
   - id: spider-silk-harvest
     title: "Quest: Spider Silk Harvest (Mirkwood, daily)"
@@ -4500,8 +4247,6 @@ ideas:
       - question: "SHARED WORLD-STATE HELPER (the real second infra unblocker; the cooldown helper already exists as quest_cd_inc.nss). Proposed: a thin include 'worldstate_inc.nss' over a 'worldstatedb' campaign DB — WS_GetInt/WS_SetInt/WS_Adjust for server-wide persistent globals plus a ~1/min WS_Tick for per-key decay/weekly reset."
         status: answered
         answer: "Approved: Campaign DB + heartbeat tick + decay. Build worldstate_inc.nss + worldstatedb + WS_Tick as shared infra (autopilot is building this independently of the tug-of-war quest, which still needs its mechanic decision below)."
-        question_h: 64
-        answer_h: 64
       - question: "LUMBER/ENT TUG-OF-WAR MECHANIC (creative/balance, needs your call). Concept: a shared isengard_warmachine world-state var that both sides push — players felling trees / aiding Isengard raise it, players defending Fangorn / doing Ent objectives lower it — and its value scales the difficulty/rewards of the linked Helm's Deep event ('ship the pair together'). Open: what raises/lowers it and by how much per action, the min/max clamp, whether it decays toward centre over time (via WS_Tick), and what the Helm's Deep event does at each band. Proposed starting point: range 0-100, start 50, +/-5 per qualifying action, decay 1/hour toward 50, three difficulty bands (<=25 / 26-74 / >=75). Approve/tweak, and confirm the two areas (Fangorn + Helm's Deep) to wire."
         status: answered
         answer: "back-end calcs use range 0-200, start 100, +/-5 per qualifying action, decay 1/hour toward 100, five difficulty bands (<=25 / 26-74 / 75-125 /126-174 / >=175).\nHowever, any in-game mentions of this progress should be normalizes to %, as  0 to 100% for one side or the other, so the progress % decay's at a fixed rate of 1% per hour, and 100% for one faction means either back end value of 0 or 200"
@@ -4523,11 +4268,9 @@ ideas:
       - step: "DONE: shared world-state helper built (commit 0b17611 — worldstate_inc.nss + worldstatedb + WS_Tick heartbeat). Remaining for this quest: build the tug-of-war scripts + Helm's Deep scaling once the mechanic below is approved, then re-promote to confirmed. The cooldown half needs nothing new (quest_cd_inc.nss exists)."
         status: open
         kind: admin
-        step_h: 64
       - step: "UAT the world-state helper (infra): as DM, WS_RegisterDecay(\"uat_ws\",1,0) + WS_SetInt(\"uat_ws\",5); after ~5 min confirm WS_GetInt(\"uat_ws\") has decayed toward 0 (~1/min via the heartbeat), and confirm a set value survives a server restart (worldstatedb persistence). WS_Clear(\"uat_ws\") to tidy."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT the meter readout: with an admin CD key, open Admin Options -> '[Admin] Fangorn war meter' and confirm it reports 'stands even -- neither side holds ground', band Balanced (2/4), raw 100 on a fresh worldstatedb."
         status: open
         kind: uat
@@ -4572,13 +4315,11 @@ ideas:
         status: answered
         answer: "a mithril ingot sounds great - we will use this later in the next level forge; start an epic for 'Legendary Forge\" and draft ideas for it: it should act like existing high level forge but offer new damage types, higher damage dice, and bonus limits, higher GP ceiling/property counts, BUT, require mithril ingots and other high end crafting materials obtained from quests, bosses, or just out in the open area places."
         question_h: 86
-        answer_h: 64
     manual_steps:
       - step: "Blocked until the world-state helper (worldstate_inc.nss + worldstatedb + WS_Tick) is approved and built. Then: place the seam node (AP_ waypoint / usable placeable) in the Misty Mountains area, wire OnUsed to the weekly-claim check, and grant the approved reward. Re-promote once world-state ships."
         status: open
         kind: toolset
         blocker: true
-        step_h: 64
   - id: claim-the-deeps
     title: "Quest: Claim the Deeps (Moria, daily faction-control)"
     group: quests-areas
@@ -4631,7 +4372,6 @@ ideas:
       - step: "On approval: build the Ent giver NPC + conversation (3 branches) + the draught item + a per-character once-only completion stamp; place the giver via an AP_ waypoint in the existing Fangorn/Ent area (name the exact area at build time). Then re-promote to confirmed. New NPC + item -> appearance/equip UAT and palette filing."
         status: done
         kind: uat
-        step_h: 64
       - step: "Place waypoint AP_thirteenthent_1 in Fangorn Forest (fangornforest), in a quiet clearing among the trees. Leaflock the Thirteenth Ent (q_ent_13th) is script-spawned there on area entry. Without it the quest does not exist in-game at all -- no NPC, no conversation, no journal."
         status: open
         kind: toolset
@@ -4791,27 +4531,21 @@ ideas:
       - step: "Place waypoint AP_riddle-game_1 in breecave. Until then the cave behaves exactly as before."
         status: done
         kind: toolset
-        step_h: 64
       - step: "UAT re-test after the token fix (needs a deploy/restart): start the game and expect 'Riddle 1 of seven...' with a real verse and four distinct answers; play all seven (right/wrong quips render, answer letters rotate); the win/lose finale shows the score; a second attempt the same week gets the countdown refusal."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT win path: 5+/7 pays gold/XP/trinket on the seventh answer and closes the journal."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT lose path: taunts, nothing paid, week still stamped."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT relog: relogging mid-game gives a fresh game on the same weekly set without spending the week."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT regression: boss Gollum still spawns and tracks on the Roll of the Fallen; Bree Cave leash/OnEnter unchanged."
         status: open
         kind: uat
-        step_h: 64
 
   - id: concerning-hobbits
     title: "Quest: Concerning Hobbits (Shire genealogy)"
@@ -4828,43 +4562,34 @@ ideas:
       - question: "The original card's reward was 'Bag End housing access (owner-check workaround, no instancing)'. That is design-sensitive &mdash; which door and interior, persistent housing entry vs. a campaign flag, and what eviction semantics apply &mdash; so a concrete gold/XP/keepsake reward shipped instead and the housing piece was deferred. Should housing access be added later as a win-hook in QHOB_PayOut, and if so on what terms?"
         status: answered
         answer: "Replace reward with new access to pipeweed shop as described in concerning-pipeweed idea. Increase reward from 100gp/xp to 500gp/xp."
-        question_h: 64
         answer_h: 135
       - question: "This is a daily quest with a bank of 16 questions, 5 asked per game. What is the pool per season, and are questions re-used within a season? Should it be weekly or one-off instead if the pool is too shallow?"
         status: answered
         answer: "Answered by the shipped design: the bank is 16, five are drawn per game, and both the drawn set and the position of the correct answer are seeded from (year, season) — so within a season the dispute is fixed and server-wide, and it rotates every season. Stays a daily; one attempt per UTC day, win or lose. No change needed."
-        question_h: 64
         answer_h: 135
     manual_steps:
       - step: "Place waypoint AP_concerninghobbits_1 in greendragoninn, behind the merchant counter. Odo is script-spawn-only and the scripts no-op gracefully until the waypoint exists, so the quest is unreachable without it. (Supersedes the earlier plan to place it in shirehobbiton001 — do not place it there.)"
         status: open
         kind: toolset
         blocker: true
-        step_h: 64
       - step: "UAT: enter the Green Dragon Inn, talk to Odo, accept -> journal concern_hob opens. Confirm Hobbiton's own OnEnter still runs the leash after the wrapper is moved off it."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT rewards: answer the five questions — 4/5 pays 500 gp + 500 XP + a pouch of Longbottom Leaf; a perfect 5/5 gives the Greater Ring of Scholars; the journal closes on finish."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT shop unlock: after a first win, Odo's leaf branch appears and survives a relog; after a loss-only day it does not appear."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT cooldown: re-ask the same day -> 'come back tomorrow' countdown to 00:00 UTC; resets the next UTC day. DM can reset with QCD_Clear."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT rotation: the offered question set and answer positions differ across in-game seasons."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT exploit guard: escape-closing on the fifth answer still stamps and pays exactly once (no double-pay)."
         status: open
         kind: uat
-        step_h: 64
 
   - id: pipeweed-npc-reactions
     title: "NPCs notice when you are under the influence of pipe-weed"
@@ -4880,19 +4605,15 @@ ideas:
       - step: "UAT patched NPC: talk to a patched NPC while high — the remark fires and names the strain; talk sober — the normal greeting is unchanged."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT unpatched NPC: an NPC not on the list behaves exactly as before, high or sober."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT idempotency: re-run bin/add-pipeweed-remarks.py --apply and confirm no duplicate node is added and the dialog-integrity gate stays green."
         status: open
         kind: uat
-        step_h: 64
       - step: "Confirm the Meaningwave quiz-giver roster is complete before the bulk run — those conversations are the ones most likely to break unnoticed."
         status: open
         kind: uat
-        step_h: 64
 
   - id: pipeweed-supply-line
     title: "Quest: The Leaf Runs Short (Shire supply line)"
@@ -5368,28 +5089,22 @@ ideas:
       - step: "Pack exptable.2da into lotr_rules.hak. DONE 2026-07-27 via bin/build-lotr-rules-hak --install (verified: baseitems, classes, exptable, ruleset). Rebuild with that script from now on — never by hand."
         status: done
         kind: publish
-        step_h: 64
       - step: "Run bin/refresh-nwsync so clients receive the updated lotr_rules.hak, then restart the server. Clients with a stale hak read the old table and their character sheet clamps at 40."
         status: done
         kind: publish
         blocker: true
-        step_h: 64
       - step: "UAT: log in with a level 40 character and confirm the XP bar / character sheet shows the next-level requirement as 828,800 rather than treating 40 as the cap. Note the MaxLevel plugin has a known upstream bug where the sheet's \"Next Level\" figure is wrong past 40 — judge by whether levelling actually happens, not only by that number."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT: verify the level-40 threshold is unchanged (780,000) and that no character below 40 sees a shifted XP requirement — rows 1-40 are byte-identical to stock, this is a regression check."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: spot-check three mid-table levels against Customizations.html — L44 1,006,600, L52 1,825,100, L60 3,581,000."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: confirm a character cannot be pushed past level 60 (the level-61 row is the 0xFFFFFFFF unreachable sentinel)."
         status: open
         kind: uat
-        step_h: 64
   - id: ll-maxlevel-cap
     title: "Raise the server level cap to 60"
     group: combat-classes
@@ -5406,34 +5121,27 @@ ideas:
       - question: "Which lever raises the cap — the MaxLevel plugin (NWNX_MAXLEVEL_SKIP=n in server.env) or NWNX_Administration_SetMaxLevel(60) from onmoduleload.nss? They write the same value, so using both is a conflict waiting to happen. Proposal: the plugin env flag, because server.env already documents the enabled plugin set in one place and it takes effect without a script change; the tradeoff is that it lives outside git-tracked module source and needs a container restart to apply."
         status: answered
         answer: "I only found docs for NWNX_MAXLEVEL_MAX, cached locally as \"/home/james/Documents/nwn_docs/NWNX_EE_ MaxLevel.html\"\ncontainer restart is fine\nI want to use the normal level up screen that players get for levels 2-40 already\nI want the in-game server browser to advertise max level 60 using the native nwn level range display on servers.. I have seen others with 60 so I know this is possible."
-        question_h: 64
         answer_h: 99
     manual_steps:
       - step: "Restart the season 2 server so the new NWNX env vars are read (bin/server-restart). The plugin load line for MaxLevel and ELC should appear in the startup log; \"Server: Invalid argument to -maxlevel\" at startup is expected and safe to ignore per the plugin readme."
         status: done
         kind: admin
         blocker: true
-        step_h: 64
       - step: "UAT: with the rebuilt hak published, take a level-40 test character past 40 (Ping Pong → Set my level → Legendary Levels 41-60, or award XP) and confirm level 41 is actually granted rather than silently refused."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: confirm the in-game server browser advertises the level range up to 60."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "If level 41 is refused, the ELC dependency is the first thing to check — confirm NWNX_ELC actually loaded in the startup log before touching anything else."
         status: done
         kind: admin
-        step_h: 64
       - step: "UAT: at level 40+ open the character sheet and confirm \"Next Level\" shows the exptable figure (828,800 at level 40) on one line with no second number visible. Check again at 41 and at 60, where it should read \"Max\"."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: drain a level 40 character below 40 (death XP loss or Ping Pong) and confirm the sheet goes back to the stock \"Next Level\" display rather than sticking on the override."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: ll-cls-progression
     title: "Class progression tables for levels 41-60"
     group: combat-classes
@@ -5450,31 +5158,23 @@ ideas:
       - question: "Does caster level keep scaling from 41 to 60? Spell DCs, durations and damage caps all key off it, so 20 more caster levels is the single biggest balance lever in the whole epic. Proposal: caster level keeps rising but spell slots stop at the level-40 table, so casters gain reach and reliability without another 20 levels of raw slots — and the extra power gets sold through Legendary Feats instead, where it can be priced per feat."
         status: answered
         answer: "yes caster level keep scaling in all the regular ways: spell slots, caster DC, duration, damage caps."
-        question_h: 64
-        answer_h: 64
       - question: "What cadence do bonus feats and ability-score increases follow from 41 to 60? HGLL gave 1 feat per level and let you buy stat points. Proposal: keep the stock epic cadence (a feat every 3 levels, +1 ability every 4) rather than HGLL's 1-per-level, so the Legendary Feat pool stays scarce enough to matter."
         status: answered
         answer: "HGLL did NOT give 1 feat ever level: it followed the stock epic cadence (a feat every 3 levels, +1 ability every 4) which is what we will do for 41-59. \n\nThe Legendary feats can ONLY be taking at exactly level 60 though, not simply levels 41-60 at every 3 levels frequency (those use the normal /epic feat pool)"
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "UAT: with the cap live, level a test character 40 → 41 → 45 → 60 with Ping Pong and record per level: BAB, the three saves, hit points, skill points, caster level, bonus feats and ability increases. Compare against the stock tables in the impl notes."
         status: done
         kind: uat
         blocker: true
-        step_h: 64
       - step: "UAT: confirm the general feat pick lands at 42/45/48... (every 3 levels) and the ability point at 44/48/52... (every 4)."
         status: done
         kind: uat
-        step_h: 64
       - step: "UAT (casters): confirm caster level rises with each level past 40 — check a level-scaling spell's duration or damage cap — and that spell slots are unchanged from level 40."
         status: done
         kind: uat
-        step_h: 64
       - step: "Feed the recorded table into the Leveling Guide rewrite (ll-hgll-purge-docs / ll-wiki-leveling-docs); the per-level gains section is waiting on exactly this data."
         status: done
         kind: admin
-        step_h: 64
   - id: ll-tweaks-audit
     title: "Audit NWNX Tweaks options for epic-level play"
     group: combat-classes
@@ -5492,7 +5192,6 @@ ideas:
       - step: "Re-read the server.env Tweaks block after the 41-60 UAT and decide whether any of the six deferred options should be flipped on the strength of observed play — particularly the damage/DR trio."
         status: open
         kind: uat
-        step_h: 64
   - id: ll-elc-validation
     title: "Character validation with a level 60 cap"
     group: combat-classes
@@ -5509,25 +5208,20 @@ ideas:
     manual_steps:
       - step: "UAT: log in an existing level-40 character after the restart and confirm it loads at 40 with no 'character rejected'/'invalid character' message and no XP loss — this is the check that the newly loaded NWNX_ELC plugin has not started validating anyone."
         status: done
-        kind: admin
+        kind: uat
         blocker: true
-        step_h: 64
       - step: "UAT: level a test character to 41 and relog — confirm it comes back at 41 with its XP intact (nothing clamped back to 40)."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: log in from a client that has NOT yet pulled the refreshed nwsync hak and confirm the only symptom is the character sheet clamping at 40 (not a rejected login) — the fix is bin/refresh-nwsync, not an ELC change."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "Do NOT set NWN_ELC=1 or NWN_ILR=1 while levels 41-60 are live; that is the server's own validation and would re-check legendary characters against the 2DAs. The NWNX_ELC plugin being loaded is unrelated and must stay."
         status: open
         kind: admin
-        step_h: 64
       - step: "Hak rebuild: lotr_rules.hak now packs ruleset + baseitems + classes + exptable, and bin/build-lotr-rules-hak verifies that list on every build. Installed and verified 2026-07-27."
         status: done
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: ll-xp-award-balance
     title: "Retune XP awards for the 41-60 band"
     group: combat-classes
@@ -5544,56 +5238,45 @@ ideas:
       - question: "THE RETUNE ITSELF -- approve the numbers. Target: 100-125 solo play-hours for 41-60, with a 5 x CR award clamped to [100, 3000] paid only at level 41+."
         status: answered
         answer: "REJECTED, and the target with it -- it was never approved and was seen for the first time on 2026-08-13. The admin set the shape instead: a 6,000 hard cap per kill (12,000 boosted), an award that scales with CR versus the player's own level, and a curve fitted to four anchors he chose directly -- level 1/CR 5 = 2,000, level 1/CR 30 = 6,000 (full), level 21/CR 5 = 100, level 41/CR 30 = 500. Resulting pace is ~9.9 h solo unboosted; a 20 h target was costed and declined as incompatible with full value being farmable."
-        question_h: 64
-        answer_h: 64
       - question: "PARTY SPLIT OR FULL-TO-EACH? Proposal: the full award to each contributor."
         status: answered
         answer: "APPROVED as proposed -- the full award to each contributor, matching RewardPartyXP semantics. Paid from bst_ondeath's existing contributor loop, which already excludes summons, henchmen, DMs and environmental deaths."
-        question_h: 64
-        answer_h: 64
       - question: "BOSSES -- do they get a multiplier?"
         status: answered
         answer: "NO multiplier. Bosses are for loot; the CR-versus-level curve already pays them the full 6,000 at any level where they are on-tier."
-        question_h: 64
-        answer_h: 64
       - question: "DOES THE SCRIPT AWARD STACK ON TOP OF THE ENGINE'S?"
         status: answered
         answer: "No -- the measurement came back case A (the engine pays literally zero past level 40), so there is nothing to stack on. The award is gated at level 41+ so it never doubles with the engine below that, and levels 1-40 are handled by the rebuilt xptable.2da rather than by script."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "UAT: on the TEST realm, kill one creature with a level 41+ character and confirm XP is granted. The dev realm logs an [xpdbg] line per XP write (gated on SP_DEV_TOOLS, so this is silent on a live season) -- the line should show the award and, if a boost is active, the doubling."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 41+"
       - step: "UAT: with a level 60 character, kill something and confirm the XP total keeps climbing PAST 3,581,000 rather than stopping. This is the case GiveXPToCreature can silently refuse, so it has a direct SetXP fallback -- worth confirming in game."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60"
       - step: "UAT: with a low-level character, confirm the rebuilt 1-40 table pays as documented -- e.g. at level 1 a CR 30 kill should pay the full 6,000 and a CR 5 kill 2,000. Clients must have pulled the new hak over NWSync for the table to apply."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Promote to production: the fix is deployed to the TEST realm only. Production needs bin/season-promote.sh, then bin/build-lotr-rules-hak --install, bin/refresh-nwsync and a restart on that realm -- xptable.2da is a hak change, so clients re-download. See CLAUDE.md 'Publishing to clients'."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
       - step: "Housekeeping, admin's call: unpacked/attackxp.nss grants 50,000 XP to GetLastHostileActor() and is referenced by nothing. Harmless today but a live grenade if it is ever attached to an event -- delete it, or keep it deliberately?"
         status: open
         kind: admin
-        step_h: 64
       - step: "SECOND PASS publish to the TEST realm -- xptable.2da changed, so a client holding the old hak silently reads the old awards: bin/build-lotr-rules-hak --install, then bin/refresh-nwsync (run DETACHED, 10+ min), then bin/server-restart."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
       - step: "SECOND PASS UAT: with a LEVEL 1 character, kill a Bree graveyard skeleton (CR 0.5, blueprint skeleton001) and confirm roughly 300 XP rather than 60. This doubles as proof the new hak reached the client -- the old table pays exactly 60 here."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "SECOND PASS UAT: the same CR 0.5 skeleton killed by a level 41+ character must STILL pay the 60 floor. That half of the curve was never wrong and must not move."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 41+"
   - id: ll-hgll-remove-scripts
     title: "Remove the HGLL leveler scripts"
     group: combat-classes
@@ -5611,23 +5294,18 @@ ideas:
       - step: "UAT login/logout: log a character in and back out, then reconnect — the character must load normally and keep its inventory, journals and persistent state (the login and logout handlers each lost a call to a now-deleted script)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT mixtape: consume Akira's Mixtape on a test character and confirm all six ability scores rise by exactly 1 permanently — log out, log back in, and confirm the gain survived (the stat grant was re-implemented without the old leveller include)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT mixtape anti-farm: drop the Mixtape ring mid-conversation on the Consume node — no stats may be granted."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT retired statue: in Legendary Levelling Area (legendarylevelli), use the statue and confirm it prints the message that levels 41-60 now come from experience, with no error in the server log about a missing script."
         status: open
         kind: uat
-        step_h: 64
       - step: "Rebuild and redeploy the module to the live server (repack-homers-lotr wrapper) and restart, so the deleted scripts leave the running module — the autopilot build only produced dist/ and the OneDrive copy."
         status: open
         kind: publish
-        step_h: 64
   - id: ll-hgll-split-cliententer
     title: "Untangle the module OnClientEnter hook from HGLL"
     group: combat-classes
@@ -5645,39 +5323,30 @@ ideas:
       - step: "UAT login: log in an existing character and confirm the server-info journals (Rules, Website, Module Customizations, Character Progression, Death, Forge, Systems, Factions, Combat) are all present in the Completed section."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT login: confirm the merit login message still arrives ~3s after entering, and the build-stamp 'Module last edited:' line ~5s after."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT login: on a character with a chosen Good/Evil allegiance, confirm the opposite side is still hostile-on-sight after relog (faction re-apply)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT login: on a character with an active 2x gold/XP boost, confirm the boost login report still prints."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT logout/login: log out while bleeding out (HP 0 to -9) and log back in — the Constitution DC 12 survival message must still fire and resolve (2 HP on success, death on failure)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT logout: log out carrying a Bank of Bree storage box mid-transaction, log back in, and confirm the contents were committed and nothing was lost."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT logout: summon an epic summon, log out, log back in and confirm no lingering henchman-slot summon remains."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT logout: start a legendary level-up, log out mid-picks, log back in and confirm no staged skill/feat/stat picks were committed (the HGLL residue call still runs ahead of the character export)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT login: log in a character carrying illegally forged gear and confirm the contraband sweep still jails them (~6s after login)."
         status: open
         kind: uat
-        step_h: 64
   - id: ll-hgll-retire-area
     title: "Retire the Legendary Levelling Area"
     group: combat-classes
@@ -5695,27 +5364,21 @@ ideas:
         status: done
         kind: admin
         blocker: true
-        step_h: 64
       - step: "Rebuild and redeploy to the live server (repack-homers-lotr wrapper) and restart — the autopilot build only produced dist/ and the OneDrive copy."
         status: open
         kind: publish
-        step_h: 64
       - step: "UAT module load: after the restart, confirm the module loads and the server log reports no missing-area error (the area was dropped from Mod_Area_list)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT Well of Eru: walk the spot where the Legendary Levelling Area entrance used to be and confirm there is no transition, no 'You must be level 40' floating text, and no error in the log."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT area list: open the DM area-jump / player map and confirm the Legendary Levelling Area no longer appears (291 areas)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT levelling: take a level-40 test character past the cap once the cap lift lands and confirm levelling happens on the character sheet with no reference to the removed area."
         status: open
         kind: uat
-        step_h: 64
   - id: ll-hgll-retire-gate
     title: "Drop the HGLL build gate from the smoke test"
     group: combat-classes
@@ -5744,20 +5407,16 @@ ideas:
     manual_steps:
       - step: "UAT: log in and open Journal -> Completed -> \"Character Progression\" — it must describe levels 41-60 as real levels on the published XP table (48,800 over level 40, compounding 1.1x, 3,581,000 at level 60) with no mention of HGLL or a leveling NPC."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: check the server listing / module description in the NWN server browser — it should read \"1.5x XP, with real levels 41-60 on the server's own experience table (in development)\" and no longer advertise an HGLL framework. Confirm the Connect: and Wiki: lines are still correct for Season 2."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: after the next scheduled wiki refresh, open Customizations -> Legendary Levels: 41-60 and the Leveling Guide and confirm no page still mentions HGLL, the Legendary Leveler NPC/placeable, or the Legendary Levelling Area."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "Decide whether the \"in development for Season 2\" framing is the wording you want on the public wiki, given the old leveler is still physically in the module until ll-hgll-remove-scripts ships. If you would rather the pages describe 41-60 as live, say so and the caveats come out in one edit."
         status: done
         kind: admin
-        step_h: 64
   - id: ll-pingpong-41-60
     title: "Ping Pong: add level 41-60 to the \"Set my level\" menu"
     group: combat-classes
@@ -5776,32 +5435,25 @@ ideas:
         status: answered
         answer: "No gate needed - ping pong will be removed after season 2 offical go live (progress wipe happens then); this is support testing only."
         question_h: 138
-        answer_h: 64
     manual_steps:
       - step: "UAT: talk to Ping Pong, choose \"Set my level.\" then \"Legendary Levels (41 - 60)\", and confirm the new page lists Level 41 through Level 60 (Legendary Maxx) plus Nevermind, and that Nevermind returns to the opening line."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: set level 41 and confirm the character's XP reads exactly 828,800; set level 60 and confirm exactly 3,581,000."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: spot-check three mid-tier levels (47 = 1,243,400; 52 = 1,825,100; 58 = 3,009,800) against hak_2da/exptable.2da."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: confirm the character sheet level itself only follows past 40 once ll-maxlevel-cap has shipped — before that, expect banked XP but a level-40 sheet. This is expected, not a bug in this item."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: with a second player standing next to Ping Pong, confirm the level-up VFX and floating text land on the player who picked the reply, not the bystander (this is the GetLastSpeaker fix)."
         status: open
         kind: uat
-        step_h: 64
       - step: "UAT: confirm the existing 1-20 and 21-40 pages still work unchanged (set level 20 and level 40)."
         status: open
         kind: uat
-        step_h: 64
   - id: ll-wiki-leveling-docs
     title: "Rewrite the Leveling Guide for real levels 41-60"
     group: wiki-tools
@@ -5817,7 +5469,6 @@ ideas:
         status: answered
         answer: "confirmed wait (until the legendary levels and quest overhaul/faction quest, class-quest line epics are complete)"
         question_h: 122
-        answer_h: 64
   - id: ll-feats-tlk
     title: "Legendary Feats: build a custom lotr.tlk"
     group: combat-classes
@@ -5833,12 +5484,10 @@ ideas:
     manual_steps:
       - step: "Publish: build and install tlk/lotr.tlk, bin/refresh-nwsync, nwn-manager repack (the .mod is what names the TLK — nwsync will not carry it otherwise), bin/server-restart."
         status: done
-        kind: admin
-        step_h: 64
+        kind: publish
       - step: "UAT: with the TLK swapped and BEFORE any feat row existed, confirm CEP item and creature names still read correctly. PASSED 2026-08-01 — no index slip, phase 2 unblocked."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: ll-feats-2da
     title: "Legendary Feats: feat.2da plumbing and the first proof feats"
     group: combat-classes
@@ -5855,27 +5504,21 @@ ideas:
       - question: "The draft's Class Allotments assume a pure-class bonus pool, but the roadmap note on Legendary-Feats says 'reuse same pool of feats and just not give as many to mixed classes.' Confirm the mixed-class allotment rule — a flat reduction, a per-class-level formula, or pure-class-only for some tiers?"
         status: answered
         answer: "At level 60, mixed classes get 1 legendary feat (it's like a super epic class augment). At level 60, PURE classes get 2 legendary feats (pay off for their dedication), except pure Fighters who get 3 (fighter is the feat-based archetype).\n\nSUPERSEDED 2026-07-30 on the second half of this answer: the legendary picks are ADDITIONAL, not a replacement. The PC takes the normal level-60 feat through the standard engine level-up UI, and the legendary pick(s) land on top. The earlier wording here — 'This replaces the standard/epic feat selection that would normally be available at level 60' — is no longer the design. Docs corrected: CLAUDE-legendary-feats.md and docs.manual/Draft/LegendaryFeats.html (#allotments plus the Overview implementation note, which also still described the old auto-granted 'Pure <Classname>' HAK feat)."
-        question_h: 64
         answer_h: 180
       - question: "Selectable at exactly level 60, not 'past 40' — confirm."
         status: answered
         answer: "Confirmed. Legendary feats are ONLY selectable AT level 60."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "Publish: python3 bin/gen-legendary-feats.py --apply, bin/build-lotr-tlk --apply --install, bin/build-lotr-rules-hak --install, bin/refresh-nwsync, nwn-manager repack, bin/server-restart. The hak and the TLK must go out together — the rows point at strrefs only lotr.tlk has, so a client with one and not the other reads blank feat names."
         status: done
-        kind: admin
+        kind: publish
         blocker: true
-        step_h: 64
       - step: "UAT: grant a legendary feat to a test character by console/toolset (nothing in game hands them out yet) and confirm the name, description and icon all read correctly on the character sheet. A blank name means the hak and TLK are out of step."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: on a level-up at any level, confirm no Legendary feat appears on the engine's own feat-selection page. ALLCLASSESCANUSE=0 should make that impossible, but it is the failure this whole design exists to avoid and it is cheap to eyeball once."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: ll-feats-picker
     title: "Legendary Feats: the level-60 picker window"
     group: combat-classes
@@ -5891,53 +5534,41 @@ ideas:
     manual_steps:
       - step: "UAT round 1 (2026-08-01): pure-class allotment correct, and no legendary feat on the engine's own level-up feat page. Four defects found — multiclass allotment, rest re-entry, buff-vs-base-score, picker layout — all fixed in 725941dbae4."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT round 2 (2026-08-01): admin reset tool works. Level 59->60 threw \"sqlite error: not prepared\" and no picker — a missing class_sig schema migration, fixed in 5e7b1f05b04. No DB wipe is needed now; the schema self-heals on load."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: re-pick. As a level-60 character with picks taken, ask Ping Pong to choose them again — old feats gone, base scores back to their pre-pick values, full allotment offered, level unchanged. Pick different feats and confirm ONLY the new bonuses are on the sheet. Repeat the swap three or four times and confirm the scores return to exactly the same numbers each time (a drift upward is the stat farm this must not be)."
         status: done
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: the re-pick node does NOT appear for a character below level 60, and re-picking is refused while polymorphed (shift, then try)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "Publish: nwn-manager repack and bin/server-restart. Scripts and a dialog changed; the hak and TLK are already live and need no rebuild or nwsync."
         status: done
-        kind: admin
+        kind: publish
         blocker: true
-        step_h: 64
       - step: "UAT: allotment is 3 pure Fighter / 2 pure other / 1 mixed. Take a pick and confirm the character sheet's BASE score rose in plain text — no green tint, no buff icon — and that it stacks on a character already at the gear enchantment cap."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: relog and confirm the score is unchanged and NOT doubled. A second +6 after one relog means the login path is re-applying a base-score feat, which is permanent and cumulative."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT, revoke on relevel: as a pure class take both picks, then relevel to 59/1 via Ping Pong. Both feats gone, base scores back to their pre-pick values, 1 pick offered, and a message explaining it. Check no ability score was driven below its true base."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT, revoke on level loss: at 60 with picks taken, drop to 59 (die for the XP loss, or Ping Pong down). Feats gone, scores restored, nothing offered at 59; return to 60 and confirm the picks come back."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT, energy drain does NOT revoke — the case this must not get wrong. At 60 with picks taken, take negative levels (a draining creature or a DM-applied EffectNegativeLevel): the feats and their base-score bonuses stay. Log in while drained and confirm the login check leaves them alone too."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: cancel the picker, then Force Rest — the window reopens. Spend the last pick and rest again — it does not. With picks outstanding, log in and see the nudge message."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
       - step: "UAT: the picker reads cleanly — all six rows visible with no horizontal scrollbar, header not clipped, name/effect/tooltip correct. This doubles as the ll-feats-2da hak/TLK check: a blank name means the hak and TLK are out of step."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
   - id: ll-feats-ability-martial
     title: "Legendary Feats: ability score and martial feats"
     group: combat-classes
@@ -6084,50 +5715,45 @@ ideas:
       - question: "Legendary Prowess's +5 does not stack with any other attack-bonus EFFECT - Bard Song, Legendary Grip (+4, worth nothing to a Prowess holder), Legendary Reaping's first three stacks, Tenser's. Which way do we go? (a) ACCEPT: leave the code alone and rewrite the feat description to say it does not stack with other attack bonuses. Zero risk, but it leaves Legendary Grip's AB half permanently dead for the builds most likely to take it. (b) RE-SCOPE Prowess to a benefit that cannot collide - e.g. flat +5 DAMAGE, or a smaller AB plus something else. One table edit in bin/gen-legendary-feats.py plus the effect in legfeat_inc.nss; no TLK or 2da churn, and existing picks keep working. (c) MAKE IT STACK by moving the bonus off effects entirely (an attack-bonus item property on a hidden creature-hide item, the usual PW trick). This is real new plumbing - hide creation, re-apply on login, unwind on respec - and it touches every character's equipment, so it is the expensive answer. MY RECOMMENDATION: (b). It fixes the bard report and the Grip overlap in one move, keeps the feat's fantasy ('every blow finds its mark' reads fine as damage), and needs no new subsystem. If you want to keep it as attack bonus, (a) is honest and (c) is not worth the surface area."
         status: answered
         answer: "Option (d), the admin's own proposal and better than the three offered: keep applying the bonus, but stop expressing each source as its own effect. Every module-owned source registers an amount in a per-creature ledger and one effect is built from the sum. No cap on the attack total. Built as bonus_pool_inc.nss."
-        question_h: 64
-        answer_h: 64
       - question: "If we go with (b) or (c): does the same rule apply to Legendary Grip's +4 attack bonus, which collides with Prowess for exactly the same reason and is the more invisible of the two (it is conditional on dual-wielding, so a player cannot even A/B test it easily)? I would fix both together or neither - fixing only Prowess leaves Grip silently worthless."
         status: answered
         answer: "Yes - Grip is pooled in the same change, along with Reaping, Bard Song and the summon boost. Fixing Prowess alone would have left Grip's attack half silently worthless."
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "UAT, THE REPORTED BUG: on a level-60 bard holding Legendary Prowess, note the character sheet attack bonus, then sing. It must rise by the song's FULL amount (+1 to +6 by tier), not by 1 and not by 0."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 bard with Legendary Prowess"
       - step: "UAT the baseline did not move: on a bard WITHOUT Legendary Prowess, the song's attack and damage bonuses read exactly as they did before this change. The fix must not change what a bard alone gets."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any bard"
       - step: "UAT Legendary Grip, which was worth nothing before: dual-wielding with both Grip and Prowess, attack must show +9 from the two feats together. Sheathe the off-hand weapon and it must drop back to +5 (LegFeat_ApplyAll clears the ledger entry on the equip hook)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 dual-wielder with Grip + Prowess"
       - step: "UAT Legendary Reaping stacks: kill five things inside 12s of each other and confirm attack AND damage climb +2 per kill on top of any other bonus. Watch the combat log on stacks 4 and 5 - the damage must be FLAT (+8, +10), not a dice roll. It was rolling 1d8/2d6 before this change."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 with Legendary Reaping"
       - step: "UAT expiry, the case generation counters exist for: with a song running AND Reaping stacks up, let the Reaping stacks lapse (12s without a kill). The total must drop by exactly Reaping's share and the song's share must survive to its own end. Then let the song end and confirm only the permanent feat bonuses remain."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 bard with Reaping"
       - step: "UAT relog: log out mid-song and back in. The song is gone (unchanged - effects never survived a logout), Legendary Prowess/Grip come back, and attack reads the pre-logout value minus the song. Specifically confirm it is NOT doubled - the ledger must not be re-added on top of itself."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 bard with Legendary Prowess"
       - step: "UAT non-PCs, since the ledger runs on any creature: a druid/ranger pet still gets its empowerment message and bonus at spawn, and standing in a bard's song it gets BOTH (the pet's attack bonus should rise while the song plays)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "druid or ranger"
       - step: "UAT respec: take Prowess, confirm +5, then re-pick it away via Ping Pong and confirm the +5 is gone immediately - not lingering until logout."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 with picks to spend"
       - step: "Publish: nwn-manager repack + server restart. Scripts only - no hak, TLK or 2da involved."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: spell-ab-prowess-stack
     title: "Attack bonus from spells (War Cry, Bless, Prayer...) does nothing when Legendary Prowess is taken"
     group: combat-classes
@@ -6143,38 +5769,33 @@ ideas:
       - question: "Pooling the spells raises the obvious balance question: should they stack with EACH OTHER too? MY IMPLEMENTATION (and recommendation) is NO - the ledger grows a GROUP concept: sources in the same group contribute max(entries), groups sum. Every pooled spell sits in one 'spell' group, so Bless + Prayer still gives the better of the two (exactly what the engine did), while the group total adds to Prowess/Grip/Song. That fixes the report without handing out a stacking rule D&D never had. The alternative, giving every spell its own group, would let a cleric stack Bless + Aid + Prayer + Divine Favor + Divine Power for +9ish before any feat - a much bigger power increase than the report asks for. Say the word if you want that instead; it is a one-line table change per spell."
         status: answered
         answer: "Stack them - the admin's call, 2026-08-06: a pooled bonus is a pooled bonus, and a cleric who spends four rounds buffing should feel all four spells. The group layer built for the max-of behaviour was removed again rather than left in place degenerate (one source per group); the ledger is back to a plain sum of every live entry."
-        question_h: 64
-        answer_h: 64
       - question: "Which sources are in scope? I have pooled the seven that grant an ATTACK bonus and are reachable by a player: Bless, Aid, Prayer, War Cry, Divine Favor, Divine Power and Divine Wrath (Divine Champion). Deliberately NOT pooled: (a) the DAMAGE halves of those same spells - damage bonuses of DIFFERENT damage types already stack in the engine, so there is no defect there, and pooling them would flatten slashing/magical/divine into the pool's bludgeoning and change what damage reduction eats; (b) Divine Might (damage only, same reason); (c) Tenser's Transformation (its bonus is tied to the polymorph and must end with it); (d) item attack bonus, which is a property, not an effect. Anything you want added or removed from that list?"
         status: open
         answer: null
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "UAT, THE REPORTED BUG: on a character holding Legendary Prowess, note the character sheet attack bonus, cast/sing War Cry, and confirm attack rises by the FULL +2 (it moved by 0 before). Repeat with Bless (+1) and Divine Favor (+1..+5)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 with Legendary Prowess; bard for War Cry, cleric/paladin for Bless/Divine Favor"
       - step: "UAT the spells DO stack with each other (admin's call, 2026-08-06): cast Bless (+1) then Prayer (+1) on the same character - attack must rise by 2, not 1. Add Divine Favor at +5 and the three together must read +7, on top of any feat or song bonus."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any cleric with Bless, Prayer and Divine Favor"
       - step: "UAT the baseline for a character with NO legendary feats: every one of the seven spells grants exactly what it always did. This fix must not change what an unfeated character gets from a buff."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any low/mid-level caster"
       - step: "UAT expiry: cast War Cry, let it run out, and confirm the attack bonus drops by exactly its share and the feat bonus survives. Then cast it again and die - on respawn the spell share must be gone and the feat share back."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any character with Legendary Prowess"
       - step: "UAT the NPC side, since these scripts run for monsters too: a hostile cleric casting Bless/Prayer on its allies must still visibly buff them (watch the combat log to-hit rolls), and nothing in the log should show a doubled bonus."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Publish: nwn-manager repack + server restart. Scripts only - no hak, TLK or 2da involved."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: bard-song-consumes-2-uses
     title: "Bard Song consumes two uses per activation"
     group: combat-classes
@@ -6189,16 +5810,15 @@ ideas:
     manual_steps:
       - step: "UAT: on a bard, note the remaining Bard Song uses, sing once, and confirm exactly ONE use is spent (rest to refill and repeat). The song's bonuses, duration and radius must be unchanged."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard"
       - step: "UAT: Curse Song still spends exactly one bard song use - it shares the same pool and its script was deliberately left alone, so this is the check that the fix did not overshoot."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "bard 4+ (Curse Song)"
       - step: "Publish: nwn-manager repack + server restart. Script-only change, no hak, TLK or 2da involved."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: halmir-quest-guide
     title: "Halmir the Grey becomes an in-game quest guide"
     group: quests-areas
@@ -6214,16 +5834,16 @@ ideas:
     manual_steps:
       - step: "UAT: Halmir's intro is short, and all five level bands list the right quests and return to him afterwards."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT: the twelve \"Speak to me of the ...\" order replies and the order-summary reply are gone from Halmir's root."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT at level 60: the Legendary Feats re-pick reply still appears on Halmir and still reopens the picker."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60"
 
   - id: devcrit-unarmed-save-or-die
     title: "Devastating Critical still killed outright on unarmed and creature attacks"
@@ -6240,38 +5860,33 @@ ideas:
       - question: "Stripping feats 506/532 takes them off the character sheet, and they will be absent from the .bic the next time that character is saved. Proposed: accept. The feat's only remaining function is to say 'this attacker earns the +3 replacement dice', which the snapshot preserves exactly - the character loses nothing mechanically, including the Legendary Butcher prerequisite. The alternative is leaving fist builds on save-or-die, since no 2DA edit can reach that engine path."
         status: open
         answer: null
-        question_h: 64
-        answer_h: 64
       - question: "Should the WEAPON path be hardened too, by pointing the baseitems column at a sentinel feat row nobody can hold instead of blanking it? Proposed: not yet. It would guard against the engine reading a blank cell as feat 0 (Alertness), but it costs a feat.2da row, a TLK string, a hak rebuild and an NWSync publish. The new alarm will convict that theory in one log line if it is ever true - do it only if the alarm fires for an attack made with a weapon."
         status: open
         answer: null
-        question_h: 64
-        answer_h: 64
     manual_steps:
       - step: "UAT - the reported bug. On dev, with an unarmed character holding Devastating Critical (Unarmed) (picfister.bic or picfingerofdeath.bic both have feat 506), punch a normal creature until criticals land: NO Fortitude save line in the combat log and no instant kill, and the critical still carries the +3 bonus dice (d6, unarmed)."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "monk or unarmed build with Devastating Critical (Unarmed)"
       - step: "UAT - both engine paths. Repeat the punching test twice, once with gloves or bracers equipped in the ARMS slot and once with that slot empty. The reporter was wearing gloves; the bare-armed case is the other lookup."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "monk or unarmed build with Devastating Critical (Unarmed)"
       - step: "UAT - the half that already worked, as a regression check. A weapon-wielding character with Devastating Critical for that weapon still gets +3 dice on an ordinary critical, and the Combat Dummy's DPR/APR readout is unchanged."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 melee with Devastating Critical"
       - step: "UAT - the prerequisite. A character whose only devastating critical is the unarmed one can still qualify for Legendary Butcher in the picker after the feat has been stripped at login."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "level 60 monk with Devastating Critical (Unarmed)"
       - step: "After the dev session, grep the dev nwengineLog.txt: the new [DEVCRIT ALARM] line must be ABSENT (it means the engine resolved a devastating critical anyway), and there must be no 'devcrit_eff ... TOO MANY INSTRUCTIONS' lines. The eff_dur_x2 / X2_S2_CurseSong pair WILL still appear - that is the separate Curse Song item, not a regression here."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Promotion to season 2 is NOT done and must not happen without the admin's explicit word - the live realm is where -Methonash- reported this. Module-only change, so promotion is repack + restart there; no hak rebuild and no NWSync."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: store-blueprint-audit
     title: "Store audit: 19 store blueprints are placed in no area, and 44 merchant scripts open a store tag that no placed store answers to"
     group: quests-areas
@@ -6305,28 +5920,27 @@ ideas:
     manual_steps:
       - step: "UAT (closes the report): enter the Tower of the High Wizard ground floor from Minas Tirith. The Gondor Scribe must be visible in the open — not around the corner by the stairs — at roughly X33.8/Y47.47, and must render as a ROBED HUMAN WOMAN, not a halfling. Her name plate reads 'Gondor Scribe'."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (head turn-in unchanged): carrying azagothshead, talk to her — entry 10 fires at_008, awards 10,000 XP and consumes the head."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (cold start unchanged): talk to her WITHOUT the head — the Well of Souls briefing still runs and the Annuminas Key path (sc_annukey / at_007) still grants exactly one key per character, ever."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (still unkillable): attack her and confirm Plot=1 survived the reskin — she cannot be killed."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "UAT (journal): after handing Azagoth's head to Hanee in Bree, read Ruin of Annuminas entry 2 — it must name the Gondor Scribe and say she is on the tower's ground floor."
         status: open
-        kind: admin
-        step_h: 64
+        kind: uat
+        tester: "any"
       - step: "Repack and restart the server. Module-only — no hak, TLK or NWSync rebuild is needed."
         status: open
-        kind: admin
-        step_h: 64
+        kind: publish
   - id: ambiguous-transition-tags
     title: "Duplicate and generic area-transition tags: one Dol Guldur exit may lead to the wrong area, and 16 Gwathdor transitions have no destination map pins"
     group: travel

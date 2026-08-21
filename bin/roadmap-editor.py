@@ -1902,7 +1902,19 @@ class Handler(BaseHTTPRequestHandler):
         if errors:
             return self._json({"ok": False, "errors": errors})
         write_document(ideas)
+        # The page's merge baseline for THIS idea is now one write out of date.
+        # Hand back its new fingerprint so the client can rebase it: without
+        # that, the next /api/save posts a baseline claiming the idea is
+        # untouched while its in-page copy has moved on, and the merge either
+        # reverts this write or raises a phantom conflict.
+        # Fingerprint the NORMALIZED idea: /api/data hashes ideas after
+        # normalize_ideas(), and a raw parse differs from it (an omitted
+        # `blocker: false` is re-added, heights are coerced), so hashing the
+        # raw dict here would hand back a baseline that never matches.
+        fp_idea = copy.deepcopy(idea)
+        normalize_ideas([fp_idea])
         return self._json({"ok": True, "version": yaml_version(),
+                           "hashes": {iid: _idea_fingerprint(fp_idea)},
                            "warnings": warnings,
                            "message": f"Updated step {index + 1} of '{iid}'."})
 
@@ -2568,6 +2580,10 @@ PAGE = r"""<!doctype html>
   .ho-item.ho-done { opacity:0.72; }
   .ho-row { display:flex; gap:6px; align-items:flex-start; }
   .ho-row textarea { flex:1; }
+  /* Two selects now share the row (status + kind), so neither may stretch. */
+  .ho-row select { flex:0 0 auto; width:auto; }
+  .ho-row .ho-flag { margin-left:auto; }
+  .ho-sr { margin-top:4px; font-size:12px; }
   .ho-del { flex:0 0 auto; line-height:1; padding:4px 8px; }
   .ho-badge { display:inline-block; padding:0 6px; border-radius:999px;
     border:1px solid var(--line); font-size:11px; font-weight:600; }
@@ -3709,8 +3725,16 @@ function bindPlayerHint(){
 // They are internal: never rendered on the public board, edited only here.
 let HO = {design_questions: [], manual_steps: [], uat_credits: []};
 
-const HO_DEFAULT_H = 48;           // px; the old rows="2"
+// Must match the textarea `min-height` in the CSS above. A smaller value is
+// unreachable — min-height wins over the inline height, so the measured
+// offsetHeight would never equal it and syncHandoffHeights() would stamp a
+// spurious `*_h` on every sub-item of every idea it saved (this is where the
+// `step_h: 64` noise all over roadmap.yaml came from).
+const HO_DEFAULT_H = 64;
 const STEP_LABEL = {open:'Open', wip:'In progress', done:'Complete'};
+// The manual_step keys this panel owns and rewrites. Anything else on a step is
+// passed through untouched by handoffOut() — see the note there.
+const HO_OWNED = ['step','status','kind','blocker','tester','step_h'];
 
 // A blocker step that isn't Complete holds the item back, exactly as an open
 // design question does. Mirrors open_blockers() in the Python half.
@@ -3724,11 +3748,20 @@ function initHandoff(it){
       question: q.question||'', status: q.status||'open', answer: q.answer??null,
       question_h: q.question_h||null, answer_h: q.answer_h||null})),
     // Legacy bare-string steps upgrade to the mapping form on load.
+    // Every key normalize_step() can emit must survive the round trip: this
+    // panel rewrites the whole manual_steps list on save, so a field it fails
+    // to carry is a field it DELETES. `kind` and `tester` were dropped here for
+    // months, which silently demoted every uat/toolset/publish step to `admin`
+    // and dropped it out of both queues and out of open_uat_steps() — the
+    // "shipped but not validated" predicate the wiki and the in-game sign share.
     manual_steps: (it.manual_steps||[]).map(s=>
       (typeof s === 'string')
-        ? {step:s, status:'open', blocker:false, step_h:null}
-        : {step:s.step||'', status:s.status||'open', blocker:!!s.blocker,
-           step_h:s.step_h||null}),
+        ? {step:s, status:'open', kind:'admin', blocker:false, tester:'',
+           step_h:null}
+        : Object.assign({}, s, {
+           step:s.step||'', status:s.status||'open',
+           kind: STEP_KINDS.indexOf(s.kind)>=0 ? s.kind : 'admin',
+           blocker:!!s.blocker, tester:s.tester||'', step_h:s.step_h||null})),
     // `awarded`/`date` are server-written (see UAT_FIELD in the Python half) and
     // no input owns them — carried through verbatim so an unrelated edit to this
     // form can never clear a paid credit.
@@ -3786,12 +3819,20 @@ function renderHandoff(){
           ${Object.entries(STEP_LABEL).map(([v,l])=>
             `<option value="${v}"${s.status===v?' selected':''}>${l}</option>`).join('')}
         </select>
+        <select class="ho-sk" data-i="${i}"
+                title="Which queue this step belongs to">
+          ${STEP_KINDS.map(k=>
+            `<option value="${k}"${s.kind===k?' selected':''}>${k}</option>`).join('')}
+        </select>
         <label class="ho-flag" title="Holds the item back until Complete">
           <input type="checkbox" class="ho-sb" data-i="${i}"${s.blocker?' checked':''}>
           Blocker</label>
         <button type="button" class="ho-del" data-kind="s" data-i="${i}"
                 title="Delete this step">&times;</button>
       </div>
+      ${s.kind==='uat' ? `<input class="ho-sr" list="ho_testers" data-i="${i}"
+                 placeholder="who can test? (any, wizard 43+, level 60 melee…)"
+                 value="${esc(s.tester||'')}">` : ''}
       <textarea class="ho-st" data-i="${i}"
                 style="height:${hpx(s.step_h)}">${esc(s.step)}</textarea>
     </div>`).join('');
@@ -3823,6 +3864,8 @@ function renderHandoff(){
       <label style="margin-top:10px">Manual steps
         ${todo?`<span class="ho-badge">${todo} to do</span>`:''}
         ${blocked?`<span class="ho-badge">${blocked} blocking</span>`:''}</label>
+      <datalist id="ho_testers">${knownTesters().map(t=>
+        `<option value="${esc(t)}">`).join('')}</datalist>
       ${ms||'<p class="small">None.</p>'}
       <button type="button" id="ho_adds">+ Add step</button>
       <label style="margin-top:10px">UAT validators
@@ -3837,7 +3880,8 @@ function renderHandoff(){
   $('#ho_addq').onclick = ()=>{
     HO.design_questions.push({question:'', status:'open', answer:null}); renderHandoff(); };
   $('#ho_adds').onclick = ()=>{
-    HO.manual_steps.push({step:'', status:'open', blocker:false}); renderHandoff(); };
+    HO.manual_steps.push({step:'', status:'open', kind:'admin', blocker:false,
+                          tester:''}); renderHandoff(); };
   $('#ho_addu').onclick = ()=>addUatValidator();
   el.querySelectorAll('.ho-uata').forEach(b=>b.onclick = e=>
     uatAward(HO.uat_credits[+e.target.dataset.i].player, false));
@@ -3847,6 +3891,9 @@ function renderHandoff(){
     HO.design_questions[+e.target.dataset.i].status = e.target.value; renderHandoff(); });
   el.querySelectorAll('.ho-ss').forEach(s=>s.onchange = e=>{
     HO.manual_steps[+e.target.dataset.i].status = e.target.value; renderHandoff(); });
+  // Changing the kind re-renders: the tester input only exists on a uat step.
+  el.querySelectorAll('.ho-sk').forEach(s=>s.onchange = e=>{
+    HO.manual_steps[+e.target.dataset.i].kind = e.target.value; renderHandoff(); });
   el.querySelectorAll('.ho-sb').forEach(c=>c.onchange = e=>{
     HO.manual_steps[+e.target.dataset.i].blocker = e.target.checked; renderHandoff(); });
   // Mutate in place on input; do NOT re-render (it would steal focus mid-typing).
@@ -3856,6 +3903,8 @@ function renderHandoff(){
     HO.design_questions[+e.target.dataset.i].answer = e.target.value; });
   el.querySelectorAll('.ho-st').forEach(t=>t.oninput = e=>{
     HO.manual_steps[+e.target.dataset.i].step = e.target.value; });
+  el.querySelectorAll('.ho-sr').forEach(t=>t.oninput = e=>{
+    HO.manual_steps[+e.target.dataset.i].tester = e.target.value; });
   el.querySelectorAll('.ho-del').forEach(b=>b.onclick = e=>{
     const i = +e.target.dataset.i;
     syncHandoffHeights();
@@ -3939,10 +3988,25 @@ function handoffOut(){
     .filter(q=>(q.question||'').trim())
     .map(q=>keepH({question:q.question.trim(), status:q.status,
                    answer:(q.answer||'').trim()||null}, q, ['question_h','answer_h']));
+  // `kind` is always emitted (normalize_step() defaults it anyway); `tester`
+  // only when non-blank, matching normalize_step(), which drops a blank one.
+  // HO_OWNED is everything the panel models — anything else on the step is a
+  // key some other tool wrote, copied through verbatim the same way
+  // pruneEmpty()/FORM_FIELDS does for an idea and emit_unknown() does in the
+  // Python half. A save must never delete data it merely failed to recognise.
   const ms = HO.manual_steps
     .filter(s=>(s.step||'').trim())
-    .map(s=>keepH({step:s.step.trim(), status:s.status, blocker:!!s.blocker},
-                  s, ['step_h']));
+    .map(s=>{
+      const o = {};
+      for (const k in s) if (HO_OWNED.indexOf(k)<0) o[k] = s[k];
+      o.step = s.step.trim();
+      o.status = s.status;
+      o.kind = STEP_KINDS.indexOf(s.kind)>=0 ? s.kind : 'admin';
+      o.blocker = !!s.blocker;
+      const tester = (s.tester||'').trim();
+      if (tester) o.tester = tester;
+      return keepH(o, s, ['step_h']);
+    });
   const uc = HO.uat_credits
     .filter(c=>(c.player||'').trim())
     .map(c=>{ const o = {player:c.player.trim()};
@@ -4419,6 +4483,16 @@ async function stepWrite(id, index, patch){
   }
   Object.assign(s, patch);           // keep the in-memory copy in step
   baseVersion = res.version || baseVersion;
+  // Rebase the per-idea merge baseline too. Rebasing baseVersion alone is what
+  // made these ticks vanish: with the versions equal, /api/save skips the
+  // three-way merge and writes the page's document wholesale — including the
+  // hand-off panel's HO, a snapshot of this idea's steps taken back when the
+  // form was opened, which still says every step is open.
+  if (res.hashes && baseHashes) Object.assign(baseHashes, res.hashes);
+  // …and that snapshot has to be refreshed, or the very next Save undoes this
+  // write. formSnapshot follows it so the unsaved-changes guard keeps measuring
+  // against what is really on screen.
+  if (selRef && selRef.id === id){ initHandoff(selRef); formSnapshot = snapshot(); }
   renderQueue();
 }
 

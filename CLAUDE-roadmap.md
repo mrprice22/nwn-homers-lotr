@@ -231,9 +231,31 @@ already triaged unless you pass `--retag`. It reuses the editor's comment-preser
 writer, and refuses to write if it would *introduce* a validation error (pre-existing ones
 are left alone — tagging a step is not the edit that has to fix them).
 
+**The hand-off panel rewrites the whole `manual_steps` list on every save**, from its own
+in-page copy (`HO`) — it is not a form bound to the stored step. So a field the panel does
+not carry is a field it **deletes**, from every step of every idea the admin opens. That
+shipped: `kind` and `tester` were unmodelled for months, so each save re-stamped
+`kind: admin` and dropped `tester`, quietly emptying both queues and the "not yet
+validated" predicate above. `tests/check_roadmap_step_fields.py` is the gate — it asserts
+the page's `HO_OWNED` list covers every key `normalize_step()` can emit, so adding a field
+to the serializer without teaching the panel fails the repack. **Add a new step field in
+three places at once: `normalize_step()`, `initHandoff()` and `handoffOut()`.**
+`bin/roadmap-repair-step-kinds.py` restored the values that were already lost by walking
+roadmap.yaml's git history for the last non-`admin` `kind` / non-empty `tester` per
+(idea id, step text); keep it around in case the class of bug recurs.
+
 **Heights.** Every vertically-resizable box in the editor persists its pixel height in the
 YAML — `notes_h`, `impl_notes_h`, and per-sub-item `step_h`, `question_h`, `answer_h` —
-written only when resized away from the default, and ignored by `gen-roadmap.py`.
+written only when resized away from the default, and ignored by `gen-roadmap.py`. The
+hand-off panel's default (`HO_DEFAULT_H`) **must equal the textarea `min-height` in the
+page CSS**: min-height wins over the inline height, so a smaller default can never equal
+the measured `offsetHeight` and every save stamps a spurious `*_h` on every sub-item. That
+is where 526 junk `*_h: 64` entries came from; the same gate checks it.
+
+**A no-op save must be a byte-for-byte no-op.** Opening an idea in the list form and
+clicking Save with no edits must leave `roadmap.yaml` unchanged — `git diff roadmap.yaml`
+empty. It is the cheapest way to catch both of the failures above at once, because both are
+invisible in the editor itself and only surface two surfaces away.
 
 **Legacy form.** `manual_steps` was originally a plain list of strings. Those still parse
 and are upgraded to `{step, status: open, kind: admin, blocker: false}` on the next save, so no

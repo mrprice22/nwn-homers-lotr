@@ -182,6 +182,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: roadmap step field coverage…"
+if python3 "$HERE/check_roadmap_step_fields.py"; then
+  echo "ok: roadmap step field coverage"
+else
+  echo "fail: roadmap step field coverage"
+  rc=1
+fi
+
 echo "[smoke-test] running: season branding…"
 if python3 "$HERE/check_season_brand.py"; then
   echo "ok: season branding"
