@@ -13,7 +13,10 @@
 //   2. the PC then takes 8% of max HP as damage PER stack that was already
 //      active BEFORE this heal - applied after the top-off so the heal can't
 //      erase it. This can kill: at 13 prior stacks the hit exceeds 100% of
-//      max HP.
+//      max HP. The hit is a raw hit-point drain, not damage, and it is written
+//      through both the script and the NWNX hit-point layers so that neither
+//      resistances nor a polymorph form's separate HP pool can swallow it -
+//      see FAT_DrainHP.
 //   3. a new stack is added.
 // Each stack decays on its own independent 3-minute timer. A heal from zero
 // stacks is therefore completely free: full heal, 1 stack, no damage.
@@ -71,6 +74,8 @@
 //   string fat_queue    the queue itself: one comma-terminated integer per
 //                       stack, its REMAINING seconds, e.g. "180,174,12,"
 //   int    fat_ticking  the ticker's kill switch / double-start guard
+
+#include "nwnx_object"   // SetCurrentHitPoints fallback, see FAT_DrainHP
 
 const string FAT_VAR        = "fat_stacks";
 const string FAT_QVAR       = "fat_queue";
@@ -312,6 +317,54 @@ void FAT_LoginRestore(object oPC)
             oPC, FALSE);
 }
 
+// --- the hit ----------------------------------------------------------------
+
+// Take nDmg hit points off oPC as a scripted cost - not as damage.
+//
+// Why not EffectDamage: EVERY damage type, DAMAGE_TYPE_MAGICAL included, can be
+// soaked by damage resistance, immunity % or DR, and geared PCs reduced the old
+// magical hit to zero. A soul-fatigue hit is a bill, not an attack.
+//
+// Why not the plain SetCurrentHitPoints write either (roadmap:
+// soul-fatigue-not-working-while-shapeshifted): while a PC is POLYMORPHED the
+// engine keeps a second hit-point pool for the form, and a script-layer write
+// does not reliably land on the pool the player is actually standing on - the
+// module already works around the same split in pers_state_inc.nss (HP capture
+// is skipped for morphed shifters because "their morphed HP would stomp the
+// real value") and in pc_export_inc.nss. Players in dragon shape could chain
+// Heal potions and never lose a point.
+//
+// So the drain is written through BOTH layers and then verified. Both writes
+// are ABSOLUTE (set to nTarget, never subtract), so doing both unconditionally
+// is idempotent - it can never double-charge - and whichever layer is
+// authoritative for the shape the PC is in, one of them lands. Only if HP still
+// has not moved do we fall back to EffectDamage, soakable but better than the
+// free heal it replaces.
+//
+// Returns the HP actually removed (0 if even the fallback was fully soaked).
+int FAT_DrainHP(object oPC, int nTarget)
+{
+    int nBefore = GetCurrentHitPoints(oPC);
+    if (nTarget < 1) nTarget = 1;
+    if (nTarget >= nBefore) return 0;
+
+    SetCurrentHitPoints(oPC, nTarget);
+    NWNX_Object_SetCurrentHitPoints(oPC, nTarget);
+
+    int nAfter = GetCurrentHitPoints(oPC);
+    if (nAfter > nTarget)
+    {
+        // Neither write took on this creature. Pay what we can.
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectDamage(nBefore - nTarget, DAMAGE_TYPE_MAGICAL,
+                         DAMAGE_POWER_ENERGY), oPC);
+        nAfter = GetCurrentHitPoints(oPC);
+    }
+
+    if (nAfter > nBefore) return 0;
+    return nBefore - nAfter;
+}
+
 // The ordered mechanic. Runs AFTER the heal has landed on oPC:
 // damage for the stacks held before this heal, then add the new stack.
 // nHeal is the CASTER's total Heal skill, captured at cast time (so it still
@@ -331,48 +384,47 @@ void FAT_ApplyToPC(object oPC, int nHeal)
 
     if (nPrior > 0)
     {
+        // The percentage basis. GetMaxHitPoints reports the character sheet,
+        // which a polymorph form's own hit-point pool can exceed - take
+        // whichever is larger so a shape can never shrink the bill (and so a
+        // 0 returned on error cannot silently zero the whole hit).
+        int nCur = GetCurrentHitPoints(oPC);
+        int nMax = GetMaxHitPoints(oPC);
+        if (nCur > nMax) nMax = nCur;
+
         // Integer maths in thousandths so 0.5%/point is exact - no floats.
-        int nDmg = GetMaxHitPoints(oPC) * FAT_PCT * nPrior / 100;
+        int nDmg = nMax * FAT_PCT * nPrior / 100;
         nDmg = nDmg * (1000 - nCut) / 1000;
-        if (nDmg > 0)
+        if (nDmg < 1) nDmg = 1;   // a carried stack always costs something
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_IMP_NEGATIVE_ENERGY), oPC);
+
+        int nNew = nCur - nDmg;
+        if (nNew < 1)
         {
-            // Remove the HP directly rather than via EffectDamage. This is the
-            // crux of the fix: EVERY EffectDamage damage type - including
-            // DAMAGE_TYPE_MAGICAL - can be soaked by damage resistance,
-            // immunity %, or DR, and geared PCs reduced the old magical hit to
-            // zero. A soul-fatigue hit is a scripted cost, not an attack, so we
-            // subtract HP straight off the creature: nothing can resist or be
-            // immune to it.
+            // Lethal. Base-game SetCurrentHitPoints floors at 1 and never
+            // kills, so force death explicitly. (A PC with outright death
+            // immunity would survive at 1 HP - a rare, accepted corner.)
+            FAT_DrainHP(oPC, 1);
             ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                EffectVisualEffect(VFX_IMP_NEGATIVE_ENERGY), oPC);
-
-            int nCur = GetCurrentHitPoints(oPC);
-            int nNew = nCur - nDmg;
-            if (nNew < 1)
-            {
-                // Lethal. Base-game SetCurrentHitPoints floors at 1 and never
-                // kills, so force death explicitly. (A PC with outright death
-                // immunity would survive at 1 HP - a rare, accepted corner.)
-                SetCurrentHitPoints(oPC, 1);
-                ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                    EffectDeath(FALSE, FALSE), oPC);
-            }
-            else
-            {
-                SetCurrentHitPoints(oPC, nNew);
-            }
-            string sCut = "";
-            if (nCut > 0)
-                sCut = ", -" + IntToString(nCut / 10)
-                     + (nCut % 10 != 0 ? ".5" : "")
-                     + "% from the healer's Heal skill";
-
-            FloatingTextStringOnCreature("Soul-fatigue tears at you for "
-                + IntToString(nDmg) + " damage ("
-                + IntToString(nPrior) + " stack" + (nPrior == 1 ? "" : "s")
-                + " x " + IntToString(FAT_PCT) + "% of max HP"
-                + sCut + ").", oPC, FALSE);
+                EffectDeath(FALSE, FALSE), oPC);
         }
+        else
+        {
+            nDmg = FAT_DrainHP(oPC, nNew);
+            if (nDmg < 1) nDmg = nCur - nNew;   // report the bill, not 0
+        }
+        string sCut = "";
+        if (nCut > 0)
+            sCut = ", -" + IntToString(nCut / 10)
+                 + (nCut % 10 != 0 ? ".5" : "")
+                 + "% from the healer's Heal skill";
+
+        FloatingTextStringOnCreature("Soul-fatigue tears at you for "
+            + IntToString(nDmg) + " damage ("
+            + IntToString(nPrior) + " stack" + (nPrior == 1 ? "" : "s")
+            + " x " + IntToString(FAT_PCT) + "% of max HP"
+            + sCut + ").", oPC, FALSE);
     }
 
     // The new stack - even if the fatigue damage just killed them. Death does
