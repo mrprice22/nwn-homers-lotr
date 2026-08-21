@@ -5975,8 +5975,27 @@ ideas:
   - id: soul-fatigue-not-working-while-shapeshifted
     title: "Soul fatigue not working while shapeshifted"
     group: items-gear
-    status: confirmed
+    status: manual
     type: Exploit
     player: "Sync (Shync)"
     date: "2026-08-21"
-    notes: "<div><div><div><span>im pretty sure the soul fatigue doesn't work while in dragon shape</span></div></div><div><div></div></div></div><div><div> <div><span>Used like 3 pots earlier and was still getting 100%</span></div></div></div>"
+    commit: f1bbb743474
+    notes: "<div><div><div><span>im pretty sure the soul fatigue doesn't work while in dragon shape</span></div></div><div><div></div></div></div><div><div> <div><span>Used like 3 pots earlier and was still getting 100%</span></div></div></div><div><br></div><div><b>Fixed 2026-08-21.</b> Soul-fatigue now bites in every shape. The fatigue hit is deliberately a straight loss of hit points rather than damage, so that no amount of resistance can soak it — but while you were polymorphed the game keeps a second pool of hit points for the form, and the loss was landing on the wrong one. Dragon shape (and every other wild shape, shifter shape and polymorph) could therefore chain Heal potions for free. The drain is now written through both hit-point layers, so it lands whichever form you are wearing, and the message tells you what it actually took. Unshifted behaviour is unchanged: the first heal is still free, each stack you were already carrying still costs 8% of your maximum hit points, and your Heal skill still cuts the bill. Full detail: <a href=\"https://homerslotr.com/manual/Customizations#soul-fatigue\">Customizations — Soul-fatigue on Heal</a>.</div>"
+    impl_notes: "<div>Root cause: heal-soul-fatigue-rebalance switched the hit from EffectDamage to a raw SetCurrentHitPoints() write so gear resistances could not soak it. A script-layer HP write does not reliably land on a polymorphed creature — the engine keeps a separate hit-point pool for the form. The module already works around the same split elsewhere: pers_state_inc.nss skips HP capture for morphed shifters (\"their morphed HP would stomp the real value\") and pc_export_inc.nss refuses to export them at all.</div><div><br></div><div>Fix is contained to fat_inc.nss. New FAT_DrainHP() writes the drain through both the script layer and NWNX_Object_SetCurrentHitPoints(). Both writes are ABSOLUTE (set to the target value, never subtract), so issuing both unconditionally is idempotent and can never double-charge; whichever layer is authoritative for the shape, one lands. It then verifies the HP actually moved and only then falls back to EffectDamage(DAMAGE_TYPE_MAGICAL, DAMAGE_POWER_ENERGY) — soakable, but better than the free heal it replaces — and returns what was really taken, which is what the floating text now reports.</div><div><br></div><div>Also hardened the percentage basis: it now uses max(current, maximum) hit points, so a form whose own pool exceeds the character sheet cannot shrink the bill and a 0 returned on error cannot silently zero the whole hit, and a carried stack's cost is floored at 1 HP. The hook itself was never the problem — Potion of Heal (it_mpotion029/032) carries item property Cast Spell: Heal, so it runs the real spell script and reaches the stop_spellcheat override in every shape.</div><div><br></div><div>Noted but deliberately not changed: a shifter in <b>Undead Shape</b> still gets no stack, because EffectPolymorph overrides racial type and Heal harms undead rather than healing them — there is no heal to charge for. Separately, rm_healingscript.nss and gddrink2.nss heal via EffectHeal without casting a spell and so bypass fatigue entirely; unrelated to shapes, worth its own item if it matters.</div>"
+    manual_steps:
+      - step: "UAT the reported case: in dragon shape, drink a Potion of Heal (free, 1 stack), then drink a second one within 3 minutes. The second must top you off and then take 8% of max HP straight back off, with the \"Soul-fatigue tears at you for N damage\" message. Before the fix HP never moved."
+        status: open
+        kind: uat
+        tester: "shifter with Dragon Shape (or any polymorph), 2+ Potions of Heal"
+      - step: "UAT a second, non-dragon form (wild shape / elemental / greater wildshape) the same way, to confirm the fallback chain is not dragon-specific."
+        status: open
+        kind: uat
+        tester: "shifter, any wild shape"
+      - step: "UAT unshifted regression: same two-potion test in your own form. The bill must be unchanged from before (8% of max HP per prior stack, less the healer's Heal skill), and the number in the message must match the HP actually lost."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT the lethal path in shape: chain heals until the fatigue hit exceeds current HP. It must kill (you respawn still carrying the stacks), not floor you at 1 HP."
+        status: open
+        kind: uat
+        tester: "shifter, expendable character or a healthy margin"
