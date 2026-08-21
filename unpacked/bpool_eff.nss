@@ -22,6 +22,9 @@
 //                 our own churn by definition. Cheap second line of defence in
 //                 case the busy window is ever missed.
 //
+// And one guard that is NOT about our own reentrancy: x2dur_busy, the duration
+// doubler's remove-and-re-apply window. See the note beside it below.
+//
 // BPOOL_PENDING debounces the storm: a death strips dozens of effects in one
 // frame and every one of them lands here. One revalidate is enough.
 
@@ -39,6 +42,14 @@ void main()
 
     string sTag = NWNX_Events_GetEventData("CUSTOM_TAG");
     if (sTag == BPOOL_TAG_ATTACK || sTag == BPOOL_TAG_DAMAGE) return;
+
+    // eff_dur_x2's churn is not an effect ENDING. The duration doubler re-times a
+    // buff by removing it and re-applying a copy on the same stack, and it holds
+    // x2dur_busy across exactly that pair. Revalidating off the remove half asks
+    // "is the witness still there?" in the one instant it deliberately is not -
+    // and half a second later the ledger has dropped a bonus whose spell is
+    // very much still running (roadmap bard-song-issues-round-2).
+    if (GetLocalInt(oTarget, "x2dur_busy")) return;
 
     // Deferred, and not by zero: at death the engine is still working through
     // its strip when the first removal fires. Revalidating mid-strip would read

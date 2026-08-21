@@ -24,11 +24,23 @@ Also note NWNX_Effect_GetTrueEffect resolves with __NWNX_Effect_ResolveUnpack(FA
 - bLink = FALSE - so each component arrives with its link fields cleared. The link
 genuinely cannot be recovered from a single component; it has to be rebuilt.
 
+A rebuilt link also has to be given the ORIGINAL EFFECT'S IDENTITY back. The
+parent effect EffectLinkEffects builds is created here, in a delayed script with
+no spell context, and the engine hands the parent's creator/spell id/subtype down
+to its children - so a faithful per-component copy still comes back out as "spell
+-1, cast by nobody". Everything that identifies an effect by its spell then stops
+seeing it: the bonus ledger's witness check (bonus_pool_inc.nss), the songs'
+"already sung on" guards, RemoveSpellEffects, dispel attribution. That is roadmap
+bard-song-issues-round-2 - Bard Song and War Cry lost their attack bonus one
+second after every application, while every other part of the same buff worked.
+
 Checks:
   1. The doubler links its components back together (EffectLinkEffects).
   2. The apply is fed the accumulated link, not a single packed component.
   3. The collect loop has no `break` - every component sharing the id must be
      visited, both to rebuild the link and to honour the link-sensitive guard.
+  4. The rebuilt link is re-stamped with the original nSpellId and oCreator
+     before it is applied.
 """
 import re
 import sys
@@ -80,10 +92,36 @@ elif re.search(r"^\s*break\s*;", collect.group(0), re.M):
         "id must be visited - both to rebuild the link and so the link-sensitive guard "
         "sees a sibling that is not the first match.")
 
+# 4. the rebuilt link gets its identity back before the apply
+if "NWNX_Effect_UnpackEffect" not in code:
+    errors.append(
+        "eff_dur_x2.nss never unpacks the rebuilt link. The link EffectLinkEffects "
+        "builds carries no spell id or creator of its own, and the engine hands the "
+        "parent's identity down to the components - so the re-applied buff answers "
+        "GetHasSpellEffect() for nothing. Unpack the finished link, write nSpellId "
+        "and oCreator back onto it, and re-pack before applying.")
+else:
+    restamp = re.search(
+        r"(\w+)\s*=\s*NWNX_Effect_UnpackEffect\s*\(\s*(\w+)\s*\)\s*;(.*?)"
+        r"\2\s*=\s*NWNX_Effect_PackEffect\s*\(\s*\1\s*\)",
+        code, re.S)
+    if not restamp:
+        errors.append(
+            "eff_dur_x2.nss unpacks the rebuilt link but never packs it back into the "
+            "effect it applies - the identity re-stamp is incomplete.")
+    else:
+        struct_var, body = restamp.group(1), restamp.group(3)
+        for field in ("nSpellId", "oCreator"):
+            if not re.search(rf"{struct_var}\s*\.\s*{field}\s*=", body):
+                errors.append(
+                    f"eff_dur_x2.nss does not restore .{field} on the rebuilt link. "
+                    "Without it the re-applied buff loses the identity every "
+                    "GetHasSpellEffect() consumer keys off.")
+
 if errors:
     print("check_effect_doubler: FAIL", file=sys.stderr)
     for e in errors:
         print(f"  - {e}", file=sys.stderr)
     sys.exit(1)
 
-print("check_effect_doubler: ok (linked effects are re-applied as links)")
+print("check_effect_doubler: ok (linked effects are re-applied as links, identity intact)")

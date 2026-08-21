@@ -103,6 +103,13 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
     int nParts = 0;
     int i;
 
+    // THE ORIGINAL EFFECT'S IDENTITY, captured off the first component and stamped
+    // back onto the rebuilt link below. See the long note at the re-stamp.
+    int    nIdSpell   = -1;
+    int    nIdSubType = 0;
+    int    nIdCaster  = 0;
+    object oIdCreator = OBJECT_INVALID;
+
     for (i = 0; i < nCount; i++)
     {
         struct NWNX_EffectUnpacked e = NWNX_Effect_GetTrueEffect(oTarget, i);
@@ -118,16 +125,21 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
             return;
 
         // Faithful per-component copy. nSubType (extraordinary/supernatural), nSpellId
-        // and the creator all ride along in the unpacked struct, so ExtraordinaryEffect
-        // status, dispel attribution and the GetHasSpellEffect(GetSpellId(), ...)
-        // "already sung on" guards keep working on the rebuilt link.
+        // and the creator ride along in the unpacked struct, so each COMPONENT keeps
+        // them - but the parent link built below does not inherit them, and the parent
+        // is what the engine hands down. That is what the re-stamp after the loop is
+        // for; see the note there before touching either.
         e.fDuration = fDur * 2.0;                    // cosmetic; the apply param rules
         effect eComponent = NWNX_Effect_PackEffect(e);
 
         if (!bHave)
         {
-            eAll  = eComponent;
-            bHave = TRUE;
+            eAll       = eComponent;
+            bHave      = TRUE;
+            nIdSpell   = e.nSpellId;
+            nIdSubType = e.nSubType;
+            nIdCaster  = e.nCasterLevel;
+            oIdCreator = e.oCreator;
         }
         else
         {
@@ -138,6 +150,39 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
 
     if (!bHave)
         return;     // effect already gone -- see the header note on deferral
+
+    // RE-STAMP THE LINK'S OWN IDENTITY. THIS IS NOT COSMETIC.
+    //
+    // EffectLinkEffects builds a NEW parent effect, here in a delayed script situation
+    // with no spell context, and the engine hands the PARENT's creator / spell id /
+    // subtype down to its children -- the same rule that makes ExtraordinaryEffect(eLink)
+    // cover every component of a link. So re-applying the collected components as a
+    // rebuilt link silently republishes the whole buff as "spell -1, cast by nobody",
+    // even though every component struct carried the right nSpellId.
+    //
+    // Everything that identifies an effect by its SPELL then stops seeing it:
+    //
+    //   * the bonus ledger's WITNESS check (bonus_pool_inc.nss, BPool_Revalidate) --
+    //     GetHasSpellEffect(411) for Bard Song, 373 for War Cry and so on. One second
+    //     after any effect removal the witness reads FALSE, the ledger drops the entry
+    //     and the attack bonus is re-rendered without it. That is roadmap
+    //     bard-song-issues-round-2: "bard song doesnt seem to give ab now", and
+    //     "warcry gives the 2ab and instantly takes it away".
+    //   * the "already sung on" guard GetHasSpellEffect(GetSpellId(), oTarget) in both
+    //     song scripts.
+    //   * RemoveSpellEffects(), and dispel attribution.
+    //
+    // The version before the link rebuild (roadmap curse-song-too-many-instructions)
+    // re-applied a single UNLINKED packed component, which kept its own nSpellId - which
+    // is why nothing noticed until the link rebuild landed. Unpacking the finished link
+    // and writing the identity back gives us both: the whole link AND the original
+    // spell's identity on it.
+    struct NWNX_EffectUnpacked eLinked = NWNX_Effect_UnpackEffect(eAll);
+    eLinked.nSpellId    = nIdSpell;
+    eLinked.nSubType    = nIdSubType;
+    eLinked.nCasterLevel = nIdCaster;
+    eLinked.oCreator    = oIdCreator;
+    eAll = NWNX_Effect_PackEffect(eLinked);
 
     // The busy flag has to be set HERE, around the synchronous apply, not around the
     // DelayCommand that scheduled us -- our own re-applied copy fires the event again
@@ -151,6 +196,8 @@ void X2Dur_ReTime(object oTarget, string sUID, float fDur, object oCreator, stri
         WriteTimestampedLogEntry("[x2dur] target=" + GetName(oTarget) +
             " creator=" + GetName(oCreator) +
             " spellId=" + sSpellId +
+            " reappliedSpellId=" + IntToString(nIdSpell) +
+            " subType=" + IntToString(nIdSubType) +
             " parts=" + IntToString(nParts) +
             " dur=" + FloatToString(fDur, 0, 1) +
             " -> " + FloatToString(fDur * 2.0, 0, 1));

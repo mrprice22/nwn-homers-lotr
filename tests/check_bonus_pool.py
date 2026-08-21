@@ -202,6 +202,27 @@ for key in re.findall(r"^const string (BPOOL_SRC_\w+)", pool, re.M):
                 f"spell's own effect does - the backstop timer is 3x the "
                 f"duration and is not a clock.")
 
+# --- 3d. the pooled effect is rendered OUT of any spell context ---------------
+# An effect is stamped with the spell id of the script that creates it, and the
+# registrants are spell/feat scripts: Bard Song (411) calls BardSong_Pool
+# mid-song, War Cry (373) calls BPool_SpellAttack mid-cast. Rendered inline, the
+# ledger's PERMANENT effect wears that spell's identity, and then it satisfies
+# the ledger's own witness (GetHasSpellEffect(411) is true forever), satisfies
+# the song's "already sung on" guard, and is swept by the RemoveSpellEffects()
+# at the top of nw_s0_warcry - which would strip every source's bonus at once.
+# Deferring the apply gives it a script situation with no spell context.
+if not re.search(r"DelayCommand\s*\(\s*0\.0\s*,\s*BPool_Render\s*\(", pool):
+    errors.append(
+        f"{POOL}: BPool_Rebuild must render through DelayCommand(0.0, "
+        f"BPool_Render(...)). Applied inline it inherits the calling spell's id, "
+        f"which makes the pooled effect its own witness and puts it in reach of "
+        f"RemoveSpellEffects(GetSpellId(), ...) in the spell forks.")
+elif "ApplyEffectToObject" not in (
+        re.split(r"\nvoid\s+\w+", pool.split("void BPool_Render", 1)[-1])[0]):
+    errors.append(
+        f"{POOL}: BPool_Render does not apply the effect - the deferred render is "
+        f"where the pooled bonus actually reaches the creature.")
+
 # --- 4. the ledger recalculates when a bonus ENDS, not only when one starts ---
 # Without this wiring the ledger is write-only: a song that ended early leaves
 # its bonus behind, and a respawn's RemoveEffects takes the permanent feat
@@ -225,6 +246,13 @@ else:
             "bpool_eff.nss dropped the BPOOL_BUSY guard. Rebuilding the ledger "
             "strips our own effect and fires this event - without the guard "
             "every rebuild schedules another one, forever.")
+    if "x2dur_busy" not in handler:
+        errors.append(
+            "bpool_eff.nss dropped the x2dur_busy guard. The duration doubler "
+            "re-times a buff by removing it and re-applying it on the same "
+            "stack; revalidating off the remove half reads the witness in the "
+            "one instant it is deliberately absent and drops a live bonus "
+            "(roadmap bard-song-issues-round-2).")
     if "BPOOL_LIVE" not in handler:
         errors.append(
             "bpool_eff.nss dropped the BPOOL_LIVE guard. This runs for every "

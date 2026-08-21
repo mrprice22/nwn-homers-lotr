@@ -146,6 +146,7 @@ int    BPool_DamageConst(int nAmount);
 int    BPool_Get(object oCreature, int nChannel, string sSource);
 int    BPool_Total(object oCreature, int nChannel);
 void   BPool_StripTag(object oCreature, string sTag);
+void   BPool_Render(object oCreature, int nChannel, int nTotal);
 void   BPool_Rebuild(object oCreature, int nChannel);
 void   BPool_Set(object oCreature, int nChannel, string sSource, int nAmount,
                  float fDuration = 0.0);
@@ -297,21 +298,35 @@ void BPool_StripTag(object oCreature, string sTag)
 // it is not stripped by rest or dispel while entries are still live; the cost
 // is that dispelling a bard song no longer removes its share, which the ledger's
 // timer does instead.
-void BPool_Rebuild(object oCreature, int nChannel)
+//
+// THE RENDER IS DEFERRED, AND THAT IS LOAD-BEARING - IT MUST NOT RUN IN A
+// CALLER'S SPELL CONTEXT.
+//
+// An effect is stamped with the spell id of the script that CREATES it, and
+// nearly every registrant is a spell or feat script: Bard Song (spell 411) calls
+// BardSong_Pool mid-song, War Cry (373) calls BPool_SpellAttack mid-cast. Built
+// inline, the pooled effect would come out wearing that spell's identity, and it
+// is PERMANENT, so:
+//
+//   * it satisfies the ledger's own witness - GetHasSpellEffect(411) stays TRUE
+//     forever because the pooled effect IS a spell-411 effect. The witness in
+//     BPool_Revalidate becomes circular and a transient entry can only ever end
+//     on its backstop timer.
+//   * it satisfies the song's "already sung on" guard in nw_s2_bardsong.nss, so
+//     a bard carrying any permanent pooled bonus (Legendary Prowess) can be
+//     silently unable to re-sing on themselves.
+//   * RemoveSpellEffects(GetSpellId(), ...) sweeps it. nw_s0_warcry does exactly
+//     that at the top of every cast, which would strip the WHOLE pooled bonus -
+//     every source, not just War Cry's - while leaving the ledger untouched.
+//
+// A DelayCommand runs as its own script situation with no spell context, so the
+// effect is created as spell -1 and belongs to nobody but the ledger.
+void BPool_Render(object oCreature, int nChannel, int nTotal)
 {
-    string sTag = BPool_Tag(nChannel);
-
-    // Stripping our own effect fires NWNX_ON_EFFECT_REMOVED_AFTER, which is
-    // wired to bpool_eff -> BPool_Revalidate -> back in here. Without this flag
-    // that is an endless loop, every rebuild scheduling the next one. The flag
-    // is cleared on the next frame, which is also after the ApplyEffect below.
-    SetLocalInt(oCreature, BPOOL_BUSY, TRUE);
-    DelayCommand(0.0, DeleteLocalInt(oCreature, BPOOL_BUSY));
-
-    BPool_StripTag(oCreature, sTag);
-
-    int nTotal = BPool_Total(oCreature, nChannel);
+    if (!GetIsObjectValid(oCreature)) return;
     if (nTotal <= 0) return;
+
+    string sTag = BPool_Tag(nChannel);
 
     effect e;
     if (nChannel == BPOOL_CH_DAMAGE)
@@ -330,6 +345,26 @@ void BPool_Rebuild(object oCreature, int nChannel)
 
     e = SupernaturalEffect(TagEffect(e, sTag));
     ApplyEffectToObject(DURATION_TYPE_PERMANENT, e, oCreature);
+}
+
+void BPool_Rebuild(object oCreature, int nChannel)
+{
+    string sTag = BPool_Tag(nChannel);
+
+    // Stripping our own effect fires NWNX_ON_EFFECT_REMOVED_AFTER, which is
+    // wired to bpool_eff -> BPool_Revalidate -> back in here. Without this flag
+    // that is an endless loop, every rebuild scheduling the next one. The flag
+    // is set BEFORE the strip and deleted in a command queued AFTER the render,
+    // so it still covers our own churn now that the render is deferred - same
+    // frame, and delayed commands run in the order they were queued.
+    SetLocalInt(oCreature, BPOOL_BUSY, TRUE);
+
+    BPool_StripTag(oCreature, sTag);
+
+    int nTotal = BPool_Total(oCreature, nChannel);
+
+    DelayCommand(0.0, BPool_Render(oCreature, nChannel, nTotal));
+    DelayCommand(0.0, DeleteLocalInt(oCreature, BPOOL_BUSY));
 }
 
 // Register (or refresh) one source's contribution.
