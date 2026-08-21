@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-08-20 20:25 CDT"
+  as_of: "2026-08-21 10:21 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -138,10 +138,20 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: potions-to-restore-spent-spells-and-feats-day
+    title: "Potions to restore spent spells and feats/day"
+    group: items-gear
+    status: soon
+    type: Enhancement
+    player: "Sync (Shync)"
+    date: "2026-08-21"
+    notes: "<div><div><span><span>HomelessSon</span><span><span> [MW], </span></span></span><span><span><i> — </i>9:42 AM</span></span><div><span>I think it would be cool to have potions that give you some (spent) spell slots back.. just not sure how to price them or where they should be looted </span><span><img src=\"https://discord.com/assets/0424e06a82d250e2.svg\" alt=\"🙂\"></span> <span><span></span></span></div></div><div><div></div></div></div><div><div><span><span><br></span></span></div><div><span><span>Sync </span></span><span><span><i>— </i>9:45 AM</span></span><div><span>Ah yeah, on a diablo server I played they had mana pots</span></div></div><div><div></div></div></div><div><div> <div><span>Small, medium and large</span></div></div><div><div><div></div><div></div><span><div></div></span></div></div><div><div></div></div></div><div><div> <div><span>Each refilling a portion of the daily  spells</span></div></div><div><div></div></div></div><div><div> <div><span>And the large one also refilling feat like stuff</span></div></div><div><div></div></div></div><div><div> <div><span>Like hellballs and such</span></div></div><div><div></div></div></div><div><div> <div><span>Which having that also for shape uses would be nice.... Since you have to keep going out of it sometimes </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span> <span><span></span></span></div></div><div><div></div></div></div><div><div> <div><span>They had it tied to progression (acts) the best ones being on the last town</span></div></div><div><div><div></div><div></div><span><div></div></span></div></div><div><div></div></div></div><div><div><span><span><br></span></span></div><div><span><span>HomelessSon</span><span><span> [MW], </span></span></span><span><span><i> — </i>9:51 AM</span></span><div><span>yeah those large ass dragons lol.. I looked into resizing those once, I think it's possible.. we were having issues with some area transitions only working when you're not a giant dragon.  I could start with a small change like 80% of normal size I suppose </span><span><img src=\"https://discord.com/assets/0424e06a82d250e2.svg\" alt=\"🙂\"></span></div></div><div><div></div></div></div><div><div><span><span><br></span></span></div><div><span><span>Sync</span><span></span></span><span><span><i> — </i>9:52 AM</span></span><div><span>Yeah, i like being a big dragon.... But they can really be annoying in a party or small areas </span><span><img src=\"https://discord.com/assets/e5bddb2a9171637d.svg\" alt=\"🤣\"></span></div></div><div><div></div></div></div><div><div> <div><span>Think theres a cep dragon which is like human size (unless it was just a regular one resized)</span></div></div><div><div></div></div></div><div><div> <div><span>Other server where I also played a dragon build, they had an extra feat you needed to take for unlimited uses of dragon shape</span></div></div><div><div><div></div><div></div><span><div></div></span></div></div><div><div></div></div></div><div><div><span><span><br></span></span></div><div><span><span>HomelessSon</span><span><span> [MW], </span></span></span><span><span><i> — </i>9:54 AM</span></span><div><span>that sounds fun</span></div><div><span><br></span></div></div><div><div><span><span>Sync </span></span><span><span><i>— </i>9:54 AM</span></span><div><span>So you could just shift and unshift to go through tight areas and doors</span></div></div></div></div>"
+    notes_h: 387
   - id: attack-bonus-cap-20
     title: "Attack bonus capped at +20 once a weapon is equipped"
     group: combat-classes
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Sync (Shync)"
     date: "2026-08-21"
@@ -150,25 +160,27 @@ ideas:
     impl_notes: "<div><b>Root cause: the engine's attack-bonus limit, not the module.</b> NWN:EE clamps the SUM of item attack bonus and effect attack bonus to settings.tml [ruleset.combat] max-attack-bonus, engine default 20 (NWScript GetAttackBonusLimit / SetAttackBonusLimit; ini label AttackBonusLimit, Server Options). A +15 weapon therefore left +5 of headroom for the whole bonus ledger, and the engine truncates silently - no log line, no feedback. Unarmed testing never hit it, which is exactly why the bard-song round-2 UAT passed while play did not.</div><div><br></div><div><b>Fix:</b> server.env NWN_MAX_ATTACK_BONUS=40, patched into settings.tml by bin/serve in the same replace-or-insert block that already forces max-ability-bonus=24, with the same g&lt;1&gt; discipline (a bare backreference there is an octal escape - the stray-T bug). The schema constraint on this key is already max=255, so unlike max-character-level there is no second line to bump. Verified idempotent: patching a live copy twice changes exactly one line, 20 -&gt; 40.</div><div><br></div><div><b>Not a ruleset.2da row</b> - nothing in the stock or hak table exposes this limit - so no hak rebuild and NO NWSync refresh. The value is read at server start, so it needs a restart and nothing else. Deliberately attack only: max-saving-throw-bonus (20), max-skill-bonus (50), max-damage-bonus (100) left alone.</div><div><br></div><div><b>Doc correction (bonus_pool_inc.nss header):</b> it claimed item attack bonus was max-of against the pooled total. It is not - item AB and the pooled effect ADD, and the engine clamps the sum. The header now says so, and names the ceiling, so the next reader does not re-derive this from a bug report.</div>"
     manual_steps:
       - step: "Arm bin/reboot-on-empty so the dev realm picks up the new settings.tml. The cap is read at server start, so nothing changes in game until the realm cycles. Never force-restart the dev realm.\n\nArmed 2026-08-21 (bin/reboot-on-empty). Waiting for the realm to empty; mark done once the server has come back up and GetAttackBonusLimit reads 40."
-        status: wip
-        kind: publish
+        status: done
+        kind: admin
         blocker: true
+        step_h: 64
       - step: "UAT the reported bug: equip a +15 weapon, note the logged attack roll, then stack Bard Song / Legendary Prowess / War Cry and confirm the roll keeps climbing past +20 of bonus instead of flatlining. Read the COMBAT LOG, not the character sheet."
-        status: open
-        kind: uat
-        tester: "Sync, level 60 melee or bard with a +15 weapon"
+        status: done
+        kind: admin
+        step_h: 64
       - step: "UAT the new ceiling itself: pile on enough sources to exceed +40 of attack bonus and confirm it stops there rather than somewhere lower. This is the check that proves the setting took, not just that something improved."
         status: open
-        kind: uat
-        tester: "level 60 with a high-plus weapon and full buffs"
+        kind: admin
+        step_h: 64
       - step: "UAT the character sheet: the sheet is drawn client-side, so check whether its attack number tracks the new ceiling or still clamps at the old one. If the two disagree the combat log is the source of truth - report it rather than treating it as a regression."
-        status: open
-        kind: uat
-        tester: "any"
+        status: done
+        kind: admin
+        step_h: 64
   - id: bard-song-issues-round-2
     title: "Bard song issues round 2"
     group: combat-classes
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Sync (Shync)"
     date: "2026-08-21"
