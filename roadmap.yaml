@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-08-21 10:53 CDT"
+  as_of: "2026-08-21 11:10 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -138,6 +138,14 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: arcane-spellfailure-ammount-now-showing-in-wiki-details
+    title: "Arcane spellfailure %ammount now showing in wiki details"
+    group: wiki-tools
+    status: wip
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-21"
+    notes: "<div>Item name: Mithral of Sauron</div><div>ResRef: <a href=\"https://homerslotr.com/items/cloth034\" target=\"_blank\" rel=\"noopener\">cloth034</a></div><div>Tag: NW_CLOTeqeqH026</div><div><br></div><div>Has property 'Arcane Spell Failure' without confirming how much spell failure. In-game this item shows 30% arcane spell failure chance</div>"
   - id: potions-to-restore-spent-spells-and-feats-day
     title: "Potions to restore spent spells and feats/day"
     group: items-gear
@@ -2798,9 +2806,11 @@ ideas:
     title: "Replace the conversation-based Legendary Leveler with normal 1-40 leveling (works with 4x multiclass)"
     group: combat-classes
     epic: legendary-levels
-    status: later
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "-Methonash-"
+    date: "2026-07-16"
   - id: relevel-option
     title: "A 1-40 re-level / de-level option (when not exploitable)"
     group: combat-classes
@@ -5706,7 +5716,8 @@ ideas:
     title: "Purge HGLL from the wiki and repo docs"
     group: wiki-tools
     epic: legendary-levels
-    status: later
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-07-25"
@@ -5717,15 +5728,15 @@ ideas:
     manual_steps:
       - step: "UAT: log in and open Journal -> Completed -> \"Character Progression\" — it must describe levels 41-60 as real levels on the published XP table (48,800 over level 40, compounding 1.1x, 3,581,000 at level 60) with no mention of HGLL or a leveling NPC."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT: check the server listing / module description in the NWN server browser — it should read \"1.5x XP, with real levels 41-60 on the server's own experience table (in development)\" and no longer advertise an HGLL framework. Confirm the Connect: and Wiki: lines are still correct for Season 2."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "UAT: after the next scheduled wiki refresh, open Customizations -> Legendary Levels: 41-60 and the Leveling Guide and confirm no page still mentions HGLL, the Legendary Leveler NPC/placeable, or the Legendary Levelling Area."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
       - step: "Decide whether the \"in development for Season 2\" framing is the wording you want on the public wiki, given the old leveler is still physically in the module until ll-hgll-remove-scripts ships. If you would rather the pages describe 41-60 as live, say so and the caveats come out in one edit."
         status: done
