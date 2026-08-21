@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-08-21 10:21 CDT"
+  as_of: "2026-08-21 10:53 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -453,7 +453,8 @@ ideas:
   - id: curse-song-too-many-instructions
     title: "Cuse Song gives too many instructions error"
     group: combat-classes
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-08-20"
@@ -508,7 +509,8 @@ ideas:
   - id: petrification-respawn-defect-round-3
     title: "Petrification still not killing after 3 min"
     group: combat-classes
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-08-20"
@@ -518,34 +520,36 @@ ideas:
     manual_steps:
       - step: "UAT: click a dragon statue in Castle Homeless (Ground Floor). You should be turned to stone with a dust burst, and the death window with the DISABLED Respawn button should appear - the rig is only correct if it reproduces the original bug."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT (this is the step that proves the diagnosis): read the dev log for [petrify] lines. They must show 'tick' lines COUNTING heartbeats. If they are absent the watcher is still returning early and the GetIsDead theory was wrong - reopen with the log."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT: at ~2 minutes the escalating warnings appear in chat AND as floating text, then the PC dies and the death window returns with Respawn ENABLED. Click it and confirm a normal respawn at the bind point with no lingering petrify and no stone appearance."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT: repeat against a real basilisk/medusa (basilisk00x) rather than the statue, to prove the fix is not rig-only."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT: have someone cast Stone to Flesh mid-countdown and confirm the watcher stops with no spurious death afterwards."
         status: open
-        kind: uat
-        tester: "any caster"
+        kind: admin
+        step_h: 64
       - step: "UAT regression (ondeath020 runs on EVERY player death): die normally, not petrified, and confirm the death window's Respawn button is still enabled and works."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "Decide whether the two Castle Homeless statues stay clickable after UAT. They are currently open to anyone - a player who clicks one gets two minutes as a statue. Gating them behind Admin_CanAdmin() in pet_test_stn.nss is a two-line change if that becomes a nuisance."
         status: open
         kind: admin
+        step_h: 64
       - step: "Publish: nwn-manager repack + server restart. Script and area-instance change - no hak, TLK or 2da involved, so no NWSync refresh."
         status: open
-        kind: publish
+        kind: admin
+        step_h: 64
   - id: feat-for-more-damage-dice-to-spells
     title: "+1 die for damage spells, could be taken 10 times?"
     group: forge
@@ -1066,7 +1070,8 @@ ideas:
     title: "casters not getting spells after level 40"
     group: combat-classes
     epic: legendary-levels
-    status: confirmed
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: Szescian82
     date: "2026-07-29"
@@ -1076,84 +1081,111 @@ ideas:
       - question: "Sorcerers and bards gain slots but reportedly cannot pick NEW spells known past 40 (upstream says no client UI). Ship slots only, or build a scripted picker?"
         status: answered
         answer: "Not sure what you mean by (no client UI) -- there is an existing UI for bards and sorcerers to re-pick their spells on level up for normal 1-40 levels. If we can't reuse that then fine, slots only. [Follow-up 1: wizards are affected too. Resolution: measure the native GUI before building anything. Follow-up 2, after the UAT: using scrolls or items outside the level-up screen feels janky -- keep digging on making the native level-up screen itself work. Hence tests A-D above.]"
+        question_h: 64
+        answer_h: 64
     manual_steps:
       - step: "REPACK the .mod so sk_probe_*.nss actually runs. Publishing the hak alone does NOT deploy scripts; this was missed the first time and is why the first UAT produced no probe output. DONE 2026-07-29 21:04 (13/13 smoke, dialog integrity clean, both subscriptions verified present in the compiled onmoduleload.ncs)."
         status: done
-        kind: publish
+        kind: admin
+        step_h: 64
       - step: "DIAGNOSTIC (native GUI): DONE 2026-07-29 — at level 41 only the cantrip tab is populated, every other spell-level tab empty, strref 10278; levels 1-40 fine; level-up completes with the picks unspent."
         status: done
         kind: admin
+        step_h: 64
       - step: "TEST A: DONE 2026-07-29 — PASS. A fresh caster class (sorcerer 1) taken at character level 41 offers spells normally, so the cap keys on CLASS level > 40, not character level. Multiclass casters are unaffected; only 40+ levels in one casting class hits this."
         status: done
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "TEST B: DONE 2026-07-29 — FAIL. With both cls_spkn tables packed and published (manifest 3705b2d03f2), a sorcerer past class level 40 shows the identical cantrips-only failure. No data lever reaches this. Tables removed from RULES_2DA and deleted."
         status: done
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "TEST C: MOOT, never run — B was its precondition and B failed, so routing Wizard through a known-spells table cannot help. Deliberately skipped to avoid a risky change and a publish cycle."
         status: done
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "TEST D: DONE 2026-07-29 — FAIL. classes.2da Wizard MaxLevel 0 -> 60 changed nothing; reverted, and classes.2da is byte-identical to its pre-test state."
         status: done
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "ROOT CAUSE FOUND (admin observation): the spell-level tabs render ENABLED for ~1 frame, then are hidden/greyed. The client computes the correct tab set from the 2DA data, then a LATER client-code pass disables it — which is why no 2DA, hak, plugin option or server script can fix it, and why B and D failed. Closed as unfixable from this repo pending a client build."
         status: done
-        kind: publish
+        kind: admin
+        step_h: 64
       - step: "RETROACTIVE make-good — SCOPED 2026-07-29, far smaller than first feared. The picks are not recoverable natively: nothing stores an 'owed picks' count (ComputeNumberKnownSpellsLeft is derived, and is exposed neither to NWScript nor NWNX), and a past level-up cannot be reopened. But the affected population is tiny: season 1 runs NWNX_MAXLEVEL_SKIP=y so it is capped at 40 and NONE of its 181 characters can be affected; only the season 2 test vault can. Audited all 17 season 2 .bic files — exactly ONE character is actually owed anything: picwizardrix (Wizard 53) has lost 2 x 13 = 26 picks. norisallennall (Sorcerer 44) is owed nothing under the shipped 'repertoire locks at 40' rule, and merinetaswift (Wizard 40) is at the boundary with nothing lost. Everyone else at level 60 is multiclass with no single class at 40+. So this needs a one-off top-up for one test character, not a system: if wizard scroll-scribing works past 40 (unverified, see the blocker above) hand that character 26 scrolls or the gold for them and the ledger is square."
         status: open
         kind: admin
+        step_h: 64
       - step: "CLEANUP once the fix lands: delete unpacked/sk_probe_inc.nss, sk_probe_pre.nss, sk_probe_post.nss and the two NWNX_ON_LEVEL_UP_* subscriptions for them in onmoduleload.nss. The cls_spkn tables are already deleted."
         status: open
         kind: admin
+        step_h: 64
       - step: "STOPPING RULE REACHED, DECISION MADE 2026-07-29: build a custom NUI spell picker that pops up immediately after level up (option a). Chosen because it fires as part of finishing a level rather than sending the player to an NPC, scroll or item, and because being server-side it also fixes the stock prestige-class arcane re-pick gap at every level."
         status: done
         kind: admin
+        step_h: 64
       - step: "BUILD the post-level-up NUI spell picker. Three jobs in one window: wizards pick 2 new spells per level past class level 40; sorcerers/bards re-pick known spells past 40 (restoring the stock rule in dialog.tlk 64332); and sorcerers re-pick when a prestige class advances arcane spellcasting (a stock gap at ALL levels, unrelated to the cap). Design, reusable pieces and guardrails are in impl_notes. Budget: wizard 2/level, sorcerer 1/level, bard 1 per 2 levels."
-        status: open
+        status: done
         kind: admin
         blocker: true
+        step_h: 64
       - step: "DESIGN QUESTION to settle before building the bonus: scope the prestige-class re-pick to PrCs that ALREADY advance arcane casting, or pair it with flipping NWNX_Tweaks ADD_PRESTIGECLASS_CASTER_LEVELS (currently off on purpose — it also changes 1-40 balance, see ll-nwnx-tweaks-audit)?"
         status: open
         kind: admin
+        step_h: 64
       - step: "WIKI follow-up when the picker ships: Customizations.html currently tells sorcerers/bards their repertoire is locked in at 40 and to pick deliberately. That becomes wrong the moment the picker lands — rewrite that bullet and the wizards-use-scrolls bullet at the same time."
         status: open
         kind: admin
+        step_h: 64
       - step: "VERIFY THE WIZARD SCROLL CLAIM before players rely on it. Customizations.html now tells wizards to keep learning from scrolls past 40, but scroll-scribing above class level 40 has NOT been tested here. It is a different code path from the level-up panel so it probably works, but if it refuses with dialog.tlk 64457 'You have not achieved the required level to learn that spell' then wizards have no route at all and that wiki paragraph must be corrected. One arcane scroll the character does not know is the whole test."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         blocker: true
+        step_h: 64
       - step: "REPORT UPSTREAM: not tracked at Beamdog/nwn-issues and listed as a known issue with no workaround in the NWNX MaxLevel doc. A help request for the nwnxee channel on the NWVault Discord has been drafted; file a Beamdog issue too if nobody there has a workaround, since only a client fix can restore the native page."
         status: open
         kind: admin
+        step_h: 64
       - step: "UAT: log in a wizard already past class level 40 (picwizardrix, Wizard 53) and confirm the login message offers exactly 26 spells -- (class level - 40) x 2."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT pays once: after spending or closing the Spellbook Study window, log out and back in -- the offer must be only what is unspent, never a fresh 26. Then level once more and confirm exactly 2 more are added."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT non-farmable: drop a wizard below class level 41 and level back up -- the climb must grant no picks at all."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: level a wizard past 40 and confirm the Spellbook Study window opens on its own a few seconds after the level-up completes."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: learn a spell, then relog and confirm it is still in the spellbook (known spells live in the .bic)."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: close the window without picking, then Force Rest -- it must reopen with the picks intact."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT specialist: on a specialist wizard, confirm the opposition school is absent from every spell-level list."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: confirm a spell already known is never listed, and that scribing from a scroll still works and consumes none of these picks."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT inert cases: a sorcerer or bard past class level 40 must get NO window, no login message and no lost picks -- nothing may be silently spent while their half is unbuilt."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT no collision: a pure wizard reaching level 60 gets the Legendary Feats window and then the Spellbook Study window, one after the other, both usable."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
   - id: rancid-skinner-bark-still-not-working
     title: "Rancid Skinner is still shouting 'Helms Deep is under attack' on death"
     group: quests-areas
@@ -3061,7 +3093,7 @@ ideas:
     title: "Forbidden Realms Key tier: journal quest and a Númenor gate opening the orphaned Tombs of the Lost Souls as the Weathertop court's barrow"
     group: bosses
     epic: difficulty-increase
-    status: manual
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-18"
@@ -3295,49 +3327,6 @@ ideas:
       - step: "UAT: a maxed level-60 caster with Greater Spell Penetration should now fail to land a meaningful share of spells on the Gwathdor Lord and the other monk bosses."
         status: open
         kind: uat
-  - id: boss-feat-parity
-    title: "Decide the NPC answer to the extra class bonus feats level-60 builds now get"
-    group: bosses
-    epic: difficulty-increase
-    status: design
-    type: Enhancement
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-30"
-    notes: "<div>Ability scores and armour class can answer the raw attack-bonus gain from levels 41-60, but not the extra <i>feats</i> — level-60 builds now collect class bonus feats on top of the normal general feat every three levels. What the endgame roster gets in exchange is still an open design call; the options are recorded on this item rather than guessed at.</div>"
-    impl_notes: "<div>Split out of <a href=\"#idea-boss-ability-ac-bump\">the ability/AC bump</a>, which covers only the numeric side. Nothing is committed here yet — see the design questions.</div>"
-    design_questions:
-      - question: "Which lever should answer the PCs' extra feats? (a) Bake epic feats straight into FeatList — Great Strength/Constitution stacks, Epic Weapon Focus, Armor Skin, Epic Toughness, Improved Evasion — scriptable exactly like the ability bump, but FeatList is part of check_divergent_creatures.py's combat_key so blueprint and instance must move in lockstep. (b) A runtime OnSpawn buff package in the style of summon_boost.nss / npcbuffgear — gate-neutral and far easier to retune per tier, at the cost of being invisible in the blueprint. (c) Tactical rather than numeric, per the 'Tactical, Not Spongy' brief: scripted counters (dispel, timed area effects, adds) instead of more passive feats. Proposal: (b) for the broad pass because it is retunable, with (c) reserved for named bosses."
-        status: open
-        answer: null
-      - question: "Explicit call to make before any feat list is written: Epic Dodge on bosses. It converts a melee fight into near-total whiffing and is probably the wrong answer for a server whose difficulty brief is 'tactical, not spongy'. Proposal: ban Epic Dodge from the compensation set and use Improved Evasion / Armor Skin instead. Agreed?"
-        status: open
-        answer: null
-      - question: "Should the feat compensation apply to the same population as the ability bump (everything at 60+ class levels, friendlies included), or only to hostiles / only to the CR>60 registry bosses? Proposal: registry bosses and hostiles only — feats change behaviour, not just numbers, so bumping merchants and guides buys nothing."
-        status: open
-        answer: null
-  - id: boss-caster-dc-spellpen
-    title: "Decide the NPC answer to level-60 caster save DCs and spell penetration"
-    group: bosses
-    epic: difficulty-increase
-    status: design
-    type: Enhancement
-    player: "HomelessSon (Server Admin)"
-    date: "2026-07-30"
-    notes: "<div>The other half of the level-60 power jump that raw armour class cannot answer: casters gained twenty levels of caster level, higher save DCs, and enough spell penetration to push through resistances that used to hold. <a href=\"#idea-boss-monk-sr-levels\">The monk spell-resistance bump</a> covers the monk bosses; everything else — and the target numbers — is still an open design call.</div>"
-    impl_notes: "<div>Split out of <a href=\"#idea-boss-ability-ac-bump\">the ability/AC bump</a>. Note that the +12 ability bump already delivers about +6 to every saving throw, so whatever is decided here is on top of that. Nothing committed yet — see the design questions.</div>"
-    design_questions:
-      - question: "How should spell resistance be raised on non-monk bosses? (a) A spell-resistance item property on the existing npcbuffgear skin — hak_2da/iprp_srcost.2da is present and the skin pattern is already in use from the boss tuning pass; (b) an OnSpawn EffectSpellResistanceIncrease in the style of summon_boost.nss, retunable per tier without touching blueprints. Proposal: (b) for the broad pass, (a) for named bosses where the resistance should be visible on examine. Either way, what number is the target — it has to beat Greater Spell Penetration plus Assay Resistance at caster level 60."
-        status: open
-        answer: null
-      - question: "Do the endgame NPCs also need a flat saving-throw bump on top of the +6 the ability bump gives, using the fortbonus / refbonus / willbonus blueprint fields? The per-boss tuning pass already set the precedent of closing dumped saves individually. Proposal: no blanket bump — re-measure after the ability bump lands and only patch bosses still failing save-or-die effects on a natural 2."
-        status: open
-        answer: null
-      - question: "Should some of the answer be absorption/immunity rather than resistance — spell mantles (EffectSpellLevelAbsorption), mind/death/paralysis immunity where it is lore-appropriate, or percentage spell-damage immunity? Proposal: yes, sparingly and only on named bosses, because blanket immunity makes whole caster builds useless rather than merely challenged."
-        status: open
-        answer: null
-      - question: "The number everything else follows from: what success rate should a maxed level-60 caster see against a tier-1 boss — how often should a save-or-die land, and how often should a spell be resisted outright? Proposal: roughly 40-50% of DC-based spells land, and spell resistance stops about a third of them, so casters stay effective but cannot trivialise a boss with two spells."
-        status: open
-        answer: null
 
   # ---- Progression, bestiary & achievements --------------------------------
   - id: achievements
@@ -5379,7 +5368,8 @@ ideas:
     title: "Raise the server level cap to 60"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-07-27"
@@ -5394,29 +5384,29 @@ ideas:
         answer_h: 99
     manual_steps:
       - step: "Restart the season 2 server so the new NWNX env vars are read (bin/server-restart). The plugin load line for MaxLevel and ELC should appear in the startup log; \"Server: Invalid argument to -maxlevel\" at startup is expected and safe to ignore per the plugin readme."
-        status: open
+        status: done
         kind: admin
         blocker: true
         step_h: 64
       - step: "UAT: with the rebuilt hak published, take a level-40 test character past 40 (Ping Pong → Set my level → Legendary Levels 41-60, or award XP) and confirm level 41 is actually granted rather than silently refused."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         step_h: 64
       - step: "UAT: confirm the in-game server browser advertises the level range up to 60."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         step_h: 64
       - step: "If level 41 is refused, the ELC dependency is the first thing to check — confirm NWNX_ELC actually loaded in the startup log before touching anything else."
-        status: open
+        status: done
         kind: admin
         step_h: 64
       - step: "UAT: at level 40+ open the character sheet and confirm \"Next Level\" shows the exptable figure (828,800 at level 40) on one line with no second number visible. Check again at 41 and at 60, where it should read \"Max\"."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
         step_h: 64
       - step: "UAT: drain a level 40 character below 40 (death XP loss or Ping Pong) and confirm the sheet goes back to the stock \"Next Level\" display rather than sticking on the override."
         status: open
-        kind: uat
+        kind: admin
         step_h: 64
   - id: ll-cls-progression
     title: "Class progression tables for levels 41-60"
@@ -5826,7 +5816,8 @@ ideas:
     title: "Legendary Feats: feat.2da plumbing and the first proof feats"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-01"
@@ -5846,20 +5837,24 @@ ideas:
         answer_h: 64
     manual_steps:
       - step: "Publish: python3 bin/gen-legendary-feats.py --apply, bin/build-lotr-tlk --apply --install, bin/build-lotr-rules-hak --install, bin/refresh-nwsync, nwn-manager repack, bin/server-restart. The hak and the TLK must go out together — the rows point at strrefs only lotr.tlk has, so a client with one and not the other reads blank feat names."
-        status: open
-        kind: publish
+        status: done
+        kind: admin
         blocker: true
+        step_h: 64
       - step: "UAT: grant a legendary feat to a test character by console/toolset (nothing in game hands them out yet) and confirm the name, description and icon all read correctly on the character sheet. A blank name means the hak and TLK are out of step."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
+        step_h: 64
       - step: "UAT: on a level-up at any level, confirm no Legendary feat appears on the engine's own feat-selection page. ALLCLASSESCANUSE=0 should make that impossible, but it is the failure this whole design exists to avoid and it is cheap to eyeball once."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
+        step_h: 64
   - id: ll-feats-picker
     title: "Legendary Feats: the level-60 picker window"
     group: combat-classes
     epic: legendary-levels
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-01"
@@ -5869,41 +5864,53 @@ ideas:
     manual_steps:
       - step: "UAT round 1 (2026-08-01): pure-class allotment correct, and no legendary feat on the engine's own level-up feat page. Four defects found — multiclass allotment, rest re-entry, buff-vs-base-score, picker layout — all fixed in 725941dbae4."
         status: done
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT round 2 (2026-08-01): admin reset tool works. Level 59->60 threw \"sqlite error: not prepared\" and no picker — a missing class_sig schema migration, fixed in 5e7b1f05b04. No DB wipe is needed now; the schema self-heals on load."
         status: done
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: re-pick. As a level-60 character with picks taken, ask Ping Pong to choose them again — old feats gone, base scores back to their pre-pick values, full allotment offered, level unchanged. Pick different feats and confirm ONLY the new bonuses are on the sheet. Repeat the swap three or four times and confirm the scores return to exactly the same numbers each time (a drift upward is the stat farm this must not be)."
-        status: open
-        kind: uat
+        status: done
+        kind: admin
+        step_h: 64
       - step: "UAT: the re-pick node does NOT appear for a character below level 60, and re-picking is refused while polymorphed (shift, then try)."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "Publish: nwn-manager repack and bin/server-restart. Scripts and a dialog changed; the hak and TLK are already live and need no rebuild or nwsync."
-        status: open
-        kind: publish
+        status: done
+        kind: admin
         blocker: true
+        step_h: 64
       - step: "UAT: allotment is 3 pure Fighter / 2 pure other / 1 mixed. Take a pick and confirm the character sheet's BASE score rose in plain text — no green tint, no buff icon — and that it stacks on a character already at the gear enchantment cap."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: relog and confirm the score is unchanged and NOT doubled. A second +6 after one relog means the login path is re-applying a base-score feat, which is permanent and cumulative."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT, revoke on relevel: as a pure class take both picks, then relevel to 59/1 via Ping Pong. Both feats gone, base scores back to their pre-pick values, 1 pick offered, and a message explaining it. Check no ability score was driven below its true base."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT, revoke on level loss: at 60 with picks taken, drop to 59 (die for the XP loss, or Ping Pong down). Feats gone, scores restored, nothing offered at 59; return to 60 and confirm the picks come back."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT, energy drain does NOT revoke — the case this must not get wrong. At 60 with picks taken, take negative levels (a draining creature or a DM-applied EffectNegativeLevel): the feats and their base-score bonuses stay. Log in while drained and confirm the login check leaves them alone too."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: cancel the picker, then Force Rest — the window reopens. Spend the last pick and rest again — it does not. With picks outstanding, log in and see the nudge message."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
       - step: "UAT: the picker reads cleanly — all six rows visible with no horizontal scrollbar, header not clipped, name/effect/tooltip correct. This doubles as the ll-feats-2da hak/TLK check: a blank name means the hak and TLK are out of step."
         status: open
-        kind: uat
+        kind: admin
+        step_h: 64
   - id: ll-feats-ability-martial
     title: "Legendary Feats: ability score and martial feats"
     group: combat-classes
@@ -6169,7 +6176,8 @@ ideas:
     title: "Halmir the Grey becomes an in-game quest guide"
     group: quests-areas
     epic: quest-overhaul
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-14"
@@ -6179,16 +6187,16 @@ ideas:
     manual_steps:
       - step: "UAT: Halmir's intro is short, and all five level bands list the right quests and return to him afterwards."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT: the twelve \"Speak to me of the ...\" order replies and the order-summary reply are gone from Halmir's root."
         status: open
-        kind: uat
-        tester: "any"
+        kind: admin
+        step_h: 64
       - step: "UAT at level 60: the Legendary Feats re-pick reply still appears on Halmir and still reopens the picker."
         status: open
-        kind: uat
-        tester: "level 60"
+        kind: admin
+        step_h: 64
 
   - id: devcrit-unarmed-save-or-die
     title: "Devastating Critical still killed outright on unarmed and creature attacks"
