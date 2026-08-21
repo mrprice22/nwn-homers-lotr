@@ -57,11 +57,13 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>sc_delay_lock</code></h1><pre class="nss-source"><code>void main()
+<h1>Script: <code>sc_delay_lock</code></h1><pre class="nss-source"><code>// sc_delay_lock - OnOpen auto-close + re-lock on a short delay.
+// The lock hangs off the door actually being shut. See door_inc.nss.
+#include &quot;door_inc&quot;
+
+void main()
 {
-    DelayCommand(3.0, ActionCloseDoor(OBJECT_SELF));
-    DelayCommand(3.5, ActionLockObject(OBJECT_SELF));
-    return;
+    DoorAutoClose(6.0, TRUE);
 }
 </code></pre>
   </main>

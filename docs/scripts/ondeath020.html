@@ -103,7 +103,15 @@ void main()
 
 
 
-    DelayCommand(2.5, PopUpGUIPanel(oPC,GUI_PANEL_PLAYER_DEATH)) ;
+    // PopUpDeathGUIPanel, NOT PopUpGUIPanel, and the button states are stated
+    // rather than inherited ON PURPOSE (roadmap
+    // petrification-respawn-defect-round-3). Stock DoPetrification pops this same
+    // panel with PopUpDeathGUIPanel(oTarget, FALSE, TRUE, 40579) - Respawn
+    // DISABLED - moments before the petrification timeout kills the PC, and the
+    // player was left staring at a death window they could not dismiss. Saying
+    // TRUE, TRUE here is what re-enables the button. Do not &quot;simplify&quot; this back
+    // to PopUpGUIPanel.
+    DelayCommand(2.5, PopUpDeathGUIPanel(oPC, TRUE, TRUE, 0, &quot;&quot;)) ;
 
 }
 </code></pre>

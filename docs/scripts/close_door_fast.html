@@ -57,10 +57,12 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>close_door_fast</code></h1><pre class="nss-source"><code>void main()
-{
-DelayCommand(2.0, ActionCloseDoor(OBJECT_SELF));
+<h1>Script: <code>close_door_fast</code></h1><pre class="nss-source"><code>// close_door_fast - OnOpen auto-close on the short delay. See door_inc.nss.
+#include &quot;door_inc&quot;
 
+void main()
+{
+    DoorAutoClose(5.0);
 }
 </code></pre>
   </main>

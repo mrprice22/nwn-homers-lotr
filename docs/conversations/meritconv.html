@@ -59,8 +59,8 @@
   <main>
 <h1>Conversation: <code>meritconv</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>8</dd>
-<dt>PC replies</dt><dd>55</dd>
+<dt>NPC lines</dt><dd>9</dd>
+<dt>PC replies</dt><dd>56</dd>
 <dt>NumWords</dt><dd>0</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
@@ -70,7 +70,9 @@
 <li><span class="badge">creature</span> NPC <a href="../creatures/merit_keeper.html">Barliman Butterbur</a> — in <a href="../areas/theprancingpo001.html">The Prancing Pony Ground Floor</a></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>merit_lvis_0</code></td><td>active</td><td>✓</td><td></td></tr>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>merit_gate</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>merit_gate_no</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>merit_lvis_0</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_lvis_1</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_lvis_2</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_lvis_3</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -137,6 +139,8 @@
 <tr><td><code>&lt;CUSTOM5025&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
 <tr><td><code>&lt;CUSTOM5026&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
 <tr><td><code>&lt;CUSTOM5027&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
+<tr><td><code>&lt;CUSTOM5028&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
+<tr><td><code>&lt;CUSTOM5029&gt;</code></td><td><a href="../scripts/bst_db.html">bst_db</a>, <a href="../scripts/merit_db.html">merit_db</a></td></tr>
 <tr><td><code>&lt;CUSTOM5037&gt;</code></td><td><a href="../scripts/merit_redeem.html">merit_redeem</a></td></tr>
 <tr><td><code>&lt;CUSTOM5050&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5051&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
@@ -187,6 +191,7 @@
  Defects reported: <span class="custom-token" title="SetCustomToken(5020, ...) called in: merit_db">&lt;CUSTOM5020&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5023, ...) called in: merit_db">&lt;CUSTOM5023&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
  Exploits reported: <span class="custom-token" title="SetCustomToken(5021, ...) called in: merit_db">&lt;CUSTOM5021&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5024, ...) called in: merit_db">&lt;CUSTOM5024&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
  Features implemented: <span class="custom-token" title="SetCustomToken(5022, ...) called in: merit_db">&lt;CUSTOM5022&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5025, ...) called in: merit_db">&lt;CUSTOM5025&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
+ Fixes validated: <span class="custom-token" title="SetCustomToken(5028, ...) called in: merit_db">&lt;CUSTOM5028&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5029, ...) called in: bst_db, merit_db">&lt;CUSTOM5029&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>, <a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
 
 Total merit earned: <span class="custom-token" title="SetCustomToken(5026, ...) called in: merit_db">&lt;CUSTOM5026&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
 Available to spend: <span class="custom-token" title="SetCustomToken(5027, ...) called in: merit_db">&lt;CUSTOM5027&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
@@ -194,7 +199,7 @@ Available to spend: <span class="custom-token" title="SetCustomToken(5027, ...) 
 What can I do for you?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #3</span> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<summary><span class="dlg-id">reply #3</span> <small class="muted">(if <code>merit_gate</code>)</small> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
 <div class="dlg-text">I&#x27;d like to redeem a reward.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
@@ -538,6 +543,25 @@ What can I do for you?</div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #55</span> <small class="muted">(if <code>merit_gate_no</code>)</small> <a class="dlg-anchor" href="#r55" title="jump to flat reply #55">¶</a></summary>
+<div class="dlg-text">I&#x27;d like to redeem a reward.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #8</span> <a class="dlg-anchor" href="#e8" title="jump to flat entry #8">¶</a></summary>
+<div class="dlg-text">Ah - the shelves are bare on this one, friend. The merit shop only trades on the live realm; this here&#x27;s the testing house, and I&#x27;ll not have folk spending hard-earned merit on a round that doesn&#x27;t count.
+
+Your tally&#x27;s safe where it is. Come see me on the live realm and I&#x27;ll set out the whole catalogue.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r12">reply #12</a> <span class="dlg-link-preview">“(Back)”</span></div>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
+<div class="dlg-text">That&#x27;s all for now. Farewell.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>merit_mypend</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">Show my pending requests (so I can cancel one).</div>
 <div class="dlg-tree-children">
@@ -572,10 +596,7 @@ No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credi
 </details>
 </div>
 </details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #6</span> <a class="dlg-anchor" href="#r6" title="jump to flat reply #6">¶</a></summary>
-<div class="dlg-text">That&#x27;s all for now. Farewell.</div>
-</details>
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r6">reply #6</a> <span class="dlg-link-preview">“That&#x27;s all for now. Farewell.”</span></div>
 </div>
 </details>
 </div>
@@ -601,11 +622,12 @@ No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credi
  Defects reported: <span class="custom-token" title="SetCustomToken(5020, ...) called in: merit_db">&lt;CUSTOM5020&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5023, ...) called in: merit_db">&lt;CUSTOM5023&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
  Exploits reported: <span class="custom-token" title="SetCustomToken(5021, ...) called in: merit_db">&lt;CUSTOM5021&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5024, ...) called in: merit_db">&lt;CUSTOM5024&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
  Features implemented: <span class="custom-token" title="SetCustomToken(5022, ...) called in: merit_db">&lt;CUSTOM5022&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5025, ...) called in: merit_db">&lt;CUSTOM5025&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
+ Fixes validated: <span class="custom-token" title="SetCustomToken(5028, ...) called in: merit_db">&lt;CUSTOM5028&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5029, ...) called in: bst_db, merit_db">&lt;CUSTOM5029&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>, <a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
 
 Total merit earned: <span class="custom-token" title="SetCustomToken(5026, ...) called in: merit_db">&lt;CUSTOM5026&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
 Available to spend: <span class="custom-token" title="SetCustomToken(5027, ...) called in: merit_db">&lt;CUSTOM5027&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
 
-What can I do for you?</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“I&#x27;d like to redeem a reward.”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Show my pending requests (so I can cancel one).”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“How does merit work?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“That&#x27;s all for now. Farewell.”</span></li></ul></div>
+What can I do for you?</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“I&#x27;d like to redeem a reward.”</span> <small class="muted">(if <code>merit_gate</code>)</small></li><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“I&#x27;d like to redeem a reward.”</span> <small class="muted">(if <code>merit_gate_no</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Show my pending requests (so I can cancel one).”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“How does merit work?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“That&#x27;s all for now. Farewell.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">What sort of reward are you after?
 
 (Everything&#x27;s a proof-of-concept for now. Instant rewards are granted on the spot; the rest are logged as a request and a DM fulfils them - your merit is held until then, and you can cancel for a full refund.)</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Teleport &amp; travel”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Premium boosts (2x gold &amp; XP)”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Vanity &amp; swag”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Player housing - claim &amp; size”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Player housing - add-ons”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“(Back)”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“On second thought, farewell.”</span></li></ul></div>
@@ -619,6 +641,9 @@ What can I do for you?</div><ul class="dlg-links"><li><a href="#r3">→ reply #3
   Discord: report issues &amp; ideas there - that&#x27;s where it all starts.
 
 No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credited you.</div><ul class="dlg-links"><li><a href="#r53">→ reply #53</a> <span class="dlg-link-preview">“(Back)”</span></li><li><a href="#r54">→ reply #54</a> <span class="dlg-link-preview">“Farewell.”</span></li></ul></div>
+<div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Ah - the shelves are bare on this one, friend. The merit shop only trades on the live realm; this here&#x27;s the testing house, and I&#x27;ll not have folk spending hard-earned merit on a round that doesn&#x27;t count.
+
+Your tally&#x27;s safe where it is. Come see me on the live realm and I&#x27;ll set out the whole catalogue.</div><ul class="dlg-links"><li><a href="#r12">→ child</a> <span class="dlg-link-preview">“(Back)”</span></li><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“That&#x27;s all for now. Farewell.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>merit_npc_init</code></span></div><div class="dlg-text">Tell me about my contributions and available rewards.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">How do I earn (and spend) merit?</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Easy enough! Report a bug or suggest a feature - if a DM ships it, you earn meri…”</span></li></ul></div>
@@ -675,6 +700,7 @@ No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credi
 <div class="dlg-node reply" id="r52"><div class="dlg-head"><span class="dlg-id">reply #52</span></div><div class="dlg-text">Farewell.</div></div>
 <div class="dlg-node reply" id="r53"><div class="dlg-head"><span class="dlg-id">reply #53</span> <span class="dlg-action">→ <code>merit_npc_init</code></span></div><div class="dlg-text">(Back)</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></li></ul></div>
 <div class="dlg-node reply" id="r54"><div class="dlg-head"><span class="dlg-id">reply #54</span></div><div class="dlg-text">Farewell.</div></div>
+<div class="dlg-node reply" id="r55"><div class="dlg-head"><span class="dlg-id">reply #55</span></div><div class="dlg-text">I&#x27;d like to redeem a reward.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Ah - the shelves are bare on this one, friend. The merit shop only trades on the…”</span></li></ul></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

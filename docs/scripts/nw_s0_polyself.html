@@ -136,6 +136,10 @@ void main()
     // vanilla merged nothing for arcane polymorphs.
     struct ShapeMergeGear gear = ShapeMergeSnapshot(oTarget);
 
+    // shifter-stats-defect: the form&#x27;s stock bonus on top of the caster&#x27;s own
+    // stats, linked into ePoly so it ends exactly when the form does.
+    ePoly = ShapeMergeStatFloor(oTarget, nPoly, ePoly, gear);
+
     //Apply the VFX impact and effects
     AssignCommand(oTarget, ClearAllActions()); // prevents an exploit
     ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
