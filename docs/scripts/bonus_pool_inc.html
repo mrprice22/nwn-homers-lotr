@@ -98,9 +98,21 @@
 // the ledger adds up, spells included: to a character carrying Legendary
 // Prowess&#x27;s permanent +5 an engine-typed buff spell was worth +0, and the admin
 // ruled that a pooled bonus is a pooled bonus.
-// Still OUTSIDE the ledger and therefore still max-of against the pooled total:
-// item attack bonus (a property, not an effect), the stock spells not forked
-// here, and the deliberate exemptions below.
+// Still OUTSIDE the ledger: item attack bonus (a property, not an effect), the
+// stock spells not forked here, and the deliberate exemptions below. Effects
+// among themselves are max-of, which is what the ledger exists to defeat.
+//
+// ITEM ATTACK BONUS IS NOT MAX-OF AGAINST THE POOL - IT ADDS, AND THEN THE
+// ENGINE CLAMPS THE SUM. The ceiling is GetAttackBonusLimit(), engine default
+// 20, i.e. weapon plus pooled total together. That is why Sync&#x27;s +15 weapon
+// made Bard Song / Prowess / War Cry look broken while unarmed testing looked
+// perfect: unarmed there was headroom, armed there was +5 of it and everything
+// past +20 was silently eaten (roadmap: attack-bonus-cap-20). This realm raises
+// the ceiling to 40 via server.env NWN_MAX_ATTACK_BONUS -&gt; settings.tml
+// [ruleset.combat] max-attack-bonus (patched by bin/serve). Nothing in
+// ruleset.2da exposes it. Keep the pool&#x27;s totals in mind against that ceiling:
+// the ledger can sum past it, and the engine will not tell you it truncated.
+//
 // tests/check_bonus_pool.py is the build gate: a new EffectAttackIncrease or
 // EffectDamageIncrease in a module-owned script must come through here or be
 // listed as a deliberate exemption. An unpooled bonus is invisible - it
@@ -205,6 +217,7 @@ int    BPool_DamageConst(int nAmount);
 int    BPool_Get(object oCreature, int nChannel, string sSource);
 int    BPool_Total(object oCreature, int nChannel);
 void   BPool_StripTag(object oCreature, string sTag);
+void   BPool_Render(object oCreature, int nChannel, int nTotal);
 void   BPool_Rebuild(object oCreature, int nChannel);
 void   BPool_Set(object oCreature, int nChannel, string sSource, int nAmount,
                  float fDuration = 0.0);
@@ -356,21 +369,35 @@ void BPool_StripTag(object oCreature, string sTag)
 // it is not stripped by rest or dispel while entries are still live; the cost
 // is that dispelling a bard song no longer removes its share, which the ledger&#x27;s
 // timer does instead.
-void BPool_Rebuild(object oCreature, int nChannel)
+//
+// THE RENDER IS DEFERRED, AND THAT IS LOAD-BEARING - IT MUST NOT RUN IN A
+// CALLER&#x27;S SPELL CONTEXT.
+//
+// An effect is stamped with the spell id of the script that CREATES it, and
+// nearly every registrant is a spell or feat script: Bard Song (spell 411) calls
+// BardSong_Pool mid-song, War Cry (373) calls BPool_SpellAttack mid-cast. Built
+// inline, the pooled effect would come out wearing that spell&#x27;s identity, and it
+// is PERMANENT, so:
+//
+//   * it satisfies the ledger&#x27;s own witness - GetHasSpellEffect(411) stays TRUE
+//     forever because the pooled effect IS a spell-411 effect. The witness in
+//     BPool_Revalidate becomes circular and a transient entry can only ever end
+//     on its backstop timer.
+//   * it satisfies the song&#x27;s &quot;already sung on&quot; guard in nw_s2_bardsong.nss, so
+//     a bard carrying any permanent pooled bonus (Legendary Prowess) can be
+//     silently unable to re-sing on themselves.
+//   * RemoveSpellEffects(GetSpellId(), ...) sweeps it. nw_s0_warcry does exactly
+//     that at the top of every cast, which would strip the WHOLE pooled bonus -
+//     every source, not just War Cry&#x27;s - while leaving the ledger untouched.
+//
+// A DelayCommand runs as its own script situation with no spell context, so the
+// effect is created as spell -1 and belongs to nobody but the ledger.
+void BPool_Render(object oCreature, int nChannel, int nTotal)
 {
-    string sTag = BPool_Tag(nChannel);
-
-    // Stripping our own effect fires NWNX_ON_EFFECT_REMOVED_AFTER, which is
-    // wired to bpool_eff -&gt; BPool_Revalidate -&gt; back in here. Without this flag
-    // that is an endless loop, every rebuild scheduling the next one. The flag
-    // is cleared on the next frame, which is also after the ApplyEffect below.
-    SetLocalInt(oCreature, BPOOL_BUSY, TRUE);
-    DelayCommand(0.0, DeleteLocalInt(oCreature, BPOOL_BUSY));
-
-    BPool_StripTag(oCreature, sTag);
-
-    int nTotal = BPool_Total(oCreature, nChannel);
+    if (!GetIsObjectValid(oCreature)) return;
     if (nTotal &lt;= 0) return;
+
+    string sTag = BPool_Tag(nChannel);
 
     effect e;
     if (nChannel == BPOOL_CH_DAMAGE)
@@ -389,6 +416,26 @@ void BPool_Rebuild(object oCreature, int nChannel)
 
     e = SupernaturalEffect(TagEffect(e, sTag));
     ApplyEffectToObject(DURATION_TYPE_PERMANENT, e, oCreature);
+}
+
+void BPool_Rebuild(object oCreature, int nChannel)
+{
+    string sTag = BPool_Tag(nChannel);
+
+    // Stripping our own effect fires NWNX_ON_EFFECT_REMOVED_AFTER, which is
+    // wired to bpool_eff -&gt; BPool_Revalidate -&gt; back in here. Without this flag
+    // that is an endless loop, every rebuild scheduling the next one. The flag
+    // is set BEFORE the strip and deleted in a command queued AFTER the render,
+    // so it still covers our own churn now that the render is deferred - same
+    // frame, and delayed commands run in the order they were queued.
+    SetLocalInt(oCreature, BPOOL_BUSY, TRUE);
+
+    BPool_StripTag(oCreature, sTag);
+
+    int nTotal = BPool_Total(oCreature, nChannel);
+
+    DelayCommand(0.0, BPool_Render(oCreature, nChannel, nTotal));
+    DelayCommand(0.0, DeleteLocalInt(oCreature, BPOOL_BUSY));
 }
 
 // Register (or refresh) one source&#x27;s contribution.
