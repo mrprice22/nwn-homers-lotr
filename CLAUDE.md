@@ -94,6 +94,15 @@ is the trap this note exists to close. Both syncs take the same
 `~/.cache/onedrive-sync.lock` (`flock`): two concurrent runs share one
 `~/.config/onedrive/items.sqlite3` and would corrupt it.
 
+**Unpack reads more folders than repack writes.** `nwn-manager unpack`
+(`nwn_manager/bin/refresh-homers-lotr`, the *Unpack* app-grid tile) picks the
+newest-mtime `.mod` across `ONEDRIVE_MOD_DIRS`. On the **dev realm** that is
+`Test/` **and** `Dev/` — toolset round-trips come back into either, and scanning
+only `Test/` silently unpacks a stale build with nothing saying so. Seasons scan
+only their own folder: pulling a dev build into a production repo is the
+cross-contamination the per-role folder split exists to prevent. Writing is
+unchanged — still exactly one destination per build.
+
 `~/OneDrive/Games/NWNHomersLOTR` **must stay in `~/.config/onedrive/sync_list`** —
 drop it and every destination-1 copy silently becomes local-only.
 (`~/OneDrive/Documents/Neverwinter Nights/modules` is *not* in that list and has been
