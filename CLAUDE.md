@@ -64,6 +64,41 @@ per small fix. Full schema + workflow: [CLAUDE-roadmap.md](CLAUDE-roadmap.md). *
 
 **`docs/` is a human-readable reference**: `docs/index.html` (area map), `docs/creatures/`, `docs/areas/`, `docs/conversations/`, `docs/items/`, `docs/stores/`, `docs/factions.html`, `docs/journal.html`. Use it to look up module content before parsing JSON by hand.
 
+### Where a repack puts the `.mod` — three destinations
+
+`nwn_manager/bin/repack-homers-lotr` (and `-clean`) writes **three** copies of every
+build. All three paths are derived per-season from the target repo's `nasher.cfg` +
+`server.env` by `nwn_manager/bin/repack-project.sh`, so no wrapper hard-codes them —
+run `repack-homers-lotr --project <repo> --show-config` to see the resolved set.
+
+| # | Destination | Purpose | Skipped when |
+|---|---|---|---|
+| 1 | `~/OneDrive/Games/NWNHomersLOTR/<Test\|Season N>/<artifact>.mod` | off-machine copy + the Windows toolset's source; `Test/` for `SEASON_ROLE=dev`, `Season<N>/` otherwise | the OneDrive **root** is missing (the per-season subdir is created on demand) |
+| 2 | `$NWN_HOME_DIR/modules/$NWN_MODULE.mod` | the live install the server loads | `--no-prod` |
+| 3 | `<repo>/<artifact>_YYYYmmdd_HHMMSS.mod` | timestamped local rollback archive | never |
+
+**Destination 1 is a local mirror, not an upload.** There is no OneDrive daemon on
+this host (`homebrew.onedrive-cli.service` is installed but **disabled**), so nothing
+pushes that directory to the cloud on its own. Since 2026-08-22 the repack fires its
+own `onedrive --sync` in the background right after the copy
+(`repack_onedrive_upload` in `repack-project.sh`) — detached, so it outlives the
+build window; log at `~/.cache/repack-onedrive-sync.log`; set
+`REPACK_ONEDRIVE_SYNC=0` to skip it.
+
+Before that, the **only** sync on the host was the one at the end of
+`bin/backup-homers-lotr`, which runs once per boot behind a 24h sentinel. A build
+made at midday therefore did not reach the cloud or any second machine until the
+03:00 reboot — 12+ hours later, and not at all on a day with no reboot. From the
+OneDrive web view that looks exactly like "the repack never copied anything", which
+is the trap this note exists to close. Both syncs take the same
+`~/.cache/onedrive-sync.lock` (`flock`): two concurrent runs share one
+`~/.config/onedrive/items.sqlite3` and would corrupt it.
+
+`~/OneDrive/Games/NWNHomersLOTR` **must stay in `~/.config/onedrive/sync_list`** —
+drop it and every destination-1 copy silently becomes local-only.
+(`~/OneDrive/Documents/Neverwinter Nights/modules` is *not* in that list and has been
+a stale local leftover since 2026-05-15 — it is not a publish target.)
+
 ### Publishing to clients: when to rebuild the hak, when to refresh NWSync
 
 **A module-only change never needs NWSync.** `bin/refresh-nwsync` runs without

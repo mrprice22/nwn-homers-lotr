@@ -48,6 +48,9 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 : "${ONEDRIVE_SYNC_ARGS:=--sync --threads 1}"
 : "${ONEDRIVE_BIN:=}"
 : "${BACKUP_ONEDRIVE_SYNC:=1}"              # 0 to skip the upload step
+# Shared with repack_onedrive_upload in nwn_manager/bin/repack-project.sh — both
+# take this lock so only one `onedrive --sync` ever touches the item DB.
+: "${ONEDRIVE_SYNC_LOCK:=$HOME/.cache/onedrive-sync.lock}"
 
 FORCE=0; DRY_RUN=0
 for a in "$@"; do
@@ -220,8 +223,13 @@ if [[ ${BACKUP_ONEDRIVE_SYNC:-1} -eq 1 ]]; then
   fi
   if [[ -n $od ]]; then
     log "uploading via $od $ONEDRIVE_SYNC_ARGS"
+    # flock: a repack now fires its own `onedrive --sync` the moment it writes
+    # the OneDrive copy (nwn_manager/bin/repack-project.sh, repack_onedrive_upload),
+    # so this is no longer the only sync on the host. Two concurrent syncs share
+    # one ~/.config/onedrive/items.sqlite3 and corrupt it. -w 900: wait up to
+    # 15 min for a repack's upload to finish rather than skipping the backup's.
     # shellcheck disable=SC2086
-    if "$od" $ONEDRIVE_SYNC_ARGS; then
+    if flock -w 900 "$ONEDRIVE_SYNC_LOCK" "$od" $ONEDRIVE_SYNC_ARGS; then
       log "onedrive sync complete"
     else
       log "warn: onedrive sync failed (rc=$?); backup is local-only until next sync"
