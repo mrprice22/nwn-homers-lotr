@@ -73,9 +73,40 @@ run `repack-homers-lotr --project <repo> --show-config` to see the resolved set.
 
 | # | Destination | Purpose | Skipped when |
 |---|---|---|---|
-| 1 | `~/OneDrive/Games/NWNHomersLOTR/<Test\|Season N>/<artifact>.mod` | off-machine copy + the Windows toolset's source; `Test/` for `SEASON_ROLE=dev`, `Season<N>/` otherwise | the OneDrive **root** is missing (the per-season subdir is created on demand) |
+| 1 | `~/OneDrive/Games/NWNHomersLOTR/<Test\|Season N>/<artifact>_YYYYmmdd_HHMMSS.mod` | off-machine copy + the Windows toolset's source; `Test/` for `SEASON_ROLE=dev`, `Season<N>/` otherwise | the OneDrive **root** is missing (the per-season subdir is created on demand) |
 | 2 | `$NWN_HOME_DIR/modules/$NWN_MODULE.mod` | the live install the server loads | `--no-prod` |
 | 3 | `<repo>/<artifact>_YYYYmmdd_HHMMSS.mod` | timestamped local rollback archive | never |
+
+Destinations 1 and 3 share **one** `BUILD_STAMP` per build, so a OneDrive build and its
+local twin are correlatable by name. Only destination 2 keeps a fixed filename — in NWN
+the module name *is* the `.mod` filename, so it must stay `$NWN_MODULE.mod`.
+
+**Destination 1 is never overwritten — every build gets its own filename.** Reusing one
+name per season stopped propagating to the Windows toolset PC: it sat on
+`homers_lotr_test.mod` dated 8/14 and `homers_lotr_s2.mod` dated 7/25 while this host's
+copies were current and the sync client reported them uploaded. The Windows-side cause
+was never identified; a per-build name sidesteps it, because a new file is a *create*
+rather than a *modify*. If a timestamped build **also** fails to appear on Windows, the
+fault is in that client's sync state, not here.
+
+**Retention: `REPACK_KEEP_BUILDS` (default 5) at destinations 1 and 3**, pruned by
+`repack_prune_builds` at the end of every repack. What counts as deletable is
+deliberately different in the two places:
+
+| Location | Prunable | Protected |
+|---|---|---|
+| OneDrive folder | `<current MODBASE>_YYYYmmdd_HHMMSS.mod`, or exactly `<current MODFILE>` | everything else — these folders also hold builds renamed by hand as point-in-time backups |
+| repo root | any `*_YYYYmmdd_HHMMSS.mod`, whatever the prefix | `$MODFILE` (the live nasher output), and any name with a description after the timestamp |
+
+The asymmetry is load-bearing. `MODBASE` has changed across seasons (`homers_lotr_v3` →
+`_s2`/`_test`), so anchoring the repo root to the *current* one would strand tens of GB
+of older-named archives — but that same looseness would be unsafe in OneDrive, where the
+admin renames files by hand. The `$` anchor in both patterns is what preserves every
+annotated milestone (`homers_lotr_v3_20260616_082050_aragorn quest.mod`).
+
+**`Dev/` is never pruned.** It is the Windows→Linux direction — builds modified in the
+toolset, waiting to be unpacked, existing nowhere else. `repack_prune_builds` refuses
+outright on a directory named `Dev`, on top of never being pointed at one.
 
 **Destination 1 is a local mirror, not an upload.** There is no OneDrive daemon on
 this host (`homebrew.onedrive-cli.service` is installed but **disabled**), so nothing
