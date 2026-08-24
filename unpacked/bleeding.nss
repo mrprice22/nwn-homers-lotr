@@ -40,10 +40,9 @@
 // precompiled gaze/flesh-to-stone scripts that inline the STOCK DoPetrification,
 // so that edit never ran and PCs stayed petrified indefinitely. This central,
 // source-independent watcher runs off the module heartbeat instead: it works no
-// matter what applied the petrify. After PETRIFY_TIMEOUT seconds the PC is killed
-// via EffectDeath and then respawned at the bind point by pet_respawn, with
-// escalating warnings both in chat and as floating text every PETRIFY_WARN_BUCKET
-// seconds. Timing is wall clock, not heartbeat pulses (see round 4 below).
+// matter what applied the petrify. After PETRIFY_TIMEOUT seconds the stone is
+// stripped and the PC is killed, with escalating floating-text warnings every
+// PETRIFY_WARN_BUCKET seconds. Timing is wall clock, not heartbeat pulses.
 //
 // Round 3 deleted a GetIsDead() early-return that could never be trusted (a
 // petrified PC may or may not read as dead depending on the branch stock
@@ -52,24 +51,44 @@
 // 2026-08-20 shows that half working exactly as intended: the ticks count, the
 // strip takes (stripped=1 stillStone=0) and the kill lands (isDead=1).
 //
-// Round 4 (petrification-respawn-defect-round-4) fixes the two things that
-// trace also exposed:
+// Round 4 measured elapsed time against the wall clock instead of counting
+// pulses. Heartbeats land ~6.5s apart in practice, not the nominal 6.0, so
+// counting them stretched a "2 minute" timeout to 130 real seconds - the
+// "waited 3 minutes" in the report. That part is kept.
 //
-//   * The player was still stuck. The engine had ALREADY popped its own death
-//     window with Respawn greyed out at petrify time, and re-popping the panel
-//     from ondeath020 does not refresh a panel the client is already showing -
-//     hence "I can't respawn, but after exiting and re-entering the game
-//     everything is fine". So the timeout no longer asks the player to click
-//     anything: it hands off to pet_respawn, which resurrects them at the bind
-//     point. The engine closes the death window on its own once they are alive.
-//   * The countdown was long. Heartbeat pulses are not exactly 6.0s apart -
-//     the trace ran 130 real seconds over 20 pulses (~6.5s each), which is the
-//     "waited 3 minutes" in the report. Elapsed time is now measured against
-//     the wall clock, so PETRIFY_TIMEOUT means 120 REAL seconds under any load.
+// Round 4 ALSO made the timeout respawn the player outright (pet_respawn.nss).
+// Round 5 (petrification-respawn-defect-round-5) takes that back out on the
+// admin's call: the player gets a death panel with a WORKING Respawn button and
+// clicks it themselves. pet_respawn.nss is gone; respawn_inc::LOTR_RespawnPC()
+// stays, with mod_respawn.nss (the button) as its only caller.
 //
-// Grace before the auto-respawn, so a Raise Dead in the last few seconds wins;
-// pet_respawn re-checks GetIsDead() before it moves anybody.
-const float PETRIFY_RESPAWN_GRACE = 4.0;
+// WHAT ROUND 5 IS ACTUALLY CHASING. UAT reports the statue rig in Castle
+// Homeless working end to end while a basilisk petrification hangs forever -
+// and the admin confirms the full countdown appears in BOTH cases. So detection
+// is not the gap, and it never was:
+//
+//   * every petrification source in the module lands EFFECT_TYPE_PETRIFY.
+//     Basilisks carry Spell 485 (SPELL_FLESH_TO_STONE) x6, which fires the
+//     base-game precompiled x0_s0_fleshsto.ncs; touch/gaze/breath petrify
+//     (x0_s1_petrtouch / x0_s1_petrgaze / x0_s1_petrbreath, shifter
+//     x2_s1_petrgaze) all route through the same stock DoPetrification. No hak
+//     overrides spells.2da, and no basilisk equipment carries an on-hit petrify.
+//   * the countdown reaching the end on a basilisk means HasPetrify() matched
+//     and the wall clock ran. The failure is DOWNSTREAM, in the tail.
+//
+// The tail therefore moved wholesale into pet_timeout.nss, for its own
+// instruction budget (a heartbeat that hits the limit under fight load aborts
+// silently, which is exactly the observed "works solo, fails in combat" shape)
+// and so every step of it can be traced. See pet_timeout.nss for the
+// resurrect-then-kill sequence and why the panel has to be a NEW one.
+//
+// ONE LATENT NON-PETRIFY TRAP, for whoever reads this after a "frozen, but no
+// countdown ever started" report: basiliskhard001.uti carries
+// ITEM_PROPERTY_ONHITCASTSPELL subtype 136 (ONHIT_CASTSPELL_PARALYZE_2), which
+// produces EFFECT_TYPE_PARALYZE and would be invisible to this watcher. No
+// creature equips it today. Do NOT widen HasPetrify() to cover paralysis on
+// spec - that would put ordinary Hold Person and every cutscene freeze on a
+// two-minute death clock.
 const float PETRIFY_TIMEOUT    = 120.0;
 const int   PETRIFY_WARN_BUCKET = 15;
 
@@ -82,27 +101,6 @@ int HasPetrify(object o)
         e = GetNextEffect(o);
     }
     return FALSE;
-}
-
-// Remove the petrification. RemoveEffect on ANY component of a linked effect drops
-// the whole link, so this also takes the VFX_DUR_CESSATE_NEGATIVE that stock
-// DoPetrification links to the EffectPetrify. Returns how many were removed, which
-// the trace logs -- a zero here on a PC that HasPetrify() said was stone is the
-// signature of an effect we cannot reach from script.
-int StripPetrify(object o)
-{
-    int nRemoved = 0;
-    effect e = GetFirstEffect(o);
-    while (GetIsEffectValid(e))
-    {
-        if (GetEffectType(e) == EFFECT_TYPE_PETRIFY)
-        {
-            RemoveEffect(o, e);
-            nRemoved++;
-        }
-        e = GetNextEffect(o);
-    }
-    return nRemoved;
 }
 
 void PetrifyLog(string sMsg)
@@ -154,28 +152,18 @@ void petrifyCheck(object pc)
 
     if (fElapsed >= PETRIFY_TIMEOUT)
     {
-        // ORDER MATTERS. Strip the stone FIRST, kill SECOND. EffectDeath on a creature
-        // the engine still holds as a statue is the likely no-op, and a corpse that is
-        // still carrying the petrify is the other candidate for the greyed-out Respawn
-        // button. Stripping first leaves an ordinary living PC for EffectDeath to kill
-        // through the normal pipeline (ondeath020 -> death/respawn GUI).
-        int nStripped = StripPetrify(pc);
+        // Everything the timeout does now lives in pet_timeout.nss - the strip,
+        // the resurrect that closes the engine's greyed-out death window, and
+        // the kill that opens a working one. Nothing heavy stays in the module
+        // heartbeat (see the round-5 note at the top of this file).
         SetLocalInt(pc, "PETRIFY_KILLED", TRUE);
-        ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), pc);
 
-        // Kill first (so ondeath020 still runs - death amulet, BIC export), then put
-        // them back on their feet ourselves. See pet_respawn.nss for why the player is
-        // NOT left to click the death window's Respawn button: the panel on their
-        // screen is the one the engine disabled at petrify time, and it does not
-        // refresh. The grace lets a Raise Dead land first; pet_respawn re-checks.
-        DelayCommand(PETRIFY_RESPAWN_GRACE, ExecuteScript("pet_respawn", pc));
-
-        PetrifyLog("timeout kill pc=" + GetName(pc) +
+        PetrifyLog("timeout pc=" + GetName(pc) +
             " hb=" + IntToString(nHB) +
             " elapsed=" + IntToString(nNow - nT0) +
-            " stripped=" + IntToString(nStripped) +
-            " stillStone=" + IntToString(HasPetrify(pc)) +
             " isDead=" + IntToString(GetIsDead(pc)));
+
+        ExecuteScript("pet_timeout", pc);
 
         DeleteLocalInt(pc, "PETRIFY_T0");
         DeleteLocalInt(pc, "PETRIFY_HB");
@@ -197,7 +185,11 @@ void petrifyCheck(object pc)
     else if (fElapsed < 105.0) sMsg = "Darkness crowds the edges of your vision. You feel your heart give one last, straining beat.";
     else                       sMsg = "Your thoughts are stone. Death is only a breath away.";
 
-    SendMessageToPC(pc, sMsg);
+    // ONE call, not two. FloatingTextStringOnCreature both draws the bobbing
+    // text over the PC and writes the same string into that player's chat log,
+    // so pairing it with SendMessageToPC printed every countdown line TWICE
+    // (roadmap petrification-respawn-defect-round-5). Do not add the
+    // SendMessageToPC back.
     FloatingTextStringOnCreature(sMsg, pc, FALSE);
 
     PetrifyLog("tick pc=" + GetName(pc) +

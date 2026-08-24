@@ -261,9 +261,11 @@ else:
 
 # The respawn itself moved out of mod_respawn.nss into respawn_inc.nss
 # (LOTR_RespawnPC) so the petrification timeout could reuse it - roadmap
-# petrification-respawn-defect-round-4. The wholesale RemoveEffects() went with
-# it, so that is the file this gate has to follow; mod_respawn.nss is now only
-# the button handler, and is checked for still routing through the include.
+# petrification-respawn-defect-round-4. Round 5 took that second caller back out
+# (pet_respawn.nss is deleted; the petrification timeout gives the player a
+# working Respawn button instead of moving them), so mod_respawn.nss is once
+# again the only caller. The wholesale RemoveEffects() stayed in respawn_inc.nss,
+# so that is still the file this gate has to follow.
 respawn_inc = read(UNPACKED / "respawn_inc.nss")
 
 if "RemoveEffects" not in respawn_inc:
@@ -286,7 +288,7 @@ if "LegFeat_ApplyAll" not in respawn_inc:
         "wholesale RemoveEffects() - respawning silently strips every "
         "EFFECT-kind legendary feat until the character's next login.")
 
-for caller in ("mod_respawn.nss", "pet_respawn.nss"):
+for caller in ("mod_respawn.nss",):
     if "LOTR_RespawnPC" not in read(UNPACKED / caller):
         errors.append(
             f"{caller} no longer calls LOTR_RespawnPC(). Every respawn has to "
