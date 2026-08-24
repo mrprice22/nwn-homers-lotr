@@ -104,5 +104,5 @@ void main()
     ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, OBJECT_SELF);
     ApplyEffectToObject(DURATION_TYPE_TEMPORARY, ePoly, OBJECT_SELF, HoursToSeconds(nDuration));
 
-    ShapeMergeAll(OBJECT_SELF, gear);
+    ShapeMergeWhenReady(OBJECT_SELF, nPoly, gear);
 }

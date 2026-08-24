@@ -40,6 +40,29 @@
     ancient dragon (48/32/36) is +36/+20/+24, and a badger (STR 8) is +0 -
     weak forms stay weak, strong forms are worth shifting into.
 
+    Roadmap item tensors-transformation-not-merging-items-reliably adds the
+    third piece: WHEN the merge is allowed to run. The engine does not always
+    finish stripping the caster's gear and equipping the form's items within
+    the same script tick that applies EffectPolymorph, so a merge done inline
+    could read the PRE-shift slots - no creature hide (nothing merged at all)
+    and the caster's own weapon still in the right hand. That second case was
+    the dangerous one: IPWildShapeCopyItemProperties(oWeapon, oWeapon) copies
+    an item's properties onto ITSELF as DURATION_TYPE_PERMANENT, quietly
+    duplicating them in the player's .bic. Sync reported the visible half of
+    it on Tenser's Transformation - "no buffs, no merge", the merge working
+    only when four buffs had been cast first, i.e. only when the caster stood
+    idle long enough for the swap to resolve.
+
+    Two defences, because one is not enough:
+
+      1. ShapeMergeWhenReady() is the entry point every caster script uses.
+         It merges as soon as GetAppearanceType() says the form is actually
+         on, retrying on a short ladder for ~2.5s if it is not, and merges
+         exactly once per shift (SHAPE_MERGE_PENDING sequence number).
+      2. ShapeMergeAll() refuses any target that is one of the snapshot's own
+         items, so a caller that merges too early gets "nothing merged"
+         instead of a corrupted weapon.
+
     Used by: nw_s2_wildshape, nw_s2_elemshape, x2_s2_gwildshp,
              nw_s0_polyself, nw_s0_shapechg, nw_s0_tenstrans
 */
@@ -97,7 +120,20 @@ struct ShapeMergeGear ShapeMergeSnapshot(object oShifter);
 
 // Merge the snapshot's item properties onto oShifter's post-polymorph
 // creature items. Call AFTER applying the polymorph effect.
+//
+// Prefer ShapeMergeWhenReady() - calling this directly merges whatever is in
+// the slots RIGHT NOW, which is not necessarily the form (see the file header).
 void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear);
+
+// TRUE once the engine has actually put oShifter into polymorph form nPoly.
+// Appearance is the honest signal: it changes with the item swap, and unlike
+// the creature hide it exists for every row in polymorph.2da.
+int ShapeMergeFormReady(object oShifter, int nPoly);
+
+// The entry point every polymorph script should use. Merges immediately when
+// the form is already on, otherwise retries on a short ladder until it is,
+// and never merges more than once per shift.
+void ShapeMergeWhenReady(object oShifter, int nPoly, struct ShapeMergeGear gear);
 
 // Returns ePoly with the stat top-ups linked into it, so that shifting adds
 // the form's stock bonus to what oShifter already has instead of replacing it.
@@ -281,12 +317,30 @@ effect ShapeMergeStatFloor(object oShifter, int nPoly, effect ePoly,
     return ePoly;
 }
 
+// TRUE if oItem is one of the caster's own pre-shift items. Merging onto one
+// of those is never right: at best it is a no-op, at worst it copies an item's
+// properties onto itself, permanently, in the player's .bic.
+int ShapeMergeIsOwnGear(object oItem, struct ShapeMergeGear gear)
+{
+    if (!GetIsObjectValid(oItem)) return FALSE;
+    return oItem == gear.oWeapon || oItem == gear.oArmor  || oItem == gear.oHelmet ||
+           oItem == gear.oShield || oItem == gear.oRing1  || oItem == gear.oRing2  ||
+           oItem == gear.oAmulet || oItem == gear.oCloak  || oItem == gear.oBoots  ||
+           oItem == gear.oBelt   || oItem == gear.oGloves;
+}
+
 void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear)
 {
     object oWeaponNew = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oShifter);
     object oHideNew   = GetItemInSlot(INVENTORY_SLOT_CARMOUR, oShifter);
 
-    SetIdentified(oWeaponNew, TRUE);
+    // The swap has not happened (or this form keeps no such item) - whatever is
+    // in these slots belongs to the character, not to the form.
+    if (ShapeMergeIsOwnGear(oWeaponNew, gear)) oWeaponNew = OBJECT_INVALID;
+    if (ShapeMergeIsOwnGear(oHideNew, gear))   oHideNew   = OBJECT_INVALID;
+
+    if (GetIsObjectValid(oWeaponNew))
+        SetIdentified(oWeaponNew, TRUE);
 
     int bMergedSomething = FALSE;
 
@@ -303,21 +357,27 @@ void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear)
 
         if (GetIsObjectValid(oWeaponSrc))
         {
-            // Vanilla path: forms with a manufactured weapon (drow, azer...)
+            // Vanilla path: forms with a manufactured weapon (drow, azer...).
+            // oWeaponNew is OBJECT_INVALID unless it really is the form's -
+            // the helper no-ops on it then, and the natural attacks below are
+            // the only merge target.
             IPWildShapeCopyItemProperties(oWeaponSrc, oWeaponNew, TRUE);
 
             // New: natural attacks. Gloves carry no ranged flag, so the
             // helper's ranged-mismatch guard still applies for real weapons.
             // ShapeCopyToCreatureWeapon also re-expresses the enhancement
             // bonus, which creature weapons otherwise ignore.
-            ShapeCopyToCreatureWeapon(oWeaponSrc,
-                GetItemInSlot(INVENTORY_SLOT_CWEAPON_L, oShifter));
-            ShapeCopyToCreatureWeapon(oWeaponSrc,
-                GetItemInSlot(INVENTORY_SLOT_CWEAPON_R, oShifter));
-            ShapeCopyToCreatureWeapon(oWeaponSrc,
-                GetItemInSlot(INVENTORY_SLOT_CWEAPON_B, oShifter));
+            object oClawL = GetItemInSlot(INVENTORY_SLOT_CWEAPON_L, oShifter);
+            object oClawR = GetItemInSlot(INVENTORY_SLOT_CWEAPON_R, oShifter);
+            ShapeCopyToCreatureWeapon(oWeaponSrc, oClawL);
+            ShapeCopyToCreatureWeapon(oWeaponSrc, oClawR);
+            object oClawB = GetItemInSlot(INVENTORY_SLOT_CWEAPON_B, oShifter);
+            ShapeCopyToCreatureWeapon(oWeaponSrc, oClawB);
 
-            bMergedSomething = TRUE;
+            // Only true if there was something of the form's to merge ONTO.
+            if (GetIsObjectValid(oWeaponNew) || GetIsObjectValid(oClawL) ||
+                GetIsObjectValid(oClawR) || GetIsObjectValid(oClawB))
+                bMergedSomething = TRUE;
         }
 
         if (bGlovesAsWeapon)
@@ -353,4 +413,43 @@ void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear)
     if (bMergedSomething && GetIsPC(oShifter))
         FloatingTextStringOnCreature(
             "Your equipment's magic flows into your new form.", oShifter, FALSE);
+}
+
+int ShapeMergeFormReady(object oShifter, int nPoly)
+{
+    int nAppearance = ShapeFormStat(nPoly, "AppearanceType");
+    if (nAppearance <= 0) return TRUE;   // unreadable row: don't stall forever
+    return GetAppearanceType(oShifter) == nAppearance;
+}
+
+// One attempt in the ladder ShapeMergeWhenReady lays down. Non-recursive on
+// purpose - NWScript forbids a function calling itself, DelayCommand included.
+// nSeq is the shift this attempt belongs to: a later shift (or a completed
+// merge) bumps SHAPE_MERGE_PENDING and every stale attempt then no-ops, so the
+// merge happens exactly once per shift no matter how many rungs fire.
+void ShapeMergeAttempt(object oShifter, int nPoly, struct ShapeMergeGear gear,
+                       int nSeq)
+{
+    if (GetLocalInt(oShifter, "SHAPE_MERGE_PENDING") != nSeq) return;
+    if (!ShapeMergeFormReady(oShifter, nPoly)) return;
+
+    SetLocalInt(oShifter, "SHAPE_MERGE_PENDING", 0);
+    ShapeMergeAll(oShifter, gear);
+}
+
+void ShapeMergeWhenReady(object oShifter, int nPoly, struct ShapeMergeGear gear)
+{
+    int nSeq = GetLocalInt(oShifter, "SHAPE_MERGE_SEQ") + 1;
+    SetLocalInt(oShifter, "SHAPE_MERGE_SEQ", nSeq);
+    SetLocalInt(oShifter, "SHAPE_MERGE_PENDING", nSeq);
+
+    // Usually the swap is already done and this is the only rung that runs.
+    ShapeMergeAttempt(oShifter, nPoly, gear, nSeq);
+
+    // ~2.5s of headroom for the tick where it is not.
+    DelayCommand(0.2, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
+    DelayCommand(0.5, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
+    DelayCommand(1.0, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
+    DelayCommand(1.5, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
+    DelayCommand(2.5, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
 }

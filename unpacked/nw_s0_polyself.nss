@@ -86,6 +86,6 @@ void main()
     ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
     ApplyEffectToObject(DURATION_TYPE_TEMPORARY, ePoly, oTarget, TurnsToSeconds(nDuration));
 
-    ShapeMergeAll(oTarget, gear);
+    ShapeMergeWhenReady(oTarget, nPoly, gear);
 }
 

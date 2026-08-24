@@ -111,5 +111,5 @@ void main()
     ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eHP, OBJECT_SELF, RoundsToSeconds(nDuration));
     ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eLink, OBJECT_SELF, RoundsToSeconds(nDuration));
 
-    ShapeMergeAll(OBJECT_SELF, gear);
+    ShapeMergeWhenReady(OBJECT_SELF, 28, gear);
 }
