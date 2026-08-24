@@ -210,11 +210,32 @@ ideas:
   - id: more-shortcuts-for-testers-in-test-realm
     title: "accessibility shortcuts for testers in test realm"
     group: items-gear
-    status: planned
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-08-21"
-    notes: "<div>in test realm only</div><div>when player enters well of eru (same timing as check that gives free 2 levels for new characters), </div><div><ul><li>grant the player up to 6x rune of expansion tokens so that they always have 6 when leaving the well of eru</li><li>grant the player a forge key (used in balrog of moria forge)</li><br></ul></div><div>Additionally, in test realm only, in the rest menu (emote_want) conversation for ALL players:</div><ul><li>share the normally admin cd key gated meaningwave teleport list</li><li>share the normal homeless cd key gated options of the homeless teleports (should include balrog)</li></ul><div><br></div><div>Update Wiki main index.html test realm section</div><div><br></div>"
+    date: "2026-08-24"
+    commit: b8c6705fd0f
+    notes: "<div><b>On the test realm only, testing no longer starts with a shopping trip.</b> Step into the Well of Eru and you leave with a <b>Forgekey</b> and six <b>Runes of Expansion</b> - topped back up to six every time you pass through, so you never run dry mid-session. No Balrog run first.</div><div><br></div><div>Your rest menu also opens up: the <b>Meaningwave guide teleports</b> and the full <b>Options of the Homeless</b> travel list (Balrog, Weathertop, Hobbiton, Angmar, Dunharrow, Castle of the Homeless, the Lord of the Dark Arts) are now there for every player, not just the admin. Getting to the thing you actually wanted to test takes seconds.</div><div><br></div><div><b>None of this exists on the live server</b>, and nothing about live play changes. The admin-only menu is unchanged on both realms.</div>"
+    impl_notes: "<div><b>New generated flag SP_TESTER_KIT</b> in bin/season-profile.py (dev/test on, live/archive off), read in exactly one place: unpacked/sp_testkit_inc.nss. It is generated rather than authored because bin/season-promote.sh copies dev's tree over production on every release - a hand-edited FALSE in production would be reverted by the next successful deploy and the live season would quietly start giving away the Balrog's only drop. Four new WIRING rows make a consumer that reverts to a literal fail the repack.</div><div><br></div><div><b>sp_testkit_inc has no Admin_Can* fallback folded in</b>, unlike sp_devgate_inc. Its consumers guard different admindb tiers (can_homeless vs can_admin), so a shared 'or the admin' clause would have to pick one and would silently widen the other - handing every can_admin key the Homeless teleports on a live season. Each consumer keeps its own check beside the flag, so production behaviour is unchanged by construction.</div><div><br></div><div><b>welloferuenter.nss</b> (reached via the area's OnEnter wrapper prsg_enter) tops the PC back up to 6 slot_token and grants forgekey if absent, on <i>every</i> entry, not just GetXP()==0. Runes stack, so the count sums GetItemStackSize over the inventory - GetItemPossessedBy would report a stack of six as 'has one' and top up forever. The message only fires when something was actually granted, so re-entering is silent. Forgekey is matched by TAG (the Moria forge door is a native KeyName lock).</div><div><br></div><div><b>_cdkeyhome.nss</b> gets 'if (SP_TesterKit()) return TRUE;' ahead of Admin_CanHomeless. Scope is exact: that subtree holds the seven teleports and an Exit, nothing else.</div><div><br></div><div><b>emotewand.dlg.json</b> gains ReplyList[142] '[MW Teleports]' as a root entry under EntryList[0], gated on the new sp_testkit StartingConditional, linking with IsChild=1 to EntryList[10] - the MW destinations node ReplyList[81] already owns under Admin Options. A second parent link, not a copy; IsChild=1 was already used 8 times in this DLG. <b>Admin Options was deliberately NOT relaxed</b>: opening _cdkey would have handed every tester God Mode, DM Options, Grant me level 60, Merit Awards, Merit Redemptions and the legendary-feat reset. check-dlg-integrity reports emotewand clean (0 failing, no new warnings); 31/31 smoke gates and 90 scripts compiled.</div><div><br></div><div><b>No hak or NWSync work</b> - scripts, one DLG and the generated include only. Module-only change, so a restart is all it needs.</div>"
+    manual_steps:
+      - step: "Well of Eru kit: on the dev realm, take a character that is NOT on the admindb whitelist into the Well of Eru. Confirm 6 Runes of Expansion and a Forgekey arrive with the '[Test realm] Tester kit topped up' message. Walk out and back in: no second grant, no repeat message. Spend a rune at a forge, re-enter, confirm it tops back up to 6."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Rest menu: same non-whitelisted character, open the rest menu. [MW Teleports] and [Options of the Homeless] must both be listed. Spot-check that 'To. Balrog' and two Meaningwave destinations actually land you in the right area. Confirm [Admin Options] is still NOT listed - that one must stay admin-only."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Live-realm half: on season 2, confirm a non-admin's rest menu is unchanged - no [MW Teleports], no [Options of the Homeless] - and that entering the Well of Eru grants no runes and no Forgekey. This is the half that cannot be verified from the dev realm, and it is the whole point of the flag."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Arm bin/reboot-on-empty on the dev realm so the new build loads. Never force-restart the dev realm."
+        status: open
+        kind: publish
+      - step: "The season 2 repo's index.html test-realm grid gained a 'Teleports and forge kit, free' card (commit 98f5001b414, inside the season-brand:ignore region). It reaches homerslotr.com at that repo's next scheduled wiki refresh - nothing to do unless you want it sooner."
+        status: open
+        kind: admin
   - id: arcane-spellfailure-ammount-now-showing-in-wiki-details
     title: "Arcane spellfailure %ammount now showing in wiki details"
     group: wiki-tools
