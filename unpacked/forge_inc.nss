@@ -38,6 +38,11 @@ const string FORGE_CEIL = "FORGE_CEIL";
 // ForgeRevertToBlueprint mints a FRESH item, which carries no stamp - that is
 // how reverting makes a piece lawful again.
 const string FORGE_TOUCHED = "FORGE_TOUCHED";
+// Name of the blueprint drawback an item is missing, as rendered by
+// ForgePropName (e.g. "Arcane Spell Failure -30%"). Written by
+// ForgeMissingBlueprintDrawback on the failure path so the jail message and
+// the Forge Warden can say WHICH bane was struck off.
+const string FORGE_BANE_MISSING = "FORGE_BANE_MISSING";
 
 // Appraise-extended value bonus for oPC (0..FORGE_APPRAISE_MAX_BONUS).
 int ForgeAppraiseBonus(object oPC)
@@ -328,7 +333,7 @@ int ForgeIsRestrictionProp(itemproperty ip)
 }
 
 // Drawbacks (ability/AC/attack/damage/enhancement/save/skill penalties, damage
-// vulnerability, no damage, weight increase, arcane spell failure) are the
+// vulnerability, no damage, weight increase, ADDED arcane spell failure) are the
 // price an item's power was balanced against - the bane on a Basilisk Visage,
 // not an enchantment on it. Like restrictions they make an item WEAKER, so they
 // cost no slot and no forge will unmake them: striking one off used to turn a
@@ -341,6 +346,19 @@ int ForgeIsRestrictionProp(itemproperty ip)
 int ForgeIsDetrimentalProp(itemproperty ip)
 {
     int nType = GetItemPropertyType(ip);
+    // Arcane Spell Failure is the ONE SIGNED type in this list. iprp_arcspell
+    // rows 0-9 are -50%..-5%: a REDUCTION of spell failure, i.e. a benefit
+    // players pay a forge for, and one that RAISES the item's worth (cost
+    // multiplier 1.25-4.0). Rows 10-19 (+5%..+50%) are the penalty half, and
+    // cost nothing. Only the penalty half is a bane. Treating both halves as one
+    // made Mithral of Sauron's -30% an unliftable curse that filled no slot, and
+    // jailed a player who had lawfully stripped it before the drawback rule
+    // existed - the blueprint's "missing bane" was a benefit he had every right
+    // to remove (roadmap
+    // smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure).
+    if (nType == ITEM_PROPERTY_ARCANE_SPELL_FAILURE)
+        return GetItemPropertyCostTableValue(ip)
+            >= IP_CONST_ARCANE_SPELL_FAILURE_PLUS_5_PERCENT;
     return nType == ITEM_PROPERTY_DECREASED_ABILITY_SCORE
         || nType == ITEM_PROPERTY_DECREASED_AC
         || nType == ITEM_PROPERTY_DECREASED_ATTACK_MODIFIER
@@ -351,8 +369,7 @@ int ForgeIsDetrimentalProp(itemproperty ip)
         || nType == ITEM_PROPERTY_DECREASED_SKILL_MODIFIER
         || nType == ITEM_PROPERTY_DAMAGE_VULNERABILITY
         || nType == ITEM_PROPERTY_NO_DAMAGE
-        || nType == ITEM_PROPERTY_WEIGHT_INCREASE
-        || nType == ITEM_PROPERTY_ARCANE_SPELL_FAILURE;
+        || nType == ITEM_PROPERTY_WEIGHT_INCREASE;
 }
 
 // Three DIFFERENT questions the forge asks about a property, which used to
@@ -982,7 +999,15 @@ int ForgeMissingBlueprintDrawback(object oItem)
             string sTok = "|" + ForgePropSig(ipS) + "|";
             int nPos = FindSubString(sHas, sTok);
             if (nPos < 0)
+            {
                 bMissing = TRUE;
+                // Remember WHICH bane is gone, so the jail message and the
+                // Warden can name it instead of saying only "a bane was struck
+                // from it" - the player otherwise has no way to know what the
+                // forge is objecting to. Failure path only, one call, and the
+                // loop stops here, so it costs nothing on the common path.
+                SetLocalString(oItem, FORGE_BANE_MISSING, ForgePropName(ipS));
+            }
             else
                 // Consume this one occurrence, keeping the leading "|" so the
                 // remaining tokens stay delimited on both sides.
@@ -995,7 +1020,11 @@ int ForgeMissingBlueprintDrawback(object oItem)
     DestroyObject(oStock);
     if (bMissing)
         ForgeLog("MissingBlueprintDrawback: '" + GetName(oItem) + "' ("
-            + GetResRef(oItem) + ") has lost a drawback its blueprint carries.");
+            + GetResRef(oItem) + ") has lost the drawback ["
+            + GetLocalString(oItem, FORGE_BANE_MISSING)
+            + "] its blueprint carries.");
+    else
+        DeleteLocalString(oItem, FORGE_BANE_MISSING); // stale name from an earlier verdict
     return bMissing;
 }
 
@@ -1265,9 +1294,17 @@ string ForgeLegalStatus(object oItem)
     if (ForgeIsPlayerModified(oItem)
         && ForgeMissingBlueprintDrawback(oItem)
         && !ForgeIsKnownLegalVariant(oItem))
-        return "The bane it was forged with has been struck from it. That is no"
-            + " honest smithing, and no forge of mine can lay it back on: only"
-            + " restoring the piece as it was made will set it right.";
+    {
+        // Name the bane (cached by the check we just ran) - "a bane is missing"
+        // told the player nothing they could act on.
+        string sBane = GetLocalString(oItem, FORGE_BANE_MISSING);
+        if (sBane != "")
+            sBane = " [" + sBane + "]";
+        return "The bane" + sBane + " it was forged with has been struck from"
+            + " it. That is no honest smithing, and no forge of mine can lay it"
+            + " back on: only restoring the piece as it was made will set it"
+            + " right.";
+    }
     if (!bProps && !bValue)
         return "It is within the law now: " + IntToString(nProps)
             + " enchantments of the " + IntToString(nMaxProps)
@@ -1682,8 +1719,40 @@ void ForgeJailForItem(object oPC, object oBad)
         ForgeLog("ForgeJailForItem: waypoint 'jailed' missing!");
         return;
     }
+    // Say WHY, not just WHICH item. A player told only "unlawful enchantment"
+    // has no way to guess what the forge objects to (roadmap
+    // smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure:
+    // "the Forge Warden should be more explicit"). The missing-bane name is
+    // already cached by the verdict that jailed them, so this costs nothing;
+    // the cap breaches are re-derived cheaply, and the valuation is only paid
+    // when the property count is NOT the offence.
+    string sWhy = "";
+    string sBane = GetLocalString(oBad, FORGE_BANE_MISSING);
+    if (sBane != "")
+        sWhy = " - the bane [" + sBane + "] it was forged with has been struck"
+            + " from it";
+    else
+    {
+        int nProps = ForgeCountProps(oBad);
+        int nMaxProps = ForgeItemMaxProps(oBad);
+        if (nProps > nMaxProps)
+            sWhy = " - " + IntToString(nProps) + " enchantments where the law"
+                + " allows " + IntToString(nMaxProps);
+        else
+        {
+            int nValue = ForgeItemValue(oBad, TRUE);
+            int nCeil = ForgeLegalMaxValue();
+            int nStamp = GetLocalInt(oBad, FORGE_CEIL);
+            if (nStamp > nCeil)
+                nCeil = nStamp;
+            if (nValue > nCeil)
+                sWhy = " - a worth of " + ForgeGold(nValue) + " gold where the"
+                    + " law allows " + ForgeGold(nCeil);
+        }
+    }
     FloatingTextStringOnCreature("The " + GetName(oBad) + " you carry bears "
-        + "unlawful enchantment. The Valar take notice...", oPC, FALSE);
+        + "unlawful enchantment" + sWhy + ". The Valar take notice...",
+        oPC, FALSE);
     location lJail = GetLocation(oWP);
     DelayCommand(1.0, AssignCommand(oPC, JumpToLocation(lJail)));
     // Spoken hint after arrival so the player knows which jailer applies.

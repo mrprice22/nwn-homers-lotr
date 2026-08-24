@@ -260,6 +260,21 @@ def check_property_sets(errs):
             if f"ITEM_PROPERTY_{c}" not in detr:
                 errs.append(f"forge_inc: ForgeIsDetrimentalProp does not cover "
                             f"ITEM_PROPERTY_{c}")
+        # Arcane Spell Failure is SIGNED (iprp_arcspell rows 0-9 are -50%..-5%,
+        # a benefit; rows 10-19 are the +5%..+50% penalty). Flattening the two
+        # halves made a -30% an unliftable "bane" that filled no slot and jailed
+        # players who had lawfully stripped it (roadmap
+        # smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure).
+        if not re.search(r"ITEM_PROPERTY_ARCANE_SPELL_FAILURE\)?\s*\n?\s*"
+                         r"return GetItemPropertyCostTableValue\(ip\)\s*\n?\s*"
+                         r">=\s*IP_CONST_ARCANE_SPELL_FAILURE_PLUS_5_PERCENT",
+                         detr):
+            errs.append("forge_inc: ForgeIsDetrimentalProp must sign-gate "
+                        "ARCANE_SPELL_FAILURE on "
+                        "GetItemPropertyCostTableValue(ip) >= "
+                        "IP_CONST_ARCANE_SPELL_FAILURE_PLUS_5_PERCENT - a "
+                        "REDUCTION of spell failure is an ordinary enchantment, "
+                        "not a bane")
 
     cosm = body("ForgeIsCosmeticProp")
     if cosm is None:
@@ -358,6 +373,28 @@ def check_property_sets(errs):
                     "ForgeMissingBlueprintDrawback")
 
 
+def check_asf_scripts(errs):
+    """The forge's three arcane-spell-failure options must apply what they say.
+
+    setasfminus10.nss used to set IP_CONST_ARCANE_SPELL_FAILURE_PLUS_10_PERCENT
+    behind a reply reading "Minus 10%.", so a player paying for a 10% REDUCTION
+    of spell failure got a 10% PENALTY instead - and, once the drawback rule
+    landed, one no forge would ever strike off again.
+    """
+    for pct in (10, 20, 30):
+        name = f"setasfminus{pct}"
+        path = os.path.join(UNPACKED, f"{name}.nss")
+        if not os.path.isfile(path):
+            errs.append(f"{name}.nss is missing")
+            continue
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+        want = f"IP_CONST_ARCANE_SPELL_FAILURE_MINUS_{pct}_PERCENT"
+        if want not in src:
+            errs.append(f"{name}.nss must set {want} - the forge reply that runs "
+                        f"it reads 'Minus {pct}%.'")
+
+
 def check_light_note(errs):
     """The forge's own Light enchant must say it costs no slot."""
     for name in ANVIL:
@@ -386,6 +423,7 @@ def main():
         check_anvil(name, errs)
     check_scripts(errs)
     check_property_sets(errs)
+    check_asf_scripts(errs)
     check_light_note(errs)
     check_warden(errs)
 
