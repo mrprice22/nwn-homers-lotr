@@ -157,12 +157,30 @@ ideas:
   - id: tensors-transformation-not-merging-items-reliably
     title: "Tensor's Transformation not merging items reliably"
     group: combat-classes
-    status: confirmed
+    status: manual
     type: Defect
     player: "Sync (Shync)"
-    date: "2026-08-23"
-    notes: "<div><div><div><span>Tensers transformation is not merging your equipped gear nor weapon</span> <span><span></span></span></div></div><div><div></div></div></div><div><div> <div><span>Weird.... Unshifted and shifted again and worked on third try... </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div><div><div><br><div><span>Yeah for whatever reason it only works sometimes</span></div><div><span>Seems to work mostly when buffed.... No buffs, no merge</span></div><div><span><br></span></div><div>\n<span>From a couple tests i did, seemed to need at least 4random buffs to trigger item merge</span></div><div><span>From a lvl 60char with equipped gear, use tensers &gt; nothin merges</span></div><div><span>Just vanilla tenser</span></div><div><div><div><div></div></div></div><div><div> <div><span>Used 4 random wizard buffs</span></div></div><div><div></div></div></div><div><div><div><span>Merge triggered normally</span></div><div><span>Both gear and weapon</span></div></div></div><br></div><div>\n\n\n<br></div></div></div></div>"
+    date: "2026-08-24"
+    commit: 58c4384c9185be0bc07cf5d55cfdd11f7a9d2966
+    notes: "<div><b>Shapeshifting merges your gear every time now, not just when you happen to catch it.</b> Tenser's Transformation, Polymorph Self, Shapechange, druid Wild Shape and Elemental Shape and every Shifter form share one merge, and it was being run before the game had finished putting you into the form - so on an unlucky cast there was no new hide or weapon to merge onto and nothing carried over. It now waits for the shape to actually arrive and then merges, so a cold cast with no buffs works the same as one after a full buff routine. Reported by Sync (Shync), who pinned down the tell: no buffs, no merge.</div><div><br></div><div><b>It could also quietly duplicate the properties on your own weapon.</b> When the merge ran too early it treated the weapon still in your hand as the form's weapon and copied that weapon's properties onto itself, permanently. That can no longer happen: the merge refuses to write to anything you were already carrying, and the “your equipment's magic flows into your new form” message now only appears when something really merged.</div>"
     notes_h: 333
+    impl_notes: "shape_merge_inc gains ShapeMergeFormReady() and ShapeMergeWhenReady(); all six polymorph scripts (nw_s0_tenstrans, nw_s0_polyself, nw_s0_shapechg, nw_s2_wildshape, nw_s2_elemshape, x2_s2_gwildshp) call the latter instead of ShapeMergeAll(). Root cause: five of them merged in the same script tick that applied EffectPolymorph, and the engine's gear-strip/creature-item-equip is not guaranteed complete by then, so GetItemInSlot returned the PRE-shift slots - CARMOUR invalid (no armour/ring/amulet merge at all) and the caster's own weapon in RIGHTHAND, which made IPWildShapeCopyItemProperties(oWeapon, oWeapon) copy that weapon's properties onto itself as DURATION_TYPE_PERMANENT, i.e. persistent .bic corruption. Stock polymorph.2da row 28 (POLYMORPH_DOOM_KNIGHT) leaves MergeW/MergeI/MergeA blank, so the engine merges nothing of its own and the script merge is the whole feature. Readiness is GetAppearanceType(oPC) == the form's polymorph.2da AppearanceType (true for every row; three rows have no HideItem, so the hide is not a usable signal). Retry ladder 0.2/0.5/1.0/1.5/2.5s, flat rather than recursive because NWScript forbids a function calling itself even through DelayCommand; a SHAPE_MERGE_PENDING sequence number on the PC makes the merge fire exactly once per shift and lets a later shift supersede stale rungs. Belt-and-braces: ShapeMergeAll now nulls any merge target that is one of the ShapeMergeGear snapshot's own items (ShapeMergeIsOwnGear), so merging too early degrades to 'nothing merged' rather than a corrupted item, and bMergedSomething only latches when a form-owned item was written to. nw_s0_shapechg keeps its existing DelayCommand(0.6, ...) and goes through the same helper. Ruled out during triage: no spells.2da override in hak_2da; Mod_OnPlrEqItm/Mod_OnPlrUnEqItm are empty so se_stopswap_uei never runs; sd_filter_inc's equipedScan (which destroys creature items) is dead code, included only by sd_test_filter."
+    manual_steps:
+      - step: "Repack and deploy to the dev/test realm, then arm bin/reboot-on-empty (never force-restart dev)."
+        status: open
+        kind: publish
+      - step: "Cast Tenser's Transformation cold, with NO buffs up, five times in a row (unshifting between casts). Every cast should show 'Your equipment's magic flows into your new form.' and the character sheet should reflect the merged gear."
+        status: open
+        kind: uat
+        tester: "wizard 43+ with full gear"
+      - step: "Regression on the property-duplication path: note your weapon's property list before the first cast, then after several shift/unshift cycles confirm it is unchanged - no duplicated enhancement or damage lines."
+        status: open
+        kind: uat
+        tester: "wizard 43+ with full gear"
+      - step: "Spot-check one druid Wild Shape form (creature weapons, no manufactured weapon) and one Shifter form: merge still fires, and fires only once per shift (one floating message, no doubled bonuses)."
+        status: open
+        kind: uat
+        tester: "druid or shifter 20+"
   - id: add-custom-helmet-skins
     title: "Add custom helmet skins"
     group: forge
