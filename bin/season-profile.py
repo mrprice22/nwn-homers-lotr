@@ -79,27 +79,36 @@ class ProfileError(Exception):
 #                   account-wide and its spends are escrowed in meritdb, so a
 #                   non-production realm redeeming rewards is writing real
 #                   ledger rows for test play.
-FLAGS = ("SP_DEV_TOOLS", "SP_CHEAT_CHEST", "SP_WIPE_NOTICE", "SP_MERIT_SHOP")
+#   SP_TESTER_KIT   the tester shortcuts: the Well of Eru hands every PC a
+#                   Forgekey and tops them back up to 6 Runes of Expansion, and
+#                   the rest menu opens the two normally CD-key-gated teleport
+#                   lists (Meaningwave guides, Options of the Homeless) to
+#                   everyone. Both are pure friction on a realm whose progress
+#                   is thrown away, and both would be handing out real content
+#                   for free anywhere else - the Forgekey is the Balrog's only
+#                   drop. Admin Options stays gated on admindb regardless.
+FLAGS = ("SP_DEV_TOOLS", "SP_CHEAT_CHEST", "SP_WIPE_NOTICE", "SP_MERIT_SHOP",
+         "SP_TESTER_KIT")
 
 PROFILE: dict[str, dict[str, bool]] = {
     # dev: permanent test realm, password-gated, never public progress.
     "dev":     {"SP_DEV_TOOLS": True,  "SP_CHEAT_CHEST": True,  "SP_WIPE_NOTICE": False,
-                "SP_MERIT_SHOP": False},
+                "SP_MERIT_SHOP": False, "SP_TESTER_KIT": True},
     # test: early-access realm. Same tools as dev, plus the wipe warning,
     # because its players are real players whose progress really is temporary.
     "test":    {"SP_DEV_TOOLS": True,  "SP_CHEAT_CHEST": True,  "SP_WIPE_NOTICE": True,
-                "SP_MERIT_SHOP": False},
+                "SP_MERIT_SHOP": False, "SP_TESTER_KIT": True},
     # live: production. Everything off - except the merit shop, which is the one
     # flag whose TRUE row is production: merit is earned by real contributions
     # and spent for real, so the shop is open to everyone HERE and nowhere else.
     "live":    {"SP_DEV_TOOLS": False, "SP_CHEAT_CHEST": False, "SP_WIPE_NOTICE": False,
-                "SP_MERIT_SHOP": True},
+                "SP_MERIT_SHOP": True,  "SP_TESTER_KIT": False},
     # archive: a retired season, still playable. Progress is real (it was a
     # live season), so no wipe notice and no cheats. The merit shop is admin-only
     # here too: merit is account-wide, so a retired season redeeming against the
     # same balances would spend merit the live season owes.
     "archive": {"SP_DEV_TOOLS": False, "SP_CHEAT_CHEST": False, "SP_WIPE_NOTICE": False,
-                "SP_MERIT_SHOP": False},
+                "SP_MERIT_SHOP": False, "SP_TESTER_KIT": False},
 }
 
 # --- wiring checks ----------------------------------------------------------
@@ -145,6 +154,22 @@ WIRING: list[tuple[str, str | tuple[str, ...], str]] = [
      "Merit_GrantTournament) must read the flag through SP_MeritShopFor - the "
      "conversation gate is UX only, this is the check that actually protects "
      "meritdb"),
+    ("sp_testkit_inc.nss", "SP_TESTER_KIT",
+     "the shared tester-shortcut predicate is where every consumer reads the "
+     "flag - if it stops reading SP_TESTER_KIT, all of them silently open"),
+    ("welloferuenter.nss", ("SP_TESTER_KIT", "SP_TesterKit"),
+     "the Well of Eru tester kit (Forgekey + Runes of Expansion) must be "
+     "guarded by SP_TESTER_KIT, directly or through SP_TesterKit - a literal "
+     "here hands a live season the Balrog's only drop for free on every "
+     "single area entry"),
+    ("_cdkeyhome.nss", ("SP_TESTER_KIT", "SP_TesterKit"),
+     "the 'Options of the Homeless' rest-menu conditional opens its teleport "
+     "list to everyone only through the flag; its Admin_CanHomeless fallback "
+     "must survive, because that is what still gates it on live"),
+    ("sp_testkit.nss", ("SP_TESTER_KIT", "SP_TesterKit"),
+     "the [MW Teleports] root rest-menu entry exists ONLY on a tester realm - "
+     "it is a second parent link onto the Admin Options MW destinations node, "
+     "so a literal TRUE here would publish an admin subtree to every player"),
 ]
 
 

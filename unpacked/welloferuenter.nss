@@ -7,6 +7,7 @@
 #include "_inc_donations"
 #include "don_cheat_inc"
 #include "forge_inc"
+#include "sp_testkit_inc"
 
 // Creates an item and immediately identifies it.
 object CreateIDItem(string sResRef, object oTarget, int nStackSize = 1)
@@ -14,6 +15,47 @@ object CreateIDItem(string sResRef, object oTarget, int nStackSize = 1)
     object oItem = CreateItemOnObject(sResRef, oTarget, nStackSize);
     SetIdentified(oItem, TRUE);
     return oItem;
+}
+
+// --- tester kit (tester realms only - see sp_testkit_inc.nss) --------------
+// The two things a tester otherwise has to re-earn before they can test
+// anything in the Forge of Wonders: the Forgekey, whose only drop is Azagoth
+// the Balrog of Moria, and Runes of Expansion, which are consumed on use.
+// Topped up on EVERY entry, not just for a new character - the point is that
+// you always leave the Well with a full six.
+const int TESTER_RUNE_TARGET = 6;
+
+void TesterKitTopUp(object oPC)
+{
+    int nGranted = FALSE;
+
+    // Runes STACK, so count stack sizes, not objects: GetItemPossessedBy would
+    // report a single stack of six as "has one" and this would top up forever.
+    int nHave = 0;
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        if (GetResRef(oItem) == "slot_token") nHave += GetItemStackSize(oItem);
+        oItem = GetNextItemInInventory(oPC);
+    }
+    if (nHave < TESTER_RUNE_TARGET)
+    {
+        CreateIDItem("slot_token", oPC, TESTER_RUNE_TARGET - nHave);
+        nGranted = TRUE;
+    }
+
+    // "Forgekey" is the item's TAG (resref is forgekey); the Moria forge door
+    // is a native KeyName lock, so the tag is what the engine matches on.
+    if (!GetIsObjectValid(GetItemPossessedBy(oPC, "Forgekey")))
+    {
+        CreateIDItem("forgekey", oPC);
+        nGranted = TRUE;
+    }
+
+    // Silent when there was nothing to give - this runs on every single entry.
+    if (nGranted)
+        SendMessageToPC(oPC, "[Test realm] Tester kit topped up: "
+            + IntToString(TESTER_RUNE_TARGET) + " Runes of Expansion and a Forgekey.");
 }
 
 // --- helper: good-side city loot ---
@@ -214,6 +256,10 @@ void main()
         // the grant (and harmless if the sweep then jails/teleports the PC).
         if (!GetIsObjectValid(GetItemPossessedBy(oPC, "bestiarybook")))
             CreateItemOnObject("bestiarybook", oPC);
+
+        // Tester shortcuts. No-op unless SP_TESTER_KIT is on (dev / early
+        // access); on a live season this hands out nothing at all.
+        if (SP_TesterKit()) TesterKitTopUp(oPC);
 
         // Illegally forged gear (tampered + over 6 props / 750k value) lands
         // the bearer in the Pit Prison until a Forge Warden strips it legal.

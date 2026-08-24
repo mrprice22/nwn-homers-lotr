@@ -12,3 +12,4 @@ const int SP_DEV_TOOLS   = TRUE;
 const int SP_CHEAT_CHEST = TRUE;
 const int SP_WIPE_NOTICE = FALSE;
 const int SP_MERIT_SHOP  = FALSE;
+const int SP_TESTER_KIT  = TRUE;
