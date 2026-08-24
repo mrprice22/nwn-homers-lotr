@@ -24,30 +24,52 @@
 // production log. Generated from SEASON_ROLE in server.env.
 #include "season_prof_inc"
 
+// Wall-clock seconds for the petrification countdown below. NWNX_UTIL_SKIP=n in
+// server.env, so the plugin is loaded.
+#include "nwnx_util"
+
 /*
  * I like to put all the things I can "tweak" in one place.  You could put
  * each behavior into the function in which it's used, but it's far easier
  * to find them this way.
  */
 // --- LOTR petrification timeout (roadmap petrification-timeout-2,
-//     petrification-respawn-defect-round-3) ---
+//     petrification-respawn-defect-round-3, -round-4) ---
 // The original fix (commit 46aa7efaa1e) edited DoPetrification() in the module's
 // x0_i0_spells.nss include, but in-game petrification comes from base-game
 // precompiled gaze/flesh-to-stone scripts that inline the STOCK DoPetrification,
 // so that edit never ran and PCs stayed petrified indefinitely. This central,
 // source-independent watcher runs off the module heartbeat instead: it works no
 // matter what applied the petrify. After PETRIFY_TIMEOUT seconds the PC is killed
-// via EffectDeath (routing through ondeath020 -> death/respawn GUI), with
+// via EffectDeath and then respawned at the bind point by pet_respawn, with
 // escalating warnings both in chat and as floating text every PETRIFY_WARN_BUCKET
-// seconds. The heartbeat fires every HB_INTERVAL seconds (standard module HB).
+// seconds. Timing is wall clock, not heartbeat pulses (see round 4 below).
 //
-// Round 3: the watcher was there but never counted, because it guarded on
-// GetIsDead() and this server's NWN_DIFFICULTY=3 puts a petrified PC into the
-// engine's statue state, which reads as dead. See the long comment in
-// petrifyCheck() - that guard is gone, kill-once is a flag of ours, and the
-// petrify is stripped BEFORE the kill so the death panel comes back with its
-// Respawn button enabled (ondeath020 now says so explicitly).
-const float HB_INTERVAL        = 6.0;
+// Round 3 deleted a GetIsDead() early-return that could never be trusted (a
+// petrified PC may or may not read as dead depending on the branch stock
+// DoPetrification took), replaced kill-once with a flag of our own, and made the
+// timeout strip the stone BEFORE applying EffectDeath. The dev trace from
+// 2026-08-20 shows that half working exactly as intended: the ticks count, the
+// strip takes (stripped=1 stillStone=0) and the kill lands (isDead=1).
+//
+// Round 4 (petrification-respawn-defect-round-4) fixes the two things that
+// trace also exposed:
+//
+//   * The player was still stuck. The engine had ALREADY popped its own death
+//     window with Respawn greyed out at petrify time, and re-popping the panel
+//     from ondeath020 does not refresh a panel the client is already showing -
+//     hence "I can't respawn, but after exiting and re-entering the game
+//     everything is fine". So the timeout no longer asks the player to click
+//     anything: it hands off to pet_respawn, which resurrects them at the bind
+//     point. The engine closes the death window on its own once they are alive.
+//   * The countdown was long. Heartbeat pulses are not exactly 6.0s apart -
+//     the trace ran 130 real seconds over 20 pulses (~6.5s each), which is the
+//     "waited 3 minutes" in the report. Elapsed time is now measured against
+//     the wall clock, so PETRIFY_TIMEOUT means 120 REAL seconds under any load.
+//
+// Grace before the auto-respawn, so a Raise Dead in the last few seconds wins;
+// pet_respawn re-checks GetIsDead() before it moves anybody.
+const float PETRIFY_RESPAWN_GRACE = 4.0;
 const float PETRIFY_TIMEOUT    = 120.0;
 const int   PETRIFY_WARN_BUCKET = 15;
 
@@ -96,6 +118,7 @@ void petrifyCheck(object pc)
         // killed them and the strip took) - reset every tracker.
         if (GetLocalInt(pc, "PETRIFY_HB") || GetLocalInt(pc, "PETRIFY_KILLED"))
             PetrifyLog("clear pc=" + GetName(pc));
+        DeleteLocalInt(pc, "PETRIFY_T0");
         DeleteLocalInt(pc, "PETRIFY_HB");
         DeleteLocalInt(pc, "PETRIFY_BUCKET");
         DeleteLocalInt(pc, "PETRIFY_KILLED");
@@ -106,16 +129,28 @@ void petrifyCheck(object pc)
     // petrification-respawn-defect-round-3). The server runs NWN_DIFFICULTY=3, which
     // takes the bShowPopup branch of stock DoPetrification: a PERMANENT petrify plus
     // PopUpDeathGUIPanel(oTarget, FALSE, TRUE, 40579) - a death panel whose Respawn
-    // button the ENGINE disabled. A PC held in that statue state reads as dead, so the
-    // round-2 guard returned on every single heartbeat and this watcher never counted
-    // to anything - "still not killing after 3 min", with the disabled panel the player
-    // saw. Kill-once is tracked with our own flag instead, so a corpse is never
-    // re-killed and the guard cannot be defeated by the engine's idea of dead.
+    // button the ENGINE disabled. Whether a PC held in that state reads as dead is not
+    // something to bet a watcher on - round 2 did, and never counted to anything
+    // ("still not killing after 3 min"). Note the dev trace shows isDead=0 on every
+    // tick of a statue-rig petrify, so round 3's stated reason (the guard was matching)
+    // is NOT established; the guard is gone because it is untrustworthy either way.
+    // Kill-once is tracked with our own flag instead, so a corpse is never re-killed.
     if (GetLocalInt(pc, "PETRIFY_KILLED")) return;
 
     int nHB = GetLocalInt(pc, "PETRIFY_HB") + 1;
     SetLocalInt(pc, "PETRIFY_HB", nHB);
-    float fElapsed = IntToFloat(nHB) * HB_INTERVAL;
+
+    // WALL CLOCK, not heartbeat counting. Pulses land ~6.5s apart in practice, not
+    // the nominal 6.0, so counting them stretched a "2 minute" timeout to 130 real
+    // seconds - and further under load. Stamp the first tick and subtract.
+    int nNow = NWNX_Util_GetHighResTimeStamp().seconds;
+    int nT0  = GetLocalInt(pc, "PETRIFY_T0");
+    if (!nT0)
+    {
+        nT0 = nNow;
+        SetLocalInt(pc, "PETRIFY_T0", nT0);
+    }
+    float fElapsed = IntToFloat(nNow - nT0);
 
     if (fElapsed >= PETRIFY_TIMEOUT)
     {
@@ -128,12 +163,21 @@ void petrifyCheck(object pc)
         SetLocalInt(pc, "PETRIFY_KILLED", TRUE);
         ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), pc);
 
+        // Kill first (so ondeath020 still runs - death amulet, BIC export), then put
+        // them back on their feet ourselves. See pet_respawn.nss for why the player is
+        // NOT left to click the death window's Respawn button: the panel on their
+        // screen is the one the engine disabled at petrify time, and it does not
+        // refresh. The grace lets a Raise Dead land first; pet_respawn re-checks.
+        DelayCommand(PETRIFY_RESPAWN_GRACE, ExecuteScript("pet_respawn", pc));
+
         PetrifyLog("timeout kill pc=" + GetName(pc) +
             " hb=" + IntToString(nHB) +
+            " elapsed=" + IntToString(nNow - nT0) +
             " stripped=" + IntToString(nStripped) +
             " stillStone=" + IntToString(HasPetrify(pc)) +
             " isDead=" + IntToString(GetIsDead(pc)));
 
+        DeleteLocalInt(pc, "PETRIFY_T0");
         DeleteLocalInt(pc, "PETRIFY_HB");
         DeleteLocalInt(pc, "PETRIFY_BUCKET");
         return;

@@ -259,18 +259,39 @@ else:
             "effect removal on the server; the guard is what keeps it free for "
             "creatures that carry no bonus.")
 
-if "BPool_ClearTransient" not in read(UNPACKED / "mod_respawn.nss"):
+# The respawn itself moved out of mod_respawn.nss into respawn_inc.nss
+# (LOTR_RespawnPC) so the petrification timeout could reuse it - roadmap
+# petrification-respawn-defect-round-4. The wholesale RemoveEffects() went with
+# it, so that is the file this gate has to follow; mod_respawn.nss is now only
+# the button handler, and is checked for still routing through the include.
+respawn_inc = read(UNPACKED / "respawn_inc.nss")
+
+if "RemoveEffects" not in respawn_inc:
     errors.append(
-        "mod_respawn.nss no longer clears transient ledger entries. Its "
+        "respawn_inc.nss no longer calls RemoveEffects() - the respawn "
+        "implementation has moved again. Point the two checks below at "
+        "whichever file now strips a respawning character's effects, or they "
+        "are guarding nothing.")
+
+if "BPool_ClearTransient" not in respawn_inc:
+    errors.append(
+        "respawn_inc.nss no longer clears transient ledger entries. Its "
         "RemoveEffects() strips the song's witness effect, so without this the "
         "song's bonus would be re-rendered onto a character who no longer has "
         "the song.")
 
-if "LegFeat_ApplyAll" not in read(UNPACKED / "mod_respawn.nss"):
+if "LegFeat_ApplyAll" not in respawn_inc:
     errors.append(
-        "mod_respawn.nss no longer re-applies legendary feats after its "
+        "respawn_inc.nss no longer re-applies legendary feats after its "
         "wholesale RemoveEffects() - respawning silently strips every "
         "EFFECT-kind legendary feat until the character's next login.")
+
+for caller in ("mod_respawn.nss", "pet_respawn.nss"):
+    if "LOTR_RespawnPC" not in read(UNPACKED / caller):
+        errors.append(
+            f"{caller} no longer calls LOTR_RespawnPC(). Every respawn has to "
+            "go through the one implementation in respawn_inc.nss - a "
+            "hand-rolled second copy is how the legendary-feat strip came back.")
 
 if errors:
     print("check_bonus_pool: FAILED", file=sys.stderr)

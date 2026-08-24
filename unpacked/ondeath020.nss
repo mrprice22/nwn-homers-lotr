@@ -52,6 +52,14 @@ void main()
     // player was left staring at a death window they could not dismiss. Saying
     // TRUE, TRUE here is what re-enables the button. Do not "simplify" this back
     // to PopUpGUIPanel.
+    //
+    // Round 4 caveat: this is NOT what rescues a petrified player any more, and
+    // must not be treated as though it were. The client will not refresh a death
+    // window it is already showing, so the panel the engine disabled at petrify
+    // time stays disabled no matter what is sent here - that was the whole of
+    // petrification-respawn-defect-round-4. The petrification timeout now
+    // respawns the player itself (bleeding.nss -> pet_respawn.nss). This line
+    // stays because it is correct for every ORDINARY death.
     DelayCommand(2.5, PopUpDeathGUIPanel(oPC, TRUE, TRUE, 0, "")) ;
 
 }
