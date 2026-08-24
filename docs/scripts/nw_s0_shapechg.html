@@ -142,7 +142,7 @@ void main()
     ApplyEffectAtLocation(DURATION_TYPE_INSTANT, eVis, GetLocation(oTarget));
     DelayCommand(0.4, AssignCommand(oTarget, ClearAllActions())); // prevents an exploit
     DelayCommand(0.5, ApplyEffectToObject(DURATION_TYPE_TEMPORARY, ePoly, oTarget, TurnsToSeconds(nDuration)));
-    DelayCommand(0.6, ShapeMergeAll(oTarget, gear));
+    DelayCommand(0.6, ShapeMergeWhenReady(oTarget, nPoly, gear));
 }
 </code></pre>
   </main>

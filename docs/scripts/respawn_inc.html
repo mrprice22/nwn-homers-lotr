@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script respawn_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>respawn_inc</code></h1><pre class="nss-source"><code> //::///////////////////////////////////////////////
+//:: respawn_inc -- the module&#x27;s one respawn implementation.
+//:: Extracted from mod_respawn.nss (roadmap
+//:: petrification-respawn-defect-round-4) so that more than one caller can
+//:: put a dead PC back on their feet at the bind point.
+//::
+//:: Callers:
+//::   mod_respawn.nss  -- Mod_OnSpawnBtnDn, the player clicking Respawn.
+//::   pet_respawn.nss  -- the petrification timeout, which cannot ask the
+//::                       player to click anything, because the window it
+//::                       would have to click is the one the engine already
+//::                       put up with Respawn greyed out.
+//::
+//:: Based on:
+//:: Generic On Pressed Respawn Button
+//:: Copyright (c) 2001 Bioware Corp.
+//:: Created By:   Brent
+//:: Created On:   November
+//:://////////////////////////////////////////////
+
+/* Respawn at the bind point with five (5) HP and NO penalty of any kind - no
+gold, no XP, nothing dropped. The stock comment here used to describe a gold bag
+and an XP loss; neither has ever been something this module charged players, and
+the last of that code is gone (see below).
+*/
+
+#include &quot;nw_i0_plot&quot;
+#include &quot;legfeat_inc&quot;
+
+// THERE IS NO DEATH PENALTY IN THIS MODULE, AND THERE NEVER WAS ONE PLAYERS WERE
+// TOLD ABOUT. The stock ApplyPenalty() that used to live here took 10% of a
+// respawning character&#x27;s gold and destroyed it -- the &quot;pcgoldbag&quot; placeable it
+// tried to drop the gold into does not exist as a blueprint in this module, so
+// there was nothing to loot it back out of. Its XP half was already neutered
+// (nPenalty = 0 * GetHitDice). Removed outright on the admin&#x27;s call: respawning
+// costs nothing. Do not reintroduce a penalty here -- not for petrification, not
+// for a normal death, not &quot;just gold&quot;.
+
+// Resurrect oPC and put them at the &quot;respawn&quot; waypoint. This is the WHOLE
+// respawn: anything a player gets for clicking the Respawn button, a caller of
+// this function gets too.
+void LOTR_RespawnPC(object oPC)
+{
+    if (!GetIsObjectValid(oPC)) return;
+
+   ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectResurrection(),oPC) ;
+   ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectHeal(5), oPC) ;
+   RemoveEffects (oPC) ;
+  string sDestTag =  &quot;respawn&quot; ;
+  string sArea = GetTag(GetArea(oPC)) ;
+ object oSpawnPoint = GetObjectByTag(sDestTag) ;
+   AssignCommand(oPC,JumpToLocation(GetLocation(oSpawnPoint))) ;
+
+   // RemoveEffects above is a WHOLESALE strip, and nothing used to put the
+   // permanent bonuses back - so a respawned character silently lost every
+   // EFFECT-kind legendary feat (Prowess, Grip, Onslaught, the ability bonuses)
+   // until their next login. Found in UAT of the bonus ledger, but it predates
+   // it and applies to all of them.
+   //
+   // Order matters. ClearTransient first: a bard song and a Legendary Reaping
+   // kill streak are exactly the bonuses that SHOULD die with the character, and
+   // the ledger has to be told, because the song&#x27;s witness effect was just
+   // stripped from under it. LegFeat_ApplyAll then re-registers and re-renders
+   // everything permanent. Delayed past the respawn&#x27;s own effect churn so the
+   // rebuild is not undone by it.
+   DelayCommand(2.0, BPool_ClearTransient(oPC));
+   DelayCommand(2.5, LegFeat_ApplyAll(oPC));
+
+        object oDeathAmulet;
+     oDeathAmulet = GetFirstItemInInventory(oPC);
+
+     while( GetIsObjectValid( oDeathAmulet ))
+     {
+        if( GetTag(oDeathAmulet) == &quot;deathamulet&quot; )
+        {
+           DestroyObject(oDeathAmulet);
+           break;
+        }
+        oDeathAmulet = GetNextItemInInventory(oPC);
+     }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
