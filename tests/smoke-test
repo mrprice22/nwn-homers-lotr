@@ -38,6 +38,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: encounter CR/Difficulty caches…"
+if python3 "$HERE/check_encounter_crs.py"; then
+  echo "ok: encounter CR/Difficulty caches"
+else
+  echo "fail: encounter CR/Difficulty caches"
+  rc=1
+fi
+
 echo "[smoke-test] running: boss respawn registry…"
 if python3 "$HERE/check_boss_registry.py"; then
   echo "ok: boss respawn registry"
