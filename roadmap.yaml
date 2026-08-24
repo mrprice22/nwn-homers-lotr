@@ -138,14 +138,75 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: petrification-respawn-defect-round-4
+    title: "Petrification not reliably giving respawn option; also seems to wait 3 minutes instead of expected 2"
+    group: combat-classes
+    status: planned
+    type: Defect
+    player: Szescian82
+    date: "2026-08-23"
+    notes: "<div><div><span>I turned to stone, waited 3 minutes, and now I can't respawn after\n exiting and re-entering the game, everything seems fine again. But \nsomething's wrong with the first one, it worked for a while, but now it \ndoesn't.</span></div><div><br></div><div><span>Nie żyjesz  - You are dead /Zamieniasz się w kamień - You turn to stone. /Wczytaj grę -  Load game / Wyjdź z gry -  Exit game/ Czekaj na pomoc -   Wait for help</span></div></div><div><div><div><div><div><div><div><div><div><img src=\"https://media.discordapp.net/attachments/514354202068254720/1541182828962910368/image.png?ex=6a8d529c&amp;is=6a8c011c&amp;hm=f3d4f2cfcd9c38c5e919739c361291e783f7a6c4c2cb0ca58434165c4706cf78&amp;=&amp;format=webp&amp;quality=lossless&amp;width=311&amp;height=320\" alt=\"Image\"></div></div></div></div></div></div></div></div></div>"
+  - id: harm-potions-for-undead
+    title: "Harm potions for undead"
+    group: items-gear
+    status: planned
+    type: Enhancement
+    player: "Sync (Shync)"
+    date: "2026-08-23"
+    notes: "Look for a place that is evil faction aligned (store) to sell harm potions for undead chars/players, and inflict serious wounds potions as well"
+  - id: tensors-transformation-not-merging-items-reliably
+    title: "Tensor's Transformation not merging items reliably"
+    group: combat-classes
+    status: confirmed
+    type: Defect
+    player: "Sync (Shync)"
+    date: "2026-08-23"
+    notes: "<div><div><div><span>Tensers transformation is not merging your equipped gear nor weapon</span> <span><span></span></span></div></div><div><div></div></div></div><div><div> <div><span>Weird.... Unshifted and shifted again and worked on third try... </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div><div><div><br><div><span>Yeah for whatever reason it only works sometimes</span></div><div><span>Seems to work mostly when buffed.... No buffs, no merge</span></div><div><span><br></span></div><div>\n<span>From a couple tests i did, seemed to need at least 4random buffs to trigger item merge</span></div><div><span>From a lvl 60char with equipped gear, use tensers &gt; nothin merges</span></div><div><span>Just vanilla tenser</span></div><div><div><div><div></div></div></div><div><div> <div><span>Used 4 random wizard buffs</span></div></div><div><div></div></div></div><div><div><div><span>Merge triggered normally</span></div><div><span>Both gear and weapon</span></div></div></div><br></div><div>\n\n\n<br></div></div></div></div>"
+    notes_h: 333
+  - id: add-custom-helmet-skins
+    title: "Add custom helmet skins"
+    group: forge
+    status: wip
+    type: Enhancement
+    player: Szescian82
+    date: "2026-08-21"
+    notes: "I might get this for free by upgrading to latest CEP, or their may be a popular mod on nwvault"
   - id: smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure
     title: "negative arcance spell failure (reduced spell failure) might count as negetive property on items for smithing, but it's a positive (good) thing to have"
     group: forge
-    status: confirmed
+    status: manual
     type: Defect
     player: Szescian82
-    date: "2026-08-21"
-    notes: "<div>Szescican was jailed for having modified Mithral of Sauron that did not have the -30 arcane spell failure.</div><div>we assume this was the reason, but Forge warden should be more explicit with what properties are missing or what reason the item is illegal</div><div><br></div>"
+    date: "2026-08-24"
+    commit: b786cbc04e55df83cd7dabb2a834f40793063d28
+    notes: "<div><b>A reduction of arcane spell failure is an enchantment again, not a curse.</b> The forge treats \"Arcane Spell Failure -30%\" and the like as what they are - a benefit you pay a smith for. They show in the strip list, they fill an enchantment slot, and a piece you lawfully stripped one from is no longer contraband. Reported by Szescian82, who was jailed for a <a href=\"https://homerslotr.com/items/cloth034\" target=\"_blank\" rel=\"noopener\">Mithral of Sauron</a> whose -30% he had removed at a forge months before the rule existed.</div><div><br></div><div><b>The forges' \"Minus 10%\" option really gives minus 10% now.</b> It was applying PLUS 10% arcane spell failure - a penalty - at every anvil, and since the drawback rule shipped no smith would take it back off. If you bought that option, speak to a Forge Warden or to the admin.</div><div><br></div><div><b>The law now says what it objects to.</b> Being jailed used to tell you only which item offended. It now names the bane that was struck from the piece, or the ceiling it breached (\"7 enchantments where the law allows 6\"), and the Forge Warden repeats the same detail. A true bane is still unliftable - that part has not changed.</div>"
+    impl_notes: "<div><b>Root cause: ARCANE_SPELL_FAILURE is the one SIGNED type in the drawback list.</b> Stock iprp_arcspell.2da rows 0-9 are -50%..-5% (cost multiplier 1.25-4.0, i.e. they RAISE the item's worth); rows 10-19 are +5%..+50% at cost 0. ForgeIsDetrimentalProp covered the type flat, so a beneficial -X% was uncounted (a free slot since 4620a3d), unstrippable, and - the reported bug - fired ForgeMissingBlueprintDrawback on any copy a player had stripped back when that was legal, jailing the bearer. Fix: the ASF branch returns GetItemPropertyCostTableValue(ip) &gt;= IP_CONST_ARCANE_SPELL_FAILURE_PLUS_5_PERCENT. Everything else follows through ForgePropInSet - strip menus, caps, staged plan bit indices, ForgeProjectedPropCount, ForgeUnlistedNote. A sweep of unpacked/*.uti.json: 11 blueprints carry a beneficial ASF (Mithral of Sauron, Dragon Guard, Robes of Master Craft, Drider Plate of the Archmagi, Soulkeepers Robes, Tournament Armour x2, Shield of the Mage, Spellcaster's Choice, Gothmog's Mage Mail, x2_cus_fletcher3), ZERO carry a harmful one.</div><div><br></div><div><b>FORGE_CLEAN_VER deliberately NOT bumped (stays 6).</b> Unlike 4620a3d this change only ever LOOSENS the missing-bane rule, and the Warden re-judges unstamped items anyway, so no forced re-scan is needed to free wrongly-jailed gear. A bump would be actively harmful: a -X% ASF counts toward the 6-property cap again, so a forced re-scan could newly condemn a piece forged to the cap during the 2026-08-19 -&gt; 2026-08-24 window in which it cost no slot. Leaving the stamps grandfathers those; the anvil still re-counts live the next time the item is worked. PRICED untouched (unconditional return TRUE) - pricing and the blueprint fingerprint must not move, so no forge_legal_inc regen.</div><div><br></div><div><b>Second defect, same feature:</b> setasfminus10.nss set IP_CONST_ARCANE_SPELL_FAILURE_PLUS_10_PERCENT behind a reply reading \"Minus 10%.\" in all four anvil dialogs (bellnius_smith, kimli_forge, kallrist_forge, forge_item_mid); setasfminus20/30 were correct. Script fixed, dialogs untouched (the text was right). Confirmed decision: the sign gate keeps a +10% a bane, so an item already carrying one cannot be stripped - the cure is the Warden's revert-to-blueprint or an admin return. Nothing can enumerate affected items offline (the property lives in each player's .bic), so this is respond-on-report.</div><div><br></div><div><b>Explicitness (the reporter's other ask):</b> ForgeMissingBlueprintDrawback stashes the missing property's rendered name in FORGE_BANE_MISSING (ForgePropName already resolves the 2DA cost-table suffix, so it reads \"Arcane Spell Failure -30%\"), on the failure path only - one call, and the loop stops there. ForgeLegalStatus and ForgeJailForItem both name it; the jail line also names the breached cap, deriving the valuation only when the property count is not the offence, so the scan step's instruction budget is unchanged.</div><div><br></div><div><b>Part 2 of the report (Pipe of Gwathdor, jailed for an item he was not carrying) is NOT reproduced and no code changed for it.</b> Item 106 has five Cast Spell properties and no drawback, and its one placement (gwathdorlord001 inventory) is a plain blueprint reference with no overrides, so a stock pipe can never be judged illegal. ForgeEnqueueScan walks equipment, inventory and one bag level only - it cannot see an item left in a forge placeable, and nothing re-jails on login. The described sequence is what an EARLIER jailing looks like: the Pit Prison is where he logged out, so it is where he logs back in, and the fresh Warden scan then finds nothing and releases him. Diagnosis needs the ForgeLog line, which is gated on the module's FORGE_DEBUG - see the manual steps.</div><div><br></div><div><b>Gate:</b> tests/check_forge_disenchant.py now requires the sign gate inside ForgeIsDetrimentalProp and that each setasfminus&lt;N&gt; script names the matching MINUS constant. Verified both bite by reverting each change. Test build: 31/31 smoke tests, 58 scripts compiled, 0 errors.</div>"
+    manual_steps:
+      - step: "Deploy to the DEV realm and arm bin/reboot-on-empty (never force-restart dev). Module-only change: no hak rebuild, no NWSync refresh. NOTE: the agent's test build was a bare `nwn-manager repack` (OneDrive copy only) - the dev install still needs `repack-homers-lotr`."
+        status: open
+        kind: publish
+      - step: "UAT (the report): bring Mithral of Sauron (cloth034) to a forge anvil. 'Arcane Spell Failure -30%' must now appear in the strip list, must count toward the property cap, and the smith's 'bane' sentence must NOT mention it."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (the jailing): carry a Mithral of Sauron whose -30% arcane spell failure was stripped at a forge before 2026-08-19. Logging in must NOT jail you, and the Forge Warden must report the piece lawful."
+        status: open
+        kind: uat
+        tester: "Szescian82, or any character holding a stripped Mithral of Sauron"
+      - step: "UAT (the mislabelled option): buy 'Minus 10%' arcane spell failure at any anvil (Tagget / Kimli / Bellnius / Kallrist) and examine the item - it must read -10%, not +10%. Check Minus 20% and Minus 30% too."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (regression - real banes still hold): Basilisk Visage must still show 15 strip entries, not 20, and still refuse to have its penalties struck off. A piece stripped of a REAL bane before 2026-08-19 must still jail - now with the bane NAMED in both the jail message and the Warden's line."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "ADMIN: if a player reports a +10% arcane spell failure bought from the old 'Minus 10%' option, the cure is the Forge Warden's revert-to-blueprint or an admin return - the sign gate keeps a genuine +X% unliftable, and the property lives in the player's .bic so affected items cannot be found offline."
+        status: open
+        kind: admin
+      - step: "DIAGNOSTIC for part 2 of the report (jailed for a Pipe of Gwathdor he was not carrying - unreproduced): set FORGE_DEBUG on the module in the dev realm so ForgeLog writes the 'Jailing ...' line (resref, props, value, fingerprint) to the server log, and ask Szescian82 to quote the exact floating text next time it happens. The most likely explanation is an earlier jailing plus logging out inside the Pit Prison - nothing re-jails on login."
+        status: open
+        kind: admin
   - id: more-shortcuts-for-testers-in-test-realm
     title: "accessibility shortcuts for testers in test realm"
     group: items-gear
@@ -517,7 +578,7 @@ ideas:
         kind: uat
         tester: "bard 30+"
       - step: "Publish: nwn-manager repack + server restart. Script-only change - no hak, TLK or 2da involved, so no NWSync refresh."
-        status: open
+        status: done
         kind: publish
     uat_credits:
       - player: "Shync"
@@ -611,7 +672,7 @@ ideas:
         kind: uat
         tester: "any"
       - step: "Repack the dev realm and let bin/reboot-on-empty cycle it (never force-restart dev - the admin is usually logged in)."
-        status: open
+        status: done
         kind: publish
   - id: summanus-chest-items
     title: "summanus-chest-items"
@@ -750,7 +811,7 @@ ideas:
         kind: uat
         tester: "any"
       - step: "Promotion to season 2 is NOT done and must not happen without the admin's explicit word. When it does, pair it with reboot-on-empty and a release note - the live realm is where -Methonash- actually reported this."
-        status: open
+        status: done
         kind: publish
   - id: legendary-nui-wrapping
     title: "Text goes off the screen for the Legendary Feat Picker UI (both in main feat descriptions and in popup tooltips)"
@@ -1049,7 +1110,7 @@ ideas:
         status: open
         kind: uat
       - step: "Hygiene: the local toolset home (~/.local/share/Neverwinter Nights) still has a July 1 3-file lotr_rules.hak with no exptable.2da and no cls_spgn_*, so the toolset disagrees with the server on the rules. Fix with bin/build-lotr-rules-hak --install --home \"$HOME/.local/share/Neverwinter Nights\"."
-        status: open
+        status: done
         kind: publish
   - id: legendary-caster-spells-on-level-up
     title: "casters not getting spells after level 40"
@@ -5794,7 +5855,7 @@ ideas:
         kind: uat
         tester: "any"
       - step: "Publish: nwn-manager repack + server restart. Scripts only - no hak, TLK or 2da involved."
-        status: open
+        status: done
         kind: publish
   - id: bard-song-consumes-2-uses
     title: "Bard Song consumes two uses per activation"
@@ -5817,7 +5878,7 @@ ideas:
         kind: uat
         tester: "bard 4+ (Curse Song)"
       - step: "Publish: nwn-manager repack + server restart. Script-only change, no hak, TLK or 2da involved."
-        status: open
+        status: done
         kind: publish
   - id: halmir-quest-guide
     title: "Halmir the Grey becomes an in-game quest guide"
@@ -5885,7 +5946,7 @@ ideas:
         kind: uat
         tester: "any"
       - step: "Promotion to season 2 is NOT done and must not happen without the admin's explicit word - the live realm is where -Methonash- reported this. Module-only change, so promotion is repack + restart there; no hak rebuild and no NWSync."
-        status: open
+        status: done
         kind: publish
   - id: store-blueprint-audit
     title: "Store audit: 19 store blueprints are placed in no area, and 44 merchant scripts open a store tag that no placed store answers to"
