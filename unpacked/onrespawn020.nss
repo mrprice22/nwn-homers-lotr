@@ -170,7 +170,11 @@ object oRespawner = GetLastRespawnButtonPresser() ;
   string sArea = GetTag(GetArea(oRespawner)) ;
  object oSpawnPoint = GetObjectByTag(sDestTag) ;
    AssignCommand(oRespawner,JumpToLocation(GetLocation(oSpawnPoint))) ;
-   ApplyPenalty(oRespawner) ;
+// NO DEATH PENALTY - EVER. Disabled on the admin's call along with the live copy
+// that used to sit in mod_respawn.nss (see respawn_inc.nss). This script is not
+// hooked to anything today; the call stays commented rather than deleted so it is
+// obvious it was switched off on purpose and must not be switched back on.
+//   ApplyPenalty(oRespawner) ;
 
         object oDeathAmulet;
      oDeathAmulet = GetFirstItemInInventory(oRespawner);

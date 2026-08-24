@@ -18,48 +18,27 @@
 //:: Created On:   November
 //:://////////////////////////////////////////////
 
-/*The following is the basic on respawn for respawn at bind point with exp loss.
-PC should respawn with five (5) HP.  Gold is dropped to a bag on the ground that
-is lootable by anyone.  Up to 4 random equipped items were dropped on PC death.
-those items are lootable only by the owner PC.
+/* Respawn at the bind point with five (5) HP and NO penalty of any kind - no
+gold, no XP, nothing dropped. The stock comment here used to describe a gold bag
+and an XP loss; neither has ever been something this module charged players, and
+the last of that code is gone (see below).
 */
 
 #include "nw_i0_plot"
 #include "legfeat_inc"
 
-//Get PC Gold and apply XP Penalty
-void ApplyPenalty(object oDead)
-{
-    int nXP = GetXP(oDead) ; //Gets PC's experience
-    int nPenalty = 0 * GetHitDice(oDead) ; // Calculates how much experience to lose
-    int nHD = GetHitDice(oDead) ; //Gets PC's TOTAL level
-// Prevents level loss while respawning and sets new experience
-    int nMin = ((nHD * (nHD - 1)) / 2) * 1000 ;
-    int nNewXP = nXP - nPenalty ;
-    if (nNewXP < nMin)
-    nNewXP = nMin ;
-    SetXP(oDead, nNewXP) ;
-// Takes gold from PC
-    int nGoldToTake = FloatToInt(0.10 * GetGold(oDead)) ;
-    AssignCommand(oDead, TakeGoldFromCreature(nGoldToTake, oDead, TRUE)) ;
-    location nLocDead = GetLocation(oDead) ;// Gets location of death
-    // Creates the bag into which the gold is placed.
-    object oGoldBag = CreateObject(OBJECT_TYPE_PLACEABLE, "pcgoldbag", nLocDead) ;
-     {
-    // This creates the gold in the chest just created above:
-        object oTarget = GetNearestObjectByTag ("pcgoldbag", oDead, 1) ; // Gets the chest
-        string sItemTemplate = "nw_it_gold001" ;  // The standard gold piece
-        int nStackSize = nGoldToTake ; // Create gold equal to gold taken on respawn
-        CreateItemOnObject(sItemTemplate, oTarget, nStackSize) ; // Makes stack of gold pieces = nGoldToTake, places in chest
-     }
-    // The next two lines cause the Text "GP Loss" and "XP Loss" to float above the PC AFTER respawn.  Works fine without them.
-    DelayCommand(2.0, FloatingTextStrRefOnCreature(58299, oDead, FALSE)) ;
-    DelayCommand(2.8, FloatingTextStrRefOnCreature(58300, oDead, FALSE)) ;
-}
+// THERE IS NO DEATH PENALTY IN THIS MODULE, AND THERE NEVER WAS ONE PLAYERS WERE
+// TOLD ABOUT. The stock ApplyPenalty() that used to live here took 10% of a
+// respawning character's gold and destroyed it -- the "pcgoldbag" placeable it
+// tried to drop the gold into does not exist as a blueprint in this module, so
+// there was nothing to loot it back out of. Its XP half was already neutered
+// (nPenalty = 0 * GetHitDice). Removed outright on the admin's call: respawning
+// costs nothing. Do not reintroduce a penalty here -- not for petrification, not
+// for a normal death, not "just gold".
 
-// Resurrect oPC, put them at the "respawn" waypoint and charge the usual death
-// penalty. This is the WHOLE respawn: anything a player gets for clicking the
-// Respawn button, a caller of this function gets too.
+// Resurrect oPC and put them at the "respawn" waypoint. This is the WHOLE
+// respawn: anything a player gets for clicking the Respawn button, a caller of
+// this function gets too.
 void LOTR_RespawnPC(object oPC)
 {
     if (!GetIsObjectValid(oPC)) return;
@@ -71,7 +50,6 @@ void LOTR_RespawnPC(object oPC)
   string sArea = GetTag(GetArea(oPC)) ;
  object oSpawnPoint = GetObjectByTag(sDestTag) ;
    AssignCommand(oPC,JumpToLocation(GetLocation(oSpawnPoint))) ;
-   ApplyPenalty(oPC) ;
 
    // RemoveEffects above is a WHOLESALE strip, and nothing used to put the
    // permanent bonuses back - so a respawned character silently lost every
