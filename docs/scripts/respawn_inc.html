@@ -63,12 +63,15 @@
 //:: petrification-respawn-defect-round-4) so that more than one caller can
 //:: put a dead PC back on their feet at the bind point.
 //::
-//:: Callers:
+//:: Caller:
 //::   mod_respawn.nss  -- Mod_OnSpawnBtnDn, the player clicking Respawn.
-//::   pet_respawn.nss  -- the petrification timeout, which cannot ask the
-//::                       player to click anything, because the window it
-//::                       would have to click is the one the engine already
-//::                       put up with Respawn greyed out.
+//::
+//:: Round 4 added a second caller, pet_respawn.nss, which respawned a petrified
+//:: player outright. Round 5 removed it on the admin&#x27;s call: the petrification
+//:: timeout now gives the player a death panel whose Respawn button works
+//:: (pet_timeout.nss resurrects before it kills, so the panel is a fresh one)
+//:: and they click it themselves, arriving here down the ordinary path. The
+//:: extraction stays - one respawn implementation is right either way.
 //::
 //:: Based on:
 //:: Generic On Pressed Respawn Button

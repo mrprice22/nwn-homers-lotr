@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script pet_timeout</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>pet_timeout</code></h1><pre class="nss-source"><code>// pet_timeout -- the action taken when the petrification countdown runs out.
+// ExecuteScript&#x27;d on the PC by bleeding.nss (petrifyCheck) after
+// PETRIFY_TIMEOUT seconds of unbroken EFFECT_TYPE_PETRIFY.
+//
+// WHY THIS IS A SEPARATE SCRIPT AND NOT INLINE IN THE HEARTBEAT
+//
+// bleeding.nss is Mod_OnHeartbeat: it runs bleedCheck + petrifyCheck for EVERY
+// PC plus WS_Tick() on every pulse. A live fight is a far heavier pulse than a
+// solo statue click in an empty castle, and a heartbeat that hits the
+// instruction limit aborts SILENTLY mid-loop -- which looks exactly like &quot;the
+// statue rig works, the basilisk does not&quot; (roadmap
+// petrification-respawn-defect-round-5). Handing the tail off with
+// ExecuteScript gives it its own instruction budget, so the timeout action can
+// never be the thing the heartbeat runs out of room for.
+//
+// WHY IT RESURRECTS BEFORE IT KILLS
+//
+// Round 4&#x27;s finding stands: a client does NOT refresh a death window it is
+// already showing. The engine popped one with Respawn greyed out
+// (PopUpDeathGUIPanel(oPC, FALSE, TRUE, 40579)) the moment stock
+// DoPetrification turned the PC to stone, so ondeath020&#x27;s later
+// PopUpDeathGUIPanel(oPC, TRUE, TRUE, ...) lands on a window that is already up
+// and changes nothing on screen. Round 4 answered that by respawning the player
+// outright; the admin&#x27;s call for round 5 is that a working Respawn button is
+// what the player should get instead.
+//
+// So the sequence forces a NEW window rather than trying to refresh the old one:
+//
+//   1. strip the stone,
+//   2. EffectResurrection -- the PC is alive, which is what makes the client
+//      CLOSE the stale death panel,
+//   3. half a second later, EffectDeath -- a real death down the normal
+//      pipeline, so Mod_OnPlrDeath (ondeath020) runs its death-amulet + BIC
+//      export and opens a FRESH panel with Respawn enabled.
+//
+// The half-second alive window is deliberate. It is the only lever that clears
+// the client&#x27;s stale GUI without the module moving the player itself. Do not
+// &quot;simplify&quot; it away.
+
+#include &quot;season_prof_inc&quot;
+
+// Long enough for the client to process the resurrection and drop the death
+// window, short enough that nothing meaningful can happen in it.
+const float PET_KILL_DELAY = 0.5;
+
+// Remove the petrification. RemoveEffect on ANY component of a linked effect
+// drops the whole link, so this also takes the VFX_DUR_CESSATE_NEGATIVE that
+// stock DoPetrification links to the EffectPetrify. Returns how many were
+// removed -- a zero on a PC the watcher said was stone is the signature of an
+// effect we cannot reach from script.
+int PetTimeoutStrip(object o)
+{
+    int nRemoved = 0;
+    effect e = GetFirstEffect(o);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_PETRIFY)
+        {
+            RemoveEffect(o, e);
+            nRemoved++;
+        }
+        e = GetNextEffect(o);
+    }
+    return nRemoved;
+}
+
+int PetTimeoutStillStone(object o)
+{
+    effect e = GetFirstEffect(o);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_PETRIFY) return TRUE;
+        e = GetNextEffect(o);
+    }
+    return FALSE;
+}
+
+// Dev-realm trace. Every step of the tail reports, so a basilisk run that still
+// hangs names the step that failed instead of leaving us guessing between the
+// strip, the resurrect, the kill and the panel.
+void PetTimeoutTrace(object oPC, string sStage)
+{
+    if (!SP_DEV_TOOLS) return;
+    WriteTimestampedLogEntry(&quot;[petrify] &quot; + sStage +
+        &quot; pc=&quot; + GetName(oPC) +
+        &quot; isDead=&quot; + IntToString(GetIsDead(oPC)) +
+        &quot; stillStone=&quot; + IntToString(PetTimeoutStillStone(oPC)) +
+        &quot; hp=&quot; + IntToString(GetCurrentHitPoints(oPC)));
+}
+
+void PetTimeoutKill(object oPC)
+{
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), oPC);
+    PetTimeoutTrace(oPC, &quot;timeout killed&quot;);
+}
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsObjectValid(oPC)) return;
+
+    PetTimeoutTrace(oPC, &quot;timeout enter&quot;);
+
+    int nStripped = PetTimeoutStrip(oPC);
+
+    if (SP_DEV_TOOLS)
+        WriteTimestampedLogEntry(&quot;[petrify] timeout strip pc=&quot; + GetName(oPC) +
+            &quot; stripped=&quot; + IntToString(nStripped) +
+            &quot; stillStone=&quot; + IntToString(PetTimeoutStillStone(oPC)) +
+            &quot; area=&quot; + GetTag(GetArea(oPC)));
+
+    // Alive, so the client tears down whatever death window it is holding.
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectResurrection(), oPC);
+    PetTimeoutTrace(oPC, &quot;timeout resurrected&quot;);
+
+    // Then a real death, which pops a fresh panel through ondeath020.
+    DelayCommand(PET_KILL_DELAY, PetTimeoutKill(oPC));
+
+    // ondeath020 opens the panel at +2.5s off the death; look here to confirm
+    // the PC is actually dead by the time that lands.
+    DelayCommand(PET_KILL_DELAY + 3.0, PetTimeoutTrace(oPC, &quot;timeout post-panel&quot;));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

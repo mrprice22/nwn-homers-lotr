@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script pet_respawn</title>
+  <title>Script _homerbasilisk</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,45 +57,30 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>pet_respawn</code></h1><pre class="nss-source"><code>// pet_respawn -- ExecuteScript&#x27;d on the PC a few seconds after the
-// petrification timeout has killed them (bleeding.nss, petrifyCheck).
+<h1>Script: <code>_homerbasilisk</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>basilisklair</code> (<a href="../areas/area002.html">Mirkwood: Crypt Lower</a>)</dd></dl><pre class="nss-source"><code>// &quot;To. Basilisk Lair&quot; - rest-menu teleport, Options of the Homeless.
 //
-// WHY THE TIMEOUT RESPAWNS THE PLAYER INSTEAD OF ASKING THEM TO
+// Target is the &quot;basilisklair&quot; waypoint in area002 (Mirkwood: Crypt Lower),
+// placed just inside the lower2crypt entry door and facing into the lair. That
+// is the door you would walk in through from Mirkwood: Crypt, so the arrival
+// reads as the lair entrance rather than a drop into the middle of it.
 //
-// The engine pops its own death window the moment stock DoPetrification turns
-// a PC to stone, with bRespawnButtonEnabled = FALSE. That window is ALREADY
-// OPEN on the client two minutes later when the timeout kills them, and a
-// second PopUpDeathGUIPanel does not refresh a panel the client is already
-// showing -- so the player sat looking at a greyed-out Respawn button until
-// they relogged. That is rounds 3 and 4 of this defect
-// (petrification-respawn-defect-round-4); re-popping the panel is the lever
-// that does not work. Resurrecting them does: the engine closes the death
-// window when the PC is alive again, whatever state the client&#x27;s GUI is in.
+// Added for petrification UAT: the basilisks (Spell 485, SPELL_FLESH_TO_STONE)
+// are the only in-game petrification source that is not the Castle Homeless
+// test rig, and hunting one across Mirkwood on every retest was the slow part
+// of the check. The Basilisk King is one more door on from here (lower2cata -&gt;
+// area003, Mirkwood: Crypt Chamber).
 //
-// Run as a separate script, NOT inlined into the heartbeat: respawn_inc drags
-// in nw_i0_plot and legfeat_inc, and bleeding.nss is the module OnHeartbeat.
-// ExecuteScript gives that weight its own instruction budget.
-
-#include &quot;respawn_inc&quot;
-#include &quot;season_prof_inc&quot;
+// Same shape as every other entry in this menu (_homerbalrog, _homerweather,
+// _homerdarklord): GetLastSpeaker, look up the tag, jump.
 
 void main()
 {
-    object oPC = OBJECT_SELF;
+    object oPC = GetLastSpeaker();
+    object theWaypoint = GetWaypointByTag(&quot;basilisklair&quot;);
 
-    // Somebody raised them inside the grace window -- their rescue wins, and we
-    // do not yank a rescued player across the module to the bind point.
-    if (!GetIsDead(oPC))
-    {
-        if (SP_DEV_TOOLS)
-            WriteTimestampedLogEntry(&quot;[petrify] auto-respawn SKIPPED (already alive) pc=&quot; + GetName(oPC));
-        return;
-    }
+    if (!GetIsObjectValid(theWaypoint)) return;
 
-    if (SP_DEV_TOOLS)
-        WriteTimestampedLogEntry(&quot;[petrify] auto-respawn pc=&quot; + GetName(oPC));
-
-    LOTR_RespawnPC(oPC);
+    AssignCommand(oPC, JumpToLocation(GetLocation(theWaypoint)));
 }
 </code></pre>
   </main>

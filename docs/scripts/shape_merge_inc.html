@@ -115,12 +115,63 @@
     Two defences, because one is not enough:
 
       1. ShapeMergeWhenReady() is the entry point every caster script uses.
-         It merges as soon as GetAppearanceType() says the form is actually
-         on, retrying on a short ladder for ~2.5s if it is not, and merges
-         exactly once per shift (SHAPE_MERGE_PENDING sequence number).
+         It merges as soon as the form&#x27;s own items are in the equipment slots,
+         and keeps watching on a ladder out to 9s. Each ITEM it writes to is
+         tagged with the shift&#x27;s sequence number (SHAPE_VAR_CLAIM), so a target
+         is merged at most once per shift however many rungs run.
       2. ShapeMergeAll() refuses any target that is one of the snapshot&#x27;s own
          items, so a caller that merges too early gets &quot;nothing merged&quot;
          instead of a corrupted weapon.
+
+    ROUND 2, and the reason this file reads the way it does. The first attempt
+    used GetAppearanceType() as the &quot;the form is on&quot; signal and changed nothing
+    at all - Sync retested and got the same buff-dependent behaviour. The
+    engine flips the APPEARANCE and swaps the EQUIPMENT in separate ticks, and
+    on Tenser&#x27;s the appearance usually lands first:
+
+        rung fires -&gt; appearance already 40 -&gt; &quot;ready&quot; -&gt; PENDING cleared to 0
+        -&gt; ShapeMergeAll sees the caster&#x27;s own weapon in the right hand and no
+        form hide -&gt; own-gear guard blanks both -&gt; nothing merged, no message
+        -&gt; every later rung no-ops because PENDING is already spent.
+
+    So the ladder was dead on arrival in exactly the case it was added for.
+    Two corrections, and both are needed:
+
+      - readiness is now &quot;one of the slots polymorph.2da names for this form
+        (HideItem, EQUIPPED, CreatureWeapon1-3) holds an item that is not one
+        of the caster&#x27;s own&quot;, falling back to appearance only for a row that
+        names no items at all;
+      - the one-shot is spent only when ShapeMergeAll actually merged
+        something, so a ready-but-empty attempt leaves the ladder armed.
+
+    ROUND 3. With the above in, the merge fires reliably - Sync&#x27;s instrumented
+    cold cast showed &quot;ready=1 merged=1&quot; on the first rung with no buffs at all,
+    which round 1 and 2 never managed. What it does NOT yet do is deliver the
+    gear&#x27;s ABILITY bonuses: the same character read STR 26 / WIS 8 / CHA 8 on a
+    cold cast and STR 43 / WIS 18 / CHA 14 on a later one, and since none of
+    Elemental Shield, Shadow Shield or Mestil&#x27;s Acid Sheath grants ability
+    points, that spread can only be the equipment&#x27;s own bonuses arriving in one
+    case and not the other.
+
+    Two candidates remain, and they need different fixes, so this round is
+    built to tell them apart rather than to guess a third time:
+
+      a. the merge lands on a hide the engine then tears down and rebuilds, so
+         the properties are thrown away moments later;
+      b. the merge lands and stays, but AddItemProperty on an already-equipped
+         creature hide does not re-apply its ability bonuses.
+
+    The per-item claim tag distinguishes them AND fixes (a) for free: the
+    ladder keeps running after a successful merge, and a rung that finds an
+    unclaimed hide has caught the engine swapping the item underneath us and
+    merges the replacement. If (b) is the truth instead, the debug line will
+    show the hide holding its merged property count all the way to the 9s rung
+    while str/wis/cha never move - and the fix is a re-equip, not a re-merge.
+
+    For reference, the row this was chased on - stock polymorph.2da 28,
+    POLYMORPH_DOOM_KNIGHT: AppearanceType 40, HideItem NW_IT_CREITEM005,
+    EQUIPPED NW_WSWMLS013, no creature weapons, MergeW/MergeI/MergeA all blank
+    (which is why the engine contributes no merge of its own here).
 
     Used by: nw_s2_wildshape, nw_s2_elemshape, x2_s2_gwildshp,
              nw_s0_polyself, nw_s0_shapechg, nw_s0_tenstrans
@@ -156,6 +207,17 @@ const int SHAPE_TOPUP_MAX = 60;
 // the top-up is emitted in chunks of this size.
 const int SHAPE_TOPUP_CHUNK = 6;
 
+// Temporary instrumentation. Set on the module object by dbg_combat (rest menu
+// -&gt; Admin Options -&gt; &quot;[Admin] Combat diagnostics on/off&quot;), which is already
+// gated on the admindb whitelist - so nothing here needs to read admindb, and
+// the six spell scripts that include this file stay free of a DB hit.
+//
+// When it is on, every rung of the merge ladder reports what it saw in the
+// equipment slots. Delete this constant, ShapeMergeDebug(), the three call
+// sites and the dbg_combat line once tensors-transformation-not-merging-items
+// -reliably is closed.
+const string SHAPE_VAR_DEBUG = &quot;SHAPE_MERGE_DEBUG&quot;;
+
 // Snapshot of pre-polymorph equipment, taken before EffectPolymorph is applied.
 struct ShapeMergeGear
 {
@@ -178,20 +240,26 @@ struct ShapeMergeGear
 struct ShapeMergeGear ShapeMergeSnapshot(object oShifter);
 
 // Merge the snapshot&#x27;s item properties onto oShifter&#x27;s post-polymorph
-// creature items. Call AFTER applying the polymorph effect.
+// creature items. Call AFTER applying the polymorph effect. Returns TRUE only
+// if something of the FORM&#x27;s was actually written to.
 //
 // Prefer ShapeMergeWhenReady() - calling this directly merges whatever is in
 // the slots RIGHT NOW, which is not necessarily the form (see the file header).
-void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear);
+int ShapeMergeAll(object oShifter, struct ShapeMergeGear gear, int nSeq = 0);
 
-// TRUE once the engine has actually put oShifter into polymorph form nPoly.
-// Appearance is the honest signal: it changes with the item swap, and unlike
-// the creature hide it exists for every row in polymorph.2da.
-int ShapeMergeFormReady(object oShifter, int nPoly);
+// TRUE once the engine has actually put oShifter&#x27;s FORM ITEMS in the slots.
+//
+// Appearance is not that signal, which is what round 1 of this fix got wrong:
+// the engine flips the appearance and swaps the equipment in separate ticks,
+// so an appearance-only gate opens while the caster&#x27;s own gear is still on.
+// The honest question is whether one of the slots polymorph.2da names for this
+// form (HideItem, EQUIPPED, CreatureWeapon1-3) now holds an item that is not
+// one of the caster&#x27;s own.
+int ShapeMergeFormReady(object oShifter, int nPoly, struct ShapeMergeGear gear);
 
 // The entry point every polymorph script should use. Merges immediately when
-// the form is already on, otherwise retries on a short ladder until it is,
-// and never merges more than once per shift.
+// the form&#x27;s items are already in the slots, otherwise retries on a ladder out
+// to 6s until they are, and never merges more than once per shift.
 void ShapeMergeWhenReady(object oShifter, int nPoly, struct ShapeMergeGear gear);
 
 // Returns ePoly with the stat top-ups linked into it, so that shifting adds
@@ -238,6 +306,13 @@ int ShapeFormStat(int nPoly, string sColumn)
     string sVal = Get2DAString(&quot;polymorph&quot;, sColumn, nPoly);
     if (sVal == &quot;&quot;) return 0;
     return StringToInt(sVal);
+}
+
+// One polymorph.2da cell as a resref-ish string, &quot;&quot; for a blank (&quot;****&quot;)
+// column. Used to ask which item slots this form is going to fill.
+string ShapeFormString(int nPoly, string sColumn)
+{
+    return Get2DAString(&quot;polymorph&quot;, sColumn, nPoly);
 }
 
 // Flat amount -&gt; IP_CONST_DAMAGEBONUS_* constant.
@@ -388,7 +463,82 @@ int ShapeMergeIsOwnGear(object oItem, struct ShapeMergeGear gear)
            oItem == gear.oBelt   || oItem == gear.oGloves;
 }
 
-void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear)
+// The merge marks every item it writes to with the shift&#x27;s sequence number, so
+// a target is merged at most once per shift NO MATTER how many rungs run. The
+// tag rides the object, which is the point: if the engine tears the form&#x27;s hide
+// down and builds a fresh one after we merged, the replacement carries no tag
+// and the next rung merges it properly. That is strictly better than the old
+// PC-level one-shot, which could only ever say &quot;already tried&quot;.
+const string SHAPE_VAR_CLAIM = &quot;SHAPE_MERGED_SEQ&quot;;
+
+// TRUE if oItem has not been merged into for this shift yet; claims it if so.
+int ShapeMergeClaim(object oItem, int nSeq)
+{
+    if (!GetIsObjectValid(oItem)) return FALSE;
+    if (nSeq &gt; 0 &amp;&amp; GetLocalInt(oItem, SHAPE_VAR_CLAIM) == nSeq) return FALSE;
+    if (nSeq &gt; 0) SetLocalInt(oItem, SHAPE_VAR_CLAIM, nSeq);
+    return TRUE;
+}
+
+// How many item properties oItem carries. Diagnostic only - it is how we tell
+// &quot;the merge never landed&quot; from &quot;the merge landed and was thrown away&quot;.
+int ShapeMergePropCount(object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return -1;
+    int n = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        n++;
+        ip = GetNextItemProperty(oItem);
+    }
+    return n;
+}
+
+// Temporary instrumentation - see SHAPE_VAR_DEBUG. Silent unless an admin has
+// turned combat diagnostics on from the rest menu this boot.
+void ShapeMergeDebug(object oShifter, string sMsg)
+{
+    if (!GetIsPC(oShifter)) return;
+    if (!GetLocalInt(GetModule(), SHAPE_VAR_DEBUG)) return;
+    SendMessageToPC(oShifter, &quot;[SHAPE] &quot; + sMsg);
+}
+
+// One equipment slot as &quot;&lt;resref&gt;&quot; / &quot;&lt;resref&gt;(own)&quot; / &quot;-&quot;, for the debug line.
+string ShapeMergeSlotDesc(object oShifter, int nSlot, struct ShapeMergeGear gear)
+{
+    object oItem = GetItemInSlot(nSlot, oShifter);
+    if (!GetIsObjectValid(oItem)) return &quot;-&quot;;
+    if (ShapeMergeIsOwnGear(oItem, gear)) return GetResRef(oItem) + &quot;(own)&quot;;
+    return GetResRef(oItem);
+}
+
+// One snapshot slot as &quot;&lt;resref&gt;[&lt;property count&gt;]&quot; / &quot;-&quot;.
+string ShapeMergeGearDesc(object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return &quot;-&quot;;
+    return GetResRef(oItem) + &quot;[&quot; + IntToString(ShapeMergePropCount(oItem)) + &quot;]&quot;;
+}
+
+// &quot;str=26/18 dex=23/15 ...&quot; - current score over base score. The pair is what
+// separates &quot;the merge never delivered the gear&#x27;s ability bonuses&quot; from &quot;the
+// top-up computed the wrong target&quot;.
+string ShapeMergeAbilityDesc(object oShifter)
+{
+    return
+        &quot; str=&quot; + IntToString(GetAbilityScore(oShifter, ABILITY_STRENGTH, FALSE)) +
+          &quot;/&quot;   + IntToString(GetAbilityScore(oShifter, ABILITY_STRENGTH, TRUE)) +
+        &quot; dex=&quot; + IntToString(GetAbilityScore(oShifter, ABILITY_DEXTERITY, FALSE)) +
+          &quot;/&quot;   + IntToString(GetAbilityScore(oShifter, ABILITY_DEXTERITY, TRUE)) +
+        &quot; con=&quot; + IntToString(GetAbilityScore(oShifter, ABILITY_CONSTITUTION, FALSE)) +
+          &quot;/&quot;   + IntToString(GetAbilityScore(oShifter, ABILITY_CONSTITUTION, TRUE)) +
+        &quot; wis=&quot; + IntToString(GetAbilityScore(oShifter, ABILITY_WISDOM, FALSE)) +
+          &quot;/&quot;   + IntToString(GetAbilityScore(oShifter, ABILITY_WISDOM, TRUE)) +
+        &quot; cha=&quot; + IntToString(GetAbilityScore(oShifter, ABILITY_CHARISMA, FALSE)) +
+          &quot;/&quot;   + IntToString(GetAbilityScore(oShifter, ABILITY_CHARISMA, TRUE));
+}
+
+int ShapeMergeAll(object oShifter, struct ShapeMergeGear gear, int nSeq = 0)
 {
     object oWeaponNew = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oShifter);
     object oHideNew   = GetItemInSlot(INVENTORY_SLOT_CARMOUR, oShifter);
@@ -397,6 +547,12 @@ void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear)
     // in these slots belongs to the character, not to the form.
     if (ShapeMergeIsOwnGear(oWeaponNew, gear)) oWeaponNew = OBJECT_INVALID;
     if (ShapeMergeIsOwnGear(oHideNew, gear))   oHideNew   = OBJECT_INVALID;
+
+    // Already merged into on an earlier rung of THIS shift - leave it alone.
+    // A hide the engine rebuilt since then is a different object and so is not
+    // claimed, which is exactly when we do want to merge again.
+    if (!ShapeMergeClaim(oWeaponNew, nSeq)) oWeaponNew = OBJECT_INVALID;
+    if (!ShapeMergeClaim(oHideNew, nSeq))   oHideNew   = OBJECT_INVALID;
 
     if (GetIsObjectValid(oWeaponNew))
         SetIdentified(oWeaponNew, TRUE);
@@ -428,9 +584,12 @@ void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear)
             // bonus, which creature weapons otherwise ignore.
             object oClawL = GetItemInSlot(INVENTORY_SLOT_CWEAPON_L, oShifter);
             object oClawR = GetItemInSlot(INVENTORY_SLOT_CWEAPON_R, oShifter);
+            object oClawB = GetItemInSlot(INVENTORY_SLOT_CWEAPON_B, oShifter);
+            if (!ShapeMergeClaim(oClawL, nSeq)) oClawL = OBJECT_INVALID;
+            if (!ShapeMergeClaim(oClawR, nSeq)) oClawR = OBJECT_INVALID;
+            if (!ShapeMergeClaim(oClawB, nSeq)) oClawB = OBJECT_INVALID;
             ShapeCopyToCreatureWeapon(oWeaponSrc, oClawL);
             ShapeCopyToCreatureWeapon(oWeaponSrc, oClawR);
-            object oClawB = GetItemInSlot(INVENTORY_SLOT_CWEAPON_B, oShifter);
             ShapeCopyToCreatureWeapon(oWeaponSrc, oClawB);
 
             // Only true if there was something of the form&#x27;s to merge ONTO.
@@ -469,48 +628,131 @@ void ShapeMergeAll(object oShifter, struct ShapeMergeGear gear)
             bMergedSomething = TRUE;
     }
 
-    if (bMergedSomething &amp;&amp; GetIsPC(oShifter))
+    if (bMergedSomething &amp;&amp; GetIsPC(oShifter) &amp;&amp;
+        GetLocalInt(oShifter, &quot;SHAPE_MERGE_TOLD&quot;) != nSeq)
+    {
+        SetLocalInt(oShifter, &quot;SHAPE_MERGE_TOLD&quot;, nSeq);
         FloatingTextStringOnCreature(
             &quot;Your equipment&#x27;s magic flows into your new form.&quot;, oShifter, FALSE);
+    }
+
+    return bMergedSomething;
 }
 
-int ShapeMergeFormReady(object oShifter, int nPoly)
+// TRUE if the form names an item for nSlot and something that is NOT one of
+// the caster&#x27;s own is now sitting there. Identity against the snapshot is the
+// load-bearing test: it is what separates the form&#x27;s hide from the caster&#x27;s
+// breastplate, which a resref comparison alone would not do for a shifter
+// wearing a creature item.
+int ShapeMergeFormItemHere(object oShifter, int nSlot, string sResRef,
+                           struct ShapeMergeGear gear)
 {
-    int nAppearance = ShapeFormStat(nPoly, &quot;AppearanceType&quot;);
-    if (nAppearance &lt;= 0) return TRUE;   // unreadable row: don&#x27;t stall forever
-    return GetAppearanceType(oShifter) == nAppearance;
+    if (sResRef == &quot;&quot;) return FALSE;    // the form fills no such slot
+    object oItem = GetItemInSlot(nSlot, oShifter);
+    if (!GetIsObjectValid(oItem)) return FALSE;
+    return !ShapeMergeIsOwnGear(oItem, gear);
+}
+
+int ShapeMergeFormReady(object oShifter, int nPoly, struct ShapeMergeGear gear)
+{
+    string sHide  = ShapeFormString(nPoly, &quot;HideItem&quot;);
+    string sEquip = ShapeFormString(nPoly, &quot;EQUIPPED&quot;);
+    string sCw1   = ShapeFormString(nPoly, &quot;CreatureWeapon1&quot;);
+    string sCw2   = ShapeFormString(nPoly, &quot;CreatureWeapon2&quot;);
+    string sCw3   = ShapeFormString(nPoly, &quot;CreatureWeapon3&quot;);
+
+    // A row that names no items has nothing for the ladder to wait on. Fall
+    // back to appearance rather than stalling forever - there is nothing to
+    // merge onto in that case anyway.
+    if (sHide == &quot;&quot; &amp;&amp; sEquip == &quot;&quot; &amp;&amp; sCw1 == &quot;&quot; &amp;&amp; sCw2 == &quot;&quot; &amp;&amp; sCw3 == &quot;&quot;)
+    {
+        int nAppearance = ShapeFormStat(nPoly, &quot;AppearanceType&quot;);
+        if (nAppearance &lt;= 0) return TRUE;
+        return GetAppearanceType(oShifter) == nAppearance;
+    }
+
+    if (ShapeMergeFormItemHere(oShifter, INVENTORY_SLOT_CARMOUR,   sHide,  gear))
+        return TRUE;
+    if (ShapeMergeFormItemHere(oShifter, INVENTORY_SLOT_RIGHTHAND, sEquip, gear))
+        return TRUE;
+    if (ShapeMergeFormItemHere(oShifter, INVENTORY_SLOT_CWEAPON_R, sCw1, gear))
+        return TRUE;
+    if (ShapeMergeFormItemHere(oShifter, INVENTORY_SLOT_CWEAPON_L, sCw2, gear))
+        return TRUE;
+    if (ShapeMergeFormItemHere(oShifter, INVENTORY_SLOT_CWEAPON_B, sCw3, gear))
+        return TRUE;
+
+    return FALSE;
 }
 
 // One attempt in the ladder ShapeMergeWhenReady lays down. Non-recursive on
 // purpose - NWScript forbids a function calling itself, DelayCommand included.
-// nSeq is the shift this attempt belongs to: a later shift (or a completed
-// merge) bumps SHAPE_MERGE_PENDING and every stale attempt then no-ops, so the
-// merge happens exactly once per shift no matter how many rungs fire.
 void ShapeMergeAttempt(object oShifter, int nPoly, struct ShapeMergeGear gear,
                        int nSeq)
 {
-    if (GetLocalInt(oShifter, &quot;SHAPE_MERGE_PENDING&quot;) != nSeq) return;
-    if (!ShapeMergeFormReady(oShifter, nPoly)) return;
+    // Only a LATER shift retires this ladder. Every rung runs to the end of the
+    // ladder even after a successful merge: the per-target claim tag makes a
+    // repeat a no-op, and the one case where a repeat is NOT a no-op - the
+    // engine having rebuilt the form&#x27;s hide underneath us, so the replacement
+    // carries no tag - is exactly the case worth catching.
+    if (GetLocalInt(oShifter, &quot;SHAPE_MERGE_SEQ&quot;) != nSeq) return;
 
-    SetLocalInt(oShifter, &quot;SHAPE_MERGE_PENDING&quot;, 0);
-    ShapeMergeAll(oShifter, gear);
+    int bReady  = ShapeMergeFormReady(oShifter, nPoly, gear);
+    int bMerged = FALSE;
+    if (bReady) bMerged = ShapeMergeAll(oShifter, gear, nSeq);
+
+    object oRH   = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oShifter);
+    object oHide = GetItemInSlot(INVENTORY_SLOT_CARMOUR, oShifter);
+
+    ShapeMergeDebug(oShifter,
+        &quot;seq=&quot; + IntToString(nSeq) + &quot; poly=&quot; + IntToString(nPoly) +
+        &quot; appear=&quot; + IntToString(GetAppearanceType(oShifter)) +
+        &quot;/&quot; + IntToString(ShapeFormStat(nPoly, &quot;AppearanceType&quot;)) +
+        &quot; rh=&quot;   + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_RIGHTHAND, gear) +
+          &quot;[&quot; + IntToString(ShapeMergePropCount(oRH)) + &quot;]&quot; +
+        &quot; hide=&quot; + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CARMOUR, gear) +
+          &quot;[&quot; + IntToString(ShapeMergePropCount(oHide)) + &quot;]&quot; +
+        &quot; cwR=&quot;  + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CWEAPON_R, gear) +
+        &quot; cwL=&quot;  + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CWEAPON_L, gear) +
+        &quot; cwB=&quot;  + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CWEAPON_B, gear) +
+        &quot; ready=&quot; + IntToString(bReady) + &quot; merged=&quot; + IntToString(bMerged) +
+        ShapeMergeAbilityDesc(oShifter));
 }
 
 void ShapeMergeWhenReady(object oShifter, int nPoly, struct ShapeMergeGear gear)
 {
     int nSeq = GetLocalInt(oShifter, &quot;SHAPE_MERGE_SEQ&quot;) + 1;
     SetLocalInt(oShifter, &quot;SHAPE_MERGE_SEQ&quot;, nSeq);
-    SetLocalInt(oShifter, &quot;SHAPE_MERGE_PENDING&quot;, nSeq);
 
-    // Usually the swap is already done and this is the only rung that runs.
+    ShapeMergeDebug(oShifter, &quot;cast seq=&quot; + IntToString(nSeq) +
+        &quot; poly=&quot; + IntToString(nPoly) +
+        &quot; wpn=&quot;    + ShapeMergeGearDesc(gear.oWeapon) +
+        &quot; armor=&quot;  + ShapeMergeGearDesc(gear.oArmor) +
+        &quot; helm=&quot;   + ShapeMergeGearDesc(gear.oHelmet) +
+        &quot; shield=&quot; + ShapeMergeGearDesc(gear.oShield) +
+        &quot; ring1=&quot;  + ShapeMergeGearDesc(gear.oRing1) +
+        &quot; ring2=&quot;  + ShapeMergeGearDesc(gear.oRing2) +
+        &quot; neck=&quot;   + ShapeMergeGearDesc(gear.oAmulet) +
+        &quot; cloak=&quot;  + ShapeMergeGearDesc(gear.oCloak) +
+        &quot; boots=&quot;  + ShapeMergeGearDesc(gear.oBoots) +
+        &quot; belt=&quot;   + ShapeMergeGearDesc(gear.oBelt) +
+        &quot; gloves=&quot; + ShapeMergeGearDesc(gear.oGloves) +
+        ShapeMergeAbilityDesc(oShifter));
+
+    // Usually the swap is already done and the first rung is the one that
+    // merges. The rest are headroom, and - since round 3 - a watch: a rung
+    // after the merge that finds an UNCLAIMED hide has caught the engine
+    // replacing the item we merged into, and merges the replacement.
     ShapeMergeAttempt(oShifter, nPoly, gear, nSeq);
 
-    // ~2.5s of headroom for the tick where it is not.
     DelayCommand(0.2, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
     DelayCommand(0.5, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
     DelayCommand(1.0, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
     DelayCommand(1.5, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
     DelayCommand(2.5, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
+    DelayCommand(4.0, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
+    DelayCommand(6.0, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
+    DelayCommand(9.0, ShapeMergeAttempt(oShifter, nPoly, gear, nSeq));
 }
 </code></pre>
   </main>
