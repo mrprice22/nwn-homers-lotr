@@ -55,7 +55,7 @@ per small fix. Full schema + workflow: [CLAUDE-roadmap.md](CLAUDE-roadmap.md). *
     whole-file hand-edit makes the editor's per-idea three-way merge see every item as
     changed and forces a conflict. Never set `merit_awarded` or `uat_credits[].awarded` in
     a patch — those are paid by the editor's buttons only.
-  - **After any edit to `roadmap.yaml`, run `python3 bin/roadmap-lint.py`** — it calls the editor service's own `validate_document()`, so a clean run means the admin can still save in the GUI. Validation is whole-file: one bad item blocks *every* save, including adding a new idea. `implemented` + an open blocker step is the trap this rule exists to prevent — it belongs in `manual`. **Never create a new `ideas:` entry without asking the user first** — and when they do approve one, default `player:` to `HomelessSon (Server Admin)` unless told otherwise.
+  - **After any edit to `roadmap.yaml`, run `python3 bin/roadmap-lint.py`** — it calls the editor service's own `validate_document()`, so a clean run means the admin can still save in the GUI. Validation is whole-file: one bad item blocks *every* save, including adding a new idea. `implemented` + an open blocker step is the trap this rule exists to prevent — it belongs in `manual`. **Agents may create new `ideas:` entries freely, but every agent-created entry must carry `hidden: true`** (2026-08-23 — this reverses the old "never without asking" rule). Hidden keeps it off the public roadmap page and the in-game Recent Updates sign, so a proposal costs the admin nothing until they choose to unhide it. Default `player:` to `HomelessSon (Server Admin)` unless told otherwise. This applies to the local Gemma harness as well as to Claude.
   - **Every `manual_steps` entry needs `kind:`** — `toolset` (waypoints, palette, appearance/portrait/voiceset), `uat` (in-game verification), `publish` (repack/hak/nwsync/restart) or `admin` (the default when absent). It is what the editor's **Toolset Queue** and **UAT Queue** panels filter on, and an open `uat` step is what marks a shipped item "not yet validated" — on the in-game Recent Updates sign as well as in the editor. On a `uat` step also set `tester:` (free text: `any`, `wizard 43+`, `level 60 melee`) whenever you know what it takes to run the check. `bin/roadmap-classify-steps.py` backfills `kind` heuristically for untagged steps.
   - **The daily refresh now publishes the roadmap for you.** `bin/refresh-homers-lotr-wiki` runs `gen-roadmap.py` and `bin/publish-roadmap-db.py` (in-game sign DB) before the wiki build, both warn-and-continue. So edit + commit `roadmap.yaml` and stop there — you still must not run the wiki refresh yourself.
   - **Nav-menu directives live in the generator, never in the output.** The wiki places a manual page by regex-scanning its source for `@menu 'Name'` / `@order N`. Because `gen-roadmap.py` rewrites `Roadmap.html` wholesale, its `@menu 'Activity'` directive must stay in the script's HTML template — a directive hand-added to `Roadmap.html` is wiped by the very next regeneration (this silently dropped Roadmap back into the Documents menu once already: added in `247e83362cb`, lost in `0bd72181750`). `tests/check_manual_menus.py` is the build gate that catches it.
@@ -173,6 +173,40 @@ running container and force every client to re-download everything.
 store (4+ GiB of CEP), so it will blow through a short command timeout — and a killed run leaves
 `latest` pointing at the previous manifest (safe, but nothing was published, so
 it must be re-run).
+
+### Release notes: what is in dev but not yet live
+
+`python3 bin/gen-release-notes.py` turns the dev↔season commit diff into player-readable
+Markdown. Same dataset, three audiences:
+
+| `--audience` | for |
+|---|---|
+| `testers` | "here is what just landed on the test realm and what still needs checking" — publish while the diff is open |
+| `players` | "here is what this update contains" — publish when `season-promote.sh` closes it |
+| `admin` (default) | both, plus `hidden` items, plus open publish/toolset steps, plus **the commits no roadmap item claimed** |
+
+**It is a roadmap join, not a git-log summary.** `roadmap.yaml` already carries the
+player-facing note for every shipped item in `commit:` + `notes:`, so the mapping is
+exact and the output is byte-reproducible. The corollary: **an item with no `commit:` is
+invisible to the notes.** That is what the admin audience's "Unattributed commits"
+section is for — anything there is either a genuinely invisible change or a missing
+`commit:` field.
+
+**Run it BEFORE promoting.** `season-promote.sh --apply` both force-moves the
+`promote/s<N>/<date>` tag and writes the target's new `Promote from dev @<sha>` — the two
+anchors the baseline is read from (target commit first, tag as fallback). After a
+promotion the range is empty and you have to pass `--since <the previous base>` by hand.
+
+`--flavor` sends the item list to the LAN Gemma box (`bin/llm/client.py`) to rewrite each
+note as one or two plain sentences **and merge duplicate or related items into a single
+bullet** — the `petrification-…-round-3` + `round-4` case. It is opt-in, and the result
+is cached to a `release-notes/<range>.<fingerprint>.flavor.json` sidecar (gitignored), so
+the same range always renders identically and any bullet can be hand-edited: `text` is
+what renders, `ids` says which items it covers, `null` text falls back to that item's
+roadmap note. `--regen-flavor` re-rolls. If the model drops, repeats or invents an id the
+answer is **repaired, not discarded** — every item still ends up in exactly one bullet,
+un-flavored if need be. If the box is unreachable it warns and emits the deterministic
+notes, so `--flavor` is never the difference between output and no output.
 
 ### Prod characters on the dev realm
 
@@ -386,6 +420,26 @@ a new tier column + helper + seed column if needed) — don't write a new
 gitignore it **and** keep it out of `unpacked/` (e.g. under `bin/`), because
 gitignore alone does not stop nasher from packing it.
 
+## Working with the local LLM
+
+A Gemma 4 server on the LAN (`http://192.168.1.103:11434`) does the module's bulk
+prose work. Full details in [CLAUDE-llm-harness.md](CLAUDE-llm-harness.md); three
+rules matter everywhere:
+
+- **Never send secrets to it.** It is unauthenticated plain HTTP on another
+  machine — no `server.env`, no CD keys, no `bin/seed-admindb.sh`, no
+  `roadmap-merit-aliases.json`. Same reasoning as the no-hard-coded-CD-keys rule
+  above: keeping a secret out of git is not keeping it out of everywhere else.
+- **The local model writes prose and classifies things. It never writes
+  NWScript or GFF structure.** It cannot verify that a builtin exists, and a
+  build gate will not catch a script that compiles and does nothing. The
+  autopilot enforces this with an explicit task allowlist (`autopilot.TASKS`) —
+  adding a recipe to `bin/llm/tasks/` does **not** arm it.
+- **Bulk content edits go in the ledger — yours too.** If you change a hundred
+  item descriptions by hand, record them with `python3 bin/llm/ledger.py record`
+  so the admin can review and revert them in the same panel as the generated
+  ones. A change nobody can find is a change nobody can undo.
+
 ## Quest wiki directives
 
 The wiki's **Quests** section is driven by the **Comment** field of each journal category (set in the NWN Toolset's Journal editor — it is the only per-quest free text; individual entries have no Comment). Add any of the following directives to control how a quest appears on the wiki:
@@ -438,6 +492,7 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
 - [CLAUDE-autopilot.md](CLAUDE-autopilot.md) — Autopilot runbook: the unattended roadmap loop (`/autopilot` skill) — item selection + tier rebalancing quotas, waypoint-instead-of-placement rule, the `design_questions`/`manual_steps` hand-off fields, test-build/ship/commit procedure, hard never-rules
 - [QuestGuide-DM-Notes.md](QuestGuide-DM-Notes.md) — admin half of the quest guide: per-quest scripts, blueprints, campaign DBs, `AP_*` waypoints, roadmap ids, open points and UAT notes. The public `docs.manual/QuestGuide.html` carries none of that — keep the split when editing either.
 - [season-cutover-guide.md](season-cutover-guide.md) + [season-cutover-prereqs.md](season-cutover-prereqs.md) — repeatable season cutover: the 3-phase per-season runbook (early access → go live → retire), and the one-time engineering it depends on
+- [CLAUDE-llm-harness.md](CLAUDE-llm-harness.md) — the local-LLM harness (`bin/llm/`): a Gemma 4 box on the LAN does the module's bulk prose work (item and creature descriptions) and mechanical triage. Task recipes hold all the logic so running one costs an agent nothing; every generated field write lands in the `llm-changes/` ledger and is revertible from the roadmap editor's **LLM Changes** panel. Read it before writing a new task recipe, before running `bin/llm/autopilot.py`, or when wondering why a description you did not write appeared in `unpacked/`
 - [CLAUDE-merit.md](CLAUDE-merit.md) — Merit award + redemption system: `meritdb` schema (earned vs escrowed `merit_spent`), the `merit_redeem.nss` catalogue, how to add/graduate a redemption option, custom-token ranges, and the Barliman NPC + DM EmoteWand flow
 
 ## Useful references

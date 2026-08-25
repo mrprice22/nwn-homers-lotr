@@ -32,3 +32,15 @@ unpacked/nwnmgr_bstamp.nss
 
 # Advisory lock guarding concurrent roadmap.yaml writers (editor + apply-patch)
 .roadmap.yaml.lock
+
+# Local-LLM harness (bin/llm/) response cache — keyed by model+prompt+schema hash.
+# Pure derived data, regenerated on demand, and large. The ledger under
+# llm-changes/ IS tracked; only the cache and its temp files are not.
+/.llm-cache/
+/llm-changes/*.tmp
+/.llm-harness.lock
+
+# Release-note flavor sidecars (bin/gen-release-notes.py --flavor). Derived from
+# roadmap.yaml + a commit range; regenerated with --regen-flavor. Kept out of git
+# because the range they are keyed on closes at the next promotion.
+/release-notes/

@@ -503,12 +503,13 @@ agent cleans it up.
   its control files.
 - **Never publish the wiki**: `bin/refresh-homers-lotr-wiki` is allowed only as local
   validation for a wiki item; leave `docs/`/`module-index/` for the daily cycle.
-- **Never create new `ideas:` entries** in `roadmap.yaml` — even for follow-up work you
-  discover, and even when "proposing an idea." You *may* propose freely, but only **as
-  tasks/questions attached to an existing item**: a `design_question` (with your suggested
-  answer in the text) or a `manual_steps`/`impl_notes` note. Those queue for the admin's
-  bulk approval without minting a new backlog row. A brand-new `ideas:` entry is always the
-  admin's call — leave follow-ups you can't attach to a current item for them.
+- **New `ideas:` entries must be `hidden: true`.** As of 2026-08-23 you may mint them
+  freely for follow-up work you discover — the old rule was "never without asking", and it
+  has been lifted. `hidden` is what makes that safe: the entry stays off the public roadmap
+  page and the in-game Recent Updates sign until the admin unhides it, so a proposal costs
+  them nothing. Set `player: HomelessSon (Server Admin)`. Attaching the thought to an
+  existing item as a `design_question` or an `impl_notes` note is still the better move when
+  it genuinely belongs to that item; mint a new row when it does not.
 - **Never implement a legendary feat without the admin's explicit, per-feat sign-off.**
   The `ll-feats-*` backlog items and [CLAUDE-legendary-feats-triage.md](CLAUDE-legendary-feats-triage.md)
   read like a settled plan; **they are unreviewed proposals**. `FEATS` is append-only and a

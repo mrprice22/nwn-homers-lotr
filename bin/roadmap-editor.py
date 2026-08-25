@@ -114,8 +114,27 @@ def load_publish():
     return mod
 
 
+def load_review():
+    """Import bin/llm/review_api.py — the LLM change-ledger review panel.
+
+    Optional on purpose: the harness under bin/llm/ is a separate concern, and
+    the editor must still start on a checkout where nothing has ever been
+    generated. A failure here disables the panel, never the editor.
+    """
+    try:
+        bindir = str(Path(__file__).resolve().parent)
+        if bindir not in sys.path:
+            sys.path.insert(0, bindir)
+        from llm import review_api  # noqa: PLC0415
+        return review_api
+    except Exception as exc:  # noqa: BLE001
+        print(f"[warn] LLM review panel unavailable: {exc}", file=sys.stderr)
+        return None
+
+
 GEN = load_gen()
 PUB = load_publish()
+REVIEW = load_review()
 # FIELD_ORDER orders the same names gen-roadmap.py validates against. A field
 # added to one and not the other means either a silently unrendered key or a
 # spurious "unrecognised field" warning, so say so loudly at startup.
@@ -2115,6 +2134,17 @@ class Handler(BaseHTTPRequestHandler):
             self._json(merit_for_player(player))
         elif self.path == "/api/pending":
             self._json(pending_requests())
+        elif self.path.startswith("/api/changes"):
+            if REVIEW is None:
+                return self._json({"groups": [], "batches": [], "tasks": [],
+                                   "total": 0, "pending": 0, "shown": 0,
+                                   "unavailable": True})
+            q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            done = q.get("done", ["0"])[0] == "1"
+            if q.get("mode", [""])[0] == "compare":
+                self._json(REVIEW.compare_payload(show_done=done))
+            else:
+                self._json(REVIEW.payload(show_done=done, task=q.get("task", [""])[0]))
         elif self.path.startswith("/api/palette"):
             q = urllib.parse.urlparse(self.path).query
             term = urllib.parse.parse_qs(q).get("q", [""])[0]
@@ -2134,7 +2164,8 @@ class Handler(BaseHTTPRequestHandler):
         merge was computed from and the os.replace() that commits it.
         """
         try:
-            if self.path == "/api/palette/refresh":   # never touches roadmap.yaml
+            # Neither of these touches roadmap.yaml, so neither needs the lock.
+            if self.path in ("/api/palette/refresh", "/api/changes/action"):
                 return self._do_POST_locked()
             with yaml_lock(timeout=60.0):
                 return self._do_POST_locked()
@@ -2163,6 +2194,15 @@ class Handler(BaseHTTPRequestHandler):
                                "built": load_palette_map()["built"],
                                "message": ("Palette map rebuilt."
                                            if ok else "Palette map refresh FAILED.")})
+        if self.path == "/api/changes/action":
+            if REVIEW is None:
+                return self._json({"ok": False,
+                                   "message": "the bin/llm harness is not installed"})
+            try:
+                body = self._read_body()
+            except Exception as e:
+                return self._json({"ok": False, "message": f"bad request: {e}"}, 400)
+            return self._json(REVIEW.act(body))
         if self.path == "/api/step-status":
             try:
                 payload = self._read_body()
@@ -2665,6 +2705,49 @@ PAGE = r"""<!doctype html>
   #pf_results .pf-custom { color:var(--accent); font-weight:600; }
   #pf_results .pf-std { color:var(--muted); }
   .pf-meta { font-size:11px; color:var(--muted); margin-left:auto; }
+  /* LLM change review */
+  .lc-bar { display:flex; gap:8px; align-items:center; margin:6px 0; flex-wrap:wrap; }
+  .lc-group { margin:16px 0 6px; padding:6px 8px; border:1px solid var(--line);
+              border-radius:5px; background:var(--bg2,#161c24); }
+  .lc-group h3 { margin:0 0 4px; font-size:13px; color:var(--accent); }
+  .lc-row { padding:6px 8px; border-bottom:1px solid var(--line); font-size:12px; }
+  .lc-row:last-child { border-bottom:none; }
+  .lc-file { font-family:monospace; color:var(--muted); }
+  .lc-before { color:var(--muted); text-decoration:line-through; }
+  .lc-after { color:var(--fg,#dde); }
+  .lc-warn { color:#e8a33d; font-size:11px; }
+  .lc-risk-hold { border-left:3px solid #d9534f; }
+  .lc-risk-review { border-left:3px solid #e8a33d; }
+  .lc-risk-auto { border-left:3px solid #4a8f5b; }
+  .lc-acts { display:flex; gap:6px; margin-top:4px; }
+  .lc-acts button { font-size:11px; padding:2px 8px; }
+  .lc-done { opacity:.55; }
+  #lc_results { max-height:56vh; overflow:auto; margin-top:8px; }
+  /* compare view: one item, its stats, both descriptions */
+  .lc-item { margin:14px 0; border:1px solid var(--line); border-radius:5px;
+             background:var(--bg2,#161c24); }
+  .lc-item > h3 { margin:0; padding:7px 10px; font-size:13px; color:var(--accent);
+                  border-bottom:1px solid var(--line); }
+  .lc-item h3 .small { color:var(--muted); font-weight:400; }
+  .lc-body { display:grid; grid-template-columns:minmax(240px,1fr) 2fr; gap:12px;
+             padding:10px; }
+  @media (max-width:820px){ .lc-body { grid-template-columns:1fr; } }
+  .lc-props { font-size:11px; line-height:1.55; }
+  .lc-props li { list-style:none; margin:0 0 2px; }
+  .lc-props .rankw { color:var(--accent); }
+  .lc-props .rank-top { color:#e8a33d; font-weight:600; }
+  .lc-halves { display:flex; flex-direction:column; gap:10px; }
+  .lc-half { border-left:3px solid var(--line); padding:2px 0 2px 9px; }
+  .lc-half.filled { border-left-color:#4a8f5b; }
+  .lc-half .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.06em;
+                  color:var(--muted); }
+  .lc-half .txt { font-size:12.5px; margin:2px 0 4px; }
+  .lc-empty { color:var(--muted); font-style:italic; font-size:12px; }
+  .lc-src { font-size:10px; color:var(--muted); }
+  .lc-src.sonnet { color:#7aa2f7; }
+  .lc-reroll { color:var(--muted); }
+  .lc-acts button.rr { border-color:var(--accent); }
+  .lc-acts button:disabled { opacity:.5; cursor:progress; }
   /* work queues (Toolset / UAT) — wider than the other modals: these are read
      while you work in another window, so the step text must not be a keyhole. */
   .modal.wide { width:min(1000px,100%); }
@@ -2778,6 +2861,7 @@ PAGE = r"""<!doctype html>
       <button id="mpalette" class="linkbtn">Palette Finder</button>
       <button id="mtoolq" class="linkbtn">Toolset Queue</button>
       <button id="muatq" class="linkbtn">UAT Queue</button>
+      <button id="mchanges" class="linkbtn">LLM Changes</button>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
@@ -4293,6 +4377,262 @@ $('#modal').onclick = e=>{ if(e.target.id==='modal') closeModal(); };
 
 // Palette Finder: search where a blueprint lives in the toolset palette.
 let pfTimer=null;
+// ---- LLM change review -----------------------------------------------
+// Everything a model wrote into this repo, worst-first. Ordering comes from the
+// priority score each task recipe computed at generation time; nothing here
+// re-asks a model anything.
+let LC = {showDone:false, task:'', data:null, mode:'batch'};
+
+function lcRowHTML(row){
+  const warn = row.warnings.length
+    ? `<div class="lc-warn">! ${row.warnings.map(esc).join(' · ')}</div>` : '';
+  const before = (row.before===null || row.before===undefined || row.before==='')
+    ? '<span class="lc-before">(was empty)</span>'
+    : `<div class="lc-before">${esc(String(row.before))}</div>`;
+  const done = row.review!=='pending';
+  const rr = row.item
+    ? `<button class="rr" data-act="reroll" data-engine="gemma" data-id="${row.id}">↻ Gemma</button>
+       <button class="rr" data-act="reroll" data-engine="sonnet" data-id="${row.id}">↻ Sonnet</button>`
+    : '';
+  const acts = done
+    ? `<span class="small">${esc(row.review)}</span>
+       <button data-act="revert" data-id="${row.id}">Revert</button>${rr}`
+    : `<button data-act="approve" data-id="${row.id}">Approve</button>
+       <button data-act="edit" data-id="${row.id}">Edit</button>
+       <button data-act="revert" data-id="${row.id}">Revert</button>${rr}`;
+  // Which model wrote this. A batch is mostly Gemma with the odd Sonnet
+  // recovery in it, so the source belongs on the ROW -- the group header can
+  // only name one and would misreport every fallback in the batch.
+  const src = row.source||'';
+  const srcCls = src.indexOf('sonnet')===0 ? 'lc-src sonnet' : 'lc-src';
+  return `<div class="lc-row ${done?'lc-done':''}">
+    <div class="lc-file">${esc(row.file)} <span class="small">${esc(row.field)}</span>
+      ${src?`<span class="${srcCls}">· ${esc(src)}</span>`:''}
+      ${row.priority?`<span class="small">· p=${row.priority}</span>`:''}
+      ${row.confidence!=null?`<span class="small">· conf ${row.confidence}</span>`:''}</div>
+    ${before}
+    <div class="lc-after">${esc(String(row.after??''))}</div>
+    ${warn}
+    <div class="lc-acts">${acts}</div>
+  </div>`;
+}
+
+// ---- compare view: one item, its stats, both halves of its description ----
+// Reviewing prose about an object without seeing the object is guesswork, so
+// every row carries the item's real property list with each value's standing
+// among all items of its kind in this module.
+function lcPropsHTML(item){
+  if(!item) return '<div class="small">no item stats available</div>';
+  const rows = (item.properties||[]).map(p=>{
+    const i = p.indexOf(' -- ');
+    if(i<0) return `<li>${esc(p)}</li>`;
+    const rank = p.slice(i+4);
+    const cls = /nothing in the world|very greatest/.test(rank) ? 'rank-top' : 'rankw';
+    return `<li>${esc(p.slice(0,i))} <span class="${cls}">${esc(rank)}</span></li>`;
+  }).join('');
+  const link = item.wiki_url
+    ? ` &middot; <a href="${esc(item.wiki_url)}" target="_blank">wiki</a>` : '';
+  return `<div class="lc-props">
+    <div class="small"><b>${esc(item.base_item||'')}</b> &middot;
+      tier <b>${esc(item.overall_tier||'')}</b> &middot;
+      value ${esc(item.gold_tier||'')}${link}</div>
+    <ul style="margin:6px 0 0;padding:0">${rows||'<li class="lc-empty">no properties</li>'}</ul>
+    ${(item.sources||[]).length?`<div class="small" style="margin-top:6px">${esc(item.sources[0])}</div>`:''}
+  </div>`;
+}
+
+function lcHalfHTML(half, label){
+  if(!half) return `<div class="lc-half"><div class="lbl">${label}</div>
+    <div class="lc-empty">not written yet</div></div>`;
+  const src = half.source||'';
+  const srcCls = src.indexOf('sonnet')===0 ? 'lc-src sonnet' : 'lc-src';
+  const warn = half.warnings.length
+    ? `<div class="lc-warn">! ${half.warnings.map(esc).join(' · ')}</div>` : '';
+  const acts = half.id
+    ? `<div class="lc-acts">
+         ${half.review==='pending'?`<button data-act="approve" data-id="${half.id}">Approve</button>`:''}
+         <button data-act="edit" data-id="${half.id}">Edit</button>
+         <button data-act="revert" data-id="${half.id}">Revert</button>
+         <button class="rr" data-act="reroll" data-engine="gemma"
+                 data-id="${half.id}" title="Generate a fresh one on the local Gemma box">↻ Gemma</button>
+         <button class="rr" data-act="reroll" data-engine="sonnet"
+                 data-id="${half.id}" title="Generate a fresh one with Claude Sonnet (uses your Claude subscription)">↻ Sonnet</button>
+       </div>`
+    : `<div class="lc-acts">
+         <span class="small">no ledger record — edited outside the panel</span>
+         <button data-act="adopt" data-file="${esc(half.file||'')}"
+                 data-field="${esc(half.field)}"
+                 title="Record this text as-is so it can be approved and tracked">Keep this</button>
+         <button class="rr" data-act="reroll-field" data-engine="gemma"
+                 data-file="${esc(half.file||'')}" data-field="${esc(half.field)}">↻ Gemma</button>
+         <button class="rr" data-act="reroll-field" data-engine="sonnet"
+                 data-file="${esc(half.file||'')}" data-field="${esc(half.field)}">↻ Sonnet</button>
+       </div>`;
+  return `<div class="lc-half filled">
+    <div class="lbl">${label}
+      <span class="${srcCls}">${esc(src)}</span>
+      ${half.review!=='pending'?`<span class="small">· ${esc(half.review)}</span>`:''}</div>
+    <div class="txt">${esc(half.text)}</div>
+    ${warn}${acts}
+  </div>`;
+}
+
+function lcCompareHTML(rows){
+  return rows.map(r=>{
+    const name = (r.item && r.item.name) || r.file.split('/').pop();
+    return `<div class="lc-item">
+      <h3>${esc(name)} <span class="small">${esc(r.file)}</span></h3>
+      <div class="lc-body">
+        ${lcPropsHTML(r.item)}
+        <div class="lc-halves">
+          ${lcHalfHTML(r.unidentified,'Unidentified — before the player identifies it')}
+          ${lcHalfHTML(r.identified,'Identified — what they read after')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function lcRender(){
+  const box=$('#lc_results'), meta=$('#lc_meta');
+  if(!box) return;
+  const d=LC.data;
+  if(!d){ box.innerHTML='<p class="small">Loading…</p>'; return; }
+  if(d.unavailable){
+    meta.textContent='';
+    box.innerHTML='<p class="small">The <code>bin/llm</code> harness is not installed '+
+      'on this checkout, so there is nothing to review.</p>'; return;
+  }
+  meta.textContent = d.pending+' pending of '+d.total+' recorded'+
+    (d.truncated?' (showing the first '+d.shown+')':'');
+  if(d.mode==='compare'){
+    box.innerHTML = d.rows.length
+      ? lcCompareHTML(d.rows)
+      : '<p class="small">Nothing to compare.</p>';
+    return;
+  }
+  if(!d.groups.length){
+    box.innerHTML='<p class="small">Nothing to review. '+
+      (d.total?'Tick "show reviewed" to see what has already been handled.'
+             :'Run a task with <code>python3 bin/llm/run.py &lt;task&gt; --apply</code> first.')+
+      '</p>'; return;
+  }
+  box.innerHTML = d.groups.map(g=>{
+    const ids = g.rows.filter(r=>r.review==='pending').map(r=>r.id);
+    const bulk = ids.length
+      ? `<button data-act="approve_group" data-ids="${ids.join(',')}">Approve all ${ids.length}</button>`
+      : '';
+    return `<div class="lc-group lc-risk-${esc(g.risk)}">
+      <h3>${esc(g.task)} · ${esc(g.risk)} · ${g.count} change${g.count===1?'':'s'}
+        ${g.flagged?`<span class="lc-warn">(${g.flagged} flagged)</span>`:''}</h3>
+      <div class="small">${esc(g.batch)} · ${esc(g.sources||g.source||'')} · ${esc(g.ts||'')}</div>
+      <div class="lc-acts">${bulk}</div>
+      ${g.rows.map(lcRowHTML).join('')}
+    </div>`;
+  }).join('');
+}
+
+async function lcLoad(){
+  const qs='/api/changes?done='+(LC.showDone?'1':'0')+'&task='+encodeURIComponent(LC.task)
+    +'&mode='+LC.mode;
+  const r=await fetch(qs);
+  LC.data=await r.json();
+  lcRender();
+}
+
+async function lcAct(body){
+  body.show_done=LC.showDone; body.task=LC.task; body.mode=LC.mode;
+  const r=await fetch('/api/changes/action',
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const res=await r.json();
+  banner(res.ok?'ok':'bad', res.message||'');
+  if(res.ok){ LC.data=res; lcRender(); }
+}
+
+function openChanges(){
+  modalHTML(`<h2>LLM Changes</h2>
+    <p class="small">Every field a model wrote into <code>unpacked/</code>, recorded in
+      <code>llm-changes/*.jsonl</code>. Sorted worst-first by the priority the task
+      recipe computed — validator warnings, near-duplicate score and the model's own
+      confidence. <b>Revert</b> restores the previous value on disk; <b>Edit</b> replaces
+      it with your own text. Both are recorded, so nothing is lost either way.</p>
+    <div class="lc-bar">
+      <select id="lc_mode">
+        <option value="batch">by batch</option>
+        <option value="compare">by item (both descriptions + stats)</option>
+      </select>
+      <select id="lc_task"><option value="">all tasks</option></select>
+      <label class="small"><input type="checkbox" id="lc_done"> show reviewed</label>
+      <span class="pf-meta" id="lc_meta"></span>
+    </div>
+    <div id="lc_results"></div>
+    <div class="bar"><span class="spacer"></span><button id="lc_close">Close</button></div>`);
+  $('#modalbox').classList.add('wide');
+  $('#lc_close').onclick=closeModal;
+  $('#lc_done').checked=LC.showDone;
+  $('#lc_done').onchange=e=>{ LC.showDone=e.target.checked; lcLoad(); };
+  $('#lc_task').onchange=e=>{ LC.task=e.target.value; lcLoad(); };
+  $('#lc_mode').value=LC.mode;
+  $('#lc_mode').onchange=e=>{
+    LC.mode=e.target.value;
+    $('#lc_task').disabled = (LC.mode==='compare');   // compare spans tasks
+    lcLoad();
+  };
+  $('#lc_task').disabled = (LC.mode==='compare');
+  // Delegated so the handlers survive every re-render.
+  $('#lc_results').addEventListener('click', async e=>{
+    const b=e.target.closest('button[data-act]'); if(!b) return;
+    const act=b.dataset.act;
+    if(act==='approve_group'){
+      const ids=b.dataset.ids.split(',');
+      if(!confirm('Approve all '+ids.length+' changes in this group?')) return;
+      return lcAct({action:'approve_group', ids});
+    }
+    if(act==='revert'){
+      if(!confirm('Restore the previous value on disk?')) return;
+      return lcAct({action:'revert', id:b.dataset.id});
+    }
+    if(act==='adopt'){
+      return lcAct({action:'adopt', file:b.dataset.file, field:b.dataset.field});
+    }
+    if(act==='reroll'||act==='reroll-field'){
+      // A roll takes ~5-20s on Gemma. Disable the row's buttons and say so,
+      // or an impatient second click queues a second generation.
+      const engine=b.dataset.engine;
+      const row=b.closest('.lc-acts');
+      const olds=[...row.querySelectorAll('button')].map(x=>[x,x.textContent]);
+      olds.forEach(([x])=>x.disabled=true);
+      b.textContent='rolling…';
+      try {
+        await lcAct(b.dataset.id
+          ? {action:'reroll', id:b.dataset.id, engine}
+          : {action:'reroll', file:b.dataset.file, field:b.dataset.field, engine});
+      } finally {
+        olds.forEach(([x,txt])=>{ x.disabled=false; x.textContent=txt; });
+      }
+      return;
+    }
+    if(act==='edit'){
+      const row=b.closest('.lc-row');
+      const cur=row.querySelector('.lc-after').textContent;
+      const text=prompt('Replace the generated text with:', cur);
+      if(text===null) return;
+      return lcAct({action:'edit', id:b.dataset.id, text});
+    }
+    return lcAct({action:act, id:b.dataset.id});
+  });
+  lcLoad().then(()=>{
+    const sel=$('#lc_task');
+    if(sel && LC.data && LC.data.tasks){
+      LC.data.tasks.forEach(t=>{
+        const o=document.createElement('option'); o.value=t; o.textContent=t;
+        sel.appendChild(o);
+      });
+      sel.value=LC.task;
+    }
+  });
+}
+
 function openPalette(){
   modalHTML(`<h2>Palette Finder</h2>
     <p class="small">Search a creature/item/placeable by name (or resref) and see
@@ -4750,6 +5090,7 @@ $('#mpending').onclick=openPending;
 $('#mpalette').onclick=openPalette;
 $('#mtoolq').onclick=()=>openQueue('toolset');
 $('#muatq').onclick=()=>openQueue('uat');
+$('#mchanges').onclick=openChanges;
 $('#filter').oninput = render;
 $('#view_list').onclick=()=>setView('list');
 $('#view_board').onclick=()=>setView('board');

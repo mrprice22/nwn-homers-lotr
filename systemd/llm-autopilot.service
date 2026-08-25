@@ -1,0 +1,33 @@
+[Unit]
+# Unattended content pass by the local Gemma model (bin/llm/autopilot.py).
+#
+# Deliberately NOT enabled by default and NOT started at boot. It commits and
+# pushes to main on its own, so arming it is a decision, not a default. Run it
+# by hand first:
+#     python3 bin/llm/autopilot.py --once --dry-run
+#     python3 bin/llm/autopilot.py --once
+# and only then:
+#     systemctl --user enable --now llm-autopilot.timer
+#     loginctl enable-linger james     # so the timer survives logout
+#
+# Scope is fenced in the script: prose and classification only, never NWScript,
+# never GFF structure, never roadmap status or merit fields. Every batch is
+# gated on tests/smoke-test and rolled back if the gates fail.
+#
+# The model runs on another machine on the LAN (see bin/llm/config.py). If that
+# box is off the run exits cleanly having done nothing -- that is not a failure.
+Description=Homer's LotR local-LLM content autopilot (one batch)
+Documentation=file:///var/home/james/GIT/nwn_homers_lotr/CLAUDE-llm-harness.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/home/james/GIT/nwn_homers_lotr
+ExecStart=/usr/bin/python3 /var/home/james/GIT/nwn_homers_lotr/bin/llm/autopilot.py --once
+# Never compete with the NWN server or a repack for CPU: this is background work
+# with no deadline, and the box it talks to does the expensive part anyway.
+Nice=15
+IOSchedulingClass=idle
+# One batch of 60 at ~10s an item is about ten minutes; give it room to be slow
+# without ever wedging the timer.
+TimeoutStartSec=3600

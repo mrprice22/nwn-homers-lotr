@@ -1,0 +1,17 @@
+[Unit]
+# Hourly, but see llm-autopilot.service: nothing runs until you enable this.
+# Hourly rather than continuous so a bad prompt costs one batch of 60 items,
+# and so there is always a human-sized window to look at the LLM Changes panel
+# before the next batch lands.
+Description=Run the local-LLM content autopilot hourly
+Documentation=file:///var/home/james/GIT/nwn_homers_lotr/CLAUDE-llm-harness.md
+
+[Timer]
+OnCalendar=hourly
+# Do not stampede a batch the moment the machine boots -- the 03:00 reboot has
+# enough to do, and the wiki refresh is committing around then.
+RandomizedDelaySec=900
+Persistent=false
+
+[Install]
+WantedBy=timers.target
