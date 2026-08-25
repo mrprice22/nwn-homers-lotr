@@ -227,7 +227,15 @@ for p in "${PROMOTE[@]}"; do
   CHANGED=$((CHANGED + n))
   if ((n)); then
     note "$p: $n change(s)"
-    printf '%s\n' "$out" | head -12 | sed 's/^/      /'
+    # `|| true`: head -12 exits after 12 lines, so on a big change set printf
+    # dies of SIGPIPE and `set -o pipefail` makes the whole pipeline return 141
+    # -- which `set -e` then turns into a SILENT exit right here, after the
+    # rsync has landed but before the rebrand, repack, arm and commit. That is
+    # exactly what happened promoting the 1785-file description pass on
+    # 2026-08-24/25: three runs, no error message, prod left un-promoted with a
+    # dirty tree. Every previous promotion had <=12 changes per path, so head
+    # never truncated and the bug never fired.
+    printf '%s\n' "$out" | head -12 | sed 's/^/      /' || true
     ((n > 12)) && echo "      ... and $((n - 12)) more"
   fi
 done
