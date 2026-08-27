@@ -49,6 +49,7 @@ _spec.loader.exec_module(_gbr)
 death_respawn_kind = _gbr._death_respawn_kind
 
 IGNORE_FILE = ROOT / "tests" / "respawn_ignore.json"
+EXTERNAL_FILE = ROOT / "tests" / "respawn_external_blueprints.json"
 MD_OUT = ROOT / "CLAUDE-respawn-audit.md"
 JSON_OUT = ROOT / "module-index" / "respawn_audit.json"
 
@@ -61,6 +62,46 @@ def load_ignore():
     return {(e["area"], e["resref"]): e.get("reason", "") for e in data["ignore"]}
 
 
+def external_resrefs():
+    """Creature resrefs that resolve OUTSIDE unpacked/ (base game, CEP, haks).
+
+    se_respawn_inc re-creates from the blueprint resref, so a respawning
+    creature whose resref resolves nowhere is deleted on death rather than
+    respawned. Resolving that needs the NWN install, which a build gate cannot
+    assume, so the answer is checked in here and refreshed deliberately with
+    --refresh-external.
+    """
+    if not EXTERNAL_FILE.exists():
+        return None
+    return {r.lower()
+            for r in json.loads(EXTERNAL_FILE.read_text())["resolves_outside_module"]}
+
+
+def refresh_external():
+    """Re-derive the external list from the live NWN install + hak folder."""
+    import subprocess
+    haks = sorted((Path.home() / ".local/share/Neverwinter Nights/hak").glob("*.hak"))
+    cmd = ["nwn_resman_grep", "--all"]
+    if haks:
+        cmd += ["--erfs", ",".join(str(h) for h in haks)]
+    out = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
+    found = sorted({line.strip()[:-4].lower() for line in out.splitlines()
+                    if line.strip().lower().endswith(".utc")})
+    EXTERNAL_FILE.write_text(json.dumps({
+        "_comment": [
+            "Creature blueprint resrefs that resolve OUTSIDE unpacked/ -- the base",
+            "game, CEP, and every hak in the NWN hak folder. se_respawn_inc",
+            "re-creates from the resref, so a respawning placement whose resref is",
+            "in neither unpacked/ nor this list is DELETED on death, not respawned.",
+            "tests/check_creature_respawn.py fails the repack on that.",
+            "Regenerate (needs the NWN install) with:",
+            "  python3 bin/audit-creature-respawn.py --refresh-external",
+        ],
+        "resolves_outside_module": found,
+    }, indent=1) + "\n")
+    print(f"wrote {EXTERNAL_FILE.relative_to(ROOT)} ({len(found)} resrefs)")
+
+
 def scan():
     """One row per placed creature instance, worst first.
 
@@ -68,6 +109,7 @@ def scan():
     timer) | 'none' (stays dead until a restart).
     """
     ignore = load_ignore()
+    external = external_resrefs()
     rows = []
     for git in sorted(UNPACKED.glob("*.git.json")):
         area = git.name.replace(".git.json", "")
@@ -92,6 +134,9 @@ def scan():
                 "overrides_blueprint": bool(
                     inst_death and bp and inst_death != bp["script_death"]),
                 "blueprint_in_module": bp is not None,
+                "blueprint_resolves": (
+                    True if bp is not None
+                    else (None if external is None else rr.lower() in external)),
                 "cr": bp["cr"] if bp else None,
                 "plot": bool(bp["plot"]) if bp else False,
                 "immortal": bool(bp["immortal"]) if bp else False,
@@ -106,8 +151,22 @@ def scan():
 
 
 def offenders(rows):
-    """Rows the build gate fails on: not respawning and not allowlisted."""
-    return [r for r in rows if r["kind"] != "standard" and not r["ignored"]]
+    """Rows the build gate fails on, each tagged with why.
+
+    'no-respawn'  — the OnDeath never reaches SE_DoCreatureRespawn().
+    'unresolvable'— it does, but the blueprint resref exists in no container, so
+                    CreateObject returns nothing and the creature is deleted on
+                    death instead of respawned. Same symptom, different cause.
+    """
+    bad = []
+    for r in rows:
+        if r["ignored"]:
+            continue
+        if r["kind"] != "standard":
+            bad.append(dict(r, fault="no-respawn"))
+        elif r["blueprint_resolves"] is False:
+            bad.append(dict(r, fault="unresolvable"))
+    return bad
 
 
 def render_md(rows):
@@ -132,13 +191,16 @@ def render_md(rows):
         "",
     ]
     if bad:
-        out += ["## Failing — no respawn path", "",
-                "| Area | Creature | ResRef | CR | OnDeath | kind |",
+        out += ["## Failing — never comes back", "",
+                "`no-respawn` = the OnDeath never respawns it. `unresolvable` = "
+                "it tries, but the blueprint resref exists nowhere, so "
+                "`CreateObject` returns nothing and the creature is deleted.", "",
+                "| Area | Creature | ResRef | CR | OnDeath | fault |",
                 "|---|---|---|---:|---|---|"]
         for r in bad:
             cr = f"{r['cr']:.0f}" if r["cr"] is not None else "—"
             out.append(f"| {r['area_name']} | {r['name']} | `{r['resref']}` | "
-                       f"{cr} | `{r['script_death'] or '(blank)'}` | {r['kind']} |")
+                       f"{cr} | `{r['script_death'] or '(blank)'}` | {r['fault']} |")
         out.append("")
 
     odd = [r for r in rows if r["overrides_blueprint"]]
@@ -154,12 +216,13 @@ def render_md(rows):
         out.append("")
 
     hak = [r for r in rows if not r["blueprint_in_module"]
-           and r["kind"] == "standard"]
+           and r["kind"] == "standard" and r["blueprint_resolves"] is not False]
     if hak:
         out += ["## Respawns, but the blueprint is not in the module", "",
-                "`se_respawn_inc` re-creates from the blueprint resref. With no "
-                "`.utc.json` here the creature returns as the generic hak "
-                "creature and every instance override is lost.", "",
+                "`se_respawn_inc` re-creates from the blueprint resref. These "
+                "resolve to a base-game/CEP blueprint, so the creature does "
+                "come back — as the *generic* one, losing every instance "
+                "override (name, faction, gear).", "",
                 "| Area | Creature | ResRef |", "|---|---|---|"]
         for r in hak:
             out.append(f"| {r['area_name']} | {r['name']} | `{r['resref']}` |")
@@ -179,7 +242,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true",
                     help="write CLAUDE-respawn-audit.md and the JSON manifest")
+    ap.add_argument("--refresh-external", action="store_true",
+                    help="re-derive tests/respawn_external_blueprints.json from "
+                         "the NWN install (needs nwn_resman_grep)")
     args = ap.parse_args()
+
+    if args.refresh_external:
+        refresh_external()
 
     rows = scan()
     bad = offenders(rows)
@@ -193,7 +262,8 @@ def main():
         for r in bad:
             cr = f"{r['cr']:7.0f}" if r["cr"] is not None else "      —"
             print(f"  {cr}  {r['resref']:20s} {r['name'][:32]:32s} "
-                  f"{r['area']:18s} OnDeath={r['script_death'] or '(blank)'}")
+                  f"{r['area']:18s} {r['fault']:12s} "
+                  f"OnDeath={r['script_death'] or '(blank)'}")
     else:
         print("\nevery placed creature has a respawn path (or is allowlisted).")
 
