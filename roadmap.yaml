@@ -157,11 +157,34 @@ ideas:
   - id: add-a-decay-to-enrage-on-retreat-mechanic
     title: "Add a decay to Enrage-on-retreat mechanic (equal to respawn duration)"
     group: bosses
-    status: soon
+    status: manual
     type: Enhancement
     player: Szescian82
-    date: "2026-08-20"
-    notes: "<div><div><span><span>Szescian82</span></span><span><span><i> — </i>8/20/26, 1:25 PM</span></span><div><span>Here's an idea: when a player flees from a boss, the boss's stats increase, but if another player approaches, they have to fight the strengthened boss. Maybe it would be a good idea for the boss to reset when a player from a different account enters the location, instead of waiting for the server to restart.</span></div></div><div><div></div></div></div><div><div><span><span><br></span></span></div><div><span><span>HomelessSon</span><span><span> [MW], </span></span></span><span><span><i> — </i>8/20/26, 1:26 PM</span></span><div><span>maybe middleground would be like after time it takes for boss to respawn, then reset the boss</span></div></div><div><div></div></div></div><div><div> <div><span>otherwise 2 players could get crafty and tag team to force a reset if doing what you suggested</span></div></div></div><div><br></div><div>Decision: If boss is out of combat for the length of it's normal respawn duration, then reset the boss (move it to back to it's spawn location, reset it's spells and feats per day, full heal it, remove all engage bonuses, restore any stolen/consumed items) -- might be easier to re-instantiate the boss from blueprint, that works too, just dont want 2 bosses re-spawning after the next respawn duration.  </div>"
+    date: "2026-08-27"
+    commit: 9d7dc633c60
+    notes: "<div><b>A boss you walk away from now recovers.</b> Retreating from a Roll-of-the-Fallen boss still enrages it — but the enrage is no longer permanent for the rest of its life. Once nobody is fighting it, the boss waits out its own respawn time (the same countdown the Roll of the Fallen board shows for a slain boss) and then fully resets: every enrage stack gone, back to full health, spells and abilities restored, back at its lair, and anything looted or pickpocketed from it put back. It shouts when it happens, so a player walking in knows the fight has restarted.</div><div><br></div><div>Landing a hit restarts that clock, so the boss only resets if it really has been left alone — you cannot chip at it, step out and wait for a free heal, and two players cannot tag-team it into resetting on demand. What it fixes is the party <i>after</i> you: nobody inherits a half-dead boss carrying somebody else's enrage stacks any more, and no boss stays stuck in that state until the next server reboot.</div>"
+    impl_notes: "<div>Pure script, all in unpacked/enr_inc.nss (the existing enrage include, already reached through bst_ondamage.nss). No blueprint, palette, hak, TLK or NWSync work.</div><div><br></div><div><b>The clock.</b> ENR_IsRegistryBoss()'s one-per-life registry lookup now also caches boss_registry.respawn_seconds. When ENR_Tick runs out of engaged PCs it arms ENR_ResetCheck for that many seconds. Cancellation is a generation counter, not a timestamp: every damage bumps enr_gen, and a pending check that no longer matches the generation it was armed with no-ops. If the boss is still GetIsInCombat at expiry (chasing a PC who stopped hitting back) it re-arms at 60s instead of resetting mid-swing.</div><div><br></div><div><b>The reset</b> (ENR_DoReset): enrage effects are now applied with TagEffect(..., \"enr_rage\") so they can be stripped exactly, then ForceRest for HP + spells/feats per day (plus an explicit EffectHeal), a JumpToLocation to the \"spawn\" home leash_to_area already maintains, an item top-up, and a shout + VFX.</div><div><br></div><div><b>Items</b> are snapshotted at first damage (equip slots 0-13 and the backpack, resref + slot + stack size, capped at 40 entries) and restored as a <b>top-up, never a wipe</b> — same rule as kalrist_gems.nss — so anything the boss gained meanwhile survives. Restores create <b>one item per CreateItemOnObject call</b>: the stack argument is clamped to the base item's baseitems.2da Stacking value, which is the exact bug that made the tester Runes of Expansion arrive one-at-a-time (fixed separately, and now written up in CLAUDE-gotchas.md).</div><div><br></div><div><b>Deliberately in place, never a re-create.</b> Re-instantiating from the blueprint would restore inventory for free, but a CreateObject copy of one of the seven spawn_type='encounter' registry bosses is not an encounter creature, so its death would arm se_respawn_inc's respawn <i>and</i> leave the lair encounter free to spawn its own — the two-live-bosses case the decision rules out. One code path covers both spawn types.</div><div><br></div><div>Design write-up: <a href=\"https://homerslotr.com/manual/Draft/boss-updates#enrage\">boss-updates#enrage</a>, \"Decay, August 2026\".</div>"
+    manual_steps:
+      - step: "UAT reset: damage Summanus (Numenor: Noirinan, 480s respawn) and retreat so it enrages, then leave it alone for 8+ minutes. Expect a shout, a healing VFX, the boss back at its spawn point at full HP, and base ability scores on examine."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT the clock restarts: enrage Summanus, wait ~6 minutes, land one hit, then leave again. It must NOT reset until a further full 8 minutes of being left alone."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT item restore: take a droppable item off a boss (pickpocket, or let it use a consumable) before walking away. After the reset the item is back on the boss, and nothing else it was carrying was destroyed."
+        status: open
+        kind: uat
+        tester: "rogue with Pickpocket, or any"
+      - step: "UAT an encounter boss: same check on the Basilisk King (Mirkwood: Crypt Chamber, 3000s = 50 min) - it resets in place, and there is still exactly ONE of it in the area afterwards. This is the two-live-bosses risk the design avoided."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT no regression: killing a boss and letting it respawn normally still yields exactly one boss at base stats, and the Roll of the Fallen board countdown is unchanged."
+        status: open
+        kind: uat
+        tester: "any"
   - id: kallrist-crypt-quest-only-doable-once-per-server-reset
     title: "Kallrist Crypt Quest only doable once per server reset"
     group: quests-areas
