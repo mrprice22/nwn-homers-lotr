@@ -29,8 +29,10 @@ void TesterKitTopUp(object oPC)
 {
     int nGranted = FALSE;
 
-    // Runes STACK, so count stack sizes, not objects: GetItemPossessedBy would
-    // report a single stack of six as "has one" and this would top up forever.
+    // Count stack sizes rather than objects: GetItemPossessedBy would report a
+    // stack as "has one" and this would top up forever. (Runes are in fact
+    // non-stackable, so this is one per object - but the sum is correct either
+    // way, and stays correct if the base item ever changes.)
     int nHave = 0;
     object oItem = GetFirstItemInInventory(oPC);
     while (GetIsObjectValid(oItem))
@@ -38,9 +40,15 @@ void TesterKitTopUp(object oPC)
         if (GetResRef(oItem) == "slot_token") nHave += GetItemStackSize(oItem);
         oItem = GetNextItemInInventory(oPC);
     }
-    if (nHave < TESTER_RUNE_TARGET)
+    // ONE CreateItemOnObject per rune. Runes do NOT stack - slot_token is
+    // BaseItem 24 (miscsmall), whose baseitems.2da Stacking is 1 - and the
+    // stack argument is clamped to that, so asking for six silently produced
+    // exactly one. See CLAUDE-gotchas.md, "Handing out N of an item".
+    int nShort = TESTER_RUNE_TARGET - nHave;
+    while (nShort > 0)
     {
-        CreateIDItem("slot_token", oPC, TESTER_RUNE_TARGET - nHave);
+        CreateIDItem("slot_token", oPC);
+        nShort--;
         nGranted = TRUE;
     }
 

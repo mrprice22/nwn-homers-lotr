@@ -16,6 +16,24 @@
   (`bin/gen-*.py`) must emit ASCII too, or the gate fails the next time they run.
   GFF JSON is unaffected: `nwn_gff` converts it with a declared encoding.
 
+- **`CreateItemOnObject`'s stack argument is clamped to the base item's
+  `Stacking` value — asking for six of a non-stackable item silently gives
+  exactly one.** No error, no log line, no compile warning: the script *looks*
+  like it hands out six and hands out one. `slot_token` (the Rune of Expansion)
+  is `BaseItem 24` = `miscsmall`, whose `hak_2da/baseitems.2da` `Stacking` is
+  **1**, so `CreateItemOnObject("slot_token", oPC, 6)` in `welloferuenter.nss`
+  gave testers a single rune, and the cheat chest's `..., 3)` gave one — both
+  went unnoticed until a tester counted. Most quest items, keys and tokens are
+  `miscsmall`/`misclarge` and behave the same way; arrows/bolts/bullets (20/21/25,
+  `Stacking 999`), potions (`10`) and gold do stack, so the argument is only
+  meaningful there. **Rule: before passing a count, check `Stacking` for that
+  base item in `hak_2da/baseitems.2da`; when it is 1, loop and create one at a
+  time.** Stackable items merge on their own, so the loop is always correct —
+  it is only slower. When *counting* what someone already holds, sum
+  `GetItemStackSize` over the inventory rather than using
+  `GetItemPossessedBy` (which finds a stack of six and reports "has one",
+  and matches on **tag**, not resref).
+
 - **A symlink in `database/` must resolve *inside the container*, not just on
   the host.** The server runs in podman with only two bind mounts,
   `$NWN_RUN_DIR:/nwn/run` and `$NWN_HOME_DIR:/nwn/home`. An absolute symlink

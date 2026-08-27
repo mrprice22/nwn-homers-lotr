@@ -36,9 +36,14 @@ void main()
     if (GetItemPossessedBy(oPC, "Forgekey")          == OBJECT_INVALID) CreateItemOnObject("forgekey",         oPC);
     if (GetItemPossessedBy(oPC, "ammoreplicator")    == OBJECT_INVALID) CreateItemOnObject("ammoreplicator",   oPC);
 
-    // Rapid-testing supply: always hand out a fresh stack of 3 Runes of Expansion
-    // (consumable, so no possession guard - each use tops the tester back up to 3).
-    CreateItemOnObject("slot_token", oPC, 3);
+    // Rapid-testing supply: always hand out 3 more Runes of Expansion
+    // (consumable, so no possession guard).
+    // ONE create per rune: slot_token is BaseItem 24 (miscsmall), Stacking 1 in
+    // baseitems.2da, and CreateItemOnObject clamps its stack argument to that -
+    // so the old "3" quietly handed out one. See CLAUDE-gotchas.md.
+    int nRune;
+    for (nRune = 0; nRune < 3; nRune++)
+        CreateItemOnObject("slot_token", oPC);
 
     SendMessageToPC(oPC, "Your items have been placed in your inventory.");
 }
