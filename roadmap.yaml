@@ -142,11 +142,30 @@ ideas:
   - id: the-fell-beast-attacks
     title: "The Fell Beast attacks Kalrun the Deathless"
     group: bosses
-    status: planned
+    status: manual
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-27"
-    notes: "<div>In Kallrist Crypt, forge area, The Fell Beast spends all it's time attacking Kalrun instead of the player</div><div>Kalrun should be ignored by the fell beast -- we could only spawn Kalrun when the fell beast has been destroyed, and despawn Kalrun when the fell beast respawns</div><div>but I'd also like to add a guard that the fell beast does not respawn unless all players in the area do not already have the horn that summons the fell beast (reward for slaying him). This allows players who have already defeated the fell beast to return to the forge without having to repeat the boss fight</div>"
+    commit: f58663208c9
+    notes: "<div>The Fell Beast no longer spends the fight brawling with Kalrûn the Deathless. The crypt guardian and the smith now ignore each other, so the beast comes for you instead.</div><div>And once you carry the Horn of the Fell Beast, the guardian lets you pass: you can walk straight to the crypt-forge without re-killing the boss every visit. Anyone still without a Horn gets the fight as before.</div>"
+    impl_notes: "Root cause: the guardian (badass_2, tag balsum) is FactionID 1 (Hostile) and Kalrûn (kallristsmith) is FactionID 3 (Merchant), ~6m apart in kallristcryptlow; repute.fac has Hostile&lt;-&gt;Merchant at 0, so the smith was a legitimate target -- and being Plot: 1 he can never die, so the aggro never resolved. Fixed with mutual SetIsTemporaryFriend (personal reputation beats faction standing, no repute.fac edit), applied from BOTH sides because either can spawn first: spawn_fellbeast.nss (guardian) and the new fb_smith_spawn.nss (smith, chains nw_c2_default9 via ExecuteScript). bDecays is passed FALSE explicitly -- the default 180s duration would have restarted the fight. Horn-bearers: new fb_guard_notice.nss on the guardian's OnPerception friends any PC holding tag HornFellBeast and skips the stock hostile response; spawn_fellbeast.nss sweeps PCs already in the area at (re)spawn. Safe because the forge itself stays gated on the Horn (fb_no_horn on the kallrist_forge StartingList). Respawn plumbing (SE_DoCreatureRespawn, 900s) and the Roll of the Fallen registry are deliberately untouched, so the board's posted timer stays accurate. Scripts set on BOTH blueprint and placed instance -- this boss respawns from its blueprint (se_respawn_inc.nss); note the smith's instance also carried a ScriptSpawn override, which check_divergent_creatures does not cover. Also hardened fb_guard_death.nss while here: killer resolution walked only one GetMaster level and fell back to a non-PC anchor, so a nested associate / trap / DM kill silently awarded nobody a Horn on a respawn-gated boss. Now a full master-chain walk (mirroring Bst_OwningPC) unioned with the bestiary bst_ctrb_N damage-contributor list, plus a CreateItemOnObject return check, a pack-full message (cleanup.nss destroys loose items on area exit) and WriteTimestampedLogEntry on grant/failure -- there was previously no server-log trace of the award at all."
+    manual_steps:
+      - step: "UAT: rest-menu 'To. Kallrist Crypt Forge', watch the guardian spawn -- it must not engage Kalr&ucirc;n, and Kalr&ucirc;n must be conversable rather than stuck in combat."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: carrying the Horn, walk into the guardian's perception radius -- it must not attack. Then talk to Kalr&ucirc;n and confirm the normal forge greeting, not the fb_no_horn refusal."
+        status: open
+        kind: uat
+        tester: "any character holding the Horn"
+      - step: "UAT: on a character WITHOUT the Horn, confirm the guardian still attacks and Kalr&ucirc;n still gives the refusal greeting."
+        status: open
+        kind: uat
+        tester: "any character without the Horn"
+      - step: "UAT: kill the guardian with a summon/henchman landing the killing blow and confirm the Horn is still awarded, with a '[FellBeast] Horn granted to ...' line in the server log."
+        status: open
+        kind: uat
+        tester: "any character with a summon or henchman"
   - id: make-merit-redeemed-item-rewards-like-heirlooms
     title: "make merit-redeemed items be heirlooms that survivie season changes"
     group: items-gear
@@ -6527,3 +6546,26 @@ ideas:
         status: open
         kind: uat
         tester: "level 60"
+  - id: horn-of-the-fell-beast-unfindable
+    title: "Horn of the Fell Beast is invisible in the pack and cannot be sounded"
+    group: items-gear
+    status: manual
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-27"
+    commit: f58663208c9
+    notes: "<div>The Horn of the Fell Beast is now a horn: it shows a blackened curved horn in your pack instead of a ring icon, and it can be sounded straight from the pack the way its description always said.</div><div>Horns already earned are converted automatically the next time you log in -- you don't need to kill the beast again.</div>"
+    impl_notes: "Reported as 'the server log said the Horn was added but I couldn't find it'. It WAS added: confirmed in monkonious.bic on the dev realm, backpack slot (0,0), correctly named and described. The blueprint was cloned from mw_mixtape.uti and inherited BaseItem 52 -- a RING (hak_2da/baseitems.2da row 52, it_ring, 1x1) with ModelPart1 33, i.e. icon iit_ring_033, the same art as three other rings that character carries. Unfindable by eye. Worse, NWN only fires an EQUIPPABLE item's Cast Spell: Unique Power while it is worn, so following the Horn's own description ('keep it in your pack') guaranteed it did nothing, and wearing it cost a ring slot. horn_fellbeast.uti.json is now BaseItem 29 (miscmedium, EquipableSlots 0x00000, activatable from the pack -- same shape as elrondswrit/ammoreplicator), ModelPart1 182 (iit_midmisc_182, a blackened curved horn, verified by extracting the CEP icon), PaletteID 22 -&gt; 54 with the itempalcus leaf moved to match (the toolset re-files by PaletteID on save). Note there is no it_midmisc_182.mdl, so the ground model falls back -- immaterial, the Horn is Plot: 1 and cannot be dropped. Nothing keys on the base item: every consumer (fb_no_horn, fb_has_horn, horn_summon, dmfi_activate) matches on tag HornFellBeast. A blueprint is only read when an item is created fresh, so already-minted Horns keep BaseItem 52 forever: new fb_horn_fix.nss swaps them, fired at 10.0s from mod_cliententer (last in the login queue, after ForgeBeginScan's chunked inventory walk). Idempotent, handles the equipped case, keeps the old item if creation fails."
+    manual_steps:
+      - step: "Toolset: open horn_fellbeast in the item palette (now under the miscmedium category, PaletteID 54) and confirm the iit_midmisc_182 horn icon renders."
+        status: open
+        kind: toolset
+      - step: "UAT: log in monkonious, who holds the old ring-form Horn. Within ~10s it should become a 2x2 horn in the pack with the 'taken its true shape' message, and a '[FellBeast] Horn converted' line in the server log. Log out and back in to confirm it does NOT convert twice."
+        status: open
+        kind: uat
+        tester: "monkonious (holds a pre-fix Horn)"
+      - step: "UAT: radial-Use the Horn from the backpack (not equipped) and confirm the Fell Beast companion is summoned. Clear the fellbeast DB last_summon row first or expect the 1/real-hour refusal."
+        status: open
+        kind: uat
+        tester: "any character holding the Horn"
