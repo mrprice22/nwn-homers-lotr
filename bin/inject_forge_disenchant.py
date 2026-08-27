@@ -60,6 +60,13 @@ DONE_TEXT = ("It is done. Your <CUSTOM100> bears the law's blessing once more â€
              "enchantment upon it now offends the law.")
 THANKS_TEXT = "My thanks."
 LEAVE_TEXT = "Leave it as it is."
+# The Rune of Expansion reagent flow (commit a2e6123fa5c). It rides along with
+# the strip hook: same isitemonanvil gate, same anchor entries, and it appears
+# on the over-cap entry D4 too, since binding a slot is lawful there. It lives
+# here rather than in the dialogs because migrate() truncates the whole injected
+# tail - a hand-added reply in that range is silently deleted on re-injection.
+EXPAND_TEXT = ("Expand a property slot on the <CUSTOM100> with a Rune of "
+               "Expansion. (<CUSTOM6120>/3 used)")
 # Shown when "modify" is chosen on an item already at/over the forge's value cap:
 # offers ONLY the strip hook (no yes/no add-enchant flow that could only fail at
 # commit). worth=104, cap=105 are primed by the forge_can_mod / isitemonanvil gate.
@@ -234,6 +241,7 @@ def inject(path: Path):
     r_thanks = r_slot0 + 14  # D3 "My thanks." -> hub
     r_hook = r_slot0 + 15
     r_leave = r_slot0 + 16   # D4 "Leave it as it is." -> hub
+    r_expand = r_slot0 + 17  # "Expand a property slot" -> back to the anchor
 
     # Entry D1: 8 paginated slot toggles + page nav + commit + cancel.
     e1 = node(d1, D1_TEXT, script="forge_stg_anvil", entry=True)
@@ -261,6 +269,8 @@ def inject(path: Path):
     e4["RepliesList"]["value"].append(
         link(0, r_hook, active="isitemonanvil", child=True))
     e4["RepliesList"]["value"].append(link(1, r_leave, child=True))
+    e4["RepliesList"]["value"].append(
+        link(2, r_expand, active="isitemonanvil", child=True))
 
     new_replies = []
     # Slot toggles: each re-shows D1 (child link) so the cues refresh.
@@ -313,6 +323,14 @@ def inject(path: Path):
     r["EntriesList"]["value"].append(link(0, hub, child=True))
     new_replies.append(r)
 
+    # Rune of Expansion: consume a rune to bind +1 property slot into the item on
+    # the anvil. forge_exp_go speaks the outcome and only consumes on a real bind,
+    # so this loops straight back to the owning anchor menu rather than to a
+    # result entry of its own.
+    r = node(r_expand, EXPAND_TEXT, script="forge_exp_go")
+    r["EntriesList"]["value"].append(link(0, anchors[0][0], child=True))
+    new_replies.append(r)
+
     entries.extend([e1, e2, e3, e4])
     replies.extend(new_replies)
 
@@ -321,6 +339,8 @@ def inject(path: Path):
     for ei, ischild in anchors:
         rl = entries[ei]["RepliesList"]["value"]
         rl.append(link(len(rl), r_hook, active="isitemonanvil",
+                       child=(ischild == 1)))
+        rl.append(link(len(rl), r_expand, active="isitemonanvil",
                        child=(ischild == 1)))
 
     # Re-gate the modify-confirm entry: open the add-enchant flow only when the
@@ -342,7 +362,7 @@ def inject(path: Path):
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     verb = "re-injected (migrated)" if migrated else "injected"
     print(f"{path.name}: {verb} (D1=entry {d1}, D2=entry {d2}, D3=entry {d3}, "
-          f"D4=entry {d4}, replies {r_slot0}..{r_leave}, hub=entry {hub}, "
+          f"D4=entry {d4}, replies {r_slot0}..{r_expand}, hub=entry {hub}, "
           f"anchors {[a for a, _ in anchors]})")
 
 

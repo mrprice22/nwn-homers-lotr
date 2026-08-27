@@ -25,7 +25,15 @@ strips the entire shared enchant menu down to the signature-only offerings:
     (setdampropneg sets MODIFY_PROPERTY="Damage Bonus" + MODIFY_PARAM2=NEGATIVE)
     leading to a dice submenu with 5 choices (setdam4 / setdam2d4 / setdam1d6 /
     setdam1d10 / setdam1d12 -> MODIFY_PARAM3). No other forge offers negative-energy
-    damage. itemprocs.nss builds ItemPropertyDamageBonus(PARAM2, PARAM3) unchanged;
+    damage. itemprocs.nss builds ItemPropertyDamageBonus(PARAM2, PARAM3) unchanged.
+    The menu link is gated isweaponorglove;
+  * adds the matching defensive option: a Negative-Energy Damage RESISTANCE category
+    (setpropresneg sets MODIFY_PROPERTY="Damage Resistance" + MODIFY_PARAM2=NEGATIVE)
+    leading to a submenu of the five stock rungs (setdamresist25/20/15/10/05 ->
+    MODIFY_PARAM3). No other forge offers negative-energy resistance either - Moria's
+    resistance menu carries only the eight stock damage types. The menu link is gated
+    isnotweapon, so it is offered on worn gear only (armour, shields, helms, cloaks,
+    boots, bracers, belts, rings, amulets);
   * PRUNES the main menu to keep only the two immunity categories + the new
     negative-energy category, and prunes the immunity submenu to the two wardings
     (Death Magic + Paralysis). The now-orphaned shared-enchant category nodes stay
@@ -85,6 +93,7 @@ def main():
     # New node indices (computed before any append; appends must follow this order).
     e_si = len(E)          # new "Spell Immunity" submenu entry
     e_dice = e_si + 1      # new negative-energy dice submenu entry
+    e_res = e_si + 2       # new negative-energy resistance submenu entry
     r_dm = len(R)          # Death Magic leaf (added to the immunity submenu)
     r_sc = r_dm + 1        # Spell-Immunity category reply (main menu)
     r_impl = r_dm + 2      # Implosion leaf (Spell Immunity submenu)
@@ -95,6 +104,13 @@ def main():
     r_d1d6 = r_dm + 6      # 1d6
     r_d1d10 = r_dm + 7     # 1d10
     r_d1d12 = r_dm + 8     # 1d12
+    r_rescat = r_dm + 9    # Negative-Energy Resistance category reply (main menu)
+    # Five resistance leaves (resistance submenu) -> shared confirm.
+    r_r25 = r_dm + 10      # Resist 25
+    r_r20 = r_dm + 11      # Resist 20
+    r_r15 = r_dm + 12      # Resist 15
+    r_r10 = r_dm + 13      # Resist 10
+    r_r05 = r_dm + 14      # Resist 5
 
     # --- Signature immunity leaves (Death Magic + Spell Immunity/Implosion) ---
     # Death Magic leaf (Deathless) -> shared confirm (child link, like stock leaves).
@@ -143,6 +159,39 @@ def main():
         nd["EntriesList"]["value"].append(link(0, e_calc, child=True))
         R.append(nd)
 
+    # --- Signature defensive option: Negative-Energy Damage Resistance -----
+    # The mirror of the option above: the edge is for weapons, the ward is for
+    # everything you wear. No other forge offers negative-energy resistance at
+    # all - Moria's resistance menu carries only the eight stock damage types.
+    # The category script sets both MODIFY_PROPERTY="Damage Resistance" and
+    # MODIFY_PARAM2=IP_CONST_DAMAGETYPE_NEGATIVE, so the stock setdamresistNN
+    # leaves supply MODIFY_PARAM3 unchanged and itemprocs.nss builds
+    # ItemPropertyDamageResistance(PARAM2, PARAM3) with no code change. Pricing
+    # is the engine value delta (calcmodvalue2), so Negative-resist costs exactly
+    # what Moria charges for Fire-resist at the same rung.
+    nd = node(r_rescat,
+              "Negative-Energy Resistance — the grave's own chill, turned aside.",
+              script="setpropresneg")
+    nd["EntriesList"]["value"].append(link(0, e_res))
+    R.append(nd)
+
+    ne = node(e_res, "How much of the grave-chill shall be turned aside each round?",
+              entry=True)
+    # Bare numbers, matching the rung labels players already know from Moria's
+    # resistance ladder (the dice submenu above keeps its own "+4." style).
+    resist = [(r_r25, "setdamresist25", "25"),
+              (r_r20, "setdamresist20", "20"),
+              (r_r15, "setdamresist15", "15"),
+              (r_r10, "setdamresist10", "10"),
+              (r_r05, "setdamresist05", "5")]
+    for pos, (ri, scr, txt) in enumerate(resist):
+        ne["RepliesList"]["value"].append(link(pos, ri))
+    E.append(ne)
+    for ri, scr, txt in resist:
+        nd = node(ri, txt, script=scr)
+        nd["EntriesList"]["value"].append(link(0, e_calc, child=True))
+        R.append(nd)
+
     # --- Prune to a signature-only menu ------------------------------------
     # The main menu keeps ONLY: Miscellaneous Immunity (-> wardings submenu), the
     # new Spell Immunity category, and the new Negative-Energy Damage category.
@@ -155,7 +204,12 @@ def main():
     keep_menu = [l for l in E[e_menu]["RepliesList"]["value"]
                  if script_of(l) == "setpropmiscimmun"]
     keep_menu.append(link(0, r_sc))       # Spell Immunity
-    keep_menu.append(link(0, r_negcat))   # Negative-Energy Damage
+    # Slot gating lives on the LINK, not on the reply node: the Active mirrored
+    # on the top-level ReplyList node is stale in all four forge dialogs and is
+    # ignored at runtime. The edge only makes sense on something you swing;
+    # the ward only on something you wear.
+    keep_menu.append(link(0, r_negcat, active="isweaponorglove"))
+    keep_menu.append(link(0, r_rescat, active="isnotweapon"))
     for i, l in enumerate(keep_menu):
         l["__struct_id"] = i
     E[e_menu]["RepliesList"]["value"] = keep_menu
@@ -200,7 +254,8 @@ def main():
           f"immun=E{e_immun} keeps {len(E[e_immun]['RepliesList']['value'])} leaves, "
           f"calc=E{e_calc}, spellimmun=E{e_si}, dice=E{e_dice}, "
           f"deathmagic=R{r_dm}, spellcat=R{r_sc}, implosion=R{r_impl}, "
-          f"negcat=R{r_negcat}, dice=R{r_d4}..R{r_d1d12})")
+          f"negcat=R{r_negcat}, dice=R{r_d4}..R{r_d1d12}, resist=E{e_res}, "
+          f"rescat=R{r_rescat}, rungs=R{r_r25}..R{r_r05})")
 
 
 if __name__ == "__main__":
