@@ -165,11 +165,54 @@ ideas:
   - id: kallrist-crypt-quest-only-doable-once-per-server-reset
     title: "Kallrist Crypt Quest only doable once per server reset"
     group: quests-areas
-    status: confirmed
+    status: manual
     type: Defect
     player: "Rajmund (Ray)"
-    date: "2026-08-24"
-    notes: "<span>I think the gems for kallrist crypt quest are only once per reset. Also, two chests in the middle can be destroyed</span>"
+    date: "2026-08-27"
+    commit: 8753dc77599
+    notes: "<div>The Kallrist Crypt riddle can now be run more than once per server reset. Previously the altar destroyed itself the first time anyone solved it, and the gem chest never restocked, so the first party of the day took the only key and everyone after them found a sealed door and an empty chest.</div><div><br></div><div>Now the altar stays put, the gems are taken as an offering when the riddle is answered (so the pillars reset for the next party), and the gem chest refills itself - immediately after a solve, otherwise about every 25 minutes.</div><div><br></div><div>The reward is better, too: the Kallrist Crypt Key now goes straight into your pack instead of being left in the altar, and <b>everyone in your party</b> gets one plus the experience, not just whoever clicked. The XP is up sharply from the old 666 - <b>6000</b> the first time a character solves the crypt, <b>3000</b> the second time, and 1000 for each solve after that, tracked per character and remembered across reboots.</div><div><br></div><div>The chest in the middle of the upper crypt can no longer be smashed.</div>"
+    impl_notes: "<div>Four independent causes, all fixed:</div><div>1. kalrist_riddle.nss called DestroyObject(OBJECT_SELF, 1.8) on success, deleting the altar and with it the only OnUsed handler in kallristcryptupp. The altar now survives (stays Plot=1); the permanent \"silenced\" local is replaced by an 8s double-click debounce that clears itself.</div><div>2. The gem chest (placeable index 1) had no OnOpen script, so its four gems were one-shot instances created at area instantiation. New kalrist_gems.nss restocks on a 1500s timer, modelled on athelasrespawn.nss but as a <b>top-up, not a wipe</b>: duplicate riddle gems destroyed, missing ones created, foreign items untouched - so no player property is destroyed and the chest can never hold more than one of each. A solve clears CS_Opened so the next party restocks at once.</div><div>3. <b>The gem blueprints did not exist</b> - bluegem/greengem/redgem/yellowgem.uti.json were all missing, the same failure mode as kalcryptkey001 in 8fd6935a3b1. The gems existed only as embedded item structs in the chest instance, so no script could have minted one. Recreated (BaseItem 77, PaletteID 57, ModelPart1 98/62/75/67) to match the embedded structs exactly.</div><div>4. Matching compared object identity against GetObjectByTag(\"RedGem\"), which returns the module-wide first match - a gem in another player's pack in another area could break the check. Now matched by tag inside each pillar, and the four gems are consumed on a solve so the pillars empty themselves (otherwise the next click re-reads the same filled pillars for a free key).</div><div><br></div><div><b>Reward plumbing:</b> the key is created on the PCs, not on the altar - the old code put it inside an object it destroyed 1.8s later. Paid to the whole party via GetFirstFactionMember(oPC, TRUE) (DMs skipped, key skipped for anyone already holding one). XP diminishes per character via a new QCD_TimesDone() accessor in quest_cd_inc.nss over the times_done column questcddb already maintained: 6000/3000/1000. Read before QCD_Stamp.</div><div><br></div><div><b>Instance edits</b> in kallristcryptupp.git.json: altar HasInventory 1 -&gt; 0 (a container placeable's click is an OPEN, not a USE, so OnUsed was unreliable - the script keeps a GetLastOpenedBy fallback either way); gem chest retagged x2_easy_Chest1 -&gt; KAL_GEM_CHEST (it shared a tag with the loot chest, making any lookup ambiguous) + OnOpen kalrist_gems; loot chest at (149.95, 104.86) Plot 0 -&gt; 1, the only non-plot placeable in the area and the player's destroyable chest. Its neighbour ECHO_EARTH was already plot-flagged, so the other \"chest in the middle\" seen vanishing was the altar destroying itself.</div><div><br></div><div><b>No door change needed:</b> kallupper2riddledoor is already OnOpen doorlock -&gt; DoorAutoClose(8.0, TRUE), re-locking 8s after each use, and AutoRemoveKey=0 means a solver keeps their key permanently.</div>"
+    manual_steps:
+      - step: "UAT: character A opens the gem chest in the NW corner of the upper crypt (20, 192) -- four gems present. Place Red -> ECHO_EARTH (60, 105), Blue -> ECHO_FIRE (180, 192), Green -> ECHO_WATER (180, 5), Yellow -> ECHO_AIR (20, 3.5), then click the altar (105, 145). Expect the 'music to my ears' line, the mystical-explosion VFX, +6000 XP, a Kallrist Crypt Key in inventory, and THE ALTAR STILL STANDING."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: after the solve, all four pillars are empty, and re-clicking the altar just recites the riddle -- no second key, no XP."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: the key opens kallupper2riddledoor; it auto-closes ~8s later and RE-LOCKS; re-opening with the same key still works. Central chamber and the lower crypt/forge are reachable."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: re-open the gem chest right after a solve -- all four gems are back immediately (without a solve, the restock is ~25 min)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT diminishing XP: character A solves a second time -> +3000 and no duplicate key; a third time -> +1000. Verify with: sqlite3 \"$HOME/.local/share/Neverwinter Nights/database/questcddb.sqlite3\" \"select char_name,times_done from quest_cd where quest='kalcrypt_riddle'\" -- one row per character, times_done incrementing."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT party payout: A (already solved) parties with B (never solved), B standing IN ANOTHER AREA, and A solves it. Both get a key if they lack one; B gets 6000, A gets their own next step down. A DM in the party gets neither key nor XP."
+        status: open
+        kind: uat
+        tester: "two characters + a DM-flagged login"
+      - step: "UAT wrong answer: put one gem in the wrong pillar -> the altar recites the riddle, nothing is granted, and the gems are NOT consumed."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT nothing is destroyable: attack the chest at (150, 105), ECHO_EARTH, and the altar -- all three immune. Opening the (150, 105) chest still yields its x2_02_low treasure."
+        status: open
+        kind: uat
+        tester: "level 60 melee"
+      - step: "UAT grief check: drop a foreign item into a pillar and into the gem chest -- the puzzle still solves and the foreign item is NOT destroyed. Take the gems out twice in a row: the second open inside the cooldown does not mint a third set."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (subsumes the open step on kallrist-crypt-key-missing): confirm the riddle pays out at all -- that item's payout was never verified in game, and the altar's HasInventory flag was cleared in this fix so OnUsed is the unambiguous path. If the altar does nothing on click, the fallback wiring is HasInventory=1 + OnOpen kalrist_riddle; the script handles both unchanged."
+        status: open
+        kind: uat
+        tester: "any"
   - id: respawn-durations-should-be-posted-for-all-mobs-in-wiki
     title: "Respawn durations should be posted for all mobs in wiki"
     group: wiki-tools
@@ -557,6 +600,10 @@ ideas:
         status: open
         kind: uat
         tester: "level 60, solo and party"
+    uat_credits:
+      - player: "ray"
+        awarded: true
+        date: "2026-08-27"
   - id: shifter-weapon-stats-for-unarmed-shapes
     title: "Shifter weapon status for unarmed shapes"
     group: combat-classes
