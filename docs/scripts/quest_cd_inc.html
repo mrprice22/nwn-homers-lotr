@@ -188,6 +188,21 @@ int QCD_LastStamp(object oPC, string sQuest)
     return SqlGetInt(q, 0);
 }
 
+// How many times oPC has completed sQuest, 0 if never done. Reads the
+// times_done column QCD_Stamp already maintains. Use it for diminishing
+// returns on a REPEATABLE quest: read it BEFORE calling QCD_Stamp, so 0 means
+// &quot;this is their first completion&quot;. The Kallrist Crypt riddle
+// (kalrist_riddle.nss) pays 6000/3000/1000 XP off this.
+int QCD_TimesDone(object oPC, string sQuest)
+{
+    sqlquery q = SqlPrepareQueryCampaign(QCD_DB,
+        &quot;SELECT times_done FROM quest_cd WHERE uuid=@u AND quest=@q&quot;);
+    SqlBindString(q, &quot;@u&quot;, QCD_Ident(oPC));
+    SqlBindString(q, &quot;@q&quot;, sQuest);
+    if (!SqlStep(q)) return 0;
+    return SqlGetInt(q, 0);
+}
+
 // Record that oPC completed sQuest just now (upsert; bumps times_done).
 // Call from the quest&#x27;s reward/turn-in script.
 void QCD_Stamp(object oPC, string sQuest)

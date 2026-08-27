@@ -57,66 +57,180 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>kalrist_riddle</code></h1><pre class="nss-source"><code>int CheckIsInInventory (object oChest, object oGem)
+<h1>Script: <code>kalrist_riddle</code></h1><pre class="nss-source"><code>// kalrist_riddle - Kallrist Crypt elemental-pillar riddle, altar (brazier) OnUsed.
+//
+// The riddle: &quot;Red earth crumbles, Blue flames glow, Green water splashes,
+// Golden airs blow.&quot;  RedGem-&gt;ECHO_EARTH, BlueGem-&gt;ECHO_FIRE,
+// GreenGem-&gt;ECHO_WATER, YellowGem-&gt;ECHO_AIR.  Solving it mints kalcryptkey001,
+// the key to kallupper2riddledoor and so to the central chamber, the lower
+// crypt loot and the Kallrist forge.
+//
+// REPEATABLE BY DESIGN - roadmap kallrist-crypt-quest-only-doable-once-per-
+// server-reset.  The old version did DestroyObject(OBJECT_SELF, 1.8) on a
+// solve, deleting the only OnUsed handler in the area, so the puzzle was dead
+// for the rest of the reset and every later party found a sealed door and an
+// empty gem chest.  Now:
+//
+//   * the altar survives - it stays Plot=1 and is never destroyed.  The old
+//     permanent &quot;silenced&quot; local is gone; all that is left is an 8s busy flag
+//     that clears itself, so a double-click cannot pay out twice;
+//   * the four gems are CONSUMED on a solve, so the pillars empty themselves.
+//     Without that, the next click would re-read the same filled pillars and
+//     hand out a free second key;
+//   * the gem chest&#x27;s restock timer is cleared here, so the next party gets a
+//     fresh set on their very next open instead of waiting out the 25 minute
+//     cooldown (see kalrist_gems.nss);
+//   * the key goes to the PCs, not into the altar.  The old code created it on
+//     OBJECT_SELF and then destroyed OBJECT_SELF 1.8s later, giving the player
+//     under two seconds to loot it;
+//   * XP diminishes per CHARACTER, persistently, via questcddb: 6000 for a
+//     character&#x27;s first ever solve, 3000 for their second, 1000 thereafter.
+//     A repeatable puzzle must not be an XP farm.
+//
+// Matching is BY TAG inside each pillar.  The old code compared object identity
+// against GetObjectByTag(&quot;RedGem&quot;), which returns the module-wide first match -
+// a gem sitting in some other player&#x27;s pack in another area could silently
+// break the check.  Tag matching also means junk stuffed into a pillar by a
+// griefer is simply ignored.
+//
+// The door itself needs nothing: kallupper2riddledoor is OnOpen doorlock -&gt;
+// DoorAutoClose(8.0, TRUE), so it re-locks 8s after each use, and
+// AutoRemoveKey=0 means a solver keeps their key for good.
+#include &quot;quest_cd_inc&quot;
+
+const string KAL_KEY_RES  = &quot;kalcryptkey001&quot;;  // blueprint resref
+const string KAL_KEY_TAG  = &quot;kalcryptkey001&quot;;  // == the door&#x27;s KeyName
+const string KAL_GEMCHEST = &quot;KAL_GEM_CHEST&quot;;   // the retagged gem chest
+const string KAL_QUEST    = &quot;kalcrypt_riddle&quot;; // questcddb key
+
+// Diminishing returns, per character, forever.
+const int KAL_XP_FIRST  = 6000;
+const int KAL_XP_SECOND = 3000;
+const int KAL_XP_AFTER  = 1000;
+
+// Double-click debounce. Not a puzzle cooldown - the gems are already gone by
+// the time this expires, so it only guards the same click arriving twice.
+const string KAL_BUSY     = &quot;KAL_RIDDLE_BUSY&quot;;
+const float  KAL_BUSY_SEC = 8.0;
+
+const string KAL_HINT =
+    &quot;I is not import&#x27;, &#x27;ere is the thing, follow the rhymes, come back for the blings, Red earth crumblesss, Blue flames glooow, Green water splashesss, Golden &#x27;airs blooow.&quot;;
+
+// TRUE when oChest holds at least one item tagged sTag.
+int KalChestHas(object oChest, string sTag)
 {
-    object oObj = GetFirstItemInInventory(oChest);
-    while (GetIsObjectValid(oObj))
+    if (!GetIsObjectValid(oChest)) return FALSE;
+    object oItem = GetFirstItemInInventory(oChest);
+    while (GetIsObjectValid(oItem))
     {
-        if (oGem == oObj)
-        {return TRUE;}
-        oObj = GetNextItemInInventory(oChest);
+        if (GetTag(oItem) == sTag) return TRUE;
+        oItem = GetNextItemInInventory(oChest);
     }
     return FALSE;
 }
 
-void main()
+// Consume every item tagged sTag in oChest. DestroyObject is deferred to the
+// end of the script, so destroying inside the GetFirst/GetNext walk is safe.
+void KalConsume(object oChest, string sTag)
 {
-    object oPC = GetLastUsedBy();
-    object oChestA = GetObjectByTag(&quot;ECHO_AIR&quot;);
-    object oChestF = GetObjectByTag(&quot;ECHO_FIRE&quot;);
-    object oChestE = GetObjectByTag(&quot;ECHO_EARTH&quot;);
-    object oChestW = GetObjectByTag(&quot;ECHO_WATER&quot;);
-    object oGemA = GetObjectByTag(&quot;YellowGem&quot;);
-    object oGemF = GetObjectByTag(&quot;BlueGem&quot;);
-    object oGemE = GetObjectByTag(&quot;RedGem&quot;);
-    object oGemW = GetObjectByTag(&quot;GreenGem&quot;);
-
-
-
-
-
-if (GetLocalInt(OBJECT_SELF,&quot;silenced&quot;) == 1)
+    if (!GetIsObjectValid(oChest)) return;
+    object oItem = GetFirstItemInInventory(oChest);
+    while (GetIsObjectValid(oItem))
     {
-      SpeakString(&quot;Thank you.&quot;);
-      return;
+        if (GetTag(oItem) == sTag)
+        {
+            SetPlotFlag(oItem, FALSE);   // defensive: plot items resist destroy
+            DestroyObject(oItem, 0.0);
+        }
+        oItem = GetNextItemInInventory(oChest);
     }
-
-
-if ((CheckIsInInventory(oChestA,oGemA)) &amp;&amp; (CheckIsInInventory(oChestF,oGemF)) &amp;&amp; (CheckIsInInventory(oChestW,oGemW)) &amp;&amp; (CheckIsInInventory (oChestE,oGemE)))
-     {
-     SetLocalInt(OBJECT_SELF,&quot;silenced&quot;,1);
-     CreateItemOnObject(&quot;kalcryptkey001&quot;,OBJECT_SELF,1);
-     DelayCommand(1.5,SpeakString(&quot;Phew...music to my ears...&quot;));
-     GiveXPToCreature(oPC,666);
-     SendMessageToPC(oPC,&quot;The noises in the chamber become quieter, less chaotic, and you hear a sigh of relief.&quot;);
-     SetPlotFlag(OBJECT_SELF, FALSE);
-     DelayCommand(1.6,ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectVisualEffect(VFX_FNF_MYSTICAL_EXPLOSION),OBJECT_SELF));
-     DestroyObject(OBJECT_SELF, 1.8);
-     return;
-    }
-
-if (GetLocalInt(OBJECT_SELF,&quot;silenced&quot;) != 1)
-    {
-      SendMessageToPC(oPC,&quot;A disembodied voice coming from the altar, whispers&quot;);
-      SpeakString(&quot;I is not import&#x27;, &#x27;ere is the thing, follow the rhymes, come back for the blings, Red earth crumblesss, Blue flames glooow, Green water splashesss, Golden &#x27;airs blooow.&quot;);
-      return;
-    }
-
-
-
 }
 
+// XP for this character&#x27;s next completion, read BEFORE stamping.
+int KalXpFor(object oPC)
+{
+    int nDone = QCD_TimesDone(oPC, KAL_QUEST);
+    if (nDone &lt;= 0) return KAL_XP_FIRST;
+    if (nDone == 1) return KAL_XP_SECOND;
+    return KAL_XP_AFTER;
+}
 
+void main()
+{
+    object oSelf = OBJECT_SELF;
+
+    // Debounce first: two clicks in the same instant must not pay out twice.
+    if (GetLocalInt(oSelf, KAL_BUSY)) return;
+
+    // OnUsed is the live path (the altar instance is deliberately
+    // HasInventory=0, because a container placeable&#x27;s click is an OPEN, not a
+    // USE). GetLastOpenedBy is the fallback in case this is ever re-hooked
+    // from OnOpen instead.
+    object oPC = GetLastUsedBy();
+    if (!GetIsObjectValid(oPC)) oPC = GetLastOpenedBy(oSelf);
+
+    object oAir   = GetObjectByTag(&quot;ECHO_AIR&quot;);
+    object oFire  = GetObjectByTag(&quot;ECHO_FIRE&quot;);
+    object oWater = GetObjectByTag(&quot;ECHO_WATER&quot;);
+    object oEarth = GetObjectByTag(&quot;ECHO_EARTH&quot;);
+
+    int bSolved = KalChestHas(oAir,   &quot;YellowGem&quot;)
+               &amp;&amp; KalChestHas(oFire,  &quot;BlueGem&quot;)
+               &amp;&amp; KalChestHas(oWater, &quot;GreenGem&quot;)
+               &amp;&amp; KalChestHas(oEarth, &quot;RedGem&quot;);
+
+    if (!bSolved)
+    {
+        if (GetIsObjectValid(oPC))
+            SendMessageToPC(oPC, &quot;A disembodied voice, coming from the altar, whispers...&quot;);
+        SpeakString(KAL_HINT);
+        return;
+    }
+
+    SetLocalInt(oSelf, KAL_BUSY, 1);
+    DelayCommand(KAL_BUSY_SEC, DeleteLocalInt(oSelf, KAL_BUSY));
+
+    // The offering is taken - the pillars are empty again for the next party.
+    KalConsume(oAir,   &quot;YellowGem&quot;);
+    KalConsume(oFire,  &quot;BlueGem&quot;);
+    KalConsume(oWater, &quot;GreenGem&quot;);
+    KalConsume(oEarth, &quot;RedGem&quot;);
+
+    DelayCommand(1.5, SpeakString(&quot;Phew...music to my ears...&quot;));
+    DelayCommand(1.6, ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                        EffectVisualEffect(VFX_FNF_MYSTICAL_EXPLOSION), oSelf));
+
+    // The whole party is paid, wherever they are standing - this is a
+    // four-corner puzzle a party physically splits up to run, and making one
+    // member re-solve it once per companion is the annoyance that would
+    // otherwise remain. Both grants are individually guarded, so paying the
+    // party costs nothing: the key is skipped for anyone already holding one,
+    // and the XP is on each character&#x27;s own persistent counter.
+    if (GetIsObjectValid(oPC))
+    {
+        object oMember = GetFirstFactionMember(oPC, TRUE);
+        while (GetIsObjectValid(oMember))
+        {
+            if (!GetIsDM(oMember))
+            {
+                if (!GetIsObjectValid(GetItemPossessedBy(oMember, KAL_KEY_TAG)))
+                    CreateItemOnObject(KAL_KEY_RES, oMember, 1);
+
+                int nXp = KalXpFor(oMember);
+                GiveXPToCreature(oMember, nXp);
+                QCD_Stamp(oMember, KAL_QUEST);
+
+                SendMessageToPC(oMember,
+                    &quot;The noises in the chamber become quieter, less chaotic, and you hear a sigh of relief.&quot;);
+            }
+            oMember = GetNextFactionMember(oPC, TRUE);
+        }
+    }
+
+    // Let the gem chest restock on its very next open, cooldown or not.
+    object oChest = GetObjectByTag(KAL_GEMCHEST);
+    if (GetIsObjectValid(oChest)) DeleteLocalInt(oChest, &quot;CS_Opened&quot;);
+}
 </code></pre>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>

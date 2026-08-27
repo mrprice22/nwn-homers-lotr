@@ -168,6 +168,30 @@
     show the hide holding its merged property count all the way to the 9s rung
     while str/wis/cha never move - and the fix is a re-equip, not a re-merge.
 
+    ROUND 4. Rounds 1-3 were all about WHEN the merge runs; this one is about
+    WHAT it writes. Sync confirmed every merged property now reaches the
+    character sheet except one: the enhancement bonus. Examining the shifted
+    sword shows why - it carries the form weapon&#x27;s own +3 (stock NW_WSWMLS013)
+    AND the caster&#x27;s +15, and the engine pays out the +3. Two generic
+    enhancement bonuses on one item do not stack, and a generic Attack Bonus
+    does not stack with the enhancement&#x27;s attack component either, which is the
+    same non-stacking pair the ab-enhance-stack-bug work collapsed across the
+    module&#x27;s weapon blueprints.
+
+    IPWildShapeCopyItemProperties adds every source property blindly, so it can
+    only ever produce that collision. The merge now splits in two:
+    ShapeCopyPropsExceptBonus for everything that really does just add, and
+    ShapeMergeWeaponBonus to RESOLVE the attack bonus down to a single property
+    - the better of the form weapon&#x27;s own and the caster&#x27;s, with the loser
+    removed rather than left to shadow it. On a creature weapon the same split
+    keeps a single attack bonus and a single enhancement bonus, because there
+    the two genuinely do not overlap: the enhancement buys only DR bypass.
+
+    The corresponding assumption on the other side - that a player-accessible
+    weapon never carries both bonuses at once - is now a build gate,
+    tests/check_ab_enhance.py. It was not one before, and three obtainable
+    weapons were violating it.
+
     For reference, the row this was chased on - stock polymorph.2da 28,
     POLYMORPH_DOOM_KNIGHT: AppearanceType 40, HideItem NW_IT_CREITEM005,
     EQUIPPED NW_WSWMLS013, no creature weapons, MergeW/MergeI/MergeA all blank
@@ -353,45 +377,190 @@ int ShapeClawDamageType(object oClaw)
     return IP_CONST_DAMAGETYPE_SLASHING;
 }
 
+// The two generic &quot;how hard do I hit&quot; item properties. They are the generic
+// types: the conditional variants (vs racial group, vs alignment group, vs
+// specific alignment) are SEPARATE property types, so matching on the type
+// alone is exactly right here and needs no subtype test - which also sidesteps
+// the trap the Python tooling hit, where a blank subtype is encoded as either
+// 0 or 65535 (see generic_value() in bin/ab-enhance-audit.py).
+//
+// Neither stacks with the other, and neither stacks with a second copy of
+// itself. That is the whole of the round-4 defect: the merge used to add the
+// caster&#x27;s +15 alongside the form weapon&#x27;s stock +3 and the engine paid out
+// the +3.
+
+// Highest +N carried by oItem for property type nType, 0 if it has none.
+int ShapeIPMax(object oItem, int nType)
+{
+    if (!GetIsObjectValid(oItem)) return 0;
+
+    int nMax = 0;
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (GetItemPropertyType(ip) == nType)
+        {
+            int nVal = GetItemPropertyCostTableValue(ip);
+            if (nVal &gt; nMax) nMax = nVal;
+        }
+        ip = GetNextItemProperty(oItem);
+    }
+    return nMax;
+}
+
+// Remove every property of type nType from oItem, whatever its duration. Same
+// iterate-and-remove shape as IPRemoveMatchingItemProperties in x2_inc_itemprop
+// and IPSetWeaponEnhancementBonus, which is what makes it safe on the PERMANENT
+// properties a blueprint ships with.
+void ShapeIPStrip(object oItem, int nType)
+{
+    if (!GetIsObjectValid(oItem)) return;
+
+    itemproperty ip = GetFirstItemProperty(oItem);
+    while (GetIsItemPropertyValid(ip))
+    {
+        if (GetItemPropertyType(ip) == nType)
+            RemoveItemProperty(oItem, ip);
+        ip = GetNextItemProperty(oItem);
+    }
+}
+
+// IPWildShapeCopyItemProperties, minus the two bonuses above. Everything else
+// merges the way it always has; the attack bonus is resolved separately by the
+// callers, because it is the one property where &quot;add both&quot; is wrong.
+void ShapeCopyPropsExceptBonus(object oSrc, object oDst, int bWeapon = FALSE)
+{
+    if (!GetIsObjectValid(oSrc) || !GetIsObjectValid(oDst)) return;
+    if (bWeapon &amp;&amp; GetWeaponRanged(oSrc) != GetWeaponRanged(oDst)) return;
+
+    itemproperty ip = GetFirstItemProperty(oSrc);
+    while (GetIsItemPropertyValid(ip))
+    {
+        int nType = GetItemPropertyType(ip);
+        if (nType != ITEM_PROPERTY_ENHANCEMENT_BONUS &amp;&amp;
+            nType != ITEM_PROPERTY_ATTACK_BONUS)
+        {
+            AddItemProperty(DURATION_TYPE_PERMANENT, ip, oDst);
+        }
+        ip = GetNextItemProperty(oSrc);
+    }
+}
+
+// &quot;enh15/ab0&quot; - the two generic bonuses on one item, for the debug line.
+string ShapeIPBonusDesc(object oItem)
+{
+    return &quot;enh&quot; + IntToString(ShapeIPMax(oItem, ITEM_PROPERTY_ENHANCEMENT_BONUS)) +
+           &quot;/ab&quot; + IntToString(ShapeIPMax(oItem, ITEM_PROPERTY_ATTACK_BONUS));
+}
+
+// Resolve the attack bonus on a MANUFACTURED form weapon (Tenser&#x27;s sword, the
+// drow/azer blades) so that exactly ONE generic bonus survives on it: the
+// better of the form weapon&#x27;s own and the caster&#x27;s.
+//
+// The rule, as reported by Sync and confirmed with the admin:
+//   1. the caster&#x27;s weapon wins only if its best bonus BEATS the form&#x27;s, and
+//      then the form&#x27;s own enhancement AND attack bonus both come off;
+//   2. otherwise nothing is copied at all and the form keeps its stock bonus.
+// A caster&#x27;s weapon carrying an attack bonus rather than an enhancement bonus
+// therefore strips the form&#x27;s +3 as well. That loses the +3&#x27;s damage and
+// damage-reduction bypass, and it is the deliberate choice: one property, one
+// number, a character sheet that agrees with the examine text. Player weapons
+// are not allowed to carry both bonuses at once - tests/check_ab_enhance.py is
+// the build gate for that - so &quot;the best of the two&quot; is really just &quot;the one&quot;.
+void ShapeMergeWeaponBonus(object oSrc, object oDst)
+{
+    if (!GetIsObjectValid(oSrc) || !GetIsObjectValid(oDst)) return;
+    if (GetWeaponRanged(oSrc) != GetWeaponRanged(oDst)) return;
+
+    int nSrcEnh = ShapeIPMax(oSrc, ITEM_PROPERTY_ENHANCEMENT_BONUS);
+    int nSrcAB  = ShapeIPMax(oSrc, ITEM_PROPERTY_ATTACK_BONUS);
+    int nDstEnh = ShapeIPMax(oDst, ITEM_PROPERTY_ENHANCEMENT_BONUS);
+    int nDstAB  = ShapeIPMax(oDst, ITEM_PROPERTY_ATTACK_BONUS);
+
+    int nSrcBest = nSrcEnh; if (nSrcAB &gt; nSrcBest) nSrcBest = nSrcAB;
+    int nDstBest = nDstEnh; if (nDstAB &gt; nDstBest) nDstBest = nDstAB;
+
+    // The form&#x27;s own bonus already wins - rule 2, copy nothing.
+    if (nSrcBest &lt;= nDstBest) return;
+
+    ShapeIPStrip(oDst, ITEM_PROPERTY_ENHANCEMENT_BONUS);
+    ShapeIPStrip(oDst, ITEM_PROPERTY_ATTACK_BONUS);
+
+    if (nSrcEnh &gt;= nSrcAB)
+        AddItemProperty(DURATION_TYPE_PERMANENT,
+                        ItemPropertyEnhancementBonus(nSrcEnh), oDst);
+    else
+        AddItemProperty(DURATION_TYPE_PERMANENT,
+                        ItemPropertyAttackBonus(nSrcAB), oDst);
+}
+
 // Copy a weapon&#x27;s properties onto one of the form&#x27;s natural attacks.
 //
 // Same job as IPWildShapeCopyItemProperties(oSrc, oClaw, TRUE), plus the fix
 // for shifter-stats-defect: creature weapons ignore an enhancement bonus for
 // attack and damage rolls (it only buys damage-reduction bypass), so a merged
-// +9 weapon paid out nothing on a claw or bite. Re-express each enhancement
-// bonus as the +n attack and +n physical damage it is supposed to be, and keep
-// the original property for the DR bypass it still provides.
+// +9 weapon paid out nothing on a claw or bite. Re-express the caster&#x27;s best
+// bonus as the +n attack it is supposed to be, plus the +n physical damage an
+// enhancement would have given, and keep a single enhancement property for the
+// DR bypass it still provides.
+//
+// A claw therefore ends up carrying BOTH an attack bonus and an enhancement
+// bonus, which is exactly what check_ab_enhance.py forbids on a blueprint. The
+// difference is real: on a creature weapon the two do not overlap at all, since
+// the enhancement contributes nothing to the attack roll to be shadowed by.
 void ShapeCopyToCreatureWeapon(object oSrc, object oClaw)
 {
     if (!GetIsObjectValid(oSrc) || !GetIsObjectValid(oClaw)) return;
 
-    IPWildShapeCopyItemProperties(oSrc, oClaw, TRUE);
-
-    if (!SHAPE_MERGE_ENH_AS_ATTACK) return;
-
-    // The ranged-mismatch guard above skips everything for a bow; do not hand
-    // the form a bow&#x27;s enhancement bonus on its claws either.
+    // The ranged-mismatch guard: do not hand the form a bow&#x27;s properties on
+    // its claws. ShapeCopyPropsExceptBonus applies the same test itself.
     if (GetWeaponRanged(oSrc) != GetWeaponRanged(oClaw)) return;
 
-    int nDamageType = ShapeClawDamageType(oClaw);
-    itemproperty ip = GetFirstItemProperty(oSrc);
-    while (GetIsItemPropertyValid(ip))
-    {
-        if (GetItemPropertyType(ip) == ITEM_PROPERTY_ENHANCEMENT_BONUS)
-        {
-            int nBonus = GetItemPropertyCostTableValue(ip);
-            if (nBonus &gt; 0)
-            {
-                AddItemProperty(DURATION_TYPE_PERMANENT,
-                                ItemPropertyAttackBonus(nBonus), oClaw);
+    ShapeCopyPropsExceptBonus(oSrc, oClaw, TRUE);
 
-                int nDamage = ShapeDamageIPConst(nBonus);
-                if (nDamage != -1)
-                    AddItemProperty(DURATION_TYPE_PERMANENT,
-                        ItemPropertyDamageBonus(nDamageType, nDamage), oClaw);
-            }
+    int nSrcEnh = ShapeIPMax(oSrc, ITEM_PROPERTY_ENHANCEMENT_BONUS);
+    int nSrcAB  = ShapeIPMax(oSrc, ITEM_PROPERTY_ATTACK_BONUS);
+    int nSrcBest = nSrcEnh; if (nSrcAB &gt; nSrcBest) nSrcBest = nSrcAB;
+
+    if (!SHAPE_MERGE_ENH_AS_ATTACK)
+    {
+        // Balance knob off: fall back to the vanilla behaviour of merging the
+        // enhancement across verbatim and letting the engine ignore it.
+        if (nSrcEnh &gt; ShapeIPMax(oClaw, ITEM_PROPERTY_ENHANCEMENT_BONUS))
+        {
+            ShapeIPStrip(oClaw, ITEM_PROPERTY_ENHANCEMENT_BONUS);
+            AddItemProperty(DURATION_TYPE_PERMANENT,
+                            ItemPropertyEnhancementBonus(nSrcEnh), oClaw);
         }
-        ip = GetNextItemProperty(oSrc);
+        return;
+    }
+
+    // Attack: the claw keeps the higher of its own and the caster&#x27;s, once.
+    if (nSrcBest &gt; ShapeIPMax(oClaw, ITEM_PROPERTY_ATTACK_BONUS))
+    {
+        ShapeIPStrip(oClaw, ITEM_PROPERTY_ATTACK_BONUS);
+        AddItemProperty(DURATION_TYPE_PERMANENT,
+                        ItemPropertyAttackBonus(nSrcBest), oClaw);
+    }
+
+    // Enhancement: DR bypass only on a creature weapon, so it is kept, but
+    // only ever as a single property at the higher of the two values.
+    if (nSrcEnh &gt; ShapeIPMax(oClaw, ITEM_PROPERTY_ENHANCEMENT_BONUS))
+    {
+        ShapeIPStrip(oClaw, ITEM_PROPERTY_ENHANCEMENT_BONUS);
+        AddItemProperty(DURATION_TYPE_PERMANENT,
+                        ItemPropertyEnhancementBonus(nSrcEnh), oClaw);
+    }
+
+    // Damage: what the enhancement would have paid out on a real weapon. An
+    // attack-bonus-only weapon grants no damage, on a claw or anywhere else.
+    if (nSrcEnh &gt; 0)
+    {
+        int nDamage = ShapeDamageIPConst(nSrcEnh);
+        if (nDamage != -1)
+            AddItemProperty(DURATION_TYPE_PERMANENT,
+                ItemPropertyDamageBonus(ShapeClawDamageType(oClaw), nDamage),
+                oClaw);
     }
 }
 
@@ -574,9 +743,13 @@ int ShapeMergeAll(object oShifter, struct ShapeMergeGear gear, int nSeq = 0)
         {
             // Vanilla path: forms with a manufactured weapon (drow, azer...).
             // oWeaponNew is OBJECT_INVALID unless it really is the form&#x27;s -
-            // the helper no-ops on it then, and the natural attacks below are
+            // the helpers no-op on it then, and the natural attacks below are
             // the only merge target.
-            IPWildShapeCopyItemProperties(oWeaponSrc, oWeaponNew, TRUE);
+            //
+            // Two calls, because the attack bonus cannot just be added on top
+            // of the form weapon&#x27;s own: see ShapeMergeWeaponBonus.
+            ShapeCopyPropsExceptBonus(oWeaponSrc, oWeaponNew, TRUE);
+            ShapeMergeWeaponBonus(oWeaponSrc, oWeaponNew);
 
             // New: natural attacks. Gloves carry no ranged flag, so the
             // helper&#x27;s ranged-mismatch guard still applies for real weapons.
@@ -704,6 +877,12 @@ void ShapeMergeAttempt(object oShifter, int nPoly, struct ShapeMergeGear gear,
     object oRH   = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oShifter);
     object oHide = GetItemInSlot(INVENTORY_SLOT_CARMOUR, oShifter);
 
+    // Round 4: the two generic bonuses on the caster&#x27;s weapon and on whatever
+    // is in the right hand now. &quot;src(enh15/ab0) rh(enh15/ab0)&quot; is the merge
+    // having resolved; &quot;rh(enh3/ab0)&quot; against a bigger src is it having lost.
+    string sBonus = &quot; bonus=src(&quot; + ShapeIPBonusDesc(gear.oWeapon) +
+                    &quot;) rh(&quot; + ShapeIPBonusDesc(oRH) + &quot;)&quot;;
+
     ShapeMergeDebug(oShifter,
         &quot;seq=&quot; + IntToString(nSeq) + &quot; poly=&quot; + IntToString(nPoly) +
         &quot; appear=&quot; + IntToString(GetAppearanceType(oShifter)) +
@@ -715,6 +894,7 @@ void ShapeMergeAttempt(object oShifter, int nPoly, struct ShapeMergeGear gear,
         &quot; cwR=&quot;  + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CWEAPON_R, gear) +
         &quot; cwL=&quot;  + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CWEAPON_L, gear) +
         &quot; cwB=&quot;  + ShapeMergeSlotDesc(oShifter, INVENTORY_SLOT_CWEAPON_B, gear) +
+        sBonus +
         &quot; ready=&quot; + IntToString(bReady) + &quot; merged=&quot; + IntToString(bMerged) +
         ShapeMergeAbilityDesc(oShifter));
 }
