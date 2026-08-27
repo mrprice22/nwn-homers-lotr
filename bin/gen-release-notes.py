@@ -571,11 +571,11 @@ def render_admin(ideas: list[dict], doc: dict, commits, claimed: set[str]) -> li
 
     outstanding = []
     for i in sorted(ideas, key=sort_key, reverse=True):
-        steps = GEN.open_steps(i, ("publish", "toolset", "admin"))
+        steps = GEN.open_steps(i, ("toolset", "admin"))
         if steps:
             outstanding.append((i, steps))
     if outstanding:
-        lines.append("### Open publish / toolset / admin steps")
+        lines.append("### Open toolset / admin steps")
         lines.append("")
         for i, steps in outstanding:
             lines.append(f"- `{i['id']}`")

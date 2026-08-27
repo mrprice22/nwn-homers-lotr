@@ -190,8 +190,12 @@ Autopilot-specific rules:
   run by you.** Editing anything in `hak_2da/` changes nothing in game until
   `bin/build-lotr-rules-hak --install` packs it and `bin/refresh-nwsync` publishes it
   to clients; a client on a stale hak silently reads the old tables. File both as
-  `kind: publish` steps with `blocker: true` — the item genuinely does not work
+  `kind: admin` steps with `blocker: true` — the item genuinely does not work
   without them — and say which 2DA changed and what stays wrong until it ships.
+  This is the **one** deploy-shaped thing that still earns a step: there is no
+  `publish`/deploy kind any more, and an ordinary repack/restart must never be
+  written as a step at all (see CLAUDE.md). A hak or NWSync rebuild is different
+  because it is an extra action the admin would not otherwise take.
   A change under `unpacked/` alone needs **neither**: `refresh-nwsync` deliberately
   runs without `--with-module`, so clients download haks and the TLK, never the
   `.mod`. Which mode to name in the step: plain `bin/refresh-nwsync` (incremental,

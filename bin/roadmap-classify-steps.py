@@ -57,14 +57,17 @@ RULES: list[tuple[str, str]] = [
     ("uat",     r"^\s*(ICON\s+)?UAT\b"),
     ("uat",     r"^\s*TEST\s+[A-Z0-9]+\s*:"),
     ("toolset", r"^\s*PLACE\b"),
-    ("publish", r"^\s*(PUBLISH|REPACK|DEPLOY)\b"),
+    # Deploy is no longer a tracked kind (see gen-roadmap.STEP_KINDS). These
+    # patterns stay, mapped to `admin`, purely so deploy wording cannot be
+    # mis-swept into uat/toolset by the loose keyword rules below.
+    ("admin",   r"^\s*(PUBLISH|REPACK|DEPLOY)\b"),
     # --- keyword sweep ------------------------------------------------------
-    # Unambiguous in-game markers first, then the toolset/publish keywords, then
+    # Unambiguous in-game markers first, then the toolset/deploy keywords, then
     # the loose "confirm/verify" sweep. Order matters: "verify the placed
     # waypoint's TAG" is toolset work, not UAT, even though it says "verify".
     ("uat",     r"\bUAT\b|\bin[- ]game\b|\blog ?in\b|\bplay ?test"),
-    ("publish", r"\brepack\b|\bnwsync\b|\brestart the server\b|\bhak\b"),
-    ("publish", r"\brebuild the module\b|\bredeploy\b"),
+    ("admin",   r"\brepack\b|\bnwsync\b|\brestart the server\b|\bhak\b"),
+    ("admin",   r"\brebuild the module\b|\bredeploy\b"),
     ("toolset", r"\bwaypoint\b|\btoolset\b|\bpalette\b|\bblueprint\b"),
     ("toolset", r"\bportrait\b|\bvoiceset\b|\bappearance\b|\bmodelpart\b"),
     ("toolset", r"\binventory icon\b|\bicon\b.{0,40}\b(cycle|tune|read)"),

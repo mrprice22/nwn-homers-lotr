@@ -95,9 +95,13 @@ MERIT_POINTS = {"Defect": 1, "Enhancement": 2, "Exploit": 3}
 #   toolset  waypoint placement, palette/blueprint work, appearance, portrait,
 #            voiceset, inventory icons — anything done in the NWN toolset
 #   uat      in-game verification: log in, spawn it, confirm it reads right
-#   publish  repack / hak build / nwsync / restart — deploy plumbing
 #   admin    everything else (DB seeding, hygiene, out-of-band chores)
-STEP_KINDS = ("toolset", "uat", "publish", "admin")
+# There is deliberately NO `publish`/deploy kind. Repack, hak build, NWSync and
+# restart are implied by every shipped item — the admin already knows work has
+# to be deployed before it can be tested — so tracking them per item only added
+# rows to click through. Removed 2026-08-26; put anything genuinely unusual
+# about a deploy in `impl_notes`, not in a step.
+STEP_KINDS = ("toolset", "uat", "admin")
 DEFAULT_STEP_KIND = "admin"
 
 

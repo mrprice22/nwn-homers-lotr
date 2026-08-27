@@ -183,7 +183,7 @@ the campaign DB on each use.
     manual_steps:
       - step: "Place spawn waypoint at Docks_02"
         status: open        # open | wip | failed | done
-        kind: toolset       # toolset | uat | publish | admin
+        kind: toolset       # toolset | uat | admin
         blocker: true       # omit when false
       - step: "UAT: buy from the merchant at reputation -1 and confirm the refusal line."
         status: open
@@ -212,8 +212,16 @@ to, so the work can be pulled out by context instead of hunted for item by item:
 |------|---------------|-------------------|
 | `toolset` | waypoint placement, palette/blueprint work, appearance, portrait, voiceset, icons | editor → **Toolset Queue** |
 | `uat` | in-game verification: log in, spawn it, confirm it reads right | editor → **UAT Queue**, and the in-game sign |
-| `publish` | repack / hak build / nwsync / restart | editor → **Toolset Queue** |
 | `admin` | everything else (DB seeding, hygiene, out-of-band chores) | — |
+
+**There is deliberately no `publish`/deploy kind.** Repack, hak build, NWSync and restart
+are implied by every shipped item — the admin knows work has to be deployed before it can
+be tested — so a per-item deploy step only added a row to click through. The kind was
+removed on 2026-08-26 along with the 31 deploy steps then in the backlog (5 more that were
+misfiled under it — a promotion-policy note, a root-cause finding, a toolset-home hygiene
+chore, a build-gate check — became `admin`). **Never write a deploy step.** If a deploy is
+unusual (hak/TLK rebuild, an NWSync refresh, a client-side download), put that in
+`impl_notes`.
 
 Absent means `admin` — the fallback bucket, not a claim the step was triaged. An unknown
 value is a **fatal** validation error, because a typo would silently drop the step out of
@@ -450,10 +458,9 @@ What it does:
 - **Toolset Queue / UAT Queue** (buttons): the hand-off panel shows one idea's steps;
   these show one *kind* of step across the whole backlog — which is what you want when
   you are sitting in the toolset or in the game client rather than in the editor.
-  - **Toolset Queue** — every outstanding `toolset` and `publish` step, grouped
-    *Toolset* / *Publish & deploy*, blockers first, then `failed` steps. **Copy as
-    checklist** puts the whole
-    view on the clipboard as plain text for a second monitor or a notes file.
+  - **Toolset Queue** — every outstanding `toolset` step, blockers first, then `failed`
+    steps. **Copy as checklist** puts the whole view on the clipboard as plain text for a
+    second monitor or a notes file.
   - **UAT Queue** — every outstanding `uat` step, **grouped by `tester`** so you can see
     at a glance what a wizard can clear versus what needs a level-60 melee. *Any /
     unspecified* sorts last and is the triage pile: fill in the tester inline (the input

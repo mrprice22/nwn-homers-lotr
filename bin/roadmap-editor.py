@@ -4752,7 +4752,7 @@ async function pfSearch(){
 // client (run these checks, and on what character). Rows are read straight from
 // DATA.ideas — no new read endpoint — and each control writes just its own step
 // through /api/step-status.
-const STEP_KINDS = ['toolset','uat','publish','admin'];
+const STEP_KINDS = ['toolset','uat','admin'];
 let QUEUE = {kind:'toolset', filter:'', showDone:false, showAwarded:false};
 
 // Every step of the wanted kinds, flattened, with its owning idea.
@@ -4833,7 +4833,7 @@ function queueChecklist(groups){
 function renderQueue(){
   const box=$('#qresults'); if(!box) return;
   const uat = QUEUE.kind==='uat';
-  const rows = queueRows(uat ? ['uat'] : ['toolset','publish'])
+  const rows = queueRows(uat ? ['uat'] : ['toolset'])
     .filter(r=>{
       const f=QUEUE.filter.toLowerCase(); if(!f) return true;
       return (r.step.step||'').toLowerCase().includes(f)
@@ -4843,8 +4843,7 @@ function renderQueue(){
   // UAT groups by who can run the check; toolset groups by toolset vs deploy.
   const buckets=new Map();
   rows.forEach(r=>{
-    const key = uat ? (testerKey(r.step) || 'Any / unspecified')
-                    : (r.kind==='publish' ? 'Publish & deploy' : 'Toolset');
+    const key = uat ? (testerKey(r.step) || 'Any / unspecified') : 'Toolset';
     if(!buckets.has(key)) buckets.set(key, []);
     buckets.get(key).push(r);
   });
