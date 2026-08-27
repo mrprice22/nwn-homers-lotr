@@ -126,6 +126,7 @@ void BRD_InitDb()
     BRD_SeedBoss("aragornsonofarat", "Aragorn Son of Arathorn", "AragornSonofArathorn", "minastirithgates", "Minas Tirith: Gates", 712.0, 900, "placed");
     BRD_SeedBoss("eowyntheshieldma", "Eowyn the Shieldmaiden", "EowyntheShieldmaiden", "area008", "Helm's Deep: Keep", 693.0, 900, "placed");
     BRD_SeedBoss("shadowlordof_2", "Shadow Lord of Dol Guldur", "ShadowLordof", "dolguldur", "Mirkwood: Dol Guldur", 660.0, 900, "placed");
+    BRD_SeedBoss("ulmothevalar_2", "Ulmo the Valar", "UlmotheValar", "area022", "Valinor: Realm of the spirits", 650.0, 900, "placed");
     BRD_SeedBoss("angmar", "Angmar", "ms_Angmar", "area009", "Angmar's Lair", 637.0, 900, "placed");
     BRD_SeedBoss("sarumanthewhi001", "Saruman the White", "ms_orth17", "towerofothancsar", "Tower of Orthanc: Saruman's Chambers", 627.0, 900, "placed");
     BRD_SeedBoss("thehighmageofbar", "Gothmog Lord of Barad-Dur", "LordofBaradDur", "baraddurkeep", "Barad-Dur: Keep", 604.0, 900, "placed");

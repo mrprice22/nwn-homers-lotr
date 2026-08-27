@@ -221,7 +221,9 @@ def build_rows(rows):
 
 
 def render_block(rows, aliases):
-    lines = ["    // BEGIN GENERATED REGISTRY — produced by bin/gen-boss-registry.py",
+    # Plain ASCII hyphen: an em-dash here fails tests/check_ascii_nss.py, and
+    # non-ASCII in a .nss is a known compiler hazard (see ascii_fold).
+    lines = ["    // BEGIN GENERATED REGISTRY - produced by bin/gen-boss-registry.py",
              "    // Do not hand-edit; run the generator to refresh (see "
              "CLAUDE-boss-tracker.md)."]
     for r in rows:
