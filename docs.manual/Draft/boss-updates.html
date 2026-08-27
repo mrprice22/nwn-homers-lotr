@@ -371,7 +371,9 @@ which removes the "wait it out" option — so the two ship together.</p>
 is a single sustained engagement with the throughput and mitigation to see it through — which is exactly
 the "come properly geared and built" intent.</p>
 <div class="warning-box">
-  <p><strong>Open design detail — how "left combat" is detected.</strong> This needs a concrete trigger.
+  <p><strong>Open design detail — how "left combat" is detected.</strong> <em>(Resolved in the shipped
+  build: engagement rides the bestiary OnDamaged wrapper, disengagement a boss-side 6s pseudo-heartbeat —
+  see <code>unpacked/enr_inc.nss</code>.)</em> This needs a concrete trigger.
   Candidates: a boss heartbeat that inspects its recent-attacker / aggro list and flags any PC who was
   engaged and is now out of melee/attack range for N seconds; or a per-PC "engaged" flag set when the PC
   attacks the boss and cleared on distance/rest. Note the existing <code>leash_to_area.nss</code> sends a
@@ -381,6 +383,28 @@ the "come properly geared and built" intent.</p>
 </div>
 <p class="check"><strong>Honesty check:</strong> pure tactical demand — it doesn't touch boss HP or the CR
 label; it makes disengaging strictly worse than committing, killing the potion-attrition and tank-swap cheese.</p>
+
+<div class="tip-box">
+  <p><strong>Decay, August 2026</strong> (roadmap <code>add-a-decay-to-enrage-on-retreat-mechanic</code>,
+  raised by Szescian82). As shipped, the stacks lasted the boss's whole life, so a party that chipped at a
+  boss and walked away left the <em>next</em> player a boss that was stronger than its blueprint and already
+  wounded &mdash; and the only way back was a server reboot. The counter-proposal &mdash; reset when a player
+  from another account walks in &mdash; was rejected because two players could tag-team a free reset on demand.</p>
+  <p>Instead the boss resets itself on a clock it already owns. Once <strong>nobody is engaged</strong>, it
+  arms a timer for <strong>its own <code>boss_registry.respawn_seconds</code></strong> &mdash; the same wait
+  a party would have faced had they killed it (900s for most, 480s for Summanus, 3000s for the Basilisk King
+  and Frost). If it is still out of combat when that expires, it is <strong>fully restored in place</strong>:
+  every enrage stack removed, <code>ForceRest</code> for hit points and spells/feats per day, jumped back to
+  its <code>"spawn"</code> home, items looted or pickpocketed since the fight began re-created from a snapshot
+  taken at first damage, and a shout so a returning player knows the fight has restarted. Any fresh damage
+  bumps an engagement generation counter and cancels the pending reset, so the clock genuinely measures
+  "left alone", not "left the area".</p>
+  <p>The reset is <strong>in place, never a re-create</strong>. A <code>CreateObject</code> copy of one of the
+  seven <code>spawn_type='encounter'</code> registry bosses is no longer an encounter creature, so its death
+  would arm <code>se_respawn_inc</code>'s respawn <em>and</em> leave the lair encounter free to spawn its own
+  &mdash; the two-live-bosses case this design rules out. All of it lives in
+  <code>unpacked/enr_inc.nss</code>; no blueprint, hak or NWSync work.</p>
+</div>
 
 <!-- ============================================================ -->
 <div class="tier-header" id="curse">
