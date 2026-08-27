@@ -1083,11 +1083,33 @@ ideas:
   - id: antidupe_craft_container_invisible
     title: "Odd \"Anti-Duping Craft Container (Invisible)\" Object(s)"
     group: forge
-    status: confirmed
+    status: manual
     type: Defect
     player: Szescian82
-    date: "2026-08-16"
-    notes: "<div>can be spotted sometimes in balins tomb (can just read it's name, not actually see the object)</div><div><span>Players also report There is also one in the crypts in Bree</span></div>"
+    date: "2026-08-27"
+    commit: c84cef8e365
+    notes: "<div><b>The stray \"Anti-Duping Craft Container (Invisible)\" objects are gone from the world.</b> Eight of them sat in Balin's Tomb, the Bree crypts, Cirith Ungol, Dunland, the Dunland war party camp, Fornost, Mad-Eye Moody's store and the Nazgûl Guild House - nothing to see, but you could tab-target them and read the name.</div><div><br></div><div>They were working parts of the dye/appearance kit: while you recolour an item, the kit parks a safety copy of it in one of these containers so an aborted craft can hand your original back. Only one is needed for the whole module, and it has now been moved somewhere no player can reach. Dyeing works exactly as before, and aborting a dye still restores the item you started with.</div>"
+    impl_notes: "<div><b>Root cause.</b> The objects are placed instances of <b>zep_cr_backup</b>, the ZEP/CEP crafting work container. <b>zep_inc_craft.nss:1289</b> resolves it with GetObjectByTag(), which is module-wide, so a single instance anywhere in the module serves every crafter - the eight placements were CEP demo-module leftovers, and the blueprint's own Comment says it should be \"placed in an inaccessible area\".</div><div><br></div><div><b>Not just cosmetic.</b> The blueprint is HasInventory=1, Useable=1, Lockable=0, Locked=0, i.e. an openable chest in a public area. <b>zep_inc_craft.nss:320</b> does CopyItem(oItem, ZEP_GetZEPWorkContainer(), TRUE) <i>before</i> ZEP_SetItemVariables() stamps ZEP_CR_TEMPITEM on the original, so the copy in that chest carries no dupe stamp and ZEP_PurifyItem() (line 1354) would never quarantine it. Anyone tab-targeting the container during someone else's dye session - or after a mid-craft logout stranded a copy there for the rest of the reboot - had a free unstamped duplicate.</div><div><br></div><div><b>Fix.</b> Deleted all 8 instances and placed exactly one in <b>houseofdispai001</b> (\"House of Homer\", tag HouseofDispair) at (58.6, 47.6, 0.0), picked with bin/place-helper.py --suggest, 6.0m clearance. That room is DM-only: no area transition leads to it and the only way in is the rest menu's admin teleport (see the sp_devgate.nss header), and it already hosts the ZEP_CR_QUARANTINE review chest. Blueprint left untouched (Useable=1) so an admin standing in the room can still open it to recover a stranded backup.</div><div><br></div><div><b>Gotcha for anyone repeating this:</b> &lt;area&gt;.gic.json's Placeable List is index-parallel with &lt;area&gt;.git.json's - deleting from one alone shifts every later toolset comment onto the wrong instance. Both sides were edited together and parity re-verified on all 9 areas.</div><div><br></div><div><b>Scope sweep.</b> Every placed placeable with appearance 157 + Useable=1 was audited: only zep_cr_backup (8, all public), x2_plc_ipbox (1, dmhq) and ppis_invis_st001 (1, House of Homer) - the latter two already in DM-only areas. The 42 invisobj001 instances are inventory-less \"Sit\" markers. So this was the whole problem.</div><div><br></div><div>33/33 smoke tests, dialog integrity clean.</div>"
+    manual_steps:
+      - step: "UAT: stand where they were in Balin's Tomb and the Bree crypts and tab-cycle - no \"Anti-Duping Craft Container (Invisible)\" name should appear. Same for Cirith Ungol, Dunland, the Dunland war party camp, Fornost, Mad-Eye Moody's store and the Nazgul Guild House."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (the craft still works): use the DyeKit on an armour piece, change a colour and ACCEPT - the item keeps the new colour, is re-equipped, and you are NOT jailed by the contraband scan (the FORGE_CEIL/FORGE_CLEAN carry-over in ZEP_StopCraft still runs)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (the backup path): start a dye and ABORT it - the original item must come back intact. This is the path that reads the relocated container, so it is the check that proves the move."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT (admin): teleport to House of Homer via the rest menu's Admin Options and confirm the container is present and openable near (58.6, 47.6), close to the Guardian of Darkness."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Reply to Szescian82 - they spotted it in Balin's Tomb and the Bree crypts, and it turned out to be an openable chest holding unstamped copies of crafting players' items, not just a stray name."
+        status: open
+        kind: admin
   - id: ring-bearer-quest
     title: "Quest of the Ring Bearer"
     group: quests-areas
