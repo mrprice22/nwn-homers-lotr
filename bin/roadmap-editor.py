@@ -88,9 +88,13 @@ UAT_FIELD = "uat_credits"
 INTERNAL_FIELDS = LIST_FIELDS | {"impl_notes", "impl_notes_h"}
 # Fields always rendered as YAML double-quoted scalars.
 QUOTED_FIELDS = {"title", "notes", "impl_notes", "date"}
-# Workflow states for a manual step. `done` is terminal; only a non-done step
-# with blocker=True gates the autopilot (see CLAUDE-autopilot.md).
-STEP_STATUS = ("open", "wip", "done")
+# Workflow states for a manual step. `done` is the only terminal state; only a
+# non-done step with blocker=True gates the autopilot (see CLAUDE-autopilot.md).
+# `failed` records a check that WAS run and did not pass — it is an *open* state
+# everywhere downstream (the wiki, the in-game sign, release notes and
+# open_blockers() all test `status == "done"` and negate it), so it is visible
+# only inside this editor. See CLAUDE-roadmap.md.
+STEP_STATUS = ("open", "wip", "failed", "done")
 # Persisted pixel heights of the vertically-resizable text boxes. Each is
 # emitted only when the box was resized away from its default.
 HEIGHT_KEYS = ("notes_h", "impl_notes_h", "step_h", "question_h", "answer_h")
@@ -2618,6 +2622,8 @@ PAGE = r"""<!doctype html>
   .chip.hidden { background:#42323a; color:#f0c4d2; border-color:#6b4550; }
   .chip.epic { background:#2f3a4a; color:#cfe0ff; border-color:#41556e; }
   .chip.merit { background:#1e3a2b; color:#9fe8c0; border-color:#2c6b4e; }
+  /* An idea carrying a manual_step someone RAN and it did not pass. */
+  .chip.failed { background:#4a2626; color:#f0b8b8; border-color:#7a3a3a; }
   .row.hid .t, .card.hid .ct { opacity:0.62; text-decoration:line-through; }
   #banner { margin:10px 0; padding:9px 11px; border-radius:6px; display:none;
             white-space:pre-wrap; }
@@ -2647,9 +2653,12 @@ PAGE = r"""<!doctype html>
   .ho-del { flex:0 0 auto; line-height:1; padding:4px 8px; }
   .ho-badge { display:inline-block; padding:0 6px; border-radius:999px;
     border:1px solid var(--line); font-size:11px; font-weight:600; }
+  .ho-badge.bad { background:#4a2626; color:#f0b8b8; border-color:#7a3a3a; }
   .ho-gate { color:var(--warn); margin-top:6px; }
   /* An unfinished blocker step holds the item back, like an open question. */
   .ho-item.ho-block { border-left:3px solid var(--err); }
+  /* Ran and failed: still open, but it needs another code change, not a retry. */
+  .ho-item.ho-fail { border-left:3px solid var(--err); }
   .ho-flag { display:flex; align-items:center; gap:4px; font-size:12px;
     color:var(--mut); white-space:nowrap; }
   .ho-flag input { width:auto; margin:0; }
@@ -2777,6 +2786,8 @@ PAGE = r"""<!doctype html>
   .qrow { display:flex; gap:10px; padding:7px 4px; border-bottom:1px solid var(--line);
           align-items:flex-start; }
   .qrow.done { opacity:0.45; }
+  .qrow.failed { border-left:3px solid var(--err); padding-left:6px; }
+  .qfail { color:var(--err); font-size:10px; font-weight:700; letter-spacing:.5px; }
   .qrow .qmeta { flex:0 0 210px; }
   .qrow .qtitle { display:block; color:var(--accent); font-size:12px; cursor:pointer;
                   text-align:left; background:none; border:none; padding:0; width:100%; }
@@ -3037,10 +3048,17 @@ function visibleRows(){
 }
 
 // Publishing-state chips shown on list rows and board cards.
+function hasFailedStep(it){
+  return (it.manual_steps||[]).some(s=>s && typeof s==='object' && s.status==='failed');
+}
+
 function chips(it){
   let out='';
   if (it.hidden) out+='<span class="chip hidden">hidden</span> ';
   if (it.epic) out+=`<span class="chip epic">${esc(epicTitle(it.epic))}</span> `;
+  // Flag only — a failed step never rewrites the idea's status; moving it back
+  // to `manual` stays the admin's call.
+  if (hasFailedStep(it)) out+='<span class="chip failed">failed</span> ';
   return out;
 }
 
@@ -3835,7 +3853,13 @@ let HO = {design_questions: [], manual_steps: [], uat_credits: []};
 // spurious `*_h` on every sub-item of every idea it saved (this is where the
 // `step_h: 64` noise all over roadmap.yaml came from).
 const HO_DEFAULT_H = 64;
-const STEP_LABEL = {open:'Open', wip:'In progress', done:'Complete'};
+// One ordered list of step states, shared by the hand-off panel and the two
+// queue popups so the dropdowns can never drift apart. Mirrors STEP_STATUS.
+const STEP_ORDER = ['open','wip','failed','done'];
+const STEP_LABEL = {open:'Open', wip:'In progress', failed:'Failed', done:'Complete'};
+// The queues speak in tasks rather than workflow states, hence the second map.
+const QSTEP_LABEL = {open:'To do', wip:'In progress', failed:'Failed', done:'Done'};
+const isFailed = s => s && s.status==='failed';
 // The manual_step keys this panel owns and rewrites. Anything else on a step is
 // passed through untouched by handoffOut() — see the note there.
 const HO_OWNED = ['step','status','kind','blocker','tester','step_h'];
@@ -3896,6 +3920,7 @@ function renderHandoff(){
   const open = HO.design_questions.filter(q=>q.status==='open').length;
   const blocked = HO.manual_steps.filter(isOpenBlocker).length;
   const todo = HO.manual_steps.filter(s=>s.status!=='done').length;
+  const failed = HO.manual_steps.filter(isFailed).length;
   const qs = HO.design_questions.map((q,i)=>`
     <div class="ho-item ${q.status==='open'?'ho-open':'ho-done'}">
       <div class="ho-row">
@@ -3911,17 +3936,20 @@ function renderHandoff(){
       <textarea class="ho-qa" data-i="${i}" style="height:${hpx(q.answer_h)}"
                 placeholder="Your answer (fill in, then set Answered)">${esc(q.answer||'')}</textarea>
     </div>`).join('');
-  // Blockers first, then anything unfinished, then completed steps.
+  // Failed first (it needs another code change), then blockers, then anything
+  // unfinished, then completed steps.
   const order = HO.manual_steps
     .map((s,i)=>[i,s])
-    .sort((a,b)=>(isOpenBlocker(b[1])-isOpenBlocker(a[1]))
+    .sort((a,b)=>(isFailed(b[1])-isFailed(a[1]))
+              || (isOpenBlocker(b[1])-isOpenBlocker(a[1]))
               || ((a[1].status==='done')-(b[1].status==='done')));
   const ms = order.map(([i,s])=>`
-    <div class="ho-item ${isOpenBlocker(s)?'ho-block':(s.status==='done'?'ho-done':'')}">
+    <div class="ho-item ${isOpenBlocker(s)?'ho-block'
+        :(isFailed(s)?'ho-fail':(s.status==='done'?'ho-done':''))}">
       <div class="ho-row">
         <select class="ho-ss" data-i="${i}">
-          ${Object.entries(STEP_LABEL).map(([v,l])=>
-            `<option value="${v}"${s.status===v?' selected':''}>${l}</option>`).join('')}
+          ${STEP_ORDER.map(v=>
+            `<option value="${v}"${s.status===v?' selected':''}>${STEP_LABEL[v]}</option>`).join('')}
         </select>
         <select class="ho-sk" data-i="${i}"
                 title="Which queue this step belongs to">
@@ -3967,7 +3995,8 @@ function renderHandoff(){
       <button type="button" id="ho_addq">+ Add question</button>
       <label style="margin-top:10px">Manual steps
         ${todo?`<span class="ho-badge">${todo} to do</span>`:''}
-        ${blocked?`<span class="ho-badge">${blocked} blocking</span>`:''}</label>
+        ${blocked?`<span class="ho-badge">${blocked} blocking</span>`:''}
+        ${failed?`<span class="ho-badge bad">${failed} failed</span>`:''}</label>
       <datalist id="ho_testers">${knownTesters().map(t=>
         `<option value="${esc(t)}">`).join('')}</datalist>
       ${ms||'<p class="small">None.</p>'}
@@ -4724,13 +4753,17 @@ async function pfSearch(){
 // DATA.ideas — no new read endpoint — and each control writes just its own step
 // through /api/step-status.
 const STEP_KINDS = ['toolset','uat','publish','admin'];
-let QUEUE = {kind:'toolset', filter:'', showDone:false};
+let QUEUE = {kind:'toolset', filter:'', showDone:false, showAwarded:false};
 
 // Every step of the wanted kinds, flattened, with its owning idea.
 function queueRows(kinds){
   const out=[];
   DATA.ideas.forEach(it=>{
     if (it.hidden) return;
+    // Merit-awarded ideas are finished business; their leftover steps would
+    // otherwise sit in the queue forever. `implemented`/`manual` still show —
+    // those are the shipped-but-in-testing items the UAT queue exists for.
+    if (!QUEUE.showAwarded && it.status==='awarded') return;
     (it.manual_steps||[]).forEach((s,i)=>{
       if (!s || typeof s!=='object') return;
       const k = STEP_KINDS.indexOf(s.kind)>=0 ? s.kind : 'admin';
@@ -4739,8 +4772,10 @@ function queueRows(kinds){
       out.push({idea:it, step:s, index:i, kind:k});
     });
   });
-  // Blockers first, then unstarted before in-progress, then by idea title.
-  const rank = s => s.status==='done' ? 3 : (s.status==='wip' ? 1 : 2);
+  // Blockers first, then failed (needs another code change) before unstarted
+  // before in-progress, then by idea title.
+  const rank = s => s.status==='done' ? 3
+    : (s.status==='failed' ? 0 : (s.status==='wip' ? 1 : 2));
   out.sort((a,b)=> (b.step.blocker?1:0)-(a.step.blocker?1:0)
                 || rank(a.step)-rank(b.step)
                 || String(a.idea.title||'').localeCompare(String(b.idea.title||'')));
@@ -4763,8 +4798,8 @@ function knownTesters(){
 function queueRowHTML(r, withTester){
   const s=r.step, g=(DATA.vocab.groups.find(x=>x.id===r.idea.group)||{}).title||r.idea.group||'';
   const sel = v => `<select class="q_status" data-id="${esc(r.idea.id)}" data-i="${r.index}">`
-    + ['open','wip','done'].map(o=>`<option value="${o}"${v===o?' selected':''}>`
-        + {open:'To do', wip:'In progress', done:'Done'}[o] + '</option>').join('')
+    + STEP_ORDER.map(o=>`<option value="${o}"${v===o?' selected':''}>`
+        + QSTEP_LABEL[o] + '</option>').join('')
     + '</select>';
   const kindSel = `<select class="q_kind" data-id="${esc(r.idea.id)}" data-i="${r.index}">`
     + STEP_KINDS.map(k=>`<option value="${k}"${r.kind===k?' selected':''}>${k}</option>`).join('')
@@ -4773,10 +4808,10 @@ function queueRowHTML(r, withTester){
     ? `<input class="tester q_tester" list="q_testers" placeholder="who can test?"
               value="${esc(testerKey(s))}" data-id="${esc(r.idea.id)}" data-i="${r.index}">`
     : '';
-  return `<div class="qrow${s.status==='done'?' done':''}">
+  return `<div class="qrow${s.status==='done'?' done':(s.status==='failed'?' failed':'')}">
     <div class="qmeta">
       <button class="qtitle" data-goto="${esc(r.idea.id)}">${esc(r.idea.title||r.idea.id)}</button>
-      <span class="qsub">${esc(dispAmp(g))}${s.blocker?' · <span class="qblock">BLOCKER</span>':''}</span>
+      <span class="qsub">${esc(dispAmp(g))}${s.blocker?' · <span class="qblock">BLOCKER</span>':''}${s.status==='failed'?' · <span class="qfail">FAILED</span>':''}</span>
     </div>
     <div class="qtext">${esc(s.step||'')}</div>
     <div class="qctl">${tester}${kindSel}${sel(s.status||'open')}</div>
@@ -4788,6 +4823,7 @@ function queueRowHTML(r, withTester){
 function queueChecklist(groups){
   return groups.map(([label, rows]) => label + '\n'
     + rows.map(r=>'  [ ] ' + (r.step.blocker?'(BLOCKER) ':'')
+        + (r.step.status==='failed'?'(FAILED) ':'')
         + (testerKey(r.step)?'('+testerKey(r.step)+') ':'')
         + (r.idea.title||r.idea.id) + ' — '
         + String(r.step.step||'').replace(/\s+/g,' ')).join('\n')
@@ -4818,7 +4854,8 @@ function renderQueue(){
     return (la?1:0)-(lb?1:0) || a[0].localeCompare(b[0]);
   });
   $('#q_count').textContent = rows.length + (rows.length===1?' step':' steps')
-    + (QUEUE.showDone?' (including done)':' outstanding');
+    + (QUEUE.showDone?' (including done)':' outstanding')
+    + (QUEUE.showAwarded?'':' · awarded ideas hidden');
   box.innerHTML = order.length
     ? order.map(([label,rs])=>`<div class="qgroup">${esc(label)}
         <span class="n">${rs.length}</span></div>`
@@ -4857,7 +4894,7 @@ async function stepWrite(id, index, patch){
 }
 
 function openQueue(kind){
-  QUEUE = {kind, filter:'', showDone:false};
+  QUEUE = {kind, filter:'', showDone:false, showAwarded:false};
   const uat = kind==='uat';
   modalHTML(`<h2>${uat?'UAT Queue':'Toolset Queue'}</h2>
     <p class="small">${uat
@@ -4871,6 +4908,7 @@ function openQueue(kind){
     <div class="qbar">
       <input id="q_filter" placeholder="filter…" autocomplete="off">
       <label class="chk"><input type="checkbox" id="q_done"> show done</label>
+      <label class="chk"><input type="checkbox" id="q_awarded"> show awarded ideas</label>
       <button id="q_copy">Copy as checklist</button>
     </div>
     <div class="qbar" style="margin-top:0;"><span class="pf-meta" id="q_count"></span></div>
@@ -4881,6 +4919,7 @@ function openQueue(kind){
   $('#q_close').onclick=()=>{ $('#modalbox').classList.remove('wide'); closeModal(); };
   $('#q_filter').oninput=e=>{ QUEUE.filter=e.target.value.trim(); renderQueue(); };
   $('#q_done').onchange=e=>{ QUEUE.showDone=e.target.checked; renderQueue(); };
+  $('#q_awarded').onchange=e=>{ QUEUE.showAwarded=e.target.checked; renderQueue(); };
   $('#q_copy').onclick=()=>{
     const txt=$('#qresults').dataset.plain||'';
     navigator.clipboard.writeText(txt).then(

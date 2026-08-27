@@ -182,7 +182,7 @@ the campaign DB on each use.
         answer: null
     manual_steps:
       - step: "Place spawn waypoint at Docks_02"
-        status: open        # open | wip | done
+        status: open        # open | wip | failed | done
         kind: toolset       # toolset | uat | publish | admin
         blocker: true       # omit when false
       - step: "UAT: buy from the merchant at reputation -1 and confirm the refusal line."
@@ -191,7 +191,15 @@ the campaign DB on each use.
         tester: "any character with negative Bree reputation"
 ```
 
-**Manual-step states** are `open` → `wip` (started) → `done` (terminal). A step marked
+**Manual-step states** are `open` → `wip` (started) → `done` (terminal), plus `failed`:
+a step that **was run and did not pass** and now needs another code change, not a retry.
+`failed` is **editor-only** — the public roadmap page, the in-game Recent Updates sign and
+the release notes all decide "outstanding" by testing `status == "done"` and negating it,
+so a failed step reads there exactly like any other open step (and still blocks
+`implemented`/`awarded` when `blocker: true`). Inside the editor it sorts to the top of the
+hand-off panel and of both queues, carries a red left border, and puts a red `failed` chip
+on the idea's list row and board card. Setting a step to `failed` **never** rewrites the
+idea's own `status` — moving it back to `manual` stays the admin's call. A step marked
 `blocker: true` is one the item genuinely cannot ship without — a missing waypoint that
 makes a quest unreachable, say, as opposed to a UAT check. Blockers sort first in the
 editor and carry a warning border. Do not write "Blocker:" into `notes` or into the step
@@ -240,6 +248,9 @@ validated" predicate above. `tests/check_roadmap_step_fields.py` is the gate —
 the page's `HO_OWNED` list covers every key `normalize_step()` can emit, so adding a field
 to the serializer without teaching the panel fails the repack. **Add a new step field in
 three places at once: `normalize_step()`, `initHandoff()` and `handoffOut()`.**
+(A new step *state* is a different list: `STEP_STATUS` server-side, plus the page's
+`STEP_ORDER` / `STEP_LABEL` / `QSTEP_LABEL` — one ordered constant now feeds both the
+hand-off dropdown and the two queue dropdowns, so they cannot drift apart.)
 `bin/roadmap-repair-step-kinds.py` restored the values that were already lost by walking
 roadmap.yaml's git history for the last non-`admin` `kind` / non-empty `tester` per
 (idea id, step text); keep it around in case the class of bug recurs.
@@ -440,13 +451,20 @@ What it does:
   these show one *kind* of step across the whole backlog — which is what you want when
   you are sitting in the toolset or in the game client rather than in the editor.
   - **Toolset Queue** — every outstanding `toolset` and `publish` step, grouped
-    *Toolset* / *Publish & deploy*, blockers first. **Copy as checklist** puts the whole
+    *Toolset* / *Publish & deploy*, blockers first, then `failed` steps. **Copy as
+    checklist** puts the whole
     view on the clipboard as plain text for a second monitor or a notes file.
   - **UAT Queue** — every outstanding `uat` step, **grouped by `tester`** so you can see
     at a glance what a wizard can clear versus what needs a level-60 melee. *Any /
     unspecified* sorts last and is the triage pile: fill in the tester inline (the input
     is backed by a datalist of values already in use). That field is also what players
     read on the in-game board.
+  - Both queues carry **two filter checkboxes**, both defaulting to *hidden*: *show done*
+    (step-level — a `done` step) and *show awarded ideas* (idea-level — every step of an
+    idea whose own `status` is `awarded`, i.e. finished business whose leftover steps would
+    otherwise sit in the queue forever). `implemented` and `manual` ideas always show:
+    those are the shipped-but-in-testing items the UAT queue exists for. The count line
+    says which filters are in force, and **Copy as checklist** reflects them.
   - Both rows carry the idea's title as a link into the editor form, a `kind` dropdown
     (fix a mis-tagged step in place) and a status dropdown. Changing any of them writes
     `roadmap.yaml` immediately through `POST /api/step-status` — a deliberately narrow
