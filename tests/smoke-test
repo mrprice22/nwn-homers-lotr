@@ -142,6 +142,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: attack/enhancement bonus conflict…"
+if python3 "$HERE/check_ab_enhance.py"; then
+  echo "ok: attack/enhancement bonus conflict"
+else
+  echo "fail: attack/enhancement bonus conflict"
+  rc=1
+fi
+
 echo "[smoke-test] running: attack/damage bonus ledger…"
 if python3 "$HERE/check_bonus_pool.py"; then
   echo "ok: attack/damage bonus ledger"
