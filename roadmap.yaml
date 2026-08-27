@@ -2021,6 +2021,34 @@ ideas:
       - player: "-Methonash-"
         awarded: true
         date: "2026-08-26"
+  - id: kallrist-forge-negative-resistance
+    title: "Kallrist forge: negative-energy resistance for worn gear"
+    group: forge
+    status: manual
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-27"
+    commit: 0ee824ae49f
+    notes: "<div>Kalûn the Deathless now binds the grave-chill <i>both</i> ways. Alongside the negative-energy damage bonus he already put on a weapon's edge, he will now weave <b>Negative-Energy Resistance</b> into anything you wear — armour, shields, helms, cloaks, boots, bracers, belts, rings and amulets — at 5, 10, 15, 20 or 25, the same rungs Moria charges for every other damage type. No other forge in these lands offers it. Details: <a href=\"Customizations.html#forge\">Customizations → Forge of Wonders</a>.</div>"
+    impl_notes: "<div><b>Change:</b> new setpropresneg.nss (mirror of setdampropneg.nss) sets MODIFY_PROPERTY=\"Damage Resistance\" + MODIFY_PARAM2=IP_CONST_DAMAGETYPE_NEGATIVE, so the stock setdamresistNN leaves are reused unchanged. New menu category + submenu added in bin/build_kallrist_forge.py, link gated isnotweapon. No change to forge_inc.nss, itemprocs.nss, modifyitem.nss, calcmodvalue* or any 2DA — itemprocs.nss already dispatches \"Damage Resistance\", and cost is the runtime value delta of a probe copy, so a Negative rung prices exactly like the matching Fire rung off iprp_resistcost.2da. Module-only: no hak rebuild, no NWSync.</div><div><br></div><div><b>Two latent pipeline bugs fixed in the same pass</b>, both the same shape — a hand-edit to a GENERATED dialog that its generator did not know about, and would silently revert on the next run. (1) build_kallrist_forge.py emitted the negative-damage menu link with no Active, dropping the isweaponorglove gate added by 44fdbf4f203. (2) inject_forge_disenchant.py knew nothing about the Rune of Expansion option added to all four smiths by a2e6123fa5c; since migrate() truncates the whole injected tail and that reply sits inside it, merely running the injector <i>deleted</i> \"Expand a property slot\" from every forge. It now builds that reply itself — re-injecting the four checked-in dialogs reproduces them byte-for-byte, so the pipeline is self-consistent again.</div><div><br></div><div><b>Regenerate with:</b> python3 bin/build_kallrist_forge.py then python3 bin/inject_forge_disenchant.py, in that order. Never hand-edit kallrist_forge.dlg.json.</div>"
+    manual_steps:
+      - step: "Put a suit of ARMOUR on the Anvil of Wonder in the lower Kallrist Crypt and talk to Kalrûn: \"Negative-Energy Resistance\" appears as a fourth menu option. Buy Resist 15; examine the item and confirm the property reads \"Damage Resistance: Resist 15 Damage vs. Negative\"."
+        status: open
+        kind: uat
+        tester: "any character carrying the Horn of the Fell Beast"
+      - step: "Put a LONGSWORD on the anvil: the resistance option must be ABSENT and the Negative-Energy Damage option PRESENT. This checks both the new isnotweapon gate and the isweaponorglove gate restored on the damage option."
+        status: open
+        kind: uat
+        tester: "any character carrying the Horn of the Fell Beast"
+      - step: "Regression on the pipeline fix: confirm \"Expand a property slot ... with a Rune of Expansion\" and \"Strip enchantments\" are still offered at ALL FOUR forges (Tagget's, Rivendell, Moria, Kallrist)."
+        status: open
+        kind: uat
+        tester: "any character carrying the Horn of the Fell Beast"
+      - step: "Enchant a piece up to the 6-property / 750,000 gp cap and confirm Kalrûn's refusal line fires rather than applying for free; then log out and back in and confirm the item is not flagged by the contraband scan or seized by the Forge Warden."
+        status: open
+        kind: uat
+        tester: "any character carrying the Horn of the Fell Beast"
   - id: MW-Bardsong-Bug
     title: "MW Companions/Henchmen can get stuck trying to use Bard Song over and over"
     group: meaningwave
