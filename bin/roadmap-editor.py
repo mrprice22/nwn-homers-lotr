@@ -402,12 +402,31 @@ def merit_db_problem() -> str:
     return ""
 
 
+def _merit_text(b):
+    """Decode a meritdb text column that may not be valid UTF-8.
+
+    Player names come straight off the NWN client, which is not UTF-8 clean —
+    meritdb holds at least one Latin-1/CP1252 name ("\xe8eles66C"). sqlite3's
+    default text factory raises OperationalError on such a row, which took the
+    WHOLE /api/meritplayers response down (a 500, so the picker rendered "No
+    merit database players to choose from"). Decode leniently instead: one bad
+    byte must never hide the other 73 players.
+    """
+    if isinstance(b, str):
+        return b
+    try:
+        return b.decode("utf-8")
+    except UnicodeDecodeError:
+        return b.decode("cp1252", errors="replace")
+
+
 def _merit_connect():
     """Open meritdb read-only, or return None if it can't be read."""
     db = merit_db_path()
     if not db.exists():
         return None
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    con.text_factory = _merit_text
     con.row_factory = sqlite3.Row
     return con
 
@@ -623,6 +642,7 @@ def award_merit(roadmap_name: str, idea_type: str, idea_id: str,
         con = sqlite3.connect(str(db), timeout=10.0)
     except sqlite3.Error as e:
         return {"ok": False, "reason": f"cannot open meritdb: {e}"}
+    con.text_factory = _merit_text
     con.row_factory = sqlite3.Row
     con.isolation_level = None      # we drive the transaction by hand
     try:
