@@ -1,4 +1,5 @@
 #include "boost_inc"
+#include "se_respawn_inc"
 void main()
 {
 object oKiller = GetLastKiller();
@@ -13,4 +14,10 @@ if (iRace == RACIAL_TYPE_ANIMAL  || iRace == RACIAL_TYPE_BEAST || iRace == RACIA
  {
  ExecuteScript("trade_death",OBJECT_SELF);
  }
+
+// Bring the creature back on the standard 15-minute timer, like every other
+// OnDeath in the module. XP/gold above is already correct (pwfxp), so this
+// must NOT delegate to nw_c2_default7 -- that would run party_xp on top.
+if (FindSubString(GetTag(OBJECT_SELF), "NSP") == -1)
+    SE_DoCreatureRespawn();
 }

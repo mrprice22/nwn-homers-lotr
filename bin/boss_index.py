@@ -44,7 +44,8 @@ def build_placement_indices(unpacked=UNPACKED):
     """Scan every *.git.json once.
 
     Returns (placements, enc_slots):
-      placements: TemplateResRef -> [(area_resref, instance_tag_override or None)]
+      placements: TemplateResRef -> [(area_resref, instance_tag_override or None,
+                                     instance_ScriptDeath_override or None)]
       enc_slots:  creature ResRef -> [(area_resref, enc_template, enc_struct)]
     """
     placements = {}
@@ -54,7 +55,7 @@ def build_placement_indices(unpacked=UNPACKED):
         data = json.loads(git.read_text())
         for c in gv(data.get("Creature List")) or []:
             placements.setdefault(gv(c.get("TemplateResRef")), []).append(
-                (area, gv(c.get("Tag"))))
+                (area, gv(c.get("Tag")), (gv(c.get("ScriptDeath")) or "").lower()))
         for e in gv(data.get("Encounter List")) or []:
             for slot in gv(e.get("CreatureList")) or []:
                 enc_slots.setdefault(gv(slot.get("ResRef")), []).append(

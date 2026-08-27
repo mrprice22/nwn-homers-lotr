@@ -120,11 +120,15 @@ def classify(placements, enc_slots):
             continue
 
         if placed:  # exactly one placement, no encounter slot
-            p_area, p_tag = placed[0]
+            p_area, p_tag, p_death = placed[0]
             eff_tag = p_tag or bp["tag"]
             if "NSP" in (eff_tag or ""):
                 excluded.append((bp, "tag contains NSP (se_respawn skips it)"))
                 continue
+            # The placement's ScriptDeath wins at runtime; classifying from the
+            # blueprint alone once hid a boss that never respawned while the
+            # board counted it down (the Wart Gondorian Gate Captain).
+            bp = dict(bp, script_death=p_death or bp["script_death"])
             included.append((bp, "placed", p_area, eff_tag, 900, None))
         else:  # exactly one encounter slot
             e_area, _e_tmpl, e = slots[0]
@@ -348,6 +352,11 @@ def main():
                        if bp else "blueprint missing")
             print(f"  {rr:20s} {why}")
     print(f"\n=== ADDED vs current registry: {len(added)} new ===")
+    rowmap = {r["resref"]: r for r in rows}
+    for rr in added:
+        r = rowmap[rr]
+        print(f"  {r['cr']:7.0f}  {rr:20s} {r['name'][:34]:34s} "
+              f"{r['type']:9s} {r['area']}")
 
     names = ["rancid", "glorfindel", "aragorn", "gimli", "sarah", "gothmog"]
     print("\n=== NAMED-EXAMPLE CHECK ===")

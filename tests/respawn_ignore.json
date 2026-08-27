@@ -1,0 +1,44 @@
+{
+  "_comment": [
+    "Placed creatures that deliberately never come back through se_respawn_inc.",
+    "tests/check_creature_respawn.py fails the repack on any placed creature",
+    "with no respawn path that is NOT listed here, so every entry needs a",
+    "reason someone can check. Regenerate the report with",
+    "python3 bin/audit-creature-respawn.py --write.",
+    "",
+    "Three recurring reasons:",
+    "  corpse prop  - OnSpawn kills it on the spot; respawning it would loop a",
+    "                 death every 15 minutes forever.",
+    "  unkillable   - Plot + Immortal utility NPC; OnDeath can never fire.",
+    "  hak-only     - no <resref>.utc.json in this module, so se_respawn_inc's",
+    "                 CreateObject would return the generic hak creature and",
+    "                 drop every instance override (name, faction, gear)."
+  ],
+  "ignore": [
+    { "area": "bree", "resref": "cbd_dummy",
+      "reason": "Combat Dummy: cbd_death runs its own 6-second respawn (see cbd_inc.nss)" },
+
+    { "area": "area078", "resref": "rangerofthe_2",
+      "reason": "corpse prop - OnSpawn 'beatenrider' kills it instantly" },
+    { "area": "area078", "resref": "malekid002_2",
+      "reason": "corpse prop - OnSpawn 'beatenrider' kills it instantly" },
+    { "area": "area078", "resref": "femalekid002_2",
+      "reason": "corpse prop - OnSpawn 'beatenrider' kills it instantly" },
+    { "area": "area078", "resref": "brena",
+      "reason": "corpse prop - OnSpawn 'beatenrider' kills it instantly; hak-only blueprint" },
+
+    { "area": "appearancechange", "resref": "lvl_alig_trai002",
+      "reason": "unkillable - Plot + Immortal Alignment Adjuster" },
+    { "area": "houseofdispai001", "resref": "lvl_alig_trai002",
+      "reason": "unkillable - Plot + Immortal Alignment Adjuster" },
+    { "area": "houseofdispai001", "resref": "server_npc_2",
+      "reason": "unkillable - Plot + Immortal [SERVER] NPC" },
+
+    { "area": "centralchamber", "resref": "cr_riddlekeep001",
+      "reason": "hak-only blueprint - Riddle Keeper puzzle NPC (Kallrist Crypt)" },
+    { "area": "heavensfoundry", "resref": "heavensarmore001",
+      "reason": "hak-only blueprint - Numenorian Armorer (utility NPC)" },
+    { "area": "prison", "resref": "zep_brownie",
+      "reason": "hak-only blueprint - Cyber Jailor (utility NPC)" }
+  ]
+}
