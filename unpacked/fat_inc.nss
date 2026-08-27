@@ -13,10 +13,14 @@
 //   2. the PC then takes 8% of max HP as damage PER stack that was already
 //      active BEFORE this heal - applied after the top-off so the heal can't
 //      erase it. This can kill: at 13 prior stacks the hit exceeds 100% of
-//      max HP. The hit is a raw hit-point drain, not damage, and it is written
-//      through both the script and the NWNX hit-point layers so that neither
-//      resistances nor a polymorph form's separate HP pool can swallow it -
-//      see FAT_DrainHP.
+//      max HP, and it kills outright with a red notice rather than flooring
+//      you at 1. The hit is a raw hit-point drain, not damage, and it is
+//      written through both the script and the NWNX hit-point layers so that
+//      neither resistances nor a polymorph form's separate HP pool can swallow
+//      it - see FAT_DrainHP.
+//      "max HP" means the max HP of the SHAPE YOU ARE WEARING: a dragon-shape
+//      druid pays 8% of the dragon's pool, not 8% of the character sheet. See
+//      FAT_MaxHP for why that has to be cached rather than re-read.
 //   3. a new stack is added.
 // Each stack decays on its own independent 3-minute timer. A heal from zero
 // stacks is therefore completely free: full heal, 1 stack, no damage.
@@ -74,12 +78,20 @@
 //   string fat_queue    the queue itself: one comma-terminated integer per
 //                       stack, its REMAINING seconds, e.g. "180,174,12,"
 //   int    fat_ticking  the ticker's kill switch / double-start guard
+//   int    fat_formmax  while POLYMORPHED, the highest max/current HP seen for
+//                       the shape being worn - the percentage basis, cached so
+//                       it cannot flap with how topped-off you are. Deleted the
+//                       moment the PC is not polymorphed. See FAT_MaxHP.
 
-#include "nwnx_object"   // SetCurrentHitPoints fallback, see FAT_DrainHP
+#include "nwnx_object"   // the second hit-point layer, see FAT_DrainHP
+#include "color"         // COLOR_RED for the lethal warning and the death notice
+                         // (the raw colour bytes live in color.nss on purpose -
+                         // inlining them would make this file invalid UTF-8)
 
 const string FAT_VAR        = "fat_stacks";
 const string FAT_QVAR       = "fat_queue";
 const string FAT_RUNVAR     = "fat_ticking";
+const string FAT_MAXVAR     = "fat_formmax";
 const string FAT_DB         = "fatiguedb";
 const string FAT_TICK_SCRIPT = "fat_tick";
 const int    FAT_PCT        = 8;      // % of max HP damage per prior stack
@@ -168,6 +180,7 @@ void FAT_ClearLocals(object oPC)
     DeleteLocalInt(oPC, FAT_VAR);
     DeleteLocalString(oPC, FAT_QVAR);
     DeleteLocalInt(oPC, FAT_RUNVAR);
+    DeleteLocalInt(oPC, FAT_MAXVAR);
 }
 
 // Clear just the ticker guard, for the logout path - so the TURD is never even
@@ -319,50 +332,146 @@ void FAT_LoginRestore(object oPC)
 
 // --- the hit ----------------------------------------------------------------
 
-// Take nDmg hit points off oPC as a scripted cost - not as damage.
+// TRUE while any polymorph/shapechange effect is on oPC. Six lines copied from
+// LegFeat_IsPolymorphed() rather than #include "legfeat_inc" - fat_inc is pulled
+// into five scripts and does not need that dependency. Deliberately NOT
+// PersState_IsShifterMorphed(), which is gated on CLASS_TYPE_SHIFTER and so
+// misses druid wild shape, the very case this file has to get right.
+int FAT_IsPolymorphed(object oPC)
+{
+    effect e = GetFirstEffect(oPC);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectType(e) == EFFECT_TYPE_POLYMORPH) return TRUE;
+        e = GetNextEffect(oPC);
+    }
+    return FALSE;
+}
+
+// The PC's effective CURRENT hit points - the lower of the two layers, so a
+// phantom form pool can never keep someone standing when the pool they are
+// actually on is spent. A layer reporting <1 is treated as unreadable, not as
+// "you are dead": that would make every fatigue hit lethal if NWNX hiccuped.
+int FAT_EffCur(object oPC)
+{
+    int nScript = GetCurrentHitPoints(oPC);
+    int nNwnx   = NWNX_Object_GetCurrentHitPoints(oPC);
+    if (nNwnx < 1) return nScript;
+    if (nScript < 1) return nNwnx;
+    return (nNwnx < nScript ? nNwnx : nScript);
+}
+
+// The percentage basis: the maximum hit points of the SHAPE THE PC IS WEARING.
+//
+// GetMaxHitPoints reports the character sheet, which a polymorph form's own
+// pool exceeds. Reading max(current, sheet) at the moment of the hit - what
+// this used to do - is not stable: it yields the form's pool while you are
+// topped off and the sheet as soon as you are not, so the bill flapped between
+// two different bases from one heal to the next inside a single chain (roadmap:
+// soul-fatigue-not-working-while-shapeshifted, the 1206-then-1106 retest).
+//
+// So the high-water mark is CACHED per shape. The fatigue hit lands one second
+// after a full heal, so the first in-form reading is the form's true maximum,
+// and a later partly-healed reading can never shrink the bill. The cache is
+// dropped the moment the PC is not polymorphed (and in FAT_ClearLocals, so a
+// player TURD cannot carry a stale form max onto an unshifted character).
+//
+// Returns 0 only if the engine gave us nothing usable - callers must skip the
+// hit rather than bill against 0.
+int FAT_MaxHP(object oPC)
+{
+    int nSheet = GetMaxHitPoints(oPC);
+
+    if (!FAT_IsPolymorphed(oPC))
+    {
+        DeleteLocalInt(oPC, FAT_MAXVAR);
+        return (nSheet > 0 ? nSheet : 0);
+    }
+
+    int nMax = GetLocalInt(oPC, FAT_MAXVAR);
+    if (nSheet > nMax) nMax = nSheet;
+
+    int nScript = GetCurrentHitPoints(oPC);
+    if (nScript > nMax) nMax = nScript;
+    int nNwnx = NWNX_Object_GetCurrentHitPoints(oPC);
+    if (nNwnx > nMax) nMax = nNwnx;
+
+    if (nMax > 0) SetLocalInt(oPC, FAT_MAXVAR, nMax);
+    return (nMax > 0 ? nMax : 0);
+}
+
+// The bill for nStacks carried stacks, in hit points. nCut is the Heal-skill
+// reduction in TENTHS of a percent. Integer maths throughout so 0.5%/point is
+// exact - no floats. A carried stack always costs something.
+int FAT_Bill(int nMax, int nStacks, int nCut)
+{
+    int nDmg = nMax * FAT_PCT * nStacks / 100;
+    nDmg = nDmg * (1000 - nCut) / 1000;
+    if (nDmg < 1) nDmg = 1;
+    return nDmg;
+}
+
+// Take nAmount hit points off oPC as a scripted cost - not as damage.
 //
 // Why not EffectDamage: EVERY damage type, DAMAGE_TYPE_MAGICAL included, can be
 // soaked by damage resistance, immunity % or DR, and geared PCs reduced the old
 // magical hit to zero. A soul-fatigue hit is a bill, not an attack.
 //
-// Why not the plain SetCurrentHitPoints write either (roadmap:
+// Why not a plain SetCurrentHitPoints write either (roadmap:
 // soul-fatigue-not-working-while-shapeshifted): while a PC is POLYMORPHED the
 // engine keeps a second hit-point pool for the form, and a script-layer write
 // does not reliably land on the pool the player is actually standing on - the
-// module already works around the same split in pers_state_inc.nss (HP capture
-// is skipped for morphed shifters because "their morphed HP would stomp the
-// real value") and in pc_export_inc.nss. Players in dragon shape could chain
-// Heal potions and never lose a point.
+// module works around the same split in pers_state_inc.nss (HP capture skipped
+// for morphed shifters because "their morphed HP would stomp the real value")
+// and in pc_export_inc.nss. Players in dragon shape lost no hit points at all.
 //
-// So the drain is written through BOTH layers and then verified. Both writes
-// are ABSOLUTE (set to nTarget, never subtract), so doing both unconditionally
-// is idempotent - it can never double-charge - and whichever layer is
-// authoritative for the shape the PC is in, one of them lands. Only if HP still
-// has not moved do we fall back to EffectDamage, soakable but better than the
-// free heal it replaces.
+// Why an AMOUNT and not an absolute target - this is round 2 of the same fix.
+// The first attempt computed ONE target from the script layer and wrote it to
+// both layers, reasoning that two absolute writes can never double-charge. Two
+// cannot; three can. The verify that decided whether to fire the EffectDamage
+// fallback read only GetCurrentHitPoints(), which under polymorph returns the
+// form pool and does not reflect the NWNX write - so on an in-shape hit it
+// concluded "neither write took" and applied EffectDamage ON TOP of a drain
+// that had already landed. That is the doubled hit and the "Someone damages
+// <name>" combat-log line in the 2026-08-26 retest. Worse, one target written
+// to both layers can RAISE the other layer, which is where the "-10 healed"
+// potion came from.
+//
+// So: read both layers, take nAmount off EACH RELATIVE TO ITS OWN reading, and
+// never write a value above what that layer already held. Then re-read both -
+// if EITHER moved, the drain landed and we are done. Only when neither budged
+// do we fall back to EffectDamage, soakable but better than a free heal.
 //
 // Returns the HP actually removed (0 if even the fallback was fully soaked).
-int FAT_DrainHP(object oPC, int nTarget)
+int FAT_DrainHP(object oPC, int nAmount)
 {
-    int nBefore = GetCurrentHitPoints(oPC);
-    if (nTarget < 1) nTarget = 1;
-    if (nTarget >= nBefore) return 0;
+    if (nAmount < 1) nAmount = 1;
 
-    SetCurrentHitPoints(oPC, nTarget);
-    NWNX_Object_SetCurrentHitPoints(oPC, nTarget);
+    int nScriptBefore = GetCurrentHitPoints(oPC);
+    int nNwnxBefore   = NWNX_Object_GetCurrentHitPoints(oPC);
 
-    int nAfter = GetCurrentHitPoints(oPC);
-    if (nAfter > nTarget)
-    {
-        // Neither write took on this creature. Pay what we can.
-        ApplyEffectToObject(DURATION_TYPE_INSTANT,
-            EffectDamage(nBefore - nTarget, DAMAGE_TYPE_MAGICAL,
-                         DAMAGE_POWER_ENERGY), oPC);
-        nAfter = GetCurrentHitPoints(oPC);
-    }
+    int nScriptTarget = nScriptBefore - nAmount;
+    if (nScriptTarget < 1) nScriptTarget = 1;
+    int nNwnxTarget = nNwnxBefore - nAmount;
+    if (nNwnxTarget < 1) nNwnxTarget = 1;
 
-    if (nAfter > nBefore) return 0;
-    return nBefore - nAfter;
+    // Strictly downward on each layer, independently.
+    if (nScriptTarget < nScriptBefore) SetCurrentHitPoints(oPC, nScriptTarget);
+    if (nNwnxTarget   < nNwnxBefore)   NWNX_Object_SetCurrentHitPoints(oPC, nNwnxTarget);
+
+    int nScriptDrop = nScriptBefore - GetCurrentHitPoints(oPC);
+    int nNwnxDrop   = nNwnxBefore   - NWNX_Object_GetCurrentHitPoints(oPC);
+    int nTook = (nScriptDrop > nNwnxDrop ? nScriptDrop : nNwnxDrop);
+    if (nTook > 0) return nTook;
+
+    // Neither layer moved on this creature. Pay what we can.
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectDamage(nAmount, DAMAGE_TYPE_MAGICAL, DAMAGE_POWER_ENERGY), oPC);
+
+    nScriptDrop = nScriptBefore - GetCurrentHitPoints(oPC);
+    nNwnxDrop   = nNwnxBefore   - NWNX_Object_GetCurrentHitPoints(oPC);
+    nTook = (nScriptDrop > nNwnxDrop ? nScriptDrop : nNwnxDrop);
+    return (nTook > 0 ? nTook : 0);
 }
 
 // The ordered mechanic. Runs AFTER the heal has landed on oPC:
@@ -381,50 +490,56 @@ void FAT_ApplyToPC(object oPC, int nHeal)
     int nCut = nHeal * FAT_SKILL_PER;   // reduction in tenths of a percent
 
     int nPrior = GetLocalInt(oPC, FAT_VAR);
+    int nMax   = FAT_MaxHP(oPC);        // this shape's maximum, cached
+    int nDied  = FALSE;
 
-    if (nPrior > 0)
+    if (nPrior > 0 && nMax > 0)
     {
-        // The percentage basis. GetMaxHitPoints reports the character sheet,
-        // which a polymorph form's own hit-point pool can exceed - take
-        // whichever is larger so a shape can never shrink the bill (and so a
-        // 0 returned on error cannot silently zero the whole hit).
-        int nCur = GetCurrentHitPoints(oPC);
-        int nMax = GetMaxHitPoints(oPC);
-        if (nCur > nMax) nMax = nCur;
+        int nCur = FAT_EffCur(oPC);
+        int nDmg = FAT_Bill(nMax, nPrior, nCut);
 
-        // Integer maths in thousandths so 0.5%/point is exact - no floats.
-        int nDmg = nMax * FAT_PCT * nPrior / 100;
-        nDmg = nDmg * (1000 - nCut) / 1000;
-        if (nDmg < 1) nDmg = 1;   // a carried stack always costs something
         ApplyEffectToObject(DURATION_TYPE_INSTANT,
             EffectVisualEffect(VFX_IMP_NEGATIVE_ENERGY), oPC);
 
-        int nNew = nCur - nDmg;
-        if (nNew < 1)
-        {
-            // Lethal. Base-game SetCurrentHitPoints floors at 1 and never
-            // kills, so force death explicitly. (A PC with outright death
-            // immunity would survive at 1 HP - a rare, accepted corner.)
-            FAT_DrainHP(oPC, 1);
-            ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                EffectDeath(FALSE, FALSE), oPC);
-        }
-        else
-        {
-            nDmg = FAT_DrainHP(oPC, nNew);
-            if (nDmg < 1) nDmg = nCur - nNew;   // report the bill, not 0
-        }
         string sCut = "";
         if (nCut > 0)
             sCut = ", -" + IntToString(nCut / 10)
                  + (nCut % 10 != 0 ? ".5" : "")
                  + "% from the healer's Heal skill";
+        string sBill = IntToString(nPrior) + " stack" + (nPrior == 1 ? "" : "s")
+                     + " x " + IntToString(FAT_PCT) + "% of "
+                     + IntToString(nMax) + " max HP" + sCut;
 
-        FloatingTextStringOnCreature("Soul-fatigue tears at you for "
-            + IntToString(nDmg) + " damage ("
-            + IntToString(nPrior) + " stack" + (nPrior == 1 ? "" : "s")
-            + " x " + IntToString(FAT_PCT) + "% of max HP"
-            + sCut + ").", oPC, FALSE);
+        if (nDmg >= nCur)
+        {
+            // Lethal. Neither HP layer will kill on its own - both floor at 1 -
+            // so drain to 1 and then force death explicitly. (A PC with outright
+            // death immunity survives at 1 HP: a rare, accepted corner.)
+            if (nCur > 1) FAT_DrainHP(oPC, nCur - 1);
+            ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                EffectDeath(FALSE, FALSE), oPC);
+            nDied = TRUE;
+
+            SendMessageToPC(oPC, COLOR_RED
+                + "Soul-fatigue claims you. You are slain by the healing debt ("
+                + sBill + ")." + COLOR_END);
+            FloatingTextStringOnCreature(
+                "Soul-fatigue claims you. You are slain by the healing debt.",
+                oPC, FALSE);
+        }
+        else
+        {
+            int nTook = FAT_DrainHP(oPC, nDmg);
+            if (nTook > 0)
+                FloatingTextStringOnCreature("Soul-fatigue tears at you for "
+                    + IntToString(nTook) + " damage (" + sBill + ").",
+                    oPC, FALSE);
+            else
+                // Report what actually happened rather than inventing a bill.
+                FloatingTextStringOnCreature("Soul-fatigue claws at you but "
+                    + "finds no purchase - the drain was fully soaked ("
+                    + sBill + ").", oPC, FALSE);
+        }
     }
 
     // The new stack - even if the fatigue damage just killed them. Death does
@@ -436,12 +551,51 @@ void FAT_ApplyToPC(object oPC, int nHeal)
     FAT_Save(oPC);
     FAT_Kick(oPC);
 
-    FloatingTextStringOnCreature("Soul-fatigue: " + IntToString(nNow)
-        + " stack" + (nNow == 1 ? "" : "s")
-        + ". Another heal within 3 minutes will cost up to "
-        + IntToString(nNow * FAT_PCT)
-        + "% of your max HP after it lands (less the healer's Heal skill).",
-        oPC, FALSE);
+    string sTally = "Soul-fatigue: " + IntToString(nNow)
+                  + " stack" + (nNow == 1 ? "" : "s") + ". ";
+
+    if (nDied)
+    {
+        FloatingTextStringOnCreature(sTally
+            + "You die carrying them - death does not clear the debt.",
+            oPC, FALSE);
+        return;
+    }
+
+    // The forecast, priced against the PC's OWN Heal skill and this shape's
+    // maximum. Exact for a potion or a self-cast (the drinker IS the caster);
+    // an estimate when somebody else heals you, hence "if you heal yourself".
+    // It never prints a percentage above 100 - past that point the only honest
+    // number is "this will kill you", which is the complaint that produced the
+    // old uncapped "112% of your max HP" message.
+    int nOwn = GetSkillRank(SKILL_HEAL, oPC);
+    if (nOwn < 0) nOwn = 0;
+    if (nOwn > FAT_SKILL_CAP) nOwn = FAT_SKILL_CAP;
+
+    int nNextMax = FAT_MaxHP(oPC);
+    if (nNextMax < 1)
+    {
+        FloatingTextStringOnCreature(sTally
+            + "Another heal within 3 minutes will hurt.", oPC, FALSE);
+        return;
+    }
+
+    int nNext = FAT_Bill(nNextMax, nNow, nOwn * FAT_SKILL_PER);
+    if (nNext >= nNextMax)
+    {
+        SendMessageToPC(oPC, COLOR_RED + sTally
+            + "Another heal within 3 minutes will KILL you." + COLOR_END);
+        FloatingTextStringOnCreature(sTally
+            + "Another heal within 3 minutes will KILL you.", oPC, FALSE);
+    }
+    else
+    {
+        FloatingTextStringOnCreature(sTally
+            + "Another heal within 3 minutes will cost you about "
+            + IntToString(nNext) + " HP ("
+            + IntToString(nNext * 100 / nNextMax)
+            + "% of your maximum) if you heal yourself.", oPC, FALSE);
+    }
 }
 
 // Entry point, called from stop_spellcheat.nss with OBJECT_SELF = the caster
