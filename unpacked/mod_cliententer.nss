@@ -247,4 +247,11 @@ void main()
     // Same reasoning as LegFeatLoginCheck, and it must land after the UUID has
     // been forced above - the entitlement ledger is keyed on GetObjectUUID.
     DelayCommand(8.5, CSPLoginCheck(oPC));
+
+    // Horn of the Fell Beast: swap any ring-form Horn (the original BaseItem 52
+    // blueprint) for the miscmedium one that can actually be sounded from the
+    // pack. Last in the queue on purpose - ForgeBeginScan above walks the whole
+    // inventory a chunk at a time, so let it finish before items are swapped.
+    // See fb_horn_fix.nss.
+    DelayCommand(10.0, ExecuteScript("fb_horn_fix", oPC));
 }
