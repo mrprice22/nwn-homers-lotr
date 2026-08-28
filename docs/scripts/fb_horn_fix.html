@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Script staticspawnhelms</title>
+  <title>Script fb_horn_fix</title>
   <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/theme.css">
@@ -57,67 +57,55 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>staticspawnhelms</code></h1><pre class="nss-source"><code>// Declarations
-// StaticSpawn - Summon the monster with the given tag at the given spot.
-// Set the local variable ms_info to the given value
-void StaticSpawn(string szClass, location lWhere, string info);
-// The main event handler.
+<h1>Script: <code>fb_horn_fix</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: fb_horn_fix -- one-time migration of the Horn of the Fell Beast
+//::
+//:: The Horn shipped as BaseItem 52 (a RING, cloned from mw_mixtape). Two
+//:: consequences: it rendered as a 1x1 ring icon shared with three other rings
+//:: in the pack -- players could not find it -- and NWN only fires an
+//:: EQUIPPABLE item&#x27;s &quot;Cast Spell: Unique Power&quot; while the item is worn, so
+//:: following the Horn&#x27;s own description (&quot;keep it in your pack&quot;) guaranteed it
+//:: did nothing. The blueprint is now BaseItem 29 (miscmedium, non-equippable,
+//:: activatable straight from the pack, icon iit_midmisc_182 -- a blackened
+//:: curved horn).
+//::
+//:: A blueprint is only read when an item is created FRESH, so every Horn
+//:: already minted into a .bic keeps the old base item forever. This swaps it,
+//:: from mod_cliententer. Idempotent -- a converted Horn is a no-op on every
+//:: later login.
+//:://////////////////////////////////////////////
+
+const string HORN_RESREF = &quot;horn_fellbeast&quot;;
+const string HORN_TAG    = &quot;HornFellBeast&quot;;
+
 void main()
 {
-// VARIABLES
-// The Spawnmaster object
-SpeakString(&quot;Helm&#x27;s Deep is under attack! Rally Free People of Middle Earth to Helm&#x27;s Deep!&quot;, TALKVOLUME_SHOUT);
-object oSpawnMaster;
-// The tag for this monster
-string szMonsterTag = GetTag(OBJECT_SELF);
-int nLength = 0;
-string szSpawnPointTag = &quot;&quot;;
-string szSpawnPointInfo;
-string szMonsterClass;
-object oSpawnPoint;
-float fSpawnTime;
-location lSpawnPoint;
-// Check to see if we are an &quot;ms_&quot; monster
-if( GetSubString(szMonsterTag, 0, 3) == &quot;ms_&quot; ) {
-nLength = GetStringLength(szMonsterTag);
-// Get the Spawn Point for this monster
-szSpawnPointTag = GetSubString(szMonsterTag, 3, (nLength - 3));
-} else {
-// Check to see if we have an ms_info local variable
-szSpawnPointTag = GetLocalString(OBJECT_SELF, &quot;ms_info&quot;);
-}
-// If this creature has a spawn point...
-if(szSpawnPointTag != &quot;&quot;) {
-// ActionSpeakString(&quot;I was a MSMonster with SpawnPointTag &quot; + szSpawnPointTag, TALKVOLUME_SHOUT);
-// Get the waypoint and info
-oSpawnPoint = GetWaypointByTag(szSpawnPointTag);
-szSpawnPointInfo = GetName(oSpawnPoint);
-// ActionSpeakString(&quot;SpawnpointInfo is &quot;+szSpawnPointInfo, TALKVOLUME_SHOUT);
-nLength = GetStringLength(szSpawnPointInfo);
-// Spawn time is the first 3 characters
-fSpawnTime = StringToFloat( GetSubString(szSpawnPointInfo, 0, 3) + &quot;.0&quot; );
-// Monster class to spawn is the 4th char onward
-szMonsterClass = GetSubString(szSpawnPointInfo, 4, (nLength - 4));
-// Location to spawn is the loc. of the spawnpoint...
-lSpawnPoint = GetLocation(oSpawnPoint);
-// Get the spawn master
-oSpawnMaster = GetObjectByTag(&quot;spawnmaster&quot;);
-// Dispatch the command to the spawn master.
-AssignCommand(
-oSpawnMaster,
-DelayCommand(fSpawnTime, StaticSpawn(szMonsterClass, lSpawnPoint, szSpawnPointTag))
-);
-}
-}
-// SummonMonster
-// Conjure a monster with the given class at the given point.
-void StaticSpawn(string szClass, location lWhere, string info) {
-object oNewMonster = CreateObject(OBJECT_TYPE_CREATURE, szClass, lWhere);
-SetLocalString(oNewMonster, &quot;ms_info&quot;, info);
-}
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
 
+    // GetItemPossessedBy matches on TAG and sees equipped items too, which
+    // matters here: a player who worked out the ring had to be worn will have
+    // it in a ring slot rather than the backpack.
+    object oOld = GetItemPossessedBy(oPC, HORN_TAG);
+    if (!GetIsObjectValid(oOld)) return;
+    if (GetBaseItemType(oOld) == BASE_ITEM_MISCMEDIUM) return;  // already converted
 
+    object oNew = CreateItemOnObject(HORN_RESREF, oPC);
+    if (!GetIsObjectValid(oNew))
+    {
+        // Do NOT destroy the old one -- leaving the player a broken Horn beats
+        // leaving them none. Retry on the next login.
+        SendMessageToPC(oPC, &quot;Your pack was too full to reforge the Horn of the &quot;
+                           + &quot;Fell Beast. Make room and log in again.&quot;);
+        return;
+    }
 
+    DestroyObject(oOld);
+    SendMessageToPC(oPC, &quot;The Horn of the Fell Beast has taken its true shape -- &quot;
+                       + &quot;sound it from your pack.&quot;);
+    WriteTimestampedLogEntry(&quot;[FellBeast] Horn converted ring-&gt;miscmedium for &quot;
+                           + GetName(oPC) + &quot; (&quot; + GetPCPlayerName(oPC) + &quot;)&quot;);
+}
 </code></pre>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>

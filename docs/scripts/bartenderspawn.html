@@ -60,6 +60,9 @@
 <h1>Script: <code>bartenderspawn</code></h1><pre class="nss-source"><code>//Sets the phrase to look for, and starts bartender listening
 void main()
 {
+    // Record the spawn home: se_respawn_inc respawns here rather than where
+    // the corpse fell, and leash_to_area.nss leashes to this area.
+    SetLocalLocation(OBJECT_SELF, &quot;spawn&quot;, GetLocation(OBJECT_SELF));
     SetListenPattern(OBJECT_SELF, &quot;**please**&quot;, 69);
     SetListening(OBJECT_SELF, TRUE);
 }

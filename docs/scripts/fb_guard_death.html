@@ -80,13 +80,43 @@
 const string HORN_RESREF = &quot;horn_fellbeast&quot;;
 const string HORN_TAG    = &quot;HornFellBeast&quot;;
 
+// Walk the full master chain (a summon of a henchman is two deep) and return
+// the owning PC, or OBJECT_INVALID. Mirrors Bst_OwningPC in bst_ondeath.nss.
+object FB_OwningPC(object o)
+{
+    while (GetIsObjectValid(GetMaster(o))) o = GetMaster(o);
+    if (GetIsPC(o) &amp;&amp; !GetIsDM(o)) return o;
+    return OBJECT_INVALID;
+}
+
 void GiveHorn(object oPC)
 {
-    if (!GetIsPC(oPC)) return;
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
     if (GetIsObjectValid(GetItemPossessedBy(oPC, HORN_TAG))) return; // already has one
-    CreateItemOnObject(HORN_RESREF, oPC);
+
+    object oNew = CreateItemOnObject(HORN_RESREF, oPC);
+    if (!GetIsObjectValid(oNew))
+    {
+        SendMessageToPC(oPC, &quot;The Horn of the Fell Beast could not be given. &quot;
+                           + &quot;Tell an admin.&quot;);
+        WriteTimestampedLogEntry(&quot;[FellBeast] Horn grant FAILED for &quot;
+                               + GetName(oPC) + &quot; (&quot; + GetPCPlayerName(oPC) + &quot;)&quot;);
+        return;
+    }
+
     FloatingTextStringOnCreature(
         &quot;The Fell Beast falls -- and its horn is yours to sound.&quot;, oPC, FALSE);
+
+    // A full pack makes the engine drop the item at the PC&#x27;s feet with no
+    // message -- and this area&#x27;s OnExit (cleanup.nss) destroys loose items when
+    // the last PC leaves, so a silent drop is a lost Horn on a respawn-gated
+    // boss. Same check as q_potd_reward.nss.
+    if (!GetIsObjectValid(GetItemPossessedBy(oPC, HORN_TAG)))
+        SendMessageToPC(oPC, &quot;Your pack was full -- the Horn of the Fell Beast &quot;
+                           + &quot;lies at your feet. Pick it up before you leave.&quot;);
+
+    WriteTimestampedLogEntry(&quot;[FellBeast] Horn granted to &quot; + GetName(oPC)
+                           + &quot; (&quot; + GetPCPlayerName(oPC) + &quot;)&quot;);
 }
 
 void main()
@@ -94,10 +124,19 @@ void main()
     object oSelf = OBJECT_SELF;
 
     // --- Horn to the killer and their present party ---
-    object oKiller = GetLastKiller();
-    object oAnchor = GetIsPC(oKiller) ? oKiller
-                                      : (GetIsPC(GetMaster(oKiller)) ? GetMaster(oKiller)
-                                                                     : oKiller);
+    // Two independent sources, unioned, because GiveHorn is idempotent per PC:
+    //
+    //  1. The killer&#x27;s party. The old code walked only ONE GetMaster level and
+    //     fell back to a NON-PC anchor, so a nested associate, a trap kill, an
+    //     environmental kill or a DM kill left GetFirstFactionMember(oAnchor,
+    //     TRUE) yielding nothing and NOBODY got a Horn -- silently, on a boss
+    //     that is then respawn-gated for 15 minutes.
+    //  2. The bestiary damage-contributor list. bst_ondamage.nss has already
+    //     recorded every PC who hurt this creature, master-walked to the owning
+    //     PC, in bst_ctrb_N. Nothing deletes those locals, and bst_ondeath.nss
+    //     chains us last, so they are still here. This is the safety net for
+    //     every killer-resolution case above.
+    object oAnchor = FB_OwningPC(GetLastKiller());
     if (GetIsObjectValid(oAnchor))
     {
         object oMember = GetFirstFactionMember(oAnchor, TRUE); // PCs only
@@ -107,6 +146,15 @@ void main()
                 GiveHorn(oMember);
             oMember = GetNextFactionMember(oAnchor, TRUE);
         }
+    }
+
+    int nCtrb = GetLocalInt(oSelf, &quot;bst_ctrb_n&quot;);
+    int i;
+    for (i = 0; i &lt; nCtrb; i++)
+    {
+        object oC = GetLocalObject(oSelf, &quot;bst_ctrb_&quot; + IntToString(i));
+        if (GetIsObjectValid(oC) &amp;&amp; GetArea(oC) == GetArea(oSelf))
+            GiveHorn(oC);
     }
 
     // --- Boss upkeep: Roll of the Fallen respawn (same gate as demondeath) ---
