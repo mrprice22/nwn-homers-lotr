@@ -88,6 +88,13 @@ void spellsGenericAreaOfEffect(
 // * SPELL_TARGET_SELECTIVEHOSTILE: Will only ever hurt enemies
 int spellsIsTarget(object oTarget, int nTargetType, object oSource);
 
+// * TRUE when oSource is an associate of a PC (henchman, animal companion,
+// * familiar, summon) and oTarget belongs to that PC's party -- the party
+// * members themselves or anything they in turn own.  An associate must never
+// * damage its own side with an area spell, whatever the faction reputation
+// * between them happens to be.
+int spellsIsAssociateFriendlyFire(object oTarget, object oSource);
+
 
 // * how much should special archer arrows do for damage
 int ArcaneArcherDamageDoneByBow(int bCrit = FALSE, object oUser = OBJECT_SELF);
@@ -1128,6 +1135,56 @@ void DoPetrification(int nPower, object oSource, object oTarget, int nSpellID, i
 //:: Created On: March 6 2003
 //:://////////////////////////////////////////////
 
+//::///////////////////////////////////////////////
+//:: spellsIsAssociateFriendlyFire
+//:://////////////////////////////////////////////
+/*
+    An associate of a PC must never damage that PC, their party, or anything
+    else belonging to it with an area of effect spell.
+
+    Roadmap henchmen-prevent-friendly-fire: the Meaningwave guides sit in the
+    Merchant faction, which has no "friendly" reputation entry towards the PC
+    faction (50, and GetIsReactionTypeFriendly wants 90).  That made a guide's
+    own master a perfectly legal SPELL_TARGET_STANDARDHOSTILE target, so
+    Jordan's Hellball -- a 20m sphere -- nuked the player who summoned him.
+
+    Deliberately one-directional: this only filters casts made BY an associate.
+    A player's own area spell still hits their henchmen on hardcore difficulty,
+    which is stock behaviour and out of scope.  A hostile creature's summons are
+    untouched as well, since their master is not a PC.
+*/
+//:://////////////////////////////////////////////
+int spellsIsAssociateFriendlyFire(object oTarget, object oSource)
+{
+    object oOwner = GetMaster(oSource);
+    // * Not an associate of a player -- stock rules apply.
+    if (!GetIsObjectValid(oOwner) || !GetIsPC(oOwner))
+    {
+        return FALSE;
+    }
+    // * The caster still stands in its own blast.
+    if (oTarget == oSource)
+    {
+        return FALSE;
+    }
+
+    // * Resolve the target back to whoever owns it, so a party member's pet or
+    // * summon is protected along with the party member.
+    object oTargetOwner = GetMaster(oTarget);
+    object oSide        = GetIsObjectValid(oTargetOwner) ? oTargetOwner : oTarget;
+
+    object oMember = GetFirstFactionMember(oOwner, FALSE);
+    while (GetIsObjectValid(oMember))
+    {
+        if (oMember == oSide)
+        {
+            return TRUE;
+        }
+        oMember = GetNextFactionMember(oOwner, FALSE);
+    }
+    return FALSE;
+}
+
 int spellsIsTarget(object oTarget, int nTargetType, object oSource)
 {
     int nReturnValue = FALSE;
@@ -1249,6 +1306,13 @@ int spellsIsTarget(object oTarget, int nTargetType, object oSource)
                 nReturnValue = FALSE;
             }
         }
+    }
+
+    // * An associate of a PC never damages its own party (see the function
+    // * header).  Last word, so it overrides every rule above.
+    if (nReturnValue == TRUE && spellsIsAssociateFriendlyFire(oTarget, oSource) == TRUE)
+    {
+        nReturnValue = FALSE;
     }
 
     return nReturnValue;
