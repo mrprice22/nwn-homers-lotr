@@ -6,9 +6,12 @@ against the unpacked sources:
 
   * the blueprint <resref>.utc.json exists and its Tag matches the seeded tag
     (instance tag overrides are checked instead where a placement overrides it)
+  * every boss:       its seeded respawn_seconds equals BOSS_RESPAWN_SECONDS
+                      from unpacked/boss_tune.nss - boss respawn is one global
+                      number, tuned there and nowhere else
   * placed bosses:    exactly ONE instance across all *.git.json, never inside
                       any encounter, and the tag does not contain "NSP" (which
-                      would disable the se_respawn 15-minute respawn)
+                      would disable the se_respawn respawn entirely)
   * encounter bosses: never placed directly, appear in exactly ONE encounter
                       instance (checking instance-level CreatureList overrides,
                       not the .ute blueprint), that instance spawns at most one
@@ -19,7 +22,8 @@ against the unpacked sources:
     blueprints exist
 
 Keeps the Well of Eru board honest if respawn times, placements or encounter
-definitions change later.
+definitions change later, and keeps a boss-timer retune from shipping half-done
+(constant changed, registry or encounter ResetTimes not regenerated).
 """
 import json
 import re
@@ -28,6 +32,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 UNPACKED = ROOT / "unpacked"
+sys.path.insert(0, str(ROOT / "bin"))
+from boss_index import boss_respawn_seconds  # noqa: E402
 
 SEED_RE = re.compile(
     r'BRD_SeedBoss\("(?P<resref>[^"]*)",\s*"(?P<name>[^"]*)",\s*"(?P<tag>[^"]*)",'
@@ -65,11 +71,19 @@ def main():
 
     errors = []
     registered = {b["resref"] for b in bosses}
+    want_respawn = boss_respawn_seconds()
 
     for b in bosses:
         rr, tag, area, sty = b["resref"], b["tag"], b["area"], b["type"]
         respawn = int(b["respawn"])
         label = f"{rr} ({b['name']})"
+
+        # Boss respawn is one global number (unpacked/boss_tune.nss). A row that
+        # disagrees means the constant moved without a regenerate.
+        if respawn != want_respawn:
+            errors.append(f"{label}: seeded respawn {respawn}s but "
+                          f"BOSS_RESPAWN_SECONDS={want_respawn} - re-run "
+                          f"bin/gen-boss-registry.py --write")
 
         utc = UNPACKED / f"{rr}.utc.json"
         if not utc.exists():
@@ -120,9 +134,11 @@ def main():
             if gv(e.get("Respawns")) != -1 or gv(e.get("Reset")) != 1:
                 errors.append(f"{label}: encounter '{e_tmpl}' is not infinitely re-arming "
                               f"(Respawns={gv(e.get('Respawns'))}, Reset={gv(e.get('Reset'))})")
-            if gv(e.get("ResetTime")) != respawn:
-                errors.append(f"{label}: registry respawn {respawn}s but encounter "
-                              f"'{e_tmpl}' ResetTime={gv(e.get('ResetTime'))}")
+            if gv(e.get("ResetTime")) != want_respawn:
+                errors.append(f"{label}: BOSS_RESPAWN_SECONDS={want_respawn} but "
+                              f"encounter '{e_tmpl}' ResetTime="
+                              f"{gv(e.get('ResetTime'))} - re-run "
+                              f"bin/retune-boss-encounters.py --apply")
 
     for a in aliases:
         if a["canonical"] not in registered:

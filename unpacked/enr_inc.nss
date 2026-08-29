@@ -34,9 +34,10 @@
 // THE RESET (decay). Enrage stacks used to last the boss's whole life, so a
 // party that chipped at a boss and walked away left the next player a boss
 // that was stronger than its blueprint and already wounded. Now: once nobody
-// is engaged, the boss arms a timer for its OWN registry respawn_seconds (the
-// same wait a player would face had they killed it). If it is still out of
-// combat when that expires, it is fully restored in place -
+// is engaged, the boss arms a timer for BOSS_RESET_SECONDS (boss_tune.nss - one
+// global number, longer than the respawn, so walking away is never cheaper than
+// killing). If it is still out of combat when that expires, it is fully
+// restored in place -
 //   * every enrage stack removed (the effects are tagged ENR_EFFECT_TAG),
 //   * ForceRest: full HP, spells and feats per day back,
 //   * jumped home to its "spawn" location (the leash_to_area home),
@@ -62,7 +63,6 @@
 //
 // Locals used (all on the boss, so they vanish with the corpse):
 //   int    enr_isboss     registry check cache: 0 unknown, 1 boss, -1 not
-//   int    enr_respawn    cached boss_registry.respawn_seconds (reset delay)
 //   int    enr_n          number of engaged entries
 //   object enr_pc_<i>     engaged PC
 //   string enr_name_<i>   PC first name, captured at engage (survives logout)
@@ -78,6 +78,7 @@
 //   int    enr_iqty_<i>   snapshot stack size
 
 #include "brd_db"
+#include "boss_tune"
 
 const float  ENR_RANGE      = 40.0;  // metres; past this (or out of area) = retreating
 const float  ENR_TICK       = 6.0;   // seconds between disengage scans
@@ -87,8 +88,7 @@ const int    ENR_MAX_SNAP   = 40;    // snapshot cap (no boss carries near this)
 const float  ENR_RECHECK    = 60.0;  // re-arm delay when still in combat at reset time
 
 // TRUE when oCre is on the Roll-of-the-Fallen boss registry. One campaign-DB
-// lookup per creature life, cached in a local - which also caches the boss's
-// own respawn_seconds, the delay the out-of-combat reset waits out.
+// lookup per creature life, cached in a local.
 int ENR_IsRegistryBoss(object oCre)
 {
     int nCache = GetLocalInt(oCre, "enr_isboss");
@@ -96,22 +96,21 @@ int ENR_IsRegistryBoss(object oCre)
 
     string sRef = BRD_Canonical(GetResRef(oCre));
     sqlquery q = SqlPrepareQueryCampaign(BRD_DB,
-        "SELECT respawn_seconds FROM boss_registry WHERE resref=@r");
+        "SELECT 1 FROM boss_registry WHERE resref=@r");
     SqlBindString(q, "@r", sRef);
     int bBoss = SqlStep(q);
-    if (bBoss) SetLocalInt(oCre, "enr_respawn", SqlGetInt(q, 0));
 
     SetLocalInt(oCre, "enr_isboss", bBoss ? 1 : -1);
     return bBoss;
 }
 
-// How long this boss must stay out of combat before it resets: its own
-// registry respawn time, so the wait matches what killing it would have cost.
+// How long this boss must stay out of combat before it resets. One global
+// number for every boss (BOSS_RESET_SECONDS in boss_tune.nss), deliberately
+// longer than BOSS_RESPAWN_SECONDS: abandoning a wounded boss must never be a
+// cheaper way to clear it than killing it.
 float ENR_ResetDelay(object oBoss)
 {
-    int nSec = GetLocalInt(oBoss, "enr_respawn");
-    if (nSec <= 0) nSec = 900;       // registry default, and a safe fallback
-    return IntToFloat(nSec);
+    return IntToFloat(BOSS_RESET_SECONDS);
 }
 
 // First word of the PC's name, for the taunt.

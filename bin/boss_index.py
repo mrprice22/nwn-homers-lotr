@@ -9,11 +9,30 @@ determination has exactly one implementation.
 """
 import functools
 import json
+import re
 import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 UNPACKED = ROOT / "unpacked"
+
+
+# unpacked/boss_tune.nss is the single source of truth for boss timing. The
+# Python tools (registry generator, encounter retuner, build gate) read the
+# constants straight out of it so a retune is one edit in one file.
+BOSS_TUNE_RE = re.compile(r"^\s*const\s+int\s+(\w+)\s*=\s*(\d+)\s*;", re.M)
+
+
+@functools.lru_cache(maxsize=None)
+def boss_tuning(unpacked_str=str(UNPACKED)):
+    """{constant name: int} parsed from unpacked/boss_tune.nss."""
+    src = (Path(unpacked_str) / "boss_tune.nss").read_text()
+    return {m.group(1): int(m.group(2)) for m in BOSS_TUNE_RE.finditer(src)}
+
+
+def boss_respawn_seconds(unpacked=UNPACKED):
+    """The one respawn time every boss uses (BOSS_RESPAWN_SECONDS)."""
+    return boss_tuning(str(unpacked))["BOSS_RESPAWN_SECONDS"]
 
 
 def gv(node):

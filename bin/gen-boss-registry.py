@@ -25,6 +25,12 @@ import sys
 import boss_index as bi
 from boss_index import UNPACKED, gv, ascii_fold, area_name
 
+# The one respawn time every boss uses, read from unpacked/boss_tune.nss.
+# Placed bosses get it as a se_respawn_inc DelayCommand; encounter bosses carry
+# it as their encounter instance's ResetTime (kept in step by
+# bin/retune-boss-encounters.py, enforced by tests/check_boss_registry.py).
+BOSS_RESPAWN = bi.boss_respawn_seconds()
+
 CR_MIN = 60.0          # strictly greater than this
 CR_ARTIFACT = 12000.0  # drop absurd CR (data artifacts); real max ~9540
 
@@ -54,7 +60,8 @@ _COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
 
 def _death_respawn_kind(resref, _seen=()):
     """How OnDeath script <resref> brings the boss back:
-      'standard' — calls SE_DoCreatureRespawn (exact 900s, matches the board);
+      'standard' — calls SE_DoCreatureRespawn (exactly BOSS_RESPAWN_SECONDS,
+                   matching the board);
       'legacy'   — re-creates a creature via StaticSpawn / CreateObject (comes
                    back, but on a non-standard timer the board can't predict);
       'none'     — no respawn; the boss stays dead until a server restart.
@@ -129,7 +136,7 @@ def classify(placements, enc_slots):
             # blueprint alone once hid a boss that never respawned while the
             # board counted it down (the Wart Gondorian Gate Captain).
             bp = dict(bp, script_death=p_death or bp["script_death"])
-            included.append((bp, "placed", p_area, eff_tag, 900, None))
+            included.append((bp, "placed", p_area, eff_tag, BOSS_RESPAWN, None))
         else:  # exactly one encounter slot
             e_area, _e_tmpl, e = slots[0]
             if gv(e.get("MaxCreatures")) != 1:
@@ -203,7 +210,7 @@ def build_rows(rows):
             "area": area,
             "area_name": ascii_fold(area_name(area)),
             "cr": bp["cr"],
-            "respawn": int(respawn or 900),
+            "respawn": int(respawn or BOSS_RESPAWN),
             "type": kind,
             "script_death": bp["script_death"],
             "faction": bp["faction_name"],

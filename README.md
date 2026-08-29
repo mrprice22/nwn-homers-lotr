@@ -121,9 +121,13 @@ The generated block is validated at build time by
 `tests/check_boss_registry.py` (part of `tests/smoke-test`, run by every
 repack): it **independently** re-derives placements and encounter slots from
 `unpacked/` and fails the build on any drift — a boss placed a second time, a
-changed ResetTime, a tag rename, a deleted blueprint. Encounter bosses carry
-their real `ResetTime` as `respawn_seconds` (accurate countdowns); placed
-bosses respawn 900 s after death via `SE_DoCreatureRespawn`. The generator
+changed ResetTime, a tag rename, a deleted blueprint. **Every boss respawns on
+one number** — `BOSS_RESPAWN_SECONDS` in `unpacked/boss_tune.nss` (1200 s / 20
+minutes): placed bosses get it as a `SE_DoCreatureRespawn` delay, encounter
+bosses as their encounter instance's `ResetTime`, and the gate fails the repack
+if the registry, the encounters and the constant ever disagree. To retune, edit
+that one constant and run `bin/gen-boss-registry.py --write` +
+`bin/retune-boss-encounters.py --apply`. The generator
 reports any placed boss whose OnDeath won't bring it back so it can be fixed —
 none currently (the Rancid Skinner, Wart Gondorian Gate Captain and Fell Beast
 were repaired). See [CLAUDE-boss-tracker.md](CLAUDE-boss-tracker.md).

@@ -64,14 +64,15 @@ levers and regenerate — never hand-edit the seed block**:
 CR>60 + single-instance says a creature *can* be tracked, not that it actually
 comes back. The generator classifies each placed boss's OnDeath:
 
-- **standard** — reaches `SE_DoCreatureRespawn` (flat 900 s; `nw_c2_default7`,
+- **standard** — reaches `SE_DoCreatureRespawn` (`BOSS_RESPAWN_SECONDS`;
+  `nw_c2_default7`,
   `x2_def_ondeath`, `staticspawn`, `deathalert`, `dunharrowdeath`). The board's
   countdown is accurate.
 - **legacy** — re-creates via the old `StaticSpawn`/`CreateObject` path; the
-  boss returns but on a non-standard timer the board's 900 s may not match.
+  boss returns but on a non-standard timer the board's countdown may not match.
 - **none** — stays dead until a server restart. The board would count down and
   falsely clear it. **Currently none** — the three that were like this were
-  fixed to the standard 900 s (see below).
+  fixed to the standard timer (see below).
 
 To make a `none` boss truthful, add `#include "se_respawn_inc"` and a guarded
 `SE_DoCreatureRespawn()` (skip when the tag contains `NSP`) to its OnDeath, then
@@ -83,9 +84,38 @@ edit it** — point the boss's blueprint `ScriptDeath` at a small wrapper that
 Captain, whose `hotuxpfix` is shared by 7 Black Numenorean mobs → new
 `wartdeath.nss` wrapper + `gondorianguar005.utc.json` `ScriptDeath` repointed.
 
-Encounter bosses carry their real `ResetTime` as `respawn_seconds` (the
-generator reads it; the gate enforces they match), so their countdowns are
-accurate without any standardization.
+Encounter bosses carry their `ResetTime` as `respawn_seconds` (the generator
+reads it; the gate enforces they match), so their countdowns are accurate.
+
+## Tuning the boss timers
+
+**Both boss timers live in `unpacked/boss_tune.nss` and nowhere else.**
+
+| Constant | What it controls |
+|---|---|
+| `BOSS_RESPAWN_SECONDS` (1200 = 20 min) | how long a boss stays dead. Placed bosses take it as the `se_respawn_inc` `DelayCommand`; encounter bosses as their encounter instance's `ResetTime`; the board and the wiki as `boss_registry.respawn_seconds` |
+| `BOSS_RESET_SECONDS` (1800 = 30 min) | how long a damaged, abandoned boss must stay out of combat before `enr_inc` strips its enrage stacks, heals it, restocks its kit and sends it home. Deliberately **longer** than the respawn — walking away from a wounded boss must never be cheaper than killing it |
+| `CRE_RESPAWN_SECONDS` (900 = 15 min) | every other static creature in the world. Unchanged; bosses branch off it |
+
+To retune the respawn, edit the constant and then run **both** propagation steps
+— NWScript picks the constant up at compile time, but the encounter `ResetTime`s
+and the seeded registry rows are data:
+
+```
+python3 bin/gen-boss-registry.py --write        # reseed respawn_seconds
+python3 bin/retune-boss-encounters.py --apply   # encounter instance ResetTimes
+python3 tests/check_boss_registry.py            # the gate
+```
+
+`tests/check_boss_registry.py` compares every seeded row **and** every boss
+encounter instance against the constant, so a half-done retune fails the repack
+rather than shipping a board that lies about the countdown. `BOSS_RESET_SECONDS`
+needs no propagation — it is read straight from the include at compile time.
+
+`retune-boss-encounters.py` touches only the **instance** in `<area>.git.json`,
+never the `.ute` blueprint: `moriabyss` (the Balrog) and `morialight001` (the
+Mutant Terror) are shared with trash encounters, and the instance wins at
+runtime anyway.
 
 ## Don't break it
 
@@ -110,6 +140,10 @@ accurate without any standardization.
   from a `nw_aberration` instance in `area023`. Always inspect the
   instance-level `CreatureList` in the `.git.json`, never trust the `.ute`
   alone.
+- **Don't hard-code a boss respawn or reset number anywhere** — a literal in a
+  death script, an encounter `ResetTime` set by hand in the toolset, or a second
+  copy of the constant in a Python tool. Everything reads `boss_tune.nss`
+  (Python via `boss_index.boss_respawn_seconds()`), and the gate enforces it.
 - **Tokens 6300–6313 are claimed** — pick a different range for new systems.
 - The `boss_deaths` wipe in `BRD_InitDb()` is intentional (restart = all
   alive). Don't "fix" it into persistence without also persisting respawn

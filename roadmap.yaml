@@ -184,7 +184,8 @@ ideas:
   - id: add-a-decay-to-enrage-on-retreat-mechanic
     title: "Add a decay to Enrage-on-retreat mechanic (equal to respawn duration)"
     group: bosses
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Szescian82
     date: "2026-08-27"
@@ -192,11 +193,11 @@ ideas:
     notes: "<div><b>A boss you walk away from now recovers.</b> Retreating from a Roll-of-the-Fallen boss still enrages it — but the enrage is no longer permanent for the rest of its life. Once nobody is fighting it, the boss waits out its own respawn time (the same countdown the Roll of the Fallen board shows for a slain boss) and then fully resets: every enrage stack gone, back to full health, spells and abilities restored, back at its lair, and anything looted or pickpocketed from it put back. It shouts when it happens, so a player walking in knows the fight has restarted.</div><div><br></div><div>Landing a hit restarts that clock, so the boss only resets if it really has been left alone — you cannot chip at it, step out and wait for a free heal, and two players cannot tag-team it into resetting on demand. What it fixes is the party <i>after</i> you: nobody inherits a half-dead boss carrying somebody else's enrage stacks any more, and no boss stays stuck in that state until the next server reboot.</div>"
     impl_notes: "<div>Pure script, all in unpacked/enr_inc.nss (the existing enrage include, already reached through bst_ondamage.nss). No blueprint, palette, hak, TLK or NWSync work.</div><div><br></div><div><b>The clock.</b> ENR_IsRegistryBoss()'s one-per-life registry lookup now also caches boss_registry.respawn_seconds. When ENR_Tick runs out of engaged PCs it arms ENR_ResetCheck for that many seconds. Cancellation is a generation counter, not a timestamp: every damage bumps enr_gen, and a pending check that no longer matches the generation it was armed with no-ops. If the boss is still GetIsInCombat at expiry (chasing a PC who stopped hitting back) it re-arms at 60s instead of resetting mid-swing.</div><div><br></div><div><b>The reset</b> (ENR_DoReset): enrage effects are now applied with TagEffect(..., \"enr_rage\") so they can be stripped exactly, then ForceRest for HP + spells/feats per day (plus an explicit EffectHeal), a JumpToLocation to the \"spawn\" home leash_to_area already maintains, an item top-up, and a shout + VFX.</div><div><br></div><div><b>Items</b> are snapshotted at first damage (equip slots 0-13 and the backpack, resref + slot + stack size, capped at 40 entries) and restored as a <b>top-up, never a wipe</b> — same rule as kalrist_gems.nss — so anything the boss gained meanwhile survives. Restores create <b>one item per CreateItemOnObject call</b>: the stack argument is clamped to the base item's baseitems.2da Stacking value, which is the exact bug that made the tester Runes of Expansion arrive one-at-a-time (fixed separately, and now written up in CLAUDE-gotchas.md).</div><div><br></div><div><b>Deliberately in place, never a re-create.</b> Re-instantiating from the blueprint would restore inventory for free, but a CreateObject copy of one of the seven spawn_type='encounter' registry bosses is not an encounter creature, so its death would arm se_respawn_inc's respawn <i>and</i> leave the lair encounter free to spawn its own — the two-live-bosses case the decision rules out. One code path covers both spawn types.</div><div><br></div><div>Design write-up: <a href=\"https://homerslotr.com/manual/Draft/boss-updates#enrage\">boss-updates#enrage</a>, \"Decay, August 2026\".</div>"
     manual_steps:
-      - step: "UAT reset: damage Summanus (Numenor: Noirinan, 480s respawn) and retreat so it enrages, then leave it alone for 8+ minutes. Expect a shout, a healing VFX, the boss back at its spawn point at full HP, and base ability scores on examine."
+      - step: "UAT reset: damage Summanus (Numenor: Noirinan) and retreat so it enrages, then leave it alone for 30+ minutes (BOSS_RESET_SECONDS). Expect a shout, a healing VFX, the boss back at its spawn point at full HP, and base ability scores on examine."
         status: open
         kind: uat
         tester: "any"
-      - step: "UAT the clock restarts: enrage Summanus, wait ~6 minutes, land one hit, then leave again. It must NOT reset until a further full 8 minutes of being left alone."
+      - step: "UAT the clock restarts: enrage Summanus, wait ~20 minutes, land one hit, then leave again. It must NOT reset until a further full 30 minutes of being left alone."
         status: open
         kind: uat
         tester: "any"
@@ -204,11 +205,34 @@ ideas:
         status: open
         kind: uat
         tester: "rogue with Pickpocket, or any"
-      - step: "UAT an encounter boss: same check on the Basilisk King (Mirkwood: Crypt Chamber, 3000s = 50 min) - it resets in place, and there is still exactly ONE of it in the area afterwards. This is the two-live-bosses risk the design avoided."
+      - step: "UAT an encounter boss: same check on the Basilisk King (Mirkwood: Crypt Chamber) - it resets in place, and there is still exactly ONE of it in the area afterwards. This is the two-live-bosses risk the design avoided."
         status: open
         kind: uat
         tester: "any"
       - step: "UAT no regression: killing a boss and letting it respawn normally still yields exactly one boss at base stats, and the Roll of the Fallen board countdown is unchanged."
+        status: open
+        kind: uat
+        tester: "any"
+  - id: boss-timer-standardization
+    title: "Standardize every boss respawn to 20 minutes and the enrage out-of-combat reset to 30, both tunable from one include"
+    group: bosses
+    status: manual
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-08-28"
+    notes: "<div><b>Every boss now returns on the same 20-minute timer.</b> Boss respawns used to be a mix: most at 15 minutes, but lair bosses ran anywhere from 8 minutes (Summanus) to 50 (the Basilisk King, Frost). All 79 bosses on the <a href=\"https://homerslotr.com/manual/Customizations#boss-respawn-tracker\">Roll of the Fallen</a> are now on one 20-minute clock, so the board's countdown means the same thing everywhere and no lair is worth camping just because its timer was short.</div><div><br></div><div><b>A boss you walk away from now takes 30 minutes to recover</b> (it was previously that boss's own respawn time). Abandoning a wounded, enraged boss is deliberately slower than killing it - so retreating and waiting it out is never the cheaper way to clear a lair.</div>"
+    impl_notes: "<div>Both numbers moved into a new constants-only include, unpacked/boss_tune.nss: BOSS_RESPAWN_SECONDS (1200), BOSS_RESET_SECONDS (1800) and CRE_RESPAWN_SECONDS (900, the unchanged world timer for ordinary creatures). Nothing else in the module carries a boss timer literal any more.</div><div><br></div><div><b>Placed bosses</b> (70): se_respawn_inc.nss no longer hard-codes 900.0f. New SE_RespawnDelay() does one indexed SELECT against respawndb (boss_registry UNION boss_alias, the same DB the board and enr_inc already read) and returns the boss timer for a registry boss, the world timer for everything else - so ordinary creatures are untouched at 15 minutes and no per-boss script edits were needed.</div><div><br></div><div><b>Encounter bosses</b> (9): respawn is data, not script - the encounter instance's ResetTime in the area .git.json. New bin/retune-boss-encounters.py (dry-run by default, --apply writes) rewrites exactly those 9 instances to the constant: Summanus 480, Legolas/Khamul/Balrog/Kerufall/Shelob 900, Mutant Terror 500, Basilisk King/Frost 3000 -&gt; all 1200. Instance only, never the .ute - moriabyss and morialight001 are shared with trash encounters and the instance wins at runtime.</div><div><br></div><div><b>Enrage reset</b>: ENR_ResetDelay() in enr_inc.nss returned the boss's cached boss_registry.respawn_seconds; it now returns BOSS_RESET_SECONDS. The per-boss respawn cache (enr_respawn) is gone, and the registry lookup is a plain existence check.</div><div><br></div><div><b>Kept honest by the build gate.</b> bin/boss_index.py grew boss_tuning()/boss_respawn_seconds(), which parse the constants out of boss_tune.nss; gen-boss-registry.py seeds respawn_seconds from it, and tests/check_boss_registry.py now fails the repack if any seeded row OR any boss encounter ResetTime disagrees with the constant, naming the tool to re-run. A retune is therefore: edit the constant, run gen-boss-registry.py --write + retune-boss-encounters.py --apply, repack. Documented in CLAUDE-boss-tracker.md ('Tuning the boss timers') and README.md.</div>"
+    manual_steps:
+      - step: "UAT respawn: kill any tracked boss and watch the Roll of the Fallen board - the countdown must start at 20:00 and the boss must actually be back when it clears. Check one placed boss (e.g. Gollum) and one encounter boss (e.g. Shelob or the Basilisk King, previously 50 min)."
+        status: open
+        kind: uat
+        tester: "level 60, boss-capable"
+      - step: "UAT ordinary creatures unchanged: kill a normal static mob and confirm it still returns in ~15 minutes, not 20."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT enrage reset at 30 min: damage a boss, retreat so it enrages, then leave it alone. It must NOT reset at 20 minutes; the restore shout/VFX comes at 30. Landing a hit restarts the full 30."
         status: open
         kind: uat
         tester: "any"
@@ -6522,7 +6546,8 @@ ideas:
   - id: bulk-fix-creatures-that-dont-respawn
     title: "Bulk fix creatures that don't respawn"
     group: quests-areas
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-27"

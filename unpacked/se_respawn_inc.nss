@@ -4,8 +4,8 @@
 //::///////////////////////////////////////////////
 //:: Place any creatures from the stock or custom palette in your world.
 //:: They will respawn in that exact location & wander around the area.
-//:: Respawn timer set by default to 300.0f (5 mins)
-//:: Adjust the timer at line 64 of se_respawn_inc
+//:: Respawn timers are tuned in boss_tune.nss (CRE_RESPAWN_SECONDS for
+//:: ordinary creatures, BOSS_RESPAWN_SECONDS for Roll-of-the-Fallen bosses)
 //:: Your all done, simple.
 //::///////////////////////////////////////////////
 //:: Tagged creatures with _NSP will not respawn eg. NW_GOBLINA_NSP
@@ -44,6 +44,23 @@ Delete the old - NW_C2_DEFAULT7, NW_C2_DEFAULT9, NW_C2_HERBIVORE, & NW_C2_OMNIVO
 */
 
 
+#include "boss_tune"
+
+// How long this creature stays dead. Roll-of-the-Fallen bosses respawn on the
+// boss timer, everything else on the world timer - both tuned in boss_tune.nss,
+// never here. One indexed SELECT against respawndb per death (the same campaign
+// DB the board and the enrage system already read); if the table is not seeded
+// yet the query simply misses and the creature takes the world timer.
+float SE_RespawnDelay(object oCre)
+{
+    sqlquery q = SqlPrepareQueryCampaign("respawndb",
+        "SELECT 1 FROM boss_registry WHERE resref=@r" +
+        " UNION SELECT 1 FROM boss_alias WHERE resref=@r");
+    SqlBindString(q, "@r", GetStringLowerCase(GetResRef(oCre)));
+    if (SqlStep(q)) return IntToFloat(BOSS_RESPAWN_SECONDS);
+    return IntToFloat(CRE_RESPAWN_SECONDS);
+}
+
 void SE_RespawnObject(int nType, string sResRef, location lLoc, string sNewTag)
 {
   CreateObject(nType, sResRef, lLoc, FALSE, sNewTag);
@@ -68,8 +85,7 @@ void SE_DoCreatureRespawn()
         else
           { lLoc = GetLocation(OBJECT_SELF); }
         fFacing = GetFacing(OBJECT_SELF);
-// *** SET RESPAWN TIMER IN SECONDS ie: 300 = 5 minutes ***//
-  float fDelay = 900.0f;
-//float fDelay = d100(10) + 300.0f;//Example for a random timer
+// *** RESPAWN TIMER: tuned in boss_tune.nss, not here ***//
+  float fDelay = SE_RespawnDelay(OBJECT_SELF);
   AssignCommand(GetModule(), DelayCommand(fDelay, SE_RespawnObject(nType, sRef, lLoc, sTag)));
 }
