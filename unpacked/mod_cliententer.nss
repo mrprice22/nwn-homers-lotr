@@ -13,6 +13,7 @@
 #include "pers_state_inc"
 #include "merit_db"
 #include "bst_db"
+#include "ptm_db"
 #include "forge_inc"
 #include "tele_db"
 #include "boost_db"
@@ -115,6 +116,13 @@ void main()
     // per-character identity key for all kill records.
     Bst_InitDb();
     GetObjectUUID(oPC);
+
+    // Start this character's play-time row (see ptm_db.nss). Per CHARACTER,
+    // which the server log cannot tell us -- it names only the account. MUST
+    // come after the GetObjectUUID() above: that call is what generates the
+    // UUID for a character that has never had one, and Ptm_Open keys on it.
+    Ptm_InitDb();
+    Ptm_Open(oPC);
 
     // Rest-menu teleport unlocks (merit redemptions 101-107): ensure the
     // saved-slot / return-state tables exist.

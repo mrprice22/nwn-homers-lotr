@@ -28,6 +28,7 @@
 #include "warmeter_inc"
 #include "ammorep_db"
 #include "cbd_db"
+#include "ptm_db"
 #include "pw_inc"
 #include "fat_inc"
 
@@ -272,6 +273,13 @@ WM_Init();
 // are keyed on the ITEM's UUID so they follow the quiver when it changes hands.
 // See ammorep_db.nss (roadmap: Ammo-shortage).
 AmmoRep_InitDb();
+
+// Per-character play time. CloseStale() must run here, before any player
+// can connect: a crash or the nightly reboot never fires Mod_OnClientLeav,
+// so those rows are still open and would otherwise count every hour the
+// server was down. They are marked abandoned, not guessed at.
+Ptm_InitDb();
+Ptm_CloseStale();
 
 // Combat Dummy leaderboard ("Hall of Champions" sign): ensure the sessions
 // table exists before the first trial finishes or the first sign read. The

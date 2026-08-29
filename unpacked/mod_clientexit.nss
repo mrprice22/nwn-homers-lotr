@@ -12,10 +12,15 @@
 #include "bank_box_inc"
 #include "epic_summon_inc"
 #include "fat_inc"
+#include "ptm_db"
 
 void main()
 {
     object PC = GetExitingObject();
+    // Close this character's play-time row first: everything below can export
+    // the .bic or touch other DBs, and the session length should not include
+    // that housekeeping.
+    Ptm_Close(PC);
     // Epic summons live in the henchman slot and don't auto-despawn on logout
     // like summoned associates do -- clean up any lingering one here.
     EpicSummon_Dismiss(PC);
