@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script nw_s0_bladebarc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>nw_s0_bladebarc</code></h1><pre class="nss-source"><code>//:: Imported verbatim from base game data so that it recompiles against this
+//:: module&#x27;s x0_i0_spells.nss and picks up spellsIsAssociateFriendlyFire()
+//:: (roadmap henchmen-prevent-friendly-fire). Do not diverge from stock otherwise.
+//::///////////////////////////////////////////////
+//:: Blade Barrier: Heartbeat
+//:: NW_S0_BladeBarA.nss
+//:: Copyright (c) 2001 Bioware Corp.
+//:://////////////////////////////////////////////
+/*
+    Creates a wall 10m long and 2m thick of whirling
+    blades that hack and slice anything moving into
+    them.  Anything caught in the blades takes
+    2d6 per caster level.
+*/
+//:://////////////////////////////////////////////
+//:: Created By: Preston Watamaniuk
+//:: Created On: July 20, 2001
+//:://////////////////////////////////////////////
+
+#include &quot;X0_I0_SPELLS&quot;
+#include &quot;x2_inc_spellhook&quot;
+
+void main()
+{
+
+
+    //Declare major variables
+    object oTarget;
+    effect eDam;
+    effect eVis = EffectVisualEffect(VFX_COM_BLOOD_LRG_RED);
+    int nMetaMagic = GetMetaMagicFeat();
+    int nLevel = GetCasterLevel(GetAreaOfEffectCreator());
+    //Make level check
+    if (nLevel &gt; 20)
+    {
+        nLevel = 20;
+    }
+
+    //--------------------------------------------------------------------------
+    // GZ 2003-Oct-15
+    // Add damage to placeables/doors now that the command support bit fields
+    //--------------------------------------------------------------------------
+    oTarget = GetFirstInPersistentObject(OBJECT_SELF,OBJECT_TYPE_CREATURE | OBJECT_TYPE_PLACEABLE | OBJECT_TYPE_DOOR);
+
+    //--------------------------------------------------------------------------
+    // GZ 2003-Oct-15
+    // When the caster is no longer there, all functions calling
+    // GetAreaOfEffectCreator will fail. Its better to remove the barrier then
+    //--------------------------------------------------------------------------
+    if (!GetIsObjectValid(GetAreaOfEffectCreator()))
+    {
+        DestroyObject(OBJECT_SELF);
+        return;
+    }
+
+    while(GetIsObjectValid(oTarget))
+    {
+        if (spellsIsTarget(oTarget, SPELL_TARGET_STANDARDHOSTILE, GetAreaOfEffectCreator()))
+        {
+            //Fire spell cast at event
+            SignalEvent(oTarget, EventSpellCastAt(GetAreaOfEffectCreator(), SPELL_BLADE_BARRIER));
+            //Make SR Check
+            if (!MyResistSpell(GetAreaOfEffectCreator(), oTarget) )
+            {
+                //Roll Damage
+                int nDamage = d6(nLevel);
+                //Enter Metamagic conditions
+                if(nMetaMagic == METAMAGIC_MAXIMIZE)
+                {
+                    nDamage = nLevel * 6;//Damage is at max
+                }
+                else if (nMetaMagic == METAMAGIC_EMPOWER)
+                {
+                    nDamage = nDamage + (nDamage/2);
+                }
+
+                //Adjust damage according to Reflex Save, Evasion or Improved Evasion
+                nDamage = GetReflexAdjustedDamage(nDamage, oTarget, GetSpellSaveDC());
+
+                //Set damage effect
+                eDam = EffectDamage(nDamage, DAMAGE_TYPE_SLASHING);
+                //Apply damage and VFX
+                ApplyEffectToObject(DURATION_TYPE_INSTANT, eDam, oTarget);
+                ApplyEffectToObject(DURATION_TYPE_INSTANT, eVis, oTarget);
+            }
+        }
+        oTarget = GetNextInPersistentObject(OBJECT_SELF,OBJECT_TYPE_CREATURE | OBJECT_TYPE_PLACEABLE | OBJECT_TYPE_DOOR);
+     }
+}
+
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

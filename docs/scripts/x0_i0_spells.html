@@ -41,7 +41,10 @@
       <a href="../factions.html">Factions</a>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
 <a href="../quests/index.html">Journal Entries</a></div></div>
-      <div class="nav-dropdown"><span class="nav-dropdown-label">Activity &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
 <a href="../activity.html">Player Activity</a>
 <a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
       <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
@@ -146,6 +149,13 @@ void spellsGenericAreaOfEffect(
 //   They WILL hurt NEUTRAL PCs
 // * SPELL_TARGET_SELECTIVEHOSTILE: Will only ever hurt enemies
 int spellsIsTarget(object oTarget, int nTargetType, object oSource);
+
+// * TRUE when oSource is an associate of a PC (henchman, animal companion,
+// * familiar, summon) and oTarget belongs to that PC&#x27;s party -- the party
+// * members themselves or anything they in turn own.  An associate must never
+// * damage its own side with an area spell, whatever the faction reputation
+// * between them happens to be.
+int spellsIsAssociateFriendlyFire(object oTarget, object oSource);
 
 
 // * how much should special archer arrows do for damage
@@ -1187,6 +1197,56 @@ void DoPetrification(int nPower, object oSource, object oTarget, int nSpellID, i
 //:: Created On: March 6 2003
 //:://////////////////////////////////////////////
 
+//::///////////////////////////////////////////////
+//:: spellsIsAssociateFriendlyFire
+//:://////////////////////////////////////////////
+/*
+    An associate of a PC must never damage that PC, their party, or anything
+    else belonging to it with an area of effect spell.
+
+    Roadmap henchmen-prevent-friendly-fire: the Meaningwave guides sit in the
+    Merchant faction, which has no &quot;friendly&quot; reputation entry towards the PC
+    faction (50, and GetIsReactionTypeFriendly wants 90).  That made a guide&#x27;s
+    own master a perfectly legal SPELL_TARGET_STANDARDHOSTILE target, so
+    Jordan&#x27;s Hellball -- a 20m sphere -- nuked the player who summoned him.
+
+    Deliberately one-directional: this only filters casts made BY an associate.
+    A player&#x27;s own area spell still hits their henchmen on hardcore difficulty,
+    which is stock behaviour and out of scope.  A hostile creature&#x27;s summons are
+    untouched as well, since their master is not a PC.
+*/
+//:://////////////////////////////////////////////
+int spellsIsAssociateFriendlyFire(object oTarget, object oSource)
+{
+    object oOwner = GetMaster(oSource);
+    // * Not an associate of a player -- stock rules apply.
+    if (!GetIsObjectValid(oOwner) || !GetIsPC(oOwner))
+    {
+        return FALSE;
+    }
+    // * The caster still stands in its own blast.
+    if (oTarget == oSource)
+    {
+        return FALSE;
+    }
+
+    // * Resolve the target back to whoever owns it, so a party member&#x27;s pet or
+    // * summon is protected along with the party member.
+    object oTargetOwner = GetMaster(oTarget);
+    object oSide        = GetIsObjectValid(oTargetOwner) ? oTargetOwner : oTarget;
+
+    object oMember = GetFirstFactionMember(oOwner, FALSE);
+    while (GetIsObjectValid(oMember))
+    {
+        if (oMember == oSide)
+        {
+            return TRUE;
+        }
+        oMember = GetNextFactionMember(oOwner, FALSE);
+    }
+    return FALSE;
+}
+
 int spellsIsTarget(object oTarget, int nTargetType, object oSource)
 {
     int nReturnValue = FALSE;
@@ -1308,6 +1368,13 @@ int spellsIsTarget(object oTarget, int nTargetType, object oSource)
                 nReturnValue = FALSE;
             }
         }
+    }
+
+    // * An associate of a PC never damages its own party (see the function
+    // * header).  Last word, so it overrides every rule above.
+    if (nReturnValue == TRUE &amp;&amp; spellsIsAssociateFriendlyFire(oTarget, oSource) == TRUE)
+    {
+        nReturnValue = FALSE;
     }
 
     return nReturnValue;
