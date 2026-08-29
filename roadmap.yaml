@@ -139,6 +139,14 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: persistant-map-exploration
+    title: "Persistant map exploration with xp reward"
+    group: quests-areas
+    status: soon
+    type: Enhancement
+    player: "Sync (Shync)"
+    date: "2026-08-28"
+    notes: "<div><div><span><span>Sync</span></span><span><span><i> — </i>7:51 AM</span></span><div><span>Its kind of annoying to lose map clearance all the time so... What about rewarding exploration?</span></div></div><div><div></div></div></div><div><div> <div><span>Saw it in another server so i know it's possible, there was an item that you needed to buy and when you uncovered 80% of each map, you use that item and have that character save the cleared map permanently</span></div></div></div><div><div> <div><span>And give an xp reward according to lvl/cr of the area</span></div></div><div><div></div></div></div><div><div> <div><span>(or just well..... Have all the maps uncovered already by default </span><span><img src=\"https://discord.com/assets/e5bddb2a9171637d.svg\" alt=\"🤣\"></span><span>)</span></div><div><span><br></span></div></div><div><div></div></div></div><div><div><span><span>HomelessSon</span><span><span> [MW], </span></span></span><span><span><i> — </i>11:12 AM</span></span><div><span>That's a fun idea</span></div></div></div>Could also give stats in hall of fame for player with most areas/maps explored"
   - id: the-fell-beast-attacks
     title: "The Fell Beast attacks Kalrun the Deathless"
     group: bosses
@@ -668,14 +676,33 @@ ideas:
       - step: "Publish: already repacked and installed to the DEV realm; bin/reboot-on-empty is armed so the realm picks it up when it next empties. Script-only change - no hak, TLK or NWSync."
         status: done
         kind: admin
-  - id: henchmen-avoid-friendly-fire
-    title: "MW Henchmen to avoid friendly fire with AoE (Area of effect spells)"
+  - id: henchmen-prevent-friendly-fire
+    title: "MW Henchmen to prevent friendly fire with AoE (Area of effect spells)"
     group: meaningwave
-    status: planned
+    status: manual
     type: Enhancement
     player: dormic
-    date: "2026-08-20"
-    notes: "<span>add a targeting mode toggle to the caster MeaningWave henchmen toggled through conversation with with, specific to AoE (Area of effect) spells.\n\n 2 options are:\n</span><ul><li><span><span>target most creatures: target an AoE center that captures the most enemy units in the blast radius (depends on each spells rage, e.g. fireball vs hellball): do not cast AoE if it only would hit only 1 enemy creature, minimum enemies hit must be 2, but can include friendly creatures. If can't target 2+ targets within AoE blast radius, say something, wait 3 turns (cast other spells instead), then try again with AoEs.</span></span></li><li><span><span>avoid friendly fire: attempt to include the most dangerous enemy (whatever aligns with existing rules for choosing a single enemy target), but chose an AoE  target center that includes the chosen enemy, but excludes all friendly units (the henchmen's own self, the henchmen's owning player, any allied players or summoned pets, etc).. if no safe places to drop an effective AoE, move on to other spells and have the henchmen say so, but come back to looking for more AoE positions once every 3 turns. AOEs can be used to damage 1 enemy creature</span></span></li></ul>"
+    date: "2026-08-28"
+    commit: 5a98c5c961a
+    notes: "<div>Your Meaningwave guides no longer catch you in their own area spells. Jordan's <b>Hellball</b> was the worst offender -- it detonates in a 20-metre sphere, which is most of a room, and it was treating you, your other guides, your summons and your party as fair game.</div><div><br></div><div>A guide's area spell now damages <b>enemies only</b>. That covers Hellball and every other blast a guide knows: Fireball, Cone of Cold, Meteor Swarm, Wail of the Banshee, Horrid Wilting, Ice Storm, Fire Storm, Implosion, Blade Barrier and Creeping Doom. The same protection applies to anything else you own that casts -- an animal companion, a familiar, a summoned creature.</div><div><br></div><div><b>What has not changed:</b> your <i>own</i> spells still hurt your henchmen and pets on this server's difficulty setting, so aim your own Hellball with the same care as before. A guide also still stands in its own blast.</div>"
+    impl_notes: "<div><b>Root cause was faction reputation, not the AI's target choice.</b> mw_arc_er.nss:45 fires ActionUseFeat(FEAT_EPIC_HELLBALL, oEnemy), and x2_s2_hellball.nss:88 sweeps SHAPE_SPHERE, 20.0f asking spellsIsTarget(oTarget, SPELL_TARGET_STANDARDHOSTILE, OBJECT_SELF) per target. Every MW guide blueprint is FactionID 3, and this module's repute.fac.json has a non-standard FactionList order -- 0 PC, 1 Hostile, 2 Commoner, 3 <b>Merchant</b>, 4 Defender, 5 Evil, 6 Good, 7 Neutral -- so the guides are Merchant, not Defender. There is <b>no Merchant -&gt; PC RepList entry</b> and PC -&gt; Merchant is 50, while GetIsReactionTypeFriendly needs 90. The master was therefore \"not a friend\" and the bPC &amp;&amp; bNotAFriend branch accepted him. server.env:31 sets NWN_DIFFICULTY=3, so the hardcore branches of that function are live too.</div><div><br></div><div><b>PLAN B was not implemented, and cannot work here.</b> A 20 m radius covers most of an area, so there is no AoE centre that includes an enemy and excludes the party. PLAN A is the whole fix.</div><div><br></div><div><b>The guard.</b> New spellsIsAssociateFriendlyFire(oTarget, oSource) in the module's x0_i0_spells.nss, called as the last word of spellsIsTarget() (after the GZ same-master block) so it overrides every rule above it. It returns TRUE when GetMaster(oSource) is a PC and the target -- resolved back through its own GetMaster, so pets and summons are covered with their owner -- is in that PC's GetFirstFactionMember/GetNextFactionMember party walk. Deliberately one-directional: only casts <i>by</i> a PC's associate are filtered, so a player's own AoE still hits their henchmen (stock hardcore behaviour, explicitly left out of scope) and a hostile creature's summons are untouched. oTarget == oSource returns FALSE, so a guide still stands in its own blast. Hellball's knockdown lives inside the damage branch, so a filtered friendly gets no damage, no knockdown and no VFX.</div><div><br></div><div><b>Why 12 stock scripts were imported.</b> x0_i0_spells.nss is a module copy of the Bioware include, so editing it only reaches spell scripts <i>this module compiles</i>. x2_s2_hellball.nss was already one; the rest live in game data and were compiled against the stock include. The castable set is bounded by the guides' own Known/Memorized lists, so the import is exactly: nw_s0_fireball, nw_s0_conecold, nw_s0_metswarm, nw_s0_wailbansh, nw_s0_horrwilt (Peterson, wizard); nw_s0_icestorm, nw_s0_firestrm (McKenna, druid); nw_s0_implosion (Watts, cleric); and the persistent-AoE enter/heartbeat scripts nw_s0_bladebara/c and nw_s0_crpdooma/c, whose damage is in the vfx_persistent.2da trio rather than the impact script. Taken verbatim apart from a 3-line provenance banner, so a future diff against stock stays clean.</div><div><br></div><div><b>Checked clear.</b> Call Lightning (nw_s0_calllghtn), Isaac's Greater Missile Storm (x0_s0_missstorm2) and Storm of Vengeance (nw_s0_stormvenc) already use SPELL_TARGET_SELECTIVEHOSTILE -- enemies only -- so they were left alone. No CEP hak ships any nw_s*/x0_s0_*/x2_s* script (all haks listed; 657 .nss, none in those namespaces), so the module copies shadow base game data only. No AI-side change: mw_arc_er.nss and mw_sup_er.nss are untouched, as are the guide blueprints (no faction change) and the mw_*_h.dlg.json conversations. Full build green: 34/34 smoke tests, dialog integrity 0 failing.</div><div><br></div><div><b>Noted, not fixed here.</b> The guides sitting at Merchant reputation with the PC faction is the underlying oddity; flipping them to Defender (4) would make the stock logic protect the party by itself, including in spell scripts this module does not compile. It was not done because it changes how every faction in the module reacts to them. If more friendly-fire reports arrive from spells outside the imported list, that is the next lever.</div>"
+    manual_steps:
+      - step: "UAT: summon Jordan (Peterson), take him into a fight big enough that he reaches Hellball, and stand well inside the blast. Expect NO damage to you, your other guides, your summons or your party -- the enemies still take the full hit. Before the fix a guide's Hellball hit everything in a 20m sphere."
+        status: open
+        kind: uat
+        tester: "level 60 with Peterson summoned"
+      - step: "UAT: repeat with the other guides' area spells -- McKenna's Ice Storm, Fire Storm and Creeping Doom, Watts' Implosion and Blade Barrier. Blade Barrier and Creeping Doom are the interesting ones: their damage comes from a persistent AoE that ticks each round, so walk your own party through it and confirm it only bites enemies."
+        status: open
+        kind: uat
+        tester: "level 60 with McKenna and Watts summoned"
+      - step: "UAT regression: cast Hellball or Fireball YOURSELF with guides and a summon standing next to you. Behaviour must be UNCHANGED -- your own area spells still hurt your own henchmen on this server's difficulty. That direction was deliberately left out of scope; if it now looks protected, the guard is filtering more than it should."
+        status: open
+        kind: uat
+        tester: "level 60 caster with a guide summoned"
+      - step: "UAT regression: let an enemy spellcaster drop an area spell on you. It must still damage you and your guides normally -- the guard only applies when the caster's master is a PC."
+        status: open
+        kind: uat
+        tester: "any"
   - id: witchking-both-potions-pickpocketable
     title: "both of Witch King's heal pots are pickpocketable"
     group: combat-classes
