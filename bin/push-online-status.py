@@ -54,7 +54,14 @@ sys.path.insert(0, str(MANAGER_BIN))
 # Push at least this often even when nothing changed, so the endpoint can tell
 # "nobody is online" from "the pusher died". Must stay well under the worker's
 # STALE_AFTER_MS (20 min).
-HEARTBEAT_SECONDS = 15 * 60
+#
+# 10 minutes, not 15: the timer only ticks every 5 minutes, so a 15-minute
+# heartbeat can first become eligible at ~15.8 min and leaves barely one tick
+# before the 20-minute staleness cliff -- one delayed or failed run and a
+# perfectly healthy pusher shows "unavailable" on the live page. At 10 minutes
+# there are two spare ticks. The cost is trivial: ~144 writes/day against Workers
+# KV's 1000/day free tier, and only when the roster is otherwise unchanged.
+HEARTBEAT_SECONDS = 10 * 60
 
 STATE_PATH_DEFAULT = "online-push-state.json"
 USER_AGENT = "homers-lotr-online-push/1.0"
