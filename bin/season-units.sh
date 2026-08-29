@@ -39,6 +39,8 @@ TEMPLATES=(
   "nwn-season-empty-restart@.service"
   "nwn-season-vault-sync@.service"
   "nwn-season-vault-sync@.timer"
+  "nwn-season-online-push@.service"
+  "nwn-season-online-push@.timer"
 )
 DROPINS=(
   "nwn-season-server@.service.d"
@@ -87,6 +89,16 @@ PATH_UNIT="nwn-season-empty-restart@$INSTANCE.path"
 # timer that could only ever refuse.
 if [[ ${SEASON_ROLE:-} == dev ]]; then
   ENABLE_UNITS+=("nwn-season-vault-sync@$INSTANCE.timer")
+fi
+
+# The who's-online pusher is armed wherever a push URL is configured, NOT by
+# role. That is deliberate: the live season is the realm that should normally
+# publish a roster, but the dev realm has to be able to switch it on to test the
+# pipeline end to end before it ships. With SEASON_STATUS_PUSH_URL empty the
+# script exits cleanly anyway, so the timer is merely pointless rather than
+# harmful -- this just avoids installing a timer that could only ever no-op.
+if [[ -n ${SEASON_STATUS_PUSH_URL:-} ]]; then
+  ENABLE_UNITS+=("nwn-season-online-push@$INSTANCE.timer")
 fi
 
 echo "season instance : $INSTANCE"

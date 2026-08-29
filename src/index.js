@@ -23,7 +23,126 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
+    // ---------------------------------------------------------------- api --
+    // The live who's-online roster. This is the ONLY dynamic part of the site:
+    // everything else under /docs is a static asset built by nwn-wiki and
+    // deployed by a git push. The roster deliberately does not live in the repo
+    // — it changes every few minutes, and committing it would mean a Workers
+    // build per login. It lives in KV instead, written by the host-side pusher
+    // (bin/push-online-status.py) and read here.
+    //
+    // Absent the STATUS binding (every season but the live one, and both
+    // archived forks) these routes 404 and the page falls back to its static
+    // "status unavailable" markup — which is what keeps the endpoint
+    // live-season-only without a second worker.
+    if (url.pathname === '/api/online') {
+      if (!env.STATUS) return json({ error: 'not enabled' }, 404);
+      if (request.method === 'POST') return putOnline(request, env);
+      if (request.method === 'GET') return getOnline(env);
+      return json({ error: 'method not allowed' }, 405);
+    }
+
     // Otherwise serve the static asset as normal
     return env.ASSETS.fetch(request);
   }
 };
+
+// A roster older than this is not shown as fact. The pusher heartbeats well
+// inside it (every 5 min on change, 15 min otherwise), so crossing this line
+// means the pusher, the box or the network is down — in which case saying
+// nothing is correct and "0 players online" would be a lie.
+const STALE_AFTER_MS = 20 * 60 * 1000;
+
+// The roster is a handful of names; anything larger is a bug or an abuse
+// attempt, not a busy server.
+const MAX_BODY = 16 * 1024;
+
+const json = (obj, status = 200, extra = {}) =>
+  new Response(JSON.stringify(obj), {
+    status,
+    headers: { 'content-type': 'application/json; charset=utf-8', ...extra }
+  });
+
+async function putOnline(request, env) {
+  // Constant-ish comparison: the token is a shared secret, so a mismatch must
+  // not reveal where it diverged.
+  const auth = request.headers.get('authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (!env.STATUS_TOKEN || !safeEqual(token, env.STATUS_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+
+  const raw = await request.text();
+  if (raw.length > MAX_BODY) return json({ error: 'too large' }, 413);
+
+  let body;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return json({ error: 'invalid json' }, 400);
+  }
+  if (!body || !Array.isArray(body.players)) {
+    return json({ error: 'expected {players: []}' }, 400);
+  }
+
+  // Re-shape rather than storing what was sent: the page renders these strings,
+  // so the endpoint decides which fields exist and how long they may be. A
+  // compromised or buggy pusher cannot inject extra keys into the page.
+  const players = body.players.slice(0, 96).map((p) => ({
+    player: str(p.player, 64),
+    character: str(p.character, 64),
+    level: Number.isFinite(p.level) ? Math.trunc(p.level) : null
+  }));
+
+  const record = { players, updated_at: new Date().toISOString() };
+  await env.STATUS.put('online', JSON.stringify(record));
+  return new Response(null, { status: 204 });
+}
+
+async function getOnline(env) {
+  const raw = await env.STATUS.get('online');
+  if (!raw) return json({ players: [], count: 0, updated_at: null, stale: true });
+
+  let record;
+  try {
+    record = JSON.parse(raw);
+  } catch {
+    return json({ players: [], count: 0, updated_at: null, stale: true });
+  }
+
+  const age = Date.now() - Date.parse(record.updated_at || 0);
+  const stale = !(age >= 0) || age > STALE_AFTER_MS;
+
+  return json(
+    {
+      players: stale ? [] : record.players,
+      count: stale ? 0 : record.players.length,
+      updated_at: record.updated_at || null,
+      stale
+    },
+    200,
+    {
+      // The pusher writes at most every 5 min; 30s of edge caching keeps a busy
+      // page off the KV read budget without making the roster visibly laggy.
+      'cache-control': 'public, max-age=30',
+      // Read-only and cross-origin on purpose: the dev/TEST wiki, and any
+      // archived season's wiki, are served from their own hosts but should be
+      // able to show who is on the LIVE server. The roster is already public --
+      // it is rendered on a public page -- so there is nothing here to protect
+      // by origin. Writing still requires the bearer token, and POST is
+      // server-to-server, so no preflight is involved.
+      'access-control-allow-origin': '*'
+    }
+  );
+}
+
+function str(v, max) {
+  return typeof v === 'string' ? v.slice(0, max) : '';
+}
+
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}

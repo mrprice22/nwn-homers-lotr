@@ -1,0 +1,23 @@
+[Unit]
+Description=Push the who's-online roster to the wiki worker (season instance %i)
+Documentation=file://%h/GIT/%i/bin/push-online-status.py
+# Reads the server's own log files and vault; makes no connection to the game
+# server and holds no lock it owns. A failure here can only make the wiki's
+# Who's Online panel go stale -- it can never affect play.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/GIT/%i
+# The pusher imports the wiki generator's log parser, so nwn_manager/bin must be
+# importable; PATH matters for the same reason it does in the wiki-publish unit.
+Environment=PATH=/var/home/james/GIT/nwn_manager/bin:/home/james/.nimble/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/GIT/%i/bin/push-online-status.py
+# A push either works or is skipped until the next tick five minutes later;
+# retrying inside the unit would only pile up while the network is down.
+Restart=no
+# Never let a hung DNS lookup or a stalled TLS handshake outlive its own tick.
+TimeoutStartSec=60
+Nice=10
+IOSchedulingClass=idle

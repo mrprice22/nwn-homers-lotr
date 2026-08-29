@@ -1,0 +1,22 @@
+[Unit]
+Description=Refresh the wiki's who's-online roster every 5 minutes (season instance %i)
+Documentation=file://%h/GIT/%i/bin/push-online-status.py
+
+[Timer]
+Unit=nwn-season-online-push@%i.service
+# Five minutes, matching the serve loop's poll interval -- there is no point
+# publishing a roster more precisely than the rest of the pipeline observes it.
+#
+# The tick is cheap and almost always silent: the pusher compares a fingerprint
+# of the roster and only POSTs when it changed, or every 15 minutes as a
+# heartbeat so the endpoint can distinguish "nobody online" from "pusher dead".
+# That keeps a normal day well inside Workers KV's 1000-writes/day free tier,
+# which a blind 5-minute write (288/day) would also fit but a 1-minute one
+# (1440/day) would not.
+OnBootSec=6min
+OnUnitActiveSec=5min
+# Do not fire all seasons' timers on the same second.
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
