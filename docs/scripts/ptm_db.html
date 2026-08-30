@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script ptm_db</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>ptm_db</code></h1><pre class="nss-source"><code>// ptm_db.nss - per-character play time.
+//
+// Campaign DB &quot;playtimedb&quot; (file database/playtimedb.sqlite3):
+//
+//   sessions(id, uuid, char_name, cdkey, player_name, entered_at, left_at,
+//            minutes)
+//   meta(key, value)                          -- &quot;tracking_started&quot; timestamp
+//
+// WHY THIS EXISTS. The server log names only the ACCOUNT on login
+// (&quot;Shync (UPRWA3VR) Joined as Player 1&quot;), never the character, so the wiki
+// could report hours per account but never per character - every character an
+// account owned showed that account&#x27;s total. Nothing else on the server
+// recorded it either. This table is the missing fact.
+//
+// Identity is split as in bst_db.nss and cbd_db.nss: `uuid` (GetObjectUUID) is
+// the CHARACTER, `cdkey` (GetPCPublicCDKey) is the ACCOUNT.
+//
+// THE TRAP: a crash, a kill -9 or the nightly reboot never fires
+// Mod_OnClientLeav, so those rows would stay open forever and, once closed by
+// a later login, count every hour the server was down as play time. Ptm_Open()
+// therefore closes any row this character left open BEFORE inserting a new one,
+// and Ptm_CloseStale() runs on module load to sweep rows left open by the
+// previous run. Both mark the row abandoned (left_at NULL, minutes NULL) rather
+// than guessing a duration -- an unknown session length is recorded as unknown,
+// not as zero and not as &quot;until now&quot;. This mirrors how the wiki&#x27;s log parser
+// discards sessions that were open across a restart marker.
+
+const string PTM_DB = &quot;playtimedb&quot;;
+
+void Ptm_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;CREATE TABLE IF NOT EXISTS sessions (&quot; +
+        &quot;id INTEGER PRIMARY KEY AUTOINCREMENT,&quot; +
+        &quot;uuid TEXT NOT NULL,&quot; +
+        &quot;char_name TEXT,&quot; +
+        &quot;cdkey TEXT,&quot; +
+        &quot;player_name TEXT,&quot; +
+        &quot;entered_at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)),&quot; +
+        &quot;left_at TEXT,&quot; +
+        &quot;minutes REAL)&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;CREATE INDEX IF NOT EXISTS idx_ptm_uuid ON sessions(uuid)&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)&quot;);
+    SqlStep(q);
+
+    // Stamped once, on the very first module load after this ships. The wiki
+    // prints it so nobody reads a character&#x27;s 3 hours as its whole history:
+    // season 2 was months old when counting started, and a figure without that
+    // date is quietly wrong.
+    q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;INSERT OR IGNORE INTO meta (key, value) &quot; +
+        &quot;VALUES (&#x27;tracking_started&#x27;, datetime(&#x27;now&#x27;))&quot;);
+    SqlStep(q);
+}
+
+// Close rows the previous server run left open. Called from module load, before
+// any player can connect.
+void Ptm_CloseStale()
+{
+    sqlquery q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;UPDATE sessions SET left_at = NULL, minutes = NULL &quot; +
+        &quot;WHERE left_at IS NULL AND minutes IS NULL&quot;);
+    SqlStep(q);
+}
+
+void Ptm_Open(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+    string sUuid = GetObjectUUID(oPC);
+    if (sUuid == &quot;&quot;) return;
+
+    // Belt and braces: this character may hold an open row from a run that
+    // ended without a clean logout. Leave it abandoned rather than crediting it.
+    sqlquery q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;UPDATE sessions SET minutes = NULL WHERE uuid = @u AND left_at IS NULL&quot;);
+    SqlBindString(q, &quot;@u&quot;, sUuid);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;INSERT INTO sessions (uuid, char_name, cdkey, player_name) &quot; +
+        &quot;VALUES (@u, @c, @k, @p)&quot;);
+    SqlBindString(q, &quot;@u&quot;, sUuid);
+    SqlBindString(q, &quot;@c&quot;, GetName(oPC));
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@p&quot;, GetPCPlayerName(oPC));
+    SqlStep(q);
+}
+
+void Ptm_Close(object oPC)
+{
+    if (!GetIsPC(oPC) || GetIsDM(oPC)) return;
+    string sUuid = GetObjectUUID(oPC);
+    if (sUuid == &quot;&quot;) return;
+
+    // Close only the newest open row for this character, and let SQLite compute
+    // the duration from the two timestamps -- the module has no wall clock it
+    // can trust across a reboot.
+    sqlquery q = SqlPrepareQueryCampaign(PTM_DB,
+        &quot;UPDATE sessions SET left_at = datetime(&#x27;now&#x27;), &quot; +
+        &quot;minutes = (julianday(&#x27;now&#x27;) - julianday(entered_at)) * 1440.0 &quot; +
+        &quot;WHERE id = (SELECT id FROM sessions WHERE uuid = @u &quot; +
+        &quot;AND left_at IS NULL ORDER BY id DESC LIMIT 1)&quot;);
+    SqlBindString(q, &quot;@u&quot;, sUuid);
+    SqlStep(q);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
