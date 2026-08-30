@@ -48,12 +48,21 @@ cd "$PROJECT" || { echo "missing project: $PROJECT"; pause; exit 1; }
 # bestiary catalogue is seeded and kill stats are read. NWN_HOME_DIR comes from
 # server.env (sourced above); fall back to the standard NWN user dir.
 DB_DIR="${NWN_HOME_DIR:-$HOME/.local/share/Neverwinter Nights}/database"
+# The server vault, for the Players section (character pages, leaderboards and
+# the Hall of Fame). Admin/DM characters are excluded by the generator.
+VAULT_DIR="${NWN_HOME_DIR:-$HOME/.local/share/Neverwinter Nights}/servervault"
 
 # Both from server.env: SEASON_WIKI_URL is the apex for the live season and
 # season<N>.homerslotr.com otherwise; NWN_RUN_DIR is this instance's run dir,
 # which holds the host-readable server logs the activity charts are built from.
 # Fallbacks keep the script working against a repo with no season block yet.
 BASE_URL="${SEASON_WIKI_URL:-https://homerslotr.com/}"
+
+# Who's Online. This realm does not publish a roster (SEASON_STATUS_PUSH_URL is
+# empty here and its worker has no KV binding), so the page reads the LIVE
+# season's endpoint -- what a player wants from the TEST wiki is who is on the
+# real server. That is a cross-origin read, which the live worker allows on GET.
+ONLINE_API="${SEASON_LIVE_WIKI_URL:-https://homerslotr.com/}api/online"
 LOG_DIR="${NWN_RUN_DIR:-$HOME/.local/state/nwnxee-homer}"
 
 # Combat-stat dials, from server.env so the wiki's derived stats match what the
@@ -114,6 +123,8 @@ nwn-manager wiki \
   --2da-dir "$PROJECT/hak_2da" \
   --max-character-level "$MAX_LEVEL" \
   --max-ability-bonus "$MAX_ABILITY_BONUS" \
+  --vault-dir "$VAULT_DIR" \
+  --online-api "$ONLINE_API" \
   --path-from thewelloferu
 status=$?
 
