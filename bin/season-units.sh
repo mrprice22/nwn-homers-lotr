@@ -32,6 +32,13 @@ ENV_DIR="$HOME/.config/nwn-season"
 SRC="$PROJECT_ROOT/systemd"
 
 # Templates symlinked as-is. The .path is rendered separately (see below).
+# Resource slices carrying the CPU/IO weights. They must be installed even
+# though no unit "enables" them: a Slice= reference to a missing unit leaves the
+# realm in a default slice at neutral weight, silently unprioritised.
+SLICES=(
+  "nwnlive.slice"
+  "nwndev.slice"
+)
 TEMPLATES=(
   "nwn-season-server@.service"
   "nwn-season-backup@.service"
@@ -123,6 +130,7 @@ if [[ $MODE == remove ]]; then
   # files remain.
   if ! compgen -G "$ENV_DIR/*.env" >/dev/null; then
     for t in "${TEMPLATES[@]}"; do rm -fv "$UNIT_DIR/$t"; done
+    for sl in "${SLICES[@]}"; do rm -fv "$UNIT_DIR/$sl"; done
     for d in "${DROPINS[@]}"; do rm -rfv "${UNIT_DIR:?}/$d"; done
   else
     echo "  (kept shared @ templates — other season instances still configured)"
@@ -136,6 +144,7 @@ if [[ $MODE == dry ]]; then
   echo "DRY RUN — would write:"
   echo "  $ENV_DIR/$INSTANCE.env"
   for t in "${TEMPLATES[@]}"; do echo "  $UNIT_DIR/$t -> $SRC/$t"; done
+  for sl in "${SLICES[@]}"; do echo "  $UNIT_DIR/$sl -> $SRC/$sl (resource slice)"; done
   for d in "${DROPINS[@]}"; do echo "  $UNIT_DIR/$d/ (drop-ins)"; done
   echo "  $UNIT_DIR/nwn-season-server@$INSTANCE.service.d/priority.conf (rendered, role=${SEASON_ROLE:-unset})"
   echo "  $UNIT_DIR/$PATH_UNIT (rendered)"
@@ -166,6 +175,10 @@ echo "wrote $ENV_DIR/$INSTANCE.env"
 for t in "${TEMPLATES[@]}"; do
   ln -sfn "$SRC/$t" "$UNIT_DIR/$t"
   echo "linked $UNIT_DIR/$t"
+done
+for sl in "${SLICES[@]}"; do
+  ln -sfn "$SRC/$sl" "$UNIT_DIR/$sl"
+  echo "linked $UNIT_DIR/$sl"
 done
 for d in "${DROPINS[@]}"; do
   mkdir -p "$UNIT_DIR/$d"
@@ -211,50 +224,27 @@ fi
 
 case "${SEASON_ROLE:-}" in
   live)
-    # The only workload on this box with players waiting on it. NWN's main loop
-    # is single-threaded, so it cannot absorb scheduling delay by spreading out:
-    # a stalled frame IS in-game lag. MemoryLow keeps its working set off the
-    # reclaim list when the desktop browser balloons.
     ROLE_COMMENT="# Instance role: LIVE -- players are on this. Outranks everything."
-    CPU_WEIGHT=10000; IO_WEIGHT=1000
-    # NOTE: no IOSchedulingClass here. `realtime` (and even best-effort
-    # priority 0) needs CAP_SYS_NICE, which a ROOTLESS user unit does not have
-    # -- systemd then fails the unit at step IOPRIO with status=211 and the
-    # server never starts. This took the live realm down once; do not re-add it.
-    # IOWeight below is the cgroup mechanism that actually matters here anyway:
-    # it works unprivileged and BFQ (this box's scheduler) honours it.
-    EXTRA_LINES=(
-      "MemoryLow=1500M"
-    )
+    SLICE=nwnlive.slice
     ;;
   dev|test)
-    # Throttled alongside the build tooling by choice: the admin is normally the
-    # only one on it, and it shares a spindle with the repacks that feed it.
     ROLE_COMMENT="# Instance role: DEV/TEST -- rides with the build tooling."
-    CPU_WEIGHT=30; IO_WEIGHT=30
-    EXTRA_LINES=()
+    SLICE=nwndev.slice
     ;;
   *)
-    # archive, or unset: neutral. Never below default -- that is the bug this
-    # whole file exists to undo.
-    ROLE_COMMENT="# Instance role: ${SEASON_ROLE:-unset} -- neutral (kernel default)."
-    CPU_WEIGHT=100; IO_WEIGHT=100
-    EXTRA_LINES=()
+    # archive, or unset: leave it in the default app.slice at kernel default.
+    # Never below default -- an inverted weight on the game server is the bug
+    # this whole file exists to undo.
+    ROLE_COMMENT="# Instance role: ${SEASON_ROLE:-unset} -- default slice, neutral."
+    SLICE=app.slice
     ;;
 esac
 
 mkdir -p "$PRIO_DIR"
-# @EXTRA@ is a placeholder LINE, deleted here and replaced by real settings
-# below -- a sed replacement cannot carry embedded newlines.
 sed -e "s|@ROLE_COMMENT@|$ROLE_COMMENT|" \
-    -e "s|@CPU_WEIGHT@|$CPU_WEIGHT|" \
-    -e "s|@IO_WEIGHT@|$IO_WEIGHT|" \
-    -e "/@EXTRA@/d" \
+    -e "s|@SLICE@|$SLICE|" \
     "$SRC/nwn-season-server@.service.d.priority.conf.in" > "$PRIO_DIR/priority.conf"
-for line in ${EXTRA_LINES+"${EXTRA_LINES[@]}"}; do
-  echo "$line" >> "$PRIO_DIR/priority.conf"
-done
-echo "rendered $PRIO_DIR/priority.conf (role=${SEASON_ROLE:-unset} cpu=$CPU_WEIGHT io=$IO_WEIGHT)"
+echo "rendered $PRIO_DIR/priority.conf (role=${SEASON_ROLE:-unset} slice=$SLICE)"
 
 systemctl --user daemon-reload
 echo "daemon-reload done"

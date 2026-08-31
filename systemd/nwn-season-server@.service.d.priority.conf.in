@@ -24,8 +24,19 @@
 #
 # Weights are PROPORTIONAL and only bite under contention, so a high weight
 # costs nothing on an idle box.
+# THE WEIGHTS ARE NOT HERE -- they are on the slice named below.
+#
+# bin/serve runs podman with --cgroups=split so the container lands inside this
+# unit's cgroup. The side effect is that podman TAKES OWNERSHIP of this unit's
+# cgroup properties: at every container start it writes
+#   /run/user/1000/systemd/user.control/<unit>.d/50-CPUWeight.conf
+# with its own defaults (CPUWeight=100, IOWeight=100). That is a runtime
+# drop-in, so it overrides anything written here -- a CPUWeight in this file
+# lasts exactly until the next container start, then silently reverts.
+#
+# Podman never touches the SLICE above the unit, so that is where the weights
+# live (systemd/nwnlive.slice, systemd/nwndev.slice). This file only assigns
+# the unit to the right one.
 @ROLE_COMMENT@
 [Service]
-CPUWeight=@CPU_WEIGHT@
-IOWeight=@IO_WEIGHT@
-@EXTRA@
+Slice=@SLICE@

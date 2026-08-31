@@ -1,0 +1,34 @@
+[Unit]
+Description=NWN live season — resource slice (players are on this)
+Documentation=file://%h/GIT/nwn_homers_lotr/CLAUDE.md
+
+# WHY THE WEIGHTS LIVE ON A SLICE AND NOT ON THE SERVICE
+# ------------------------------------------------------
+# bin/serve runs the server with `podman run --cgroups=split`, which places the
+# container inside the service's cgroup (without it, rootless podman escapes to
+# its own libpod-<id>.scope and every weight on the unit is inert).
+#
+# The catch: --cgroups=split makes podman TAKE OWNERSHIP of the service unit's
+# cgroup properties. At every container start it writes
+#   /run/user/1000/systemd/user.control/<unit>.d/50-CPUWeight.conf
+# with its own defaults (CPUWeight=100, IOWeight=100), silently overriding
+# whatever the service drop-in said. That is a runtime drop-in, so it wins.
+#
+# Podman only ever touches the SERVICE unit -- never the slice above it. So the
+# weights go here, where they survive every container start, and the service
+# drop-in carries nothing but `Slice=`.
+#
+# The name has NO HYPHEN on purpose. systemd reads `a-b.slice` as a child of
+# `a.slice`; "nwnlive.slice" is deliberately top-level, a direct sibling of
+# app.slice (100), session.slice (100) and background.slice (30) under
+# user@1000.service, so this weight is compared against them directly.
+
+[Slice]
+# NWN's main loop is single-threaded: a scheduling delay is not "slower", it IS
+# in-game lag. Weights are proportional and only bite under contention, so this
+# costs nothing when the box is idle.
+CPUWeight=10000
+IOWeight=1000
+# Keep the server's working set off the reclaim list when the desktop browser
+# balloons (Firefox alone was measured at ~4GB on an 11GB box).
+MemoryLow=1500M

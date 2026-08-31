@@ -1,0 +1,17 @@
+[Unit]
+Description=NWN dev/test realm — resource slice (rides with the build tooling)
+Documentation=file://%h/GIT/nwn_homers_lotr/CLAUDE.md
+
+# Companion to nwnlive.slice -- see that file for why the weights live on a
+# slice rather than on the service unit (podman --cgroups=split overwrites
+# service-level CPUWeight/IOWeight at every container start; it never touches
+# the slice).
+#
+# Deliberately throttled alongside the builds: the admin is normally the only
+# person on the dev realm, and it shares a spindle with the repacks that feed
+# it. Matches background.slice's weight so a build and the dev realm compete
+# evenly, while the live season outranks both.
+
+[Slice]
+CPUWeight=30
+IOWeight=30
