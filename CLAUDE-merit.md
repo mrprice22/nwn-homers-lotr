@@ -178,7 +178,7 @@ intact.
 ### Realm gating - the shop trades on production only
 
 The redemption shop is open to **everyone on `SEASON_ROLE=live`, and to
-whitelisted admins (`Admin_CanAdmin`) on every other realm** - dev, early access
+`can_merit` holders (`Admin_CanMerit`) on every other realm** - dev, early access
 and retired seasons alike. Merit is account-wide and spending escrows against a
 real `meritdb` balance, so a non-production realm redeeming rewards writes
 `merit_ledger` rows against merit the live season owes the player.
@@ -202,9 +202,33 @@ would revert a hand edit. Both halves read one predicate,
 `bin/season-profile.py --check` (a repack build gate, `tests/check_season_profile.py`)
 fails the build if either `sp_meritgate_inc.nss` stops reading `SP_MERIT_SHOP` or
 `merit_redeem.nss` stops calling `SP_MeritShopFor` - the failure mode being a
-literal creeping back in and opening the shop everywhere. The DM/EmoteWand side
-(awarding merit, fulfilling and cancelling requests) is **not** gated: it is
-already admin-only, and a DM must be able to clear a pending request anywhere.
+literal creeping back in and opening the shop everywhere.
+
+### The `can_merit` tier - the DM side is gated too
+
+**Everything that moves merit is on `admins.can_merit`, not `can_admin`** (2026-08-31).
+The two tiers were the same thing until a DM was added who needed the rest-menu
+admin perks but must not touch the merit economy - which is account-wide, shared
+across seasons, and spends against a real balance the live season owes a player.
+`Admin_CanMerit(oPC)` in `admin_db.nss` is the single test, and like the shop
+gate it has two halves:
+
+- **Conversation (UX).** The `[Admin] Merit Awards` and `[Admin] Merit
+  Redemptions` links out of the Admin Options entry in `emotewand.dlg.json` carry
+  `Active = _cdkeymerit`. A `can_admin`-only DM sees the rest of Admin Options
+  with both merit lines simply absent.
+- **Authoritative.** `merit_award_bug/exp/ftr/uat.nss`, `merit_rfulfill.nss` and
+  `merit_rcancel.nss` each open with `if (!Admin_CanMerit(oDM)) { ...; return; }`.
+  **This half is the one that matters** - before it existed those six scripts had
+  no authorization check of any kind, and `on_mod_rest.nss` opens `emotewand` for
+  every PC on rest, so the single link conditional was all that stood between a
+  player and an unlimited merit award. Any new merit-admin action script must
+  carry the same guard; the read-only list builders (`merit_list_pg.nss`,
+  `merit_rlist_pg.nss`, `merit_sel_<i>.nss`) do not need it.
+
+The consequence to remember: **a DM who is not on `can_merit` cannot clear a
+pending redemption request**, anywhere. That is intended - fulfilment is the
+server owner's job.
 
 - **DM:** the EmoteWand conversation `emotewand.dlg.json`. Branch
   *[Admin] Merit Awards* (existing, grants points — pick a player, then one of

@@ -10,7 +10,7 @@
 //:: conversation the committing script then refused in silence.
 //::
 //:: THE RULE. The merit shop is open to everyone on PRODUCTION only, and to a
-//:: whitelisted admin anywhere - dev, early access and retired seasons included.
+//:: can_merit holder anywhere - dev, early access and retired seasons included.
 //:: Merit is account-wide (keyed on the CD key, not the character) and spending
 //:: escrows against a real meritdb balance, so a non-production realm redeeming
 //:: rewards would burn merit the live season owes the player. Admins keep access
@@ -21,11 +21,14 @@
 //:: a literal: bin/season-profile.py --check is a repack build gate that fails
 //:: the build if either this file or merit_redeem.nss stops reading the flag.
 //::
-//:: Admin_CanAdmin reads admins.can_admin from the admindb campaign database
+//:: Admin_CanMerit reads admins.can_merit from the admindb campaign database
 //:: (seeded out of band by bin/seed-admindb.sh); no CD key ever ships in the
-//:: .mod. Do NOT substitute GetIsDM() - it is TRUE only for an actual DM-client
-//:: login, and this server's admin has no DM console, so it would lock the one
-//:: person who needs to test the shop out of it.
+//:: .mod. It is deliberately NOT can_admin: merit is account-wide and shared
+//:: across seasons, so a DM who holds every other admin power still must not be
+//:: able to burn merit the live season owes a player. Do NOT substitute
+//:: GetIsDM() - it is TRUE only for an actual DM-client login, and this
+//:: server's admin has no DM console, so it would lock the one person who needs
+//:: to test the shop out of it.
 //:://////////////////////////////////////////////
 #include "season_prof_inc"
 #include "admin_db"
@@ -36,5 +39,5 @@ int SP_MeritShopFor(object oPC);
 int SP_MeritShopFor(object oPC)
 {
     if (SP_MERIT_SHOP) return TRUE;
-    return Admin_CanAdmin(oPC);
+    return Admin_CanMerit(oPC);
 }

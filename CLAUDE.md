@@ -444,15 +444,27 @@ admin CD keys.) Keeping a secret out of git is **not** keeping it out of the bui
   machine (`$HOME/.local/share/Neverwinter Nights/database/admindb.sqlite3`) and
   are caught by the daily backup. **A campaign DB is never part of the `.mod`**, so
   keys can't leak through a shared module.
-- Schema: `admins(cdkey PK, name, can_admin, can_homeless, can_chest, added_at)`.
-  Tiers: `can_admin` → rest-menu **Admin Options**; `can_homeless` → rest-menu
-  **Options for the Homeless**; `can_chest` → the cheat-chest placeable.
+- Schema: `admins(cdkey PK, name, can_admin, can_homeless, can_chest, can_merit,
+  added_at)`. Tiers: `can_admin` → rest-menu **Admin Options**; `can_homeless` →
+  rest-menu **Options for the Homeless**; `can_chest` → the cheat-chest placeable;
+  `can_merit` → the merit economy (EmoteWand **Merit Awards** + **Merit
+  Redemptions**, and Barliman's shop off the live realm).
+  **`can_merit` is deliberately narrower than `can_admin`** — merit is
+  account-wide and shared across seasons, so a DM can hold every other admin
+  power without being able to award, fulfil or spend merit the live season owes a
+  player. It is the server owner's key only.
 - `unpacked/admin_db.nss` is the **key-free** include: `Admin_InitDb()` (idempotent
-  `CREATE TABLE IF NOT EXISTS`, called from `onmoduleload.nss`) and
-  `Admin_CanAdmin/Homeless/Chest(oPC)` — all **`SELECT`-only**, keyed by
+  `CREATE TABLE IF NOT EXISTS` **plus a `PRAGMA table_info`-guarded `ALTER TABLE`
+  per added column** — `CREATE TABLE IF NOT EXISTS` never alters an existing
+  table, so a new tier column needs the migration or it is missing on every live
+  DB; called from `onmoduleload.nss`) and
+  `Admin_CanAdmin/Homeless/Chest/Merit(oPC)` — all **`SELECT`-only**, keyed by
   `GetPCPublicCDKey(oPC)`. Module scripts never compare keys directly; they call
   these helpers. Consumers: `_cdkey.nss`, `_cdkeysum1.nss`, `_cdkeyhome.nss`,
-  `_restemo_admin.nss` (StartingConditionals), `hm_cheat_chest.nss`.
+  `_cdkeymerit.nss`, `_restemo_admin.nss` (StartingConditionals),
+  `hm_cheat_chest.nss`, `sp_meritgate_inc.nss`, and the six merit-admin action
+  scripts (`merit_award_bug/exp/ftr/uat.nss`, `merit_rfulfill.nss`,
+  `merit_rcancel.nss`).
 - **Seeding/management is out of band** via `bin/seed-admindb.sh` — a
   **gitignored** helper (contains the plaintext keys; lives only on this machine)
   that upserts the whitelist with `sqlite3`. Edit the keys/tiers there and re-run
