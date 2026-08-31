@@ -184,9 +184,33 @@ if [[ -d $NWN_SHARED_DIR ]]; then
   shared_args=(-v "$NWN_SHARED_DIR:$NWN_SHARED_DIR:rw,z")
 fi
 
+# --- resource priority ------------------------------------------------------
+# ROOTLESS PODMAN ESCAPES THE UNIT'S CGROUP BY DEFAULT. With --cgroups=enabled
+# (the default) the container is placed in its OWN transient scope --
+#   user@1000.service/user.slice/libpod-<id>.scope/container
+# -- which is a SIBLING of nwn-season-server@<inst>.service, not a child. The
+# unit's own cgroup ends up empty, so every CPUWeight / IOWeight / MemoryLow set
+# on the unit governs nothing at all. (This is why the old CPUWeight=40 drop-in
+# never actually throttled the game server, and equally why raising it would
+# have done nothing on its own.)
+#
+# --cgroups=split puts the container in a SUB-cgroup of the unit's cgroup, so
+# the per-instance priority drop-in finally applies to nwserver itself. See
+# CLAUDE.md "Resource priority". Verify after a restart with:
+#   systemd-cgls --user -u nwn-season-server@<instance>.service
+# which must list the container -- an empty listing means this is not working.
+#
+# Only meaningful under a systemd unit (split needs a cgroup podman may divide);
+# a hand-run `bin/serve` keeps the normal behaviour.
+cgroup_args=()
+if [[ -n ${INVOCATION_ID:-} ]]; then
+  cgroup_args=(--cgroups=split)
+fi
+
 podman run --rm --name "$NWN_CONTAINER_NAME" \
   --userns=keep-id --user "$(id -u):$(id -g)" \
   --network=host \
+  "${cgroup_args[@]}" \
   "${hairpin_args[@]}" \
   "${env_args[@]}" \
   -v "$NWN_RUN_DIR:/nwn/run:rw,Z" \

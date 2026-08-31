@@ -36,6 +36,12 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 : "${NWNSYNC_REPO:?server.env must define NWNSYNC_REPO}"
 
 NWN_NWSYNC_WRITE="${NWN_NWSYNC_WRITE:-$HOME/.nimble/bin/nwn_nwsync_write}"
+
+# The rehash walks the whole content-addressed store (88,693 resrefs / 4.15 GiB
+# of mostly-CEP on ONE spinning disk), so it is the most disk-punishing job here
+# and the one players feel most. Run it at idle I/O priority.
+LOWPRIO=/var/home/james/GIT/nwn_manager/bin/lowprio
+[[ -x $LOWPRIO ]] || LOWPRIO=""
 if [[ ! -x $NWN_NWSYNC_WRITE ]]; then
   echo "error: nwn_nwsync_write not found at $NWN_NWSYNC_WRITE" >&2
   echo "       install niv/neverwinter.nim or set NWN_NWSYNC_WRITE in server.env.local" >&2
@@ -83,7 +89,7 @@ nwsync_args=(
 if [[ $SILENT -eq 1 ]]; then
   _nwsync_tmp=$(mktemp)
   trap 'rm -f "$_nwsync_tmp"' EXIT
-  "$NWN_NWSYNC_WRITE" "${nwsync_args[@]}" >"$_nwsync_tmp" 2>&1 &
+  $LOWPRIO "$NWN_NWSYNC_WRITE" "${nwsync_args[@]}" >"$_nwsync_tmp" 2>&1 &
   _nwsync_pid=$!
   _spin='|/-\'
   _si=0
@@ -101,7 +107,7 @@ if [[ $SILENT -eq 1 ]]; then
   fi
   printf "\r[nwsync] manifest written  (%ds)          \n" "$(( $(date +%s) - _nwsync_start ))"
 else
-  "$NWN_NWSYNC_WRITE" "${nwsync_args[@]}"
+  $LOWPRIO "$NWN_NWSYNC_WRITE" "${nwsync_args[@]}"
 fi
 
 echo

@@ -42,8 +42,11 @@ TEMPLATES=(
   "nwn-season-online-push@.service"
   "nwn-season-online-push@.timer"
 )
+# Shared @ template drop-ins. NOTE: nwn-season-server@.service.d is deliberately
+# NOT here -- the server's priority drop-in is rendered PER INSTANCE below,
+# because a shared one applied the dev realm's weights to the live season (see
+# systemd/nwn-season-server@.service.d.priority.conf.in for the full story).
 DROPINS=(
-  "nwn-season-server@.service.d"
   "nwn-season-wiki-publish@.service.d"
 )
 # Units enabled by --enable. The empty-restart .service is triggered by the
@@ -115,6 +118,7 @@ if [[ $MODE == remove ]]; then
     echo "  disabled $u"
   done
   rm -fv "$UNIT_DIR/$PATH_UNIT" "$ENV_DIR/$INSTANCE.env"
+  rm -rfv "${UNIT_DIR:?}/nwn-season-server@$INSTANCE.service.d"
   # Templates are shared by every instance — only drop them if no instance env
   # files remain.
   if ! compgen -G "$ENV_DIR/*.env" >/dev/null; then
@@ -133,6 +137,7 @@ if [[ $MODE == dry ]]; then
   echo "  $ENV_DIR/$INSTANCE.env"
   for t in "${TEMPLATES[@]}"; do echo "  $UNIT_DIR/$t -> $SRC/$t"; done
   for d in "${DROPINS[@]}"; do echo "  $UNIT_DIR/$d/ (drop-ins)"; done
+  echo "  $UNIT_DIR/nwn-season-server@$INSTANCE.service.d/priority.conf (rendered, role=${SEASON_ROLE:-unset})"
   echo "  $UNIT_DIR/$PATH_UNIT (rendered)"
   echo
   echo "then: systemctl --user daemon-reload"
@@ -189,6 +194,63 @@ season_anvil_dir "$NWN_RUN_DIR" >/dev/null || {
 sed -e "s|@INSTANCE@|$INSTANCE|g" -e "s|@RUN_DIR@|$NWN_RUN_DIR|g" \
     "$SRC/nwn-season-empty-restart@.path.in" > "$UNIT_DIR/$PATH_UNIT"
 echo "rendered $UNIT_DIR/$PATH_UNIT"
+
+# --- rendered per-instance priority drop-in ---------------------------------
+# The live season must outrank the toolchain; the dev realm rides with it.
+# Rationale in full: systemd/nwn-season-server@.service.d.priority.conf.in
+PRIO_DIR="$UNIT_DIR/nwn-season-server@$INSTANCE.service.d"
+
+# Migration: the old SHARED drop-in pinned every instance -- prod included -- to
+# CPUWeight=40, below the default 100. Remove it so the per-instance file wins
+# cleanly rather than merging with a stale inversion.
+if [[ -e $UNIT_DIR/nwn-season-server@.service.d/priority.conf ]]; then
+  rm -fv "$UNIT_DIR/nwn-season-server@.service.d/priority.conf"
+  rmdir "$UNIT_DIR/nwn-season-server@.service.d" 2>/dev/null || true
+  echo "  (removed the legacy shared priority.conf that deprioritised the live season)"
+fi
+
+case "${SEASON_ROLE:-}" in
+  live)
+    # The only workload on this box with players waiting on it. NWN's main loop
+    # is single-threaded, so it cannot absorb scheduling delay by spreading out:
+    # a stalled frame IS in-game lag. MemoryLow keeps its working set off the
+    # reclaim list when the desktop browser balloons.
+    ROLE_COMMENT="# Instance role: LIVE -- players are on this. Outranks everything."
+    CPU_WEIGHT=10000; IO_WEIGHT=1000
+    EXTRA_LINES=(
+      "IOSchedulingClass=realtime"
+      "IOSchedulingPriority=0"
+      "MemoryLow=1500M"
+    )
+    ;;
+  dev|test)
+    # Throttled alongside the build tooling by choice: the admin is normally the
+    # only one on it, and it shares a spindle with the repacks that feed it.
+    ROLE_COMMENT="# Instance role: DEV/TEST -- rides with the build tooling."
+    CPU_WEIGHT=30; IO_WEIGHT=30
+    EXTRA_LINES=()
+    ;;
+  *)
+    # archive, or unset: neutral. Never below default -- that is the bug this
+    # whole file exists to undo.
+    ROLE_COMMENT="# Instance role: ${SEASON_ROLE:-unset} -- neutral (kernel default)."
+    CPU_WEIGHT=100; IO_WEIGHT=100
+    EXTRA_LINES=()
+    ;;
+esac
+
+mkdir -p "$PRIO_DIR"
+# @EXTRA@ is a placeholder LINE, deleted here and replaced by real settings
+# below -- a sed replacement cannot carry embedded newlines.
+sed -e "s|@ROLE_COMMENT@|$ROLE_COMMENT|" \
+    -e "s|@CPU_WEIGHT@|$CPU_WEIGHT|" \
+    -e "s|@IO_WEIGHT@|$IO_WEIGHT|" \
+    -e "/@EXTRA@/d" \
+    "$SRC/nwn-season-server@.service.d.priority.conf.in" > "$PRIO_DIR/priority.conf"
+for line in ${EXTRA_LINES+"${EXTRA_LINES[@]}"}; do
+  echo "$line" >> "$PRIO_DIR/priority.conf"
+done
+echo "rendered $PRIO_DIR/priority.conf (role=${SEASON_ROLE:-unset} cpu=$CPU_WEIGHT io=$IO_WEIGHT)"
 
 systemctl --user daemon-reload
 echo "daemon-reload done"

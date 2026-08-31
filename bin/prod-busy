@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Are there players on a live realm right now?
+
+The gate for heavy local jobs. A module repack, a wiki refresh and above all an
+NWSync rehash (88,693 resrefs / 4.15 GiB) all hammer the one spinning disk this
+box has, and no amount of ionice makes that invisible to someone playing. So the
+rule is simply: don't run them while players are on.
+
+    bin/prod-busy            # exit 0 if a live realm has players, 1 if empty
+    bin/prod-busy --who      # ...and print who
+    bin/prod-busy --quiet    # exit status only
+
+Exit codes are chosen so `bin/prod-busy && echo defer` reads naturally:
+
+    0  busy   -- at least one player is online on a live realm
+    1  clear  -- nobody online
+    2  unknown -- could not tell (no live realm configured, logs unreadable)
+
+## Why exit 2 matters
+
+"I could not tell" is NOT "it is empty". A caller that treats an error as clear
+would run a wiki refresh into a full server the first time a log path moved.
+Callers should treat 2 as busy unless a human said otherwise -- which is what
+--assume decides:
+
+    bin/prod-busy --assume busy    # (default) unknown -> exit 0
+    bin/prod-busy --assume clear   # unknown -> exit 1, for unattended cron
+
+## Which realm counts
+
+Every repo whose server.env says SEASON_ROLE=live, found by scanning sibling
+season repos in ~/GIT. The dev realm is deliberately NOT counted: per the
+scheduling policy it rides with the build tooling, and the admin testing on it
+is the person running the build.
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+GIT_ROOT = REPO.parent
+
+# Reuse the wiki's own session parser, so there is exactly one definition of
+# "online" on this box. Duplicating the log parsing here would be a second thing
+# to keep in step with the log format.
+def _online_accounts(run_dir: Path) -> list[dict]:
+    """push-online-status.py's own helper, loaded by path.
+
+    The filename has hyphens, so it is not importable as a module name; load it
+    from its path rather than maintaining a second copy of the parser here.
+    """
+    import importlib.util
+
+    src = REPO / "bin" / "push-online-status.py"
+    spec = importlib.util.spec_from_file_location("_push_online_status", src)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load {src}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.online_accounts([run_dir], run_dir / "activity-sessions.json")
+
+
+def _load_env(repo: Path) -> dict:
+    """server.env as a plain dict, without executing it (it also runs podman)."""
+    out: dict[str, str] = {}
+    for name in ("server.env", "server.env.local"):
+        p = repo / name
+        if not p.is_file():
+            continue
+        for line in p.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, _, v = line.partition("=")
+            k = k.strip()
+            if not k.replace("_", "").isalnum():
+                continue
+            v = v.split("#", 1)[0].strip().strip('"').strip("'")
+            out[k] = os.path.expandvars(v.replace("$HOME", str(Path.home())))
+    return out
+
+
+def live_realms() -> list[tuple[str, Path]]:
+    """(name, run_dir) for every sibling repo with SEASON_ROLE=live."""
+    found = []
+    for repo in sorted(GIT_ROOT.glob("nwn_homers_lotr*")):
+        if not (repo / "server.env").is_file():
+            continue
+        cfg = _load_env(repo)
+        if cfg.get("SEASON_ROLE", "").strip() != "live":
+            continue
+        run_dir = Path(cfg.get("NWN_RUN_DIR", "")).expanduser()
+        if run_dir.is_dir():
+            found.append((cfg.get("NWN_MODULE") or repo.name, run_dir))
+    return found
+
+
+def players_on(run_dir: Path) -> list[str]:
+    return [s.get("player") or "?" for s in _online_accounts(run_dir)]
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(
+        description=__doc__.splitlines()[0],
+        epilog="exit: 0=busy 1=clear 2=unknown (see --assume)",
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--who", action="store_true", help="list who is online")
+    ap.add_argument("--quiet", "-q", action="store_true", help="exit status only")
+    ap.add_argument("--assume", choices=("busy", "clear"), default="busy",
+                    help="what an UNKNOWN result means (default: busy -- safe)")
+    args = ap.parse_args()
+
+    def say(msg: str) -> None:
+        if not args.quiet:
+            print(f"[prod-busy] {msg}")
+
+    realms = live_realms()
+    if not realms:
+        say("no realm with SEASON_ROLE=live found; cannot tell")
+        return 0 if args.assume == "busy" else 1
+
+    busy: list[str] = []
+    failed: list[str] = []
+    for name, run_dir in realms:
+        try:
+            who = players_on(run_dir)
+        except Exception as exc:                       # noqa: BLE001
+            # Never let a parser problem read as "empty" -- see module docstring.
+            failed.append(f"{name}: {exc}")
+            continue
+        if who:
+            busy.append(f"{name}: {len(who)} online"
+                        + (f" ({', '.join(sorted(who))})" if args.who else ""))
+
+    if busy:
+        for b in busy:
+            say(b)
+        say("BUSY -- defer heavy jobs")
+        return 0
+
+    if failed:
+        for f in failed:
+            say(f"could not read {f}")
+        say(f"UNKNOWN -- assuming {args.assume}")
+        return 0 if args.assume == "busy" else 1
+
+    say("clear -- no players on any live realm")
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

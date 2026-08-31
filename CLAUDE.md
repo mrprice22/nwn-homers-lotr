@@ -143,6 +143,60 @@ drop it and every destination-1 copy silently becomes local-only.
 (`~/OneDrive/Documents/Neverwinter Nights/modules` is *not* in that list and has been
 a stale local leftover since 2026-05-15 — it is not a publish target.)
 
+### Resource priority: why builds must not outrank the live realm
+
+This box hosts the **live season and the dev realm and builds both**, on 4 cores of
+2014-vintage AMD A10 and **one 7200rpm spinning disk**. NWN's server main loop is
+single-threaded, so a scheduling delay is not "slower" — a stalled frame *is* the
+in-game lag players report.
+
+**The rule: the live season outranks everything; builds run at idle.**
+
+| Workload | Where it runs | Weight |
+|---|---|---|
+| `SEASON_ROLE=live` server | `nwn-season-server@<inst>.service` | `CPUWeight=10000`, `IOWeight=1000`, `MemoryLow=1500M` |
+| `SEASON_ROLE=dev` server | same template, own drop-in | `CPUWeight=30` — rides with the tooling by choice |
+| wiki build, NWSync rehash | `background.slice` via `nwn_manager/bin/lowprio` | `CPUWeight=10`, `IOWeight=10`, `ionice idle` |
+| repack, smoke tests, backup | in-process `renice 19` + `ionice -c3` | inherited by nasher + the gates |
+
+**A unit weight does nothing unless the container is IN the unit's cgroup.** Rootless
+podman defaults to `--cgroups=enabled`, which puts the container in its own transient
+`libpod-<id>.scope` — a *sibling* of `nwn-season-server@<inst>.service`, not a child.
+The unit's cgroup is then **empty**, and every `CPUWeight`/`IOWeight`/`MemoryLow` on it
+governs nothing. `bin/serve` passes **`--cgroups=split`** under systemd to fix this.
+Check it, don't assume it:
+
+```
+systemd-cgls --user -u nwn-season-server@nwn_homers_lotr_s2.service   # must list the container
+```
+
+An empty listing means the weights are decorative. This is also why the old
+`CPUWeight=40` drop-in was **never actually throttling the game server** — the config
+was inverted, but podman's cgroup escape meant it had no effect on `nwserver` either
+way. Both halves are needed; neither works alone.
+
+**The priority drop-in is rendered PER INSTANCE by `bin/season-units.sh`, from
+`systemd/nwn-season-server@.service.d.priority.conf.in`, keyed on `SEASON_ROLE`.**
+Never put one back on the shared `nwn-season-server@.service.d/` template: the
+installed symlink pointed at whichever repo ran `--install` last, so the dev repo's
+file was the one attached to the live server's unit. Per-instance also means a season
+cutover re-renders the weights automatically, which a shared file could never do.
+
+**Weights are proportional and only bite under contention**, so a high weight costs
+nothing on an idle box — there is no reason to shave them.
+
+**`bin/prod-busy` is the "are players on?" gate.** It reuses
+`bin/push-online-status.py`'s own session parser, so there is exactly one definition
+of "online" here. Exit `0` = busy, `1` = clear, `2` = unknown — and **unknown counts
+as busy by default**, because treating an unreadable log as "empty" is how you run a
+wiki refresh into a full server. `lowprio --gate CMD` refuses to start heavy work
+while anyone is playing.
+
+**No scheduler flag fixes buffered writes on btrfs** (its cgroup-writeback support is
+incomplete), so a job that dirties gigabytes still stalls a single HDD. Deferring the
+work is the only reliable answer — which is why `--gate` exists, and why the real fix
+is an SSD.
+
 ### Publishing to clients: when to rebuild the hak, when to refresh NWSync
 
 **A module-only change never needs NWSync.** `bin/refresh-nwsync` runs without

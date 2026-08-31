@@ -1,0 +1,31 @@
+# Rendered per-instance by bin/season-units.sh into
+#   ~/.config/systemd/user/nwn-season-server@<instance>.service.d/priority.conf
+#
+# WHY THIS IS PER-INSTANCE AND NOT A SHARED TEMPLATE DROP-IN
+# ---------------------------------------------------------
+# It used to be `nwn-season-server@.service.d/priority.conf` with CPUWeight=40 /
+# IOWeight=40, to stop the server's .NET/Anvil module load starving gnome-shell
+# during the *boot* contention window. Two things were wrong with that:
+#
+#   1. A drop-in has no time limit. The "boot window" weight applied FOREVER.
+#   2. It sat on the @ template, so it hit every instance -- including the LIVE
+#      season -- and the installed symlink pointed at whichever repo ran
+#      --install last (in practice the dev repo governed the prod server).
+#
+# Net effect: the default weight is 100, so the live production game server was
+# running at 40 while builds, the wiki refresh, Claude and gnome-shell all ran
+# at 100+. The kernel was faithfully starving prod in favour of the toolchain --
+# which is exactly the in-game lag players kept reporting.
+#
+# Boot-time desktop responsiveness is now handled where it belongs: the heavy
+# boot job (nwn-season-wiki-publish@) already yields via its own drop-in
+# (CPUWeight=5, Nice=19, 150s ExecStartPre delay), and build tooling runs under
+# bin/lowprio in background.slice. The game server no longer has to pay for it.
+#
+# Weights are PROPORTIONAL and only bite under contention, so a high weight
+# costs nothing on an idle box.
+@ROLE_COMMENT@
+[Service]
+CPUWeight=@CPU_WEIGHT@
+IOWeight=@IO_WEIGHT@
+@EXTRA@

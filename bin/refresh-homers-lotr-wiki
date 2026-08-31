@@ -31,6 +31,10 @@ done
 PROJECT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 NWN_MANAGER_BIN=/var/home/james/GIT/nwn_manager/bin
 
+# Empty if the wrapper is missing, so the build still runs on a fresh checkout.
+LOWPRIO=$NWN_MANAGER_BIN/lowprio
+[[ -x $LOWPRIO ]] || LOWPRIO=""
+
 export PATH="$HOME/.nimble/bin:$NWN_MANAGER_BIN:$PATH"
 
 pause() { [[ $PUBLISH -eq 1 ]] || read -rp "Press Enter to close..."; }
@@ -114,7 +118,12 @@ else
 fi
 echo
 
-nwn-manager wiki \
+# The ~6min wiki build is the single heaviest recurring job on this box, and it
+# shares one spinning disk with the live game server. lowprio drops it into
+# background.slice with idle I/O so it cannot stall a player's frame; it is a
+# no-op cost-wise when nothing else is running. Not gated on players here --
+# this script is also the daily post-boot publish, which must always run.
+$LOWPRIO nwn-manager wiki \
   --base-url "$BASE_URL" \
   --exclude-conv-option "[Admin Options]" \
   --exclude-conv-option "[Options of the Homeless]" \
