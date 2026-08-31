@@ -217,9 +217,13 @@ case "${SEASON_ROLE:-}" in
     # reclaim list when the desktop browser balloons.
     ROLE_COMMENT="# Instance role: LIVE -- players are on this. Outranks everything."
     CPU_WEIGHT=10000; IO_WEIGHT=1000
+    # NOTE: no IOSchedulingClass here. `realtime` (and even best-effort
+    # priority 0) needs CAP_SYS_NICE, which a ROOTLESS user unit does not have
+    # -- systemd then fails the unit at step IOPRIO with status=211 and the
+    # server never starts. This took the live realm down once; do not re-add it.
+    # IOWeight below is the cgroup mechanism that actually matters here anyway:
+    # it works unprivileged and BFQ (this box's scheduler) honours it.
     EXTRA_LINES=(
-      "IOSchedulingClass=realtime"
-      "IOSchedulingPriority=0"
       "MemoryLow=1500M"
     )
     ;;

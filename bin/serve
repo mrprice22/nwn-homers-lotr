@@ -197,7 +197,7 @@ fi
 # --cgroups=split puts the container in a SUB-cgroup of the unit's cgroup, so
 # the per-instance priority drop-in finally applies to nwserver itself. See
 # CLAUDE.md "Resource priority". Verify after a restart with:
-#   systemd-cgls --user -u nwn-season-server@<instance>.service
+#   systemd-cgls --user-unit nwn-season-server@<instance>.service
 # which must list the container -- an empty listing means this is not working.
 #
 # Only meaningful under a systemd unit (split needs a cgroup podman may divide);

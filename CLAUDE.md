@@ -167,7 +167,7 @@ governs nothing. `bin/serve` passes **`--cgroups=split`** under systemd to fix t
 Check it, don't assume it:
 
 ```
-systemd-cgls --user -u nwn-season-server@nwn_homers_lotr_s2.service   # must list the container
+systemd-cgls --user-unit nwn-season-server@nwn_homers_lotr_s2.service   # must list the container
 ```
 
 An empty listing means the weights are decorative. This is also why the old
