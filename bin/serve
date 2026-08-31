@@ -40,6 +40,34 @@ mkdir -p "$NWN_RUN_DIR"
 # create it. Creating it here means every season gets it, every start.
 mkdir -p "$NWN_RUN_DIR/anvil/PluginData" "$NWN_RUN_DIR/anvil/Plugins"
 
+# Clear a stale reboot-on-empty arm flag.
+#
+# The flag is a ONE-SHOT scoped to a single server session: ServerRestartManager
+# deletes it itself the moment it fires, explicitly so the server "can't boot
+# loop". But it only does that on ITS OWN path -- the server sitting empty. Any
+# other restart route (a forced restart, `systemctl restart`, the 03:00 daily
+# reboot, a container recreate) leaves the file behind, still armed.
+#
+# The consequence is a booby trap: the admin arms it, reboots by hand instead,
+# and the flag survives. Days later prod happens to empty out for 45s and
+# reboots itself with no one having asked. This actually happened -- the flag
+# sat armed through an entire afternoon of restarts.
+#
+# Clearing at start is the right semantics, not just a workaround: the flag
+# means "restart to pick up a change, without kicking anyone". A restart just
+# happened, so that intent is already satisfied.
+#
+# Say so loudly rather than deleting silently, because the nwsync variants carry
+# a pending action (rebuild / publish a manifest) that is being dropped with it.
+_ROE_DIR="$NWN_RUN_DIR/anvil/PluginData"
+for _f in reboot-on-empty reboot-on-empty-nwsync reboot-on-empty-nwsync-copy; do
+  if [[ -e $_ROE_DIR/$_f ]]; then
+    echo "[serve] clearing stale $_f (armed before this restart; re-arm with bin/reboot-on-empty if still wanted)" >&2
+    rm -f "$_ROE_DIR/$_f"
+  fi
+done
+unset _ROE_DIR _f
+
 # Bring up the nwsync nginx container first so it's already listening when
 # the first client connects. Idempotent: a no-op if already running.
 "$PROJECT_ROOT/bin/serve-nwsync" || \

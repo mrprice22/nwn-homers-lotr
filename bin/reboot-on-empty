@@ -13,6 +13,13 @@
 #   bin/reboot-on-empty off                                            # cancel
 #   bin/reboot-on-empty status                                         # show state
 #
+# The arm flag does NOT survive a server restart. It is a one-shot for the
+# session it was armed in: the plugin deletes it when it fires, and bin/serve
+# clears it at startup. So if you arm this and then reboot by some other route
+# (a forced restart, the 03:00 daily cycle), the arming is dropped -- re-arm it.
+# That is deliberate: a flag that outlived its restart used to sit armed for
+# days and then reboot prod unprompted the next time it briefly emptied.
+#
 # --nwsync also rebuilds the NWSync manifest (bin/refresh-nwsync) during the
 # down window, before the server comes back — use it when the update changed
 # haks/tlk that clients download.
@@ -66,6 +73,11 @@ Usage:
   bin/reboot-on-empty off                                        # cancel
   bin/reboot-on-empty status                                     # show state (also the no-arg default)
   bin/reboot-on-empty --help                                     # this help
+
+The arm flag does NOT survive a server restart -- it is a one-shot for the session
+it was armed in, cleared by bin/serve at startup. Arm it, then reboot by some other
+route (forced restart, the 03:00 cycle), and the arming is gone: re-arm it. This
+stops a stale flag rebooting the realm unprompted days later.
 
   --nwsync        rebuild the NWSync manifest (bin/refresh-nwsync) during the down
                   window — use when the update changed haks/tlk clients download.
