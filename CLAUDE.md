@@ -154,8 +154,8 @@ in-game lag players report.
 
 | Workload | Where it runs | Weight |
 |---|---|---|
-| `SEASON_ROLE=live` server | `nwn-season-server@<inst>.service` | `CPUWeight=10000`, `IOWeight=1000`, `MemoryLow=1500M` |
-| `SEASON_ROLE=dev` server | same template, own drop-in | `CPUWeight=30` — rides with the tooling by choice |
+| `SEASON_ROLE=live` server | **`nwnlive.slice`** | `CPUWeight=10000`, `IOWeight=1000`, `MemoryLow=1500M` |
+| `SEASON_ROLE=dev` server | **`nwndev.slice`** | `CPUWeight=30` — rides with the tooling by choice |
 | wiki build, NWSync rehash | `background.slice` via `nwn_manager/bin/lowprio` | `CPUWeight=10`, `IOWeight=10`, `ionice idle` |
 | repack, smoke tests, backup | in-process `renice 19` + `ionice -c3` | inherited by nasher + the gates |
 
@@ -174,6 +174,22 @@ An empty listing means the weights are decorative. This is also why the old
 `CPUWeight=40` drop-in was **never actually throttling the game server** — the config
 was inverted, but podman's cgroup escape meant it had no effect on `nwserver` either
 way. Both halves are needed; neither works alone.
+
+**…and `--cgroups=split` then makes podman OWN the unit's cgroup properties.** At
+every container start it writes `50-CPUWeight.conf` / `50-IOWeight.conf` (its own
+defaults, `100`) into
+`/run/user/1000/systemd/user.control/<unit>.d/` — a *runtime* drop-in, which beats the
+persistent one. **So a `CPUWeight=` on the service unit lasts until the next container
+start and then silently reverts.** Podman never touches the *slice* above the unit,
+which is why the weights live in **`nwnlive.slice` / `nwndev.slice`** and the service
+drop-in carries nothing but `Slice=`. Neither slice name has a hyphen on purpose:
+systemd reads `a-b.slice` as a child of `a.slice`, and these must be top-level
+siblings of `app.slice` / `background.slice`. `Slice=` only applies on unit restart.
+
+**Never set `IOSchedulingClass=realtime` on these units.** It needs `CAP_SYS_NICE`,
+which a rootless user unit does not have; systemd then fails the unit at step IOPRIO
+with `status=211` *before* `ExecStart`, and the season never starts. This took the
+live realm down once. `IOWeight` is the control that actually applies.
 
 **The priority drop-in is rendered PER INSTANCE by `bin/season-units.sh`, from
 `systemd/nwn-season-server@.service.d.priority.conf.in`, keyed on `SEASON_ROLE`.**
