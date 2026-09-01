@@ -68,11 +68,21 @@
 // it credits whoever helped VERIFY a fix. Several players can be credited for
 // the same roadmap item, and none of them need be the one who reported it.
 #include &quot;merit_db&quot;
+#include &quot;admin_db&quot;
 void main()
 {
     object oDM    = GetPCSpeaker();
     string sCdKey = GetLocalString(oDM, &quot;merit_sel_cdkey&quot;);
     string sName  = GetLocalString(oDM, &quot;merit_sel_name&quot;);
+
+    // Authoritative half of the merit gate. The _cdkeymerit conditional on the
+    // EmoteWand link only hides the menu line; this is what actually refuses.
+    if (!Admin_CanMerit(oDM))
+    {
+        SendMessageToPC(oDM, &quot;[Merit] You are not authorised to do that.&quot;);
+        return;
+    }
+
 
     Merit_AwardUat(sCdKey);
     Merit_Ledger(sCdKey, sName, MERIT_UAT_VALUE, &quot;award: UAT validation&quot;, 0);

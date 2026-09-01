@@ -64,9 +64,19 @@
   <main>
 <h1>Script: <code>merit_rfulfill</code></h1><pre class="nss-source"><code>// merit_rfulfill - Reply action: mark the selected redemption fulfilled.
 #include &quot;merit_redeem&quot;
+#include &quot;admin_db&quot;
 void main()
 {
     object oDM = GetPCSpeaker();
+
+    // Authoritative half of the merit gate. The _cdkeymerit conditional on the
+    // EmoteWand link only hides the menu line; this is what actually refuses.
+    if (!Admin_CanMerit(oDM))
+    {
+        SendMessageToPC(oDM, &quot;[Merit] You are not authorised to do that.&quot;);
+        return;
+    }
+
     int nId = GetLocalInt(oDM, &quot;merit_dsel_id&quot;);
     if (nId &gt; 0) Merit_FulfillRedemption(nId, GetPCPlayerName(oDM));
     Merit_BuildPendingPage(oDM);   // refresh list
