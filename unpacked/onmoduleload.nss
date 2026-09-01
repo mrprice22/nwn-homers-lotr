@@ -29,6 +29,9 @@
 #include "ammorep_db"
 #include "cbd_db"
 #include "ptm_db"
+#include "merit_db"
+#include "bst_db"
+#include "tele_db"
 #include "pw_inc"
 #include "fat_inc"
 
@@ -274,12 +277,27 @@ WM_Init();
 // See ammorep_db.nss (roadmap: Ammo-shortage).
 AmmoRep_InitDb();
 
-// Per-character play time. CloseStale() must run here, before any player
-// can connect: a crash or the nightly reboot never fires Mod_OnClientLeav,
-// so those rows are still open and would otherwise count every hour the
-// server was down. They are marked abandoned, not guessed at.
+// Schema setup for the campaign DBs. ALL of it belongs here and nowhere else:
+// module load runs once, before any player can connect, whereas the client-enter
+// hook used to re-run seven of these per login - 28 synchronous SQLite commits
+// against seven DB files on the login frame, on one spinning disk and a
+// single-threaded server main loop. That was the login stall players reported.
+// Adding a table to any of these subsystems needs no client-enter change.
+//
+// Per-character play time. A row left open by a crash or the nightly reboot is
+// never closed retroactively; it simply keeps a NULL `minutes` and every reader
+// skips it. See ptm_db.nss.
 Ptm_InitDb();
-Ptm_CloseStale();
+
+// Merit economy (award + redemption ledger). Carries PRAGMA table_info-guarded
+// ALTER TABLE migrations, so it must run on every load, not just a fresh DB.
+Merit_InitDb();
+
+// Bestiary kill tracking.
+Bst_InitDb();
+
+// Teleport / travel destinations.
+Tele_InitDb();
 
 // Combat Dummy leaderboard ("Hall of Champions" sign): ensure the sessions
 // table exists before the first trial finishes or the first sign read. The

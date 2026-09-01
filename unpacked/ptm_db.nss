@@ -4,7 +4,7 @@
 //
 //   sessions(id, uuid, char_name, cdkey, player_name, entered_at, left_at,
 //            minutes)
-//   meta(key, value)                          -- "tracking_started" timestamp
+//   ptm_meta(key, value)                      -- "tracking_started" timestamp
 //
 // WHY THIS EXISTS. The server log names only the ACCOUNT on login
 // ("Playername (CDKEY) Joined as Player 1"), never the character, so the wiki
@@ -15,18 +15,31 @@
 // Identity is split as in bst_db.nss and cbd_db.nss: `uuid` (GetObjectUUID) is
 // the CHARACTER, `cdkey` (GetPCPublicCDKey) is the ACCOUNT.
 //
+// WHY "ptm_meta" AND NOT "meta". `meta` is RESERVED BY THE ENGINE. NWN:EE
+// pre-seeds every campaign DB with three internal tables - `migrations`, `db`
+// and `meta` - and its SQL authorizer DENIES any script statement naming one of
+// them, with "sqlite error: not authorized (code=23)". This shipped as `meta`
+// and so failed on every single login, permanently and silently apart from the
+// error in the player's log; tracking_started was never stamped. Never name a
+// campaign-DB table `meta`, `db` or `migrations`.
+//
 // THE TRAP: a crash, a kill -9 or the nightly reboot never fires
-// Mod_OnClientLeav, so those rows would stay open forever and, once closed by
-// a later login, count every hour the server was down as play time. Ptm_Open()
-// therefore closes any row this character left open BEFORE inserting a new one,
-// and Ptm_CloseStale() runs on module load to sweep rows left open by the
-// previous run. Both mark the row abandoned (left_at NULL, minutes NULL) rather
-// than guessing a duration -- an unknown session length is recorded as unknown,
-// not as zero and not as "until now". This mirrors how the wiki's log parser
-// discards sessions that were open across a restart marker.
+// Mod_OnClientLeav, so those rows stay open forever. They must never be closed
+// retroactively, or a later read would count every hour the server was down as
+// play time. The rule is enforced BY THE READER, not by a sweep: an open row is
+// exactly one whose `minutes` is NULL (INSERT never sets it), and the wiki sums
+// only `WHERE minutes IS NOT NULL`. Ptm_Close() closes only the newest open row
+// for the character (ORDER BY id DESC LIMIT 1), so an abandoned row is never
+// mistakenly credited to a later session. An unknown session length stays
+// unknown - not zero, not "until now". This mirrors how the wiki's log parser
+// discards sessions left open across a restart marker.
 
 const string PTM_DB = "playtimedb";
 
+// Schema setup. Called from onmoduleload ONLY - never from the client-enter
+// hook. DDL is a synchronous commit against a campaign DB file, and on this box
+// (one spinning disk, single-threaded server main loop) doing that on the login
+// frame is a stall players feel as lag.
 void Ptm_InitDb()
 {
     sqlquery q = SqlPrepareQueryCampaign(PTM_DB,
@@ -46,26 +59,19 @@ void Ptm_InitDb()
     SqlStep(q);
 
     q = SqlPrepareQueryCampaign(PTM_DB,
-        "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)");
+        "CREATE TABLE IF NOT EXISTS ptm_meta (key TEXT PRIMARY KEY, value TEXT)");
     SqlStep(q);
 
-    // Stamped once, on the very first module load after this ships. The wiki
-    // prints it so nobody reads a character's 3 hours as its whole history:
-    // season 2 was months old when counting started, and a figure without that
-    // date is quietly wrong.
+    // Stamped once. The wiki prints it so nobody reads a character's 3 hours as
+    // its whole history: the season long predates counting, and a figure without
+    // that date is quietly wrong. Seeded from the EARLIEST session rather than
+    // from now, because sessions have been recording since 2026-08-29 while this
+    // stamp could not be written at all - stamping "now" would understate the
+    // window we actually have data for. COALESCE covers a fresh, empty DB.
     q = SqlPrepareQueryCampaign(PTM_DB,
-        "INSERT OR IGNORE INTO meta (key, value) " +
-        "VALUES ('tracking_started', datetime('now'))");
-    SqlStep(q);
-}
-
-// Close rows the previous server run left open. Called from module load, before
-// any player can connect.
-void Ptm_CloseStale()
-{
-    sqlquery q = SqlPrepareQueryCampaign(PTM_DB,
-        "UPDATE sessions SET left_at = NULL, minutes = NULL " +
-        "WHERE left_at IS NULL AND minutes IS NULL");
+        "INSERT OR IGNORE INTO ptm_meta (key, value) " +
+        "SELECT 'tracking_started', COALESCE(MIN(entered_at), datetime('now')) " +
+        "FROM sessions");
     SqlStep(q);
 }
 
@@ -75,14 +81,10 @@ void Ptm_Open(object oPC)
     string sUuid = GetObjectUUID(oPC);
     if (sUuid == "") return;
 
-    // Belt and braces: this character may hold an open row from a run that
-    // ended without a clean logout. Leave it abandoned rather than crediting it.
+    // One statement, and the only DB work on the login frame. Any row this
+    // character left open by a crash or reboot simply stays open with a NULL
+    // `minutes` and is skipped by every reader - see THE TRAP above.
     sqlquery q = SqlPrepareQueryCampaign(PTM_DB,
-        "UPDATE sessions SET minutes = NULL WHERE uuid = @u AND left_at IS NULL");
-    SqlBindString(q, "@u", sUuid);
-    SqlStep(q);
-
-    q = SqlPrepareQueryCampaign(PTM_DB,
         "INSERT INTO sessions (uuid, char_name, cdkey, player_name) " +
         "VALUES (@u, @c, @k, @p)");
     SqlBindString(q, "@u", sUuid);
