@@ -171,7 +171,33 @@ def cmd_roles(conn, args) -> int:
     return 0
 
 
+def _print_audit_diff(conn, audit_id: int) -> int:
+    """The per-field before/after recorded against one audit entry.
+
+    The same data the editor's Recent changes panel shows when you click an
+    idea id, for when you are on this box rather than in the browser.
+    """
+    rows = A.read_audit_diff(conn, audit_id)
+    if not rows:
+        print(f"No field changes recorded for audit entry {audit_id}. "
+              f"(Diffs are kept {A.DIFF_KEEP_DAYS} days, and exist only for "
+              f"document writes.)")
+        return 0
+    idea = None
+    for r in rows:
+        if r["idea_id"] != idea:
+            idea = r["idea_id"]
+            print(f"\n{idea or '(note)'}"
+                  + (f"  [{r['kind']}]" if r["kind"] not in ("change", "note") else ""))
+        print(f"  {r['field']}")
+        print(f"    - {r['before'] if r['before'] is not None else '(not set)'}")
+        print(f"    + {r['after'] if r['after'] is not None else '(removed)'}")
+    return 0
+
+
 def cmd_audit(conn, args) -> int:
+    if args.entry:
+        return _print_audit_diff(conn, args.entry)
     since = None
     if args.since:
         try:
@@ -184,10 +210,15 @@ def cmd_audit(conn, args) -> int:
     if not rows:
         print("No matching audit entries.")
         return 0
+    # The id is what `audit --entry N` takes, so it has to be printed.
+    marks = A.audit_diff_ids(conn, [r["id"] for r in rows])
     for r in reversed(rows):
         who = f"{r['username']}/{r['role']}" if r["role"] else r["username"]
-        print(f"{_stamp(r['ts'])}  {who:<20} {r['ip']:<16} {r['action']:<22} "
-              f"{r['detail']}")
+        diff = "  *" if marks.get(r["id"]) else ""
+        print(f"#{r['id']:<6} {_stamp(r['ts'])}  {who:<20} {r['ip']:<16} "
+              f"{r['action']:<22} {r['detail']}{diff}")
+    print("\n* has a per-field diff: read it with "
+          "`roadmap-users.py audit --entry <id>`.")
     return 0
 
 
@@ -257,6 +288,8 @@ def main() -> int:
     p.add_argument("--user", default="")
     p.add_argument("--since", default="", metavar="YYYY-MM-DD")
     p.add_argument("--limit", type=int, default=100)
+    p.add_argument("--entry", type=int, default=0, metavar="ID",
+                   help="show the per-field before/after for one audit entry")
     p.set_defaults(fn=cmd_audit)
 
     args = ap.parse_args()

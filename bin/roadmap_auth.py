@@ -123,7 +123,13 @@ def _iso(ts: int) -> str:
 # Database
 # --------------------------------------------------------------------------
 # One table per concern. `users` and `sessions` are the live state; `audit` is
-# append-only and never read by the server, only by the CLI.
+# append-only -- read by the CLI and, since the Recent changes panel, by the
+# server too, but never updated or deleted by either.
+#
+# `audit_diff` hangs the per-field before/after of a document write off the
+# audit row that recorded it. It is a separate table rather than more text in
+# `audit.detail` because detail is capped at 2000 chars below and a single
+# impl_notes edit can exceed that on its own.
 _SCHEMA = (
     """CREATE TABLE IF NOT EXISTS users (
            username     TEXT PRIMARY KEY,
@@ -151,9 +157,21 @@ _SCHEMA = (
            action   TEXT NOT NULL,
            detail   TEXT NOT NULL DEFAULT ''
        )""",
+    """CREATE TABLE IF NOT EXISTS audit_diff (
+           id       INTEGER PRIMARY KEY AUTOINCREMENT,
+           audit_id INTEGER NOT NULL,
+           ts       INTEGER NOT NULL,
+           idea_id  TEXT NOT NULL DEFAULT '',
+           kind     TEXT NOT NULL DEFAULT 'change',
+           field    TEXT NOT NULL DEFAULT '',
+           before   TEXT,
+           after    TEXT
+       )""",
     "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(username)",
     "CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts)",
     "CREATE INDEX IF NOT EXISTS idx_audit_user ON audit(username)",
+    "CREATE INDEX IF NOT EXISTS idx_audit_diff_audit ON audit_diff(audit_id)",
+    "CREATE INDEX IF NOT EXISTS idx_audit_diff_ts ON audit_diff(ts)",
 )
 
 # Columns added after the first release. CREATE TABLE IF NOT EXISTS never
@@ -439,23 +457,92 @@ def list_sessions(conn, username: str | None = None) -> list[dict]:
 # --------------------------------------------------------------------------
 # Audit log
 # --------------------------------------------------------------------------
+# How long the per-field diffs are kept. The audit rows themselves are never
+# pruned -- "who changed what, when" is not reconstructible once it is gone --
+# but the before/after values attached to them are bulky (both sides of every
+# notes edit), so they age out. Losing a six-month-old diff costs nothing that
+# the audit line itself does not still record.
+DIFF_KEEP_DAYS = 90
+
+
 def audit(conn, action: str, *, user: User | None = None, ip: str = "",
-          detail: str = "", username: str = "") -> None:
+          detail: str = "", username: str = "") -> int | None:
     """Append one line to the audit log. Never raises.
 
     Called from request handling, so a failure here must not be able to turn a
     successful save into a 500. A lost audit line is bad; losing the write it
     was describing is worse.
+
+    Returns the new row's id so a caller can hang an `audit_diff` off it, or
+    None when the insert was swallowed.
     """
     try:
         with conn:
-            conn.execute(
+            cur = conn.execute(
                 "INSERT INTO audit (ts, username, role, ip, action, detail)"
                 " VALUES (?,?,?,?,?,?)",
                 (_now(), (user.username if user else username) or "",
                  user.role if user else "", ip or "", action, (detail or "")[:2000]))
+            return cur.lastrowid
+    except sqlite3.Error:
+        return None
+
+
+def audit_diff(conn, audit_id: int, ts: int, rows) -> None:
+    """Attach per-field before/after rows to one audit entry. Never raises.
+
+    `rows` is an iterable of (idea_id, kind, field, before, after); before/after
+    are already JSON-encoded strings, or None for "the field was not there".
+    Same contract as audit() above: a failure here must never be able to fail
+    the write it was describing.
+    """
+    rows = list(rows or ())
+    if not audit_id or not rows:
+        return
+    try:
+        with conn:
+            conn.executemany(
+                "INSERT INTO audit_diff"
+                " (audit_id, ts, idea_id, kind, field, before, after)"
+                " VALUES (?,?,?,?,?,?,?)",
+                [(audit_id, ts, r[0], r[1], r[2], r[3], r[4]) for r in rows])
+            conn.execute("DELETE FROM audit_diff WHERE ts < ?",
+                         (ts - DIFF_KEEP_DAYS * 86400,))
     except sqlite3.Error:
         pass
+
+
+def read_audit_diff(conn, audit_id: int, idea_id: str = "") -> list[dict]:
+    """Every field change recorded against one audit entry, in write order."""
+    sql = "SELECT * FROM audit_diff WHERE audit_id=?"
+    args: list = [int(audit_id)]
+    if idea_id:
+        sql += " AND idea_id=?"
+        args.append(idea_id)
+    sql += " ORDER BY id"
+    return [dict(r) for r in conn.execute(sql, args)]
+
+
+def audit_diff_ids(conn, audit_ids) -> dict[int, dict[str, int]]:
+    """{audit_id: {idea_id: fields changed}} for a batch of audit rows.
+
+    One grouped query rather than a lookup per row: the Recent changes panel
+    renders up to 500 rows and needs to know which of them have a diff to link.
+    """
+    ids = [int(i) for i in audit_ids or () if i]
+    if not ids:
+        return {}
+    out: dict[int, dict[str, int]] = {}
+    # SQLite's variable limit is 999 by default; chunk rather than risk it.
+    for start in range(0, len(ids), 500):
+        chunk = ids[start:start + 500]
+        marks = ",".join("?" * len(chunk))
+        rows = conn.execute(
+            f"SELECT audit_id, idea_id, COUNT(*) AS n FROM audit_diff"
+            f" WHERE audit_id IN ({marks}) GROUP BY audit_id, idea_id", chunk)
+        for r in rows:
+            out.setdefault(r["audit_id"], {})[r["idea_id"]] = r["n"]
+    return out
 
 
 def read_audit(conn, *, username: str = "", since: int | None = None,

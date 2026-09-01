@@ -1062,11 +1062,47 @@ def yaml_lock(timeout: float = 15.0):
             fh.close()
 
 
+# The audit entry the current request is writing under, so write_document()
+# can hang a per-field diff off it without every handler having to thread an id
+# through. Thread-local because ThreadingHTTPServer gives each request its own
+# thread; armed by Handler._audit_write() and cleared at the top of do_POST, so
+# a reused thread can never attribute a diff to the previous request. Unarmed
+# outside the server (roadmap-apply-patch.py, roadmap-lint.py), where the whole
+# hook is a no-op.
+_audit_ctx = threading.local()
+
+
+def arm_audit_diff(audit_id: int | None, ts: int | None = None) -> None:
+    _audit_ctx.audit_id = audit_id or 0
+    _audit_ctx.ts = int(ts if ts is not None else time.time())
+
+
+def _record_audit_diff(before_ideas, after_ideas) -> None:
+    """Store the field-level diff of the write that just landed. Never raises."""
+    audit_id = getattr(_audit_ctx, "audit_id", 0)
+    if not audit_id:
+        return
+    try:
+        rows = idea_field_diff(before_ideas, after_ideas)
+        if rows:
+            AUTH.audit_diff(auth_db(), audit_id,
+                            getattr(_audit_ctx, "ts", None) or int(time.time()), rows)
+    except Exception:
+        # Same contract as AUTH.audit(): a lost diff is bad, failing the write
+        # it was describing is worse. The write has already landed by now.
+        pass
+
+
 def write_document(ideas: list[dict], groups: list[dict] | None = None,
                    players: list[str] | None = None,
                    epics: list[dict] | None = None) -> None:
     """Rewrite the ideas block, plus groups/players/epics when supplied; everything
     else (meta/redemption/housing and all comments) is preserved verbatim."""
+    # Pre-image for the audit diff, taken under the caller's yaml_lock. Only
+    # read when a request armed the context: one extra parse on an audited
+    # write (a save already does several), none at all from the CLI.
+    pre_ideas = (read_yaml().get("ideas") or []
+                 if getattr(_audit_ctx, "audit_id", 0) else None)
     text = YAML_PATH.read_text(encoding="utf-8")
     if groups is not None:
         text = replace_block(text, "groups", serialize_groups(groups))
@@ -1091,6 +1127,8 @@ def write_document(ideas: list[dict], groups: list[dict] | None = None,
         if os.path.exists(tmp):
             os.unlink(tmp)
         raise
+    if pre_ideas is not None:
+        _record_audit_diff(pre_ideas, ideas)
 
 
 def validate_internal_fields(ideas) -> list[str]:
@@ -1982,6 +2020,91 @@ def changed_summary(posted: list, disk: list, limit: int = 8) -> str:
     return shown + (f" (+{len(touched) - limit} more)" if len(touched) > limit else "")
 
 
+# --------------------------------------------------------------------------
+# Per-field diffs — what actually moved inside an idea
+# --------------------------------------------------------------------------
+# changed_summary() above records WHICH ideas a write touched. That is the line
+# in the audit table; this is what you get when you click the id in it. Nothing
+# else can reconstruct it after the fact: write_document() replaces the file
+# atomically with no .bak, and a plain /api/save never commits, so a diff not
+# captured at write time is gone.
+DIFF_MAX_ROWS = 400      # per audit entry; a mass rename must not write 50k rows
+DIFF_MAX_LEN = 4000      # per side, characters
+
+
+def flatten_idea(idea: dict) -> dict:
+    """One idea as {field path: scalar}, so a diff can name the exact field.
+
+    The LIST_FIELDS are lists of small mappings, and comparing them whole turns
+    "step 3 went todo -> done" into "manual_steps changed" — useless in an audit
+    table. Expanding them to `manual_steps[2].status` is the whole point of this
+    function; everything else keeps its plain field name.
+    """
+    out: dict = {}
+    for key, val in (idea or {}).items():
+        if isinstance(val, list):
+            for i, entry in enumerate(val):
+                if isinstance(entry, dict):
+                    for sub, sval in entry.items():
+                        out[f"{key}[{i}].{sub}"] = sval
+                else:
+                    out[f"{key}[{i}]"] = entry
+        else:
+            out[key] = val
+    return out
+
+
+def _diff_value(val):
+    """One side of a field change, JSON-encoded and capped. None means absent."""
+    if val is None:
+        return None
+    try:
+        text = val if isinstance(val, str) else json.dumps(val, ensure_ascii=False)
+    except (TypeError, ValueError):
+        text = str(val)
+    return text[:DIFF_MAX_LEN]
+
+
+def idea_field_diff(before_ideas, after_ideas,
+                    max_rows: int = DIFF_MAX_ROWS) -> list[tuple]:
+    """(idea_id, kind, field, before, after) for every field this write moves.
+
+    Both sides are deep-copied and normalized before comparison. Callers hand us
+    whatever they happen to have — /api/save posts an already-normalized
+    document, _step_write mutates a raw parse — and normalizing only one side
+    would report every re-added `blocker: false` as a change the user made.
+    """
+    before = copy.deepcopy(list(before_ideas or []))
+    after = copy.deepcopy(list(after_ideas or []))
+    normalize_ideas(before)
+    normalize_ideas(after)
+    old = {i.get("id"): i for i in before if isinstance(i, dict)}
+    new = {i.get("id"): i for i in after if isinstance(i, dict)}
+
+    rows: list[tuple] = []
+    truncated = False
+    for iid in sorted(set(old) | set(new), key=lambda x: str(x)):
+        if truncated:
+            break
+        a, b = old.get(iid), new.get(iid)
+        if a == b:
+            continue
+        kind = "added" if a is None else "removed" if b is None else "change"
+        fa, fb = flatten_idea(a or {}), flatten_idea(b or {})
+        for field in sorted(set(fa) | set(fb)):
+            if fa.get(field) == fb.get(field):
+                continue
+            if len(rows) >= max_rows:
+                truncated = True
+                break
+            rows.append((str(iid), kind, field,
+                         _diff_value(fa.get(field)), _diff_value(fb.get(field))))
+    if truncated:
+        rows.append(("", "note", "_truncated", None,
+                     f"more than {max_rows} field changes; the rest were not recorded"))
+    return rows
+
+
 def status_label(status: str) -> str:
     """Human label for a status id, for permission-denied messages."""
     meta = STATUS.get(status) or {}
@@ -2022,8 +2145,32 @@ def recent_audit(days: int = AUDIT_DAYS) -> dict:
     except sqlite3.Error as e:
         return {"available": False, "days": days, "rows": [], "count": 0,
                 "truncated": False, "reason": str(e)}
+    # Which of these rows have a per-field diff to link to, in one grouped
+    # query. Built from the diff table rather than by parsing the detail text:
+    # changed_summary() caps that at 8 ids with a "(+N more)" tail, so the text
+    # is lossy and this map is not.
+    try:
+        marks = AUTH.audit_diff_ids(auth_db(), [r.get("id") for r in rows])
+    except sqlite3.Error:
+        marks = {}
+    for r in rows:
+        r["diff_ids"] = marks.get(r.get("id"), {})
     return {"available": True, "days": days, "rows": rows, "count": len(rows),
             "truncated": len(rows) >= AUDIT_LIMIT, "limit": AUDIT_LIMIT}
+
+
+def audit_diff(entry: str, idea: str = "") -> dict:
+    """The per-field before/after recorded against one audit entry."""
+    try:
+        audit_id = int(entry)
+    except (TypeError, ValueError):
+        return {"ok": False, "rows": [], "reason": "bad entry id"}
+    try:
+        rows = AUTH.read_audit_diff(auth_db(), audit_id, idea_id=idea)
+    except sqlite3.Error as e:
+        return {"ok": False, "rows": [], "reason": str(e)}
+    return {"ok": True, "entry": audit_id, "idea": idea, "rows": rows,
+            "count": len(rows), "keep_days": AUTH.DIFF_KEEP_DAYS}
 
 
 # --------------------------------------------------------------------------
@@ -2450,6 +2597,11 @@ class Handler(BaseHTTPRequestHandler):
             self._json(merit_for_player(player))
         elif self.path == "/api/pending":
             self._json(pending_requests())
+        elif self.path.startswith("/api/audit/diff"):
+            # Covered by the "/api/audit" PREFIX_ROUTES entry, so it inherits
+            # the audit_view capability with no ROUTE_CAPS edit.
+            q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            self._json(audit_diff(q.get("entry", [""])[0], q.get("idea", [""])[0]))
         elif self.path.startswith("/api/audit"):
             q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             try:
@@ -2573,6 +2725,10 @@ class Handler(BaseHTTPRequestHandler):
                 403)
         if not self._gate():
             return
+        # Nothing may inherit the previous request's audit entry: threads are
+        # reused, and a stale id would file this write's diff under someone
+        # else's line in the audit table.
+        arm_audit_diff(None)
         path = urllib.parse.urlparse(self.path or "/").path
         if path == "/api/login":
             return self._do_login()
@@ -2615,8 +2771,13 @@ class Handler(BaseHTTPRequestHandler):
         """
         action = AUDITED.get(urllib.parse.urlparse(self.path or "").path)
         if action:
-            AUTH.audit(auth_db(), action, user=self.user, ip=self.client_ip(),
-                       detail=detail)
+            audit_id = AUTH.audit(auth_db(), action, user=self.user,
+                                  ip=self.client_ip(), detail=detail)
+            # Every mutating route reaches roadmap.yaml through write_document(),
+            # so arming here covers save/regenerate/publish, both merit pairs and
+            # the queue's step tick without instrumenting each of their several
+            # write call sites -- and covers the next route added for free.
+            arm_audit_diff(audit_id)
 
     def _do_POST_locked(self):
         # Palette-map refresh needs no body/validation: rerun the standalone
@@ -3235,6 +3396,22 @@ PAGE = r"""<!doctype html>
   .txns.audit td.det { word-break:break-word; }
   .txns.audit tr.bad td { color:var(--err); }
   .txns.audit tr.bad td.muted { color:var(--err); opacity:0.75; }
+  /* Detail-column chips: one per idea this write actually changed. */
+  .txns.audit td.det .idchip { margin:0 6px 2px 0; }
+  .txns.audit td.det .idchip.open { text-decoration:underline; }
+  .txns.audit td.det .idchip .n { color:var(--mut); font-size:11px; }
+  /* The expander row a chip opens, in place under its own audit row -- there
+     is only one modal, so a sub-panel would destroy the table behind it. */
+  tr.au-diff > td { background:var(--bg2); padding:6px 10px 10px; }
+  table.au-fields { width:100%; border-collapse:collapse; font-size:12px; }
+  table.au-fields th { text-align:left; color:var(--mut); font-weight:600;
+                       padding:2px 6px; }
+  table.au-fields td { vertical-align:top; padding:2px 6px;
+                       border-bottom:1px solid var(--line); word-break:break-word; }
+  table.au-fields td.f { white-space:nowrap; font-family:ui-monospace,monospace; }
+  table.au-fields td.v { width:42%; }
+  mark.d-del { background:rgba(220,80,80,0.28); color:inherit; }
+  mark.d-add { background:rgba(90,190,120,0.28); color:inherit; }
   #mpending.has { color:var(--warn); font-weight:600; }
   /* header external links */
   .extlinks { display:flex; gap:12px; margin:2px 0 8px; }
@@ -5788,6 +5965,111 @@ function auditWhen(ts){
        + `${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+// The Detail cell. For a write that recorded a per-field diff, each idea id
+// becomes a button that expands the before/after in place; everything else --
+// sign-ins, denials, and any row written before diffs existed -- keeps the
+// plain escaped detail string it has always shown. The chips come from
+// `diff_ids`, not from parsing `detail`: that text is capped at 8 ids with a
+// "(+N more)" tail, so it is lossy and the map is not.
+function auditDetailHTML(r){
+  const marks = r.diff_ids || {};
+  const ids = Object.keys(marks).filter(k=>k);
+  if(!ids.length) return esc(r.detail||'');
+  ids.sort();
+  return ids.map(id=>`<button class="linkbtn idchip" data-audit-diff="${esc(String(r.id))}"
+      data-idea="${esc(id)}">${esc(id)} <span class="n">(${marks[id]})</span></button>`).join('');
+}
+
+// Word-level highlight for the long text fields (notes, impl_notes), where the
+// change is usually a handful of words inside a paragraph and showing two full
+// paragraphs side by side tells you nothing. Plain LCS over whitespace tokens.
+function wordDiff(a, b){
+  const A=String(a).split(/(\s+)/), B=String(b).split(/(\s+)/);
+  const n=A.length, m=B.length;
+  // Guard the O(n*m) table: past this the two texts share nothing useful anyway.
+  if(n*m > 250000) return [esc(a), esc(b)];
+  const L=Array.from({length:n+1},()=>new Uint32Array(m+1));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--)
+    L[i][j] = A[i]===B[j] ? L[i+1][j+1]+1 : Math.max(L[i+1][j], L[i][j+1]);
+  let i=0,j=0,left='',right='';
+  const del=t=>t.trim()?`<mark class="d-del">${esc(t)}</mark>`:esc(t);
+  const add=t=>t.trim()?`<mark class="d-add">${esc(t)}</mark>`:esc(t);
+  while(i<n && j<m){
+    if(A[i]===B[j]){ left+=esc(A[i]); right+=esc(B[j]); i++; j++; }
+    else if(L[i+1][j] >= L[i][j+1]){ left+=del(A[i]); i++; }
+    else { right+=add(B[j]); j++; }
+  }
+  while(i<n){ left+=del(A[i]); i++; }
+  while(j<m){ right+=add(B[j]); j++; }
+  return [left, right];
+}
+
+// A stored side: JSON-encoded, or null when the field was simply not there.
+function auditVal(v){
+  if(v===null || v===undefined) return null;
+  try { const o=JSON.parse(v); return typeof o==='string' ? o : JSON.stringify(o,null,1); }
+  catch(e){ return String(v); }
+}
+const AUDIT_KIND_NOTE = { added:'new item', removed:'item deleted' };
+
+function auditDiffHTML(d){
+  if(!d.ok) return `<p class="hint">Could not read the change detail:
+      ${esc(d.reason||'unknown error')}</p>`;
+  if(!d.count) return `<p class="small">No field changes were recorded for this
+      entry. Diffs are kept for ${d.keep_days} days, and only exist for writes
+      made after this feature shipped.</p>`;
+  const body = d.rows.map(r=>{
+    if(r.field==='_truncated')
+      return `<tr><td class="f">—</td><td colspan="2" class="hint">${esc(auditVal(r.after)||'')}</td></tr>`;
+    let a=auditVal(r.before), b=auditVal(r.after);
+    let ah, bh;
+    if(a!==null && b!==null && (a.length>40 || b.length>40)) [ah,bh]=wordDiff(a,b);
+    else { ah = a===null?'':esc(a); bh = b===null?'':esc(b); }
+    const before = a===null ? '<span class="muted">(not set)</span>'
+                            : `<div class="lc-before">${ah}</div>`;
+    const after  = b===null ? '<span class="muted">(removed)</span>'
+                            : `<div class="lc-after">${bh}</div>`;
+    const note = AUDIT_KIND_NOTE[r.kind] ? ` <span class="muted">(${r.kind})</span>` : '';
+    return `<tr><td class="f">${esc(r.field)}${note}</td>
+        <td class="v">${before}</td><td class="v">${after}</td></tr>`;
+  }).join('');
+  return `<table class="au-fields">
+      <tr><th>Field</th><th>Before</th><th>After</th></tr>${body}</table>`;
+}
+
+// Delegated so it survives the table being re-rendered by the day buttons.
+function wireAuditDiff(){
+  const tbl = $('#au_table'); if(!tbl) return;
+  tbl.addEventListener('click', e=>{
+    const btn = e.target.closest('[data-audit-diff]'); if(!btn) return;
+    const row = btn.closest('tr');
+    const open = row.nextElementSibling;
+    if(open && open.classList.contains('au-diff')
+       && open.dataset.idea === btn.dataset.idea){
+      open.remove(); btn.classList.remove('open'); return;
+    }
+    if(open && open.classList.contains('au-diff')) open.remove();
+    row.parentNode.querySelectorAll('.idchip.open').forEach(b=>b.classList.remove('open'));
+    btn.classList.add('open');
+    const tr = document.createElement('tr');
+    tr.className = 'au-diff';
+    tr.dataset.idea = btn.dataset.idea;
+    tr.innerHTML = `<td colspan="6"><p class="small">Loading changes to
+        <code>${esc(btn.dataset.idea)}</code>…</p></td>`;
+    row.after(tr);
+    api('/api/audit/diff?entry='+encodeURIComponent(btn.dataset.auditDiff)
+        +'&idea='+encodeURIComponent(btn.dataset.idea))
+      .then(r=>r.json()).then(d=>{
+        tr.innerHTML = `<td colspan="6"><p class="small">Changes to
+          <code>${esc(btn.dataset.idea)}</code> in this write:</p>
+          ${auditDiffHTML(d)}</td>`;
+      }).catch(err=>{
+        tr.innerHTML = `<td colspan="6"><p class="hint">Could not load:
+          ${esc(String(err))}</p></td>`;
+      });
+  });
+}
+
 function openAudit(days){
   AUDIT_DAYS_VIEW = days || AUDIT_DAYS_VIEW;
   modalHTML(`<h2>Recent changes</h2><p class="small">Loading the audit log…</p>`);
@@ -5807,11 +6089,11 @@ function openAudit(days){
         <td>${esc(r.username||'—')}</td>
         <td class="muted">${esc(r.role||'')}</td>
         <td class="nw">${esc(auditLabel(r.action||''))}</td>
-        <td class="det">${esc(r.detail||'')}</td>
+        <td class="det">${auditDetailHTML(r)}</td>
         <td class="muted nw">${esc(r.ip||'')}</td>
       </tr>`).join('');
     const body = d.count
-      ? `<table class="txns audit">
+      ? `<table class="txns audit" id="au_table">
           <tr><th>When</th><th>Who</th><th>Role</th><th>What</th>
               <th>Detail</th><th>From</th></tr>
           ${rows}</table>`
@@ -5823,13 +6105,15 @@ function openAudit(days){
     modalHTML(`<h2>Recent changes</h2>
       <p class="small">The last ${d.days} days of the editor's audit log, newest
         first — every sign-in, save, publish and merit payment, by whoever made
-        it. Read-only.</p>
+        it. Read-only. Click an idea id in <b>Detail</b> to see exactly which
+        fields that write changed, and what they were before.</p>
       ${body}${more}
       <div class="bar">
         <button id="au_7" class="linkbtn">7 days</button>
         <button id="au_30" class="linkbtn">30 days</button>
         <span class="spacer"></span>
         <button id="au_close">Close</button></div>`);
+    wireAuditDiff();
     $('#au_7').onclick=()=>openAudit(7);
     $('#au_30').onclick=()=>openAudit(30);
     $('#au_close').onclick=closeAudit;

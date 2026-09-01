@@ -693,7 +693,25 @@ history and in `ps`): the commands prompt, or take `--stdin`, or mint one with
 
 Everything lands in an append-only audit log — logins, failures, throttling,
 every roadmap write with the ids it changed, and every refusal (`denied.route`,
-`denied.field`). Read it with `roadmap-users.py audit`.
+`denied.field`). Read it with `roadmap-users.py audit`, or in the editor's
+**Recent changes** panel.
+
+**A write also records what moved inside each idea.** Every route that reaches
+`roadmap.yaml` — save, regenerate, publish, both merit pairs and the queue's
+step tick — files a per-field before/after against its audit row in the
+`audit_diff` table, down to `manual_steps[2].status`. The capture hangs off
+`write_document()` itself rather than off each handler, so a route added later
+gets it for free; outside the server (`roadmap-apply-patch.py`, the lint tool)
+nothing is armed and nothing is recorded. In the panel, click an idea id in the
+**Detail** column to expand the diff in place, with the changed words
+highlighted; from a shell it is `roadmap-users.py audit --entry <id>` (the plain
+listing marks rows that have one with a `*`).
+
+The audit rows themselves are kept forever — that is the record. The attached
+before/after values are bulky (both sides of every `notes` edit) and are pruned
+at `DIFF_KEEP_DAYS` (90) days, so an older row still says who changed which
+ideas and when, just not what the text used to be. Writes made before this
+shipped have no diff at all.
 
 **The account database is a secret.** `~/.local/share/roadmap-editor/auth.sqlite3`
 holds password hashes and live session tokens. Same rule as `bin/seed-admindb.sh`:
