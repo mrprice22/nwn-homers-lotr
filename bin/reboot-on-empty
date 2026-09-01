@@ -10,8 +10,14 @@
 #
 # Usage:
 #   bin/reboot-on-empty [--nwsync] "Custom message shown to players"   # arm
-#   bin/reboot-on-empty off                                            # cancel
-#   bin/reboot-on-empty status                                         # show state
+#   bin/reboot-on-empty off | --off                                    # cancel
+#   bin/reboot-on-empty status | --status                              # show state
+#   bin/reboot-on-empty help | --help                                  # usage
+#
+# Subcommands take a --flag spelling as well as a bare word, and an unrecognised
+# --flag is an error rather than a message. It used to be the message: running
+# `bin/reboot-on-empty --status` armed the realm with the literal text "--status"
+# for players to read. Use `--` to arm with a message that starts with dashes.
 #
 # The arm flag does NOT survive a server restart. It is a one-shot for the
 # session it was armed in: the plugin deletes it when it fires, and bin/serve
@@ -70,9 +76,12 @@ restarts just the server onto the new module (optionally rebuilding NWSync first
 
 Usage:
   bin/reboot-on-empty [--nwsync | --nwsync-copy DIR] "Message"   # arm
-  bin/reboot-on-empty off                                        # cancel
-  bin/reboot-on-empty status                                     # show state (also the no-arg default)
-  bin/reboot-on-empty --help                                     # this help
+  bin/reboot-on-empty off | --off | cancel | disarm              # cancel
+  bin/reboot-on-empty status | --status | -s                     # show state (also the no-arg default)
+  bin/reboot-on-empty help | --help | -h                         # this help
+
+An unrecognised --flag is rejected rather than armed as the message. To arm with a
+message that genuinely starts with dashes, put it after a bare `--`.
 
 The arm flag does NOT survive a server restart -- it is a one-shot for the session
 it was armed in, cleared by bin/serve at startup. Arm it, then reboot by some other
@@ -96,11 +105,11 @@ stops a stale flag rebooting the realm unprompted days later.
 USAGE
     exit 0
     ;;
-  off|cancel|disarm)
+  off|--off|cancel|--cancel|disarm|--disarm)
     rm -f "$ARM_FILE" "$NWSYNC_FILE" "$NWSYNC_COPY_FILE"
     echo "[reboot-on-empty] disarmed. Players will be told the reboot was cancelled."
     ;;
-  status|"")
+  status|--status|-s|"")
     if [[ -f $ARM_FILE ]]; then
       echo "[reboot-on-empty] ARMED"
       [[ -f $NWSYNC_FILE ]] && echo "  nwsync: will rebuild manifest before restart"
@@ -123,6 +132,18 @@ USAGE
         echo "--nwsync-copy needs bin/nwsync-copy-from, which is not in this repo." >&2
         echo "Promote it first, or arm with --nwsync to rebuild instead." >&2; exit 2; }
       shift
+    fi
+    # An unrecognised --flag must NEVER become the reboot message. It used to:
+    # `bin/reboot-on-empty --status` armed the realm with "--status" as the text
+    # broadcast to players. A typo'd flag is always a mistake, and this one is
+    # invisible until someone reads the shout.
+    if [[ ${1:-} == -- ]]; then
+      shift                       # explicit end of options: the rest is the message
+    elif [[ ${1:-} == -* ]]; then
+      echo "[reboot-on-empty] unknown option: $1" >&2
+      echo "                  try 'bin/reboot-on-empty --help', or put the message" >&2
+      echo "                  after a bare '--' if it really does start with dashes." >&2
+      exit 2
     fi
     MSG="$*"
     if [[ ! -f $PLUGIN_DLL ]]; then
