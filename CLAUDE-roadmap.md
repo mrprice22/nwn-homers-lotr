@@ -539,13 +539,17 @@ What it does:
   | public roadmap page (`docs/manual/Roadmap.html` + its `docs.manual/` source) | you click Publish |
   | `roadmap.yaml` itself | `bin/season-promote.sh` |
   | in-game Recent Updates sign (`roadmapdb`) | `bin/season-promote.sh` |
-  | player idea credit on the wiki (`roadmap-credits.json`) | `bin/season-promote.sh` |
+  | player idea credit on the wiki (`roadmap-credits.json`) | you click Publish |
 
-  The credit sidecar rides with `roadmap.yaml`, not with the page, for the same reason
-  the sign does: crediting a player for an idea whose code production is not running yet
-  makes the same claim the sign refuses to make. Production having a newer *page* than
-  sidecar is harmless — idea ids are stable and the newer page is a superset, so a stale
-  sidecar means missing credit, never a broken `#idea-` link.
+  The credit sidecar travels **with the page**, not with `roadmap.yaml`. It is the other
+  half of what a player sees: without it the live wiki renders player pages with no Ideas
+  section, so someone who reported a bug can read about it on the roadmap but is credited
+  for it nowhere — and that credit is the point of the merit system. The sign is different
+  because it announces *shipped code*, which production genuinely is not running yet; a
+  credit line is a statement about who asked, which was true the moment they asked.
+
+  `bin/season-promote.sh` also carries the file, as a fallback that seeds a freshly
+  promoted season before its first publish.
 
   A player who reports a bug should see it tracked immediately — that is a *page*, and it
   costs nothing to be honest about early. The sign announces **shipped** work, which is

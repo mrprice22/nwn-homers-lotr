@@ -108,12 +108,13 @@ PROMOTE=(
   # Who submitted and who tested each idea, for the wiki's player pages. Derived
   # from roadmap.yaml by gen-roadmap.py, which REFUSES to run on a non-dev realm
   # -- so production cannot regenerate it and must be handed it, exactly like the
-  # backlog it comes from. It rides the same promotion cadence deliberately: the
-  # page is published to live immediately, but crediting a player for an idea
-  # whose code production is not yet running is the same mistake the in-game
-  # Recent Updates sign already refuses to make. A live page newer than this file
-  # only ever means missing credit, never a broken #idea- link, because ids are
-  # stable and the newer page is a superset.
+  # backlog it comes from.
+  #
+  # In normal operation the roadmap editor's Publish already copies it to the
+  # live realm with the page it belongs to, so this is the FALLBACK: it seeds a
+  # freshly promoted season that has not seen a publish yet, and repairs one
+  # whose copy went missing. Listing it here is therefore belt-and-braces, not
+  # the delivery mechanism.
   roadmap-credits.json
 )
 
