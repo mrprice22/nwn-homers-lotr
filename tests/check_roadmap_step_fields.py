@@ -42,6 +42,12 @@ PROBE = {
     "blocker": True,
     "tester": "wizard 43+",
     "step_h": 96,
+    # The tester lane: written by /api/uat-claim and /api/uat-result, and just
+    # as destroyable by a GUI save that fails to carry them.
+    "claimed_by": "Bilbo",
+    "result": "Summoned at 14:02; the retry was refused.",
+    "tested_by": "Bilbo",
+    "tested_on": "2026-09-01",
 }
 
 

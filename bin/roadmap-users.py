@@ -68,21 +68,30 @@ def cmd_list(conn, args) -> int:
         print(A.bootstrap_hint())
         return 0
     w = max(len(u["username"]) for u in users)
-    print(f"{'USER'.ljust(w)}  {'ROLE':<6} {'STATE':<8} {'LAST LOGIN':<16}  NAME")
+    print(f"{'USER'.ljust(w)}  {'ROLE':<6} {'STATE':<8} {'LAST LOGIN':<16}  "
+          f"{'NAME':<24}  PLAYER")
     for u in users:
         state = "disabled" if u["disabled"] else "active"
+        # A tester with no player_name cannot record a UAT result at all, so
+        # say so here rather than leaving a blank column to puzzle over.
+        player = u["player_name"] or ("(unbound)" if u["role"] == "tester" else "")
         print(f"{u['username'].ljust(w)}  {u['role']:<6} {state:<8} "
-              f"{_stamp(u['last_login']):<16}  {u['display_name']}")
+              f"{_stamp(u['last_login']):<16}  {u['display_name']:<24}  {player}")
     return 0
 
 
 def cmd_add(conn, args) -> int:
     pw = _read_password(args, who=args.username)
-    user = A.add_user(conn, args.username, pw, args.role, args.name or "")
+    user = A.add_user(conn, args.username, pw, args.role, args.name or "",
+                      args.player or "")
     A.audit(conn, "user.add", detail=f"{user.username} role={user.role}",
             username="(cli)")
     print(f"Created {user.username} with role {user.role} "
           f"({len(user.caps)} capabilities).")
+    if user.role == "tester" and not user.player_name:
+        print(f"Note: no in-game player name bound, so {user.username} cannot "
+              f"record a UAT result yet. Set one with:\n"
+              f"  roadmap-users.py player {user.username} \"Their Player Name\"")
     return 0
 
 
@@ -105,6 +114,20 @@ def cmd_role(conn, args) -> int:
 def cmd_name(conn, args) -> int:
     A.set_display_name(conn, args.username, args.name)
     print(f"Display name for {args.username} set to {args.name!r}.")
+    return 0
+
+
+def cmd_player(conn, args) -> int:
+    A.set_player_name(conn, args.username, args.name)
+    A.audit(conn, "user.player", detail=f"{args.username} -> {args.name or '(none)'}",
+            username="(cli)")
+    if args.name:
+        print(f"{args.username} now credits UAT work to player {args.name!r}. "
+              f"It must match a meritdb account (or an entry in "
+              f"roadmap-merit-aliases.json) for the Award +1 button to resolve it.")
+    else:
+        print(f"{args.username} is no longer bound to a player name; they can "
+              f"still browse, but not claim or record UAT work.")
     return 0
 
 
@@ -244,6 +267,9 @@ def main() -> int:
     p.add_argument("username")
     p.add_argument("--role", required=True, choices=sorted(A.ROLES))
     p.add_argument("--name", default="", help="display name shown in the editor")
+    p.add_argument("--player", default="",
+                   help="in-game player name this account credits UAT work to "
+                        "(required before a tester can record a result)")
     pw_flags(p)
     p.set_defaults(fn=cmd_add)
 
@@ -261,6 +287,13 @@ def main() -> int:
     p.add_argument("username")
     p.add_argument("name")
     p.set_defaults(fn=cmd_name)
+
+    p = sub.add_parser("player",
+                       help="bind the in-game player name UAT credit is paid to")
+    p.add_argument("username")
+    p.add_argument("name", nargs="?", default="",
+                   help="omit to unbind")
+    p.set_defaults(fn=cmd_player)
 
     p = sub.add_parser("disable", help="lock an account out")
     p.add_argument("username")

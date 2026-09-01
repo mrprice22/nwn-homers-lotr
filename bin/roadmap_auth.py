@@ -50,6 +50,8 @@ CAPS: tuple[str, ...] = (
     "serverlog",        # the Monitor page and the realm log tail
     "audit_view",       # read the audit log (Recent changes panel)
     "submit",           # create new ideas (reserved for a future `player` role)
+    "uat",              # claim a UAT step, record its result, comment on an idea
+    "merit_view",       # look at merit balances and pending redemptions
 )
 
 # Role -> capability set. Deliberately a data table.
@@ -64,9 +66,23 @@ CAPS: tuple[str, ...] = (
 # and the uat_credits list itself are fully editable on ANY item, including one
 # already implemented or awarded. Adding a UAT check to a shipped item is the
 # DM's core job; the ceiling gates an item's own status, never its subtasks.
+#
+# `tester` is a trusted player who helps validate fixes. It is deliberately NOT
+# a weaker `dm`: it has no `edit` at all, which is what makes the "UAT fields
+# only" ceiling trustworthy. /api/save posts the WHOLE ideas array and writes
+# what it is given, so any role holding `edit` can rewrite any field of any
+# item; a per-field filter on that route would be a large thing to get right and
+# to keep right as the form grows. Instead a tester's only write paths are the
+# three narrow endpoints gated on `uat` (claim a step, record its result,
+# comment on an idea), each of which patches exactly one step or appends one
+# comment and stamps the player-identifying fields itself.
+#
+# It also lacks `merit_view`: seeing the whole backlog is the point, but every
+# player's merit balance and pending redemptions is not a tester's business.
 ROLES: dict[str, set[str]] = {
     "admin": set(CAPS),
     "dm": set(CAPS) - {"promote_shipped", "merit"},
+    "tester": {"view", "uat", "serverlog"},
     # Sketch for later; not offered by the CLI until it is wanted. Note it has
     # no `audit_view`: who changed what is staff information, not a player's.
     # "player": {"view", "submit"},
@@ -75,7 +91,16 @@ ROLES: dict[str, set[str]] = {
 ROLE_LABELS = {
     "admin": "Administrator",
     "dm": "Dungeon Master",
+    "tester": "Tester",
 }
+
+# Capabilities a `tester` must never acquire. Asserted by
+# bin/roadmap-auth-selftest.py so a later reshuffle of CAPS/ROLES cannot widen
+# the role by accident -- this is the whole security story of the tier.
+TESTER_FORBIDDEN: frozenset[str] = frozenset((
+    "edit", "submit", "promote_shipped", "merit", "publish",
+    "llm_review", "palette", "audit_view", "merit_view",
+))
 
 # Statuses a role without `promote_shipped` may not move an item into. This is
 # roadmap_publish.SHIPPED_STATUSES -- the set that reaches the public roadmap
@@ -180,6 +205,12 @@ _SCHEMA = (
 # unpacked/admin_db.nss documents for the in-game admin whitelist.
 _MIGRATIONS: tuple[tuple[str, str, str], ...] = (
     # (table, column, DDL fragment)
+    # The in-game player name this account speaks for. A login is a username;
+    # `uat_credits[].player` has to be a name the meritdb roster (or
+    # roadmap-merit-aliases.json) resolves, and the two are not the same string.
+    # The server stamps claimed_by / tested_by / uat_credits[].player /
+    # comments[].author from this column and NEVER from the request body.
+    ("users", "player_name", "player_name TEXT NOT NULL DEFAULT ''"),
 )
 
 
@@ -255,6 +286,10 @@ class User:
     role: str
     display_name: str = ""
     disabled: bool = False
+    # The in-game player name this account speaks for; "" when unbound. The UAT
+    # endpoints refuse rather than guess, because a wrong name here pays merit
+    # to the wrong player.
+    player_name: str = ""
 
     @property
     def caps(self) -> set[str]:
@@ -272,13 +307,18 @@ class User:
         return {"username": self.username, "role": self.role,
                 "role_label": ROLE_LABELS.get(self.role, self.role),
                 "display_name": self.label,
+                "player_name": self.player_name,
                 "caps": sorted(self.caps)}
 
 
 def _user_from_row(row: sqlite3.Row) -> User:
+    keys = row.keys()
     return User(username=row["username"], role=row["role"],
                 display_name=row["display_name"] or "",
-                disabled=bool(row["disabled"]))
+                disabled=bool(row["disabled"]),
+                # Guard the key: a row selected by an older query (or a DB
+                # opened before the migration ran) simply has no column.
+                player_name=(row["player_name"] or "") if "player_name" in keys else "")
 
 
 def valid_username(name: str) -> bool:
@@ -286,7 +326,7 @@ def valid_username(name: str) -> bool:
 
 
 def add_user(conn, username: str, password: str, role: str,
-             display_name: str = "") -> User:
+             display_name: str = "", player_name: str = "") -> User:
     username = (username or "").strip().lower()
     if not valid_username(username):
         raise ValueError(
@@ -298,10 +338,11 @@ def add_user(conn, username: str, password: str, role: str,
         raise ValueError(f"user {username!r} already exists")
     with conn:
         conn.execute(
-            "INSERT INTO users (username, pwhash, role, display_name, created_at)"
-            " VALUES (?,?,?,?,?)",
-            (username, hash_password(password), role, display_name or "", _now()))
-    return User(username, role, display_name or "")
+            "INSERT INTO users (username, pwhash, role, display_name,"
+            " player_name, created_at) VALUES (?,?,?,?,?,?)",
+            (username, hash_password(password), role, display_name or "",
+             player_name or "", _now()))
+    return User(username, role, display_name or "", player_name=player_name or "")
 
 
 def get_user(conn, username: str) -> User | None:
@@ -312,8 +353,9 @@ def get_user(conn, username: str) -> User | None:
 
 def list_users(conn) -> list[dict]:
     return [dict(r) for r in
-            conn.execute("SELECT username, role, display_name, disabled,"
-                         " created_at, last_login FROM users ORDER BY username")]
+            conn.execute("SELECT username, role, display_name, player_name,"
+                         " disabled, created_at, last_login FROM users"
+                         " ORDER BY username")]
 
 
 def user_count(conn) -> int:
@@ -348,6 +390,18 @@ def set_display_name(conn, username: str, name: str) -> None:
     with conn:
         conn.execute("UPDATE users SET display_name=? WHERE username=?",
                      (name or "", username.strip().lower()))
+
+
+def set_player_name(conn, username: str, name: str) -> None:
+    """Bind (or unbind, with "") the in-game player name this account credits.
+
+    No session revoke: unlike a role change this does not remove any power, and
+    the endpoints read the column fresh on every request anyway.
+    """
+    _require_user(conn, username)
+    with conn:
+        conn.execute("UPDATE users SET player_name=? WHERE username=?",
+                     ((name or "").strip(), username.strip().lower()))
 
 
 def set_disabled(conn, username: str, disabled: bool) -> None:

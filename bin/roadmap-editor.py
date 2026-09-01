@@ -74,7 +74,7 @@ FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "merit_awarded", "type",
                "player", "date", "commit", "notes", "notes_h", "impl_notes",
                "impl_notes_h", "dupe_of", "design_questions", "manual_steps",
-               "uat_credits"]
+               "uat_credits", "comments"]
 # `merit_awarded` records that meritdb was really credited for this idea, which
 # `status: awarded` alone cannot: status can bounce back to `implemented` and
 # forward again, and the merit must be granted exactly once. Written only by the
@@ -83,12 +83,18 @@ FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
 MERIT_FLAG = "merit_awarded"
 # Internal fields — admin-only, never rendered on the public board. `notes` is
 # the player-facing release note; everything here is the builder's own record.
-LIST_FIELDS = {"design_questions", "manual_steps", "uat_credits"}
+LIST_FIELDS = {"design_questions", "manual_steps", "uat_credits", "comments"}
 # Players credited with validating this idea's fix — one merit each, awarded
 # independently of who reported it, so several players can appear on one item.
 # `awarded: true` is the same kind of idempotence flag as MERIT_FLAG: it records
 # that meritdb was really credited, and is written ONLY by the UAT award button.
 UAT_FIELD = "uat_credits"
+# Append-only per-idea notes: {author, date, text}. A tester has no `edit`, so
+# this is how they add information to an item at all -- and append-only is what
+# keeps that safe: there is no route that rewrites or deletes an entry, so the
+# worst a tester can do to the record is add to it. Internal like the rest of
+# LIST_FIELDS; nothing on the public page or the in-game sign renders it.
+COMMENTS_FIELD = "comments"
 INTERNAL_FIELDS = LIST_FIELDS | {"impl_notes", "impl_notes_h"}
 # Fields always rendered as YAML double-quoted scalars.
 QUOTED_FIELDS = {"title", "notes", "impl_notes", "date"}
@@ -823,9 +829,13 @@ def normalize_step(item) -> dict:
         "kind": kind if kind in GEN.STEP_KINDS else GEN.DEFAULT_STEP_KIND,
         "blocker": bool(item.get("blocker", False)),
     }
-    tester = item.get("tester")
-    if isinstance(tester, str) and tester.strip():
-        out["tester"] = tester.strip()
+    # `tester` says what it TAKES to run the check ("a wizard past 40");
+    # `claimed_by` / `tested_by` say who actually did, and are stamped by the
+    # server from the caller's bound player name -- never taken from a form.
+    for key in ("tester", "claimed_by", "result", "tested_by", "tested_on"):
+        val = item.get(key)
+        if isinstance(val, str) and val.strip():
+            out[key] = val.strip()
     if isinstance(item.get("step_h"), int):
         out["step_h"] = item["step_h"]
     return out
@@ -847,6 +857,23 @@ def normalize_uat_credit(item) -> dict:
 def normalize_uat_credits(val) -> list:
     return ([normalize_uat_credit(c) for c in val]
             if isinstance(val, list) else val)
+
+
+def normalize_comment(item) -> dict:
+    """One `comments` entry in stored form. A bare string is the shorthand.
+
+    `author` and `date` are stamped by the server when the comment is appended
+    (see _comment_write); nothing in the browser can choose them.
+    """
+    if isinstance(item, str):
+        item = {"text": item}
+    return {"author": str(item.get("author", "")).strip(),
+            "date": str(item.get("date") or "").strip(),
+            "text": str(item.get("text", "")).strip()}
+
+
+def normalize_comments(val) -> list:
+    return [normalize_comment(c) for c in val] if isinstance(val, list) else val
 
 
 def emit_list_field(field: str, val: list) -> list[str]:
@@ -877,7 +904,19 @@ def emit_list_field(field: str, val: list) -> list[str]:
                 lines.append(f'        tester: {dquote(item["tester"])}')
             if item["blocker"]:
                 lines.append("        blocker: true")
+            # The tester's half of the step. Each is emitted only when set, so
+            # a step nobody has touched serializes exactly as it did before
+            # these fields existed (the no-op-save invariant).
+            for key in ("claimed_by", "result", "tested_by", "tested_on"):
+                if item.get(key):
+                    lines.append(f'        {key}: {dquote(item[key])}')
             lines.extend(_emit_heights(item, ("step_h",)))
+            continue
+        if field == COMMENTS_FIELD:
+            item = normalize_comment(item)
+            lines.append(f'      - author: {dquote(item["author"])}')
+            lines.append(f'        date: {dquote(item["date"])}')
+            lines.append(f'        text: {dquote(item["text"])}')
             continue
         lines.append(f'      - question: {dquote(str(item.get("question", "")))}')
         lines.append(f'        status: {item.get("status", "open")}')
@@ -1165,6 +1204,15 @@ def validate_internal_fields(ideas) -> list[str]:
                     elif s.get("tester") is not None \
                             and not isinstance(s["tester"], str):
                         errs.append(f"'{iid}': manual_step tester must be text")
+                    else:
+                        for key in ("claimed_by", "result", "tested_by"):
+                            if s.get(key) is not None and not isinstance(s[key], str):
+                                errs.append(f"'{iid}': manual_step {key} must "
+                                            f"be text")
+                        on = str(s.get("tested_on") or "").strip()
+                        if on and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", on):
+                            errs.append(f"'{iid}': manual_step tested_on must "
+                                        f"be YYYY-MM-DD, got {on!r}")
         credits = idea.get(UAT_FIELD)
         if credits is not None:
             if not isinstance(credits, list):
@@ -1192,6 +1240,25 @@ def validate_internal_fields(ideas) -> list[str]:
                         errs.append(f"'{iid}': {UAT_FIELD} lists "
                                     f"'{c['player']}' more than once")
                     seen_players.add(name)
+        comments = idea.get(COMMENTS_FIELD)
+        if comments is not None:
+            if not isinstance(comments, list):
+                errs.append(f"'{iid}': {COMMENTS_FIELD} must be a list")
+            else:
+                for c in comments:
+                    if isinstance(c, str):      # bare-text shorthand
+                        c = {"text": c}
+                    if not isinstance(c, dict) or not str(c.get("text", "")).strip():
+                        errs.append(f"'{iid}': each {COMMENTS_FIELD} entry "
+                                    f"needs a 'text'")
+                        continue
+                    if not str(c.get("author", "")).strip():
+                        errs.append(f"'{iid}': each {COMMENTS_FIELD} entry "
+                                    f"needs an 'author'")
+                    date = str(c.get("date") or "").strip()
+                    if date and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+                        errs.append(f"'{iid}': {COMMENTS_FIELD} date must be "
+                                    f"YYYY-MM-DD, got {date!r}")
         if not isinstance(idea.get(MERIT_FLAG, False), bool):
             errs.append(f"'{iid}': {MERIT_FLAG} must be true/false, got "
                         f"{idea.get(MERIT_FLAG)!r}")
@@ -1344,6 +1411,8 @@ def normalize_ideas(ideas, groups=None) -> None:
             it["manual_steps"] = normalize_steps(it["manual_steps"])
         if it.get(UAT_FIELD):
             it[UAT_FIELD] = normalize_uat_credits(it[UAT_FIELD])
+        if it.get(COMMENTS_FIELD):
+            it[COMMENTS_FIELD] = normalize_comments(it[COMMENTS_FIELD])
         if it.get("impl_notes"):
             it["impl_notes"] = sanitize_notes(it["impl_notes"])
         # Strip any pasted chrome (e.g. Discord DOM) down to the whitelist
@@ -1950,9 +2019,12 @@ ROUTE_CAPS: dict[str, str] = {
     "/index.html": "view",
     "/api/data": "view",
     "/api/version": "view",
-    "/api/meritplayers": "view",     # read-only merit views: a DM may look,
-    "/api/merit": "view",            # but /api/award is gated on `merit`
-    "/api/pending": "view",
+    # Read-only merit views: a DM may look, but /api/award is gated on `merit`.
+    # `merit_view` rather than `view` so a `tester` -- who must see the whole
+    # backlog -- does not also see every player's balance and redemptions.
+    "/api/meritplayers": "merit_view",
+    "/api/merit": "merit_view",
+    "/api/pending": "merit_view",
     "/api/audit": "audit_view",
     "/monitor": "serverlog",
     "/api/serverlog": "serverlog",
@@ -1962,6 +2034,11 @@ ROUTE_CAPS: dict[str, str] = {
     "/api/changes/action": "llm_review",
     "/api/save": "edit",
     "/api/step-status": "edit",
+    # The tester lane. Narrow single-step writes, which is why they are safe to
+    # hand a role that has no `edit` at all.
+    "/api/uat-claim": "uat",
+    "/api/uat-result": "uat",
+    "/api/idea-comment": "uat",
     "/api/regenerate": "publish",
     "/api/publish": "publish",
     "/api/award": "merit",
@@ -1977,6 +2054,9 @@ PREFIX_ROUTES = ("/api/meritplayers", "/api/serverlog", "/api/changes",
 AUDITED = {
     "/api/save": "roadmap.save",
     "/api/step-status": "roadmap.step",
+    "/api/uat-claim": "uat.claim",
+    "/api/uat-result": "uat.result",
+    "/api/idea-comment": "idea.comment",
     "/api/regenerate": "roadmap.regenerate",
     "/api/publish": "roadmap.publish",
     "/api/award": "merit.award",
@@ -1990,6 +2070,11 @@ AUDITED = {
 # field-level check as well as the route-level one.
 DOCUMENT_WRITES = ("/api/save", "/api/regenerate", "/api/publish")
 MAX_BODY = 8 * 1024 * 1024   # the ideas array is large; unbounded is a weapon
+# Caps on the two free-text fields a tester can write. Generous enough for a
+# real report, small enough that the YAML stays readable and the audit diff
+# stays inside DIFF_MAX_LEN.
+MAX_RESULT_LEN = 3000
+MAX_COMMENT_LEN = 3000
 
 
 def route_key(path: str) -> str:
@@ -2383,6 +2468,211 @@ class Handler(BaseHTTPRequestHandler):
                            "hashes": {iid: _idea_fingerprint(fp_idea)},
                            "warnings": warnings,
                            "message": f"Updated step {index + 1} of '{iid}'."})
+
+    # ----------------------------------------------------------------
+    # The tester lane: three narrow writes gated on `uat`
+    # ----------------------------------------------------------------
+    # A `tester` has no `edit`, so /api/save and /api/step-status are closed to
+    # them at the route table. These are the ONLY ways a tester can change
+    # roadmap.yaml, and each one patches a single step (or appends a single
+    # comment) rather than round-tripping the document. That is what makes the
+    # "UAT fields only" ceiling trustworthy without a per-field filter on
+    # /api/save -- see the ROLES comment in bin/roadmap_auth.py.
+    #
+    # Every player-identifying value written here comes from the caller's bound
+    # `player_name`, never from the request body: a name off the wire is a name
+    # the caller chose, and these names decide who gets paid merit.
+
+    def _actor_player(self):
+        """The in-game player name this session speaks for, or ''."""
+        return (getattr(self.user, "player_name", "") or "").strip()
+
+    def _need_actor(self):
+        """The error response for an account with no bound player name."""
+        return self._json({"ok": False, "errors": [
+            "Your account is not bound to an in-game player name, so this "
+            "cannot be credited to anyone. Ask the admin to run: "
+            f"roadmap-users.py player {self.user.username} \"Your Player Name\""
+        ]}, 409)
+
+    def _find_step(self, payload, *, uat_only=True):
+        """Locate one manual_step for a tester write.
+
+        Returns (ideas, idea, steps, index, step, error_response). The step's own
+        text is the concurrency token, exactly as in _step_write: if it no longer
+        matches, something moved underneath us and we refuse rather than write to
+        the wrong row.
+        """
+        blank = (None, None, None, None, None)
+        iid = payload.get("id")
+        try:
+            index = int(payload.get("index"))
+        except (TypeError, ValueError):
+            return blank + (self._json({"ok": False,
+                                        "errors": ["bad step index"]}, 400),)
+        data = read_yaml()
+        ideas = data.get("ideas") or []
+        idea = next((i for i in ideas if i.get("id") == iid), None)
+        if idea is None:
+            return blank + (self._json({"ok": False,
+                                        "errors": [f"no such idea '{iid}'"]}, 404),)
+        steps = idea.get("manual_steps") or []
+        if not 0 <= index < len(steps):
+            return blank + (self._json({"ok": False, "stale": True,
+                                        "message": "That step is gone — reload "
+                                                   "the queue."}, 409),)
+        cur = steps[index]
+        cur_text = cur if isinstance(cur, str) else str(cur.get("step", ""))
+        if payload.get("step") is not None and payload["step"] != cur_text:
+            return blank + (self._json({"ok": False, "stale": True,
+                                        "message": ("roadmap.yaml changed "
+                                                    "underneath this queue — "
+                                                    "reload before writing.")}, 409),)
+        step = normalize_step(cur)
+        steps[index] = step
+        idea["manual_steps"] = steps
+        if uat_only and step.get("kind") != "uat":
+            return blank + (self._json({"ok": False, "errors": [
+                "That step is not a UAT check, so there is nothing to test on "
+                "it. Only a step with kind: uat can be claimed or reported on."
+            ]}, 403),)
+        return ideas, idea, steps, index, step, None
+
+    def _finish_tester_write(self, ideas, idea, iid, message):
+        """Validate-narrowly, write, and hand back a rebased fingerprint.
+
+        Same contract as the tail of _step_write: roadmap.yaml carries some
+        long-standing pipeline complaints, and a tester recording a result must
+        not be the write that has to fix them, so only errors this write
+        *introduces* are fatal.
+        """
+        before = {_err_class(e)
+                  for e in validate_document(read_yaml().get("ideas") or [])[0]}
+        errors, warnings = validate_document(ideas)
+        errors = [e for e in errors if _err_class(e) not in before]
+        if errors:
+            return self._json({"ok": False, "errors": errors})
+        write_document(ideas)
+        fp_idea = copy.deepcopy(idea)
+        normalize_ideas([fp_idea])
+        return self._json({"ok": True, "version": yaml_version(),
+                           "hashes": {iid: _idea_fingerprint(fp_idea)},
+                           "warnings": warnings, "idea": fp_idea,
+                           "message": message})
+
+    def _uat_claim(self, payload):
+        """Take (or hand back) a UAT step, so two testers don't duplicate work.
+
+        A claim is not a credit: it says "I am running this", nothing more. The
+        unpaid uat_credits entry appears only when a result is actually recorded
+        (_uat_result), so the list keeps meaning "did the work" rather than
+        "intended to".
+        """
+        me = self._actor_player()
+        if not me:
+            return self._need_actor()
+        ideas, idea, steps, index, step, err = self._find_step(payload)
+        if err:
+            return err
+        iid = idea.get("id")
+        held = (step.get("claimed_by") or "").strip()
+        if payload.get("release"):
+            if held and held.lower() != me.lower() and not self.user.can("edit"):
+                return self._json({"ok": False, "errors": [
+                    f"That check is claimed by {held}, not you."]}, 409)
+            step.pop("claimed_by", None)
+            # Only walk the status back if nobody has recorded anything yet;
+            # a released step that was already reported on stays reported on.
+            if step.get("status") == "wip" and not step.get("tested_by"):
+                step["status"] = "open"
+            msg = f"Released step {index + 1} of '{iid}'."
+        else:
+            # An admin or DM can take a check over -- they are the ones who
+            # untangle it when a tester claims something and disappears.
+            if held and held.lower() != me.lower() and not self.user.can("edit"):
+                return self._json({"ok": False, "errors": [
+                    f"{held} has already claimed that check. Ask them, or pick "
+                    f"another one."]}, 409)
+            step["claimed_by"] = me
+            if step.get("status") == "open":
+                step["status"] = "wip"
+            msg = f"You claimed step {index + 1} of '{iid}'."
+        return self._finish_tester_write(ideas, idea, iid, msg)
+
+    def _uat_result(self, payload):
+        """Record what actually happened when the check was run.
+
+        Writes the step's result and stamps who/when, and adds an UNPAID
+        uat_credits entry for the caller. It never sets `awarded` -- that flag
+        records a real meritdb payment and is written only by /api/uat-award,
+        which is gated on `merit`. This endpoint is the "submit for review"
+        half; the admin's UAT Review panel is the other.
+        """
+        me = self._actor_player()
+        if not me:
+            return self._need_actor()
+        status = payload.get("status")
+        # Deliberately not the whole STEP_STATUS vocabulary: a tester reports
+        # what they found, they do not reopen work.
+        if status not in ("wip", "failed", "done"):
+            return self._json({"ok": False, "errors": [
+                "A result must be one of: wip (still checking), failed, done."]}, 400)
+        result = str(payload.get("result") or "").strip()[:MAX_RESULT_LEN]
+        if status in ("failed", "done") and not result:
+            return self._json({"ok": False, "errors": [
+                "Say what you saw — a pass or a fail with no notes is not "
+                "something the admin can review."]}, 400)
+        ideas, idea, steps, index, step, err = self._find_step(payload)
+        if err:
+            return err
+        iid = idea.get("id")
+        held = (step.get("claimed_by") or "").strip()
+        if held and held.lower() != me.lower() and not self.user.can("edit"):
+            return self._json({"ok": False, "errors": [
+                f"That check is claimed by {held}. Ask them to release it "
+                f"before reporting on it."]}, 409)
+        step["claimed_by"] = me
+        step["status"] = status
+        step["tested_by"] = me
+        step["tested_on"] = datetime.now().strftime("%Y-%m-%d")
+        if result:
+            step["result"] = result
+        # The unpaid credit the admin reviews. Matching is case-insensitive for
+        # the same reason _uat_write's is: the roster spells names how it likes.
+        credits = normalize_uat_credits(idea.get(UAT_FIELD) or [])
+        if not any(c.get("player", "").strip().lower() == me.lower()
+                   for c in credits):
+            credits.append({"player": me, "awarded": False, "date": ""})
+        idea[UAT_FIELD] = credits
+        return self._finish_tester_write(
+            ideas, idea, iid,
+            f"Recorded your result on step {index + 1} of '{iid}'. "
+            f"The admin reviews it before any merit is paid.")
+
+    def _comment_write(self, payload):
+        """Append one note to an idea. Append-only, by design.
+
+        There is no route that edits or deletes a comment, which is precisely
+        what makes it safe to hand a tester: the worst they can do to the record
+        is add to it. `author` and `date` are stamped here, never posted.
+        """
+        iid = payload.get("id")
+        text = str(payload.get("text") or "").strip()[:MAX_COMMENT_LEN]
+        if not text:
+            return self._json({"ok": False, "errors": ["Write something first."]}, 400)
+        author = self._actor_player() or self.user.label
+        data = read_yaml()
+        ideas = data.get("ideas") or []
+        idea = next((i for i in ideas if i.get("id") == iid), None)
+        if idea is None:
+            return self._json({"ok": False, "errors": [f"no such idea '{iid}'"]}, 404)
+        comments = normalize_comments(idea.get(COMMENTS_FIELD) or [])
+        comments.append({"author": author,
+                         "date": datetime.now().strftime("%Y-%m-%d"),
+                         "text": text})
+        idea[COMMENTS_FIELD] = comments
+        return self._finish_tester_write(ideas, idea, iid,
+                                         f"Added your note to '{iid}'.")
 
     def _uat_write(self, revoke, payload, ideas, groups, players, epics,
                    warnings):
@@ -2808,6 +3098,21 @@ class Handler(BaseHTTPRequestHandler):
             self._audit_write(f"{payload.get('id')} step #{payload.get('index')} "
                               f"-> {payload.get('status')}")
             return self._step_write(payload)
+        if self.path in ("/api/uat-claim", "/api/uat-result", "/api/idea-comment"):
+            try:
+                payload = self._read_body()
+            except Exception as e:
+                return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
+            if self.path == "/api/uat-claim":
+                self._audit_write(f"{payload.get('id')} step #{payload.get('index')}"
+                                  f" {'released' if payload.get('release') else 'claimed'}")
+                return self._uat_claim(payload)
+            if self.path == "/api/uat-result":
+                self._audit_write(f"{payload.get('id')} step #{payload.get('index')}"
+                                  f" result -> {payload.get('status')}")
+                return self._uat_result(payload)
+            self._audit_write(f"{payload.get('id')} comment")
+            return self._comment_write(payload)
         try:
             payload = self._read_body()
         except Exception as e:
@@ -3336,6 +3641,23 @@ PAGE = r"""<!doctype html>
     color:var(--mut); white-space:nowrap; }
   .ho-flag input { width:auto; margin:0; }
   .ho-item textarea { resize:vertical; }
+  /* The tester lane on a UAT step: who holds it, and what they found. */
+  .ho-uatbar { display:flex; gap:6px; align-items:center; margin-top:5px;
+    flex-wrap:wrap; }
+  .ho-uatbar select { flex:0 0 auto; width:auto; font-size:12px; }
+  .ho-chip { display:inline-block; padding:1px 7px; border-radius:999px;
+    border:1px solid var(--line); font-size:11px; color:var(--mut); }
+  .ho-chip.me { border-color:var(--accent); color:var(--fg); }
+  .ho-sres { margin-top:4px; font-size:12px; min-height:44px; }
+  .ho-ctext { white-space:pre-wrap; font-size:12px; margin-top:3px; }
+  .small.bad { color:var(--err); }
+  /* A role with no `edit` browses the whole backlog but owns nothing on it, so
+     the form reads as a document. Only .tester-ok controls (the three `uat`
+     writes) stay live -- select() disables the rest outright, this is just the
+     visual half. The server enforces all of it independently. */
+  body.readonly #form input, body.readonly #form select,
+  body.readonly #form textarea { opacity:0.78; }
+  body.readonly #form .rt-tools { display:none; }
   .filters { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
   .filters select { padding:5px 7px; font-size:12px; }
   .filters .full { grid-column:1 / -1; }
@@ -3498,6 +3820,13 @@ PAGE = r"""<!doctype html>
   .qrow .qctl select, .qrow .qctl input { width:auto; font-size:11px; padding:2px 4px; }
   .qrow .qctl input.tester { flex:1 1 110px; min-width:70px; }
   .qblock { color:var(--warn); font-size:10px; font-weight:700; letter-spacing:.5px; }
+  /* The tester lane wraps onto its own lines under the step text. */
+  .qrow { flex-wrap:wrap; }
+  .qrow .qctl.qclaim { flex:1 1 100%; justify-content:flex-start;
+                       align-items:center; }
+  .qrow .qresult { flex:1 1 100%; color:var(--mut); border-left:2px solid var(--line);
+                   padding-left:8px; margin-left:220px; }
+  .qrow .qctl button { width:auto; font-size:11px; padding:2px 8px; }
   .qbar { display:flex; gap:8px; align-items:center; margin:6px 0; }
   .qbar input { flex:1; }
   #qresults { max-height:60vh; overflow:auto; }
@@ -3595,6 +3924,7 @@ PAGE = r"""<!doctype html>
       <button id="mpalette" class="linkbtn">Palette Finder</button>
       <button id="mtoolq" class="linkbtn">Toolset Queue</button>
       <button id="muatq" class="linkbtn">UAT Queue</button>
+      <button id="muatr" class="linkbtn">UAT Review</button>
       <button id="mchanges" class="linkbtn">LLM Changes</button>
       <button id="maudit" class="linkbtn">Recent changes</button>
       <span class="spacer"></span>
@@ -3625,6 +3955,15 @@ function CAN(cap){ return ((DATA.me && DATA.me.caps) || []).includes(cap); }
 // roadmap_publish.SHIPPED_STATUSES / roadmap_auth.SHIPPED_STATUSES.
 const SHIPPED_STATUSES = ['manual','implemented','awarded'];
 function canSetStatus(st){ return CAN('promote_shipped') || !SHIPPED_STATUSES.includes(st); }
+// No `edit` means the document form is a reader, not an editor. A tester still
+// writes — but only through the three narrow `uat` endpoints, never /api/save.
+function READONLY(){ return !CAN('edit'); }
+// The in-game player name this session credits UAT work to; '' when the account
+// is unbound (the server refuses a claim or a result in that case, and says so).
+function ME(){ return ((DATA.me && DATA.me.player_name) || '').trim(); }
+function isMine(name){
+  const me = ME(); return !!me && (name||'').trim().toLowerCase() === me.toLowerCase();
+}
 
 // Every call goes through here so an expired session lands on the login page
 // instead of surfacing as a bare "NetworkError" from an unhandled 401.
@@ -3704,6 +4043,9 @@ async function load(){
 // Update the "X Pending Merit Requests" button label from the live game DB.
 function refreshPending(){
   const btn=$('#mpending'); if(!btn) return;
+  // The merit views are gated on `merit_view` -- a `tester` is refused, and
+  // firing the request anyway would only file a denied.route row per page load.
+  if (!CAN('merit_view')) return;
   api('/api/pending').then(r=>r.json()).then(d=>{
     const n=d.count||0;
     btn.textContent=`${n} Pending Merit Request${n===1?'':'s'}`;
@@ -3725,8 +4067,11 @@ function applyCapabilities(){
   if (who) who.textContent = me.display_name
     ? `${me.display_name} · ${me.role_label || me.role}` : '';
   // [button id, capability it needs]
-  [['mpalette','palette'], ['mchanges','llm_review'], ['mpending','view'],
+  [['mpalette','palette'], ['mchanges','llm_review'],
+   ['mpending','merit_view'], ['mplayers','merit_view'],
    ['maudit','audit_view'],
+   ['mgroups','edit'], ['mepics','edit'], ['mtoolq','edit'],
+   ['add','submit'], ['muatr','merit'],
    ['regen','publish'], ['publish','publish']].forEach(([id, cap])=>{
     const el = $('#'+id);
     if (el) el.style.display = CAN(cap) ? '' : 'none';
@@ -3734,6 +4079,13 @@ function applyCapabilities(){
   // The Monitor page is a separate document, linked from the header.
   const mon = $('#monitorlink');
   if (mon) mon.style.display = CAN('serverlog') ? '' : 'none';
+  // A role with no `edit` (today: `tester`) browses the whole backlog but owns
+  // nothing on it. The class drives the CSS that greys the form out; every
+  // individual control ALSO checks CAN() before it fires, and the server
+  // enforces all of it independently — this is a courtesy, not the control.
+  document.body.classList.toggle('readonly', READONLY());
+  const cd = $('#f_carddd'); if (cd && READONLY()){ cd.checked = false;
+    const w = cd.closest('label'); if (w) w.style.display = 'none'; }
 }
 
 function populateFilters(){
@@ -4196,6 +4548,28 @@ function select(i){
                                           // would otherwise stack up.
   // Baseline for the unsaved-changes guard: whatever the form says right now.
   formSnapshot = snapshot();
+  lockFormIfReadOnly();
+}
+
+// A role with no `edit` (today: `tester`) reads the whole form and writes
+// nothing through it. Done here, after every render, rather than by threading a
+// flag through the markup: the panel re-renders on its own (renderHandoff) and
+// a per-widget `disabled` attribute would have to be repeated in a dozen
+// template strings and would be forgotten in the thirteenth.
+//
+// `.tester-ok` opts a control back in -- those are the three `uat` writes, which
+// do not go through /api/save at all. The server refuses everything else on its
+// own; this only stops the page inviting a click that would be denied.
+function lockFormIfReadOnly(){
+  if (!READONLY()) return;
+  const f = $('#form'); if (!f) return;
+  f.querySelectorAll('input, select, textarea, button').forEach(el=>{
+    if (el.closest('.tester-ok') || el.classList.contains('tester-ok')) return;
+    el.disabled = true;
+  });
+  // The rich-text editors are contenteditable, which `disabled` does not reach.
+  f.querySelectorAll('[contenteditable]').forEach(el=>
+    el.setAttribute('contenteditable', 'false'));
 }
 
 // ---- pipeline moves ------------------------------------------------------
@@ -4340,7 +4714,8 @@ function renderMerit(name){
 let meritReq = 0;
 function renderMeritIngame(name){
   const box=$('#merit_ingame'); if(!box) return;
-  if(!name){ box.innerHTML=''; return; }
+  // Same reason as refreshPending(): /api/merit needs `merit_view`.
+  if(!name || !CAN('merit_view')){ box.innerHTML=''; return; }
   const my = ++meritReq;
   box.innerHTML=`<div class="merit"><div class="sub">Loading in-game merit…</div></div>`;
   api('/api/merit?player='+encodeURIComponent(name))
@@ -4648,7 +5023,8 @@ const QSTEP_LABEL = {open:'To do', wip:'In progress', failed:'Failed', done:'Don
 const isFailed = s => s && s.status==='failed';
 // The manual_step keys this panel owns and rewrites. Anything else on a step is
 // passed through untouched by handoffOut() — see the note there.
-const HO_OWNED = ['step','status','kind','blocker','tester','step_h'];
+const HO_OWNED = ['step','status','kind','blocker','tester','step_h',
+                  'claimed_by','result','tested_by','tested_on'];
 
 // A blocker step that isn't Complete holds the item back, exactly as an open
 // design question does. Mirrors open_blockers() in the Python half.
@@ -4675,7 +5051,12 @@ function initHandoff(it){
         : Object.assign({}, s, {
            step:s.step||'', status:s.status||'open',
            kind: STEP_KINDS.indexOf(s.kind)>=0 ? s.kind : 'admin',
-           blocker:!!s.blocker, tester:s.tester||'', step_h:s.step_h||null})),
+           blocker:!!s.blocker, tester:s.tester||'', step_h:s.step_h||null,
+           // The tester's half of the step. `tested_by`/`tested_on` are stamped
+           // by /api/uat-result and no input owns them, so they are carried
+           // through verbatim exactly as uat_credits' `awarded` is.
+           claimed_by:s.claimed_by||'', result:s.result||'',
+           tested_by:s.tested_by||'', tested_on:s.tested_on||''})),
     // `awarded`/`date` are server-written (see UAT_FIELD in the Python half) and
     // no input owns them — carried through verbatim so an unrelated edit to this
     // form can never clear a paid credit.
@@ -4683,6 +5064,13 @@ function initHandoff(it){
       (typeof c === 'string')
         ? {player:c, awarded:false, date:''}
         : {player:c.player||'', awarded:!!c.awarded, date:c.date||''}),
+    // Read-only in the panel. `comments` is append-only and is deliberately NOT
+    // in FORM_FIELDS, so pruneEmpty() copies it through from the loaded idea
+    // and only /api/idea-comment ever adds to it.
+    comments: (it.comments||[]).map(c=>
+      (typeof c === 'string')
+        ? {author:'', date:'', text:c}
+        : {author:c.author||'', date:c.date||'', text:c.text||''}),
   };
   renderHandoff();
 }
@@ -4698,6 +5086,71 @@ function syncHandoffHeights(){
     item[key] = (h && h!==HO_DEFAULT_H) ? h : null;
   });
   grab('.ho-qt','question_h'); grab('.ho-qa','answer_h'); grab('.ho-st','step_h');
+}
+
+// The tester's half of a UAT step: who has it, what they found, and the two
+// buttons that are the ONLY writes a role without `edit` can make to a step.
+// Both post to their own endpoint rather than going through the form's Save,
+// because a tester's /api/save is refused at the route table.
+function uatStepBarHTML(s, i){
+  const held = (s.claimed_by||'').trim();
+  const mine = isMine(held);
+  const stamp = (s.tested_by||'').trim()
+    ? `<span class="small">reported by ${esc(s.tested_by)}${
+         s.tested_on?' · '+esc(s.tested_on):''}</span>` : '';
+  let claim = '';
+  if (CAN('uat')){
+    if (!held) claim = `<button type="button" class="ho-claim tester-ok"
+        data-i="${i}" title="Tell everyone you are running this check">Claim</button>`;
+    else if (mine || CAN('edit')) claim = `<button type="button"
+        class="ho-release tester-ok" data-i="${i}"
+        title="Hand it back to the pool">Release</button>`;
+  }
+  return `
+    <div class="ho-uatbar">
+      ${held ? `<span class="ho-chip${mine?' me':''}">claimed by ${esc(held)}</span>`
+             : '<span class="small">unclaimed</span>'}
+      ${claim}
+      <span class="spacer"></span>
+      ${stamp}
+    </div>
+    <textarea class="ho-sres tester-ok" data-i="${i}"
+              placeholder="What happened when you ran it? (the admin reads this
+before paying the merit)">${esc(s.result||'')}</textarea>
+    ${CAN('uat') ? `<div class="ho-uatbar">
+      <select class="ho-sresst tester-ok" data-i="${i}"
+              title="What this run showed">
+        <option value="wip"${s.status==='wip'?' selected':''}>Still checking</option>
+        <option value="done"${s.status==='done'?' selected':''}>Passed</option>
+        <option value="failed"${s.status==='failed'?' selected':''}>Failed</option>
+      </select>
+      <button type="button" class="ho-submit tester-ok" data-i="${i}"
+              title="Send this result to the admin for review">Submit result</button>
+      <span class="spacer"></span>
+      ${ME() ? '' : '<span class="small bad">your account has no player name — '
+                  + 'ask the admin to bind one before reporting</span>'}
+    </div>` : ''}`;
+}
+
+// Append-only per-idea notes. Rendered for everyone, writable by anyone with
+// `uat` (which is every role) -- it is how a tester, who has no `edit`, adds
+// information to an item at all. There is no edit or delete: see _comment_write.
+function commentsHTML(){
+  const rows = (HO.comments||[]).map(c=>`
+    <div class="ho-item">
+      <div class="ho-row"><b style="flex:1">${esc(c.author||'—')}</b>
+        <span class="small">${esc(c.date||'')}</span></div>
+      <div class="ho-ctext">${esc(c.text)}</div>
+    </div>`).join('');
+  return `
+    <label style="margin-top:10px">Notes &amp; findings
+      ${(HO.comments||[]).length?`<span class="ho-badge">${HO.comments.length}</span>`:''}
+      <span class="small">(internal, append-only — once added, a note stays)</span></label>
+    ${rows||'<p class="small">None.</p>'}
+    ${CAN('uat') ? `<textarea id="ho_ctext" class="tester-ok"
+        placeholder="Add a note — repro details, a side effect you spotted, anything
+the builder should know"></textarea>
+      <button type="button" id="ho_addc" class="tester-ok">+ Add note</button>` : ''}`;
 }
 
 function renderHandoff(){
@@ -4753,6 +5206,7 @@ function renderHandoff(){
                  value="${esc(s.tester||'')}">` : ''}
       <textarea class="ho-st" data-i="${i}"
                 style="height:${hpx(s.step_h)}">${esc(s.step)}</textarea>
+      ${s.kind==='uat' ? uatStepBarHTML(s, i) : ''}
     </div>`).join('');
   const paid = HO.uat_credits.filter(c=>c.awarded).length;
   const uc = HO.uat_credits.map((c,i)=>`
@@ -4793,6 +5247,7 @@ function renderHandoff(){
         not just the reporter)</span></label>
       ${uc||'<p class="small">None.</p>'}
       <button type="button" id="ho_addu">+ Add validator</button>
+      ${commentsHTML()}
       ${gates.length?`<p class="small ho-gate">Autopilot will not resume this item:
         ${gates.join(' and ')}.</p>`:''}
     </div>`;
@@ -4832,6 +5287,19 @@ function renderHandoff(){
     HO.manual_steps[+e.target.dataset.i].step = e.target.value; });
   el.querySelectorAll('.ho-sr').forEach(t=>t.oninput = e=>{
     HO.manual_steps[+e.target.dataset.i].tester = e.target.value; });
+  el.querySelectorAll('.ho-sres').forEach(t=>t.oninput = e=>{
+    HO.manual_steps[+e.target.dataset.i].result = e.target.value; });
+  // The three tester writes. Each posts a single step (or one comment) to its
+  // own endpoint and then reloads, rather than joining the form's Save: a
+  // tester has no `edit`, so /api/save would refuse them at the route table.
+  el.querySelectorAll('.ho-claim').forEach(b=>b.onclick = e=>
+    uatClaim(+e.target.dataset.i, false));
+  el.querySelectorAll('.ho-release').forEach(b=>b.onclick = e=>
+    uatClaim(+e.target.dataset.i, true));
+  el.querySelectorAll('.ho-submit').forEach(b=>b.onclick = e=>
+    uatSubmit(+e.target.dataset.i));
+  const addc = $('#ho_addc');
+  if (addc) addc.onclick = ()=>addComment();
   el.querySelectorAll('.ho-del').forEach(b=>b.onclick = e=>{
     const i = +e.target.dataset.i;
     syncHandoffHeights();
@@ -4845,6 +5313,61 @@ function renderHandoff(){
     }
     else HO.manual_steps.splice(i,1);
     renderHandoff(); });
+  // The panel re-renders itself on every change, which resurrects the controls
+  // select() disabled. Re-lock here or a read-only session gets a live form back
+  // the first time anything in the panel redraws.
+  lockFormIfReadOnly();
+}
+
+// ---- The tester lane: claim, report, comment ------------------------------
+// All three go through one helper because they share a contract: one narrow
+// write, then reload so the page shows what the server actually stored (these
+// endpoints stamp fields the browser is not allowed to choose).
+async function testerWrite(url, body, ok){
+  const idea = DATA.ideas[sel]; if (!idea) return;
+  try {
+    const r = await api(url, {method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(Object.assign({id: idea.id}, body))});
+    const d = await r.json();
+    if (!d.ok){
+      banner('err', (d.errors||[d.message||'refused']).join(' '));
+      return;
+    }
+    banner('ok', d.message || ok);
+    // Reload rather than patch in place: the server may have moved the status,
+    // added a uat_credits row and stamped tested_by/tested_on in one write, and
+    // guessing at that from here is how the two copies drift.
+    const keep = idea.id;
+    await load();
+    const i = DATA.ideas.findIndex(x=>x.id===keep);
+    if (i>=0) select(i);
+  } catch(e){ banner('err', 'write failed: '+e.message); }
+}
+
+function uatClaim(i, release){
+  const s = HO.manual_steps[i]; if(!s) return;
+  testerWrite('/api/uat-claim', {index:i, step:(s.step||'').trim(),
+                                 release: !!release},
+              release ? 'Released.' : 'Claimed.');
+}
+
+function uatSubmit(i){
+  const s = HO.manual_steps[i]; if(!s) return;
+  const el = $('#handoff');
+  const sel_ = el && el.querySelector('.ho-sresst[data-i="'+i+'"]');
+  testerWrite('/api/uat-result',
+              {index:i, step:(s.step||'').trim(),
+               status: sel_ ? sel_.value : 'wip',
+               result: (s.result||'').trim()},
+              'Result recorded.');
+}
+
+function addComment(){
+  const box = $('#ho_ctext'); if(!box) return;
+  const text = box.value.trim();
+  if (!text){ banner('err','Write something first.'); return; }
+  testerWrite('/api/idea-comment', {text}, 'Note added.');
 }
 
 // ---- UAT validators: add a player, and pay/take back their 1 merit --------
@@ -4932,6 +5455,11 @@ function handoffOut(){
       o.blocker = !!s.blocker;
       const tester = (s.tester||'').trim();
       if (tester) o.tester = tester;
+      // Emitted only when set, matching normalize_step()/emit_list_field(): a
+      // step nobody has tested must serialize exactly as it did before these
+      // fields existed, or every save churns the file.
+      ['claimed_by','result','tested_by','tested_on'].forEach(k=>{
+        const v = (s[k]||'').trim(); if (v) o[k] = v; });
       return keepH(o, s, ['step_h']);
     });
   const uc = HO.uat_credits
@@ -5548,7 +6076,8 @@ async function pfSearch(){
 // DATA.ideas — no new read endpoint — and each control writes just its own step
 // through /api/step-status.
 const STEP_KINDS = ['toolset','uat','admin'];
-let QUEUE = {kind:'toolset', filter:'', showDone:false, showAwarded:false};
+let QUEUE = {kind:'toolset', filter:'', showDone:false, showAwarded:false,
+             mine:false};
 
 // Every step of the wanted kinds, flattened, with its owning idea.
 function queueRows(kinds){
@@ -5564,6 +6093,9 @@ function queueRows(kinds){
       const k = STEP_KINDS.indexOf(s.kind)>=0 ? s.kind : 'admin';
       if (kinds.indexOf(k)<0) return;
       if (!QUEUE.showDone && s.status==='done') return;
+      // "Only mine" is what turns this from a backlog into a worklist for a
+      // tester who has claimed a handful of checks.
+      if (QUEUE.mine && !isMine(s.claimed_by||'')) return;
       out.push({idea:it, step:s, index:i, kind:k});
     });
   });
@@ -5603,13 +6135,41 @@ function queueRowHTML(r, withTester){
     ? `<input class="tester q_tester" list="q_testers" placeholder="who can test?"
               value="${esc(testerKey(s))}" data-id="${esc(r.idea.id)}" data-i="${r.index}">`
     : '';
+  // The status/kind/tester controls all write through /api/step-status, which
+  // needs `edit`. A tester gets the claim + result pair instead: same row, a
+  // different (and much narrower) endpoint behind it.
+  const admin = CAN('edit') ? `${tester}${kindSel}${sel(s.status||'open')}` : '';
+  const held = (s.claimed_by||'').trim();
+  const stamp = (s.tested_by||'').trim()
+    ? `<span class="qsub">reported by ${esc(s.tested_by)}${
+         s.tested_on?' · '+esc(s.tested_on):''}</span>` : '';
+  let mineBits = '';
+  if (withTester && CAN('uat')){
+    const claimBtn = !held
+      ? `<button class="q_claim" data-id="${esc(r.idea.id)}" data-i="${r.index}"
+                 >Claim</button>`
+      : ((isMine(held) || CAN('edit'))
+          ? `<button class="q_release" data-id="${esc(r.idea.id)}" data-i="${r.index}"
+                     >Release</button>` : '');
+    mineBits = `
+      <div class="qctl qclaim">
+        ${held?`<span class="ho-chip${isMine(held)?' me':''}">claimed by ${esc(held)}</span>`
+              :'<span class="qsub">unclaimed</span>'}
+        ${claimBtn}
+        <button class="q_open" data-goto="${esc(r.idea.id)}"
+                title="Open the item to write up what you found">Report…</button>
+        ${stamp}
+      </div>`;
+  }
   return `<div class="qrow${s.status==='done'?' done':(s.status==='failed'?' failed':'')}">
     <div class="qmeta">
       <button class="qtitle" data-goto="${esc(r.idea.id)}">${esc(r.idea.title||r.idea.id)}</button>
       <span class="qsub">${esc(dispAmp(g))}${s.blocker?' · <span class="qblock">BLOCKER</span>':''}${s.status==='failed'?' · <span class="qfail">FAILED</span>':''}</span>
     </div>
     <div class="qtext">${esc(s.step||'')}</div>
-    <div class="qctl">${tester}${kindSel}${sel(s.status||'open')}</div>
+    ${admin?`<div class="qctl">${admin}</div>`:''}
+    ${mineBits}
+    ${(s.result||'').trim()?`<div class="qtext qresult">${esc(s.result)}</div>`:''}
   </div>`;
 }
 
@@ -5687,8 +6247,35 @@ async function stepWrite(id, index, patch){
   renderQueue();
 }
 
+// Claim/release from the queue. Deliberately not stepWrite(): that posts to
+// /api/step-status, which needs `edit`. This is the tester's own endpoint, and
+// it is the reason the queue is usable by a role that cannot save.
+async function queueClaim(id, index, release){
+  const it = DATA.ideas.find(x=>x.id===id);
+  const s = it && (it.manual_steps||[])[index];
+  if (!s) return;
+  try {
+    const r = await api('/api/uat-claim',
+      {method:'POST', headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({id, index, step:s.step, release: !!release})});
+    const res = await r.json();
+    if (!res.ok){
+      banner('bad', res.message || (res.errors||[]).join('\n') || 'Claim failed.');
+      return;
+    }
+    // The server may have moved the status as well as the claim, so take its
+    // copy of the idea rather than patching two fields and hoping.
+    if (res.idea) Object.assign(it, res.idea);
+    baseVersion = res.version || baseVersion;
+    if (res.hashes && baseHashes) Object.assign(baseHashes, res.hashes);
+    if (selRef && selRef.id === id){ initHandoff(selRef); formSnapshot = snapshot(); }
+    banner('ok', res.message || 'Done.');
+    renderQueue();
+  } catch(e){ banner('bad', 'Claim failed: '+e.message); }
+}
+
 function openQueue(kind){
-  QUEUE = {kind, filter:'', showDone:false, showAwarded:false};
+  QUEUE = {kind, filter:'', showDone:false, showAwarded:false, mine:false};
   const uat = kind==='uat';
   modalHTML(`<h2>${uat?'UAT Queue':'Toolset Queue'}</h2>
     <p class="small">${uat
@@ -5703,6 +6290,9 @@ function openQueue(kind){
       <input id="q_filter" placeholder="filter…" autocomplete="off">
       <label class="chk"><input type="checkbox" id="q_done"> show done</label>
       <label class="chk"><input type="checkbox" id="q_awarded"> show awarded ideas</label>
+      ${uat && CAN('uat') && ME()
+        ? '<label class="chk"><input type="checkbox" id="q_mine"> only mine</label>'
+        : ''}
       <button id="q_copy">Copy as checklist</button>
     </div>
     <div class="qbar" style="margin-top:0;"><span class="pf-meta" id="q_count"></span></div>
@@ -5714,6 +6304,8 @@ function openQueue(kind){
   $('#q_filter').oninput=e=>{ QUEUE.filter=e.target.value.trim(); renderQueue(); };
   $('#q_done').onchange=e=>{ QUEUE.showDone=e.target.checked; renderQueue(); };
   $('#q_awarded').onchange=e=>{ QUEUE.showAwarded=e.target.checked; renderQueue(); };
+  const qm=$('#q_mine');
+  if (qm) qm.onchange=e=>{ QUEUE.mine=e.target.checked; renderQueue(); };
   $('#q_copy').onclick=()=>{
     const txt=$('#qresults').dataset.plain||'';
     navigator.clipboard.writeText(txt).then(
@@ -5728,12 +6320,143 @@ function openQueue(kind){
     else if (t.classList.contains('q_tester')) stepWrite(id, i, {tester:t.value});
   });
   $('#qresults').addEventListener('click', e=>{
+    const c=e.target.closest('.q_claim, .q_release');
+    if (c){
+      queueClaim(c.dataset.id, +c.dataset.i, c.classList.contains('q_release'));
+      return;
+    }
     const b=e.target.closest('[data-goto]'); if(!b) return;
     $('#modalbox').classList.remove('wide'); closeModal();
     guard(()=>{ if (view!=='list') setView('list'); selectById(b.dataset.goto, -1); });
   });
   renderQueue();
   $('#q_filter').focus();
+}
+
+// ---- UAT Review: the admin's side of the tester lane ----------------------
+// A tester records a result and lands an UNPAID uat_credits row (see
+// _uat_result in the Python half). This is where those get read and paid.
+//
+// No read endpoint: /api/data already carries the whole document, so the panel
+// is a scan over DATA.ideas. Award reuses /api/uat-award -- the one path that
+// writes the live meritdb, and the only place `awarded` is ever set.
+let REVQ = {showAll:false};
+
+// Every unpaid UAT credit, joined to whatever that player reported on the item.
+function reviewRows(){
+  const out=[];
+  DATA.ideas.forEach(it=>{
+    (it.uat_credits||[]).forEach(c=>{
+      const who = (typeof c==='string' ? c : (c.player||'')).trim();
+      if (!who || (typeof c!=='string' && c.awarded)) return;
+      const steps = (it.manual_steps||[]).filter(s=>
+        s && typeof s==='object' && s.kind==='uat'
+        && (s.tested_by||'').trim().toLowerCase() === who.toLowerCase());
+      // A credit somebody typed in by hand has no report behind it. That is
+      // legitimate (the admin crediting a player who told them in Discord), so
+      // it is shown -- just marked, because there is nothing here to review.
+      if (!steps.length && !REVQ.showAll) return;
+      out.push({idea:it, player:who, steps});
+    });
+  });
+  const when = r => r.steps.map(s=>s.tested_on||'').sort().pop() || '';
+  out.sort((a,b)=> String(when(b)).localeCompare(String(when(a)))
+                || String(a.idea.title||'').localeCompare(String(b.idea.title||'')));
+  return out;
+}
+
+function reviewRowHTML(r){
+  const reports = r.steps.map(s=>`
+    <div class="qtext">${esc(s.step||'')}
+      <span class="ho-badge${s.status==='failed'?' bad':''}">${
+        esc(QSTEP_LABEL[s.status]||s.status||'')}</span>
+      ${(s.result||'').trim()?`<div class="qresult">${esc(s.result)}</div>`:''}
+    </div>`).join('')
+    || '<div class="qtext"><span class="small">No recorded result — this credit '
+       + 'was added by hand.</span></div>';
+  const when = r.steps.map(s=>s.tested_on||'').sort().pop() || '';
+  return `<div class="qrow">
+    <div class="qmeta">
+      <button class="qtitle" data-goto="${esc(r.idea.id)}">${esc(r.idea.title||r.idea.id)}</button>
+      <span class="qsub"><b>${esc(r.player)}</b>${when?' · '+esc(when):''}</span>
+    </div>
+    ${reports}
+    <div class="qctl qclaim">
+      <button class="rv_award" data-id="${esc(r.idea.id)}"
+              data-p="${esc(r.player)}"
+              title="Credit 1 merit in the live merit database">Award +1</button>
+      <button class="rv_drop" data-id="${esc(r.idea.id)}" data-p="${esc(r.player)}"
+              title="Remove the credit without paying it">Dismiss</button>
+      <button class="q_open" data-goto="${esc(r.idea.id)}">Open item</button>
+    </div>
+  </div>`;
+}
+
+function renderReview(){
+  const box=$('#rv_results'); if(!box) return;
+  const rows = reviewRows();
+  $('#rv_count').textContent = rows.length
+    ? rows.length + (rows.length===1?' credit':' credits') + ' waiting to be paid'
+    : 'Nothing waiting.';
+  box.innerHTML = rows.length
+    ? rows.map(reviewRowHTML).join('')
+    : '<p class="small">No unpaid UAT credits. When a tester records a result, '
+      + 'it appears here.</p>';
+}
+
+function openReview(){
+  REVQ = {showAll:false};
+  modalHTML(`<h2>UAT Review</h2>
+    <p class="small">Every UAT credit that has not been paid, with what the
+      tester actually reported. <b>Award +1</b> writes the live merit database;
+      <b>Dismiss</b> removes the credit without paying it. Neither touches the
+      item's status.</p>
+    <div class="qbar">
+      <label class="chk"><input type="checkbox" id="rv_all">
+        also show credits with no recorded result</label>
+      <span class="spacer"></span>
+      <span class="pf-meta" id="rv_count"></span>
+    </div>
+    <div id="rv_results"></div>
+    <div class="bar"><span class="spacer"></span><button id="rv_close">Close</button></div>`);
+  $('#modalbox').classList.add('wide');
+  $('#rv_close').onclick=()=>{ $('#modalbox').classList.remove('wide'); closeModal(); };
+  $('#rv_all').onchange=e=>{ REVQ.showAll=e.target.checked; renderReview(); };
+  $('#rv_results').addEventListener('click', async e=>{
+    const a=e.target.closest('.rv_award'), d=e.target.closest('.rv_drop');
+    if (a){ await reviewAward(a.dataset.id, a.dataset.p); return; }
+    if (d){ await reviewDismiss(d.dataset.id, d.dataset.p); return; }
+    const g=e.target.closest('[data-goto]'); if(!g) return;
+    $('#modalbox').classList.remove('wide'); closeModal();
+    guard(()=>{ if (view!=='list') setView('list'); selectById(g.dataset.goto, -1); });
+  });
+  renderReview();
+}
+
+// Pay one credit. Same endpoint as the form's Award +1 button — meritdb first,
+// and the roadmap only records it if that write succeeded (_uat_write).
+async function reviewAward(id, player){
+  const it = DATA.ideas.find(x=>x.id===id); if(!it) return;
+  if (!confirm('Grant 1 merit point to ' + player + ' for validating "'
+    + (it.title||id) + '"?\n\nThe game DB is written now; the roadmap only '
+    + 'records it if that write succeeds.')) return;
+  const ok = await commit('/api/uat-award', false,
+                          {stay:true, extra:{idea_id:id, player}});
+  if (ok !== false) renderReview();
+}
+
+// Drop an unpaid credit. A plain document save — the same thing the form's ×
+// button does — so it goes through /api/save and its permission check.
+async function reviewDismiss(id, player){
+  const it = DATA.ideas.find(x=>x.id===id); if(!it) return;
+  if (!confirm('Remove ' + player + "'s unpaid UAT credit on \""
+    + (it.title||id) + '"?\n\nTheir recorded result stays on the step; only '
+    + 'the credit goes.')) return;
+  it.uat_credits = (it.uat_credits||[]).filter(c=>
+    (typeof c==='string' ? c : (c.player||'')).trim().toLowerCase()
+      !== player.toLowerCase());
+  const ok = await commit('/api/save', false, {stay:true});
+  if (ok !== false) renderReview();
 }
 
 function openGroups(){
@@ -6143,6 +6866,7 @@ $('#mpending').onclick=openPending;
 $('#mpalette').onclick=openPalette;
 $('#mtoolq').onclick=()=>openQueue('toolset');
 $('#muatq').onclick=()=>openQueue('uat');
+$('#muatr').onclick=openReview;
 $('#mchanges').onclick=openChanges;
 $('#maudit').onclick=openAudit;
 $('#logout').onclick=async ()=>{

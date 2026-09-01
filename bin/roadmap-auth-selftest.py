@@ -68,6 +68,26 @@ def test_roles() -> None:
     check("every role's caps are real capabilities",
           all(c in A.CAPS for caps in A.ROLES.values() for c in caps))
 
+    # The tester tier. Its whole security story is that it has no `edit`: the
+    # three `uat` endpoints are then the only way it can write roadmap.yaml, so
+    # "UAT fields only" needs no per-field filter on /api/save. A later reshuffle
+    # of CAPS or ROLES that hands it `edit` (or `merit`) would silently turn it
+    # into a DM, so assert the exclusions rather than trusting the table.
+    tester = A.User("t", "tester")
+    check("tester can browse the backlog", tester.can("view"))
+    check("tester can record UAT work", tester.can("uat"))
+    check("tester can watch the server monitor", tester.can("serverlog"))
+    for cap in sorted(A.TESTER_FORBIDDEN):
+        check(f"tester cannot {cap}", not tester.can(cap))
+    check("TESTER_FORBIDDEN names only real capabilities",
+          A.TESTER_FORBIDDEN <= set(A.CAPS))
+    check("tester holds nothing outside view/uat/serverlog",
+          tester.caps == {"view", "uat", "serverlog"})
+    # Everyone who runs a queue needs `uat`, or the claim/report buttons are
+    # dead for the people who do most of the triage.
+    check("admin and dm can also record UAT work",
+          A.User("a", "admin").can("uat") and A.User("d", "dm").can("uat"))
+
 
 def test_users_and_sessions() -> None:
     section("Users and sessions")

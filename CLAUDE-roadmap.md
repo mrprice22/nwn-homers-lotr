@@ -80,6 +80,7 @@ Each entry under `ideas:` is one backlog item:
 | `dupe_of` | no | Another item's `id`; merges this submitter's credit into that canonical item. |
 | `design_questions` | no | **Internal — never player-visible.** List of `{question, status, answer}`; `status` is `open` or `answered`. See below. |
 | `manual_steps` | no | **Internal — never player-visible.** List of `{step, status, blocker}`: toolset work only the admin can do (waypoint placement, loot placement) and UAT scripts. See below. |
+| `comments` | no | **Internal — never player-visible.** Append-only list of `{author, date, text}`: notes and findings from whoever is looking at the item. `author`/`date` are stamped by the server; there is no route that edits or deletes an entry, which is what makes it safe to hand a `tester`. Nothing renders it — it is not `notes` and never becomes `notes`. |
 | `uat_credits` | no | **Internal — never player-visible.** List of `{player, awarded, date}`: the players who helped **validate** this item's fix, each worth **1 merit**. Independent of `player`/`type` — a validator need not be the reporter, and several can be credited on one item. `awarded: true` is the same kind of idempotence flag as `merit_awarded`: **never hand-edit it and never set it from an agent** — it is written only by the editor's per-validator **Award +1** / **Revoke** buttons, which do the `meritdb` write first. Adding a *name* to the list is safe and unpaid; only the button pays. |
 
 **Unknown fields.** A key outside this table is **preserved** on save (the editor emits it
@@ -174,6 +175,8 @@ the campaign DB on each use.
 | Root cause, scripts, resrefs, DB tables, design deviations | `impl_notes` |
 | UAT scripts, waypoint/loot placement, admin to-dos | `manual_steps` |
 | A call only the admin can make | `design_questions` |
+| What a tester saw when they ran a check | `manual_steps[].result` |
+| A finding that fits no particular step | `comments` |
 
 `gen-roadmap.py` renders `notes` and deliberately renders none of the others.
 
@@ -264,7 +267,8 @@ shipped: `kind` and `tester` were unmodelled for months, so each save re-stamped
 validated" predicate above. `tests/check_roadmap_step_fields.py` is the gate — it asserts
 the page's `HO_OWNED` list covers every key `normalize_step()` can emit, so adding a field
 to the serializer without teaching the panel fails the repack. **Add a new step field in
-three places at once: `normalize_step()`, `initHandoff()` and `handoffOut()`.**
+three places at once: `normalize_step()`, `initHandoff()` and `handoffOut()`** — and name
+it in the gate's own `PROBE`.
 (A new step *state* is a different list: `STEP_STATUS` server-side, plus the page's
 `STEP_ORDER` / `STEP_LABEL` / `QSTEP_LABEL` — one ordered constant now feeds both the
 hand-off dropdown and the two queue dropdowns, so they cannot drift apart.)
@@ -318,6 +322,11 @@ These are hard rules — follow them exactly:
   touch `merit_awarded` (nor any `uat_credits[].awarded`) — those steps credit Merit
   to a player in the live game database
   and is the admin's call, made with the editor's **Award merit** button.
+- **The tester lane belongs to real people, not to agents.** Never write
+  `claimed_by`, `result`, `tested_by`, `tested_on` or a `comments` entry — those record
+  that a human ran a check or looked at the item, and an agent filling them in makes the
+  admin's UAT Review show work nobody did. Write the check itself (a `manual_steps` entry
+  with `kind: uat`) and stop there.
 - **Blocked on a design decision → `status: design`.** If an item needs a call only the
   admin can make (mechanics, balance, lore, pricing, UX), set `status: design` and append
   the question(s) to `design_questions` with `status: open` and `answer: null`. **Do not**
@@ -484,6 +493,17 @@ What it does:
     unspecified* sorts last and is the triage pile: fill in the tester inline (the input
     is backed by a datalist of values already in use). That field is also what players
     read on the in-game board.
+    Each UAT row also carries the **claim** half of the tester lane: who holds the
+    check, a **Claim**/**Release** button (`POST /api/uat-claim`) and **Report…**,
+    which opens the item so the result can be written up. **only mine** filters the
+    queue down to the checks this account has claimed — that is what turns a backlog
+    into a worklist. For a role with no `edit` these are the *only* controls on the
+    row; the status/kind/tester dropdowns need `edit` and are not rendered.
+  - **UAT Review** (`merit`) — the other end of that lane: every **unpaid**
+    `uat_credits` entry, shown next to the step and the `result` the tester recorded.
+    **Award +1** pays it through `/api/uat-award`; **Dismiss** drops the credit and
+    keeps the report. Tick *also show credits with no recorded result* to see the ones
+    added by hand. See [The `tester` role](#the-tester-role).
   - Both queues carry **two filter checkboxes**, both defaulting to *hidden*: *show done*
     (step-level — a `done` step) and *show awarded ideas* (idea-level — every step of an
     idea whose own `status` is `awarded`, i.e. finished business whose leftover steps would
@@ -627,15 +647,82 @@ request handlers.
 | `llm_review` | the LLM Changes panel, including approve / reject / reroll |
 | `palette` | Palette Finder and its refresh |
 | `serverlog` | the `/monitor` page and the realm log tail |
+| `merit_view` | reading merit balances and pending redemptions |
+| `uat` | claiming a UAT step, recording its result, adding a `comments` note |
 | `submit` | creating new ideas (reserved for a future `player` role) |
 
 | Role | Has |
 |---|---|
 | `admin` | everything |
 | `dm` | everything **except** `promote_shipped` and `merit` |
+| `tester` | **only** `view`, `uat` and `serverlog` |
 
 So a DM runs the backlog day to day — edits, triage, the queues, the LLM review
 panel, and even Publish — but cannot mark anything shipped and cannot pay merit.
+
+### The `tester` role
+
+A trusted player who helps validate fixes. They browse the **whole** backlog
+read-only, watch the Server Monitor, claim a UAT check so nobody duplicates it,
+record what they saw, and add notes to an item. They do **not** submit ideas —
+those still come in through Discord — and they can never pay themselves.
+
+**The thing to understand about this tier: it has no `edit` at all.** That is
+the whole security story, and it is deliberately not a "weaker DM". `/api/save`
+posts the **entire** `ideas` array and writes what it is given, so any role
+holding `edit` can rewrite any field of any item; a per-field filter on that
+route would be a large thing to get right and a larger thing to keep right as
+the form grows. Instead a tester's only write paths are three narrow endpoints,
+each of which patches exactly one step (or appends one comment):
+
+| Route | Cap | What it does |
+|---|---|---|
+| `/api/uat-claim` | `uat` | Sets or clears `claimed_by` on a `kind: uat` step, and nudges `open → wip`. Refuses a step somebody else holds. |
+| `/api/uat-result` | `uat` | Writes the step's `result`, stamps `tested_by`/`tested_on`, sets the status (`wip`/`failed`/`done` only), and adds an **unpaid** `uat_credits` entry. |
+| `/api/idea-comment` | `uat` | Appends one `{author, date, text}` to `comments`. Append-only — no edit route, no delete route. |
+
+"UAT fields only" therefore falls out of the route table itself rather than out
+of a filter, and `enforce_idea_permissions()` needed no change: a tester never
+reaches a document write at all.
+
+**Every player-identifying value is stamped by the server, never posted.**
+`claimed_by`, `tested_by`, `uat_credits[].player` and `comments[].author` all
+come from the account's `player_name` column — because these names decide who
+gets paid merit, and a name off the wire is a name the caller chose. An account
+with no `player_name` is **refused** on claim and result (with the CLI line to
+fix it) rather than credited to a guess:
+
+```
+python3 bin/roadmap-users.py add bilbo --role tester --player "Bilbo"
+python3 bin/roadmap-users.py player bilbo "Bilbo"     # or bind one later
+```
+
+The name must be one `meritdb` (or `roadmap-merit-aliases.json`) resolves, or
+the **Award +1** button will not find an account to pay.
+
+**Reviewing and paying.** A recorded result lands an unpaid `uat_credits` row.
+The admin's **UAT Review** panel (sidebar, `merit`) lists every unpaid credit
+next to what the tester actually reported, with **Award +1** (the existing
+`/api/uat-award` — meritdb first, YAML only if that succeeded) and **Dismiss**
+(drops the credit, keeps the report). Nothing a tester does can set `awarded`.
+
+**What a tester can still move:** a UAT step's own status, up to `done`. That is
+what "complete a UAT task" means, and it does take the item off the in-game
+Recent Updates board's "in testing" list — `open_uat_steps()` tests
+`status != done` and knows nothing about review. The merit is the reviewed gate,
+not the board. Set the step back to `open` if a tester closed one early.
+
+Two smaller notes. A tester reads `impl_notes`, `design_questions`,
+`manual_steps` and `uat_credits` on every item — fields this document calls
+internal. There is no per-field read filter and seeing the backlog is the point.
+And `merit_view` is a **split out of `view`**, not a new power: `/api/merit`,
+`/api/meritplayers` and `/api/pending` used to be `view`, which would have shown
+a tester every player's balance and pending redemptions.
+
+(A `tester` needs `player` set as well as a role — see
+[The `tester` role](#the-tester-role) above. `list` marks an unbound one
+`(unbound)`; until it is set they can browse and comment but not claim or
+report.)
 
 **What the DM ceiling does *not* restrict:** `manual_steps`, `design_questions`
 and the `uat_credits` list itself stay fully editable on **any** item, including
@@ -661,6 +748,11 @@ looks at exactly four things: whether an item is in a shipped status, whether a
 shipped item still exists, `merit_awarded`, and `awarded` inside `uat_credits`.
 Everything else on a shipped item passes through untouched.
 
+The narrow `uat` routes are the counter-example that proves the rule: because
+they patch one step rather than accepting a document, route gating **is** enough
+for them, and that is exactly why the `tester` role could be added without
+extending the field-level check at all.
+
 `ROUTE_CAPS` in `bin/roadmap-editor.py` **fails closed**: a path missing from the
 table is denied, so adding an endpoint without deciding who may call it breaks
 loudly instead of shipping open.
@@ -677,7 +769,9 @@ is a much bigger thing to get right than a script that runs here.
 
 ```
 python3 bin/roadmap-users.py add jane --role dm --name "Jane (DM)"
-python3 bin/roadmap-users.py list          # accounts, roles, last login
+python3 bin/roadmap-users.py add bilbo --role tester --player "Bilbo"
+python3 bin/roadmap-users.py player bilbo "Bilbo"   # bind/rebind the game name
+python3 bin/roadmap-users.py list          # accounts, roles, player names, last login
 python3 bin/roadmap-users.py roles         # the capability table above
 python3 bin/roadmap-users.py passwd jane   # also revokes their sessions
 python3 bin/roadmap-users.py role jane admin
