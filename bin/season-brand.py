@@ -467,7 +467,7 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
                     "season-brand rule is stale")
             return out
 
-        new = href(s,   "wiki",          wiki)
+        new = href(s,   "live-wiki",     cfg["live_wiki_url"])
         new = href(new, "live-roadmap",  f'{cfg["live_wiki_url"]}manual/Roadmap')
         if new != s:
             notes.append("public wiki/roadmap links")

@@ -1867,6 +1867,26 @@ def publish_to_live_realm(body: str) -> tuple[bool, str]:
     if not ok:
         return False, f"live realm publish FAILED: {msg}"
     src.write_text(SRC_ROADMAP.read_text(encoding="utf-8"), encoding="utf-8")
+
+    # The credit sidecar travels with the page, for the same reason the page
+    # travels: it is the other half of what a player sees. Without it the live
+    # wiki renders player pages with no Ideas section at all, so a player who
+    # reported a bug can read about it on the roadmap but is credited for it
+    # nowhere -- and that credit is the whole point of the merit system.
+    #
+    # It is NOT committed (gitignored on both realms, derived from roadmap.yaml
+    # on every gen-roadmap.py run). It only has to exist in the live realm's
+    # working tree, because that is where that realm's own wiki build reads it.
+    # Best-effort like everything else here: a missing or unwritable sidecar
+    # must not cost this realm its publish.
+    try:
+        credits = GEN.CREDITS_PATH
+        if credits.is_file():
+            (target / credits.name).write_text(
+                credits.read_text(encoding="utf-8"), encoding="utf-8")
+    except OSError:
+        pass
+
     git_ok, git_msg = git_publish(target, LIVE_PUBLISH_PATHS, rebase_first=True)
     return git_ok, (f"live realm ({target.name}): {msg}; {git_msg}"
                     + live_target_mismatch(target))
@@ -1895,6 +1915,7 @@ ROUTE_CAPS: dict[str, str] = {
     "/api/meritplayers": "view",     # read-only merit views: a DM may look,
     "/api/merit": "view",            # but /api/award is gated on `merit`
     "/api/pending": "view",
+    "/api/audit": "audit_view",
     "/monitor": "serverlog",
     "/api/serverlog": "serverlog",
     "/api/palette": "palette",
@@ -1913,7 +1934,7 @@ ROUTE_CAPS: dict[str, str] = {
 # Paths whose real route is a prefix of the request path (the dispatch chains
 # use startswith for these). Longest first so /api/meritplayers wins.
 PREFIX_ROUTES = ("/api/meritplayers", "/api/serverlog", "/api/changes",
-                 "/api/palette", "/api/merit", "/index", "/monitor")
+                 "/api/palette", "/api/merit", "/api/audit", "/index", "/monitor")
 # Writes worth a line in the audit log, and the verb recorded for each.
 AUDITED = {
     "/api/save": "roadmap.save",
@@ -1977,6 +1998,32 @@ def auth_db():
     if conn is None:
         conn = _auth_local.conn = AUTH.connect()
     return conn
+
+
+# --------------------------------------------------------------------------
+# Recent changes — a read-only window onto the audit log
+# --------------------------------------------------------------------------
+# The audit table is append-only and, until now, was read only by
+# bin/roadmap-users.py. "Who published that?" / "who moved this to
+# implemented?" is a question the admin and the DMs ask each other in chat, so
+# the last week of it belongs in the editor. Read-only on purpose: there is no
+# route that writes or prunes audit rows, and there should not be — an audit
+# log you can edit from the UI it audits is decoration.
+AUDIT_DAYS = 7
+AUDIT_MAX_DAYS = 90      # the ceiling on ?days=, so a URL cannot ask for all time
+AUDIT_LIMIT = 500        # rows, newest first; a busy week is ~100
+
+
+def recent_audit(days: int = AUDIT_DAYS) -> dict:
+    """The last `days` of audit rows, newest first."""
+    since = int(time.time()) - days * 86400
+    try:
+        rows = AUTH.read_audit(auth_db(), since=since, limit=AUDIT_LIMIT)
+    except sqlite3.Error as e:
+        return {"available": False, "days": days, "rows": [], "count": 0,
+                "truncated": False, "reason": str(e)}
+    return {"available": True, "days": days, "rows": rows, "count": len(rows),
+            "truncated": len(rows) >= AUDIT_LIMIT, "limit": AUDIT_LIMIT}
 
 
 # --------------------------------------------------------------------------
@@ -2403,6 +2450,13 @@ class Handler(BaseHTTPRequestHandler):
             self._json(merit_for_player(player))
         elif self.path == "/api/pending":
             self._json(pending_requests())
+        elif self.path.startswith("/api/audit"):
+            q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            try:
+                days = max(1, min(AUDIT_MAX_DAYS, int(q.get("days", [""])[0])))
+            except ValueError:
+                days = AUDIT_DAYS
+            self._json(recent_audit(days))
         elif self.path.startswith("/api/changes"):
             if REVIEW is None:
                 return self._json({"groups": [], "batches": [], "tasks": [],
@@ -3176,6 +3230,11 @@ PAGE = r"""<!doctype html>
   .txns .st.pending { color:var(--warn); }
   .txns .st.fulfilled { color:var(--ok); }
   .txns .st.cancelled { color:var(--mut); text-decoration:line-through; }
+  .txns.audit td { vertical-align:top; }
+  .txns.audit td.nw { white-space:nowrap; }
+  .txns.audit td.det { word-break:break-word; }
+  .txns.audit tr.bad td { color:var(--err); }
+  .txns.audit tr.bad td.muted { color:var(--err); opacity:0.75; }
   #mpending.has { color:var(--warn); font-weight:600; }
   /* header external links */
   .extlinks { display:flex; gap:12px; margin:2px 0 8px; }
@@ -3306,12 +3365,16 @@ PAGE = r"""<!doctype html>
          stylesheet at that path, every cross-page link 404 - so it looked
          broken and told you nothing the editor's own board does not. Publish is
          cheap and reversible; use it.
-         The two data-brand hrefs are rewritten by bin/season-brand.py from
-         SEASON_WIKI_URL and SEASON_LIVE_WIKI_URL. -->
+         The two data-brand hrefs are rewritten by bin/season-brand.py, both
+         from SEASON_LIVE_WIKI_URL. The wiki link used to be this realm's own
+         (SEASON_WIKI_URL, i.e. dev) - it points at production now for the same
+         reason the roadmap link always did: the editor is where you check what
+         PLAYERS see, and the dev wiki is a build artefact you can read off
+         docs/ locally. -->
     <div class="extlinks">
-      <a data-brand="wiki" href="https://dev.homerslotr.com/" target="_blank" rel="noopener">This realm's wiki ↗</a>
-      <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Roadmap (live site) ↗</a>
-      <a id="monitorlink" href="/monitor" target="_blank" rel="noopener">Server monitor (all realms) ↗</a>
+      <a data-brand="live-wiki" href="https://homerslotr.com/" target="_blank" rel="noopener">Wiki ↗</a>
+      <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Roadmap ↗</a>
+      <a id="monitorlink" href="/monitor" target="_blank" rel="noopener">Server monitor ↗</a>
     </div>
     <div class="viewtoggle">
       <button id="view_board" class="on">Board</button>
@@ -3356,6 +3419,7 @@ PAGE = r"""<!doctype html>
       <button id="mtoolq" class="linkbtn">Toolset Queue</button>
       <button id="muatq" class="linkbtn">UAT Queue</button>
       <button id="mchanges" class="linkbtn">LLM Changes</button>
+      <button id="maudit" class="linkbtn">Recent changes</button>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
@@ -3485,6 +3549,7 @@ function applyCapabilities(){
     ? `${me.display_name} · ${me.role_label || me.role}` : '';
   // [button id, capability it needs]
   [['mpalette','palette'], ['mchanges','llm_review'], ['mpending','view'],
+   ['maudit','audit_view'],
    ['regen','publish'], ['publish','publish']].forEach(([id, cap])=>{
     const el = $('#'+id);
     if (el) el.style.display = CAN(cap) ? '' : 'none';
@@ -5684,6 +5749,99 @@ function openPending(){
   });
 }
 
+// ---- Recent changes: the audit log, read-only ---------------------------
+// Deliberately has no controls beyond the day window: this is the record of
+// what everyone did, and the one thing it must never offer is a way to change
+// it. `audit_view` is an admin+DM capability today; a future `player` role is
+// sketched without it, which is why this is a capability and not a role test.
+let AUDIT_DAYS_VIEW = 7;
+
+// The audit action verbs are terse by design (they are also what the CLI
+// prints). Give them a human label here rather than renaming them in the DB,
+// where old rows would then read differently from new ones.
+const AUDIT_LABELS = {
+  'login.ok':'Signed in', 'login.fail':'Failed sign-in',
+  'login.throttled':'Sign-in throttled', 'logout':'Signed out',
+  'denied.route':'Denied (route)', 'denied.field':'Denied (field)',
+  'roadmap.save':'Saved roadmap', 'roadmap.step':'Ticked a step',
+  'roadmap.regenerate':'Regenerated HTML', 'roadmap.publish':'Published',
+  'merit.award':'Awarded merit', 'merit.revoke':'Revoked merit',
+  'merit.uat_award':'Awarded UAT credit', 'merit.uat_revoke':'Revoked UAT credit',
+  'llm.action':'LLM change review', 'palette.refresh':'Refreshed palette map',
+  'user.add':'Added user', 'user.passwd':'Changed a password',
+  'user.role':'Changed a role', 'user.disable':'Disabled user',
+  'user.enable':'Enabled user', 'user.delete':'Deleted user',
+  'user.logout':'Revoked sessions'
+};
+function auditLabel(a){ return AUDIT_LABELS[a] || a; }
+// Anything that was refused, or that failed, is worth spotting at a glance.
+function auditClass(a){
+  if (a.startsWith('denied.') || a === 'login.fail' || a === 'login.throttled')
+    return 'bad';
+  return '';
+}
+function auditWhen(ts){
+  const d = new Date((ts||0)*1000);
+  if (isNaN(d)) return '';
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} `
+       + `${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function openAudit(days){
+  AUDIT_DAYS_VIEW = days || AUDIT_DAYS_VIEW;
+  modalHTML(`<h2>Recent changes</h2><p class="small">Loading the audit log…</p>`);
+  $('#modalbox').classList.add('wide');
+  api('/api/audit?days='+encodeURIComponent(AUDIT_DAYS_VIEW))
+    .then(r=>r.json()).then(d=>{
+    const close = `<div class="bar"><span class="spacer"></span>
+      <button id="au_close">Close</button></div>`;
+    if(!d.available){
+      modalHTML(`<h2>Recent changes</h2>
+        <p class="hint">Could not read the audit log: ${esc(d.reason||'unknown error')}</p>
+        ${close}`);
+      $('#au_close').onclick=closeAudit; return;
+    }
+    const rows=(d.rows||[]).map(r=>`<tr class="${auditClass(r.action||'')}">
+        <td class="muted nw">${esc(auditWhen(r.ts))}</td>
+        <td>${esc(r.username||'—')}</td>
+        <td class="muted">${esc(r.role||'')}</td>
+        <td class="nw">${esc(auditLabel(r.action||''))}</td>
+        <td class="det">${esc(r.detail||'')}</td>
+        <td class="muted nw">${esc(r.ip||'')}</td>
+      </tr>`).join('');
+    const body = d.count
+      ? `<table class="txns audit">
+          <tr><th>When</th><th>Who</th><th>Role</th><th>What</th>
+              <th>Detail</th><th>From</th></tr>
+          ${rows}</table>`
+      : `<p class="small">Nothing recorded in the last ${d.days} days.</p>`;
+    const more = d.truncated
+      ? `<p class="hint">Showing the newest ${d.limit} entries only — there are
+           more in this window. <code>python3 bin/roadmap-users.py audit</code>
+           reads the full log.</p>` : '';
+    modalHTML(`<h2>Recent changes</h2>
+      <p class="small">The last ${d.days} days of the editor's audit log, newest
+        first — every sign-in, save, publish and merit payment, by whoever made
+        it. Read-only.</p>
+      ${body}${more}
+      <div class="bar">
+        <button id="au_7" class="linkbtn">7 days</button>
+        <button id="au_30" class="linkbtn">30 days</button>
+        <span class="spacer"></span>
+        <button id="au_close">Close</button></div>`);
+    $('#au_7').onclick=()=>openAudit(7);
+    $('#au_30').onclick=()=>openAudit(30);
+    $('#au_close').onclick=closeAudit;
+  }).catch(e=>{
+    modalHTML(`<h2>Recent changes</h2>
+      <p class="hint">Could not load: ${esc(String(e))}</p>
+      <div class="bar"><span class="spacer"></span><button id="au_close">Close</button></div>`);
+    $('#au_close').onclick=closeAudit;
+  });
+}
+function closeAudit(){ $('#modalbox').classList.remove('wide'); closeModal(); }
+
 ['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_fepic','f_fhidden','f_sort']
   .forEach(id=>$('#'+id).onchange=render);
 $('#f_showawarded').onchange=render;
@@ -5702,6 +5860,7 @@ $('#mpalette').onclick=openPalette;
 $('#mtoolq').onclick=()=>openQueue('toolset');
 $('#muatq').onclick=()=>openQueue('uat');
 $('#mchanges').onclick=openChanges;
+$('#maudit').onclick=openAudit;
 $('#logout').onclick=async ()=>{
   if (!confirm('Sign out of the roadmap editor?')) return;
   try { await fetch('/api/logout', {method:'POST',

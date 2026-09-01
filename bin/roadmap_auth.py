@@ -48,6 +48,7 @@ CAPS: tuple[str, ...] = (
     "llm_review",       # accept/revert/reroll the LLM changes ledger
     "palette",          # Palette Finder, including the refresh subprocess
     "serverlog",        # the Monitor page and the realm log tail
+    "audit_view",       # read the audit log (Recent changes panel)
     "submit",           # create new ideas (reserved for a future `player` role)
 )
 
@@ -66,7 +67,8 @@ CAPS: tuple[str, ...] = (
 ROLES: dict[str, set[str]] = {
     "admin": set(CAPS),
     "dm": set(CAPS) - {"promote_shipped", "merit"},
-    # Sketch for later; not offered by the CLI until it is wanted:
+    # Sketch for later; not offered by the CLI until it is wanted. Note it has
+    # no `audit_view`: who changed what is staff information, not a player's.
     # "player": {"view", "submit"},
 }
 
