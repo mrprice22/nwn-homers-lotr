@@ -35,6 +35,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import traceback
 import urllib.parse
@@ -46,6 +47,9 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import roadmap_auth as AUTH   # noqa: E402  (path set up immediately above)
 
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
@@ -348,6 +352,13 @@ MERIT_RATE_UAT = 1       # one UAT / validation credit (not tied to idea type)
 # because Publish to Wiki & DB calls it — and because nwn_home_dir() decides
 # which SEASON's campaign DBs the editor touches, meritdb included.
 SHIPPED_STATUSES = PUB.SHIPPED_STATUSES
+# roadmap_auth.py keeps its own copy of this set so it stays importable without
+# loading gen-roadmap.py (the CLI and the self-test have no use for it). The two
+# drifting apart would silently widen or narrow what a DM may promote, so say so
+# at startup rather than discover it from a permissions bug.
+if set(SHIPPED_STATUSES) != set(AUTH.SHIPPED_STATUSES):
+    print(f"[warn] SHIPPED_STATUSES disagree: roadmap_publish={sorted(SHIPPED_STATUSES)} "
+          f"roadmap_auth={sorted(AUTH.SHIPPED_STATUSES)}", file=sys.stderr)
 nwn_home_dir = PUB.nwn_home_dir
 recent_db_path = PUB.recent_db_path
 html_to_plain = PUB.html_to_plain
@@ -1862,15 +1873,127 @@ def publish_to_live_realm(body: str) -> tuple[bool, str]:
 
 
 # --------------------------------------------------------------------------
+# Access control
+# --------------------------------------------------------------------------
+# Which capability each route needs. Two entries are matched by prefix (noted
+# below); everything else is an exact path match after the query string is
+# stripped. A route missing from this table is DENIED, so adding an endpoint
+# without deciding who may call it fails closed rather than shipping open.
+#
+# Ordering matters for the prefix entries in exactly the way the dispatch
+# chains already document: "/api/meritplayers" must be tested before the
+# "/api/merit" prefix or it is swallowed by it.
+PUBLIC_ROUTES = frozenset(("/login", "/api/login"))
+# Authenticated, but needing no particular capability.
+ANY_USER_ROUTES = frozenset(("/api/logout", "/api/me"))
+
+ROUTE_CAPS: dict[str, str] = {
+    "/": "view",
+    "/index.html": "view",
+    "/api/data": "view",
+    "/api/version": "view",
+    "/api/meritplayers": "view",     # read-only merit views: a DM may look,
+    "/api/merit": "view",            # but /api/award is gated on `merit`
+    "/api/pending": "view",
+    "/monitor": "serverlog",
+    "/api/serverlog": "serverlog",
+    "/api/palette": "palette",
+    "/api/palette/refresh": "palette",
+    "/api/changes": "llm_review",
+    "/api/changes/action": "llm_review",
+    "/api/save": "edit",
+    "/api/step-status": "edit",
+    "/api/regenerate": "publish",
+    "/api/publish": "publish",
+    "/api/award": "merit",
+    "/api/revoke": "merit",
+    "/api/uat-award": "merit",
+    "/api/uat-revoke": "merit",
+}
+# Paths whose real route is a prefix of the request path (the dispatch chains
+# use startswith for these). Longest first so /api/meritplayers wins.
+PREFIX_ROUTES = ("/api/meritplayers", "/api/serverlog", "/api/changes",
+                 "/api/palette", "/api/merit", "/index", "/monitor")
+# Writes worth a line in the audit log, and the verb recorded for each.
+AUDITED = {
+    "/api/save": "roadmap.save",
+    "/api/step-status": "roadmap.step",
+    "/api/regenerate": "roadmap.regenerate",
+    "/api/publish": "roadmap.publish",
+    "/api/award": "merit.award",
+    "/api/revoke": "merit.revoke",
+    "/api/uat-award": "merit.uat_award",
+    "/api/uat-revoke": "merit.uat_revoke",
+    "/api/changes/action": "llm.action",
+    "/api/palette/refresh": "palette.refresh",
+}
+# A save posts the whole document, so these three are the routes that need the
+# field-level check as well as the route-level one.
+DOCUMENT_WRITES = ("/api/save", "/api/regenerate", "/api/publish")
+MAX_BODY = 8 * 1024 * 1024   # the ideas array is large; unbounded is a weapon
+
+
+def route_key(path: str) -> str:
+    """Normalize a request path to the key ROUTE_CAPS is written in."""
+    path = urllib.parse.urlparse(path or "/").path or "/"
+    if path in ROUTE_CAPS or path in PUBLIC_ROUTES or path in ANY_USER_ROUTES:
+        return path
+    for prefix in PREFIX_ROUTES:
+        if path.startswith(prefix):
+            return prefix
+    return path
+
+
+def changed_summary(posted: list, disk: list, limit: int = 8) -> str:
+    """Which ideas this write actually changes, for the audit log.
+
+    "saved the document" is not a useful record when the page posts all ~600
+    items every time; the ids that moved are. Both sides are already normalized
+    by the caller, so a plain comparison is meaningful.
+    """
+    before = {i.get("id"): i for i in disk if isinstance(i, dict)}
+    after = {i.get("id"): i for i in posted if isinstance(i, dict)}
+    touched = [iid for iid in after if before.get(iid) != after[iid]]
+    touched += [f"-{iid}" for iid in before if iid not in after]
+    if not touched:
+        return "no item changes"
+    shown = ", ".join(sorted(touched)[:limit])
+    return shown + (f" (+{len(touched) - limit} more)" if len(touched) > limit else "")
+
+
+def status_label(status: str) -> str:
+    """Human label for a status id, for permission-denied messages."""
+    meta = STATUS.get(status) or {}
+    return meta.get("label") or str(status)
+
+
+# One connection per thread: sqlite3 objects are not shareable across threads,
+# and ThreadingHTTPServer hands every request its own.
+_auth_local = threading.local()
+
+
+def auth_db():
+    conn = getattr(_auth_local, "conn", None)
+    if conn is None:
+        conn = _auth_local.conn = AUTH.connect()
+    return conn
+
+
+# --------------------------------------------------------------------------
 # HTTP server
 # --------------------------------------------------------------------------
 class Handler(BaseHTTPRequestHandler):
+    # Set by _gate() before any route runs; None means "not logged in".
+    user: "AUTH.User | None" = None
+
     def log_message(self, *a):  # quiet
         pass
 
-    def _send(self, code: int, body: bytes, ctype: str):
+    def _send(self, code: int, body: bytes, ctype: str, extra: list | None = None):
         self.send_response(code)
         self.send_header("Content-Type", ctype)
+        for name, value in (extra or []):
+            self.send_header(name, value)
         # The page IS the app — there is no separate bundle to version. Without
         # this a browser can keep serving an older copy of the editor from cache
         # after a restart, which looks exactly like "the fix didn't work".
@@ -1879,8 +2002,114 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _json(self, obj, code: int = 200):
-        self._send(code, json.dumps(obj).encode("utf-8"), "application/json")
+    def _json(self, obj, code: int = 200, extra: list | None = None):
+        self._send(code, json.dumps(obj).encode("utf-8"), "application/json", extra)
+
+    # ----------------------------------------------------------------------
+    # Authentication and authorization
+    # ----------------------------------------------------------------------
+    def client_ip(self) -> str:
+        """The real client address, for the audit log and the login throttle.
+
+        Behind the Cloudflare Tunnel every request arrives from 127.0.0.1, so
+        the socket peer alone would record — and throttle — one address for the
+        whole internet. CF-Connecting-IP carries the real one, but it is a
+        header, i.e. anything a client cares to type: trust it ONLY when the
+        connection really came from loopback, which is the only place the
+        tunnel can be.
+        """
+        peer = (self.client_address or ("", ))[0] or ""
+        if peer in ("127.0.0.1", "::1"):
+            fwd = (self.headers.get("CF-Connecting-IP") or "").strip()
+            if fwd and len(fwd) <= 45 and "\n" not in fwd:
+                return fwd
+        return peer
+
+    def _cookies(self) -> dict:
+        jar = {}
+        for part in (self.headers.get("Cookie") or "").split(";"):
+            name, _, value = part.partition("=")
+            name = name.strip()
+            if name:
+                jar[name] = value.strip()
+        return jar
+
+    def _set_cookie(self, token: str, *, clear: bool = False) -> list:
+        bits = [f"{AUTH.SESSION_COOKIE}={token}", "Path=/", "HttpOnly",
+                "SameSite=Lax"]
+        # The browser talks https to Cloudflare even though this process serves
+        # plain http on loopback, so Secure is correct in the deployed shape.
+        # Testing against http://localhost directly needs it off.
+        if os.environ.get("ROADMAP_AUTH_INSECURE_COOKIE", "") not in ("1", "true"):
+            bits.append("Secure")
+        bits.append("Max-Age=0" if clear
+                    else f"Max-Age={AUTH.SESSION_DAYS * 86400}")
+        return [("Set-Cookie", "; ".join(bits))]
+
+    def _resolve_user(self):
+        token = self._cookies().get(AUTH.SESSION_COOKIE, "")
+        if not token:
+            return None
+        try:
+            return AUTH.resolve_session(auth_db(), token)
+        except sqlite3.Error as exc:
+            print(f"[warn] auth lookup failed: {exc}", file=sys.stderr)
+            return None
+
+    def _deny(self, code: int, message: str, *, wants_html: bool):
+        """Refuse a request the way its caller can actually understand.
+
+        A browser hitting a page gets a redirect to the login form; a fetch()
+        gets JSON in the shape the editor's existing error banner renders, so
+        an expired session reads as "log in again" rather than the bare
+        "NetworkError" an unhandled non-200 produces.
+        """
+        if wants_html and code == 401:
+            self.send_response(302)
+            self.send_header("Location", "/login")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        self._json({"ok": False, "auth": code == 401, "errors": [message],
+                    "message": message}, code)
+
+    def _gate(self) -> bool:
+        """Resolve the session and check the route's capability.
+
+        Returns True when the request may proceed; otherwise it has already
+        answered. Every route goes through here — the table fails closed, so a
+        new endpoint that nobody classified is denied rather than exposed.
+        """
+        path = urllib.parse.urlparse(self.path or "/").path or "/"
+        key = route_key(self.path)
+        wants_html = not path.startswith("/api/")
+
+        if key in PUBLIC_ROUTES:
+            self.user = self._resolve_user()
+            return True
+
+        self.user = self._resolve_user()
+        if self.user is None:
+            self._deny(401, "Your session has expired — please log in again.",
+                       wants_html=wants_html)
+            return False
+        if key in ANY_USER_ROUTES:
+            return True
+
+        cap = ROUTE_CAPS.get(key)
+        if cap is None:
+            # Unknown route. do_GET/do_POST render their own 404s, but a route
+            # nobody classified must never reach them with a session attached.
+            self._deny(404, "No such endpoint.", wants_html=False)
+            return False
+        if not self.user.can(cap):
+            AUTH.audit(auth_db(), "denied.route", user=self.user,
+                       ip=self.client_ip(), detail=f"{self.command} {path} needs {cap}")
+            self._deny(403, f"Your role ({AUTH.ROLE_LABELS.get(self.user.role, self.user.role)}) "
+                            f"does not have access to this ({cap}).",
+                       wants_html=False)
+            return False
+        return True
 
     def _step_write(self, payload):
         """Tick one manual_step's status/kind/tester from a queue panel.
@@ -2117,7 +2346,20 @@ class Handler(BaseHTTPRequestHandler):
                            "message": res.get("message", "Saved.")})
 
     def do_GET(self):
-        if self.path == "/" or self.path.startswith("/index"):
+        if not self._gate():
+            return
+        if self.path == "/login" or self.path.startswith("/login?"):
+            # Already signed in? Nothing to do here.
+            if self.user is not None:
+                self.send_response(302)
+                self.send_header("Location", "/")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            self._send(200, LOGIN_PAGE.encode("utf-8"), "text/html; charset=utf-8")
+        elif self.path == "/api/me":
+            self._json({"ok": True, "me": self.user.public()})
+        elif self.path == "/" or self.path.startswith("/index"):
             self._send(200, PAGE.encode("utf-8"), "text/html; charset=utf-8")
         elif self.path == "/monitor" or self.path.startswith("/monitor?"):
             self._send(200, MONITOR_PAGE.encode("utf-8"),
@@ -2145,7 +2387,10 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"ideas": ideas, "vocab": vocab(data),
                         "base_hashes": fingerprints(ideas),
                         "base_vocab": vocab_fingerprints(data),
-                        "version": yaml_version()})
+                        "version": yaml_version(),
+                        # Who is asking. The page hides controls it may not use;
+                        # the server enforces the same rules regardless.
+                        "me": self.user.public()})
         elif self.path == "/api/version":
             self._json({"version": yaml_version()})
         elif self.path == "/api/meritplayers":
@@ -2177,8 +2422,89 @@ class Handler(BaseHTTPRequestHandler):
             self._send(404, b"not found", "text/plain")
 
     def _read_body(self) -> dict:
-        n = int(self.headers.get("Content-Length", 0))
+        n = int(self.headers.get("Content-Length", 0) or 0)
+        if n > MAX_BODY:
+            # The ideas array is genuinely large, but an unbounded read is a
+            # remote memory-exhaustion primitive now that this is reachable
+            # from outside the LAN.
+            raise ValueError(f"request body too large ({n} bytes)")
         return json.loads(self.rfile.read(n) or b"{}")
+
+    def _csrf_ok(self) -> bool:
+        """Reject a cross-site write.
+
+        The session cookie is SameSite=Lax, which already stops this, but Lax
+        is one browser default away from being the only thing standing between
+        a page the admin happens to visit and a `git push`. Two cheap belts:
+
+        * Require JSON. A cross-origin <form> can only send text/plain,
+          multipart/form-data or urlencoded — never application/json without a
+          preflight, which this server never approves. _read_body used to parse
+          any body regardless of its declared type, which made that gap real.
+        * Honour Sec-Fetch-Site / Origin when the browser sends them.
+        """
+        ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        if ctype != "application/json":
+            return False
+        site = (self.headers.get("Sec-Fetch-Site") or "").strip().lower()
+        if site and site not in ("same-origin", "same-site", "none"):
+            return False
+        origin = (self.headers.get("Origin") or "").strip()
+        if origin:
+            host = (self.headers.get("Host") or "").strip()
+            forwarded = (self.headers.get("X-Forwarded-Host") or "").strip()
+            allowed = {h.lower() for h in (host, forwarded) if h}
+            if urllib.parse.urlparse(origin).netloc.lower() not in allowed:
+                return False
+        return True
+
+    def _do_login(self):
+        ip = self.client_ip()
+        try:
+            payload = self._read_body()
+        except Exception:
+            return self._json({"ok": False, "message": "Bad request."}, 400)
+        username = str(payload.get("username") or "").strip().lower()
+        password = str(payload.get("password") or "")
+        conn = auth_db()
+
+        if AUTH.user_count(conn) == 0:
+            # Nothing to log in to yet. Say so plainly rather than let the
+            # operator conclude they have forgotten a password that was never set.
+            return self._json({"ok": False, "setup": True,
+                               "message": AUTH.bootstrap_hint()}, 503)
+
+        wait = AUTH.throttle_check(ip, username)
+        if wait:
+            AUTH.audit(conn, "login.throttled", username=username, ip=ip,
+                       detail=f"{wait}s remaining")
+            mins = max(1, wait // 60)
+            return self._json({"ok": False, "message":
+                               f"Too many failed attempts. Try again in about "
+                               f"{mins} minute{'s' if mins != 1 else ''}."}, 429)
+
+        user = AUTH.authenticate(conn, username, password)
+        if user is None:
+            AUTH.throttle_fail(ip, username)
+            AUTH.audit(conn, "login.fail", username=username, ip=ip)
+            # One message for every failure mode: no username oracle.
+            return self._json({"ok": False,
+                               "message": "Incorrect username or password."}, 401)
+
+        AUTH.throttle_clear(ip, username)
+        token = AUTH.create_session(conn, user.username, ip=ip,
+                                    user_agent=self.headers.get("User-Agent", ""))
+        AUTH.audit(conn, "login.ok", user=user, ip=ip)
+        AUTH.purge_expired_sessions(conn)
+        return self._json({"ok": True, "me": user.public()},
+                          extra=self._set_cookie(token))
+
+    def _do_logout(self):
+        token = self._cookies().get(AUTH.SESSION_COOKIE, "")
+        if token:
+            AUTH.revoke_session(auth_db(), token)
+        AUTH.audit(auth_db(), "logout", user=self.user, ip=self.client_ip())
+        return self._json({"ok": True}, extra=self._set_cookie("", clear=True))
 
     def do_POST(self):
         """Serialize every POST that can write roadmap.yaml.
@@ -2187,6 +2513,17 @@ class Handler(BaseHTTPRequestHandler):
         the window in which an external write could land between the read a
         merge was computed from and the os.replace() that commits it.
         """
+        if not self._csrf_ok():
+            return self._json({"ok": False, "errors": [
+                "Request rejected: this endpoint only accepts same-origin JSON."]},
+                403)
+        if not self._gate():
+            return
+        path = urllib.parse.urlparse(self.path or "/").path
+        if path == "/api/login":
+            return self._do_login()
+        if path == "/api/logout":
+            return self._do_logout()
         try:
             # Neither of these touches roadmap.yaml, so neither needs the lock.
             if self.path in ("/api/palette/refresh", "/api/changes/action"):
@@ -2204,15 +2541,34 @@ class Handler(BaseHTTPRequestHandler):
             tb = traceback.format_exc()
             print(tb, file=sys.stderr)
             last = tb.strip().splitlines()[-1]
-            return self._json({"ok": False, "errors": [
-                f"server error handling {self.path}: {last}",
-                "Nothing was written. The full traceback is in the service log "
-                "(journalctl --user -u roadmap-editor)."]}, 500)
+            # The detail is for the person who can act on it. An unauthenticated
+            # caller gets the fact of the failure and nothing about the internals.
+            detail = ([f"server error handling {self.path}: {last}",
+                       "Nothing was written. The full traceback is in the service "
+                       "log (journalctl --user -u roadmap-editor)."]
+                      if self.user is not None
+                      else ["Server error. Nothing was written."])
+            return self._json({"ok": False, "errors": detail}, 500)
+
+    def _audit_write(self, detail: str = "") -> None:
+        """Record one mutating request against the caller.
+
+        Logged at the point the request is accepted rather than after it
+        succeeds: a write that then failed validation is exactly as interesting
+        to a later reader as one that landed, and threading a log call through
+        every return site in this method would be a lot of edits for a worse
+        record. Refusals are logged separately as denied.* entries.
+        """
+        action = AUDITED.get(urllib.parse.urlparse(self.path or "").path)
+        if action:
+            AUTH.audit(auth_db(), action, user=self.user, ip=self.client_ip(),
+                       detail=detail)
 
     def _do_POST_locked(self):
         # Palette-map refresh needs no body/validation: rerun the standalone
         # generator and hand back its summary. Never touches the roadmap or git.
         if self.path == "/api/palette/refresh":
+            self._audit_write()
             ok, output = refresh_palette_map()
             return self._json({"ok": ok, "output": output,
                                "built": load_palette_map()["built"],
@@ -2226,12 +2582,16 @@ class Handler(BaseHTTPRequestHandler):
                 body = self._read_body()
             except Exception as e:
                 return self._json({"ok": False, "message": f"bad request: {e}"}, 400)
+            self._audit_write(f"{body.get('action', '?')} "
+                              f"{body.get('id') or body.get('group') or ''}".strip())
             return self._json(REVIEW.act(body))
         if self.path == "/api/step-status":
             try:
                 payload = self._read_body()
             except Exception as e:
                 return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
+            self._audit_write(f"{payload.get('id')} step #{payload.get('index')} "
+                              f"-> {payload.get('status')}")
             return self._step_write(payload)
         try:
             payload = self._read_body()
@@ -2295,6 +2655,28 @@ class Handler(BaseHTTPRequestHandler):
         errors, warnings = validate_document(ideas, groups, players, epics)
         if errors:
             return self._json({"ok": False, "errors": errors, "warnings": warnings})
+
+        # Route gating is not enough here. The page posts the ENTIRE ideas array
+        # on every save, and the write path below stores what it is given — so
+        # without this a role that cannot reach /api/award could still promote
+        # an item to `implemented`, or set merit_awarded, through /api/save.
+        # Read the on-disk document for the comparison: we hold yaml_lock, so
+        # this is the same state the write is about to replace.
+        if self.path in DOCUMENT_WRITES:
+            disk_ideas = read_yaml().get("ideas") or []
+            normalize_ideas(disk_ideas)
+            denied = AUTH.enforce_idea_permissions(
+                self.user.caps, ideas, disk_ideas, status_label=status_label)
+            if denied:
+                AUTH.audit(auth_db(), "denied.field", user=self.user,
+                           ip=self.client_ip(),
+                           detail=f"{self.path}: {denied[0]}")
+                return self._json({"ok": False, "errors": denied,
+                                   "warnings": warnings,
+                                   "version": yaml_version()}, 403)
+            self._audit_write(changed_summary(ideas, disk_ideas))
+        else:
+            self._audit_write(str(payload.get("idea_id") or ""))
 
         if self.path == "/api/save":
             write_document(ideas, groups, players, epics)
@@ -2486,6 +2868,12 @@ async function poll() {
   try {
     const r = await fetch('/api/serverlog?tail=600'
                           + (rawEl.checked ? '&raw=1' : ''), {cache:'no-store'});
+    // An expired session here would otherwise render as a silent stall.
+    if (r.status === 401){ location.href = '/login'; return; }
+    if (r.status === 403){
+      errEl.textContent = 'Your role does not have access to the server log.';
+      return;
+    }
     const d = await r.json();
     colors = {}; tagW = 3;
     (d.realms || []).forEach(x => { colors[x.tag] = x.color;
@@ -2526,6 +2914,76 @@ rawEl.onchange = () => { forceBottom = true; poll(); };
 setInterval(poll, 3000);
 </script>
 </body></html>"""
+
+
+LOGIN_PAGE = r"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — Roadmap Editor</title>
+<style>
+  :root { --bg:#1e2127; --panel:#272b33; --ink:#e6e6e6; --mut:#9aa3af;
+          --line:#3a3f4a; --accent:#6ea8fe; --err:#ff6b6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 system-ui,sans-serif; background:var(--bg);
+         color:var(--ink); min-height:100vh; display:flex; align-items:center;
+         justify-content:center; padding:20px; }
+  form { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+         padding:26px 24px; width:100%; max-width:340px; }
+  h1 { font-size:17px; margin:0 0 2px; }
+  .sub { color:var(--mut); font-size:12px; margin:0 0 18px; }
+  label { display:block; margin:12px 0 4px; color:var(--mut); font-size:12px; }
+  input { width:100%; padding:9px 10px; background:var(--bg); color:var(--ink);
+          border:1px solid var(--line); border-radius:6px; font:inherit; }
+  input:focus { outline:none; border-color:var(--accent); }
+  button { width:100%; margin-top:18px; padding:9px; border-radius:6px;
+           border:1px solid var(--accent); background:var(--accent); color:#12161c;
+           font:inherit; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:default; }
+  #msg { margin-top:14px; color:var(--err); font-size:12px; white-space:pre-wrap;
+         display:none; }
+  #msg.show { display:block; }
+  .foot { margin-top:16px; color:var(--mut); font-size:11px; line-height:1.5; }
+</style></head><body>
+<form id="f" autocomplete="on">
+  <h1>Roadmap Editor</h1>
+  <p class="sub">Homer&rsquo;s LotR &mdash; dev roadmap &amp; merit backlog</p>
+  <label for="u">Username</label>
+  <input id="u" name="username" autocomplete="username" autocapitalize="none"
+         autocorrect="off" spellcheck="false" required autofocus>
+  <label for="p">Password</label>
+  <input id="p" name="password" type="password" autocomplete="current-password" required>
+  <button id="go" type="submit">Sign in</button>
+  <div id="msg"></div>
+  <p class="foot">Accounts are created on the server by the administrator.
+     There is no self-service signup or password reset.</p>
+</form>
+<script>
+const msg = document.getElementById('msg');
+const go  = document.getElementById('go');
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  msg.classList.remove('show');
+  go.disabled = true; go.textContent = 'Signing in…';
+  let res;
+  try {
+    const r = await fetch('/api/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username: document.getElementById('u').value,
+                            password: document.getElementById('p').value})});
+    res = await r.json();
+  } catch (err) {
+    res = {ok:false, message:'Could not reach the server. Is it running?'};
+  }
+  if (res.ok){ location.href = '/'; return; }
+  go.disabled = false; go.textContent = 'Sign in';
+  document.getElementById('p').value = '';
+  document.getElementById('p').focus();
+  msg.textContent = res.message || 'Sign-in failed.';
+  msg.classList.add('show');
+});
+</script>
+</body></html>
+"""
 
 
 PAGE = r"""<!doctype html>
@@ -2671,6 +3129,11 @@ PAGE = r"""<!doctype html>
   .chk input { width:auto; }
   .linkbtn { background:none; border:none; color:var(--accent); cursor:pointer;
              padding:0; font:inherit; font-size:12px; }
+  /* Signed-in identity strip, under the menu bar. */
+  #whobar { border-top:1px solid var(--line); padding-top:8px; margin-top:2px; }
+  #who { color:var(--mut); font-size:12px; }
+  #who::before { content:'●'; color:var(--ok); margin-right:5px; font-size:9px;
+                 vertical-align:middle; }
   .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:none;
               align-items:flex-start; justify-content:center; padding:6vh 16px; z-index:9; }
   .modal-bg.show { display:flex; }
@@ -2848,7 +3311,7 @@ PAGE = r"""<!doctype html>
     <div class="extlinks">
       <a data-brand="wiki" href="https://dev.homerslotr.com/" target="_blank" rel="noopener">This realm's wiki ↗</a>
       <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Roadmap (live site) ↗</a>
-      <a href="/monitor" target="_blank" rel="noopener">Server monitor (all realms) ↗</a>
+      <a id="monitorlink" href="/monitor" target="_blank" rel="noopener">Server monitor (all realms) ↗</a>
     </div>
     <div class="viewtoggle">
       <button id="view_board" class="on">Board</button>
@@ -2896,6 +3359,11 @@ PAGE = r"""<!doctype html>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
+    <div class="bar" id="whobar">
+      <span id="who" class="small"></span>
+      <span class="spacer"></span>
+      <button id="logout" class="linkbtn">Sign out</button>
+    </div>
   </div>
   <div id="list"></div>
 </div>
@@ -2905,7 +3373,25 @@ PAGE = r"""<!doctype html>
 </div>
 <div class="modal-bg" id="modal"><div class="modal" id="modalbox"></div></div>
 <script>
-let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}};
+let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}, me:{caps:[]}};
+
+// ---- Access control -------------------------------------------------------
+// The server enforces all of this independently; hiding a control here is so
+// nobody is invited to press a button that will refuse them. Never treat CAN()
+// as the security boundary.
+function CAN(cap){ return ((DATA.me && DATA.me.caps) || []).includes(cap); }
+// Statuses only `promote_shipped` may set. Kept in step with
+// roadmap_publish.SHIPPED_STATUSES / roadmap_auth.SHIPPED_STATUSES.
+const SHIPPED_STATUSES = ['manual','implemented','awarded'];
+function canSetStatus(st){ return CAN('promote_shipped') || !SHIPPED_STATUSES.includes(st); }
+
+// Every call goes through here so an expired session lands on the login page
+// instead of surfacing as a bare "NetworkError" from an unhandled 401.
+async function api(url, opts){
+  const r = await fetch(url, opts);
+  if (r.status === 401){ location.href = '/login'; throw new Error('signed out'); }
+  return r;
+}
 let sel = -1;
 let baseVersion = null;      // hash of roadmap.yaml as we last loaded/saved it
 let baseHashes = null;   // {id: fingerprint} merge baseline from /api/data
@@ -2960,7 +3446,7 @@ function groupTitle(id){
 }
 
 async function load(){
-  const r = await fetch('/api/data'); DATA = await r.json();
+  const r = await api('/api/data'); DATA = await r.json();
   baseVersion = DATA.version || null;
   // Opaque per-idea fingerprints from the server. We never compute these — we
   // hold them and hand them back on save so the server can tell *which* items
@@ -2968,6 +3454,7 @@ async function load(){
   baseHashes = DATA.base_hashes || null;
   baseVocab = DATA.base_vocab || null;
   populateFilters();
+  applyCapabilities();
   if (view==='board'){ const f=$('#form'); if (f) f.style.display='none'; renderBoard(); }
   else { renderList(); if (DATA.ideas.length) select(0); }
   refreshPending();
@@ -2976,7 +3463,7 @@ async function load(){
 // Update the "X Pending Merit Requests" button label from the live game DB.
 function refreshPending(){
   const btn=$('#mpending'); if(!btn) return;
-  fetch('/api/pending').then(r=>r.json()).then(d=>{
+  api('/api/pending').then(r=>r.json()).then(d=>{
     const n=d.count||0;
     btn.textContent=`${n} Pending Merit Request${n===1?'':'s'}`;
     btn.classList.toggle('has', n>0);
@@ -2986,6 +3473,25 @@ function refreshPending(){
 function epicTitle(id){
   const e=(DATA.vocab.epics||[]).find(e=>e.id===id);
   return e ? (e.title||e.id) : (id||'');
+}
+
+// Show who is signed in, and take away the chrome this role cannot use. This
+// is presentation only: every one of these actions is refused server-side too,
+// so a hidden button is a courtesy, never the control.
+function applyCapabilities(){
+  const me = DATA.me || {};
+  const who = $('#who');
+  if (who) who.textContent = me.display_name
+    ? `${me.display_name} · ${me.role_label || me.role}` : '';
+  // [button id, capability it needs]
+  [['mpalette','palette'], ['mchanges','llm_review'], ['mpending','view'],
+   ['regen','publish'], ['publish','publish']].forEach(([id, cap])=>{
+    const el = $('#'+id);
+    if (el) el.style.display = CAN(cap) ? '' : 'none';
+  });
+  // The Monitor page is a separate document, linked from the header.
+  const mon = $('#monitorlink');
+  if (mon) mon.style.display = CAN('serverlog') ? '' : 'none';
 }
 
 function populateFilters(){
@@ -3124,7 +3630,7 @@ function renderBoard(){
       const tbadge = it.type
         ? `<span class="tbadge ${typeCls(it.type)}">${esc(it.type)}</span> ` : '';
       const ddHtml = showCardDropdown
-        ? `<select class="cst" data-idx="${idx}">${BOARD_LANES.map(ls=>
+        ? `<select class="cst" data-idx="${idx}" data-cur="${esc(it.status)}">${BOARD_LANES.map(ls=>
             `<option value="${esc(ls)}"${ls===it.status?' selected':''}>${esc(statusLabel(ls))}</option>`).join('')}</select>`
         : '';
       return `<div class="card${it.hidden?' hid':''}" draggable="true" data-idx="${idx}">
@@ -3151,13 +3657,18 @@ function renderBoard(){
   });
   // Per-card status dropdown fallback.
   board.querySelectorAll('.cst').forEach(sel0=>{
+    if (!CAN('promote_shipped'))
+      [...sel0.options].forEach(o=>{
+        if (!canSetStatus(o.value) && o.value!==sel0.dataset.cur) o.remove(); });
     sel0.onclick=e=>e.stopPropagation();
     sel0.onchange=e=>moveToStatus(+sel0.dataset.idx, e.target.value);
   });
   // Lane drop targets.
   board.querySelectorAll('.lane').forEach(lane=>{
-    lane.ondragover=e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move';
-      lane.classList.add('drop'); };
+    lane.ondragover=e=>{ e.preventDefault();
+      const ok = canSetStatus(lane.dataset.status);
+      e.dataTransfer.dropEffect = ok ? 'move' : 'none';
+      if (ok) lane.classList.add('drop'); };
     lane.ondragleave=()=>lane.classList.remove('drop');
     lane.ondrop=e=>{ e.preventDefault(); lane.classList.remove('drop');
       if (dragIdx>=0) moveToStatus(dragIdx, lane.dataset.status); };
@@ -3168,6 +3679,22 @@ function renderBoard(){
 function moveToStatus(idx, status){
   const it=DATA.ideas[idx];
   if (!it || it.status===status) return;
+  // Refuse here rather than let the save come back 403 — by then the card has
+  // already moved on screen and has to be put back.
+  if (!canSetStatus(status) || !canSetStatus(it.status)){
+    banner('bad', 'Only an administrator can move an item '
+      + (canSetStatus(it.status) ? 'to' : 'out of') + ' “'
+      + statusLabel(canSetStatus(it.status) ? status : it.status) + '”. '
+      + 'Everything up to “In progress” is yours, and this item\'s steps and '
+      + 'notes stay editable either way.');
+    renderBoard();
+    return;
+  }
+  if (status==='awarded' && !CAN('merit')){
+    banner('bad', 'Only an administrator can award merit.');
+    renderBoard();
+    return;
+  }
   it.status=status;
   renderBoard();
   commit('/api/save');
@@ -3222,6 +3749,17 @@ function transitions(it){
     // Already paid: the move is legal, it just must not pay again.
     else if (it.merit_awarded) out.fwd.label = 'Mark awarded ▶';
   }
+  // Role gates, last so they override a merely-informational reason. Shown as a
+  // disabled button with an explanation rather than a hidden one: "why can't I
+  // ship this?" deserves an answer in place. The server enforces the same rules.
+  if (fwd && !canSetStatus(fwd))
+    out.fwd.reason = 'Only an administrator can move an item to “'
+                   + statusLabel(fwd) + '”';
+  if (back && !canSetStatus(cur))
+    out.back.reason = 'Only an administrator can move an item out of “'
+                    + statusLabel(cur) + '”';
+  if (fwd==='awarded' && !CAN('merit'))
+    out.fwd.reason = 'Only an administrator can award merit';
   return out;
 }
 
@@ -3252,7 +3790,8 @@ function formbarHTML(it){
       <button class="danger" id="del">Delete</button>
       <span class="spacer"></span>
       ${it.merit_awarded ? '<span class="chip merit">merit paid</span>'
-        + '<button class="danger" id="revoke">Revoke merit points</button>' : ''}
+        + (CAN('merit')
+           ? '<button class="danger" id="revoke">Revoke merit points</button>' : '') : ''}
       ${stepBtn('t_back', tr.back, 'back')}
       ${stepBtn('t_fwd', tr.fwd, 'fwd')}`;
 }
@@ -3328,7 +3867,12 @@ function select(i){
   sel = i; formSnapshot = null; selRef = DATA.ideas[i] || null; renderList();
   const it = DATA.ideas[i]; if (!it) { $('#form').innerHTML=''; return; }
   const groups = DATA.vocab.groups.map(g=>opt(g.id, g.title.replace(/&amp;/g,'&'), it.group)).join('');
-  const stats  = DATA.vocab.statuses.map(s=>opt(s.id, s.id+' — '+s.label, it.status)).join('');
+  // Statuses this account may not set are dropped from the picker -- except
+  // the item's OWN current status, which has to stay in the list or selecting a
+  // shipped item would silently show (and then save) the wrong status.
+  const stats  = DATA.vocab.statuses
+      .filter(s=>canSetStatus(s.id) || s.id===it.status)
+      .map(s=>opt(s.id, s.id+' — '+s.label, it.status)).join('');
   const types  = ['<option value=""></option>'].concat(
       (DATA.vocab.types||[]).map(t=>opt(t.id, t.label, it.type||''))).join('');
   const players = ['<option value=""></option>'].concat(
@@ -3448,7 +3992,7 @@ async function awardFlow(){
   // Resolve the submitter first: an unmatched name gets a picker rather than a
   // failed award (roadmap names and in-game login names drift apart).
   let m = {};
-  try { m = await (await fetch('/api/merit?player='+encodeURIComponent(name))).json(); }
+  try { m = await (await api('/api/merit?player='+encodeURIComponent(name))).json(); }
   catch(e){ m = {}; }
   if (m.available && m.matched === false) return pickMeritPlayer(it, prev, name, type, pts);
   const who = m.matched_name || name;
@@ -3463,7 +4007,7 @@ async function awardFlow(){
 // same roadmap name resolves by itself next time.
 async function pickMeritPlayer(it, prev, name, type, pts){
   let res = {};
-  try { res = await (await fetch('/api/meritplayers')).json(); } catch(e){ res={}; }
+  try { res = await (await api('/api/meritplayers')).json(); } catch(e){ res={}; }
   const rows = res.rows || [];
   if (!rows.length){
     banner('bad', 'No merit database players to choose from'
@@ -3557,7 +4101,7 @@ function renderMeritIngame(name){
   if(!name){ box.innerHTML=''; return; }
   const my = ++meritReq;
   box.innerHTML=`<div class="merit"><div class="sub">Loading in-game merit…</div></div>`;
-  fetch('/api/merit?player='+encodeURIComponent(name))
+  api('/api/merit?player='+encodeURIComponent(name))
     .then(r=>r.json())
     .then(d=>{
       if(my!==meritReq) return;  // a newer request superseded this one
@@ -4016,6 +4560,14 @@ function renderHandoff(){
     HO.manual_steps.push({step:'', status:'open', kind:'admin', blocker:false,
                           tester:''}); renderHandoff(); };
   $('#ho_addu').onclick = ()=>addUatValidator();
+  // Paying a UAT credit writes the shared merit DB. Adding and removing the
+  // credit itself stays available to everyone -- only the payment is gated.
+  el.querySelectorAll('.ho-uata, .ho-uatr').forEach(b=>{
+    if (!CAN('merit')){
+      b.disabled = true;
+      b.title = 'Only an administrator can award or revoke merit';
+    }
+  });
   el.querySelectorAll('.ho-uata').forEach(b=>b.onclick = e=>
     uatAward(HO.uat_credits[+e.target.dataset.i].player, false));
   el.querySelectorAll('.ho-uatr').forEach(b=>b.onclick = e=>
@@ -4059,7 +4611,7 @@ function renderHandoff(){
 // roadmap's own player list.
 async function addUatValidator(){
   let res = {};
-  try { res = await (await fetch('/api/meritplayers')).json(); } catch(e){ res={}; }
+  try { res = await (await api('/api/meritplayers')).json(); } catch(e){ res={}; }
   const rows = res.rows || [];
   if (!rows.length){
     banner('bad', 'No merit database players to choose from'
@@ -4323,7 +4875,7 @@ async function commit(endpoint, force, opts){
     selRef = DATA.ideas[idx];
     keepId = DATA.ideas[idx].id || keepId;   // follow a renamed id
   }
-  const r = await fetch(endpoint, {method:'POST',
+  const r = await api(endpoint, {method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify(Object.assign(
       {ideas: DATA.ideas, groups: DATA.vocab.groups,
@@ -4591,7 +5143,7 @@ async function lcLoad(){
 
 async function lcAct(body){
   body.show_done=LC.showDone; body.task=LC.task; body.mode=LC.mode;
-  const r=await fetch('/api/changes/action',
+  const r=await api('/api/changes/action',
     {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const res=await r.json();
   banner(res.ok?'ok':'bad', res.message||'');
@@ -4704,7 +5256,8 @@ function openPalette(){
     const b=$('#pf_refresh'); b.disabled=true; const old=b.textContent;
     b.textContent='Refreshing…';
     try{
-      const r=await fetch('/api/palette/refresh',{method:'POST'});
+      const r=await api('/api/palette/refresh',
+        {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
       const res=await r.json();
       banner(res.ok?'ok':'bad', (res.message||'') + (res.output?'\n\n'+res.output:''));
       pfSearch();
@@ -4715,7 +5268,7 @@ function openPalette(){
 }
 async function pfSearch(){
   const term=$('#pf_q') ? $('#pf_q').value.trim() : '';
-  const r=await fetch('/api/palette?q='+encodeURIComponent(term));
+  const r=await api('/api/palette?q='+encodeURIComponent(term));
   const d=await r.json();
   const meta=$('#pf_meta'), box=$('#pf_results');
   if(!meta||!box) return;
@@ -4869,7 +5422,7 @@ async function stepWrite(id, index, patch){
   const s = it && (it.manual_steps||[])[index];
   if (!s) return;
   const body = Object.assign({id, index, step: s.step}, patch);
-  const r = await fetch('/api/step-status',
+  const r = await api('/api/step-status',
     {method:'POST', headers:{'Content-Type':'application/json'},
      body: JSON.stringify(body)});
   const res = await r.json();
@@ -5094,7 +5647,7 @@ function openPlayers(){
 function openPending(){
   modalHTML(`<h2>Pending Merit Requests</h2>
     <p class="small">Loading open DM-delivery requests…</p>`);
-  fetch('/api/pending').then(r=>r.json()).then(d=>{
+  api('/api/pending').then(r=>r.json()).then(d=>{
     refreshPending();
     if(!d.available){
       modalHTML(`<h2>Pending Merit Requests</h2>
@@ -5149,6 +5702,12 @@ $('#mpalette').onclick=openPalette;
 $('#mtoolq').onclick=()=>openQueue('toolset');
 $('#muatq').onclick=()=>openQueue('uat');
 $('#mchanges').onclick=openChanges;
+$('#logout').onclick=async ()=>{
+  if (!confirm('Sign out of the roadmap editor?')) return;
+  try { await fetch('/api/logout', {method:'POST',
+        headers:{'Content-Type':'application/json'}, body:'{}'}); } catch(e){}
+  location.href = '/login';
+};
 $('#filter').oninput = render;
 $('#view_list').onclick=()=>setView('list');
 $('#view_board').onclick=()=>setView('board');
@@ -5161,7 +5720,7 @@ $('#f_carddd').onchange=e=>{ showCardDropdown=e.target.checked;
 setInterval(async ()=>{
   if ($('#modal').classList.contains('show')) return;
   try{
-    const d=await (await fetch('/api/version')).json();
+    const d=await (await api('/api/version')).json();
     if (d.version && baseVersion && d.version!==baseVersion){
       const b=$('#banner');
       if (!b.querySelector('button')){   // don't stomp an active conflict banner
@@ -5182,9 +5741,10 @@ load();
 def main():
     ap = argparse.ArgumentParser(description="Local web editor for roadmap.yaml ideas.")
     ap.add_argument("--port", type=int, default=8765)
-    ap.add_argument("--host", default="0.0.0.0",
-                    help="bind address (default 0.0.0.0 = reachable from any LAN device; "
-                         "use 127.0.0.1 to restrict to this machine)")
+    ap.add_argument("--host", default="127.0.0.1",
+                    help="bind address (default 127.0.0.1; the Cloudflare Tunnel "
+                         "reaches it there, and public access is meant to arrive "
+                         "through the tunnel rather than an open port)")
     ap.add_argument("--serve", action="store_true",
                     help="serve without opening a browser (used by the systemd unit)")
     args = ap.parse_args()
@@ -5192,14 +5752,26 @@ def main():
     httpd = ThreadingHTTPServer((args.host, args.port), Handler)
     url = f"http://localhost:{args.port}/"
     print(f"Roadmap editor serving on {args.host}:{args.port}  (editing {YAML_PATH})")
-    if args.host == "0.0.0.0":
+    try:
+        conn = AUTH.connect()
+        n = AUTH.user_count(conn)
+        print(f"  auth: {n} account(s) in {AUTH.db_path()}")
+        if n == 0:
+            # Not a fatal condition — the service must still come up so the
+            # login page can say what to do — but it is the whole difference
+            # between "working" and "nobody can get in", so shout it.
+            print("  " + AUTH.bootstrap_hint().replace("\n", "\n  "))
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [warn] auth database unavailable: {exc}", file=sys.stderr)
+    if args.host not in ("127.0.0.1", "localhost", "::1"):
         try:
             host = socket.gethostname()
             ip = socket.gethostbyname(host)
             print(f"  LAN access: http://{host}:{args.port}/  or  http://{ip}:{args.port}/")
         except Exception:
             pass
-        print("  (bound to all interfaces, no auth — trusts your local network)")
+        print("  (bound beyond loopback — every request still needs a login, but "
+              "the session cookie is sent in the clear over plain HTTP)")
     if not args.serve:
         try:
             webbrowser.open(url)

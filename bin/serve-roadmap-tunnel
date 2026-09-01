@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# serve-roadmap-tunnel — publish the roadmap editor at https://roadmap.homerslotr.com
+# through a Cloudflare Tunnel.
+#
+# The editor binds 127.0.0.1 only. cloudflared makes an OUTBOUND connection to
+# Cloudflare and proxies requests back down it, so nothing here needs a
+# forwarded router port, an inbound firewall hole, or a TLS certificate on this
+# box — which matters, because this is an immutable OS with no nginx and no
+# certbot, and rootless podman cannot bind :443 anyway.
+#
+# This uses a REMOTELY-MANAGED (token) tunnel: the hostname and the service it
+# points at are configured in the Cloudflare dashboard, and the only thing that
+# lives on this machine is the connector token. That is deliberate — it means no
+# `cloudflared tunnel login` browser dance here, and no credentials JSON or
+# config.yml to keep in step with the dashboard.
+#
+# Idempotent, in the same shape as bin/serve-nwsync: if the container is already
+# running it exits 0 without touching it.
+#
+# ---------------------------------------------------------------------------
+# ONE-TIME SETUP
+#
+#   1. Cloudflare dashboard -> Zero Trust -> Networks -> Tunnels -> Create a
+#      tunnel -> Cloudflared. Name it `roadmap` (the name is only a label).
+#
+#   2. On the "Install and run a connector" screen, ignore the install commands
+#      and copy just the TOKEN — the long eyJ... string at the end of the
+#      displayed command.
+#
+#   3. Route -> Public Hostname -> Add a public hostname:
+#        Subdomain: roadmap      Domain: homerslotr.com
+#        Service:   HTTP         URL: 127.0.0.1:8765
+#      (HTTP, not HTTPS: the hop from cloudflared to the editor is over this
+#      box's loopback. The browser's connection to Cloudflare is still HTTPS.)
+#
+#   4. Put the token in the env file, readable only by you:
+#        install -d -m 700 ~/.config/roadmap-editor
+#        printf 'ROADMAP_TUNNEL_TOKEN=%s\n' '<paste the token>' \
+#          > ~/.config/roadmap-editor/tunnel.env
+#        chmod 600 ~/.config/roadmap-editor/tunnel.env
+#
+#      That token IS the tunnel — anyone holding it can serve traffic on your
+#      hostname. Treat it exactly like server.env.local: never committed, never
+#      pasted anywhere, never sent to the LAN Gemma box. Rotate it from the
+#      dashboard (Refresh token) if it ever leaks.
+#
+#   5. systemctl --user enable --now roadmap-tunnel.service
+#
+# Stop manually with: podman stop -t 4 roadmap-cloudflared
+# ---------------------------------------------------------------------------
+
+set -euo pipefail
+
+: "${ROADMAP_TUNNEL_CONTAINER:=roadmap-cloudflared}"
+: "${ROADMAP_TUNNEL_IMAGE:=docker.io/cloudflare/cloudflared:latest}"
+: "${ROADMAP_TUNNEL_ENV:=$HOME/.config/roadmap-editor/tunnel.env}"
+: "${ROADMAP_EDITOR_PORT:=8765}"
+
+# The token may already be in the environment (systemd EnvironmentFile, or an
+# interactive run); otherwise read the env file.
+if [[ -z ${ROADMAP_TUNNEL_TOKEN:-} && -f $ROADMAP_TUNNEL_ENV ]]; then
+  # shellcheck disable=SC1090
+  . "$ROADMAP_TUNNEL_ENV"
+fi
+
+if [[ -z ${ROADMAP_TUNNEL_TOKEN:-} ]]; then
+  cat >&2 <<MSG
+[tunnel] no connector token.
+
+Expected ROADMAP_TUNNEL_TOKEN in the environment or in:
+  $ROADMAP_TUNNEL_ENV
+
+Get it from the Cloudflare dashboard (Zero Trust -> Networks -> Tunnels ->
+your tunnel -> Configure), then:
+
+  install -d -m 700 ~/.config/roadmap-editor
+  printf 'ROADMAP_TUNNEL_TOKEN=%s\n' '<paste>' > $ROADMAP_TUNNEL_ENV
+  chmod 600 $ROADMAP_TUNNEL_ENV
+
+Full setup is in the header of $0.
+MSG
+  exit 1
+fi
+
+# A token is a bearer credential for your public hostname. If the file is
+# group- or world-readable, say so rather than quietly serving from it.
+if [[ -f $ROADMAP_TUNNEL_ENV ]]; then
+  perms=$(stat -c '%a' "$ROADMAP_TUNNEL_ENV")
+  if [[ $perms != 600 && $perms != 400 ]]; then
+    echo "[tunnel] warning: $ROADMAP_TUNNEL_ENV is mode $perms — it holds the" >&2
+    echo "[tunnel]          tunnel token; run: chmod 600 $ROADMAP_TUNNEL_ENV" >&2
+  fi
+fi
+
+# The editor has to be up first, or every request through the tunnel 502s. This
+# is a warning rather than an error: cloudflared retries, so a slow start
+# resolves itself, and refusing to launch would turn a race into an outage.
+if ! curl -fsS -o /dev/null --max-time 3 "http://127.0.0.1:$ROADMAP_EDITOR_PORT/login"; then
+  echo "[tunnel] warning: nothing answering on 127.0.0.1:$ROADMAP_EDITOR_PORT" >&2
+  echo "[tunnel]          start it with: systemctl --user start roadmap-editor" >&2
+fi
+
+if podman container exists "$ROADMAP_TUNNEL_CONTAINER" 2>/dev/null; then
+  state=$(podman inspect -f '{{.State.Status}}' "$ROADMAP_TUNNEL_CONTAINER" 2>/dev/null || echo missing)
+  if [[ $state == running ]]; then
+    echo "[tunnel] $ROADMAP_TUNNEL_CONTAINER already running — leaving it"
+    exit 0
+  fi
+  echo "[tunnel] removing stale container ($state)"
+  podman rm -f "$ROADMAP_TUNNEL_CONTAINER" >/dev/null 2>&1 || true
+fi
+
+echo "[tunnel] starting $ROADMAP_TUNNEL_CONTAINER -> http://127.0.0.1:$ROADMAP_EDITOR_PORT"
+
+# --network=host is load-bearing: the editor listens on the HOST's loopback, and
+# a container in its own netns has a different 127.0.0.1 with nothing on it.
+# Nothing is published — this container only makes outbound connections.
+#
+# The token goes in via --env rather than on the command line, so it does not
+# appear in `podman inspect`'s Cmd, in `ps`, or in this script's own echo above.
+exec podman run --rm --name "$ROADMAP_TUNNEL_CONTAINER" \
+  --network=host \
+  --env "TUNNEL_TOKEN=$ROADMAP_TUNNEL_TOKEN" \
+  "$ROADMAP_TUNNEL_IMAGE" \
+  tunnel --no-autoupdate run

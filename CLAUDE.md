@@ -506,6 +506,17 @@ a new tier column + helper + seed column if needed) — don't write a new
 gitignore it **and** keep it out of `unpacked/` (e.g. under `bin/`), because
 gitignore alone does not stop nasher from packing it.
 
+**The roadmap editor has its own, separate account system** — that one is for a
+web app, not the game, so it is keyed on a username and password rather than a
+CD key. Roles (`admin`, `dm`), the CLI (`bin/roadmap-users.py`) and the
+Cloudflare Tunnel that publishes it at `roadmap.homerslotr.com` are documented
+in [CLAUDE-roadmap.md](CLAUDE-roadmap.md) under **Access control**. Two things
+belong here: `~/.local/share/roadmap-editor/auth.sqlite3` (password hashes and
+live session tokens) and `~/.config/roadmap-editor/tunnel.env` (the Cloudflare
+Tunnel connector token — whoever holds it can serve traffic on
+`roadmap.homerslotr.com`) are secrets under exactly the rules above — never
+committed, never under `unpacked/`, never sent to the LAN Gemma box.
+
 ## Working with the local LLM
 
 A Gemma 4 server on the LAN (`http://192.168.1.103:11434`) does the module's bulk

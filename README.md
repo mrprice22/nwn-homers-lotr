@@ -554,8 +554,26 @@ python3 bin/roadmap-editor.py          # opens http://localhost:8765
 ```
 
 It validates with `gen-roadmap.py`'s own checks before writing and only
-rewrites the `ideas:` block, leaving the rest of the file untouched. It can run
+rewrites the `ideas:` block, leaving the rest of the file untouched. It runs
 on boot as a systemd user service (`systemd/roadmap-editor.service`).
+
+**It requires a login**, on the LAN as well as from outside. Accounts are
+created only from a shell here:
+
+```sh
+python3 bin/roadmap-users.py add jane --role dm --name "Jane (DM)"
+python3 bin/roadmap-users.py list      # accounts and roles
+python3 bin/roadmap-users.py roles     # what each role may do
+python3 bin/roadmap-users.py audit     # who changed what, when
+```
+
+Two roles today: `admin` (everything) and `dm` (everything except marking an
+item shipped and awarding merit — a DM can still edit, triage, work the queues
+and publish, and can freely add or tick steps on items that are already
+shipped). The editor binds `127.0.0.1`; public access is the Cloudflare Tunnel
+at <https://roadmap.homerslotr.com> (`bin/serve-roadmap-tunnel` +
+`systemd/roadmap-tunnel.service`), which opens no inbound port. Full details:
+**CLAUDE-roadmap.md → Access control**.
 
 `gen-roadmap.py` also prints an advisory (non-blocking) warning when two ideas in
 the same group have titles that share too many words — a nudge to link them with
@@ -1222,11 +1240,26 @@ snapshots it to OneDrive at most once per day.
   `-userdirectory` is `NWN_RUN_DIR`, so the live copy of some configs lives there),
   mirrored under `home/` and `run/` in the archive.
 - `NWN_RUN_DIR/activity-sessions.json` (+ `.bak`) — player-hours history.
+- `~/.local/share/roadmap-editor/auth.sqlite3` → `roadmap-editor/auth.sqlite3` in
+  the archive — the roadmap editor's web accounts, roles and **audit log**.
+  Captured by the **dev** realm only (it is account-wide, and exactly one
+  instance should take it — dev rather than live because the editor runs from
+  that repo and the dev realm does not rotate at a season cutover, whereas the
+  repo holding `SEASON_ROLE=live` does and carries its own copy of this script).
+  `MANIFEST.txt` records `roadmap_auth_included: yes|no`. Staged **outside**
+  `database/` because it is not a campaign DB and must never be restored into
+  the server's database dir.
 
 A `MANIFEST.txt` (timestamp, module-source git rev, sha256 of every file) is
 included. Archives land in `~/OneDrive/Games/NWNHomersLOTR/backups/` as
 `homers-lotr-<UTC>.tar.gz`. Retention keeps every backup from the last 30 days
 plus one per month for 12 months.
+
+**Deliberately not backed up:** `~/.config/roadmap-editor/tunnel.env`, the
+Cloudflare Tunnel connector token. It is a live bearer credential for
+`roadmap.homerslotr.com` and is regenerated in seconds from the Cloudflare
+dashboard (*Refresh token*), so copying it into an off-machine archive would add
+real risk to buy nothing. Same reasoning as never archiving `server.env.local`.
 
 **Not backed up** (regenerable): `hak/`, `tlk/`, `nwsync/` (rebuild via
 `bin/refresh-nwsync` — incremental, so a from-empty rebuild is a one-time full
@@ -1272,6 +1305,11 @@ bin/backup-homers-lotr --force     # back up now, ignoring the 24h gate
    - `home/database/*` → `"$NWN_HOME_DIR/database/"`
    - `home/servervault/*` → `"$NWN_HOME_DIR/servervault/"`
    - `run/activity-sessions.json*` → `"$NWN_RUN_DIR/"`
+   - `roadmap-editor/auth.sqlite3` → `~/.local/share/roadmap-editor/` **only if**
+     you are restoring the editor's accounts; `chmod 600` it afterwards. Not
+     needed for a server-only restore, and restoring an old copy silently rolls
+     back account changes and truncates the audit log — so leave it alone unless
+     that is what you actually want.
    - config files from `home/` and `run/` to their respective dirs only if you
      intend to roll those back too (they're usually fine as-is).
 4. Restart with `bin/serve`.
@@ -1431,7 +1469,7 @@ server.
 |---|---|---|
 | `bin/watch-server` | **one** realm — whichever repo the copy lives in | that season's *Server Monitor* app-grid tile; also what `bin/server-restart` drops you into |
 | `bin/watch-all-servers` | **every** realm, interleaved | the *Server Monitor - All Realms* tile, or automatically at login |
-| roadmap editor `/monitor` | every realm, interleaved, in a browser | <http://localhost:8765/monitor> (LAN-reachable, same as the editor) |
+| roadmap editor `/monitor` | every realm, interleaved, in a browser | <http://localhost:8765/monitor> — needs a login with the `serverlog` capability, same as the editor |
 
 `watch-all-servers` and the `/monitor` page are the **consolidated, filtered**
 views and share one blocklist file, so they can never disagree about what a

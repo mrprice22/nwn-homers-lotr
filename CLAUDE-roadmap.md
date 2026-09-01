@@ -11,11 +11,20 @@
 It compiles to `docs.manual/Roadmap.html` via `bin/gen-roadmap.py`, which the wiki build
 folds into the published `docs/`.
 
+The same run also writes **`roadmap-credits.json`**, a machine-readable sidecar of who
+submitted and who tested each idea. The wiki engine (`nwn_manager`) reads it to put
+Bugs / Features / Exploits / Testing columns on the Players index and an "Ideas &
+Testing" section on each player page, every row linking back to this page's own
+`#idea-<id>` anchor. It exists so the engine never has to parse `roadmap.yaml`: the
+status table, the `dupe_of` merge and the `hidden` filter stay here, in one
+implementation, and the wiki is handed the already-resolved answer. It is gitignored —
+derived data, rebuilt from `roadmap.yaml` on every run.
+
 ## The refresh process
 
 ```
 edit roadmap.yaml                       # by hand, or with the GUI editor (below)
-python3 bin/gen-roadmap.py              # -> rewrites docs.manual/Roadmap.html
+python3 bin/gen-roadmap.py              # -> docs.manual/Roadmap.html + roadmap-credits.json
 python3 bin/publish-roadmap-db.py       # -> refreshes the in-game Recent Updates sign
 bin/refresh-homers-lotr-wiki           # -> folds docs.manual/ into published docs/
 ```
@@ -389,8 +398,11 @@ open the printed URL:
 python3 bin/roadmap-editor.py            # serve + open a browser
 python3 bin/roadmap-editor.py --serve    # serve only (no browser; used by the service)
 python3 bin/roadmap-editor.py --port N   # default port is 8765
-python3 bin/roadmap-editor.py --host H   # bind address; default 0.0.0.0 (LAN-reachable)
+python3 bin/roadmap-editor.py --host H   # bind address; default 127.0.0.1
 ```
+
+**It requires a login.** Accounts are created only from a shell on this box
+(`bin/roadmap-users.py`) — see [Access control](#access-control) below.
 
 What it does:
 
@@ -521,6 +533,13 @@ What it does:
   | public roadmap page (`docs/manual/Roadmap.html` + its `docs.manual/` source) | you click Publish |
   | `roadmap.yaml` itself | `bin/season-promote.sh` |
   | in-game Recent Updates sign (`roadmapdb`) | `bin/season-promote.sh` |
+  | player idea credit on the wiki (`roadmap-credits.json`) | `bin/season-promote.sh` |
+
+  The credit sidecar rides with `roadmap.yaml`, not with the page, for the same reason
+  the sign does: crediting a player for an idea whose code production is not running yet
+  makes the same claim the sign refuses to make. Production having a newer *page* than
+  sidecar is harmless — idea ids are stable and the newer page is a superset, so a stale
+  sidecar means missing credit, never a broken `#idea-` link.
 
   A player who reports a bug should see it tracked immediately — that is a *page*, and it
   costs nothing to be honest about early. The sign announces **shipped** work, which is
@@ -552,10 +571,10 @@ What it does:
 
 Reordering items in the list reorders them in the file; Add/Delete behave as expected.
 
-**LAN access:** the editor binds `0.0.0.0` by default, so it's reachable from any device
-on the local network (`http://<host>:8765/`) — no auth, so trust your network, or pass
-`--host 127.0.0.1` to lock it to this machine. On Fedora, open the firewall port if the
-phone can't connect: `firewall-cmd --add-port=8765/tcp` (`--permanent` to persist).
+**Access:** the editor binds `127.0.0.1` and requires a login on every request,
+including from the LAN. Off-machine access goes through the Cloudflare Tunnel at
+<https://roadmap.homerslotr.com>, not an open port — see
+[Access control](#access-control).
 
 ### Run it on boot (systemd user service)
 
@@ -571,4 +590,143 @@ loginctl enable-linger "$USER"      # start at boot, before you log in
 ```
 
 Check it: `systemctl --user status roadmap-editor.service` and
-`curl -s localhost:8765/api/data`.
+`curl -s -o /dev/null -w '%{http_code}\n' localhost:8765/login` (expect `200`;
+`curl localhost:8765/api/data` now answers `401` without a session, which is the
+gate working, not a fault).
+
+## Access control
+
+The editor used to bind `0.0.0.0` with no authentication at all, on the theory
+that the LAN was the trust boundary. It is now reachable from the internet and
+more than one person uses it, so both halves of that theory are gone.
+
+### Roles and capabilities
+
+Roles are a data table in `bin/roadmap_auth.py` (`CAPS` / `ROLES`), not
+`if role == "admin"` branches, so adding a role later — a `player` tier that can
+only view and submit, say — is a one-line change rather than a sweep through the
+request handlers.
+
+| Capability | Covers |
+|---|---|
+| `view` | the board, roadmap data, merit balances and pending redemptions (read-only) |
+| `edit` | saving ideas, ticking `manual_steps` |
+| `promote_shipped` | moving an item **into or out of** a shipped status |
+| `merit` | awarding/revoking merit and UAT credits — writes the shared `meritdb` |
+| `publish` | Save &amp; regenerate, and Publish to Wiki &amp; DB (which git-pushes) |
+| `llm_review` | the LLM Changes panel, including approve / reject / reroll |
+| `palette` | Palette Finder and its refresh |
+| `serverlog` | the `/monitor` page and the realm log tail |
+| `submit` | creating new ideas (reserved for a future `player` role) |
+
+| Role | Has |
+|---|---|
+| `admin` | everything |
+| `dm` | everything **except** `promote_shipped` and `merit` |
+
+So a DM runs the backlog day to day — edits, triage, the queues, the LLM review
+panel, and even Publish — but cannot mark anything shipped and cannot pay merit.
+
+**What the DM ceiling does *not* restrict:** `manual_steps`, `design_questions`
+and the `uat_credits` list itself stay fully editable on **any** item, including
+one already `implemented` or `awarded`. Adding a UAT check to a shipped item is
+the DM's core job. The ceiling gates an item's own status, never its subtasks.
+(The one thing to know: `implemented` plus an unfinished `blocker: true` step is
+a whole-file validation error that blocks saves for *everyone* — see
+`bin/roadmap-lint.py`. Adding a plain step to a shipped item is safe; adding a
+**blocker** step is the lockout. The validator refuses it loudly rather than
+silently, but it is worth knowing before you tick the box.)
+
+### Why route gating alone is not enough
+
+The browser posts the **entire `ideas` array** on every save, and `/api/save`
+writes what it is given. Blocking `/api/award` at the route level would
+therefore leave `/api/save` as an open back door: a DM could set any item to
+`implemented`, or flip `merit_awarded`, without ever calling a merit endpoint.
+
+`roadmap_auth.enforce_idea_permissions()` closes that, and runs on `/api/save`,
+`/api/regenerate` and `/api/publish` under the same `yaml_lock` the write takes.
+It is deliberately **narrow** — it compares the posted document against disk and
+looks at exactly four things: whether an item is in a shipped status, whether a
+shipped item still exists, `merit_awarded`, and `awarded` inside `uat_credits`.
+Everything else on a shipped item passes through untouched.
+
+`ROUTE_CAPS` in `bin/roadmap-editor.py` **fails closed**: a path missing from the
+table is denied, so adding an endpoint without deciding who may call it breaks
+loudly instead of shipping open.
+
+The browser page hides controls the role cannot use (`CAN()` /
+`applyCapabilities()`), but that is a courtesy. The server enforces every rule
+independently; never treat the page's gating as the control.
+
+### Managing accounts
+
+Only from a shell on this box — there is no signup page, no password reset and
+no in-browser user admin, because a management UI on an internet-facing surface
+is a much bigger thing to get right than a script that runs here.
+
+```
+python3 bin/roadmap-users.py add jane --role dm --name "Jane (DM)"
+python3 bin/roadmap-users.py list          # accounts, roles, last login
+python3 bin/roadmap-users.py roles         # the capability table above
+python3 bin/roadmap-users.py passwd jane   # also revokes their sessions
+python3 bin/roadmap-users.py role jane admin
+python3 bin/roadmap-users.py disable jane  # lock out and log out
+python3 bin/roadmap-users.py sessions      # who is currently signed in
+python3 bin/roadmap-users.py logout jane   # or --all
+python3 bin/roadmap-users.py audit --limit 40
+```
+
+Passwords are never taken from the command line (that would put them in shell
+history and in `ps`): the commands prompt, or take `--stdin`, or mint one with
+`--random`.
+
+Everything lands in an append-only audit log — logins, failures, throttling,
+every roadmap write with the ids it changed, and every refusal (`denied.route`,
+`denied.field`). Read it with `roadmap-users.py audit`.
+
+**The account database is a secret.** `~/.local/share/roadmap-editor/auth.sqlite3`
+holds password hashes and live session tokens. Same rule as `bin/seed-admindb.sh`:
+never commit it, never put it under `unpacked/` (nasher packs that directory
+regardless of `.gitignore`), and never send it to the LAN Gemma box.
+
+**It is backed up by the dev realm's daily backup** (`bin/backup-homers-lotr`),
+landing at `roadmap-editor/auth.sqlite3` inside the archive. Accounts themselves
+are cheap to recreate, but the audit log exists nowhere else — "who changed what,
+when" is not reconstructible once it is gone. The Cloudflare token is
+deliberately *not* archived; see below.
+
+### Public access — the Cloudflare Tunnel
+
+`https://roadmap.homerslotr.com` is served through a Cloudflare Tunnel:
+`bin/serve-roadmap-tunnel` (a rootless podman `cloudflared` container, run by
+`systemd/roadmap-tunnel.service`) connects **outbound** to Cloudflare and proxies
+requests back down that connection to `127.0.0.1:8765`.
+
+Nothing is forwarded on the router, no inbound port is opened, and TLS
+terminates at Cloudflare — which matters because this box is Bazzite
+(immutable): nginx and certbot would need `rpm-ostree` layering and a reboot,
+and rootless podman cannot bind `:443` while
+`net.ipv4.ip_unprivileged_port_start` is 1024.
+
+It is a **remotely-managed (token) tunnel**: the public hostname and the service
+it points at (`HTTP 127.0.0.1:8765`) are configured in the Cloudflare dashboard,
+and the only thing on this box is the connector token, in
+`~/.config/roadmap-editor/tunnel.env` (mode 600). That avoids a
+`cloudflared tunnel login` browser dance here and leaves no `config.yml` or
+credentials JSON to drift out of step with the dashboard.
+
+**The token is a secret on the same footing as `server.env.local`** — anyone
+holding it can serve traffic on your hostname. Never commit it, never send it to
+the LAN Gemma box. If it leaks, hit *Refresh token* in the dashboard. The script
+passes it via `--env TUNNEL_TOKEN` rather than on the command line, so it does
+not show up in `ps` or `podman inspect`.
+
+The one-time setup (create the tunnel, copy the token, add the public hostname)
+is documented — not scripted, since it happens in a browser — in the header of
+`bin/serve-roadmap-tunnel`.
+
+Because every request arrives from `127.0.0.1`, the real client address comes
+from Cloudflare's `CF-Connecting-IP` header — trusted **only** when the socket
+peer really is loopback, since a header is otherwise just something a client
+typed.

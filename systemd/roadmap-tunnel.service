@@ -1,0 +1,43 @@
+[Unit]
+# Cloudflare Tunnel publishing the roadmap editor at
+# https://roadmap.homerslotr.com.
+#
+# The editor itself binds 127.0.0.1 only (roadmap-editor.service). cloudflared
+# connects OUTBOUND to Cloudflare and proxies requests back down that
+# connection, so this opens no port, needs nothing forwarded on the router, and
+# terminates TLS at Cloudflare rather than on this box — which has neither nginx
+# nor certbot, and could not bind :443 rootless in any case.
+#
+# This is a remotely-managed (token) tunnel: the public hostname and the service
+# it points at are configured in the Cloudflare dashboard. The only thing on
+# this machine is the connector token, in ~/.config/roadmap-editor/tunnel.env
+# (mode 600, gitignored, a secret on the same footing as server.env.local).
+#
+# One-time setup is documented in the header of bin/serve-roadmap-tunnel.
+#
+# Install:
+#   systemctl --user enable --now roadmap-tunnel.service
+#   loginctl enable-linger james     # so it starts at boot, before login
+Description=Cloudflare Tunnel for the Homer's LotR roadmap editor
+Documentation=file:///var/home/james/GIT/nwn_homers_lotr/CLAUDE-roadmap.md
+After=default.target network-online.target roadmap-editor.service
+Wants=network-online.target roadmap-editor.service
+
+[Service]
+Type=simple
+WorkingDirectory=/var/home/james/GIT/nwn_homers_lotr
+# The script also reads this file itself, so a manual run works the same way.
+# Optional here so a missing file produces the script's own explanation of how
+# to create it, rather than a bare systemd "failed to load environment file".
+EnvironmentFile=-%h/.config/roadmap-editor/tunnel.env
+ExecStart=/var/home/james/GIT/nwn_homers_lotr/bin/serve-roadmap-tunnel
+ExecStop=/usr/bin/podman stop -t 6 roadmap-cloudflared
+# A tunnel that cannot reach Cloudflare (no network yet at boot, a transient
+# edge failure) must keep trying rather than give up and leave the editor
+# unreachable until someone notices.
+Restart=always
+RestartSec=15
+Nice=10
+
+[Install]
+WantedBy=default.target

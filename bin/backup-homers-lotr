@@ -10,9 +10,12 @@
 #                                     of each is whichever dir nwserver wrote it
 #                                     to — we capture both, mirrored)
 #   NWN_RUN_DIR/activity-sessions.json(+.bak)  player-hours history
+#   PROJECT_ROOT/roadmap-merit-aliases.json    roadmap name -> CD key (dev only)
 #
 # Deliberately NOT captured (regenerable): hak/, tlk/, nwsync/, compiled .mod
-# files (rebuild from the git module source), wiki docs/, .nasher/ cache.
+# files (rebuild from the git module source), wiki docs/, .nasher/ cache, and
+# roadmap-credits.json (gen-roadmap.py rebuilds it from roadmap.yaml, both of
+# which are in git).
 #
 # Runs are gated by a calendar-date sentinel (at most once per day) so it can
 # be invoked freely from both a systemd service and the `nwn-manager serve`
@@ -99,6 +102,23 @@ copy_configs() {  # $1 = source base dir, $2 = stage subdir
 SHARED_DB_DIR="$HOME/.local/share/nwn-shared"
 SHARED_DBS=(meritdb admindb)
 
+# The roadmap editor's account database (bin/roadmap_auth.py): web logins,
+# roles, and the append-only audit log. Account-wide, so exactly
+# one instance captures it — the DEV realm; see the capture block below for why
+# that differs from the live-owned SHARED_DBS.
+# It matters because the audit log exists nowhere else — accounts themselves are
+# cheap to recreate with bin/roadmap-users.py, but "who changed what, when" is
+# not reconstructible once it is gone.
+# NOT backed up alongside it: ~/.config/roadmap-editor/tunnel.env. That is a
+# live bearer credential for the public hostname, and it is regenerated in
+# seconds from the Cloudflare dashboard (Refresh token), so copying it into an
+# off-machine archive would add real risk to buy nothing.
+ROADMAP_AUTH_DB="${ROADMAP_AUTH_DB:-$HOME/.local/share/roadmap-editor/auth.sqlite3}"
+
+# Roadmap player name -> CD key (see the capture block below for why it is here
+# and not in git). Defined beside the auth DB so --dry-run can report it.
+ROADMAP_ALIASES="${ROADMAP_ALIASES:-$PROJECT_ROOT/roadmap-merit-aliases.json}"
+
 if [[ $DRY_RUN -eq 1 ]]; then
   log "DRY RUN — would back up:"
   log "  season:     num='${SEASON_NUM:-unset}' role='${SEASON_ROLE:-unset}'"
@@ -107,6 +127,16 @@ if [[ $DRY_RUN -eq 1 ]]; then
     log "  shared DBs: ${SHARED_DBS[*]} from $SHARED_DB_DIR (this instance is SEASON_ROLE=live)"
   else
     log "  shared DBs: skipped (SEASON_ROLE='${SEASON_ROLE:-unset}' is not 'live')"
+  fi
+  if [[ ${SEASON_ROLE:-} == dev && -f $ROADMAP_AUTH_DB ]]; then
+    log "  editor auth: $ROADMAP_AUTH_DB (accounts + audit log)"
+  else
+    log "  editor auth: skipped ($([[ -f $ROADMAP_AUTH_DB ]] && echo "SEASON_ROLE='${SEASON_ROLE:-unset}' is not 'dev'" || echo 'no such file'))"
+  fi
+  if [[ ${SEASON_ROLE:-} == dev && -f $ROADMAP_ALIASES ]]; then
+    log "  roadmap map: $ROADMAP_ALIASES ($(grep -c ':' "$ROADMAP_ALIASES" 2>/dev/null || echo '?') alias line(s))"
+  else
+    log "  roadmap map: skipped ($([[ -f $ROADMAP_ALIASES ]] && echo "SEASON_ROLE='${SEASON_ROLE:-unset}' is not 'dev'" || echo 'no such file'))"
   fi
   log "  vault:      $(find "$NWN_HOME_DIR/servervault" -name '*.bic' 2>/dev/null | wc -l) .bic characters"
   log "  configs:    home + run copies of: ${CONFIG_FILES[*]}"
@@ -140,6 +170,43 @@ if [[ ${SEASON_ROLE:-} == live ]]; then
   done
 fi
 
+# Roadmap editor accounts + audit log. Account-wide, so exactly one instance must
+# capture it — and that instance is the DEV realm, not the live one that owns
+# SHARED_DBS above. Two reasons: the editor runs from this repo, and the dev
+# realm is permanent while SEASON_ROLE=live moves to a new repo at every cutover
+# (each of which carries its own copy of this script, so a live-anchored rule
+# would have to be re-applied by hand every season and would silently lapse the
+# first time it wasn't).
+# Staged outside database/ because it is not a campaign DB and must never be
+# restored into the server's database dir.
+if [[ ${SEASON_ROLE:-} == dev && -f $ROADMAP_AUTH_DB ]]; then
+  mkdir -p "$stage/roadmap-editor"
+  if ! sqlite3 "$ROADMAP_AUTH_DB" ".backup '$stage/roadmap-editor/auth.sqlite3'" 2>/dev/null; then
+    log "warn: sqlite3 .backup failed for the roadmap editor auth DB; falling back to cp"
+    cp -p "$ROADMAP_AUTH_DB" "$stage/roadmap-editor/auth.sqlite3"
+  fi
+  chmod 600 "$stage/roadmap-editor/auth.sqlite3" 2>/dev/null || true
+fi
+
+# Roadmap player name -> CD key, the map that lets the merit dialog and the wiki
+# credit a hand-typed roadmap name to a real account. Same dev-realm rule and
+# same reasoning as the auth DB above: it lives in this repo, and this repo is
+# the permanent one.
+#
+# It is captured because it is BOTH gitignored (it holds plaintext CD keys, so
+# it must never enter version control) and NOT regenerable: every entry was a
+# human deciding who a name belongs to, one at a time, in the award dialog. Git
+# protects everything else in this repo; this file had nothing protecting it at
+# all, which is precisely the combination a backup is for.
+#
+# Staged outside database/ for the same reason as the auth DB: it is not a
+# campaign DB and must never be restored into the server's database dir.
+if [[ ${SEASON_ROLE:-} == dev && -f $ROADMAP_ALIASES ]]; then
+  mkdir -p "$stage/roadmap-editor"
+  cp -p "$ROADMAP_ALIASES" "$stage/roadmap-editor/roadmap-merit-aliases.json"
+  chmod 600 "$stage/roadmap-editor/roadmap-merit-aliases.json" 2>/dev/null || true
+fi
+
 # --- player vault -----------------------------------------------------------
 if [[ -d $NWN_HOME_DIR/servervault ]]; then
   mkdir -p "$stage/home/servervault"
@@ -166,6 +233,7 @@ done
   echo "season_num: ${SEASON_NUM:-unset}"
   echo "season_role: ${SEASON_ROLE:-unset}"
   echo "shared_dbs_included: $([[ ${SEASON_ROLE:-} == live ]] && echo yes || echo no)"
+  echo "roadmap_auth_included: $([[ -f $stage/roadmap-editor/auth.sqlite3 ]] && echo yes || echo no)"
   echo
   echo "sha256:"
   ( cd "$stage" && find . -type f ! -name MANIFEST.txt -print0 | sort -z \
