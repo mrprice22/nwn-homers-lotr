@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-08-31 08:15 CDT"
+  as_of: "2026-08-31 20:58 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -140,6 +140,69 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: lag-issue-with-playtimedb-reported
+    title: "Lag + Issue with playtimedb reported"
+    group: wiki-tools
+    status: manual
+    type: Defect
+    player: "Balendin (Balendin_2222)"
+    date: "2026-09-01"
+    commit: ccff197cf55
+    notes: "<div>Fixed the red <em>sqlite error: not authorized</em> block that appeared at the top of your log every time you connected. It was harmless to your character — play time was being recorded correctly the whole time — but it fired on every single login, for everyone.</div><div><br></div><div>While tracking it down we found the more likely cause of the lag spike people felt whenever somebody logged in: the server was rebuilding the structure of seven of its databases on every connect, all at once, on the same thread that runs the game world. That work now happens once when the server starts, so logging in touches the disk once instead of twenty-eight times.</div><div><br></div><div>If you still see a stall when a player joins, please report it — the remaining suspects are different ones.</div>"
+    notes_h: 406
+    impl_notes: "ROOT CAUSE of the error: `meta` is reserved by the engine. NWN:EE pre-seeds every campaign DB with three internal tables - `migrations`, `db` and `meta` - and its SQL authorizer denies any script statement naming one of them (SQLITE_AUTH, code 23). Verified across all 34 campaign DBs under the S2 database dir; the pre-existing `meta` carries the engine's own schema (key varchar, value varchar, no PK). ptm_db.nss was the ONLY script in the module naming a table `meta`, so its CREATE TABLE and INSERT OR IGNORE were refused on every login, permanently - 96 occurrences across the S2 nwengineLog.txt files. The `sessions` half was never affected and has recorded correctly since 2026-08-29 (39 rows on S2 with sane `minutes`); only tracking_started was lost, which is why the 'tracking started on ...' caption the per-character-playtime design requires has never rendered. Renamed to `ptm_meta` and seeded from COALESCE(MIN(entered_at), datetime('now')) over `sessions` rather than from now, so the caption reports the window we actually have data for. Never name a campaign-DB table meta/db/migrations; ptm_db.nss carries that warning now.\n\nTHE LAG is a separate, unproven thing - two failed statements cannot stall the server. What is real: mod_cliententer ran seven *_InitDb() calls SYNCHRONOUSLY on the login frame (Merit 7 statements, Bst 7, Ptm 4, Boost 4, Faction 3, Tele 2, FAT 1 = 28 SQLite commits across seven campaign DB files), on a box with one 7200rpm disk and a single-threaded server main loop. None do per-PC work - all are pure DDL plus PRAGMA table_info-guarded ALTER migrations. Moved Merit_InitDb/Bst_InitDb/Tele_InitDb into onmoduleload (Ptm, Faction, Boost, FAT were already there and were running twice), removed all seven from mod_cliententer, which now carries a header comment forbidding their return. Login-frame DB work is down to Ptm_Open's single INSERT. GetObjectUUID(oPC) stays ahead of Ptm_Open - it is what mints the UUID for a first-time character. The DelayCommand chain (3.0-10.0s) is untouched.\n\nAlso removed Ptm_CloseStale() and Ptm_Open's 'belt and braces' UPDATE: both were provable no-ops (SET on NULL columns WHERE those columns IS NULL) that scanned the table to change nothing. Abandonment is enforced by the reader - an open row keeps a NULL `minutes`, load_playtime filters WHERE minutes IS NOT NULL, and Ptm_Close closes only the newest open row (ORDER BY id DESC LIMIT 1), so a stale row is never credited to a later session.\n\nWiki side, separate repo: nwn_manager f778b57 points nwn_wiki/players/sources.py load_playtime() at ptm_meta, guarded on sqlite_master so a pre-fix DB returns '' quietly. Character pages will render the tracking-started caption for the first time, so published pages will move.\n\nDEPLOYED TO THE DEV/TEST REALM ONLY. Repack clean: 34/34 smoke tests, dialog gate 0 failing. Season 2 promotion is pending the admin's word after UAT below. Module-only change - no hak or TLK touched, so no NWSync refresh is needed."
+    manual_steps:
+      - step: "Log in to the TEST realm and confirm the 'sqlite error: not authorized' block is gone from the top of your client log. Server-side: grep -c 'not authorized' in the newest ~/.local/state/nwnxee-homer-dev/logs.0/nwengineLog.txt should be 0."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Confirm play-time tracking still works after the DDL moved off the login path: log out, log back in, and check playtimedb.sessions in the Dev database dir has a row closed with a sane `minutes` plus a new open row. Also confirm the ptm_meta table exists with one tracking_started row equal to the earliest entered_at."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Smoke-test the six subsystems whose *_InitDb() moved to module load, since a missing table would fail silently at first use: open the Merit shop / EmoteWand admin menu, open the bestiary book, use a rest-menu teleport, and confirm the faction, boost and fatigue login messages still arrive a few seconds after connecting."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Have a second player connect while you are in game and confirm whether the login stall is gone or reduced. This is the actual lag check - the error fix alone would not have changed it. BLOCKER for judging whether the login-frame work was the cause; if lag persists, the next suspects are the DelayCommand chain and per-login .bic I/O, not the campaign DBs."
+        status: open
+        kind: uat
+        tester: "any (two players)"
+      - step: "Promote to Season 2 once the above pass. Run python3 bin/gen-release-notes.py BEFORE promoting (season-promote.sh --apply rewrites the baseline anchors), then confirm on S2 that 'not authorized' stays at 0 in the new logs.0/nwengineLog.txt across several player logins."
+        status: open
+        kind: admin
+  - id: boss-enrages-after-killing-player
+    title: "Boss enrages after killing player"
+    group: bosses
+    status: confirmed
+    type: Defect
+    player: "Balendin (Balendin_2222)"
+    date: "2026-09-01"
+    notes: "<div><div><span><span>Tukwut</span><span><span><span>OP</span></span></span></span><span><span><i> </i></span></span><div><span>Have seen 3 or so instances of this but have not yet recognized any patterns or steps to reproduce. (can assign this as reported by Balendin)</span></div></div></div><div><div><span><span><br></span></span></div><div><span><span>HomelessSon</span></span><div><span>oh dang!</span></div></div></div><div><div> <div><span>that's insult added to injury</span></div><div><span><br></span></div><div><div><div><span><span>Rajmund: </span></span><span>Happened to me, too. Character dies respawns in Well then Boss realizes that tbe fight is over and gets enraged. Happened like 70% of the time to me.</span></div></div><div><div><span><span>HomelessSon</span><span><span>: </span></span></span><span>huh so some of the time you do die and it doesnt get enraged.. that's an interesting clue </span><span><img src=\"https://discord.com/assets/74f0a67afb481b21.svg\" alt=\"🔍\"></span></div></div><br></div></div></div>"
+  - id: level-drain-property-not-removable-from-forge
+    title: "Level drain property not removable from Forge"
+    group: forge
+    status: wip
+    type: Defect
+    player: "Sync (Shync)"
+    date: "2026-08-31"
+    notes: "<div>Related to work done by ideas <a href=\"#idea-smith-can-disenchant-negative-abilities\">smith can disenchant negative abilities</a> and <a href=\"#idea-smith-can-disenchant-negative-abilities-exclude-negative-arcance-spell-failure\">negative arcance spell failure (reduced spell failure) might count as negetive property on items for smithing, but it's a positive (good) thing to have</a></div><div>It seems like 'level drain' on weapons might be counting as a negative property. Investigate, and document in customizations doc what properties smith counts and positive (boon) vs negative (penalty that can't be removed). The ability to drain levels on your opponent when you hit them is a boon.</div><div><br></div><ul><li><div><div><span><span>Sync</span></span><span><span><i>:</i></span></span><span> Oh i tried to remove the lvl drain from the </span><span>katana of dol guldur,</span><span> but doesnt let me. Guess its either cos its millions over the cap or has more than 7 properties </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div></li></ul><ul><li><div><div><span><span>HomelessSon</span><span><span>: </span></span></span><span>huh, i wonder if the 'drain' keyword tripped up claude and made it think it's a negative property that has to always stay /sigh</span></div></div></li></ul><div><ul><li>Sync: <span>Probably, it lets me select it but doesn't give me the option to strip it off</span></li></ul></div>"
+  - id: rng-based-gear-diablo-world-of-warcraft-style
+    title: "RNG based GEAR (Diablo/World of Warcraft Style)"
+    group: items-gear
+    status: soon
+    type: Enhancement
+    player: "Rajmund (Ray)"
+    date: "2026-08-31"
+    notes: "<div>Generate gear on the fly as loot to replace the garbage/stock items that are looted from 99.5% of containers in the module </div><div>This helps with spread of weapon types, and uniqe/rare combinations promotes player trade and gives value to PVP/disarming. </div><ul><li><a href=\"#idea-add-more-weapons-quarterstafs-and-doublesided\">Add more weapons: quarterstafs and doublesided</a></li><li><a href=\"#idea-add-more-rapiers-and-scimitars\">Add more weapons rapiers and scimitars</a></li></ul><div>Aim for even spread of all weapon types -- but offset/influenced by current player's feats </div><br>"
+  - id: balance-divine-might
+    title: "Balance Divine Might"
+    group: combat-classes
+    status: soon
+    type: Enhancement
+    player: Tukwut
+    date: "2026-08-31"
+    notes: "<div><a href=\"https://nwn.fandom.com/wiki/Divine_might\" target=\"_blank\" rel=\"noopener\">Divine might's bonus</a> punches through damage reduction and damage immunity outright, making it harder to balance bosses against</div><div>Divine might should count toward standard resistance/immunity reduction</div><div><br></div><div>as is:<br><div><div><div><span>i think its a fun part of theory crafting though - sacrificing STR for CHA to boost the amount of damage, and sacrificing 1 of the 4 classes for paladin or BG which are not that optimal otherwise</span></div></div><div><div></div></div></div><div><div> <div><span>but cap of 20 cha modifier seems like a lot</span></div></div><div><div></div></div></div><div><div> <div><span>dual wield kama or katana monk can pump 200 guaranteed damage per round lol</span></div></div><div><div><div></div><div></div><span><div></div></span></div></div><div><div></div></div></div><div><div> <div><span>dury of valar is what 160 ontop of how powerful those gloves already are</span></div></div></div><br></div>"
   - id: more-combat-dummys-request
     title: "More combat dummys request"
     group: combat-classes
@@ -156,11 +219,11 @@ ideas:
     type: Defect
     player: "Sync (Shync)"
     date: "2026-08-29"
-    notes: "<div><div><span><span>Sync</span></span><span><span><i>: </i></span></span><span>Add more saves or immunities to the dummy as well, flame of the west and katana of dol guldur kill the dummy within seconds</span></div><div><div></div></div></div><div><div> <div><span>And cant go on with the dps test<br><br></span></div></div><div><div></div></div></div><div><div><span><span>HomelessSon</span><span><span>:</span></span></span><div><span>Huh, it's supposed to be unkillable!</span></div></div><div><div></div></div></div><div><br></div><div><div><span><span>Sync</span></span><span><span><i>:</i></span></span><div><span>Seems the extra stuff on some weapons interacts with it somehow</span></div></div></div><div><div> <div><span>Flame of the west paralizes it, if i get a crit afterwards it says \"coup de grace\" and instantly kills the dummy</span></div></div><div><div><div></div><div></div><span><div></div></span></div></div><div><div></div></div></div><div><div> <div><span>The dol guldur katana has lvl drain... I suppose it goes under 1 and also kills it? </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div></div><div><br></div><div>\n<span><span>Fugdish</span></span><div><span>+8 short sword from taggets, level 30 Bard song and the epic feat +2 to hit and damage after a kill, destroyed the dummy for me too.</span></div><div><span><br></span></div><div><span>Sync:</span></div></div><div><div><div><div><div><div><div><div><div><div><div><img src=\"https://media.discordapp.net/attachments/514354202068254720/1544007125595066588/Screenshot_20260831-163027_1.jpg?ex=6a96f031&amp;is=6a959eb1&amp;hm=351c835a0b08da244395a8cbc6656b61ec7e35f620ade7441fa6660b942a124c&amp;=&amp;format=webp&amp;width=205&amp;height=320\" alt=\"Image\"><img alt=\"\"></div></div></div><div></div></div></div></div></div></div></div><div><div></div></div></div><div><div> <div><span>Seems to fail the save and gets destroyed </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span> <span><span></span></span></div></div></div><br></div>"
+    notes: "<div><div><span><span>Sync</span></span><span><span><i>: </i></span></span><span>Add more saves or immunities to the dummy as well, flame of the west and katana of dol guldur kill the dummy within seconds</span></div><div><div></div></div></div><div><div> <div><span>And cant go on with the dps test<br><br></span></div></div><div><div></div></div></div><div><div><span><span>HomelessSon</span><span><span>:</span></span></span><div><span>Huh, it's supposed to be unkillable!</span></div></div><div><div></div></div></div><div><br></div><div><div><span><span>Sync</span></span><span><span><i>:</i></span></span><div><span>Seems the extra stuff on some weapons interacts with it somehow</span></div></div></div><div><div> <div><span>Flame of the west paralizes it, if i get a crit afterwards it says \"coup de grace\" and instantly kills the dummy</span></div></div><div><div><div></div><div></div><span><div></div></span></div></div><div><div></div></div></div><div><div> <div><span>The dol guldur katana has lvl drain... I suppose it goes under 1 and also kills it? </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div></div><div><br></div><div>\n<span><span>Fugdish</span></span><div><span>+8 short sword from taggets, level 30 Bard song and the epic feat +2 to hit and damage after a kill, destroyed the dummy for me too.</span></div><div><span><br></span></div><div><span>Sync:</span></div></div><div><div><div><div><div><div><div><div><div><div><div><img src=\"https://media.discordapp.net/attachments/514354202068254720/1544007125595066588/Screenshot_20260831-163027_1.jpg?ex=6a96f031&amp;is=6a959eb1&amp;hm=351c835a0b08da244395a8cbc6656b61ec7e35f620ade7441fa6660b942a124c&amp;=&amp;format=webp&amp;width=205&amp;height=320\" alt=\"Image\"><img alt=\"\"></div></div></div><div></div></div></div></div></div></div></div><div><div></div></div></div><div><div> <div><span>Seems to fail the save and gets destroyed </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span> <span><span></span></span></div></div></div><br></div><div>Tukwut: Casting Negative Energy Protection on dummy before being attached by Katana of Dol Guldur prevented the level drain and death of dummy.</div>"
     notes_h: 288
   - id: add-more-weapons-quarterstafs-and-doublesided
     title: "Add more weapons: quarterstafs and doublesided"
-    group: forge
+    group: items-gear
     status: soon
     type: Enhancement
     player: "Sync (Shync)"
@@ -191,7 +254,7 @@ ideas:
     notes: "<div><span>Has anyone gotten the legendary summon Joseph Campbell to use his Bard song?</span></div>"
   - id: teleport-to-weathertop-doesnt-work-on-the-test-server
     title: "teleport to weathertop doesn't work on the test server."
-    group: forge
+    group: travel
     status: confirmed
     type: Defect
     player: "Balendin (Balendin_2222)"
@@ -434,7 +497,8 @@ ideas:
   - id: are-some-encounters-dynamic-based-on-alignment-set-in-the
     title: "Are some encounters dynamic based on alignment set in the Well?"
     group: wiki-tools
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Agent51950
     date: "2026-08-24"
@@ -601,7 +665,7 @@ ideas:
         date: "2026-08-26"
   - id: add-custom-helmet-skins
     title: "Add custom helmet skins"
-    group: forge
+    group: items-gear
     status: wip
     type: Enhancement
     player: Szescian82
@@ -684,7 +748,8 @@ ideas:
   - id: arcane-spellfailure-ammount-now-showing-in-wiki-details
     title: "Arcane spellfailure %ammount now showing in wiki details"
     group: wiki-tools
-    status: implemented
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-27"
@@ -693,7 +758,7 @@ ideas:
     impl_notes: "<div><b>Root cause: a missing cost table, failing silently.</b> bin/wiki_data/itemprops.json carried property 84 as a bare {\"name\": \"Arcane Spell Failure\"} with no cost_table. itemprop_format() deliberately discards a raw CostValue when no cost table is configured - it is an internal engine index with no user-visible meaning - and that path emits no _warn_once, so every prop-84 line rendered with an empty Value column and nothing in the build log ever said so. cloth034 stores CostTable 27 / CostValue 4.</div><div><br></div><div><b>Fix 1 (the amount).</b> itempropdef.2da row 84 points at CostTableResRef 27 = iprp_arcspell.2da, a row-indexed table (row 0 is -50%, row 19 is +50%), so no _format fallback is possible and all 20 rows are listed. bin/wiki_data/build_itemprop_tables.py already performs exactly this repair for properties 22 and 53, so build_arcspell() joins them there and takes its labels from dialog.tlk - the wiki prints the same string as the in-game tooltip, leading zero and all. No renderer changes were needed: the item property table, the Browse by Property index and the arcane-spell-failure detail page all fill in from that one mapping.</div><div><br></div><div><b>Fix 2 (the effective total).</b> Neither half of the real number was cached. Body armour reads stock armor.2da by its base AC (0-8 -&gt; 0/5/10/20/20/30/40/40/45); shields read the ArcaneSpellFailure column of baseitems.2da (5/15/50), which weapons.json did not keep. _build_stock.py now writes a new armor.json and caches the extra column; items.item_spell_failure() returns (base, modifier, effective), summing prop-84 values <i>signed</i> - _prop_value_num() ignores the sign and here the sign is the whole point - and clamping to 0-100. render/items._spell_failure_row() puts it in the item header dl. An item in no armour slot can still carry the property, so those read \"modifies the wearer's total\" instead of claiming a total of their own. armor.json is registered in the nwn-wiki wiki_data pre-flight.</div><div><br></div><div><b>Side effect, verified safe.</b> Rebuilding weapons.json also picked up EquipableSlots and the seven weapon-feat columns, which were added to WEAPON_COLS after the committed cache was last generated - the cache was stale. Checked cell by cell against the old file: no row dropped, no value changed, additions only. The slot model and devastating-critical detection get real data as a result.</div><div><br></div><div><b>Verified against a full regenerated wiki</b>, not just unit-level: cloth034 shows the -30% property row and \"0% - 0% base, -30% from item property\"; the detail page shows 8 items across 6 anchored tiers; the properties index expands to one row per tier; 400 item pages carry the new line, and base-only cases check out (base AC 8 -&gt; 45%, tower shield -&gt; 50% base). All in nwn_manager - module-only in the sense that no hak, TLK, 2da or .mod changed, so nothing to repack or NWSync.</div><div><br></div><div><b>Note on the report's \"30%\".</b> The item's property is -30% - it <i>reduces</i> failure. cloth034's torso model is base AC 0, so its base failure is 0% and its effective failure is 0%, not 30%. The 30% in the report is the property's own label read without its sign, which is precisely what a blank Value column invites.</div>"
     manual_steps:
       - step: "UAT: after the next wiki republish, open the Mithral of Sauron item page on the live site. The Properties table must show Arcane Spell Failure with a value of -30%, and the header must show a Spell failure line reading 0%. Then open any suit of full plate and confirm it reads 45%, and a tower shield with no such property reads 50%."
-        status: open
+        status: done
         kind: uat
         tester: "any"
   - id: potions-to-restore-spent-spells-and-feats-day
@@ -1206,7 +1271,7 @@ ideas:
   - id: summanus-chest-items
     title: "summanus-chest-items"
     group: items-gear
-    status: confirmed
+    status: wip
     type: Defect
     player: Szescian82
     date: "2026-08-18"
@@ -1291,7 +1356,7 @@ ideas:
         kind: admin
   - id: antidupe_craft_container_invisible
     title: "Odd \"Anti-Duping Craft Container (Invisible)\" Object(s)"
-    group: forge
+    group: quests-areas
     status: manual
     type: Defect
     player: Szescian82
@@ -3991,9 +4056,11 @@ ideas:
   - id: item-morph-type
     title: "Change an item's type/subtype while keeping its properties (e.g. bastard sword -> kama)"
     group: items-gear
-    status: planned
+    status: later
     type: Enhancement
     player: "Y a z k i r"
+    date: "2026-08-31"
+    notes: "<div><font color=\"#26a269\">Admin note: This might not be needed or compatible with </font><a href=\"#idea-rng-based-gear-diablo-world-of-warcraft-style\">RNG based GEAR (Diablo/World of Warcraft Style)</a></div><div><br></div><div>Sync 8/31/26:</div><div><div><div><span>Also for that I suppose theres also ways to limit it, like only melee weapon to melee weapon (excluding gloves), only allowing blank weapons as the copy target, etc.</span></div></div><div><div></div></div></div><div><div> <div><span>Or a forge npc somewhere else allowing up to +15 and the 3-4 damage lines up to 2d10 plus keen and such....</span></div></div><div><div></div></div></div><div><div> <div><span>Obviously i dont know if that's easy to do or not.... Just listing several systems ive seen in other servers </span><span><img src=\"https://discord.com/assets/5134d215343b97ef.svg\" alt=\"😅\"></span></div></div></div>"
   - id: dedupe-item-tags
     title: "Resolve all duplicate-tagged items (module-index/item_tag_conflicts.json) — give each variant a unique Tag/resref"
     group: items-gear
@@ -6768,7 +6835,7 @@ ideas:
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     notes: "<div>The wiki cannot say how long a <i>character</i> has been played, because nothing records it. The server log names only the account: Shync (UPRWA3VR) Joined as Player 1 and Shync Left as a Player — the character is never mentioned, on join or on leave. No campaign DB tracks it either (every table across all 30 was checked). So today every character an account owns shows that account’s total, which is why a Most Played board ranked one player’s four characters 1-4 with the same number and was removed.</div><div><br></div><div><b>What it needs:</b> a session table written by the module, exactly as combatdummydb already does for dummy trials — insert on Mod_OnClientEntr (uuid, char_name, cdkey, entered_at), update the matching open row on Mod_OnClientLeav. Both are local SQLite writes through SqlPrepareQueryCampaign, so there is no network call and no measurable cost on login.</div><div><br></div><div><b>The one trap:</b> a crash or reboot never fires OnClientLeav, so rows stay open forever and inflate the totals. The log parser already solves the same problem by discarding sessions open across a restart marker (nwn_wiki/render/activity.py); the reader here must do the same, or close open rows on module load.</div><div><br></div><div>Once it exists: per-character hours on the character pages, an honest Most Played board, and hours-per-kill style stats that are currently impossible.</div>"
-    impl_notes: "Built, not yet deployed — needs a repack. New unpacked/ptm_db.nss writes campaign DB playtimedb (sessions + meta); Ptm_Open() on mod_cliententer (after GetObjectUUID, which is what generates the UUID for a first-time character), Ptm_Close() first thing in mod_clientexit so .bic export time is not counted, and Ptm_InitDb()/Ptm_CloseStale() in onmoduleload. Abandoned rows (crash, reboot, kill -9) are marked minutes=NULL rather than guessed, and the wiki sums only completed sessions — an unknown session length stays unknown. meta.tracking_started is stamped on first load and rendered on every page showing the figure, because the season long predates it and the hours would otherwise read as a character's whole history. Wiki side: sources.load_playtime, model char_hours, a per-character Most Played board replacing the account-based one that ranked one player's four characters 1-4 on the same number."
+    impl_notes: "Live on Season 2 since bea2c84bdf5 (2026-08-31 15:47); the earlier 'Built, not yet deployed - needs a repack' note was stale. New unpacked/ptm_db.nss writes campaign DB playtimedb (sessions + ptm_meta); Ptm_Open() on mod_cliententer (after GetObjectUUID, which is what generates the UUID for a first-time character), Ptm_Close() first thing in mod_clientexit so .bic export time is not counted, and Ptm_InitDb() in onmoduleload.\n\nThe metadata table is `ptm_meta`, NOT `meta` as originally shipped: `meta` is one of three tables NWN:EE pre-seeds into every campaign DB and its SQL authorizer denies script statements against them, so tracking_started could never be written and the error surfaced in every player's log on every login. Fixed in ccff197cf55 - see lag-issue-with-playtimedb-reported. tracking_started is now seeded from MIN(entered_at) rather than from the day of the fix, so the caption reports the real tracked window.\n\nAbandoned rows (crash, reboot, kill -9) are left with minutes=NULL rather than guessed, and the wiki sums only completed sessions - an unknown session length stays unknown. The sweep that used to 'close' them was a no-op and has been removed; the rule is enforced by the reader instead. meta.tracking_started is rendered on every page showing the figure, because the season long predates it and the hours would otherwise read as a character's whole history. Wiki side: sources.load_playtime, model char_hours, a per-character Most Played board replacing the account-based one that ranked one player's four characters 1-4 on the same number."
 
   - id: shelob-upgrades
     title: "Shelob upgrades"
