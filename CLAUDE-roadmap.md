@@ -448,7 +448,13 @@ What it does:
   rolled back** (every other edit in the form is still saved) and the banner says why.
   An unmatched submitter name opens a picker of `meritdb` accounts; the choice is
   remembered in `roadmap-merit-aliases.json` (gitignored — it holds CD keys) so the same
-  roadmap name resolves by itself next time. An idea with no submitter (or `community`)
+  roadmap name resolves by itself next time. That file is **gitignored and not
+  regenerable**, so `bin/backup-homers-lotr` captures it (dev realm only, mode 0600,
+  staged under `roadmap-editor/` beside the auth DB) — every entry is a human decision
+  that nothing else records. The wiki reads the same file, via
+  `nwn-wiki --player-aliases`, to credit ideas on player pages; a CD key in it is only
+  ever a lookup INTO the roster, never a name out of it, so an alias naming an account
+  that has not played this season leaves the idea uncredited rather than printing a key. An idea with no submitter (or `community`)
   asks for confirmation and then moves the status with no payment.
   Once paid, the bar shows a **merit paid** chip and a **Revoke merit points** button
   (confirmation required) that subtracts the points and writes a negative ledger row.

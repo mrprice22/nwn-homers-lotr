@@ -7,7 +7,7 @@
 //   meta(key, value)                          -- "tracking_started" timestamp
 //
 // WHY THIS EXISTS. The server log names only the ACCOUNT on login
-// ("Shync (UPRWA3VR) Joined as Player 1"), never the character, so the wiki
+// ("Playername (CDKEY) Joined as Player 1"), never the character, so the wiki
 // could report hours per account but never per character - every character an
 // account owned showed that account's total. Nothing else on the server
 // recorded it either. This table is the missing fact.

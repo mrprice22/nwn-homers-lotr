@@ -18,9 +18,11 @@ for it to appear in the "Documents" nav dropdown.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -38,6 +40,8 @@ from roadmap_sanitize import sanitize_notes  # noqa: E402
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
 OUT_PATH = REPO / "docs.manual" / "Roadmap.html"
+# Machine-readable credit sidecar for the wiki build (see write_credits()).
+CREDITS_PATH = REPO / "roadmap-credits.json"
 SERVER_ENV = REPO / "server.env"
 
 
@@ -87,6 +91,20 @@ TYPES = {
     "Exploit":     {"label": "Exploit",     "cls": "exploit"},
 }
 MERIT_POINTS = {"Defect": 1, "Enhancement": 2, "Exploit": 3}
+
+# The three lifecycle buckets the ten statuses collapse into, for the summary
+# pivot on this page and for the per-player pivot the wiki builds from the
+# credit sidecar. Both call pivot_column(), so a status can never land in one
+# bucket here and a different one there.
+PIVOT_COLUMNS = ("Backlog", "Shipped", "Not Likely")
+
+
+def pivot_column(status: str) -> str:
+    """Which pivot bucket a status belongs to."""
+    if STATUS[status]["board"] == "shipped":
+        return "Shipped"
+    return "Not Likely" if status == "unlikely" else "Backlog"
+
 
 # What kind of session a manual_step belongs to. This is what makes the backlog
 # reportable: "show me everything I can do in this toolset sitting" vs "…in this
@@ -589,19 +607,14 @@ def render_roadmap_tables(groups, ideas) -> str:
 
 def render_summary_pivot(ideas) -> str:
     """At-a-glance counts: idea type (rows) x lifecycle stage (columns), with totals."""
-    cols = ["Backlog", "Shipped", "Not Likely"]
-
-    def col_of(status: str) -> str:
-        if STATUS[status]["board"] == "shipped":
-            return "Shipped"
-        return "Not Likely" if status == "unlikely" else "Backlog"
+    cols = list(PIVOT_COLUMNS)
 
     counts: dict[tuple[str, str], int] = {}
     for i in ideas:
         t = i.get("type")
         if t not in TYPES:
             continue
-        key = (t, col_of(i["status"]))
+        key = (t, pivot_column(i["status"]))
         counts[key] = counts.get(key, 0) + 1
 
     head = "".join(f"<th>{c}</th>" for c in cols)
@@ -764,12 +777,22 @@ STYLE = """  <style>
   </style>"""
 
 
-def build_html(data: dict) -> str:
+def canon_ideas(data: dict) -> list[dict]:
+    """The published, dupe-merged idea list.
+
+    Both the page and the credit sidecar are built from this one list, and it is
+    computed ONCE per run: merge_dupes() appends to each idea's ``_requesters``
+    in place, so calling it twice on the same parsed YAML would credit every
+    submitter to their own idea twice over.
+    """
+    return merge_dupes(publishable(data.get("ideas", [])))
+
+
+def build_html(data: dict, canon: list[dict] | None = None) -> str:
     meta = data.get("meta", {})
     groups = data.get("groups", [])
-    ideas = data.get("ideas", [])
 
-    canon = merge_dupes(publishable(ideas))
+    canon = canon_ideas(data) if canon is None else canon
     # Boards render epic cards in place of their children; the pivot keeps
     # counting the underlying ideas.
     cards, loose = collapse_epics(data.get("epics", []) or [], canon)
@@ -879,6 +902,67 @@ def build_html(data: dict) -> str:
 """
 
 
+def write_credits(data: dict, canon: list[dict]) -> int:
+    """Write roadmap-credits.json — who submitted and who tested what.
+
+    The wiki build (nwn_manager) puts idea counts on the players index and a
+    per-player idea list on each player page, but the ideas live here, in YAML,
+    in a different repo. Rather than teach the wiki engine to parse roadmap.yaml
+    — which would fork the status table, the dupe merge and the `hidden` rule
+    into a second implementation that could silently drift — this hands it the
+    already-resolved answer.
+
+    Written from `canon`, the same list render_summary_pivot() counts, so a
+    player page and the roadmap page cannot disagree about a total. `hidden`
+    ideas are gone before this point (publishable() runs inside canon_ideas), so
+    no unpublished credit can leak onto a player page.
+
+    Returns the number of ideas written.
+    """
+    group_title = {g["id"]: g["title"] for g in data.get("groups", []) or []}
+    out_ideas = []
+    for i in canon:
+        # An idea with no type is not a player-classifiable submission (epic
+        # placeholders, admin chores); it is carried anyway, with type null, so
+        # the consumer decides rather than being silently short-changed.
+        out_ideas.append({
+            "id": i["id"],
+            "title": i["title"],
+            "type": i.get("type"),
+            "status": i["status"],
+            "column": pivot_column(i["status"]),
+            "date": i.get("date") or "",
+            # Every canonical idea carries this id exactly once on the rendered
+            # page — on its own <li>, or as an epic child on the epic's board.
+            "anchor": f"idea-{i['id']}",
+            "group": i.get("group") or "",
+            "group_title": group_title.get(i.get("group") or "", ""),
+            "requesters": list(i.get("_requesters") or []),
+            "uat_credits": [
+                {"player": c.get("player") or "",
+                 "awarded": bool(c.get("awarded")),
+                 "date": c.get("date") or ""}
+                for c in (i.get("uat_credits") or [])
+                if isinstance(c, dict) and c.get("player")
+            ],
+        })
+
+    payload = {
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "page": "manual/Roadmap.html",
+        "columns": list(PIVOT_COLUMNS),
+        "types": [{"key": t, "label": TYPES[t]["label"],
+                   "merit": MERIT_POINTS.get(t)} for t in TYPES],
+        "statuses": {k: {"label": v["label"], "rank": v["rank"],
+                         "board": v["board"], "column": pivot_column(k)}
+                     for k, v in STATUS.items()},
+        "ideas": out_ideas,
+    }
+    CREDITS_PATH.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return len(out_ideas)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--check", action="store_true", help="validate only, write nothing")
@@ -922,11 +1006,18 @@ def main() -> int:
               "published from the dev realm (use --force to override)")
         return 0
 
-    html = build_html(data)
+    canon = canon_ideas(data)
+    html = build_html(data, canon)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(html, encoding="utf-8")
     n = len(data.get("ideas", []))
     print(f"wrote {OUT_PATH.relative_to(REPO)} ({n} ideas)")
+
+    # Same realm guard, same run: the sidecar is the credit half of this page,
+    # and a build that publishes one while leaving the other stale would put
+    # counts on the players index that the roadmap page contradicts.
+    n_credits = write_credits(data, canon)
+    print(f"wrote {CREDITS_PATH.relative_to(REPO)} ({n_credits} published ideas)")
     return 0
 
 
