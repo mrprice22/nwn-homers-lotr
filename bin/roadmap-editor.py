@@ -2728,7 +2728,8 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/me":
             self._json({"ok": True, "me": self.user.public()})
         elif self.path == "/" or self.path.startswith("/index"):
-            self._send(200, PAGE.encode("utf-8"), "text/html; charset=utf-8")
+            self._send(200, render_page(self.user).encode("utf-8"),
+                       "text/html; charset=utf-8")
         elif self.path == "/monitor" or self.path.startswith("/monitor?"):
             self._send(200, MONITOR_PAGE.encode("utf-8"),
                        "text/html; charset=utf-8")
@@ -3320,6 +3321,23 @@ setInterval(poll, 3000);
 </body></html>"""
 
 
+def render_page(user) -> str:
+    """PAGE with the signed-in user's capabilities stamped into it.
+
+    The page used to be served byte-identical to every role, so the browser did
+    not learn what it was allowed to do until /api/data came back -- and painted
+    the full admin toolbar in the meantime. Stamping `me` here makes the chrome
+    right in the first frame.
+
+    The `<` escape is not optional: display_name and player_name are free text an
+    admin types, and a "</script>" in either would otherwise close this tag and
+    put the rest of the JSON into the document as markup. This is presentation
+    data only -- ROUTE_CAPS still decides what the account may actually call.
+    """
+    blob = json.dumps(user.public()).replace("<", "\\u003c")
+    return PAGE.replace("/*__ME_JSON__*/null", blob, 1)
+
+
 LOGIN_PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3542,6 +3560,16 @@ PAGE = r"""<!doctype html>
   body.readonly #form input, body.readonly #form select,
   body.readonly #form textarea { opacity:0.78; }
   body.readonly #form .rt-tools { display:none; }
+  /* Chrome stays CLOAKED until the role is known. `body` ships with this class
+     in the markup and applyCapabilities() removes it, so the fail-open frame is
+     gone: before this, every role painted the full admin toolbar and lost it
+     seconds later when /api/data finally returned with `me`. A tester watching
+     Publish to Wiki, Manage groups and LLM Changes appear and vanish is the
+     wrong default even though the server refuses every one of those calls.
+     Reveal is `style.display=''` -- which CLEARS the inline style rather than
+     forcing a value, so it cannot outrank a stylesheet rule that still applies.
+     That is why the class must come off BEFORE the inline styles go on. */
+  body.caps-unknown [data-cap] { display:none; }
   .filters { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
   .filters select { padding:5px 7px; font-size:12px; }
   .filters .full { grid-column:1 / -1; }
@@ -3738,8 +3766,17 @@ PAGE = r"""<!doctype html>
   .card .ct { display:block; font-size:13px; margin-bottom:5px; }
   .card .cmeta { color:var(--mut); font-size:11px; display:block; margin-bottom:6px; }
   .card select { padding:3px 5px; font-size:11px; }
-</style></head>
-<body>
+</style>
+<!-- Who is signed in, stamped into the page by the / handler. Present so the
+     toolbar can be correct at FIRST PAINT rather than after /api/data returns.
+     Same shape as the `me` key that response carries (User.public()); nothing
+     new is exposed. Substituted server-side -- if that ever fails this stays
+     null and the page falls back to the /api/data path, cloaked until then. -->
+<script id="me-boot">window.__ME = /*__ME_JSON__*/null;</script>
+</head>
+<!-- Both classes are the fail-closed default: nothing gated is visible
+     and the form is inert until applyCapabilities() has said otherwise. -->
+<body class="caps-unknown readonly">
 <div id="left">
   <div class="pad">
     <h1>Roadmap / Merit Backlog</h1>
@@ -3764,13 +3801,13 @@ PAGE = r"""<!doctype html>
     <div class="extlinks">
       <a data-brand="live-wiki" href="https://homerslotr.com/" target="_blank" rel="noopener">Wiki ↗</a>
       <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Roadmap ↗</a>
-      <a id="monitorlink" href="/monitor" target="_blank" rel="noopener">Server monitor ↗</a>
+      <a id="monitorlink" href="/monitor" data-cap="serverlog" target="_blank" rel="noopener">Server monitor ↗</a>
     </div>
     <div class="viewtoggle">
       <button id="view_board" class="on">Board</button>
       <button id="view_list">List</button>
     </div>
-    <label class="chk"><input type="checkbox" id="f_carddd">
+    <label class="chk" data-cap="edit"><input type="checkbox" id="f_carddd">
       Card status dropdowns (Board)</label>
     <input id="filter" placeholder="search title, player, group, status…">
     <div class="filters">
@@ -3796,21 +3833,21 @@ PAGE = r"""<!doctype html>
     <label class="chk"><input type="checkbox" id="f_showawarded">
       Show awarded (done) ideas</label>
     <div class="bar">
-      <button id="add">+ Add idea</button>
-      <button id="regen">Save &amp; regenerate HTML</button>
-      <button id="publish">Publish to Wiki &amp; DB</button>
+      <button id="add" data-cap="submit">+ Add idea</button>
+      <button id="regen" data-cap="publish">Save &amp; regenerate HTML</button>
+      <button id="publish" data-cap="publish">Publish to Wiki &amp; DB</button>
     </div>
     <div class="bar">
-      <button id="mgroups" class="linkbtn">Manage groups</button>
-      <button id="mepics" class="linkbtn">Manage epics</button>
-      <button id="mplayers" class="linkbtn">Manage players</button>
-      <button id="mpending" class="linkbtn">Pending Merit Requests</button>
-      <button id="mpalette" class="linkbtn">Palette Finder</button>
-      <button id="mtoolq" class="linkbtn">Toolset Queue</button>
-      <button id="muatq" class="linkbtn">UAT Queue</button>
-      <button id="muatr" class="linkbtn">UAT Review</button>
-      <button id="mchanges" class="linkbtn">LLM Changes</button>
-      <button id="maudit" class="linkbtn">Recent changes</button>
+      <button id="mgroups" class="linkbtn" data-cap="edit">Manage groups</button>
+      <button id="mepics" class="linkbtn" data-cap="edit">Manage epics</button>
+      <button id="mplayers" class="linkbtn" data-cap="merit_view">Manage players</button>
+      <button id="mpending" class="linkbtn" data-cap="merit_view">Pending Merit Requests</button>
+      <button id="mpalette" class="linkbtn" data-cap="palette">Palette Finder</button>
+      <button id="mtoolq" class="linkbtn" data-cap="edit">Toolset Queue</button>
+      <button id="muatq" class="linkbtn" data-cap="uat">UAT Queue</button>
+      <button id="muatr" class="linkbtn" data-cap="merit">UAT Review</button>
+      <button id="mchanges" class="linkbtn" data-cap="llm_review">LLM Changes</button>
+      <button id="maudit" class="linkbtn" data-cap="audit_view">Recent changes</button>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
@@ -3820,7 +3857,7 @@ PAGE = r"""<!doctype html>
       <button id="logout" class="linkbtn">Sign out</button>
     </div>
   </div>
-  <div id="list"></div>
+  <div id="list"><p class="small" id="list-loading">Loading backlog…</p></div>
 </div>
 <div id="right">
   <div id="banner"></div>
@@ -3950,26 +3987,32 @@ function applyCapabilities(){
   const who = $('#who');
   if (who) who.textContent = me.display_name
     ? `${me.display_name} · ${me.role_label || me.role}` : '';
-  // [button id, capability it needs]
-  [['mpalette','palette'], ['mchanges','llm_review'],
-   ['mpending','merit_view'], ['mplayers','merit_view'],
-   ['maudit','audit_view'],
-   ['mgroups','edit'], ['mepics','edit'], ['mtoolq','edit'],
-   ['add','submit'], ['muatr','merit'],
-   ['regen','publish'], ['publish','publish']].forEach(([id, cap])=>{
-    const el = $('#'+id);
-    if (el) el.style.display = CAN(cap) ? '' : 'none';
+  // The gate lives on the ELEMENT, as data-cap, not in a table here. One source
+  // of truth: adding a gated control is one attribute, and it cannot be added
+  // to the markup while being forgotten here. It used to be a list of
+  // [id, cap] pairs, and #muatq (UAT Queue) was missing from it -- so it was
+  // shown to every role by accident rather than by decision.
+  //
+  // The class comes off FIRST. Reveal writes style.display='' (clearing the
+  // inline style), which loses to `body.caps-unknown [data-cap]{display:none}`
+  // while that rule still applies.
+  document.body.classList.remove('caps-unknown');
+  document.querySelectorAll('[data-cap]').forEach(el=>{
+    el.style.display = CAN(el.dataset.cap) ? '' : 'none';
   });
-  // The Monitor page is a separate document, linked from the header.
-  const mon = $('#monitorlink');
-  if (mon) mon.style.display = CAN('serverlog') ? '' : 'none';
+  // A row whose every control was just hidden is an empty box with margins --
+  // only a `tester` ever has one, and only because they hold none of the three
+  // caps in the first bar.
+  document.querySelectorAll('#left .bar').forEach(bar=>{
+    const live = [...bar.children].some(el=>el.style.display !== 'none');
+    bar.style.display = live ? '' : 'none';
+  });
   // A role with no `edit` (today: `tester`) browses the whole backlog but owns
   // nothing on it. The class drives the CSS that greys the form out; every
   // individual control ALSO checks CAN() before it fires, and the server
   // enforces all of it independently — this is a courtesy, not the control.
   document.body.classList.toggle('readonly', READONLY());
-  const cd = $('#f_carddd'); if (cd && READONLY()){ cd.checked = false;
-    const w = cd.closest('label'); if (w) w.style.display = 'none'; }
+  const cd = $('#f_carddd'); if (cd && READONLY()) cd.checked = false;
 }
 
 function populateFilters(){
@@ -6820,6 +6863,16 @@ setInterval(async ()=>{
   }catch(e){}
 }, 15000);
 
+// Capabilities come from the page itself (see the me-boot script in <head>),
+// so the chrome is correct at first paint instead of after /api/data returns --
+// a request that normalizes ~600 ideas and fingerprints every one of them, i.e.
+// seconds on a slow link. load() applies them again from its own response,
+// which is what picks up a role changed server-side mid-session.
+//
+// If the injection ever fails, __ME is null, CAN() stays false, the cloak is
+// never lifted here, and the page corrects itself when /api/data lands.
+// Degraded, not open.
+if (window.__ME) { DATA.me = window.__ME; applyCapabilities(); }
 load();
 </script>
 </body></html>
