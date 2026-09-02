@@ -693,12 +693,27 @@ with no `player_name` is **refused** on claim and result (with the CLI line to
 fix it) rather than credited to a guess:
 
 ```
+python3 bin/roadmap-users.py setup                    # interactive; does all of this
 python3 bin/roadmap-users.py add bilbo --role tester --player "Bilbo"
 python3 bin/roadmap-users.py player bilbo "Bilbo"     # or bind one later
 ```
 
+**That guard is role-independent, and this is the trap.** `_need_actor()` is on
+`/api/uat-claim` and `/api/uat-result` themselves, not on the tester tier — an
+**admin** with an empty `player_name` is refused exactly like a tester, and sees
+the same "your account has no player name" line under the step. The binding
+reads like a tester concern and is not one: it shipped with the tester role, so
+the accounts that predate it (the admin's own included) start unbound and cannot
+close a UAT step until someone runs the line above. Check `list` after any
+account change.
+
 The name must be one `meritdb` (or `roadmap-merit-aliases.json`) resolves, or
-the **Award +1** button will not find an account to pay.
+the **Award +1** button will not find an account to pay. `setup` proves that
+before it writes the binding — it resolves the name through
+`roadmap_merit.resolve_with_alias()`, the same function `award_merit()` calls,
+and offers to pick the meritdb row and write the alias when it does not match.
+That check is the whole reason the wizard exists: an unresolvable binding looks
+correct for weeks and fails at the one moment it matters.
 
 **Reviewing and paying.** A recorded result lands an unpaid `uat_credits` row.
 The admin's **UAT Review** panel (sidebar, `merit`) lists every unpaid credit
@@ -719,10 +734,11 @@ And `merit_view` is a **split out of `view`**, not a new power: `/api/merit`,
 `/api/meritplayers` and `/api/pending` used to be `view`, which would have shown
 a tester every player's balance and pending redemptions.
 
-(A `tester` needs `player` set as well as a role — see
-[The `tester` role](#the-tester-role) above. `list` marks an unbound one
+(Every account needs `player` set as well as a role — see
+[The `tester` role](#the-tester-role) above. `list` marks an unbound tester
 `(unbound)`; until it is set they can browse and comment but not claim or
-report.)
+report. The same applies to an `admin` or `dm`, where the blank column is
+easier to miss.)
 
 **What the DM ceiling does *not* restrict:** `manual_steps`, `design_questions`
 and the `uat_credits` list itself stay fully editable on **any** item, including
@@ -767,7 +783,17 @@ Only from a shell on this box — there is no signup page, no password reset and
 no in-browser user admin, because a management UI on an internet-facing surface
 is a much bigger thing to get right than a script that runs here.
 
+**Use `setup` to create an account.** It prompts through the whole thing — pick
+the in-game player from `roadmap.yaml`'s own `players:` roster (each row
+annotated with how meritdb resolves it and which login already holds it), prove
+the merit link, choose the login name and role, generate or type a password. Run
+it on a username that already exists and it becomes a **rebind**: it sets the
+player name, optionally the role and password, and leaves everything else alone.
+The flag-driven commands below stay for scripting and for one-field changes.
+
 ```
+python3 bin/roadmap-users.py setup                  # interactive: create or rebind
+python3 bin/roadmap-users.py setup --role tester    # skip the role prompt
 python3 bin/roadmap-users.py add jane --role dm --name "Jane (DM)"
 python3 bin/roadmap-users.py add bilbo --role tester --player "Bilbo"
 python3 bin/roadmap-users.py player bilbo "Bilbo"   # bind/rebind the game name

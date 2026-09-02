@@ -558,20 +558,40 @@ rewrites the `ideas:` block, leaving the rest of the file untouched. It runs
 on boot as a systemd user service (`systemd/roadmap-editor.service`).
 
 **It requires a login**, on the LAN as well as from outside. Accounts are
-created only from a shell here:
+created only from a shell here, and `setup` is the way in — it prompts through
+the whole account in one pass:
 
 ```sh
-python3 bin/roadmap-users.py add jane --role dm --name "Jane (DM)"
-python3 bin/roadmap-users.py list      # accounts and roles
+python3 bin/roadmap-users.py setup     # interactive: create or rebind an account
+python3 bin/roadmap-users.py list      # accounts, roles and bound player names
 python3 bin/roadmap-users.py roles     # what each role may do
 python3 bin/roadmap-users.py audit     # who changed what, when
 ```
 
-Two roles today: `admin` (everything) and `dm` (everything except marking an
-item shipped and awarding merit — a DM can still edit, triage, work the queues
-and publish, and can freely add or tick steps on items that are already
-shipped). The editor binds `127.0.0.1`; public access is the Cloudflare Tunnel
-at <https://roadmap.homerslotr.com> (`bin/serve-roadmap-tunnel` +
+`setup` picks the in-game player from `roadmap.yaml`'s own `players:` roster
+(each row annotated with how meritdb resolves it and which login already holds
+it), asks for the login name and role, and generates or takes a password. Run it
+on a username that already exists and it becomes a **rebind** instead. The
+flag-driven commands (`add`, `player`, `passwd`, `role`, …) are still there for
+scripting and single-field changes.
+
+**Every account must be bound to an in-game player name.** The editor stamps
+`claimed_by`, `tested_by` and `uat_credits[].player` from that binding and never
+from the request body, so it **refuses a UAT claim or result from an unbound
+account whatever its role** — an admin sees the same "your account has no player
+name" line a tester does. `list` shows the binding; fix a blank one with
+`roadmap-users.py setup` (or `player <user> "<Name>"`). The name also has to be
+one meritdb resolves, or **Award +1** will not find an account to pay; `setup`
+proves that through `bin/roadmap_merit.py` — the same resolver the award path
+uses — before it writes, and offers to record an alias when the name does not
+match.
+
+Three roles: `admin` (everything), `dm` (everything except marking an item
+shipped and awarding merit — a DM can still edit, triage, work the queues and
+publish, and can freely add or tick steps on items that are already shipped),
+and `tester` (read the board, work the UAT queue, comment — no `edit` at all).
+The editor binds `127.0.0.1`; public access is the Cloudflare Tunnel at
+<https://roadmap.homerslotr.com> (`bin/serve-roadmap-tunnel` +
 `systemd/roadmap-tunnel.service`), which opens no inbound port. Full details:
 **CLAUDE-roadmap.md → Access control**.
 
