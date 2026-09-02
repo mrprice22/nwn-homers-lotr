@@ -28,8 +28,21 @@
 //     strike; ENR_STRIKES consecutive strikes (~ENR_TICK * ENR_STRIKES
 //     seconds) = disengaged. Any new damage from that PC resets the strikes,
 //     so a long-range archer/caster past ENR_RANGE stays engaged as long as
-//     they keep contributing. Dying is NOT retreating: a dead engaged PC is
-//     dropped silently with no enrage.
+//     they keep contributing.
+//
+// DYING IS NOT RETREATING, and that is EVENT-DRIVEN, not polled (roadmap
+// boss-enrages-after-killing-player). The tick's GetIsDead() check only ever
+// worked if a scan happened to land while the corpse was still on the ground:
+// respawn_inc::LOTR_RespawnPC resurrects and jumps the PC to the Well of Eru
+// synchronously with no death penalty, so a player who clicks Respawn inside
+// the 6s window is seen by the next tick as alive-and-in-another-area - a
+// retreat - and the boss enraged on the player it had just killed. So the
+// module's OnPlayerDeath (ondeath020) now calls ENR_OnPCDied at the instant of
+// death, which both drops the entry from every nearby engaged boss and bumps
+// the PC's enr_deaths counter; the tick compares that counter against the value
+// stamped at engage time and drops silently on a mismatch. Either mechanism
+// alone fixes the reported case; together they also cover a death outside the
+// sweep radius and a die-then-log-out.
 //
 // THE RESET (decay). Enrage stacks used to last the boss's whole life, so a
 // party that chipped at a boss and walked away left the next player a boss
@@ -67,6 +80,8 @@
 //   object enr_pc_<i>     engaged PC
 //   string enr_name_<i>   PC first name, captured at engage (survives logout)
 //   int    enr_out_<i>    consecutive out-of-range strikes
+//   int    enr_dth_<i>   the PC's enr_deaths at engage time; a mismatch means
+//                        they have died since, so they are dropped silently
 //   int    enr_ticking    guard: the pseudo-heartbeat loop is scheduled
 //   int    enr_stacks     enrage stacks applied this life (debug/telemetry)
 //   int    enr_gen        engagement generation; bumped on every damage, so a
@@ -76,6 +91,9 @@
 //   string enr_it_<i>     snapshot resref
 //   int    enr_islot_<i>  snapshot equip slot, -1 = carried in the backpack
 //   int    enr_iqty_<i>   snapshot stack size
+//
+// One local lives on the PLAYER, not the boss:
+//   int    enr_deaths     monotonic death counter, bumped by ENR_OnPCDied
 
 #include "brd_db"
 #include "boss_tune"
@@ -86,6 +104,7 @@ const int    ENR_STRIKES    = 2;     // consecutive out-of-range ticks = disenga
 const string ENR_EFFECT_TAG = "enr_rage";  // so the reset can strip exactly these
 const int    ENR_MAX_SNAP   = 40;    // snapshot cap (no boss carries near this)
 const float  ENR_RECHECK    = 60.0;  // re-arm delay when still in combat at reset time
+const float  ENR_DEATH_SWEEP = 50.0; // radius searched for engaged bosses at a PC death
 
 // TRUE when oCre is on the Roll-of-the-Fallen boss registry. One campaign-DB
 // lookup per creature life, cached in a local.
@@ -168,10 +187,13 @@ void ENR_RemoveEntry(object oBoss, int i, int nN)
             GetLocalString(oBoss, "enr_name_" + IntToString(nLast)));
         SetLocalInt   (oBoss, "enr_out_"  + IntToString(i),
             GetLocalInt   (oBoss, "enr_out_"  + IntToString(nLast)));
+        SetLocalInt   (oBoss, "enr_dth_"  + IntToString(i),
+            GetLocalInt   (oBoss, "enr_dth_"  + IntToString(nLast)));
     }
     DeleteLocalObject(oBoss, "enr_pc_"   + IntToString(nLast));
     DeleteLocalString(oBoss, "enr_name_" + IntToString(nLast));
     DeleteLocalInt   (oBoss, "enr_out_"  + IntToString(nLast));
+    DeleteLocalInt   (oBoss, "enr_dth_"  + IntToString(nLast));
     SetLocalInt(oBoss, "enr_n", nLast);
 }
 
@@ -397,7 +419,9 @@ void ENR_Tick(object oBoss)
 
         if (!GetIsObjectValid(oPC))
             bOut = TRUE;                       // logged out / gone = retreating
-        else if (GetIsDead(oPC))
+        else if (GetIsDead(oPC)
+              || GetLocalInt(oPC, "enr_deaths")
+                 != GetLocalInt(oBoss, "enr_dth_" + sI))
             bDropSilent = TRUE;                // dying is not retreating
         else if (GetArea(oPC) != oBossArea
               || GetDistanceBetween(oBoss, oPC) > ENR_RANGE)
@@ -468,6 +492,10 @@ void ENR_OnBossDamaged(object oCre, object oPC)
         if (GetLocalObject(oCre, "enr_pc_" + IntToString(i)) == oPC)
         {
             SetLocalInt(oCre, "enr_out_" + IntToString(i), 0);
+            // Re-stamp: a PC who died and came back to keep fighting is engaged
+            // afresh, and must not be dropped for the death they already paid for.
+            SetLocalInt(oCre, "enr_dth_" + IntToString(i),
+                GetLocalInt(oPC, "enr_deaths"));
             return;
         }
     }
@@ -478,11 +506,66 @@ void ENR_OnBossDamaged(object oCre, object oPC)
     SetLocalObject(oCre, "enr_pc_"   + sN, oPC);
     SetLocalString(oCre, "enr_name_" + sN, ENR_FirstName(oPC));
     SetLocalInt   (oCre, "enr_out_"  + sN, 0);
+    SetLocalInt   (oCre, "enr_dth_"  + sN, GetLocalInt(oPC, "enr_deaths"));
     SetLocalInt   (oCre, "enr_n", nN + 1);
 
     if (!GetLocalInt(oCre, "enr_ticking"))
     {
         SetLocalInt(oCre, "enr_ticking", 1);
         DelayCommand(ENR_TICK, ENR_Tick(oCre));
+    }
+}
+
+// ------------------------------------------------------------
+// Player death (roadmap boss-enrages-after-killing-player)
+
+// Drop oPC from oBoss's engaged list with no enrage: no taunt, no stack, no
+// heal. Safe to call on any creature - a non-boss simply has no entries.
+void ENR_DropEngagedPC(object oBoss, object oPC)
+{
+    int nN = GetLocalInt(oBoss, "enr_n");
+    int i;
+    for (i = 0; i < nN; i++)
+    {
+        if (GetLocalObject(oBoss, "enr_pc_" + IntToString(i)) == oPC)
+        {
+            ENR_RemoveEntry(oBoss, i, nN);
+            return;
+        }
+    }
+}
+
+// Called from the module's OnPlayerDeath (ondeath020) the moment a PC dies.
+//
+// Killing a player is not the player retreating, and this is the only place
+// that can say so without racing the respawn: LOTR_RespawnPC resurrects and
+// teleports instantly, so by the next ENR_Tick the PC can already look like
+// someone who simply left the area.
+//
+// Two things happen, and either one alone would fix the reported bug:
+//   1. enr_deaths is bumped. Every engaged entry stamped that PC's previous
+//      count at engage time, so the next tick sees the mismatch and drops them
+//      silently - this covers a death the sweep below cannot see (killed by a
+//      damage-over-time effect far from the boss, or logging out from the
+//      death screen before anything else runs).
+//   2. Every boss with someone engaged within ENR_DEATH_SWEEP metres drops the
+//      entry immediately, so there is no window at all in the common case.
+// The sweep tests enr_n before anything else: only a boss that currently has
+// engaged PCs carries it, so ordinary creatures cost one local read and no
+// registry query.
+void ENR_OnPCDied(object oPC)
+{
+    if (!GetIsObjectValid(oPC)) return;
+
+    SetLocalInt(oPC, "enr_deaths", GetLocalInt(oPC, "enr_deaths") + 1);
+
+    location lDeath = GetLocation(oPC);
+    object oCre = GetFirstObjectInShape(SHAPE_SPHERE, ENR_DEATH_SWEEP, lDeath,
+                                        FALSE, OBJECT_TYPE_CREATURE);
+    while (GetIsObjectValid(oCre))
+    {
+        if (GetLocalInt(oCre, "enr_n") > 0) ENR_DropEngagedPC(oCre, oPC);
+        oCre = GetNextObjectInShape(SHAPE_SPHERE, ENR_DEATH_SWEEP, lDeath,
+                                    FALSE, OBJECT_TYPE_CREATURE);
     }
 }

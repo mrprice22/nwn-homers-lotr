@@ -12,6 +12,12 @@
 //   catalogue    (resref PK, name, cr) - every creature type, seeded by nwn-wiki.
 //   resref_alias (resref PK, canonical) - maps blueprint/variant resrefs to the
 //                  canonical resref used everywhere else, also seeded by nwn-wiki.
+//   deaths       (uuid, cdkey, char_name, resref, deaths, last_death)
+//                  PRIMARY KEY (uuid, resref) - the mirror of kills: how many
+//                  times this creature type has killed this character. Written
+//                  by Bst_RecordPCDeath from the module's OnPlayerDeath. Nothing
+//                  reads it in game yet; it is the data behind the requested
+//                  per-boss "players slain" wiki stat.
 //
 // Kills are recorded by CANONICAL resref (see Bst_Canonical) so the in-game
 // bestiary, the per-creature confirmation, and the wiki stats all agree.
@@ -72,6 +78,22 @@ void Bst_InitDb()
         "CREATE TABLE IF NOT EXISTS resref_alias (" +
         "resref TEXT PRIMARY KEY, canonical TEXT NOT NULL)");
     SqlStep(q);
+
+    // The mirror of kills: what the creatures have done to US.
+    q = SqlPrepareQueryCampaign(BST_DB,
+        "CREATE TABLE IF NOT EXISTS deaths (" +
+        "uuid TEXT NOT NULL," +
+        "cdkey TEXT NOT NULL," +
+        "char_name TEXT," +
+        "resref TEXT NOT NULL," +
+        "deaths INTEGER NOT NULL DEFAULT 0," +
+        "last_death TEXT," +
+        "PRIMARY KEY (uuid, resref))");
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(BST_DB,
+        "CREATE INDEX IF NOT EXISTS idx_deaths_resref ON deaths(resref)");
+    SqlStep(q);
 }
 
 // ------------------------------------------------------------
@@ -107,6 +129,35 @@ void Bst_RecordKill(string sUuid, string sCdkey, string sName, string sResref, i
     SqlBindString(q, "@r", sResref);
     SqlBindInt(q, "@s", bParty ? 0 : 1);
     SqlBindInt(q, "@p", bParty ? 1 : 0);
+    SqlStep(q);
+}
+
+// Add one death of oPC at the hands of oKiller. Keyed by the same canonical
+// resref as kills, so the two sides of a match-up always line up. No-ops for a
+// death with no creature behind it (a trap, a fall, a PvP kill, the
+// petrification timeout), which simply goes unattributed.
+void Bst_RecordPCDeath(object oPC, object oKiller)
+{
+    if (!GetIsObjectValid(oPC) || !GetIsPC(oPC)) return;
+    if (!GetIsObjectValid(oKiller)) return;
+    if (GetObjectType(oKiller) != OBJECT_TYPE_CREATURE) return;
+    if (GetIsPC(oKiller) || GetIsDM(oKiller)) return;
+
+    string sResref = Bst_Canonical(GetResRef(oKiller));
+    if (sResref == "") return;
+
+    sqlquery q = SqlPrepareQueryCampaign(BST_DB,
+        "INSERT INTO deaths(uuid,cdkey,char_name,resref,deaths,last_death)" +
+        " VALUES(@u,@k,@n,@r,1,datetime('now'))" +
+        " ON CONFLICT(uuid,resref) DO UPDATE SET" +
+        " deaths=deaths+1," +
+        " cdkey=excluded.cdkey," +
+        " char_name=excluded.char_name," +
+        " last_death=excluded.last_death");
+    SqlBindString(q, "@u", GetObjectUUID(oPC));
+    SqlBindString(q, "@k", GetPCPublicCDKey(oPC));
+    SqlBindString(q, "@n", GetName(oPC));
+    SqlBindString(q, "@r", sResref);
     SqlStep(q);
 }
 

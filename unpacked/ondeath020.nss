@@ -17,9 +17,28 @@
 
 
 
+#include "enr_inc"
+#include "bst_db"
+
 void main()
 {
     object oPC = GetLastPlayerDied() ;
+
+    // Boss enrage-on-retreat: being killed is not retreating (roadmap
+    // boss-enrages-after-killing-player). This must run HERE, at the instant of
+    // death, because respawn_inc::LOTR_RespawnPC resurrects and teleports the
+    // player to the Well of Eru with no delay - enr_inc's own 6s scan often did
+    // not see the corpse at all, and enraged the boss on the player it had just
+    // killed.
+    ENR_OnPCDied(oPC);
+
+    // Bestiary, the mirror of the kill counter: record which creature did it.
+    // Summons, henchmen and animal companions credit their master, the same
+    // master-chain walk bst_ondamage does for the other direction.
+    object oKiller = GetLastHostileActor(oPC);
+    if (!GetIsObjectValid(oKiller)) oKiller = GetLastDamager(oPC);
+    while (GetIsObjectValid(GetMaster(oKiller))) oKiller = GetMaster(oKiller);
+    Bst_RecordPCDeath(oPC, oKiller);
 
      object oDeathAmulet;
      oDeathAmulet = GetFirstItemInInventory(oPC);
