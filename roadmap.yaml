@@ -143,7 +143,8 @@ ideas:
   - id: lag-issue-with-playtimedb-reported
     title: "Lag + Issue with playtimedb reported"
     group: wiki-tools
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-01"
@@ -174,11 +175,37 @@ ideas:
   - id: boss-enrages-after-killing-player
     title: "Boss enrages after killing player"
     group: bosses
-    status: confirmed
+    status: manual
     type: Defect
     player: "Balendin (Balendin_2222)"
     date: "2026-09-01"
-    notes: "<div><div><span><span>Tukwut</span><span><span><span>OP</span></span></span></span><span><span><i> </i></span></span><div><span>Have seen 3 or so instances of this but have not yet recognized any patterns or steps to reproduce. (can assign this as reported by Balendin)</span></div></div></div><div><div><span><span><br></span></span></div><div><span><span>HomelessSon</span></span><div><span>oh dang!</span></div></div></div><div><div> <div><span>that's insult added to injury</span></div><div><span><br></span></div><div><div><div><span><span>Rajmund: </span></span><span>Happened to me, too. Character dies respawns in Well then Boss realizes that tbe fight is over and gets enraged. Happened like 70% of the time to me.</span></div></div><div><div><span><span>HomelessSon</span><span><span>: </span></span></span><span>huh so some of the time you do die and it doesnt get enraged.. that's an interesting clue </span><span><img src=\"https://discord.com/assets/74f0a67afb481b21.svg\" alt=\"🔍\"></span></div></div><br></div></div></div>"
+    commit: b2528312f5b
+    notes: "<div><b>Dying to a boss no longer counts as running away from it.</b> The enrage-on-retreat mechanic was firing on players it had just killed: you died, respawned in the Well of Eru, and a few seconds later the boss taunted you by name, gained +2 to every ability score and healed a quarter of the damage you had done. It now knows the difference between a player who fled and a player it killed.</div><div><br></div><div>Retreating still costs you exactly what it always did. And dying is not a free reset either - the boss keeps your damage and any stacks it had already earned, and still restores itself only after it has been left alone for 30 minutes.</div>"
+    impl_notes: "<div><b>Root cause: the death exemption was a poll, not an event.</b> enr_inc.nss's ENR_Tick runs every 6s and only dropped an engaged PC silently if GetIsDead(oPC) was true at that instant. respawn_inc::LOTR_RespawnPC (reached from mod_respawn) resurrects and JumpToLocation's the player to the Well of Eru synchronously, and there is no death penalty to make anyone linger on the death screen - so a Respawn click inside the 6s window left the next tick looking at a live PC in a different area, which is the bOut branch, and ENR_STRIKES=2 ticks later ENR_TriggerEnrage fired. Firing or not was a race against the tick clock, biased toward firing: the reported ~70%.</div><div><br></div><div><b>Fix: two mutually-covering mechanisms, both driven off the module's OnPlayerDeath (ondeath020.nss, Mod_OnPlrDeath), which fires for every death path including the petrification timeout.</b> New ENR_OnPCDied() (1) bumps a monotonic enr_deaths int on the PC and (2) sweeps ENR_DEATH_SWEEP (50m) around the death location, calling the new ENR_DropEngagedPC() on any creature with enr_n &gt; 0. That pre-filter is what keeps it free: only a boss with someone currently engaged carries the local, so there is no ENR_IsRegistryBoss query and no cost on ordinary creatures. Meanwhile ENR_OnBossDamaged stamps enr_dth_&lt;i&gt; with the PC's death count at engage time (both the new-entry and the refresh path) and ENR_Tick treats a mismatch as bDropSilent; ENR_RemoveEntry carries the new local through its swap-down. The sweep closes the window entirely in the common case; the stamp covers a death outside the sweep radius (a damage-over-time kill far from the boss) and a die-then-log-out, where the PC object is already invalid by the next tick.</div><div><br></div><div><b>Deliberately unchanged:</b> death grants no NEW stack, but existing stacks and the boss's wounds stand until the usual BOSS_RESET_SECONDS (30 min) out-of-combat reset. A party wipe is not a free boss reset.</div><div><br></div><div><b>Groundwork for the requested boss-vs-player kill stat</b> (asked for in game/Discord, never logged until now - see the follow-up idea). bst_db.nss gains a deaths table mirroring kills exactly (uuid, cdkey, char_name, resref, deaths, last_death; PK uuid+resref, plus idx_deaths_resref), created in Bst_InitDb - which runs from onmoduleload, not the login frame. Bst_RecordPCDeath() is called from the same death hook with the killer resolved via GetLastHostileActor, falling back to GetLastDamager, then walked up the master chain so a boss's summon credits the boss; the resref goes through Bst_Canonical so both directions of a match-up key identically. Deaths with no creature behind them (traps, falls, PvP) are simply not attributed. Nothing reads the table yet.</div><div><br></div><div>Module-only: scripts, no blueprint, palette, hak, TLK or NWSync work.</div>"
+    manual_steps:
+      - step: "UAT the fix: get a Roll-of-the-Fallen boss to kill you and click Respawn IMMEDIATELY. There must be no taunt, no VFX and no heal, and examining the boss afterwards must show unchanged ability scores. Repeat about five times - this used to fire roughly 70% of the time, so one clean run is not proof."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT the slow path: die to the same boss but sit on the death screen for ~30 seconds before respawning. Same result - no enrage."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT die-then-quit: die to a boss and log out from the death screen instead of respawning. Log back in and examine the boss - still no enrage stack."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT no regression on genuine retreat: damage a boss, then run more than 40m away or leave the area. Within ~12-18s it must still taunt you by name, flash the VFX, heal 25% of its missing HP and examine at +2 to all stats."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT no regression on the decay: after that retreat, leave the boss alone for 30 minutes. It must still shout, heal to full, drop back to base stats and return to its lair."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT the new stat table (optional, admin): after a few boss deaths, run sqlite3 on database/bestiary.sqlite3 and check 'select * from deaths' - one row per (character, killer resref) with a sane count and timestamp. Nothing displays it in game yet."
+        status: open
+        kind: admin
   - id: level-drain-property-not-removable-from-forge
     title: "Level drain property not removable from Forge"
     group: forge
@@ -313,7 +340,8 @@ ideas:
   - id: the-fell-beast-attacks
     title: "The Fell Beast attacks Kalrun the Deathless"
     group: bosses
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Defect
     player: "HomelessSon (Server Admin)"
     date: "2026-08-27"
@@ -724,9 +752,10 @@ ideas:
     impl_notes: "<div><b>New generated flag SP_TESTER_KIT</b> in bin/season-profile.py (dev/test on, live/archive off), read in exactly one place: unpacked/sp_testkit_inc.nss. It is generated rather than authored because bin/season-promote.sh copies dev's tree over production on every release - a hand-edited FALSE in production would be reverted by the next successful deploy and the live season would quietly start giving away the Balrog's only drop. Four new WIRING rows make a consumer that reverts to a literal fail the repack.</div><div><br></div><div><b>sp_testkit_inc has no Admin_Can* fallback folded in</b>, unlike sp_devgate_inc. Its consumers guard different admindb tiers (can_homeless vs can_admin), so a shared 'or the admin' clause would have to pick one and would silently widen the other - handing every can_admin key the Homeless teleports on a live season. Each consumer keeps its own check beside the flag, so production behaviour is unchanged by construction.</div><div><br></div><div><b>welloferuenter.nss</b> (reached via the area's OnEnter wrapper prsg_enter) tops the PC back up to 6 slot_token and grants forgekey if absent, on <i>every</i> entry, not just GetXP()==0. Runes stack, so the count sums GetItemStackSize over the inventory - GetItemPossessedBy would report a stack of six as 'has one' and top up forever. The message only fires when something was actually granted, so re-entering is silent. Forgekey is matched by TAG (the Moria forge door is a native KeyName lock).</div><div><br></div><div><b>_cdkeyhome.nss</b> gets 'if (SP_TesterKit()) return TRUE;' ahead of Admin_CanHomeless. Scope is exact: that subtree holds the seven teleports and an Exit, nothing else.</div><div><br></div><div><b>emotewand.dlg.json</b> gains ReplyList[142] '[MW Teleports]' as a root entry under EntryList[0], gated on the new sp_testkit StartingConditional, linking with IsChild=1 to EntryList[10] - the MW destinations node ReplyList[81] already owns under Admin Options. A second parent link, not a copy; IsChild=1 was already used 8 times in this DLG. <b>Admin Options was deliberately NOT relaxed</b>: opening _cdkey would have handed every tester God Mode, DM Options, Grant me level 60, Merit Awards, Merit Redemptions and the legendary-feat reset. check-dlg-integrity reports emotewand clean (0 failing, no new warnings); 31/31 smoke gates and 90 scripts compiled.</div><div><br></div><div><b>No hak or NWSync work</b> - scripts, one DLG and the generated include only. Module-only change, so a restart is all it needs.</div><div><br></div><div><b>2026-08-27 defect fix (567cfae2b8d):</b> the rune grant handed out one rune, not six. CreateItemOnObject's stack argument is clamped to the base item's Stacking value in baseitems.2da, and slot_token is BaseItem 24 (miscsmall, Stacking 1) - so the impl note above was wrong to say runes stack. Both callers (welloferuenter.nss and hm_cheat_chest.nss, which had the same bug with its 3) now loop the create. Every other CreateItemOnObject(..., n&gt;1) in unpacked/ was audited against baseitems.2da and is legitimately stackable. Written up in CLAUDE-gotchas.md, \"Handing out N of an item\".</div>"
     manual_steps:
       - step: "Well of Eru kit: on the dev realm, take a character that is NOT on the admindb whitelist into the Well of Eru. Confirm 6 Runes of Expansion and a Forgekey arrive with the '[Test realm] Tester kit topped up' message. Walk out and back in: no second grant, no repeat message. Spend a rune at a forge, re-enter, confirm it tops back up to 6.\n--\nRETEST after 567cfae2b8d: the earlier FAIL (only 1 rune) was CreateItemOnObject's stack argument being clamped to the base item's Stacking value - runes are BaseItem 24, Stacking 1, so 'give 6' gave 1. Now created one at a time."
-        status: open
+        status: done
         kind: uat
         tester: "any"
+        claimed_by: "HomelessSon (Server Admin)"
       - step: "Rest menu: same non-whitelisted character, open the rest menu. [MW Teleports] and [Options of the Homeless] must both be listed. Spot-check that 'To. Balrog' and two Meaningwave destinations actually land you in the right area. Confirm [Admin Options] is still NOT listed - that one must stay admin-only."
         status: done
         kind: uat
@@ -3502,9 +3531,11 @@ ideas:
   - id: remove-crit-immunity
     title: "Remove boss crit immunities; rework Dev Crit to an extra multiplier or a stun instead"
     group: bosses
-    status: later
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: "Piskan (Alek Cain)"
+    date: "0026-08-12"
     impl_notes: "<div><b>Unblocked 2026-08-02: the prerequisite shipped.</b> <a href=\"#idea-devcrit-roll\">devcrit-roll</a> is done — a devastating critical can no longer delete anything outright, so boss crit immunity has lost most of its reason to exist and this item is now reviewable. <b>The audit it required is in CLAUDE-devcrit-immunity-audit.md</b> (regenerate with bin/audit-crit-immunity.py): 91 item blueprints, 178 creature blueprints, 180 placed instances, and <b>no script</b> grants it. It is concentrated — npcbuffgear alone covers 49 creatures and bossring 33 — so this is a handful of item edits, not a 178-creature sweep. The document carries a per-creature <b>keep?</b> column sorted by CR and the recipe for keeping immunity on a hand-picked boss (strip the shared blueprint, mint a variant like bossring_ci, swap the resref on the .utc <b>and</b> the .git instance together). <b>Waiting on the admin's keep/remove decisions</b> — nothing has been stripped.</div><div><br></div><div><b>Half of this is now designed</b> under <a href=\"#idea-devcrit-roll\">devcrit-roll</a> (2026-08-01): Devastating Critical stops being save-or-die and becomes flat bonus physical damage scaled by weapon size, via the NWNX Damage plugin. <b>Do that one first</b> — dropping boss critical-hit immunity only makes sense once a dev crit can no longer delete a boss outright, and once it cannot, the immunity has much less reason to exist. Revisit this item immediately after.</div>"
   - id: boss-tuning-post40
     title: "Boss tuning so you can progress past level 40 (starter bosses are currently unkillable)"
@@ -3991,7 +4022,8 @@ ideas:
   - id: wiki-kill-counts
     title: "Show per-character kill counts on creature pages, with KD ratio and total deaths"
     group: wiki-tools
-    status: planned
+    status: awarded
+    merit_awarded: true
     type: Enhancement
     player: Tukwut
   - id: wiki-top-killers
@@ -6875,3 +6907,13 @@ ideas:
         status: open
         kind: uat
         tester: "any admin without can_merit"
+  - id: boss-player-kill-stats
+    title: "Surface the boss-vs-player kill counts players asked for (bestiarydb.deaths is already being written)"
+    group: bosses
+    status: planned
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-01"
+    notes: "<div>Players have asked (in game and on Discord, never logged as an idea until now) for bosses to keep a tally of the players they have killed, reported as a stat - the mirror of the bestiary's kill counter. The counting half already exists; this item is the part anyone can see.</div>"
+    impl_notes: "<div><b>The data is already there.</b> Shipped with <a href=\"#idea-boss-enrages-after-killing-player\">boss enrages after killing player</a> (commit b2528312f5b): bestiarydb gained a deaths table mirroring kills - uuid, cdkey, char_name, resref, deaths, last_death, PK (uuid, resref), plus idx_deaths_resref - created in Bst_InitDb and written by Bst_RecordPCDeath from ondeath020 (Mod_OnPlrDeath). The killer is master-chain resolved and keyed through Bst_Canonical, so it joins the kills side and the boss_registry cleanly. Nothing reads it yet.</div><div><br></div><div><b>What is left</b>, roughly in order of value:</div><ul><li>A wiki column - the creature/boss pages in the nwn-wiki generator (GIT/nwn_manager) already read bestiarydb for kill stats; add \"players slain\" beside it, and a server-wide leaderboard of the deadliest bosses.</li><li>Optionally a per-character line in the in-game bestiary book (bst_db.nss / the book conversation): \"has slain you N times\" under a creature you have fought.</li><li>Decide whether the count is per-season. bestiarydb is a campaign DB, so it carries across a season cutover unless it is deliberately rotated.</li></ul><div>No new recording work should be needed - if a number looks wrong, fix Bst_RecordPCDeath rather than adding a second counter.</div>"
