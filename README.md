@@ -539,12 +539,21 @@ the **dev realm only** so a season's nightly refresh cannot overwrite a publish
 with its own older copy. Details: [CLAUDE-roadmap.md](CLAUDE-roadmap.md).
 
 Each item's admin to-do list (`manual_steps`) is tagged by **kind** — `toolset`,
-`uat`, `publish`, `admin` — and a `uat` step records which character it takes to
-run it (`tester`). Two panels in the editor read those: the **Toolset Queue**
-(everything waiting on the toolset or a deploy) and the **UAT Queue** (everything
+`uat` or `admin` (the default), the set in `gen-roadmap.py`'s `STEP_KINDS` — and
+a `uat` step records which character it takes to run it (`tester`). Two panels in
+the editor read those: the **Toolset Queue** (everything waiting on work in the
+NWN toolset — waypoints, palette, appearance) and the **UAT Queue** (everything
 waiting on an in-game check, grouped by the character needed). The same `uat`
 flag drives the in-game sign's second branch, where players can see — and help
 with — what has shipped but is not yet validated.
+
+**There is no deploy or publish kind — never write a step for one.** The
+admin already knows work has to be repacked and the server restarted before it
+can be tested, so a per-item "rebuild the hak / run NWSync / restart" step is
+pure extra clicking. When a deploy really is unusual — a hak or TLK rebuild, an
+NWSync refresh, a client-side download — say so in `impl_notes`. Anything
+outside `STEP_KINDS` is rejected by the validator, which is whole-file, so it
+blocks every save until it is fixed.
 
 To avoid typos in the controlled fields (player names, group ids, statuses,
 `dupe_of`), use the local web editor:
