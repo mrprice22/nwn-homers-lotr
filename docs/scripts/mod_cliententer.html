@@ -167,43 +167,42 @@ void ModPostEnter(object oPC)
     PersState_Restore(oPC);
 }
 
+// NOTHING IN HERE MAY CALL A *_InitDb(). Campaign-DB schema setup lives in
+// onmoduleload.nss, which runs once before any player can connect. This hook
+// used to re-run seven of them per login - 28 synchronous SQLite commits across
+// seven DB files on the login frame, on a box with one spinning disk and a
+// single-threaded server main loop - which players felt as a stall the moment
+// anyone connected. Adding a table to a subsystem needs a change in
+// onmoduleload.nss, not here.
 void main()
 {
     object oPC = GetEnteringObject();
 
-    Merit_InitDb();
     Merit_RecordLogin(oPC);
     DelayCommand(3.0, Merit_LoginMessage(oPC));
 
-    // Bestiary kill-tracking: ensure the DB exists and force this character&#x27;s
-    // persistent UUID (stored in the .bic) to be generated, since it is the
-    // per-character identity key for all kill records.
-    Bst_InitDb();
+    // Force this character&#x27;s persistent UUID (stored in the .bic) to be
+    // generated: it is the per-character identity key for the bestiary kill
+    // records and for the play-time row below. The bestiary schema itself is
+    // set up at module load (onmoduleload.nss), not here.
     GetObjectUUID(oPC);
 
     // Start this character&#x27;s play-time row (see ptm_db.nss). Per CHARACTER,
     // which the server log cannot tell us -- it names only the account. MUST
     // come after the GetObjectUUID() above: that call is what generates the
     // UUID for a character that has never had one, and Ptm_Open keys on it.
-    Ptm_InitDb();
     Ptm_Open(oPC);
-
-    // Rest-menu teleport unlocks (merit redemptions 101-107): ensure the
-    // saved-slot / return-state tables exist.
-    Tele_InitDb();
 
     // Faction allegiance re-apply (roadmap: faction-scaffolding): restore the
     // Good/Evil allegiance this character chose (and thus the hostile-on-sight
     // reputation against the enemy side) from factiondb. No-op for characters
     // that never picked a side. Delayed so the anchor NPCs and the PC&#x27;s
     // reputation tables are settled before we AdjustReputation.
-    Faction_InitDb();
     DelayCommand(4.5, Faction_ApplyLive(oPC));
 
-    // Premium 2x gold/XP boosts (merit redemptions 201-204): ensure the tables
-    // exist, then report any active/pending server + personal subscriptions -
-    // who bought each and the estimated end date. Delayed past the login flood.
-    Boost_InitDb();
+    // Premium 2x gold/XP boosts (merit redemptions 201-204): report any
+    // active/pending server + personal subscriptions - who bought each and the
+    // estimated end date. Delayed past the login flood.
     DelayCommand(4.0, Boost_LoginReport(oPC));
 
     // Server-info reference journals (Rules/Guilds/Website). Each category&#x27;s
@@ -294,7 +293,6 @@ void main()
     // of any spell the player could cast, means nothing ever reads the stale
     // counters either; FAT_LoginRestore below re-derives them from the DB.
     FAT_ClearLocals(oPC);
-    FAT_InitDb();
     DelayCommand(9.0, FAT_LoginRestore(oPC));
 
     // Take Devastating Critical (Unarmed) / (Creature) off the character, having

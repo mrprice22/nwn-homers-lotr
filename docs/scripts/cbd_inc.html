@@ -193,6 +193,7 @@ int    CBD_Amt(int nValue);
 object CBD_ResolveSrc(object oDummy, object oDamager);
 void   CBD_ScheduleRestore(object oDummy);
 void   CBD_Restore(object oDummy);
+void   CBD_Immune(object oDummy, int nImmunityType);
 int    CBD_IsDebug(object oDummy);
 string CBD_DbgField(string sName, int nVal);
 void   CBD_Debug(object oDummy, object oPC, string sMsg);
@@ -307,6 +308,16 @@ void CBD_Restore(object oDummy)
     if (GetCurrentHitPoints(oDummy) &gt;= nMax) return;
 
     NWNX_Object_SetCurrentHitPoints(oDummy, nMax);
+}
+
+// One permanent immunity, applied the way cbd_spawn applies all of them.
+// Supernatural so nothing can dispel the dummy&#x27;s protection out from under a
+// trial; CBD_SelfDestruct strips the lot when the set is over.
+void CBD_Immune(object oDummy, int nImmunityType)
+{
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT,
+                        SupernaturalEffect(EffectImmunity(nImmunityType)),
+                        oDummy);
 }
 
 // One damage field&#x27;s contribution. NWNX reports a damage type that was NOT
@@ -480,10 +491,13 @@ void CBD_RoundTick(object oDummy, int nToken)
 // and it stops the tester dead. Called on a delay from CBD_EndSession so the
 // spoken summary lines (actions on the dummy) get out first.
 //
-// This is the ONLY death a dummy is ever supposed to have. cbd_spawn&#x27;s
-// EffectImmunity(IMMUNITY_TYPE_DEATH) has to come off for it to land - the
-// dummy carries no other immunity effect, so stripping the type is safe and
-// avoids caching the effect handle across a 60-second session.
+// This is the ONLY death a dummy is ever supposed to have, so cbd_spawn&#x27;s
+// immunities have to come off for it to land - the death immunity above all,
+// but the whole set goes, because stripping by TYPE avoids caching a dozen
+// effect handles across a 60-second session. Nothing else on the dummy is an
+// EFFECT_TYPE_IMMUNITY, and the dummy is destroyed a moment later anyway; what
+// keeps it safe in that 1.5-second window is the save bonuses on the blueprint,
+// which no strip can touch.
 //
 // cbd_death does not double-report: CBD_EndSession has already cleared
 // CBD_ACTIVE by the time this runs, so the cancel branch there is skipped.
