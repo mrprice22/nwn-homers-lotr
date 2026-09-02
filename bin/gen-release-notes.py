@@ -75,6 +75,10 @@ GEN = PUB.GEN
 SERVER_ENV = REPO / "server.env"
 FLAVOR_DIR = REPO / "release-notes"
 DEFAULT_TARGET = REPO.parent / "nwn_homers_lotr_s2"
+# Some roadmap items are wiki/tooling work, so their `commit:` names a commit in
+# the generator repo rather than this one. Without checking here they would look
+# like typos. See ENV_EXTERNAL below.
+MANAGER_REPO = REPO.parent / "nwn_manager"
 
 # Commits that are bookkeeping, not content. Anything matching these is expected
 # to have no roadmap item and is not reported as unattributed.
@@ -226,6 +230,163 @@ def sort_key(idea: dict) -> tuple:
     return (idea.get("date") or "", idea.get("id") or "")
 
 
+# --------------------------------------------------- environment (per idea) --
+#
+# Which realm an idea's code is actually in. DERIVED, never stored: it changes
+# at every promotion with nobody editing anything, so a field in roadmap.yaml
+# would be stale within a day. Consumers get it as a side map, never as a key
+# on the idea dict -- the roadmap editor posts the whole ideas array back on
+# save, so anything hung on an idea would be written into the YAML.
+
+ENV_LIVE = "live"            # every commit is promoted
+ENV_DEV = "dev"              # every commit is still only on the dev realm
+ENV_REWORK = "rework"        # promoted AND unpromoted commits: shipped, then a follow-up
+ENV_REOPENED = "reopened"    # promoted, but the status went back to unshipped
+ENV_UNTRACKED = "untracked"  # a shipped status with no commit: at all
+ENV_EXTERNAL = "external"    # the commit lives in nwn_manager (wiki/tooling work)
+ENV_MISSING = "missing"      # resolves in neither repo -- a typo
+ENV_NONE = ""                # ordinary backlog: not built yet, nothing to say
+
+ENV_LABELS = {
+    ENV_LIVE:      "Live",
+    ENV_DEV:       "Test realm",
+    ENV_REWORK:    "Live · rework on test",
+    ENV_REOPENED:  "Reopened after release",
+    ENV_UNTRACKED: "Shipped · no commit",
+    ENV_EXTERNAL:  "Tooling (nwn_manager)",
+    ENV_MISSING:   "Commit not found",
+}
+ENV_ORDER = (ENV_MISSING, ENV_REOPENED, ENV_REWORK, ENV_DEV, ENV_LIVE,
+             ENV_EXTERNAL, ENV_UNTRACKED)
+
+
+def _rev_list(*args: str, cwd: Path = REPO) -> set[str]:
+    try:
+        return set(git("rev-list", *args, cwd=cwd).split())
+    except RuntimeError:
+        return set()
+
+
+def promotion_index(target: Path | None = None, since: str | None = None) -> dict:
+    """Everything needed to say which realm a commit is in.
+
+    Two `git rev-list` calls here plus one in nwn_manager (~10ms all told), and
+    a prefix map so the 7-, 11- and 40-char abbreviations that `commit:` mixes
+    can all be looked up without a `git rev-parse` per item.
+    """
+    target = DEFAULT_TARGET if target is None else target
+    base, prov = resolve_base(target, since)
+    head = git("rev-parse", "HEAD").strip()
+    promoted = _rev_list(base)
+    unpromoted = _rev_list(f"{base}..{head}")
+    # Commits that exist here but are on no branch: amended or rebased away, so
+    # a `commit:` pointing at one is stale rather than wrong. Worth telling
+    # apart from a genuine typo, because the fix is different.
+    orphan = _rev_list("--all", "--reflog") - promoted - unpromoted
+    external = (_rev_list("--all", cwd=MANAGER_REPO)
+                if (MANAGER_REPO / ".git").exists() else set())
+
+    prefix: dict[str, str] = {}
+    for full in promoted | unpromoted | orphan | external:
+        for n in range(7, 13):
+            prefix.setdefault(full[:n], full)
+        prefix[full] = full
+
+    return {"base": base, "head": head, "provenance": prov,
+            "promoted": promoted, "unpromoted": unpromoted,
+            "orphan": orphan, "external": external, "prefix": prefix,
+            "season": season_env("SEASON_NUM")}
+
+
+_ORPHAN = "_orphan"      # internal: exists here, but on no branch
+
+
+def _subject(sha: str) -> str:
+    try:
+        return git("log", "-1", "--format=%s", sha).strip()
+    except RuntimeError:
+        return ""
+
+
+def _where(sha: str, index: dict) -> str:
+    """Which set a single (possibly abbreviated) sha belongs to."""
+    full = index["prefix"].get(sha) or index["prefix"].get(sha[:11]) \
+        or index["prefix"].get(sha[:7])
+    if not full:
+        return ENV_MISSING
+    if full in index["promoted"]:
+        return ENV_LIVE
+    if full in index["unpromoted"]:
+        return ENV_DEV
+    if full in index.get("orphan", ()):
+        return _ORPHAN
+    return ENV_EXTERNAL
+
+
+def classify_idea(idea: dict, index: dict) -> tuple[str, str]:
+    """(state, a sentence saying why) for one idea. See the ENV_* table above."""
+    shas = [t for t in idea_shas(idea) if len(t) >= 7]
+    shipped = PUB.is_shipped(idea)
+
+    if not shas:
+        if shipped:
+            return ENV_UNTRACKED, ("Shipped, but no commit: is recorded — so it "
+                                   "cannot appear in the release notes.")
+        return ENV_NONE, ""
+
+    where = {sha: _where(sha, index) for sha in shas}
+    kinds = set(where.values())
+
+    stale = sorted(s for s, k in where.items() if k == _ORPHAN)
+    if stale:
+        # Almost always an amend or a rebase, and the replacement kept the same
+        # subject -- so quote it, which is what makes this fixable at a glance.
+        subj = _subject(stale[0])
+        return ENV_MISSING, (
+            f"Commit {', '.join(stale)} exists but is on no branch — amended or "
+            f"rebased away. Point commit: at its replacement"
+            + (f' (same subject: "{subj}").' if subj else "."))
+
+    bad = sorted(s for s, k in where.items() if k == ENV_MISSING)
+    if bad:
+        return ENV_MISSING, ("No such commit in this repo or in nwn_manager: "
+                             + ", ".join(bad) + ". Likely a typo in commit:.")
+
+    # Tooling work has no realm of its own; say so rather than guess.
+    kinds.discard(_ORPHAN)
+    if kinds == {ENV_EXTERNAL}:
+        return ENV_EXTERNAL, ("Built in the nwn_manager repo (wiki or tooling), "
+                              "not in the module — it ships with the wiki, not a "
+                              "promotion.")
+    kinds.discard(ENV_EXTERNAL)
+
+    season = index.get("season") or "?"
+    if kinds == {ENV_DEV}:
+        return ENV_DEV, (f"On the dev/test realm only — not yet promoted to "
+                         f"season {season}.")
+    if kinds == {ENV_LIVE}:
+        if not shipped:
+            return ENV_REOPENED, (f"Was promoted to season {season}, but its "
+                                  f"status is back to '{idea.get('status')}' — "
+                                  f"reopened for more work.")
+        return ENV_LIVE, f"Live on season {season}."
+    if kinds == {ENV_LIVE, ENV_DEV}:
+        return ENV_REWORK, (f"Shipped to season {season}, and a follow-up commit "
+                            f"is still on the dev/test realm.")
+    return ENV_NONE, ""
+
+
+def classify_all(ideas: list[dict], index: dict) -> dict[str, dict]:
+    """{idea id: {state, label, why}} — the side map handed to the editor."""
+    out = {}
+    for idea in ideas:
+        state, why = classify_idea(idea, index)
+        if not state:
+            continue
+        out[idea["id"]] = {"state": state, "label": ENV_LABELS[state], "why": why}
+    return out
+
+
 # ------------------------------------------------------------- flavor --
 
 FLAVOR_SYSTEM = (
@@ -289,6 +450,30 @@ def flavor_input(ideas: list[dict]) -> list[dict]:
     } for i in sorted(ideas, key=lambda i: i["id"])]
 
 
+def available_models() -> list[tuple[str, str]]:
+    """[(name, source)] for the model picker. Never raises.
+
+    The aliases always come back, so a caller (the roadmap editor's dropdown)
+    still has something to offer when the box is asleep -- which it often is.
+    """
+    out = [(alias, "alias") for alias in _llm_config_models()]
+    try:
+        from llm.client import Client
+        for tag in Client().available_models():
+            out.append((tag, "installed"))
+    except Exception as exc:
+        out.append((f"(the LLM box did not answer: {exc})", "error"))
+    return out
+
+
+def _llm_config_models() -> list[str]:
+    try:
+        from llm import config
+        return list(config.MODELS)
+    except Exception:
+        return ["default"]
+
+
 def flavor_ctx(user: str) -> int:
     """A context window big enough for this prompt.
 
@@ -299,8 +484,14 @@ def flavor_ctx(user: str) -> int:
     return max(FLAVOR_CTX_MIN, min(FLAVOR_CTX_MAX, 1 << (approx - 1).bit_length()))
 
 
-def flavor_fingerprint(payload: list[dict]) -> str:
-    blob = json.dumps(payload, sort_keys=True, ensure_ascii=False)
+def flavor_fingerprint(payload: list[dict], model: str) -> str:
+    """Identity of a flavor pass: these items, rewritten by this model.
+
+    The model is in here because switching models must not silently return the
+    previous model's cached text -- the whole point of being able to try a new
+    one is seeing what it writes.
+    """
+    blob = json.dumps([model, payload], sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
 
 
@@ -372,7 +563,8 @@ def repair_bullets(bullets, ideas: list[dict]) -> tuple[list[dict] | None, list[
     return out, warnings
 
 
-def run_flavor(ideas: list[dict], base: str, head: str, regen: bool) -> list[dict] | None:
+def run_flavor(ideas: list[dict], base: str, head: str, regen: bool,
+               model: str = "default") -> list[dict] | None:
     """Merged, rewritten bullets — or None to fall back to 1:1 rendering.
 
     Cached to a sidecar so the same range always renders identically and any
@@ -381,7 +573,7 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool) -> list[dic
     if not ideas:
         return None
     payload = flavor_input(ideas)
-    fp = flavor_fingerprint(payload)
+    fp = flavor_fingerprint(payload, model)
     path = flavor_path(base, head, fp)
 
     if not regen:
@@ -396,7 +588,7 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool) -> list[dic
               f"writing the deterministic notes instead", file=sys.stderr)
         return None
 
-    client = Client()
+    client = Client(model)
     ok, msg = client.health()
     if not ok:
         print(f"[warn] --flavor: the LLM box is unreachable ({msg}); "
@@ -428,7 +620,7 @@ def run_flavor(ideas: list[dict], base: str, head: str, regen: bool) -> list[dic
     path.write_text(json.dumps(
         {"base": base, "head": head, "fingerprint": fp,
          "prompt_version": FLAVOR_PROMPT_VERSION,
-         "model": client.short_name,
+         "model": client.short_name, "model_arg": model,
          "generated": _dt.date.today().isoformat(),
          "warnings": warnings,
          "_comment": ("Hand-edit `bullets` freely: `text` is what renders, "
@@ -670,10 +862,21 @@ def main() -> int:
                     help="rewrite the notes and merge related items via the LAN model")
     ap.add_argument("--regen-flavor", action="store_true",
                     help="re-run the flavor pass even if a sidecar exists")
+    ap.add_argument("--model", default="default",
+                    help="which model does the --flavor rewrite: a bin/llm/config.py "
+                         "alias (default, fast, best) or a literal Ollama tag. "
+                         "--list-models shows what the box actually has.")
+    ap.add_argument("--list-models", action="store_true",
+                    help="list the models the LLM box is serving, and exit")
     ap.add_argument("--out", help="write here instead of stdout")
     ap.add_argument("--force", action="store_true",
                     help="run outside the dev realm (commit hashes may not resolve)")
     args = ap.parse_args()
+
+    if args.list_models:
+        for name, source in available_models():
+            print(f"{name}\t{source}")
+        return 0
 
     role = GEN.season_role()
     if role and role != "dev" and not args.force:
@@ -701,7 +904,7 @@ def main() -> int:
         pool = visible(ideas)
         if args.audience == "testers":
             pool = [i for i in pool if GEN.open_uat_steps(i)]
-        flavored = run_flavor(pool, base, head, args.regen_flavor)
+        flavored = run_flavor(pool, base, head, args.regen_flavor, args.model)
 
     text = render(args, base, prov, head, commits, ideas, claimed, doc, flavored)
     if args.out:

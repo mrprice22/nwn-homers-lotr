@@ -81,8 +81,19 @@ def test_roles() -> None:
         check(f"tester cannot {cap}", not tester.can(cap))
     check("TESTER_FORBIDDEN names only real capabilities",
           A.TESTER_FORBIDDEN <= set(A.CAPS))
-    check("tester holds nothing outside view/uat/serverlog",
-          tester.caps == {"view", "uat", "serverlog"})
+    check("tester can read the tester/player release notes",
+          tester.can("release_notes"))
+    check("tester cannot read the admin audience of the release notes",
+          not tester.can("release_notes_admin"))
+    # A whitelist, not a blacklist: TESTER_FORBIDDEN catches a cap that gets
+    # handed to the tier, but only this catches a NEW capability that nobody
+    # remembered to forbid.
+    check("tester holds nothing outside view/uat/serverlog/release_notes",
+          tester.caps == {"view", "uat", "serverlog", "release_notes"})
+    for role in ("admin", "dm"):
+        check(f"{role} can read every release-notes audience",
+              A.User("u", role).can("release_notes")
+              and A.User("u", role).can("release_notes_admin"))
     # Everyone who runs a queue needs `uat`, or the claim/report buttons are
     # dead for the people who do most of the triage.
     check("admin and dm can also record UAT work",

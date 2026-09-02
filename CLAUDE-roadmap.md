@@ -650,15 +650,82 @@ request handlers.
 | `merit_view` | reading merit balances and pending redemptions |
 | `uat` | claiming a UAT step, recording its result, adding a `comments` note |
 | `submit` | creating new ideas (reserved for a future `player` role) |
+| `release_notes` | the **Notes · Testers** and **Notes · Players** panels |
+| `release_notes_admin` | the **Notes · Admin** panel |
 
 | Role | Has |
 |---|---|
 | `admin` | everything |
 | `dm` | everything **except** `promote_shipped` and `merit` |
-| `tester` | **only** `view`, `uat` and `serverlog` |
+| `tester` | **only** `view`, `uat`, `serverlog` and `release_notes` |
 
 So a DM runs the backlog day to day — edits, triage, the queues, the LLM review
 panel, and even Publish — but cannot mark anything shipped and cannot pay merit.
+
+### Release notes in the editor
+
+Three sidebar buttons run `bin/gen-release-notes.py` over the commits that are in
+the dev realm but not yet promoted to the live season, and show the Markdown it
+produces. Same generator as the command line, so what a tester reads here is
+byte-identical to what gets published later. See the "Release notes" section of
+[CLAUDE.md](CLAUDE.md) for how the join itself works.
+
+| Button | Cap | Shows |
+|---|---|---|
+| **Notes · Testers** | `release_notes` | shipped-but-unvalidated items, with each open UAT check and who can run it |
+| **Notes · Players** | `release_notes` | the same changes as an update announcement |
+| **Notes · Admin** | `release_notes_admin` | both, plus `hidden` items, open publish/toolset steps, and the commits no roadmap item claimed |
+
+**Why two capabilities and two routes.** The admin audience is a *different
+document*: it carries hidden items and unattributed commits, which is staff
+information for the same reason `audit_view` is — so `release_notes_admin` is in
+`TESTER_FORBIDDEN`. `ROUTE_CAPS` maps one path to one capability, hence
+`/api/release-notes` (testers + players) and `/api/release-notes/admin`.
+
+> **Never add `/api/release-notes` to `PREFIX_ROUTES`.** `route_key()` matches
+> `ROUTE_CAPS` exactly before it tries prefixes, so both paths already resolve
+> correctly. A prefix entry would collapse `/api/release-notes/admin` onto the
+> weaker capability and hand every tester the admin audience. The handler
+> *also* rejects `?audience=admin` on the shared path, because the capability is
+> carried by the path rather than by the query string.
+
+**Rewrite with local model** re-runs the generator with `--flavor`, which asks the
+LAN LLM box to rewrite each note in plain language *and merge duplicate or
+related items into one bullet*. The model is chosen from a dropdown listing what
+that box is actually serving (`/api/release-notes/models`), so switching off
+Gemma is a dropdown change, not a code change; the aliases from
+`bin/llm/config.py` are always offered so the picker still works when the box is
+asleep. Results are cached per (range, item set, **model**), so a repeat view is
+instant and a different model really does produce different text.
+
+### The per-idea environment badge
+
+Every list row and board card carries a colour-coded chip saying which realm that
+idea's code is actually in, with a tooltip explaining why. It is **computed, never
+stored** — it changes at every promotion with nobody editing anything, so a field
+in `roadmap.yaml` would be stale within a day.
+
+| Badge | Means |
+|---|---|
+| **Live** | every commit is an ancestor of the last promoted sha |
+| **Test realm** | every commit is still only in the dev repo |
+| **Live · rework on test** | both a promoted and an unpromoted commit — shipped, then a follow-up landed |
+| **Reopened after release** | promoted, but the status went back to an unshipped one |
+| **Shipped · no commit** | a shipped status with no `commit:` — invisible to the release notes |
+| **Tooling (nwn_manager)** | the commit is in the wiki/generator repo, so it has no realm of its own |
+| **Commit not found** | resolves in neither repo, **or** exists here but on no branch (amended/rebased away) |
+
+The last two are the triage pair, and the `f_fenv` filter is the worklist: pick
+**Commit not found** to get exactly the items whose `commit:` needs fixing. For an
+amended commit the tooltip quotes the original subject, which is usually enough to
+find the replacement in one look.
+
+**It is shipped as a side map keyed by idea id, never as a key on the ideas
+themselves.** `/api/data` hands the browser the raw ideas array and the browser
+posts that array straight back on save (`pruneEmpty` copies unknown keys through),
+so a computed field hung on an idea would be written into `roadmap.yaml`. The
+regression test is: open an idea, save it unchanged, and confirm `roadmap.yaml` is
+byte-identical.
 
 ### The `tester` role
 

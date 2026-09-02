@@ -271,13 +271,20 @@ section is for — anything there is either a genuinely invisible change or a mi
 anchors the baseline is read from (target commit first, tag as fallback). After a
 promotion the range is empty and you have to pass `--since <the previous base>` by hand.
 
-`--flavor` sends the item list to the LAN Gemma box (`bin/llm/client.py`) to rewrite each
+**In the roadmap editor** the same three audiences are three sidebar buttons, gated on
+the `release_notes` / `release_notes_admin` capabilities, and every idea carries a
+computed badge saying which realm its code is in. Both are documented in
+[CLAUDE-roadmap.md](CLAUDE-roadmap.md).
+
+`--flavor` sends the item list to the LAN LLM box (`bin/llm/client.py`) to rewrite each
 note as one or two plain sentences **and merge duplicate or related items into a single
 bullet** — the `petrification-…-round-3` + `round-4` case. It is opt-in, and the result
 is cached to a `release-notes/<range>.<fingerprint>.flavor.json` sidecar (gitignored), so
 the same range always renders identically and any bullet can be hand-edited: `text` is
 what renders, `ids` says which items it covers, `null` text falls back to that item's
-roadmap note. `--regen-flavor` re-rolls. If the model drops, repeats or invents an id the
+roadmap note. `--regen-flavor` re-rolls. The model is `--model` (a `bin/llm/config.py`
+alias or a literal Ollama tag; `--list-models` shows what the box has) and it is part of
+the sidecar's identity, so switching models never returns the previous one's text. If the model drops, repeats or invents an id the
 answer is **repaired, not discarded** — every item still ends up in exactly one bullet,
 un-flavored if need be. If the box is unreachable it warns and emits the deterministic
 notes, so `--flavor` is never the difference between output and no output.

@@ -52,6 +52,8 @@ CAPS: tuple[str, ...] = (
     "submit",           # create new ideas (reserved for a future `player` role)
     "uat",              # claim a UAT step, record its result, comment on an idea
     "merit_view",       # look at merit balances and pending redemptions
+    "release_notes",       # read the tester/player release notes for the open diff
+    "release_notes_admin", # read the ADMIN audience of those notes
 )
 
 # Role -> capability set. Deliberately a data table.
@@ -82,7 +84,7 @@ CAPS: tuple[str, ...] = (
 ROLES: dict[str, set[str]] = {
     "admin": set(CAPS),
     "dm": set(CAPS) - {"promote_shipped", "merit"},
-    "tester": {"view", "uat", "serverlog"},
+    "tester": {"view", "uat", "serverlog", "release_notes"},
     # Sketch for later; not offered by the CLI until it is wanted. Note it has
     # no `audit_view`: who changed what is staff information, not a player's.
     # "player": {"view", "submit"},
@@ -100,6 +102,11 @@ ROLE_LABELS = {
 TESTER_FORBIDDEN: frozenset[str] = frozenset((
     "edit", "submit", "promote_shipped", "merit", "publish",
     "llm_review", "palette", "audit_view", "merit_view",
+    # A tester reads the `testers` and `players` release notes -- that is the
+    # point of the tier. The `admin` audience is a different document: it also
+    # carries `hidden` items and the commits no roadmap item claimed, which is
+    # staff information for the same reason `audit_view` is.
+    "release_notes_admin",
 ))
 
 # Statuses a role without `promote_shipped` may not move an item into. This is

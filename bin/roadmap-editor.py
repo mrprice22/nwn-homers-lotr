@@ -60,6 +60,9 @@ PUBLISH_PATH = REPO / "bin" / "roadmap_publish.py"
 # on demand by bin/gen-palette-map.py (the "Refresh palette map" button); never
 # part of the wiki build. module-index/ is gitignored, so it may not exist yet.
 PALETTE_GEN_PATH = REPO / "bin" / "gen-palette-map.py"
+# Release notes + the per-idea environment badge. One module, because both
+# answer the same question: which commits have been promoted to the season.
+RELNOTES_PATH = REPO / "bin" / "gen-release-notes.py"
 PALETTE_MAP_PATH = REPO / "module-index" / "palette_map.json"
 SERVER_ENV = REPO / "server.env"
 # Published copy of the roadmap inside the generated wiki (docs/). Created by a
@@ -147,9 +150,28 @@ def load_review():
         return None
 
 
+def load_relnotes():
+    """Import bin/gen-release-notes.py — release notes + the environment map.
+
+    Optional like load_review(): it shells out to git and reads the sibling
+    season repo, and neither is guaranteed on a fresh checkout. A failure here
+    costs the badge and the notes panel, never the editor.
+    """
+    try:
+        spec = importlib.util.spec_from_file_location("gen_release_notes",
+                                                      RELNOTES_PATH)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    except Exception as exc:  # noqa: BLE001
+        print(f"[warn] release-notes panel unavailable: {exc}", file=sys.stderr)
+        return None
+
+
 GEN = load_gen()
 PUB = load_publish()
 REVIEW = load_review()
+RELNOTES = load_relnotes()
 # FIELD_ORDER orders the same names gen-roadmap.py validates against. A field
 # added to one and not the other means either a silently unrendered key or a
 # spurious "unrecognised field" warning, so say so loudly at startup.
@@ -1355,6 +1377,56 @@ def search_palette(query: str, limit: int = 100) -> dict:
             "matched": len(hits), "results": hits[:limit]}
 
 
+# --------------------------------------------------------------------------
+# Per-idea environment — which realm an idea's code is actually in
+# --------------------------------------------------------------------------
+# DERIVED, never stored. It changes at every promotion with nobody editing
+# anything, so a field in roadmap.yaml would be stale within a day. It is also
+# deliberately NOT hung on the idea dicts: /api/data hands the browser the raw
+# ideas array and the browser posts that array back on save, so a computed key
+# on an idea would end up written into the YAML.
+_env_lock = threading.Lock()
+_env_cache: dict = {"head": None, "index": None}
+
+
+def environment_map(ideas: list) -> dict:
+    """{"by_id": {id: {state, label, why}}, "base", "season", "states": [...]}.
+
+    The index behind it costs ~100ms, so it is cached against HEAD: one cheap
+    `git rev-parse` per request, a rebuild only when a commit lands.
+    """
+    if RELNOTES is None:
+        return {"by_id": {}, "base": "", "season": "", "states": [],
+                "error": "bin/gen-release-notes.py could not be loaded"}
+    try:
+        head = _git("rev-parse", "HEAD").stdout.strip()
+        with _env_lock:
+            if _env_cache["head"] != head or _env_cache["index"] is None:
+                _env_cache["index"] = RELNOTES.promotion_index()
+                _env_cache["head"] = head
+            index = _env_cache["index"]
+        return {"by_id": RELNOTES.classify_all(ideas, index),
+                "base": index["base"][:11],
+                "season": index.get("season") or "",
+                "states": [{"state": st, "label": RELNOTES.ENV_LABELS[st]}
+                           for st in RELNOTES.ENV_ORDER]}
+    except Exception as exc:  # noqa: BLE001
+        # A badge is never worth failing the board over.
+        return {"by_id": {}, "base": "", "season": "", "states": [],
+                "error": str(exc)}
+
+
+def release_notes(audience: str, flavor: bool = False,
+                  model: str = "default") -> tuple[bool, str, str]:
+    """(ok, markdown, warnings) from bin/gen-release-notes.py."""
+    cmd = [sys.executable, str(RELNOTES_PATH), "--audience", audience]
+    if flavor:
+        cmd += ["--flavor", "--model", model]
+    proc = subprocess.run(cmd, cwd=str(REPO), capture_output=True, text=True,
+                          timeout=600)
+    return proc.returncode == 0, proc.stdout, proc.stderr.strip()
+
+
 def refresh_palette_map() -> tuple[bool, str]:
     proc = subprocess.run(
         [sys.executable, str(PALETTE_GEN_PATH)],
@@ -1914,6 +1986,15 @@ ROUTE_CAPS: dict[str, str] = {
     "/api/serverlog": "serverlog",
     "/api/palette": "palette",
     "/api/palette/refresh": "palette",
+    # Release notes. Two paths because ROUTE_CAPS maps one path to one cap, and
+    # the `admin` audience is a different document -- it carries hidden items
+    # and the unclaimed commits. NOTE: neither goes in PREFIX_ROUTES. route_key()
+    # matches ROUTE_CAPS exactly first, so both already resolve; a prefix entry
+    # would collapse /api/release-notes/admin onto the weaker cap and hand a
+    # tester the admin audience.
+    "/api/release-notes": "release_notes",
+    "/api/release-notes/models": "release_notes",
+    "/api/release-notes/admin": "release_notes_admin",
     "/api/changes": "llm_review",
     "/api/changes/action": "llm_review",
     "/api/save": "edit",
@@ -2187,6 +2268,47 @@ class Handler(BaseHTTPRequestHandler):
             if fwd and len(fwd) <= 45 and "\n" not in fwd:
                 return fwd
         return peer
+
+    def _release_notes(self) -> None:
+        """GET /api/release-notes[?audience=&flavor=&model=] | /admin | /models.
+
+        The cap is carried by the PATH (see ROUTE_CAPS), so the audience given
+        in the query string must be checked against it here -- otherwise
+        ?audience=admin on the tester-visible path would hand over the admin
+        document with the route gate none the wiser.
+        """
+        if RELNOTES is None:
+            return self._json({"ok": False, "errors": [
+                "bin/gen-release-notes.py could not be loaded"]}, 503)
+
+        parts = urllib.parse.urlparse(self.path)
+        route = parts.path
+        q = urllib.parse.parse_qs(parts.query)
+
+        if route == "/api/release-notes/models":
+            return self._json({"ok": True,
+                               "models": [{"name": n, "source": src}
+                                          for n, src in RELNOTES.available_models()]})
+
+        if route == "/api/release-notes/admin":
+            audience = "admin"
+        else:
+            audience = (q.get("audience") or ["testers"])[0]
+            if audience not in ("testers", "players"):
+                return self._json({"ok": False, "errors": [
+                    "this route serves the testers and players audiences; the "
+                    "admin audience is at /api/release-notes/admin"]}, 403)
+
+        flavor = (q.get("flavor") or ["0"])[0] == "1"
+        model = (q.get("model") or ["default"])[0]
+        try:
+            ok, markdown, warnings = release_notes(audience, flavor, model)
+        except subprocess.TimeoutExpired:
+            return self._json({"ok": False, "errors": [
+                "the release-notes generator timed out (10 min)"]}, 504)
+        return self._json({"ok": ok, "audience": audience, "markdown": markdown,
+                           "warnings": warnings, "flavored": flavor,
+                           "model": model})
 
     def _cookies(self) -> dict:
         jar = {}
@@ -2754,12 +2876,17 @@ class Handler(BaseHTTPRequestHandler):
             # the fingerprint section above for why it is never hashed in JS.
             normalize_ideas(ideas)
             self._json({"ideas": ideas, "vocab": vocab(data),
+                        # A SIDE map, keyed by idea id -- never keys on the
+                        # ideas themselves, which the browser posts back verbatim.
+                        "environments": environment_map(ideas),
                         "base_hashes": fingerprints(ideas),
                         "base_vocab": vocab_fingerprints(data),
                         "version": yaml_version(),
                         # Who is asking. The page hides controls it may not use;
                         # the server enforces the same rules regardless.
                         "me": self.user.public()})
+        elif self.path.startswith("/api/release-notes"):
+            self._release_notes()
         elif self.path == "/api/version":
             self._json({"version": yaml_version()})
         elif self.path == "/api/meritplayers":
@@ -3504,7 +3631,32 @@ PAGE = r"""<!doctype html>
   .chip.merit { background:#1e3a2b; color:#9fe8c0; border-color:#2c6b4e; }
   /* An idea carrying a manual_step someone RAN and it did not pass. */
   .chip.failed { background:#4a2626; color:#f0b8b8; border-color:#7a3a3a; }
+  /* Which realm the idea's code is actually in. Computed server-side from the
+     commit: field vs the last promoted sha -- see environment_map(). Colours
+     match _REALM_COLORS, which the server monitor already uses for the realms. */
+  .chip.env-live      { background:#123a22; color:#7ee2a8; border-color:#2f7a4c; }
+  .chip.env-dev       { background:#0f3a3d; color:#8fe3e8; border-color:#2b6f74; }
+  .chip.env-rework    { background:#32234a; color:#d2a8ff; border-color:#5a3f7a; }
+  .chip.env-reopened  { background:#43350f; color:#f0c96a; border-color:#7a6320; }
+  .chip.env-untracked { background:#2f333b; color:#9aa3af; border-color:#454b57; }
+  .chip.env-external  { background:#16304f; color:#79c0ff; border-color:#2b5580; }
+  .chip.env-missing   { background:#4a2020; color:#ff9d9d; border-color:#8a3535; }
+  /* The at-a-glance half: a colour bar down the edge of every row and card. */
+  .row[data-env], .card[data-env] { border-left:3px solid transparent; }
+  .row[data-env="live"],      .card[data-env="live"]      { border-left-color:#3fb950; }
+  .row[data-env="dev"],       .card[data-env="dev"]       { border-left-color:#56d4dd; }
+  .row[data-env="rework"],    .card[data-env="rework"]    { border-left-color:#d2a8ff; }
+  .row[data-env="reopened"],  .card[data-env="reopened"]  { border-left-color:#d29922; }
+  .row[data-env="untracked"], .card[data-env="untracked"] { border-left-color:#555b66; }
+  .row[data-env="external"],  .card[data-env="external"]  { border-left-color:#79c0ff; }
+  .row[data-env="missing"],   .card[data-env="missing"]   { border-left-color:#ff7b72; }
   .row.hid .t, .card.hid .ct { opacity:0.62; text-decoration:line-through; }
+  #rn_out { white-space:pre-wrap; font-family:ui-monospace,Menlo,Consolas,monospace;
+            font-size:12px; line-height:1.45; background:var(--bg); color:var(--ink);
+            border:1px solid var(--line); border-radius:6px; padding:12px;
+            max-height:58vh; overflow:auto; margin:0; }
+  .rn-bar { display:flex; gap:8px; align-items:center; margin:8px 0; flex-wrap:wrap; }
+  .rn-bar select { max-width:340px; }
   #banner { margin:10px 0; padding:9px 11px; border-radius:6px; display:none;
             white-space:pre-wrap; }
   #banner.ok { display:block; background:#193a2b; color:var(--ok);
@@ -3816,6 +3968,7 @@ PAGE = r"""<!doctype html>
       <select id="f_fplayer"><option value="">All players</option></select>
       <select id="f_fgroup"><option value="">All groups</option></select>
       <select id="f_fepic"><option value="">All epics</option></select>
+      <select id="f_fenv"><option value="">All environments</option></select>
       <select id="f_fhidden">
         <option value="">Published + hidden</option>
         <option value="pub">Published only</option>
@@ -3848,6 +4001,9 @@ PAGE = r"""<!doctype html>
       <button id="muatr" class="linkbtn" data-cap="merit">UAT Review</button>
       <button id="mchanges" class="linkbtn" data-cap="llm_review">LLM Changes</button>
       <button id="maudit" class="linkbtn" data-cap="audit_view">Recent changes</button>
+      <button id="mrntest" class="linkbtn" data-cap="release_notes">Notes · Testers</button>
+      <button id="mrnplay" class="linkbtn" data-cap="release_notes">Notes · Players</button>
+      <button id="mrnadmin" class="linkbtn" data-cap="release_notes_admin">Notes · Admin</button>
       <span class="spacer"></span>
       <span id="count" class="small"></span>
     </div>
@@ -4032,6 +4188,16 @@ function populateFilters(){
   gSel.innerHTML='<option value="">All groups</option>'+
     DATA.vocab.groups.map(g=>`<option value="${esc(g.id)}">${esc(groupTitle(g.id))}</option>`).join('');
   sSel.value=sCur; tSel.value=tCur; pSel.value=pCur; gSel.value=gCur;
+
+  // Environment is server-computed, so its option list comes from the payload
+  // rather than from the vocab. This is the triage list: picking "Commit not
+  // found" gives exactly the items whose commit: needs fixing.
+  const vSel=$('#f_fenv'), vCur=vSel.value;
+  const states=(DATA.environments&&DATA.environments.states)||[];
+  vSel.innerHTML='<option value="">All environments</option>'+
+    states.map(x=>`<option value="${esc(x.state)}">${esc(x.label)}</option>`).join('')+
+    '<option value="_none">(not built yet)</option>';
+  vSel.value=vCur;
 }
 
 function statusRank(s){
@@ -4044,6 +4210,7 @@ function visibleRows(){
   const fs=$('#f_fstatus').value, ft=$('#f_ftype').value;
   const fp=$('#f_fplayer').value, fg=$('#f_fgroup').value;
   const fe=$('#f_fepic').value, fh=$('#f_fhidden').value;
+  const fv=$('#f_fenv').value;
   // Board always shows the awarded lane; the "Show awarded" checkbox only
   // governs the list view.
   const showAwarded=(view==='board') || $('#f_showawarded').checked, sort=$('#f_sort').value;
@@ -4054,10 +4221,15 @@ function visibleRows(){
     if (fp){ if (fp===BLANK){ if (it.player) return false; } else if ((it.player||'')!==fp) return false; }
     if (fg && it.group!==fg) return false;
     if (fe){ if (fe===BLANK){ if (it.epic) return false; } else if ((it.epic||'')!==fe) return false; }
+    if (fv){
+      const st=(envOf(it)||{}).state||'';
+      if (fv==='_none'){ if (st) return false; } else if (st!==fv) return false;
+    }
     if (fh==='pub' && it.hidden) return false;
     if (fh==='hid' && !it.hidden) return false;
     if (q){
-      const hay=[it.title,it.player,it.group,it.status,it.type,it.id].join(' ').toLowerCase();
+      const hay=[it.title,it.player,it.group,it.status,it.type,it.id,
+                 (envOf(it)||{}).label].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
@@ -4086,7 +4258,18 @@ function chips(it){
   // Flag only — a failed step never rewrites the idea's status; moving it back
   // to `manual` stays the admin's call.
   if (hasFailedStep(it)) out+='<span class="chip failed">failed</span> ';
+  const env = envOf(it);
+  if (env) out+=`<span class="chip env-${env.state}" title="${esc(env.why)}">`
+               + `${esc(env.label)}</span> `;
   return out;
+}
+
+// Which realm this idea's code is in. Server-computed and read-only: it lives
+// in a side map keyed by id, NOT on the idea, because save() posts the ideas
+// array back verbatim and anything hung on an idea would reach roadmap.yaml.
+function envOf(it){
+  const m = (DATA.environments && DATA.environments.by_id) || {};
+  return m[it.id] || null;
 }
 
 function renderList(){
@@ -4095,6 +4278,7 @@ function renderList(){
   rows.forEach(({it,idx})=>{
     const d=document.createElement('div');
     d.className='row'+(idx===sel?' sel':'')+(it.hidden?' hid':'');
+    const env=envOf(it); if (env) d.dataset.env=env.state;
     const tbadge = it.type
       ? `<span class="tbadge ${typeCls(it.type)}">${esc(it.type)}</span> ` : '';
     d.innerHTML=`<span class="t">${esc(it.title||'(untitled)')}</span>
@@ -4154,7 +4338,9 @@ function renderBoard(){
         ? `<select class="cst" data-idx="${idx}" data-cur="${esc(it.status)}">${BOARD_LANES.map(ls=>
             `<option value="${esc(ls)}"${ls===it.status?' selected':''}>${esc(statusLabel(ls))}</option>`).join('')}</select>`
         : '';
-      return `<div class="card${it.hidden?' hid':''}" draggable="true" data-idx="${idx}">
+      const env=envOf(it);
+      return `<div class="card${it.hidden?' hid':''}" draggable="true" data-idx="${idx}"${
+        env?` data-env="${esc(env.state)}"`:''}>
         <span class="ct">${esc(it.title||'(untitled)')}</span>
         <span class="cmeta">${tbadge}${chips(it)}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>
         ${ddHtml}
@@ -5968,6 +6154,107 @@ function openChanges(){
   });
 }
 
+// --- Release notes -------------------------------------------------------
+// The same generator the command line uses (bin/gen-release-notes.py), so the
+// notes a tester reads here are byte-identical to the ones published later.
+// The audience decides the ENDPOINT, not a parameter: the admin audience is a
+// different document (hidden items, unclaimed commits) behind its own cap.
+const RN_TITLES = {
+  testers: ['Release notes · Testers',
+            'What has landed on the test realm since the last promotion to the live '
+            + 'season, and which checks still need someone to run them.'],
+  players: ['Release notes · Players',
+            'The same changes written as an update announcement. This is what to '
+            + 'publish when the diff is promoted to the live season.'],
+  admin:   ['Release notes · Admin',
+            'Everything in the other two, plus hidden items, open publish/toolset '
+            + 'steps, and the commits no roadmap item claimed.'],
+};
+
+function rnUrl(audience, extra){
+  const base = audience==='admin' ? '/api/release-notes/admin'
+                                  : '/api/release-notes?audience='+encodeURIComponent(audience);
+  if (!extra) return base;
+  return base + (base.includes('?') ? '&' : '?') + extra;
+}
+
+async function openReleaseNotes(audience){
+  const [title, blurb] = RN_TITLES[audience] || RN_TITLES.testers;
+  modalHTML(`<h2>${esc(title)}</h2>
+    <p class="small">${esc(blurb)}</p>
+    <div class="rn-bar">
+      <button id="rn_copy">Copy</button>
+      <select id="rn_model" title="Which local model does the rewrite"></select>
+      <button id="rn_flavor" title="Rewrite each note in plain language and merge
+related items into one bullet. Runs on the LAN LLM box; the first run takes a
+while, after which it is cached.">Rewrite with local model</button>
+      <span class="spacer"></span>
+      <span class="small" id="rn_meta"></span>
+    </div>
+    <pre id="rn_out">Loading…</pre>
+    <div class="bar"><span class="spacer"></span><button id="rn_close">Close</button></div>`);
+  $('#modalbox').classList.add('wide');
+  $('#rn_close').onclick=()=>{ $('#modalbox').classList.remove('wide'); closeModal(); };
+  $('#rn_copy').onclick=()=>{
+    navigator.clipboard.writeText($('#rn_out').textContent||'')
+      .then(()=>banner('ok','Release notes copied to the clipboard.'),
+            ()=>banner('bad','Could not copy — select the text and copy manually.'));
+  };
+  rnModels();
+  $('#rn_flavor').onclick=()=>rnLoad(audience, true);
+  rnLoad(audience, false);
+}
+
+async function rnModels(){
+  const sel=$('#rn_model');
+  if (!sel) return;
+  try{
+    const r=await api('/api/release-notes/models');
+    const res=await r.json();
+    // The box is asleep more often than not, so the aliases must still render
+    // -- an empty dropdown would make the rewrite button look broken.
+    sel.innerHTML=(res.models||[]).filter(m=>m.source!=='error')
+      .map(m=>`<option value="${esc(m.name)}">${esc(m.name)}${
+        m.source==='alias'?'':' (installed)'}</option>`).join('');
+    const err=(res.models||[]).find(m=>m.source==='error');
+    if (err) sel.title=err.name;
+  }catch(e){ sel.innerHTML='<option value="default">default</option>'; }
+}
+
+async function rnLoad(audience, flavor){
+  const out=$('#rn_out'), meta=$('#rn_meta'), btn=$('#rn_flavor');
+  if (!out) return;
+  const model=($('#rn_model')&&$('#rn_model').value)||'default';
+  const label=btn?btn.textContent:'';
+  if (flavor && btn){ btn.disabled=true; btn.textContent='Rewriting… (up to a few minutes)'; }
+  out.textContent = flavor ? 'Asking the local model to rewrite these notes…' : 'Loading…';
+  meta.textContent='';
+  try{
+    const r=await api(rnUrl(audience, flavor
+      ? 'flavor=1&model='+encodeURIComponent(model) : ''));
+    const res=await r.json();
+    if (!res.ok && !res.markdown){
+      out.textContent=(res.errors||['the generator failed']).join('\n');
+      if (res.warnings) out.textContent+='\n\n'+res.warnings;
+      return;
+    }
+    out.textContent=res.markdown||'(no output)';
+    const bits=[];
+    if (res.flavored) bits.push('rewritten by '+model);
+    if (DATA.environments && DATA.environments.base)
+      bits.push('since '+DATA.environments.base);
+    meta.textContent=bits.join(' · ');
+    // The generator warns on stderr about anything it had to repair or fall
+    // back on -- surfacing it is the difference between "the model merged two
+    // items" and "the model silently dropped one".
+    if (res.warnings) banner('warn', res.warnings);
+  }catch(e){
+    out.textContent='Request failed: '+e;
+  }finally{
+    if (flavor && btn){ btn.disabled=false; btn.textContent=label; }
+  }
+}
+
 function openPalette(){
   modalHTML(`<h2>Palette Finder</h2>
     <p class="small">Search a creature/item/placeable by name (or resref) and see
@@ -6813,7 +7100,7 @@ function openAudit(days){
 }
 function closeAudit(){ $('#modalbox').classList.remove('wide'); closeModal(); }
 
-['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_fepic','f_fhidden','f_sort']
+['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_fepic','f_fenv','f_fhidden','f_sort']
   .forEach(id=>$('#'+id).onchange=render);
 $('#f_showawarded').onchange=render;
 // Regenerate/Publish act on the whole file, so they live in the left pane and
@@ -6833,6 +7120,9 @@ $('#muatq').onclick=()=>openQueue('uat');
 $('#muatr').onclick=openReview;
 $('#mchanges').onclick=openChanges;
 $('#maudit').onclick=openAudit;
+$('#mrntest').onclick=()=>openReleaseNotes('testers');
+$('#mrnplay').onclick=()=>openReleaseNotes('players');
+$('#mrnadmin').onclick=()=>openReleaseNotes('admin');
 $('#logout').onclick=async ()=>{
   if (!confirm('Sign out of the roadmap editor?')) return;
   try { await fetch('/api/logout', {method:'POST',
