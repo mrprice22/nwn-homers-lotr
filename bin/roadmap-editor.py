@@ -337,7 +337,12 @@ def vocab(data: dict) -> dict:
               "status": e.get("status"), "notes": e.get("notes")}
              for e in (data.get("epics", []) or [])]
     return {"groups": groups, "players": players, "statuses": statuses,
-            "types": types, "ids": ids, "epics": epics}
+            "types": types, "ids": ids, "epics": epics,
+            # A new idea's `date:` defaults to this. It has to be the REALM's
+            # today (server.env TZ), not the browser's: the editor is reachable
+            # through the Cloudflare Tunnel, so a tester's clock can be a day
+            # off from the one every other date in this file was stamped in.
+            "today": server_today()}
 
 
 # --------------------------------------------------------------------------
@@ -1699,6 +1704,15 @@ def now_stamp() -> str:
     except Exception:
         tz = ZoneInfo("America/Chicago")
     return datetime.now(tz).strftime("%Y-%m-%d %H:%M %Z")
+
+
+def server_today() -> str:
+    """Today's date in the realm's timezone, ISO — what a new idea is dated."""
+    try:
+        tz = ZoneInfo(server_tz())
+    except Exception:  # noqa: BLE001
+        tz = ZoneInfo("America/Chicago")
+    return datetime.now(tz).strftime("%Y-%m-%d")
 
 
 def stamp_as_of() -> str:
@@ -4330,7 +4344,11 @@ function autofillIdFromTitle(){
 function select(i){
   sel = i; formSnapshot = null; selRef = DATA.ideas[i] || null; renderList();
   const it = DATA.ideas[i]; if (!it) { $('#form').innerHTML=''; return; }
-  const groups = DATA.vocab.groups.map(g=>opt(g.id, g.title.replace(/&amp;/g,'&'), it.group)).join('');
+  // The empty option exists only while the item HAS no group: it is the
+  // placeholder a new idea starts on, and offering it on an item that is
+  // already filed would just be a way to break one by mis-click.
+  const groups = (it.group ? '' : '<option value="">— choose a group —</option>')
+      + DATA.vocab.groups.map(g=>opt(g.id, g.title.replace(/&amp;/g,'&'), it.group)).join('');
   // Statuses this account may not set are dropped from the picker -- except
   // the item's OWN current status, which has to stay in the list or selecting a
   // shipped item would silently show (and then save) the wrong status.
@@ -5393,6 +5411,17 @@ function pruneEmpty(o, src){
   return r;
 }
 
+// The realm's today (server.env TZ), served in DATA.vocab. The browser clock is
+// the fallback only -- through the Cloudflare Tunnel it can be a day out from
+// the timezone every other date in roadmap.yaml was stamped in.
+function todayISO(){
+  const t = DATA.vocab && DATA.vocab.today;
+  if (t) return t;
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+
 function banner(cls,msg){ const b=$('#banner'); b.className=cls; b.textContent=msg; }
 
 // ---- unsaved-changes guard ----------------------------------------------
@@ -5515,6 +5544,22 @@ async function commit(endpoint, force, opts){
     selRef = DATA.ideas[idx];
     keepId = DATA.ideas[idx].id || keepId;   // follow a renamed id
   }
+  // Group is mandatory. gen-roadmap.py refuses a blank one too, but its
+  // validation is WHOLE-FILE: one ungrouped idea would block every save,
+  // including saves of items you never touched, behind an error naming an id
+  // that is not on screen. Catch it here, name it, and jump to it.
+  const missing = DATA.ideas.filter(x=>!(x.group||'').trim());
+  if (missing.length){
+    const first = DATA.ideas.indexOf(missing[0]);
+    banner('bad', missing.length === 1
+      ? 'Pick a group for "' + (missing[0].title || missing[0].id || 'this idea')
+        + '" before saving.'
+      : missing.length + ' ideas have no group: '
+        + missing.map(x=>'"'+(x.title||x.id||'(untitled)')+'"').join(', ')
+        + '. Every idea needs one before anything can be saved.');
+    if (view==='list' && first>=0) select(first);
+    return false;
+  }
   const r = await api(endpoint, {method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify(Object.assign(
@@ -5601,12 +5646,18 @@ function del(){
 }
 
 $('#add').onclick = ()=>guard(()=>{
-  const g = DATA.vocab.groups[0] ? DATA.vocab.groups[0].id : '';
-  DATA.ideas.unshift({id:'', title:'', group:g, status:'planned'});
+  // Group starts BLANK, not at groups[0]. Defaulting to the first group meant a
+  // forgotten picker filed the idea under whatever sorts first (Forge &
+  // Crafting) and looked deliberate -- a wrong group is invisible in a way an
+  // empty one is not. Blank is refused on save (checkGroups + gen-roadmap's
+  // group check), so it has to be chosen rather than merely left alone.
+  DATA.ideas.unshift({id:'', title:'', group:'', status:'planned',
+                      date: todayISO()});
   // Adding needs the full form (id + title), so always land in list view.
   if (view!=='list'){ setView('list'); }
   sel=0; renderList(); select(0);
-  banner('warn','New idea added. Give it a unique id + title, then Save.');
+  banner('warn','New idea added. Pick a group, give it a unique id + title, '
+    + 'then Save.');
 });
 
 // ---- group / player management modals -----------------------------------

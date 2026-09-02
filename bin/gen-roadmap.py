@@ -274,7 +274,14 @@ def validate(data: dict) -> list[str]:
         if idea.get("status") not in STATUS:
             errors.append(f"'{iid}': unknown status {idea.get('status')!r}")
         if idea.get("group") not in group_ids:
-            errors.append(f"'{iid}': unknown group {idea.get('group')!r}")
+            # Blank and wrong are different mistakes: blank is a new idea whose
+            # picker was never touched (the editor starts it empty on purpose),
+            # wrong is a group id that no longer exists. Saying "unknown group
+            # ''" for the common case sent people hunting for a renamed group.
+            if not str(idea.get("group") or "").strip():
+                errors.append(f"'{iid}': needs a group")
+            else:
+                errors.append(f"'{iid}': unknown group {idea.get('group')!r}")
         if idea.get("type") is not None and idea.get("type") not in TYPES:
             errors.append(f"'{iid}': unknown type {idea.get('type')!r}")
         if idea.get("epic") and idea["epic"] not in epic_ids:
