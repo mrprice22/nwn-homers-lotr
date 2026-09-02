@@ -17,9 +17,11 @@
 // tester the single most useful thing on screen: with no HP change the engine
 // prints no damage line and no "damage reduction absorbs" feedback, so a
 // combat test could not be checked against the combat log at all (UAT round 3).
-// Now the hit applies normally and CBD_Restore puts the dummy back to full on
-// the next pulse. Death immunity (cbd_spawn) and the respawn (cbd_death) are
-// still behind that, for the one hit big enough to outrun the restore.
+// Now the hit applies normally and CBD_Restore puts the dummy back to full both
+// BEFORE the packet lands (so no single hit can outrun the heal-back) and on
+// the next pulse. The immunity set in cbd_spawn covers the kills that are not
+// damage at all - coup de grace, level drain, death effects - and the respawn
+// in cbd_death is the last resort behind both.
 
 #include "nwnx_damage"
 #include "cbd_inc"
@@ -30,6 +32,15 @@ void main()
 
     object oDummy = OBJECT_SELF;
     if (!GetLocalInt(oDummy, CBD_VAR_IS_DUMMY)) return;
+
+    // Top up BEFORE the packet lands, not just after. This handler runs ahead
+    // of the engine applying the damage, so putting the dummy back to full here
+    // means every single hit is subtracted from the whole 10000-point pool
+    // instead of from whatever the last one left. That is the third way players
+    // were killing it (roadmap combat-dummy-can-be-slain): one hit big enough
+    // to outrun the DelayCommand(0.0) heal-back below. Nothing about the combat
+    // log changes - the damage still lands and still prints.
+    CBD_Restore(oDummy);
 
     // EVERY field goes through CBD_Amt: NWNX reports an unused damage type as
     // -1, not 0. Summing them raw subtracts one point per unused type, which is
@@ -142,6 +153,7 @@ void main()
 
     // The damage is handed back UNTOUCHED so the engine applies it and prints
     // it: per-type numbers, resistances, damage reduction. The dummy is put
-    // back to full on the next pulse instead.
+    // back to full on the next pulse instead, so it is standing at full health
+    // between packets as well as at the start of each one.
     if (nDmg > 0) CBD_ScheduleRestore(oDummy);
 }

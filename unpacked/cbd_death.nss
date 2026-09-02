@@ -8,10 +8,15 @@
 //     a fresh dummy back up - which is the whole point: the destruction visual
 //     and this 6-second respawn ARE the end-of-set cue.
 //
-//   * an UNPLANNED death, which must never happen: cbd_damage zeroes all
-//     incoming damage and cbd_spawn grants death immunity. If something gets
-//     through anyway, the in-progress session is thrown away (NOT recorded - a
-//     partial run is not a score) before the same respawn happens.
+//   * an UNPLANNED death, which must never happen: cbd_damage restores the hit
+//     points on both sides of every packet, and cbd_spawn grants immunity to
+//     death effects, to the states that make a creature helpless (a coup de
+//     grace kills outright, around all of that) and to level and ability drain.
+//     If something still gets through, the in-progress session is thrown away
+//     (NOT recorded - a partial run is not a score) before the same respawn
+//     happens, and the cancel message NAMES the killer and the weapon in its
+//     hand: every one of those paths was found from a player report, so the
+//     next one has to arrive already identified instead of as "it died again".
 
 #include "cbd_inc"
 
@@ -22,7 +27,20 @@ void main()
     // Stale ticks from the dead dummy die with it, but bump the serial anyway
     // so nothing can fire into the replacement.
     if (GetLocalInt(oSelf, CBD_VAR_ACTIVE))
-        CBD_CancelSession(oSelf, "The combat dummy was destroyed - the test is cancelled and nothing was recorded.");
+    {
+        string sWho = "";
+        object oKiller = GetLastKiller();
+        if (GetIsObjectValid(oKiller))
+        {
+            sWho = " (killed by " + GetName(oKiller);
+            object oWeapon = GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, oKiller);
+            if (GetIsObjectValid(oWeapon)) sWho += " with " + GetName(oWeapon);
+            sWho += " - please report this)";
+        }
+
+        CBD_CancelSession(oSelf, "The combat dummy was destroyed - the test is " +
+                                 "cancelled and nothing was recorded." + sWho);
+    }
 
     // Delayed commands assigned to a corpse are discarded when it decays, so
     // the respawn is assigned to the module - the same trick se_respawn_inc.nss

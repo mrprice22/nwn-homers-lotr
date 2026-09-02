@@ -34,7 +34,7 @@
   },
   "Comment": {
     "type": "cexostring",
-    "value": "Combat Dummy - roadmap combat-dummy. Place anywhere from the toolset; it self-installs at OnSpawn (cbd_spawn). Hostile so hostile-only spells can target it; immobile. MUST NOT be Plot: the engine zeroes damage to a plot creature BEFORE the NWNX damage event, so cbd_damage would measure nothing. Indestructibility comes from cbd_damage zeroing the damage after counting it, plus the death immunity in cbd_spawn."
+    "value": "Combat Dummy - roadmap combat-dummy. Place anywhere from the toolset; it self-installs at OnSpawn (cbd_spawn). Hostile so hostile-only spells can target it; immobile. MUST NOT be Plot: the engine zeroes damage to a plot creature BEFORE the NWNX damage event, so cbd_damage would measure nothing. Indestructibility comes from cbd_damage counting the damage and restoring the hit points around it, plus the immunity set in cbd_spawn. The save bonuses of 100 are part of that: they are the ONLY layer that survives CBD_SelfDestruct stripping every immunity at the end of a set, and they are what stops On Hit: Hold (DC 20) and On Hit: Level Drain (DC 14) landing on a 1-level creature - a hold makes it helpless and a coup de grace then kills it outright, around both the damage handler and the death immunity, and a single level drain takes it to level 0. MUST NOT be IsImmortal either, for the same reason as Plot: anything that stops the damage landing zeroes the measurement."
   },
   "Con": {
     "type": "byte",
@@ -94,7 +94,7 @@
   },
   "fortbonus": {
     "type": "short",
-    "value": 0
+    "value": 100
   },
   "Gender": {
     "type": "byte",
@@ -174,7 +174,7 @@
   },
   "refbonus": {
     "type": "short",
-    "value": 0
+    "value": 100
   },
   "ScriptAttacked": {
     "type": "resref",
@@ -294,7 +294,7 @@
   },
   "willbonus": {
     "type": "short",
-    "value": 0
+    "value": 100
   },
   "Wings": {
     "type": "byte",

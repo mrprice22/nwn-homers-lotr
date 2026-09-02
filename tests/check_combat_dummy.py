@@ -87,10 +87,70 @@ if "IMMUNITY_TYPE_DEATH" not in spawn:
         "cbd_spawn.nss no longer grants death immunity — damage is healed back "
         "off, but death EFFECTS are not damage and would still drop the dummy.")
 
+# Players killed the dummy mid-trial three ways that are neither damage nor a
+# death effect (roadmap combat-dummy-can-be-slain). Two of them are closed here,
+# and each constant is load-bearing on its own:
+KILL_PATH_IMMUNITIES = {
+    "IMMUNITY_TYPE_PARALYSIS":
+        "Flame of the West carries On Hit: Hold at DC 20 against a Will save of "
+        "+2. A held dummy is HELPLESS, and a confirmed critical on a helpless "
+        "target is a coup de grace: an engine combat OUTCOME that kills "
+        "outright, ahead of the heal-back and around the death immunity.",
+    "IMMUNITY_TYPE_STUN": "same coup de grace path, via the Epic variant's On "
+                          "Hit: Stun.",
+    "IMMUNITY_TYPE_SLEEP": "same coup de grace path, via sleep.",
+    "IMMUNITY_TYPE_DAZED": "same coup de grace path, via daze.",
+    "IMMUNITY_TYPE_KNOCKDOWN": "same coup de grace path, via knockdown.",
+    "IMMUNITY_TYPE_NEGATIVE_LEVEL":
+        "the Katana of Dol Guldur carries On Hit: Level Drain at DC 14 and this "
+        "is a ONE-level creature: a single failed save takes it to level 0, "
+        "which the engine treats as death whatever its 10000 hit points say.",
+    "IMMUNITY_TYPE_ABILITY_DECREASE":
+        "ability drain to 0 Constitution is the same kill as level drain.",
+    "IMMUNITY_TYPE_MIND_SPELLS": "a dominated or fleeing dummy ruins the trial.",
+    "IMMUNITY_TYPE_CHARM": "a dominated or fleeing dummy ruins the trial.",
+    "IMMUNITY_TYPE_DOMINATE": "a dominated or fleeing dummy ruins the trial.",
+    "IMMUNITY_TYPE_CONFUSED": "a dominated or fleeing dummy ruins the trial.",
+    "IMMUNITY_TYPE_FEAR": "a dominated or fleeing dummy ruins the trial.",
+}
+for const, why in KILL_PATH_IMMUNITIES.items():
+    if const not in spawn:
+        errors.append(f"cbd_spawn.nss no longer grants {const} — {why}")
+
+# ...and the fix must never be bought the way that breaks the measurement. This
+# is the Plot flag's mistake in another costume: anything that stops the damage
+# landing (or lands it smaller) makes the dummy indestructible AND makes every
+# DPR reading wrong, which is exactly how the feature's first UAT reported 0.
+FORBIDDEN_IN_SPAWN = {
+    "IMMUNITY_TYPE_CRITICAL_HIT": "criticals are part of the damage under "
+                                  "measurement.",
+    "IMMUNITY_TYPE_SNEAK_ATTACK": "sneak attack damage is part of the damage "
+                                  "under measurement.",
+    "EffectDamageImmunity": "a damage immunity silently subtracts from the "
+                            "number the dummy exists to report.",
+    "EffectDamageReduction": "damage reduction silently subtracts from the "
+                             "number the dummy exists to report.",
+    "SetImmortal": "an immortal dummy cannot be brought below 1 hit point, "
+                   "which is the same class of change as the Plot flag — the "
+                   "kill paths this gate covers are not HP-based anyway.",
+}
+for const, why in FORBIDDEN_IN_SPAWN.items():
+    if const in spawn:
+        errors.append(
+            f"cbd_spawn.nss uses {const} — it must not: {why}")
+
 dmg = strip_comments(read(UNPACKED / "cbd_damage.nss"))
 # The dummy deliberately LETS the damage land (so the combat log shows the
 # numbers, the resistances and any damage reduction) and heals it straight back
 # off. Two things must hold, or it becomes destructible again:
+if not re.search(r"\bCBD_Restore\s*\(", dmg):
+    errors.append(
+        "cbd_damage.nss no longer tops the dummy up BEFORE the packet lands. "
+        "This handler runs ahead of the engine applying the damage, and that "
+        "pre-hit CBD_Restore is what makes every hit subtract from the whole "
+        "10000-point pool: without it one hit big enough to outrun the "
+        "next-pulse heal-back kills the dummy, which is the third way players "
+        "were ending trials (roadmap combat-dummy-can-be-slain).")
 if "CBD_ScheduleRestore" not in dmg:
     errors.append(
         "cbd_damage.nss never calls CBD_ScheduleRestore — the damage now lands "
@@ -135,6 +195,22 @@ if utc_path.is_file():
         errors.append(
             "cbd_dummy.utc.json ScriptDeath is not cbd_death — a destroyed "
             "dummy would never come back.")
+    if val("IsImmortal") != 0:
+        errors.append(
+            "cbd_dummy.utc.json is flagged IsImmortal. Same trap as Plot: it "
+            "stops the damage landing in full, so the measurement goes wrong "
+            "silently. The dummy survives by having its hit points restored "
+            "around every packet and by the immunities in cbd_spawn, not by "
+            "being unkillable at the engine level.")
+    for save in ("fortbonus", "refbonus", "willbonus"):
+        if (val(save) or 0) < 50:
+            errors.append(
+                f"cbd_dummy.utc.json {save} is {val(save)}, under 50. The save "
+                "bonuses are the backstop that survives CBD_SelfDestruct "
+                "stripping every immunity effect at the end of a set, and they "
+                "are what a 1-level, all-10s creature needs to beat On Hit: "
+                "Hold (DC 20) and On Hit: Level Drain (DC 14) — a failed hold "
+                "makes it helpless and the next critical is a coup de grace.")
     if val("Plot") != 0:
         errors.append(
             "cbd_dummy.utc.json is flagged Plot. It must NOT be: the engine "
