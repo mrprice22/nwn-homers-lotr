@@ -140,6 +140,14 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: smoking-pipeweed-to-cure-soul-fatigue
+    title: "Smoking Pipeweed to Cure Soul Fatigue"
+    group: combat-classes
+    status: confirmed
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-04"
+    notes: "Make it so when in the smoking chamber and you smoke any kind of pipeweed; if you had any active stacks of soul fatigue from healing, you feel a sense of calm wash over you and everything feels okay -- cleansed of soul fatigue. this is the only cure to soul fatigue besides waiting it out."
   - id: anaralia-spider-queen-second-drop
     title: "Anaralia (spider queen) second drop"
     group: items-gear
@@ -492,7 +500,7 @@ ideas:
   - id: kallrist-crypt-quest-only-doable-once-per-server-reset
     title: "Kallrist Crypt Quest only doable once per server reset"
     group: quests-areas
-    status: manual
+    status: awarded
     type: Defect
     player: "Rajmund (Ray)"
     date: "2026-08-27"
@@ -1962,7 +1970,7 @@ ideas:
     title: "Concerning Pipeweed"
     group: travel
     epic: quest-overhaul
-    status: manual
+    status: confirmed
     type: Enhancement
     player: "HomelessSon (Server Admin)"
     date: "2026-08-05"
@@ -1974,8 +1982,12 @@ ideas:
         status: open
         kind: admin
       - step: "UAT appearance: spawn pw_longbottom in The Smoking Chamber (area024) -- palette Miscellaneous > Other -- and confirm the pouch model, name and description read right."
-        status: open
+        status: failed
         kind: uat
+        claimed_by: "HomelessSon (Server Admin)"
+        result: "Bad test/design: buddtender is only supposed to be in green dragon inn, not in the smoking chamber area."
+        tested_by: "HomelessSon (Server Admin)"
+        tested_on: "2026-09-04"
       - step: "UAT appearance: same for pw_oldtoby (palette Miscellaneous > Other)."
         status: open
         kind: uat
@@ -2027,6 +2039,8 @@ ideas:
       - step: "UAT bong cutscene: the GestaltCameraMove swing was previously assigned to the placeable rather than the smoker, so it never reached the player -- it is now retargeted. Confirm the camera actually swings when you light a pipe."
         status: open
         kind: uat
+    uat_credits:
+      - player: "HomelessSon (Server Admin)"
   - id: bestiary-boss-breakdown
     title: "Beastiary breakdown for just the bosses"
     group: bosses
@@ -3760,12 +3774,12 @@ ideas:
     title: "Forbidden Realms Key tier: journal quest and a Númenor gate opening the orphaned Tombs of the Lost Souls as the Weathertop court's barrow"
     group: bosses
     epic: difficulty-increase
-    status: confirmed
+    status: manual
     type: Enhancement
     player: "HomelessSon (Server Admin)"
-    date: "2026-07-18"
-    commit: 6b2999e550b
-    notes: "<div>The Forbidden Realms Key has been stealable from Summanus for as long as anyone can remember, and until now it opened precisely nothing. It opens something now. Come by the key and a journal opens telling you what the seven marks cut into its ward actually are — grave-wards. The stone that answers it is a sealed slab in Númenor: Noirinan, and beyond it lie the <b>Tombs of the Lost Souls</b>: not a ruin but a court, whose lords have not gone quiet. The Weathertop King, his Queen and their Archer still hold their places. Bring a party. Full walkthrough: <a href=\"QuestGuide.html#forbidden-realms\">QuestGuide → The Forbidden Realms</a>.</div>"
+    date: "2026-09-04"
+    commit: cc9707597f5
+    notes: "<div>The Forbidden Realms Key has been stealable from Summanus for as long as anyone can remember, and until now it opened precisely nothing. It opens something now. Come by the key and a journal opens telling you what the seven marks cut into its ward actually are — grave-wards. The stone that answers it is a sealed slab in Númenor: Noirinan, and beyond it lie the <b>Tombs of the Lost Souls</b>: not a ruin but a court, whose lords have not gone quiet. The Weathertop King, his Queen and their Archer still hold their places. Bring a party. Full walkthrough: <a href=\"QuestGuide.html#forbidden-realms\">QuestGuide → The Forbidden Realms</a>.</div><div><br></div><div><b>Update 2026-09-04 — the court is open.</b> Amon Sûl’s garrison now musters four kinds of soldier instead of two: archers, swordsmen, the returning <b>Weathertop Scouts</b>, and the barrow-wights on the low ground. Every one of them carries a piece of something. Kill enough of each and you will hold four heavy iron <b>key-shards</b> — one ward apiece, and no amount of farming the easiest of the four will finish the set. Put one of each into the old oven below the hill, pull the lever beside it, and look again: the four have run together into the <b>Key of the Hidden Court</b>.</div><div><br></div><div>The door it opens gives you ten seconds. It strains, it spits dust, and then it shuts behind you and locks, and the key is gone. What is on the other side is a court of fifty-one — Royal Guardsmen who carry their own healing, Royal Archers who do not miss, and Royal Magi who will call down <b>Greater Ruin</b> on you once a minute apiece — and, at the far end, two thrones.</div><div><br></div><div>The <b>Weathertop King and Queen</b> are the hardest fight in the module. Each of them alone now outweighs Summanus, Theoden’s Chosen and Gandalf the Gray. Together they are worse: while both stand, neither can be brought down, and she will pull him back off the floor as often as you put him there. Kill one and the other stops defending and starts grieving. There is no order that makes it easy. Both take their place on the <a href=\"https://homerslotr.com/manual/bosses\">Roll of the Fallen</a>. Bring a party, and bring a way out.</div>"
     impl_notes: "<div>Opens gravesofthelostk, which had zero connections of any kind, and spawns three previously-unspawned blueprints. New: q_frk_inc.nss (all logic), q_frk_enter/q_frk_tomb (OnEnter wrappers on falseheaven/gravesofthelostk, chaining ent and leash_to_area), q_frk_gate.utp + q_frk_gate.nss (one gate blueprint serving both ends; direction via local string FRK_DEST; the return leg deliberately does not demand the key so a lost key cannot entomb a player), q_frk_death.nss (ScriptDeath on weathertopkin003/que003/arc002, chaining x2_def_ondeath, party-credited). Journal category frk_tombs (@group 'Lord of the Rings', @order 90), entries 1/2/3/10. Hooks: acquireditem_tag on Tag ForbiddenRealmsKey, plus a retroactive FRK_LoginCheck in hgll_cliententer for characters who stole the key before this shipped. Persistence: campaign DB forbiddendb, per character (frk_stage 0-3, advance-only).</div><div><br></div><div>Court picked as the highest non-outlier CR variant of each: King weathertopkin003 (454, rejecting the CR-1514 kin004), Queen weathertopque003 (594), Archer weathertoparc002 (337) — one-line constants at the top of q_frk_inc.nss. Spawn guards are area-scoped by resref, not module-wide by tag, because the court tags are shared with the placed Weathertop variants. Script-spawned creatures are not in gen-boss-registry.py's placed-instance registry, so the court does not appear on the Roll of the Fallen. No new loot was authored — the court drops whatever is on the blueprints, which may be thin for an end-game tier. Gates passed: 7/7 smoke tests, check_boss_registry unchanged at 78, dialog integrity clean. Admin half documented in QuestGuide-DM-Notes.md.</div><div><br></div><div><b>2026-08-15 — route replaced by hand-built areas.</b> The admin built the tier in the toolset in a module copy taken at 5705c158032 (2026-07-25) and it has now been migrated in. This <b>replaces</b> the Noirinan-gate routing above; the AP_forbiddenrealmskeytier_1-5 waypoints will never be placed. New: <b>area026 \"Weather Top (Amon Sûl)\"</b> (tag WeatherTopAmonSul, ttr01, 12x12, 70 placeables — ruined pillars, defaced statue, evil altar, waterfall, fog) linked to weatherhills by three newtransition triggers in each direction, carrying 11 wtop_spawn + 4 wtop_zombie spawn waypoints and two doors (wtop_wolfcave to area027, wtop_hiddencave still unlinked and reserved for the royal court area); and <b>area027 \"Forbidden Realms: Enter\"</b> (tag ForbiddenRealmsEnter, tdm01, 5x5, night) holding ForbiddenRealmsDoor — a plain locked+KeyRequired door that opens the far half of the room rather than an area transition, so a party without the key just walks back. Migration fixes: OnEnter/OnExit set to leash_to_area/cleanup on both new areas (they came out of the toolset blank), close_door added to both transition doors by bin/fix-door-autoclose.py, and ForbiddenRealmsDoor's KeyName corrected from the resref forbiddenrealmsk to the item Tag ForbiddenRealmsKey. Rejected from the merge: a Mod_Entry_Area change pointing new characters at area026 instead of thewelloferu, plus toolset churn in falseheaven/heavensdisdain (GenericType to GenericType_New, encounter CR recalcs) that would have rolled back later repo work. 25/25 smoke tests pass, area list 291 to 293.</div><div><br></div><div><b>2026-08-17 — Amon Sûl is populated and the entry room talks.</b> New <b>wtop_spawn.nss</b> (garrison spawner) fires from <b>wtop_enter.nss</b>, now area026's OnEnter, which chains leash_to_area first. It walks the repeated waypoint tags with the nth-object form (GetObjectByTag(sTag, n) — GetWaypointByTag only ever returns the first) and fills each post once per server run, flagged by a WTOP_FILLED local int on the waypoint; respawn is then owned by the module-standard 900s path (x2_def_ondeath → nw_c2_default7 → SE_DoCreatureRespawn), and without that once-per-run guard a re-entry inside the 900s window would double each post up. Each created creature also gets its \"spawn\" LocalLocation pinned to the waypoint, so leash_to_area sends it back to its post and respawns land there rather than wherever it died.</div><div><br></div><div><b>Composition settled from the forks.</b> Both nwn_homers_lotr_2009 and nwn_lordoftherings carry a \"wheathertop\" area this module never had, and they agree: 11–12 weathertoparc001 archers to 7–8 weathertopfighte fighters, with the King (weathertopkin004) and Queen (weathertopque003) side by side at the far end. weathertoparc001 is also the archer in this module's own never-placed weathertop.ute. So the 11 wtop_spawn posts alternate 6 archers / 5 fighters, and the King and Queen are deliberately <b>not</b> spawned here — they belong to the unbuilt royal court behind wtop_hiddencave. The forks' beefier stat lines for the same resrefs (fork Fighter CR 199 / HP 3550 vs live CR 100 / HP 1450, Archer CR 272 vs 198) were <b>not</b> adopted — that is a balance call for the tuning pass.</div><div><br></div><div><b>New blueprint wtop_zombie.utc</b> (\"Barrow-wight of Amon Sûl\", Tag WtopBarrowWight) fills the 4 wtop_zombie posts on the low ground: a reskin of zombieofdolguldu moved to Hostile, <b>WalkRate 1 (VerySlow)</b> and HP 990 → 4000 with Str 107 → 120 and NaturalAC 13 → 24 — per the admin's brief, \"more for flavour, should just move super slow but be really strong\". CR 200 keeps it in band with the garrison, and it is multi-instance so it stays off the Roll of the Fallen. Filed to Monsters &gt; Undead &gt; Zombie by bin/file-palette-orphans.py.</div><div><br></div><div><b>wtop_taunt.nss</b> is now ScriptAttacked on weathertopfighte and weathertoparc001, chaining x2_def_attacked first. Six lines (\"For the royal court!\", \"You will not pass the ring of stones!\", …) gated by a 1-in-8 roll <i>and</i> a 30-second per-creature cooldown, so a whole garrison chatters but no single guard spams. SpeakString, not ActionSpeakString, which would queue onto the combat action list and interrupt attacks.</div><div><br></div><div><b>The three area027 stub triggers now have OnEnter scripts</b>, all once-per-character FloatingTextStringOnCreature in the module's existing narrative-trigger idiom (phe4r.nss / icehi.nss) — no effects, no saves, no journal changes. <b>wtop_fr_welcome</b> (ForbiddenRealmsWelcome, near half, just short of the door) describes the sealed door and branches its last sentence on whether the player carries the key, reusing FRK_HasKey rather than inventing state. <b>wtop_fr_shaft</b> (ForbidRealmsLghtShaft) is the light shaft beside the x3_plc_ylights placeable. <b>wtop_fr_deep</b> (ForbidRealms_TBD) sits at the deepest point and foreshadows the unbuilt royal court — a wall raised in haste from the other side. The placeholder tag stays until that area exists; renaming it is toolset work. Gates: 25/25 smoke tests, 7 scripts compiled / 0 errors, check_boss_registry unchanged at 78, check_palette_coverage 4441 blueprints all filed.</div>"
     design_questions:
       - question: "Should the barrow-court respawn? It currently re-forms whenever a PC enters and that member is not standing — so the fight is farmable, though the journal completes only once. One guard swap in FRK_SpawnCourtMember makes it a once-per-server or once-per-character kill instead."
@@ -3793,22 +3807,19 @@ ideas:
       - step: "Give the guards an on-attack taunt line — \"For the royal court!\" and similar — fired occasionally rather than every round."
         status: done
         kind: admin
-      - step: "Build the royal court area for the Weathertop King and Queen and link it to wtop_hiddencave in area026. Per the answered design question the King and Queen should out-scale Summanus and appear on the Roll of the Fallen, which needs real placed instances rather than waypoint spawns; the archers/fighters stay multi-instance and therefore stay off the board."
-        status: open
+      - step: "Build the royal court area for the Weathertop King and Queen and link it to wtop_hiddencave in area026. Per the answered design question the King and Queen should out-scale Summanus and appear on the Roll of the Fallen, which needs real placed instances rather than waypoint spawns; the archers/fighters stay multi-instance and therefore stay off the board.  DONE 2026-09-04: area028 \"Weather Top’s Hidden Court\" was built in the toolset and unpacked in 89b8983ab26. The King and Queen are PLACED instances on their thrones (gen-boss-registry.py only sees placements, so spawning them would have kept them off the Roll of the Fallen); the 51 court minions stay script-spawned and stay off it. Both bosses now out-scale Summanus, Theoden’s Chosen and Gandalf."
+        status: done
         kind: toolset
-        blocker: true
-      - step: "Link the second door in area026 tagged wtop_hiddencave — it is placed but LinkedTo is empty, so it is currently a dead prop."
-        status: open
+      - step: "Link the second door in area026 tagged wtop_hiddencave — it is placed but LinkedTo is empty, so it is currently a dead prop.  DONE 2026-09-04: The dead door is gone. The admin replaced it with a generic trigger of the same tag, and per its own Comment the link is scripted rather than a real transition so the court never shows on the TAB map — wtop_cave.nss jumps the player to wp_wtop2court. The way back is the ordinary transition on the court side."
+        status: done
         kind: toolset
-        blocker: true
       - step: "Decide what the three stub triggers in area027 do — ForbiddenRealmsWelcome, ForbidRealmsLghtShaft and ForbidRealms_TBD are all placed with empty OnEnter scripts."
         status: done
         kind: admin
-      - step: "Retire the shipped Noirinan half: q_frk_gate spawn on falseheaven, the FRK_DEST return leg and the gravesofthelostk OnEnter wrapper (q_frk_tomb) are all still wired to the old route and should be reworked or removed once the Amon Sûl route is finished."
-        status: open
+      - step: "Retire the shipped Noirinan half: q_frk_gate spawn on falseheaven, the FRK_DEST return leg and the gravesofthelostk OnEnter wrapper (q_frk_tomb) are all still wired to the old route and should be reworked or removed once the Amon Sûl route is finished.  DONE 2026-09-04: q_frk_inc no longer spawns a court anywhere: FRK_SpawnCourt and the _3/_4/_5 waypoint constants are deleted and the three blueprint constants now name weathertopkin004 / weathertopque003 / wtop_crtarcher. q_frk_tomb keeps only its journal entry and its return gate. The Noirinan gate half still no-ops gracefully while _1/_2 stay unplaced."
+        status: done
         kind: admin
-        blocker: true
-      - step: "Re-run bin/gen-map-notes.py --apply once the daily wiki refresh has regenerated module-index/area_graph.json — the index predates area026/area027, so the six new transitions have no destination map-note pins yet."
+      - step: "Re-run bin/gen-map-notes.py --apply once the daily wiki refresh has regenerated module-index/area_graph.json — the index predates area026, area027 and area028. area028’s exit pin (mnx_wtopcourt2wtop) was hand-written in the tool’s own shape so the build gate passes now; that run will update it in place rather than duplicate it."
         status: open
         kind: admin
       - step: "UAT: enter Amon Sûl (area026) from Weather Hills and confirm 6 Weathertop Archers + 5 Weathertop Fighters stand on the summit and 4 Barrow-wights of Amon Sûl on the low ground. Leave and re-enter immediately — nothing should double up."
@@ -3851,6 +3862,66 @@ ideas:
       - step: "UAT: leave and re-enter the Tombs and confirm the court re-forms exactly once (no doubling when a party trickles in one player at a time)."
         status: open
         kind: uat
+      - step: "UAT: on Amon Sûl the 12 summit posts now stand FOUR unit types round-robin — Weathertop Archer, Weathertop Fighter and the new Weathertop Scout, four each, plus 4 Barrow-wights on the low ground. Confirm all three types appear and that the Fighter is visibly tougher than before (1450 → 3550 HP)."
+        status: open
+        kind: uat
+        tester: "level 60 melee"
+      - step: "UAT: kill each of the four Amon Sûl unit types repeatedly and confirm each drops its OWN key-shard at roughly 42% — Arrow Ward from archers, Blade Ward from fighters, Shadow Ward from scouts, Grave Ward from barrow-wights. Confirm a shard is non-stackable and weighs about 20 lbs in the inventory (base item plus a 15lb and a 5lb Weight Increase property; if the two do not stack it will read ~15 lbs, which is the one number here worth checking by eye)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: put fewer than four shards in the oven (wtop_key_box) and pull the lever — expect a message naming exactly which wards are still missing and nothing consumed. Then put one of each in and pull — expect the four to vanish, the Key of the Hidden Court to be in the oven, and any SPARE shards to be left untouched."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: try wtop_4key_door without the key — it must stay shut, and a high-Open-Lock rogue must NOT be able to pick it (KeyRequired is now set on the instance). With the key: it opens, the key is consumed, it strains and puffs dust every 2 seconds, and at 10 seconds it slams and relocks. Confirm a party caught inside has to teleport out — that is the intended behaviour, not a bug."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: walk into the wtop_hiddencave trigger in area026 and confirm you arrive at wp_wtop2court in area028, and that \"Weather Top’s Hidden Court\" does NOT appear in the TAB area list beforehand. Walk back out through the court-side door and confirm you land on the hill again."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: the court garrison — confirm 23 Royal Guardsmen, 22 Royal Archers and 6 Royal Magi stand at their posts on first entry, that leaving and re-entering does not double them up, and that they shout the court taunt lines (not the hill’s) occasionally rather than every round."
+        status: open
+        kind: uat
+        tester: "level 60 melee"
+      - step: "UAT: pickpocket a Royal Guardsman — exactly ONE heal potion should be liftable (stock Potion of Heal); the Draught of the Royal Court is Plot and must refuse to be stolen, dropped or sold, while the guard can still drink it. Confirm a guard actually heals itself mid-fight."
+        status: open
+        kind: uat
+        tester: "rogue with high Pick Pocket"
+      - step: "UAT: stand in front of a Royal Magus for two minutes and confirm Greater Ruin lands roughly once a minute and no faster — the cooldown is real seconds, not game time."
+        status: open
+        kind: uat
+        tester: "level 60, high HP"
+      - step: "UAT: the royal pair. With BOTH alive, confirm neither can be burst down (they carry each other’s damage reduction and regeneration) and that the Queen heals the King when he drops below half. Then kill ONE and confirm the survivor immediately speaks a grief line and turns faster and harder to hit, with a damage shield that hurts melee attackers. Try it in both orders."
+        status: open
+        kind: uat
+        tester: "a full level 60 party"
+      - step: "UAT: after killing the King and the Queen, confirm both appear on the Roll of the Fallen board in the Well of Eru with a countdown, and that NO Royal Guardsman / Archer / Magus appears there."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "UAT: with the Forbidden Realms Key quest active, kill the King, the Queen and any one Royal Archer and confirm the journal completes (entry 10). The quest counts wtop_crtarcher now, not the hill archer."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "BLOCKER-ADJACENT CHECK: the King and Queen placements are byte-for-byte copies of their blueprints, including equipment in resref form (EquippedRes) rather than the embedded item structs the toolset normally writes. Both forms exist in this module already and the divergence gate accepts both, but the ENGINE behaviour is unproven here — confirm in game that both are actually wearing their gear (crown, armour, blades visible; loot drops on death). If they spawn naked, the fix is one toolset save of area028."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Decide the court respawn time. The answered design question above says \"1.5 hr respawn\", but that predates the boss-tune standardisation: as PLACED registry bosses the King and Queen now inherit BOSS_RESPAWN_SECONDS from boss_tune.nss, which is 1200s (20 min) module-wide. Changing it for them alone is not possible without leaving the registry — it is one number for every boss in the module — so this is a deliberate deviation from the old answer, not an oversight. If 20 minutes is wrong for this tier, the call is whether to retune every boss."
+        status: open
+        kind: admin
+      - step: "Author the court’s boss loot. The answered design question asks to \"propose new boss loot\" and none was written: the King and Queen still carry their pre-existing kit plus two ring slots borrowed from the 2009 fork (craftedring / item016 / bossring). A crown-and-blade set for the tier is still to be designed, inside the Forge legality caps so it cannot be disenchant-exploited."
+        status: open
+        kind: admin
+      - step: "The two \"This Area is Under Construction\" billboards the toolset build left in area026 by the cave mouth should come out now that the court behind them is real."
+        status: open
+        kind: toolset
+      - step: "area028’s CryptExit door has an empty LinkedTo and is currently a dead prop, the same way wtop_hiddencave was. Decide whether it leads somewhere or should be removed."
+        status: open
+        kind: toolset
   - id: tier-areas-moria-nazgul
     title: "Open two finished-but-unreachable endgame areas: Moria Deep Caverns below the Balrog, and the Temple of Nazgûl off Dol Guldur"
     group: bosses
@@ -5367,18 +5438,20 @@ ideas:
         answer_h: 135
     manual_steps:
       - step: "Place waypoint AP_concerninghobbits_1 in greendragoninn, behind the merchant counter. Odo is script-spawn-only and the scripts no-op gracefully until the waypoint exists, so the quest is unreachable without it. (Supersedes the earlier plan to place it in shirehobbiton001 — do not place it there.)"
-        status: open
+        status: done
         kind: toolset
         blocker: true
       - step: "UAT: enter the Green Dragon Inn, talk to Odo, accept -> journal concern_hob opens. Confirm Hobbiton's own OnEnter still runs the leash after the wrapper is moved off it."
-        status: open
+        status: done
         kind: uat
       - step: "UAT rewards: answer the five questions — 4/5 pays 500 gp + 500 XP + a pouch of Longbottom Leaf; a perfect 5/5 gives the Greater Ring of Scholars; the journal closes on finish."
-        status: open
+        status: done
         kind: uat
       - step: "UAT shop unlock: after a first win, Odo's leaf branch appears and survives a relog; after a loss-only day it does not appear."
-        status: open
+        status: failed
         kind: uat
+        claimed_by: "HomelessSon (Server Admin)"
+        result: "After completing the triva game shop was not available"
       - step: "UAT cooldown: re-ask the same day -> 'come back tomorrow' countdown to 00:00 UTC; resets the next UTC day. DM can reset with QCD_Clear."
         status: open
         kind: uat
@@ -6773,7 +6846,8 @@ ideas:
   - id: soul-fatigue-not-working-while-shapeshifted
     title: "Soul fatigue not working while shapeshifted"
     group: items-gear
-    status: manual
+    status: awarded
+    merit_awarded: true
     type: Exploit
     player: "Sync (Shync)"
     date: "2026-08-26"
