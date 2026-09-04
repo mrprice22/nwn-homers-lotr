@@ -1487,6 +1487,126 @@ cleanly and the host `homers-lotr-empty-restart.path` unit restarts **just the
 server service** onto the new module. Cancel with `bin/reboot-on-empty off`. Full
 setup + one-time unit install: [`rebootSchedule.md`](rebootSchedule.md#adhoc-reboot-on-empty-push-an-update-without-kicking-players).
 
+## Server performance: profiling and headroom
+
+Two tools, answering two different questions. Both are on by default on the dev
+realm and season 2.
+
+| Tool | Question | Cost |
+|---|---|---|
+| `bin/perfmon` | **How much headroom is left?** Frame time, tick rate, players, CPU, memory — plus the in-game Palantir. | Negligible; safe to leave on. |
+| `bin/perf-report` | **Where did the frame go?** Per-scope: `AIMasterUpdateState`, `AIUpdateCreature`, `AIUpdateItem`, `RunScript`, pathing. | Coarse set is cheap. The per-script set is not — see below. |
+
+```
+bin/perfmon                       # one-shot; `watch` to follow
+bin/perf-report --window 1h       # scopes ranked by total time
+bin/perf-report --tickrate        # the engine's own tick rate
+bin/perf-report --counts          # AI list size, queued events
+```
+
+### There is no `perf` on this box, and none is needed
+
+`perf`, `gdb` and `strace` are absent from both the (image-based) host and the
+Debian container. The `nwndotnet/anvil` image already ships **`NWNX_Profiler.so`
+and `NWNX_Metrics_InfluxDB.so`**; they were only ever switched off. The profiler
+names its own scopes, which beats symbolising a stripped C++ binary, and
+Metrics_InfluxDB speaks InfluxDB line protocol over **UDP** — so
+`bin/perf-collect` binds the port and writes JSONL and no database is involved.
+
+`bin/serve` already forwards every `NWNX_*`/`ANVIL_*` var and already runs
+`--network=host`, so nothing in the launcher had to change.
+
+**Two traps, both already bitten:**
+
+* **One metrics port per realm.** Every season runs `--network=host` and shares
+  the host's loopback. Two realms on one port silently interleave into a single
+  collector. Dev 8089, season 2 8090, season 1 8091 — keep it in step with
+  `NWN_PORT`.
+* **`PartOf=` propagates stop but never start.** The collector unit is
+  `WantedBy=nwn-season-server@%i.service`, *not* `default.target`. With the
+  latter it starts at boot but not across a restart, and the first
+  reboot-on-empty cycle leaves the season profiling into a closed port.
+
+### The expensive knobs stay off
+
+`NWNX_PROFILER_ENABLE_SCRIPTS`, `SCRIPTS_TYPE_TIMINGS`, `SCRIPTS_AREA_TIMINGS`
+and `ENABLE_PATHING` are commented out in `server.env`. They instrument every
+script call and every path request; on 4 cores of 2014 AMD A10 that is a
+measurement which changes what it measures. Open them for a **bounded window**
+only, once the coarse split says which half of the frame to look at.
+
+### What the first reading said (2026-09-04)
+
+Live season vs dev at the same moment, per second of wall time:
+
+| scope | s2 (2–3 players) | dev (0 players) |
+|---|---|---|
+| `AIMasterUpdateState` | 307 ms/s | 7.5 ms/s |
+| `AIUpdateCreature` | 141 ms/s | 1.4 ms/s |
+| `AIUpdateItem` | 92 ms/s | 0.8 ms/s |
+| `AIUpdatePlaceable` | 35 ms/s | 0.45 ms/s |
+| AI update list size | 23,418 | 23,482 |
+
+The list size is the point: **identical on both realms**, so the population is
+module-baked, not accumulated over uptime. The engine walks that list every
+master update — nearly free while everything sits at `VERY_LOW`, and 40–100×
+more expensive once objects near a player wake up. So the load *is*
+player-correlated, but the amplifier is not.
+
+### The Palantir
+
+`bin/perfmon`'s reading, in game. A non-equippable activated item
+(`perfmon_palantir`), granted automatically on login to any CD key with
+`can_admin` in `admindb`, showing live tick rate, frame time, population and CPU
+with a start/stop recording button for a stress event. Activation and the window
+are both in `csharp/PerfMonitor.Nwn` via Anvil's `OnActivateItem`, so there is no
+`.nss` for it and `Mod_OnActvtItem` is untouched.
+
+**Its tick rate is Anvil's frame cadence, not the engine's raw tick** — ~48/s
+where the profiler reads ~96/s on the same idle realm. Read it relatively;
+`bin/perf-report --tickrate` is the authority.
+
+Running a stress event: [CLAUDE-crash-party.md](CLAUDE-crash-party.md).
+
+## Crash reporting
+
+The container entrypoint's `copycrashlog()` does die at startup — the image
+ships no `inotify-tools` — but that is **not** why a crash would be lost, and it
+is close to harmless: `/nwn/run` *is* the host's `$NWN_RUN_DIR`, so every
+artifact it would have copied is already on the host in `logs.N/`, and the daily
+backup already captures `cryptographic_secret` and `settings.tml`. (The warning
+is no longer filtered out of `bin/server-log-noise.txt`; suppressing it is how
+the breakage stayed invisible.)
+
+What actually catches crashes is **systemd-coredump on the host**, which records
+every `nwserver` SIGSEGV along with the crashing user unit.
+
+```
+bin/crash-archive --list      # every nwserver core systemd knows about
+bin/crash-archive             # dry run: what would be archived, and its logs
+bin/crash-archive --apply     # write; also called from bin/backup-homers-lotr
+```
+
+It pairs each core with the `logs.N` of the boot that produced it — **nwserver
+never records which**, so the pairing is by mtime — and keeps both past the
+host's 5-day vacuum. It copies systemd's already-zstd blob rather than dumping
+and recompressing: xz on a 45 MB core cost minutes of full-core CPU on the box
+running the live season.
+
+**A core is not shareable.** nwserver's argv carries `-dmpassword` and
+`-adminpassword` in plaintext, so they are in `ps`, in `coredumpctl info`, and in
+process memory. `crash-archive` redacts the metadata; the core cannot be
+redacted, and the daily backup deliberately excludes `core.zst`. Debug it
+locally.
+
+Retention beyond 5 days needs a root file — see
+[systemd/host/README.md](systemd/host/README.md).
+
+Note that many recorded "crashes" are **shutdown** segfaults: nwserver commonly
+dies with SIGSEGV during its own exit, so a core timestamped at 03:1x is the
+daily restart, not a player-facing crash. Check the timestamp against
+`logs.N/nwserverLog1.txt` before treating one as a bug.
+
 ## Watching the servers
 
 Three realms run side by side on this box (see "Season identity & rotation"),
