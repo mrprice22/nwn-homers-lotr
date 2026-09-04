@@ -60,9 +60,25 @@ Anvil\.Plugins\.(LocalPluginSource|PluginManager)\] Loading
 ^(Managed code bootstrapped|Using default configuration|Prelinking |Loading NWN\.Anvil |Checking OpenSSL version)
 ^(Initialising core service|Working Directory For |Setting up [Rr]esource [Dd]irectory|Skipping initialization of Paket|Loaded DotNET plugin )
 ^stdin closed, not accepting interactive commands
-# The image ships without inotify-tools and says so twice per boot. Harmless,
-# and nothing here can act on it.
-inotifywait: command not found
+# The image ships without inotify-tools, so /nwn/run-server.sh's copycrashlog()
+# and copyruntimeconfiguration() both die at startup and say so twice per boot.
+#
+# This was filtered as "harmless, and nothing here can act on it". The first
+# half is right; the second was wrong, and suppressing the line is how the
+# breakage stayed invisible. It IS benign, but for a reason worth writing down
+# rather than hiding:
+#
+#   * /nwn/run IS the host's $NWN_RUN_DIR, so every crash artifact the
+#     entrypoint would have copied out is already on the host in logs.N/;
+#   * systemd-coredump catches the nwserver core independently, and
+#     bin/crash-archive pairs it with that boot's logs before the 5-day vacuum;
+#   * bin/backup-homers-lotr already archives cryptographic_secret and
+#     settings.tml from both the home and run dirs, which is what
+#     copyruntimeconfiguration() was for.
+#
+# So the entrypoint watchers are redundant here, not load-bearing. Kept
+# UNFILTERED on purpose: if the image ever gains inotify-tools, or the run-dir
+# bind mount changes, this line going away (or staying) is the signal.
 
 # -- Anvil shutdown block, the exact mirror of the startup inventory -----------
 # ~17 lines every reboot: "Unloading anvil services...", "Unloading core service

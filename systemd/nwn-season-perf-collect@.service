@@ -1,0 +1,54 @@
+[Unit]
+Description=Collect NWNX Profiler metrics for season instance %i
+Documentation=file://%h/GIT/%i/bin/perf-collect
+# Binds a UDP socket on loopback and writes JSONL. It never talks to the game
+# server, holds no lock the server wants, and its failure can only cost
+# measurements -- never play.
+#
+# ORDERING IS LOAD-BEARING, AND SO IS THE START RELATIONSHIP.
+# NWNX_Metrics_InfluxDB fires UDP at this port on every flush whether or not
+# anything is listening, and an unbound port makes the plugin log
+# `NWNX_Metrics_InfluxDB: sendto failed` each time. So the collector must be up
+# before the server and down after it:
+#
+#   Before= -- start ordering, so the socket is bound before the game binds its.
+#   PartOf= -- stop propagation, so a season shutdown takes its collector with
+#              it rather than leaving an orphan bound to the port.
+#
+# PartOf propagates STOP but never START. On its own that is a trap: the first
+# reboot-on-empty cycle stopped both collectors and nothing brought them back,
+# so the servers came up profiling into a closed port and recorded nothing. The
+# missing half is `WantedBy=nwn-season-server@%i.service` in [Install] below --
+# enabling this unit then drops it into the SERVER's .wants/, so every server
+# start pulls the collector in first. Do not "simplify" that to
+# WantedBy=default.target: that starts it at boot but not across a restart,
+# which is exactly the hole described above.
+Before=nwn-season-server@%i.service
+PartOf=nwn-season-server@%i.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/GIT/%i
+# Same required-not-optional reasoning as the server unit: without NWN_RUN_DIR
+# the collector has nowhere to write, and silently defaulting would scatter
+# measurements somewhere nobody will look for them.
+EnvironmentFile=%h/.config/nwn-season/%i.env
+ExecStart=%h/GIT/%i/bin/perf-collect --stats
+Restart=on-failure
+RestartSec=10
+# This is diagnostic work on a box with one spinning disk and a live season on
+# it. It must never win a scheduling contest against the game.
+Nice=15
+IOSchedulingClass=idle
+# The collector's whole job is to still be running at the end of a stress test,
+# so let it write; but it has no business anywhere but its own run dir.
+ProtectSystem=strict
+ReadWritePaths=%h/.local/state
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+# The SERVER's wants, not default.target -- see the note above. This is what
+# makes the collector come back after every restart, including the
+# reboot-on-empty cycle the seasons actually use.
+WantedBy=nwn-season-server@%i.service

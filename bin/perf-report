@@ -1,0 +1,366 @@
+#!/usr/bin/env python3
+"""Rank what the server actually spent its frame on.
+
+Reads the JSONL that `bin/perf-collect` wrote and answers the only question
+worth asking of it: **where did the time go**. Scopes come named by the engine
+itself (`MainLoop`, `AIUpdateCreature`, `AIUpdateArea`, `AIUpdateEncounter`,
+per-script and per-area when the SCRIPTS_*_TIMINGS knobs are on), so the output
+is a list of names, not addresses.
+
+    bin/perf-report                          # the last hour
+    bin/perf-report --window 10m
+    bin/perf-report --since 2026-09-04T14:00 --until 2026-09-04T15:00
+    bin/perf-report --session crash-party-2026-09-06
+    bin/perf-report --by name --top 30       # per-script breakdown
+    bin/perf-report --by area
+    bin/perf-report --tickrate               # just the tick-rate distribution
+    bin/perf-report --json                   # machine-readable, for a diff
+
+## Reading the output
+
+Sorted by **total** time, not mean, because that is what saturates a frame: a
+cheap scope entered ten thousand times costs more than an expensive one entered
+twice, and only the total says so. The mean and p95 columns are there to tell
+those two shapes apart once you know which row matters.
+
+**Tick rate is the number that decides whether any of this is a problem.** A
+server at 98% of a core with a healthy tick rate is saturated but still serving;
+the moment tick rate falls is the moment players feel it. `--tickrate` prints
+that distribution on its own.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+
+# What the stream actually looks like (NWNX_Profiler, flush window = 1 second):
+#
+#   NWNX_Profiler.TimingEvent        t={EventName: AIUpdateCreature}  f={ns: ...}
+#   NWNX_Profiler.GameTickRate       f={Count: ticks in that second}
+#   NWNX_Profiler.AIUpdateListObjects t={Level: VERY_LOW..VERY_HIGH} f={Count: objects}
+#   NWNX_Profiler.AIQueuedEvents     f={Count: ...}
+#   NWNX_Profiler.GameObjectUpdate   t={Category, PlayerID}  f={Count: ...}
+#   NWNX_Profiler.NetworkMessage     t={Major, Minor, Type, PlayerID} f={Count, Size}
+#
+# So the scope name is a TAG, not the measurement -- every timing shares the
+# measurement name `TimingEvent`. Grouping by measurement would collapse the
+# whole profile into one row, which is why group_key() reaches for EventName
+# first.
+PROFILER_PREFIX = "NWNX_Profiler."
+
+# The profiler reports timings in whichever of these fields it populated; they
+# are all durations, differing only in unit. Checked in this order.
+DURATION_FIELDS = (
+    ("nanoseconds", 1e-6),
+    ("ns", 1e-6),
+    ("microseconds", 1e-3),
+    ("us", 1e-3),
+    ("time", 1e-3),      # NWNX's Profiler emits microseconds under "time"
+    ("milliseconds", 1.0),
+    ("ms", 1.0),
+    ("value", None),     # unitless -- only used by non-timing metrics
+)
+
+_DURATION_RE = re.compile(r"^(\d+(?:\.\d+)?)\s*([smhd])$")
+
+
+def parse_window(text: str) -> timedelta:
+    match = _DURATION_RE.match(text.strip())
+    if not match:
+        raise argparse.ArgumentTypeError(f"bad duration {text!r} (try 30s, 10m, 2h, 1d)")
+    amount, unit = float(match.group(1)), match.group(2)
+    return timedelta(seconds=amount * {"s": 1, "m": 60, "h": 3600, "d": 86400}[unit])
+
+
+def parse_when(text: str) -> datetime:
+    try:
+        stamp = datetime.fromisoformat(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"bad timestamp {text!r} (ISO 8601, e.g. 2026-09-04T14:00)")
+    return stamp.replace(tzinfo=timezone.utc) if stamp.tzinfo is None else stamp
+
+
+def load_server_env_run_dir() -> Path | None:
+    path = REPO / "server.env"
+    if not path.is_file():
+        return None
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if line.startswith("NWN_RUN_DIR="):
+            value = line.split("=", 1)[1].split("#", 1)[0].strip().strip("\"'")
+            import os
+            return Path(os.path.expandvars(value.replace("$HOME", os.path.expanduser("~"))))
+    return None
+
+
+def duration_ms(fields: dict) -> float | None:
+    """Best-effort duration in milliseconds, or None if this is not a timing."""
+    for key, scale in DURATION_FIELDS:
+        if key in fields and scale is not None:
+            raw = fields[key]
+            if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+                return float(raw) * scale
+    return None
+
+
+def iter_records(paths: list[Path], since: datetime | None, until: datetime | None):
+    for path in paths:
+        try:
+            handle = path.open(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        with handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                wall = record.get("wall")
+                if (since or until) and wall:
+                    try:
+                        stamp = datetime.fromisoformat(wall)
+                    except ValueError:
+                        stamp = None
+                    if stamp is not None:
+                        if stamp.tzinfo is None:
+                            stamp = stamp.replace(tzinfo=timezone.utc)
+                        if since and stamp < since:
+                            continue
+                        if until and stamp > until:
+                            continue
+                yield record
+
+
+def percentile(values: list[float], fraction: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    index = min(len(ordered) - 1, max(0, int(round(fraction * (len(ordered) - 1)))))
+    return ordered[index]
+
+
+def short_measurement(record: dict) -> str:
+    name = record.get("m", "")
+    return name[len(PROFILER_PREFIX):] if name.startswith(PROFILER_PREFIX) else name
+
+
+def group_key(record: dict, mode: str) -> str | None:
+    tags = record.get("t", {})
+    if mode == "scope":
+        # EventName is the engine's own name for the scope; the measurement is
+        # the same string for every timing, so it is useless as a grouping key.
+        return tags.get("EventName") or short_measurement(record)
+    tag = tags.get(mode) or tags.get(mode.capitalize())
+    if tag:
+        return f"{tags.get('EventName') or short_measurement(record)} / {tag}" if mode == "area" else tag
+    return None
+
+
+def is_tickrate(record: dict) -> bool:
+    return record.get("m", "").endswith("GameTickRate")
+
+
+def counter_rows(paths, since, until) -> dict[str, list[float]]:
+    """The Count-valued gauges: AI list size, queued events, and friends.
+
+    These are not durations and must not be ranked alongside them -- an object
+    count summed over an hour is a meaningless number. They get their own view.
+    """
+    out: dict[str, list[float]] = {}
+    for record in iter_records(paths, since, until):
+        if is_tickrate(record):
+            continue
+        count = record.get("f", {}).get("Count")
+        if not isinstance(count, (int, float)) or isinstance(count, bool):
+            continue
+        if "ns" in record.get("f", {}):
+            continue
+        name = short_measurement(record)
+        level = record.get("t", {}).get("Level")
+        if level:
+            name = f"{name} [{level}]"
+        out.setdefault(name, []).append(float(count))
+    return out
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--dir", type=Path, help="perf directory (default $NWN_RUN_DIR/perf)")
+    ap.add_argument("--session", help="read session-NAME.jsonl instead of the daily files")
+    ap.add_argument("--window", type=parse_window, help="look back this far (e.g. 10m, 2h)")
+    ap.add_argument("--since", type=parse_when)
+    ap.add_argument("--until", type=parse_when)
+    ap.add_argument("--by", choices=("scope", "name", "area"), default="scope",
+                    help="group by engine scope (default), script name, or area")
+    ap.add_argument("--top", type=int, default=20)
+    ap.add_argument("--tickrate", action="store_true", help="only the tick-rate distribution")
+    ap.add_argument("--counts", action="store_true",
+                    help="the Count gauges (AI list size, queued events) instead of timings")
+    ap.add_argument("--json", action="store_true", dest="as_json")
+    args = ap.parse_args(argv)
+
+    directory = args.dir
+    if directory is None:
+        run_dir = load_server_env_run_dir()
+        if run_dir is None:
+            ap.error("no --dir given and server.env does not define NWN_RUN_DIR")
+        directory = run_dir / "perf"
+    if not directory.is_dir():
+        print(f"perf-report: no such directory: {directory}", file=sys.stderr)
+        print("             has bin/perf-collect run yet?", file=sys.stderr)
+        return 2
+
+    if args.session:
+        safe = re.sub(r"[^A-Za-z0-9._-]", "_", args.session)
+        paths = [directory / f"session-{safe}.jsonl"]
+        if not paths[0].is_file():
+            print(f"perf-report: no session file {paths[0]}", file=sys.stderr)
+            return 2
+    else:
+        paths = sorted(directory.glob("????-??-??.jsonl"))
+        if not paths:
+            print(f"perf-report: no daily files in {directory}", file=sys.stderr)
+            return 2
+
+    since, until = args.since, args.until
+    if args.window and since is None:
+        since = datetime.now(timezone.utc) - args.window
+
+    # ---- tick rate ---------------------------------------------------------
+    if args.tickrate:
+        # The profiler flushes once a second and reports GameTickRate as a
+        # Count of ticks in that window, so the Count *is* ticks/second.
+        ticks = [
+            float(rec["f"]["Count"])
+            for rec in iter_records(paths, since, until)
+            if is_tickrate(rec) and isinstance(rec.get("f", {}).get("Count"), (int, float))
+        ]
+        if not ticks:
+            print("perf-report: no tick-rate samples in range "
+                  "(is NWNX_PROFILER_ENABLE_TICKRATE=y?)", file=sys.stderr)
+            return 1
+        summary = {
+            "samples": len(ticks),
+            "min": min(ticks),
+            "p05": percentile(ticks, 0.05),
+            "median": percentile(ticks, 0.50),
+            "mean": sum(ticks) / len(ticks),
+            "max": max(ticks),
+        }
+        if args.as_json:
+            print(json.dumps(summary, indent=2))
+        else:
+            print(f"tick rate (ticks/second) over {summary['samples']} one-second windows")
+            print(f"  min {summary['min']:.2f}   p05 {summary['p05']:.2f}   "
+                  f"median {summary['median']:.2f}   mean {summary['mean']:.2f}   "
+                  f"max {summary['max']:.2f}")
+            print()
+            print("  The floor and p05 are the interesting numbers: a healthy median")
+            print("  with a low p05 means the stalls are periodic, not constant.")
+        return 0
+
+    # ---- count gauges ------------------------------------------------------
+    if args.counts:
+        gauges = counter_rows(paths, since, until)
+        if not gauges:
+            print("perf-report: no Count gauges in range.", file=sys.stderr)
+            return 1
+        summary = {
+            name: {
+                "samples": len(vals), "min": min(vals), "median": percentile(vals, 0.50),
+                "mean": sum(vals) / len(vals), "p95": percentile(vals, 0.95), "max": max(vals),
+            }
+            for name, vals in gauges.items()
+        }
+        if args.as_json:
+            print(json.dumps(summary, indent=2))
+            return 0
+        width = min(max((len(n) for n in summary), default=12), 44)
+        print(f"{'gauge':<{width}}  {'samples':>8}  {'min':>10}  {'median':>10}  "
+              f"{'mean':>10}  {'p95':>10}  {'max':>10}")
+        print("-" * (width + 68))
+        for name, row in sorted(summary.items(), key=lambda kv: -kv[1]["mean"]):
+            label = name if len(name) <= width else name[: width - 1] + "\u2026"
+            print(f"{label:<{width}}  {row['samples']:>8}  {row['min']:>10.0f}  "
+                  f"{row['median']:>10.0f}  {row['mean']:>10.1f}  {row['p95']:>10.0f}  "
+                  f"{row['max']:>10.0f}")
+        print()
+        print("  These are gauges, not durations -- read the median, never a total.")
+        return 0
+
+    # ---- scope ranking -----------------------------------------------------
+    buckets: dict[str, list[float]] = {}
+    skipped = 0
+    for record in iter_records(paths, since, until):
+        if is_tickrate(record):
+            skipped += 1
+            continue
+        millis = duration_ms(record.get("f", {}))
+        if millis is None:
+            skipped += 1
+            continue
+        key = group_key(record, args.by)
+        if key is None:
+            continue
+        buckets.setdefault(key, []).append(millis)
+
+    if not buckets:
+        print("perf-report: no timing samples in range.", file=sys.stderr)
+        if args.by != "scope":
+            print(f"             --by {args.by} needs NWNX_PROFILER_SCRIPTS_"
+                  f"{'AREA' if args.by == 'area' else 'TYPE'}_TIMINGS=y at capture time.",
+                  file=sys.stderr)
+        return 1
+
+    rows = []
+    grand_total = sum(sum(v) for v in buckets.values())
+    for key, values in buckets.items():
+        total = sum(values)
+        rows.append({
+            "key": key,
+            "calls": len(values),
+            "total_ms": total,
+            "share": (total / grand_total) if grand_total else 0.0,
+            "mean_ms": total / len(values),
+            "p95_ms": percentile(values, 0.95),
+            "max_ms": max(values),
+        })
+    rows.sort(key=lambda r: -r["total_ms"])
+    rows = rows[: args.top]
+
+    if args.as_json:
+        print(json.dumps({"grouped_by": args.by, "grand_total_ms": grand_total,
+                          "rows": rows, "non_timing_records": skipped}, indent=2))
+        return 0
+
+    width = max((len(r["key"]) for r in rows), default=10)
+    width = min(max(width, 12), 56)
+    print(f"{'scope' if args.by == 'scope' else args.by:<{width}}  "
+          f"{'calls':>9}  {'total ms':>11}  {'share':>6}  {'mean ms':>9}  "
+          f"{'p95 ms':>9}  {'max ms':>9}")
+    print("-" * (width + 64))
+    for row in rows:
+        key = row["key"] if len(row["key"]) <= width else row["key"][: width - 1] + "…"
+        print(f"{key:<{width}}  {row['calls']:>9}  {row['total_ms']:>11.1f}  "
+              f"{row['share'] * 100:>5.1f}%  {row['mean_ms']:>9.3f}  "
+              f"{row['p95_ms']:>9.3f}  {row['max_ms']:>9.3f}")
+    print()
+    print(f"{grand_total:.1f} ms of measured work across {sum(r['calls'] for r in rows)} "
+          f"sampled calls in the top {len(rows)}.")
+    if skipped:
+        print(f"({skipped} non-timing records ignored -- tick rate, counters.)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

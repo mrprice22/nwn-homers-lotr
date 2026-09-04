@@ -1,0 +1,352 @@
+#!/usr/bin/env python3
+"""Capture the NWNX Profiler's metric stream off the wire and write it to disk.
+
+## Why this exists
+
+`perf`, `gdb` and `strace` are absent from both this (image-based) host and the
+Debian container the server runs in, so the usual "profile the process" answer
+costs a layered package or a distrobox detour. It is also unnecessary: the
+`nwndotnet/anvil` image already ships `NWNX_Profiler.so` and
+`NWNX_Metrics_InfluxDB.so` -- both merely switched off. Turning them on gives
+per-scope timings (`MainLoop`, `AIUpdateCreature`, `AIUpdateArea`, per-script,
+per-area) named by the engine itself, which is strictly better than symbolising
+a stripped C++ binary.
+
+`Metrics_InfluxDB` takes exactly two config keys, HOST and PORT, and sends
+InfluxDB **line protocol over UDP**. That is the whole reason no database is
+involved here: a socket and a parser replace an InfluxDB deployment.
+
+## Wiring
+
+`bin/serve` runs the container with `--network=host`, so the server reaches a
+collector bound on 127.0.0.1 with no port publishing and no container change.
+It also forwards every NWN_/NWNX_/ANVIL_ var out of server.env, so the plugin
+is configured entirely from there -- see the NWNX_PROFILER_* block.
+
+    bin/perf-collect                       # run in the foreground, log to $NWN_RUN_DIR/perf/
+    bin/perf-collect --stats               # ...and print a one-line summary each flush
+    bin/perf-collect --session crash-party # ...also tee into a named session file
+    bin/perf-collect --keep 14             # retention in days (default 7)
+
+Normally it runs as nwn-season-perf-collect@<instance>.service, ordered BEFORE
+the server unit. That ordering is not cosmetic: with nothing bound to the port,
+every flush makes the plugin log `NWNX_Metrics_InfluxDB: sendto failed`.
+
+## Output
+
+One JSON object per line, in `$NWN_RUN_DIR/perf/<UTC date>.jsonl`, rotated
+daily and pruned past --keep. `bin/perf-report` is the reader; nothing here
+aggregates, on purpose -- a collector that loses raw samples cannot be asked a
+question it was not designed for.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import signal
+import socket
+import sys
+import time
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+
+DEFAULT_PORT = 8089
+DEFAULT_KEEP_DAYS = 7
+# UDP datagrams from the plugin are small; 64 KiB is the theoretical max and
+# costs nothing to allocate once.
+RECV_SIZE = 65535
+
+
+# --------------------------------------------------------------- env ---------
+def load_server_env() -> dict[str, str]:
+    """Read the handful of server.env values this needs, without sourcing it.
+
+    server.env is bash and does its own interpolation, so it is not safe to
+    parse as ini. Only simple KEY=VALUE lines matter here; anything exotic is
+    skipped and falls back to a default.
+    """
+    env: dict[str, str] = {}
+    for name in ("server.env", "server.env.local"):
+        path = REPO / name
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
+                continue
+            value = value.split("#", 1)[0].strip() if not value.strip().startswith(('"', "'")) else value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            env[key] = os.path.expandvars(value.replace("$HOME", os.path.expanduser("~")))
+    return env
+
+
+# ----------------------------------------------- influx line protocol --------
+# measurement[,tag=val...] field=val[,field=val...] [timestamp]
+#
+# Two things make a naive str.split() wrong here, and both show up in real
+# profiler output:
+#   * commas, spaces and equals signs inside keys and values are
+#     backslash-escaped by the writer -- an area name like "The Prancing Pony"
+#     arrives as "The\ Prancing\ Pony";
+#   * a *quoted string* field value may contain unescaped spaces and commas.
+# So splitting is done by a small scanner that honours both, rather than by a
+# regex with a lookbehind (which handles the first case and silently tears the
+# second).
+
+
+def _split_unescaped(text: str, delim: str, maxsplit: int = -1) -> list[str]:
+    """Split on `delim`, ignoring backslash-escaped and double-quoted regions."""
+    parts: list[str] = []
+    buf: list[str] = []
+    in_quotes = False
+    escaped = False
+    for ch in text:
+        if escaped:
+            buf.append(ch)
+            escaped = False
+            continue
+        if ch == "\\":
+            buf.append(ch)
+            escaped = True
+            continue
+        if ch == '"':
+            in_quotes = not in_quotes
+            buf.append(ch)
+            continue
+        if ch == delim and not in_quotes and (maxsplit < 0 or len(parts) < maxsplit):
+            parts.append("".join(buf))
+            buf = []
+            continue
+        buf.append(ch)
+    parts.append("".join(buf))
+    return parts
+
+
+def _unescape(text: str) -> str:
+    return re.sub(r"\\([,= ])", r"\1", text)
+
+
+def _coerce(raw: str):
+    """Line-protocol field values are typed by their suffix/quoting."""
+    if len(raw) >= 2 and raw[0] == '"' and raw[-1] == '"':
+        return _unescape(raw[1:-1].replace('\\"', '"'))
+    if raw in ("t", "T", "true", "True", "TRUE"):
+        return True
+    if raw in ("f", "F", "false", "False", "FALSE"):
+        return False
+    if raw.endswith(("i", "u")) and raw[:-1].lstrip("-").isdigit():
+        return int(raw[:-1])
+    try:
+        return int(raw)
+    except ValueError:
+        pass
+    try:
+        return float(raw)
+    except ValueError:
+        return _unescape(raw)
+
+
+def parse_line(line: str) -> dict | None:
+    """One line of InfluxDB line protocol -> a flat dict, or None if unparseable.
+
+    Returning None rather than raising is deliberate: this is a diagnostic tool
+    reading a UDP stream. One malformed datagram must never end a measurement
+    run that may have taken an evening's stress test to produce.
+    """
+    line = line.strip()
+    if not line or line.startswith("#"):
+        return None
+    parts = _split_unescaped(line, " ", maxsplit=2)
+    if len(parts) < 2:
+        return None
+
+    head, fieldset = parts[0], parts[1]
+    timestamp = parts[2].strip() if len(parts) > 2 else ""
+
+    head_parts = _split_unescaped(head, ",")
+    measurement = _unescape(head_parts[0])
+    tags: dict[str, str] = {}
+    for chunk in head_parts[1:]:
+        bits = _split_unescaped(chunk, "=", maxsplit=1)
+        if len(bits) == 2:
+            tags[_unescape(bits[0])] = _unescape(bits[1])
+
+    fields: dict = {}
+    for chunk in _split_unescaped(fieldset, ","):
+        bits = _split_unescaped(chunk, "=", maxsplit=1)
+        if len(bits) == 2:
+            fields[_unescape(bits[0])] = _coerce(bits[1])
+
+    if not fields:
+        return None
+
+    record: dict = {"m": measurement, "t": tags, "f": fields}
+    if timestamp.isdigit():
+        record["ts"] = int(timestamp)
+    return record
+
+
+# ------------------------------------------------------------- writer --------
+class DailyWriter:
+    """Append-only JSONL, one file per UTC day, pruned past `keep` days."""
+
+    def __init__(self, directory: Path, keep_days: int, session: str | None = None):
+        self.dir = directory
+        self.keep_days = keep_days
+        self.session = session
+        self.dir.mkdir(parents=True, exist_ok=True)
+        self._day: str | None = None
+        self._fh = None
+        self._session_fh = None
+        if session:
+            safe = re.sub(r"[^A-Za-z0-9._-]", "_", session)
+            self._session_fh = (self.dir / f"session-{safe}.jsonl").open("a", encoding="utf-8")
+
+    def _roll(self, now: datetime) -> None:
+        day = now.strftime("%Y-%m-%d")
+        if day == self._day:
+            return
+        if self._fh:
+            self._fh.close()
+        self._fh = (self.dir / f"{day}.jsonl").open("a", encoding="utf-8")
+        self._day = day
+        self.prune(now)
+
+    def prune(self, now: datetime) -> None:
+        cutoff = now - timedelta(days=self.keep_days)
+        for path in self.dir.glob("????-??-??.jsonl"):
+            try:
+                stamp = datetime.strptime(path.stem, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+            if stamp < cutoff:
+                path.unlink(missing_ok=True)
+
+    def write(self, record: dict) -> None:
+        now = datetime.now(timezone.utc)
+        self._roll(now)
+        record.setdefault("wall", now.isoformat(timespec="milliseconds"))
+        blob = json.dumps(record, separators=(",", ":"), sort_keys=True)
+        self._fh.write(blob + "\n")
+        if self._session_fh:
+            self._session_fh.write(blob + "\n")
+
+    def flush(self) -> None:
+        if self._fh:
+            self._fh.flush()
+        if self._session_fh:
+            self._session_fh.flush()
+
+    def close(self) -> None:
+        self.flush()
+        for fh in (self._fh, self._session_fh):
+            if fh:
+                fh.close()
+
+
+# --------------------------------------------------------------- main --------
+def main(argv: list[str] | None = None) -> int:
+    env = load_server_env()
+    default_dir = env.get("NWN_RUN_DIR", "")
+
+    ap = argparse.ArgumentParser(
+        description="Collect NWNX Profiler metrics sent as InfluxDB line protocol over UDP.",
+    )
+    ap.add_argument("--host", default=env.get("NWNX_METRICS_INFLUXDB_HOST", "127.0.0.1"),
+                    help="address to bind (default from server.env, else 127.0.0.1)")
+    ap.add_argument("--port", type=int, default=int(env.get("NWNX_METRICS_INFLUXDB_PORT", DEFAULT_PORT)),
+                    help=f"UDP port to bind (default from server.env, else {DEFAULT_PORT})")
+    ap.add_argument("--dir", default=(Path(default_dir) / "perf") if default_dir else None,
+                    help="output directory (default $NWN_RUN_DIR/perf)")
+    ap.add_argument("--keep", type=int, default=DEFAULT_KEEP_DAYS,
+                    help=f"days of daily files to retain (default {DEFAULT_KEEP_DAYS})")
+    ap.add_argument("--session", metavar="NAME",
+                    help="also tee every sample into session-NAME.jsonl, for a bounded run")
+    ap.add_argument("--stats", action="store_true",
+                    help="print a one-line summary every --stats-interval seconds")
+    ap.add_argument("--stats-interval", type=float, default=30.0)
+    args = ap.parse_args(argv)
+
+    if not args.dir:
+        ap.error("no --dir given and server.env does not define NWN_RUN_DIR")
+
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # A stress test can burst; a bigger receive buffer is the difference
+        # between a dropped datagram and a recorded one. Best effort only --
+        # the kernel clamps this to net.core.rmem_max.
+        try:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 << 20)
+        except OSError:
+            pass
+        sock.bind((args.host, args.port))
+    except OSError as exc:
+        print(f"perf-collect: cannot bind {args.host}:{args.port}: {exc}", file=sys.stderr)
+        return 1
+
+    writer = DailyWriter(Path(args.dir), args.keep, args.session)
+    running = True
+
+    def stop(_signum, _frame):
+        nonlocal running
+        running = False
+
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGTERM, stop)
+
+    print(f"perf-collect: listening on {args.host}:{args.port} -> {args.dir}", flush=True)
+    if args.session:
+        print(f"perf-collect: session recording to session-{args.session}.jsonl", flush=True)
+
+    samples = 0
+    dropped = 0
+    seen: dict[str, int] = {}
+    last_stats = time.monotonic()
+    sock.settimeout(1.0)
+
+    while running:
+        try:
+            data, _addr = sock.recvfrom(RECV_SIZE)
+        except socket.timeout:
+            data = b""
+        except OSError:
+            break
+
+        for raw in data.decode("utf-8", errors="replace").splitlines():
+            record = parse_line(raw)
+            if record is None:
+                if raw.strip():
+                    dropped += 1
+                continue
+            writer.write(record)
+            samples += 1
+            seen[record["m"]] = seen.get(record["m"], 0) + 1
+
+        now = time.monotonic()
+        if now - last_stats >= args.stats_interval:
+            writer.flush()
+            if args.stats:
+                top = ", ".join(f"{k}={v}" for k, v in sorted(seen.items(), key=lambda kv: -kv[1])[:5])
+                print(f"perf-collect: {samples} samples, {dropped} unparsed | {top or 'nothing yet'}",
+                      flush=True)
+            last_stats = now
+
+    writer.close()
+    sock.close()
+    print(f"perf-collect: stopped after {samples} samples ({dropped} unparsed)", flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

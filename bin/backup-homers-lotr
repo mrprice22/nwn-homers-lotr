@@ -222,6 +222,26 @@ for f in activity-sessions.json activity-sessions.json.bak; do
   [[ -f $NWN_RUN_DIR/$f ]] && cp -p "$NWN_RUN_DIR/$f" "$stage/run/$f"
 done
 
+# --- crash archives ---------------------------------------------------------
+# Preserve any nwserver core systemd caught, paired with the logs of the boot
+# that produced it, BEFORE the 5-day coredump vacuum takes it. Warn-and-continue
+# on purpose: a backup that aborts because a crash could not be archived is a
+# worse outcome than a missing crash archive. See bin/crash-archive for why the
+# container entrypoint's own copycrashlog() is not the thing to fix.
+if [[ -x $PROJECT_ROOT/bin/crash-archive ]]; then
+  "$PROJECT_ROOT/bin/crash-archive" --apply \
+    || echo "warn: crash-archive failed (continuing)" >&2
+fi
+# Archive the crash METADATA and logs, never core.zst. The core cannot be
+# redacted -- nwserver's argv carries -dmpassword/-adminpassword in plaintext
+# and process memory holds them too -- and this tarball goes to OneDrive. The
+# core stays local under $NWN_RUN_DIR/crashes/ for debugging.
+if [[ -d $NWN_RUN_DIR/crashes ]]; then
+  mkdir -p "$stage/run/crashes"
+  rsync -a --exclude 'core.zst' "$NWN_RUN_DIR/crashes/" "$stage/run/crashes/" \
+    || echo "warn: could not stage crash archives (continuing)" >&2
+fi
+
 # --- manifest ---------------------------------------------------------------
 {
   echo "Homer's LotR server backup"

@@ -48,6 +48,7 @@ TEMPLATES=(
   "nwn-season-vault-sync@.timer"
   "nwn-season-online-push@.service"
   "nwn-season-online-push@.timer"
+  "nwn-season-perf-collect@.service"
 )
 # Shared @ template drop-ins. NOTE: nwn-season-server@.service.d is deliberately
 # NOT here -- the server's priority drop-in is rendered PER INSTANCE below,
@@ -109,6 +110,19 @@ fi
 # harmful -- this just avoids installing a timer that could only ever no-op.
 if [[ -n ${SEASON_STATUS_PUSH_URL:-} ]]; then
   ENABLE_UNITS+=("nwn-season-online-push@$INSTANCE.timer")
+fi
+
+# The profiler metric collector is armed only where the profiler is actually
+# switched on, and by config rather than by role: the dev realm is where a
+# measurement is proven, but the question the profiler exists to answer ("why is
+# the live season pinning a core?") can only be answered on the realm that has
+# the players. Gating on NWNX_PROFILER_SKIP keeps the two in step -- there is no
+# way to end up with a collector and no metrics, or metrics and no collector.
+#
+# The second half matters more than the first: with NWNX_METRICS_INFLUXDB_SKIP=n
+# and nothing bound to the port, the plugin logs "sendto failed" on every flush.
+if [[ ${NWNX_PROFILER_SKIP:-y} == n || ${NWNX_METRICS_INFLUXDB_SKIP:-y} == n ]]; then
+  ENABLE_UNITS+=("nwn-season-perf-collect@$INSTANCE.service")
 fi
 
 echo "season instance : $INSTANCE"

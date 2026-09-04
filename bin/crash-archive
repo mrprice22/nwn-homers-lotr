@@ -1,0 +1,360 @@
+#!/usr/bin/env python3
+"""Preserve an nwserver crash before systemd vacuums the core out from under it.
+
+## What was actually broken, and what was not
+
+The container entrypoint's `copycrashlog()` really does die at startup -- the
+anvil image ships no `inotify-tools`, so `/nwn/run-server.sh` logs
+`inotifywait: command not found` twice per boot. That was read as "if the server
+crashes, the crash log is lost". It is not:
+
+  * systemd-coredump on this host ALREADY catches every nwserver SIGSEGV, and
+    records the crashing *user unit*, so a core can be attributed to a season.
+  * /nwn/run IS the host's $NWN_RUN_DIR, so anything the entrypoint would have
+    copied out is already on the host in logs.N/.
+  * bin/backup-homers-lotr already archives cryptographic_secret and
+    settings.tml from both the home and run dirs.
+  * Anvil's own managed crash handler writes anvil-crash.log/.dmp into the log
+    dir independently.
+
+So the entrypoint watchers are redundant, and this tool addresses the gaps that
+are real:
+
+  1. **Retention.** Cores are vacuumed after 5 days on this host, and a
+     45 MB core is gone long before anyone correlates it with a bug report.
+  2. **Correlation.** Nothing tied a core to the logs of the boot that produced
+     it. nwserver picks a fresh logs.N per boot, so the pairing is guesswork
+     unless something records it at capture time.
+
+## Redaction is not optional
+
+`coredumpctl info` prints nwserver's full argv, which carries `-dmpassword` and
+`-adminpassword` IN PLAINTEXT. (So does plain `ps`, for that matter -- worth
+knowing before any crash report is handed to a DM or filed upstream.) Every
+metadata file this writes runs through `redact()` first. The **core itself is
+not and cannot be redacted** -- process memory holds those passwords too -- so a
+core is for local debugging, never for sharing.
+
+    bin/crash-archive --dry-run        # what would be archived (default)
+    bin/crash-archive --apply
+    bin/crash-archive --apply --keep 30
+    bin/crash-archive --list
+
+Called from bin/backup-homers-lotr, so it inherits the once-per-boot sentinel
+and the OneDrive sync that already runs there.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+UNIT_RE = re.compile(r"nwn-season-server@(?P<instance>[A-Za-z0-9_.-]+)\.service")
+
+# Anything matching these is replaced wholesale in captured metadata. The
+# password flags are the reason this function exists; the rest are cheap
+# insurance for a file that may end up in a bug report.
+SECRET_PATTERNS = [
+    re.compile(r"(-(?:dm|admin|player)password\s+)(\S+)", re.I),
+    re.compile(r"((?:password|secret|token|apikey|api_key)\s*[=:]\s*)(\S+)", re.I),
+]
+
+
+def redact(text: str) -> str:
+    for pattern in SECRET_PATTERNS:
+        text = pattern.sub(lambda m: m.group(1) + "«redacted»", text)
+    return text
+
+
+def load_server_env() -> dict[str, str]:
+    env: dict[str, str] = {}
+    for name in ("server.env", "server.env.local"):
+        path = REPO / name
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
+                continue
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            else:
+                value = value.split("#", 1)[0].strip()
+            env[key] = os.path.expandvars(value.replace("$HOME", os.path.expanduser("~")))
+    return env
+
+
+def coredump_entries() -> list[dict]:
+    """Every nwserver core systemd knows about, newest first."""
+    try:
+        proc = subprocess.run(
+            ["coredumpctl", "list", "--json=short", "--no-pager"],
+            capture_output=True, text=True, check=False,
+        )
+    except FileNotFoundError:
+        print("crash-archive: coredumpctl not found; nothing to do.", file=sys.stderr)
+        return []
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return []
+    try:
+        rows = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+    return [r for r in rows if "nwserver" in (r.get("exe") or "")]
+
+
+def coredump_info(pid: int) -> str:
+    proc = subprocess.run(
+        ["coredumpctl", "info", str(pid), "--no-pager"],
+        capture_output=True, text=True, check=False,
+    )
+    return redact(proc.stdout or "")
+
+
+def instance_of(info: str, env: dict[str, str] | None = None) -> str | None:
+    """Which season this core belongs to.
+
+    Two ways, and the fallback is not optional. `User Unit` names the season
+    only when the container was in the unit's own cgroup -- and rootless podman
+    defaults to a transient `libpod-<id>.scope` that is a SIBLING of the unit,
+    so every core taken before bin/serve started passing --cgroups=split is
+    filed under an opaque scope id instead. (Same cgroup escape that made the
+    old CPUWeight drop-in decorative; see CLAUDE.md "Resource priority".)
+
+    So fall back to nwserver's own argv, which carries `-port <N>`. The port is
+    unique per realm on this box, and unlike the unit name it is recorded
+    identically no matter how the container was launched.
+    """
+    match = UNIT_RE.search(info)
+    if match:
+        return match.group("instance")
+    if env:
+        port = env.get("NWN_PORT", "").strip()
+        if port and re.search(rf"-port\s+{re.escape(port)}(?!\d)", info):
+            return REPO.name
+    return None
+
+
+# `coredumpctl list --json=short` names these "time" (microseconds since the
+# epoch) and "sig" (a signal number). Guessing "timestamp"/"signal_name" here
+# silently stamped every archive with the time the tool ran, which is exactly
+# the correlation this whole script exists to provide -- so read both defensively
+# and fall back only when the field really is absent.
+SIGNAL_NAMES = {4: "SIGILL", 6: "SIGABRT", 7: "SIGBUS", 8: "SIGFPE", 11: "SIGSEGV"}
+
+
+def crash_time(entry: dict) -> datetime:
+    for key in ("time", "timestamp"):
+        raw = entry.get(key)
+        if isinstance(raw, (int, float)) and raw > 0:
+            return datetime.fromtimestamp(raw / 1_000_000, tz=timezone.utc)
+    return datetime.now(timezone.utc)
+
+
+def crash_signal(entry: dict) -> str:
+    raw = entry.get("sig", entry.get("signal"))
+    if isinstance(raw, int):
+        return SIGNAL_NAMES.get(raw, f"signal {raw}")
+    return str(entry.get("signal_name") or raw or "unknown")
+
+
+def pick_log_dir(run_dir: Path, when: datetime) -> Path | None:
+    """The logs.N whose content brackets the crash.
+
+    nwserver picks a fresh logs.N per boot and never records which, so the only
+    honest way to pair a core with its logs is by mtime: the directory last
+    written closest to (and not long after) the crash is the boot that died.
+    """
+    best: tuple[float, Path] | None = None
+    for candidate in run_dir.glob("logs*"):
+        if not candidate.is_dir():
+            continue
+        engine = candidate / "nwengineLog.txt"
+        if not engine.is_file():
+            continue
+        delta = engine.stat().st_mtime - when.timestamp()
+        # A log written well after the crash belongs to a later boot.
+        if delta > 900:
+            continue
+        score = abs(delta)
+        if best is None or score < best[0]:
+            best = (score, candidate)
+    return best[1] if best else None
+
+
+STORAGE_RE = re.compile(r"^\s*Storage:\s*(?P<path>/\S+\.zst)", re.M)
+
+
+def stored_core(info: str) -> Path | None:
+    """systemd's own already-compressed core, if we can read it.
+
+    Reading this file beats `coredumpctl dump`, and by a lot. The stored blob is
+    ALREADY zstd; dumping expands it and re-compressing a 45 MB core with xz on
+    4 cores of 2014 AMD A10 took minutes of full-core CPU -- on the same box
+    that runs the live season, which is precisely the workload the resource
+    policy exists to keep off it. The tmpfiles ACL grants the owning user r--
+    on their own cores, so a plain copy is enough and costs no CPU at all.
+    """
+    match = STORAGE_RE.search(info)
+    if not match:
+        return None
+    path = Path(match.group("path"))
+    return path if path.is_file() and os.access(path, os.R_OK) else None
+
+
+def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
+                  dest_dir: Path, apply: bool) -> Path | None:
+    when = crash_time(entry)
+    pid = int(entry.get("pid") or 0)
+    stamp = when.strftime("%Y%m%d-%H%M%S")
+    target = dest_dir / f"crash-{instance}-{stamp}-pid{pid}"
+    if target.exists():
+        return None
+
+    log_dir = pick_log_dir(run_dir, when)
+    core = stored_core(info)
+
+    print(f"  {instance}  {when.astimezone().isoformat(timespec='seconds')}  pid={pid}  "
+          f"signal={crash_signal(entry)}  "
+          f"core={'present' if core else 'vacuumed/unreadable'}  "
+          f"logs={log_dir.name if log_dir else 'not found'}")
+    if not apply:
+        return None
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    staging = target.with_name(target.name + ".partial")
+    if staging.exists():
+        shutil.rmtree(staging)
+    staging.mkdir(parents=True)
+
+    (staging / "coredumpctl-info.txt").write_text(info, encoding="utf-8")
+
+    if log_dir:
+        logs = staging / "logs"
+        logs.mkdir()
+        for fname in ("nwengineLog.txt", "nwserverLog1.txt", "anvil.log",
+                      "anvil-crash.log"):
+            src = log_dir / fname
+            if src.is_file():
+                shutil.copy2(src, logs / fname)
+        for dmp in log_dir.glob("anvil-crash-*.dmp"):
+            shutil.copy2(dmp, logs / dmp.name)
+
+    if core:
+        # Straight copy of the compressed blob -- no dump, no recompression.
+        shutil.copy2(core, staging / "core.zst")
+
+    manifest = {
+        "instance": instance,
+        "crashed_at": when.isoformat(),
+        "pid": pid,
+        "signal": crash_signal(entry),
+        "exe": entry.get("exe"),
+        "core_captured": bool(core),
+        "core_bytes": core.stat().st_size if core else 0,
+        "log_dir": log_dir.name if log_dir else None,
+        "archived_at": datetime.now(timezone.utc).isoformat(),
+        "note": (
+            "coredumpctl-info.txt is REDACTED. core.zst is NOT and cannot be: "
+            "nwserver's argv carries -dmpassword/-adminpassword in plaintext and "
+            "process memory holds them too. Debug it locally; never attach it to "
+            "a public report. bin/backup-homers-lotr deliberately archives "
+            "everything here EXCEPT core.zst for that reason."
+        ),
+    }
+    (staging / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    staging.rename(target)
+    size = sum(f.stat().st_size for f in target.rglob("*") if f.is_file())
+    print(f"    -> {target}/ ({size / 1e6:.1f} MB)")
+    return target
+
+
+def prune(dest_dir: Path, keep_days: int, apply: bool) -> None:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=keep_days)
+    for path in sorted(dest_dir.glob("crash-*")):
+        stamp = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+        if stamp < cutoff:
+            print(f"  prune {path.name} ({stamp.date()})")
+            if apply:
+                shutil.rmtree(path, ignore_errors=True) if path.is_dir() else path.unlink(missing_ok=True)
+
+
+def main(argv: list[str] | None = None) -> int:
+    env = load_server_env()
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--apply", action="store_true", help="actually write archives (default: dry run)")
+    ap.add_argument("--dry-run", action="store_true", help="explicit no-op (the default)")
+    ap.add_argument("--list", action="store_true", dest="just_list",
+                    help="list nwserver cores systemd knows about, and stop")
+    ap.add_argument("--dest", type=Path,
+                    default=Path(env.get("NWN_RUN_DIR", "")) / "crashes" if env.get("NWN_RUN_DIR") else None,
+                    help="archive directory (default $NWN_RUN_DIR/crashes)")
+    ap.add_argument("--run-dir", type=Path,
+                    default=Path(env["NWN_RUN_DIR"]) if env.get("NWN_RUN_DIR") else None)
+    ap.add_argument("--instance", help="only this season instance")
+    ap.add_argument("--keep", type=int, default=90, help="days of archives to retain (default 90)")
+    args = ap.parse_args(argv)
+
+    entries = coredump_entries()
+    if not entries:
+        print("crash-archive: no nwserver cores recorded.")
+        return 0
+
+    if args.just_list:
+        for entry in entries:
+            info = coredump_info(int(entry.get("pid") or 0))
+            print(f"{crash_time(entry).astimezone().isoformat(timespec='seconds')}  "
+                  f"pid={entry.get('pid')}  {crash_signal(entry):<8}  "
+                  f"core={entry.get('corefile')}  "
+                  f"instance={instance_of(info, env) or 'other/unknown'}")
+        return 0
+
+    if not args.run_dir or not args.dest:
+        ap.error("server.env does not define NWN_RUN_DIR; pass --run-dir and --dest")
+
+    apply = args.apply and not args.dry_run
+    print(f"crash-archive: {'APPLY' if apply else 'dry run'} -> {args.dest}")
+
+    made = 0
+    for entry in entries:
+        pid = int(entry.get("pid") or 0)
+        info = coredump_info(pid)
+        instance = instance_of(info, env)
+        if instance is None:
+            continue
+        if args.instance and instance != args.instance:
+            continue
+        # Only archive the season this repo owns; another repo's run dir holds
+        # that season's logs, and guessing across repos would pair a core with
+        # the wrong boot.
+        if instance != REPO.name:
+            continue
+        if build_archive(entry, info, instance, args.run_dir, args.dest, apply):
+            made += 1
+
+    if args.dest.is_dir():
+        prune(args.dest, args.keep, apply)
+
+    if not apply:
+        print("crash-archive: nothing written (re-run with --apply)")
+    else:
+        print(f"crash-archive: {made} archive(s) written")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
