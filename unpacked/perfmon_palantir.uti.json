@@ -1,0 +1,111 @@
+{
+ "AddCost": {
+  "type": "dword",
+  "value": 0
+ },
+ "BaseItem": {
+  "type": "int",
+  "value": 74
+ },
+ "Charges": {
+  "type": "byte",
+  "value": 0
+ },
+ "Comment": {
+  "type": "cexostring",
+  "value": "PerfMonitor Palantir - admin-only live server load readout (tick rate, frame time, population, CPU) plus start/stop recording for a stress event. ACTIVATION AND THE WINDOW ARE BOTH IN C#: csharp/PerfMonitor.Nwn (PerfMonitorWindow subscribes to Anvil's OnActivateItem and matches this Tag), so there is NO .nss for it and Mod_OnActvtItem (dmfi_activate) is untouched. Gated on admindb can_admin - a non-admin gets 'The orb is dark and cold.' Base item 74 (book) is copied from bestiarybook because it is the module's proven activatable, NON-EQUIPPABLE base: an equippable base item cannot be used from the pack. Re-skin the appearance in the toolset if desired, but do not change BaseItem - already-minted copies would need a login migration. The PropertiesList entry below IS the activation (Cast Spell: Unique Power, unlimited uses); removing it makes the item inert."
+ },
+ "Cost": {
+  "type": "dword",
+  "value": 0
+ },
+ "Cursed": {
+  "type": "byte",
+  "value": 1
+ },
+ "DescIdentified": {
+  "type": "cexolocstring",
+  "value": {}
+ },
+ "Description": {
+  "type": "cexolocstring",
+  "value": {
+   "0": "A clouded seeing-stone, cold to the touch. Where the palantiri of old showed distant lands, this one shows the health of the world itself: how swiftly the hours turn, how many wanderers walk abroad, and how near the weave is to fraying.\n\nActivate it to open the server load readout. It answers only to the hand of the server's keeper."
+  }
+ },
+ "Identified": {
+  "type": "byte",
+  "value": 1
+ },
+ "LocalizedName": {
+  "type": "cexolocstring",
+  "value": {
+   "0": "Palantir of the Deep Wardens"
+  }
+ },
+ "ModelPart1": {
+  "type": "byte",
+  "value": 2
+ },
+ "PaletteID": {
+  "type": "byte",
+  "value": 0
+ },
+ "Plot": {
+  "type": "byte",
+  "value": 1
+ },
+ "PropertiesList": {
+  "type": "list",
+  "value": [
+   {
+    "ChanceAppear": {
+     "type": "byte",
+     "value": 100
+    },
+    "CostTable": {
+     "type": "byte",
+     "value": 3
+    },
+    "CostValue": {
+     "type": "word",
+     "value": 13
+    },
+    "Param1": {
+     "type": "byte",
+     "value": 255
+    },
+    "Param1Value": {
+     "type": "byte",
+     "value": 0
+    },
+    "PropertyName": {
+     "type": "word",
+     "value": 15
+    },
+    "Subtype": {
+     "type": "word",
+     "value": 335
+    },
+    "__struct_id": 0
+   }
+  ]
+ },
+ "StackSize": {
+  "type": "word",
+  "value": 1
+ },
+ "Stolen": {
+  "type": "byte",
+  "value": 0
+ },
+ "Tag": {
+  "type": "cexostring",
+  "value": "perfmon_palantir"
+ },
+ "TemplateResRef": {
+  "type": "resref",
+  "value": "perfmon_palantir"
+ },
+ "__data_type": "UTI "
+}

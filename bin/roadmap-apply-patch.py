@@ -14,6 +14,14 @@ save will merge cleanly instead of hitting a conflict. A hand-edit of the whole
 file defeats both of those.
 
     python3 bin/roadmap-apply-patch.py patch.json [--dry-run]
+    python3 bin/roadmap-apply-patch.py patch.json --new    # ids may not exist yet
+
+--new lets a patch CREATE ideas as well as update them, so agents can file a
+finding without hand-editing the file and losing the lock/merge behaviour above.
+Every created entry is forced to `hidden: true` regardless of what the patch
+says: a proposal must cost the admin nothing until they choose to unhide it, and
+hidden keeps it off both the public roadmap page and the in-game Recent Updates
+sign. Ids that already exist are still updated, not duplicated.
 """
 from __future__ import annotations
 
@@ -35,6 +43,7 @@ def load_editor():
 def main() -> int:
     args = [a for a in sys.argv[1:] if not a.startswith("-")]
     dry = "--dry-run" in sys.argv
+    allow_new = "--new" in sys.argv
     if not args:
         print(__doc__)
         return 2
@@ -46,10 +55,10 @@ def main() -> int:
     # Held across read→validate→write, so a GUI save landing mid-patch can't be
     # lost (and vice versa). Same lock bin/roadmap-editor.py takes on every POST.
     with ed.yaml_lock(timeout=60.0):
-        return _apply(ed, yaml, path, args[0], dry)
+        return _apply(ed, yaml, path, args[0], dry, allow_new)
 
 
-def _apply(ed, yaml, path, patch_file, dry) -> int:
+def _apply(ed, yaml, path, patch_file, dry, allow_new=False) -> int:
     text = path.read_text(encoding="utf-8")
     doc = yaml.load(text, Loader=ed._YamlLoader)
     ideas = doc["ideas"]
@@ -57,9 +66,19 @@ def _apply(ed, yaml, path, patch_file, dry) -> int:
 
     patch = json.loads(Path(patch_file).read_text())
     unknown = [k for k in patch if k not in by_id]
-    if unknown:
+    if unknown and not allow_new:
         print(f"error: unknown idea id(s): {unknown}")
+        print("       pass --new to create them")
         return 1
+
+    for iid in unknown:
+        # Minimal skeleton; the patch supplies the rest and validate_document
+        # below refuses anything still missing. hidden is forced, not defaulted.
+        idea = {"id": iid, "title": iid, "group": "qol", "status": "new",
+                "hidden": True, "type": "Enhancement"}
+        ideas.append(idea)
+        by_id[iid] = idea
+        print(f"created {iid}")
 
     for iid, fields in patch.items():
         idea = by_id[iid]
@@ -68,6 +87,8 @@ def _apply(ed, yaml, path, patch_file, dry) -> int:
                 idea.pop(field, None)
             else:
                 idea[field] = value
+        if iid in unknown:
+            idea["hidden"] = True   # non-negotiable for an agent-created entry
         # Same normalization the editor's POST path applies.
         if idea.get("manual_steps"):
             idea["manual_steps"] = ed.normalize_steps(idea["manual_steps"])

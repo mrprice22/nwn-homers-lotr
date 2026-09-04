@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""Read the PerfMonitor Anvil plugin's live view of server headroom.
+
+The plugin runs in-process inside nwserver and publishes one JSON object per
+report window to `<run-dir>/anvil/PluginData/perfmon-status.json` -- the same
+control-file channel bin/reboot-on-empty uses. This is the host-side reader.
+
+    bin/perfmon                 # one-shot status (default)
+    bin/perfmon watch           # refresh in place until Ctrl-C
+    bin/perfmon sessions        # list recordings made from the in-game Palantir
+    bin/perfmon report NAME     # summarise one recording
+
+## What the numbers mean
+
+**Tick rate is the verdict; CPU is not.** A server at 98% of a core with a
+healthy tick rate is saturated but still serving every player on time. Players
+feel it only when mean frame time climbs -- which is what `degraded` reports,
+against the ANVIL_PERFMON_DEGRADED_MS threshold (default 50 ms, i.e. below
+~20 ticks/second).
+
+**The tick rate here is Anvil's frame cadence, not the engine's raw tick
+count.** They track each other but are not the same scale: on an idle dev realm
+this reported ~48/s while NWNX_Profiler's GameTickRate reported ~96/s over the
+same window (measured 2026-09-04). So read this number relatively -- learn the
+realm's healthy baseline and watch the drop away from it -- and use
+`bin/perf-report --tickrate` when an absolute engine tick count is what matters.
+
+For "where did the frame go" rather than "how much is left", use
+bin/perf-report -- that reads NWNX_Profiler's per-scope stream instead.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+STALE_AFTER = 120.0   # seconds; a status older than this means the plugin is gone
+
+
+def run_dir() -> Path:
+    for name in ("server.env.local", "server.env"):
+        path = REPO / name
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if line.startswith("NWN_RUN_DIR="):
+                value = line.split("=", 1)[1].split("#", 1)[0].strip().strip("\"'")
+                return Path(os.path.expandvars(value.replace("$HOME", os.path.expanduser("~"))))
+    sys.exit("perfmon: server.env does not define NWN_RUN_DIR")
+
+
+def plugin_data() -> Path:
+    anvil = run_dir() / "anvil"
+    if anvil.is_symlink():
+        # Same guard bin/reboot-on-empty carries: the image entrypoint replaces a
+        # missing anvil/ with a container-absolute symlink, and every host-side
+        # path under it then dangles. bin/season-anvil-fix repairs it.
+        sys.exit(f"perfmon: {anvil} is a symlink, not a real directory.\n"
+                 f"         run bin/season-anvil-fix to repair the season layout.")
+    return anvil / "PluginData"
+
+
+def read_status(path: Path) -> dict | None:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def age_seconds(sample: dict) -> float | None:
+    raw = sample.get("At")
+    if not isinstance(raw, str):
+        return None
+    try:
+        stamp = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - stamp).total_seconds()
+
+
+def render(sample: dict) -> str:
+    age = age_seconds(sample)
+    stale = age is not None and age > STALE_AFTER
+    lines = []
+    verdict = "DEGRADED" if sample.get("Degraded") else "healthy"
+    if stale:
+        verdict = f"STALE ({age:.0f}s old — is the server running?)"
+    lines.append(f"  status       {verdict}")
+    lines.append(f"  tick rate    {sample.get('TicksPerSecond', 0):.1f} /s "
+                 f"({sample.get('Frames', 0)} frames sampled)")
+    lines.append(f"  frame time   mean {sample.get('MeanMs', 0):.2f} ms   "
+                 f"p95 {sample.get('P95Ms', 0):.2f} ms   max {sample.get('MaxMs', 0):.1f} ms")
+    lines.append(f"  players      {sample.get('Players', 0)} in "
+                 f"{sample.get('AreasWithPlayers', 0)} area(s)")
+    lines.append(f"  cpu          {sample.get('CpuCores', 0):.2f} core")
+    lines.append(f"  memory       {sample.get('WorkingSetMb', 0):.0f} MB resident, "
+                 f"{sample.get('ManagedHeapMb', 0):.0f} MB managed")
+    recording = sample.get("Recording")
+    lines.append(f"  recording    {recording if recording else 'no'}")
+    return "\n".join(lines)
+
+
+def summarise(path: Path) -> int:
+    rows = []
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    if not rows:
+        print(f"perfmon: {path.name} has no usable samples", file=sys.stderr)
+        return 1
+
+    def col(key):
+        return [r[key] for r in rows if isinstance(r.get(key), (int, float))]
+
+    ticks, means, players = col("TicksPerSecond"), col("MeanMs"), col("Players")
+    degraded = sum(1 for r in rows if r.get("Degraded"))
+    print(f"{path.stem}: {len(rows)} window(s)")
+    if ticks:
+        print(f"  tick rate    min {min(ticks):.1f}   mean {sum(ticks)/len(ticks):.1f}   "
+              f"max {max(ticks):.1f}")
+    if means:
+        print(f"  frame time   mean {sum(means)/len(means):.2f} ms   worst {max(means):.2f} ms")
+    if players:
+        print(f"  players      peak {max(players)}   mean {sum(players)/len(players):.1f}")
+    print(f"  degraded     {degraded} of {len(rows)} window(s) "
+          f"({degraded * 100 / len(rows):.0f}%)")
+    if players and ticks:
+        peak = max(players)
+        at_peak = [r["TicksPerSecond"] for r in rows
+                   if r.get("Players") == peak and isinstance(r.get("TicksPerSecond"), (int, float))]
+        if at_peak:
+            print(f"  at {peak} player(s): tick rate min {min(at_peak):.1f}, "
+                  f"mean {sum(at_peak)/len(at_peak):.1f}")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("command", nargs="?", default="status",
+                    choices=("status", "watch", "sessions", "report"))
+    ap.add_argument("name", nargs="?", help="recording name, for `report`")
+    ap.add_argument("--interval", type=float, default=5.0, help="watch refresh seconds")
+    args = ap.parse_args(argv)
+
+    data_dir = plugin_data()
+    status_file = data_dir / "perfmon-status.json"
+    session_dir = data_dir / "perfmon-sessions"
+
+    if args.command == "sessions":
+        if not session_dir.is_dir():
+            print("perfmon: no recordings yet.")
+            return 0
+        files = sorted(session_dir.glob("*.jsonl"))
+        if not files:
+            print("perfmon: no recordings yet.")
+            return 0
+        for path in files:
+            lines = sum(1 for _ in path.open(encoding="utf-8", errors="replace"))
+            when = datetime.fromtimestamp(path.stat().st_mtime).isoformat(timespec="seconds")
+            print(f"  {path.stem:<32} {lines:>6} window(s)   last {when}")
+        return 0
+
+    if args.command == "report":
+        if not args.name:
+            ap.error("report needs a session name (see `bin/perfmon sessions`)")
+        safe = re.sub(r"[^A-Za-z0-9._-]", "_", args.name)
+        path = session_dir / f"{safe}.jsonl"
+        if not path.is_file():
+            print(f"perfmon: no recording named {safe}", file=sys.stderr)
+            return 2
+        return summarise(path)
+
+    if not status_file.is_file():
+        print(f"perfmon: no status file at {status_file}", file=sys.stderr)
+        print("         the PerfMonitor plugin may not be deployed — "
+              "run bin/season-anvil-fix, then restart the season.", file=sys.stderr)
+        return 2
+
+    if args.command == "status":
+        sample = read_status(status_file)
+        if sample is None:
+            print("perfmon: status file unreadable", file=sys.stderr)
+            return 2
+        print(render(sample))
+        return 1 if sample.get("Degraded") else 0
+
+    # watch
+    try:
+        while True:
+            sample = read_status(status_file)
+            print("\033[2J\033[H", end="")
+            print(f"perfmon — {datetime.now().isoformat(timespec='seconds')}\n")
+            print(render(sample) if sample else "  (status file unreadable)")
+            print("\n  Ctrl-C to stop.")
+            time.sleep(args.interval)
+    except KeyboardInterrupt:
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -109,22 +109,61 @@ if [[ -d $HOME_ANVIL ]]; then
   shopt -u nullglob dotglob
 fi
 
-# --- 4. deploy the Anvil plugin ----------------------------------------------
-# ServerRestartManager lives inside DungeonSolitaire.Nwn.dll. Without it the
-# season has no daily in-game shutdown and no reboot-on-empty, and the Dungeon
-# Solitaire area does nothing. The folder name MUST equal the assembly name —
-# Anvil looks for <folder>/<folder>.dll and silently skips the folder otherwise.
-PLUGIN_SRC="$PROJECT_ROOT/csharp/DungeonSolitaire.Nwn/bin/Release/net8.0"
-PLUGIN_DEST="$RUN_ANVIL/Plugins/DungeonSolitaire.Nwn"
+# --- 4. deploy the Anvil plugins ---------------------------------------------
+# THE FOLDER NAME MUST EQUAL THE ASSEMBLY NAME. Anvil looks for
+# <folder>/<folder>.dll and silently SKIPS the folder otherwise — the only
+# symptom is "Loading N DotNET plugin/s" with N one lower than expected, and no
+# error anywhere. That is why every entry below names the assembly once and
+# derives both paths from it.
+#
+#   DungeonSolitaire.Nwn — ServerRestartManager lives inside this assembly, so
+#     without it the season has no daily in-game shutdown and no
+#     reboot-on-empty, and the Dungeon Solitaire area does nothing. It also
+#     needs its engine DLL (DungeonSolitaire.Core) copied alongside.
+#   PerfMonitor.Nwn      — frame time / tick rate / headroom, the JSON status
+#     file bin/perfmon reads, and the admin Palantir readout. Self-contained.
+#
+# Each entry is "<assembly>:<extra dll>,<extra dll>"; extras are copied from the
+# same build output. A missing extra is fatal on purpose — a plugin that loads
+# without its dependency fails at first use, which is far harder to diagnose
+# than a failed deploy.
+ANVIL_PLUGINS=(
+  "DungeonSolitaire.Nwn:DungeonSolitaire.Core.dll"
+  "PerfMonitor.Nwn:"
+)
 if [[ $DO_PLUGIN -eq 1 ]]; then
-  if [[ ! -f $PLUGIN_SRC/DungeonSolitaire.Nwn.dll ]]; then
-    echo "[anvil-fix] building the plugin ..."
-    dotnet build "$PROJECT_ROOT/csharp/DungeonSolitaire.Nwn" -c Release >/dev/null
-  fi
-  mkdir -p "$PLUGIN_DEST"
-  cp "$PLUGIN_SRC/DungeonSolitaire.Nwn.dll"  "$PLUGIN_DEST"/
-  cp "$PLUGIN_SRC/DungeonSolitaire.Core.dll" "$PLUGIN_DEST"/
-  echo "[anvil-fix] deployed DungeonSolitaire.Nwn to $PLUGIN_DEST"
+  for spec in "${ANVIL_PLUGINS[@]}"; do
+    asm=${spec%%:*}
+    extras=${spec#*:}
+    src="$PROJECT_ROOT/csharp/$asm/bin/Release/net8.0"
+    dest="$RUN_ANVIL/Plugins/$asm"
+
+    if [[ ! -d $PROJECT_ROOT/csharp/$asm ]]; then
+      echo "[anvil-fix] no source for $asm — skipping" >&2
+      continue
+    fi
+    if [[ ! -f $src/$asm.dll ]]; then
+      echo "[anvil-fix] building $asm ..."
+      dotnet build "$PROJECT_ROOT/csharp/$asm" -c Release >/dev/null
+    fi
+    if [[ ! -f $src/$asm.dll ]]; then
+      echo "[anvil-fix] ERROR: $asm did not build; not deployed" >&2
+      continue
+    fi
+
+    mkdir -p "$dest"
+    cp "$src/$asm.dll" "$dest"/
+    IFS=',' read -r -a extra_list <<< "$extras"
+    for extra in "${extra_list[@]}"; do
+      [[ -n $extra ]] || continue
+      if [[ ! -f $src/$extra ]]; then
+        echo "[anvil-fix] ERROR: $asm needs $extra but it is missing from $src" >&2
+        continue
+      fi
+      cp "$src/$extra" "$dest"/
+    done
+    echo "[anvil-fix] deployed $asm to $dest"
+  done
 fi
 
 # --- 5. re-render the .path unit against the now-valid layout ------------------

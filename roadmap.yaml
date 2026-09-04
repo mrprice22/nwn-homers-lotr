@@ -26,7 +26,7 @@
 # =============================================================================
 
 meta:
-  as_of: "2026-08-31 20:58 CDT"
+  as_of: "2026-09-02 00:05 CDT"
   intro: >-
     This is the living development roadmap for Homer's LOTR. Almost everything
     here started as a player suggestion or bug report — <strong><em>when an idea
@@ -140,6 +140,22 @@ epics:
 # Ideas / bugs / features.
 # -----------------------------------------------------------------------------
 ideas:
+  - id: anaralia-spider-queen-second-drop
+    title: "Anaralia (spider queen) second drop"
+    group: items-gear
+    status: wip
+    type: Defect
+    player: "Fugdish (Try_this)"
+    date: "2026-09-02"
+    notes: "<span>Seems after you kill Anaralia the second time she drops a better robe? Not that I’m complaining, if I made a caster I might just wear that one…</span><span><img src=\"https://discord.com/assets/86678b041d9087e0.svg\" alt=\"🤘\"></span><br><div><br></div><div>DM note: this should have been caught/fixed by blueprint out of sync with instances build gate\n\n</div>"
+  - id: bard-curse-song-not-lowering-concentration-skill
+    title: "Bard curse song not lowering concentration skill"
+    group: combat-classes
+    status: wip
+    type: Defect
+    player: "Sync (Shync)"
+    date: "2026-09-02"
+    notes: "<span>Curse song is supposed to lower skill by 18 according to the wiki but I have noticed against certain caster mobs/bosses that keep having max concentration even after being cursed (124)\n\nFor example wiki says rancid skinner has 90 concentration but after being cursed it keeps saying it has a dc of 124 when Taunting \n\nUnless its intended so you cant actually taunt him....</span>"
   - id: lag-issue-with-playtimedb-reported
     title: "Lag + Issue with playtimedb reported"
     group: wiki-tools
@@ -252,21 +268,39 @@ ideas:
     impl_notes: "<div><b>Three kill paths, none of them through the damage handler</b> - which is where all of the dummy's indestructibility lived (cbd_damage restores the HP; cbd_spawn granted a single EffectImmunity(IMMUNITY_TYPE_DEATH)).</div><div><br></div><div><b>1. Helpless → coup de grace.</b> glamhring2/glamhring003 carry On Hit: Hold DC 20 (Stun on the Epic), against a Will save of +2 on a 1-level, all-10s creature - and eff_dur_x2 doubles the duration. A confirmed critical on a helpless target is an engine combat OUTCOME, not an applied EffectDeath, so the death immunity never saw it and the heal-back never got a turn. <b>2. Drain to zero.</b> katanaofdolguldu carries On Hit: Level Drain DC 14; one failed Fortitude save on a 1-level creature is level 0, which is death regardless of 10000 HP (a player confirmed it from the other side by casting Negative Energy Protection on the dummy). <b>3. HP overrun</b> - a single packet bigger than the pool, outrunning the DelayCommand(0.0) restore, which cbd_damage's own comment already admitted it did not prevent.</div><div><br></div><div><b>The fix is three layers, and every one of them was chosen for what it does NOT do to the measurement.</b> (a) cbd_spawn now applies permanent supernatural immunity to PARALYSIS/STUN/SLEEP/DAZED/KNOCKDOWN (the helpless states - killing the precondition is what stops a coup de grace, since the kill itself is not interceptable), to NEGATIVE_LEVEL/ABILITY_DECREASE, and to MIND_SPELLS/CHARM/DOMINATE/CONFUSED/FEAR (not lethal, but a dominated or fleeing dummy is a ruined trial). They go on through a new CBD_Immune() helper in cbd_inc. (b) cbd_damage calls CBD_Restore at the TOP of the handler as well as scheduling the trailing one: the NWNX damage event runs ahead of the engine applying the packet, so every hit now subtracts from the full 10000, and nothing in the combat log changes. (c) fortbonus/refbonus/willbonus = 100 on cbd_dummy.utc.json AND on the placed instance in bree.git.json - this is the layer that survives CBD_SelfDestruct, which strips every EFFECT_TYPE_IMMUNITY off the dummy before killing it at the end of a set.</div><div><br></div><div><b>What must never be used here, and why the gate now says so by name.</b> Plot, IsImmortal, IMMUNITY_TYPE_CRITICAL_HIT, IMMUNITY_TYPE_SNEAK_ATTACK, EffectDamageImmunity and EffectDamageReduction all buy survival by making the damage smaller or invisible - the same mistake as the Plot flag, which is how this feature's first UAT reported a DPR of 0. check_combat_dummy now fails on each of those by name, on a missing kill-path immunity, on save bonuses under 50, and on a missing pre-hit CBD_Restore.</div><div><br></div><div>cbd_death's cancel message now names GetLastKiller() and the weapon in its right hand: every one of these paths was found from a player report, so the next one should arrive already identified rather than as \"it died again\".</div>"
     manual_steps:
       - step: "UAT (Hold/coup de grace): run a full 10-round set against the Bree dummy with Flame of the West equipped. It must never be held or stunned, must survive all ten rounds, and must end the set by blowing apart on its own."
-        status: open
+        status: done
         kind: uat
         tester: "level 60 melee with Flame of the West"
+        claimed_by: "Sync (Shync)"
+        result: "Ran the dps check on the dummy twice using flame of the west, still shows the saves but holds up until the end of the test, working as intended."
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-02"
       - step: "UAT (level drain): run a full 10-round set with the Katana of Dol Guldur, WITHOUT casting Negative Energy Protection on the dummy first. No level drain, no death."
-        status: open
+        status: done
         kind: uat
         tester: "level 60 melee with the Katana of Dol Guldur"
+        claimed_by: "Sync (Shync)"
+        result: "Ran the dps test a couple times using the dol guldur katanas, still shows the saves and the draining animation but the dummie holds normally until the end, working as intended now."
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-02"
       - step: "UAT (the regression this could cause): during those sets the combat log must still show per-hit damage, plus any resistance or damage-reduction lines, and the reported damage per round must be in the same ballpark as attacks x average hit. A dummy that survives by making damage disappear is the failure mode this fix was written to avoid."
-        status: open
+        status: done
         kind: uat
         tester: "any"
+        claimed_by: "Sync (Shync)"
+        result: "The damage and the logs seem to be working properly, the dummy only gets destroyed at the end, couple seconds later another shows up, which also holds up until the end each time."
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-02"
       - step: "UAT (end of set still works): after the final report the dummy must blow apart, your character must stop attacking on its own, and a fresh dummy must stand up in the same spot about 6 seconds later. Starting a new trial on the replacement must work."
-        status: open
+        status: done
         kind: uat
         tester: "any"
+        claimed_by: "Sync (Shync)"
+        result: "Tried several times with both weapons and the dummy seems to be working as intended now."
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-02"
+    uat_credits:
+      - player: "Sync (Shync)"
   - id: add-more-weapons-quarterstafs-and-doublesided
     title: "Add more weapons: quarterstafs and doublesided"
     group: items-gear
@@ -6936,3 +6970,95 @@ ideas:
     date: "2026-09-01"
     notes: "<div>Players have asked (in game and on Discord, never logged as an idea until now) for bosses to keep a tally of the players they have killed, reported as a stat - the mirror of the bestiary's kill counter. The counting half already exists; this item is the part anyone can see.</div>"
     impl_notes: "<div><b>The data is already there.</b> Shipped with <a href=\"#idea-boss-enrages-after-killing-player\">boss enrages after killing player</a> (commit b2528312f5b): bestiarydb gained a deaths table mirroring kills - uuid, cdkey, char_name, resref, deaths, last_death, PK (uuid, resref), plus idx_deaths_resref - created in Bst_InitDb and written by Bst_RecordPCDeath from ondeath020 (Mod_OnPlrDeath). The killer is master-chain resolved and keyed through Bst_Canonical, so it joins the kills side and the boss_registry cleanly. Nothing reads it yet.</div><div><br></div><div><b>What is left</b>, roughly in order of value:</div><ul><li>A wiki column - the creature/boss pages in the nwn-wiki generator (GIT/nwn_manager) already read bestiarydb for kill stats; add \"players slain\" beside it, and a server-wide leaderboard of the deadliest bosses.</li><li>Optionally a per-character line in the in-game bestiary book (bst_db.nss / the book conversation): \"has slain you N times\" under a creature you have fought.</li><li>Decide whether the count is per-season. bestiarydb is a campaign DB, so it carries across a season cutover unless it is deliberately rotated.</li></ul><div>No new recording work should be needed - if a number looks wrong, fix Bst_RecordPCDeath rather than adding a second counter.</div>"
+  - id: perf-observability
+    title: "Server performance observability: NWNX_Profiler, a host collector and an in-game readout"
+    group: wiki-tools
+    status: manual
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-04"
+    notes: "Adds a live view of how hard the server is working, and an admin-only seeing-stone that shows it in game."
+    impl_notes: "The nwndotnet/anvil image already shipped NWNX_Profiler.so and NWNX_Metrics_InfluxDB.so with both disabled; neither perf nor gdb exists on this host and neither is needed. Metrics_InfluxDB speaks InfluxDB line protocol over UDP, so bin/perf-collect binds the port and writes JSONL and bin/perf-report ranks it -- no database. bin/serve already forwards NWNX_*/ANVIL_* and already runs --network=host, so no launcher change was needed. New Anvil plugin csharp/PerfMonitor.Nwn samples frame time off NwTask.NextFrame, publishes PluginData/perfmon-status.json (read by bin/perfmon) and drives an admin-gated NUI opened by the perfmon_palantir item; activation and the window are both in C#, so Mod_OnActvtItem (dmfi_activate) is untouched. TWO TRAPS RECORDED IN THE FILES: one metrics port per realm (every season is --network=host and shares loopback), and PartOf= propagates stop but never start, so the collector unit must be WantedBy= the server unit rather than default.target. CALIBRATION: the plugin's tick rate is Anvil's frame cadence, ~48/s where NWNX_Profiler's GameTickRate reads ~96/s on the same idle realm -- read it relatively; perf-report --tickrate is the authority."
+    manual_steps:
+      - step: "Log in on the dev realm and confirm the Palantir of the Deep Wardens is granted automatically; activate it and check the window shows a live tick rate, frame time, player count and CPU, and that it toggles closed on a second activation."
+        status: open
+        kind: uat
+        tester: "admin (can_admin CD key)"
+      - step: "Activate a Palantir on a character whose CD key is NOT in admindb can_admin; expect only 'The orb is dark and cold.' and no window."
+        status: open
+        kind: uat
+        tester: "any non-admin character"
+      - step: "Press Start recording, wait a few windows, press Stop; then on the host run 'bin/perfmon sessions' and 'bin/perfmon report <name>' and confirm the recording is listed and summarised."
+        status: open
+        kind: uat
+        tester: "admin"
+      - step: "Optional: re-skin perfmon_palantir's appearance to something orb-like. Do NOT change BaseItem (74) -- an equippable base item cannot be used from the pack, and already-minted copies would need a login migration."
+        status: open
+        kind: toolset
+  - id: perf-ai-list-amplifier
+    title: "AI update list is ~23,400 objects, and it is what makes each player so expensive"
+    group: qol
+    status: design
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-04"
+    notes: "Investigating why the server works so much harder per player than it should."
+    impl_notes: "First profiler reading, live vs dev at the same moment, per second of wall time: AIMasterUpdateState 307ms/s vs 7.5ms/s, AIUpdateCreature 141 vs 1.4, AIUpdateItem 92 vs 0.8, AIUpdatePlaceable 35 vs 0.45. The AI update list size is essentially IDENTICAL on both (23,418 vs 23,482), so this is not accumulation, respawn duplication or a standing army -- it is module-baked. The engine walks that list every master update; it is nearly free while every object sits at VERY_LOW and 40-100x more expensive once objects near a player wake up. Corrects an earlier reading that called the load player-independent: that compared a populated live server against an empty dev one. AIUpdateItem at 92ms/s is the surprise and probably the first thing to chase."
+    design_questions:
+      - question: "AIUpdateItem costs ~92 ms/s on the live realm against 0.8 ms/s on an empty one, and the AI update list is ~23,400 objects on BOTH realms. Do we want to attack the list size (fewer live objects / static-flagging placeables and items that never need AI) or the per-object cost, and is a bounded run with the expensive per-script profiler knobs acceptable on the live realm to attribute it?"
+        status: open
+        answer: null
+    manual_steps:
+      - step: "Decide whether to open the expensive profiler knobs (NWNX_PROFILER_ENABLE_SCRIPTS / SCRIPTS_TYPE_TIMINGS / SCRIPTS_AREA_TIMINGS / ENABLE_PATHING) for a bounded window to attribute the AIUpdateItem cost. They instrument every script call and every path request, so they are not safe to leave on."
+        status: open
+        kind: admin
+  - id: perf-nw-c2-default1-noop
+    title: "Creature heartbeat override fake-casts at a tag that does not exist"
+    group: qol
+    status: planned
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-04"
+    notes: "A small piece of wasted work every creature does, several times a minute, for no effect."
+    impl_notes: "unpacked/nw_c2_default1.nss:18 is ActionCastFakeSpellAtObject(SPELL_DEATH_WARD, GetObjectByTag(\"spells\")). No object in the module carries the tag 'spells' (zero hits across every JSON), so this is a failed tag lookup plus an action-queue push on 706 placed creatures every 6 seconds, permanently, with no effect. It also #includes the very large NW_I0_GENERIC for nothing. Unchanged since e1fc8e2f249 (2026-04-30) and identical on both realms, so it is NOT the cause of the live realm's load -- dev runs it at 5% CPU. Cheap to remove; let profiler data rank it."
+    manual_steps:
+      - step: "After removal, confirm ordinary creatures still behave normally (idle, notice and engage) -- the override replaced the stock heartbeat, so removing the line must not remove the heartbeat itself."
+        status: open
+        kind: uat
+        tester: "any"
+  - id: perf-cleartrash-no-pc-guard
+    title: "Area trash sweep runs for every NPC footfall, not just players"
+    group: qol
+    status: planned
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-04"
+    notes: "Housekeeping in 74 areas does far more work than it needs to."
+    impl_notes: "unpacked/d_cleartrash.nss:22 (OnEnter on 65 areas) and the byte-identical s_cleartrash.nss (9 more) never check GetIsPC(GetEnteringObject()), so a full GetFirstObjectInArea/GetNextObjectInArea sweep runs for EVERY object that crosses an area line: wandering NPCs, summons, encounter spawns, leash jumps. Its CT_IN_PROGRESS guard is set and cleared inside the same synchronous call, so it throttles nothing. Object census is 8,533 placeables + 1,822 waypoints + 1,004 creatures + 835 doors + 483 triggers across 293 areas. Likely fix is a GetIsPC early-return, but confirm against profiler data first -- present on both realms, so not by itself the live-realm delta."
+    manual_steps:
+      - step: "After the guard is added, confirm dropped-item cleanup still happens in a cleartrash area when a PLAYER enters -- the sweep must still run for players, just not for every NPC."
+        status: open
+        kind: uat
+        tester: "any"
+  - id: s2-enrage-on-player-death
+    title: "Season 2: bosses permanently enrage every time a player dies to them"
+    group: bosses
+    status: planned
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-04"
+    notes: "On the live realm, dying to a boss makes that boss permanently stronger for everyone."
+    impl_notes: "The ENR_OnPCDied mechanism added in b2528312f5b (2026-09-01) is DEV-ONLY; season 2's snapshot predates it. Without it, a PC who dies to a boss and clicks Respawn is seen by the next enrage tick as alive and in another area, i.e. as having RETREATED, so ENR_TriggerEnrage fires: +2 all abilities, stacking, plus a heal of 25% of missing HP. Every player death therefore buffs the boss cumulatively for the rest of its life. Found while profiling, not by a player report. The fix already exists on dev -- this is a promotion decision, not new work."
+    manual_steps:
+      - step: "Decide whether to promote the enrage fix to season 2 out of band or let it ride the next scheduled promotion. Nothing here should be promoted without the usual explicit go-ahead."
+        status: open
+        kind: admin
+      - step: "Die to a tracked boss, respawn, and confirm the boss does NOT gain the retreat enrage (+2 all abilities / 25% missing-HP heal)."
+        status: open
+        kind: uat
+        tester: "level 60 melee, on dev"

@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Server performance monitor — NWN Anvil plugin.
+
+    Runs in-process inside the nwndotnet/anvil container via the NWNX:EE DotNET
+    plugin + the Anvil managed framework, so the process it measures IS
+    nwserver. Samples per-frame time off Anvil's main thread, derives a tick
+    rate, and publishes both to a JSON status file the host reads (bin/perfmon)
+    and to an in-game NUI window opened by an admin-only item.
+
+    It answers the question a "crash party" stress event actually poses: not
+    "is the CPU busy" (it is), but "how much headroom is left before players
+    feel it".
+
+    Build:   dotnet build csharp/PerfMonitor.Nwn -c Release
+    Deploy:  bin/season-anvil-fix   (copies into <run-dir>/anvil/Plugins/PerfMonitor.Nwn/)
+
+    THE PLUGIN FOLDER NAME MUST EQUAL THE ASSEMBLY NAME. Anvil loads
+    <folder>/<folder>.dll and silently SKIPS the folder otherwise — the symptom
+    is "Loading N DotNET plugin/s" with N one lower than you expected, and no
+    error anywhere.
+
+    Deliberately NO ProjectReference. DungeonSolitaire.Nwn references a sibling
+    repo (~/GIT/Dungeon-Solitaire) that is not part of this tree, so a fresh
+    clone cannot build it. This plugin must stay self-contained.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>PerfMonitor.Nwn</RootNamespace>
+    <AssemblyName>PerfMonitor.Nwn</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- Plugins are loaded by the host; do not emit a deps.json that fights Anvil's resolver. -->
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pin to the NWN build the image targets (8193.37); must match NWN_IMAGE in server.env. -->
+    <PackageReference Include="NWN.Anvil" Version="8193.37.3" />
+    <!-- Compile-only: the Anvil host supplies NWN.Core at runtime. -->
+    <PackageReference Include="NWN.Core" Version="8193.37.4" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+</Project>
