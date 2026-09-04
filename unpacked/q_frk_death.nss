@@ -1,8 +1,10 @@
 // The Forbidden Realms (roadmap: forbidden-realms-key-tier)
-// OnDeath for the three barrow-court blueprints (weathertopkin003 /
-// weathertopque003 / weathertoparc002). Chains the module's default undead
-// death handler, then records the kill for the killer's whole party so a group
-// all completes the quest together.
+// OnDeath for the three court blueprints the quest counts -- weathertopkin004
+// (the King), weathertopque003 (the Queen) and wtop_crtarcher (any of the 22
+// Royal Archers), all named in q_frk_inc. Chains the module's default undead
+// death handler first -- which is also what carries the respawn, via
+// nw_c2_default7 -> SE_DoCreatureRespawn -- then records the kill for the
+// killer's whole party so a group all completes the quest together.
 #include "q_frk_inc"
 
 void main()

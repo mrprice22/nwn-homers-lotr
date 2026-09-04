@@ -102,6 +102,8 @@ void BRD_InitDb()
     // BEGIN GENERATED REGISTRY - produced by bin/gen-boss-registry.py
     // Do not hand-edit; run the generator to refresh (see CLAUDE-boss-tracker.md).
     BRD_SeedBoss("creature016", "Theoden's Chosen", "TheodensChosen", "area013", "Helm's Deep: Cave", 9540.0, 1200, "placed");
+    BRD_SeedBoss("weathertopkin004", "Weathertop King", "WeathertopKing", "area028", "Weather Top's Hidden Court", 3400.0, 1200, "placed");
+    BRD_SeedBoss("weathertopque003", "Weathertop Queen", "WeathertopQueen", "area028", "Weather Top's Hidden Court", 3100.0, 1200, "placed");
     BRD_SeedBoss("summanus", "Summanus", "Summanus", "falseheaven", "Numenor: Noirinan", 2938.0, 1200, "encounter");
     BRD_SeedBoss("gandalf001", "Gandalf the Gray", "Gandalf", "shirehobbiton001", "Hobbiton", 1914.0, 1200, "placed");
     BRD_SeedBoss("highwizardofgo_2", "High Wizard of Gondor", "HighWizardofGondor", "towerofthehighwi", "Tower of the High Wizard: The High Wizard's Chamber", 1795.0, 1200, "placed");

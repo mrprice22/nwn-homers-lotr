@@ -14,8 +14,6 @@
 //     the user to AP_forbiddenrealmskeytier_2 -- journal entry 2, then 3.
 //   * That waypoint is in gravesofthelostk (Tombs of the Lost Souls), an area
 //     with no connections at all today. Its OnEnter wrapper (q_frk_tomb)
-//     script-spawns the barrow-court -- the Weathertop King, Queen and Archer,
-//     three of the module's unspawned blueprints -- at waypoints _3/_4/_5, and
 //     spawns a return gate at _2 so the tomb is not a one-way trip.
 //   * Killing a court member runs q_frk_death, which records the kill; all
 //     three down completes the journal (entry 10, End).
@@ -25,9 +23,25 @@
 //   "frk_stage"  0 none / 1 key acquired / 2 gate opened / 3 tombs entered
 //   "frk_king", "frk_queen", "frk_archer"  1 once that court member is killed
 //
-// EVERYTHING here no-ops gracefully while the waypoints are unplaced: no gate
-// spawns, no court spawns, and the quest simply sits at entry 1. See the
-// roadmap item's manual_steps for the five waypoints.
+// WHERE THE COURT ACTUALLY IS (2026-09-04). The barrow-court no longer stands
+// in gravesofthelostk. The admin built it for real in the toolset as area028,
+// "Weather Top's Hidden Court", reached from Amon Sul (area026) through the
+// wtop_hiddencave trigger and past a key-shard puzzle -- see wtop_court.nss,
+// wtop_keymake.nss and wtop_kdoor.nss. The King and Queen are PLACED instances
+// on their thrones there (so the Roll of the Fallen can see them) and the
+// Archer is one of 22 script-spawned Royal Archers.
+//
+// So FRK_SpawnCourt and the _3/_4/_5 waypoints are gone -- nothing here spawns
+// the court any more. What survives is the KILL BOOKKEEPING at the bottom of
+// this file: q_frk_death still sits on all three blueprints and still completes
+// the journal, which is the half of the quest area028 does not provide for
+// itself. Killing the court in area028 therefore finishes "The Forbidden
+// Realms" exactly as killing it in the tombs would have.
+//
+// The Noirinan gate half still no-ops gracefully while
+// AP_forbiddenrealmskeytier_1 / _2 are unplaced (they are, and per the roadmap
+// item they are SUPERSEDED): no gate spawns and the quest sits at entry 1 until
+// the player walks into Amon Sul the ordinary way.
 //
 // All calls are base NWScript builtins -- no framework include.
 
@@ -39,15 +53,19 @@ const string FRK_KEYTAG  = "ForbiddenRealmsKey";     // item Tag on the key
 // Admin-placed waypoints (tag = AP_ + roadmap id with hyphens stripped + index)
 const string FRK_WP_GATE  = "AP_forbiddenrealmskeytier_1";  // Noirinan, the seal
 const string FRK_WP_TOMB  = "AP_forbiddenrealmskeytier_2";  // Tombs, arrival + exit
-const string FRK_WP_KING  = "AP_forbiddenrealmskeytier_3";
-const string FRK_WP_QUEEN = "AP_forbiddenrealmskeytier_4";
-const string FRK_WP_ARCH  = "AP_forbiddenrealmskeytier_5";
 
-// Barrow-court blueprints (all previously unspawned). Swapping a member for a
-// different CR variant is a one-line change here -- see the roadmap item.
-const string FRK_RR_KING   = "weathertopkin003";   // Weathertop King,   CR 454
-const string FRK_RR_QUEEN  = "weathertopque003";   // Weathertop Queen,  CR 594
-const string FRK_RR_ARCHER = "weathertoparc002";   // Weathertop Archer, CR 337
+// The three court members whose deaths this quest counts. These are the
+// blueprints that carry q_frk_death; area028 decides where they stand.
+//
+// The King moved from the CR-454 weathertopkin003 to weathertopkin004 on
+// 2026-09-04, per the answered design question ("CR-1514 King sounds more
+// appropriate than the 454 king.. Going for a TOUGH boss fight"). Both he and
+// the Queen were then rebuilt to out-scale Summanus (CR 2938 / 8000 HP / AC 70).
+// The Archer is the court's own Royal Archer rather than the hill's, so the
+// quest leg completes on any of the 22 that stand in area028.
+const string FRK_RR_KING   = "weathertopkin004";   // Weathertop King,        CR 3400
+const string FRK_RR_QUEEN  = "weathertopque003";   // Weathertop Queen,       CR 3100
+const string FRK_RR_ARCHER = "wtop_crtarcher";     // Weathertop Royal Archer, CR 650
 
 const string FRK_GATE_RR   = "q_frk_gate";         // gate placeable blueprint
 const string FRK_GATE_DEST = "FRK_DEST";           // local string: dest WP tag
@@ -176,45 +194,6 @@ void FRK_OnTombEntered(object oPC)
 
     FRK_SetStage(oPC, 3);
     AddJournalQuestEntry(FRK_QUEST, 3, oPC, FALSE, FALSE, TRUE);
-}
-
-// ------------------------------------------------------------
-// Court spawning. Each member is spawned only if no creature of that blueprint
-// is currently standing in the tombs, so the court re-forms once it has been
-// cleared and the area has emptied -- and never doubles up on a party trickling
-// in one player at a time.
-
-int FRK_CourtMemberPresent(object oArea, string sResRef)
-{
-    object oObj = GetFirstObjectInArea(oArea);
-    while (GetIsObjectValid(oObj))
-    {
-        if (GetObjectType(oObj) == OBJECT_TYPE_CREATURE
-            && GetResRef(oObj) == sResRef
-            && !GetIsDead(oObj))
-            return TRUE;
-        oObj = GetNextObjectInArea(oArea);
-    }
-    return FALSE;
-}
-
-void FRK_SpawnCourtMember(object oArea, string sWP, string sResRef)
-{
-    object oWP = GetWaypointByTag(sWP);
-    if (!GetIsObjectValid(oWP)) return;
-    if (GetArea(oWP) != oArea) return;
-    if (FRK_CourtMemberPresent(oArea, sResRef)) return;
-
-    CreateObject(OBJECT_TYPE_CREATURE, sResRef, GetLocation(oWP));
-}
-
-// Spawn the whole court in oArea (the Tombs). Graceful no-op per member while
-// its waypoint is unplaced, so a partially placed tomb still works.
-void FRK_SpawnCourt(object oArea)
-{
-    FRK_SpawnCourtMember(oArea, FRK_WP_KING,  FRK_RR_KING);
-    FRK_SpawnCourtMember(oArea, FRK_WP_QUEEN, FRK_RR_QUEEN);
-    FRK_SpawnCourtMember(oArea, FRK_WP_ARCH,  FRK_RR_ARCHER);
 }
 
 // ------------------------------------------------------------

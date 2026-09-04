@@ -1,33 +1,38 @@
 // Weather Top / Amon Sul garrison spawner (roadmap: forbidden-realms-key-tier)
 //
-// area026 ships with 15 empty spawn markers and no creatures at all. This fills
-// them the first time a player walks in after a server start:
+// area026 ships empty spawn markers and no creatures at all. This fills them the
+// first time a player walks in after a server start:
 //
-//   11 x tag "wtop_spawn"  -- the summit ring, Z ~15-17. Alternating
-//                             weathertoparc001 (Weathertop Archer) and
-//                             weathertopfighte (Weathertop Fighter), 6 archers
-//                             to 5 fighters. That archer-heavy mix is how the
-//                             hill is garrisoned in both forked modules'
-//                             "wheathertop" area (11-12 archers to 7-8
-//                             fighters), and weathertoparc001 is also the
-//                             archer in this module's own weathertop.ute.
+//   12 x tag "wtop_spawn"  -- the summit ring, Z ~15-17. THREE unit types in
+//                             rotation, four posts each:
+//                               weathertoparc001  Weathertop Archer
+//                               weathertopfighte  Weathertop Fighter
+//                               wtop_scout        Weathertop Scout
+//                             The Scout is imported from the 2009 fork, where
+//                             it is a fast Monk/Barbarian/Arcane-Archer skirmisher
+//                             (DEX 100) quite unlike this module's own
+//                             weathertoparc002 that happens to share its resref
+//                             there -- hence the new resref here.
 //    4 x tag "wtop_zombie" -- the low ground by the Weather Hills transitions.
 //                             wtop_zombie (Barrow-wight of Amon Sul): normal
 //                             walk rate, very high HP. Flavour on the approach.
-//                             (Was creaturespeed.2da row 1 = Immobile, which
-//                             froze them on the spot -- row 4 = Normal now.)
 //
-// The King and Queen are NOT here -- they belong to the royal court area behind
-// wtop_hiddencave, which is not built yet.
+// Those four types are also the four sources of the key-shards that open the
+// hidden court below -- one ward each, 42% a kill. See wtop_death.nss.
+//
+// The King and Queen are NOT here. They stand on their thrones in area028
+// ("Weather Top's Hidden Court"), behind the wtop_hiddencave trigger, as real
+// placed instances -- see wtop_court.nss for why placed rather than spawned.
 //
 // Called from wtop_enter.nss (area026 OnEnter) after the anti-kiting leash.
 //
-// Respawn is NOT handled here. Each creature's OnDeath (x2_def_ondeath ->
-// nw_c2_default7 -> SE_DoCreatureRespawn in se_respawn_inc.nss) puts it back on
-// the module-standard 900s timer. We therefore fill each post exactly once per
-// server run, flagged by the local int WTOP_FILLED on the waypoint itself --
-// without that guard a player re-entering inside the 900s window would spawn a
-// second creature and the respawn would then double the post up.
+// Respawn is NOT handled here. Each creature's OnDeath (wtop_death ->
+// x2_def_ondeath -> nw_c2_default7 -> SE_DoCreatureRespawn in se_respawn_inc.nss)
+// puts it back on the module-standard 900s timer. We therefore fill each post
+// exactly once per server run, flagged by the local int WTOP_FILLED on the
+// waypoint itself -- without that guard a player re-entering inside the 900s
+// window would spawn a second creature and the respawn would then double the
+// post up.
 //
 // Both leash_to_area.nss and SE_DoCreatureRespawn read the creature's "spawn"
 // LocalLocation -- the first to send it home if it is kited out of the area, the
@@ -40,7 +45,8 @@ const string WTOP_WP_GUARD  = "wtop_spawn";
 const string WTOP_WP_ZOMBIE = "wtop_zombie";
 
 const string WTOP_RR_ARCHER  = "weathertoparc001";   // Weathertop Archer,  CR 198
-const string WTOP_RR_FIGHTER = "weathertopfighte";   // Weathertop Fighter, CR 100
+const string WTOP_RR_FIGHTER = "weathertopfighte";   // Weathertop Fighter, CR 199
+const string WTOP_RR_SCOUT   = "wtop_scout";         // Weathertop Scout,   CR 249
 const string WTOP_RR_ZOMBIE  = "wtop_zombie";        // Barrow-wight of Amon Sul
 
 const string WTOP_FILLED = "WTOP_FILLED";
@@ -61,27 +67,42 @@ void WtopFillPost(object oWP, string sResRef)
     SetLocalInt(oWP, WTOP_FILLED, TRUE);
 }
 
-// Walk every waypoint carrying sTag. GetWaypointByTag only ever returns the
-// first, so use the nth-object form (same idiom as q_brn_inc.nss / mw_hall_exit).
-// nAlternate: when TRUE, even posts get sResRef and odd posts get sResRefAlt.
-void WtopFillPosts(string sTag, string sResRef, string sResRefAlt, int nAlternate)
+// Walk every waypoint carrying sTag, dealing the three garrison types round
+// robin. GetWaypointByTag only ever returns the first, so use the nth-object
+// form (same idiom as q_brn_inc.nss / mw_hall_exit).
+void WtopFillGuardPosts()
 {
     int n = 0;
-    object oWP = GetObjectByTag(sTag, n);
+    object oWP = GetObjectByTag(WTOP_WP_GUARD, n);
 
     while (GetIsObjectValid(oWP))
     {
-        if (nAlternate && (n % 2))
-            WtopFillPost(oWP, sResRefAlt);
-        else
-            WtopFillPost(oWP, sResRef);
+        string sRR;
+        switch (n % 3)
+        {
+            case 0:  sRR = WTOP_RR_ARCHER;  break;
+            case 1:  sRR = WTOP_RR_FIGHTER; break;
+            default: sRR = WTOP_RR_SCOUT;   break;
+        }
+        WtopFillPost(oWP, sRR);
+        oWP = GetObjectByTag(WTOP_WP_GUARD, ++n);
+    }
+}
 
-        oWP = GetObjectByTag(sTag, ++n);
+void WtopFillZombiePosts()
+{
+    int n = 0;
+    object oWP = GetObjectByTag(WTOP_WP_ZOMBIE, n);
+
+    while (GetIsObjectValid(oWP))
+    {
+        WtopFillPost(oWP, WTOP_RR_ZOMBIE);
+        oWP = GetObjectByTag(WTOP_WP_ZOMBIE, ++n);
     }
 }
 
 void main()
 {
-    WtopFillPosts(WTOP_WP_GUARD,  WTOP_RR_ARCHER, WTOP_RR_FIGHTER, TRUE);
-    WtopFillPosts(WTOP_WP_ZOMBIE, WTOP_RR_ZOMBIE, "",              FALSE);
+    WtopFillGuardPosts();
+    WtopFillZombiePosts();
 }
