@@ -110,7 +110,15 @@
   },
   "TriggerList": {
     "type": "list",
-    "value": []
+    "value": [
+      {
+        "__struct_id": 1,
+        "Comment": {
+          "type": "cexostring",
+          "value": "wtop_portal -- the portal terrain feature behind the thrones, wired as an ordinary area transition back to the wtopcourt2wtop waypoint on Amon Sul, the same place the court's exit door lands. Covers world x 22-48, y 131-139 (tiles 2-4 of row 13); the south edge is held at y=131 so it cannot fire during the throne fight at y~124-125."
+        }
+      }
+    ]
   },
   "WaypointList": {
     "type": "list",
@@ -498,6 +506,13 @@
         "Comment": {
           "type": "cexostring",
           "value": "Destination pin for the court's way out. Hand-added in the same shape bin/gen-map-notes.py writes (tag mnx_<objtag>), because area028 post-dates the last module-index/area_graph.json and the tool cannot see it until the next wiki refresh; that run will update this pin in place, not duplicate it."
+        }
+      },
+      {
+        "__struct_id": 5,
+        "Comment": {
+          "type": "cexostring",
+          "value": "mnx_wtop_portal -- destination pin for the portal, hand-added in bin/gen-map-notes.py's own shape because area_graph.json predates area028."
         }
       }
     ]
