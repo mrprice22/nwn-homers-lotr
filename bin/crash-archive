@@ -216,7 +216,8 @@ def stored_core(info: str) -> Path | None:
 
 
 def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
-                  dest_dir: Path, apply: bool) -> Path | None:
+                  dest_dir: Path, apply: bool, env: dict[str, str],
+                  keep_restart_cores: bool = False) -> Path | None:
     when = crash_time(entry)
     pid = int(entry.get("pid") or 0)
     stamp = when.strftime("%Y%m%d-%H%M%S")
@@ -227,9 +228,14 @@ def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
     log_dir = pick_log_dir(run_dir, when)
     core = stored_core(info)
 
+    requested = was_requested_shutdown(instance, when)
+    restart_core = core is not None and requested is True
+    if restart_core and not keep_restart_cores:
+        core = None
+
     print(f"  {instance}  {when.astimezone().isoformat(timespec='seconds')}  pid={pid}  "
           f"signal={crash_signal(entry)}  "
-          f"core={'present' if core else 'vacuumed/unreadable'}  "
+          f"core={'present' if core else ('skipped (clean shutdown)' if restart_core else 'vacuumed/unreadable')}  "
           f"logs={log_dir.name if log_dir else 'not found'}")
     if not apply:
         return None
@@ -287,6 +293,13 @@ def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
         "exe": entry.get("exe"),
         "core_captured": bool(core),
         "core_bytes": core.stat().st_size if core else 0,
+        # True means the core was skipped as a scheduled-restart segfault rather
+        # than lost. Re-run with --keep-restart-cores within five days to get it.
+        # systemd logged a stop request for this unit just before the exit, so
+        # this is a shutdown segfault (daily restart / reboot-on-empty / an admin
+        # rebuild), not a crash during play. None means the journal could not say.
+        "shutdown_requested": requested,
+        "core_skipped_clean_shutdown": restart_core and core is None,
         "log_dir": log_dir.name if log_dir else None,
         # True means the engine logged a clean shutdown in that boot. Suggestive
         # only -- read `last_log_lines` and the crash time before concluding.
@@ -309,6 +322,42 @@ def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
     size = sum(f.stat().st_size for f in target.rglob("*") if f.is_file())
     print(f"    -> {target}/ ({size / 1e6:.1f} MB)")
     return target
+
+
+def was_requested_shutdown(instance: str, when: datetime, window_s: int = 180) -> bool | None:
+    """Did systemd ask this season to stop just before it died?
+
+    nwserver routinely exits with SIGSEGV during its own clean shutdown, so most
+    cores on this box are not bugs at all -- they are the daily restart, a
+    reboot-on-empty cycle, or an admin rebuilding the dev realm. All three look
+    identical in coredumpctl (SIGSEGV, stack inside libcoreclr) and identical in
+    the engine log, which does not always get a "Server shutting down" line
+    written before the process dies.
+
+    systemd knows, though: a requested stop logs "Stopping ..." for the unit
+    before the exit. That is the signal, and unlike a time window around
+    ANVIL_RESTART_DAILY it also catches reboot-on-empty and hand-run restarts --
+    which is what four of this host's cores on 2026-09-04 actually were.
+
+    Returns True (requested), False (died unasked), or None (cannot tell).
+    """
+    unit = f"nwn-season-server@{instance}.service"
+    since = (when - timedelta(seconds=window_s)).astimezone().strftime("%Y-%m-%d %H:%M:%S")
+    until = (when + timedelta(seconds=30)).astimezone().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        proc = subprocess.run(
+            ["journalctl", "--user", "-u", unit, "--since", since, "--until", until,
+             "--no-pager", "-o", "cat"],
+            capture_output=True, text=True, check=False, timeout=30,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    # The journal rotates; an empty window is "cannot tell", not "unasked".
+    if not proc.stdout.strip():
+        return None
+    return "Stopping " in proc.stdout
 
 
 def archive_age_anchor(path: Path) -> datetime:
@@ -380,6 +429,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--instance", help="only this season instance")
     ap.add_argument("--keep", type=int, default=90,
                     help="days to retain the crash metadata + logs (default 90)")
+    ap.add_argument("--keep-restart-cores", action="store_true",
+                    help="also keep the core when systemd had asked the season to "
+                         "stop; by default those are archived WITHOUT the ~45MB "
+                         "core, since nwserver routinely segfaults on clean exit")
     ap.add_argument("--keep-cores", type=int, default=21,
                     help="days to retain the ~45MB core.zst itself (default 21); "
                          "the archive and its logs survive to --keep")
@@ -419,7 +472,8 @@ def main(argv: list[str] | None = None) -> int:
         # the wrong boot.
         if instance != REPO.name:
             continue
-        if build_archive(entry, info, instance, args.run_dir, args.dest, apply):
+        if build_archive(entry, info, instance, args.run_dir, args.dest, apply,
+                         env, args.keep_restart_cores):
             made += 1
 
     if args.dest.is_dir():
