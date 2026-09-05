@@ -2242,17 +2242,29 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def _send(self, code: int, body: bytes, ctype: str, extra: list | None = None):
-        self.send_response(code)
-        self.send_header("Content-Type", ctype)
-        for name, value in (extra or []):
-            self.send_header(name, value)
-        # The page IS the app — there is no separate bundle to version. Without
-        # this a browser can keep serving an older copy of the editor from cache
-        # after a restart, which looks exactly like "the fix didn't work".
-        self.send_header("Cache-Control", "no-store, must-revalidate")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            for name, value in (extra or []):
+                self.send_header(name, value)
+            # The page IS the app — there is no separate bundle to version.
+            # Without this a browser can keep serving an older copy of the
+            # editor from cache after a restart, which looks exactly like "the
+            # fix didn't work".
+            self.send_header("Cache-Control", "no-store, must-revalidate")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError) as e:
+            # The client hung up before we finished replying. There is nobody
+            # left to tell, and it is not a fault of ours: a closed tab or a
+            # dropped tunnel is ordinary. Log one line instead of a traceback,
+            # and let the handler return normally. Note this can fire on the
+            # error response itself, which is how a 400 for a truncated body
+            # used to produce a confusing two-exception traceback.
+            print(f"[info] client hung up before the reply was sent "
+                  f"({type(e).__name__}: {self.command} {self.path})",
+                  file=sys.stderr)
 
     def _json(self, obj, code: int = 200, extra: list | None = None):
         self._send(code, json.dumps(obj).encode("utf-8"), "application/json", extra)
@@ -2944,7 +2956,18 @@ class Handler(BaseHTTPRequestHandler):
             # remote memory-exhaustion primitive now that this is reachable
             # from outside the LAN.
             raise ValueError(f"request body too large ({n} bytes)")
-        return json.loads(self.rfile.read(n) or b"{}")
+        raw = self.rfile.read(n) or b""
+        # A client that hangs up mid-upload (a closed tab, a sleeping laptop, a
+        # tunnel blip) gives a SHORT read, not an error. A save is ~460 KB, so
+        # this is the common way for one to arrive broken. Without this check it
+        # surfaces as `JSONDecodeError: Expecting ':' delimiter ... char 460849`,
+        # which reads like malformed JSON from a buggy client rather than a
+        # truncated request from a healthy one. Say what actually happened.
+        if len(raw) < n:
+            raise ValueError(
+                f"incomplete request body: got {len(raw)} of {n} bytes "
+                "(client disconnected mid-upload; nothing was saved)")
+        return json.loads(raw or b"{}")
 
     def _csrf_ok(self) -> bool:
         """Reject a cross-site write.
@@ -7249,7 +7272,22 @@ def main():
                     help="serve without opening a browser (used by the systemd unit)")
     args = ap.parse_args()
 
-    httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+    class Server(ThreadingHTTPServer):
+        """ThreadingHTTPServer that does not shout when a client hangs up.
+
+        `_send` already swallows a disconnect on the reply path; this is the
+        backstop for a write anywhere else (a static asset, a body read that
+        dies mid-stream). Everything that is NOT a dropped connection still
+        gets the full traceback, because that is a real bug.
+        """
+
+        def handle_error(self, request, client_address):
+            if isinstance(sys.exc_info()[1], (BrokenPipeError,
+                                              ConnectionResetError)):
+                return
+            super().handle_error(request, client_address)
+
+    httpd = Server((args.host, args.port), Handler)
     url = f"http://localhost:{args.port}/"
     print(f"Roadmap editor serving on {args.host}:{args.port}  (editing {YAML_PATH})")
     try:
