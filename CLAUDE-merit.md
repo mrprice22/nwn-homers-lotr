@@ -31,7 +31,14 @@ through `SqlPrepareQueryCampaign`.
   - **Spending is tracked only by `merit_spent`** (the escrow counter).
   - `available = earned - merit_spent` → `Merit_Available(cdkey)`.
 - **`redemptions`** — `id PK, cdkey, player_name, reward_id, reward_label, cost,
-  needs_dm, status, requested_at, resolved_by, resolved_at`.
+  needs_dm, status, requested_at, resolved_by, resolved_at, item_tag, note`.
+  - **`note`** is the only place a request can say what the player actually
+    wants, in their own words. Today it carries the graffiti reward's chosen
+    appearance/name/description, written by `merit_graf_conf.nss` through
+    `Merit_SetRedemptionNote` (see [CLAUDE-graffiti.md](CLAUDE-graffiti.md)).
+    Like `item_tag` it is an `ALTER TABLE` migration, so every reader must
+    tolerate its absence — `bin/roadmap_merit.py:has_note_column()` is the
+    out-of-game guard, and `Merit_BuildPendingPage` uses `COALESCE(note,'')`.
   - `status` lifecycle: `pending → fulfilled | cancelled`. Instant rewards are
     inserted already `fulfilled` with `resolved_by='auto'`.
 - **`merit_ledger`** — append-only audit log of every merit movement: `id, cdkey,
@@ -74,6 +81,12 @@ they can't afford it, says so up front (no "Yes" offered).
     player is told to pick it up. Any new instant reward that hands a player
     something real must follow the same deliver-then-charge order so a failed
     creation can never bill the player.
+
+**Graffiti (301) is DM-fulfilled but no longer blind.** Requesting it teleports
+the player to the Well of Eru (`Merit_PostRequestHook`), where an easel lets them
+pick any placeable appearance in the game and name it; confirming with Barliman
+writes that onto `redemptions.note`. The DM still places the real placeable by
+hand. Full map: [CLAUDE-graffiti.md](CLAUDE-graffiti.md).
 
 Current `needs_dm = 0` (instant): teleports 101–107, all premium 201–204,
 tournament gear 302. `needs_dm = 1` (DM): graffiti 301, wallet 303, **Become a
@@ -146,6 +159,7 @@ it in `Merit_GetReward` if a reward changes class. Keep the `Merit_Spend` /
 | 5020–5027 | Player stat block (`Merit_SetNpcTokens`) |
 | 5037      | Player **confirmation** prompt (`Merit_PrepConfirm`) |
 | 5038      | DM **redemption** detail: selected request |
+| 5039      | Player: graffiti (301) "is this the one?" prompt (`merit_graf_prep`) |
 | 5040–5049 | DM redemption pending list (5049 = header) |
 | 5050–5059 | Player "my pending requests" list (5059 = header) |
 | 5060–5068 | Player category option labels (red placeholder prefix) |
@@ -164,7 +178,9 @@ intact.
 
 - **Player:** NPC `merit_keeper` (tag/resref unchanged) — now **Barliman
   Butterbur**, a bartender appearance (`Appearance_Type` 234), placed in
-  `theprancingpo001` (Prancing Pony). Conversation `meritconv.dlg.json`: greeting
+  `theprancingpo001` (Prancing Pony) **and in `thewelloferu`** (the Well of Eru,
+  beside the graffiti easel - that second instance is what makes the graffiti
+  confirm branch reachable). Conversation `meritconv.dlg.json`: greeting
   → stats → category sub-menus → option slots (`merit_cat_<c>`, `merit_pick_<i>`)
   → **confirmation step** (`e_confirm_choice`: `merit_ci_instant`/`merit_ci_dm`
   gate the Yes; `merit_finalize` commits via `Merit_GrantInstant` or

@@ -73,6 +73,23 @@ void Merit_InitDb()
         SqlStep(qa);
     }
 
+    // Migration: `note` carries what the player actually asked for, when the
+    // reward's one-line label cannot say it - the graffiti reward (301) records
+    // the appearance, name and description chosen at the Well of Eru easel here.
+    // Same PRAGMA-guarded shape as item_tag above, and the same reason: meritdb
+    // is the SHARED cross-season database, so this is the only thing that
+    // backfills the column on a realm that has already created the table.
+    int bHasNote = FALSE;
+    sqlquery qpn = SqlPrepareQueryCampaign(MERIT_DB, "PRAGMA table_info(redemptions)");
+    while (SqlStep(qpn))
+        if (SqlGetString(qpn, 1) == "note") { bHasNote = TRUE; break; }
+    if (!bHasNote)
+    {
+        sqlquery qan = SqlPrepareQueryCampaign(MERIT_DB,
+            "ALTER TABLE redemptions ADD COLUMN note TEXT");
+        SqlStep(qan);
+    }
+
     // Migration: the players table predates the `uat` column. Same shape as the
     // item_tag migration above - CREATE TABLE IF NOT EXISTS will not add a
     // column to a table that already exists, and meritdb is the SHARED

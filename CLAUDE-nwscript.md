@@ -122,11 +122,22 @@ These token numbers are in use module-wide — don't reuse them:
 | 4958 | Family gold balance |
 | 6000–6002 | Bank teller: gold, family gold, XP reserve balances |
 | **6100–6102** | **Colour tokens: red, yellow, close (set in `onmoduleload.nss`)** |
+| 6500–6518 | `graf_inc.nss` — Well of Eru graffiti easel (6500 heading, 6501 page-of, 6502 selection summary, 6510–6518 row labels) |
 | 90001–90002 | `brc_wheel.nss` — prize wheel |
+
+The `50xx` block is **already double-booked** between the merit shop
+(`CLAUDE-merit.md`) and the bestiary (`bst_db.nss`, 5030–5041) — don't extend it.
+A new paged menu should take a fresh block above 6400.
 
 ## Persistence
 
-The module does NOT use NWNX. Persistence is via:
+The module **does** use NWNX (this line used to say the opposite, and was
+wrong): the plugins enabled in `server.env` are Creature, Administration, Player,
+Object, Util, Events, Effect, Damage, MaxLevel, ELC, Tweaks, DotNET, Profiler and
+Metrics/InfluxDB. Headers live in `unpacked/nwnx_*.nss`; enabling a plugin needs
+the include **and** `NWNX_<PLUGIN>_SKIP=n` in `server.env` **and** a restart.
+Live callers include `fat_inc.nss`, `pers_state_inc.nss`, `cbd_inc.nss`,
+`mod_cliententer.nss` and `graf_inc.nss`. Persistence is via:
 
 - `GetLocalInt/Float/String/Object` — per-object scratch state,
   cleared on object destruction or area cleanup.

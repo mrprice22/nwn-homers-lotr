@@ -16,6 +16,7 @@
 // Custom token map (this file):
 //   5037        Player: confirmation-step prompt (delivery type / affordability)
 //   5038        DM: selected-request description (detail entry)
+//   5039        Player: graffiti (301) confirm-your-mark prompt
 //   5040-5048   DM: pending-redemption list slot labels
 //   5049        DM: pending-redemption list header
 //   5050-5058   Player: own-pending list slot labels ([Cancel] rows)
@@ -178,6 +179,66 @@ void Merit_NotifyOnline(string sCdKey, string sMsg)
 // Request / cancel / fulfill
 
 // Returns TRUE if a pending request was created (cost escrowed).
+// The reward whose delivery needs more than its catalogue label to describe.
+const int MERIT_REWARD_GRAFFITI = 301;
+
+// Open (pending) request id for this CD key and reward, or 0. Same shape as
+// Merit_TeleOwned's ownership probe.
+int Merit_PendingIdFor(string sCdKey, int nRewardId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        "SELECT id FROM redemptions WHERE cdkey=@k AND reward_id=@r"
+        + " AND status='pending' ORDER BY id DESC LIMIT 1");
+    SqlBindString(q, "@k", sCdKey);
+    SqlBindInt(q, "@r", nRewardId);
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return 0;
+}
+
+// What the player actually asked for, in their own words, on a still-open
+// request. This is the only free text on a redemption row; the DM reads it in
+// the EmoteWand list and on the roadmap editor's Pending panel.
+int Merit_SetRedemptionNote(int nReqId, string sNote)
+{
+    if (nReqId <= 0) return FALSE;
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        "UPDATE redemptions SET note=@n WHERE id=@i AND status='pending'");
+    SqlBindString(q, "@n", sNote);
+    SqlBindInt(q, "@i", nReqId);
+    SqlStep(q);
+    return TRUE;
+}
+
+string Merit_GetRedemptionNote(int nReqId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
+        "SELECT COALESCE(note,'') FROM redemptions WHERE id=@i");
+    SqlBindInt(q, "@i", nReqId);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return "";
+}
+
+// Delivery that happens the moment a DM-fulfilled request is filed. Kept out of
+// Merit_RequestById's body so that function stays about accounting; add a
+// branch here rather than another special case up there.
+void Merit_PostRequestHook(object oPC, int nId)
+{
+    if (nId != MERIT_REWARD_GRAFFITI) return;
+
+    // The graffiti is chosen at an easel in the Well of Eru, so put the player
+    // in front of it. Same VFX-then-jump shape as the rest-menu travel options
+    // (_teleportbree.nss / tele_woe.nss).
+    object oWP = GetWaypointByTag("wp_placeablecustomizer");
+    if (!GetIsObjectValid(oWP)) return;
+
+    SendMessageToPC(oPC, "[Merit] To the Well of Eru with you - choose your mark "
+        + "at the mason's plinth, then tell Barliman which one you want.");
+    AssignCommand(oPC, ClearAllActions());
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_UNSUMMON), oPC);
+    DelayCommand(1.0, AssignCommand(oPC, ActionJumpToObject(oWP)));
+}
+
 int Merit_RequestById(object oPC, int nId)
 {
     // REALM GATE. The shop is open to everyone on production and to whitelisted
@@ -238,6 +299,8 @@ int Merit_RequestById(object oPC, int nId)
     SendMessageToAllDMs("[Merit] " + GetPCPlayerName(oPC) + " requested redemption #"
         + IntToString(nReqId) + ": " + r.label + " (" + IntToString(r.cost) + " merit"
         + (r.needs_dm ? ", DM approval" : "") + "). EmoteWand > [Admin] Merit Redemptions.");
+
+    Merit_PostRequestHook(oPC, nId);
     return TRUE;
 }
 
@@ -416,7 +479,8 @@ void Merit_BuildPendingPage(object oDM)
     }
 
     sqlquery q = SqlPrepareQueryCampaign(MERIT_DB,
-        "SELECT id, player_name, reward_label, cost, needs_dm FROM redemptions"
+        "SELECT id, player_name, reward_label, cost, needs_dm, COALESCE(note,'')"
+        + " FROM redemptions"
         + " WHERE status='pending' ORDER BY requested_at LIMIT 9 OFFSET @o");
     SqlBindInt(q, "@o", nOff);
     i = 0;
@@ -427,8 +491,12 @@ void Merit_BuildPendingPage(object oDM)
         string sL  = SqlGetString(q, 2);
         int nCost  = SqlGetInt(q, 3);
         int nDm    = SqlGetInt(q, 4);
+        string sNote = SqlGetString(q, 5);
         string sDesc = "#" + IntToString(nId) + " " + sN + ": " + sL
             + " (" + IntToString(nCost) + " merit" + (nDm ? ", DM approval" : "") + ")";
+        // The note is what the player actually asked for; without it a graffiti
+        // request reads as nothing but its catalogue label.
+        if (sNote != "") sDesc += "  --  " + sNote;
         SetLocalInt(oDM, "merit_lslot_" + IntToString(i), nId);
         SetLocalString(oDM, "merit_lslot_" + IntToString(i) + "_desc", sDesc);
         SetCustomToken(5040 + i, sDesc);
@@ -580,6 +648,14 @@ void Merit_PrepConfirm(object oPC, int nId)
         Merit_BuildTournament(oPC);
         SetCustomToken(5037, "A fine choice - " + IntToString(r.cost)
             + " merit for one piece of Tournament gear, yours on the spot (this cannot be undone). Pick one:");
+        return;
+    }
+    if (nId == MERIT_REWARD_GRAFFITI)
+    {
+        SetCustomToken(5037, "Your mark on the Well of Eru, then - "
+            + IntToString(r.cost) + " merit. I'll send you straight there; pick "
+            + "the shape you want at the mason's plinth, then come and tell me "
+            + "which it is. A DM sets it in stone after that.");
         return;
     }
     if (r.needs_dm == 0)

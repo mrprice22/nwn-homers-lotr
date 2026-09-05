@@ -111,6 +111,21 @@ def merit_connect():
     return con
 
 
+def has_note_column(con) -> bool:
+    """Whether meritdb's redemptions table has the `note` column yet.
+
+    Optional for exactly the same reason as `uat` below: the column is added by
+    Merit_InitDb() at module load (unpacked/merit_db.nss), meritdb is shared
+    across seasons, and a realm that has not yet loaded a module carrying that
+    migration still has the old table.
+    """
+    try:
+        return any(r[1] == "note" for r in
+                   con.execute("PRAGMA table_info(redemptions)").fetchall())
+    except sqlite3.Error:
+        return False
+
+
 def has_uat_column(con) -> bool:
     """Whether meritdb's players table has the `uat` column yet.
 

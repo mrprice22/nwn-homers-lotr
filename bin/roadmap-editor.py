@@ -411,6 +411,7 @@ merit_db_problem = MERIT.merit_db_problem
 _merit_text = MERIT.merit_text
 _merit_connect = MERIT.merit_connect
 _has_uat_column = MERIT.has_uat_column
+_has_note_column = MERIT.has_note_column
 _row_uat = MERIT.row_uat
 _name_candidates = MERIT.name_candidates
 _resolve_player_row = MERIT.resolve_player_row
@@ -434,9 +435,14 @@ def merit_for_player(roadmap_name: str) -> dict:
         spent = row["merit_spent"] or 0
         earned = (bugs * MERIT_RATE_BUG + features * MERIT_RATE_FEATURE
                   + exploits * MERIT_RATE_EXPLOIT + uat * MERIT_RATE_UAT)
+        # `note` is what the player asked for in their own words (the graffiti
+        # reward's chosen appearance, for one). Optional: meritdb is shared
+        # across seasons, so a realm that has not loaded the migration yet
+        # still has the old table.
+        note_col = ", COALESCE(note,'') AS note" if _has_note_column(con) else ""
         txns = [dict(r) for r in con.execute(
             "SELECT reward_label, reward_id, item_tag, cost, status, "
-            "requested_at, resolved_at, needs_dm FROM redemptions "
+            "requested_at, resolved_at, needs_dm" + note_col + " FROM redemptions "
             "WHERE cdkey = ? ORDER BY id DESC",
             (row["cdkey"],)).fetchall()]
         return {
@@ -458,9 +464,10 @@ def pending_requests() -> dict:
         return {"available": False, "count": 0, "rows": [],
                 "reason": f"meritdb not found at {merit_db_path()}"}
     try:
+        note_col = ", COALESCE(note,'') AS note" if _has_note_column(con) else ""
         rows = [dict(r) for r in con.execute(
             "SELECT id, player_name, reward_label, cost, needs_dm, "
-            "requested_at FROM redemptions "
+            "requested_at" + note_col + " FROM redemptions "
             "WHERE status = 'pending' AND needs_dm = 1 "
             "ORDER BY requested_at").fetchall()]
         return {"available": True, "count": len(rows), "rows": rows}
@@ -4861,10 +4868,11 @@ function renderMeritIngame(name){
           <td class="cost">${t.cost}</td>
           <td><span class="st ${st}">${esc(t.status||'')}</span></td>
           <td class="muted">${esc(when)}</td>
+          <td>${esc(t.note||'')}</td>
         </tr>`;
       }).join('');
       const table = txns.length ? `<table class="txns">
-        <tr><th>Reward</th><th>Tag</th><th style="text-align:right">Cost</th><th>Status</th><th>When</th></tr>
+        <tr><th>Reward</th><th>Tag</th><th style="text-align:right">Cost</th><th>Status</th><th>When</th><th>Note</th></tr>
         ${rows}</table>`
         : `<div class="sub">No merit-spending transactions.</div>`;
       box.innerHTML=`<div class="merit">
@@ -5436,6 +5444,59 @@ function renderHandoff(){
   lockFormIfReadOnly();
 }
 
+// ---- folding a server-side step write back into the open form -------------
+// /api/uat-claim, /api/uat-result and /api/step-status each write ONE step
+// straight to roadmap.yaml and hand back the server's copy of the idea. The open
+// form has to take those fields WITHOUT being rebuilt: initHandoff() (and worse,
+// a full load()) discards every unsaved edit in the hand-off panel, and because
+// these writes also re-baseline formSnapshot the loss was silent -- the
+// unsaved-changes guard had already been told the form was clean.
+const STEP_SERVER_FIELDS = ['status','claimed_by','result','tested_by','tested_on'];
+
+// Locate the working copy of a step the server just wrote. Index first (nothing
+// reorders steps), falling back to a text match so an unsaved insert or delete
+// in the panel can't land the merge on the wrong row.
+function hoStepFor(index, src){
+  const text = ((typeof src === 'string' ? src : src.step) || '').trim();
+  const at = HO.manual_steps[index];
+  if (at && (at.step||'').trim() === text) return at;
+  const hit = HO.manual_steps.find(s=>(s.step||'').trim() === text);
+  return hit || at || null;
+}
+
+// `fields` defaults to the tester-owned half of a step; /api/step-status also
+// moves kind and tester, so it passes those in.
+function mergeServerIdea(idea, fields){
+  if (!HO || !idea || !selRef || selRef.id !== idea.id) return false;
+  const wasClean = !isDirty();
+  const keys = fields || STEP_SERVER_FIELDS;
+  (idea.manual_steps||[]).forEach((src,i)=>{
+    if (typeof src === 'string') return;
+    const dst = hoStepFor(i, src);
+    if (dst) keys.forEach(k=>{ dst[k] = src[k] || (k==='blocker' ? false : ''); });
+  });
+  // A credit the server added (uat-result pays the tester in) is appended;
+  // validators picked here and not yet saved stay where they are.
+  const have = new Set(HO.uat_credits.map(c=>(c.player||'').toLowerCase()));
+  (idea.uat_credits||[]).forEach(c=>{
+    const player = ((typeof c === 'string') ? c : c.player) || '';
+    if (!player || have.has(player.toLowerCase())) return;
+    have.add(player.toLowerCase());
+    HO.uat_credits.push({player, awarded:!!(c.awarded), date:(c.date||'')});
+  });
+  // Comments are append-only and server-owned; the panel only displays them.
+  HO.comments = (idea.comments||[]).map(c=>
+    (typeof c === 'string')
+      ? {author:'', date:'', text:c}
+      : {author:c.author||'', date:c.date||'', text:c.text||''});
+  renderHandoff();
+  // Re-baseline only when there was nothing to lose. A form that WAS dirty must
+  // stay dirty, or the guard goes blind again and the next navigation drops the
+  // edits without asking.
+  if (wasClean) formSnapshot = snapshot();
+  return true;
+}
+
 // ---- The tester lane: claim, report, comment ------------------------------
 // All three go through one helper because they share a contract: one narrow
 // write, then reload so the page shows what the server actually stored (these
@@ -5448,18 +5509,23 @@ async function testerWrite(url, body, ok){
       body: JSON.stringify(Object.assign({id: idea.id}, body))});
     const d = await r.json();
     if (!d.ok){
-      banner('err', (d.errors||[d.message||'refused']).join(' '));
+      banner('bad', (d.errors||[d.message||'refused']).join(' '));
       return;
     }
     banner('ok', d.message || ok);
-    // Reload rather than patch in place: the server may have moved the status,
-    // added a uat_credits row and stamped tested_by/tested_on in one write, and
-    // guessing at that from here is how the two copies drift.
-    const keep = idea.id;
-    await load();
-    const i = DATA.ideas.findIndex(x=>x.id===keep);
-    if (i>=0) select(i);
-  } catch(e){ banner('err', 'write failed: '+e.message); }
+    // Take the server's copy of the idea -- it may have moved the status, added
+    // a uat_credits row and stamped tested_by/tested_on in one write -- but fold
+    // it into the OPEN FORM rather than reloading the page's document. The
+    // reload that used to stand here rebuilt the form from disk and so threw
+    // away every edit the admin had not saved yet (steps just ticked done, a
+    // half-written note, a changed status), with no prompt, because claiming a
+    // check is not a navigation and never went through guard().
+    if (d.idea) Object.assign(idea, d.idea);
+    baseVersion = d.version || baseVersion;
+    if (d.hashes && baseHashes) Object.assign(baseHashes, d.hashes);
+    mergeServerIdea(idea);
+    renderList();
+  } catch(e){ banner('bad', 'write failed: '+e.message); }
 }
 
 function uatClaim(i, release){
@@ -6491,10 +6557,11 @@ async function stepWrite(id, index, patch){
   // hand-off panel's HO, a snapshot of this idea's steps taken back when the
   // form was opened, which still says every step is open.
   if (res.hashes && baseHashes) Object.assign(baseHashes, res.hashes);
-  // …and that snapshot has to be refreshed, or the very next Save undoes this
-  // write. formSnapshot follows it so the unsaved-changes guard keeps measuring
-  // against what is really on screen.
-  if (selRef && selRef.id === id){ initHandoff(selRef); formSnapshot = snapshot(); }
+  // …and the open form's working copy has to take the same write, or the very
+  // next Save undoes it. Merged field-by-field rather than rebuilt: the panel
+  // may hold unsaved edits, and this queue is usually driven with a form open
+  // behind it.
+  mergeServerIdea(it, STEP_SERVER_FIELDS.concat(Object.keys(patch)));
   renderQueue();
 }
 
@@ -6519,7 +6586,7 @@ async function queueClaim(id, index, release){
     if (res.idea) Object.assign(it, res.idea);
     baseVersion = res.version || baseVersion;
     if (res.hashes && baseHashes) Object.assign(baseHashes, res.hashes);
-    if (selRef && selRef.id === id){ initHandoff(selRef); formSnapshot = snapshot(); }
+    mergeServerIdea(it);
     banner('ok', res.message || 'Done.');
     renderQueue();
   } catch(e){ banner('bad', 'Claim failed: '+e.message); }
@@ -6879,11 +6946,12 @@ function openPending(){
         <td>${esc(t.reward_label||'')}</td>
         <td class="cost">${t.cost}</td>
         <td class="muted">${esc(when)}</td>
+        <td>${esc(t.note||'')}</td>
       </tr>`;
     }).join('');
     const body = d.count
       ? `<table class="txns">
-          <tr><th>ID</th><th>Player</th><th>Reward</th><th style="text-align:right">Cost</th><th>Requested</th></tr>
+          <tr><th>ID</th><th>Player</th><th>Reward</th><th style="text-align:right">Cost</th><th>Requested</th><th>Note</th></tr>
           ${rows}</table>`
       : `<p class="small">No open DM-delivery requests. 🎉</p>`;
     modalHTML(`<h2>${d.count} Pending Merit Request${d.count===1?'':'s'}</h2>

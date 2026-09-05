@@ -34,6 +34,7 @@
 #include "tele_db"
 #include "pw_inc"
 #include "fat_inc"
+#include "graf_inc"
 
 
 void main()
@@ -323,5 +324,13 @@ FAT_InitDb();
 // this very load, so the healing debt resets with them. Stacks persist across a
 // LOGOUT (that is the anti-dodge rule), never across a restart.
 FAT_WipeAll();
+
+// Well of Eru graffiti easel (merit reward 301): the player's chosen appearance
+// lives in graffitidb, but the canvas showing it is a script-created placeable,
+// which no reboot preserves. Recreate the schema, then repaint whatever the
+// easel was last displaying - a pick is meant to survive everything short of a
+// DM setting it in stone. See CLAUDE-graffiti.md.
+Graf_InitDb();
+Graf_RestoreCanvas();
 
 }   //end of main
