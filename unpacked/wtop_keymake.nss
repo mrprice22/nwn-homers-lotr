@@ -4,7 +4,8 @@
 // standing beside wtop_key_box ("Mysterious Object", an old oven). The admin's
 // recipe:
 //
-//   kill the four Amon Sul unit types for their four key-shards (42% each,
+//   kill the four Amon Sul unit types for their four key-shards (a per-player,
+//   per-type 33/66/100% pity cycle - at most three kills of a type per shard,
 //   see wtop_death.nss) -> put one of EACH into the oven -> pull this lever ->
 //   look in the oven again and the whole key is inside -> that key opens
 //   wtop_4key_door once and is eaten in the turning.
