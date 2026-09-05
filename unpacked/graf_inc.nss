@@ -29,6 +29,11 @@ const string GRAF_CANVAS_WP = "wp_graffiti_canvas";
 
 const int GRAF_PAGE = 9;
 
+// How far out from the pedestal the canvas stands, in metres, along the
+// pedestal's own facing. 3.0 puts it hard against the alcove's east wall;
+// the wp_graffiti_canvas waypoint overrides position and facing outright.
+const float GRAF_CANVAS_DIST = 3.0;
+
 int      Graf_Now();
 object   Graf_Pedestal();
 location Graf_CanvasLoc();
@@ -67,12 +72,13 @@ location Graf_CanvasLoc()
     object oPed = Graf_Pedestal();
     if (!GetIsObjectValid(oPed)) return GetStartingLocation();
 
-    // 2m out along the pedestal's facing, so the canvas stands in front of it
-    // and follows if the admin moves the pedestal in the toolset.
+    // GRAF_CANVAS_DIST out along the pedestal's facing, so the canvas stands in
+    // front of it and follows if the admin moves the pedestal in the toolset.
     float f = GetFacing(oPed);
     vector v = GetPosition(oPed);
     vector d = AngleToVector(f);          // degrees -> unit direction
-    vector vOut = Vector(v.x + 2.0 * d.x, v.y + 2.0 * d.y, v.z);
+    vector vOut = Vector(v.x + GRAF_CANVAS_DIST * d.x,
+                         v.y + GRAF_CANVAS_DIST * d.y, v.z);
     return Location(GetArea(oPed), vOut, f);
 }
 
@@ -272,12 +278,19 @@ void Graf_BuildPage(object oPC)
     else                 Graf_BuildThemePage(oPC);
 }
 
-// Step one appearance forward/back inside the current pick's category, so the
-// player can nudge through neighbouring looks without paging a menu.
+// Step one appearance forward/back inside the category on screen (or, from the
+// top menu, the current pick's own category), so the player can nudge through
+// neighbouring looks without clicking every row of every page. Wraps at both
+// ends, and drags the paged list along with it when the list is up.
 void Graf_Step(object oPC, int nDelta)
 {
     struct graf_pick p = Graf_GetPick(oPC);
-    string sCat = p.category;
+    // While the model list is up, the category on screen is the one to step
+    // through - otherwise stepping would walk the picked model's category and
+    // repaint a list that is showing a different one.
+    string sCat = "";
+    if (GetLocalInt(oPC, "graf_mode") == 2) sCat = GetLocalString(oPC, "graf_cat");
+    if (sCat == "") sCat = p.category;
     if (sCat == "") sCat = GetLocalString(oPC, "graf_cat");
     if (sCat == "")
     {
@@ -288,20 +301,44 @@ void Graf_Step(object oPC, int nDelta)
         SetLocalString(oPC, "graf_cat", sCat);
         Graf_SetAppearance(oPC, Graf_AppAt(sCat, 0));
         Graf_RenderFor(oPC);
+        SetLocalInt(oPC, "graf_page_off", 0);
+        if (GetLocalInt(oPC, "graf_mode") == 2) Graf_BuildAppPage(oPC);
         return;
     }
     // Keep the breadcrumb honest when the pick came from a previous session.
     if (GetLocalString(oPC, "graf_theme") == "")
         SetLocalString(oPC, "graf_theme", Graf_CatThemeOf(sCat));
 
+    // The sort position counts only when the current pick actually lives in the
+    // category being stepped; if it does not, step onto that category's head.
     int nPos = 0;
+    int nHave = FALSE;
     sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT,
-        "SELECT sort FROM appearances WHERE id=@i");
+        "SELECT sort FROM appearances WHERE id=@i AND category=@c");
     SqlBindInt(q, "@i", p.appearance);
-    if (SqlStep(q)) nPos = SqlGetInt(q, 0);
+    SqlBindString(q, "@c", sCat);
+    if (SqlStep(q))
+    {
+        nPos = SqlGetInt(q, 0);
+        nHave = TRUE;
+    }
 
-    int nId = Graf_AppAt(sCat, nPos + nDelta);
+    // The same wrap Graf_AppAt does internally, done here as well so we know
+    // WHICH row we landed on - that is what lets the browse list follow along.
+    int nSize = Graf_CatSize(sCat);
+    if (nSize <= 0) return;
+    int nNew = 0;
+    if (nHave) nNew = nPos + nDelta;
+    while (nNew < 0)      nNew += nSize;
+    while (nNew >= nSize) nNew -= nSize;
+
+    int nId = Graf_AppAt(sCat, nNew);
     if (nId <= 0) return;
     Graf_SetAppearance(oPC, nId);
     Graf_RenderFor(oPC);
+
+    // Keep the paged menu on the page that holds the model now showing, so
+    // stepping past a page boundary does not leave a stale list behind.
+    SetLocalInt(oPC, "graf_page_off", (nNew / GRAF_PAGE) * GRAF_PAGE);
+    if (GetLocalInt(oPC, "graf_mode") == 2) Graf_BuildAppPage(oPC);
 }

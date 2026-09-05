@@ -7172,7 +7172,7 @@ ideas:
         status: open
         kind: admin
         blocker: true
-      - step: "Optional: the canvas sits 2m in front of the pedestal, computed from its facing. To pin it elsewhere, place a waypoint tagged `wp_graffiti_canvas` where you want it."
+      - step: "Optional: the canvas sits 3m in front of the pedestal, computed from its facing (GRAF_CANVAS_DIST in graf_inc.nss). To pin it elsewhere, place a waypoint tagged `wp_graffiti_canvas` where you want it."
         status: open
         kind: toolset
       - step: "Prancing Pony -> Barliman -> Vanity & swag -> Graffiti the Well of Eru -> confirm. 5 merit is held, a pending request appears, and you are teleported to the Well of Eru."
@@ -7203,3 +7203,42 @@ ideas:
         status: open
         kind: uat
         tester: "admin"
+  - id: graffiti-easel-tuning
+    title: "Graffiti easel: readable canvas, a real plinth, step-through browsing and a way out"
+    group: economy
+    status: manual
+    hidden: true
+    type: Enhancement
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-05"
+    notes: "<div>First pass of polish on the <b>Graffiti the Well of Eru</b> easel. The plinth now looks like a plinth instead of a burning statue, and the stone beside it stands closer to the wall. You can mouse over and examine the stone to read the name and inscription you gave it. While browsing the looks you can step one model at a time with <b>[Next look &gt;]</b> / <b>[&lt; Previous look]</b> instead of clicking every row on every page - the list follows along and wraps at both ends. And the easel now offers <b>[Take me back to the Well.]</b>, so you are no longer stuck in the alcove.</div>"
+    impl_notes: "<div><b>Canvas readable.</b> graf_canvas.utp had Useable 0: a non-useable placeable has no tooltip and cannot be examined, so the SetName/SetDescription the player types were invisible. Now Useable 1, still with no OnUsed and no Conversation - only the pedestal is talkable. Plot 1 / Static 0 / HasInventory 0 were already right (Static must stay 0 or the object is not scriptable at all).<br><br><b>Canvas position.</b> The 2.0m literal in Graf_CanvasLoc() is now the named constant GRAF_CANVAS_DIST = 3.0, which puts the stone against the alcove's east wall. A waypoint tagged wp_graffiti_canvas still overrides position and facing outright.<br><br><b>Pedestal look.</b> Appearance 431 ('Flaming', a burning statue) -&gt; 76 ('Pedestal 1', base BioWare, no hak dependency). Changed on BOTH graf_pedestal.utp.json and the placed instance in thewelloferu.git.json - placeable instances carry their own Appearance and no build gate covers placeable divergence.<br><br><b>Step-through browsing.</b> graf_step_n / graf_step_p existed but were wired only to the easel's top menu. They are now also on the paged model list, gated on the new StartingConditional graf_in_cat (graf_mode == 2). Graf_Step now computes the wrapped row index itself instead of only taking the id back, sets graf_page_off to that row's page and repaints via Graf_BuildAppPage, so stepping past a page boundary no longer leaves a stale list; and while the list is up it steps the category ON SCREEN rather than the picked model's own category, landing on that category's head when the current pick is not in it.<br><br><b>The alcove soft-lock.</b> The easel sits in a pocket of thewelloferu (x 50-60, y 50-90) fenced off from the rest of the area, whose only exit was an unscripted 1.2 x 1.4m click-to-transition trigger with the merit-301 arrival waypoint sitting inside its polygon - a PC materialising on top of it could not path into it ('you cannot get close enough to enter'). Three changes: new graf_exit.nss on a '[Take me back to the Well.]' reply that jumps to the 'respawn' waypoint with no pathfinder involved (same target portpchome.nss uses); the trigger widened to a plain 3 x 3m square centred on the shaft of light that marks the exit; and wp_placeablecustomizer moved north to (55.04, 79.0), clear of the polygon. Moving it also moves where reward 301 lands, which is intended.<br><br>New scripts: graf_exit.nss, graf_in_cat.nss. Touched: graf_inc.nss, graf_conv.dlg.json (replies 18-20 appended, so no re-indexing), graf_canvas.utp.json, graf_pedestal.utp.json, thewelloferu.git.json.</div>"
+    manual_steps:
+      - step: "The pedestal is a stone plinth, not a burning statue, and the stone beside it stands ~3m out, hard against the east wall of the alcove."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Pick any look, set a name and an inscription in the pop-up form, then MOUSE OVER the stone (tooltip shows the name) and EXAMINE it (description shows). This is the flag that was wrong before."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "On the list of looks, '[Next look >]' and '[< Previous look]' step one model at a time, the preview repaints, and the page number follows the model across a page boundary. Step backwards off row 1 and forwards off the last row: both must wrap, not dead-end."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Check the two step rows do NOT appear on the theme page or the kinds page - only on the list of looks."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "'[Take me back to the Well.]' at the top menu returns you to the Well's respawn point and releases the easel claim (a second player can then use it immediately)."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Walk into the shaft of light by the arrival point: the widened floor transition should now also take you back, and buying reward 301 should drop you a few metres north of it rather than on top of it."
+        status: open
+        kind: uat
+        tester: "any"
+      - step: "Options for the Homeless -> Teleports -> Weather Top lands you in Weather Hills at (124.97, 65.59) facing the hill. No code change - the fix shipped in 0212fc25f43 but the running dev realm predates that build, so this is purely a check that the realm cycled."
+        status: open
+        kind: uat
+        tester: "any, with can_homeless"
