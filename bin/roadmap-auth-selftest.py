@@ -99,6 +99,32 @@ def test_roles() -> None:
     check("admin and dm can also record UAT work",
           A.User("a", "admin").can("uat") and A.User("d", "dm").can("uat"))
 
+    # The `bot` tier, asserted exactly like the tester one. nwnbot runs
+    # unattended with a password in a file, so what it CANNOT do is the whole
+    # security story -- and the server enforces it in
+    # enforce_idea_permissions() regardless of what the client believes.
+    bot = A.User("b", "bot")
+    check("bot can read the roadmap", bot.can("view"))
+    check("bot can save ideas", bot.can("edit"))
+    check("bot can append an idea comment", bot.can("uat"))
+    for cap in sorted(A.BOT_FORBIDDEN):
+        check(f"bot cannot {cap}", not bot.can(cap))
+    check("BOT_FORBIDDEN names only real capabilities",
+          A.BOT_FORBIDDEN <= set(A.CAPS))
+    # Same whitelist argument as the tester: BOT_FORBIDDEN catches a cap handed
+    # to the role, but only this catches a NEW capability nobody forbade.
+    check("bot holds nothing outside view/edit/uat",
+          bot.caps == {"view", "edit", "uat"})
+    # The two irreversible-in-public things, named explicitly because they are
+    # the reason this role exists at all rather than reusing `dm`.
+    check("bot cannot ship an item", not bot.can("promote_shipped"))
+    check("bot cannot pay merit", not bot.can("merit"))
+    # Every capability is either granted or forbidden -- no third bucket that a
+    # future CAPS entry could quietly fall into.
+    check("bot's granted and forbidden caps partition CAPS",
+          bot.caps | A.BOT_FORBIDDEN == set(A.CAPS)
+          and not (bot.caps & A.BOT_FORBIDDEN))
+
 
 def test_users_and_sessions() -> None:
     section("Users and sessions")

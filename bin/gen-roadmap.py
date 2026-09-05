@@ -162,6 +162,9 @@ IDEA_FIELDS = {
     "type", "player",
     "date", "commit", "notes", "notes_h", "impl_notes", "impl_notes_h",
     "dupe_of", "design_questions", "manual_steps", "uat_credits",
+    # Set by nwnbot: which forum thread this idea is mirrored to. Nothing on
+    # the public board renders it; it is the link the sync bot reads back.
+    "discord",
     # Internal, append-only per-idea notes. Nothing here renders them: they are
     # how a tester (who has no `edit`) adds information to an item.
     "comments",

@@ -85,6 +85,17 @@ ROLES: dict[str, set[str]] = {
     "admin": set(CAPS),
     "dm": set(CAPS) - {"promote_shipped", "merit"},
     "tester": {"view", "uat", "serverlog", "release_notes"},
+    # nwnbot, the Discord forum <-> roadmap sync. It mirrors forum threads into
+    # ideas (`edit`, what /api/save gates on) and appends to an idea's internal
+    # `comments` list (`uat`, what /api/idea-comment gates on). Deliberately NOT
+    # `promote_shipped` or `merit`: shipping an item and paying merit are the
+    # admin's, and enforce_idea_permissions() refuses both for this role
+    # independently of anything the bot believes about itself -- which is the
+    # point of running it as its own role rather than as a `dm`. Also no
+    # `publish`, `audit_view` or `merit_view`: an unattended process has no
+    # business republishing the wiki, or reading who changed what and what every
+    # player is owed. No `serverlog` either; it never looks at the realm.
+    "bot": {"view", "edit", "uat"},
     # Sketch for later; not offered by the CLI until it is wanted. Note it has
     # no `audit_view`: who changed what is staff information, not a player's.
     # "player": {"view", "submit"},
@@ -94,6 +105,7 @@ ROLE_LABELS = {
     "admin": "Administrator",
     "dm": "Dungeon Master",
     "tester": "Tester",
+    "bot": "Sync Bot",
 }
 
 # Capabilities a `tester` must never acquire. Asserted by
@@ -107,6 +119,21 @@ TESTER_FORBIDDEN: frozenset[str] = frozenset((
     # carries `hidden` items and the commits no roadmap item claimed, which is
     # staff information for the same reason `audit_view` is.
     "release_notes_admin",
+))
+
+# Capabilities the `bot` role must never acquire, asserted the same way. The
+# bot is an unattended process holding a password in a file, so the blast
+# radius of widening it by accident is larger than for a human tier: it would
+# be a robot that can ship items, pay merit and republish the wiki.
+BOT_FORBIDDEN: frozenset[str] = frozenset((
+    "promote_shipped", "merit", "publish", "llm_review", "palette",
+    "serverlog", "audit_view", "merit_view",
+    # `submit` is reserved for a future `player` role. The bot creates ideas
+    # through /api/save, which gates on `edit`, so it has no need of it.
+    "submit",
+    # Release notes are written for an audience of people, and the admin
+    # audience carries `hidden` items and unclaimed commits besides.
+    "release_notes", "release_notes_admin",
 ))
 
 # Statuses a role without `promote_shipped` may not move an item into. This is

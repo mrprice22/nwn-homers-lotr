@@ -76,8 +76,9 @@ PUBLISH_COMMIT_MSG = "Roadmap: publish update via roadmap editor"
 # required; the rest are emitted only when present.
 FIELD_ORDER = ["id", "title", "group", "epic", "status", "hidden",
                "merit_awarded", "type",
-               "player", "date", "commit", "notes", "notes_h", "impl_notes",
-               "impl_notes_h", "dupe_of", "design_questions", "manual_steps",
+               "player", "date", "commit", "discord",
+               "notes", "notes_h", "impl_notes", "impl_notes_h",
+               "dupe_of", "design_questions", "manual_steps",
                "uat_credits", "comments"]
 # `merit_awarded` records that meritdb was really credited for this idea, which
 # `status: awarded` alone cannot: status can bounce back to `implemented` and
