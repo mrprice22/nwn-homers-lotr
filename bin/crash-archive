@@ -257,6 +257,28 @@ def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
         # Straight copy of the compressed blob -- no dump, no recompression.
         shutil.copy2(core, staging / "core.zst")
 
+    # Evidence, not a verdict. The first question about any core is "what was it
+    # doing", and the second is "was this even a real crash" -- nwserver commonly
+    # segfaults during its own clean exit, so a core timestamped near the daily
+    # restart is usually the restart. Both are answered by the tail of the engine
+    # log, so put it in the manifest rather than making the reader go find it.
+    #
+    # Deliberately NOT auto-classifying. The signals disagree in practice (a
+    # reboot-on-empty shutdown produced a core with NO "Server shutting down"
+    # line, while an unrelated crash's paired log had one), and a confident
+    # wrong label is worse than the raw lines.
+    tail_lines: list[str] = []
+    shutdown_marker = False
+    if log_dir:
+        engine = log_dir / "nwengineLog.txt"
+        if engine.is_file():
+            try:
+                lines = engine.read_text(encoding="utf-8", errors="replace").splitlines()
+                shutdown_marker = any("Server shutting down" in ln for ln in lines[-400:])
+                tail_lines = [redact(ln) for ln in lines[-25:]]
+            except OSError:
+                pass
+
     manifest = {
         "instance": instance,
         "crashed_at": when.isoformat(),
@@ -266,6 +288,12 @@ def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
         "core_captured": bool(core),
         "core_bytes": core.stat().st_size if core else 0,
         "log_dir": log_dir.name if log_dir else None,
+        # True means the engine logged a clean shutdown in that boot. Suggestive
+        # only -- read `last_log_lines` and the crash time before concluding.
+        # A core near the daily restart (ANVIL_RESTART_DAILY, then the host
+        # reboot) is very often the restart rather than a player-facing crash.
+        "clean_shutdown_logged": shutdown_marker,
+        "last_log_lines": tail_lines,
         "archived_at": datetime.now(timezone.utc).isoformat(),
         "note": (
             "coredumpctl-info.txt is REDACTED. core.zst is NOT and cannot be: "
@@ -283,14 +311,58 @@ def build_archive(entry: dict, info: str, instance: str, run_dir: Path,
     return target
 
 
-def prune(dest_dir: Path, keep_days: int, apply: bool) -> None:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=keep_days)
+def archive_age_anchor(path: Path) -> datetime:
+    """When the crash happened, per its own manifest; mtime only as a fallback."""
+    manifest = path / "manifest.json"
+    try:
+        raw = json.loads(manifest.read_text(encoding="utf-8")).get("crashed_at")
+        if isinstance(raw, str):
+            stamp = datetime.fromisoformat(raw)
+            return stamp if stamp.tzinfo else stamp.replace(tzinfo=timezone.utc)
+    except (OSError, json.JSONDecodeError, ValueError):
+        pass
+    return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+
+
+def prune(dest_dir: Path, keep_days: int, keep_core_days: int, apply: bool) -> None:
+    """Two-stage retention: cores go early, the paper trail stays.
+
+    A core is ~45 MB and this box has ONE spinning disk shared with the live
+    season, NWSync and the backups. The metadata and logs are a few KB and are
+    what anyone actually reads weeks later -- the core is only useful while
+    someone is still debugging that specific crash. So drop core.zst first and
+    keep the directory, rather than treating the whole archive as one lump.
+    """
+    now = datetime.now(timezone.utc)
+    core_cutoff = now - timedelta(days=keep_core_days)
+    # NB: ages are measured from the CRASH, not from when this tool ran. A core
+    # recovered from systemd days after the fact would otherwise look brand new
+    # and sit for the full retention starting from its archive date.
+    full_cutoff = now - timedelta(days=keep_days)
+
     for path in sorted(dest_dir.glob("crash-*")):
-        stamp = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
-        if stamp < cutoff:
+        if not path.is_dir():
+            continue
+        stamp = archive_age_anchor(path)
+        if stamp < full_cutoff:
             print(f"  prune {path.name} ({stamp.date()})")
             if apply:
-                shutil.rmtree(path, ignore_errors=True) if path.is_dir() else path.unlink(missing_ok=True)
+                shutil.rmtree(path, ignore_errors=True)
+            continue
+        core = path / "core.zst"
+        if core.is_file() and stamp < core_cutoff:
+            print(f"  drop core from {path.name} ({stamp.date()}, "
+                  f"{core.stat().st_size / 1e6:.0f} MB) — logs kept")
+            if apply:
+                core.unlink(missing_ok=True)
+                manifest = path / "manifest.json"
+                try:
+                    data = json.loads(manifest.read_text(encoding="utf-8"))
+                    data["core_captured"] = False
+                    data["core_pruned_at"] = now.isoformat()
+                    manifest.write_text(json.dumps(data, indent=2), encoding="utf-8")
+                except (OSError, json.JSONDecodeError):
+                    pass
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -306,7 +378,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--run-dir", type=Path,
                     default=Path(env["NWN_RUN_DIR"]) if env.get("NWN_RUN_DIR") else None)
     ap.add_argument("--instance", help="only this season instance")
-    ap.add_argument("--keep", type=int, default=90, help="days of archives to retain (default 90)")
+    ap.add_argument("--keep", type=int, default=90,
+                    help="days to retain the crash metadata + logs (default 90)")
+    ap.add_argument("--keep-cores", type=int, default=21,
+                    help="days to retain the ~45MB core.zst itself (default 21); "
+                         "the archive and its logs survive to --keep")
     args = ap.parse_args(argv)
 
     entries = coredump_entries()
@@ -347,7 +423,7 @@ def main(argv: list[str] | None = None) -> int:
             made += 1
 
     if args.dest.is_dir():
-        prune(args.dest, args.keep, apply)
+        prune(args.dest, args.keep, args.keep_cores, apply)
 
     if not apply:
         print("crash-archive: nothing written (re-run with --apply)")
