@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script graf_db</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>graf_db</code></h1><pre class="nss-source"><code>// graf_db.nss - storage + catalogue reads for the Well of Eru graffiti easel.
+//
+// Two campaign DBs are involved and they do different jobs:
+//
+//   placeappdb  READ-ONLY reference, ~9,500 rows, published from the host by
+//               bin/publish-placeable-db.py out of module-index/
+//               placeable_appearances.json. Every placeable *appearance* in the
+//               module&#x27;s haks, with a CEP category. Never written from game.
+//   graffitidb  per-season player state: each CD key&#x27;s in-progress pick, and
+//               the easel&#x27;s own claim/last-rendered state.
+//
+// The pick survives a cancelled conversation, a logout and a reboot on purpose -
+// the player is choosing a permanent monument, not browsing a shop. See
+// CLAUDE-graffiti.md.
+
+const string GRAF_DB  = &quot;graffitidb&quot;;
+const string GRAF_CAT = &quot;placeappdb&quot;;
+
+// How long a claim on the easel survives with no interaction, in seconds.
+const int GRAF_CLAIM_TTL = 180;
+
+struct graf_pick
+{
+    int    found;
+    int    appearance;
+    string app_name;
+    string category;
+    string name;
+    string descr;
+};
+
+void          Graf_InitDb();
+struct graf_pick Graf_GetPick(object oPC);
+void          Graf_SetAppearance(object oPC, int nId);
+void          Graf_SetText(object oPC, string sName, string sDescr);
+string        Graf_State(string sKey);
+void          Graf_SetState(string sKey, string sVal, int nVal = 0);
+int           Graf_StateInt(string sKey);
+string        Graf_AppName(int nId);
+string        Graf_AppCategory(int nId);
+int           Graf_ThemeTotal();
+int           Graf_ThemeSize(string sTheme);
+int           Graf_CatSize(string sCat);
+string        Graf_CatThemeOf(string sCat);
+string        Graf_CatAt(string sTheme, int nIndex);
+string        Graf_ThemeAt(int nIndex);
+int           Graf_AppAt(string sCat, int nIndex);
+string        Graf_Sanitize(string s, int nMax);
+
+// ------------------------------------------------------------ schema
+
+void Graf_InitDb()
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_DB,
+        &quot;CREATE TABLE IF NOT EXISTS picks (&quot;
+        + &quot;cdkey TEXT PRIMARY KEY,&quot;
+        + &quot;appearance INTEGER NOT NULL DEFAULT 0,&quot;
+        + &quot;app_name TEXT, category TEXT,&quot;
+        + &quot;name TEXT, descr TEXT,&quot;
+        + &quot;updated_at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)))&quot;);
+    SqlStep(q);
+
+    // Single-row-per-key scratch table: &#x27;claim&#x27; holds the CD key currently
+    // working the easel (ival = unix time of the last interaction), &#x27;shown&#x27;
+    // holds the CD key whose pick the canvas is currently displaying, so
+    // Graf_RestoreCanvas can rebuild it after a reboot.
+    q = SqlPrepareQueryCampaign(GRAF_DB,
+        &quot;CREATE TABLE IF NOT EXISTS easel (&quot;
+        + &quot;skey TEXT PRIMARY KEY, ival INTEGER NOT NULL DEFAULT 0, sval TEXT,&quot;
+        + &quot;updated_at TEXT NOT NULL DEFAULT (datetime(&#x27;now&#x27;)))&quot;);
+    SqlStep(q);
+}
+
+// ------------------------------------------------------------ the pick
+
+struct graf_pick Graf_GetPick(object oPC)
+{
+    struct graf_pick p;
+    p.found = FALSE;
+    p.appearance = 0;
+
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_DB,
+        &quot;SELECT appearance, app_name, category, name, descr FROM picks WHERE cdkey=@k&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    if (SqlStep(q))
+    {
+        p.found      = TRUE;
+        p.appearance = SqlGetInt(q, 0);
+        p.app_name   = SqlGetString(q, 1);
+        p.category   = SqlGetString(q, 2);
+        p.name       = SqlGetString(q, 3);
+        p.descr      = SqlGetString(q, 4);
+    }
+    return p;
+}
+
+void Graf_SetAppearance(object oPC, int nId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_DB,
+        &quot;INSERT INTO picks (cdkey, appearance, app_name, category, updated_at)&quot;
+        + &quot; VALUES (@k, @a, @n, @c, datetime(&#x27;now&#x27;))&quot;
+        + &quot; ON CONFLICT(cdkey) DO UPDATE SET appearance=@a, app_name=@n,&quot;
+        + &quot; category=@c, updated_at=datetime(&#x27;now&#x27;)&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindInt(q, &quot;@a&quot;, nId);
+    SqlBindString(q, &quot;@n&quot;, Graf_AppName(nId));
+    SqlBindString(q, &quot;@c&quot;, Graf_AppCategory(nId));
+    SqlStep(q);
+}
+
+void Graf_SetText(object oPC, string sName, string sDescr)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_DB,
+        &quot;INSERT INTO picks (cdkey, name, descr, updated_at)&quot;
+        + &quot; VALUES (@k, @n, @d, datetime(&#x27;now&#x27;))&quot;
+        + &quot; ON CONFLICT(cdkey) DO UPDATE SET name=@n, descr=@d,&quot;
+        + &quot; updated_at=datetime(&#x27;now&#x27;)&quot;);
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindString(q, &quot;@n&quot;, sName);
+    SqlBindString(q, &quot;@d&quot;, sDescr);
+    SqlStep(q);
+}
+
+// ------------------------------------------------------------ easel state
+
+string Graf_State(string sKey)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_DB, &quot;SELECT sval FROM easel WHERE skey=@s&quot;);
+    SqlBindString(q, &quot;@s&quot;, sKey);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return &quot;&quot;;
+}
+
+int Graf_StateInt(string sKey)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_DB, &quot;SELECT ival FROM easel WHERE skey=@s&quot;);
+    SqlBindString(q, &quot;@s&quot;, sKey);
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return 0;
+}
+
+void Graf_SetState(string sKey, string sVal, int nVal = 0)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_DB,
+        &quot;INSERT INTO easel (skey, ival, sval, updated_at)&quot;
+        + &quot; VALUES (@s, @i, @v, datetime(&#x27;now&#x27;))&quot;
+        + &quot; ON CONFLICT(skey) DO UPDATE SET ival=@i, sval=@v, updated_at=datetime(&#x27;now&#x27;)&quot;);
+    SqlBindString(q, &quot;@s&quot;, sKey);
+    SqlBindInt(q, &quot;@i&quot;, nVal);
+    SqlBindString(q, &quot;@v&quot;, sVal);
+    SqlStep(q);
+}
+
+// ------------------------------------------------------------ catalogue
+
+string Graf_AppName(int nId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT, &quot;SELECT name FROM appearances WHERE id=@i&quot;);
+    SqlBindInt(q, &quot;@i&quot;, nId);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return &quot;&quot;;
+}
+
+string Graf_AppCategory(int nId)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT, &quot;SELECT category FROM appearances WHERE id=@i&quot;);
+    SqlBindInt(q, &quot;@i&quot;, nId);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return &quot;&quot;;
+}
+
+int Graf_ThemeTotal()
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT, &quot;SELECT COUNT(*) FROM themes&quot;);
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return 0;
+}
+
+// How many CATEGORIES a theme holds (not appearances) - it is the row count the
+// category page pages through.
+int Graf_ThemeSize(string sTheme)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT, &quot;SELECT n FROM themes WHERE name=@t&quot;);
+    SqlBindString(q, &quot;@t&quot;, sTheme);
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return 0;
+}
+
+int Graf_CatSize(string sCat)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT, &quot;SELECT n FROM categories WHERE name=@c&quot;);
+    SqlBindString(q, &quot;@c&quot;, sCat);
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return 0;
+}
+
+string Graf_CatThemeOf(string sCat)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT,
+        &quot;SELECT theme FROM categories WHERE name=@c&quot;);
+    SqlBindString(q, &quot;@c&quot;, sCat);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return &quot;&quot;;
+}
+
+// Category name at position nIndex within a theme.
+string Graf_CatAt(string sTheme, int nIndex)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT,
+        &quot;SELECT name FROM categories WHERE theme=@t ORDER BY sort LIMIT 1 OFFSET @o&quot;);
+    SqlBindString(q, &quot;@t&quot;, sTheme);
+    SqlBindInt(q, &quot;@o&quot;, nIndex);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return &quot;&quot;;
+}
+
+// Theme name at position nIndex in the published order.
+string Graf_ThemeAt(int nIndex)
+{
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT,
+        &quot;SELECT name FROM themes ORDER BY sort LIMIT 1 OFFSET @o&quot;);
+    SqlBindInt(q, &quot;@o&quot;, nIndex);
+    if (SqlStep(q)) return SqlGetString(q, 0);
+    return &quot;&quot;;
+}
+
+// Appearance id at position nIndex within a category (wraps at both ends, so
+// &quot;next&quot;/&quot;previous&quot; from the first or last entry never dead-ends).
+int Graf_AppAt(string sCat, int nIndex)
+{
+    int nSize = Graf_CatSize(sCat);
+    if (nSize &lt;= 0) return 0;
+    while (nIndex &lt; 0)      nIndex += nSize;
+    while (nIndex &gt;= nSize) nIndex -= nSize;
+
+    sqlquery q = SqlPrepareQueryCampaign(GRAF_CAT,
+        &quot;SELECT id FROM appearances WHERE category=@c ORDER BY sort LIMIT 1 OFFSET @o&quot;);
+    SqlBindString(q, &quot;@c&quot;, sCat);
+    SqlBindInt(q, &quot;@o&quot;, nIndex);
+    if (SqlStep(q)) return SqlGetInt(q, 0);
+    return 0;
+}
+
+// Strip the two characters that would let player text impersonate a custom
+// token or a colour sequence, and clamp the length. Everything the player types
+// ends up in an NPC&#x27;s dialogue line and in the DM&#x27;s redemption note.
+string Graf_Sanitize(string s, int nMax)
+{
+    string sOut = &quot;&quot;;
+    int i;
+    int nLen = GetStringLength(s);
+    for (i = 0; i &lt; nLen; i++)
+    {
+        string c = GetSubString(s, i, 1);
+        if (c == &quot;&lt;&quot; || c == &quot;&gt;&quot;) continue;
+        sOut += c;
+    }
+    if (GetStringLength(sOut) &gt; nMax) sOut = GetSubString(sOut, 0, nMax);
+    return sOut;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

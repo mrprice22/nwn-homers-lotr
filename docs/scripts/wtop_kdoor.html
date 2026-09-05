@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script wtop_kdoor</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>wtop_kdoor</code></h1><pre class="nss-source"><code>// The sealed door of the hidden court (roadmap: forbidden-realms-key-tier)
+//
+// OnOpen for the area028 door tagged wtop_4key_door. The admin&#x27;s spec, written
+// on the door itself in the toolset:
+//
+//   &quot;Needs all 4 wtop key fragments to open.
+//    Key is consumed on open
+//    Stays open for 10 seconds, making creeking/mechanical noises and jittering
+//    every 2 second
+//    After 10 second total door closes shut and relocks itself - players need
+//    to teleport to get out&quot;
+//
+// The first two lines are DATA, not code, and are already set on the door
+// instance: KeyName &quot;wtop_4key_whole&quot; (the tag of the assembled key made at the
+// lever outside), KeyRequired so the lock cannot simply be picked past, and
+// AutoRemoveKey so the engine eats the key in the turning. This script is the
+// third and fourth lines.
+//
+// The relock is why the court is a committed trip: once the party is through,
+// the only ways out are the ordinary transition on the antechamber side of this
+// door -- which is now shut -- or a teleport. That is deliberate and is the
+// admin&#x27;s call, not an oversight.
+
+const float WTOP_DOOR_OPEN_FOR = 10.0;
+const float WTOP_DOOR_TICK     = 2.0;
+
+// One strain of the mechanism: the locked-door rattle plus a puff of dust off
+// the lintel. Stock sound resrefs, verified against the game&#x27;s own key file.
+void WtopDoorStrain(object oDoor)
+{
+    if (!GetIsObjectValid(oDoor)) return;
+    if (!GetIsOpen(oDoor)) return;          // already slammed; stop rattling
+
+    AssignCommand(oDoor, PlaySound(&quot;as_dr_locked2&quot;));
+    ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+                          EffectVisualEffect(VFX_IMP_DUST_EXPLOSION),
+                          GetLocation(oDoor));
+}
+
+void WtopDoorSlam(object oDoor)
+{
+    if (!GetIsObjectValid(oDoor)) return;
+
+    AssignCommand(oDoor, PlaySound(&quot;as_dr_stonlgcl1&quot;));
+    AssignCommand(oDoor, ActionCloseDoor(oDoor));
+    DelayCommand(1.0, SetLocked(oDoor, TRUE));
+}
+
+void main()
+{
+    object oDoor = OBJECT_SELF;
+
+    AssignCommand(oDoor, PlaySound(&quot;as_dr_stonlgop1&quot;));
+
+    float f;
+    for (f = WTOP_DOOR_TICK; f &lt; WTOP_DOOR_OPEN_FOR; f += WTOP_DOOR_TICK)
+        DelayCommand(f, WtopDoorStrain(oDoor));
+
+    DelayCommand(WTOP_DOOR_OPEN_FOR, WtopDoorSlam(oDoor));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

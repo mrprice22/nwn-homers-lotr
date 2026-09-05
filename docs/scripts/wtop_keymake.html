@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script wtop_keymake</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>wtop_keymake</code></h1><pre class="nss-source"><code>// The ward-forge below Amon Sul (roadmap: forbidden-realms-key-tier)
+//
+// OnUsed for the area028 placeable tagged wtop_key_maker (&quot;Floor lever&quot;),
+// standing beside wtop_key_box (&quot;Mysterious Object&quot;, an old oven). The admin&#x27;s
+// recipe:
+//
+//   kill the four Amon Sul unit types for their four key-shards (a per-player,
+//   per-type 33/66/100% pity cycle - at most three kills of a type per shard,
+//   see wtop_death.nss) -&gt; put one of EACH into the oven -&gt; pull this lever -&gt;
+//   look in the oven again and the whole key is inside -&gt; that key opens
+//   wtop_4key_door once and is eaten in the turning.
+//
+// The four shards are consumed. Spares are NOT: a party that dropped in eight
+// shards keeps the other four, so two characters can each make a key from one
+// oven without either of them losing a ward to the other&#x27;s pull.
+//
+// The oven is Plot in the toolset, so nothing here can destroy the container
+// itself; only its contents are touched.
+
+const string WTOP_BOX_TAG  = &quot;wtop_key_box&quot;;
+const string WTOP_KEY_RR   = &quot;wtop_4key_whole&quot;;
+
+const string SHARD_1 = &quot;wtop_4key_arrow&quot;;
+const string SHARD_2 = &quot;wtop_4key_blade&quot;;
+const string SHARD_3 = &quot;wtop_4key_shade&quot;;
+const string SHARD_4 = &quot;wtop_4key_grave&quot;;
+
+// First item in oBox carrying sTag, or OBJECT_INVALID. Shards are tag == resref
+// by construction (see bin-built wtop_4key_*.uti.json), so either lookup works;
+// the tag form is the one that survives someone re-minting a shard blueprint.
+object WtopShardIn(object oBox, string sTag)
+{
+    object oItem = GetFirstItemInInventory(oBox);
+    while (GetIsObjectValid(oItem))
+    {
+        if (GetTag(oItem) == sTag) return oItem;
+        oItem = GetNextItemInInventory(oBox);
+    }
+    return OBJECT_INVALID;
+}
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!GetIsPC(oPC)) return;
+
+    object oBox = GetNearestObjectByTag(WTOP_BOX_TAG, OBJECT_SELF);
+    if (!GetIsObjectValid(oBox))
+    {
+        SendMessageToPC(oPC, &quot;The lever grinds, and nothing answers it.&quot;);
+        return;
+    }
+
+    object o1 = WtopShardIn(oBox, SHARD_1);
+    object o2 = WtopShardIn(oBox, SHARD_2);
+    object o3 = WtopShardIn(oBox, SHARD_3);
+    object o4 = WtopShardIn(oBox, SHARD_4);
+
+    if (!GetIsObjectValid(o1) || !GetIsObjectValid(o2)
+        || !GetIsObjectValid(o3) || !GetIsObjectValid(o4))
+    {
+        // Name what is missing rather than just failing: four different unit
+        // types drop these and a player has no other way to learn which one
+        // they are still short of.
+        string sMissing = &quot;&quot;;
+        if (!GetIsObjectValid(o1)) sMissing += &quot;\n  the Arrow Ward (Weathertop Archers)&quot;;
+        if (!GetIsObjectValid(o2)) sMissing += &quot;\n  the Blade Ward (Weathertop Fighters)&quot;;
+        if (!GetIsObjectValid(o3)) sMissing += &quot;\n  the Shadow Ward (Weathertop Scouts)&quot;;
+        if (!GetIsObjectValid(o4)) sMissing += &quot;\n  the Grave Ward (the barrow-wights)&quot;;
+
+        AssignCommand(OBJECT_SELF, PlaySound(&quot;as_dr_locked1&quot;));
+        SendMessageToPC(oPC, &quot;The oven shudders, cools, and gives nothing back. &quot;
+            + &quot;The wards inside are not a whole ward. Still wanting:&quot; + sMissing);
+        return;
+    }
+
+    DestroyObject(o1); DestroyObject(o2);
+    DestroyObject(o3); DestroyObject(o4);
+
+    CreateItemOnObject(WTOP_KEY_RR, oBox);
+
+    ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+                          EffectVisualEffect(VFX_FNF_SCREEN_SHAKE),
+                          GetLocation(oBox));
+    AssignCommand(oBox, PlaySound(&quot;as_dr_metllgcl1&quot;));
+
+    SendMessageToPC(oPC, &quot;The lever drops. Something inside the oven takes a &quot;
+        + &quot;long breath of heat, and the four wards run together into one. &quot;
+        + &quot;Whatever is in there now, it is not four pieces any more.&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

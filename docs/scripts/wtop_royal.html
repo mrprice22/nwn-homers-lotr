@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script wtop_royal</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>wtop_royal</code></h1><pre class="nss-source"><code>// The Weathertop King and Queen -- the royal bond (roadmap: forbidden-realms-key-tier)
+//
+// ScriptEndRound on weathertopkin004 and weathertopque003. The admin&#x27;s brief:
+// &quot;king and queen should compliment eachother and together be tougher than the
+// chosen of helms deep, or gandalf&quot;. Individually they already clear that bar
+// (Theoden&#x27;s Chosen 8200 HP / AC 15; Gandalf the Gray 8017 HP / AC 32 / 115
+// feats; the King is 9500 / AC 75 / 169 feats and the Queen 10000 / AC 72).
+// What makes them a PAIR is this script:
+//
+//   BOND  -- while both are alive each carries the other&#x27;s protection:
+//            damage reduction and regeneration. Neither can be burst down while
+//            the other still stands, so a party that splits its damage across
+//            both thrones gets nowhere.
+//   GRIEF -- the moment one falls the survivor loses the bond and turns
+//            dangerous instead of durable: dodge AC, movement speed and a
+//            negative-damage retaliation shield. Killing one is not half the
+//            fight, it is the start of the worse half.
+//
+// The pairing is the whole point: focus one down and you face a faster, harder
+// survivor; spread damage and you face two that will not die. There is no order
+// that makes this cheap.
+//
+// WHY NO ATTACK OR DAMAGE BONUS HERE. Both are pooled module-wide through
+// bonus_pool_inc.nss, because same-type effects are max-of in NWN and the
+// engine additionally clamps weapon-plus-effect attack bonus to
+// GetAttackBonusLimit() (20 by default). An EffectAttackIncrease dropped on a
+// creature whose attack bonus is already ~150 from BAB and Strength would be
+// worth nothing at all, and registering a new pooled source means editing the
+// ledger&#x27;s source table -- a shared file the legendary feats and Bard Song
+// depend on. Everything applied below is outside that argument: damage
+// reduction, regeneration, dodge AC, speed and a damage shield all stack fine
+// against themselves as single sources.
+//
+// Effects are supernatural (undispellable, and they survive a rest) and tagged,
+// so the grief transition can strip exactly the bond and nothing else.
+
+const string RR_KING  = &quot;weathertopkin004&quot;;
+const string RR_QUEEN = &quot;weathertopque003&quot;;
+
+const string TAG_BOND  = &quot;wtop_royal_bond&quot;;
+const string TAG_GRIEF = &quot;wtop_royal_grief&quot;;
+
+const string WTOP_STATE     = &quot;WTOP_ROYAL_STATE&quot;;   // 0 none / 1 bonded / 2 grieving
+const string WTOP_HEAL_CD   = &quot;WTOP_ROYAL_HEALCD&quot;;
+const float  WTOP_HEAL_GAP  = 30.0;
+const int    WTOP_HEAL_AT   = 50;                   // percent of max HP
+
+// The other throne, alive, in this area. Deliberately area-scoped: the court is
+// one room and a hill-side copy must never satisfy the bond.
+object WtopPartner(string sResRef)
+{
+    object oArea = GetArea(OBJECT_SELF);
+    object oObj  = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oObj))
+    {
+        if (GetObjectType(oObj) == OBJECT_TYPE_CREATURE
+            &amp;&amp; GetResRef(oObj) == sResRef
+            &amp;&amp; !GetIsDead(oObj))
+            return oObj;
+        oObj = GetNextObjectInArea(oArea);
+    }
+    return OBJECT_INVALID;
+}
+
+void WtopStrip(object oCre, string sTag)
+{
+    effect e = GetFirstEffect(oCre);
+    while (GetIsEffectValid(e))
+    {
+        if (GetEffectTag(e) == sTag) RemoveEffect(oCre, e);
+        e = GetNextEffect(oCre);
+    }
+}
+
+void WtopApplyBond(object oCre)
+{
+    effect eLink = EffectLinkEffects(
+        EffectDamageReduction(30, DAMAGE_POWER_PLUS_TWENTY),
+        EffectRegenerate(200, 6.0));
+    eLink = TagEffect(SupernaturalEffect(eLink), TAG_BOND);
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, eLink, oCre);
+}
+
+void WtopApplyGrief(object oCre)
+{
+    effect eLink = EffectLinkEffects(
+        EffectLinkEffects(EffectACIncrease(20),
+                          EffectMovementSpeedIncrease(50)),
+        EffectDamageShield(50, DAMAGE_BONUS_2d12, DAMAGE_TYPE_NEGATIVE));
+    eLink = TagEffect(SupernaturalEffect(eLink), TAG_GRIEF);
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, eLink, oCre);
+
+    SpeakString(GetResRef(OBJECT_SELF) == RR_KING
+                ? &quot;You have taken my Queen. Now there is nothing left to spare you for.&quot;
+                : &quot;My King is down. I will not be taken alive a second time.&quot;,
+                TALKVOLUME_TALK);
+}
+
+void main()
+{
+    ExecuteScript(&quot;x2_def_endcombat&quot;, OBJECT_SELF);
+
+    string sSelf = GetResRef(OBJECT_SELF);
+    if (sSelf != RR_KING &amp;&amp; sSelf != RR_QUEEN) return;
+
+    object oPartner = WtopPartner(sSelf == RR_KING ? RR_QUEEN : RR_KING);
+    int nState = GetLocalInt(OBJECT_SELF, WTOP_STATE);
+
+    if (GetIsObjectValid(oPartner))
+    {
+        if (nState != 1)
+        {
+            WtopStrip(OBJECT_SELF, TAG_GRIEF);
+            WtopApplyBond(OBJECT_SELF);
+            SetLocalInt(OBJECT_SELF, WTOP_STATE, 1);
+        }
+
+        // The Queen is the half of the pair that mends: she pulls the King back
+        // off the floor once every 30 seconds while he is under half health.
+        // The King has no answer for her in kind -- which is the reason a party
+        // that knows the fight kills the Queen first, and then has to deal with
+        // a grieving King.
+        if (sSelf == RR_QUEEN
+            &amp;&amp; !GetLocalInt(OBJECT_SELF, WTOP_HEAL_CD)
+            &amp;&amp; GetCurrentHitPoints(oPartner) * 100
+               &lt; GetMaxHitPoints(oPartner) * WTOP_HEAL_AT)
+        {
+            SetLocalInt(OBJECT_SELF, WTOP_HEAL_CD, TRUE);
+            DelayCommand(WTOP_HEAL_GAP,
+                         SetLocalInt(OBJECT_SELF, WTOP_HEAL_CD, FALSE));
+            ActionCastSpellAtObject(SPELL_HEAL, oPartner, METAMAGIC_ANY, TRUE);
+        }
+        return;
+    }
+
+    if (nState != 2)
+    {
+        WtopStrip(OBJECT_SELF, TAG_BOND);
+        WtopApplyGrief(OBJECT_SELF);
+        SetLocalInt(OBJECT_SELF, WTOP_STATE, 2);
+    }
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

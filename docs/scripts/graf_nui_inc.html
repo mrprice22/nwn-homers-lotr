@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script graf_nui_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>graf_nui_inc</code></h1><pre class="nss-source"><code>// graf_nui_inc.nss - the little NUI form that captures the graffiti&#x27;s name and
+// description. A conversation cannot take typed input, so this is the one bit
+// of the easel that is not a dialogue node. Shaped after dye_nui_inc.nss.
+#include &quot;nw_inc_nui&quot;
+#include &quot;graf_inc&quot;
+
+const string GRAF_NUI_ID  = &quot;graffiti&quot;;
+const string GRAF_NUI_TOK = &quot;GRAF_TOK&quot;;
+
+const int GRAF_NAME_MAX  = 40;
+const int GRAF_DESCR_MAX = 240;
+
+json Graf_NuiWindow(object oPC);
+void Graf_NuiSave(object oPC);
+
+json Graf_NuiWindow(object oPC)
+{
+    json jCol = JsonArray();
+
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(
+        JsonString(&quot;Your mark on the Well of Eru&quot;),
+        JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 22.0));
+
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(
+        JsonString(&quot;Name (what hovering over it shows)&quot;),
+        JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE)), 18.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiId(NuiTextEdit(
+        JsonString(&quot;Frodo was here&quot;), NuiBind(&quot;gname&quot;), GRAF_NAME_MAX, FALSE),
+        &quot;gname&quot;), 28.0));
+
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(
+        JsonString(&quot;Description (what examining it reads)&quot;),
+        JsonInt(NUI_HALIGN_LEFT), JsonInt(NUI_VALIGN_MIDDLE)), 18.0));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiId(NuiTextEdit(
+        JsonString(&quot;- and the road goes ever on&quot;), NuiBind(&quot;gdescr&quot;),
+        GRAF_DESCR_MAX, TRUE), &quot;gdescr&quot;), 110.0));
+
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiLabel(NuiBind(&quot;gstat&quot;),
+        JsonInt(NUI_HALIGN_CENTER), JsonInt(NUI_VALIGN_MIDDLE)), 20.0));
+
+    json jFoot = JsonArray();
+    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Save&quot;)), &quot;bsave&quot;));
+    jFoot = JsonArrayInsert(jFoot, NuiId(NuiButton(JsonString(&quot;Close&quot;)), &quot;bclose&quot;));
+    jCol = JsonArrayInsert(jCol, NuiHeight(NuiRow(jFoot), 32.0));
+
+    float ww = 420.0;
+    float wh = 300.0;
+    float wx = -1.0;
+    float wy = -1.0;
+    int gw = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_WIDTH);
+    int gh = GetPlayerDeviceProperty(oPC, PLAYER_DEVICE_PROPERTY_GUI_HEIGHT);
+    if (gw &gt; 0 &amp;&amp; gh &gt; 0)
+    {
+        wx = (IntToFloat(gw) - ww) / 2.0;
+        wy = (IntToFloat(gh) - wh) / 2.0;
+        if (wx &lt; 0.0) wx = 0.0;
+        if (wy &lt; 0.0) wy = 0.0;
+    }
+
+    return NuiWindow(NuiCol(jCol), JsonString(&quot;Your Mark&quot;),
+        NuiRect(wx, wy, ww, wh),
+        JsonBool(FALSE),   // resizable
+        JsonBool(FALSE),   // collapsed
+        JsonBool(TRUE),    // closable
+        JsonBool(FALSE),   // transparent
+        JsonBool(TRUE));   // border
+}
+
+void Graf_NuiSave(object oPC)
+{
+    int nTok = GetLocalInt(oPC, GRAF_NUI_TOK);
+    if (nTok == 0) return;
+
+    string sName  = Graf_Sanitize(JsonGetString(NuiGetBind(oPC, nTok, &quot;gname&quot;)),
+                                  GRAF_NAME_MAX);
+    string sDescr = Graf_Sanitize(JsonGetString(NuiGetBind(oPC, nTok, &quot;gdescr&quot;)),
+                                  GRAF_DESCR_MAX);
+
+    Graf_SetText(oPC, sName, sDescr);
+    Graf_RenderFor(oPC);        // the canvas carries the new text immediately
+    NuiSetBind(oPC, nTok, &quot;gstat&quot;, JsonString(&quot;Saved. The stone reads it now.&quot;));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script wtop_cmage</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>wtop_cmage</code></h1><pre class="nss-source"><code>// Weathertop Royal Magus -- Greater Ruin (roadmap: forbidden-realms-key-tier)
+//
+// ScriptEndRound on wtop_crtmage. Chains the module default first so the
+// Jasperre combat AI is untouched, then throws Greater Ruin (SPELL_EPIC_RUIN,
+// spells.2da row 640 -- the epic spell whose own VFX constant is
+// VFX_FNF_GREATER_RUIN) at the nearest enemy player, once per minute.
+//
+// Cast with bCheat = TRUE, so the Magus needs neither FEAT_EPIC_SPELL_RUIN nor
+// a prepared slot. That is deliberate: a spell SLOT empties for the rest of the
+// fight, and epic spell uses only come back on a rest, so a slot-based Ruin
+// would fire once ever and then never again however long the fight ran. The
+// admin asked for one that refreshes every minute, and a scripted cooldown is
+// the only thing that actually refreshes.
+//
+// The cooldown is REAL seconds (a local flag cleared by DelayCommand), not the
+// game-clock arithmetic wtop_taunt.nss uses for its shout spacing -- game hours
+// run far faster than real ones, and &quot;once per minute&quot; here means a minute.
+// A DelayCommand on a creature is dropped when that creature is destroyed, so a
+// Magus that dies and respawns comes back with Ruin ready, which is correct.
+
+const string WTOP_RUIN_CD = &quot;WTOP_RUIN_CD&quot;;
+const float  WTOP_RUIN_REFRESH = 60.0;
+
+void main()
+{
+    ExecuteScript(&quot;x2_def_endcombat&quot;, OBJECT_SELF);
+
+    if (GetLocalInt(OBJECT_SELF, WTOP_RUIN_CD)) return;
+
+    object oTarget = GetNearestCreature(CREATURE_TYPE_REPUTATION,
+                                        REPUTATION_TYPE_ENEMY, OBJECT_SELF, 1,
+                                        CREATURE_TYPE_PLAYER_CHAR,
+                                        PLAYER_CHAR_IS_PC);
+    if (!GetIsObjectValid(oTarget)) return;
+    if (GetIsDead(oTarget)) return;
+
+    SetLocalInt(OBJECT_SELF, WTOP_RUIN_CD, TRUE);
+    DelayCommand(WTOP_RUIN_REFRESH,
+                 SetLocalInt(OBJECT_SELF, WTOP_RUIN_CD, FALSE));
+
+    ActionCastSpellAtObject(SPELL_EPIC_RUIN, oTarget, METAMAGIC_ANY, TRUE);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

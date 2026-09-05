@@ -64,18 +64,20 @@
   <main>
 <h1>Conversation: <code>meritconv</code></h1>
 <dl class="meta">
-<dt>NPC lines</dt><dd>9</dd>
-<dt>PC replies</dt><dd>56</dd>
+<dt>NPC lines</dt><dd>10</dd>
+<dt>PC replies</dt><dd>59</dd>
 <dt>NumWords</dt><dd>0</dd>
 <dt>OnEnd</dt><dd><code>nw_walk_wp</code></dd>
 <dt>OnAbort</dt><dd><code>nw_walk_wp</code></dd>
 </dl>
 <h2>Triggered by</h2><ul class="dlg-callers">
-<li><span class="badge">creature</span> NPC <a href="../creatures/merit_keeper.html">Barliman Butterbur</a> <code>merit_keeper</code> — in <a href="../areas/theprancingpo001.html">The Prancing Pony Ground Floor</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/merit_keeper.html">Barliman Butterbur</a> <code>merit_keeper</code> — in <a href="../areas/theprancingpo001.html">The Prancing Pony Ground Floor</a>, <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
 <li><span class="badge">creature</span> NPC <a href="../creatures/merit_keeper.html">Barliman Butterbur</a> — in <a href="../areas/theprancingpo001.html">The Prancing Pony Ground Floor</a></li>
+<li><span class="badge">creature</span> NPC <a href="../creatures/merit_keeper.html">Barliman Butterbur</a> — in <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
 </ul>
 <h2>Scripts referenced</h2>
-<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>merit_gate</code></td><td>active</td><td>✓</td><td></td></tr>
+<table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>merit_graf_vis</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>merit_gate</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_gate_no</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_lvis_0</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_lvis_1</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -99,6 +101,7 @@
 <tr><td><code>merit_tvis_7</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_tvis_8</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_thas_next</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>merit_graf_ok</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_npc_init</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_mypend</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_cat_0</code></td><td>action</td><td>✓</td><td></td></tr>
@@ -135,7 +138,9 @@
 <tr><td><code>merit_mcanc_5</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_mcanc_6</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>merit_mcanc_7</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>merit_mcanc_8</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>merit_mcanc_8</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>merit_graf_prep</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>merit_graf_conf</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
 <h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM5020&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
 <tr><td><code>&lt;CUSTOM5021&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
 <tr><td><code>&lt;CUSTOM5022&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
@@ -147,6 +152,7 @@
 <tr><td><code>&lt;CUSTOM5028&gt;</code></td><td><a href="../scripts/merit_db.html">merit_db</a></td></tr>
 <tr><td><code>&lt;CUSTOM5029&gt;</code></td><td><a href="../scripts/bst_db.html">bst_db</a>, <a href="../scripts/merit_db.html">merit_db</a></td></tr>
 <tr><td><code>&lt;CUSTOM5037&gt;</code></td><td><a href="../scripts/merit_redeem.html">merit_redeem</a></td></tr>
+<tr><td><code>&lt;CUSTOM5039&gt;</code></td><td><a href="../scripts/merit_graf_prep.html">merit_graf_prep</a></td></tr>
 <tr><td><code>&lt;CUSTOM5050&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5051&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
 <tr><td><code>&lt;CUSTOM5052&gt;</code></td><td><em class="muted">not found in static analysis</em></td></tr>
@@ -186,26 +192,24 @@
 <div class="dlg-text">Welcome to the Prancing Pony, friend! I&#x27;m Barliman, and I keep the tab on folk who&#x27;ve helped build this realm. Care to see your merit and what it&#x27;ll fetch you?</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>merit_npc_init</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
-<div class="dlg-text">Tell me about my contributions and available rewards.</div>
+<summary><span class="dlg-id">reply #56</span> <span class="dlg-action">→ <code>merit_graf_prep</code></span> <small class="muted">(if <code>merit_graf_vis</code>)</small> <a class="dlg-anchor" href="#r56" title="jump to flat reply #56">¶</a></summary>
+<div class="dlg-text">About my mark on the Well of Eru.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
-<div class="dlg-text">Your lifetime contributions:
-
- Defects reported: <span class="custom-token" title="SetCustomToken(5020, ...) called in: merit_db">&lt;CUSTOM5020&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5023, ...) called in: merit_db">&lt;CUSTOM5023&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
- Exploits reported: <span class="custom-token" title="SetCustomToken(5021, ...) called in: merit_db">&lt;CUSTOM5021&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5024, ...) called in: merit_db">&lt;CUSTOM5024&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
- Features implemented: <span class="custom-token" title="SetCustomToken(5022, ...) called in: merit_db">&lt;CUSTOM5022&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5025, ...) called in: merit_db">&lt;CUSTOM5025&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
- Fixes validated: <span class="custom-token" title="SetCustomToken(5028, ...) called in: merit_db">&lt;CUSTOM5028&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5029, ...) called in: bst_db, merit_db">&lt;CUSTOM5029&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>, <a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
-
-Total merit earned: <span class="custom-token" title="SetCustomToken(5026, ...) called in: merit_db">&lt;CUSTOM5026&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
-Available to spend: <span class="custom-token" title="SetCustomToken(5027, ...) called in: merit_db">&lt;CUSTOM5027&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
-
-What can I do for you?</div>
+<summary><span class="dlg-id">entry #9</span> <a class="dlg-anchor" href="#e9" title="jump to flat entry #9">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(5039, ...) called in: merit_graf_prep">&lt;CUSTOM5039&gt;<sup class="token-setters">[<a href="../scripts/merit_graf_prep.html">merit_graf_prep</a>]</sup></span></div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #3</span> <small class="muted">(if <code>merit_gate</code>)</small> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
-<div class="dlg-text">I&#x27;d like to redeem a reward.</div>
+<summary><span class="dlg-id">reply #57</span> <span class="dlg-action">→ <code>merit_graf_conf</code></span> <small class="muted">(if <code>merit_graf_ok</code>)</small> <a class="dlg-anchor" href="#r57" title="jump to flat reply #57">¶</a></summary>
+<div class="dlg-text">Yes - that&#x27;s the one. Write it down.</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
+<div class="dlg-text">There you are. Anything else I can do for you?</div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #39</span> <a class="dlg-anchor" href="#r39" title="jump to flat reply #39">¶</a></summary>
+<div class="dlg-text">Redeem another reward.</div>
 <div class="dlg-tree-children">
 <details class="dlg-tree-node entry" open>
 <summary><span class="dlg-id">entry #2</span> <a class="dlg-anchor" href="#e2" title="jump to flat entry #2">¶</a></summary>
@@ -233,109 +237,7 @@ What can I do for you?</div>
 <summary><span class="dlg-id">reply #25</span> <span class="dlg-action">→ <code>merit_finalize</code></span> <small class="muted">(if <code>merit_ci_instant</code>)</small> <a class="dlg-anchor" href="#r25" title="jump to flat reply #25">¶</a></summary>
 <div class="dlg-text">Yes, grant it now!</div>
 <div class="dlg-tree-children">
-<details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #5</span> <a class="dlg-anchor" href="#e5" title="jump to flat entry #5">¶</a></summary>
-<div class="dlg-text">There you are. Anything else I can do for you?</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #39</span> <a class="dlg-anchor" href="#r39" title="jump to flat reply #39">¶</a></summary>
-<div class="dlg-text">Redeem another reward.</div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“What sort of reward are you after?”</span></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #40</span> <span class="dlg-action">→ <code>merit_mypend</code></span> <a class="dlg-anchor" href="#r40" title="jump to flat reply #40">¶</a></summary>
-<div class="dlg-text">Show my pending requests.</div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node entry" open>
-<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
-<div class="dlg-text"><span class="custom-token" title="SetCustomToken(5059, ...) called in: merit_redeem">&lt;CUSTOM5059&gt;<sup class="token-setters">[<a href="../scripts/merit_redeem.html">merit_redeem</a>]</sup></span></div>
-<div class="dlg-tree-children">
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #42</span> <span class="dlg-action">→ <code>merit_mcanc_0</code></span> <small class="muted">(if <code>merit_lvis_0</code>)</small> <a class="dlg-anchor" href="#r42" title="jump to flat reply #42">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5050, ...) — no setter found in static analysis">&lt;CUSTOM5050&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #43</span> <span class="dlg-action">→ <code>merit_mcanc_1</code></span> <small class="muted">(if <code>merit_lvis_1</code>)</small> <a class="dlg-anchor" href="#r43" title="jump to flat reply #43">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5051, ...) — no setter found in static analysis">&lt;CUSTOM5051&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #44</span> <span class="dlg-action">→ <code>merit_mcanc_2</code></span> <small class="muted">(if <code>merit_lvis_2</code>)</small> <a class="dlg-anchor" href="#r44" title="jump to flat reply #44">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5052, ...) — no setter found in static analysis">&lt;CUSTOM5052&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #45</span> <span class="dlg-action">→ <code>merit_mcanc_3</code></span> <small class="muted">(if <code>merit_lvis_3</code>)</small> <a class="dlg-anchor" href="#r45" title="jump to flat reply #45">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5053, ...) — no setter found in static analysis">&lt;CUSTOM5053&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #46</span> <span class="dlg-action">→ <code>merit_mcanc_4</code></span> <small class="muted">(if <code>merit_lvis_4</code>)</small> <a class="dlg-anchor" href="#r46" title="jump to flat reply #46">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5054, ...) — no setter found in static analysis">&lt;CUSTOM5054&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #47</span> <span class="dlg-action">→ <code>merit_mcanc_5</code></span> <small class="muted">(if <code>merit_lvis_5</code>)</small> <a class="dlg-anchor" href="#r47" title="jump to flat reply #47">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5055, ...) — no setter found in static analysis">&lt;CUSTOM5055&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #48</span> <span class="dlg-action">→ <code>merit_mcanc_6</code></span> <small class="muted">(if <code>merit_lvis_6</code>)</small> <a class="dlg-anchor" href="#r48" title="jump to flat reply #48">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5056, ...) — no setter found in static analysis">&lt;CUSTOM5056&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #49</span> <span class="dlg-action">→ <code>merit_mcanc_7</code></span> <small class="muted">(if <code>merit_lvis_7</code>)</small> <a class="dlg-anchor" href="#r49" title="jump to flat reply #49">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5057, ...) — no setter found in static analysis">&lt;CUSTOM5057&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>merit_mcanc_8</code></span> <small class="muted">(if <code>merit_lvis_8</code>)</small> <a class="dlg-anchor" href="#r50" title="jump to flat reply #50">¶</a></summary>
-<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5058, ...) — no setter found in static analysis">&lt;CUSTOM5058&gt;</span></div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #51</span> <span class="dlg-action">→ <code>merit_npc_init</code></span> <a class="dlg-anchor" href="#r51" title="jump to flat reply #51">¶</a></summary>
-<div class="dlg-text">(Back)</div>
-<div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></div>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #52</span> <a class="dlg-anchor" href="#r52" title="jump to flat reply #52">¶</a></summary>
-<div class="dlg-text">Farewell.</div>
-</details>
-</div>
-</details>
-</div>
-</details>
-<details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #41</span> <a class="dlg-anchor" href="#r41" title="jump to flat reply #41">¶</a></summary>
-<div class="dlg-text">Farewell.</div>
-</details>
-</div>
-</details>
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e5">entry #5</a> <span class="dlg-link-preview">“There you are. Anything else I can do for you?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -536,15 +438,26 @@ What can I do for you?</div>
 <summary><span class="dlg-id">reply #12</span> <span class="dlg-action">→ <code>merit_npc_init</code></span> <a class="dlg-anchor" href="#r12" title="jump to flat reply #12">¶</a></summary>
 <div class="dlg-text">(Back)</div>
 <div class="dlg-tree-children">
-<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></div>
-</div>
-</details>
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #1</span> <a class="dlg-anchor" href="#e1" title="jump to flat entry #1">¶</a></summary>
+<div class="dlg-text">Your lifetime contributions:
+
+ Defects reported: <span class="custom-token" title="SetCustomToken(5020, ...) called in: merit_db">&lt;CUSTOM5020&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5023, ...) called in: merit_db">&lt;CUSTOM5023&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
+ Exploits reported: <span class="custom-token" title="SetCustomToken(5021, ...) called in: merit_db">&lt;CUSTOM5021&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5024, ...) called in: merit_db">&lt;CUSTOM5024&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
+ Features implemented: <span class="custom-token" title="SetCustomToken(5022, ...) called in: merit_db">&lt;CUSTOM5022&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5025, ...) called in: merit_db">&lt;CUSTOM5025&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
+ Fixes validated: <span class="custom-token" title="SetCustomToken(5028, ...) called in: merit_db">&lt;CUSTOM5028&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5029, ...) called in: bst_db, merit_db">&lt;CUSTOM5029&gt;<sup class="token-setters">[<a href="../scripts/bst_db.html">bst_db</a>, <a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
+
+Total merit earned: <span class="custom-token" title="SetCustomToken(5026, ...) called in: merit_db">&lt;CUSTOM5026&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
+Available to spend: <span class="custom-token" title="SetCustomToken(5027, ...) called in: merit_db">&lt;CUSTOM5027&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
+
+What can I do for you?</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref reply-ref">↩ <a href="#r56">reply #56</a> <span class="dlg-link-preview">“About my mark on the Well of Eru.”</span> <small class="muted">(if <code>merit_graf_vis</code>)</small></div>
 <details class="dlg-tree-node reply" open>
-<summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
-<div class="dlg-text">On second thought, farewell.</div>
-</details>
-</div>
-</details>
+<summary><span class="dlg-id">reply #3</span> <small class="muted">(if <code>merit_gate</code>)</small> <a class="dlg-anchor" href="#r3" title="jump to flat reply #3">¶</a></summary>
+<div class="dlg-text">I&#x27;d like to redeem a reward.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e2">entry #2</a> <span class="dlg-link-preview">“What sort of reward are you after?”</span></div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -570,7 +483,86 @@ Your tally&#x27;s safe where it is. Come see me on the live realm and I&#x27;ll 
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>merit_mypend</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">Show my pending requests (so I can cancel one).</div>
 <div class="dlg-tree-children">
+<details class="dlg-tree-node entry" open>
+<summary><span class="dlg-id">entry #6</span> <a class="dlg-anchor" href="#e6" title="jump to flat entry #6">¶</a></summary>
+<div class="dlg-text"><span class="custom-token" title="SetCustomToken(5059, ...) called in: merit_redeem">&lt;CUSTOM5059&gt;<sup class="token-setters">[<a href="../scripts/merit_redeem.html">merit_redeem</a>]</sup></span></div>
+<div class="dlg-tree-children">
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #42</span> <span class="dlg-action">→ <code>merit_mcanc_0</code></span> <small class="muted">(if <code>merit_lvis_0</code>)</small> <a class="dlg-anchor" href="#r42" title="jump to flat reply #42">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5050, ...) — no setter found in static analysis">&lt;CUSTOM5050&gt;</span></div>
+<div class="dlg-tree-children">
 <div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #43</span> <span class="dlg-action">→ <code>merit_mcanc_1</code></span> <small class="muted">(if <code>merit_lvis_1</code>)</small> <a class="dlg-anchor" href="#r43" title="jump to flat reply #43">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5051, ...) — no setter found in static analysis">&lt;CUSTOM5051&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #44</span> <span class="dlg-action">→ <code>merit_mcanc_2</code></span> <small class="muted">(if <code>merit_lvis_2</code>)</small> <a class="dlg-anchor" href="#r44" title="jump to flat reply #44">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5052, ...) — no setter found in static analysis">&lt;CUSTOM5052&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #45</span> <span class="dlg-action">→ <code>merit_mcanc_3</code></span> <small class="muted">(if <code>merit_lvis_3</code>)</small> <a class="dlg-anchor" href="#r45" title="jump to flat reply #45">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5053, ...) — no setter found in static analysis">&lt;CUSTOM5053&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #46</span> <span class="dlg-action">→ <code>merit_mcanc_4</code></span> <small class="muted">(if <code>merit_lvis_4</code>)</small> <a class="dlg-anchor" href="#r46" title="jump to flat reply #46">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5054, ...) — no setter found in static analysis">&lt;CUSTOM5054&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #47</span> <span class="dlg-action">→ <code>merit_mcanc_5</code></span> <small class="muted">(if <code>merit_lvis_5</code>)</small> <a class="dlg-anchor" href="#r47" title="jump to flat reply #47">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5055, ...) — no setter found in static analysis">&lt;CUSTOM5055&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #48</span> <span class="dlg-action">→ <code>merit_mcanc_6</code></span> <small class="muted">(if <code>merit_lvis_6</code>)</small> <a class="dlg-anchor" href="#r48" title="jump to flat reply #48">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5056, ...) — no setter found in static analysis">&lt;CUSTOM5056&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #49</span> <span class="dlg-action">→ <code>merit_mcanc_7</code></span> <small class="muted">(if <code>merit_lvis_7</code>)</small> <a class="dlg-anchor" href="#r49" title="jump to flat reply #49">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5057, ...) — no setter found in static analysis">&lt;CUSTOM5057&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #50</span> <span class="dlg-action">→ <code>merit_mcanc_8</code></span> <small class="muted">(if <code>merit_lvis_8</code>)</small> <a class="dlg-anchor" href="#r50" title="jump to flat reply #50">¶</a></summary>
+<div class="dlg-text"><span class="custom-token custom-token-unknown" title="SetCustomToken(5058, ...) — no setter found in static analysis">&lt;CUSTOM5058&gt;</span></div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #51</span> <span class="dlg-action">→ <code>merit_npc_init</code></span> <a class="dlg-anchor" href="#r51" title="jump to flat reply #51">¶</a></summary>
+<div class="dlg-text">(Back)</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #52</span> <a class="dlg-anchor" href="#r52" title="jump to flat reply #52">¶</a></summary>
+<div class="dlg-text">Farewell.</div>
+</details>
+</div>
+</details>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
@@ -607,6 +599,47 @@ No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credi
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #13</span> <a class="dlg-anchor" href="#r13" title="jump to flat reply #13">¶</a></summary>
+<div class="dlg-text">On second thought, farewell.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #40</span> <span class="dlg-action">→ <code>merit_mypend</code></span> <a class="dlg-anchor" href="#r40" title="jump to flat reply #40">¶</a></summary>
+<div class="dlg-text">Show my pending requests.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e6">entry #6</a></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #41</span> <a class="dlg-anchor" href="#r41" title="jump to flat reply #41">¶</a></summary>
+<div class="dlg-text">Farewell.</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #58</span> <span class="dlg-action">→ <code>merit_npc_init</code></span> <a class="dlg-anchor" href="#r58" title="jump to flat reply #58">¶</a></summary>
+<div class="dlg-text">Not yet. I&#x27;ll keep working the stone.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></div>
+</div>
+</details>
+</div>
+</details>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>merit_npc_init</code></span> <a class="dlg-anchor" href="#r0" title="jump to flat reply #0">¶</a></summary>
+<div class="dlg-text">Tell me about my contributions and available rewards.</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #1</span> <a class="dlg-anchor" href="#r1" title="jump to flat reply #1">¶</a></summary>
 <div class="dlg-text">How do I earn (and spend) merit?</div>
 <div class="dlg-tree-children">
@@ -621,7 +654,7 @@ No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credi
 </details>
 </div>
 <h2>NPC lines (entries) — flat index</h2>
-<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome to the Prancing Pony, friend! I&#x27;m Barliman, and I keep the tab on folk who&#x27;ve helped build this realm. Care to see your merit and what it&#x27;ll fetch you?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Tell me about my contributions and available rewards.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“How do I earn (and spend) merit?”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Maybe later.”</span></li></ul></div>
+<div class="dlg-node entry" id="e0"><div class="dlg-head"><span class="dlg-id">entry #0</span></div><div class="dlg-text">Welcome to the Prancing Pony, friend! I&#x27;m Barliman, and I keep the tab on folk who&#x27;ve helped build this realm. Care to see your merit and what it&#x27;ll fetch you?</div><ul class="dlg-links"><li><a href="#r56">→ reply #56</a> <span class="dlg-link-preview">“About my mark on the Well of Eru.”</span> <small class="muted">(if <code>merit_graf_vis</code>)</small></li><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Tell me about my contributions and available rewards.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“How do I earn (and spend) merit?”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Maybe later.”</span></li></ul></div>
 <div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text">Your lifetime contributions:
 
  Defects reported: <span class="custom-token" title="SetCustomToken(5020, ...) called in: merit_db">&lt;CUSTOM5020&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> (+<span class="custom-token" title="SetCustomToken(5023, ...) called in: merit_db">&lt;CUSTOM5023&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span> merit)
@@ -632,7 +665,7 @@ No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credi
 Total merit earned: <span class="custom-token" title="SetCustomToken(5026, ...) called in: merit_db">&lt;CUSTOM5026&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
 Available to spend: <span class="custom-token" title="SetCustomToken(5027, ...) called in: merit_db">&lt;CUSTOM5027&gt;<sup class="token-setters">[<a href="../scripts/merit_db.html">merit_db</a>]</sup></span>
 
-What can I do for you?</div><ul class="dlg-links"><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“I&#x27;d like to redeem a reward.”</span> <small class="muted">(if <code>merit_gate</code>)</small></li><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“I&#x27;d like to redeem a reward.”</span> <small class="muted">(if <code>merit_gate_no</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Show my pending requests (so I can cancel one).”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“How does merit work?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“That&#x27;s all for now. Farewell.”</span></li></ul></div>
+What can I do for you?</div><ul class="dlg-links"><li><a href="#r56">→ child</a> <span class="dlg-link-preview">“About my mark on the Well of Eru.”</span> <small class="muted">(if <code>merit_graf_vis</code>)</small></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“I&#x27;d like to redeem a reward.”</span> <small class="muted">(if <code>merit_gate</code>)</small></li><li><a href="#r55">→ reply #55</a> <span class="dlg-link-preview">“I&#x27;d like to redeem a reward.”</span> <small class="muted">(if <code>merit_gate_no</code>)</small></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“Show my pending requests (so I can cancel one).”</span></li><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“How does merit work?”</span></li><li><a href="#r6">→ reply #6</a> <span class="dlg-link-preview">“That&#x27;s all for now. Farewell.”</span></li></ul></div>
 <div class="dlg-node entry" id="e2"><div class="dlg-head"><span class="dlg-id">entry #2</span></div><div class="dlg-text">What sort of reward are you after?
 
 (Everything&#x27;s a proof-of-concept for now. Instant rewards are granted on the spot; the rest are logged as a request and a DM fulfils them - your merit is held until then, and you can cancel for a full refund.)</div><ul class="dlg-links"><li><a href="#r7">→ reply #7</a> <span class="dlg-link-preview">“Teleport &amp; travel”</span></li><li><a href="#r8">→ reply #8</a> <span class="dlg-link-preview">“Premium boosts (2x gold &amp; XP)”</span></li><li><a href="#r9">→ reply #9</a> <span class="dlg-link-preview">“Vanity &amp; swag”</span></li><li><a href="#r10">→ reply #10</a> <span class="dlg-link-preview">“Player housing - claim &amp; size”</span></li><li><a href="#r11">→ reply #11</a> <span class="dlg-link-preview">“Player housing - add-ons”</span></li><li><a href="#r12">→ reply #12</a> <span class="dlg-link-preview">“(Back)”</span></li><li><a href="#r13">→ reply #13</a> <span class="dlg-link-preview">“On second thought, farewell.”</span></li></ul></div>
@@ -649,6 +682,7 @@ No merit yet? No worries at all - pitch in, and come back once a DM&#x27;s credi
 <div class="dlg-node entry" id="e8"><div class="dlg-head"><span class="dlg-id">entry #8</span></div><div class="dlg-text">Ah - the shelves are bare on this one, friend. The merit shop only trades on the live realm; this here&#x27;s the testing house, and I&#x27;ll not have folk spending hard-earned merit on a round that doesn&#x27;t count.
 
 Your tally&#x27;s safe where it is. Come see me on the live realm and I&#x27;ll set out the whole catalogue.</div><ul class="dlg-links"><li><a href="#r12">→ child</a> <span class="dlg-link-preview">“(Back)”</span></li><li><a href="#r6">→ child</a> <span class="dlg-link-preview">“That&#x27;s all for now. Farewell.”</span></li></ul></div>
+<div class="dlg-node entry" id="e9"><div class="dlg-head"><span class="dlg-id">entry #9</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(5039, ...) called in: merit_graf_prep">&lt;CUSTOM5039&gt;<sup class="token-setters">[<a href="../scripts/merit_graf_prep.html">merit_graf_prep</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r57">→ reply #57</a> <span class="dlg-link-preview">“Yes - that&#x27;s the one. Write it down.”</span> <small class="muted">(if <code>merit_graf_ok</code>)</small></li><li><a href="#r58">→ reply #58</a> <span class="dlg-link-preview">“Not yet. I&#x27;ll keep working the stone.”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>merit_npc_init</code></span></div><div class="dlg-text">Tell me about my contributions and available rewards.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span></div><div class="dlg-text">How do I earn (and spend) merit?</div><ul class="dlg-links"><li><a href="#e7">→ entry #7</a> <span class="dlg-link-preview">“Easy enough! Report a bug or suggest a feature - if a DM ships it, you earn meri…”</span></li></ul></div>
@@ -706,6 +740,9 @@ Your tally&#x27;s safe where it is. Come see me on the live realm and I&#x27;ll 
 <div class="dlg-node reply" id="r53"><div class="dlg-head"><span class="dlg-id">reply #53</span> <span class="dlg-action">→ <code>merit_npc_init</code></span></div><div class="dlg-text">(Back)</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></li></ul></div>
 <div class="dlg-node reply" id="r54"><div class="dlg-head"><span class="dlg-id">reply #54</span></div><div class="dlg-text">Farewell.</div></div>
 <div class="dlg-node reply" id="r55"><div class="dlg-head"><span class="dlg-id">reply #55</span></div><div class="dlg-text">I&#x27;d like to redeem a reward.</div><ul class="dlg-links"><li><a href="#e8">→ entry #8</a> <span class="dlg-link-preview">“Ah - the shelves are bare on this one, friend. The merit shop only trades on the…”</span></li></ul></div>
+<div class="dlg-node reply" id="r56"><div class="dlg-head"><span class="dlg-id">reply #56</span> <span class="dlg-action">→ <code>merit_graf_prep</code></span></div><div class="dlg-text">About my mark on the Well of Eru.</div><ul class="dlg-links"><li><a href="#e9">→ entry #9</a></li></ul></div>
+<div class="dlg-node reply" id="r57"><div class="dlg-head"><span class="dlg-id">reply #57</span> <span class="dlg-action">→ <code>merit_graf_conf</code></span></div><div class="dlg-text">Yes - that&#x27;s the one. Write it down.</div><ul class="dlg-links"><li><a href="#e5">→ entry #5</a> <span class="dlg-link-preview">“There you are. Anything else I can do for you?”</span></li></ul></div>
+<div class="dlg-node reply" id="r58"><div class="dlg-head"><span class="dlg-id">reply #58</span> <span class="dlg-action">→ <code>merit_npc_init</code></span></div><div class="dlg-text">Not yet. I&#x27;ll keep working the stone.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“Your lifetime contributions:”</span></li></ul></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>

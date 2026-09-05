@@ -62,13 +62,31 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>_homerweather</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>weathertop</code></dd></dl><pre class="nss-source"><code>  void main()
-{
-object oPC = GetLastSpeaker();
-object theWaypoint = GetWaypointByTag(&quot;weathertop&quot;);
-location rivendelia = GetLocation(theWaypoint);
+<h1>Script: <code>_homerweather</code></h1><dl class="meta"><dt>Teleports to</dt><dd><code>weathertop_tp</code> (<a href="../areas/weatherhills.html">Weather Hills</a>)</dd></dl><pre class="nss-source"><code>// &quot;To. Weather Top&quot; - rest-menu teleport, Options of the Homeless.
+//
+// Target is the &quot;weathertop_tp&quot; waypoint in the Weather Hills area
+// (weatherhills, &quot;Weather Hills&quot;) at (124.97, 65.59, 5.01), bearing 257.3,
+// which is the approach below Amon Sul with the hill ahead of the arriving PC.
+//
+// This entry used to look up a waypoint tagged &quot;weathertop&quot;, which does not
+// exist anywhere in the module - GetWaypointByTag returned OBJECT_INVALID and
+// JumpToLocation on an invalid location silently did nothing, so the menu
+// option looked dead. The waypoint is now placed (weathertop_tp.utw.json plus
+// the instance in weatherhills.git.json) and this points at it.
+//
+// Same shape as every other entry in this menu (_homerbasilisk, _homerbalrog,
+// _homerkalforge, _homerdarklord): GetLastSpeaker, look up the tag, jump.
+// Access is already gated one level up by _cdkeyhome on the &quot;[Options of the
+// Homeless]&quot; link, so there is no check to repeat here.
 
-AssignCommand(oPC, JumpToLocation(rivendelia));
+void main()
+{
+    object oPC = GetLastSpeaker();
+    object theWaypoint = GetWaypointByTag(&quot;weathertop_tp&quot;);
+
+    if (!GetIsObjectValid(theWaypoint)) return;
+
+    AssignCommand(oPC, JumpToLocation(GetLocation(theWaypoint)));
 }
 </code></pre>
   </main>
