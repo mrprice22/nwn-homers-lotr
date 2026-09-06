@@ -3630,6 +3630,10 @@ PAGE = r"""<!doctype html>
   .rt-rich:focus { border-color:var(--accent); }
   .rt-rich ul, .rt-rich ol { margin:0.3em 0; padding-left:1.5em; }
   .rt-rich a { color:var(--accent); }
+  .rt-rich code { font-family:monospace; font-size:0.92em; }
+  /* A default <pre> does not wrap, and would widen the pane it sits in. */
+  .rt-rich pre { white-space:pre-wrap; overflow-x:auto; margin:0.3em 0;
+                 font-family:monospace; font-size:0.92em; }
   .rt-html { min-height:96px; font-family:monospace; font-size:12px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
   button { padding:8px 13px; border:1px solid var(--line); border-radius:6px;
@@ -5012,7 +5016,7 @@ function initEditor(p, value, savedH, defaultH){
 
 // Allowed tags / per-tag attrs — mirrors bin/roadmap_sanitize.py.
 const PASTE_TAGS = new Set(['A','B','STRONG','I','EM','U','UL','OL','LI',
-  'P','BR','HR','DIV','SPAN','FONT','IMG','BLOCKQUOTE']);
+  'P','BR','HR','DIV','SPAN','FONT','IMG','BLOCKQUOTE','CODE','PRE']);
 const PASTE_ATTRS = {A:['href','target','rel'], FONT:['color'],
   IMG:['src','alt','width','height']};
 

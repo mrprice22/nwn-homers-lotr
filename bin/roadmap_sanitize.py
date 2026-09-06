@@ -19,9 +19,13 @@ from html import escape
 from html.parser import HTMLParser
 
 # Tags we keep. Anything else is unwrapped (dropped, text content preserved).
+# `code` and `pre` are here because bug reports pasted from Discord routinely
+# carry inline code and fenced blocks, and unwrapping them loses the one piece
+# of formatting that actually changes how a command or a log line reads.
 ALLOWED_TAGS = {
     "a", "b", "strong", "i", "em", "u", "ul", "ol", "li",
     "p", "br", "hr", "div", "span", "font", "img", "blockquote",
+    "code", "pre",
 }
 
 # Tags that never have a closing tag / take no children.
@@ -84,7 +88,7 @@ def _clean_attrs(tag: str, attrs: list[tuple[str, str | None]]) -> str:
 
 # Tags that end an open <p> when they start, the way a browser does. Emitting
 # the </p> ourselves keeps our output tree and the browser's identical.
-BLOCK_TAGS = {"div", "p", "ul", "ol", "blockquote", "hr"}
+BLOCK_TAGS = {"div", "p", "ul", "ol", "blockquote", "hr", "pre"}
 LIST_TAGS = {"ul", "ol"}
 
 
