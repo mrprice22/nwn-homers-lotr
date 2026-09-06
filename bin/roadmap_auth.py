@@ -226,7 +226,24 @@ _SCHEMA = (
            before   TEXT,
            after    TEXT
        )""",
+    # ServiceNow's navigation_history, in one table: the pages and ideas this
+    # account last opened, so the editor's History pane can offer them back.
+    # SERVER-side rather than in the browser's localStorage on purpose -- it is
+    # a property of the account, so it follows the admin from the desktop to a
+    # phone, and survives a cleared cache. Cheap to lose and never authoritative:
+    # every write goes through record_visit(), which swallows its own errors.
+    """CREATE TABLE IF NOT EXISTS navigation_history (
+           id       INTEGER PRIMARY KEY AUTOINCREMENT,
+           username TEXT NOT NULL,
+           ts       INTEGER NOT NULL,
+           kind     TEXT NOT NULL DEFAULT '',
+           ref      TEXT NOT NULL DEFAULT '',
+           title    TEXT NOT NULL DEFAULT '',
+           route    TEXT NOT NULL DEFAULT ''
+       )""",
     "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(username)",
+    "CREATE INDEX IF NOT EXISTS idx_navhist_user_ts "
+    "ON navigation_history(username, ts DESC)",
     "CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts)",
     "CREATE INDEX IF NOT EXISTS idx_audit_user ON audit(username)",
     "CREATE INDEX IF NOT EXISTS idx_audit_diff_audit ON audit_diff(audit_id)",
@@ -609,6 +626,79 @@ def read_audit_diff(conn, audit_id: int, idea_id: str = "") -> list[dict]:
         args.append(idea_id)
     sql += " ORDER BY id"
     return [dict(r) for r in conn.execute(sql, args)]
+
+
+# --------------------------------------------------------------------------
+# Navigation history
+# --------------------------------------------------------------------------
+# How much of it to keep, per account. Both limits are deliberately small: this
+# is a "take me back to what I was doing" list, not a second audit log -- the
+# audit table already answers "who did what, when", and answers it in a form
+# that is never pruned.
+NAV_HISTORY_KEEP = 50           # rows per user
+NAV_HISTORY_KEEP_DAYS = 30
+
+
+def record_visit(conn, username: str, kind: str, ref: str,
+                 title: str = "", route: str = "") -> None:
+    """Record that `username` opened something. Never raises.
+
+    Same contract as audit(): this is called from request handling, and a
+    history row is never worth failing the navigation it describes.
+
+    Revisiting something MOVES it to the top rather than adding a second row --
+    a list where one idea appears eleven times is not a list of where you have
+    been, it is a list of how often you clicked.
+    """
+    if not username:
+        return
+    now = _now()
+    try:
+        with conn:
+            conn.execute(
+                "DELETE FROM navigation_history WHERE username=? AND kind=? AND ref=?",
+                (username, kind or "", ref or ""))
+            conn.execute(
+                "INSERT INTO navigation_history (username, ts, kind, ref, title, route)"
+                " VALUES (?,?,?,?,?,?)",
+                (username, now, (kind or "")[:40], (ref or "")[:200],
+                 (title or "")[:300], (route or "")[:300]))
+            conn.execute(
+                "DELETE FROM navigation_history WHERE username=? AND ts < ?",
+                (username, now - NAV_HISTORY_KEEP_DAYS * 86400))
+            conn.execute(
+                "DELETE FROM navigation_history WHERE username=? AND id NOT IN ("
+                "  SELECT id FROM navigation_history WHERE username=?"
+                "  ORDER BY ts DESC, id DESC LIMIT ?)",
+                (username, username, NAV_HISTORY_KEEP))
+    except sqlite3.Error:
+        pass
+
+
+def read_history(conn, username: str, limit: int = NAV_HISTORY_KEEP) -> list[dict]:
+    """This account's recent visits, newest first."""
+    if not username:
+        return []
+    try:
+        rows = conn.execute(
+            "SELECT kind, ref, title, route, ts FROM navigation_history"
+            " WHERE username=? ORDER BY ts DESC, id DESC LIMIT ?",
+            (username, max(1, min(NAV_HISTORY_KEEP, int(limit))))).fetchall()
+    except sqlite3.Error:
+        return []
+    return [dict(r) for r in rows]
+
+
+def clear_history(conn, username: str) -> None:
+    """Forget everywhere this account has been. Never raises."""
+    if not username:
+        return
+    try:
+        with conn:
+            conn.execute("DELETE FROM navigation_history WHERE username=?",
+                         (username,))
+    except sqlite3.Error:
+        pass
 
 
 def audit_diff_ids(conn, audit_ids) -> dict[int, dict[str, int]]:

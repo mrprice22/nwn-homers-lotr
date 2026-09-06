@@ -413,6 +413,67 @@ python3 bin/roadmap-editor.py --host H   # bind address; default 127.0.0.1
 **It requires a login.** Accounts are created only from a shell on this box
 (`bin/roadmap-users.py`) — see [Access control](#access-control) below.
 
+### The workspace shell — navigator + tabs
+
+The page is a **ServiceNow-style workspace**: a **navigator** down the left, and a main
+area of **in-app tabs**. It replaced a single 380px left column that carried the external
+links, the view toggle, eleven filter controls, sixteen buttons, the who-bar *and* the
+scrolling idea list — the list ended up so far down the page that reading it needed
+browser zoom.
+
+- **The navigator is links, one per line**, grouped under *Views · Queues · Release notes ·
+  Manage · Tools · External*, with a **Filter navigator** box that type-filters them. Drag
+  the divider to resize it (clamped 180–560px), or collapse it to a **top strip** with the
+  `⏴` button (double-clicking the divider does the same). Width and collapsed state persist
+  in `localStorage`. Collapsing does **not** swap in a second copy of the markup — the CSS
+  grid restacks the very same `<nav>`, so there is one set of links, one set of `data-cap`
+  attributes and one set of handlers however it is displayed.
+- **Everything internal opens a tab.** **Board** and **List** are created at boot and cannot
+  be closed; everything else — an idea, a queue, the release notes, Duplicates — gets an
+  `×` (middle-click closes too). A tab's identity is its key (`board`, `queue-uat`,
+  `idea:<id>`), so opening the same thing twice brings the existing tab forward instead of
+  duplicating it. The three **External ↗** links are the only anchors that keep
+  `target="_blank"`: those are other sites.
+- **`#idea-<id>` links work.** Every internal `#…` / `/#…` anchor is caught by one delegated
+  click handler and routed to a tab, and `hashchange` plus the boot path read
+  `location.hash`. Until this landed **nothing anywhere read that fragment** — there was no
+  `hashchange` listener and no `location.hash` read in the whole page — so clicking an idea
+  id on the Duplicates view, or an `#idea-…` anchor inside a rich-text `notes` body,
+  reloaded `/` and silently landed on the board. `openIdeaLink()` still emits exactly the
+  markup it always did, so nothing in `roadmap.yaml` needed migrating. A pasted
+  `https://roadmap.homerslotr.com/#idea-<id>` now opens that idea.
+- **Panes are detached, not destroyed.** Only the active tab's pane is attached to
+  `#panes`; the rest sit detached, held by the tab record. **This is the load-bearing
+  decision** — every renderer in the page addresses its widgets by global id through `$()`
+  (`#form`, `#f_title`, `#board`, `#q_close`), and two panels alive in the document at once
+  would make all of those ambiguous. A detached node is invisible to
+  `document.querySelector`, so `$('#f_title')` can only ever match the tab you are looking
+  at. Detaching keeps input values and bound handlers, so **unsaved edits in an idea form
+  survive switching tabs**; only `scrollTop` is lost, and `activate()` saves and restores
+  that by hand. Panel tabs additionally re-render on every activation, so a queue is never
+  showing data from whenever you last looked and its buttons are always bound to an
+  attached pane.
+- **Closing a dirty tab prompts.** `closeTab()` activates the tab first — `isDirty()` can
+  only measure the form that is attached, so "close a tab you cannot see" would otherwise
+  discard its edits silently.
+- **Filters live on the views, not in the navigator.** Filter state is a single `FILTERS`
+  object (persisted to `localStorage`, so a reload no longer resets it); the Board and the
+  List each render their own bar from it. That is what keeps the two **in sync by
+  construction** rather than by copying values between them. The bar's controls are
+  addressed by `data-f`, never by id — two live copies could not both carry `#f_fstatus`.
+- **History** is the navigator's second mode, ServiceNow's `navigation_history`: the last
+  50 things this account opened, newest first, click to reopen, with a **Clear history**
+  button. It is stored **server-side** in `auth.sqlite3` (table `navigation_history`, keyed
+  on `username`), so it follows the account between browsers and machines rather than
+  living in one browser's cache. Revisiting something **moves** it to the top rather than
+  adding a row. Reads and writes are `GET`/`POST /api/history` and `POST
+  /api/history/clear`, all `view`-capability and all keyed on `self.user.username` — never
+  on anything in the request body, so one account can neither read nor pollute another's.
+  The POST sits **outside** the `yaml_lock` (with `/api/palette/refresh` and
+  `/api/changes/action`): it happens on every click and must never queue behind a
+  60-second publish. It is deliberately **absent from `AUDITED`** — "opened the UAT queue"
+  in the audit log would bury the writes that log exists for.
+
 What it does:
 
 - **Typo-proofs the controlled fields.** `group`, `status`, and `dupe_of` are dropdowns
@@ -421,24 +482,36 @@ What it does:
 - **Filter, sort, and hide done.** The list has dropdown filters (status / player /
   group), a sort selector, and a free-text search, all combinable. `awarded` (done) ideas
   are **hidden by default** — tick "Show awarded" to see them.
-- **Two views: Board / List.** A toggle switches the right pane between the **kanban
-  Board** (the default view) and the detail form (List). The board has eight vertical lanes
+- **Two fixed views: Board / List.** Both are always-open tabs; each carries its own copy
+  of the filter bar. The board has eight vertical lanes
   in pipeline order (Under consideration → Later → Soon → Up next → In progress → In testing
   → Merit awarded → Not likely); lane labels come from `gen-roadmap.py`'s `STATUS` so they
   never drift. The board honors the same filters/search; it always shows the awarded lane
   (ignores "Show awarded"). **Drag a card between lanes** to change an idea's `status`,
   which auto-saves. Dragging into the awarded lane (like the Status dropdown) is a **YAML
   edit only** — it never pays Merit; only the form's **Award merit** button does. An optional **Card status dropdowns (Board)** checkbox (off by default)
-  adds a per-card status `<select>` as a drag-free alternative. Click a card to open it in
-  the List form; **+ Add idea** works from the board too (it drops you into the form).
+  adds a per-card status `<select>` as a drag-free alternative (it lives on the board's own
+  filter bar now). **Clicking a card opens that idea in its own workspace tab**, as does
+  clicking a List row — so you can have several ideas open side by side. **+ Add idea**
+  works from anywhere: it opens a tab under the reserved key `idea:__new__` (a brand-new
+  idea has no id to be filed under, so it is tracked by object identity), and the tab is
+  re-keyed to the real id on its first save.
 - **External-edit / anti-clobber guard.** The page keeps a content hash of `roadmap.yaml`
   as loaded. A background poll warns when the file changes on disk (e.g. an edit by Claude
   or another tab), and every Save/Regenerate/Publish sends that baseline: if the file
   changed since you loaded it, the write is **blocked** with a banner offering **Reload
   latest** (pull the external change, losing in-page edits) or **Force save (overwrite)**.
   A normal save rebases the baseline so the next save doesn't spuriously conflict.
-- **Links to the live site.** The header has **Public wiki ↗** (`https://homerslotr.com/`)
-  and **Public roadmap ↗** (`https://homerslotr.com/manual/Roadmap`) shortcuts.
+- **Links to the live site.** The navigator's **External** section has **Wiki ↗**
+  (`https://homerslotr.com/`), **Public roadmap ↗**
+  (`https://homerslotr.com/manual/Roadmap`) and **Server monitor ↗** (`/monitor`). These
+  are the only links that open a real browser tab.
+- **Duplicate review** is a tab (navigator → *Views → Duplicates*), reading the same
+  `/api/dupes` + `/api/dupes/action` endpoints, both gated on `edit`. It used to be a
+  standalone document at `/dupes` that **nothing in the editor linked to** — reachable only
+  by typing the URL. `/dupes` is now a 302 to `/#dupes` so that habit keeps working. Moving
+  it in is what lets its per-idea links open an idea tab beside it instead of reloading the
+  editor onto the board.
 - **Pipeline buttons (and the only thing that pays Merit).** The sticky bar at the top of
   the idea form carries a **back** and a **forward** button, each labelled with the status
   it moves to (`◀ In progress` / `Needs manual finishing ▶` / `Ship · in testing ▶` /

@@ -2019,6 +2019,12 @@ ROUTE_CAPS: dict[str, str] = {
     "/api/merit": "merit_view",
     "/api/pending": "merit_view",
     "/api/audit": "audit_view",
+    # Where this account has been. `view` because it is nothing but a record of
+    # what you yourself already opened -- and every one of these reads and
+    # writes is keyed on self.user.username, never on anything in the request,
+    # so one account can neither read nor pollute another's history.
+    "/api/history": "view",
+    "/api/history/clear": "view",
     "/monitor": "serverlog",
     "/api/serverlog": "serverlog",
     "/api/palette": "palette",
@@ -3036,8 +3042,15 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, MONITOR_PAGE.encode("utf-8"),
                        "text/html; charset=utf-8")
         elif self.path == "/dupes" or self.path.startswith("/dupes?"):
-            self._send(200, DUPES_PAGE.encode("utf-8"),
-                       "text/html; charset=utf-8")
+            # Duplicate review is a workspace tab in the editor now, not a page
+            # of its own -- that is what lets its per-idea links open an idea
+            # tab beside it instead of reloading / and landing on the board.
+            # The route stays as a redirect because the admin has been reaching
+            # it by typing this URL since there was never a link to it.
+            self.send_response(302)
+            self.send_header("Location", "/#dupes")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
         elif self.path.startswith("/api/dupes"):
             self._json(self._dupes_payload())
         elif self.path.startswith("/api/serverlog"):
@@ -3074,6 +3087,9 @@ class Handler(BaseHTTPRequestHandler):
             self._release_notes()
         elif self.path == "/api/version":
             self._json({"version": yaml_version()})
+        elif self.path.startswith("/api/history"):
+            self._json({"ok": True,
+                        "rows": AUTH.read_history(auth_db(), self.user.username)})
         elif self.path == "/api/meritplayers":
             # Must precede the /api/merit prefix test below, which would
             # otherwise swallow this path.
@@ -3233,8 +3249,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/logout":
             return self._do_logout()
         try:
-            # Neither of these touches roadmap.yaml, so neither needs the lock.
-            if self.path in ("/api/palette/refresh", "/api/changes/action"):
+            # None of these touch roadmap.yaml, so none of them needs the lock
+            # -- and a history write in particular must never queue behind a
+            # 60-second publish, since it happens on every single click.
+            if self.path in ("/api/palette/refresh", "/api/changes/action",
+                             "/api/history", "/api/history/clear"):
                 return self._do_POST_locked()
             with yaml_lock(timeout=60.0):
                 return self._do_POST_locked()
@@ -3278,6 +3297,19 @@ class Handler(BaseHTTPRequestHandler):
             arm_audit_diff(audit_id)
 
     def _do_POST_locked(self):
+        # Navigation history. Deliberately absent from AUDITED: "opened the UAT
+        # queue" in the audit log would bury the writes the log exists for.
+        if self.path == "/api/history":
+            body = self._read_body()
+            AUTH.record_visit(auth_db(), self.user.username,
+                              str(body.get("kind") or ""),
+                              str(body.get("ref") or ""),
+                              str(body.get("title") or ""),
+                              str(body.get("route") or ""))
+            return self._json({"ok": True})
+        if self.path == "/api/history/clear":
+            AUTH.clear_history(auth_db(), self.user.username)
+            return self._json({"ok": True})
         # Palette-map refresh needs no body/validation: rerun the standalone
         # generator and hand back its summary. Never touches the roadmap or git.
         if self.path == "/api/palette/refresh":
@@ -3498,262 +3530,6 @@ class Handler(BaseHTTPRequestHandler):
 # editor: the suggestions are a machine's opinion with a shelf life, and the
 # whole feature is meant to be removable by deleting one route table entry, one
 # sidecar file and this constant.
-DUPES_PAGE = r"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Duplicate Review — Homer's LotR</title>
-<style>
-  :root { --bg:#1e2127; --panel:#272b33; --ink:#e6e6e6; --mut:#9aa3af;
-          --line:#3a3f4a; --accent:#6ea8fe; --warn:#e6b800; --err:#ff6b6b;
-          --ok:#5ec98a; }
-  * { box-sizing:border-box; }
-  body { margin:0; font:14px/1.45 system-ui,sans-serif; background:var(--bg);
-         color:var(--ink); }
-  a { color:var(--accent); }
-  code, .id { font:12px/1.4 ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-              color:var(--mut); }
-  #bar { position:sticky; top:0; z-index:5; display:flex; align-items:center;
-         gap:14px; flex-wrap:wrap; padding:10px 16px; background:#1a1d22;
-         border-bottom:1px solid var(--line); }
-  #bar h1 { margin:0; font-size:14px; font-weight:600; letter-spacing:.02em; }
-  #bar .sp { margin-left:auto; }
-  .meter { display:flex; align-items:center; gap:8px; color:var(--mut);
-           font-size:12px; }
-  .track { width:150px; height:6px; border-radius:3px; background:var(--line);
-           overflow:hidden; }
-  .fill { height:100%; background:var(--accent); width:0; transition:width .2s; }
-  .tab { padding:4px 11px; font-size:12px; background:var(--panel);
-         color:var(--mut); border:1px solid var(--line); border-radius:999px;
-         cursor:pointer; font:inherit; font-size:12px; }
-  .tab.on { color:var(--ink); border-color:var(--accent); }
-  main { max-width:1080px; margin:0 auto; padding:18px 16px 80px;
-         display:flex; flex-direction:column; gap:14px; }
-  .intro { color:var(--mut); font-size:13px; max-width:70ch; }
-  .intro strong { color:var(--ink); font-weight:600; }
-  /* One suggestion. The left border is the state stripe: unreviewed is quiet,
-     a verdict colours it, so the queue's shape reads without any counting. */
-  .pair { background:var(--panel); border:1px solid var(--line);
-          border-left:3px solid var(--line); border-radius:8px; }
-  .pair.done { border-left-color:var(--ok); }
-  .pair.no   { border-left-color:var(--mut); opacity:.62; }
-  .pair.skip { border-left-color:var(--warn); opacity:.75; }
-  .pair.busy { opacity:.5; pointer-events:none; }
-  .head { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-          padding:9px 13px; border-bottom:1px solid var(--line); }
-  .pair.collapsed .head { border-bottom:none; }
-  .pair.collapsed .body, .pair.collapsed .why, .pair.collapsed .acts
-    { display:none; }
-  .chip { font-size:11px; padding:1px 8px; border-radius:999px;
-          border:1px solid var(--line); color:var(--mut); white-space:nowrap; }
-  .chip.mutual { color:var(--accent); border-color:var(--accent); }
-  .chip.merit  { color:var(--warn); border-color:var(--warn); }
-  .chip.gone   { color:var(--err); border-color:var(--err); }
-  .chip.verdict{ color:var(--ok); border-color:var(--ok); }
-  .body { display:grid; grid-template-columns:1fr 1fr; gap:1px;
-          background:var(--line); }
-  .side { background:var(--panel); padding:12px 13px; display:flex;
-          flex-direction:column; gap:7px; }
-  .side h2 { margin:0; font-size:14px; font-weight:600; line-height:1.3;
-             text-wrap:balance; }
-  .meta { display:flex; gap:6px; flex-wrap:wrap; }
-  .just { color:var(--mut); font-size:13px; font-style:italic;
-          border-left:2px solid var(--line); padding-left:9px; }
-  .pick { margin-top:auto; padding:6px 10px; font:inherit; font-size:12px;
-          background:var(--bg); color:var(--ink); border:1px solid var(--line);
-          border-radius:6px; cursor:pointer; text-align:left; }
-  .pick:hover { border-color:var(--accent); }
-  .pick b { color:var(--accent); font-weight:600; }
-  .why { padding:9px 13px; color:var(--mut); font-size:13px;
-         border-top:1px solid var(--line); }
-  .why b { color:var(--ink); font-weight:600; }
-  .acts { display:flex; gap:8px; flex-wrap:wrap; align-items:center;
-          padding:9px 13px; border-top:1px solid var(--line); }
-  button { padding:5px 12px; font:inherit; font-size:12px; border-radius:6px;
-           background:var(--bg); color:var(--ink); border:1px solid var(--line);
-           cursor:pointer; }
-  button:hover { border-color:var(--accent); }
-  button:focus-visible, .tab:focus-visible, .pick:focus-visible
-    { outline:2px solid var(--accent); outline-offset:2px; }
-  .msg { font-size:12px; color:var(--mut); }
-  .msg.err { color:var(--err); }
-  .empty { color:var(--mut); padding:26px 0; text-align:center; }
-  @media (max-width:720px) { .body { grid-template-columns:1fr; } }
-  @media (prefers-reduced-motion:reduce) { .fill { transition:none; } }
-</style></head>
-<body>
-  <div id="bar">
-    <h1>Duplicate Review</h1>
-    <span class="meter"><span class="track"><span class="fill" id="fill"></span></span>
-      <span id="count">loading…</span></span>
-    <span class="sp"></span>
-    <button class="tab on" id="t-open" data-filter="open">To review</button>
-    <button class="tab" id="t-done" data-filter="done">Decided</button>
-    <button class="tab" id="t-all" data-filter="all">All</button>
-    <a href="/" title="Back to the roadmap editor">&larr; editor</a>
-  </div>
-  <main>
-    <p class="intro" id="intro">Loading suggestions&hellip;</p>
-    <div id="list"></div>
-  </main>
-<script>
-const esc = s => String(s == null ? "" : s)
-  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-  .replace(/"/g,"&quot;");
-let DATA = null, filter = "open";
-
-function chips(live, id) {
-  if (!live) return '<span class="chip gone">not in roadmap.yaml</span>';
-  const out = [];
-  if (live.group) out.push(`<span class="chip">${esc(live.group)}</span>`);
-  if (live.status) out.push(`<span class="chip">${esc(live.status)}</span>`);
-  if (live.type) out.push(`<span class="chip">${esc(live.type)}</span>`);
-  if (live.player) out.push(`<span class="chip">${esc(live.player)}</span>`);
-  // Merit already paid: setting dupe_of here is consequential, and the server
-  // may refuse it outright. Say so before the click, not after.
-  if (live.merit_awarded) out.push('<span class="chip merit">merit paid</span>');
-  if (live.dupe_of)
-    out.push(`<span class="chip merit">already dupe of ${esc(live.dupe_of)}</span>`);
-  return out.join(" ");
-}
-
-function side(p, key) {
-  const id = p[key], other = key === "a" ? p.b : p.a;
-  const live = (p.live || {})[key];
-  const title = live ? live.title : p[key + "_title"];
-  return `<div class="side">
-    <h2>${esc(title)}</h2>
-    <div class="meta"><a class="id" href="/#idea-${esc(id)}" target="_blank"
-      rel="noopener">${esc(id)}</a> ${chips(live, id)}</div>
-    <div class="just">${esc(p[key + "_just"] || "")}</div>
-    <button class="pick" data-id="${esc(p.id)}" data-verdict="${key}"
-      ${live && !p.already && !live.dupe_of ? "" : "disabled"}
-      title="${live && live.dupe_of ? "Already a duplicate of " + esc(live.dupe_of) + " — clear that in the editor first" : ""}">
-      <b>This one</b> is the duplicate &mdash; point it at ${esc(other)}</button>
-  </div>`;
-}
-
-function card(p) {
-  const v = p.verdict;
-  const decided = v === "a" || v === "b" || p.already;
-  const cls = p.already || v === "a" || v === "b" ? "done"
-            : v === "no" ? "no" : v === "unsure" ? "skip" : "";
-  const collapsed = (v || p.already) ? " collapsed" : "";
-  let verdictChip = "";
-  if (p.already) verdictChip = '<span class="chip verdict">merged</span>';
-  else if (v === "a" || v === "b")
-    verdictChip = `<span class="chip verdict">${esc(p[v])} &rarr; ${esc(v === "a" ? p.b : p.a)}</span>`;
-  else if (v === "no") verdictChip = '<span class="chip">not a duplicate</span>';
-  else if (v === "unsure") verdictChip = '<span class="chip">skipped</span>';
-
-  return `<div class="pair ${cls}${collapsed}" data-id="${esc(p.id)}">
-    <div class="head">
-      <strong style="font-size:13px">${esc(p.a_title)}</strong>
-      <span class="id">vs</span>
-      <strong style="font-size:13px">${esc(p.b_title)}</strong>
-      ${p.both_ways ? '<span class="chip mutual" title="Both items independently named the other">mutual</span>' : ""}
-      <span class="chip">score ${Number(p.score).toFixed(2)}</span>
-      ${verdictChip}
-      <span class="sp"></span>
-      ${(v || p.already) ? `<button data-act="expand" data-id="${esc(p.id)}">change</button>` : ""}
-    </div>
-    <div class="body">${side(p, "a")}${side(p, "b")}</div>
-    <div class="why"><b>Why the model paired them:</b> ${esc(p.why)}
-      ${p.why2 ? "<br><b>And from the other side:</b> " + esc(p.why2) : ""}</div>
-    <div class="acts">
-      <button data-id="${esc(p.id)}" data-verdict="no">Not a duplicate</button>
-      <button data-id="${esc(p.id)}" data-verdict="unsure">Skip for now</button>
-      <span class="msg" data-msg="${esc(p.id)}"></span>
-    </div>
-  </div>`;
-}
-
-function render() {
-  if (!DATA) return;
-  const all = DATA.pairs;
-  const open = all.filter(p => !p.verdict && !p.already);
-  const done = all.filter(p => p.verdict || p.already);
-  const shown = filter === "open" ? open : filter === "done" ? done : all;
-  const pct = all.length ? Math.round(done.length / all.length * 100) : 0;
-  document.getElementById("fill").style.width = pct + "%";
-  document.getElementById("count").textContent =
-    `${done.length} of ${all.length} decided`;
-  const merged = all.filter(p => p.already || p.verdict === "a" || p.verdict === "b").length;
-  const rejected = all.filter(p => p.verdict === "no").length;
-  document.getElementById("intro").innerHTML =
-    DATA.missing
-      ? "No <code>dupe-suggestions.json</code> in the repo, so there is nothing to review."
-    : DATA.error ? `<span style="color:var(--err)">${esc(DATA.error)}</span>`
-    : `<strong>${all.length} candidate pairs</strong> proposed by ${esc(DATA.model)}. `
-      + `Approving one sets <code>dupe_of</code> on the item you pick, exactly as the `
-      + `editor would &mdash; nothing else is touched, and the duplicate keeps its own `
-      + `<code>player</code> and its merit. <strong>${merged}</strong> merged so far, `
-      + `<strong>${rejected}</strong> rejected. Rejections are recorded too: that is the `
-      + `half of the record roadmap.yaml cannot hold.`;
-  document.getElementById("list").innerHTML =
-    shown.length ? shown.map(card).join("")
-    : `<p class="empty">${filter === "open" ? "Nothing left to review." : "Nothing here yet."}</p>`;
-}
-
-async function act(id, verdict) {
-  const el = document.querySelector(`.pair[data-id="${CSS.escape(id)}"]`);
-  const msg = document.querySelector(`[data-msg="${CSS.escape(id)}"]`);
-  if (el) el.classList.add("busy");
-  if (msg) { msg.textContent = "Saving…"; msg.className = "msg"; }
-  try {
-    const r = await fetch("/api/dupes/action", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({id, verdict}),
-    });
-    const out = await r.json();
-    if (!out.ok) {
-      if (msg) {
-        msg.className = "msg err";
-        msg.textContent = (out.errors || [out.message || "Refused."]).join(" ");
-      }
-      if (el) el.classList.remove("busy");
-      return;
-    }
-    await load();
-  } catch (e) {
-    if (msg) { msg.className = "msg err"; msg.textContent = "Could not reach the editor: " + e; }
-    if (el) el.classList.remove("busy");
-  }
-}
-
-document.addEventListener("click", ev => {
-  const tab = ev.target.closest(".tab");
-  if (tab) {
-    filter = tab.dataset.filter;
-    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t === tab));
-    return render();
-  }
-  const expand = ev.target.closest('[data-act="expand"]');
-  if (expand) {
-    const card = expand.closest(".pair");
-    if (card) card.classList.remove("collapsed");
-    return;
-  }
-  const btn = ev.target.closest("[data-verdict]");
-  if (btn && !btn.disabled) act(btn.dataset.id, btn.dataset.verdict);
-});
-
-async function load() {
-  try {
-    const r = await fetch("/api/dupes");
-    DATA = await r.json();
-  } catch (e) {
-    document.getElementById("intro").innerHTML =
-      '<span style="color:var(--err)">Could not load suggestions: ' + esc(e) + "</span>";
-    return;
-  }
-  render();
-}
-load();
-</script>
-</body></html>
-"""
-
-
 MONITOR_PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -4008,15 +3784,41 @@ PAGE = r"""<!doctype html>
           --line:#3a3f4a; --accent:#6ea8fe; --warn:#e6b800; --err:#ff6b6b;
           --ok:#5cd6a0; }
   * { box-sizing:border-box; }
+  /* ---- Workspace shell -------------------------------------------------
+     A ServiceNow-style workspace: a NAVIGATOR of one-link-per-line on the
+     left, and a main area of in-app tabs. The old shape was a single 380px
+     column carrying the external links, the view toggle, eleven filter
+     controls, sixteen buttons, the who-bar AND the scrolling idea list — the
+     list ended up so far down the page that reading it needed browser zoom.
+
+     Collapsing does NOT swap in a second copy of the navigator. `grid-template`
+     restacks the very same <nav> element into a horizontal strip above the tab
+     bar, so there is one set of links, one set of data-cap attributes and one
+     set of handlers however it is displayed. */
   body { margin:0; font:14px/1.45 system-ui,sans-serif; background:var(--bg);
-         color:var(--ink); display:flex; height:100vh; }
+         color:var(--ink); height:100vh; overflow:hidden;
+         display:grid; grid-template-columns:var(--navw,260px) 5px 1fr;
+         grid-template-rows:1fr;
+         grid-template-areas:"nav drag ws"; }
+  body.nav-collapsed { grid-template-columns:1fr;
+                       grid-template-rows:auto 1fr;
+                       grid-template-areas:"nav" "ws"; }
   h1 { font-size:15px; margin:0 0 8px; }
-  #left { width:380px; min-width:300px; border-right:1px solid var(--line);
-          display:flex; flex-direction:column; }
-  #right { flex:1; padding:16px 20px; overflow:auto; }
+  #nav { grid-area:nav; border-right:1px solid var(--line); min-width:0;
+         display:flex; flex-direction:column; overflow:hidden; }
+  #navdrag { grid-area:drag; cursor:col-resize; background:var(--line);
+             opacity:0.35; }
+  #navdrag:hover, #navdrag.dragging { opacity:1; background:var(--accent); }
+  body.nav-collapsed #navdrag { display:none; }
+  #workspace { grid-area:ws; display:flex; flex-direction:column;
+               min-width:0; min-height:0; }
+  #panes { flex:1; overflow:auto; padding:14px 18px; min-height:0;
+           display:flex; flex-direction:column; }
+  /* The pane fills the workspace so the board's lanes can scroll inside
+     themselves; a taller pane (a long idea form) simply grows and #panes
+     scrolls, which is what keeps the sticky #formbar working. */
+  .pane { flex:1 0 auto; min-height:0; display:flex; flex-direction:column; }
   .pad { padding:12px 14px; }
-  #filter { width:100%; padding:7px 9px; background:var(--panel); color:var(--ink);
-            border:1px solid var(--line); border-radius:6px; }
   #list { overflow:auto; flex:1; }
   .row { padding:8px 14px; border-bottom:1px solid var(--line); cursor:pointer; }
   .row:hover { background:#2d323b; }
@@ -4190,16 +3992,13 @@ PAGE = r"""<!doctype html>
      forcing a value, so it cannot outrank a stylesheet rule that still applies.
      That is why the class must come off BEFORE the inline styles go on. */
   body.caps-unknown [data-cap] { display:none; }
-  .filters { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
-  .filters select { padding:5px 7px; font-size:12px; }
-  .filters .full { grid-column:1 / -1; }
   .chk { display:flex; align-items:center; gap:6px; margin-top:8px; font-size:12px;
          color:var(--mut); cursor:pointer; }
   .chk input { width:auto; }
   .linkbtn { background:none; border:none; color:var(--accent); cursor:pointer;
              padding:0; font:inherit; font-size:12px; }
-  /* Signed-in identity strip, under the menu bar. */
-  #whobar { border-top:1px solid var(--line); padding-top:8px; margin-top:2px; }
+  /* Signed-in identity strip, in the navigator footer. */
+  #whobar { padding-top:6px; margin-top:2px; }
   #who { color:var(--mut); font-size:12px; }
   #who::before { content:'●'; color:var(--ok); margin-right:5px; font-size:9px;
                  vertical-align:middle; }
@@ -4268,9 +4067,6 @@ PAGE = r"""<!doctype html>
   mark.d-add { background:rgba(90,190,120,0.28); color:inherit; }
   #mpending.has { color:var(--warn); font-weight:600; }
   /* header external links */
-  .extlinks { display:flex; gap:12px; margin:2px 0 8px; }
-  .extlinks a { color:var(--accent); font-size:12px; text-decoration:none; }
-  .extlinks a:hover { text-decoration:underline; }
   /* palette finder */
   .pf-bar { display:flex; gap:8px; align-items:center; margin:6px 0; }
   .pf-bar input { flex:1; }
@@ -4330,9 +4126,6 @@ PAGE = r"""<!doctype html>
   .lc-reroll { color:var(--muted); }
   .lc-acts button.rr { border-color:var(--accent); }
   .lc-acts button:disabled { opacity:.5; cursor:progress; }
-  /* work queues (Toolset / UAT) — wider than the other modals: these are read
-     while you work in another window, so the step text must not be a keyhole. */
-  .modal.wide { width:min(1000px,100%); }
   .qgroup { margin:14px 0 4px; font-size:13px; color:var(--accent);
             border-bottom:1px solid var(--line); padding-bottom:3px; }
   .qgroup .n { color:var(--mut); font-weight:400; font-size:11px; margin-left:6px; }
@@ -4363,12 +4156,155 @@ PAGE = r"""<!doctype html>
   .qbar input { flex:1; }
   #qresults { max-height:60vh; overflow:auto; }
   /* view toggle */
-  .viewtoggle { display:flex; gap:4px; margin:0 0 8px; }
-  .viewtoggle button { padding:4px 12px; font-size:12px; width:auto; }
-  .viewtoggle button.on { background:var(--accent); color:#10161f;
-                          border-color:var(--accent); font-weight:600; }
+  /* ---- Navigator ------------------------------------------------------ */
+  #navhead { padding:10px 12px 6px; border-bottom:1px solid var(--line); }
+  #navmodes { display:flex; gap:4px; margin:6px 0 0; }
+  #navmodes button { padding:3px 10px; font-size:12px; width:auto; }
+  #navmodes button.on { background:var(--accent); color:#10161f;
+                        border-color:var(--accent); font-weight:600; }
+  #navq { width:100%; padding:5px 8px; font-size:12px; margin-top:6px; }
+  #navbody { flex:1; overflow:auto; padding:6px 0 10px; }
+  #navfoot { border-top:1px solid var(--line); padding:8px 12px; }
+  .navsec { margin:2px 0 6px; }
+  .navsec > h3 { margin:0; padding:6px 12px 3px; font-size:11px; font-weight:600;
+                 letter-spacing:0.06em; text-transform:uppercase;
+                 color:var(--mut); }
+  /* One link per line. This is the whole point of the navigator — the old
+     pane wrapped sixteen buttons into a flowing .bar, which is what made it
+     unscannable. */
+  .navlink { display:block; width:100%; text-align:left; background:none;
+             border:none; border-left:2px solid transparent; color:var(--ink);
+             padding:5px 12px; font:inherit; font-size:13px; cursor:pointer;
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+             text-decoration:none; }
+  .navlink:hover { background:#2d323b; border-left-color:var(--line); }
+  .navlink.on { background:#33405a; border-left-color:var(--accent); }
+  .navlink .n { color:var(--mut); font-size:11px; margin-left:4px; }
+  .navlink.has .n { color:var(--warn); font-weight:600; }
+  .navlink.ext { color:var(--accent); }
+  #navtoggle { width:auto; padding:2px 8px; font-size:12px; line-height:1; }
+  /* Collapsed: the same <nav> laid out as a top strip. */
+  body.nav-collapsed #nav { border-right:none;
+                            border-bottom:1px solid var(--line);
+                            flex-direction:row; align-items:center;
+                            gap:10px; padding:0 10px; }
+  body.nav-collapsed #navhead { border-bottom:none; padding:6px 0;
+                                display:flex; align-items:center; gap:8px; }
+  body.nav-collapsed #navhead h1, body.nav-collapsed #navmodes,
+  body.nav-collapsed #navq, body.nav-collapsed #navfoot .who { display:none; }
+  body.nav-collapsed #navbody { flex:1; overflow-x:auto; overflow-y:hidden;
+                                padding:0; display:flex; align-items:center;
+                                gap:2px; }
+  body.nav-collapsed .navsec { display:flex; align-items:center; margin:0; }
+  body.nav-collapsed .navsec > h3 { display:none; }
+  body.nav-collapsed .navlink { border-left:none; border-bottom:2px solid transparent;
+                                padding:6px 9px; }
+  body.nav-collapsed .navlink.on { border-bottom-color:var(--accent); }
+  body.nav-collapsed #navfoot { border-top:none; padding:0;
+                                display:flex; gap:6px; align-items:center; }
+  /* History (the navigator's second mode) */
+  .histrow { display:block; width:100%; text-align:left; background:none;
+             border:none; color:var(--ink); padding:5px 12px; font:inherit;
+             font-size:12px; cursor:pointer; }
+  .histrow:hover { background:#2d323b; }
+  .histrow .ht { display:block; overflow:hidden; text-overflow:ellipsis;
+                 white-space:nowrap; }
+  .histrow .hm { color:var(--mut); font-size:11px; }
+
+  /* ---- Workspace tabs -------------------------------------------------- */
+  #tabbar { display:flex; align-items:stretch; gap:2px; padding:6px 8px 0;
+            border-bottom:1px solid var(--line); overflow-x:auto;
+            overflow-y:hidden; flex:0 0 auto; scrollbar-width:thin; }
+  .wtab { display:flex; align-items:center; gap:6px; flex:0 0 auto;
+          max-width:230px; padding:6px 10px; font-size:12px; cursor:pointer;
+          color:var(--mut); background:var(--panel);
+          border:1px solid var(--line); border-bottom:none;
+          border-radius:6px 6px 0 0; margin-bottom:-1px; }
+  .wtab:hover { color:var(--ink); }
+  .wtab.on { color:var(--ink); background:var(--bg); border-color:var(--accent);
+             border-bottom:1px solid var(--bg); }
+  .wtab .wt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .wtab .x { color:var(--mut); font-size:14px; line-height:1; padding:0 2px;
+             border-radius:3px; }
+  .wtab .x:hover { color:var(--err); background:#3a3f4a; }
+  #banner:empty { display:none; }
+  #banner { margin:8px 18px 0; }
+
+  /* ---- Filter bar (one per view, both driven by FILTERS) --------------- */
+  .filterbar { display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+               padding:0 0 10px; margin:0 0 10px;
+               border-bottom:1px solid var(--line); }
+  .filterbar select { width:auto; padding:4px 6px; font-size:12px; }
+  .filterbar .fq { flex:1 1 220px; min-width:160px; width:auto;
+                   padding:5px 8px; font-size:12px; }
+  .filterbar .chk { margin-top:0; }
+  .filterbar .fcount { color:var(--mut); white-space:nowrap; }
+  /* ---- Duplicate review (ported in from the old standalone /dupes page) --
+     Every rule is scoped under #dupes. The page it came from owned the whole
+     document and could style bare `button`, `.chip`, `.head`, `.body`; in here
+     those names already belong to the editor, and an unscoped copy would have
+     restyled the idea form. */
+  #dupes .dbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+                 padding:0 0 10px; border-bottom:1px solid var(--line); }
+  #dupes .meter { display:flex; align-items:center; gap:8px; color:var(--mut);
+                  font-size:12px; }
+  #dupes .track { width:150px; height:6px; border-radius:3px;
+                  background:var(--line); overflow:hidden; }
+  #dupes .fill { height:100%; background:var(--accent); width:0; transition:width .2s; }
+  #dupes .dtab { padding:4px 11px; font-size:12px; background:var(--panel);
+                 color:var(--mut); border:1px solid var(--line);
+                 border-radius:999px; cursor:pointer; width:auto; }
+  #dupes .dtab.on { color:var(--ink); border-color:var(--accent); }
+  #dupes .dlist { max-width:1080px; display:flex; flex-direction:column;
+                  gap:14px; padding:14px 0 0; }
+  #dupes .intro { color:var(--mut); font-size:13px; max-width:70ch; }
+  #dupes .intro strong { color:var(--ink); font-weight:600; }
+  /* One suggestion. The left border is the state stripe: unreviewed is quiet,
+     a verdict colours it, so the queue's shape reads without any counting. */
+  #dupes .pair { background:var(--panel); border:1px solid var(--line);
+                 border-left:3px solid var(--line); border-radius:8px; }
+  #dupes .pair.done { border-left-color:var(--ok); }
+  #dupes .pair.no   { border-left-color:var(--mut); opacity:.62; }
+  #dupes .pair.skip { border-left-color:var(--warn); opacity:.75; }
+  #dupes .pair.busy { opacity:.5; pointer-events:none; }
+  #dupes .head { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+                 padding:9px 13px; border-bottom:1px solid var(--line); }
+  #dupes .pair.collapsed .head { border-bottom:none; }
+  #dupes .pair.collapsed .dbody, #dupes .pair.collapsed .why,
+  #dupes .pair.collapsed .acts { display:none; }
+  #dupes .chip { display:inline-block; font-size:11px; padding:1px 8px;
+                 border-radius:999px; border:1px solid var(--line);
+                 background:none; color:var(--mut); white-space:nowrap; }
+  #dupes .chip.mutual { color:var(--accent); border-color:var(--accent); }
+  #dupes .chip.merit  { color:var(--warn); border-color:var(--warn); }
+  #dupes .chip.gone   { color:var(--err); border-color:var(--err); }
+  #dupes .chip.verdict{ color:var(--ok); border-color:var(--ok); }
+  #dupes .dbody { display:grid; grid-template-columns:1fr 1fr; gap:1px;
+                  background:var(--line); }
+  #dupes .side { background:var(--panel); padding:12px 13px; display:flex;
+                 flex-direction:column; gap:7px; }
+  #dupes .side h3 { margin:0; font-size:14px; font-weight:600; line-height:1.3; }
+  #dupes .dmeta { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  #dupes .just { color:var(--mut); font-size:13px; font-style:italic;
+                 border-left:2px solid var(--line); padding-left:9px; }
+  #dupes .pick { margin-top:auto; padding:6px 10px; font-size:12px;
+                 text-align:left; width:auto; }
+  #dupes .pick b { color:var(--accent); font-weight:600; }
+  #dupes .why { padding:9px 13px; color:var(--mut); font-size:13px;
+                border-top:1px solid var(--line); }
+  #dupes .why b { color:var(--ink); font-weight:600; }
+  #dupes .acts { display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+                 padding:9px 13px; border-top:1px solid var(--line); }
+  #dupes .acts button, #dupes .head button { width:auto; padding:5px 12px;
+                 font-size:12px; }
+  #dupes .msg { font-size:12px; color:var(--mut); }
+  #dupes .msg.err { color:var(--err); }
+  #dupes .empty { color:var(--mut); padding:26px 0; text-align:center; }
+  #dupes .id { font:12px/1.4 ui-monospace,Menlo,Consolas,monospace; color:var(--mut); }
+  @media (max-width:720px) { #dupes .dbody { grid-template-columns:1fr; } }
+  @media (prefers-reduced-motion:reduce) { #dupes .fill { transition:none; } }
   /* kanban board */
-  #board { display:flex; gap:10px; height:100%; align-items:stretch;
+  #board { display:flex; gap:10px; flex:1; min-height:0; align-items:stretch;
            overflow-x:auto; overflow-y:hidden; padding-bottom:6px; }
   .lane { flex:0 0 230px; display:flex; flex-direction:column; min-width:0;
           background:var(--panel); border:1px solid var(--line); border-radius:8px; }
@@ -4397,95 +4333,106 @@ PAGE = r"""<!doctype html>
 <!-- Both classes are the fail-closed default: nothing gated is visible
      and the form is inert until applyCapabilities() has said otherwise. -->
 <body class="caps-unknown readonly">
-<div id="left">
-  <div class="pad">
-    <h1>Roadmap / Merit Backlog</h1>
-    <!-- ONE roadmap link, and it points at PRODUCTION. There used to be two -
-         this realm's and the live one - because Publish reached this realm's
-         wiki only and production waited for the next bin/season-promote.sh.
-         Publish now pushes the page into the live season's docs/ as well
-         (publish_to_live_realm), so the public roadmap IS the roadmap and a
-         second link would only ask "which one is real?".
-         There is deliberately NO preview of unpublished work here. A /preview
-         route serving docs.manual/Roadmap.html raw was tried and removed: that
-         file is a page fragment dressed as a document - no wiki chrome, no
-         stylesheet at that path, every cross-page link 404 - so it looked
-         broken and told you nothing the editor's own board does not. Publish is
-         cheap and reversible; use it.
-         The two data-brand hrefs are rewritten by bin/season-brand.py, both
-         from SEASON_LIVE_WIKI_URL. The wiki link used to be this realm's own
-         (SEASON_WIKI_URL, i.e. dev) - it points at production now for the same
-         reason the roadmap link always did: the editor is where you check what
-         PLAYERS see, and the dev wiki is a build artefact you can read off
-         docs/ locally. -->
-    <div class="extlinks">
-      <a data-brand="live-wiki" href="https://homerslotr.com/" target="_blank" rel="noopener">Wiki ↗</a>
-      <a data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap" target="_blank" rel="noopener">Roadmap ↗</a>
-      <a id="monitorlink" href="/monitor" data-cap="serverlog" target="_blank" rel="noopener">Server monitor ↗</a>
+<!-- The workspace shell: a NAVIGATOR of one-link-per-line, and a main area of
+     in-app tabs. Everything here is static markup on purpose — the capability
+     gate is the `data-cap` attribute on the element itself (see
+     applyCapabilities), so a link cannot be added to the navigator while being
+     forgotten in a permissions table. Generating the list from JS would have
+     put that gate back into a table.
+
+     ONE roadmap link, and it points at PRODUCTION. There used to be two -
+     this realm's and the live one - because Publish reached this realm's
+     wiki only and production waited for the next bin/season-promote.sh.
+     Publish now pushes the page into the live season's docs/ as well
+     (publish_to_live_realm), so the public roadmap IS the roadmap and a
+     second link would only ask "which one is real?".
+     There is deliberately NO preview of unpublished work here. A /preview
+     route serving docs.manual/Roadmap.html raw was tried and removed: that
+     file is a page fragment dressed as a document - no wiki chrome, no
+     stylesheet at that path, every cross-page link 404 - so it looked
+     broken and told you nothing the editor's own board does not. Publish is
+     cheap and reversible; use it.
+     The two data-brand hrefs are rewritten by bin/season-brand.py, both
+     from SEASON_LIVE_WIKI_URL. The wiki link used to be this realm's own
+     (SEASON_WIKI_URL, i.e. dev) - it points at production now for the same
+     reason the roadmap link always did: the editor is where you check what
+     PLAYERS see, and the dev wiki is a build artefact you can read off
+     docs/ locally.
+
+     The three external links are the ONLY anchors that keep target="_blank":
+     the wiki and the public roadmap are other sites, and the server monitor is
+     a separate document meant to sit open on a second screen. Every other link
+     in this app is internal and opens a workspace tab (see the delegated click
+     handler by routeToKey). -->
+<nav id="nav">
+  <div id="navhead">
+    <div style="display:flex;align-items:center;gap:8px">
+      <h1 style="flex:1;margin:0">Roadmap / Merit Backlog</h1>
+      <button id="navtoggle" title="Collapse the navigator to a top bar">&#9204;</button>
     </div>
-    <div class="viewtoggle">
-      <button id="view_board" class="on">Board</button>
-      <button id="view_list">List</button>
+    <div id="navmodes">
+      <button id="nav_all" class="on">All</button>
+      <button id="nav_hist">History</button>
     </div>
-    <label class="chk" data-cap="edit"><input type="checkbox" id="f_carddd">
-      Card status dropdowns (Board)</label>
-    <input id="filter" placeholder="search title, player, group, status…">
-    <div class="filters">
-      <select id="f_fstatus"><option value="">All statuses</option></select>
-      <select id="f_ftype"><option value="">All types</option></select>
-      <select id="f_fplayer"><option value="">All players</option></select>
-      <select id="f_fgroup"><option value="">All groups</option></select>
-      <select id="f_fepic"><option value="">All epics</option></select>
-      <select id="f_fenv"><option value="">All environments</option></select>
-      <select id="f_fhidden">
-        <option value="">Published + hidden</option>
-        <option value="pub">Published only</option>
-        <option value="hid">Hidden only</option>
-      </select>
-      <select id="f_sort">
-        <option value="status">Sort: status</option>
-        <option value="group">Sort: group</option>
-        <option value="player">Sort: player</option>
-        <option value="date">Sort: date (newest)</option>
-        <option value="title">Sort: title</option>
-        <option value="file">Sort: file order</option>
-      </select>
+    <input id="navq" placeholder="filter navigator&hellip;">
+  </div>
+  <div id="navbody">
+    <div id="navlinks">
+      <div class="navsec"><h3>Views</h3>
+        <button class="navlink" data-route="board">Board</button>
+        <button class="navlink" data-route="list">List</button>
+        <button class="navlink" data-route="dupes" data-cap="edit">Duplicates</button>
+      </div>
+      <div class="navsec"><h3>Queues</h3>
+        <button class="navlink" data-route="queue-toolset" data-cap="edit">Toolset Queue</button>
+        <button class="navlink" data-route="queue-uat" data-cap="uat">UAT Queue</button>
+        <button class="navlink" data-route="review" data-cap="merit">UAT Review</button>
+        <button class="navlink" id="mpending" data-route="pending" data-cap="merit_view">Pending Merit Requests</button>
+      </div>
+      <div class="navsec"><h3>Release notes</h3>
+        <button class="navlink" data-route="notes-testers" data-cap="release_notes">Notes &middot; Testers</button>
+        <button class="navlink" data-route="notes-players" data-cap="release_notes">Notes &middot; Players</button>
+        <button class="navlink" data-route="notes-admin" data-cap="release_notes_admin">Notes &middot; Admin</button>
+      </div>
+      <div class="navsec"><h3>Manage</h3>
+        <button class="navlink" data-route="groups" data-cap="edit">Groups</button>
+        <button class="navlink" data-route="epics" data-cap="edit">Epics</button>
+        <button class="navlink" data-route="players" data-cap="merit_view">Players</button>
+      </div>
+      <div class="navsec"><h3>Tools</h3>
+        <button class="navlink" data-route="palette" data-cap="palette">Palette Finder</button>
+        <button class="navlink" data-route="changes" data-cap="llm_review">LLM Changes</button>
+        <button class="navlink" data-route="audit" data-cap="audit_view">Recent changes</button>
+      </div>
+      <div class="navsec"><h3>External</h3>
+        <a class="navlink ext" data-brand="live-wiki" href="https://homerslotr.com/"
+           target="_blank" rel="noopener">Wiki &#8599;</a>
+        <a class="navlink ext" data-brand="live-roadmap" href="https://homerslotr.com/manual/Roadmap"
+           target="_blank" rel="noopener">Public roadmap &#8599;</a>
+        <a class="navlink ext" id="monitorlink" href="/monitor" data-cap="serverlog"
+           target="_blank" rel="noopener">Server monitor &#8599;</a>
+      </div>
     </div>
-    <label class="chk"><input type="checkbox" id="f_showawarded">
-      Show awarded (done) ideas</label>
-    <div class="bar">
+    <div id="navhist" hidden></div>
+  </div>
+  <div id="navfoot">
+    <div class="bar" style="margin-top:0">
       <button id="add" data-cap="submit">+ Add idea</button>
-      <button id="regen" data-cap="publish">Save &amp; regenerate HTML</button>
+      <button id="regen" data-cap="publish">Save &amp; regenerate</button>
       <button id="publish" data-cap="publish">Publish to Wiki &amp; DB</button>
     </div>
-    <div class="bar">
-      <button id="mgroups" class="linkbtn" data-cap="edit">Manage groups</button>
-      <button id="mepics" class="linkbtn" data-cap="edit">Manage epics</button>
-      <button id="mplayers" class="linkbtn" data-cap="merit_view">Manage players</button>
-      <button id="mpending" class="linkbtn" data-cap="merit_view">Pending Merit Requests</button>
-      <button id="mpalette" class="linkbtn" data-cap="palette">Palette Finder</button>
-      <button id="mtoolq" class="linkbtn" data-cap="edit">Toolset Queue</button>
-      <button id="muatq" class="linkbtn" data-cap="uat">UAT Queue</button>
-      <button id="muatr" class="linkbtn" data-cap="merit">UAT Review</button>
-      <button id="mchanges" class="linkbtn" data-cap="llm_review">LLM Changes</button>
-      <button id="maudit" class="linkbtn" data-cap="audit_view">Recent changes</button>
-      <button id="mrntest" class="linkbtn" data-cap="release_notes">Notes · Testers</button>
-      <button id="mrnplay" class="linkbtn" data-cap="release_notes">Notes · Players</button>
-      <button id="mrnadmin" class="linkbtn" data-cap="release_notes_admin">Notes · Admin</button>
-      <span class="spacer"></span>
-      <span id="count" class="small"></span>
-    </div>
     <div class="bar" id="whobar">
-      <span id="who" class="small"></span>
+      <span id="who" class="small who"></span>
       <span class="spacer"></span>
       <button id="logout" class="linkbtn">Sign out</button>
     </div>
   </div>
-  <div id="list"><p class="small" id="list-loading">Loading backlog…</p></div>
-</div>
-<div id="right">
+</nav>
+<div id="navdrag" title="Drag to resize the navigator"></div>
+<div id="workspace">
+  <div id="tabbar"></div>
   <div id="banner"></div>
-  <div id="form"></div>
+  <div id="panes"></div>
 </div>
 <div class="modal-bg" id="modal"><div class="modal" id="modalbox"></div></div>
 <script>
@@ -4537,7 +4484,13 @@ function curIdx(){
   if (!selRef) return -1;
   return DATA.ideas.indexOf(selRef);
 }
-let view = 'board';          // 'list' | 'board' — Board is the default view
+// Is an editable idea form on screen? This replaced the old `view === 'list'`
+// test everywhere. Only the ACTIVE tab's pane is attached, so $('#f_id')
+// answering means the form belongs to the tab you are looking at.
+function inIdeaForm(){
+  const t = activeTab();
+  return !!(t && t.kind === 'idea' && $('#f_id'));
+}
 let showCardDropdown = false; // per-card status <select> on board cards (off by default)
 // Board lanes, left→right = pipeline flow. Labels come from DATA.vocab.statuses
 // (sourced from gen-roadmap.py STATUS) so they never drift.
@@ -4555,6 +4508,144 @@ const PIPE_LABEL = {awarded:'Award merit', implemented:'Ship · in testing'};
 const BLANK = '__BLANK__';
 const BLANK_OPT = `<option value="${BLANK}">&lt;Is Blank&gt;</option>`;
 const $ = s => document.querySelector(s);
+
+// ---- Filter state ---------------------------------------------------------
+// visibleRows() used to read the eight #f_* controls off the DOM on every
+// call, which meant the filter bar could exist exactly ONCE in the document.
+// Board and List each carry their own bar now, so the state has to live
+// somewhere both can read and write: here. One object, two views of it — which
+// is what keeps the two bars in sync BY CONSTRUCTION, rather than by copying
+// values from one bar to the other and hoping they never diverge.
+const FILTERS = {q:'', status:'', type:'', player:'', group:'', epic:'',
+                 env:'', hidden:'', sort:'status', showAwarded:false};
+const FILTER_KEYS = Object.keys(FILTERS);
+const FILTERS_LS = 'roadmap.filters';
+
+function loadFilters(){
+  try {
+    const raw = JSON.parse(localStorage.getItem(FILTERS_LS) || '{}');
+    FILTER_KEYS.forEach(k=>{ if (raw[k] !== undefined) FILTERS[k] = raw[k]; });
+  } catch(e){ /* private mode, corrupt value: an unfiltered page beats none */ }
+}
+function saveFilters(){
+  try { localStorage.setItem(FILTERS_LS, JSON.stringify(FILTERS)); } catch(e){}
+}
+
+// The bar's markup. Every control is addressed by `data-f`, never by id: two
+// copies of this are live at once and duplicate ids would make $() ambiguous.
+// `showAwarded` is emitted for the list only — the board always shows its
+// awarded lane, so the checkbox would be a control that does nothing there.
+function filterBarHTML(which){
+  return `<div class="filterbar" data-bar="${which}">
+    <input class="fq" data-f="q" placeholder="search title, player, group, status…">
+    <select data-f="status"></select>
+    <select data-f="type"></select>
+    <select data-f="player"></select>
+    <select data-f="group"></select>
+    <select data-f="epic"></select>
+    <select data-f="env"></select>
+    <select data-f="hidden">
+      <option value="">Published + hidden</option>
+      <option value="pub">Published only</option>
+      <option value="hid">Hidden only</option>
+    </select>
+    <select data-f="sort">
+      <option value="status">Sort: status</option>
+      <option value="group">Sort: group</option>
+      <option value="player">Sort: player</option>
+      <option value="date">Sort: date (newest)</option>
+      <option value="title">Sort: title</option>
+      <option value="file">Sort: file order</option>
+    </select>
+    ${which==='list' ? `<label class="chk"><input type="checkbox" data-f="showAwarded">
+      Show awarded (done)</label>` : ''}
+    ${which==='board' ? `<label class="chk" data-cap="edit"><input type="checkbox"
+      data-f="cardDropdowns"> Card status dropdowns</label>` : ''}
+    <span class="spacer"></span>
+    <span class="fcount small"></span>
+  </div>`;
+}
+
+// Fill the option lists from the loaded vocab. Called per bar on render and
+// again after every load(), since the vocab can change under us.
+function populateFilterBar(root){
+  if (!root) return;
+  const q = f => root.querySelector(`[data-f="${f}"]`);
+  const sSel=q('status'), tSel=q('type'), pSel=q('player'), gSel=q('group'),
+        eSel=q('epic'), vSel=q('env');
+  if (eSel) eSel.innerHTML='<option value="">All epics</option>'+BLANK_OPT+
+    (DATA.vocab.epics||[]).map(e=>`<option value="${esc(e.id)}">${esc(e.title||e.id)}</option>`).join('');
+  if (sSel) sSel.innerHTML='<option value="">All statuses</option>'+
+    DATA.vocab.statuses.map(s=>`<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.label)}</option>`).join('');
+  if (tSel) tSel.innerHTML='<option value="">All types</option>'+
+    (DATA.vocab.types||[]).map(t=>`<option value="${esc(t.id)}">${esc(t.label)}</option>`).join('')+
+    BLANK_OPT;
+  if (pSel) pSel.innerHTML='<option value="">All players</option>'+BLANK_OPT+
+    DATA.vocab.players.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  if (gSel) gSel.innerHTML='<option value="">All groups</option>'+
+    DATA.vocab.groups.map(g=>`<option value="${esc(g.id)}">${esc(groupTitle(g.id))}</option>`).join('');
+  // Environment is server-computed, so its option list comes from the payload
+  // rather than from the vocab. This is the triage list: picking "Commit not
+  // found" gives exactly the items whose commit: needs fixing.
+  if (vSel){
+    const states=(DATA.environments&&DATA.environments.states)||[];
+    vSel.innerHTML='<option value="">All environments</option>'+
+      states.map(x=>`<option value="${esc(x.state)}">${esc(x.label)}</option>`).join('')+
+      '<option value="_none">(not built yet)</option>';
+  }
+  syncFilterBar(root);
+}
+
+// Push FILTERS into one bar's controls. Repopulating a <select> drops its
+// value, so this always runs after populateFilterBar().
+function syncFilterBar(root){
+  if (!root) return;
+  root.querySelectorAll('[data-f]').forEach(el=>{
+    const k = el.dataset.f;
+    if (k === 'cardDropdowns'){ el.checked = showCardDropdown; return; }
+    if (!(k in FILTERS)) return;
+    if (el.type === 'checkbox') el.checked = !!FILTERS[k];
+    else el.value = FILTERS[k];
+  });
+}
+
+function bindFilterBar(root){
+  if (!root) return;
+  root.querySelectorAll('[data-f]').forEach(el=>{
+    const k = el.dataset.f;
+    const push = () => {
+      if (k === 'cardDropdowns'){ showCardDropdown = el.checked; }
+      else FILTERS[k] = (el.type === 'checkbox') ? el.checked : el.value;
+      applyFilters();
+    };
+    if (el.tagName === 'INPUT' && el.type !== 'checkbox') el.oninput = push;
+    else el.onchange = push;
+  });
+}
+
+// One filter changed: persist it, redraw both filter consumers, and bring
+// every other live bar back in step with the state that just moved.
+function applyFilters(){
+  saveFilters();
+  renderBoard(); renderList();
+  // Every bar, including the ones in DETACHED panes: a tab you are not looking
+  // at must already agree with FILTERS by the time you switch to it, or the
+  // two views would visibly disagree for one frame.
+  allBars().forEach(syncFilterBar);
+}
+
+// The filter bars across every open tab, attached or not.
+function allBars(){
+  const out = [];
+  TABS.forEach(t=>{ if (t.pane) out.push(...t.pane.querySelectorAll('.filterbar')); });
+  return out;
+}
+
+// Both bars carry the "N/M ideas" readout, so it is set on all of them.
+function setCount(n){
+  const txt = `${n}/${DATA.ideas.length} ideas`;
+  allBars().forEach(b=>{ const c=b.querySelector('.fcount'); if (c) c.textContent=txt; });
+}
 
 function statusCls(s){ return s || ''; }
 function typeCls(t){ return (t||'').toLowerCase(); }
@@ -4578,10 +4669,18 @@ async function load(){
   // we changed and merge around anyone else's edits to other items.
   baseHashes = DATA.base_hashes || null;
   baseVocab = DATA.base_vocab || null;
-  populateFilters();
   applyCapabilities();
-  if (view==='board'){ const f=$('#form'); if (f) f.style.display='none'; renderBoard(); }
-  else { renderList(); if (DATA.ideas.length) select(0); }
+  // Vocab can move under us (a group added in another session), so every bar
+  // is repopulated — including the ones in detached panes.
+  allBars().forEach(b=>populateFilterBar(b));
+  renderBoard(); renderList();
+  refreshTabTitles();
+  // A panel showing pre-reload data is wrong data. Rather than refetch ten
+  // panels nobody is looking at, mark them and let activate() redraw the one
+  // the admin actually returns to.
+  TABS.forEach(t=>{ if (t.kind === 'panel') t.stale = true; });
+  const at = activeTab();
+  if (at && at.kind === 'panel'){ renderTab(at); }
   refreshPending();
 }
 
@@ -4593,7 +4692,8 @@ function refreshPending(){
   if (!CAN('merit_view')) return;
   api('/api/pending').then(r=>r.json()).then(d=>{
     const n=d.count||0;
-    btn.textContent=`${n} Pending Merit Request${n===1?'':'s'}`;
+    btn.innerHTML = 'Pending Merit Requests'
+      + (n ? ` <span class="n">${n}</span>` : '');
     btn.classList.toggle('has', n>0);
   }).catch(()=>{});
 }
@@ -4606,10 +4706,14 @@ function epicTitle(id){
 // Show who is signed in, and take away the chrome this role cannot use. This
 // is presentation only: every one of these actions is refused server-side too,
 // so a hidden button is a courtesy, never the control.
-function applyCapabilities(){
+// `root` scopes the sweep to one freshly rendered pane; with no argument it
+// does the whole document (boot, and after every load()).
+function applyCapabilities(root){
   const me = DATA.me || {};
+  const scoped = !!root;
+  root = root || document;
   const who = $('#who');
-  if (who) who.textContent = me.display_name
+  if (who && !scoped) who.textContent = me.display_name
     ? `${me.display_name} · ${me.role_label || me.role}` : '';
   // The gate lives on the ELEMENT, as data-cap, not in a table here. One source
   // of truth: adding a gated control is one attribute, and it cannot be added
@@ -4621,67 +4725,282 @@ function applyCapabilities(){
   // inline style), which loses to `body.caps-unknown [data-cap]{display:none}`
   // while that rule still applies.
   document.body.classList.remove('caps-unknown');
-  document.querySelectorAll('[data-cap]').forEach(el=>{
+  root.querySelectorAll('[data-cap]').forEach(el=>{
     el.style.display = CAN(el.dataset.cap) ? '' : 'none';
   });
-  // A row whose every control was just hidden is an empty box with margins --
-  // only a `tester` ever has one, and only because they hold none of the three
-  // caps in the first bar.
-  document.querySelectorAll('#left .bar').forEach(bar=>{
-    const live = [...bar.children].some(el=>el.style.display !== 'none');
-    bar.style.display = live ? '' : 'none';
+  if (scoped) return;
+  // A box whose every control was just hidden is empty margins -- a navigator
+  // section with no links a `tester` may use, or the first action bar, which
+  // holds none of the three caps a tester has.
+  document.querySelectorAll('#navfoot .bar, .navsec').forEach(box=>{
+    const kids = [...box.children].filter(el=>el.tagName!=='H3');
+    const live = kids.some(el=>el.style.display !== 'none');
+    box.style.display = live ? '' : 'none';
   });
   // A role with no `edit` (today: `tester`) browses the whole backlog but owns
   // nothing on it. The class drives the CSS that greys the form out; every
   // individual control ALSO checks CAN() before it fires, and the server
   // enforces all of it independently — this is a courtesy, not the control.
   document.body.classList.toggle('readonly', READONLY());
-  const cd = $('#f_carddd'); if (cd && READONLY()) cd.checked = false;
+  if (READONLY()) showCardDropdown = false;
 }
 
-function populateFilters(){
-  const sSel=$('#f_fstatus'), tSel=$('#f_ftype'), pSel=$('#f_fplayer'), gSel=$('#f_fgroup');
-  const eSel=$('#f_fepic');
-  const sCur=sSel.value, tCur=tSel.value, pCur=pSel.value, gCur=gSel.value, eCur=eSel.value;
-  eSel.innerHTML='<option value="">All epics</option>'+BLANK_OPT+
-    (DATA.vocab.epics||[]).map(e=>`<option value="${esc(e.id)}">${esc(e.title||e.id)}</option>`).join('');
-  eSel.value=eCur;
-  sSel.innerHTML='<option value="">All statuses</option>'+
-    DATA.vocab.statuses.map(s=>`<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.label)}</option>`).join('');
-  tSel.innerHTML='<option value="">All types</option>'+
-    (DATA.vocab.types||[]).map(t=>`<option value="${esc(t.id)}">${esc(t.label)}</option>`).join('')+
-    BLANK_OPT;
-  pSel.innerHTML='<option value="">All players</option>'+BLANK_OPT+
-    DATA.vocab.players.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
-  gSel.innerHTML='<option value="">All groups</option>'+
-    DATA.vocab.groups.map(g=>`<option value="${esc(g.id)}">${esc(groupTitle(g.id))}</option>`).join('');
-  sSel.value=sCur; tSel.value=tCur; pSel.value=pCur; gSel.value=gCur;
+// ---- Workspace tabs -------------------------------------------------------
+// ServiceNow's workspace, in about 150 lines: the navigator holds links, and a
+// link opens a TAB in the main area rather than replacing what is there.
+//
+// THE ONE DESIGN DECISION EVERYTHING ELSE FOLLOWS FROM: a tab's pane is a real
+// DOM node, but only the ACTIVE one is attached to #panes. The rest sit
+// detached, held by the tab record.
+//
+// That is what makes tabs safe to bolt onto this page at all. Every renderer
+// here addresses its widgets by global id through $() — #form, #f_title,
+// #board, #q_close — and two panels alive in the document at once would make
+// every one of those ambiguous. A detached node is invisible to
+// document.querySelector, so $('#f_title') can only ever match the tab you are
+// looking at, which is also the only tab you can type into or save.
+//
+// Detaching keeps input values and bound handlers, so switching tabs costs no
+// re-render and, crucially, does not throw away unsaved edits in an idea form.
+// The one thing it does lose is scrollTop, which activate() saves and restores
+// by hand.
+const TABS = [];         // [{key, kind, ref, title, fixed, pane, scroll, stale}]
+let activeKey = null;
 
-  // Environment is server-computed, so its option list comes from the payload
-  // rather than from the vocab. This is the triage list: picking "Commit not
-  // found" gives exactly the items whose commit: needs fixing.
-  const vSel=$('#f_fenv'), vCur=vSel.value;
-  const states=(DATA.environments&&DATA.environments.states)||[];
-  vSel.innerHTML='<option value="">All environments</option>'+
-    states.map(x=>`<option value="${esc(x.state)}">${esc(x.label)}</option>`).join('')+
-    '<option value="_none">(not built yet)</option>';
-  vSel.value=vCur;
+// Panel tabs (everything that used to be a modal) write through panelHTML(),
+// which needs to know where to put its markup. Null means "no panel tab is
+// active", and panelHTML() then falls back to the real modal — which is what
+// keeps guard() and the confirm dialogs genuinely modal.
+let RENDER_TARGET = null;
+
+// route -> tab definition. `fixed` tabs are created at boot and cannot be
+// closed. The render function is the panel opener that used to be wired to a
+// left-pane button; it writes through panelHTML() and so lands in the pane.
+const TAB_DEFS = {
+  board:  {title:'Board', kind:'board', fixed:true, render:renderBoardPane},
+  list:   {title:'List',  kind:'list',  fixed:true, render:renderListPane},
+  dupes:  {title:'Duplicates',          render:()=>openDupes()},
+  'queue-toolset': {title:'Toolset Queue', render:()=>openQueue('toolset')},
+  'queue-uat':     {title:'UAT Queue',     render:()=>openQueue('uat')},
+  review:  {title:'UAT Review',          render:()=>openReview()},
+  pending: {title:'Pending Merit',       render:()=>openPending()},
+  'notes-testers': {title:'Notes · Testers', render:()=>openReleaseNotes('testers')},
+  'notes-players': {title:'Notes · Players', render:()=>openReleaseNotes('players')},
+  'notes-admin':   {title:'Notes · Admin',   render:()=>openReleaseNotes('admin')},
+  groups:  {title:'Groups',        render:()=>openGroups()},
+  epics:   {title:'Epics',         render:()=>openEpics()},
+  players: {title:'Players',       render:()=>openPlayers()},
+  palette: {title:'Palette Finder',render:()=>openPalette()},
+  changes: {title:'LLM Changes',   render:()=>openChanges()},
+  audit:   {title:'Recent changes',render:()=>openAudit()},
+};
+
+function tabFor(key){ return TABS.find(t=>t.key===key) || null; }
+function paneFor(key){ const t=tabFor(key); return t ? t.pane : null; }
+function activeTab(){ return tabFor(activeKey); }
+
+// `#idea-<id>` is the anchor the /dupes view and every rich-text note already
+// emit. Until now NOTHING read it — there was no hashchange listener and no
+// location.hash read in the whole page — so clicking one reloaded / and landed
+// on the board. This pair is the fix.
+function routeToKey(hash){
+  const h = String(hash||'').replace(/^[^#]*#/, '').replace(/^#/, '');
+  if (!h) return 'board';
+  if (h.startsWith('idea-')) return 'idea:' + h.slice(5);
+  return TAB_DEFS[h] ? h : 'board';
 }
+function keyToRoute(key){
+  return key.startsWith('idea:') ? '#idea-' + key.slice(5) : '#' + key;
+}
+
+function ideaKey(id){ return 'idea:' + id; }
+function ideaTitle(id){
+  const it = DATA.ideas.find(x=>x.id===id);
+  return (it && it.title) ? it.title : (id || 'idea');
+}
+
+// Open the tab for `key`, or bring it to the front if it is already open.
+// Opening the same thing twice giving one tab (not two) is the whole reason
+// keys exist.
+function openTab(key){
+  const known = tabFor(key);
+  if (known){ activate(key); if (known.stale) renderTab(known); return known; }
+  const isIdea = key.startsWith('idea:');
+  const def = isIdea ? null : TAB_DEFS[key];
+  if (!isIdea && !def) return openTab('board');
+  // A hand-typed `#notes-admin` should not paint a panel this account may not
+  // use. The required capability is read off the navigator link rather than
+  // from a table here — same single source of truth applyCapabilities() uses,
+  // so a route cannot be added with its gate forgotten. The server refuses the
+  // data either way; this is so the refusal is legible instead of an empty box.
+  if (!isIdea){
+    const cap = routeCap(key);
+    if (cap && !CAN(cap)){
+      banner('bad', `“${def.title}” needs the ${cap} permission, which this `
+        + 'account does not have.');
+      return openTab('board');
+    }
+  }
+  const t = {
+    key,
+    kind: isIdea ? 'idea' : (def.kind || 'panel'),
+    ref: isIdea ? key.slice(5) : '',
+    title: isIdea ? ideaTitle(key.slice(5)) : def.title,
+    fixed: !isIdea && !!def.fixed,
+    pane: document.createElement('div'),
+    scroll: 0, stale: false,
+    sel: -1, selRef: null, formSnapshot: null,
+  };
+  t.pane.className = 'pane';
+  TABS.push(t);
+  // Attach BEFORE rendering: the idea form and every panel address their own
+  // widgets with $(), which only sees the attached pane.
+  activate(key, {skipRender:true});
+  renderTab(t);
+  return t;
+}
+
+function renderTab(t){
+  t.stale = false;
+  if (t.kind === 'idea'){
+    t.pane.innerHTML = '<div id="form"></div>';
+    // `t.obj` is set only for a not-yet-saved idea, which has no id to look up.
+    const i = t.obj ? DATA.ideas.indexOf(t.obj)
+                    : DATA.ideas.findIndex(x=>x.id===t.ref);
+    if (i < 0){
+      t.pane.innerHTML = `<p class="hint">No idea with id
+        <code>${esc(t.ref)}</code> is in roadmap.yaml — it may have been renamed
+        or deleted.</p>`;
+      return;
+    }
+    select(i);
+    return;
+  }
+  const def = TAB_DEFS[t.key];
+  try { def.render(t.pane, t); }
+  catch(e){
+    console.error('tab render failed', t.key, e);
+    t.pane.innerHTML = `<p class="hint">Could not open “${esc(t.title)}”: ${esc(String(e))}</p>`;
+  }
+}
+
+function activate(key, opts){
+  opts = opts || {};
+  const t = tabFor(key); if (!t) return;
+  const prev = activeTab();
+  if (prev && prev !== t){
+    // Idea forms lean on three module globals. They are per-TAB state, so they
+    // ride with the tab rather than following whichever form rendered last.
+    if (prev.kind === 'idea'){
+      prev.sel = sel; prev.selRef = selRef; prev.formSnapshot = formSnapshot;
+    }
+    prev.scroll = $('#panes').scrollTop;
+    prev.pane.remove();
+  }
+  activeKey = key;
+  if (t.pane.parentNode !== $('#panes')) $('#panes').appendChild(t.pane);
+  if (t.kind === 'idea'){
+    sel = t.sel; selRef = t.selRef; formSnapshot = t.formSnapshot;
+  } else { selRef = null; formSnapshot = null; }
+  // A panel's own controls (Recent changes' "30 days", the queue's refresh)
+  // re-render through panelHTML(), so the target has to stay pointed at the
+  // visible panel for as long as it is visible.
+  RENDER_TARGET = (t.kind === 'panel') ? t.pane : null;
+  $('#panes').scrollTop = t.scroll || 0;
+  renderTabBar();
+  markNavActive();
+  history.replaceState(null, '', keyToRoute(key));
+  // Panels re-render every time they come to the front. It costs a refetch,
+  // and buys two things: a queue or an audit log is never showing data from
+  // whenever you last looked at it, and — the reason it is not optional — the
+  // openers bind their own controls with $(), which only sees the ATTACHED
+  // pane. A panel rendered while detached would come back with dead buttons.
+  if (!opts.skipRender && t.kind === 'panel') renderTab(t);
+  recordVisit(t);
+}
+
+// Closing always goes through the active tab: isDirty() can only measure the
+// form that is attached, so "close a tab you cannot see" would silently
+// discard its edits. Activating first makes the guard prompt tell the truth.
+function closeTab(key){
+  const t = tabFor(key); if (!t || t.fixed) return;
+  if (key !== activeKey){ activate(key); }
+  guard(()=>{
+    const i = TABS.indexOf(t); if (i < 0) return;
+    TABS.splice(i, 1);
+    t.pane.remove();
+    if (activeKey === key){
+      activeKey = null;
+      const next = TABS[Math.min(i, TABS.length-1)] || TABS[0];
+      if (next) activate(next.key);
+    } else { renderTabBar(); }
+  });
+}
+
+function renderTabBar(){
+  const bar = $('#tabbar'); if (!bar) return;
+  bar.innerHTML = TABS.map(t=>`<div class="wtab${t.key===activeKey?' on':''}"
+      data-key="${esc(t.key)}" title="${esc(t.title)}">
+      <span class="wt">${esc(t.title)}</span>
+      ${t.fixed?'':'<span class="x" title="Close">&times;</span>'}
+    </div>`).join('');
+  bar.querySelectorAll('.wtab').forEach(el=>{
+    const key = el.dataset.key;
+    el.onclick = e => {
+      if (e.target.classList.contains('x')) return closeTab(key);
+      activate(key);
+    };
+    // Middle-click closes, the way a browser tab does.
+    el.onauxclick = e => { if (e.button === 1){ e.preventDefault(); closeTab(key); } };
+  });
+  const on = bar.querySelector('.wtab.on');
+  if (on && on.scrollIntoView) on.scrollIntoView({block:'nearest', inline:'nearest'});
+}
+
+// Re-title an idea tab after its title is edited, and drop tabs whose idea is
+// gone. Called from load() and after a save.
+function refreshTabTitles(){
+  let changed = false;
+  TABS.slice().forEach(t=>{
+    if (t.kind !== 'idea') return;
+    const it = DATA.ideas.find(x=>x.id===t.ref);
+    const title = it ? (it.title || t.ref) : t.title;
+    if (title !== t.title){ t.title = title; changed = true; }
+  });
+  if (changed) renderTabBar();
+}
+
+// ---- The two fixed views --------------------------------------------------
+function renderBoardPane(pane){
+  pane.innerHTML = filterBarHTML('board') + '<div id="board"></div>';
+  populateFilterBar(pane); bindFilterBar(pane); applyCapabilities(pane);
+  renderBoard();
+}
+function renderListPane(pane){
+  pane.innerHTML = filterBarHTML('list') + '<div id="list"></div>';
+  populateFilterBar(pane); bindFilterBar(pane); applyCapabilities(pane);
+  renderList();
+}
+
+// Open an idea in its own tab. Every route into the editor form goes through
+// here: list rows, board cards, `#idea-<id>` anchors, queue "go to" buttons.
+function openIdea(id){ if (id) openTab(ideaKey(id)); }
 
 function statusRank(s){
   const i = DATA.vocab.statuses.findIndex(x=>x.id===s);
   return i<0 ? 999 : i;
 }
 
-function visibleRows(){
-  const q = $('#filter').value.toLowerCase();
-  const fs=$('#f_fstatus').value, ft=$('#f_ftype').value;
-  const fp=$('#f_fplayer').value, fg=$('#f_fgroup').value;
-  const fe=$('#f_fepic').value, fh=$('#f_fhidden').value;
-  const fv=$('#f_fenv').value;
-  // Board always shows the awarded lane; the "Show awarded" checkbox only
-  // governs the list view.
-  const showAwarded=(view==='board') || $('#f_showawarded').checked, sort=$('#f_sort').value;
+// `which` is the view asking: the board always shows its awarded lane, while
+// the list honours the checkbox. Everything else is shared, so both views see
+// exactly the same rows in exactly the same order.
+function visibleRows(which){
+  const q = (FILTERS.q||'').toLowerCase();
+  const fs=FILTERS.status, ft=FILTERS.type;
+  const fp=FILTERS.player, fg=FILTERS.group;
+  const fe=FILTERS.epic, fh=FILTERS.hidden;
+  const fv=FILTERS.env;
+  const showAwarded=(which==='board') || !!FILTERS.showAwarded, sort=FILTERS.sort;
   let rows = DATA.ideas.map((it,idx)=>({it,idx})).filter(({it})=>{
     if (!showAwarded && it.status==='awarded') return false;
     if (fs && it.status!==fs) return false;
@@ -4740,48 +5059,30 @@ function envOf(it){
   return m[it.id] || null;
 }
 
+// The list pane is looked up through its TAB, not through $(): applyFilters()
+// redraws it while it may be DETACHED (you are on the board), and a detached
+// node is invisible to document.querySelector by design.
 function renderList(){
-  const rows = visibleRows();
-  const box=$('#list'); box.innerHTML='';
+  const pane = paneFor('list'); if (!pane) return;
+  const box = pane.querySelector('#list'); if (!box) return;
+  const rows = visibleRows('list');
+  const openIdeas = new Set(TABS.filter(t=>t.kind==='idea').map(t=>t.ref));
+  box.innerHTML='';
   rows.forEach(({it,idx})=>{
     const d=document.createElement('div');
-    d.className='row'+(idx===sel?' sel':'')+(it.hidden?' hid':'');
+    d.className='row'+(openIdeas.has(it.id)?' sel':'')+(it.hidden?' hid':'');
     const env=envOf(it); if (env) d.dataset.env=env.state;
     const tbadge = it.type
       ? `<span class="tbadge ${typeCls(it.type)}">${esc(it.type)}</span> ` : '';
     d.innerHTML=`<span class="t">${esc(it.title||'(untitled)')}</span>
       <span class="meta">${tbadge}<span class="badge ${statusCls(it.status)}">${esc(it.status||'?')}</span>
       ${chips(it)}${esc(groupTitle(it.group))}${it.player?' · '+esc(it.player):''}</span>`;
-    d.onclick=()=>guard(()=>selectById(it.id, idx));
+    // No guard() here any more: opening an idea no longer destroys the form
+    // you were in, it opens a second tab beside it.
+    d.onclick=()=>openIdea(it.id);
     box.appendChild(d);
   });
-  $('#count').textContent=`${rows.length}/${DATA.ideas.length} ideas`;
-}
-
-// Re-render whichever view is active (filters/search call this).
-function render(){ if (view==='board') renderBoard(); else renderList(); }
-
-function setView(v){
-  // Leaving list view hides the form without re-rendering it, so ask about
-  // unsaved edits here — once we are on the board there is no live form and
-  // isDirty() can no longer see them.
-  if (v==='board' && view==='list' && isDirty()) return guard(()=>setView(v));
-  view = v;
-  $('#view_list').classList.toggle('on', v==='list');
-  $('#view_board').classList.toggle('on', v==='board');
-  const right=$('#right'), form=$('#form');
-  if (v==='board'){
-    if (form) form.style.display='none';
-    renderBoard();
-  } else {
-    let b=$('#board'); if (b) b.remove();
-    if (form) form.style.display='';
-    renderList();
-    const i = curIdx();
-    if (i>=0) select(i);
-    else if (sel>=0 && DATA.ideas[sel]) select(sel);
-    else if (DATA.ideas.length) select(0);
-  }
+  setCount(rows.length);
 }
 
 function statusLabel(id){
@@ -4792,12 +5093,12 @@ function statusLabel(id){
 let dragIdx = -1;   // idea index currently being dragged across lanes
 
 function renderBoard(){
-  const rows = visibleRows();
+  const pane = paneFor('board'); if (!pane) return;
+  const board = pane.querySelector('#board'); if (!board) return;
+  const rows = visibleRows('board');
   const buckets={}; BOARD_LANES.forEach(s=>buckets[s]=[]);
   rows.forEach(({it,idx})=>{ if (buckets[it.status]) buckets[it.status].push({it,idx}); });
 
-  let board=$('#board');
-  if (!board){ board=document.createElement('div'); board.id='board'; $('#right').appendChild(board); }
   board.innerHTML = BOARD_LANES.map(s=>{
     const cards = buckets[s].map(({it,idx})=>{
       const tbadge = it.type
@@ -4819,13 +5120,13 @@ function renderBoard(){
       <div class="lane-cards">${cards}</div>
     </div>`;
   }).join('');
-  $('#count').textContent=`${rows.length}/${DATA.ideas.length} ideas`;
+  setCount(rows.length);
 
-  // Card click → open the edit form (switches back to list view). The status
-  // dropdown must not trigger this.
+  // Card click → open that idea in its own workspace tab. The status dropdown
+  // must not trigger this.
   board.querySelectorAll('.card').forEach(c=>{
     c.onclick=e=>{ if (e.target.closest('.cst')) return;
-      const idx=+c.dataset.idx; setView('list'); select(idx); };
+      const it=DATA.ideas[+c.dataset.idx]; if (it) openIdea(it.id); };
     c.ondragstart=e=>{ dragIdx=+c.dataset.idx; c.classList.add('dragging');
       e.dataTransfer.effectAllowed='move'; };
     c.ondragend=()=>{ c.classList.remove('dragging'); dragIdx=-1; };
@@ -5038,9 +5339,14 @@ function autofillIdFromTitle(){
   idEl.value = uniqueIdeaId(slug, curIdx());
 }
 
+// Build the idea form. It writes into #form, which lives in the ACTIVE idea
+// tab's pane — and only that pane is attached, so $('#form') is unambiguous
+// however many idea tabs are open.
 function select(i){
   sel = i; formSnapshot = null; selRef = DATA.ideas[i] || null; renderList();
-  const it = DATA.ideas[i]; if (!it) { $('#form').innerHTML=''; return; }
+  const it = DATA.ideas[i];
+  const form = $('#form'); if (!form) return;
+  if (!it) { form.innerHTML=''; return; }
   // The empty option exists only while the item HAS no group: it is the
   // placeholder a new idea starts on, and offering it on an item that is
   // already filed would just be a way to break one by mis-click.
@@ -6186,7 +6492,7 @@ function banner(cls,msg){ const b=$('#banner'); b.className=cls; b.textContent=m
 // that would do that goes through guard().
 function snapshot(){
   const i = curIdx();
-  return (view==='list' && i>=0 && $('#f_id'))
+  return (i>=0 && inIdeaForm())
     ? JSON.stringify(pruneEmpty(readForm(), DATA.ideas[i])) : null;
 }
 function isDirty(){
@@ -6243,11 +6549,11 @@ window.addEventListener('unhandledrejection', e=>{
   try { banner('bad', 'JavaScript error (async): '
     + ((e.reason && e.reason.message) || e.reason)); } catch(_){}
 });
-// Select an idea after a possible reload: prefer its id, fall back to the row
+// Open an idea after a possible reload: prefer its id, fall back to the row
 // index for a brand-new idea that has no id yet.
 function selectById(id, idx){
-  const i = id ? DATA.ideas.findIndex(x=>x.id===id) : -1;
-  select(i>=0 ? i : idx);
+  if (id) return openIdea(id);
+  const it = DATA.ideas[idx]; if (it && it.id) openIdea(it.id);
 }
 window.addEventListener('beforeunload', e=>{
   if (isDirty()){ e.preventDefault(); e.returnValue=''; }
@@ -6265,10 +6571,10 @@ async function commit(endpoint, force, opts){
   // advance to the next item there after the save reloads from the file, even
   // if the edit moved or dropped the current item out of the view.
   let nextId=null, curPos=-1;
-  // In list view, fold the open form's edits into DATA before sending. In board
-  // view there is no live form, so skip this (moveToStatus already mutated the
-  // idea in place).
-  if (view==='list' && $('#f_id')){
+  // In an idea tab, fold the open form's edits into DATA before sending. From
+  // the board there is no live form, so skip this (moveToStatus already
+  // mutated the idea in place).
+  if (inIdeaForm()){
     // Resolve the open idea by identity, never by the (possibly stale) index.
     const idx = curIdx();
     if (idx < 0){
@@ -6293,7 +6599,7 @@ async function commit(endpoint, force, opts){
     // edit is applied — otherwise an edit that changes a sort key (status,
     // group, title…) re-sorts the current item and "next" is taken relative to
     // its new position, making the selection jump somewhere unexpected.
-    const vis = visibleRows();
+    const vis = visibleRows('list');
     curPos = vis.findIndex(r=>r.idx===idx);
     if (curPos>=0 && curPos+1<vis.length) nextId = vis[curPos+1].it.id;
     DATA.ideas[idx] = pruneEmpty(readForm(), DATA.ideas[idx]);
@@ -6313,7 +6619,7 @@ async function commit(endpoint, force, opts){
       : missing.length + ' ideas have no group: '
         + missing.map(x=>'"'+(x.title||x.id||'(untitled)')+'"').join(', ')
         + '. Every idea needs one before anything can be saved.');
-    if (view==='list' && first>=0) select(first);
+    if (first>=0) openIdea(DATA.ideas[first].id);
     return false;
   }
   const r = await api(endpoint, {method:'POST',
@@ -6340,7 +6646,7 @@ async function commit(endpoint, force, opts){
   if (res.output) msg += '\n\n'+res.output;
   banner(res.warnings&&res.warnings.length ? 'warn':'ok', msg);
   await load();
-  if (view!=='list') return true;
+  if (!inIdeaForm()) return true;
   if (opts.stay) reselect(keepId); else advanceSelection(nextId, curPos);
   return true;
 }
@@ -6349,8 +6655,29 @@ async function commit(endpoint, force, opts){
 // re-read, so nothing may be held across a load() but the id).
 function reselect(id){
   const i = id ? DATA.ideas.findIndex(x=>x.id===id) : -1;
-  if (i>=0) select(i);
-  else { sel=-1; selRef=null; formSnapshot=null; renderList(); $('#form').innerHTML=''; }
+  if (i>=0) retargetIdeaTab(id);
+  else { sel=-1; selRef=null; formSnapshot=null; renderList();
+         const f=$('#form'); if (f) f.innerHTML=''; }
+}
+
+// Point the ACTIVE idea tab at a different idea: save-and-advance, and a brand
+// new idea getting its real id on its first save. A tab's key is its identity,
+// so this re-keys the tab rather than only redrawing inside it — otherwise the
+// tab would answer to the wrong `#idea-…` route and open a duplicate next time.
+function retargetIdeaTab(id){
+  const t = activeTab(); if (!t || t.kind !== 'idea') return;
+  const dup = TABS.find(x => x !== t && x.key === ideaKey(id));
+  if (dup){                       // that idea already has a tab — go there
+    const i = TABS.indexOf(t);
+    TABS.splice(i, 1); t.pane.remove(); activeKey = null;
+    activate(dup.key); renderTab(dup); return;
+  }
+  t.key = ideaKey(id); t.ref = id; t.obj = null; t.title = ideaTitle(id);
+  activeKey = t.key;
+  renderTab(t);
+  renderTabBar();
+  history.replaceState(null, '', keyToRoute(t.key));
+  recordVisit(t);
 }
 
 // External-edit conflict: the file changed on disk since we loaded it. Offer to
@@ -6373,14 +6700,15 @@ function conflictBanner(endpoint, conflictMsg){
 }
 
 function advanceSelection(nextId, curPos){
-  const vis = visibleRows();
+  const vis = visibleRows('list');
   let target = -1;
   // Prefer the item that followed the one we just edited.
   if (nextId){ const r = vis.find(x=>x.it.id===nextId); if (r) target = r.idx; }
   // Otherwise hold the same slot in the (possibly shorter) visible list.
   if (target<0 && curPos>=0 && vis.length) target = vis[Math.min(curPos, vis.length-1)].idx;
-  if (target>=0){ select(target); }
-  else { sel=-1; selRef=null; renderList(); $('#form').innerHTML=''; }
+  if (target>=0 && DATA.ideas[target].id){ retargetIdeaTab(DATA.ideas[target].id); }
+  else { sel=-1; selRef=null; renderList();
+         const f=$('#form'); if (f) f.innerHTML=''; }
 }
 
 function move(dir){
@@ -6389,16 +6717,31 @@ function move(dir){
   const j = i+dir; if (j<0||j>=DATA.ideas.length) return;
   [DATA.ideas[i],DATA.ideas[j]]=[DATA.ideas[j],DATA.ideas[i]];
   sel=j; renderList(); select(sel);
+  banner('warn','Moved in the editor. Click Save to write the new file order.');
 }
 
 function del(){
   const i = curIdx(); if (i<0) return;
   if (!confirm('Delete this idea from the backlog?')) return;
   DATA.ideas.splice(i,1);
-  sel = Math.min(i, DATA.ideas.length-1);
-  renderList();
-  if (sel>=0) select(sel); else { selRef=null; $('#form').innerHTML=''; }
+  sel = -1; selRef = null; formSnapshot = null;
+  renderList(); renderBoard();
+  // The tab was a view onto an idea that no longer exists, so it goes too.
+  const t = activeTab();
+  if (t && t.kind === 'idea'){ t.fixed = false; forceCloseTab(t.key); }
   banner('warn','Deleted in the editor. Click Save to write it to roadmap.yaml.');
+}
+
+// closeTab() routes through guard(); this is the path for a tab whose idea is
+// already gone, where there is nothing left to prompt about.
+function forceCloseTab(key){
+  const t = tabFor(key); if (!t) return;
+  const i = TABS.indexOf(t); TABS.splice(i, 1); t.pane.remove();
+  if (activeKey === key){
+    activeKey = null;
+    const next = TABS[Math.min(i, TABS.length-1)] || TABS[0];
+    if (next) activate(next.key);
+  } else renderTabBar();
 }
 
 $('#add').onclick = ()=>guard(()=>{
@@ -6407,11 +6750,17 @@ $('#add').onclick = ()=>guard(()=>{
   // Crafting) and looked deliberate -- a wrong group is invisible in a way an
   // empty one is not. Blank is refused on save (checkGroups + gen-roadmap's
   // group check), so it has to be chosen rather than merely left alone.
-  DATA.ideas.unshift({id:'', title:'', group:'', status:'planned',
-                      date: todayISO()});
-  // Adding needs the full form (id + title), so always land in list view.
-  if (view!=='list'){ setView('list'); }
-  sel=0; renderList(); select(0);
+  const fresh = {id:'', title:'', group:'', status:'planned', date: todayISO()};
+  DATA.ideas.unshift(fresh);
+  // A new idea has no id yet, so it has no `idea:<id>` key to be filed under.
+  // It gets the reserved `idea:__new__` key and is tracked by OBJECT identity
+  // until its first save, at which point retargetIdeaTab() re-keys the tab to
+  // the real id.
+  forceCloseTab('idea:__new__');
+  const t = openTab('idea:__new__');
+  t.obj = fresh; t.title = '(new idea)';
+  renderTab(t); renderTabBar();
+  renderList(); renderBoard();
   banner('warn','New idea added. Pick a group, give it a unique id + title, '
     + 'then Save.');
 });
@@ -6419,6 +6768,203 @@ $('#add').onclick = ()=>guard(()=>{
 // ---- group / player management modals -----------------------------------
 const escAmp = s => s.replace(/&/g,'&amp;');          // store titles in YAML form
 const dispAmp = s => (s||'').replace(/&amp;/g,'&');   // ...show them un-escaped
+// Panel renderers (the ten that used to be left-pane buttons opening the one
+// shared #modalbox) write through here. In a panel TAB the markup goes into
+// that tab's pane; with no panel tab active — guard(), the confirm dialogs —
+// it falls back to the real modal, which is what those genuinely are.
+function panelHTML(html){
+  const pane = RENDER_TARGET;
+  if (!pane) return modalHTML(html);
+  if (!TABS.some(t=>t.pane === pane)) return;   // the tab was closed mid-fetch
+  pane.innerHTML = html;
+  applyCapabilities(pane);
+}
+// The Close button a panel draws for itself: closes the tab it is in, or the
+// modal when it is one.
+function closePanel(){
+  if (RENDER_TARGET) closeTab(activeKey); else closeModal();
+}
+// ---- Duplicate review -----------------------------------------------------
+// Ported in from the standalone /dupes document, which was reachable only by
+// typing the URL — nothing in this page linked to it — and whose per-idea
+// links (`/#idea-<id>` in a new browser tab) landed on the board, because
+// nothing anywhere read that fragment. In here they are plain `#idea-<id>`
+// anchors and the delegated router turns them into workspace tabs, which is
+// the whole reason this view moved.
+//
+// The server half is untouched: /api/dupes and /api/dupes/action, both gated
+// on `edit`, backed by dupe-suggestions.json beside roadmap.yaml.
+let DUPES = null;
+let dupeFilter = 'open';
+
+function openDupes(){
+  panelHTML(`<h2>Duplicate Review</h2>
+    <div id="dupes">
+      <div class="dbar">
+        <span class="meter"><span class="track"><span class="fill" id="d_fill"></span></span>
+          <span id="d_count">loading&hellip;</span></span>
+        <button class="dtab" data-dfilter="open">To review</button>
+        <button class="dtab" data-dfilter="done">Decided</button>
+        <button class="dtab" data-dfilter="all">All</button>
+        <span class="spacer"></span>
+      </div>
+      <p class="intro" id="d_intro">Loading suggestions&hellip;</p>
+      <div class="dlist" id="d_list"></div>
+    </div>
+    <div class="bar"><span class="spacer"></span><button id="d_close">Close</button></div>`);
+  const close = $('#d_close'); if (close) close.onclick = closePanel;
+  const root = $('#dupes'); if (!root) return;
+  // Scoped to the pane, not to the document: the old page could own a global
+  // click handler because it WAS the whole page.
+  root.onclick = ev => {
+    const tab = ev.target.closest('.dtab');
+    if (tab){
+      dupeFilter = tab.dataset.dfilter;
+      return renderDupes();
+    }
+    const expand = ev.target.closest('[data-act="expand"]');
+    if (expand){
+      const card = expand.closest('.pair');
+      if (card) card.classList.remove('collapsed');
+      return;
+    }
+    const btn = ev.target.closest('[data-verdict]');
+    if (btn && !btn.disabled) dupeAct(btn.dataset.id, btn.dataset.verdict);
+  };
+  loadDupes();
+}
+
+function loadDupes(){
+  return api('/api/dupes').then(r=>r.json()).then(d=>{
+    DUPES = d; renderDupes();
+  }).catch(e=>{
+    const intro = $('#d_intro'); if (!intro) return;
+    intro.innerHTML = `<span style="color:var(--err)">Could not load suggestions: ${esc(String(e))}</span>`;
+  });
+}
+
+function dupeChips(live){
+  if (!live) return '<span class="chip gone">not in roadmap.yaml</span>';
+  const out = [];
+  if (live.group) out.push(`<span class="chip">${esc(live.group)}</span>`);
+  if (live.status) out.push(`<span class="chip">${esc(live.status)}</span>`);
+  if (live.type) out.push(`<span class="chip">${esc(live.type)}</span>`);
+  if (live.player) out.push(`<span class="chip">${esc(live.player)}</span>`);
+  // Merit already paid: setting dupe_of here is consequential, and the server
+  // may refuse it outright. Say so before the click, not after.
+  if (live.merit_awarded) out.push('<span class="chip merit">merit paid</span>');
+  if (live.dupe_of)
+    out.push(`<span class="chip merit">already dupe of ${esc(live.dupe_of)}</span>`);
+  return out.join(' ');
+}
+
+function dupeSide(pr, key){
+  const id = pr[key], other = key === 'a' ? pr.b : pr.a;
+  const live = (pr.live || {})[key];
+  const title = live ? live.title : pr[key + '_title'];
+  const blocked = live && live.dupe_of;
+  return `<div class="side">
+    <h3>${esc(title)}</h3>
+    <div class="dmeta"><a class="id" href="#idea-${esc(id)}">${esc(id)}</a>
+      ${dupeChips(live)}</div>
+    <div class="just">${esc(pr[key + '_just'] || '')}</div>
+    <button class="pick" data-id="${esc(pr.id)}" data-verdict="${key}"
+      ${live && !pr.already && !blocked ? '' : 'disabled'}
+      title="${blocked ? 'Already a duplicate of ' + esc(live.dupe_of) + ' — clear that in the editor first' : ''}">
+      <b>This one</b> is the duplicate &mdash; point it at ${esc(other)}</button>
+  </div>`;
+}
+
+function dupeCard(pr){
+  const v = pr.verdict;
+  const cls = pr.already || v === 'a' || v === 'b' ? 'done'
+            : v === 'no' ? 'no' : v === 'unsure' ? 'skip' : '';
+  const collapsed = (v || pr.already) ? ' collapsed' : '';
+  let verdictChip = '';
+  if (pr.already) verdictChip = '<span class="chip verdict">merged</span>';
+  else if (v === 'a' || v === 'b')
+    verdictChip = `<span class="chip verdict">${esc(pr[v])} &rarr; ${esc(v === 'a' ? pr.b : pr.a)}</span>`;
+  else if (v === 'no') verdictChip = '<span class="chip">not a duplicate</span>';
+  else if (v === 'unsure') verdictChip = '<span class="chip">skipped</span>';
+
+  return `<div class="pair ${cls}${collapsed}" data-id="${esc(pr.id)}">
+    <div class="head">
+      <strong style="font-size:13px">${esc(pr.a_title)}</strong>
+      <span class="id">vs</span>
+      <strong style="font-size:13px">${esc(pr.b_title)}</strong>
+      ${pr.both_ways ? '<span class="chip mutual" title="Both items independently named the other">mutual</span>' : ''}
+      <span class="chip">score ${Number(pr.score).toFixed(2)}</span>
+      ${verdictChip}
+      <span class="spacer"></span>
+      ${(v || pr.already) ? `<button data-act="expand" data-id="${esc(pr.id)}">change</button>` : ''}
+    </div>
+    <div class="dbody">${dupeSide(pr, 'a')}${dupeSide(pr, 'b')}</div>
+    <div class="why"><b>Why the model paired them:</b> ${esc(pr.why)}
+      ${pr.why2 ? '<br><b>And from the other side:</b> ' + esc(pr.why2) : ''}</div>
+    <div class="acts">
+      <button data-id="${esc(pr.id)}" data-verdict="no">Not a duplicate</button>
+      <button data-id="${esc(pr.id)}" data-verdict="unsure">Skip for now</button>
+      <span class="msg" data-msg="${esc(pr.id)}"></span>
+    </div>
+  </div>`;
+}
+
+function renderDupes(){
+  if (!DUPES || !$('#d_list')) return;
+  const all = DUPES.pairs || [];
+  const open = all.filter(pr => !pr.verdict && !pr.already);
+  const done = all.filter(pr => pr.verdict || pr.already);
+  const shown = dupeFilter === 'open' ? open : dupeFilter === 'done' ? done : all;
+  const pct = all.length ? Math.round(done.length / all.length * 100) : 0;
+  $('#d_fill').style.width = pct + '%';
+  $('#d_count').textContent = `${done.length} of ${all.length} decided`;
+  document.querySelectorAll('#dupes .dtab').forEach(t=>
+    t.classList.toggle('on', t.dataset.dfilter === dupeFilter));
+  const merged = all.filter(pr => pr.already || pr.verdict === 'a' || pr.verdict === 'b').length;
+  const rejected = all.filter(pr => pr.verdict === 'no').length;
+  $('#d_intro').innerHTML =
+    DUPES.missing
+      ? 'No <code>dupe-suggestions.json</code> in the repo, so there is nothing to review.'
+    : DUPES.error ? `<span style="color:var(--err)">${esc(DUPES.error)}</span>`
+    : `<strong>${all.length} candidate pairs</strong> proposed by ${esc(DUPES.model)}. `
+      + `Approving one sets <code>dupe_of</code> on the item you pick, exactly as the `
+      + `editor would &mdash; nothing else is touched, and the duplicate keeps its own `
+      + `<code>player</code> and its merit. <strong>${merged}</strong> merged so far, `
+      + `<strong>${rejected}</strong> rejected. Rejections are recorded too: that is the `
+      + `half of the record roadmap.yaml cannot hold.`;
+  $('#d_list').innerHTML = shown.length
+    ? shown.map(dupeCard).join('')
+    : `<p class="empty">${dupeFilter === 'open' ? 'Nothing left to review.' : 'Nothing here yet.'}</p>`;
+}
+
+async function dupeAct(id, verdict){
+  const el = document.querySelector(`#dupes .pair[data-id="${CSS.escape(id)}"]`);
+  const msg = document.querySelector(`#dupes [data-msg="${CSS.escape(id)}"]`);
+  if (el) el.classList.add('busy');
+  if (msg){ msg.textContent = 'Saving…'; msg.className = 'msg'; }
+  try {
+    const r = await api('/api/dupes/action', {method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({id, verdict})});
+    const out = await r.json();
+    if (!out.ok){
+      if (msg){
+        msg.className = 'msg err';
+        msg.textContent = (out.errors || [out.message || 'Refused.']).join(' ');
+      }
+      if (el) el.classList.remove('busy');
+      return;
+    }
+    // Approving writes dupe_of into roadmap.yaml, so the backlog this page is
+    // holding is now stale — reload it as well as the suggestions.
+    await loadDupes();
+    await load();
+  } catch (e){
+    if (msg){ msg.className = 'msg err'; msg.textContent = 'Could not reach the editor: ' + e; }
+    if (el) el.classList.remove('busy');
+  }
+}
+
 function modalHTML(html){ $('#modalbox').innerHTML=html; $('#modal').classList.add('show'); }
 function closeModal(){ $('#modal').classList.remove('show'); }
 $('#modal').onclick = e=>{ if(e.target.id==='modal') closeModal(); };
@@ -6598,7 +7144,7 @@ async function lcAct(body){
 }
 
 function openChanges(){
-  modalHTML(`<h2>LLM Changes</h2>
+  panelHTML(`<h2>LLM Changes</h2>
     <p class="small">Every field a model wrote into <code>unpacked/</code>, recorded in
       <code>llm-changes/*.jsonl</code>. Sorted worst-first by the priority the task
       recipe computed — validator warnings, near-duplicate score and the model's own
@@ -6615,8 +7161,7 @@ function openChanges(){
     </div>
     <div id="lc_results"></div>
     <div class="bar"><span class="spacer"></span><button id="lc_close">Close</button></div>`);
-  $('#modalbox').classList.add('wide');
-  $('#lc_close').onclick=closeModal;
+  $('#lc_close').onclick=closePanel;
   $('#lc_done').checked=LC.showDone;
   $('#lc_done').onchange=e=>{ LC.showDone=e.target.checked; lcLoad(); };
   $('#lc_task').onchange=e=>{ LC.task=e.target.value; lcLoad(); };
@@ -6707,7 +7252,7 @@ function rnUrl(audience, extra){
 
 async function openReleaseNotes(audience){
   const [title, blurb] = RN_TITLES[audience] || RN_TITLES.testers;
-  modalHTML(`<h2>${esc(title)}</h2>
+  panelHTML(`<h2>${esc(title)}</h2>
     <p class="small">${esc(blurb)}</p>
     <div class="rn-bar">
       <button id="rn_copy">Copy</button>
@@ -6720,8 +7265,7 @@ while, after which it is cached.">Rewrite with local model</button>
     </div>
     <pre id="rn_out">Loading…</pre>
     <div class="bar"><span class="spacer"></span><button id="rn_close">Close</button></div>`);
-  $('#modalbox').classList.add('wide');
-  $('#rn_close').onclick=()=>{ $('#modalbox').classList.remove('wide'); closeModal(); };
+  $('#rn_close').onclick=()=>{ closePanel(); };
   $('#rn_copy').onclick=()=>{
     navigator.clipboard.writeText($('#rn_out').textContent||'')
       .then(()=>banner('ok','Release notes copied to the clipboard.'),
@@ -6783,7 +7327,7 @@ async function rnLoad(audience, flavor){
 }
 
 function openPalette(){
-  modalHTML(`<h2>Palette Finder</h2>
+  panelHTML(`<h2>Palette Finder</h2>
     <p class="small">Search a creature/item/placeable by name (or resref) and see
       where it lives in the in-game toolset palette. The map is built by
       <code>bin/gen-palette-map.py</code> — a standalone script, not the wiki
@@ -6797,7 +7341,7 @@ function openPalette(){
     </div>
     <div id="pf_results"></div>
     <div class="bar"><span class="spacer"></span><button id="pf_close">Close</button></div>`);
-  $('#pf_close').onclick=closeModal;
+  $('#pf_close').onclick=closePanel;
   const q=$('#pf_q');
   q.oninput=()=>{ clearTimeout(pfTimer); pfTimer=setTimeout(pfSearch, 180); };
   $('#pf_refresh').onclick=async()=>{
@@ -7056,7 +7600,7 @@ async function queueClaim(id, index, release){
 function openQueue(kind){
   QUEUE = {kind, filter:'', showDone:false, showAwarded:false, mine:false};
   const uat = kind==='uat';
-  modalHTML(`<h2>${uat?'UAT Queue':'Toolset Queue'}</h2>
+  panelHTML(`<h2>${uat?'UAT Queue':'Toolset Queue'}</h2>
     <p class="small">${uat
       ? 'Every shipped item still waiting on an in-game check, grouped by the '
         + 'character it takes to run it. Fill in <b>who can test</b> on anything '
@@ -7078,8 +7622,7 @@ function openQueue(kind){
     <datalist id="q_testers">${knownTesters().map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
     <div id="qresults"></div>
     <div class="bar"><span class="spacer"></span><button id="q_close">Close</button></div>`);
-  $('#modalbox').classList.add('wide');
-  $('#q_close').onclick=()=>{ $('#modalbox').classList.remove('wide'); closeModal(); };
+  $('#q_close').onclick=()=>{ closePanel(); };
   $('#q_filter').oninput=e=>{ QUEUE.filter=e.target.value.trim(); renderQueue(); };
   $('#q_done').onchange=e=>{ QUEUE.showDone=e.target.checked; renderQueue(); };
   $('#q_awarded').onchange=e=>{ QUEUE.showAwarded=e.target.checked; renderQueue(); };
@@ -7105,8 +7648,8 @@ function openQueue(kind){
       return;
     }
     const b=e.target.closest('[data-goto]'); if(!b) return;
-    $('#modalbox').classList.remove('wide'); closeModal();
-    guard(()=>{ if (view!=='list') setView('list'); selectById(b.dataset.goto, -1); });
+    closePanel();
+    openIdea(b.dataset.goto);
   });
   renderQueue();
   $('#q_filter').focus();
@@ -7185,7 +7728,7 @@ function renderReview(){
 
 function openReview(){
   REVQ = {showAll:false};
-  modalHTML(`<h2>UAT Review</h2>
+  panelHTML(`<h2>UAT Review</h2>
     <p class="small">Every UAT credit that has not been paid, with what the
       tester actually reported. <b>Award +1</b> writes the live merit database;
       <b>Dismiss</b> removes the credit without paying it. Neither touches the
@@ -7198,16 +7741,15 @@ function openReview(){
     </div>
     <div id="rv_results"></div>
     <div class="bar"><span class="spacer"></span><button id="rv_close">Close</button></div>`);
-  $('#modalbox').classList.add('wide');
-  $('#rv_close').onclick=()=>{ $('#modalbox').classList.remove('wide'); closeModal(); };
+  $('#rv_close').onclick=()=>{ closePanel(); };
   $('#rv_all').onchange=e=>{ REVQ.showAll=e.target.checked; renderReview(); };
   $('#rv_results').addEventListener('click', async e=>{
     const a=e.target.closest('.rv_award'), d=e.target.closest('.rv_drop');
     if (a){ await reviewAward(a.dataset.id, a.dataset.p); return; }
     if (d){ await reviewDismiss(d.dataset.id, d.dataset.p); return; }
     const g=e.target.closest('[data-goto]'); if(!g) return;
-    $('#modalbox').classList.remove('wide'); closeModal();
-    guard(()=>{ if (view!=='list') setView('list'); selectById(g.dataset.goto, -1); });
+    closePanel();
+    openIdea(g.dataset.goto);
   });
   renderReview();
 }
@@ -7246,7 +7788,7 @@ function openGroups(){
       <input class="ord" type="number" value="${g.order==null?'':g.order}">
       <span class="use">${DATA.ideas.filter(it=>it.group===g.id).length}</span>
     </div>`).join('');
-  modalHTML(`<h2>Manage groups</h2>
+  panelHTML(`<h2>Manage groups</h2>
     <p class="small">Rename a title or change its order. The <b>id</b> is the stable key
       ideas reference — it can't be changed here. The number is how many ideas use it.</p>
     <div class="mlist" id="grows">${rows}</div>
@@ -7276,9 +7818,9 @@ function openGroups(){
       const o=row.querySelector('.ord').value.trim();
       g.order = o===''?null:parseInt(o,10);
     });
-    commit('/api/save'); closeModal();
+    commit('/api/save'); closePanel();
   };
-  $('#g_close').onclick=closeModal;
+  $('#g_close').onclick=closePanel;
 }
 
 // Epics: umbrella items that ideas hang off via `epic:`. On the published page
@@ -7297,7 +7839,7 @@ function openEpics(){
       <input class="en" style="flex:1 0 100%" placeholder="public blurb (optional)"
              value="${esc(e.notes||'')}">
     </div>`).join('');
-  modalHTML(`<h2>Manage epics</h2>
+  panelHTML(`<h2>Manage epics</h2>
     <p class="small">An epic groups many ideas into one published card
       (&ldquo;7 / 12 complete&rdquo; with a tick per child, dated by the most recent
       shipped child). The <b>id</b> is the stable key ideas reference; the number is
@@ -7335,9 +7877,9 @@ function openEpics(){
       e.group=row.querySelector('.eg').value;
       e.notes=row.querySelector('.en').value.trim();
     });
-    commit('/api/save'); closeModal();
+    commit('/api/save'); closePanel();
   };
-  $('#e_close').onclick=closeModal;
+  $('#e_close').onclick=closePanel;
 }
 
 function openPlayers(){
@@ -7349,7 +7891,7 @@ function openPlayers(){
       <span class="use">${n} ideas</span>
       ${reserved?'<span class="use">(reserved)</span>':'<button class="linkbtn pdel">remove</button>'}
     </div>`;}).join('');
-  modalHTML(`<h2>Manage players</h2>
+  panelHTML(`<h2>Manage players</h2>
     <p class="small">Rename a submitter and it updates every idea credited to them.
       Add a name below to pre-register someone before they have an idea.</p>
     <div class="mlist" id="prows">${rows}</div>
@@ -7382,22 +7924,22 @@ function openPlayers(){
     }
     if(new Set(names).size!==names.length){ $('#p_hint').textContent='two rows ended up with the same name'; return; }
     DATA.vocab.players=names;
-    commit('/api/save'); closeModal();
+    commit('/api/save'); closePanel();
   };
-  $('#p_close').onclick=closeModal;
+  $('#p_close').onclick=closePanel;
 }
 
 // ---- pending DM-delivery merit requests (read-only) ---------------------
 function openPending(){
-  modalHTML(`<h2>Pending Merit Requests</h2>
+  panelHTML(`<h2>Pending Merit Requests</h2>
     <p class="small">Loading open DM-delivery requests…</p>`);
   api('/api/pending').then(r=>r.json()).then(d=>{
     refreshPending();
     if(!d.available){
-      modalHTML(`<h2>Pending Merit Requests</h2>
+      panelHTML(`<h2>Pending Merit Requests</h2>
         <p class="hint">${esc(d.reason||'in-game database unavailable')}</p>
         <div class="bar"><span class="spacer"></span><button id="pr_close">Close</button></div>`);
-      $('#pr_close').onclick=closeModal; return;
+      $('#pr_close').onclick=closePanel; return;
     }
     const rows=(d.rows||[]).map(t=>{
       const when=(t.requested_at||'').slice(0,16).replace('T',' ');
@@ -7415,17 +7957,17 @@ function openPending(){
           <tr><th>ID</th><th>Player</th><th>Reward</th><th style="text-align:right">Cost</th><th>Requested</th><th>Note</th></tr>
           ${rows}</table>`
       : `<p class="small">No open DM-delivery requests. 🎉</p>`;
-    modalHTML(`<h2>${d.count} Pending Merit Request${d.count===1?'':'s'}</h2>
+    panelHTML(`<h2>${d.count} Pending Merit Request${d.count===1?'':'s'}</h2>
       <p class="small">Open requests awaiting DM delivery (status=pending, needs a DM).
         Read-only — fulfil/cancel them in game.</p>
       ${body}
       <div class="bar"><span class="spacer"></span><button id="pr_close">Close</button></div>`);
-    $('#pr_close').onclick=closeModal;
+    $('#pr_close').onclick=closePanel;
   }).catch(e=>{
-    modalHTML(`<h2>Pending Merit Requests</h2>
+    panelHTML(`<h2>Pending Merit Requests</h2>
       <p class="hint">Could not load: ${esc(String(e))}</p>
       <div class="bar"><span class="spacer"></span><button id="pr_close">Close</button></div>`);
-    $('#pr_close').onclick=closeModal;
+    $('#pr_close').onclick=closePanel;
   });
 }
 
@@ -7575,14 +8117,13 @@ function wireAuditDiff(){
 
 function openAudit(days){
   AUDIT_DAYS_VIEW = days || AUDIT_DAYS_VIEW;
-  modalHTML(`<h2>Recent changes</h2><p class="small">Loading the audit log…</p>`);
-  $('#modalbox').classList.add('wide');
+  panelHTML(`<h2>Recent changes</h2><p class="small">Loading the audit log…</p>`);
   api('/api/audit?days='+encodeURIComponent(AUDIT_DAYS_VIEW))
     .then(r=>r.json()).then(d=>{
     const close = `<div class="bar"><span class="spacer"></span>
       <button id="au_close">Close</button></div>`;
     if(!d.available){
-      modalHTML(`<h2>Recent changes</h2>
+      panelHTML(`<h2>Recent changes</h2>
         <p class="hint">Could not read the audit log: ${esc(d.reason||'unknown error')}</p>
         ${close}`);
       $('#au_close').onclick=closeAudit; return;
@@ -7605,7 +8146,7 @@ function openAudit(days){
       ? `<p class="hint">Showing the newest ${d.limit} entries only — there are
            more in this window. <code>python3 bin/roadmap-users.py audit</code>
            reads the full log.</p>` : '';
-    modalHTML(`<h2>Recent changes</h2>
+    panelHTML(`<h2>Recent changes</h2>
       <p class="small">The last ${d.days} days of the editor's audit log, newest
         first — every sign-in, save, publish and merit payment, by whoever made
         it. Read-only. Click an idea id in <b>Detail</b> to see exactly which
@@ -7621,48 +8162,214 @@ function openAudit(days){
     $('#au_30').onclick=()=>openAudit(30);
     $('#au_close').onclick=closeAudit;
   }).catch(e=>{
-    modalHTML(`<h2>Recent changes</h2>
+    panelHTML(`<h2>Recent changes</h2>
       <p class="hint">Could not load: ${esc(String(e))}</p>
       <div class="bar"><span class="spacer"></span><button id="au_close">Close</button></div>`);
     $('#au_close').onclick=closeAudit;
   });
 }
-function closeAudit(){ $('#modalbox').classList.remove('wide'); closeModal(); }
+function closeAudit(){ closePanel(); }
 
-['f_fstatus','f_ftype','f_fplayer','f_fgroup','f_fepic','f_fenv','f_fhidden','f_sort']
-  .forEach(id=>$('#'+id).onchange=render);
-$('#f_showawarded').onchange=render;
-// Regenerate/Publish act on the whole file, so they live in the left pane and
-// work from the Board view too (commit() folds the open form in when in List).
+// Regenerate/Publish act on the whole file, so they live in the navigator and
+// work from any tab (commit() folds the open form in when one is on screen).
 $('#regen').onclick = ()=>commit('/api/regenerate');
 $('#publish').onclick = ()=>{
   if(!confirm('Regenerate, publish the roadmap into the local docs/ AND the LIVE public wiki, sync the local in-game Recent Updates DB, commit & git push both repos?')) return;
   commit('/api/publish');
 };
-$('#mepics').onclick=openEpics;
-$('#mgroups').onclick=openGroups;
-$('#mplayers').onclick=openPlayers;
-$('#mpending').onclick=openPending;
-$('#mpalette').onclick=openPalette;
-$('#mtoolq').onclick=()=>openQueue('toolset');
-$('#muatq').onclick=()=>openQueue('uat');
-$('#muatr').onclick=openReview;
-$('#mchanges').onclick=openChanges;
-$('#maudit').onclick=openAudit;
-$('#mrntest').onclick=()=>openReleaseNotes('testers');
-$('#mrnplay').onclick=()=>openReleaseNotes('players');
-$('#mrnadmin').onclick=()=>openReleaseNotes('admin');
 $('#logout').onclick=async ()=>{
   if (!confirm('Sign out of the roadmap editor?')) return;
   try { await fetch('/api/logout', {method:'POST',
         headers:{'Content-Type':'application/json'}, body:'{}'}); } catch(e){}
   location.href = '/login';
 };
-$('#filter').oninput = render;
-$('#view_list').onclick=()=>setView('list');
-$('#view_board').onclick=()=>setView('board');
-$('#f_carddd').onchange=e=>{ showCardDropdown=e.target.checked;
-  if (view==='board') renderBoard(); };
+
+// ---- Navigation history ---------------------------------------------------
+// ServiceNow's navigation_history: what this user last looked at, kept
+// SERVER-side (auth.sqlite3) so it follows the account between browsers and
+// machines rather than living in one browser's localStorage. Writes are
+// fire-and-forget — a history row is never worth failing, or even reporting on,
+// the navigation it describes.
+let HISTORY = [];
+let histTimer = null;
+
+function recordVisit(t){
+  if (!t) return;
+  clearTimeout(histTimer);
+  const row = {kind: t.kind, ref: t.ref || t.key, title: t.title,
+               route: keyToRoute(t.key)};
+  // Debounced: clicking through four tabs in two seconds is one intent, and
+  // the top of the list should end up on the tab you stopped at.
+  histTimer = setTimeout(()=>{
+    // Optimistic local insert so the panel is right without a round trip.
+    HISTORY = [row].concat(HISTORY.filter(h=>!(h.kind===row.kind && h.ref===row.ref)))
+                   .slice(0, 50);
+    if (!$('#navhist').hidden) renderHistory();
+    api('/api/history', {method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(row)}).catch(()=>{});
+  }, 700);
+}
+
+function fetchHistory(){
+  return api('/api/history').then(r=>r.json()).then(d=>{
+    HISTORY = d.rows || [];
+    if (!$('#navhist').hidden) renderHistory();
+  }).catch(()=>{});
+}
+
+function agoText(ts){
+  const s = Math.max(0, Math.floor(Date.now()/1000) - (ts||0));
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60)+'m ago';
+  if (s < 86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function renderHistory(){
+  const box = $('#navhist');
+  if (!HISTORY.length){
+    box.innerHTML = '<p class="small" style="padding:8px 12px;color:var(--mut)">'
+      + 'Nothing yet — the ideas and pages you open show up here.</p>';
+    return;
+  }
+  box.innerHTML = HISTORY.map(h=>`<button class="histrow" data-route="${esc(h.route)}">
+      <span class="ht">${esc(h.title || h.ref)}</span>
+      <span class="hm">${esc(h.kind)}${h.ts?' · '+esc(agoText(h.ts)):''}</span>
+    </button>`).join('')
+    + `<div class="bar" style="padding:6px 12px"><span class="spacer"></span>
+       <button id="hist_clear" class="linkbtn">Clear history</button></div>`;
+  box.querySelectorAll('.histrow').forEach(b=>{
+    b.onclick = ()=>openTab(routeToKey(b.dataset.route));
+  });
+  $('#hist_clear').onclick = ()=>{
+    HISTORY = []; renderHistory();
+    api('/api/history/clear', {method:'POST',
+        headers:{'Content-Type':'application/json'}, body:'{}'}).catch(()=>{});
+  };
+}
+
+// ---- Navigator ------------------------------------------------------------
+// Every navigator entry with a data-route opens a workspace tab. The three
+// external links are plain anchors with target="_blank" and are deliberately
+// NOT routed — the wiki and the public roadmap are other sites, and the server
+// monitor is a separate document meant to sit open on a second screen.
+document.querySelectorAll('#navlinks [data-route]').forEach(el=>{
+  el.onclick = ()=>openTab(el.dataset.route);
+});
+
+// The capability a route needs, taken from its navigator link's data-cap.
+function routeCap(route){
+  const el = document.querySelector(`#navlinks [data-route="${route}"]`);
+  return el ? (el.dataset.cap || '') : '';
+}
+
+function markNavActive(){
+  const route = activeKey && !activeKey.startsWith('idea:') ? activeKey : null;
+  document.querySelectorAll('#navlinks [data-route]').forEach(el=>{
+    el.classList.toggle('on', el.dataset.route === route);
+  });
+}
+
+// Type-to-filter the link list, ServiceNow's "Filter navigator". Sections whose
+// links all fall away go with them.
+$('#navq').oninput = ()=>{
+  const q = $('#navq').value.trim().toLowerCase();
+  document.querySelectorAll('#navlinks .navsec').forEach(sec=>{
+    let live = 0;
+    sec.querySelectorAll('.navlink').forEach(a=>{
+      // Never REVEAL something the capability sweep hid: that is the security
+      // boundary's UI half, and a search box must not reopen it.
+      if (a.dataset.cap && !CAN(a.dataset.cap)) return;
+      const hit = !q || a.textContent.toLowerCase().includes(q);
+      a.style.display = hit ? '' : 'none';
+      if (hit) live++;
+    });
+    sec.style.display = live ? '' : 'none';
+  });
+};
+
+// Navigator modes: All (the links) and History (where you have been).
+function navMode(mode){
+  const hist = mode === 'hist';
+  $('#nav_all').classList.toggle('on', !hist);
+  $('#nav_hist').classList.toggle('on', hist);
+  $('#navlinks').hidden = hist;
+  $('#navhist').hidden = !hist;
+  $('#navq').style.display = hist ? 'none' : '';
+  if (hist) renderHistory();
+}
+$('#nav_all').onclick = ()=>navMode('all');
+$('#nav_hist').onclick = ()=>navMode('hist');
+
+// ---- Navigator width + collapse ------------------------------------------
+const NAV_LS = 'roadmap.nav';
+function saveNav(){
+  try { localStorage.setItem(NAV_LS, JSON.stringify({
+    w: parseInt(document.body.style.getPropertyValue('--navw'), 10) || 260,
+    collapsed: document.body.classList.contains('nav-collapsed'),
+  })); } catch(e){}
+}
+function loadNav(){
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem(NAV_LS) || '{}'); } catch(e){}
+  setNavWidth(s.w || 260);
+  document.body.classList.toggle('nav-collapsed', !!s.collapsed);
+  syncNavToggle();
+}
+function setNavWidth(px){
+  document.body.style.setProperty('--navw', Math.max(180, Math.min(560, px)) + 'px');
+}
+function syncNavToggle(){
+  const on = document.body.classList.contains('nav-collapsed');
+  const b = $('#navtoggle');
+  b.innerHTML = on ? '&#9206;' : '&#9204;';
+  b.title = on ? 'Expand the navigator back to the left' : 'Collapse the navigator to a top bar';
+}
+$('#navtoggle').onclick = ()=>{
+  document.body.classList.toggle('nav-collapsed');
+  syncNavToggle(); saveNav();
+};
+(function(){
+  const grip = $('#navdrag');
+  grip.onpointerdown = e => {
+    if (document.body.classList.contains('nav-collapsed')) return;
+    e.preventDefault();
+    grip.setPointerCapture(e.pointerId);
+    grip.classList.add('dragging');
+    const move = ev => setNavWidth(ev.clientX);
+    const up = () => {
+      grip.classList.remove('dragging');
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', up);
+      saveNav();
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', up);
+  };
+  // Double-click the divider to collapse, the way a split pane usually does.
+  grip.ondblclick = ()=>$('#navtoggle').click();
+})();
+
+// ---- Routing --------------------------------------------------------------
+// ONE delegated handler is what makes `#idea-<id>` work everywhere: the
+// Duplicates view, a queue's "go to" link, and — the case with no other fix —
+// an anchor inside a rich-text `notes` body the admin wrote months ago.
+// openIdeaLink() still emits exactly the markup it always did, so nothing in
+// roadmap.yaml has to be migrated.
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href]'); if (!a) return;
+  if (a.target === '_blank') return;              // the three external links
+  const href = a.getAttribute('href') || '';
+  if (!href.startsWith('#') && !href.startsWith('/#')) return;
+  e.preventDefault();
+  openTab(routeToKey(href));
+});
+
+window.addEventListener('hashchange', ()=>{
+  const key = routeToKey(location.hash);
+  if (key !== activeKey) openTab(key);
+});
 
 // Background poll: notice an external edit (Claude, hand-edit, another tab) and
 // warn passively. Paused while a modal is open, and never clobbers a live
@@ -7692,7 +8399,19 @@ setInterval(async ()=>{
 // never lifted here, and the page corrects itself when /api/data lands.
 // Degraded, not open.
 if (window.__ME) { DATA.me = window.__ME; applyCapabilities(); }
-load();
+
+// ---- Boot -----------------------------------------------------------------
+// Board and List first and in that order: they are the two fixed tabs, so the
+// tab bar always reads Board · List · (whatever you opened). Then whatever the
+// URL asked for — which is how a pasted `…/#idea-<id>` link lands on the idea
+// instead of, as it did until now, silently on the board.
+loadFilters();
+loadNav();
+openTab('list');
+openTab('board');
+const bootKey = routeToKey(location.hash);
+if (bootKey !== 'board') openTab(bootKey);
+load().then(fetchHistory);
 </script>
 </body></html>
 """
