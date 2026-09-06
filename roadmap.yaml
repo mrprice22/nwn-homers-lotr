@@ -7254,3 +7254,43 @@ ideas:
         status: open
         kind: uat
         tester: "any, with can_homeless"
+  - id: wtop-court-pursuit
+    title: "Weathertop hidden court: the garrison chases you down to the thrones, and the Queen is no longer naked"
+    group: quests-areas
+    status: manual
+    hidden: true
+    type: Defect
+    player: "HomelessSon (Server Admin)"
+    date: "2026-09-06"
+    commit: 3b1940d2363
+    notes: "<div>In <b>Weather Top's Hidden Court</b> you could sprint the length of the middle level, straight past every guard, archer and magus, and reach the King and Queen with the whole garrison still standing behind you at their posts. Now they come after you. Anyone who has <b>seen</b> you follows you down on foot at their own running speed - no blinking, no teleporting - and they string out across the court as the fast ones outrun the slow. A guard who already has someone to fight stays and fights; only those with nobody on them give chase. Once the court is empty again they walk back to their posts.<br><br>The <b>Weathertop Queen</b> also no longer stands on her throne in nothing but a pair of black leggings. <i>The Queen's Depair</i> now looks like the royal robe it is meant to be - and so does the copy you loot off her.</div>"
+    impl_notes: "<div><b>The chase.</b> New <code>wtop_chase.nss</code>: a self-scheduling loop on area028 itself, armed from <code>wtop_c_enter.nss</code> on the first PC entry and stood down (deleting its own re-arm flag) the moment the court empties. One area loop rather than an OnHeartbeat wrapper on 51 creatures, and it only runs while a player is in the court - four cores, single-threaded main loop.<br><br>Every 6s it latches <code>WTOP_CHASE</code> on each garrison member using the engine's own <code>GetObjectSeen()</code>, so no perception script wrapper is needed on the three blueprints and the latch survives the player breaking line of sight (which is the whole point). A latched creature with no <code>PERCEPTION_SEEN</code> enemy inside 12m gets <code>ActionForceMoveToObject(oPC, TRUE, 3.0)</code>; one with an enemy that close is left entirely to stock AI - that is the admin's \"if there are no other combatants for them\". Re-issue is gated on <code>GetCurrentAction() != ACTION_MOVETOPOINT</code> so the tick never ClearAllActions() a creature mid-run. On the empty pass everyone walks back to the <code>\"spawn\"</code> location <code>wtop_court.nss</code> pinned on them (the same local <code>leash_to_area</code> and <code>se_respawn_inc</code> use).<br><br>King and Queen are excluded by construction - their tags are not in the garrison list, they hold the thrones, and <code>wtop_royal.nss</code>'s bond assumes the pair are up there together. area028 is one area, so <code>leash_to_area</code> is never in play; and every target is a PC in that area, so nothing ever pursues out through <code>wtopcourt2wtop</code> into area026.<br><br><b>The Queen.</b> <code>item047</code> was a naked armour by construction: Pelvis/Thigh/Shin all 1 (bare body parts), Torso 166 one of the smallest chest models CEP ships (6744 bytes vs a 12104 median - a skin torso meant to be covered), robe 156 supplying nothing but black legs. It had never been noticed because its only other wearer, <code>dolguldursmi</code>, is appearance 1144, a full creature model that draws no armour parts at all.<br><br>Ruled out first: all models exist (<code>pfe0_robe156</code>/<code>pfe0_chest166</code> are ResType 2002 in cep2_core3 + cepanatomy, both in Mod_HakList); appearance.2da row 1 is \"(Dynamic) Elf\", RACE E, MODELTYPE P, so <code>pfe0_</code> is her prefix; no stray x-prefixed shadow fields on the blueprint (the mw_mckenna failure mode); parts_chest.2da gives torso 166 ACBONUS ~0, so it is clothing and no proficiency check can strip it; and her placed instance carries the full 8-entry Equip_ItemList.<br><br>Fix takes the 19 <code>ArmorPart_*</code> values from <code>veilsofarwen</code>, worn by <code>creature005</code> (Arwen - appearance 1, female, phenotype 0, the Queen's exact body) in rivendellupperha, so it demonstrably renders. Name, description, cost, every item property and all six dye colours stay item047's own. Fixing the item rather than her instance also covers the looted copy, since it is flagged droppable on her.<br><br>Module-only: no hak, no TLK, so no NWSync push. 34/34 smoke tests pass.</div>"
+    manual_steps:
+      - step: "Weathertop Queen renders fully clothed on her throne, and still clothed after a respawn cycle. Loot The Queen's Depair and wear it on a PC - it should look the same, not naked."
+        status: open
+        kind: uat
+        tester: "any character able to reach area028"
+      - step: "Let a block of guards on the middle level see you, then run for the thrones. They follow on foot over the ramps and arrive strung out by their own speeds - nobody blinks or teleports."
+        status: open
+        kind: uat
+        tester: "any character able to reach area028"
+      - step: "Engage one guard while others watch from a distance: the engaged one keeps fighting where it stands (the 12m busy test), the unengaged ones give chase."
+        status: open
+        kind: uat
+        tester: "any character able to reach area028"
+      - step: "Archers and Magi converge too, not just the melee Guardsmen."
+        status: open
+        kind: uat
+        tester: "any character able to reach area028"
+      - step: "King and Queen never leave their thrones during any of the above."
+        status: open
+        kind: uat
+        tester: "any character able to reach area028"
+      - step: "Leave the court (door wtopcourt2wtop, the throne portal, or die) and come back: the garrison has walked back to its posts, and nothing has been dragged into area026."
+        status: open
+        kind: uat
+        tester: "any character able to reach area028"
+      - step: "With ~20 creatures chasing at once, check the NWNX profiler tickrate / main-loop metrics for a dip. If the 6s tick is too heavy the constant to raise is WTOP_CH_TICK in wtop_chase.nss."
+        status: open
+        kind: uat
+        tester: "server admin"
