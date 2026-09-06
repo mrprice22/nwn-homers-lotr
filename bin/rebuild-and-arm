@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# rebuild-and-arm — the everyday dev-realm deploy in one button.
+#
+#   1. ask for the message players will see on the reboot warning
+#   2. repack this repo WITHOUT the build gates (--no-smoke)
+#   3. arm bin/reboot-on-empty with that message, so the TEST realm cycles onto
+#      the freshly built module the moment it next empties
+#
+# It exists because the admin is usually logged in testing, so a forced restart
+# is never the right way to load a new build here — arm and let it cycle.
+#
+# The message is asked FIRST, on purpose: the repack takes minutes, and a prompt
+# that appears at the end means walking away from the build and coming back to a
+# terminal that never armed anything.
+#
+# ## Why --no-smoke
+#
+# This is the fast inner-loop build for the dev realm only. The smoke/dialog
+# gates still guard every promotion to a live season (bin/promote-to-prod runs a
+# gated repack), so skipping them here trades a gate that would catch the problem
+# before players see it for one that catches it before the ADMIN sees it —
+# on a realm whose whole job is to be where things break. Use the plain
+# "Repack Homer's LotR Module" tile when you want the gates.
+#
+# DEV REALM ONLY. It refuses to run from a season repo: arming a reboot on a live
+# season is a decision to make deliberately through bin/promote-to-prod, not a
+# side effect of a build shortcut.
+#
+# Usage:
+#   bin/rebuild-and-arm                 # prompt for the message
+#   bin/rebuild-and-arm "Some message"  # non-interactive
+set -euo pipefail
+
+PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck disable=SC1091
+. "$PROJECT_ROOT/server.env"
+
+if [[ ${SEASON_ROLE:-} != dev ]]; then
+  echo "error: rebuild-and-arm is dev-realm only (this repo is SEASON_ROLE=${SEASON_ROLE:-unset})." >&2
+  echo "       To ship a build to a live season use bin/promote-to-prod." >&2
+  exit 2
+fi
+
+MGR="${NWN_MANAGER_BIN:-/var/home/james/GIT/nwn_manager}/bin"
+REPACK="$MGR/repack-homers-lotr"
+[[ -x $REPACK ]] || { echo "error: no repack wrapper at $REPACK" >&2; exit 1; }
+
+MSG="${*:-}"
+if [[ -z $MSG ]]; then
+  echo "Rebuild the TEST realm (--no-smoke) and arm reboot-on-empty."
+  echo
+  read -rp "  Message players will see on the reboot warning: " MSG || true
+fi
+[[ -n ${MSG:-} ]] || MSG="Test realm updated. Rebooting once the realm is empty."
+
+echo
+echo "==> repack (--no-smoke): $PROJECT_ROOT"
+"$REPACK" --project "$PROJECT_ROOT" --no-smoke
+
+# Only arm on a clean build — `set -e` above means we never get here otherwise.
+# Arming after a failed repack would cycle the realm onto the PREVIOUS module and
+# look exactly like the new build not taking effect.
+echo
+echo "==> arming reboot-on-empty"
+"$PROJECT_ROOT/bin/reboot-on-empty" "$MSG"

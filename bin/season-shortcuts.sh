@@ -108,6 +108,16 @@ WIKI="$APPS/$DEV_PREFIX-wiki.desktop"
 NWSYNC="$APPS/$DEV_PREFIX-refresh-nwsync.desktop"
 NWSYNC_FORCE="$APPS/$DEV_PREFIX-refresh-nwsync-force.desktop"
 
+# The dev realm's inner-loop deploy button: rebuild ungated, then arm
+# reboot-on-empty. Dev only for the same reason as the promotion tiles below —
+# bin/rebuild-and-arm refuses to run from a season repo, so on a season this
+# would be a tile that can only ever print an error.
+REBUILD_ARM_FILES=()
+if [[ ${SEASON_ROLE:-} == dev ]]; then
+  REBUILD_ARM="$APPS/$DEV_PREFIX-rebuild-arm.desktop"
+  REBUILD_ARM_FILES=("$REBUILD_ARM")
+fi
+
 # Promotion buttons — DEV REALM ONLY. bin/season-promote.sh refuses to run from
 # anywhere but dev, so giving a season's folder a "Promote to Prod" tile would
 # only ever produce an error, and next to a live season's Shut Down button that
@@ -127,7 +137,7 @@ fi
 
 OPS_FILES=("$RESTART" "$STOP" "$MONITOR" "$MONITOR_AUTO" "$LOGS")
 DEV_FILES=("$UNPACK" "$REPACK" "$REPACK_CLEAN" "$REPACK_TEST" "$WIKI"
-           "$NWSYNC" "$NWSYNC_FORCE" "${PROMOTE_FILES[@]}")
+           "$NWSYNC" "$NWSYNC_FORCE" "${REBUILD_ARM_FILES[@]}" "${PROMOTE_FILES[@]}")
 
 # ## The app-grid folder — one tile per season, not eleven loose icons
 #
@@ -145,6 +155,7 @@ FOLDER_APPS=("$(basename "$RESTART")" "$(basename "$STOP")" "$(basename "$MONITO
              "$(basename "$REPACK_CLEAN")" "$(basename "$UNPACK")"
              "$(basename "$WIKI")" "$(basename "$NWSYNC")"
              "$(basename "$NWSYNC_FORCE")" "$(basename "$LOGS")")
+for f in "${REBUILD_ARM_FILES[@]}"; do FOLDER_APPS+=("$(basename "$f")"); done
 # Promotion tiles go LAST in the folder, after the everyday build buttons: they
 # are the only ones here that change another realm.
 for f in "${PROMOTE_FILES[@]}"; do FOLDER_APPS+=("$(basename "$f")"); done
@@ -346,6 +357,17 @@ write_hold_entry "$NWSYNC_FORCE" \
   "Force a full rebuild of this season's NWSync manifest. Slow (hashes every hak)." \
   "\"$PROJECT_ROOT/bin/refresh-nwsync\" --force" \
   "folder-remote" "Development;Network;"
+
+# The one-button dev deploy. Ungated build (--no-smoke) + reboot-on-empty, with
+# the player message asked up front so the rest is unattended. Dev realm only.
+if ((${#REBUILD_ARM_FILES[@]})); then
+  write_hold_entry "$REBUILD_ARM" \
+    "Rebuild + Reboot When Empty - $LABEL" \
+    "NWN Module Build" \
+    "Rebuild this realm's module WITHOUT the build gates (--no-smoke) and arm reboot-on-empty, so the realm cycles onto the new build the moment the last player leaves. Prompts for the message players see, up front. Use the plain Repack tile when you want the gates." \
+    "\"$PROJECT_ROOT/bin/rebuild-and-arm\"" \
+    "system-reboot" "Development;"
+fi
 
 # ---------------------------------------------------------------- promotion --
 # Dev realm only (PROMOTE_FILES is empty elsewhere). bin/promote-to-prod finds
