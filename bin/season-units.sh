@@ -81,6 +81,10 @@ done
 . "$PROJECT_ROOT/server.env"
 : "${NWN_CONTAINER_NAME:?NWN_CONTAINER_NAME unset in server.env}"
 : "${NWN_RUN_DIR:?NWN_RUN_DIR unset in server.env}"
+# Needed by the rendered mounts.conf below. An empty value would `readlink -f`
+# to nothing and emit a malformed RequiresMountsFor=, which systemd accepts and
+# then ignores -- failing open on exactly the guard we are installing.
+: "${NWN_HOME_DIR:?NWN_HOME_DIR unset in server.env}"
 
 # The units use %h/GIT/%i for WorkingDirectory and ExecStart, so a repo parked
 # anywhere else would silently drive the wrong (or no) directory.
@@ -161,6 +165,7 @@ if [[ $MODE == dry ]]; then
   for sl in "${SLICES[@]}"; do echo "  $UNIT_DIR/$sl -> $SRC/$sl (resource slice)"; done
   for d in "${DROPINS[@]}"; do echo "  $UNIT_DIR/$d/ (drop-ins)"; done
   echo "  $UNIT_DIR/nwn-season-server@$INSTANCE.service.d/priority.conf (rendered, role=${SEASON_ROLE:-unset})"
+  echo "  $UNIT_DIR/nwn-season-server@$INSTANCE.service.d/mounts.conf (rendered, SSD bind ordering)"
   echo "  $UNIT_DIR/$PATH_UNIT (rendered)"
   echo
   echo "then: systemctl --user daemon-reload"
@@ -259,6 +264,22 @@ sed -e "s|@ROLE_COMMENT@|$ROLE_COMMENT|" \
     -e "s|@SLICE@|$SLICE|" \
     "$SRC/nwn-season-server@.service.d.priority.conf.in" > "$PRIO_DIR/priority.conf"
 echo "rendered $PRIO_DIR/priority.conf (role=${SEASON_ROLE:-unset} slice=$SLICE)"
+
+# --- mount ordering, rendered for the same reason the priority drop-in is ---
+# The game data lives on the SSD and is bind-mounted back to these paths by
+# /etc/fstab, so the season must not start before those mounts land. The paths
+# MUST be resolved (`readlink -f`): systemd escapes RequiresMountsFor= literally
+# and will not chase the /home -> var/home symlink, so an unresolved path names
+# a mount unit that does not exist and the whole directive quietly does nothing.
+# Full rationale: systemd/nwn-season-server@.service.d.mounts.conf.in
+RUN_DIR_REAL=$(readlink -f "$NWN_RUN_DIR")
+HOME_DIR_REAL=$(readlink -f "$NWN_HOME_DIR")
+SHARED_DIR_REAL=$(readlink -f "${NWN_SHARED_DIR:-$HOME/.local/share/nwn-shared}")
+sed -e "s|@RUN_DIR_REAL@|$RUN_DIR_REAL|" \
+    -e "s|@HOME_DIR_REAL@|$HOME_DIR_REAL|" \
+    -e "s|@SHARED_DIR_REAL@|$SHARED_DIR_REAL|" \
+    "$SRC/nwn-season-server@.service.d.mounts.conf.in" > "$PRIO_DIR/mounts.conf"
+echo "rendered $PRIO_DIR/mounts.conf (run=$RUN_DIR_REAL)"
 
 systemctl --user daemon-reload
 echo "daemon-reload done"

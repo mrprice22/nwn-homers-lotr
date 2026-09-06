@@ -26,6 +26,35 @@ if [[ -f $LOCAL_ENV_FILE ]]; then
   . "$LOCAL_ENV_FILE"
 fi
 
+# --- volume preflight -------------------------------------------------------
+# MUST run before the mkdir -p below, and before podman is allowed anywhere
+# near "$NWN_RUN_DIR/settings.tml".
+#
+# Both of those are load-bearing. The mkdir would CREATE the run dir on the HDD
+# if its SSD bind mount were missing, and podman materialises a missing
+# settings.tml bind SOURCE as a DIRECTORY -- after which the max-character-level
+# / max-attack-bonus / sticky-modes patching silently never applies. Either way
+# the season comes up against no servervault and no campaign databases.
+#
+# Enforcement is scoped to paths /etc/fstab declares as mountpoints, so the
+# season 1 archive (deliberately left on the HDD) is unaffected. See
+# bin/season-volumes.sh.
+# shellcheck source=bin/season-volumes.sh
+. "$PROJECT_ROOT/bin/season-volumes.sh"
+# Hoisted from its old position next to shared_args: the preflight needs it here
+# and the assignment is idempotent.
+NWN_SHARED_DIR="${NWN_SHARED_DIR:-$HOME/.local/share/nwn-shared}"
+_vol_fail=0
+season_require_volume "$NWN_RUN_DIR"    "NWN_RUN_DIR"    || _vol_fail=1
+season_require_volume "$NWN_HOME_DIR"   "NWN_HOME_DIR"   || _vol_fail=1
+season_require_volume "$NWN_SHARED_DIR" "NWN_SHARED_DIR" || _vol_fail=1
+if (( _vol_fail )); then
+  # EX_CONFIG(78). nwn-season-server@.service sets RestartPreventExitStatus=78,
+  # so this fails ONCE and stays down loudly rather than looping every 15s.
+  exit 78
+fi
+unset _vol_fail
+
 mkdir -p "$NWN_RUN_DIR"
 
 # `anvil/` must be a REAL directory in the run dir before the container starts.

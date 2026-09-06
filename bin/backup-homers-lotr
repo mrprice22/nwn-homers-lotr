@@ -40,7 +40,17 @@ LOCAL_ENV_FILE="$PROJECT_ROOT/server.env.local"
 # homers-lotr-*.tar.gz in BACKUP_DEST, so two seasons sharing one folder would
 # prune each other's monthly keepers. SEASON_NUM comes from server.env's season
 # block; unset (a repo with no season block) keeps the pre-season flat layout.
-: "${BACKUP_DEST:=$HOME/OneDrive/Games/NWNHomersLOTR/backups${SEASON_NUM:+/s$SEASON_NUM}}"
+#
+# ROLE is part of the folder name because SEASON_NUM alone is NOT unique: the
+# dev realm carries the number of the season it is developing, so dev and live
+# both report SEASON_NUM=2 and were writing into one backups/s2 -- two realms'
+# archives interleaved by timestamp, with the monthly-keeper prune free to
+# discard a live keeper because a dev backup happened to be first that month.
+# Only dev is suffixed, so the live season's folder name is unchanged and its
+# existing history stays where it is.
+_bk_dir="s$SEASON_NUM"
+[[ ${SEASON_ROLE:-} == dev ]] && _bk_dir="$_bk_dir-dev"
+: "${BACKUP_DEST:=$HOME/OneDrive/Games/NWNHomersLOTR/backups${SEASON_NUM:+/$_bk_dir}}"
 : "${BACKUP_SENTINEL:=$NWN_RUN_DIR/.backup-last-run}"
 : "${BACKUP_LOG:=$NWN_RUN_DIR/backup.log}"
 : "${BACKUP_KEEP_DAYS:=30}"                 # keep every backup this recent

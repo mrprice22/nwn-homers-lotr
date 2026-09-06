@@ -146,9 +146,13 @@ a stale local leftover since 2026-05-15 — it is not a publish target.)
 ### Resource priority: why builds must not outrank the live realm
 
 This box hosts the **live season and the dev realm and builds both**, on 4 cores of
-2014-vintage AMD A10 and **one 7200rpm spinning disk**. NWN's server main loop is
-single-threaded, so a scheduling delay is not "slower" — a stalled frame *is* the
-in-game lag players report.
+2014-vintage AMD A10. NWN's server main loop is single-threaded, so a scheduling
+delay is not "slower" — a stalled frame *is* the in-game lag players report.
+
+**Since 2026-09-06 the hot data is on a Samsung 870 EVO 250GB SSD** (`/dev/sdb1`,
+ext4, mounted at `/var/mnt/ssd250`) — see "Game data on the SSD" below. The 2 TB
+7200rpm HDD still holds the OS, the season 1 archive and the backups, so the
+spindle has not gone away; it is just no longer in the path of a player's frame.
 
 **The rule: the live season outranks everything; builds run at idle.**
 
@@ -208,10 +212,63 @@ as busy by default**, because treating an unreadable log as "empty" is how you r
 wiki refresh into a full server. `lowprio --gate CMD` refuses to start heavy work
 while anyone is playing.
 
-**No scheduler flag fixes buffered writes on btrfs** (its cgroup-writeback support is
-incomplete), so a job that dirties gigabytes still stalls a single HDD. Deferring the
-work is the only reliable answer — which is why `--gate` exists, and why the real fix
-is an SSD.
+**No scheduler flag fixed buffered writes on btrfs** (its cgroup-writeback support is
+incomplete), so a job that dirtied gigabytes still stalled the single HDD no matter
+what `IOWeight` said. Deferring the work was the only reliable answer — which is why
+`--gate` exists. **The SSD migration changed this**: the game data and the repos now
+sit on **ext4**, which has working cgroup writeback, so `IOWeight` on `nwnlive.slice`
+finally throttles what it always claimed to. Keep `--gate` anyway — it also gates CPU,
+and four cores are still four cores — but expect it to matter much less.
+
+### Game data on the SSD: bind mounts at the ORIGINAL paths
+
+The live season and the dev realm keep their data on the SSD, which `/etc/fstab`
+**bind-mounts back to the original `$HOME` paths**. Read the NWN block in `/etc/fstab`
+before changing anything here.
+
+**The invariant: no path in this repo changes.** `server.env`'s `NWN_RUN_DIR` /
+`NWN_HOME_DIR`, the hardcoded `/var/home/james/GIT/...` paths in `bin/*` and
+`systemd/*.service`, the `@RUN_DIR@` baked into `nwn-season-empty-restart@<inst>.path`,
+and every `.desktop` `Exec=` line all stay literally true. That is the whole reason
+this approach was chosen over repointing `server.env` — above all because each realm's
+`database/{merit,admin}db.sqlite3` is an **absolute symlink** into
+`/home/james/.local/share/nwn-shared/`, which `bin/serve` mounts into the container at
+its own host path. Move that directory and six symlinks dangle, and nwserver aborts at
+module load with `what(): database unavailable`.
+
+**Three realms, two storage homes.** Season 2 and dev are on the SSD; the **season 1
+archive stays on the HDD** on purpose, as does `~/OneDrive/…/backups` — a backup on the
+same spindle as its source is not a backup.
+
+**Two guards, and they do different jobs — you need both:**
+
+| Layer | File | What it does |
+|---|---|---|
+| refusal | `bin/season-volumes.sh`, called from `bin/serve` | Refuses to start (exit 78) when a `.nwn-volume-id` marker is missing or names another realm |
+| ordering | `nwn-season-server@.service.d/mounts.conf`, rendered by `bin/season-units.sh` | `RequiresMountsFor=` so a season cannot start before its binds land |
+
+`RequiresMountsFor=` only **orders** — when a mount is absent entirely there is nothing
+to depend on and the start proceeds — so it can never be the refusal. And `nofail` in
+fstab is deliberate: a missing SSD must not drop this headless, lingering box into an
+emergency shell with no console to rescue it from.
+
+**Two traps that will silently disarm this if you "tidy" it:**
+
+1. **Never move `mounts.conf` into the `@` template.** `RequiresMountsFor=` is escaped
+   literally and does **not** chase symlinks. `%h` is `/home/james`, but `/home` is a
+   symlink to `var/home`, so `%h/...` names mount units that do not exist and the whole
+   directive quietly does nothing. It must be rendered per instance from `readlink -f`
+   output. Verify with
+   `systemctl --user show nwn-season-server@<inst>.service -p After | tr ' ' '\n' | grep mount`
+   — only `-.mount` means the layer is inert.
+2. **The guard enforces only where `/etc/fstab` declares a mountpoint.** That is what
+   lets one byte-identical `bin/serve` serve both an SSD-hosted season and the HDD-hosted
+   season 1 archive. Don't replace it with an unconditional check — you would lock the
+   archive realm out permanently.
+
+**After changing `NWN_RUN_DIR`, `NWN_HOME_DIR` or the fstab block, re-run
+`bin/season-units.sh --install`** in the affected repo to re-render `mounts.conf`, and
+move the `.nwn-volume-id` marker with the data.
 
 ### Publishing to clients: when to rebuild the hak, when to refresh NWSync
 

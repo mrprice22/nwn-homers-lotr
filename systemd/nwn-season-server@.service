@@ -34,6 +34,13 @@ ExecStop=/usr/bin/podman stop -t 20 ${NWN_CONTAINER_NAME}
 TimeoutStopSec=45
 Restart=on-failure
 RestartSec=15
+# EX_CONFIG(78) is bin/serve's volume preflight refusing to start (see
+# bin/season-volumes.sh): the SSD bind mount for NWN_RUN_DIR / NWN_HOME_DIR /
+# NWN_SHARED_DIR is not active, so the directory is an empty one on the HDD.
+# That is not a transient fault -- relaunching every 15s would just bury the
+# one legible explanation under a thousand identical failures. Fail once, stay
+# down, and leave the banner in the journal where it can be read.
+RestartPreventExitStatus=78
 
 [Install]
 WantedBy=default.target

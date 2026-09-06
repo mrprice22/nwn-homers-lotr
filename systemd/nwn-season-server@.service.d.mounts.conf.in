@@ -1,0 +1,38 @@
+# Rendered per instance by bin/season-units.sh --install. DO NOT hand-edit:
+# your changes are overwritten on the next --install, and the values here are
+# instance-specific.
+#
+# WHY THIS IS RENDERED AND NOT WRITTEN INTO THE @ TEMPLATE
+# --------------------------------------------------------
+# RequiresMountsFor= is escaped LITERALLY -- systemd does not resolve symlinks
+# when it turns a path into a mount unit name. %h is /home/james (from
+# /etc/passwd), but /home is a symlink to var/home, so
+#
+#     RequiresMountsFor=%h/.local/state/nwnxee-homer-s2
+#
+# generates candidate unit names home.mount, home-james.mount, ... none of
+# which exist. The directive then silently does NOTHING. The reflected mount
+# unit the user manager actually knows is named from the RESOLVED path:
+#
+#     var-home-james-.local-state-nwnxee\x2dhomer\x2ds2.mount
+#
+# This is not theoretical -- the unit already carried an inherited
+# RequiresMountsFor=/home/james/GIT/nwn_homers_lotr_s2 that resolved to nothing
+# but `After=-.mount`. So bin/season-units.sh bakes `readlink -f` output in
+# here, which it can only do per instance.
+#
+# WHAT THIS BUYS, AND WHAT IT DOES NOT
+# ------------------------------------
+# Ordering ONLY: it closes the boot race where a season starts before
+# /etc/fstab's bind mounts have landed. It does NOT refuse to start against an
+# unmounted directory -- systemd adds the dependency only for mount units that
+# resolve, so a mount that is absent entirely is simply not waited for.
+#
+# The refusal is bin/serve's marker preflight (bin/season-volumes.sh). Both
+# layers are needed; neither is sufficient alone.
+#
+# Verify after --install (an empty result means this layer is inert):
+#   systemctl --user show nwn-season-server@<instance>.service -p After \
+#     | tr ' ' '\n' | grep mount
+[Unit]
+RequiresMountsFor=@RUN_DIR_REAL@ @HOME_DIR_REAL@ @SHARED_DIR_REAL@

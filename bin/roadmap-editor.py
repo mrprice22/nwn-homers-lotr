@@ -1599,6 +1599,39 @@ def live_target_mismatch(target: Path) -> str:
             f"publishes to {theirs} — re-run bin/season-brand.py.")
 
 
+def storage_state(realm: dict) -> str:
+    """"ok" | "fault" | "n/a" — is this realm sitting on its real data?
+
+    Delegates to bin/season-volumes.sh rather than reimplementing the rule, for
+    the same reason the noise blocklist lives in a shared file: bin/serve, the
+    terminal monitor and this page must never disagree about whether a realm's
+    storage is healthy. The shell function is the single definition; this is
+    only a caller.
+
+    "n/a" is a realm deliberately hosted on the HDD (the season 1 archive) —
+    correct, not a fault. See the fstab-declared rule in season-volumes.sh.
+    """
+    dirs = [d for d in (realm.get("home_dir"), realm.get("run_dir")) if d]
+    if not dirs:
+        return "n/a"
+    helper = REPO / "bin" / "season-volumes.sh"
+    if not helper.is_file():
+        return "n/a"
+    try:
+        proc = subprocess.run(
+            ["bash", "-c", f'. "$1"; shift; season_volumes_status "$@"',
+             "_", str(helper), *dirs],
+            capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return "n/a"
+    states = {ln.split("\t", 1)[0] for ln in proc.stdout.splitlines() if ln.strip()}
+    if not states:
+        return "n/a"
+    if states <= {"n/a"}:
+        return "n/a"
+    return "ok" if states <= {"ok", "n/a"} else "fault"
+
+
 def realms() -> list[dict]:
     """Every Homer's LotR realm on this box, newest season first.
 
@@ -1631,8 +1664,14 @@ def realms() -> list[dict]:
             if color is None:
                 color = _EXTRA_COLORS[extra % len(_EXTRA_COLORS)]
                 extra += 1
+        # Data dirs come along for the storage badge (see storage_state()).
+        # Expanded by plain substitution, never eval/source: server.env is
+        # greped here precisely so a stray line in it cannot execute.
+        home_dir = (env_get(text, "NWN_HOME_DIR") or "").replace("$HOME", str(Path.home()))
+        run_dir = (env_get(text, "NWN_RUN_DIR") or "").replace("$HOME", str(Path.home()))
         out.append({"tag": tag, "label": label, "container": container,
-                    "color": color, "repo": repo.name})
+                    "color": color, "repo": repo.name,
+                    "home_dir": home_dir, "run_dir": run_dir})
     # Live season above dev in the legend; dev is the noisiest and least urgent.
     out.sort(key=lambda r: (r["tag"] == "DEV", r["tag"]))
     return out
@@ -1762,8 +1801,11 @@ def server_log_tail_all(tail: int = 400,
     for r in found:
         up = subprocess.run(["podman", "container", "exists", r["container"]],
                             capture_output=True).returncode == 0
+        # "container is up" is a misleading green light if the realm is running
+        # against an empty directory because its SSD bind mount is missing, so
+        # the badge reports storage separately from liveness.
         status.append({**{k: r[k] for k in ("tag", "label", "container", "color")},
-                       "ok": up})
+                       "ok": up, "storage": storage_state(r)})
         if not up:
             # \uffff sorts after every timestamp, so a down realm's notice sits
             # at the bottom of the stream where it is read last, rather than
@@ -3546,6 +3588,11 @@ MONITOR_PAGE = r"""<!doctype html>
   .realm { display:inline-flex; align-items:center; gap:5px; }
   .realm .dot::before { content:"●"; }
   .realm .dot.up { color:#3fb950; } .realm .dot.down { color:#f85149; }
+  /* Deliberately louder than the liveness dot: a realm serving players off an
+     empty directory is worse than one that is simply down. */
+  .realm .storagewarn { margin-left:4px; padding:0 4px; border-radius:3px;
+                        background:#f85149; color:#fff; font-size:11px;
+                        font-weight:700; letter-spacing:.02em; cursor:help; }
   #err { color:#f85149; }
   #log { padding:12px 14px; }
   /* One row per line: time, tag, message. The realm colour is set inline from
@@ -3612,17 +3659,28 @@ function severity(line, sev) {
 
 function renderBar(realms) {
   // Rebuilding the checkboxes on every tick steals focus mid-click.
-  const sig = JSON.stringify(realms.map(r => [r.tag, r.ok, r.color, r.label]));
+  // r.storage is part of the signature: a realm whose bind mount vanished must
+  // redraw even though its tag/colour/liveness are unchanged.
+  const sig = JSON.stringify(realms.map(r => [r.tag, r.ok, r.color, r.label, r.storage]));
   if (sig === lastBarSig) return;
   lastBarSig = sig;
   realmsEl.innerHTML = realms.map(r => {
     if (!(r.tag in shown)) shown[r.tag] = true;
+    // A running container on an empty directory is the failure this flags:
+    // "up" alone would be a misleading green light. Only an actual fault is
+    // shown -- "n/a" is a realm deliberately hosted on the HDD, not a problem.
+    const bad = r.storage === 'fault';
+    const warn = bad
+      ? `<span class="storagewarn" title="SSD bind mount missing — this realm is`
+        + ` NOT on its real data (no servervault, no campaign DBs). See`
+        + ` bin/season-volumes.sh.">⚠ STORAGE</span>`
+      : '';
     return `<span class="realm" title="${esc(r.label)} — ${esc(r.container)}">`
       + `<span class="dot ${r.ok ? 'up' : 'down'}"></span>`
       + `<label><input type="checkbox" data-tag="${esc(r.tag)}"`
       + `${shown[r.tag] ? ' checked' : ''}> `
       + `<span style="color:${esc(r.color)};font-weight:600">${esc(r.tag)}</span>`
-      + `</label></span>`;
+      + `</label>${warn}</span>`;
   }).join(' ');
   realmsEl.querySelectorAll('input[data-tag]').forEach(cb => {
     cb.onchange = () => { shown[cb.dataset.tag] = cb.checked; applyFilter(); };

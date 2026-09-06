@@ -106,7 +106,7 @@ env_get() {  # $1=file $2=key
     | head -1
 }
 
-TAGS=(); LABELS=(); CONTAINERS=(); COLORS=()
+TAGS=(); LABELS=(); CONTAINERS=(); COLORS=(); HOMEDIRS=(); RUNDIRS=()
 
 # Spare colours for any realm beyond the three we know: magenta, blue, red.
 EXTRA_COLORS=(35 34 31)
@@ -135,6 +135,12 @@ for repo in "$GIT_ROOT"/nwn_homers_lotr*; do
   fi
 
   TAGS+=("$tag"); LABELS+=("$label"); CONTAINERS+=("$container"); COLORS+=("$color")
+  # Captured for the storage line in the banner below. Expanded by plain string
+  # substitution, NOT eval: these values are greped out of server.env rather
+  # than sourced precisely so a stray line there can never execute, and running
+  # them through eval here would hand back exactly that capability.
+  _hd=$(env_get "$env_file" NWN_HOME_DIR); HOMEDIRS+=("${_hd//\$HOME/$HOME}")
+  _rd=$(env_get "$env_file" NWN_RUN_DIR);  RUNDIRS+=("${_rd//\$HOME/$HOME}")
 done
 
 if [[ ${#TAGS[@]} -eq 0 ]]; then
@@ -315,6 +321,23 @@ for i in "${!TAGS[@]}"; do
     "$(paint "${COLORS[$i]}" "$(printf '[%-*s]' "$TAGW" "${TAGS[$i]}")" bold)" \
     "${LABELS[$i]}" "${CONTAINERS[$i]}"
 done
+# Storage line. "Server is running" is a misleading green light if the realm is
+# running against an empty directory because its SSD bind mount is missing, so
+# say so here rather than leaving it to be inferred from the log. Realms
+# deliberately left on the HDD report n/a, not a fault -- see
+# bin/season-volumes.sh for the fstab-declared rule that distinguishes them.
+if [[ -r $PROJECT_ROOT/bin/season-volumes.sh ]]; then
+  # shellcheck source=bin/season-volumes.sh
+  . "$PROJECT_ROOT/bin/season-volumes.sh"
+  for i in "${!TAGS[@]}"; do
+    bad=$(season_volumes_status "${HOMEDIRS[$i]}" "${RUNDIRS[$i]}" | grep -cve '^\(ok\|n/a\)' || true)
+    if (( bad )); then
+      printf '  %s  %s\n' \
+        "$(paint 31 "$(printf '[%-*s]' "$TAGW" "${TAGS[$i]}")" bold)" \
+        "$(paint 31 'STORAGE FAULT — SSD bind mount missing; this realm is NOT on its real data' bold)"
+    fi
+  done
+fi
 if (( RAW )); then
   echo "(Raw mode: no filtering, no time merge.)"
 elif [[ $MODE == dropped ]]; then
