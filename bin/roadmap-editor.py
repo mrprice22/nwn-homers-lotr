@@ -41,7 +41,7 @@ import traceback
 import urllib.parse
 import webbrowser
 from contextlib import redirect_stderr
-from datetime import datetime
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -54,6 +54,11 @@ import roadmap_merit as MERIT   # noqa: E402  (meritdb access, shared with the C
 
 REPO = Path(__file__).resolve().parent.parent
 YAML_PATH = REPO / "roadmap.yaml"
+#: Duplicate-pair suggestions for the /dupes review page. A sidecar, NOT part
+#: of roadmap.yaml: it holds a machine's guesses plus your verdicts on them, and
+#: nothing downstream of the roadmap should ever read a guess. Absent is fine --
+#: the page then says there is nothing to review.
+DUPES_PATH = REPO / "dupe-suggestions.json"
 GEN_PATH = REPO / "bin" / "gen-roadmap.py"
 PUBLISH_PATH = REPO / "bin" / "roadmap_publish.py"
 # Palette Finder: standalone map of blueprint -> toolset-palette location. Built
@@ -208,6 +213,30 @@ def _yaml_key():
     except OSError:
         return None
     return (st.st_ino, st.st_mtime_ns, st.st_size)
+
+
+def read_dupes() -> dict:
+    """The duplicate-suggestion sidecar, or an empty shell when absent."""
+    try:
+        with open(DUPES_PATH, encoding="utf-8") as fh:
+            doc = json.load(fh)
+    except FileNotFoundError:
+        return {"pairs": [], "missing": True}
+    except Exception as e:
+        return {"pairs": [], "error": f"{DUPES_PATH.name}: {e}"}
+    if not isinstance(doc, dict) or not isinstance(doc.get("pairs"), list):
+        return {"pairs": [], "error": f"{DUPES_PATH.name}: not a suggestions file"}
+    return doc
+
+
+def write_dupes(doc: dict) -> None:
+    """Replace the sidecar atomically. Verdicts are cheap to redo but annoying
+    to lose, and a half-written file would lose all of them at once."""
+    tmp = DUPES_PATH.with_suffix(".json.tmp")
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, indent=1, ensure_ascii=False)
+        fh.write("\n")
+    os.replace(tmp, DUPES_PATH)
 
 
 def read_yaml() -> dict:
@@ -2005,6 +2034,11 @@ ROUTE_CAPS: dict[str, str] = {
     "/api/release-notes/admin": "release_notes_admin",
     "/api/changes": "llm_review",
     "/api/changes/action": "llm_review",
+    # Duplicate review. Gated on `edit` rather than `view`: approving a pair
+    # writes `dupe_of`, and there is nothing to do on this page without that.
+    "/dupes": "edit",
+    "/api/dupes": "edit",
+    "/api/dupes/action": "edit",
     "/api/save": "edit",
     "/api/step-status": "edit",
     # The tester lane. Narrow single-step writes, which is why they are safe to
@@ -2037,6 +2071,7 @@ AUDITED = {
     "/api/uat-award": "merit.uat_award",
     "/api/uat-revoke": "merit.uat_revoke",
     "/api/changes/action": "llm.action",
+    "/api/dupes/action": "roadmap.dupe",
     "/api/palette/refresh": "palette.refresh",
 }
 # A save posts the whole document, so these three are the routes that need the
@@ -2415,6 +2450,131 @@ class Handler(BaseHTTPRequestHandler):
                        wants_html=False)
             return False
         return True
+
+    def _dupes_payload(self) -> dict:
+        """Suggestions joined to what roadmap.yaml says *now*.
+
+        The sidecar is a snapshot of a machine's opinion at some past moment, so
+        every pair is re-checked against the live document before it is shown: an
+        item that has since been deleted, or already carries `dupe_of`, is marked
+        rather than offered again. Otherwise the page would keep proposing a
+        merge you already made.
+        """
+        doc = read_dupes()
+        by_id = {i.get("id"): i for i in (read_yaml().get("ideas") or [])
+                 if isinstance(i, dict) and i.get("id")}
+        pairs = []
+        for pair in doc.get("pairs") or []:
+            a_id, b_id = pair.get("a"), pair.get("b")
+            a_idea, b_idea = by_id.get(a_id), by_id.get(b_id)
+            row = dict(pair)
+            row["gone"] = [i for i in (a_id, b_id) if i not in by_id]
+            row["live"] = {
+                side: None if idea is None else {
+                    "title": idea.get("title") or "",
+                    "group": idea.get("group") or "",
+                    "status": idea.get("status") or "",
+                    "type": idea.get("type") or "",
+                    "player": idea.get("player") or "",
+                    "dupe_of": idea.get("dupe_of") or "",
+                    "merit_awarded": bool(idea.get("merit_awarded")),
+                }
+                for side, idea in (("a", a_idea), ("b", b_idea))
+            }
+            # Already merged, by this page or by hand. Either way: not a question.
+            row["already"] = ((a_idea or {}).get("dupe_of") == b_id
+                              or (b_idea or {}).get("dupe_of") == a_id)
+            pairs.append(row)
+        return {"generated": doc.get("generated", ""), "model": doc.get("model", ""),
+                "method": doc.get("method", ""), "pairs": pairs,
+                "missing": bool(doc.get("missing")), "error": doc.get("error", ""),
+                "version": yaml_version(), "me": getattr(self.user, "label", "")}
+
+    def _dupes_write(self, payload):
+        """Record one verdict, and for an approval set `dupe_of` as well.
+
+        Narrower than /api/save on purpose, in the same spirit as _step_write:
+        it re-reads roadmap.yaml, touches one field on one item, and never
+        regenerates or commits. A rejection touches roadmap.yaml not at all --
+        it is a note to the machine that this pair was considered and declined,
+        which is the half of the record the roadmap itself cannot hold.
+        """
+        pair_id = str(payload.get("id") or "")
+        verdict = str(payload.get("verdict") or "")
+        if verdict not in ("a", "b", "no", "unsure", ""):
+            return self._json({"ok": False, "errors": [f"bad verdict {verdict!r}"]},
+                              400)
+        doc = read_dupes()
+        pair = next((x for x in doc.get("pairs") or []
+                     if x.get("id") == pair_id), None)
+        if pair is None:
+            return self._json({"ok": False, "errors": [f"no such pair '{pair_id}'"]},
+                              404)
+
+        message = "Recorded."
+        if verdict in ("a", "b"):
+            dupe_id = pair["a"] if verdict == "a" else pair["b"]
+            canon_id = pair["b"] if verdict == "a" else pair["a"]
+            data = read_yaml()
+            ideas = data.get("ideas") or []
+            dupe = next((i for i in ideas if i.get("id") == dupe_id), None)
+            canon = next((i for i in ideas if i.get("id") == canon_id), None)
+            if dupe is None or canon is None:
+                missing = dupe_id if dupe is None else canon_id
+                return self._json({"ok": False, "stale": True,
+                                   "errors": [f"'{missing}' is no longer in the "
+                                              f"roadmap — reload the page."]}, 409)
+            # A dupe row must never point at another dupe row: follow the chain
+            # to whatever actually governs, exactly as the roadmap reader does.
+            seen, cursor = set(), canon
+            while cursor.get("dupe_of") and cursor["dupe_of"] not in seen:
+                seen.add(cursor["dupe_of"])
+                nxt = next((i for i in ideas
+                            if i.get("id") == cursor["dupe_of"]), None)
+                if nxt is None:
+                    break
+                cursor = nxt
+            canon_id = cursor.get("id", canon_id)
+            if canon_id == dupe_id:
+                return self._json({"ok": False, "errors": [
+                    "that would point an item at itself — the other side is "
+                    "already a duplicate of this one."]}, 400)
+            # Re-pointing an existing merge is destructive and is never what a
+            # click on a *suggestion* meant: the pair the page offered is not the
+            # merge that is already recorded. Refuse and say what is there, so
+            # undoing the old link stays a deliberate act in the editor.
+            existing = dupe.get("dupe_of")
+            if existing and existing != canon_id:
+                return self._json({"ok": False, "errors": [
+                    f"'{dupe_id}' is already a duplicate of '{existing}'. "
+                    f"Clear that in the editor first if you want it pointed at "
+                    f"'{canon_id}' instead."]}, 409)
+
+            before = copy.deepcopy(ideas)
+            dupe["dupe_of"] = canon_id
+            errors, warnings = validate_document(ideas, data.get("groups"),
+                                                 data.get("players"),
+                                                 data.get("epics"))
+            if errors:
+                return self._json({"ok": False, "errors": errors}, 400)
+            denied = AUTH.enforce_idea_permissions(self.user.caps, ideas, before,
+                                                   status_label=status_label)
+            if denied:
+                AUTH.audit(auth_db(), "denied.field", user=self.user,
+                           ip=self.client_ip(), detail=f"/api/dupes/action: {denied[0]}")
+                return self._json({"ok": False, "errors": denied}, 403)
+            write_document(ideas, data.get("groups"), data.get("players"),
+                           data.get("epics"))
+            message = f"{dupe_id} is now a duplicate of {canon_id}."
+
+        pair["verdict"] = verdict or None
+        pair["verdict_by"] = getattr(self.user, "label", "")
+        pair["verdict_at"] = datetime.now(
+            timezone.utc).isoformat(timespec="seconds")
+        pair["note"] = str(payload.get("note") or "")[:500]
+        write_dupes(doc)
+        return self._json({"ok": True, "message": message,
+                           "version": yaml_version()})
 
     def _step_write(self, payload):
         """Tick one manual_step's status/kind/tester from a queue panel.
@@ -2875,6 +3035,11 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/monitor" or self.path.startswith("/monitor?"):
             self._send(200, MONITOR_PAGE.encode("utf-8"),
                        "text/html; charset=utf-8")
+        elif self.path == "/dupes" or self.path.startswith("/dupes?"):
+            self._send(200, DUPES_PAGE.encode("utf-8"),
+                       "text/html; charset=utf-8")
+        elif self.path.startswith("/api/dupes"):
+            self._json(self._dupes_payload())
         elif self.path.startswith("/api/serverlog"):
             q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             try:
@@ -3133,6 +3298,13 @@ class Handler(BaseHTTPRequestHandler):
             self._audit_write(f"{body.get('action', '?')} "
                               f"{body.get('id') or body.get('group') or ''}".strip())
             return self._json(REVIEW.act(body))
+        if self.path == "/api/dupes/action":
+            try:
+                payload = self._read_body()
+            except Exception as e:
+                return self._json({"ok": False, "errors": [f"bad request: {e}"]}, 400)
+            self._audit_write(f"{payload.get('id')} -> {payload.get('verdict')}")
+            return self._dupes_write(payload)
         if self.path == "/api/step-status":
             try:
                 payload = self._read_body()
@@ -3321,6 +3493,267 @@ class Handler(BaseHTTPRequestHandler):
 # is interleaved into one chronological stream, each line tagged and coloured by
 # realm; the realm checkboxes filter client-side, "show all" re-fetches with the
 # noise filter off.
+# The duplicate review page. Reads /api/dupes, writes through
+# /api/dupes/action. Deliberately its own page rather than a panel in the
+# editor: the suggestions are a machine's opinion with a shelf life, and the
+# whole feature is meant to be removable by deleting one route table entry, one
+# sidecar file and this constant.
+DUPES_PAGE = r"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duplicate Review — Homer's LotR</title>
+<style>
+  :root { --bg:#1e2127; --panel:#272b33; --ink:#e6e6e6; --mut:#9aa3af;
+          --line:#3a3f4a; --accent:#6ea8fe; --warn:#e6b800; --err:#ff6b6b;
+          --ok:#5ec98a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 system-ui,sans-serif; background:var(--bg);
+         color:var(--ink); }
+  a { color:var(--accent); }
+  code, .id { font:12px/1.4 ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+              color:var(--mut); }
+  #bar { position:sticky; top:0; z-index:5; display:flex; align-items:center;
+         gap:14px; flex-wrap:wrap; padding:10px 16px; background:#1a1d22;
+         border-bottom:1px solid var(--line); }
+  #bar h1 { margin:0; font-size:14px; font-weight:600; letter-spacing:.02em; }
+  #bar .sp { margin-left:auto; }
+  .meter { display:flex; align-items:center; gap:8px; color:var(--mut);
+           font-size:12px; }
+  .track { width:150px; height:6px; border-radius:3px; background:var(--line);
+           overflow:hidden; }
+  .fill { height:100%; background:var(--accent); width:0; transition:width .2s; }
+  .tab { padding:4px 11px; font-size:12px; background:var(--panel);
+         color:var(--mut); border:1px solid var(--line); border-radius:999px;
+         cursor:pointer; font:inherit; font-size:12px; }
+  .tab.on { color:var(--ink); border-color:var(--accent); }
+  main { max-width:1080px; margin:0 auto; padding:18px 16px 80px;
+         display:flex; flex-direction:column; gap:14px; }
+  .intro { color:var(--mut); font-size:13px; max-width:70ch; }
+  .intro strong { color:var(--ink); font-weight:600; }
+  /* One suggestion. The left border is the state stripe: unreviewed is quiet,
+     a verdict colours it, so the queue's shape reads without any counting. */
+  .pair { background:var(--panel); border:1px solid var(--line);
+          border-left:3px solid var(--line); border-radius:8px; }
+  .pair.done { border-left-color:var(--ok); }
+  .pair.no   { border-left-color:var(--mut); opacity:.62; }
+  .pair.skip { border-left-color:var(--warn); opacity:.75; }
+  .pair.busy { opacity:.5; pointer-events:none; }
+  .head { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+          padding:9px 13px; border-bottom:1px solid var(--line); }
+  .pair.collapsed .head { border-bottom:none; }
+  .pair.collapsed .body, .pair.collapsed .why, .pair.collapsed .acts
+    { display:none; }
+  .chip { font-size:11px; padding:1px 8px; border-radius:999px;
+          border:1px solid var(--line); color:var(--mut); white-space:nowrap; }
+  .chip.mutual { color:var(--accent); border-color:var(--accent); }
+  .chip.merit  { color:var(--warn); border-color:var(--warn); }
+  .chip.gone   { color:var(--err); border-color:var(--err); }
+  .chip.verdict{ color:var(--ok); border-color:var(--ok); }
+  .body { display:grid; grid-template-columns:1fr 1fr; gap:1px;
+          background:var(--line); }
+  .side { background:var(--panel); padding:12px 13px; display:flex;
+          flex-direction:column; gap:7px; }
+  .side h2 { margin:0; font-size:14px; font-weight:600; line-height:1.3;
+             text-wrap:balance; }
+  .meta { display:flex; gap:6px; flex-wrap:wrap; }
+  .just { color:var(--mut); font-size:13px; font-style:italic;
+          border-left:2px solid var(--line); padding-left:9px; }
+  .pick { margin-top:auto; padding:6px 10px; font:inherit; font-size:12px;
+          background:var(--bg); color:var(--ink); border:1px solid var(--line);
+          border-radius:6px; cursor:pointer; text-align:left; }
+  .pick:hover { border-color:var(--accent); }
+  .pick b { color:var(--accent); font-weight:600; }
+  .why { padding:9px 13px; color:var(--mut); font-size:13px;
+         border-top:1px solid var(--line); }
+  .why b { color:var(--ink); font-weight:600; }
+  .acts { display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+          padding:9px 13px; border-top:1px solid var(--line); }
+  button { padding:5px 12px; font:inherit; font-size:12px; border-radius:6px;
+           background:var(--bg); color:var(--ink); border:1px solid var(--line);
+           cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  button:focus-visible, .tab:focus-visible, .pick:focus-visible
+    { outline:2px solid var(--accent); outline-offset:2px; }
+  .msg { font-size:12px; color:var(--mut); }
+  .msg.err { color:var(--err); }
+  .empty { color:var(--mut); padding:26px 0; text-align:center; }
+  @media (max-width:720px) { .body { grid-template-columns:1fr; } }
+  @media (prefers-reduced-motion:reduce) { .fill { transition:none; } }
+</style></head>
+<body>
+  <div id="bar">
+    <h1>Duplicate Review</h1>
+    <span class="meter"><span class="track"><span class="fill" id="fill"></span></span>
+      <span id="count">loading…</span></span>
+    <span class="sp"></span>
+    <button class="tab on" id="t-open" data-filter="open">To review</button>
+    <button class="tab" id="t-done" data-filter="done">Decided</button>
+    <button class="tab" id="t-all" data-filter="all">All</button>
+    <a href="/" title="Back to the roadmap editor">&larr; editor</a>
+  </div>
+  <main>
+    <p class="intro" id="intro">Loading suggestions&hellip;</p>
+    <div id="list"></div>
+  </main>
+<script>
+const esc = s => String(s == null ? "" : s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;");
+let DATA = null, filter = "open";
+
+function chips(live, id) {
+  if (!live) return '<span class="chip gone">not in roadmap.yaml</span>';
+  const out = [];
+  if (live.group) out.push(`<span class="chip">${esc(live.group)}</span>`);
+  if (live.status) out.push(`<span class="chip">${esc(live.status)}</span>`);
+  if (live.type) out.push(`<span class="chip">${esc(live.type)}</span>`);
+  if (live.player) out.push(`<span class="chip">${esc(live.player)}</span>`);
+  // Merit already paid: setting dupe_of here is consequential, and the server
+  // may refuse it outright. Say so before the click, not after.
+  if (live.merit_awarded) out.push('<span class="chip merit">merit paid</span>');
+  if (live.dupe_of)
+    out.push(`<span class="chip merit">already dupe of ${esc(live.dupe_of)}</span>`);
+  return out.join(" ");
+}
+
+function side(p, key) {
+  const id = p[key], other = key === "a" ? p.b : p.a;
+  const live = (p.live || {})[key];
+  const title = live ? live.title : p[key + "_title"];
+  return `<div class="side">
+    <h2>${esc(title)}</h2>
+    <div class="meta"><a class="id" href="/#idea-${esc(id)}" target="_blank"
+      rel="noopener">${esc(id)}</a> ${chips(live, id)}</div>
+    <div class="just">${esc(p[key + "_just"] || "")}</div>
+    <button class="pick" data-id="${esc(p.id)}" data-verdict="${key}"
+      ${live && !p.already && !live.dupe_of ? "" : "disabled"}
+      title="${live && live.dupe_of ? "Already a duplicate of " + esc(live.dupe_of) + " — clear that in the editor first" : ""}">
+      <b>This one</b> is the duplicate &mdash; point it at ${esc(other)}</button>
+  </div>`;
+}
+
+function card(p) {
+  const v = p.verdict;
+  const decided = v === "a" || v === "b" || p.already;
+  const cls = p.already || v === "a" || v === "b" ? "done"
+            : v === "no" ? "no" : v === "unsure" ? "skip" : "";
+  const collapsed = (v || p.already) ? " collapsed" : "";
+  let verdictChip = "";
+  if (p.already) verdictChip = '<span class="chip verdict">merged</span>';
+  else if (v === "a" || v === "b")
+    verdictChip = `<span class="chip verdict">${esc(p[v])} &rarr; ${esc(v === "a" ? p.b : p.a)}</span>`;
+  else if (v === "no") verdictChip = '<span class="chip">not a duplicate</span>';
+  else if (v === "unsure") verdictChip = '<span class="chip">skipped</span>';
+
+  return `<div class="pair ${cls}${collapsed}" data-id="${esc(p.id)}">
+    <div class="head">
+      <strong style="font-size:13px">${esc(p.a_title)}</strong>
+      <span class="id">vs</span>
+      <strong style="font-size:13px">${esc(p.b_title)}</strong>
+      ${p.both_ways ? '<span class="chip mutual" title="Both items independently named the other">mutual</span>' : ""}
+      <span class="chip">score ${Number(p.score).toFixed(2)}</span>
+      ${verdictChip}
+      <span class="sp"></span>
+      ${(v || p.already) ? `<button data-act="expand" data-id="${esc(p.id)}">change</button>` : ""}
+    </div>
+    <div class="body">${side(p, "a")}${side(p, "b")}</div>
+    <div class="why"><b>Why the model paired them:</b> ${esc(p.why)}
+      ${p.why2 ? "<br><b>And from the other side:</b> " + esc(p.why2) : ""}</div>
+    <div class="acts">
+      <button data-id="${esc(p.id)}" data-verdict="no">Not a duplicate</button>
+      <button data-id="${esc(p.id)}" data-verdict="unsure">Skip for now</button>
+      <span class="msg" data-msg="${esc(p.id)}"></span>
+    </div>
+  </div>`;
+}
+
+function render() {
+  if (!DATA) return;
+  const all = DATA.pairs;
+  const open = all.filter(p => !p.verdict && !p.already);
+  const done = all.filter(p => p.verdict || p.already);
+  const shown = filter === "open" ? open : filter === "done" ? done : all;
+  const pct = all.length ? Math.round(done.length / all.length * 100) : 0;
+  document.getElementById("fill").style.width = pct + "%";
+  document.getElementById("count").textContent =
+    `${done.length} of ${all.length} decided`;
+  const merged = all.filter(p => p.already || p.verdict === "a" || p.verdict === "b").length;
+  const rejected = all.filter(p => p.verdict === "no").length;
+  document.getElementById("intro").innerHTML =
+    DATA.missing
+      ? "No <code>dupe-suggestions.json</code> in the repo, so there is nothing to review."
+    : DATA.error ? `<span style="color:var(--err)">${esc(DATA.error)}</span>`
+    : `<strong>${all.length} candidate pairs</strong> proposed by ${esc(DATA.model)}. `
+      + `Approving one sets <code>dupe_of</code> on the item you pick, exactly as the `
+      + `editor would &mdash; nothing else is touched, and the duplicate keeps its own `
+      + `<code>player</code> and its merit. <strong>${merged}</strong> merged so far, `
+      + `<strong>${rejected}</strong> rejected. Rejections are recorded too: that is the `
+      + `half of the record roadmap.yaml cannot hold.`;
+  document.getElementById("list").innerHTML =
+    shown.length ? shown.map(card).join("")
+    : `<p class="empty">${filter === "open" ? "Nothing left to review." : "Nothing here yet."}</p>`;
+}
+
+async function act(id, verdict) {
+  const el = document.querySelector(`.pair[data-id="${CSS.escape(id)}"]`);
+  const msg = document.querySelector(`[data-msg="${CSS.escape(id)}"]`);
+  if (el) el.classList.add("busy");
+  if (msg) { msg.textContent = "Saving…"; msg.className = "msg"; }
+  try {
+    const r = await fetch("/api/dupes/action", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({id, verdict}),
+    });
+    const out = await r.json();
+    if (!out.ok) {
+      if (msg) {
+        msg.className = "msg err";
+        msg.textContent = (out.errors || [out.message || "Refused."]).join(" ");
+      }
+      if (el) el.classList.remove("busy");
+      return;
+    }
+    await load();
+  } catch (e) {
+    if (msg) { msg.className = "msg err"; msg.textContent = "Could not reach the editor: " + e; }
+    if (el) el.classList.remove("busy");
+  }
+}
+
+document.addEventListener("click", ev => {
+  const tab = ev.target.closest(".tab");
+  if (tab) {
+    filter = tab.dataset.filter;
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t === tab));
+    return render();
+  }
+  const expand = ev.target.closest('[data-act="expand"]');
+  if (expand) {
+    const card = expand.closest(".pair");
+    if (card) card.classList.remove("collapsed");
+    return;
+  }
+  const btn = ev.target.closest("[data-verdict]");
+  if (btn && !btn.disabled) act(btn.dataset.id, btn.dataset.verdict);
+});
+
+async function load() {
+  try {
+    const r = await fetch("/api/dupes");
+    DATA = await r.json();
+  } catch (e) {
+    document.getElementById("intro").innerHTML =
+      '<span style="color:var(--err)">Could not load suggestions: ' + esc(e) + "</span>";
+    return;
+  }
+  render();
+}
+load();
+</script>
+</body></html>
+"""
+
+
 MONITOR_PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
