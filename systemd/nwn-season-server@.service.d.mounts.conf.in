@@ -34,5 +34,12 @@
 # Verify after --install (an empty result means this layer is inert):
 #   systemctl --user show nwn-season-server@<instance>.service -p After \
 #     | tr ' ' '\n' | grep mount
+# THE PATHS MUST STAY QUOTED. RequiresMountsFor= takes a SPACE-SEPARATED list,
+# and NWN_HOME_DIR is "…/Neverwinter Nights S2" -- unquoted, systemd reads that
+# as three separate paths ("…/Neverwinter", "Nights", "S2"), none of which is a
+# mount, and the realm's home dir is silently NOT waited for. That is the whole
+# directory the module and servervault live in, so it is the one that matters
+# most. Verify the home dir actually appears in the After= list, not just the
+# two space-free paths.
 [Unit]
-RequiresMountsFor=@RUN_DIR_REAL@ @HOME_DIR_REAL@ @SHARED_DIR_REAL@
+RequiresMountsFor="@RUN_DIR_REAL@" "@HOME_DIR_REAL@" "@SHARED_DIR_REAL@"
