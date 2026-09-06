@@ -100,6 +100,14 @@ void main()
     if (GetItemPossessedBy(oPC, &quot;Forgekey&quot;)          == OBJECT_INVALID) CreateItemOnObject(&quot;forgekey&quot;,         oPC);
     if (GetItemPossessedBy(oPC, &quot;ammoreplicator&quot;)    == OBJECT_INVALID) CreateItemOnObject(&quot;ammoreplicator&quot;,   oPC);
 
+    // Two Keys of the Hidden Court, unconditionally rather than guarded:
+    // the sealed door under Amon Sul is AutoRemoveKey and eats one key per
+    // crossing, so a single key is a one-way trip into the court.
+    // Two separate creates, not a stack of 2 - BaseItem 65 (key) does not
+    // stack, and CreateItemOnObject clamps to baseitems.2da Stacking.
+    CreateItemOnObject(&quot;wtop_4key_whole&quot;, oPC);
+    CreateItemOnObject(&quot;wtop_4key_whole&quot;, oPC);
+
     // Rapid-testing supply: always hand out 3 more Runes of Expansion
     // (consumable, so no possession guard).
     // ONE create per rune: slot_token is BaseItem 24 (miscsmall), Stacking 1 in
