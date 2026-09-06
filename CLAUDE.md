@@ -270,6 +270,16 @@ emergency shell with no console to rescue it from.
 `bin/season-units.sh --install`** in the affected repo to re-render `mounts.conf`, and
 move the `.nwn-volume-id` marker with the data.
 
+**Never park a copy of a season repo inside `~/GIT`.** A realm is discovered by
+globbing `~/GIT/nwn_homers_lotr*` for a `server.env` with `NWN_CONTAINER_NAME` —
+`bin/watch-all-servers`, the roadmap editor's `realms()` and `bin/season-shortcuts.sh`
+all use that one rule. So a backup named `nwn_homers_lotr_s2.pre-ssd` **is a realm** as
+far as the tooling is concerned: both monitors list every season twice, and far worse,
+`bin/sync-vault-from-prod` picks its live source by scanning those same siblings and can
+choose the stale copy — writing yesterday's characters into the dev vault. The SSD
+migration hit exactly this. Backups of a repo live in `~/pre-ssd-rollback/`, or anywhere
+that is not `~/GIT`.
+
 ### Publishing to clients: when to rebuild the hak, when to refresh NWSync
 
 **A module-only change never needs NWSync.** `bin/refresh-nwsync` runs without
