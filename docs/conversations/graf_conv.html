@@ -65,7 +65,7 @@
 <h1>Conversation: <code>graf_conv</code></h1>
 <dl class="meta">
 <dt>NPC lines</dt><dd>2</dd>
-<dt>PC replies</dt><dd>18</dd>
+<dt>PC replies</dt><dd>21</dd>
 <dt>NumWords</dt><dd>0</dd>
 <dt>OnEnd</dt><dd><code></code></dd>
 <dt>OnAbort</dt><dd><code></code></dd>
@@ -74,6 +74,8 @@
 <li>Placeable <code>graf_pedestal</code> — in <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
 <li><span class="badge">instance</span> Placeable <code>graf_pedestal</code> <small class="muted">(blueprint <code>graf_pedestal</code>)</small> — in <a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></li>
 </ul>
+<h2>Teleport destinations</h2>
+<table class="data"><thead><tr><th>Waypoint / object tag</th><th>Destination area</th><th>Via script</th><th>From node</th></tr></thead><tbody><tr><td><code>respawn</code></td><td><a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a></td><td><code>graf_exit</code></td><td><a href="#r20">reply #20</a></td></tr></tbody></table>
 <h2>Scripts referenced</h2>
 <table class="data"><thead><tr><th>Script</th><th>Slot</th><th>In module</th><th>Notes</th></tr></thead><tbody><tr><td><code>graf_has_prev</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_vis_0</code></td><td>active</td><td>✓</td><td></td></tr>
@@ -86,6 +88,7 @@
 <tr><td><code>graf_vis_7</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_vis_8</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_has_next</code></td><td>active</td><td>✓</td><td></td></tr>
+<tr><td><code>graf_in_cat</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_in_app</code></td><td>active</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_cats</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_step_n</code></td><td>action</td><td>✓</td><td></td></tr>
@@ -104,7 +107,8 @@
 <tr><td><code>graf_pick_8</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_page_n</code></td><td>action</td><td>✓</td><td></td></tr>
 <tr><td><code>graf_up</code></td><td>action</td><td>✓</td><td></td></tr>
-<tr><td><code>graf_sum</code></td><td>action</td><td>✓</td><td></td></tr></tbody></table>
+<tr><td><code>graf_sum</code></td><td>action</td><td>✓</td><td></td></tr>
+<tr><td><code>graf_exit</code></td><td>action</td><td>✓</td><td>teleports to: <code>respawn</code> (<a href="../areas/thewelloferu.html"><span style="color:#3ff23f"> &quot;Well of Eru&quot;</span></a>)</td></tr></tbody></table>
 <h2>Custom tokens</h2><p class="muted">These runtime tokens are filled by NWScript via <code>SetCustomToken(N, text)</code>. The scripts listed set each token; the actual value depends on game state at runtime.</p><table class="data"><thead><tr><th>Token</th><th>Set by script(s)</th></tr></thead><tbody><tr><td><code>&lt;CUSTOM6500&gt;</code></td><td><a href="../scripts/graf_inc.html">graf_inc</a></td></tr>
 <tr><td><code>&lt;CUSTOM6501&gt;</code></td><td><a href="../scripts/graf_inc.html">graf_inc</a></td></tr>
 <tr><td><code>&lt;CUSTOM6502&gt;</code></td><td><a href="../scripts/graf_inc.html">graf_inc</a></td></tr>
@@ -218,6 +222,20 @@ What shall it be?</div>
 </div>
 </details>
 <details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>graf_step_n</code></span> <small class="muted">(if <code>graf_in_cat</code>)</small> <a class="dlg-anchor" href="#r19" title="jump to flat reply #19">¶</a></summary>
+<div class="dlg-text">[Next look &gt;]</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“--”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>graf_step_p</code></span> <small class="muted">(if <code>graf_in_cat</code>)</small> <a class="dlg-anchor" href="#r18" title="jump to flat reply #18">¶</a></summary>
+<div class="dlg-text">[&lt; Previous look]</div>
+<div class="dlg-tree-children">
+<div class="dlg-tree-ref entry-ref">↩ <a href="#e1">entry #1</a> <span class="dlg-link-preview">“--”</span></div>
+</div>
+</details>
+<details class="dlg-tree-node reply" open>
 <summary><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>graf_up</code></span> <small class="muted">(if <code>graf_in_app</code>)</small> <a class="dlg-anchor" href="#r16" title="jump to flat reply #16">¶</a></summary>
 <div class="dlg-text">[Back a step]</div>
 <div class="dlg-tree-children">
@@ -257,6 +275,10 @@ What shall it be?</div>
 <summary><span class="dlg-id">reply #4</span> <span class="dlg-action">→ <code>graf_done</code></span> <a class="dlg-anchor" href="#r4" title="jump to flat reply #4">¶</a></summary>
 <div class="dlg-text">That will do for now.</div>
 </details>
+<details class="dlg-tree-node reply" open>
+<summary><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>graf_exit</code></span> <a class="dlg-anchor" href="#r20" title="jump to flat reply #20">¶</a></summary>
+<div class="dlg-text">[Take me back to the Well.]</div>
+</details>
 </div>
 </details>
 </div>
@@ -266,8 +288,8 @@ What shall it be?</div>
 Chosen so far:
 <span class="custom-token" title="SetCustomToken(6502, ...) called in: graf_inc">&lt;CUSTOM6502&gt;<sup class="token-setters">[<a href="../scripts/graf_inc.html">graf_inc</a>]</sup></span>
 
-What shall it be?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Show me what I might choose.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Show me the next look of this kind.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Show me the one before it.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Let me set the name and the words on it.”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“That will do for now.”</span></li></ul></div>
-<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(6500, ...) called in: graf_inc">&lt;CUSTOM6500&gt;<sup class="token-setters">[<a href="../scripts/graf_inc.html">graf_inc</a>]</sup></span>  --  <span class="custom-token" title="SetCustomToken(6501, ...) called in: graf_inc">&lt;CUSTOM6501&gt;<sup class="token-setters">[<a href="../scripts/graf_inc.html">graf_inc</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“[&lt;&lt; Previous page]”</span> <small class="muted">(if <code>graf_has_prev</code>)</small></li><li><a href="#r6">→ reply #6</a> <small class="muted">(if <code>graf_vis_0</code>)</small></li><li><a href="#r7">→ reply #7</a> <small class="muted">(if <code>graf_vis_1</code>)</small></li><li><a href="#r8">→ reply #8</a> <small class="muted">(if <code>graf_vis_2</code>)</small></li><li><a href="#r9">→ reply #9</a> <small class="muted">(if <code>graf_vis_3</code>)</small></li><li><a href="#r10">→ reply #10</a> <small class="muted">(if <code>graf_vis_4</code>)</small></li><li><a href="#r11">→ reply #11</a> <small class="muted">(if <code>graf_vis_5</code>)</small></li><li><a href="#r12">→ reply #12</a> <small class="muted">(if <code>graf_vis_6</code>)</small></li><li><a href="#r13">→ reply #13</a> <small class="muted">(if <code>graf_vis_7</code>)</small></li><li><a href="#r14">→ reply #14</a> <small class="muted">(if <code>graf_vis_8</code>)</small></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“[Next page &gt;&gt;]”</span> <small class="muted">(if <code>graf_has_next</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“[Back a step]”</span> <small class="muted">(if <code>graf_in_app</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“[Enough browsing]”</span></li></ul></div>
+What shall it be?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> <span class="dlg-link-preview">“Show me what I might choose.”</span></li><li><a href="#r1">→ reply #1</a> <span class="dlg-link-preview">“Show me the next look of this kind.”</span></li><li><a href="#r2">→ reply #2</a> <span class="dlg-link-preview">“Show me the one before it.”</span></li><li><a href="#r3">→ reply #3</a> <span class="dlg-link-preview">“Let me set the name and the words on it.”</span></li><li><a href="#r4">→ reply #4</a> <span class="dlg-link-preview">“That will do for now.”</span></li><li><a href="#r20">→ reply #20</a> <span class="dlg-link-preview">“[Take me back to the Well.]”</span></li></ul></div>
+<div class="dlg-node entry" id="e1"><div class="dlg-head"><span class="dlg-id">entry #1</span></div><div class="dlg-text"><span class="custom-token" title="SetCustomToken(6500, ...) called in: graf_inc">&lt;CUSTOM6500&gt;<sup class="token-setters">[<a href="../scripts/graf_inc.html">graf_inc</a>]</sup></span>  --  <span class="custom-token" title="SetCustomToken(6501, ...) called in: graf_inc">&lt;CUSTOM6501&gt;<sup class="token-setters">[<a href="../scripts/graf_inc.html">graf_inc</a>]</sup></span></div><ul class="dlg-links"><li><a href="#r5">→ reply #5</a> <span class="dlg-link-preview">“[&lt;&lt; Previous page]”</span> <small class="muted">(if <code>graf_has_prev</code>)</small></li><li><a href="#r6">→ reply #6</a> <small class="muted">(if <code>graf_vis_0</code>)</small></li><li><a href="#r7">→ reply #7</a> <small class="muted">(if <code>graf_vis_1</code>)</small></li><li><a href="#r8">→ reply #8</a> <small class="muted">(if <code>graf_vis_2</code>)</small></li><li><a href="#r9">→ reply #9</a> <small class="muted">(if <code>graf_vis_3</code>)</small></li><li><a href="#r10">→ reply #10</a> <small class="muted">(if <code>graf_vis_4</code>)</small></li><li><a href="#r11">→ reply #11</a> <small class="muted">(if <code>graf_vis_5</code>)</small></li><li><a href="#r12">→ reply #12</a> <small class="muted">(if <code>graf_vis_6</code>)</small></li><li><a href="#r13">→ reply #13</a> <small class="muted">(if <code>graf_vis_7</code>)</small></li><li><a href="#r14">→ reply #14</a> <small class="muted">(if <code>graf_vis_8</code>)</small></li><li><a href="#r15">→ reply #15</a> <span class="dlg-link-preview">“[Next page &gt;&gt;]”</span> <small class="muted">(if <code>graf_has_next</code>)</small></li><li><a href="#r19">→ reply #19</a> <span class="dlg-link-preview">“[Next look &gt;]”</span> <small class="muted">(if <code>graf_in_cat</code>)</small></li><li><a href="#r18">→ reply #18</a> <span class="dlg-link-preview">“[&lt; Previous look]”</span> <small class="muted">(if <code>graf_in_cat</code>)</small></li><li><a href="#r16">→ reply #16</a> <span class="dlg-link-preview">“[Back a step]”</span> <small class="muted">(if <code>graf_in_app</code>)</small></li><li><a href="#r17">→ reply #17</a> <span class="dlg-link-preview">“[Enough browsing]”</span></li></ul></div>
 <h2>PC replies — flat index</h2>
 <div class="dlg-node reply" id="r0"><div class="dlg-head"><span class="dlg-id">reply #0</span> <span class="dlg-action">→ <code>graf_cats</code></span></div><div class="dlg-text">Show me what I might choose.</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“--”</span></li></ul></div>
 <div class="dlg-node reply" id="r1"><div class="dlg-head"><span class="dlg-id">reply #1</span> <span class="dlg-action">→ <code>graf_step_n</code></span></div><div class="dlg-text">Show me the next look of this kind.</div><ul class="dlg-links"><li><a href="#e0">→ entry #0</a> <span class="dlg-link-preview">“The mason&#x27;s plinth stands ready, and the stone beside it takes any shape you ask…”</span></li></ul></div>
@@ -287,6 +309,9 @@ What shall it be?</div><ul class="dlg-links"><li><a href="#r0">→ reply #0</a> 
 <div class="dlg-node reply" id="r15"><div class="dlg-head"><span class="dlg-id">reply #15</span> <span class="dlg-action">→ <code>graf_page_n</code></span></div><div class="dlg-text">[Next page &gt;&gt;]</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“--”</span></li></ul></div>
 <div class="dlg-node reply" id="r16"><div class="dlg-head"><span class="dlg-id">reply #16</span> <span class="dlg-action">→ <code>graf_up</code></span></div><div class="dlg-text">[Back a step]</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“--”</span></li></ul></div>
 <div class="dlg-node reply" id="r17"><div class="dlg-head"><span class="dlg-id">reply #17</span> <span class="dlg-action">→ <code>graf_sum</code></span></div><div class="dlg-text">[Enough browsing]</div><ul class="dlg-links"><li><a href="#e0">→ entry #0</a> <span class="dlg-link-preview">“The mason&#x27;s plinth stands ready, and the stone beside it takes any shape you ask…”</span></li></ul></div>
+<div class="dlg-node reply" id="r18"><div class="dlg-head"><span class="dlg-id">reply #18</span> <span class="dlg-action">→ <code>graf_step_p</code></span></div><div class="dlg-text">[&lt; Previous look]</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“--”</span></li></ul></div>
+<div class="dlg-node reply" id="r19"><div class="dlg-head"><span class="dlg-id">reply #19</span> <span class="dlg-action">→ <code>graf_step_n</code></span></div><div class="dlg-text">[Next look &gt;]</div><ul class="dlg-links"><li><a href="#e1">→ entry #1</a> <span class="dlg-link-preview">“--”</span></li></ul></div>
+<div class="dlg-node reply" id="r20"><div class="dlg-head"><span class="dlg-id">reply #20</span> <span class="dlg-action">→ <code>graf_exit</code></span></div><div class="dlg-text">[Take me back to the Well.]</div></div>
   </main>
   <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
 </body>
