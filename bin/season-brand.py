@@ -456,16 +456,29 @@ def brand(cfg) -> list[tuple[Path, str, str, list[str]]]:
     # realm's docs/ too (roadmap-editor.publish_to_live_realm): with production
     # current the moment you publish, a per-realm roadmap link only raised the
     # question of which of the two was the real one.
+    # The match is deliberately loose about the SHAPE of the anchor: any other
+    # attributes may sit before, between or after data-brand and href, and the
+    # tag may wrap across lines. It was not always: the pattern used to demand
+    # a literal `<a data-brand="..." href="` and broke the moment the editor's
+    # nav links grew a class= and a line break, which failed the season-brand
+    # gate - and so the whole repack - over pure formatting, with the URLs
+    # themselves perfectly correct. A tag body cannot contain '>', so [^>] is
+    # what spans the newlines here; no DOTALL needed.
     def editor(s, notes):
         def href(src: str, key: str, url: str) -> str:
-            pat = rf'(<a data-brand="{key}" href=")[^"]*(")'
-            out, n = re.subn(pat, lambda m: m.group(1) + url + m.group(2),
-                             src, count=1)
-            if not n:
-                raise BrandError(
-                    f'roadmap-editor.py: no <a data-brand="{key}"> link - '
-                    "season-brand rule is stale")
-            return out
+            brand = rf'\bdata-brand="{key}"'
+            # href after data-brand (the house style), then href before it
+            for pat, grp in (
+                (rf'(<a\b[^>]*?{brand}[^>]*?\bhref=")[^"]*(")', 1),
+                (rf'(<a\b[^>]*?\bhref=")[^"]*("[^>]*?{brand})', 1),
+            ):
+                out, n = re.subn(pat, lambda m: m.group(grp) + url + m.group(grp + 1),
+                                 src, count=1)
+                if n:
+                    return out
+            raise BrandError(
+                f'roadmap-editor.py: no <a data-brand="{key}"> link with an '
+                "href - season-brand rule is stale")
 
         new = href(s,   "live-wiki",     cfg["live_wiki_url"])
         new = href(new, "live-roadmap",  f'{cfg["live_wiki_url"]}manual/Roadmap')
