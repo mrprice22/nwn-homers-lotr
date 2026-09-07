@@ -54,12 +54,17 @@ FIXTURES = [
     ("crossed tags", "<b>bold <i>both</b> italic</i>"),
     ("div inside p", "<p>one<div>two</div></p>"),
     ("real list survives", "<ul><li>keep</li></ul>"),
+    ("bare table row in a div", "<div><tr><td>cell</td></tr></div>"),
+    ("bare cell with no table", "<td>one</td><th>two</th>"),
+    ("unclosed table", "<table><tbody><tr><td>cell"),
+    ("real table survives", "<table><thead><tr><th>h</th></tr></thead>"
+                            "<tbody><tr><td>c</td></tr></tbody></table>"),
 ]
 
 
 class _Nesting(HTMLParser):
     """Strict well-nestedness check: no stray end tag, nothing left open, and
-    no `li` outside a list."""
+    no `li` outside a list or table part outside a table."""
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -71,6 +76,9 @@ class _Nesting(HTMLParser):
             return
         if tag == "li" and not ({"ul", "ol"} & set(self.stack)):
             self.errors.append("<li> outside any <ul>/<ol>")
+        if tag in {"thead", "tbody", "tfoot", "tr", "th", "td", "caption"} \
+                and "table" not in self.stack:
+            self.errors.append(f"<{tag}> outside any <table>")
         self.stack.append(tag)
 
     def handle_endtag(self, tag):

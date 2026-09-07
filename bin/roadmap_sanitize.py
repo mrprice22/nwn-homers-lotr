@@ -25,7 +25,13 @@ from html.parser import HTMLParser
 ALLOWED_TAGS = {
     "a", "b", "strong", "i", "em", "u", "ul", "ol", "li",
     "p", "br", "hr", "div", "span", "font", "img", "blockquote",
-    "code", "pre",
+    "code", "pre", "small",
+    # Tables: a comparison of several items or bosses across the same handful
+    # of columns is a table, and unwrapping one turns it into an unreadable run
+    # of words. They are constrained the same way `li` is (see the class
+    # docstring below): a cell or row outside a table is unwrapped rather than
+    # emitted, so a paste can never inject a stray </tr> into the card layout.
+    "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
 }
 
 # Tags that never have a closing tag / take no children.
@@ -36,6 +42,11 @@ ALLOWED_ATTRS = {
     "a": {"href", "target", "rel"},
     "font": {"color"},
     "img": {"src", "alt", "width", "height"},
+    # Table cells keep only spanning and alignment - no style, no width, so a
+    # pasted table cannot restyle the page around it.
+    "table": {"border", "cellpadding", "cellspacing"},
+    "th": {"colspan", "rowspan", "align"},
+    "td": {"colspan", "rowspan", "align"},
 }
 
 _SAFE_URL_SCHEMES = ("http://", "https://", "mailto:")
@@ -88,8 +99,12 @@ def _clean_attrs(tag: str, attrs: list[tuple[str, str | None]]) -> str:
 
 # Tags that end an open <p> when they start, the way a browser does. Emitting
 # the </p> ourselves keeps our output tree and the browser's identical.
-BLOCK_TAGS = {"div", "p", "ul", "ol", "blockquote", "hr", "pre"}
+BLOCK_TAGS = {"div", "p", "ul", "ol", "blockquote", "hr", "pre", "table"}
 LIST_TAGS = {"ul", "ol"}
+
+# Table parts that are meaningless - and, loose in a card, dangerous - outside a
+# <table>. Enforced exactly like `li` outside a list.
+TABLE_TAGS = {"thead", "tbody", "tfoot", "tr", "th", "td", "caption"}
 
 
 class _Sanitizer(HTMLParser):
@@ -107,7 +122,8 @@ class _Sanitizer(HTMLParser):
     the intended way. Only a browser diverges.
 
     So the parser keeps a stack and enforces three invariants:
-      * a `li` outside any list is unwrapped (its content survives);
+      * a `li` outside any list is unwrapped (its content survives), and so is
+        a `tr`/`td`/`th`/`thead`/`tbody`/`tfoot`/`caption` outside a `table`;
       * an end tag with no matching open tag is dropped, never emitted;
       * anything still open at the end is closed.
     Together those make the output well-nested by construction, which is what
@@ -143,6 +159,8 @@ class _Sanitizer(HTMLParser):
             return  # unwrap: drop the tag, keep its children's text
         if tag == "li" and not (set(self.stack) & LIST_TAGS):
             return  # bare list item: unwrap it rather than break the page
+        if tag in TABLE_TAGS and "table" not in self.stack:
+            return  # bare row/cell: same hazard, same answer
         self._open(tag, attrs)
 
     def handle_startendtag(self, tag, attrs):
@@ -150,6 +168,8 @@ class _Sanitizer(HTMLParser):
         if tag not in ALLOWED_TAGS:
             return
         if tag == "li" and not (set(self.stack) & LIST_TAGS):
+            return
+        if tag in TABLE_TAGS and "table" not in self.stack:
             return
         self.parts.append(f"<{tag}{_clean_attrs(tag, attrs)}>")
 
