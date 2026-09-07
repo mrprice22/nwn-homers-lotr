@@ -35,6 +35,13 @@ void main()
         //Possibly change the GetNPCWarning function to make the check
     } else {
         object oAttacker = GetLastAttacker();
+        // Never retaliate against our own side. A stray hit from an ally used
+        // to flip us onto a friend, and the NW_ATTACK_MY_TARGET shout below
+        // then spread that to the whole faction (roadmap
+        // wtop-court-combat-defects). Treated as "no valid attacker".
+        if (GetIsObjectValid(oAttacker)
+            && (GetFactionEqual(oAttacker, OBJECT_SELF) || GetIsFriend(oAttacker)))
+            oAttacker = OBJECT_INVALID;
         if (!GetIsObjectValid(oAttacker)) {
         }else if (GetTag(oAttacker) == "x2_s_bblade" && Black == TRUE)
         {

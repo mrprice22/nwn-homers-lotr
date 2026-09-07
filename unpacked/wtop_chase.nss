@@ -192,6 +192,28 @@ void WtopChaseSweep(object oArea, string sTag, int bAnyPCs)
     }
 }
 
+// Court empty: clear what the Magi left behind.
+//
+// A Mummy Reaper summoned by wtop_cmage.nss (via x2_s2_mumdust.nss) is timed at
+// five minutes, but nothing else removes it when the party leaves or wipes -- it
+// would be waiting, half-expired, for whoever came in next. The nuke cooldowns
+// go with it so a fresh party is not held off by the last one's timers.
+// roadmap wtop-court-combat-defects.
+void WtopChaseClearSummons(object oArea)
+{
+    int i = 0;
+    object oSum = GetObjectByTag("WtopMummyReaper", i);
+    while (GetIsObjectValid(oSum))
+    {
+        if (GetArea(oSum) == oArea) DestroyObject(oSum);
+        oSum = GetObjectByTag("WtopMummyReaper", ++i);
+    }
+
+    DeleteLocalInt(oArea, "WTOP_CD_RUIN");
+    DeleteLocalInt(oArea, "WTOP_CD_DISJ");
+    DeleteLocalInt(oArea, "WTOP_CD_DUST");
+}
+
 void main()
 {
     object oArea = OBJECT_SELF;
@@ -208,6 +230,7 @@ void main()
     {
         // Court empty: everyone has been sent back to their post and the loop
         // stands down. wtop_c_enter.nss re-arms it on the next player entry.
+        WtopChaseClearSummons(oArea);
         DeleteLocalInt(oArea, WTOP_CH_LOOP);
         return;
     }

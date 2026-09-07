@@ -166,6 +166,14 @@ else
   rc=1
 fi
 
+echo "[smoke-test] running: AI same-faction guards…"
+if python3 "$HERE/check_ai_faction_guards.py"; then
+  echo "ok: AI same-faction guards"
+else
+  echo "fail: AI same-faction guards"
+  rc=1
+fi
+
 echo "[smoke-test] running: spell-duration doubler…"
 if python3 "$HERE/check_effect_doubler.py"; then
   echo "ok: spell-duration doubler"

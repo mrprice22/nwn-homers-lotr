@@ -62,13 +62,38 @@ object WtopPartner(string sResRef)
     return OBJECT_INVALID;
 }
 
+// Remove every effect carrying sTag.
+//
+// Counted first, then removed one restart at a time. RemoveEffect() inside a
+// GetFirstEffect/GetNextEffect loop skips the entry after each removal, so a
+// partial strip could leave a residual grief link behind -- and the next state
+// flip then applied a SECOND permanent +20 AC on top of it, which no debuff can
+// see past (roadmap wtop-court-combat-defects). At most two of these are ever
+// held at once, so the restart is free.
 void WtopStrip(object oCre, string sTag)
 {
+    int nFound = 0;
     effect e = GetFirstEffect(oCre);
     while (GetIsEffectValid(e))
     {
-        if (GetEffectTag(e) == sTag) RemoveEffect(oCre, e);
+        if (GetEffectTag(e) == sTag) nFound++;
         e = GetNextEffect(oCre);
+    }
+
+    // One clean walk per tagged effect: restart, remove the first match, stop.
+    int i;
+    for (i = 0; i < nFound; i++)
+    {
+        e = GetFirstEffect(oCre);
+        while (GetIsEffectValid(e))
+        {
+            if (GetEffectTag(e) == sTag)
+            {
+                RemoveEffect(oCre, e);
+                break;
+            }
+            e = GetNextEffect(oCre);
+        }
     }
 }
 
@@ -84,7 +109,11 @@ void WtopApplyBond(object oCre)
 void WtopApplyGrief(object oCre)
 {
     effect eLink = EffectLinkEffects(
-        EffectLinkEffects(EffectACIncrease(20),
+        // NATURAL, not the default dodge bucket: ruleset.2da caps dodge at
+        // MAX_AC_DODGE_MOD 20, so a bare EffectACIncrease(20) both wasted most
+        // of itself and filled the ceiling a Curse Song penalty needs to reach
+        // (roadmap wtop-court-combat-defects).
+        EffectLinkEffects(EffectACIncrease(20, AC_NATURAL_BONUS),
                           EffectMovementSpeedIncrease(50)),
         EffectDamageShield(50, DAMAGE_BONUS_2d12, DAMAGE_TYPE_NEGATIVE));
     eLink = TagEffect(SupernaturalEffect(eLink), TAG_GRIEF);
@@ -128,7 +157,20 @@ void main()
             SetLocalInt(OBJECT_SELF, WTOP_HEAL_CD, TRUE);
             DelayCommand(WTOP_HEAL_GAP,
                          SetLocalInt(OBJECT_SELF, WTOP_HEAL_CD, FALSE));
-            ActionCastSpellAtObject(SPELL_HEAL, oPartner, METAMAGIC_ANY, TRUE);
+            // Applied directly, NOT cast. Both royals are Race 24 (Undead) and
+            // stock nw_s0_heal treats an undead target as an attack, gated on
+            // !GetIsReactionTypeFriendly() -- so an ally-cast Heal on the King
+            // resolved to nothing at all and the Queen has never once picked
+            // him up (roadmap wtop-court-combat-defects). EffectHeal has no
+            // such rule.
+            int nMend = GetMaxHitPoints(oPartner) / 4;
+            ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectHeal(nMend),
+                                oPartner);
+            ApplyEffectToObject(DURATION_TYPE_INSTANT,
+                                EffectVisualEffect(VFX_IMP_HEALING_X), oPartner);
+            SpeakString(GetResRef(OBJECT_SELF) == RR_QUEEN
+                        ? "Rise, my King. They are not done with us yet."
+                        : "Rise.", TALKVOLUME_TALK);
         }
         return;
     }

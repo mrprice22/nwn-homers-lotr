@@ -63,19 +63,13 @@ void main()
         }
         else if (nMatch == 5)
         {
+            // Only the shouter's own hostile actor. The old fallbacks called
+            // GetAttemptedAttackTarget()/GetAttemptedSpellTarget(), which take
+            // no object argument and therefore resolved against OBJECT_SELF --
+            // the creature LISTENING to the shout -- so a responder fed its own
+            // current target in as the "intruder" (roadmap
+            // wtop-court-combat-defects). No target is better than the wrong one.
             oIntruder = GetLastHostileActor(oShouter);
-            if(!GetIsObjectValid(oIntruder))
-            {
-                oIntruder = GetAttemptedAttackTarget();
-                if(!GetIsObjectValid(oIntruder))
-                {
-                    oIntruder = GetAttemptedSpellTarget();
-                    if(!GetIsObjectValid(oIntruder))
-                    {
-                        oIntruder = OBJECT_INVALID;
-                    }
-                }
-            }
         }
 
         // Actually respond to the shout

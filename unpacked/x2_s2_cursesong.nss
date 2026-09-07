@@ -353,7 +353,14 @@ void main()
     }
     if(nAC > 0)
     {
-        eAC = EffectACDecrease(nAC, AC_DODGE_BONUS);
+        // DEFLECTION, not DODGE. ruleset.2da caps the dodge bucket at
+        // MAX_AC_DODGE_MOD 20, and a boss with its own dodge stack (Dodge,
+        // Defensive Stance, haste) sits at or over that ceiling already, so the
+        // penalty was silently absorbed and Curse Song looked like it applied
+        // everything except AC (reported by -Methonash- on the Weathertop King
+        // and Queen; roadmap wtop-court-combat-defects). shape_merge_inc.nss
+        // sidesteps the same cap for the same reason.
+        eAC = EffectACDecrease(nAC, AC_DEFLECTION_BONUS);
         eLink = EffectLinkEffects(eLink, eAC);
     }
     if(nSkill > 0)

@@ -264,7 +264,11 @@ void LegFeatAtk_OnAttack(struct NWNX_Damage_AttackEventData data)
             int nGen = GetLocalInt(oTarget, LEGFEAT_SUNDER_GEN) + 1;
             SetLocalInt(oTarget, LEGFEAT_SUNDER_GEN, nGen);
 
-            effect eAC = TagEffect(EffectACDecrease(nAmt, AC_DODGE_BONUS),
+            // DEFLECTION, not DODGE: the dodge bucket is capped at
+            // MAX_AC_DODGE_MOD 20, so on a target with its own dodge stack this
+            // penalty was absorbed, and it also collided with Curse Song's
+            // (roadmap wtop-court-combat-defects).
+            effect eAC = TagEffect(EffectACDecrease(nAmt, AC_DEFLECTION_BONUS),
                                    LEGFEAT_SUNDER_TAG);
             ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eAC, oTarget,
                                 LEGFEAT_SUNDER_DUR);
