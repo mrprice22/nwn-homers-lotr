@@ -78,6 +78,55 @@
 
 #include &quot;x2_inc_spellhook&quot;
 #include &quot;epic_summon_inc&quot;
+
+// ---------------------------------------------------------------------------
+// Hostile casters get their own reaper, not the player&#x27;s.
+//
+// The player half of this spell hands the summon to the HENCHMAN slot, and
+// mummyreaper.utc is FactionID 2 (Commoner) precisely so that works. An NPC
+// casting the same spell would therefore drop a non-hostile mummy that fights
+// nobody -- and, with the default AI&#x27;s damage retargeting, one its own side can
+// end up shooting at. So a non-PC caster creates wtop_mreaper (the same
+// creature at FactionID 1) as a plain timed hostile instead.
+//
+// roadmap wtop-court-combat-defects.
+// ---------------------------------------------------------------------------
+const string MDUST_NPC_RESREF = &quot;wtop_mreaper&quot;;
+const string MDUST_NPC_TAG    = &quot;WtopMummyReaper&quot;;
+const int    MDUST_NPC_MAX    = 2;      // live reapers per area, all casters
+const float  MDUST_NPC_LIFE   = 300.0;  // five minutes, then it crumbles
+
+void MDustSummonHostile(object oCaster, location lLoc)
+{
+    object oArea = GetAreaFromLocation(lLoc);
+
+    // Court-wide cap: several Magi share one pool, so a whole block of them
+    // cannot bury a party in mummies.
+    int nLive = 0;
+    int i = 0;
+    object oOld = GetObjectByTag(MDUST_NPC_TAG, i);
+    while (GetIsObjectValid(oOld))
+    {
+        if (GetArea(oOld) == oArea &amp;&amp; !GetIsDead(oOld)) nLive++;
+        oOld = GetObjectByTag(MDUST_NPC_TAG, ++i);
+    }
+    if (nLive &gt;= MDUST_NPC_MAX) return;
+
+    object oNew = CreateObject(OBJECT_TYPE_CREATURE, MDUST_NPC_RESREF, lLoc);
+    if (!GetIsObjectValid(oNew)) return;
+
+    // Pin its post the way wtop_court.nss does, so leash_to_area sends it back
+    // here rather than to wherever the fight drifted.
+    SetLocalLocation(oNew, &quot;spawn&quot;, lLoc);
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_FNF_SUMMON_UNDEAD), oNew);
+
+    // Timed on the creature&#x27;s own queue, so it dies with the creature if the
+    // party kills it first.
+    AssignCommand(oNew, DelayCommand(MDUST_NPC_LIFE, DestroyObject(oNew)));
+}
+
 void main()
 {
     /*
@@ -93,6 +142,14 @@ void main()
         // If code within the PreSpellCastHook (i.e. UMD) reports FALSE, do not run this spell
             return;
         }
+
+    // An NPC caster (the Weathertop Royal Magus) gets a hostile reaper on its
+    // own terms; the player path below is untouched.
+    if (!GetIsPC(OBJECT_SELF))
+    {
+        MDustSummonHostile(OBJECT_SELF, GetSpellTargetLocation());
+        return;
+    }
 
     // Epic summon: spawn the mummy reaper as a timed henchman so it can be out
     // alongside a normal summon-animal. See epic_summon_inc.nss.

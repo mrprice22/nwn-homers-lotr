@@ -967,7 +967,23 @@ void RespondToShout(object oShouter, int nShoutIndex, object oIntruder = OBJECT_
 
         case 5: //ATTACK MY TARGET
             {
-                AdjustReputation(oIntruder, OBJECT_SELF, -100);
+                // Never answer this shout by turning on our own side. Between
+                // two NPCs AdjustReputation is a FACTION-to-faction edit, so one
+                // call naming an ally dropped Hostile-&gt;Hostile to 0 and set every
+                // hostile creature in the module against every other one for the
+                // rest of the server session (roadmap wtop-court-combat-defects).
+                if(!GetIsObjectValid(oIntruder)
+                   || GetFactionEqual(oIntruder, OBJECT_SELF)
+                   || GetIsFriend(oIntruder))
+                {
+                    break;
+                }
+                // Personal reputation against a PC is what this case is for; a
+                // faction-level edit aimed at an NPC never is.
+                if(GetIsPC(oIntruder))
+                {
+                    AdjustReputation(oIntruder, OBJECT_SELF, -100);
+                }
                 if(GetIsFriend(oShouter))
                 {
                     SetIsTemporaryEnemy(oIntruder);

@@ -154,6 +154,7 @@ int    LegFeat_IsPolymorphed(object oPC);
 string LegFeat_ClassSig(object oPC);
 int    LegFeat_Allotment(object oPC);
 int    LegFeat_Remaining(object oPC);
+int    LegFeat_AdoptHeldFeats(object oPC);
 int    LegFeat_EnsureAllotment(object oPC);
 int    LegFeat_IndexOf(int nFeatId);
 int    LegFeat_IsMeleeArmed(object oPC);
@@ -517,6 +518,41 @@ void LegFeat_RevokeAll(object oPC, string sReason)
         + IntToString(nTaken) + &quot; taken back): &quot; + sReason);
 }
 
+// Record any legendary feat the character already HOLDS but that this realm has
+// no pick record for, and return how many were adopted.
+//
+// Why this exists: the feat lives in the .bic, the pick record lives in a
+// PER-REALM campaign DB, and bin/sync-vault-from-prod copies .bic files from
+// the live season into the dev realm without the campaign DBs. A character
+// arriving that way holds feats legfeatdb has never heard of, so
+// LegFeat_EnsureAllotment took its &quot;first grant at 60&quot; branch and offered a
+// full allotment on top of what the character already had - a 4-class
+// character with its one feat was handed a second (reported by Rajmund, dev
+// realm, 2026-09-06). Worse, an unrecorded feat is invisible to EVERY removal
+// path: LegFeat_RevokeAll iterates pick records, so respec, the class-change
+// revoke and the level-drop revoke all silently skip it, stranding a RAW
+// feat&#x27;s +6 base score with nothing recording that it was granted.
+//
+// RECORD ONLY - apply nothing. A RAW feat&#x27;s bonus is already in the .bic base
+// scores (applied once, never at login), and EFFECT/HOOK feats are rebuilt
+// from the pick records by LegFeat_ApplyAll/LegFeat_ArmHooks at the next
+// login, which is exactly what adopting them enables. Applying here would add
+// a second +6 on top of the one already in the character file.
+int LegFeat_AdoptHeldFeats(object oPC)
+{
+    int nAdopted = 0;
+    int i;
+    for (i = 0; i &lt; LEGFEAT_COUNT; i++)
+    {
+        int nFeatId = LegFeat_IdAt(i);
+        if (!GetHasFeat(nFeatId, oPC))   continue;
+        if (LegFeat_HasPick(oPC, nFeatId)) continue;
+        LegFeat_RecordPick(oPC, nFeatId);
+        nAdopted++;
+    }
+    return nAdopted;
+}
+
 // Re-derive the allotment, revoking if the character no longer qualifies for
 // what it holds. Returns the number of picks now outstanding.
 //
@@ -530,6 +566,14 @@ int LegFeat_EnsureAllotment(object oPC)
     // Energy drain: make no decision at all. Whatever the right answer is, it
     // will still be the right answer at the next login or level event.
     if (LegFeat_HasNegativeLevels(oPC)) return LegFeat_Remaining(oPC);
+
+    // BEFORE any decision below, so every branch sees the character&#x27;s real
+    // holdings rather than only what this realm&#x27;s DB happens to remember.
+    // The below-60 branch then revokes an imported feat instead of ignoring
+    // it, the first-grant branch subtracts it from the allotment instead of
+    // granting on top of it, and the class-change branch can actually take
+    // it back. Placement is the whole correctness argument here.
+    LegFeat_AdoptHeldFeats(oPC);
 
     if (LegFeat_TrueLevel(oPC) &lt; LEGFEAT_LEVEL)
     {

@@ -62,34 +62,69 @@
     </nav>
   </header>
   <main>
-<h1>Script: <code>wtop_cmage</code></h1><pre class="nss-source"><code>// Weathertop Royal Magus -- Greater Ruin (roadmap: forbidden-realms-key-tier)
+<h1>Script: <code>wtop_cmage</code></h1><pre class="nss-source"><code>// Weathertop Royal Magus -- the court&#x27;s heavy artillery
+//:: (roadmap: forbidden-realms-key-tier, wtop-court-combat-defects)
 //
-// ScriptEndRound on wtop_crtmage. Chains the module default first so the
-// Jasperre combat AI is untouched, then throws Greater Ruin (SPELL_EPIC_RUIN,
-// spells.2da row 640 -- the epic spell whose own VFX constant is
-// VFX_FNF_GREATER_RUIN) at the nearest enemy player, once per minute.
+// ScriptEndRound on wtop_crtmage. Chains the module default first so the stock
+// BioWare combat AI is untouched (x2_def_endcombat -&gt; nw_i0_generic; NOT the
+// Jasperre AI, which no Weathertop blueprint uses), then throws ONE of three
+// heavy spells at the nearest enemy player.
 //
-// Cast with bCheat = TRUE, so the Magus needs neither FEAT_EPIC_SPELL_RUIN nor
-// a prepared slot. That is deliberate: a spell SLOT empties for the rest of the
-// fight, and epic spell uses only come back on a rest, so a slot-based Ruin
-// would fire once ever and then never again however long the fight ran. The
-// admin asked for one that refreshes every minute, and a scripted cooldown is
-// the only thing that actually refreshes.
+// The Magus&#x27;s ordinary book -- the level 8 and 9 list -- lives in its
+// SpecAbilityList and is chosen by that AI. Only the three below are scripted,
+// and they are scripted for one reason: an AI-chosen talent cannot be
+// rate-limited, and these three must be.
 //
-// The cooldown is REAL seconds (a local flag cleared by DelayCommand), not the
+//   SPELL_EPIC_RUIN                  up to 10,000 damage, single target
+//   SPELL_MORDENKAINENS_DISJUNCTION  strips the party&#x27;s buffs wholesale
+//   SPELL_EPIC_MUMMY_DUST            a hostile Mummy Reaper (see below)
+//
+// COOLDOWNS ARE COURT-WIDE, NOT PER MAGUS. The Hidden Court fields several
+// Magi; on a per-creature timer a party walking into the middle level ate every
+// one of these at once, which is not difficulty, it is a coin flip. The flag
+// therefore lives on the AREA -- the same area-scoped-state pattern
+// forge_inc.nss uses -- so at most one Ruin, one Disjunction and one Mummy Dust
+// land in the court per minute however many Magi are standing. Each Magus still
+// acts every round; it just casts from its own book when the big three are hot.
+//
+// Cast with bCheat = TRUE. The Magus does hold the matching epic feats (874
+// Mummy Dust, 876 Hellball, 878 Ruin), but a spell SLOT empties for the rest of
+// the fight and epic uses only come back on a rest, so a slot-based cast would
+// fire once ever however long the fight ran. A scripted cooldown is the only
+// thing that actually refreshes.
+//
+// The cooldown is REAL seconds (an area local cleared by DelayCommand), not the
 // game-clock arithmetic wtop_taunt.nss uses for its shout spacing -- game hours
 // run far faster than real ones, and &quot;once per minute&quot; here means a minute.
-// A DelayCommand on a creature is dropped when that creature is destroyed, so a
-// Magus that dies and respawns comes back with Ruin ready, which is correct.
+// A DelayCommand assigned to the AREA survives the caster&#x27;s death, which is
+// what makes the cooldown the court&#x27;s rather than the creature&#x27;s.
+//
+// Mummy Dust: x2_s2_mumdust.nss branches on GetIsPC, so an NPC cast creates
+// wtop_mreaper (FactionID 1) rather than the player&#x27;s Commoner-faction
+// henchman, capped at 2 live in the area.
 
-const string WTOP_RUIN_CD = &quot;WTOP_RUIN_CD&quot;;
-const float  WTOP_RUIN_REFRESH = 60.0;
+const float WTOP_MAGE_REFRESH = 60.0;
+
+const string WTOP_CD_RUIN  = &quot;WTOP_CD_RUIN&quot;;
+const string WTOP_CD_DISJ  = &quot;WTOP_CD_DISJ&quot;;
+const string WTOP_CD_DUST  = &quot;WTOP_CD_DUST&quot;;
+
+// TRUE if this court has the spell available, and claims it if so.
+int WtopMageClaim(object oArea, string sFlag)
+{
+    if (GetLocalInt(oArea, sFlag)) return FALSE;
+
+    SetLocalInt(oArea, sFlag, TRUE);
+    AssignCommand(oArea,
+        DelayCommand(WTOP_MAGE_REFRESH, DeleteLocalInt(oArea, sFlag)));
+    return TRUE;
+}
 
 void main()
 {
     ExecuteScript(&quot;x2_def_endcombat&quot;, OBJECT_SELF);
 
-    if (GetLocalInt(OBJECT_SELF, WTOP_RUIN_CD)) return;
+    object oArea = GetArea(OBJECT_SELF);
 
     object oTarget = GetNearestCreature(CREATURE_TYPE_REPUTATION,
                                         REPUTATION_TYPE_ENEMY, OBJECT_SELF, 1,
@@ -98,11 +133,26 @@ void main()
     if (!GetIsObjectValid(oTarget)) return;
     if (GetIsDead(oTarget)) return;
 
-    SetLocalInt(OBJECT_SELF, WTOP_RUIN_CD, TRUE);
-    DelayCommand(WTOP_RUIN_REFRESH,
-                 SetLocalInt(OBJECT_SELF, WTOP_RUIN_CD, FALSE));
+    // Order is deliberate: strip the party first when the chance comes up, then
+    // hit them, then add bodies. Only one is cast per round.
+    if (WtopMageClaim(oArea, WTOP_CD_DISJ))
+    {
+        ActionCastSpellAtObject(SPELL_MORDENKAINENS_DISJUNCTION, oTarget,
+                                METAMAGIC_ANY, TRUE);
+        return;
+    }
 
-    ActionCastSpellAtObject(SPELL_EPIC_RUIN, oTarget, METAMAGIC_ANY, TRUE);
+    if (WtopMageClaim(oArea, WTOP_CD_RUIN))
+    {
+        ActionCastSpellAtObject(SPELL_EPIC_RUIN, oTarget, METAMAGIC_ANY, TRUE);
+        return;
+    }
+
+    if (WtopMageClaim(oArea, WTOP_CD_DUST))
+    {
+        ActionCastSpellAtLocation(SPELL_EPIC_MUMMY_DUST, GetLocation(oTarget),
+                                  METAMAGIC_ANY, TRUE);
+    }
 }
 </code></pre>
   </main>

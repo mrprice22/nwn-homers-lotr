@@ -670,6 +670,21 @@ void FAT_OnOverrideSpellCast()
     if (nSpell != SPELL_HEAL &amp;&amp; nSpell != SPELL_MASS_HEAL
         &amp;&amp; nSpell != SPELL_GREATER_RESTORATION) return;
 
+    // Soul fatigue bills a player for THEIR OWN healing. A hostile NPC&#x27;s heal
+    // must never put a stack on the player it is aimed at.
+    //
+    // This is defence in depth rather than a live bug: x2_inc_spellhook.nss
+    // returns early for every non-PC caster, so an NPC cast does not reach the
+    // override spellscript at all today. It reaches it the moment a DM possesses
+    // the caster (the spellhook lets GetIsDMPossessed through by design) or an
+    // area is given the X2_L_WILD_MAGIC local -- and the single-target branch
+    // below has no caster-side test of its own, so a possessed Weathertop Queen
+    // aiming Greater Restoration at a player would bill that player
+    // (roadmap wtop-court-combat-defects). An associate&#x27;s heal still counts:
+    // the credit belongs to its master.
+    object oCaster = OBJECT_SELF;
+    if (!GetIsPC(oCaster) &amp;&amp; !GetIsPC(GetMaster(oCaster))) return;
+
     // The caster&#x27;s (or potion/item user&#x27;s) total Heal skill - read once, here,
     // so it survives the caster dying or logging out before impact.
     int nHeal = GetSkillRank(SKILL_HEAL, OBJECT_SELF);

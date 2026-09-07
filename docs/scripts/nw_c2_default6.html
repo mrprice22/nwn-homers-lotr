@@ -92,6 +92,14 @@ void main()
         // don&#x27;t do anything?
     } else {
         object oDamager = GetLastDamager();
+        // Same-faction damage never retargets us. The switch test below fires on
+        // (GetHitDice(oDamager) - 2) &gt; GetHitDice(oTarget), which is always true
+        // for a high-CR ally against a player target, so one point of splash
+        // damage used to turn a garrison on itself (roadmap
+        // wtop-court-combat-defects). Treated as &quot;no valid damager&quot;.
+        if (GetIsObjectValid(oDamager)
+            &amp;&amp; (GetFactionEqual(oDamager, OBJECT_SELF) || GetIsFriend(oDamager)))
+            oDamager = OBJECT_INVALID;
         if (!GetIsObjectValid(oDamager)) {
         }else if (GetTag(oDamager) == &quot;x2_s_bblade&quot; &amp;&amp; Black == TRUE){
 
