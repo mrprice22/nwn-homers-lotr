@@ -3821,7 +3821,16 @@ document.getElementById('f').addEventListener('submit', async (e) => {
   } catch (err) {
     res = {ok:false, message:'Could not reach the server. Is it running?'};
   }
-  if (res.ok){ location.href = '/'; return; }
+  // Carry the fragment through the login round-trip. A signed-out deep link
+  // arrives here as `/login#idea-<id>` (the browser keeps the fragment across
+  // the 302 from `/`), and sending the admin to a bare `/` would drop the very
+  // thing they clicked. Only `#`-routes are echoed, so this can never redirect
+  // off-site.
+  if (res.ok){
+    const h = String(location.hash || '');
+    location.href = '/' + (/^#[A-Za-z0-9_:-]+$/.test(h) ? h : '');
+    return;
+  }
   go.disabled = false; go.textContent = 'Sign in';
   document.getElementById('p').value = '';
   document.getElementById('p').focus();
@@ -3995,6 +4004,16 @@ PAGE = r"""<!doctype html>
                border:1px solid #6b5e2c; }
   .hint { color:var(--warn); font-size:12px; margin-top:3px; min-height:14px; }
   .small { color:var(--mut); font-size:12px; }
+
+  /* The dead-link page for `#idea-<id>` with no such id. Deep links get pasted
+     into chat and go stale when an item is renamed, so this is a page an admin
+     actually sees — it says which id failed and where to look instead. */
+  .notfound { max-width:640px; margin:48px auto; padding:20px 24px;
+              border:1px solid var(--line); border-radius:8px;
+              background:var(--panel, #1b1b1f); }
+  .notfound h2 { margin:0 0 10px; font-size:18px; color:var(--err); }
+  .notfound p { margin:8px 0; line-height:1.5; }
+  .notfound code { background:#00000033; padding:1px 4px; border-radius:3px; }
 
   /* Admin hand-off panel (design_questions / manual_steps) — internal only. */
   .ho-panel { border:1px solid var(--line); border-radius:6px; padding:10px;
@@ -4495,6 +4514,11 @@ PAGE = r"""<!doctype html>
 <div class="modal-bg" id="modal"><div class="modal" id="modalbox"></div></div>
 <script>
 let DATA = {ideas:[], vocab:{groups:[],players:[],statuses:[],ids:[]}, me:{caps:[]}};
+// False until /api/data has landed. Deep links are the reason it exists: boot
+// opens `#idea-<id>` BEFORE load() resolves, so at that moment every id looks
+// missing. Without this flag a pasted link painted "no idea with that id" on a
+// perfectly good idea and never corrected itself.
+let DATA_READY = false;
 
 // ---- Access control -------------------------------------------------------
 // The server enforces all of this independently; hiding a control here is so
@@ -4721,6 +4745,7 @@ function groupTitle(id){
 
 async function load(){
   const r = await api('/api/data'); DATA = await r.json();
+  DATA_READY = true;
   baseVersion = DATA.version || null;
   // Opaque per-idea fingerprints from the server. We never compute these — we
   // hold them and hand them back on save so the server can tell *which* items
@@ -4737,8 +4762,12 @@ async function load(){
   // panels nobody is looking at, mark them and let activate() redraw the one
   // the admin actually returns to.
   TABS.forEach(t=>{ if (t.kind === 'panel') t.stale = true; });
+  // An idea tab that could not resolve its id yet (a deep link opened before
+  // this response arrived) is the one idea tab that must be redrawn: it is
+  // holding a placeholder, not a form, so there are no unsaved edits to lose.
+  TABS.forEach(t=>{ if (t.kind === 'idea' && t.unresolved) t.stale = true; });
   const at = activeTab();
-  if (at && at.kind === 'panel'){ renderTab(at); }
+  if (at && (at.kind === 'panel' || (at.kind === 'idea' && at.stale))){ renderTab(at); }
   refreshPending();
 }
 
@@ -4907,7 +4936,7 @@ function openTab(key){
     fixed: !isIdea && !!def.fixed,
     pane: document.createElement('div'),
     scroll: 0, stale: false,
-    sel: -1, selRef: null, formSnapshot: null,
+    sel: -1, selRef: null, formSnapshot: null, unresolved: false,
   };
   t.pane.className = 'pane';
   TABS.push(t);
@@ -4926,11 +4955,23 @@ function renderTab(t){
     const i = t.obj ? DATA.ideas.indexOf(t.obj)
                     : DATA.ideas.findIndex(x=>x.id===t.ref);
     if (i < 0){
-      t.pane.innerHTML = `<p class="hint">No idea with id
-        <code>${esc(t.ref)}</code> is in roadmap.yaml — it may have been renamed
-        or deleted.</p>`;
+      // Two very different situations, and telling them apart is the whole
+      // point: before /api/data lands EVERY id is "missing", so a deep link
+      // must wait rather than accuse. load() flips DATA_READY and re-renders.
+      t.unresolved = true;
+      t.pane.innerHTML = DATA_READY
+        ? `<div class="notfound"><h2>No such idea</h2>
+             <p>Nothing in <code>roadmap.yaml</code> has the id
+             <code>${esc(t.ref)}</code>. It may have been renamed, merged into
+             another item as a duplicate, or deleted.</p>
+             <p class="hint">Check the id in the link — it is the part after
+             <code>#idea-</code> — or find the item from the
+             <a href="#list">List</a> or the <a href="#board">Board</a>.</p>
+           </div>`
+        : `<p class="hint">Loading <code>${esc(t.ref)}</code>…</p>`;
       return;
     }
+    t.unresolved = false;
     select(i);
     return;
   }
@@ -4973,7 +5014,9 @@ function activate(key, opts){
   // whenever you last looked at it, and — the reason it is not optional — the
   // openers bind their own controls with $(), which only sees the ATTACHED
   // pane. A panel rendered while detached would come back with dead buttons.
-  if (!opts.skipRender && t.kind === 'panel') renderTab(t);
+  // ...and so does an idea tab still holding an unresolved-id placeholder.
+  if (!opts.skipRender && (t.kind === 'panel'
+      || (t.kind === 'idea' && t.stale))) renderTab(t);
   recordVisit(t);
 }
 
@@ -8465,9 +8508,16 @@ if (window.__ME) { DATA.me = window.__ME; applyCapabilities(); }
 // instead of, as it did until now, silently on the board.
 loadFilters();
 loadNav();
+// READ THE FRAGMENT FIRST. activate() keeps the URL in step with the front tab
+// via history.replaceState(), so opening List and then Board rewrites the bar
+// to `#board` — and reading location.hash after that returns the tab we just
+// opened, never the `#idea-<id>` the admin actually pasted. That is why a deep
+// link in a fresh tab landed on the board and only worked on a SECOND attempt:
+// re-typing the same URL into an already-loaded page is a hashchange, and the
+// hashchange listener was the only code that ever saw the real fragment.
+const bootKey = routeToKey(location.hash);
 openTab('list');
 openTab('board');
-const bootKey = routeToKey(location.hash);
 if (bootKey !== 'board') openTab(bootKey);
 load().then(fetchHistory);
 </script>
