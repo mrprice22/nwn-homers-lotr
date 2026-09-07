@@ -1108,6 +1108,64 @@ The tool iterates the generated feat table, so it keeps working unchanged as the
 feat pool grows. It is `unpacked/legfeat_reset.nss` →
 `LegFeat_ResetCharacter()` in `legfeat_inc.nss`.
 
+### Auditing the vaults for feats with no pick record
+
+```sh
+bin/audit-legendary-feats.py              # every realm found beside this repo
+bin/audit-legendary-feats.py --realm dev  # by SEASON_ROLE, repeatable
+```
+
+A legendary feat lives in **two places, and only one of them travels**: the feat
+(and, for a RAW feat, its +6 base ability score) is written into the character's
+`.bic`, while the pick record lives in `legfeatdb` — a campaign DB, and therefore
+**per realm**. `bin/sync-vault-from-prod` copies `.bic` files one way, live
+season → dev, and deliberately leaves campaign DBs behind. A character that
+crosses realms therefore arrives holding feats the receiving realm has never
+heard of.
+
+That desync used to be exploitable and always confusing.
+`LegFeat_EnsureAllotment` saw no allotment row, took its *"first grant at 60"*
+branch and offered a full allotment to a character that had already spent it —
+a four-class character entitled to one legendary feat was handed a second
+(roadmap `legfeat-double-grant-cross-realm`, reported by Rajmund on the dev
+realm). The quieter half was worse: `LegFeat_RevokeAll` iterates pick
+**records**, so an unrecorded feat is invisible to the re-pick, to the
+class-change revoke and to the level-drop revoke, stranding a RAW feat's +6 with
+nothing recording that it was ever granted.
+
+`LegFeat_AdoptHeldFeats` closes it in game — called at the **top** of
+`LegFeat_EnsureAllotment`, before the level test, so *every* branch below sees
+what the character actually holds. It **records only and applies nothing**: a
+RAW bonus is already in the `.bic` base scores (applied once, never at login),
+and EFFECT/HOOK feats are rebuilt from the pick records at the next login, which
+is exactly what adopting them enables — applying here would add a second +6.
+`tests/check_legendary_feats.py` asserts both the ordering and the
+records-only rule, because the ordering *is* the correctness argument.
+
+This script is the outside-the-game view of the same question, and the
+before/after check on that fix. It parses every `.bic` with `nwn_gff`, joins it
+to that realm's `legfeatdb`, and reads the feat id block out of
+`unpacked/legfeat_ids_inc.nss` rather than hardcoding it, so it keeps covering
+feats added later. Verdicts, worst first:
+
+| verdict | meaning |
+|---|---|
+| `OVER` | holds **more** legendary feats than its class makeup allows — needs a re-pick to clear |
+| `UNRECORDED` | holds a feat with no pick record here; not over allotment yet, but unrevokable by any in-game path |
+| `STALE` | a record for a feat the character no longer holds (a level drop). Harmless; self-heals at the next login |
+| `MISMATCH` | same count held and recorded, different feats |
+
+It exits **1** on any `OVER` or `UNRECORDED`, so it can be run as a check;
+`STALE` alone does not fail it. It opens each DB **read-only** — safe to run
+against a realm with players on it. A realm with no `legfeatdb` at all (the
+season 1 archive, which predates the feature) is reported as a warning, not a
+failure.
+
+**Adoption is silent by design.** An affected character is fixed the next time
+it logs in, with no message and no change to its sheet — so re-run this after
+the affected characters have each logged in once, rather than expecting a
+report in game.
+
 ### Wiping the database instead
 
 To clear every character's picks at once (test server only — this is not a

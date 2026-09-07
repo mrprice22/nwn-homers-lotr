@@ -599,6 +599,82 @@ def check_wiring(problems):
                 "— a re-pick that hands back the feat but keeps the base ability "
                 "points is a stat farm, repeatable as often as the player likes")
 
+    # 6. Cross-realm adoption. A legendary feat lives in the .bic; its pick
+    #    record lives in a PER-REALM campaign DB, and bin/sync-vault-from-prod
+    #    copies .bic files from the live season into dev without the DBs. Unless
+    #    LegFeat_EnsureAllotment adopts what the character already holds BEFORE
+    #    it decides anything, the "first grant at 60" branch hands a full
+    #    allotment to a character that already spent it (reported by Rajmund on
+    #    the dev realm, 2026-09-06: a 4-class character with one feat was
+    #    offered a second), and LegFeat_RevokeAll - which iterates pick records -
+    #    can never take an imported feat back.
+    if LEGFEAT_INC.exists():
+        inc = strip_line_comments(LEGFEAT_INC.read_text(encoding="latin-1"))
+
+        def inc_body(signature):
+            """The DEFINITION's body. The forward declaration ends in `);`, so
+            anchoring on the brace is what keeps this from matching it and
+            silently reporting an empty body as a pass."""
+            match = re.search(
+                rf"^{re.escape(signature)}\n\{{\n(.*?)\n\}}", inc, re.S | re.M)
+            return match.group(1) if match else ""
+
+        adopt = inc_body("int LegFeat_AdoptHeldFeats(object oPC)")
+        if not adopt:
+            problems.append(
+                "legfeat_inc.nss has no LegFeat_AdoptHeldFeats definition — a "
+                "character whose .bic came from another realm holds legendary "
+                "feats this realm has no pick record for, and would be handed a "
+                "fresh allotment on top of them")
+        else:
+            if "LegFeat_RecordPick" not in adopt:
+                problems.append(
+                    "legfeat_inc.nss LegFeat_AdoptHeldFeats does not call "
+                    "LegFeat_RecordPick — it would adopt nothing, leaving the "
+                    "imported feat invisible to the allotment and to every "
+                    "revoke path")
+            for banned, why in (
+                ("LegFeat_ApplyOne", "re-applies an effect the login rebuild "
+                                     "already owns"),
+                ("NWNX_Creature_SetRawAbilityScore",
+                 "adds a second +6 on top of the one already in the .bic base "
+                 "score — a RAW feat is applied exactly once, never at login"),
+                ("NWNX_Creature_AddFeat", "grants a feat instead of recording "
+                                          "the one already held"),
+            ):
+                if banned in adopt:
+                    problems.append(
+                        f"legfeat_inc.nss LegFeat_AdoptHeldFeats calls {banned} "
+                        f"— adoption must RECORD only; this {why}")
+
+        ensure = inc_body("int LegFeat_EnsureAllotment(object oPC)")
+        if not ensure:
+            problems.append(
+                "legfeat_inc.nss has no LegFeat_EnsureAllotment definition")
+        else:
+            at = ensure.find("LegFeat_AdoptHeldFeats")
+            if at < 0:
+                problems.append(
+                    "legfeat_inc.nss LegFeat_EnsureAllotment does not call "
+                    "LegFeat_AdoptHeldFeats — an imported character would be "
+                    "granted its full allotment a second time")
+            else:
+                # Order is the whole correctness argument: adopting after the
+                # level test leaves the below-60 branch blind to an imported
+                # feat, and adopting after the class-signature read leaves the
+                # first-grant branch granting on top of one.
+                for later, branch in (
+                    ("LegFeat_TrueLevel", "the below-60 revoke"),
+                    ("LegFeat_GetClassSig", "the first-grant and class-change"),
+                ):
+                    pos = ensure.find(later)
+                    if 0 <= pos < at:
+                        problems.append(
+                            "legfeat_inc.nss LegFeat_EnsureAllotment calls "
+                            f"LegFeat_AdoptHeldFeats after {later} — it must "
+                            f"come first, or {branch} branch still decides from "
+                            "pick records alone")
+
     # 6. Base-score feats must never be re-applied at login. The bonus is
     #    written into the .bic, so a second application is permanent, silent and
     #    cumulative: +6 per session, forever.
