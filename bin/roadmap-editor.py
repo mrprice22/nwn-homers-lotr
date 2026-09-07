@@ -3936,6 +3936,19 @@ PAGE = r"""<!doctype html>
   /* A default <pre> does not wrap, and would widen the pane it sits in. */
   .rt-rich pre { white-space:pre-wrap; overflow-x:auto; margin:0.3em 0;
                  font-family:monospace; font-size:0.92em; }
+  /* Tables in a note (a loot table, a boss comparison). Without this they get
+     the browser's default 3D borders and no padding, which reads as a wall of
+     text in a pane this narrow. Header row sticks so a long table stays
+     legible while scrolling inside the pane. */
+  .rt-rich table { border-collapse:collapse; margin:0.5em 0; width:100%;
+                   font-size:0.93em; }
+  .rt-rich th, .rt-rich td { border:1px solid var(--line); padding:5px 8px;
+                             text-align:left; vertical-align:top; }
+  .rt-rich thead th { background:var(--panel); position:sticky; top:0;
+                      font-size:0.88em; letter-spacing:0.03em;
+                      text-transform:uppercase; color:var(--muted,#9aa7b4); }
+  .rt-rich tbody tr:nth-child(even) { background:rgba(127,127,127,0.06); }
+  .rt-rich td small { opacity:0.75; }
   .rt-html { min-height:96px; font-family:monospace; font-size:12px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
   button { padding:8px 13px; border:1px solid var(--line); border-radius:6px;
