@@ -35,6 +35,7 @@
 #include "pw_inc"
 #include "fat_inc"
 #include "graf_inc"
+#include "mw_db"
 
 
 void main()
@@ -296,6 +297,11 @@ Merit_InitDb();
 
 // Bestiary kill tracking.
 Bst_InitDb();
+
+// Meaningwave guide progress (unlocks, journal stages, finale, mixtape
+// consumption): keyed on GetObjectUUID(), unlike the retired CD-key+name
+// scoping it replaces. See mw_db.nss (roadmap: mw-mixtape-per-character).
+MW_InitDb();
 
 // Teleport / travel destinations.
 Tele_InitDb();

@@ -16,8 +16,9 @@ void MixtapeRaiseStat(object oPC, int nStat)
 void main()
 {
     object oPC = GetPCSpeaker();
+    MW_MigrateLegacy(oPC);
 
-    if (GetCampaignInt(MW_DB, "mixtape_consumed", oPC)) return;
+    if (MW_GetFlag(oPC, "mixtape_consumed")) return;
 
     // Anti-exploit: verify item is still in inventory before committing anything.
     // Dropping the ring mid-conversation then clicking Consume would otherwise
@@ -30,7 +31,7 @@ void main()
         return;
     }
 
-    SetCampaignInt(MW_DB, "mixtape_consumed", 1, oPC);
+    MW_SetFlag(oPC, "mixtape_consumed");
     DestroyObject(oItem);
 
     MixtapeRaiseStat(oPC, ABILITY_STRENGTH);

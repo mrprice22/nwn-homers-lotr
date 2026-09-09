@@ -3,7 +3,8 @@
 int StartingConditional()
 {
     object oPC = GetPCSpeaker();
+    MW_MigrateLegacy(oPC);
     if (MW_UnlockCount(oPC) < MW_ROSTER_SIZE) return FALSE;
-    if (GetCampaignInt(MW_DB, "finale", oPC)) return FALSE;
+    if (MW_GetFlag(oPC, "finale")) return FALSE;
     return TRUE;
 }

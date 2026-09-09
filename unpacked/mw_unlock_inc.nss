@@ -1,9 +1,9 @@
 //::///////////////////////////////////////////////
 //:: mw_unlock_inc -- MeaningWave guide roster, persistence, and summoning.
 //::
-//:: Per-PC unlock flags live in the "meaningwave" campaign DB (scoped per
-//:: player by passing oPC to GetCampaignInt/SetCampaignInt). Roster is
-//:: 7 named figures plus Akira the Don as Hall curator.
+//:: Per-PC unlock flags live in campaign SQLite "meaningwavedb", keyed on
+//:: GetObjectUUID() - see mw_db.nss. Roster is 7 named figures plus Akira
+//:: the Don as Hall curator.
 //::
 //:: Meta-quest stages on "MW Path of Meaning":
 //::   1 = intro whisper (added on first shrine touch or guide encounter)
@@ -12,8 +12,8 @@
 //:://////////////////////////////////////////////
 
 #include "x2_inc_itemprop"
+#include "mw_db"
 
-const string MW_DB         = "meaningwave";
 const string MW_META_QUEST = "MW Path of Meaning";
 const int    MW_ROSTER_SIZE = 7;
 
@@ -49,9 +49,58 @@ string MW_GuideQuestTag(string sGuide)
     return "MW " + MW_GuideDisplayName(sGuide);
 }
 
+// Never auto-applied - see the header comment in mw_db.nss.
+void MW_LogLegacyPending(object oPC, string sFlag)
+{
+    if (MW_GetFlag(oPC, sFlag)) return;
+    if (!GetCampaignInt(MW_LEGACY_DB, sFlag, oPC)) return;
+
+    sqlquery q = SqlPrepareQueryCampaign(MW_FLAG_DB,
+        "INSERT OR IGNORE INTO mw_legacy_pending(pid, flag, cdkey, name)" +
+        " VALUES(@p, @f, @k, @n)");
+    SqlBindString(q, "@p", GetObjectUUID(oPC));
+    SqlBindString(q, "@f", sFlag);
+    SqlBindString(q, "@k", GetPCPublicCDKey(oPC));
+    SqlBindString(q, "@n", GetName(oPC));
+    SqlStep(q);
+}
+
+// One-time per character (guarded by its own "legacy_migrated" flag in the
+// NEW table). Carries u_<guide>/jq_* forward automatically on a match;
+// logs finale/mixtape_consumed to mw_legacy_pending instead of granting
+// them, so a character never receives a second Mixtape's worth of stats
+// just because an old, possibly-collided row happens to match it. See the
+// header comment in mw_db.nss for why this has to run live rather than as
+// an offline script.
+void MW_MigrateLegacy(object oPC)
+{
+    if (MW_GetFlag(oPC, "legacy_migrated")) return;
+
+    int i;
+    for (i = 0; i < MW_ROSTER_SIZE; i++)
+    {
+        string sGuide = MW_GuideAt(i);
+        string sKey = "u_" + sGuide;
+        if (!MW_GetFlag(oPC, sKey) && GetCampaignInt(MW_LEGACY_DB, sKey, oPC))
+            MW_SetFlag(oPC, sKey);
+
+        string sEnc = "jq_enc_" + sGuide;
+        if (!MW_GetFlag(oPC, sEnc) && GetCampaignInt(MW_LEGACY_DB, sEnc, oPC))
+            MW_SetFlag(oPC, sEnc);
+    }
+    if (!MW_GetFlag(oPC, "jq_intro") && GetCampaignInt(MW_LEGACY_DB, "jq_intro", oPC))
+        MW_SetFlag(oPC, "jq_intro");
+
+    MW_LogLegacyPending(oPC, "finale");
+    MW_LogLegacyPending(oPC, "mixtape_consumed");
+
+    MW_SetFlag(oPC, "legacy_migrated");
+}
+
 int MW_IsUnlocked(object oPC, string sGuide)
 {
-    return GetCampaignInt(MW_DB, "u_" + sGuide, oPC);
+    MW_MigrateLegacy(oPC);
+    return MW_GetFlag(oPC, "u_" + sGuide);
 }
 
 // Derive the guide name ("jocko", "aurelius", ...) from the world NPC's tag,
@@ -79,8 +128,9 @@ int MW_UnlockCount(object oPC)
 
 void MW_IntroJournal(object oPC)
 {
-    if (GetCampaignInt(MW_DB, "jq_intro", oPC)) return;
-    SetCampaignInt(MW_DB, "jq_intro", 1, oPC);
+    MW_MigrateLegacy(oPC);
+    if (MW_GetFlag(oPC, "jq_intro")) return;
+    MW_SetFlag(oPC, "jq_intro");
     AddJournalQuestEntry(MW_META_QUEST, 1, oPC, FALSE, FALSE);
 }
 
@@ -89,8 +139,8 @@ void MW_EncounterJournal(object oPC, string sGuide)
     MW_IntroJournal(oPC);
     if (MW_IsUnlocked(oPC, sGuide)) return;
     string sKey = "jq_enc_" + sGuide;
-    if (GetCampaignInt(MW_DB, sKey, oPC)) return;
-    SetCampaignInt(MW_DB, sKey, 1, oPC);
+    if (MW_GetFlag(oPC, sKey)) return;
+    MW_SetFlag(oPC, sKey);
     AddJournalQuestEntry(MW_GuideQuestTag(sGuide), 1, oPC, FALSE, FALSE);
 }
 
@@ -100,7 +150,7 @@ void MW_SyncJournal(object oPC)
     if (nCount == 0) return;
     AddJournalQuestEntry(MW_META_QUEST, 1, oPC, FALSE, FALSE);
     AddJournalQuestEntry(MW_META_QUEST, nCount + 1, oPC, FALSE, FALSE);
-    if (GetCampaignInt(MW_DB, "finale", oPC))
+    if (MW_GetFlag(oPC, "finale"))
         AddJournalQuestEntry(MW_META_QUEST, MW_ROSTER_SIZE + 2, oPC, FALSE, FALSE);
     int i;
     for (i = 0; i < MW_ROSTER_SIZE; i++)
@@ -114,7 +164,7 @@ void MW_SyncJournal(object oPC)
 void MW_Unlock(object oPC, string sGuide)
 {
     if (MW_IsUnlocked(oPC, sGuide)) return;
-    SetCampaignInt(MW_DB, "u_" + sGuide, 1, oPC);
+    MW_SetFlag(oPC, "u_" + sGuide);
 
     int nCount = MW_UnlockCount(oPC);
 
