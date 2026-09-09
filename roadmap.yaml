@@ -852,10 +852,18 @@ ideas:
         status: done
         kind: uat
         tester: "any"
+        claimed_by: "Sync (Shync)"
+        result: "Both new options appear correctly, for balrog you appear as you would comming in normally, in front of the forge and all MW teleports place beside the npc, noticed the port to aurelies places you inside the jail with him, unless thats intended. No admin menu shows up."
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-09"
       - step: "Live-realm half: on season 2, confirm a non-admin's rest menu is unchanged - no [MW Teleports], no [Options of the Homeless] - and that entering the Well of Eru grants no runes and no Forgekey. This is the half that cannot be verified from the dev realm, and it is the whole point of the flag."
         status: done
         kind: uat
         tester: "any"
+        claimed_by: "Sync (Shync)"
+        result: "Live server remains unchanged, no new options on rest menu and no forge key or expansion runes on your inventory upon entering the well of eru"
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-09"
       - step: "Arm bin/reboot-on-empty on the dev realm so the new build loads. Never force-restart the dev realm."
         status: done
         kind: admin
@@ -866,6 +874,7 @@ ideas:
       - player: "ray"
         awarded: true
         date: "2026-08-26"
+      - player: "Sync (Shync)"
   - id: arcane-spellfailure-ammount-now-showing-in-wiki-details
     title: "Arcane spellfailure %ammount now showing in wiki details"
     group: wiki-tools
@@ -4499,8 +4508,12 @@ ideas:
         answer: "Persist per-character in a factiondb campaign DB, re-applied on login, so allegiance/standing survives relog and reboot."
     manual_steps:
       - step: "UAT persistence: use a Well of Eru Good (or Evil) teleporter to take that allegiance, confirm the opposing faction's NPCs turn hostile, relog, and confirm the allegiance + hostility PERSIST (previously they reset). Then use the opposite teleporter and confirm the flip also persists."
-        status: open
+        status: failed
         kind: uat
+        claimed_by: "Sync (Shync)"
+        result: "Orb Faction change doesnt seem to work, using orb of evil doesnt make good npc turn hostile, same thing by using the good orb. They only turn hostile when attacked, attacked cirith ungol then went to carn dum and they were friendly. Cirith ungol was still hostile when i came back. Orb seems to only work to \"reset\" hostile setting in that particular area, using evil orb made cirith ungol friendly again"
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-09"
       - step: "UAT alignment independence: on a True-Neutral-alignment character, take a Good allegiance and confirm it works (allegiance is faction-based, not GetAlignment)."
         status: open
         kind: uat
@@ -4513,6 +4526,8 @@ ideas:
       - step: "UAT dual standing + bleed: as DM, Faction_AdjustStanding(oPC,\"Good\",100) then Faction_AdjustStanding(oPC,\"Evil\",100) and confirm BOTH good_standing and evil_standing are non-zero (playing both sides is not punished), and that the Evil grant reduced good_standing by ~25 (25% bleed) but never below 0 / never reset."
         status: open
         kind: uat
+    uat_credits:
+      - player: "Sync (Shync)"
 
   - id: faction-rally-rescue
     title: "Faction rally: pre-death muster call + timed rescue quest"
@@ -5032,8 +5047,12 @@ ideas:
     impl_notes_h: 186
     manual_steps:
       - step: "UAT gating: a non-Good L15+ character gets the offer; a Good character or one below L15 must not."
-        status: open
+        status: failed
         kind: uat
+        claimed_by: "Sync (Shync)"
+        result: "Couldnt get the quest to work on the test server, only got regular fernys ring quest, did it but afterwards he doesnt offer anything else, tried being evil aligned and using the evil orb faction on a lvl 60 melee."
+        tested_by: "Sync (Shync)"
+        tested_on: "2026-09-09"
       - step: "UAT stealth: an unstealthed plant gives the fail message; stealthed plants work; the same table twice is refused."
         status: open
         kind: uat
@@ -5046,6 +5065,8 @@ ideas:
       - step: "UAT persistence: relog mid-job both with letters in hand and after planting but before payout &mdash; both must resume correctly."
         status: open
         kind: uat
+    uat_credits:
+      - player: "Sync (Shync)"
 
   - id: sarumans-voice
     title: "Faction quest (Evil): Saruman's Voice (social, no combat)"
@@ -7496,3 +7517,22 @@ ideas:
     player: "HomelessSon (Server Admin)"
     date: "2026-09-07"
     notes: "<div>Logged so it stops being re-raised from scratch: a player has asked to be able to dual-wield large weapons. Relayed by the admin during the Weathertop royal loot review - <i>“someone asked to be able to dual wield large weapons, so it’s on people’s mind… not planning to do that anytime soon though.”</i></div><div><br>Filed as unlikely, not rejected. It would land squarely in the highest-APR builds in the game, which is the opposite direction from what season 3 loot design is trying to encourage.</div>"
+  - id: mw-mixtape-per-character
+    title: "Meaningwave guide progress collides between characters with similar names"
+    group: meaningwave
+    status: manual
+    hidden: true
+    type: Defect
+    player: "-Methonash-"
+    date: "2026-09-09"
+    commit: 85375be6748
+    notes: "Fixed 2026-09-09: Meaningwave guide unlocks and the Mixtape reward are now tracked per character instead of colliding between characters with similar names on the same account. If you already finished this questline before the fix on a character whose progress didn't carry over, let an admin know so it can be restored."
+    impl_notes: "Root cause: GetCampaignInt/SetCampaignInt(\"meaningwave\", key, oPC) derives its row key from CD key + character name, truncated to ~29 bytes by the engine, so two characters whose combined string shares that long a prefix collide onto one row (confirmed against live meaningwave.sqlite3: -Methonash-'s two characters 'Methonash, -Divine Crits-' / 'Methonash, -Divine Tunes-' both truncate to '-Methonash-Methonash, -Divi'). Fix (commit 85375be6748): new unpacked/mw_db.nss, campaign SQLite \"meaningwavedb\" table mw_flag keyed on GetObjectUUID(oPC), same pattern as legfeat_db.nss. mw_unlock_inc.nss, mw_finale.nss, mw_finale_chk.nss, mw_finale_done.nss, mw_mixtape_con.nss migrated off GetCampaignInt/SetCampaignInt to MW_GetFlag/MW_SetFlag. MW_InitDb() called from onmoduleload.nss. Migration: an offline .bic scan to map the old row back to a character is NOT possible (servervault folder names are an opaque engine hash of the CD key, unrelated to the literal CDKey+name string embedded in the old playerid) -- so MW_MigrateLegacy() (mw_unlock_inc.nss) runs live, once per character at first touch (guarded by a 'legacy_migrated' flag), asking the engine the same GetCampaignInt lookup it always could for the PC that is actually logged in. Low-stakes flags (u_, jq_*: no permanent effect) are carried forward automatically. finale/mixtape_consumed (permanent +1 to all six base ability scores) are NEVER auto-migrated -- they're only logged to a new mw_legacy_pending table, because a deleted-and-recreated same-named character would otherwise silently inherit a predecessor's completion (the same root-cause collision the fix exists to close). bin/list-mw-legacy-pending.py lists/resolves those rows per realm."
+    manual_steps:
+      - step: "Deploy the fix (repack + restart), then periodically run `python3 bin/list-mw-legacy-pending.py` per realm and resolve any rows with `--grant PID FLAG --realm ROLE` (character genuinely already finished it) or `--dismiss PID FLAG --realm ROLE` (row belongs to a different, earlier character) -- start with -Methonash-'s two characters, whose old finale/mixtape_consumed row is exactly the reported collision."
+        status: open
+        kind: admin
+      - step: "Confirm a second character on an account that already finished the Meaningwave questline can independently unlock all 7 guides and receive/consume their own Mixtape (+1 to all six base stats), and confirm a character that already has the permanent stat bump cannot get a second Mixtape."
+        status: open
+        kind: uat
+        tester: "-Methonash- (or any account with 2+ characters)"
