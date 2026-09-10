@@ -34,11 +34,41 @@ standing there year-round advertising an event that is not running is clutter --
 and a reboot re-created them whether or not anything was scheduled.
 
 Their positions live on `cp_penguin_wp` and `cp_board_wp`, so they are still
-moved the normal way, in the toolset. **Move the waypoint, not the object.**
-`cp_venue_wp` is the third one: where the stress dials put their load.
+moved the normal way, in the toolset. **Move the waypoint, not the object** — and
+**rotate the waypoint to turn the board**, since the object is created facing the
+way the waypoint points. `cp_venue_wp` is the third one: the stress dials' default
+spawn point (see "Where a dial spawns" below).
 
 `cp_board.utp` exists only because a runtime spawn needs a blueprint; it is the
-stock `plc_placard6` with the tag, the OnUsed and `Useable`/`Static` set.
+stock `plc_placard6` with the tag, the OnUsed and `Useable`/`Static` set — plus
+**`Appearance` 89 (Signpost)**, which is what the original permanent placement
+carried as an instance override. The blueprint default, 135, is a small
+freestanding merchant's placard: the right prop for a shop, the wrong one for a
+scoreboard, and the reason the first spawned board looked nothing like the board
+it replaced.
+
+## Where a dial spawns: the waypoint from the console, YOU from the rest menu
+
+Every lever exists twice — a placard in the DM control room and a line in the rest
+menu's Admin Options — and the two want different spawn points, so `CP_DialAnchor`
+(`cp_dm_inc.nss`) resolves it per surface:
+
+| Surface | Anchor | Why |
+|---|---|---|
+| control-room placard | `cp_venue_wp` | the console is a sealed room; load spawned "here" would be invisible and would measure the wrong area |
+| rest menu | **the admin who opened it** | they are standing in the thing they are testing, and walking back to a waypoint to look at what they just spawned is pure friction |
+
+The surface is told apart by `GetPCSpeaker()` being valid, which it is only inside
+a conversation. Spawning outside the Well of Eru is legitimate but says so in the
+report line, because the venue was picked deliberately (`CP_Venue`) — an area
+running `d_cleartrash.nss` measures that sweep rather than the server.
+
+`CP_DIAL_CAP` is then counted across the venue **and** the anchor's area
+(`CP_LoadCountFor`), not the venue alone: otherwise the rest-menu dials would hand
+out a fresh 400 in every room the admin walked into. It is deliberately not a
+module-wide count — that is ~287 areas walked twice per press, during the exact
+test whose numbers the walk would pollute. **CLEAR ALL stays module-wide**
+(`cp_sweep`), so nothing spawned anywhere is ever stranded.
 
 ## One crasher per ACCOUNT, opt-in, reversible
 
@@ -74,6 +104,24 @@ it precisely the thing worth alt-farming, so it cannot be the exception. It is a
 single inventory pass, stepping to the next item before destroying the current
 one — `DestroyObject` is deferred to end-of-script, so a re-fetch-by-tag loop
 would hand back the same object forever.
+
+## The Fireworks Staff's chain is bounded by the DEPTH CAP, never by the dice
+
+One burst is **one shell plus `CP_FW_PER_BURST` sparks** — a big FNF effect on the
+spot, then small impact effects scattered `CP_FW_SPREAD` metres around it, one
+every `CP_FW_SPARK_GAP` seconds. Two pools rather than one is what makes it read
+as a firework: four big blooms on one pixel is a wall of noise, four small ones
+alone is a fizzle.
+
+A burst then has a diminishing chance of setting off the next, `CP_FW_BURST_GAP`
+later, up to `CP_FW_MAX_DEPTH` bursts — currently 8, so at most 40 instant VFX
+over ~18 seconds, and the player cooldown is set above that so one person cannot
+keep several chains overlapping.
+
+**The roll is the flavour; the depth counter is the safety.** A chain that
+re-triggers itself is the one shape in this event that can take the server down
+for real rather than for fun, and a crash mid-party costs the concurrency record
+the party exists to set. Tune the probability freely. Never make it the bound.
 
 ## Waves, and why there is no progress gate
 
@@ -215,9 +263,28 @@ Two of the six items hit this, and both were silent:
 
 - `SetCreatureAppearanceType` writes `Appearance_Type`, a **saved `.bic` field**,
   while the Mask's revert is a `DelayCommand` that dies at logout. Log out
-  masked and you are a penguin permanently. `cp_login.nss` restores it.
+  masked and you are a penguin permanently. `cp_login.nss` restores it — and
+  re-arms the Cloak's reroll chain, because NWN fires **no equip event** for gear
+  the player logs in already wearing, so a still-worn cloak would otherwise hang
+  there doing nothing until taken off and put back on.
 - The tipsiness counter is a creature local (saved) while the chain that decays
   it is a `DelayCommand` (not saved). `cp_login.nss` resets it.
+
+**Two items writing one field need a REFERENCE COUNT, not a shared stash.** The
+Mask and the Cloak both change `Appearance_Type` and both stash the real face in
+`CP_MASK_TRUEFORM`, so that whichever went second could not record an
+already-borrowed face as real. What the shared stash did *not* survive was the
+second one **finishing**: use the Mask while the Cloak is on and the Mask's 90s
+revert deleted the stash, after which taking the Cloak off restored nothing and
+the player was left as whatever the last reroll made them — no item, no timer,
+nothing that could ever put it right short of a relog. The stash is now claimed
+and released through `CP_FaceClaim` / `CP_FaceRelease` (`cp_inc.nss`) against a
+holder bitmask, and the real face goes back only when the **last** holder lets
+go; the release also reports whether it actually restored, so neither item
+announces "your own face returns" while the other is still rerolling. The
+variable names stayed mask-era on purpose — they are already serialised into live
+`.bic` files. *Any future item that writes a saved character field a second item
+also writes belongs on the same counter.*
 
 **The bonus ledger is not safe for a throwaway item.** The Wishing Coin
 originally granted +2 attack through `BPool_Set`. Ledger entries are LocalInts

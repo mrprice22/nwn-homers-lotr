@@ -21,8 +21,17 @@ void main()
     string s = COLOR_YELLOW + "-- CRASH PARTY CONSOLE --" + COLOR_END + "\n";
     s += "Party:   " + (CP_IsOn() ? "RUNNING" : "off") + "\n";
     s += "Wave:    " + IntToString(CP_Wave()) + " of " + IntToString(CP_WAVE_MAX) + "\n";
-    s += "Load:    " + IntToString(CP_LoadCount()) + " / " + IntToString(CP_DIAL_CAP)
+    // Counted where the dials would spawn from THIS surface, so the console
+    // reports the venue and the rest menu reports the venue plus the room the
+    // admin is standing in -- the same pair the cap is measured against.
+    object oAnchor = CP_DialAnchor(oPC);
+    s += "Load:    " + IntToString(CP_LoadCountFor(oAnchor)) + " / " + IntToString(CP_DIAL_CAP)
        + " spawned objects\n";
+    object oHere = GetArea(oAnchor);
+    if (GetIsObjectValid(oHere) && oHere != CP_Venue())
+        s += "Dials:   spawning at YOUR position in " + GetName(oHere) + "\n";
+    else
+        s += "Dials:   spawning at the venue waypoint\n";
     s += "Online:  " + IntToString(CP_OnlineCount()) + " (record " + IntToString(nPeak) + ")\n";
     SendMessageToPC(oPC, s);
 }

@@ -10,8 +10,7 @@
 
 #include "cp_inc"
 
-const string CP_MASK_TRUE = "CP_MASK_TRUEFORM";
-const string CP_MASK_SEQ  = "CP_MASK_SEQ";
+const string CP_MASK_SEQ = "CP_MASK_SEQ";
 
 void main()
 {
@@ -23,15 +22,13 @@ void main()
     SetLocalInt(oPC, "CP_MASK_SEQ_SEEN", nSeen);
     if (nSeen < nSeq) return;   // a newer mask is still running
 
-    if (!GetLocalInt(oPC, CP_MASK_TRUE + "_SET")) return;
-
-    ApplyEffectToObject(DURATION_TYPE_INSTANT,
-        EffectVisualEffect(VFX_IMP_POLYMORPH), oPC);
-    SetCreatureAppearanceType(oPC, GetLocalInt(oPC, CP_MASK_TRUE));
-    SendMessageToPC(oPC, "The mask loosens and your own face returns.");
-
-    DeleteLocalInt(oPC, CP_MASK_TRUE);
-    DeleteLocalInt(oPC, CP_MASK_TRUE + "_SET");
     DeleteLocalInt(oPC, CP_MASK_SEQ);
     DeleteLocalInt(oPC, "CP_MASK_SEQ_SEEN");
+
+    // Hand the face back to whoever else is still borrowing one -- if the Cloak
+    // is on, it keeps rerolling and this says nothing, because "your own face
+    // returns" would be a visible lie. The Cloak coming off is then what puts
+    // the real face back, for both items at once.
+    if (CP_FaceRelease(oPC, CP_FACE_MASK))
+        SendMessageToPC(oPC, "The mask loosens and your own face returns.");
 }

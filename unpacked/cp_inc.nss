@@ -81,6 +81,26 @@ const string CP_KEG_TAG  = "cp_load_keg";
 const int CP_ITEM_COUNT = 10;
 const int CP_WAVE_MAX   = 3;
 
+// ------------------------------------------------------------ borrowed faces
+//
+// The Mask and the Cloak both write Appearance_Type, so they must agree on what
+// the player's real face is -- but "one stash, whoever finishes first puts it
+// back" strands the other item: use the Mask while the Cloak is on and the
+// Mask's 90s revert DELETES the stash, after which taking the Cloak off has
+// nothing to restore from and the player is left as a badger with no item and
+// no timer that will ever fix it. That is what these three functions exist to
+// prevent.
+//
+// One stash, a bitmask of who is currently borrowing a face, and the real face
+// goes back only when the LAST holder lets go. The variable names are the
+// mask-era ones on purpose: they are already serialised into live .bic files,
+// and renaming them would strand exactly the players this is meant to rescue.
+const string CP_FACE_TRUE  = "CP_MASK_TRUEFORM";
+const string CP_FACE_SET   = "CP_MASK_TRUEFORM_SET";
+const string CP_FACE_HOLD  = "CP_FACE_HOLD";
+const int    CP_FACE_MASK  = 1;
+const int    CP_FACE_CLOAK = 2;
+
 int    CP_IsOn();
 int    CP_Wave();
 void   CP_Broadcast(string sMsg, string sColor = "");
@@ -102,6 +122,9 @@ object CP_Target(object oPC);
 int    CP_OnlineCount();
 int    CP_IsLoadTag(object oObj);
 string CP_BelchSound(int nTipsy);
+void   CP_FaceClaim(object oPC, int nWho);
+int    CP_FaceRelease(object oPC, int nWho);
+int    CP_FaceRestoreAll(object oPC);
 
 // ------------------------------------------------------------ state
 
@@ -546,6 +569,59 @@ string CP_BelchSound(int nTipsy)
     if (nTipsy >= 6 && Random(2) == 0)
         return "as_pl_tavdrunkm" + IntToString(Random(4) + 1);
     return "as_pl_belchingm" + IntToString(Random(2) + 1);
+}
+
+// ------------------------------------------------------------ borrowed faces
+
+// Take a face. Stashes the real one the FIRST time only, so stacking a Mask on
+// top of a Cloak can never record an already-borrowed face as the real one.
+void CP_FaceClaim(object oPC, int nWho)
+{
+    if (!GetLocalInt(oPC, CP_FACE_SET))
+    {
+        SetLocalInt(oPC, CP_FACE_TRUE, GetAppearanceType(oPC));
+        SetLocalInt(oPC, CP_FACE_SET, TRUE);
+    }
+    SetLocalInt(oPC, CP_FACE_HOLD, GetLocalInt(oPC, CP_FACE_HOLD) | nWho);
+}
+
+// Give a face back. Returns TRUE only if this was the last holder and the real
+// face actually went back on -- callers use that to decide whether to say so,
+// since "your own face returns" is a lie while the Cloak is still rerolling.
+//
+// A character carrying pre-fix state (stash set, no holder bits) releases to
+// zero on the first call and self-heals.
+int CP_FaceRelease(object oPC, int nWho)
+{
+    int nHold = GetLocalInt(oPC, CP_FACE_HOLD) & ~nWho;
+    SetLocalInt(oPC, CP_FACE_HOLD, nHold);
+    if (nHold != 0) return FALSE;
+
+    DeleteLocalInt(oPC, CP_FACE_HOLD);
+    return CP_FaceRestoreAll(oPC);
+}
+
+// Unconditional: put the real face back and drop every holder. This is the
+// login path (every timer that would have released died at logout) and the
+// get-me-out-of-here path.
+int CP_FaceRestoreAll(object oPC)
+{
+    DeleteLocalInt(oPC, CP_FACE_HOLD);
+    if (!GetLocalInt(oPC, CP_FACE_SET)) return FALSE;
+
+    int nTrue = GetLocalInt(oPC, CP_FACE_TRUE);
+
+    // Clear the bookkeeping FIRST, so a restore that somehow fails cannot leave
+    // a stale stash to overwrite a legitimate appearance later.
+    DeleteLocalInt(oPC, CP_FACE_TRUE);
+    DeleteLocalInt(oPC, CP_FACE_SET);
+
+    if (GetAppearanceType(oPC) == nTrue) return TRUE;
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_POLYMORPH), oPC);
+    SetCreatureAppearanceType(oPC, nTrue);
+    return TRUE;
 }
 
 // ------------------------------------------------------------ misc

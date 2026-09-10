@@ -11,18 +11,25 @@
 // ## It shares the Mask's true-form stash on purpose
 //
 // Both items change the same field, so they must agree on what "your real face"
-// is or one will restore the other's borrowed one. CP_MASK_TRUEFORM is written
-// only when it is not already set, by either item, and cp_login.nss restores
-// from it at login -- which is what stops a player who logged out mid-swap from
-// being stuck as a penguin forever. Appearance_Type is a SAVED .bic field while
-// every timer that would undo it dies at logout; that asymmetry is the whole
-// reason cp_login exists.
+// is or one will restore the other's borrowed one. The stash is written once, by
+// whichever item got there first, and REFERENCE COUNTED (CP_FaceClaim /
+// CP_FaceRelease in cp_inc.nss): the real face goes back when the last holder
+// lets go, never before.
+//
+// That counting is not decoration. Before it existed, using the Mask while the
+// Cloak was on meant the Mask's 90s revert deleted the shared stash -- and then
+// taking the Cloak off restored nothing, leaving the player as whatever the last
+// reroll made them with no item and no timer that could ever put it right.
+//
+// cp_login.nss restores unconditionally at login, which is what stops a player
+// who logged out mid-swap from being stuck as a penguin forever: Appearance_Type
+// is a SAVED .bic field while every timer that would undo it dies at logout, and
+// that asymmetry is the whole reason cp_login exists.
 
 #include "cp_inc"
 
 const string CP_CLOAK_ON   = "CP_CLOAK_ON";
 const string CP_CLOAK_NEXT = "CP_CLOAK_NEXT";
-const string CP_MASK_TRUE  = "CP_MASK_TRUEFORM";
 
 void main()
 {
@@ -36,15 +43,13 @@ void main()
         DeleteLocalInt(oPC, CP_CLOAK_ON);
         DeleteLocalInt(oPC, CP_CLOAK_NEXT);
 
-        if (GetLocalInt(oPC, CP_MASK_TRUE + "_SET"))
-        {
-            ApplyEffectToObject(DURATION_TYPE_INSTANT,
-                EffectVisualEffect(VFX_IMP_POLYMORPH), oPC);
-            SetCreatureAppearanceType(oPC, GetLocalInt(oPC, CP_MASK_TRUE));
-            DeleteLocalInt(oPC, CP_MASK_TRUE);
-            DeleteLocalInt(oPC, CP_MASK_TRUE + "_SET");
-        }
-        SendMessageToPC(oPC, "You shrug the cloak off and settle back into yourself.");
+        // Release rather than restore: if a Mask is still counting down, IT is
+        // holding the real face and the player stays masked until it expires.
+        // Either way the message only claims what actually happened.
+        if (CP_FaceRelease(oPC, CP_FACE_CLOAK))
+            SendMessageToPC(oPC, "You shrug the cloak off and settle back into yourself.");
+        else
+            SendMessageToPC(oPC, "You shrug the cloak off, but the mask has not finished with you.");
         return;
     }
 
@@ -59,11 +64,7 @@ void main()
     // Stash the true form once, and only if nothing else already has -- the Mask
     // may have got there first, and overwriting would strand the player wearing
     // whatever face they happened to have on.
-    if (!GetLocalInt(oPC, CP_MASK_TRUE + "_SET"))
-    {
-        SetLocalInt(oPC, CP_MASK_TRUE, GetAppearanceType(oPC));
-        SetLocalInt(oPC, CP_MASK_TRUE + "_SET", TRUE);
-    }
+    CP_FaceClaim(oPC, CP_FACE_CLOAK);
 
     SetLocalInt(oPC, CP_CLOAK_ON, TRUE);
     SendMessageToPC(oPC, "The cloak settles over your shoulders and your edges go soft.");

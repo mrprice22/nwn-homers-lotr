@@ -20,10 +20,20 @@ void main()
     object oPC = CP_DmUser();   // placard OR rest menu
     if (!CP_DmGate(oPC)) return;
 
-    object oArea = CP_Venue();
+    // The console spawns at the venue waypoint; the rest menu spawns around the
+    // admin who opened it (CP_DialAnchor). Fail loudly rather than quietly
+    // dumping load into the control room.
+    object oAnchor = CP_DialAnchor(oPC);
+    if (!GetIsObjectValid(oAnchor))
+    {
+        SendMessageToPC(oPC, "Venue waypoint cp_venue_wp is missing - nothing spawned.");
+        return;
+    }
+
+    object oArea = GetArea(oAnchor);
     if (!GetIsObjectValid(oArea)) { SendMessageToPC(oPC, "Venue not found."); return; }
 
-    int nHave = CP_LoadCount();
+    int nHave = CP_LoadCountFor(oAnchor);
     if (nHave >= CP_DIAL_CAP)
     {
         SendMessageToPC(oPC, "Load cap reached (" + IntToString(CP_DIAL_CAP)
@@ -34,16 +44,15 @@ void main()
     int nWant = CP_DIAL_STEP;
     if (nHave + nWant > CP_DIAL_CAP) nWant = CP_DIAL_CAP - nHave;
 
-    // Fail loudly rather than quietly dumping load into the control room: the
-    // venue is chosen deliberately (see CP_Venue in cp_dm_inc.nss) and spawning
-    // somewhere else would measure the wrong area.
-    object oWP = GetWaypointByTag("cp_venue_wp");
-    if (!GetIsObjectValid(oWP))
-    {
-        SendMessageToPC(oPC, "Venue waypoint cp_venue_wp is missing - nothing spawned.");
-        return;
-    }
-    location lAt = GetLocation(oWP);
+    location lAt = GetLocation(oAnchor);
+
+    // Say where it went. Spawning outside the Well of Eru is legitimate from the
+    // rest menu, but the venue was picked deliberately (see CP_Venue in
+    // cp_dm_inc.nss) -- an area running d_cleartrash.nss measures that sweep
+    // rather than the server, so the number deserves a caveat.
+    if (oArea != CP_Venue())
+        SendMessageToPC(oPC, "Spawning at your position in " + GetName(oArea)
+            + " - not the Well of Eru, so compare these numbers with care.");
 
     int i, nMade = 0;
     for (i = 0; i < nWant; i++)
@@ -66,6 +75,6 @@ void main()
     }
 
     SendMessageToPC(oPC, "Item dial +" + IntToString(nMade)
-        + " (load now " + IntToString(CP_LoadCount()) + "/" + IntToString(CP_DIAL_CAP)
+        + " (load now " + IntToString(CP_LoadCountFor(oAnchor)) + "/" + IntToString(CP_DIAL_CAP)
         + "). Watch AIUpdateItem.");
 }

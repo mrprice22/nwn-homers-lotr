@@ -10,12 +10,13 @@
 //
 // The true appearance is stashed on the PC the FIRST time only, so stacking
 // activations can never overwrite it with an already-masked value and strand
-// someone as a dragon.
+// someone as a dragon. The stash is SHARED with the Cloak of a Thousand Faces
+// and reference-counted (CP_FaceClaim/CP_FaceRelease) -- both items change the
+// same field, so the real face goes back only once the last of them lets go.
 
 #include "cp_inc"
 
-const string CP_MASK_TRUE = "CP_MASK_TRUEFORM";
-const string CP_MASK_SEQ  = "CP_MASK_SEQ";
+const string CP_MASK_SEQ = "CP_MASK_SEQ";
 
 int CP_RandomFace()
 {
@@ -57,12 +58,10 @@ void main()
             "The mask crumbles into a handful of painted dust."))
         return;
 
-    // Remember the true form once and only once.
-    if (!GetLocalInt(oPC, CP_MASK_TRUE + "_SET"))
-    {
-        SetLocalInt(oPC, CP_MASK_TRUE, GetAppearanceType(oPC));
-        SetLocalInt(oPC, CP_MASK_TRUE + "_SET", TRUE);
-    }
+    // Remember the true form once and only once, and register the Mask as a
+    // holder of it so the Cloak cannot be stranded by this mask's revert (and
+    // vice versa). See CP_FaceClaim in cp_inc.nss.
+    CP_FaceClaim(oPC, CP_FACE_MASK);
 
     ApplyEffectToObject(DURATION_TYPE_INSTANT,
         EffectVisualEffect(VFX_IMP_POLYMORPH), oPC);

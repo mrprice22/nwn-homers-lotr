@@ -25,8 +25,11 @@ const int CP_DIAL_CAP  = 400;   // total live cp_load objects, all dials combine
 
 object   CP_DmUser();
 int      CP_DmGate(object oPC);
+int      CP_DmFromRestMenu();
 object   CP_Venue();
-int      CP_LoadCount();
+object   CP_DialAnchor(object oPC);
+int      CP_LoadCount(object oArea = OBJECT_INVALID);
+int      CP_LoadCountFor(object oAnchor);
 location CP_ScatterNear(location lAt, float fRadius = 6.0);
 
 // Who is working the console, whichever surface they used.
@@ -40,6 +43,17 @@ object CP_DmUser()
     object oPC = GetLastUsedBy();
     if (!GetIsObjectValid(oPC)) oPC = GetPCSpeaker();
     return oPC;
+}
+
+// Which of the two surfaces pulled the lever.
+//
+// GetPCSpeaker() is only valid inside a conversation, which is what the rest
+// menu's Admin Options is; the control-room placards are OnUsed handlers where
+// it is invalid. That is the test rather than "is GetLastUsedBy valid", because
+// a conversation owned by a placeable can still answer GetLastUsedBy.
+int CP_DmFromRestMenu()
+{
+    return GetIsObjectValid(GetPCSpeaker());
 }
 
 // TRUE means "allowed"; sends the refusal itself when not.
@@ -62,6 +76,27 @@ object CP_Venue()
     return GetObjectByTag("TheWellofEru");
 }
 
+// What a dial spawns AROUND, which is not the same for the two surfaces.
+//
+// From the control room the answer is the venue waypoint: the console is a
+// windowless room the admin is standing in, so load spawned "here" would be
+// invisible and would measure the wrong area.
+//
+// From the rest menu the admin is standing wherever they are actually testing,
+// usually in the middle of the party, and walking back to a waypoint to see the
+// thing they just spawned is pure friction -- so the anchor is the admin. That
+// also makes the dials usable at an impromptu venue, which is the whole point of
+// having the levers in the rest menu at all.
+//
+// Returns OBJECT_INVALID only when the console path has no waypoint to use; the
+// callers report that and spawn nothing rather than dumping load in the control
+// room.
+object CP_DialAnchor(object oPC)
+{
+    if (CP_DmFromRestMenu() && GetIsObjectValid(oPC)) return oPC;
+    return GetWaypointByTag("cp_venue_wp");
+}
+
 // COUNT THE OBJECTS, do not trust a tally.
 //
 // A running counter drifts: anything that removes a load object by a route other
@@ -73,9 +108,9 @@ object CP_Venue()
 // Walking one area per press is cheap (it happens on a lever press, not a
 // frame), it is always right, and it makes the number cp_count reports the
 // actual number of things standing in the venue.
-int CP_LoadCount()
+int CP_LoadCount(object oArea = OBJECT_INVALID)
 {
-    object oArea = CP_Venue();
+    if (!GetIsObjectValid(oArea)) oArea = CP_Venue();
     if (!GetIsObjectValid(oArea)) return 0;
 
     int n = 0;
@@ -85,6 +120,24 @@ int CP_LoadCount()
         if (CP_IsLoadTag(oObj)) n++;
         oObj = GetNextObjectInArea(oArea);
     }
+    return n;
+}
+
+// The cap counts the venue AND wherever this press is aimed.
+//
+// The rest-menu dials can spawn away from the Well of Eru, so counting only the
+// venue would hand out a fresh 400 in every room the admin walks into. Counting
+// every area instead would mean walking ~287 areas twice per press, during the
+// exact test whose numbers that walk would pollute -- so it is these two, which
+// is where a dial has actually put anything. CLEAR ALL stays module-wide
+// (cp_sweep), so nothing spawned anywhere is ever stranded.
+int CP_LoadCountFor(object oAnchor)
+{
+    object oVenue = CP_Venue();
+    object oHere  = GetArea(oAnchor);
+
+    int n = CP_LoadCount(oVenue);
+    if (GetIsObjectValid(oHere) && oHere != oVenue) n += CP_LoadCount(oHere);
     return n;
 }
 

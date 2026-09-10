@@ -30,8 +30,7 @@
 
 #include "cp_inc"
 
-const string CP_MASK_TRUE = "CP_MASK_TRUEFORM";
-const string CP_MASK_SEQ  = "CP_MASK_SEQ";
+const string CP_MASK_SEQ = "CP_MASK_SEQ";
 
 void main()
 {
@@ -58,21 +57,28 @@ void main()
     // right rather than nearly right.
     DeleteLocalInt(oPC, "cp_nudge");
 
-    // (1) The mask.
-    if (!GetLocalInt(oPC, CP_MASK_TRUE + "_SET")) return;
-
-    int nTrue = GetLocalInt(oPC, CP_MASK_TRUE);
-
-    // Clear the bookkeeping first, so a restore that somehow fails cannot leave
-    // a stale stash that would overwrite a legitimate appearance next login.
-    DeleteLocalInt(oPC, CP_MASK_TRUE);
-    DeleteLocalInt(oPC, CP_MASK_TRUE + "_SET");
+    // (1) The borrowed face -- the Mask's, the Cloak's, or both at once.
     DeleteLocalInt(oPC, CP_MASK_SEQ);
     DeleteLocalInt(oPC, "CP_MASK_SEQ_SEEN");
+    DeleteLocalInt(oPC, "CP_CLOAK_ON");
+    DeleteLocalInt(oPC, "CP_CLOAK_NEXT");
 
-    if (GetAppearanceType(oPC) == nTrue) return;   // already fine
+    // Not an early return when there is nothing to restore: the cloak re-arm
+    // below has to run either way.
+    if (CP_FaceRestoreAll(oPC))
+        SendMessageToPC(oPC,
+            "The mask you fell asleep in has been prised off. You look like yourself again.");
 
-    SetCreatureAppearanceType(oPC, nTrue);
-    SendMessageToPC(oPC,
-        "The mask you fell asleep in has been prised off. You look like yourself again.");
+    // The Cloak keeps rerolling on a DelayCommand chain, which died with the
+    // logout, and NWN does not fire an equip event for gear the player logs in
+    // already wearing -- so a still-worn cloak would hang there doing nothing
+    // until it was taken off and put back on. Re-arm it instead.
+    object oCloak = GetItemInSlot(INVENTORY_SLOT_CLOAK, oPC);
+    if (GetIsObjectValid(oCloak) && GetResRef(oCloak) == "cp_cloak")
+    {
+        SetLocalInt(oPC, "CP_CLOAK_ON", TRUE);
+        CP_FaceClaim(oPC, CP_FACE_CLOAK);
+        SetLocalInt(oPC, "CP_CLOAK_NEXT", CP_Now() + 5);
+        DelayCommand(6.0, ExecuteScript("cp_cloaktick", oPC));
+    }
 }
