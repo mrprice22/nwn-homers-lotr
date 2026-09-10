@@ -13,6 +13,25 @@
 // precedent). Per-PC grant flags are the opposite -- they live in the campaign DB
 // (cp_db.nss) so a relog cannot re-trigger a grant.
 //
+// ## One party crasher per ACCOUNT, and it is opt-in
+//
+// Grants are per character, but the ENTITLEMENT to them is per account: each CD
+// key nominates exactly one character as its "party crasher", by talking to a
+// penguin. Without that, an account could roll alt after alt and claim the whole
+// set on each -- the items are undroppable so they could not be pooled, but the
+// souvenir is meant to mean something and alt-farming it cheapens it.
+//
+// Opting out is offered by the same penguin, releases the slot, RECLAIMS every
+// party item the character is holding (CP_ReclaimItems) and clears their grant
+// flags -- so opting back in, on that character or a different one, issues a
+// fresh set. Losing an item to its last charge and then re-opting is therefore a
+// legitimate way to get another, and that is deliberate: the items are toys, and
+// the rule being enforced is "one character at a time per account", not scarcity.
+//
+// This is only possible because every party item is Plot + Cursed and so cannot
+// be dropped, traded, sold or banked. Reclaim can be complete precisely because
+// there is nowhere for an item to have gone.
+//
 // ## Waves are global, and late joiners are caught up
 //
 // Raising CP_WAVE unlocks that wave for EVERYONE at once. A player who logs in
@@ -66,6 +85,7 @@ string CP_ItemResRef(int nIndex);
 int    CP_ItemWave(int nIndex);
 int    CP_ItemCharges(int nIndex);
 int    CP_GrantUpToWave(object oPC);
+int    CP_ReclaimItems(object oPC);
 object CP_FindItem(object oPC, string sResRef);
 object CP_Target(object oPC);
 int    CP_OnlineCount();
@@ -225,6 +245,10 @@ int CP_GrantUpToWave(object oPC)
     if (!CP_IsOn()) return 0;
     if (!GetIsPC(oPC)) return 0;
 
+    // The account has to have nominated THIS character. Everything else about
+    // the hand-out is per character; this one check is per account.
+    if (!CP_IsCrasher(oPC)) return 0;
+
     int nWave = CP_Wave();
     int nGranted = 0;
     int i;
@@ -276,6 +300,49 @@ object CP_FindItem(object oPC, string sResRef)
 object CP_Target(object oPC)
 {
     return GetLocalObject(oPC, "cp_target");
+}
+
+// Take back every party item this character is holding, and return how many.
+//
+// Used by the opt-out path only. It is thorough on purpose: the whole promise of
+// "one crasher per account" rests on opting out actually emptying your hands,
+// and a leftover tankard would let somebody cycle the slot to accumulate a set
+// per alt after all.
+//
+// The souvenir goes too. It is the one item with no charges and no expiry, which
+// makes it exactly the thing worth alt-farming, so it cannot be the exception.
+//
+// SetPlotFlag(FALSE) before DestroyObject -- plot items resist destroy, and
+// every cp_* item is plot (kalrist_gems.nss:72 is the precedent).
+int CP_ReclaimItems(object oPC)
+{
+    int nTaken = 0;
+
+    // ONE pass over the inventory, stepping to the next item BEFORE destroying
+    // the current one. Do not be tempted to re-fetch by tag in a loop instead:
+    // DestroyObject is deferred to the end of the script, so the item stays
+    // valid and a re-fetch would hand back the same object forever.
+    //
+    // Matching on the resref prefix rather than the item table also catches the
+    // souvenir and anything a future wave adds, without a second list to keep in
+    // step. Every cp_* item is non-equippable (base item 29), so inventory is
+    // the only place one can be.
+    object oItem = GetFirstItemInInventory(oPC);
+    while (GetIsObjectValid(oItem))
+    {
+        object oNext = GetNextItemInInventory(oPC);
+
+        if (GetStringLeft(GetResRef(oItem), 3) == "cp_")
+        {
+            SetPlotFlag(oItem, FALSE);   // plot resists destroy
+            DestroyObject(oItem);
+            nTaken++;
+        }
+
+        oItem = oNext;
+    }
+
+    return nTaken;
 }
 
 // ------------------------------------------------------------ tankard shared

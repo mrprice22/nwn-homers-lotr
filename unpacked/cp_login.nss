@@ -50,6 +50,14 @@ void main()
         DeleteLocalInt(oPC, "CP_TIPSY_NEXT");
     }
 
+    // (3) The penguin nudge throttle. CP_Spam parks a LocalInt and deletes it on
+    // a DelayCommand -- and the local is saved into the .bic while the delete is
+    // not. A player who logged out within ten minutes of their first visit would
+    // otherwise never be nudged again. Same mismatch as the mask and the
+    // tipsiness counter above; harmless here, but it costs one delete to be
+    // right rather than nearly right.
+    DeleteLocalInt(oPC, "cp_nudge");
+
     // (1) The mask.
     if (!GetLocalInt(oPC, CP_MASK_TRUE + "_SET")) return;
 

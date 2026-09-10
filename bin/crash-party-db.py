@@ -9,16 +9,26 @@ every dispenser run, and no way at all to see how many charges are left.
 This is that tool. It is an admin/UAT utility, not part of the game.
 
     bin/crash-party-db.py --status              # party state at a glance
+    bin/crash-party-db.py --crashers            # who each account signed up
     bin/crash-party-db.py --top 10              # drinking leaderboard
     bin/crash-party-db.py --grants              # who has been given what
     bin/crash-party-db.py --reset-grants NAME   # let one character be re-issued
     bin/crash-party-db.py --reset-grants ALL    # ...or everyone (dev realms only)
     bin/crash-party-db.py --set-peak N          # seed/correct the record to beat
     bin/crash-party-db.py --clear-sips          # wipe the drinking contest
+    bin/crash-party-db.py --release NAME        # free an account's crasher slot
 
 Realm selection follows the repo you run it from: it reads NWN_HOME_DIR out of
 that repo's server.env, so running it in the dev repo touches the dev realm's
 database and nothing else. --realm overrides it.
+
+## --release is an escape hatch, and it is not the same as opting out
+
+The supported way to release an account's slot is in game: talk to the penguin
+and say you are out, which takes the items back first and then frees the slot.
+--release only deletes the database rows. The character keeps whatever it is
+holding, so use it when somebody cannot reach the penguin (they are stuck, the
+party is over, the character is gone) and accept that their items stay put.
 
 ## What it deliberately cannot do
 
@@ -88,7 +98,7 @@ def table_exists(cx, name) -> bool:
 
 def cmd_status(cx, path):
     print("database: %s" % path)
-    for t in ("cp_player", "cp_grant", "cp_state"):
+    for t in ("cp_player", "cp_grant", "cp_state", "cp_crasher"):
         print("  %-10s %s" % (t, "present" if table_exists(cx, t) else "MISSING"))
     if table_exists(cx, "cp_state"):
         row = cx.execute("SELECT v FROM cp_state WHERE k='peak'").fetchone()
@@ -101,6 +111,9 @@ def cmd_status(cx, path):
         n, chars = cx.execute(
             "SELECT COUNT(*), COUNT(DISTINCT ident) FROM cp_grant").fetchone()
         print("grants: %d rows across %d character(s)" % (n, chars))
+    if table_exists(cx, "cp_crasher"):
+        n, = cx.execute("SELECT COUNT(*) FROM cp_crasher").fetchone()
+        print("party crashers: %d account(s) opted in" % n)
 
 
 def cmd_top(cx, limit):
@@ -128,6 +141,36 @@ def cmd_grants(cx):
     for ident, name, items in rows:
         print("  %-28s %s" % (name, items))
         print("  %-28s   [%s]" % ("", ident))
+
+
+def cmd_crashers(cx):
+    if not table_exists(cx, "cp_crasher"):
+        return print("no cp_crasher table yet")
+    rows = cx.execute(
+        "SELECT char_name, cdkey, datetime(opted_in_at,'unixepoch') "
+        "FROM cp_crasher ORDER BY opted_in_at").fetchall()
+    if not rows:
+        return print("nobody has opted in yet")
+    print("One character per account is the party crasher:")
+    for name, cdkey, when in rows:
+        print("  %-28s account %-10s since %s" % (name or "(unnamed)", cdkey, when))
+
+
+def cmd_release(cx, who):
+    if not table_exists(cx, "cp_crasher"):
+        return print("no cp_crasher table yet")
+    rows = cx.execute(
+        "SELECT cdkey, ident FROM cp_crasher WHERE char_name = ? COLLATE NOCASE",
+        (who,)).fetchall()
+    if not rows:
+        return print("no opted-in character named %r (see --crashers)" % who)
+    for cdkey, ident in rows:
+        cx.execute("DELETE FROM cp_crasher WHERE cdkey=?", (cdkey,))
+        cx.execute("DELETE FROM cp_grant WHERE ident=?", (ident,))
+    cx.commit()
+    print("released %d account slot(s) held by %s." % (len(rows), who))
+    print("NOTE: their items were NOT taken back - only the penguin does that. "
+          "Any party gear still in that character's pack stays there.")
 
 
 def cmd_reset_grants(cx, who):
@@ -161,14 +204,16 @@ def main():
     ap.add_argument("--status", action="store_true")
     ap.add_argument("--top", type=int, metavar="N")
     ap.add_argument("--grants", action="store_true")
+    ap.add_argument("--crashers", action="store_true")
+    ap.add_argument("--release", metavar="NAME")
     ap.add_argument("--reset-grants", metavar="NAME_OR_ALL")
     ap.add_argument("--set-peak", type=int, metavar="N")
     ap.add_argument("--clear-sips", action="store_true")
     a = ap.parse_args()
 
     path = db_path(a.realm)
-    if not any([a.status, a.top, a.grants, a.reset_grants, a.set_peak is not None,
-                a.clear_sips]):
+    if not any([a.status, a.top, a.grants, a.crashers, a.release, a.reset_grants,
+                a.set_peak is not None, a.clear_sips]):
         a.status = True
 
     cx = connect(path)
@@ -179,6 +224,10 @@ def main():
             cmd_top(cx, a.top)
         if a.grants:
             cmd_grants(cx)
+        if a.crashers:
+            cmd_crashers(cx)
+        if a.release:
+            cmd_release(cx, a.release)
         if a.reset_grants:
             cmd_reset_grants(cx, a.reset_grants)
         if a.set_peak is not None:

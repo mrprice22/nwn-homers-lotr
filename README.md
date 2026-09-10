@@ -1562,22 +1562,33 @@ bin/perf-report --tickrate        # the engine's own tick rate
 bin/perf-report --counts          # AI list size, queued events
 ```
 
-**`bin/perf-report` is a post-mortem tool, not a live one — budget minutes per
-query.** `iter_records` reads and `json.loads` *every* line of every daily file
-and filters by timestamp afterwards, so `--window 10m` still parses the whole
-day: on season 2 that was **944 MB and 4.6M records by 05:38**, and a
-`--window 10m --tickrate` run had not finished after ten minutes at `nice -19`
-(measured 2026-09-10). The files are the coarse profile's normal output, not a
-misconfiguration — `NWNX_PROFILER_ENABLE_SCRIPTS` is correctly commented out;
-`ENABLE_OBJECT_AI_UPDATES` alone accounts for it (33% `RunScript`, 16%
+**A time window is now SOUGHT, not filtered for.** `bin/perf-report` used to read
+and `json.loads` every line of every daily file and filter afterwards, so
+`--window 10m` still parsed the whole day: on season 2 that is ~1 GB and 4.6M
+records by mid-morning, and a `--tickrate` run had not finished after ten minutes
+(measured 2026-09-10). Records are appended in wall-clock order, so `--since` /
+`--window` now binary-search the byte offset where the window starts and read
+forward from there. Same query: **2-3 seconds**.
+
+It rewinds two minutes past the target before reading, because the profiler
+flushes about once a second and several scopes share a flush, so stamps are only
+*nearly* monotonic. The timestamp filter still runs afterwards, so the seek can
+only ever be too generous, never too strict — a bad seek costs time, not
+accuracy, and any error falls back to reading from byte 0.
+
+One deliberate behaviour change came with it: a record carrying no usable `wall`
+is now **excluded** by a window instead of passed through it. Every line the
+collector writes has one, so this is not observable on real data — but a window
+that could return undated events made the seek unsound to reason about.
+
+The files themselves are the coarse profile's normal output, not a
+misconfiguration: `NWNX_PROFILER_ENABLE_SCRIPTS` is correctly commented out, and
+`ENABLE_OBJECT_AI_UPDATES` alone accounts for the volume (33% `RunScript`, 16%
 `PlotPath`, 10% `AIUpdateListObjects`). Disk sits around **13 GB for season 2 and
 4.7 GB for dev** under the 7-day retention.
 
-So during an event, watch **`bin/perfmon`** — that reads one small JSON status
-file and is instant. Save `perf-report` for afterwards, and expect it to take
-longer the later in the day you ask. (If it ever needs to be fast, the fix is to
-read the files backwards and stop at `since`, since records are appended in time
-order.)
+Still watch **`bin/perfmon`** rather than this during an event — it reads one
+small JSON status file and is instant, and tick rate is the verdict.
 
 ### There is no `perf` on this box, and none is needed
 
@@ -1651,6 +1662,32 @@ traps it fell into are in
 [CLAUDE-crash-party-event.md](CLAUDE-crash-party-event.md); this is the
 operating manual.
 
+### One party crasher per account, and it is opt-in
+
+**Nothing is handed out just for walking in.** Bartholomew the Party Penguin
+stands by the Well of Eru, and an account signs *one* character up by talking to
+him. That character then collects everything released so far, and everything each
+later wave adds.
+
+The reason is alt-farming: grants are remembered per character, so without an
+account-level gate one player could roll character after character and claim the
+whole set on each. The items are undroppable so they could never be pooled onto a
+main, but the commemorative souvenir is meant to mean something.
+
+**Opting out is offered by the same penguin**, and it is a clean reversal: he
+takes back every party item the character is holding — souvenir included — and
+frees the account's slot, so any character on that account can sign up next,
+including the same one again. Losing an item to its last charge and then
+re-opting is a legitimate way to get another; the rule being enforced is "one
+character at a time per account", not scarcity.
+
+That reversal is only possible because every party item is **Plot + Cursed**, and
+so cannot be dropped, traded, sold or banked. Reclaim can be complete precisely
+because there is nowhere for an item to have gone.
+
+A player who has not opted in gets a single nudge on entering the Well (throttled
+to once every ten minutes) and nothing else.
+
 ### Everything is a placard in the DM control room
 
 **There is no console, no chat command and no DM client involved.** The event is
@@ -1666,7 +1703,7 @@ a player who somehow reached the room can't touch any of them.
 | **STEP WAVE BACK** | Lowers the wave. Only affects what gets handed out *next*; it cannot un-give anything. |
 | **READ CONSOLE** | Party state, current wave, live spawned-object count, players online, record to beat. |
 | **SEND NEXT ANNOUNCEMENT** | Fires the next line of the countdown (T-60, T-30, T-10, go, then a generic "still going"). One press per line. |
-| **STRESS DIAL - VFX / CREATURES / OBJECTS** | Each adds 25 more of that kind of load to the Well of Eru, up to 400 total. |
+| **STRESS DIAL - VFX / CREATURES / OBJECTS** | Each press adds **25** objects of that kind, scattered within ~6m of the `cp_venue_wp` waypoint in the Well of Eru, capped at **400** live objects across all three dials. Step size and cap are `CP_DIAL_STEP` / `CP_DIAL_CAP` in `unpacked/cp_dm_inc.nss`. If the waypoint is missing the dial refuses rather than spawning somewhere else. |
 | **CLEAR ALL SPAWNED** | Deletes every object the dials made, everywhere, instantly. |
 | **UAT - SHOW + BURN DOWN MY OWN CHARGES** | Testing aid — see below. |
 
@@ -1702,7 +1739,15 @@ bin/crash-party-db.py --reset-grants NAME  # let one character be re-issued the 
 bin/crash-party-db.py --reset-grants ALL   # ...everyone (refused on a live realm)
 bin/crash-party-db.py --set-peak N         # correct the record-to-beat
 bin/crash-party-db.py --clear-sips         # wipe the drinking contest
+bin/crash-party-db.py --crashers           # which character each account signed up
+bin/crash-party-db.py --release NAME       # free an account's slot (see below)
 ```
+
+**`--release NAME` is an escape hatch, not the same as opting out.** The supported
+way to free a slot is in game: the penguin takes the items back *first*, then
+releases it. `--release` only deletes the database rows, so the character keeps
+whatever it is holding. Use it when somebody cannot reach the penguin — stuck,
+party over, character gone — and accept that their gear stays put.
 
 **`--reset-grants NAME` exists because the dispenser is once-per-character-ever.**
 That rule is what stops somebody re-logging to farm a second tankard, and it is

@@ -24,6 +24,41 @@ the precedent for the pattern).
 whether the party is on, off, or three months finished. This is not an
 oversight — see "Charges" below.
 
+## One crasher per ACCOUNT, opt-in, reversible
+
+Grants are per character (`cp_grant`, keyed on the UUID) because "you have already
+had a tankard" is a per-character fact. But per character is the wrong unit for
+deciding **who may be given one**: an account can roll as many characters as it
+likes and each would be a fresh claim on the set. So the entitlement lives one
+level up, in `cp_crasher`, keyed on `GetPCPublicCDKey`, admitting exactly one
+character at a time. The primary key *is* the rule.
+
+`cp_penguin` (Bartholomew, by the Well) holds the conversation:
+
+| State | Greeting | Offers |
+|---|---|---|
+| you are the crasher | `sc_cp_isme` | top-up (gated on `sc_cp_on`), opt out |
+| another of your characters is | `sc_cp_other` | nothing — names them via token 6600 |
+| party on, account free | `sc_cp_canjoin` | opt in |
+| otherwise | (default) | nothing |
+
+**Opt-out is deliberately available even when the party is off**, which is why the
+top-up reply carries the `sc_cp_on` conditional rather than the whole greeting: a
+slot that could only be released mid-party would strand an account on whichever
+character used it last.
+
+**Order matters in `cp_optout.nss`: reclaim the items, *then* clear the database.**
+The other way round, a failed sweep would leave the account free to sign up a
+second character while the first still held a full set — the exact hole the
+mechanism exists to close.
+
+`CP_ReclaimItems` takes everything matching the `cp_` resref prefix, souvenir
+included. The souvenir is the one item with no charges and no expiry, which makes
+it precisely the thing worth alt-farming, so it cannot be the exception. It is a
+single inventory pass, stepping to the next item before destroying the current
+one — `DestroyObject` is deferred to end-of-script, so a re-fetch-by-tag loop
+would hand back the same object forever.
+
 ## Waves, and why there is no progress gate
 
 The DM raises `CP_WAVE` and that wave unlocks **for everyone at once**. Players
@@ -76,7 +111,10 @@ filters on nothing else. Keep that filter exactly as narrow as it is.
 | `cp_dm_inc.nss` | Console gate (`Admin_CanAdmin`), venue lookup, dial caps |
 | `cp_tankard` / `cp_tipsy` | The mascot and its after-effects chain |
 | `cp_popper`, `cp_strings`, `cp_mask` (+`cp_maskoff`), `cp_coin`, `cp_fireworks` | The other five items |
-| `cp_eru_enter.nss` | Well of Eru OnEnter wrapper: souvenir + catch-up grant |
+| `cp_eru_enter.nss` | Well of Eru OnEnter wrapper: catch-up grant + souvenir for crashers, one throttled nudge for everyone else |
+| `cp_penguin` (.utc/.dlg) | Bartholomew: the opt-in/opt-out conversation |
+| `sc_cp_isme/other/canjoin/on` | the conversation's StartingConditionals |
+| `cp_optin`, `cp_optout`, `cp_topup` | its action scripts |
 | `cp_login.nss` | Per-login hygiene (see the traps below) |
 | `cp_peak.nss` | New-record detection and broadcast |
 | `cp_board.nss` | The player-facing scoreboard placeable |

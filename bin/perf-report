@@ -110,6 +110,70 @@ def duration_ms(fields: dict) -> float | None:
     return None
 
 
+# Records are appended in wall-clock order, one per line, so the start of a time
+# window can be FOUND rather than filtered for. Without this a `--window 10m`
+# still parsed every line of the day: season 2 was 944 MB / 4.6M records by 05:38
+# and a --tickrate run had not finished after ten minutes (measured 2026-09-10).
+#
+# The slack matters. The profiler flushes about once a second and several scopes
+# share a flush, so timestamps are only *nearly* monotonic; seeking to exactly
+# `since` could clip the first fraction of a second. Rewinding a couple of
+# minutes costs a few thousand lines and removes the question. The timestamp
+# filter in iter_records still runs, so the seek can only ever be too generous,
+# never too strict -- if it is wrong the output is unchanged, just slower.
+SEEK_SLACK = timedelta(minutes=2)
+
+
+def _stamp_of(line: str) -> datetime | None:
+    """Wall-clock stamp of one raw line, or None if it has no usable one."""
+    try:
+        wall = json.loads(line).get("wall")
+    except (json.JSONDecodeError, AttributeError):
+        return None
+    if not wall:
+        return None
+    try:
+        stamp = datetime.fromisoformat(wall)
+    except ValueError:
+        return None
+    return stamp.replace(tzinfo=timezone.utc) if stamp.tzinfo is None else stamp
+
+
+def seek_to(handle, since: datetime) -> None:
+    """Position handle at the first line at or after `since - SEEK_SLACK`.
+
+    Binary search on BYTE offset. Each probe lands mid-line, so the partial line
+    is discarded and the next whole one is read; that is also why a probe can
+    come back with no usable stamp (a truncated or non-timing line), in which
+    case the half is treated as "too early" and the search widens rather than
+    guessing.
+
+    Falls back to offset 0 on any error: being slow is a much better failure than
+    being wrong.
+    """
+    target = since - SEEK_SLACK
+    try:
+        handle.seek(0, 2)
+        lo, hi, best = 0, handle.tell(), 0
+        while lo < hi:
+            mid = (lo + hi) // 2
+            handle.seek(mid)
+            if mid:
+                handle.readline()          # discard the partial line
+            here = handle.tell()
+            stamp = _stamp_of(handle.readline())
+            if stamp is not None and stamp >= target:
+                hi = mid                   # this line is already inside the window
+            else:
+                best = here                # everything up to here is too early
+                if here <= mid:
+                    break
+                lo = mid + 1
+        handle.seek(min(best, hi) if hi else 0)
+    except (OSError, ValueError):
+        handle.seek(0)
+
+
 def iter_records(paths: list[Path], since: datetime | None, until: datetime | None):
     for path in paths:
         try:
@@ -117,6 +181,8 @@ def iter_records(paths: list[Path], since: datetime | None, until: datetime | No
         except OSError:
             continue
         with handle:
+            if since is not None:
+                seek_to(handle, since)
             for line in handle:
                 line = line.strip()
                 if not line:
@@ -125,19 +191,21 @@ def iter_records(paths: list[Path], since: datetime | None, until: datetime | No
                     record = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                wall = record.get("wall")
-                if (since or until) and wall:
-                    try:
-                        stamp = datetime.fromisoformat(wall)
-                    except ValueError:
-                        stamp = None
-                    if stamp is not None:
-                        if stamp.tzinfo is None:
-                            stamp = stamp.replace(tzinfo=timezone.utc)
-                        if since and stamp < since:
-                            continue
-                        if until and stamp > until:
-                            continue
+                if since or until:
+                    # A record with no usable timestamp cannot be placed inside a
+                    # window, so a window excludes it. This used to let it through
+                    # instead, which meant `--window 10m` could report events from
+                    # any time at all. Not observable on real data -- every line
+                    # the collector writes carries `wall` -- but the seek above
+                    # relies on the file being filtered by time alone, so the rule
+                    # has to be stated rather than assumed.
+                    stamp = _stamp_of(line)
+                    if stamp is None:
+                        continue
+                    if since and stamp < since:
+                        continue
+                    if until and stamp > until:
+                        continue
                 yield record
 
 
