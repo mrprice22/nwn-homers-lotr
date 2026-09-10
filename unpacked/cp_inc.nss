@@ -71,7 +71,7 @@ const string CP_INIT_VAR = "CP_USES_INIT";
 // Every DM-spawned load object carries this tag, and cleanup keys on it alone.
 const string CP_LOAD_TAG = "cp_load";
 
-const int CP_ITEM_COUNT = 6;
+const int CP_ITEM_COUNT = 10;
 const int CP_WAVE_MAX   = 3;
 
 int    CP_IsOn();
@@ -200,6 +200,10 @@ string CP_ItemResRef(int nIndex)
         case 3: return "cp_mask";
         case 4: return "cp_coin";
         case 5: return "cp_fireworks";
+        case 6: return "cp_drum";
+        case 7: return "cp_crown";
+        case 8: return "cp_cloak";
+        case 9: return "cp_gloves";
     }
     return "";
 }
@@ -214,6 +218,10 @@ int CP_ItemWave(int nIndex)
         case 3: return 1;   // Mask of a Thousand Faces
         case 4: return 2;   // Wishing Coin
         case 5: return 3;   // Fireworks Finale Staff
+        case 6: return 1;   // Drum of the Marching Band
+        case 7: return 2;   // Crown of Cacophony      (worn)
+        case 8: return 2;   // Cloak of a Thousand Faces (worn)
+        case 9: return 3;   // Gloves of a Great Many Punches (on-hit)
     }
     return 99;
 }
@@ -228,6 +236,15 @@ int CP_ItemCharges(int nIndex)
         case 3: return 300;
         case 4: return 240;
         case 5: return 120;
+        case 6: return 300;
+        // The two WORN items spend a charge per time they are PUT ON, not per
+        // pulse. A charge per pulse would burn a generous-looking number down to
+        // a quarter of an hour, and since players are never told the count the
+        // item would just seem to break at random.
+        case 7: return 150;
+        case 8: return 150;
+        // On-hit, so a charge is spent per PROC (20% of hits), not per swing.
+        case 9: return 400;
     }
     return 0;
 }

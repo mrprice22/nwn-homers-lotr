@@ -1,0 +1,111 @@
+{
+  "__data_type": "UTI ",
+  "AddCost": {
+    "type": "dword",
+    "value": 0
+  },
+  "BaseItem": {
+    "type": "int",
+    "value": 36
+  },
+  "Charges": {
+    "type": "byte",
+    "value": 0
+  },
+  "Comment": {
+    "type": "cexostring",
+    "value": "Crash Party event item. Plot+Cursed on purpose: undroppable, unsellable, unstealable, unbankable. Cursed means 'cannot be dropped' only, so a worn one can still be taken off. Charges live in the CP_USES item local (cp_inc.nss) and are never shown to the player. ON-HIT item: OnHitCastSpell -> ONHIT_UniquePower (iprp_onhitspell 125) reaches the stock X2_S3_OnHitCast, which runs the item's TAG as a script because onmoduleload enables tag-based scripting. No dispatcher override needed. One charge per PROC (20% of hits), not per swing."
+  },
+  "Cost": {
+    "type": "dword",
+    "value": 0
+  },
+  "Cursed": {
+    "type": "byte",
+    "value": 1
+  },
+  "DescIdentified": {
+    "type": "cexolocstring",
+    "value": {}
+  },
+  "Description": {
+    "type": "cexolocstring",
+    "value": {
+      "0": "Battered leather gloves, stitched and restitched, with somebody else's knuckle-prints worn into them. Something faintly ridiculous happens to roughly one punch in five.\n\nWear them and start a fight."
+    }
+  },
+  "Identified": {
+    "type": "byte",
+    "value": 1
+  },
+  "LocalizedName": {
+    "type": "cexolocstring",
+    "value": {
+      "0": "Gloves of a Great Many Punches"
+    }
+  },
+  "ModelPart1": {
+    "type": "byte",
+    "value": 1
+  },
+  "PaletteID": {
+    "type": "byte",
+    "value": 54
+  },
+  "Plot": {
+    "type": "byte",
+    "value": 1
+  },
+  "PropertiesList": {
+    "type": "list",
+    "value": [
+      {
+        "__struct_id": 0,
+        "ChanceAppear": {
+          "type": "byte",
+          "value": 100
+        },
+        "CostTable": {
+          "type": "byte",
+          "value": 22
+        },
+        "CostValue": {
+          "type": "word",
+          "value": 4
+        },
+        "Param1": {
+          "type": "byte",
+          "value": 255
+        },
+        "Param1Value": {
+          "type": "byte",
+          "value": 0
+        },
+        "PropertyName": {
+          "type": "word",
+          "value": 24
+        },
+        "Subtype": {
+          "type": "word",
+          "value": 125
+        }
+      }
+    ]
+  },
+  "StackSize": {
+    "type": "word",
+    "value": 1
+  },
+  "Stolen": {
+    "type": "byte",
+    "value": 0
+  },
+  "Tag": {
+    "type": "cexostring",
+    "value": "cp_gloves"
+  },
+  "TemplateResRef": {
+    "type": "resref",
+    "value": "cp_gloves"
+  }
+}

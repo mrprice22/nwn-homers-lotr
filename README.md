@@ -1703,9 +1703,31 @@ a player who somehow reached the room can't touch any of them.
 | **STEP WAVE BACK** | Lowers the wave. Only affects what gets handed out *next*; it cannot un-give anything. |
 | **READ CONSOLE** | Party state, current wave, live spawned-object count, players online, record to beat. |
 | **SEND NEXT ANNOUNCEMENT** | Fires the next line of the countdown (T-60, T-30, T-10, go, then a generic "still going"). One press per line. |
+| **STRESS DIAL - GATECRASHERS** | Adds 25 **hostile** Gatecrasher Penguins that actually fight. Combat is the expensive shape and the closest match to what a crowded party costs, so it gets its own dial. They are pathetic on purpose (8 hp, STR 6, CR 1), carry nothing, and CLEAR ALL removes them mid-fight. |
 | **STRESS DIAL - VFX / CREATURES / OBJECTS** | Each press adds **25** objects of that kind, scattered within ~6m of the `cp_venue_wp` waypoint in the Well of Eru, capped at **400** live objects across all three dials. Step size and cap are `CP_DIAL_STEP` / `CP_DIAL_CAP` in `unpacked/cp_dm_inc.nss`. If the waypoint is missing the dial refuses rather than spawning somewhere else. |
 | **CLEAR ALL SPAWNED** | Deletes every object the dials made, everywhere, instantly. |
 | **UAT - SHOW + BURN DOWN MY OWN CHARGES** | Testing aid — see below. |
+
+### The ten party items
+
+| Wave | Item | How it works |
+|---|---|---|
+| 0 | Magical Tankard | sip, belch, fall over, repeat for a few minutes; stacks |
+| 0 | Party Popper | bang and sparkle |
+| 1 | Puppet Strings | point at another **player**, they perform |
+| 1 | Mask of a Thousand Faces | your face, briefly somebody else's |
+| 1 | Drum of the Marching Band | everyone nearby marches in step |
+| 2 | Wishing Coin | ten-row swing table, all temporary |
+| 2 | Crown of Cacophony | **worn** - random animal noises while on your head |
+| 2 | Cloak of a Thousand Faces | **worn** - rerolls your appearance every half minute |
+| 3 | Fireworks Finale Staff | chained VFX bursts, hard depth cap of 5 |
+| 3 | Gloves of a Great Many Punches | **on-hit** - one punch in five does something silly |
+
+Two of them target other creatures, and both are restricted to **players only**
+on purpose: forcing an animation means clearing the target's action queue, which
+on a hostile NPC is a functional stun rather than a joke. The Gloves are the only
+item that fires in combat, and every row of its table is cosmetic for the same
+reason.
 
 **Turning the party off never takes anything away from anyone.** Party items are
 the player's permanently: no expiry clock, no reclaim button, and no code path

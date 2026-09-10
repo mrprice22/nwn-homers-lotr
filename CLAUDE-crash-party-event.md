@@ -110,7 +110,11 @@ filters on nothing else. Keep that filter exactly as narrow as it is.
 | `cp_db.nss` | `crashpartydb`: sip counts, grant flags, peak record |
 | `cp_dm_inc.nss` | Console gate (`Admin_CanAdmin`), venue lookup, dial caps |
 | `cp_tankard` / `cp_tipsy` | The mascot and its after-effects chain |
-| `cp_popper`, `cp_strings`, `cp_mask` (+`cp_maskoff`), `cp_coin`, `cp_fireworks` | The other five items |
+| `cp_popper`, `cp_strings`, `cp_mask` (+`cp_maskoff`), `cp_coin`, `cp_fireworks`, `cp_drum` | The other activated items |
+| `cp_equip` / `cp_unequip` | `Mod_OnPlrEqItm` / `Mod_OnPlrUnEqItm`, dispatching **`cp_` items only** |
+| `cp_crown` (+`cp_crowntick`), `cp_cloak` (+`cp_cloaktick`) | The two worn items |
+| `cp_gloves` | On-hit. No dispatcher of its own -- see below |
+| `cp_crashmob` + `cp_dial_fight` | The hostile gatecrasher wave |
 | `cp_eru_enter.nss` | Well of Eru OnEnter wrapper: catch-up grant + souvenir for crashers, one throttled nudge for everyone else |
 | `cp_penguin` (.utc/.dlg) | Bartholomew: the opt-in/opt-out conversation |
 | `sc_cp_isme/other/canjoin/on` | the conversation's StartingConditionals |
@@ -130,6 +134,35 @@ deliberately — the hook dispatches on tag too, so below it every `cp_` script
 would run twice.
 
 ---
+
+## Three dispatch routes, and why none of them needed a shared file rewritten
+
+| Route | Reached by | Cost |
+|---|---|---|
+| activate | one `cp_` prefix branch in `dmfi_activate.nss` | one edit, made once |
+| equip / unequip | `cp_equip` / `cp_unequip`, newly wired to the two module hooks | both were **empty**, so nothing was displaced |
+| on-hit | nothing at all | see below |
+
+**The equip hooks are deliberately not `x2_mod_def_equ`.** Pointing the module at
+the shipped dispatcher would switch tag-based EQUIP dispatch on for all ~3000
+items at once, and any item whose Tag happens to match a script name would start
+firing it. That is a large blast radius for two joke hats, so `cp_equip`
+dispatches the `cp_` prefix and nothing else. If the module ever wants real
+tag-based equip scripting, that is a separate decision made on purpose.
+
+**The Gloves needed no glue whatsoever.** Item property OnHitCastSpell ->
+`ONHIT_UniquePower` is `iprp_onhitspell` row **125** -> `spells.2da` row **700**
+-> ImpactScript **`X2_S3_OnHitCast`**, and that stock script already runs the
+item's *tag* as a script when the module's tag-based switch is on --
+which `onmoduleload.nss` turns on. Tag == ResRef == script name, so the chain
+completes with nothing overridden. Verified against the module's own hak stack,
+not assumed.
+
+**Mind the on-hit hot path.** BioWare's own header on `x2_s3_onhitcast` warns the
+property "can be a major performance hog... especially at higher levels, with
+each player having multiple attacks". At level 60 with four-plus attacks a round
+`cp_gloves.nss` runs several times per round per wearer, so its non-proc path is
+two reads and a die roll and nothing else. **Do not add work above the roll.**
 
 ## Traps this system already fell into
 

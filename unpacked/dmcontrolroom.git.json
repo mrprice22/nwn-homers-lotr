@@ -34794,8 +34794,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "MASTER SWITCH -- turns the Crash Party on and off, and announces it to every player on the server.\n\nIt gates the DISPENSER ONLY. Switching the party off does NOT take anything away from anybody: party items are the player's permanently, with no expiry and no reclaim. It also resets the wave to 0 and rewinds the countdown announcements, so the next party starts from the top.\n\nThe flag lives on the module and is not persistent -- a reboot always ends the party, which is the failsafe you want on an unattended box."
           }
         },
         "DisarmDC": {
@@ -35022,8 +35021,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "RELEASE NEXT WAVE -- unlocks the next batch of party favours, 0 up to 3.\n\nWaves are GLOBAL, never per player. Pressing this unlocks the wave for everyone at once and immediately tops up every opted-in player already standing in the Well of Eru; anyone who arrives later is caught up on entry and receives every wave released so far in one go.\n\nTells you how many players it topped up on the spot."
           }
         },
         "DisarmDC": {
@@ -35250,8 +35248,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "STEP WAVE BACK -- lowers the wave by one.\n\nOnly changes what the dispenser hands out NEXT. It cannot un-give anything: items already in a player's pack stay there with their charges. Use it to pause an escalation that is running hotter than the tick rate likes."
           }
         },
         "DisarmDC": {
@@ -35478,8 +35475,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "READ CONSOLE -- status only, changes nothing.\n\nReports whether the party is running, the current wave, how many spawned load objects are alive right now, how many players are online, and the peak-concurrent record to beat.\n\nThis is NOT the performance readout. Tick rate is the verdict and that comes from bin/perfmon on the host, or the Palantir if you are carrying one."
           }
         },
         "DisarmDC": {
@@ -35706,8 +35702,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "STRESS DIAL -- VISUAL LOAD. Adds 25 invisible emitters, each pulsing a permanent visual effect, scattered around the Well of Eru.\n\nThe cheapest load for the server and the most expensive for the CLIENT, so this is the dial that finds where players' machines give out rather than where the server does -- a different limit, and worth knowing separately.\n\nCapped at 400 objects across all three dials. CLEAR ALL removes them."
           }
         },
         "DisarmDC": {
@@ -35934,8 +35929,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "STRESS DIAL -- CREATURE LOAD. Adds 25 inert Party Penguins, scattered around the Well of Eru.\n\nThey are Commoner faction and plot: they will not fight anyone and cannot be killed into a heap of corpses. They carry nothing at all, because a pickpocketable spawned NPC is the classic duplication bug.\n\nEvery creature entering any area runs the leash and bestiary hooks, so this multiplies per-creature cost on top of ordinary AI. Watch AIUpdateCreature and the tick rate. Capped at 400 across all dials."
           }
         },
         "DisarmDC": {
@@ -36162,8 +36156,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "STRESS DIAL -- OBJECT LOAD. Adds 25 barrels scattered around the Well of Eru.\n\nSTEP THIS ONE MOST CAREFULLY. AIUpdateItem was measured at ~92 ms/s on the live realm against 0.8 ms/s on an empty one, against an AI update list already around 23,400 objects -- objects are a disproportionate share of this module's cost, so this is the dial most likely to move the tick rate.\n\nThey are placeables, not real items: same object pressure, but nothing a player could pick up, sell or duplicate. Capped at 400 across all dials."
           }
         },
         "DisarmDC": {
@@ -36390,8 +36383,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "CLEAR ALL SPAWNED -- deletes every object the stress dials created, everywhere, immediately. This is the off switch that makes the dials safe to turn up.\n\nIt touches DM-spawned objects only and NEVER a player's inventory. There is deliberately no control anywhere that takes a party item back from a player; the only thing that removes one is that item spending its last charge, or the player choosing to opt out with the penguin."
           }
         },
         "DisarmDC": {
@@ -36618,8 +36610,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "SEND NEXT ANNOUNCEMENT -- fires the next line of the countdown, server-wide.\n\nOne press per line, in order: one hour, thirty minutes, ten minutes, doors open, then a repeatable 'still going' shout. The sequence rewinds whenever the master switch is thrown."
           }
         },
         "DisarmDC": {
@@ -36846,8 +36837,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "A carefully constructed marker denoting a point of interest.",
-            "id": 14693
+            "0": "UAT HELPER -- for testing, not for running the party.\n\nPrints how many charges are left on every party item in YOUR OWN pack, then knocks each down to 3 so you can activate an item a few times and watch it break, instead of several hundred times.\n\nIt only ever reads and writes your own inventory and cannot be pointed at another player. Charge counts are never shown to players anywhere else -- they are meant to use the things until they break."
           }
         },
         "DisarmDC": {
@@ -37027,6 +37017,233 @@
         "X": {
           "type": "float",
           "value": 41.5
+        },
+        "Y": {
+          "type": "float",
+          "value": 42.0
+        },
+        "Z": {
+          "type": "float",
+          "value": 0.0
+        }
+      },
+      {
+        "__struct_id": 9,
+        "AnimationState": {
+          "type": "byte",
+          "value": 0
+        },
+        "Appearance": {
+          "type": "dword",
+          "value": 135
+        },
+        "AutoRemoveKey": {
+          "type": "byte",
+          "value": 0
+        },
+        "Bearing": {
+          "type": "float",
+          "value": 0.0
+        },
+        "BodyBag": {
+          "type": "byte",
+          "value": 0
+        },
+        "CloseLockDC": {
+          "type": "byte",
+          "value": 0
+        },
+        "Conversation": {
+          "type": "resref",
+          "value": ""
+        },
+        "CurrentHP": {
+          "type": "short",
+          "value": 15
+        },
+        "Description": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "STRESS DIAL -- COMBAT LOAD. Adds 25 HOSTILE Gatecrasher Penguins, scattered around the Well of Eru.\n\nThe other three dials make load that just sits there. This one makes the expensive kind: attack rolls, damage, death, perception, creatures pathing at moving targets. It is the closest match to what a crowded party actually costs, which is why it is worth a dial of its own.\n\nThey are deliberately pathetic -- 8 hp, STR 6, CR 1 -- so they cannot meaningfully hurt anyone and are worth almost no XP. They carry nothing at all: a hostile spawned NPC holding anything real would be both pickpocketable and would drop it on death.\n\nCapped at 400 across all dials. CLEAR ALL removes them mid-fight."
+          }
+        },
+        "DisarmDC": {
+          "type": "byte",
+          "value": 15
+        },
+        "Faction": {
+          "type": "dword",
+          "value": 1
+        },
+        "Fort": {
+          "type": "byte",
+          "value": 16
+        },
+        "Hardness": {
+          "type": "byte",
+          "value": 5
+        },
+        "HasInventory": {
+          "type": "byte",
+          "value": 0
+        },
+        "HP": {
+          "type": "short",
+          "value": 15
+        },
+        "Interruptable": {
+          "type": "byte",
+          "value": 1
+        },
+        "KeyName": {
+          "type": "cexostring",
+          "value": ""
+        },
+        "KeyRequired": {
+          "type": "byte",
+          "value": 0
+        },
+        "Lockable": {
+          "type": "byte",
+          "value": 0
+        },
+        "Locked": {
+          "type": "byte",
+          "value": 0
+        },
+        "LocName": {
+          "type": "cexolocstring",
+          "value": {
+            "0": "STRESS DIAL - GATECRASHERS (+25, HOSTILE)"
+          }
+        },
+        "OnClick": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnClosed": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnDamaged": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnDeath": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnDisarm": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnHeartbeat": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnInvDisturbed": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnLock": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnMeleeAttacked": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnOpen": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnSpellCastAt": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnTrapTriggered": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnUnlock": {
+          "type": "resref",
+          "value": ""
+        },
+        "OnUsed": {
+          "type": "resref",
+          "value": "cp_dial_fight"
+        },
+        "OnUserDefined": {
+          "type": "resref",
+          "value": ""
+        },
+        "OpenLockDC": {
+          "type": "byte",
+          "value": 18
+        },
+        "Plot": {
+          "type": "byte",
+          "value": 1
+        },
+        "PortraitId": {
+          "type": "word",
+          "value": 493
+        },
+        "Ref": {
+          "type": "byte",
+          "value": 0
+        },
+        "Static": {
+          "type": "byte",
+          "value": 0
+        },
+        "Tag": {
+          "type": "cexostring",
+          "value": "cp_dial_fight"
+        },
+        "TemplateResRef": {
+          "type": "resref",
+          "value": "plc_placard6"
+        },
+        "TrapDetectable": {
+          "type": "byte",
+          "value": 1
+        },
+        "TrapDetectDC": {
+          "type": "byte",
+          "value": 0
+        },
+        "TrapDisarmable": {
+          "type": "byte",
+          "value": 1
+        },
+        "TrapFlag": {
+          "type": "byte",
+          "value": 0
+        },
+        "TrapOneShot": {
+          "type": "byte",
+          "value": 1
+        },
+        "TrapType": {
+          "type": "byte",
+          "value": 0
+        },
+        "Type": {
+          "type": "byte",
+          "value": 0
+        },
+        "Useable": {
+          "type": "byte",
+          "value": 1
+        },
+        "Will": {
+          "type": "byte",
+          "value": 0
+        },
+        "X": {
+          "type": "float",
+          "value": 44.5
         },
         "Y": {
           "type": "float",
