@@ -166,6 +166,14 @@ two reads and a die roll and nothing else. **Do not add work above the roll.**
 
 ## Traps this system already fell into
 
+**Build with `repack-homers-lotr-clean` after touching `cp_inc.nss` or
+`cp_db.nss`.** A normal repack does not recompile a script whose *include*
+changed, so you get a module where new scripts use the new header and every
+existing one still uses the old. This produced "no such table: cp_crasher" in
+testing: the readers were current, `onmoduleload` -- the one that CREATES the
+table -- was not. Full write-up in [CLAUDE-gotchas.md](CLAUDE-gotchas.md).
+
+
 Recorded because each one is invisible until it bites, and several are general.
 
 **A clone of a player must carry nothing real.** Not an event trap, but found

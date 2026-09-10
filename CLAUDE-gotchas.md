@@ -143,6 +143,33 @@
   int** (raw 7 = 1d6, raw 10 = 2d6), which is how Legendary Reaping's top stacks
   became dice — the ledger converts once, on the total.
 
+- **Editing an INCLUDE and running a normal repack ships STALE COMPILED SCRIPTS.**
+  nasher's "has anything changed?" check looks at `.nss` files, and a script that
+  merely *includes* the file you edited has not changed -- so its old `.ncs` is
+  packed as-is. `nasher --clean` is not enough either: it clears the cache JSON
+  while stale binaries linger in `.nasher/tmp/` and fool the same check (the
+  reason `nwn_manager/bin/repack-homers-lotr-clean` purges `tmp/*.ncs` itself).
+
+  **Rule: after editing any `*_inc.nss` / `*_db.nss` / other include, build with
+  `repack-homers-lotr-clean`, not `repack-homers-lotr`.**
+
+  The failure is silent and the symptom is bizarre, because you get a MIXED
+  module: brand-new scripts compile against the new include, while every existing
+  consumer keeps the old one. This bit the Crash Party on 2026-09-10 -- a new
+  `cp_crasher` table was added to `CP_InitDb()` in `cp_db.nss`, and:
+
+  * `cp_optin.ncs` (a new file) contained the string `cp_crasher`;
+  * `onmoduleload.ncs` (unchanged source, changed include) did **not**, so the
+    table was never created;
+  * in game that reads as *"no such table: cp_crasher"* from the scripts that
+    read it -- pointing at the readers, when the writer was the stale one.
+
+  Diagnosing it: compiled scripts embed their string constants, so
+  `nwn_erf -x -f <module.mod> foo.ncs && strings -a foo.ncs | grep <new string>`
+  tells you directly whether a given `.ncs` was built from current source. That
+  is the check to run whenever in-game behaviour disagrees with the source you
+  are reading.
+
 - **A clone of a player must carry NOTHING REAL.** `CopyObject(oPC, ...)` copies the
   player's **inventory and equipment**, so a "cosmetic double" is really a creature
   standing there wearing duplicates of live gear. **Plot does not stop pickpocket**, and
