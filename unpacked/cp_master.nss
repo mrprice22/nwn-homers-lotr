@@ -18,8 +18,12 @@ void main()
     int bNew = !CP_IsOn();
     CP_SetMode(bNew);
 
-    // Rewind the countdown so a second party starts from the top.
-    DeleteLocalInt(GetModule(), "CP_ANN_STEP");
+    // Rewind the countdown so a second party starts from the top, and bump the
+    // generation so any automatic tick still in flight retires instead of
+    // announcing into the next party.
+    DeleteLocalInt(GetModule(), CP_ANN_STEP);
+    SetLocalInt(GetModule(), CP_ANN_GEN,
+                GetLocalInt(GetModule(), CP_ANN_GEN) + 1);
 
     SendMessageToPC(oPC, bNew
         ? "CRASH PARTY: ON. Wave 0 is live; favours are being handed out at the Well of Eru."

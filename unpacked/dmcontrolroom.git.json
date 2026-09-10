@@ -36610,7 +36610,7 @@
         "Description": {
           "type": "cexolocstring",
           "value": {
-            "0": "SEND NEXT ANNOUNCEMENT -- fires the next line of the countdown, server-wide.\n\nOne press per line, in order: one hour, thirty minutes, ten minutes, doors open, then a repeatable 'still going' shout. The sequence rewinds whenever the master switch is thrown."
+            "0": "SEND NEXT ANNOUNCEMENT -- starts the countdown, server-wide.\n\nONE PRESS RUNS THE WHOLE COUNTDOWN. It sends \"starts in one hour\" and then schedules the rest by itself: thirty minutes later, twenty after that, ten after that, then the doors-open shout. Kick it off and forget about it.\n\nPressing it again is still safe and is how you catch up if you got on late -- it fires the next line immediately and re-schedules from there, and the pending automatic one retires rather than repeating itself.\n\nAfter the doors open the chain ends. Further presses repeat a \"still going\" shout, manually, for as long as you want."
           }
         },
         "DisarmDC": {

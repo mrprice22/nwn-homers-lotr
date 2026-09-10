@@ -95,6 +95,8 @@ int    CP_GrantUpToWave(object oPC);
 int    CP_ReclaimItems(object oPC);
 void   CP_VenueOpen(int bOpen);
 void   CP_PenguinCheer();
+void   CP_AnnounceFire();
+void   CP_AnnounceSchedule();
 object CP_FindItem(object oPC, string sResRef);
 object CP_Target(object oPC);
 int    CP_OnlineCount();
@@ -410,6 +412,78 @@ void CP_PenguinCheer()
         }
         oObj = GetNextObjectInArea(oArea);
     }
+}
+
+// ------------------------------------------------------------ the countdown
+//
+// The countdown runs itself once started, and can still be pushed by hand.
+//
+// Deliberately NOT gated on CP_IsOn: the whole countdown happens BEFORE the
+// party is switched on ("starts in one hour"), so a mode check here would stop
+// it firing at all.
+//
+// Superseding: every schedule bumps CP_ANN_GEN and every tick bumps
+// CP_ANN_SEEN, so a tick that is not the newest returns without firing. That is
+// what makes a manual press safe -- pressing the placard early fires the line
+// AND re-schedules, and the older pending tick quietly retires instead of
+// double-announcing. Same generation guard as the Mask's revert.
+
+const string CP_ANN_STEP = "CP_ANN_STEP";
+const string CP_ANN_GEN  = "CP_ANN_GEN";
+const string CP_ANN_SEEN = "CP_ANN_SEEN";
+
+// Minutes from each line to the next. The last entry ends the chain: past the
+// doors opening there is nothing to count down to, and a party that nags every
+// half hour is worse than one that does not.
+int CP_AnnounceGap(int nStep)
+{
+    switch (nStep)
+    {
+        case 0: return 30;   // "one hour"     -> "thirty minutes"
+        case 1: return 20;   // "thirty"       -> "ten minutes"
+        case 2: return 10;   // "ten minutes"  -> doors open
+    }
+    return 0;                // doors open: chain ends, manual only from here
+}
+
+void CP_AnnounceFire()
+{
+    int nStep = GetLocalInt(GetModule(), CP_ANN_STEP);
+    string sMsg;
+    switch (nStep)
+    {
+        case 0:
+            sMsg = "The Crash Party starts in ONE HOUR. Come to the Well of Eru -- " +
+                   "we are trying to break the server's all-time record for players online.";
+            break;
+        case 1:
+            sMsg = "THIRTY MINUTES to the Crash Party. Drag a friend along; every " +
+                   "single body counts toward the record.";
+            break;
+        case 2:
+            sMsg = "TEN MINUTES. Head to the Well of Eru now.";
+            break;
+        case 3:
+            sMsg = "The Crash Party begins NOW! Free party favours at the Well of Eru, " +
+                   "and they are yours to keep afterwards.";
+            break;
+        default:
+            sMsg = "The Crash Party is still going at the Well of Eru. Everyone welcome.";
+            break;
+    }
+    CP_Broadcast("*** " + sMsg + " ***", COLOR_YELLOW);
+    SetLocalInt(GetModule(), CP_ANN_STEP, nStep + 1);
+}
+
+// Queue the next line, if there is one. Safe to call after every fire.
+void CP_AnnounceSchedule()
+{
+    int nGap = CP_AnnounceGap(GetLocalInt(GetModule(), CP_ANN_STEP) - 1);
+    if (nGap <= 0) return;
+
+    int nGen = GetLocalInt(GetModule(), CP_ANN_GEN) + 1;
+    SetLocalInt(GetModule(), CP_ANN_GEN, nGen);
+    DelayCommand(IntToFloat(nGap) * 60.0, ExecuteScript("cp_anntick", GetModule()));
 }
 
 // ------------------------------------------------------------ the venue

@@ -1713,7 +1713,7 @@ a player who somehow reached the room can't touch any of them.
 | **RELEASE NEXT WAVE** | Unlocks the next wave of items for **everyone at once**, and immediately tops up every player already standing in the Well of Eru. |
 | **STEP WAVE BACK** | Lowers the wave. Only affects what gets handed out *next*; it cannot un-give anything. |
 | **READ CONSOLE** | Party state, current wave, live spawned-object count, players online, record to beat. |
-| **SEND NEXT ANNOUNCEMENT** | Fires the next line of the countdown (T-60, T-30, T-10, go, then a generic "still going"). One press per line. |
+| **SEND NEXT ANNOUNCEMENT** | **One press runs the whole countdown.** Sends T-60, then schedules T-30, T-10 and doors-open by itself (30/20/10 minutes apart). Press it again any time to jump ahead — the pending automatic one retires rather than repeating. After doors-open the chain ends and further presses repeat a manual "still going" shout. |
 | **STRESS DIAL - GATECRASHERS** | Adds 25 **hostile** Gatecrasher Penguins that actually fight. Combat is the expensive shape and the closest match to what a crowded party costs, so it gets its own dial. They are pathetic on purpose (8 hp, STR 6, CR 1), carry nothing, and CLEAR ALL removes them mid-fight. |
 | **STRESS DIAL - VFX / CREATURES / OBJECTS** | Each press adds **25** objects of that kind, scattered within ~6m of the `cp_venue_wp` waypoint in the Well of Eru, capped at **400** live objects across all three dials. Step size and cap are `CP_DIAL_STEP` / `CP_DIAL_CAP` in `unpacked/cp_dm_inc.nss`. If the waypoint is missing the dial refuses rather than spawning somewhere else. |
 | **CLEAR ALL SPAWNED** | Deletes every object the dials made, everywhere, instantly. |
