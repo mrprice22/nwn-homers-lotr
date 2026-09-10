@@ -140,6 +140,20 @@ Per-character "already had this" flags live in the `crashpartydb` campaign DB,
 not in PC locals, so a relog cannot re-trigger a grant. Same reasoning as the
 `gondor-scribe` relog-farm fix.
 
+## The Wishing Coin can kill you, and that is affordable HERE only
+
+A 4% roll, taken before the ten-row table, applies `EffectDeath` outright
+(`CP_COIN_DEATH_PCT`). It is a joke the module can afford because **this module
+charges nothing for a death** — no XP, no gold, nothing dropped, as
+`respawn_inc.nss` says in its own header — and respawn puts you back at the Well
+of Eru, which is where the party is. The whole cost is a click and four steps.
+
+Do not copy the mechanic anywhere that death costs something, and do not "fix"
+the one corner it has: a character with outright immunity to death magic shrugs
+it off. Draining them to 1 hit point first (the `fat_inc.nss` lethal path) would
+make it land every time and leave an immune player standing in a crowded room one
+stray hit from a real death. A party item must not do that.
+
 ## Charges: generous, invisible, permanent
 
 Items expire on a **use count only**. There is no real-time cap, and **nothing
@@ -230,6 +244,18 @@ item's *tag* as a script when the module's tag-based switch is on --
 which `onmoduleload.nss` turns on. Tag == ResRef == script name, so the chain
 completes with nothing overridden. Verified against the module's own hak stack,
 not assumed.
+
+**An appearance nobody looked at is usually wrong.** Every item in this set
+shipped with a `ModelPart1` picked off a number: the Party Popper was a rolled-up
+letter, the Mask was a sealed writ, the Wishing Coin a noticeboard flyer, the
+Fireworks Staff a severed dragon head and the Drum a torn-out heart. They are now
+chosen off rendered icon sheets, and the tool plus the verified catalogue live in
+[CLAUDE-item-appearances.md](CLAUDE-item-appearances.md). Note the constraint
+that shapes those choices: an activated item must sit on a **non-equippable** base
+item, which is why they are spread across miscsmall/medium/large/thin (24/29/34/79
+— all four share `PropColumn` 15, so a Unique Power survives the move). Copies
+already in a player's pack keep the appearance they were minted with; opting out
+and back in at Bartholomew is what re-mints them.
 
 **Mind the on-hit hot path.** BioWare's own header on `x2_s3_onhitcast` warns the
 property "can be a major performance hog... especially at higher levels, with

@@ -42,10 +42,15 @@ const float CP_FW_SPARK_GAP  = 0.55; // seconds between sparks inside a burst
 const float CP_FW_BURST_GAP  = 2.2;  // seconds between bursts
 const float CP_FW_SPREAD     = 3.5;  // metres sparks scatter from the shell
 
+// Hellball has a visualeffects.2da row (464) but NO nwscript.nss constant, so
+// it can only be named by its number. Verified against this module's own hak
+// stack -- row 464 is VFX_FNF_HELLBALL -- rather than assumed.
+const int CP_VFX_FNF_HELLBALL = 464;
+
 // The shell: one per burst, the thing people look up at.
 int CP_FireworkShell()
 {
-    switch (Random(14))
+    switch (Random(17))
     {
         case  0: return VFX_FNF_FIREBALL;
         case  1: return VFX_FNF_ELECTRIC_EXPLOSION;
@@ -60,6 +65,9 @@ int CP_FireworkShell()
         case 10: return VFX_FNF_SOUND_BURST;
         case 11: return VFX_FNF_STRIKE_HOLY;
         case 12: return VFX_FNF_DISPEL_GREATER;
+        case 13: return CP_VFX_FNF_HELLBALL;
+        case 14: return VFX_FNF_GREATER_RUIN;
+        case 15: return VFX_FNF_HORRID_WILTING;
     }
     return VFX_FNF_STORM;
 }

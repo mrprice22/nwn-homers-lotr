@@ -652,6 +652,7 @@ After editing Comments in the toolset, the change lands on the wiki at the next 
 
 - [CLAUDE-gff-format.md](CLAUDE-gff-format.md) — GFF-as-JSON typed value format, key conventions (resref/tag/cexolocstring), `module.ifo.json` event hooks
 - [CLAUDE-blueprints.md](CLAUDE-blueprints.md) — Resource shapes cheat sheet: area/git/gic (incl. place-helper.py), creature, item, door/placeable/etc, conversation, journal, faction, palette
+- [CLAUDE-item-appearances.md](CLAUDE-item-appearances.md) — **look at an icon before choosing a `ModelPart1`.** `bin/gen-item-icon-sheet.py` renders every icon a base item can wear into a labelled contact sheet under `module-index/icons/`, straight out of the resman (stock + CEP + this module's overrides). Carries the verified catalogue of what specific model numbers actually depict, the non-equippable base items an activated item may use, and the rule that already-minted copies keep the appearance they were minted with
 - [CLAUDE-nwscript.md](CLAUDE-nwscript.md) — NWScript conventions, framework prefixes, don't-invent-builtins rule, persistence
 - [CLAUDE-recipes.md](CLAUDE-recipes.md) — Step-by-step edit recipes: modify NPC, add NPC, add item, add area, add conversation, add script, add journal quest, edit event hooks, verify a change
 - [CLAUDE-gotchas.md](CLAUDE-gotchas.md) — Silent failure modes and common traps
