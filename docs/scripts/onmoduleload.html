@@ -100,6 +100,8 @@
 #include &quot;pw_inc&quot;
 #include &quot;fat_inc&quot;
 #include &quot;graf_inc&quot;
+#include &quot;mw_db&quot;
+#include &quot;cp_inc&quot;
 
 
 void main()
@@ -362,6 +364,11 @@ Merit_InitDb();
 // Bestiary kill tracking.
 Bst_InitDb();
 
+// Meaningwave guide progress (unlocks, journal stages, finale, mixtape
+// consumption): keyed on GetObjectUUID(), unlike the retired CD-key+name
+// scoping it replaces. See mw_db.nss (roadmap: mw-mixtape-per-character).
+MW_InitDb();
+
 // Teleport / travel destinations.
 Tele_InitDb();
 
@@ -395,6 +402,16 @@ FAT_WipeAll();
 // which no reboot preserves. Recreate the schema, then repaint whatever the
 // easel was last displaying - a pick is meant to survive everything short of a
 // DM setting it in stone. See CLAUDE-graffiti.md.
+// Crash Party (event). Schema first -- DDL belongs here, never on the login
+// frame. Then clear any DM-spawned load objects a crash or restart left lying
+// around: CP_MODE is deliberately non-persistent, so a reboot always ends the
+// party, and the debris should not outlive it.
+//
+// The sweep takes DM-spawned objects tagged cp_load ONLY. Party items in a
+// player&#x27;s pack are theirs to keep and nothing here removes them.
+CP_InitDb();
+ExecuteScript(&quot;cp_sweep&quot;, OBJECT_SELF);
+
 Graf_InitDb();
 Graf_RestoreCanvas();
 

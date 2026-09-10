@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_tipsy</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_tipsy</code></h1><pre class="nss-source"><code>// cp_tipsy -- Crash Party: the Magical Tankard&#x27;s after-effects ticker.
+//
+// Self-scheduling per-PC chain, in the shape _spfail_cycle.nss established: a
+// guard on the PC plus a tail DelayCommand back into this same script.
+// Deliberately NOT on the module heartbeat (bleeding.nss) -- that pulse is
+// already heavily loaded, and frame time is the exact number the crash party
+// exists to measure.
+//
+// ## There is exactly one chain per drinker
+//
+// This script tail-schedules itself, so it must never be started twice for the
+// same PC: a second chain would double the belch rate, a third would triple it,
+// and the sixth drink would produce a fit every couple of seconds forever. The
+// guard is CP_TIPSY_NEXT -- the wall-clock time the next tick is due -- which
+// cp_tankard.nss checks before starting anything and which this script refreshes
+// on every tick. A timestamp rather than a boolean, because creature locals are
+// serialised into the .bic and a flag stranded TRUE by a restart would lock the
+// chain off for good; a stale timestamp just falls into the past.
+//
+// Everything here is cosmetic: an animation and a sound. No knockdown effect,
+// nothing that touches combat, nothing another player can be hit with.
+
+#include &quot;cp_inc&quot;
+
+const string CP_TIPSY_VAR  = &quot;CP_TIPSY&quot;;
+const string CP_TIPSY_END  = &quot;CP_TIPSY_UNTIL&quot;;
+const string CP_TIPSY_NEXT = &quot;CP_TIPSY_NEXT&quot;;
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
+
+    int nTipsy = GetLocalInt(oPC, CP_TIPSY_VAR);
+    int nUntil = GetLocalInt(oPC, CP_TIPSY_END);
+
+    // Sobered up (or never started): tidy up and let the chain die.
+    if (nTipsy &lt;= 0 || CP_Now() &gt;= nUntil)
+    {
+        if (nTipsy &gt; 0) SendMessageToPC(oPC, &quot;Your head clears. Mostly.&quot;);
+        DeleteLocalInt(oPC, CP_TIPSY_VAR);
+        DeleteLocalInt(oPC, CP_TIPSY_END);
+        DeleteLocalInt(oPC, CP_TIPSY_NEXT);
+        return;
+    }
+
+    AssignCommand(oPC, PlaySound(CP_BelchSound(nTipsy)));
+
+    // Below the cap it is a stagger; past it, a full pratfall. Either way the PC
+    // gets control straight back -- ActionPlayAnimation is interruptible and
+    // locks nobody out of a fight.
+    if (nTipsy &gt;= 4 &amp;&amp; Random(3) == 0)
+    {
+        AssignCommand(oPC,
+            ActionPlayAnimation(ANIMATION_LOOPING_DEAD_FRONT, 1.0, IntToFloat(Random(3) + 2)));
+        AssignCommand(oPC, ActionPlayAnimation(ANIMATION_FIREFORGET_PAUSE_BORED, 1.0));
+        ApplyEffectToObject(DURATION_TYPE_INSTANT,
+            EffectVisualEffect(VFX_IMP_CONFUSION_S), oPC);
+    }
+    else
+    {
+        AssignCommand(oPC,
+            ActionPlayAnimation(ANIMATION_LOOPING_PAUSE_DRUNK, 1.0, IntToFloat(Random(4) + 2)));
+    }
+
+    // Tipsier means the fits come closer together: 20-40s sober-ish, down to
+    // roughly 8-18s at the cap.
+    int nGap = 20 - nTipsy;
+    if (nGap &lt; 8) nGap = 8;
+    nGap += Random(11);
+
+    // Refresh the ownership stamp BEFORE scheduling, with slack, so cp_tankard
+    // can see that a live chain still owns this PC.
+    SetLocalInt(oPC, CP_TIPSY_NEXT, CP_Now() + nGap + 5);
+    DelayCommand(IntToFloat(nGap), ExecuteScript(&quot;cp_tipsy&quot;, oPC));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

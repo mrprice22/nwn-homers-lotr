@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_dm_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_dm_inc</code></h1><pre class="nss-source"><code>// cp_dm_inc -- Crash Party: shared plumbing for the DM control-room console.
+//
+// Every lever in the control room routes through CP_DmGate() first. The console&#x27;s
+// EXISTING billboards (dmpc, dm_block_char) are ungated legacy that rely on the
+// area being unreachable; nothing new is built that way. Gate pattern copied from
+// hm_cheat_chest.nss.
+//
+// ## The stress dials
+//
+// These, not the player items, are the actual load test. Ten people with wands is
+// a normal Saturday on this box; a dial you can turn up one notch at a time and
+// switch off instantly is what produces an attributable number. That matches the
+// runbook&#x27;s &quot;add load in steps rather than all at once&quot; (CLAUDE-crash-party.md).
+//
+// Every dial is HARD CAPPED and everything it spawns carries CP_LOAD_TAG, so one
+// lever removes all of it. Load creatures are spawned with NO_LEASH so they are
+// not bounced home by leash_to_area, and carry nothing droppable and nothing
+// real -- a pickpocketable spawned NPC is the classic duplication bug.
+
+#include &quot;cp_inc&quot;
+#include &quot;admin_db&quot;
+
+const int CP_DIAL_STEP = 25;    // objects added per press
+const int CP_DIAL_CAP  = 400;   // total live cp_load objects, all dials combined
+
+int      CP_DmGate(object oPC);
+object   CP_Venue();
+int      CP_LoadCount();
+location CP_ScatterNear(location lAt, float fRadius = 6.0);
+
+// TRUE means &quot;allowed&quot;; sends the refusal itself when not.
+int CP_DmGate(object oPC)
+{
+    if (!GetIsObjectValid(oPC) || !GetIsPC(oPC)) return FALSE;
+    if (GetIsDM(oPC)) return TRUE;
+    if (Admin_CanAdmin(oPC)) return TRUE;
+    SendMessageToPC(oPC, &quot;That console does not answer to you.&quot;);
+    return FALSE;
+}
+
+// Where load is spawned: the party venue, resolved by tag so it is not hardcoded
+// to a position. The Well of Eru is chosen because it is the hub AND because it
+// is not one of the 65 areas running d_cleartrash.nss, which sweeps every object
+// in the area for every object that enters, with no GetIsPC guard -- spawning
+// hundreds of objects into one of those would measure the sweep, not the server.
+object CP_Venue()
+{
+    return GetObjectByTag(&quot;TheWellofEru&quot;);
+}
+
+// COUNT THE OBJECTS, do not trust a tally.
+//
+// A running counter drifts: anything that removes a load object by a route other
+// than the CLEAR ALL lever -- an area cleanup, a DM deleting one by hand, a
+// script that tidies placeables -- leaves the tally high. Drift in this
+// direction is the bad direction: the cap starts refusing to spawn while the
+// venue is visibly empty, mid-event, with no way to explain it.
+//
+// Walking one area per press is cheap (it happens on a lever press, not a
+// frame), it is always right, and it makes the number cp_count reports the
+// actual number of things standing in the venue.
+int CP_LoadCount()
+{
+    object oArea = CP_Venue();
+    if (!GetIsObjectValid(oArea)) return 0;
+
+    int n = 0;
+    object oObj = GetFirstObjectInArea(oArea);
+    while (GetIsObjectValid(oObj))
+    {
+        if (GetTag(oObj) == CP_LOAD_TAG) n++;
+        oObj = GetNextObjectInArea(oArea);
+    }
+    return n;
+}
+
+// Spread spawned load around the venue instead of stacking it on one point.
+//
+// Not cosmetic: a heap of objects sharing one position is not the load a real
+// crowd produces. Scattered objects sit in different tiles, wake different parts
+// of the AI update list and give the pathing code something to do, which is
+// closer to what the dial is meant to be simulating.
+location CP_ScatterNear(location lAt, float fRadius = 6.0)
+{
+    object oArea = GetAreaFromLocation(lAt);
+    vector v = GetPositionFromLocation(lAt);
+    float fAng = IntToFloat(Random(360));
+    float fDist = fRadius * IntToFloat(Random(100)) / 100.0;
+    v.x += fDist * cos(fAng);
+    v.y += fDist * sin(fAng);
+    return Location(oArea, v, IntToFloat(Random(360)));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

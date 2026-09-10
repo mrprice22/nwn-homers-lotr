@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_db</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_db</code></h1><pre class="nss-source"><code>// cp_db -- persistence for the Crash Party event.
+//
+// Campaign DB &quot;crashpartydb&quot;. Three tables, all created idempotently by
+// CP_InitDb(), which is called ONCE from onmoduleload.nss.
+//
+//   cp_player  per-character tankard sip count (the drinking leaderboard)
+//   cp_grant   per-character &quot;already received this item&quot; flags for the wave dispenser
+//   cp_state   scalar world state; currently just the peak-concurrent record
+//
+// ## Why a table rather than PC local ints
+//
+// The dispenser MUST NOT re-grant on relog, and locals on the PC are session
+// scoped -- that is exactly the relog-farm the gondor-scribe fix closed by moving
+// its guard into questcddb (see quest_cd_inc.nss). Same reasoning, own database:
+// the party&#x27;s data stays self-contained and can be wiped without touching quest
+// cooldowns.
+//
+// ## DDL runs at module load, never on the login frame
+//
+// CREATE TABLE on mod_cliententer is felt as login lag (see CLAUDE-*.md). All of
+// it happens once, in onmoduleload.
+//
+// Table names avoid NWN:EE&#x27;s reserved campaign-DB names (meta, db, migrations),
+// which fail silently per-statement with SQLITE_AUTH.
+
+const string CP_DB = &quot;crashpartydb&quot;;
+
+void   CP_InitDb();
+string CP_Ident(object oPC);
+int    CP_HasGrant(object oPC, string sItem);
+void   CP_MarkGrant(object oPC, string sItem);
+int    CP_AddSips(object oPC, int nHowMany = 1);
+int    CP_GetSips(object oPC);
+string CP_TopSips(int nRows = 5);
+int    CP_Now();
+int    CP_GetPeak();
+void   CP_SetPeak(int nPeak);
+
+void CP_InitDb()
+{
+    sqlquery q;
+
+    q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;CREATE TABLE IF NOT EXISTS cp_player (&quot; +
+        &quot;ident TEXT PRIMARY KEY,&quot; +
+        &quot;char_name TEXT,&quot; +
+        &quot;cdkey TEXT,&quot; +
+        &quot;sips INTEGER NOT NULL DEFAULT 0)&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;CREATE TABLE IF NOT EXISTS cp_grant (&quot; +
+        &quot;ident TEXT NOT NULL,&quot; +
+        &quot;item TEXT NOT NULL,&quot; +
+        &quot;granted_at INTEGER NOT NULL DEFAULT 0,&quot; +
+        &quot;PRIMARY KEY (ident, item))&quot;);
+    SqlStep(q);
+
+    q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;CREATE TABLE IF NOT EXISTS cp_state (&quot; +
+        &quot;k TEXT PRIMARY KEY,&quot; +
+        &quot;v INTEGER NOT NULL)&quot;);
+    SqlStep(q);
+}
+
+// Character identity. Same reasoning as QCD_Ident in quest_cd_inc.nss: a UUID is
+// minted once and persists in the .bic, but an unsaved character can hand back an
+// empty string, and an empty key makes every lookup miss -- which reads in game as
+// &quot;the once-ever grant is broken&quot; while the live server is fine.
+string CP_Ident(object oPC)
+{
+    string sUuid = GetObjectUUID(oPC);
+    if (sUuid != &quot;&quot;) return sUuid;
+    return &quot;k:&quot; + GetPCPublicCDKey(oPC) + &quot;|&quot; + GetName(oPC);
+}
+
+int CP_HasGrant(object oPC, string sItem)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT 1 FROM cp_grant WHERE ident=@i AND item=@t&quot;);
+    SqlBindString(q, &quot;@i&quot;, CP_Ident(oPC));
+    SqlBindString(q, &quot;@t&quot;, sItem);
+    return SqlStep(q);
+}
+
+void CP_MarkGrant(object oPC, string sItem)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;INSERT INTO cp_grant (ident, item, granted_at) &quot; +
+        &quot;VALUES (@i, @t, CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)) &quot; +
+        &quot;ON CONFLICT(ident, item) DO NOTHING&quot;);
+    SqlBindString(q, &quot;@i&quot;, CP_Ident(oPC));
+    SqlBindString(q, &quot;@t&quot;, sItem);
+    SqlStep(q);
+}
+
+// Add to this character&#x27;s sip count and return the new total.
+int CP_AddSips(object oPC, int nHowMany = 1)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;INSERT INTO cp_player (ident, char_name, cdkey, sips) &quot; +
+        &quot;VALUES (@i, @n, @k, @c) &quot; +
+        &quot;ON CONFLICT(ident) DO UPDATE SET &quot; +
+        &quot;sips = sips + @c, char_name = @n&quot;);
+    SqlBindString(q, &quot;@i&quot;, CP_Ident(oPC));
+    SqlBindString(q, &quot;@n&quot;, GetName(oPC));
+    SqlBindString(q, &quot;@k&quot;, GetPCPublicCDKey(oPC));
+    SqlBindInt(q, &quot;@c&quot;, nHowMany);
+    SqlStep(q);
+    return CP_GetSips(oPC);
+}
+
+int CP_GetSips(object oPC)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT sips FROM cp_player WHERE ident=@i&quot;);
+    SqlBindString(q, &quot;@i&quot;, CP_Ident(oPC));
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+// Leaderboard rows, newline separated, already numbered. Empty string when
+// nobody has taken a drink yet -- the caller decides what to say about that.
+string CP_TopSips(int nRows = 5)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT char_name, sips FROM cp_player &quot; +
+        &quot;WHERE sips &gt; 0 ORDER BY sips DESC, char_name ASC LIMIT @l&quot;);
+    SqlBindInt(q, &quot;@l&quot;, nRows);
+
+    string sOut = &quot;&quot;;
+    int nRank = 0;
+    while (SqlStep(q))
+    {
+        nRank++;
+        sOut += IntToString(nRank) + &quot;. &quot; + SqlGetString(q, 0)
+              + &quot; -- &quot; + IntToString(SqlGetInt(q, 1)) + &quot;\n&quot;;
+    }
+    return sOut;
+}
+
+// Real-world &quot;now&quot; as unix-epoch seconds, from SQLite rather than the game clock
+// (the game clock runs at its own speed and is not what &quot;a few minutes&quot; means to
+// a player). Same trick as QCD_Now in quest_cd_inc.nss.
+int CP_Now()
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT CAST(strftime(&#x27;%s&#x27;,&#x27;now&#x27;) AS INTEGER)&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+int CP_GetPeak()
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;SELECT v FROM cp_state WHERE k=&#x27;peak&#x27;&quot;);
+    return SqlStep(q) ? SqlGetInt(q, 0) : 0;
+}
+
+void CP_SetPeak(int nPeak)
+{
+    sqlquery q = SqlPrepareQueryCampaign(CP_DB,
+        &quot;INSERT INTO cp_state (k, v) VALUES (&#x27;peak&#x27;, @v) &quot; +
+        &quot;ON CONFLICT(k) DO UPDATE SET v = @v&quot;);
+    SqlBindInt(q, &quot;@v&quot;, nPeak);
+    SqlStep(q);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

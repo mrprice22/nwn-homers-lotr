@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_mask</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_mask</code></h1><pre class="nss-source"><code>// cp_mask -- Crash Party: Mask of a Thousand Faces. Wave 1.
+//
+// Dispatched by tag from dmfi_activate.nss; OBJECT_SELF is the activating PC.
+//
+// Self-only. Rolls a new appearance, then puts the player&#x27;s real one back after
+// a fixed spell. Cosmetic only: SetCreatureAppearanceType changes the model, not
+// a single stat, and is not EffectPolymorph -- so it cannot interact with the
+// module&#x27;s shapeshift item-merge machinery (shape_merge_inc.nss) and cannot be
+// used to launder gear through a form change.
+//
+// The true appearance is stashed on the PC the FIRST time only, so stacking
+// activations can never overwrite it with an already-masked value and strand
+// someone as a dragon.
+
+#include &quot;cp_inc&quot;
+
+const string CP_MASK_TRUE = &quot;CP_MASK_TRUEFORM&quot;;
+const string CP_MASK_SEQ  = &quot;CP_MASK_SEQ&quot;;
+
+int CP_RandomFace()
+{
+    switch (Random(20))
+    {
+        case  0: return APPEARANCE_TYPE_BADGER;
+        case  1: return APPEARANCE_TYPE_BAT;
+        case  2: return APPEARANCE_TYPE_BOAR;
+        case  3: return APPEARANCE_TYPE_CHICKEN;
+        case  4: return APPEARANCE_TYPE_COW;
+        case  5: return APPEARANCE_TYPE_DEER;
+        case  6: return APPEARANCE_TYPE_GOBLIN_A;
+        case  7: return APPEARANCE_TYPE_HALFLING_NPC_MALE;
+        case  8: return APPEARANCE_TYPE_DWARF_NPC_MALE;
+        case  9: return APPEARANCE_TYPE_ELF_NPC_FEMALE;
+        case 10: return APPEARANCE_TYPE_GNOME_NPC_MALE;
+        case 11: return APPEARANCE_TYPE_KOBOLD_A;
+        case 12: return APPEARANCE_TYPE_ORC_A;
+        case 13: return APPEARANCE_TYPE_PENGUIN;
+        case 14: return APPEARANCE_TYPE_RAT;
+        case 15: return APPEARANCE_TYPE_OX;
+        case 16: return APPEARANCE_TYPE_TROLL;
+        case 17: return APPEARANCE_TYPE_OGRE;
+        case 18: return APPEARANCE_TYPE_WEREWOLF;
+    }
+    return APPEARANCE_TYPE_ZOMBIE;
+}
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
+    if (CP_Spam(oPC, &quot;cp_mask_cd&quot;, 3.0)) return;
+
+    object oItem = CP_FindItem(oPC, &quot;cp_mask&quot;);
+    if (!GetIsObjectValid(oItem)) return;
+
+    if (!CP_ConsumeUse(oItem, CP_ItemCharges(3),
+            &quot;The mask crumbles into a handful of painted dust.&quot;))
+        return;
+
+    // Remember the true form once and only once.
+    if (!GetLocalInt(oPC, CP_MASK_TRUE + &quot;_SET&quot;))
+    {
+        SetLocalInt(oPC, CP_MASK_TRUE, GetAppearanceType(oPC));
+        SetLocalInt(oPC, CP_MASK_TRUE + &quot;_SET&quot;, TRUE);
+    }
+
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_POLYMORPH), oPC);
+    SetCreatureAppearanceType(oPC, CP_RandomFace());
+    SendMessageToPC(oPC, &quot;The mask settles over your face and something else looks out.&quot;);
+
+    // Sequence guard: a later activation invalidates an earlier pending revert,
+    // so re-masking before the timer runs out cannot snap you back early.
+    int nSeq = GetLocalInt(oPC, CP_MASK_SEQ) + 1;
+    SetLocalInt(oPC, CP_MASK_SEQ, nSeq);
+    DelayCommand(90.0, ExecuteScript(&quot;cp_maskoff&quot;, oPC));
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

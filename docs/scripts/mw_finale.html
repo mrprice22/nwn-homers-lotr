@@ -72,9 +72,9 @@ void main()
 {
     object oPC = GetPCSpeaker();
     if (MW_UnlockCount(oPC) &lt; MW_ROSTER_SIZE) return;
-    if (GetCampaignInt(MW_DB, &quot;finale&quot;, oPC)) return;
+    if (MW_GetFlag(oPC, &quot;finale&quot;)) return;
 
-    SetCampaignInt(MW_DB, &quot;finale&quot;, 1, oPC);
+    MW_SetFlag(oPC, &quot;finale&quot;);
     CreateItemOnObject(&quot;mw_mixtape&quot;, oPC, 1);
     AddJournalQuestEntry(MW_META_QUEST, MW_ROSTER_SIZE + 2, oPC, TRUE, FALSE);
 

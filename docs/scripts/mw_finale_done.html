@@ -67,7 +67,9 @@
 #include &quot;mw_unlock_inc&quot;
 int StartingConditional()
 {
-    return GetCampaignInt(MW_DB, &quot;finale&quot;, GetPCSpeaker());
+    object oPC = GetPCSpeaker();
+    MW_MigrateLegacy(oPC);
+    return MW_GetFlag(oPC, &quot;finale&quot;);
 }
 </code></pre>
   </main>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_fireworks</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_fireworks</code></h1><pre class="nss-source"><code>// cp_fireworks -- Crash Party: the Fireworks Finale Staff. Wave 3, the spectacle.
+//
+// Dispatched by tag from dmfi_activate.nss; OBJECT_SELF is the activating PC.
+//
+// Fires a burst of harmless VFX at the caster&#x27;s feet, which has a diminishing
+// chance to set off another burst, and another, up to a HARD DEPTH CAP.
+//
+// ## The cap is the whole point, and it is belt and braces
+//
+// A chain that re-triggers itself is the one shape in this whole event that can
+// take the server down for real rather than for fun, and a crash mid-party costs
+// the concurrency record the party exists to set. So there are three independent
+// limits, and none of them relies on the probability roll coming up short:
+//
+//   1. CP_FW_MAX_DEPTH   -- a counter passed down the chain; it cannot recurse
+//                           past 5 no matter what the dice do.
+//   2. CP_FW_PER_BURST   -- how many VFX one burst may apply, fixed, not random.
+//   3. the diminishing roll -- makes long chains RARE. It is the flavour, not
+//                              the safety. Never make it the safety.
+//
+// Every effect is DURATION_TYPE_INSTANT visual only: no damage, no area effect
+// object, nothing that persists, nothing that can hurt a bystander. The staff is
+// a firework, not a fireball.
+
+#include &quot;cp_inc&quot;
+
+const int CP_FW_MAX_DEPTH = 5;
+const int CP_FW_PER_BURST = 3;
+
+int CP_FireworkVfx()
+{
+    switch (Random(6))
+    {
+        case 0: return VFX_FNF_FIREBALL;
+        case 1: return VFX_IMP_PULSE_HOLY;
+        case 2: return VFX_FNF_LOS_EVIL_20;
+        case 3: return VFX_IMP_MAGBLUE;
+        case 4: return VFX_FNF_SUMMON_MONSTER_3;
+    }
+    return VFX_IMP_HEALING_X;
+}
+
+// One burst. nDepth counts UP; the cap is checked before anything is scheduled,
+// so the last permitted burst still fires but can never spawn a successor.
+void CP_Burst(object oPC, location lAt, int nDepth)
+{
+    if (!GetIsObjectValid(oPC)) return;
+    if (nDepth &gt; CP_FW_MAX_DEPTH) return;
+
+    int i;
+    for (i = 0; i &lt; CP_FW_PER_BURST; i++)
+    {
+        DelayCommand(IntToFloat(i) * 0.35,
+            ApplyEffectAtLocation(DURATION_TYPE_INSTANT,
+                EffectVisualEffect(CP_FireworkVfx()), lAt));
+    }
+
+    if (nDepth &gt;= CP_FW_MAX_DEPTH) return;
+
+    // Diminishing: 60% at depth 1, 30% at 2, 20% at 3, 15% at 4. Flavour only --
+    // the depth cap above is what actually bounds this.
+    if (Random(100) &gt;= (60 / nDepth)) return;
+
+    DelayCommand(1.2, CP_Burst(oPC, lAt, nDepth + 1));
+}
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
+    if (CP_Spam(oPC, &quot;cp_fw_cd&quot;, 6.0)) return;
+
+    object oItem = CP_FindItem(oPC, &quot;cp_fireworks&quot;);
+    if (!GetIsObjectValid(oItem)) return;
+
+    if (!CP_ConsumeUse(oItem, CP_ItemCharges(5),
+            &quot;The staff gutters, coughs out one last spark and splinters.&quot;))
+        return;
+
+    AssignCommand(oPC, ActionPlayAnimation(ANIMATION_FIREFORGET_VICTORY1, 1.0));
+    AssignCommand(oPC, PlaySound(&quot;as_cv_bell1&quot;));
+    FloatingTextStringOnCreature(
+        GetName(oPC) + &quot; sets off a firework!&quot;, oPC, TRUE);
+
+    CP_Burst(oPC, GetLocation(oPC), 1);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

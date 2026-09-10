@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_strings</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_strings</code></h1><pre class="nss-source"><code>// cp_strings -- Crash Party: Puppet Strings of Bard&#x27;s Folly. Wave 1.
+//
+// Dispatched by tag from dmfi_activate.nss; OBJECT_SELF is the activating PC, and
+// the chosen target is stashed by the dispatcher (CP_Target).
+//
+// Point it at somebody and they dance. It is a DANCE-LOCK, NOT A STUN: a short
+// ActionPlayAnimation the target can walk out of, with no effect applied, so it
+// cannot be used to interrupt a fight or grief anyone. That restraint is the
+// whole design -- an item that could actually disable a player would not survive
+// contact with a crowded party.
+
+#include &quot;cp_inc&quot;
+
+int CP_SillyAnim()
+{
+    switch (Random(6))
+    {
+        case 0: return ANIMATION_LOOPING_SPASM;
+        case 1: return ANIMATION_LOOPING_GET_LOW;
+        case 2: return ANIMATION_LOOPING_TALK_LAUGHING;
+        case 3: return ANIMATION_LOOPING_MEDITATE;
+        case 4: return ANIMATION_LOOPING_WORSHIP;
+    }
+    return ANIMATION_LOOPING_TALK_FORCEFUL;
+}
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    if (!GetIsPC(oPC)) return;
+    if (CP_Spam(oPC, &quot;cp_str_cd&quot;, 3.0)) return;
+
+    object oItem = CP_FindItem(oPC, &quot;cp_strings&quot;);
+    if (!GetIsObjectValid(oItem)) return;
+
+    // PLAYERS ONLY, and this is a security boundary rather than flavour.
+    //
+    // The effect is ClearAllActions + a 6-10s ActionPlayAnimation. On another
+    // PLAYER that is a joke they can walk straight out of. On an NPC it is a
+    // functional STUN: clearing a hostile creature&#x27;s action queue mid-fight
+    // interrupts whatever it was casting or swinging, and at 400 charges that is
+    // a pocket crowd-control item that trivialises every boss in the module.
+    // Restricting the target to PCs removes the exploit completely instead of
+    // trying to tune around it.
+    object oTarget = CP_Target(oPC);
+    if (!GetIsObjectValid(oTarget) || !GetIsPC(oTarget) || GetIsDM(oTarget))
+    {
+        SendMessageToPC(oPC, &quot;The strings only answer for another player.&quot;);
+        return;   // no charge spent on a fumbled aim
+    }
+
+    if (!CP_ConsumeUse(oItem, CP_ItemCharges(2),
+            &quot;The strings snap and coil away into nothing.&quot;))
+        return;
+
+    float fDur = IntToFloat(Random(5) + 6);   // 6-10s
+
+    AssignCommand(oTarget, ClearAllActions(TRUE));
+    AssignCommand(oTarget, ActionPlayAnimation(CP_SillyAnim(), 1.0, fDur));
+    ApplyEffectToObject(DURATION_TYPE_INSTANT,
+        EffectVisualEffect(VFX_IMP_HEAD_SONIC), oTarget);
+    AssignCommand(oPC, PlaySound(&quot;as_pl_tavsongm2&quot;));
+
+    FloatingTextStringOnCreature(
+        GetName(oTarget) + &quot; is seized by an irresistible urge to perform!&quot;,
+        oTarget, TRUE);
+    if (oTarget != oPC)
+        SendMessageToPC(oTarget, GetName(oPC) + &quot; is pulling your strings.&quot;);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

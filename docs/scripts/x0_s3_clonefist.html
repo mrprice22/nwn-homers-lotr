@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script x0_s3_clonefist</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>x0_s3_clonefist</code></h1><pre class="nss-source"><code>//::///////////////////////////////////////////////
+//:: x0_s3_clonefist
+//:: MODULE OVERRIDE of the BioWare stock script (Copyright (c) 2001 Bioware Corp.)
+//:://////////////////////////////////////////////
+/*
+    Create a fiery version of the character to help them fight.
+
+    ## Why this file exists (it is not stock)
+
+    The stock script builds the clone with CopyObject(oPC, ...), and CopyObject
+    copies INVENTORY AND EQUIPMENT. For three rounds there is a creature standing
+    next to the player wearing duplicates of the player&#x27;s real gear -- and:
+
+      * plot does NOT stop pickpocket, so the clone&#x27;s pack can be robbed for real
+        items, and
+      * disarm_catch.nss only reconciles disarms where the VICTIM is a PC, so a
+        disarmed clone drops a real weapon on the ground with nothing cleaning it
+        up.
+
+    Either one is a genuine item duplication. The stock script&#x27;s own plot flag is
+    applied on a 0.5s delay (&quot;so items don&#x27;t drop&quot;), which is about the clone&#x27;s
+    corpse, not about theft, and leaves a window besides.
+
+    Reached from item property &quot;Flame twin&quot; = iprp_spells row 442 (Twinfists) -&gt;
+    spells.2da row 615 -&gt; ImpactScript x0_s3_clonefist. Verified from the module&#x27;s
+    own hak stack, not assumed. In this module the property is carried by item068
+    (&quot;Homer&#x27;s Touch&quot;, cheat-chest only, can_chest tier) and flametwincloak.
+
+    ## What changed, and nothing else
+
+    Exactly one new call -- CloneFistHarden() -- immediately after the CopyObject,
+    plus the matching cleanup on the expiry path. The fire VFX, the commoner
+    faction, the master link, the 6-tick FakeHB timer, the goodbye fireball and the
+    caster&#x27;s 3.5s fire immunity are all stock and must stay that way.
+
+    Rule this enforces, which is module-wide and not specific to this spell:
+    ANY clone, copy or duplicate of a player must carry nothing real.
+    See CLAUDE-gotchas.md.
+*/
+//:://////////////////////////////////////////////
+#include &quot;nw_i0_generic&quot;
+
+const string CLONEFIST_LOCKED = &quot;X0_L_CLONEFIST_LOCKED&quot;;
+
+// Destroy one item, clearing plot first -- plot items resist DestroyObject.
+// Same defensive order as kalrist_gems.nss.
+void CloneFistNuke(object oItem)
+{
+    if (!GetIsObjectValid(oItem)) return;
+    SetPlotFlag(oItem, FALSE);
+    DestroyObject(oItem);
+}
+
+// Make the clone safe to stand next to.
+//
+//   carried inventory -&gt; destroyed outright. Nothing in the pack to pickpocket.
+//   equipped slots    -&gt; kept (the clone should still LOOK like the caster) but
+//                        locked down: not droppable, not pickpocketable, plot.
+//
+// Known residual, deliberately recorded rather than papered over: disarm is an
+// engine action and disarm_catch.nss does not cover NPC victims, so a disarmed
+// clone could still put a weapon on the ground. CloneFistStrip() on the expiry
+// path bounds that to the clone&#x27;s ~3 round life. Closing it fully means teaching
+// disarm_catch about NPC victims, which is a separate change.
+void CloneFistHarden(object oClone)
+{
+    if (!GetIsObjectValid(oClone)) return;
+
+    object oItem = GetFirstItemInInventory(oClone);
+    while (GetIsObjectValid(oItem))
+    {
+        object oNext = GetNextItemInInventory(oClone);   // step before destroying
+        CloneFistNuke(oItem);
+        oItem = oNext;
+    }
+
+    int nSlot;
+    for (nSlot = 0; nSlot &lt;= INVENTORY_SLOT_CARMOUR; nSlot++)
+    {
+        oItem = GetItemInSlot(nSlot, oClone);
+        if (!GetIsObjectValid(oItem)) continue;
+        SetDroppableFlag(oItem, FALSE);
+        SetPickpocketableFlag(oItem, FALSE);
+        SetPlotFlag(oItem, TRUE);
+    }
+
+    SetLocalInt(oClone, CLONEFIST_LOCKED, TRUE);
+}
+
+// Take the equipped copies with the clone when it goes.
+void CloneFistStrip(object oClone)
+{
+    if (!GetIsObjectValid(oClone)) return;
+
+    int nSlot;
+    for (nSlot = 0; nSlot &lt;= INVENTORY_SLOT_CARMOUR; nSlot++)
+        CloneFistNuke(GetItemInSlot(nSlot, oClone));
+
+    object oItem = GetFirstItemInInventory(oClone);
+    while (GetIsObjectValid(oItem))
+    {
+        object oNext = GetNextItemInInventory(oClone);
+        CloneFistNuke(oItem);
+        oItem = oNext;
+    }
+}
+
+void FakeHB()
+{
+    effect eFlame = EffectVisualEffect(VFX_IMP_FLAME_M);
+    ApplyEffectToObject(DURATION_TYPE_INSTANT, eFlame, OBJECT_SELF);
+    int nExplode = GetLocalInt(OBJECT_SELF, &quot;X0_L_MYTIMERTOEXPLODE&quot;);
+    object oMaster = GetLocalObject(OBJECT_SELF, &quot;X0_L_MYMASTER&quot;);
+    if (nExplode == 6)
+    {
+
+        ClearAllActions();
+        PlayVoiceChat(VOICE_CHAT_GOODBYE);
+        effect eFirePro = EffectDamageImmunityIncrease(DAMAGE_TYPE_FIRE, 100);
+        ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eFirePro, oMaster, 3.5);
+        ActionCastSpellAtLocation(SPELL_FIREBALL, GetLocation(OBJECT_SELF), METAMAGIC_ANY, TRUE, PROJECTILE_PATH_TYPE_DEFAULT, TRUE);
+
+        // OVERRIDE: the gear copies die with the clone. Ahead of the 0.5s
+        // DestroyObject below so nothing survives the creature.
+        CloneFistStrip(OBJECT_SELF);
+
+        DestroyObject(OBJECT_SELF, 0.5);
+        SetCommandable(FALSE);
+        return;
+    }
+    else
+    {
+        object oEnemy = GetNearestCreature(CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, oMaster, 1, CREATURE_TYPE_PERCEPTION, PERCEPTION_SEEN);
+        // * attack my master&#x27;s enemy
+        if (GetIsObjectValid(oEnemy) )
+        {
+            DetermineCombatRound(oEnemy);
+        }
+
+        ActionMoveToObject(GetLocalObject(OBJECT_SELF, &quot;X0_L_MYMASTER&quot;), TRUE);
+        SetLocalInt(OBJECT_SELF, &quot;X0_L_MYTIMERTOEXPLODE&quot;, nExplode + 1);
+        DelayCommand(3.0, FakeHB());
+    }
+}
+
+void main()
+{
+    object oPC = OBJECT_SELF;
+    object oFireGuy = CopyObject(oPC, GetLocation(OBJECT_SELF), OBJECT_INVALID, GetName(oPC) + &quot;CLONEFROMFISTS&quot;);
+
+    // OVERRIDE: before anything else can interact with it. Synchronous on
+    // purpose -- a DelayCommand here would leave exactly the theft window this
+    // file exists to close.
+    CloneFistHarden(oFireGuy);
+
+    SetLocalInt(oFireGuy, &quot;X0_L_MYTIMERTOEXPLODE&quot;,1);
+    SetLocalObject(oFireGuy, &quot;X0_L_MYMASTER&quot;, oPC);
+    ChangeToStandardFaction(oFireGuy, STANDARD_FACTION_COMMONER);
+    SetPCLike(oPC, oFireGuy);
+    DelayCommand(0.5, SetPlotFlag(oFireGuy, TRUE)); // * so items don&#x27;t drop, I can destroy myself.
+    AssignCommand(oFireGuy, FakeHB());
+    effect eVis = EffectVisualEffect(VFX_DUR_ELEMENTAL_SHIELD);
+    ApplyEffectToObject(DURATION_TYPE_PERMANENT, eVis, oFireGuy);
+
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

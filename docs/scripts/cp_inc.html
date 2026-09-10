@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_inc</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_inc</code></h1><pre class="nss-source"><code>// cp_inc -- Crash Party: shared logic for the event&#x27;s items, DM console and signs.
+//
+// Read this header before touching any cp_* script; several of the rules below
+// are the opposite of what you would guess.
+//
+// ## The two switches
+//
+//   CP_MODE   is the party on?   Gates the DISPENSER ONLY.
+//   CP_WAVE   0-3, the DM&#x27;s escalating release. GLOBAL, never per-PC.
+//
+// Both are LocalInts on the module and are deliberately NOT persistent: a reboot
+// turns the party off, which is the right failsafe (dbg_combat.nss is the
+// precedent). Per-PC grant flags are the opposite -- they live in the campaign DB
+// (cp_db.nss) so a relog cannot re-trigger a grant.
+//
+// ## Waves are global, and late joiners are caught up
+//
+// Raising CP_WAVE unlocks that wave for EVERYONE at once. A player who logs in
+// during wave 3 receives waves 0, 1, 2 and 3 in one go -- there is no per-PC
+// progress gate, no grind, and nobody is ever behind. That is the whole point of
+// CP_GrantUpToWave().
+//
+// ## Charges: generous, invisible, and the player&#x27;s to keep
+//
+// Items expire on a USE COUNT ONLY. There is no real-time cap and NOTHING expires
+// when the party ends. Leftover charges survive logout and reboot (the counter is
+// a LocalInt on the item, which serialises into the .bic) and the item keeps
+// working forever. So:
+//
+//   * item scripts must NOT check CP_IsOn() -- only the dispenser does;
+//   * NEVER tell the player the count. No &quot;N uses remaining&quot;, nothing in the
+//     description, and never SetItemCharges (client-visible, and it resets when a
+//     blueprint respawns -- see the ammorep_inc.nss rationale). The break message
+//     is the only signal a player ever gets;
+//   * counts are set high enough that nobody rations during the event.
+//
+// ## Cleanup never touches player inventories
+//
+// The DM&#x27;s CLEAR ALL and the module-load sweep destroy objects tagged CP_LOAD_TAG
+// -- DM-spawned creatures and placeables -- and nothing else. There is no code
+// path anywhere that removes a player-held cp_* item. The only thing that ever
+// does is that item spending its last charge, in the player&#x27;s own hands.
+
+#include &quot;cp_db&quot;
+#include &quot;color&quot;
+
+const string CP_MODE_VAR = &quot;CP_MODE&quot;;
+const string CP_WAVE_VAR = &quot;CP_WAVE&quot;;
+const string CP_USES_VAR = &quot;CP_USES&quot;;
+const string CP_INIT_VAR = &quot;CP_USES_INIT&quot;;
+
+// Every DM-spawned load object carries this tag, and cleanup keys on it alone.
+const string CP_LOAD_TAG = &quot;cp_load&quot;;
+
+const int CP_ITEM_COUNT = 6;
+const int CP_WAVE_MAX   = 3;
+
+int    CP_IsOn();
+int    CP_Wave();
+void   CP_Broadcast(string sMsg, string sColor = &quot;&quot;);
+void   CP_SetMode(int bOn);
+void   CP_SetWave(int nWave);
+int    CP_Spam(object oPC, string sKey, float fSeconds);
+int    CP_ConsumeUse(object oItem, int nMaxUses, string sBreakMsg);
+string CP_ItemResRef(int nIndex);
+int    CP_ItemWave(int nIndex);
+int    CP_ItemCharges(int nIndex);
+int    CP_GrantUpToWave(object oPC);
+object CP_FindItem(object oPC, string sResRef);
+object CP_Target(object oPC);
+int    CP_OnlineCount();
+string CP_BelchSound(int nTipsy);
+
+// ------------------------------------------------------------ state
+
+int CP_IsOn()  { return GetLocalInt(GetModule(), CP_MODE_VAR); }
+int CP_Wave()  { return GetLocalInt(GetModule(), CP_WAVE_VAR); }
+
+// The module has no SendMessageToAllPCs wrapper; this is it. Same loop shape as
+// bst_ondeath.nss&#x27;s server-first announcement.
+void CP_Broadcast(string sMsg, string sColor = &quot;&quot;)
+{
+    string sOut = (sColor == &quot;&quot;) ? sMsg : sColor + sMsg + COLOR_END;
+    object oP = GetFirstPC();
+    while (GetIsObjectValid(oP))
+    {
+        SendMessageToPC(oP, sOut);
+        oP = GetNextPC();
+    }
+}
+
+void CP_SetMode(int bOn)
+{
+    SetLocalInt(GetModule(), CP_MODE_VAR, bOn);
+    if (bOn)
+    {
+        CP_Broadcast(&quot;*** THE CRASH PARTY HAS BEGUN! Head to the Well of Eru. ***&quot;,
+                     COLOR_YELLOW);
+    }
+    else
+    {
+        SetLocalInt(GetModule(), CP_WAVE_VAR, 0);
+        // Deliberately reassuring: people will ask.
+        CP_Broadcast(&quot;*** The Crash Party is over. Thank you for coming! &quot;
+                     + &quot;Anything you were given is yours to keep. ***&quot;, COLOR_YELLOW);
+    }
+}
+
+void CP_SetWave(int nWave)
+{
+    if (nWave &lt; 0) nWave = 0;
+    if (nWave &gt; CP_WAVE_MAX) nWave = CP_WAVE_MAX;
+    SetLocalInt(GetModule(), CP_WAVE_VAR, nWave);
+    CP_Broadcast(&quot;*** CRASH PARTY -- WAVE &quot; + IntToString(nWave)
+                 + &quot; RELEASED! New party favours at the Well of Eru. ***&quot;,
+                 COLOR_YELLOW);
+}
+
+// ------------------------------------------------------------ guards
+
+// TRUE means &quot;still cooling down, bail&quot;. The convention every emote script in the
+// module already uses (SetLocalInt + DelayCommand to clear).
+int CP_Spam(object oPC, string sKey, float fSeconds)
+{
+    if (GetLocalInt(oPC, sKey)) return TRUE;
+    SetLocalInt(oPC, sKey, TRUE);
+    DelayCommand(fSeconds, DeleteLocalInt(oPC, sKey));
+    return FALSE;
+}
+
+// The entire expiry model. Returns TRUE if this use is allowed to happen --
+// including the very last one, which fires AND breaks the item.
+//
+// The plot flag is cleared before DestroyObject because plot items resist destroy
+// (kalrist_gems.nss:72 is the precedent, and every cp_* item is plot).
+int CP_ConsumeUse(object oItem, int nMaxUses, string sBreakMsg)
+{
+    if (!GetIsObjectValid(oItem)) return FALSE;
+
+    int nLeft;
+    if (!GetLocalInt(oItem, CP_INIT_VAR))
+    {
+        nLeft = nMaxUses;                       // first ever use of this copy
+        SetLocalInt(oItem, CP_INIT_VAR, TRUE);
+    }
+    else
+    {
+        nLeft = GetLocalInt(oItem, CP_USES_VAR);
+        if (nLeft &lt;= 0) return FALSE;           // defensive; normally destroyed
+    }
+
+    nLeft--;
+
+    if (nLeft &lt;= 0)
+    {
+        object oOwner = GetItemPossessor(oItem);
+        if (sBreakMsg != &quot;&quot; &amp;&amp; GetIsObjectValid(oOwner) &amp;&amp; GetIsPC(oOwner))
+            SendMessageToPC(oOwner, sBreakMsg);
+        SetPlotFlag(oItem, FALSE);
+        DestroyObject(oItem);
+        return TRUE;                            // the last charge still works
+    }
+
+    SetLocalInt(oItem, CP_USES_VAR, nLeft);
+    return TRUE;
+}
+
+// ------------------------------------------------------------ the item table
+//
+// One place that the dispenser, the DM console and the items themselves all agree
+// on. NWScript has no arrays, hence the switch.
+
+string CP_ItemResRef(int nIndex)
+{
+    switch (nIndex)
+    {
+        case 0: return &quot;cp_tankard&quot;;
+        case 1: return &quot;cp_popper&quot;;
+        case 2: return &quot;cp_strings&quot;;
+        case 3: return &quot;cp_mask&quot;;
+        case 4: return &quot;cp_coin&quot;;
+        case 5: return &quot;cp_fireworks&quot;;
+    }
+    return &quot;&quot;;
+}
+
+int CP_ItemWave(int nIndex)
+{
+    switch (nIndex)
+    {
+        case 0: return 0;   // Magical Tankard
+        case 1: return 0;   // Party Popper
+        case 2: return 1;   // Puppet Strings of Bard&#x27;s Folly
+        case 3: return 1;   // Mask of a Thousand Faces
+        case 4: return 2;   // Wishing Coin
+        case 5: return 3;   // Fireworks Finale Staff
+    }
+    return 99;
+}
+
+int CP_ItemCharges(int nIndex)
+{
+    switch (nIndex)
+    {
+        case 0: return 500;
+        case 1: return 400;
+        case 2: return 400;
+        case 3: return 300;
+        case 4: return 240;
+        case 5: return 120;
+    }
+    return 0;
+}
+
+// ------------------------------------------------------------ the dispenser
+
+// Hand over everything released so far that this character has not already had.
+// Returns how many were granted, so the caller can stay quiet when it is zero.
+//
+// This is the late-joiner guarantee: arrive at wave 3 and you get waves 0-3 at
+// once. It is also the mid-party top-up: called again after a wave drops, it
+// hands over only what is new.
+int CP_GrantUpToWave(object oPC)
+{
+    if (!CP_IsOn()) return 0;
+    if (!GetIsPC(oPC)) return 0;
+
+    int nWave = CP_Wave();
+    int nGranted = 0;
+    int i;
+
+    for (i = 0; i &lt; CP_ITEM_COUNT; i++)
+    {
+        if (CP_ItemWave(i) &gt; nWave) continue;
+
+        string sRes = CP_ItemResRef(i);
+        if (CP_HasGrant(oPC, sRes)) continue;
+
+        // One at a time. CreateItemOnObject&#x27;s stack argument is clamped to the
+        // base item&#x27;s Stacking value, so a count is meaningless here anyway
+        // (CLAUDE-gotchas.md).
+        object oItem = CreateItemOnObject(sRes, oPC);
+        if (!GetIsObjectValid(oItem)) continue;
+
+        SetIdentified(oItem, TRUE);
+        CP_MarkGrant(oPC, sRes);
+        nGranted++;
+    }
+
+    if (nGranted &gt; 0)
+    {
+        SendMessageToPC(oPC, COLOR_YELLOW
+            + &quot;Party favours have been tucked into your pack. They are yours to keep.&quot;
+            + COLOR_END);
+    }
+    return nGranted;
+}
+
+// Resolve the activated item. dmfi_activate stashes it on the activator right
+// before dispatching us, because the OnActivateItem getters are not something an
+// ExecuteScript-dispatched script should lean on (the module&#x27;s existing item
+// scripts, ammorep_open.nss and dye_nui_open.nss, re-find their item too).
+//
+// The possession lookup is the fallback, and is safe here because every cp_*
+// item&#x27;s Tag is identical to its ResRef by design and GetItemPossessedBy matches
+// on TAG. These are non-stacking base-29 items, so the &quot;reports a stack of six as
+// one&quot; caveat in CLAUDE-gotchas.md does not bite.
+object CP_FindItem(object oPC, string sResRef)
+{
+    object oItem = GetLocalObject(oPC, &quot;cp_item&quot;);
+    if (GetIsObjectValid(oItem) &amp;&amp; GetResRef(oItem) == sResRef) return oItem;
+    return GetItemPossessedBy(oPC, sResRef);
+}
+
+// Whatever the player pointed the item at, or OBJECT_INVALID for a self-use.
+object CP_Target(object oPC)
+{
+    return GetLocalObject(oPC, &quot;cp_target&quot;);
+}
+
+// ------------------------------------------------------------ tankard shared
+
+// Real belches exist in the base game data (as_pl_belchingm1/2); the tavern
+// drunk set is the flavour once somebody is properly far gone.
+string CP_BelchSound(int nTipsy)
+{
+    if (nTipsy &gt;= 6 &amp;&amp; Random(2) == 0)
+        return &quot;as_pl_tavdrunkm&quot; + IntToString(Random(4) + 1);
+    return &quot;as_pl_belchingm&quot; + IntToString(Random(2) + 1);
+}
+
+// ------------------------------------------------------------ misc
+
+int CP_OnlineCount()
+{
+    int n = 0;
+    object oP = GetFirstPC();
+    while (GetIsObjectValid(oP))
+    {
+        if (!GetIsDM(oP)) n++;
+        oP = GetNextPC();
+    }
+    return n;
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>

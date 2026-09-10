@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Script cp_uat</title>
+  <script>document.documentElement.classList.add('js-nav','nav-pending');</script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="icon" href="../assets/favicon.png">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><img class="site-header-img" width="1881" height="195" data-header-images="[{&quot;src&quot;:&quot;../assets/header.png&quot;,&quot;w&quot;:1881,&quot;h&quot;:195},{&quot;src&quot;:&quot;../assets/header_02.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:314},{&quot;src&quot;:&quot;../assets/header_03.png&quot;,&quot;w&quot;:1919,&quot;h&quot;:333},{&quot;src&quot;:&quot;../assets/header_04.png&quot;,&quot;w&quot;:1920,&quot;h&quot;:254}]" alt="Home"><script>(function(){var i=document.currentScript.previousElementSibling,a=JSON.parse(i.dataset.headerImages),p=a[Math.floor(Math.random()*a.length)];if(p.w){i.width=p.w;i.height=p.h;}i.src=p.src;})();</script><noscript><img class="site-header-img" src="../assets/header.png" width="1881" height="195" alt="Home"></noscript></a>
+    <nav>
+      <a href="../map/index.html">Map</a>
+      <a href="../areas/index.html">Areas</a>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Creatures &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../creatures/index.html">All Creatures</a>
+          <a href="../creatures/by-area/index.html">By Area</a>
+          <a href="../creatures/by-cr/index.html">By Challenge Rating</a>
+          <a href="../creatures/by-race/index.html">By Race</a>
+          <a href="../creatures/search.html">Search</a>
+          <a href="../creatures/bosses.html">Bosses</a>
+          <a href="../creatures/pictures.html">Pictures</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <span class="nav-dropdown-label">Items &#9660;</span>
+        <div class="nav-dropdown-menu">
+          <a href="../items/index.html">Accessible</a>
+          <a href="../items/inaccessible/index.html">Inaccessible</a>
+          <a href="../items/properties/index.html">By Property</a>
+          <a href="../items/search.html">Search</a>
+          <a href="../items/most-equipped.html">Most Equipped</a>
+        </div>
+      </div>
+      <a href="../stores/index.html">Stores</a>
+      <a href="../conversations/index.html">Conversations</a>
+      <a href="../factions.html">Factions</a>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Quests &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/QuestGuide.html">Quest Guide</a>
+<a href="../quests/index.html">Journal Entries</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Players &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Roadmap.html">Roadmap &amp; Player Ideas</a>
+<a href="../characters/online.html">Who&#x27;s Online</a>
+<a href="../players/index.html">Players</a>
+<a href="../characters/index.html">Characters</a>
+<a href="../characters/leaderboards.html">Leaderboards</a>
+<a href="../players/achievements.html">Hall of Fame</a>
+<a href="../activity.html">Player Activity</a>
+<a href="../manual/ServerFirsts.html">Server Firsts</a></div></div>
+      <div class="nav-dropdown"><span class="nav-dropdown-label">Documents &#9660;</span><div class="nav-dropdown-menu"><a href="../manual/Customizations.html">Customizations</a>
+<a href="../manual/MeaningWave.html">MeaningWave: A Guide to the Guides</a>
+<div class="nav-submenu"><span class="nav-submenu-label">Draft</span><div class="nav-submenu-menu"><a href="../manual/Draft/CasterGear.html">Caster Signature Gear — Homer&#x27;s LOTR</a>
+<a href="../manual/Draft/ForkDiff.html">Fork diff: 2008 and 2009 vs. Legendary LotR</a>
+<a href="../manual/Draft/Gem-Socketing.html">Slotted Items (Gem Socketing) — Design Notes</a>
+<a href="../manual/Draft/LegendaryFeats.html">Legendary Feats</a>
+<a href="../manual/Draft/LevelingGuide.html">Leveling Guide</a>
+<a href="../manual/Draft/Quest Ideas.html">Quest Ideas (Draft Concepts)</a>
+<a href="../manual/Draft/boss-updates.html">Endgame Difficulty — Tactical, Not Spongy</a></div></div></div></div>
+      
+    </nav>
+  </header>
+  <main>
+<h1>Script: <code>cp_uat</code></h1><pre class="nss-source"><code>// cp_uat -- Crash Party: UAT helper. Control-room placeable, OnUsed.
+//
+// Reports the charges left on every cp_* item in the PRESSER&#x27;S OWN pack, then
+// burns each one down to CP_UAT_LEFT so the break path can be exercised in
+// seconds instead of four hundred activations.
+//
+// ## Why a lever and not a CLI
+//
+// Charges are LocalInts on the item object, serialised into the player&#x27;s .bic.
+// Nothing host-side can reach them -- bin/crash-party-db.py deliberately stops at
+// the database, because &quot;no server-side thing removes a player&#x27;s charges&quot; is a
+// promise the event makes, not an oversight. An in-game lever run BY the admin
+// ON the admin&#x27;s own items is the only honest way to test expiry.
+//
+// ## Scope, and why it is drawn this tightly
+//
+// It only ever touches GetLastUsedBy()&#x27;s own inventory. It cannot be pointed at
+// another player, and there is no variant of it that can. If this ever needs to
+// affect somebody else&#x27;s items, the answer is no.
+//
+// Showing the count is fine HERE and nowhere else: this is behind the
+// Admin_CanAdmin gate in a room players cannot reach. Never surface a charge
+// count to a player -- see cp_inc.nss.
+
+#include &quot;cp_dm_inc&quot;
+
+const int CP_UAT_LEFT = 3;
+
+void main()
+{
+    object oPC = GetLastUsedBy();
+    if (!CP_DmGate(oPC)) return;
+
+    string sOut = COLOR_YELLOW + &quot;-- CRASH PARTY UAT: your own cp_* items --&quot; + COLOR_END + &quot;\n&quot;;
+    int nFound = 0;
+    int i;
+
+    for (i = 0; i &lt; CP_ITEM_COUNT; i++)
+    {
+        string sRes  = CP_ItemResRef(i);
+        object oItem = GetItemPossessedBy(oPC, sRes);
+        if (!GetIsObjectValid(oItem)) continue;
+
+        nFound++;
+        int nMax  = CP_ItemCharges(i);
+        int bInit = GetLocalInt(oItem, CP_INIT_VAR);
+        int nLeft = bInit ? GetLocalInt(oItem, CP_USES_VAR) : nMax;
+
+        sOut += &quot;  &quot; + GetName(oItem) + &quot;: &quot; + IntToString(nLeft)
+             + &quot; / &quot; + IntToString(nMax) + (bInit ? &quot;&quot; : &quot; (unused)&quot;) + &quot;\n&quot;;
+
+        // Force the counter into the initialised state at a low value, so the
+        // very next few activations walk it to zero and fire the break message.
+        SetLocalInt(oItem, CP_INIT_VAR, TRUE);
+        SetLocalInt(oItem, CP_USES_VAR, CP_UAT_LEFT);
+    }
+
+    if (nFound == 0)
+    {
+        SendMessageToPC(oPC,
+            &quot;You are not carrying any Crash Party items. Turn the party on and &quot;
+            + &quot;walk into the Well of Eru to be issued a set.&quot;);
+        return;
+    }
+
+    sOut += &quot;\nAll &quot; + IntToString(nFound) + &quot; burned down to &quot;
+          + IntToString(CP_UAT_LEFT) + &quot; charge(s). Activate to watch them break.&quot;;
+    SendMessageToPC(oPC, sOut);
+}
+</code></pre>
+  </main>
+  <footer>generated by <a href="https://github.com/mrprice22/nwn-manager">nwn-manager</a> &mdash; <span id="wiki-generated-at" data-meta-url="../assets/meta.json"></span></footer>
+</body>
+</html>
